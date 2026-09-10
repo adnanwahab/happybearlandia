@@ -18,6 +18,12 @@ simulators, games, tools, robots
 /experiment = single file game
 /visualization grid
 
+# how to run locally
+bun run dev
+
+# how to deploy
+
+fly deploy
 
 # references
 https://www.youtube.com/watch?v=4Tr0otuiQuU&list=RD4Tr0otuiQuU&start_radio=1
