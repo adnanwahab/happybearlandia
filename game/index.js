@@ -477,6 +477,27 @@ function getThreeObjectForBody(body, color) {
    let tealCubeMaterial;
    let tealCubeContactCount = 0;
    let tealCubeWasContacted = false;
+   let tealCubeGlowStartTime = null;
+   const tealCubeOriginalEmissive = new THREE.Color(0x000000);
+   const tealCubeOriginalEmissiveIntensity = 0;
+   const tealCubeGlowDuration = 5;
+   const audio = new Audio('./game/sound.m4a');
+
+   const updateTealCubeGlow = (currentTime) => {
+    if (!tealCubeMaterial || tealCubeGlowStartTime === null)
+     return;
+
+    const elapsed = currentTime - tealCubeGlowStartTime;
+    const progress = Math.min(elapsed / tealCubeGlowDuration, 1);
+    tealCubeMaterial.emissive.lerp(tealCubeOriginalEmissive, progress);
+    tealCubeMaterial.emissiveIntensity = THREE.MathUtils.lerp(1.5, tealCubeOriginalEmissiveIntensity, progress);
+
+    if (progress >= 1) {
+     tealCubeMaterial.emissive.copy(tealCubeOriginalEmissive);
+     tealCubeMaterial.emissiveIntensity = tealCubeOriginalEmissiveIntensity;
+     tealCubeGlowStartTime = null;
+    }
+   };
 
    const updateSettings = new Jolt.ExtendedUpdateSettings();
 
@@ -558,6 +579,11 @@ function getThreeObjectForBody(body, color) {
      if (!tealCubeWasContacted) {
       console.log("Player collided with the teal cube");
       tealCubeWasContacted = true;
+      tealCubeGlowStartTime = time;
+      tealCubeMaterial.emissive.set(0x00ffff);
+      tealCubeMaterial.emissiveIntensity = 1.5;
+      audio.currentTime = 0;
+      audio.play().catch(error => console.error("Unable to play collision sound:", error));
      }
    }
    };
@@ -626,10 +652,7 @@ function getThreeObjectForBody(body, color) {
      jolt.GetTempAllocator());
 
     threeCharacter.position.copy(wrapVec3(character.GetPosition()));
-    if (tealCubeMaterial) {
-     tealCubeMaterial.emissive.set(tealCubeContactCount > 0 ? 0x00ffff : 0x000000);
-     tealCubeMaterial.emissiveIntensity = tealCubeContactCount > 0 ? 1.5 : 0;
-    }
+    updateTealCubeGlow(time);
     if (tealCubeContactCount === 0)
      tealCubeWasContacted = false;
    };
@@ -831,13 +854,6 @@ function getThreeObjectForBody(body, color) {
    physicsSystem.SetGravity(new Jolt.Vec3(0, -25, 0));
   });
 
-
-  const audio = new Audio('./game/sound.m4a');
-
-//music
-setTimeout(function () {
- audio.play();
-}, 5000);
 //connectivityvar socket = null;
 var socket = null;
 
