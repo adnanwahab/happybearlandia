@@ -17,3 +17,7 @@ simulators, games, tools, robots
 / index hosts game
 /experiment = single file game
 /visualization grid
+
+
+# references
+https://www.youtube.com/watch?v=4Tr0otuiQuU&list=RD4Tr0otuiQuU&start_radio=1

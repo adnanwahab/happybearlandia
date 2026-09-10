@@ -1,4 +1,4 @@
-import initJolt from 'https://www.unpkg.com/jolt-physics/dist/jolt-physics.wasm-compat.js';
+    import initJolt from 'https://www.unpkg.com/jolt-physics/dist/jolt-physics.wasm-compat.js';
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 import { OrbitControls } from
   "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js";
@@ -914,3 +914,11 @@ function addMarker(location, size, color) {
 
 			physicsSystem.SetGravity(new Jolt.Vec3(0, -25, 0))
 		});
+
+
+		const audio = new Audio('./game/sound.m4a');
+
+
+setTimeout(function () {
+	audio.play();
+}, 5000)
