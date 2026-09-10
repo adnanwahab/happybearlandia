@@ -1,0 +1,20 @@
+<div id="container">Loading...</div>
+	<div id="info">
+		JoltPhysics.js character demo<br />
+		WASD to move, Space to jump, Shift to crouch<br />
+		<select id="collision-shape">
+			<option value="Capsule">Capsule</option>
+			<option value="Cylinder">Cylinder</option>
+			<option value="Box">Box</option>
+		</select>
+	</div>
+<script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.173.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.173.0/examples/jsm/"
+            }
+        }
+    </script>
+
+<script src="index.js" type="module"></script>
