@@ -918,7 +918,41 @@ function addMarker(location, size, color) {
 
 		const audio = new Audio('./game/sound.m4a');
 
-
+//music
 setTimeout(function () {
 	audio.play();
 }, 5000)
+//connectivityvar socket = null;
+var socket = null;
+
+function connect() {
+  const scheme =
+    location.protocol === "https:"
+      ? "wss"
+      : "ws";
+
+  const serverUrl =
+    `${scheme}://${location.host}/ws`;
+
+  socket = new WebSocket(serverUrl);
+
+  socket.onopen = () => {
+    console.log("WebSocket connected");
+  };
+
+  socket.onmessage = event => {
+    const msg = JSON.parse(event.data);
+
+    console.log("Received:", msg);
+  };
+
+  socket.onclose = () => {
+    console.log("WebSocket disconnected");
+  };
+
+  socket.onerror = error => {
+    console.error("WebSocket error:", error);
+  };
+}
+
+connect();
