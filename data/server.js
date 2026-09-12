@@ -12,7 +12,7 @@ const minute = String(now.getMinutes()).padStart(2, "0");
 const date = `${year}-${month}-${day}`;
 const filename = `${hour}-${minute}.mp4`;
 
-const baseDirectory = "/Users/wahabma/happybearlandia/data/webcam";
+const baseDirectory = "/home/adnan/happybearlandia/data/webcam";
 const directory = `${baseDirectory}/${date}`;
 const outputPath = `${directory}/${filename}`;
 
