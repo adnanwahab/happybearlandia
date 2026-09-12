@@ -8,6 +8,25 @@ simulators, games, tools, robots
 /game jolt physics music game 
 
 
+# hardware cost
+$560
+https://www.hiwonder.com/products/nexarm6-axis
+
+
+- 5 minutes stream per day
+fswebcam -r 1920x1080 --no-banner image.jpg
+ffmpeg -f v4l2 -framerate 30 -video_size 1920x1080 \
+-i /dev/video0 \
+-t 5 \
+-c:v libx264 \
+-preset veryfast \
+output.mp4
+HappyBearLandia/
+  webcam/
+    2026-09-11/
+      00-00.mp4
+
+
 # Routes
 /blog observable framework
 /data downloads bucket
