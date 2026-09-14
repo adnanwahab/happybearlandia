@@ -10,17 +10,60 @@ const hour = String(now.getHours()).padStart(2, "0");
 const minute = String(now.getMinutes()).padStart(2, "0");
 
 const date = `${year}-${month}-${day}`;
-const filename = `${hour}-${minute}.mp4`;
+const filename = `${hour}-${minute}`;
 
-const baseDirectory = "/home/adnan/happybearlandia/data/webcam";
-const directory = `${baseDirectory}/${date}`;
-const outputPath = `${directory}/${filename}`;
 
-await mkdir(directory, { recursive: true });
+// --------------------------------------------------
+// Directories
+// --------------------------------------------------
 
-console.log(`Recording to: ${outputPath}`);
+const webcamBaseDirectory =
+  "/home/adnan/happybearlandia/data/webcam";
 
-const ffmpeg = Bun.spawn([
+const microphoneBaseDirectory =
+  "/home/adnan/happybearlandia/data/microphone";
+
+
+const webcamDirectory =
+  `${webcamBaseDirectory}/${date}`;
+
+const microphoneDirectory =
+  `${microphoneBaseDirectory}/${date}`;
+
+
+// --------------------------------------------------
+// Output files
+// --------------------------------------------------
+
+const videoOutputPath =
+  `${webcamDirectory}/${filename}.mp4`;
+
+const audioOutputPath =
+  `${microphoneDirectory}/${filename}.m4a`;
+
+
+// --------------------------------------------------
+// Create directories
+// --------------------------------------------------
+
+await mkdir(webcamDirectory, {
+  recursive: true,
+});
+
+await mkdir(microphoneDirectory, {
+  recursive: true,
+});
+
+
+console.log(`Recording video to: ${videoOutputPath}`);
+console.log(`Recording audio to: ${audioOutputPath}`);
+
+
+// --------------------------------------------------
+// Webcam
+// --------------------------------------------------
+
+const videoFFmpeg = Bun.spawn([
   "ffmpeg",
 
   "-f",
@@ -44,17 +87,64 @@ const ffmpeg = Bun.spawn([
   "-preset",
   "veryfast",
 
-  outputPath,
+  videoOutputPath,
 ], {
   stdout: "inherit",
   stderr: "inherit",
-  stdin: "inherit",
 });
 
-const exitCode = await ffmpeg.exited;
 
-if (exitCode === 0) {
-  console.log(`Finished recording: ${outputPath}`);
+// --------------------------------------------------
+// USB Microphone
+// --------------------------------------------------
+
+const audioFFmpeg = Bun.spawn([
+  "ffmpeg",
+
+  "-f",
+  "alsa",
+
+  "-i",
+  "hw:1,0",
+
+  "-t",
+  "900",
+
+  "-c:a",
+  "aac",
+
+  "-b:a",
+  "128k",
+
+  audioOutputPath,
+], {
+  stdout: "inherit",
+  stderr: "inherit",
+});
+
+
+// --------------------------------------------------
+// Wait for both recordings
+// --------------------------------------------------
+
+const [videoExitCode, audioExitCode] = await Promise.all([
+  videoFFmpeg.exited,
+  audioFFmpeg.exited,
+]);
+
+
+// --------------------------------------------------
+// Results
+// --------------------------------------------------
+
+if (videoExitCode === 0) {
+  console.log(`Finished video: ${videoOutputPath}`);
 } else {
-  console.error(`ffmpeg exited with code ${exitCode}`);
+  console.error(`Video ffmpeg exited with code ${videoExitCode}`);
+}
+
+if (audioExitCode === 0) {
+  console.log(`Finished audio: ${audioOutputPath}`);
+} else {
+  console.error(`Audio ffmpeg exited with code ${audioExitCode}`);
 }
