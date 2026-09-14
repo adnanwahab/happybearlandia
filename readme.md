@@ -29,13 +29,8 @@ HappyBearLandia/
 
 # Routes
 /blog observable framework
-/data downloads bucket
-/tool replay analyzer
-/edit saves json
-/game imports for 3 clients
-/ index hosts game
-/experiment = single file game
-/visualization grid
+/data folder decouples sensor from computer
+/tools/scene-reconstruction - reconstructs 3D scene from sensor data, replay analyzer
 
 # how to run locally
 bun run dev
