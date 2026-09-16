@@ -1,0 +1,1191 @@
+<div class="toolbar">
+  <button id="pauseBtn">Pause waves</button>
+  <button id="pathsBtn">Hide paths</button>
+  <button id="resetBtn">Reset view</button>
+
+  <span id="status">
+    Loading 3D scene…
+  </span>
+</div>
+
+<div id="scene"></div>
+
+<div class="instructions">
+  Drag to orbit · Scroll to zoom · Blue particles represent sound reflecting
+  around the room.
+</div>
+<style>
+
+  html,
+body {
+  margin: 0;
+  width: 100%;
+  min-height: 100%;
+  background: #111418;
+  color: white;
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+button {
+  border: 1px solid #58616b;
+  background: #252b31;
+  color: white;
+  padding: 9px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:hover {
+  background: #343c44;
+}
+
+#status {
+  color: #adb7c2;
+  margin-left: 6px;
+}
+
+#scene {
+  width: 100%;
+  height: 650px;
+  border: 1px solid #3d454d;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #111418;
+}
+
+#scene canvas {
+  display: block;
+}
+
+.instructions {
+  color: #9faab5;
+  font-size: 14px;
+  margin-top: 10px;
+}
+</style>
+
+<script>(async function () {
+  const THREE = await import(
+    "https://cdn.jsdelivr.net/npm/three@0.180.0/+esm"
+  );
+
+  const { OrbitControls } = await import(
+    "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js/+esm"
+  );
+
+  const container = document.getElementById("scene");
+
+  const pauseBtn = document.getElementById("pauseBtn");
+  const pathsBtn = document.getElementById("pathsBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const status = document.getElementById("status");
+
+  // --------------------------------------------------
+  // SCENE
+  // --------------------------------------------------
+
+  const scene = new THREE.Scene();
+
+  scene.background = new THREE.Color(0x111418);
+
+  // --------------------------------------------------
+  // CAMERA
+  // --------------------------------------------------
+
+  const camera = new THREE.PerspectiveCamera(
+    50,
+    container.clientWidth / container.clientHeight,
+    0.1,
+    100
+  );
+
+  camera.position.set(7.6, 5.2, 8.8);
+
+  // --------------------------------------------------
+  // RENDERER
+  // --------------------------------------------------
+
+  const renderer = new THREE.WebGLRenderer({
+    antialias: true
+  });
+
+  renderer.setPixelRatio(
+    Math.min(window.devicePixelRatio, 2)
+  );
+
+  renderer.setSize(
+    container.clientWidth,
+    container.clientHeight
+  );
+
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  container.appendChild(renderer.domElement);
+
+  // --------------------------------------------------
+  // CAMERA CONTROLS
+  // --------------------------------------------------
+
+  const controls = new OrbitControls(
+    camera,
+    renderer.domElement
+  );
+
+  controls.target.set(0, 1.6, 0);
+
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.07;
+
+  controls.minDistance = 4;
+  controls.maxDistance = 18;
+
+  // --------------------------------------------------
+  // LIGHTING
+  // --------------------------------------------------
+
+  const hemisphereLight =
+    new THREE.HemisphereLight(
+      0xdbe8ff,
+      0x302c27,
+      1.5
+    );
+
+  scene.add(hemisphereLight);
+
+  const mainLight =
+    new THREE.DirectionalLight(
+      0xffffff,
+      2.2
+    );
+
+  mainLight.position.set(3, 7, 5);
+
+  mainLight.castShadow = true;
+
+  scene.add(mainLight);
+
+  // --------------------------------------------------
+  // ROOM
+  // --------------------------------------------------
+
+  const roomWidth = 10;
+  const roomHeight = 5.5;
+  const roomDepth = 8;
+
+  const floorMaterial =
+    new THREE.MeshStandardMaterial({
+      color: 0x47433d,
+      roughness: 0.9
+    });
+
+  const wallMaterial =
+    new THREE.MeshStandardMaterial({
+      color: 0x30363d,
+      roughness: 0.95,
+      side: THREE.DoubleSide
+    });
+
+  // floor
+
+  const floor = new THREE.Mesh(
+    new THREE.BoxGeometry(
+      roomWidth,
+      0.12,
+      roomDepth
+    ),
+    floorMaterial
+  );
+
+  floor.position.y = -0.06;
+
+  floor.receiveShadow = true;
+
+  scene.add(floor);
+
+  // back wall
+
+  const backWall = new THREE.Mesh(
+    new THREE.PlaneGeometry(
+      roomWidth,
+      roomHeight
+    ),
+    wallMaterial
+  );
+
+  backWall.position.set(
+    0,
+    roomHeight / 2,
+    -roomDepth / 2
+  );
+
+  scene.add(backWall);
+
+  // left wall
+
+  const leftWall = new THREE.Mesh(
+    new THREE.PlaneGeometry(
+      roomDepth,
+      roomHeight
+    ),
+    wallMaterial
+  );
+
+  leftWall.rotation.y =
+    Math.PI / 2;
+
+  leftWall.position.set(
+    -roomWidth / 2,
+    roomHeight / 2,
+    0
+  );
+
+  scene.add(leftWall);
+
+  // right wall
+
+  const rightWall = leftWall.clone();
+
+  rightWall.rotation.y =
+    -Math.PI / 2;
+
+  rightWall.position.x =
+    roomWidth / 2;
+
+  scene.add(rightWall);
+
+  // --------------------------------------------------
+  // MATERIALS
+  // --------------------------------------------------
+
+  const deskMaterial =
+    new THREE.MeshStandardMaterial({
+      color: 0x6c5139,
+      roughness: 0.75
+    });
+
+  const darkMaterial =
+    new THREE.MeshStandardMaterial({
+      color: 0x20242a,
+      roughness: 0.65
+    });
+
+  const skinMaterial =
+    new THREE.MeshStandardMaterial({
+      color: 0xc68f67,
+      roughness: 0.8
+    });
+
+  const shirtMaterial =
+    new THREE.MeshStandardMaterial({
+      color: 0x5c718b,
+      roughness: 0.85
+    });
+
+  // --------------------------------------------------
+  // HELPER: CREATE BOX
+  // --------------------------------------------------
+
+  function createBox(
+    width,
+    height,
+    depth,
+    material,
+    x,
+    y,
+    z
+  ) {
+    const mesh = new THREE.Mesh(
+      new THREE.BoxGeometry(
+        width,
+        height,
+        depth
+      ),
+      material
+    );
+
+    mesh.position.set(x, y, z);
+
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+
+    scene.add(mesh);
+
+    return mesh;
+  }
+
+  // --------------------------------------------------
+  // HELPER: CREATE LIMB
+  // --------------------------------------------------
+
+  function createLimb(
+    start,
+    end,
+    radius,
+    material
+  ) {
+    const middle =
+      new THREE.Vector3()
+        .addVectors(start, end)
+        .multiplyScalar(0.5);
+
+    const length =
+      start.distanceTo(end);
+
+    const geometry =
+      new THREE.CylinderGeometry(
+        radius,
+        radius,
+        length,
+        12
+      );
+
+    const mesh =
+      new THREE.Mesh(
+        geometry,
+        material
+      );
+
+    mesh.position.copy(middle);
+
+    const direction =
+      new THREE.Vector3()
+        .subVectors(end, start)
+        .normalize();
+
+    mesh.quaternion.setFromUnitVectors(
+      new THREE.Vector3(0, 1, 0),
+      direction
+    );
+
+    mesh.castShadow = true;
+
+    scene.add(mesh);
+
+    return mesh;
+  }
+
+  // --------------------------------------------------
+  // DESK
+  // --------------------------------------------------
+
+  createBox(
+    4.5,
+    0.18,
+    1.9,
+    deskMaterial,
+    0,
+    1.65,
+    -1.35
+  );
+
+  createBox(
+    0.18,
+    1.65,
+    0.18,
+    deskMaterial,
+    -1.85,
+    0.82,
+    -1.85
+  );
+
+  createBox(
+    0.18,
+    1.65,
+    0.18,
+    deskMaterial,
+    1.85,
+    0.82,
+    -1.85
+  );
+
+  createBox(
+    0.18,
+    1.65,
+    0.18,
+    deskMaterial,
+    -1.85,
+    0.82,
+    -0.85
+  );
+
+  createBox(
+    0.18,
+    1.65,
+    0.18,
+    deskMaterial,
+    1.85,
+    0.82,
+    -0.85
+  );
+
+  // --------------------------------------------------
+  // MONITOR
+  // --------------------------------------------------
+
+  createBox(
+    1.55,
+    0.9,
+    0.08,
+    darkMaterial,
+    0,
+    2.55,
+    -2.18
+  );
+
+  createBox(
+    0.08,
+    0.65,
+    0.08,
+    darkMaterial,
+    0,
+    1.98,
+    -2.05
+  );
+
+  createBox(
+    0.7,
+    0.07,
+    0.42,
+    darkMaterial,
+    0,
+    1.84,
+    -2.05
+  );
+
+  // keyboard
+
+  createBox(
+    1.2,
+    0.05,
+    0.42,
+    darkMaterial,
+    0,
+    1.77,
+    -0.72
+  );
+
+  // --------------------------------------------------
+  // CHAIR
+  // --------------------------------------------------
+
+  createBox(
+    1.15,
+    0.12,
+    1.05,
+    darkMaterial,
+    0,
+    0.72,
+    0.72
+  );
+
+  createBox(
+    1.05,
+    1.35,
+    0.12,
+    darkMaterial,
+    0,
+    1.38,
+    1.17
+  );
+
+  createBox(
+    0.1,
+    0.72,
+    0.1,
+    darkMaterial,
+    -0.43,
+    0.36,
+    0.98
+  );
+
+  createBox(
+    0.1,
+    0.72,
+    0.1,
+    darkMaterial,
+    0.43,
+    0.36,
+    0.98
+  );
+
+  // --------------------------------------------------
+  // PERSON
+  // --------------------------------------------------
+
+  const hip =
+    new THREE.Vector3(
+      0,
+      1.15,
+      0.55
+    );
+
+  // body
+
+  const torso =
+    new THREE.Mesh(
+      new THREE.CapsuleGeometry(
+        0.42,
+        0.72,
+        6,
+        14
+      ),
+      shirtMaterial
+    );
+
+  torso.position.set(
+    0,
+    1.75,
+    0.42
+  );
+
+  torso.castShadow = true;
+
+  scene.add(torso);
+
+  // head
+
+  const head =
+    new THREE.Mesh(
+      new THREE.SphereGeometry(
+        0.29,
+        24,
+        18
+      ),
+      skinMaterial
+    );
+
+  head.position.set(
+    0,
+    2.57,
+    0.28
+  );
+
+  head.castShadow = true;
+
+  scene.add(head);
+
+  // arms
+
+  createLimb(
+    new THREE.Vector3(
+      -0.28,
+      2.1,
+      0.3
+    ),
+    new THREE.Vector3(
+      -0.62,
+      1.75,
+      -0.18
+    ),
+    0.11,
+    shirtMaterial
+  );
+
+  createLimb(
+    new THREE.Vector3(
+      -0.62,
+      1.75,
+      -0.18
+    ),
+    new THREE.Vector3(
+      -0.45,
+      1.77,
+      -0.72
+    ),
+    0.09,
+    skinMaterial
+  );
+
+  createLimb(
+    new THREE.Vector3(
+      0.28,
+      2.1,
+      0.3
+    ),
+    new THREE.Vector3(
+      0.62,
+      1.75,
+      -0.18
+    ),
+    0.11,
+    shirtMaterial
+  );
+
+  createLimb(
+    new THREE.Vector3(
+      0.62,
+      1.75,
+      -0.18
+    ),
+    new THREE.Vector3(
+      0.45,
+      1.77,
+      -0.72
+    ),
+    0.09,
+    skinMaterial
+  );
+
+  // legs
+
+  createLimb(
+    hip,
+    new THREE.Vector3(
+      -0.38,
+      0.86,
+      0.25
+    ),
+    0.14,
+    darkMaterial
+  );
+
+  createLimb(
+    new THREE.Vector3(
+      -0.38,
+      0.86,
+      0.25
+    ),
+    new THREE.Vector3(
+      -0.42,
+      0.18,
+      -0.03
+    ),
+    0.12,
+    darkMaterial
+  );
+
+  createLimb(
+    hip,
+    new THREE.Vector3(
+      0.38,
+      0.86,
+      0.25
+    ),
+    0.14,
+    darkMaterial
+  );
+
+  createLimb(
+    new THREE.Vector3(
+      0.38,
+      0.86,
+      0.25
+    ),
+    new THREE.Vector3(
+      0.42,
+      0.18,
+      -0.03
+    ),
+    0.12,
+    darkMaterial
+  );
+
+  // --------------------------------------------------
+  // SOUND SOURCE
+  // mouth / head area
+  // --------------------------------------------------
+
+  const soundSource =
+    new THREE.Vector3(
+      0,
+      2.56,
+      0.02
+    );
+
+  // Starting sound ray directions
+
+  const directions = [
+    new THREE.Vector3(
+      1,
+      0.18,
+      -0.65
+    ),
+
+    new THREE.Vector3(
+      -1,
+      0.10,
+      -0.5
+    ),
+
+    new THREE.Vector3(
+      0.72,
+      0.38,
+      0.9
+    ),
+
+    new THREE.Vector3(
+      -0.76,
+      0.28,
+      0.82
+    ),
+
+    new THREE.Vector3(
+      0.25,
+      0.75,
+      -0.9
+    ),
+
+    new THREE.Vector3(
+      -0.25,
+      0.58,
+      -1
+    )
+  ];
+
+  directions.forEach(
+    direction =>
+      direction.normalize()
+  );
+
+  // --------------------------------------------------
+  // SOUND RAY REFLECTION CALCULATION
+  // --------------------------------------------------
+
+  function createReflectionPath(
+    startingPosition,
+    startingDirection,
+    bounceCount = 5
+  ) {
+    const points = [
+      startingPosition.clone()
+    ];
+
+    let position =
+      startingPosition.clone();
+
+    let direction =
+      startingDirection.clone();
+
+    const minBounds =
+      new THREE.Vector3(
+        -roomWidth / 2 + 0.08,
+        0.08,
+        -roomDepth / 2 + 0.08
+      );
+
+    const maxBounds =
+      new THREE.Vector3(
+        roomWidth / 2 - 0.08,
+        roomHeight - 0.08,
+        roomDepth / 2 - 0.08
+      );
+
+    for (
+      let bounce = 0;
+      bounce < bounceCount;
+      bounce++
+    ) {
+      let nearestTime = Infinity;
+
+      let collisionAxis = "x";
+
+      for (
+        const axis of [
+          "x",
+          "y",
+          "z"
+        ]
+      ) {
+        if (
+          Math.abs(
+            direction[axis]
+          ) < 0.000001
+        ) {
+          continue;
+        }
+
+        const boundary =
+          direction[axis] > 0
+            ? maxBounds[axis]
+            : minBounds[axis];
+
+        const time =
+          (
+            boundary -
+            position[axis]
+          ) /
+          direction[axis];
+
+        if (
+          time > 0.0001 &&
+          time < nearestTime
+        ) {
+          nearestTime = time;
+
+          collisionAxis = axis;
+        }
+      }
+
+      if (
+        !Number.isFinite(
+          nearestTime
+        )
+      ) {
+        break;
+      }
+
+      position =
+        position
+          .clone()
+          .addScaledVector(
+            direction,
+            nearestTime
+          );
+
+      points.push(
+        position.clone()
+      );
+
+      // Reflection:
+      // flip the component normal
+      // to the wall.
+
+      direction =
+        direction.clone();
+
+      direction[
+        collisionAxis
+      ] *= -1;
+    }
+
+    return points;
+  }
+
+  // --------------------------------------------------
+  // SOUND PATH VISUALIZATION
+  // --------------------------------------------------
+
+  const pathGroup =
+    new THREE.Group();
+
+  scene.add(pathGroup);
+
+  const pulseGroup =
+    new THREE.Group();
+
+  scene.add(pulseGroup);
+
+  const pulseMaterial =
+    new THREE.MeshBasicMaterial({
+      color: 0x70d6ff
+    });
+
+  const lineMaterial =
+    new THREE.LineBasicMaterial({
+      color: 0x6fa7bd,
+      transparent: true,
+      opacity: 0.42
+    });
+
+  const soundPaths = [];
+
+  directions.forEach(
+    (direction, index) => {
+      const reflectionPoints =
+        createReflectionPath(
+          soundSource,
+          direction,
+          7
+        );
+
+      const curve =
+        new THREE.CatmullRomCurve3(
+          reflectionPoints,
+          false,
+          "catmullrom",
+          0.02
+        );
+
+      const curvePoints =
+        curve.getPoints(160);
+
+      const geometry =
+        new THREE.BufferGeometry()
+          .setFromPoints(
+            curvePoints
+          );
+
+      const line =
+        new THREE.Line(
+          geometry,
+          lineMaterial.clone()
+        );
+
+      pathGroup.add(line);
+
+      // moving sound particle
+
+      const pulse =
+        new THREE.Mesh(
+          new THREE.SphereGeometry(
+            0.085,
+            16,
+            12
+          ),
+          pulseMaterial.clone()
+        );
+
+      pulseGroup.add(pulse);
+
+      soundPaths.push({
+        curve,
+        pulse,
+        offset:
+          index /
+          directions.length
+      });
+    }
+  );
+
+  // --------------------------------------------------
+  // EXPANDING SOUND RINGS
+  // --------------------------------------------------
+
+  const rings = [];
+
+  for (
+    let i = 0;
+    i < 4;
+    i++
+  ) {
+    const geometry =
+      new THREE.TorusGeometry(
+        0.4,
+        0.025,
+        8,
+        64
+      );
+
+    const material =
+      new THREE.MeshBasicMaterial({
+        color: 0xa6e5ff,
+        transparent: true,
+        opacity: 0.55,
+        depthWrite: false
+      });
+
+    const ring =
+      new THREE.Mesh(
+        geometry,
+        material
+      );
+
+    ring.position.copy(
+      soundSource
+    );
+
+    ring.rotation.x =
+      Math.PI / 2;
+
+    scene.add(ring);
+
+    rings.push(ring);
+  }
+
+  // --------------------------------------------------
+  // UI
+  // --------------------------------------------------
+
+  let running = true;
+
+  let pathsVisible = true;
+
+  const startTime =
+    performance.now();
+
+  status.textContent =
+    "Sound reflections active";
+
+  pauseBtn.addEventListener(
+    "click",
+    function () {
+      running = !running;
+
+      pauseBtn.textContent =
+        running
+          ? "Pause waves"
+          : "Resume waves";
+
+      status.textContent =
+        running
+          ? "Sound reflections active"
+          : "Animation paused";
+    }
+  );
+
+  pathsBtn.addEventListener(
+    "click",
+    function () {
+      pathsVisible =
+        !pathsVisible;
+
+      pathGroup.visible =
+        pathsVisible;
+
+      pathsBtn.textContent =
+        pathsVisible
+          ? "Hide paths"
+          : "Show paths";
+    }
+  );
+
+  resetBtn.addEventListener(
+    "click",
+    function () {
+      camera.position.set(
+        7.6,
+        5.2,
+        8.8
+      );
+
+      controls.target.set(
+        0,
+        1.6,
+        0
+      );
+
+      controls.update();
+    }
+  );
+
+  // --------------------------------------------------
+  // WINDOW RESIZE
+  // --------------------------------------------------
+
+  function resizeRenderer() {
+    const width =
+      container.clientWidth;
+
+    const height =
+      container.clientHeight;
+
+    renderer.setSize(
+      width,
+      height
+    );
+
+    camera.aspect =
+      width / height;
+
+    camera.updateProjectionMatrix();
+  }
+
+  window.addEventListener(
+    "resize",
+    resizeRenderer
+  );
+
+  // --------------------------------------------------
+  // ANIMATION
+  // --------------------------------------------------
+
+  function animate(now) {
+    requestAnimationFrame(
+      animate
+    );
+
+    if (running) {
+      const seconds =
+        (
+          now -
+          startTime
+        ) / 1000;
+
+      // Move particles along
+      // their reflected paths
+
+      soundPaths.forEach(
+        (sound, index) => {
+          const progress =
+            (
+              seconds * 0.16 +
+              sound.offset
+            ) % 1;
+
+          const position =
+            sound.curve.getPointAt(
+              progress
+            );
+
+          sound.pulse.position.copy(
+            position
+          );
+
+          // slight pulsing effect
+
+          const scale =
+            0.75 +
+            0.35 *
+            Math.sin(
+              (
+                progress * 20 +
+                index
+              ) *
+              Math.PI
+            );
+
+          sound.pulse.scale.setScalar(
+            Math.max(
+              0.45,
+              scale
+            )
+          );
+        }
+      );
+
+      // Animate rings
+      // expanding from mouth
+
+      rings.forEach(
+        (ring, index) => {
+          const progress =
+            (
+              seconds * 0.48 +
+              index * 0.25
+            ) % 1;
+
+          const scale =
+            0.5 +
+            progress * 3.2;
+
+          ring.scale.setScalar(
+            scale
+          );
+
+          ring.material.opacity =
+            (
+              1 -
+              progress
+            ) *
+            0.5;
+        }
+      );
+    }
+
+    controls.update();
+
+    renderer.render(
+      scene,
+      camera
+    );
+  }
+
+  requestAnimationFrame(
+    animate
+  );
+})();</script>
