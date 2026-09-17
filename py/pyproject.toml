@@ -1,0 +1,20 @@
+[project]
+name = "example"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "adnan wahab", email = "shel.bernstein123@gmail.com" }
+]
+requires-python = ">=3.9"
+dependencies = [
+    "mediapipe>=1.0.1",
+    "opencv-python>=5.0.0.93",
+]
+
+[project.scripts]
+example = "example:main"
+
+[build-system]
+requires = ["uv_build>=0.12.15,<0.13.0"]
+build-backend = "uv_build"

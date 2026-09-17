@@ -35,9 +35,24 @@ const server = serve({
       });
     }
 
-    // Root index file
-    if (url.pathname === "/twitch-plays-robot") {
-      const file = Bun.file("./tools/twitch-plays-robot.html");
+    // Static tool files
+    if (url.pathname === "/tools" || url.pathname.startsWith("/tools/")) {
+      const relativePath =
+        decodeURIComponent(
+          url.pathname
+            .slice("/tools".length)
+            .replace(/^\/+/, "")
+        ) || "index.html";
+
+      const filePath = normalize(join("./tools", relativePath));
+
+      if (relative("./tools", filePath).startsWith("..")) {
+        return new Response("Not found", {
+          status: 404,
+        });
+      }
+
+      const file = Bun.file(filePath);
 
       if (await file.exists()) {
         return new Response(file);
@@ -47,6 +62,19 @@ const server = serve({
         status: 404,
       });
     }
+
+    // Root index file
+    // if (url.pathname === "/twitch-plays-robot") {
+    //   const file = Bun.file("./tools/twitch-plays-robot.html");
+
+    //   if (await file.exists()) {
+    //     return new Response(file);
+    //   }
+
+    //   return new Response("Not found", {
+    //     status: 404,
+    //   });
+    // }
 
     // Static game files
     if (url.pathname === "/game" || url.pathname.startsWith("/game/")) {
