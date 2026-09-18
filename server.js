@@ -1,4 +1,5 @@
 import { serve } from "bun";
+import { validateScene } from "./game/scene-loader.js";
 import { join, normalize, relative } from "node:path";
 
 const gameRoot = normalize("./game");
@@ -23,31 +24,16 @@ function finiteNumber(value, fallback = 0) {
 
 let cubeAuthorityPlayerId = null;
 
+const sceneData = validateScene(await Bun.file(new URL('./game/scene.json', import.meta.url)).json());
+const cubeDefinition = sceneData.objects.find(object => object.id === 'teal-cube');
+const [cubeX, cubeY, cubeZ] = cubeDefinition.position;
+const [cubeQX, cubeQY, cubeQZ, cubeQW] = cubeDefinition.rotation ?? [0, 0, 0, 1];
+
 let cubeState = {
-  position: {
-    x: -10,
-    y: 5,
-    z: 10,
-  },
-
-  quaternion: {
-    x: 0,
-    y: 0,
-    z: 0,
-    w: 1,
-  },
-
-  linearVelocity: {
-    x: 0,
-    y: 0,
-    z: 0,
-  },
-
-  angularVelocity: {
-    x: 0,
-    y: 0,
-    z: 0,
-  },
+  position: { x: cubeX, y: cubeY, z: cubeZ },
+  quaternion: { x: cubeQX, y: cubeQY, z: cubeQZ, w: cubeQW },
+  linearVelocity: { x: 0, y: 0, z: 0 },
+  angularVelocity: { x: 0, y: 0, z: 0 },
 };
 
 const server = serve({

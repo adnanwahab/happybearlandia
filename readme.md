@@ -3,15 +3,11 @@
 
 simulators, games, tools, robots
 
-# Products
-/stream twitch plays robot plays go
-/game jolt physics music game 
+this repo has a physics puzzle game that makes data for machine learning
 
 
-# hardware cost
-$560
+# hardware 
 https://www.hiwonder.com/products/nexarm6-axis
-
 
 - 5 minutes stream per day
 fswebcam -r 1920x1080 --no-banner image.jpg
@@ -25,12 +21,6 @@ HappyBearLandia/
   webcam/
     2026-09-11/
       00-00.mp4
-
-
-# Routes
-/blog observable framework
-/data folder decouples sensor from computer
-/tools/scene-reconstruction - reconstructs 3D scene from sensor data, replay analyzer
 
 # how to run locally
 bun run dev

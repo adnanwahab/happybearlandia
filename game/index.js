@@ -1,11 +1,8 @@
+import { loadScene } from './scene-loader.js';
 import initJolt from 'https://www.unpkg.com/jolt-physics/dist/jolt-physics.wasm-compat.js';
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 import { OrbitControls } from
   "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js";
-
-// In case you haven't built the library yourself, replace URL with:
-// https://www.unpkg.com/jolt-physics/dist/jolt-physics.wasm-compat.js
-
 // Graphics variables
 var container, stats;
 var camera, controls, scene, renderer;
@@ -298,7 +295,7 @@ function initExample(
 
   initPhysics();
 
-  renderExample();
+  // Start rendering once scene and character initialization are complete.
 
   let memoryprofilerCanvas =
     document.getElementById(
@@ -490,61 +487,6 @@ function removeFromScene(
     idx,
     1
   );
-}
-
-
-function createFloor(
-  size = 50
-) {
-
-  var shape =
-    new Jolt.BoxShape(
-      new Jolt.Vec3(
-        size,
-        0.5,
-        size
-      ),
-      0.05,
-      null
-    );
-
-  var creationSettings =
-    new Jolt.BodyCreationSettings(
-      shape,
-
-      new Jolt.RVec3(
-        0,
-        -0.5,
-        0
-      ),
-
-      new Jolt.Quat(
-        0,
-        0,
-        0,
-        1
-      ),
-
-      Jolt.EMotionType_Static,
-
-      LAYER_NON_MOVING
-    );
-
-  let body =
-    bodyInterface.CreateBody(
-      creationSettings
-    );
-
-  Jolt.destroy(
-    creationSettings
-  );
-
-  addToScene(
-    body,
-    0xc7c7c7
-  );
-
-  return body;
 }
 
 
@@ -979,8 +921,10 @@ function getThreeObjectForBody(
 }
 
 
-initJolt().then(
-function (Jolt) {
+Promise.all([
+  initJolt(),
+  loadScene(new URL('./scene.json', import.meta.url))
+]).then(function ([Jolt, sceneData]) {
 
   initExample(
     Jolt,
@@ -1971,117 +1915,32 @@ function (Jolt) {
   };
 
 
-  const lavaObject =
-    createBox(
-
-      new Jolt.RVec3(
-        0,
-        -50,
-        0
-      ),
-
-      Jolt.Quat.prototype
-        .sIdentity(),
-
-      new Jolt.Vec3(
-        1000,
-        2,
-        1000
-      ),
-
-      Jolt.EMotionType_Static,
-
-      LAYER_NON_MOVING,
-
-      0xcc2222
+  // Stable IDs connect editable geometry to gameplay and multiplayer.
+  const bodies = new Map();
+  for (const object of sceneData.objects) {
+    const position = new Jolt.RVec3(...object.position);
+    const rotation = new Jolt.Quat(...(object.rotation ?? [0, 0, 0, 1]));
+    const halfExtent = new Jolt.Vec3(...object.size.map(size => size / 2));
+    const dynamic = object.motion === 'dynamic';
+    const body = createBox(
+      position, rotation, halfExtent,
+      dynamic ? Jolt.EMotionType_Dynamic : Jolt.EMotionType_Static,
+      dynamic ? LAYER_MOVING : LAYER_NON_MOVING,
+      object.color ?? '#ffffff', object.mass ?? null, object.friction ?? 0.2
     );
+    bodies.set(object.id, body);
+    Jolt.destroy(position);
+    Jolt.destroy(rotation);
+    Jolt.destroy(halfExtent);
+  }
 
-  const lavaObjectId =
-    lavaObject
-      .GetID()
-      .GetIndexAndSequenceNumber();
-
-  let isInLava =
-    false;
-
-
-  const conveyorBeltObject =
-    createBox(
-
-      new Jolt.RVec3(
-        0,
-        0,
-        -10
-      ),
-
-      Jolt.Quat.prototype
-        .sIdentity(),
-
-      new Jolt.Vec3(
-        10,
-        0.25,
-        2
-      ),
-
-      Jolt.EMotionType_Static,
-
-      LAYER_NON_MOVING,
-
-      0x2222cc
-    );
-
-  const conveyorBeltObjectId =
-    conveyorBeltObject
-      .GetID()
-      .GetIndexAndSequenceNumber();
-
-
-  // ============================================================
-  // TEAL CUBE
-  //
-  // It is a DYNAMIC body on the MOVING layer.
-  // This means Jolt is free to move and rotate it.
-  // ============================================================
-  const tealCube =
-    createBox(
-
-      new Jolt.RVec3(
-        -10.0,
-        5.0,
-        10.0
-      ),
-
-      Jolt.Quat.prototype.sIdentity(),
-
-      new Jolt.Vec3(
-        0.75,
-        0.75,
-        0.75
-      ),
-
-      Jolt.EMotionType_Dynamic,
-
-      LAYER_MOVING,
-
-      0x00ffff,
-
-      // Mass in kg
-      20,
-
-      // Friction
-      0.05
-    );
-
-  const tealCubeId =
-    tealCube
-      .GetID()
-      .GetIndexAndSequenceNumber();
-
-  tealCubeObject =
-    dynamicObjects[
-      dynamicObjects.length -
-      1
-    ];
+  const lavaObjectId = bodies.get('lava').GetID().GetIndexAndSequenceNumber();
+  const conveyorBeltObjectId = bodies.get('conveyor').GetID().GetIndexAndSequenceNumber();
+  const conveyorSpeed = sceneData.objects.find(object => object.id === 'conveyor').speed ?? 5;
+  const tealCube = bodies.get('teal-cube');
+  const tealCubeId = tealCube.GetID().GetIndexAndSequenceNumber();
+  let isInLava = false;
+  tealCubeObject = dynamicObjects.find(object => object.userData.body === tealCube);
 
   tealCubeMaterial =
     tealCubeObject.material;
@@ -2126,7 +1985,7 @@ function (Jolt) {
 
       linearVelocity.SetX(
         linearVelocity.GetX() +
-        5
+        conveyorSpeed
       );
     }
   };
@@ -2444,11 +2303,7 @@ function (Jolt) {
       isInLava
     ) {
 
-      _tmpRVec3.Set(
-        0,
-        10,
-        0
-      );
+      _tmpRVec3.Set(...sceneData.respawnPosition);
 
       character.SetPosition(
         _tmpRVec3
@@ -2780,151 +2635,6 @@ function (Jolt) {
   };
 
 
-  // Basic floor
-  createFloor();
-
-
-  createBox(
-
-    new Jolt.RVec3(
-      -45,
-      1,
-      0
-    ),
-
-    Jolt.Quat.prototype
-      .sIdentity(),
-
-    new Jolt.Vec3(
-      0.5,
-      2,
-      45
-    ),
-
-    Jolt.EMotionType_Static,
-
-    LAYER_NON_MOVING
-  );
-
-
-  createBox(
-
-    new Jolt.RVec3(
-      45,
-      1,
-      0
-    ),
-
-    Jolt.Quat.prototype
-      .sIdentity(),
-
-    new Jolt.Vec3(
-      0.5,
-      2,
-      45
-    ),
-
-    Jolt.EMotionType_Static,
-
-    LAYER_NON_MOVING
-  );
-
-
-  // Stairs
-  for (
-    let j = 0;
-    j < 5;
-    j++
-  ) {
-
-    let stepHeight =
-      0.3 +
-      0.1 * j;
-
-    for (
-      let i = 1;
-      i < 10;
-      i++
-    ) {
-
-      createBox(
-
-        new Jolt.RVec3(
-
-          15 +
-            5 * j,
-
-          i *
-            stepHeight -
-            0.5 +
-            stepHeight /
-            2,
-
-          -20 -
-            i * 3
-        ),
-
-        Jolt.Quat.prototype
-          .sIdentity(),
-
-        new Jolt.Vec3(
-          2,
-          stepHeight / 2,
-          2
-        ),
-
-        Jolt.EMotionType_Static,
-
-        LAYER_NON_MOVING
-      );
-    }
-  }
-
-
-  // Slopes
-  for (
-    let i = 0;
-    i < 10;
-    i++
-  ) {
-
-    createBox(
-
-      new Jolt.RVec3(
-        -40 +
-          5 * i,
-        2,
-        -25
-      ),
-
-      Jolt.Quat.prototype
-        .sRotation(
-
-          new Jolt.Vec3(
-            1,
-            0,
-            0
-          ),
-
-          DegreesToRadians(
-            70 -
-            i * 5.0
-          )
-        ),
-
-      new Jolt.Vec3(
-        2.5,
-        0.6,
-        8
-      ),
-
-      Jolt.EMotionType_Static,
-
-      LAYER_NON_MOVING
-    );
-  }
-
-
   initShape();
 
 
@@ -2983,8 +2693,7 @@ function (Jolt) {
 
       settings,
 
-      Jolt.RVec3.prototype
-        .sZero(),
+      new Jolt.RVec3(...sceneData.playerSpawn),
 
       Jolt.Quat.prototype
         .sIdentity(),
@@ -3274,11 +2983,7 @@ function (Jolt) {
 
   physicsSystem.SetGravity(
 
-    new Jolt.Vec3(
-      0,
-      -25,
-      0
-    )
+    new Jolt.Vec3(...sceneData.gravity)
   );
 
 
@@ -3289,7 +2994,11 @@ function (Jolt) {
   // - scene exists
 
   connectMultiplayer();
+  renderExample();
 
+}).catch(error => {
+  console.error('Unable to start game:', error);
+  document.getElementById('container').textContent = `Unable to start game: ${error.message}`;
 });
 
 

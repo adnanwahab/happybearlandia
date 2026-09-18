@@ -1,0 +1,953 @@
+{
+  "gravity": [
+    0,
+    -25,
+    0
+  ],
+  "playerSpawn": [
+    0,
+    0,
+    0
+  ],
+  "objects": [
+    {
+      "id": "floor",
+      "type": "box",
+      "position": [
+        0,
+        -0.5,
+        0
+      ],
+      "size": [
+        100,
+        1,
+        100
+      ],
+      "motion": "static",
+      "color": "#c7c7c7",
+      "friction": 0.2
+    },
+    {
+      "id": "left-wall",
+      "type": "box",
+      "position": [
+        -45,
+        1,
+        0
+      ],
+      "size": [
+        1,
+        4,
+        90
+      ],
+      "motion": "static",
+      "color": "#ffffff"
+    },
+    {
+      "id": "right-wall",
+      "type": "box",
+      "position": [
+        45,
+        1,
+        0
+      ],
+      "size": [
+        1,
+        4,
+        90
+      ],
+      "motion": "static",
+      "color": "#ffffff"
+    },
+    {
+      "id": "conveyor",
+      "type": "box",
+      "position": [
+        0,
+        0,
+        -10
+      ],
+      "size": [
+        20,
+        0.5,
+        4
+      ],
+      "motion": "static",
+      "color": "#2222cc",
+      "behavior": "conveyor",
+      "speed": 5
+    },
+    {
+      "id": "teal-cube",
+      "type": "box",
+      "position": [
+        -10,
+        5,
+        10
+      ],
+      "size": [
+        1.5,
+        1.5,
+        1.5
+      ],
+      "motion": "dynamic",
+      "color": "#00ffff",
+      "mass": 20,
+      "friction": 0.05,
+      "networked": true,
+      "behavior": "pushable"
+    },
+    {
+      "id": "lava",
+      "type": "box",
+      "position": [
+        0,
+        -50,
+        0
+      ],
+      "size": [
+        2000,
+        4,
+        2000
+      ],
+      "motion": "static",
+      "color": "#cc2222",
+      "behavior": "lava"
+    },
+    {
+      "id": "stair-1-1",
+      "type": "box",
+      "position": [
+        15,
+        -0.05,
+        -23
+      ],
+      "size": [
+        4,
+        0.3,
+        4
+      ]
+    },
+    {
+      "id": "stair-1-2",
+      "type": "box",
+      "position": [
+        15,
+        0.25,
+        -26
+      ],
+      "size": [
+        4,
+        0.3,
+        4
+      ]
+    },
+    {
+      "id": "stair-1-3",
+      "type": "box",
+      "position": [
+        15,
+        0.55,
+        -29
+      ],
+      "size": [
+        4,
+        0.3,
+        4
+      ]
+    },
+    {
+      "id": "stair-1-4",
+      "type": "box",
+      "position": [
+        15,
+        0.85,
+        -32
+      ],
+      "size": [
+        4,
+        0.3,
+        4
+      ]
+    },
+    {
+      "id": "stair-1-5",
+      "type": "box",
+      "position": [
+        15,
+        1.15,
+        -35
+      ],
+      "size": [
+        4,
+        0.3,
+        4
+      ]
+    },
+    {
+      "id": "stair-1-6",
+      "type": "box",
+      "position": [
+        15,
+        1.45,
+        -38
+      ],
+      "size": [
+        4,
+        0.3,
+        4
+      ]
+    },
+    {
+      "id": "stair-1-7",
+      "type": "box",
+      "position": [
+        15,
+        1.75,
+        -41
+      ],
+      "size": [
+        4,
+        0.3,
+        4
+      ]
+    },
+    {
+      "id": "stair-1-8",
+      "type": "box",
+      "position": [
+        15,
+        2.05,
+        -44
+      ],
+      "size": [
+        4,
+        0.3,
+        4
+      ]
+    },
+    {
+      "id": "stair-1-9",
+      "type": "box",
+      "position": [
+        15,
+        2.35,
+        -47
+      ],
+      "size": [
+        4,
+        0.3,
+        4
+      ]
+    },
+    {
+      "id": "stair-2-1",
+      "type": "box",
+      "position": [
+        20,
+        0.1,
+        -23
+      ],
+      "size": [
+        4,
+        0.4,
+        4
+      ]
+    },
+    {
+      "id": "stair-2-2",
+      "type": "box",
+      "position": [
+        20,
+        0.5,
+        -26
+      ],
+      "size": [
+        4,
+        0.4,
+        4
+      ]
+    },
+    {
+      "id": "stair-2-3",
+      "type": "box",
+      "position": [
+        20,
+        0.9,
+        -29
+      ],
+      "size": [
+        4,
+        0.4,
+        4
+      ]
+    },
+    {
+      "id": "stair-2-4",
+      "type": "box",
+      "position": [
+        20,
+        1.3,
+        -32
+      ],
+      "size": [
+        4,
+        0.4,
+        4
+      ]
+    },
+    {
+      "id": "stair-2-5",
+      "type": "box",
+      "position": [
+        20,
+        1.7,
+        -35
+      ],
+      "size": [
+        4,
+        0.4,
+        4
+      ]
+    },
+    {
+      "id": "stair-2-6",
+      "type": "box",
+      "position": [
+        20,
+        2.1,
+        -38
+      ],
+      "size": [
+        4,
+        0.4,
+        4
+      ]
+    },
+    {
+      "id": "stair-2-7",
+      "type": "box",
+      "position": [
+        20,
+        2.5,
+        -41
+      ],
+      "size": [
+        4,
+        0.4,
+        4
+      ]
+    },
+    {
+      "id": "stair-2-8",
+      "type": "box",
+      "position": [
+        20,
+        2.9,
+        -44
+      ],
+      "size": [
+        4,
+        0.4,
+        4
+      ]
+    },
+    {
+      "id": "stair-2-9",
+      "type": "box",
+      "position": [
+        20,
+        3.3,
+        -47
+      ],
+      "size": [
+        4,
+        0.4,
+        4
+      ]
+    },
+    {
+      "id": "stair-3-1",
+      "type": "box",
+      "position": [
+        25,
+        0.25,
+        -23
+      ],
+      "size": [
+        4,
+        0.5,
+        4
+      ]
+    },
+    {
+      "id": "stair-3-2",
+      "type": "box",
+      "position": [
+        25,
+        0.75,
+        -26
+      ],
+      "size": [
+        4,
+        0.5,
+        4
+      ]
+    },
+    {
+      "id": "stair-3-3",
+      "type": "box",
+      "position": [
+        25,
+        1.25,
+        -29
+      ],
+      "size": [
+        4,
+        0.5,
+        4
+      ]
+    },
+    {
+      "id": "stair-3-4",
+      "type": "box",
+      "position": [
+        25,
+        1.75,
+        -32
+      ],
+      "size": [
+        4,
+        0.5,
+        4
+      ]
+    },
+    {
+      "id": "stair-3-5",
+      "type": "box",
+      "position": [
+        25,
+        2.25,
+        -35
+      ],
+      "size": [
+        4,
+        0.5,
+        4
+      ]
+    },
+    {
+      "id": "stair-3-6",
+      "type": "box",
+      "position": [
+        25,
+        2.75,
+        -38
+      ],
+      "size": [
+        4,
+        0.5,
+        4
+      ]
+    },
+    {
+      "id": "stair-3-7",
+      "type": "box",
+      "position": [
+        25,
+        3.25,
+        -41
+      ],
+      "size": [
+        4,
+        0.5,
+        4
+      ]
+    },
+    {
+      "id": "stair-3-8",
+      "type": "box",
+      "position": [
+        25,
+        3.75,
+        -44
+      ],
+      "size": [
+        4,
+        0.5,
+        4
+      ]
+    },
+    {
+      "id": "stair-3-9",
+      "type": "box",
+      "position": [
+        25,
+        4.25,
+        -47
+      ],
+      "size": [
+        4,
+        0.5,
+        4
+      ]
+    },
+    {
+      "id": "stair-4-1",
+      "type": "box",
+      "position": [
+        30,
+        0.4,
+        -23
+      ],
+      "size": [
+        4,
+        0.6,
+        4
+      ]
+    },
+    {
+      "id": "stair-4-2",
+      "type": "box",
+      "position": [
+        30,
+        1.0,
+        -26
+      ],
+      "size": [
+        4,
+        0.6,
+        4
+      ]
+    },
+    {
+      "id": "stair-4-3",
+      "type": "box",
+      "position": [
+        30,
+        1.6,
+        -29
+      ],
+      "size": [
+        4,
+        0.6,
+        4
+      ]
+    },
+    {
+      "id": "stair-4-4",
+      "type": "box",
+      "position": [
+        30,
+        2.2,
+        -32
+      ],
+      "size": [
+        4,
+        0.6,
+        4
+      ]
+    },
+    {
+      "id": "stair-4-5",
+      "type": "box",
+      "position": [
+        30,
+        2.8,
+        -35
+      ],
+      "size": [
+        4,
+        0.6,
+        4
+      ]
+    },
+    {
+      "id": "stair-4-6",
+      "type": "box",
+      "position": [
+        30,
+        3.4,
+        -38
+      ],
+      "size": [
+        4,
+        0.6,
+        4
+      ]
+    },
+    {
+      "id": "stair-4-7",
+      "type": "box",
+      "position": [
+        30,
+        4.0,
+        -41
+      ],
+      "size": [
+        4,
+        0.6,
+        4
+      ]
+    },
+    {
+      "id": "stair-4-8",
+      "type": "box",
+      "position": [
+        30,
+        4.6,
+        -44
+      ],
+      "size": [
+        4,
+        0.6,
+        4
+      ]
+    },
+    {
+      "id": "stair-4-9",
+      "type": "box",
+      "position": [
+        30,
+        5.2,
+        -47
+      ],
+      "size": [
+        4,
+        0.6,
+        4
+      ]
+    },
+    {
+      "id": "stair-5-1",
+      "type": "box",
+      "position": [
+        35,
+        0.55,
+        -23
+      ],
+      "size": [
+        4,
+        0.7,
+        4
+      ]
+    },
+    {
+      "id": "stair-5-2",
+      "type": "box",
+      "position": [
+        35,
+        1.25,
+        -26
+      ],
+      "size": [
+        4,
+        0.7,
+        4
+      ]
+    },
+    {
+      "id": "stair-5-3",
+      "type": "box",
+      "position": [
+        35,
+        1.95,
+        -29
+      ],
+      "size": [
+        4,
+        0.7,
+        4
+      ]
+    },
+    {
+      "id": "stair-5-4",
+      "type": "box",
+      "position": [
+        35,
+        2.65,
+        -32
+      ],
+      "size": [
+        4,
+        0.7,
+        4
+      ]
+    },
+    {
+      "id": "stair-5-5",
+      "type": "box",
+      "position": [
+        35,
+        3.35,
+        -35
+      ],
+      "size": [
+        4,
+        0.7,
+        4
+      ]
+    },
+    {
+      "id": "stair-5-6",
+      "type": "box",
+      "position": [
+        35,
+        4.05,
+        -38
+      ],
+      "size": [
+        4,
+        0.7,
+        4
+      ]
+    },
+    {
+      "id": "stair-5-7",
+      "type": "box",
+      "position": [
+        35,
+        4.75,
+        -41
+      ],
+      "size": [
+        4,
+        0.7,
+        4
+      ]
+    },
+    {
+      "id": "stair-5-8",
+      "type": "box",
+      "position": [
+        35,
+        5.45,
+        -44
+      ],
+      "size": [
+        4,
+        0.7,
+        4
+      ]
+    },
+    {
+      "id": "stair-5-9",
+      "type": "box",
+      "position": [
+        35,
+        6.15,
+        -47
+      ],
+      "size": [
+        4,
+        0.7,
+        4
+      ]
+    },
+    {
+      "id": "slope-1",
+      "type": "box",
+      "position": [
+        -40,
+        2,
+        -25
+      ],
+      "size": [
+        5,
+        1.2,
+        16
+      ],
+      "rotation": [
+        0.573576436351046,
+        0,
+        0,
+        0.8191520442889918
+      ]
+    },
+    {
+      "id": "slope-2",
+      "type": "box",
+      "position": [
+        -35,
+        2,
+        -25
+      ],
+      "size": [
+        5,
+        1.2,
+        16
+      ],
+      "rotation": [
+        0.5372996083468239,
+        0,
+        0,
+        0.8433914458128857
+      ]
+    },
+    {
+      "id": "slope-3",
+      "type": "box",
+      "position": [
+        -30,
+        2,
+        -25
+      ],
+      "size": [
+        5,
+        1.2,
+        16
+      ],
+      "rotation": [
+        0.49999999999999994,
+        0,
+        0,
+        0.8660254037844387
+      ]
+    },
+    {
+      "id": "slope-4",
+      "type": "box",
+      "position": [
+        -25,
+        2,
+        -25
+      ],
+      "size": [
+        5,
+        1.2,
+        16
+      ],
+      "rotation": [
+        0.4617486132350339,
+        0,
+        0,
+        0.8870108331782217
+      ]
+    },
+    {
+      "id": "slope-5",
+      "type": "box",
+      "position": [
+        -20,
+        2,
+        -25
+      ],
+      "size": [
+        5,
+        1.2,
+        16
+      ],
+      "rotation": [
+        0.42261826174069944,
+        0,
+        0,
+        0.9063077870366499
+      ]
+    },
+    {
+      "id": "slope-6",
+      "type": "box",
+      "position": [
+        -15,
+        2,
+        -25
+      ],
+      "size": [
+        5,
+        1.2,
+        16
+      ],
+      "rotation": [
+        0.3826834323650898,
+        0,
+        0,
+        0.9238795325112867
+      ]
+    },
+    {
+      "id": "slope-7",
+      "type": "box",
+      "position": [
+        -10,
+        2,
+        -25
+      ],
+      "size": [
+        5,
+        1.2,
+        16
+      ],
+      "rotation": [
+        0.3420201433256687,
+        0,
+        0,
+        0.9396926207859084
+      ]
+    },
+    {
+      "id": "slope-8",
+      "type": "box",
+      "position": [
+        -5,
+        2,
+        -25
+      ],
+      "size": [
+        5,
+        1.2,
+        16
+      ],
+      "rotation": [
+        0.3007057995042731,
+        0,
+        0,
+        0.9537169507482269
+      ]
+    },
+    {
+      "id": "slope-9",
+      "type": "box",
+      "position": [
+        0,
+        2,
+        -25
+      ],
+      "size": [
+        5,
+        1.2,
+        16
+      ],
+      "rotation": [
+        0.25881904510252074,
+        0,
+        0,
+        0.9659258262890683
+      ]
+    },
+    {
+      "id": "slope-10",
+      "type": "box",
+      "position": [
+        5,
+        2,
+        -25
+      ],
+      "size": [
+        5,
+        1.2,
+        16
+      ],
+      "rotation": [
+        0.21643961393810288,
+        0,
+        0,
+        0.9762960071199334
+      ]
+    }
+  ],
+  "respawnPosition": [
+    0,
+    10,
+    0
+  ]
+}
