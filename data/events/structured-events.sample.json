@@ -1,0 +1,122 @@
+{
+  "levelId": "physics-puzzle-demo",
+  "recordedAt": "2026-09-18T00:00:00.000Z",
+  "description": "Structured debug events based on the event patterns described in the architecture response.",
+  "events": [
+    {
+      "id": 1842,
+      "frame": 721,
+      "time": 12.016,
+      "type": "state_change",
+      "objectId": "pressure_plate_01",
+      "from": {
+        "pressed": false
+      },
+      "to": {
+        "pressed": true
+      },
+      "causedBy": {
+        "type": "collision",
+        "objectId": "player_1"
+      }
+    },
+    {
+      "id": 1843,
+      "frame": 722,
+      "time": 12.033,
+      "type": "collision",
+      "a": "ball_01",
+      "b": "domino_01",
+      "position": [4.28, 1.02, -2.11],
+      "relativeVelocity": 3.81,
+      "impulse": 2.42
+    },
+    {
+      "id": 1844,
+      "frame": 724,
+      "time": 12.066,
+      "type": "music",
+      "objectId": "bell_03",
+      "event": "note_on",
+      "note": "E4",
+      "velocity": 0.82,
+      "causedBy": "ball_01"
+    },
+    {
+      "id": 1845,
+      "frame": 725,
+      "time": 12.083,
+      "type": "state_change",
+      "objectId": "relay_01",
+      "property": "active",
+      "from": false,
+      "to": true,
+      "parentEventId": 1842
+    },
+    {
+      "id": 1846,
+      "frame": 730,
+      "time": 12.166,
+      "type": "state_change",
+      "objectId": "pulley_motor_01",
+      "property": "enabled",
+      "from": false,
+      "to": true,
+      "parentEventId": 1845
+    },
+    {
+      "id": 1847,
+      "frame": 744,
+      "time": 12.400,
+      "type": "state_change",
+      "objectId": "counterweight_01",
+      "property": "moving",
+      "from": false,
+      "to": true,
+      "parentEventId": 1846
+    },
+    {
+      "id": 1848,
+      "frame": 759,
+      "time": 12.650,
+      "type": "state_change",
+      "objectId": "door_01",
+      "property": "open",
+      "from": false,
+      "to": true,
+      "parentEventId": 1847
+    }
+  ],
+  "snapshots": [
+    {
+      "frame": 720,
+      "time": 12,
+      "objects": {
+        "player_1": {
+          "position": [4.21, 1.0, -2.05]
+        },
+        "pressure_plate_01": {
+          "pressed": false
+        },
+        "door_01": {
+          "open": false
+        }
+      }
+    },
+    {
+      "frame": 760,
+      "time": 12.666,
+      "objects": {
+        "player_1": {
+          "position": [4.35, 1.01, -2.0]
+        },
+        "pressure_plate_01": {
+          "pressed": true
+        },
+        "door_01": {
+          "open": true
+        }
+      }
+    }
+  ]
+}

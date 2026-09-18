@@ -1,0 +1,37 @@
+{
+  "simulationId": "sim_1042",
+  "duration": 14.8,
+  "status": "failed",
+  "objectives": [
+    {
+      "id": "light_01_on",
+      "complete": true,
+      "completedAt": 8.2
+    },
+    {
+      "id": "bell_sequence",
+      "complete": false
+    }
+  ],
+  "importantEvents": [
+    {
+      "time": 2.1,
+      "event": "pressure_plate_01 pressed"
+    },
+    {
+      "time": 3.4,
+      "event": "ball_01 released"
+    },
+    {
+      "time": 5.1,
+      "event": "ball_01 stopped moving"
+    }
+  ],
+  "warnings": [
+    {
+      "type": "stalled_body",
+      "objectId": "ball_01",
+      "time": 5.1
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import { loadScene } from './scene-loader.js';
+import { DebugRecorder } from './debug-recorder.js';
 import initJolt from 'https://www.unpkg.com/jolt-physics/dist/jolt-physics.wasm-compat.js';
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 import { OrbitControls } from
@@ -10,6 +11,166 @@ var camera, controls, scene, renderer;
 // Timers
 var clock = new THREE.Clock();
 var time = 0;
+var frame = 0;
+
+const debugRecorder = new DebugRecorder();
+
+const emitDebugEvent =
+(event) =>
+  debugRecorder.emit({
+    frame,
+    time,
+    ...event,
+  });
+
+const debugSessionId =
+  crypto.randomUUID();
+
+const debugSessionStartedAt =
+  new Date().toISOString();
+
+let debugSessionSaved =
+  false;
+
+let debugSessionClosed =
+  false;
+
+let captureDebugSnapshot =
+  null;
+
+const persistDebugSession =
+async ({
+  reason = "manual",
+  useBeacon = false,
+} = {}) => {
+
+  const payload = {
+    sceneId: sceneIdFromRoute(),
+    sceneFile: sceneFileFromRoute(),
+    sessionId: debugSessionId,
+    reason,
+
+    startedAt:
+      debugSessionStartedAt,
+
+    endedAt:
+      new Date().toISOString(),
+
+    metadata: {
+      userAgent:
+        navigator.userAgent,
+      locationPath:
+        window.location.pathname,
+    },
+
+    ...debugRecorder.toJSON(),
+  };
+
+  const body =
+    JSON.stringify(payload);
+
+  if (
+    useBeacon &&
+    navigator.sendBeacon
+  ) {
+    const sent =
+      navigator.sendBeacon(
+        "/api/debug/events",
+        new Blob(
+          [body],
+          {
+            type: "application/json",
+          }
+        )
+      );
+
+    if (sent) {
+      debugSessionSaved =
+        true;
+    }
+
+    return sent;
+  }
+
+  try {
+    const response =
+      await fetch(
+        "/api/debug/events",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body,
+          keepalive: true,
+        }
+      );
+
+    if (
+      !response.ok
+    ) {
+      throw new Error(
+        `HTTP ${response.status}`
+      );
+    }
+
+    debugSessionSaved =
+      true;
+
+    return true;
+  } catch (
+    error
+  ) {
+    console.warn(
+      "Unable to persist debug session:",
+      error
+    );
+
+    return false;
+  }
+};
+
+const closeAndPersistDebugSession =
+(reason, useBeacon) => {
+  if (
+    debugSessionSaved
+  ) {
+    return;
+  }
+
+  if (
+    !debugSessionClosed
+  ) {
+    emitDebugEvent({
+      type: "state_change",
+      objectId: "debug_session",
+
+      from: {
+        active: true,
+      },
+
+      to: {
+        active: false,
+      },
+
+      causedBy: {
+        type: "lifecycle",
+        objectId: reason,
+      },
+    });
+
+    debugSessionClosed =
+      true;
+  }
+
+  captureDebugSnapshot?.();
+
+  persistDebugSession({
+    reason,
+    useBeacon,
+  });
+};
 
 // Physics variables
 var jolt;
@@ -41,17 +202,20 @@ const wrapQuat = (q) =>
     q.GetW()
   );
 
-const sceneFileFromRoute = () => {
+const sceneIdFromRoute = () => {
   const pathParts = window.location.pathname
     .split('/')
     .filter(Boolean);
 
   if (pathParts[0] === 'game' && pathParts[1]) {
-    return `${pathParts[1]}.json`;
+    return pathParts[1];
   }
 
-  return 'scene.json';
+  return 'scene';
 };
+
+const sceneFileFromRoute = () =>
+  `${sceneIdFromRoute()}.json`;
 
 // Object layers
 const LAYER_NON_MOVING = 0;
@@ -292,6 +456,22 @@ function initExample(
   window.Jolt =
     Jolt;
 
+  window.debugRecorder =
+    debugRecorder;
+
+  window.getDebugEvents =
+  (filters) =>
+    debugRecorder.getEvents(
+      filters
+    );
+
+  window.persistDebugEvents =
+  (reason = "manual") =>
+    persistDebugSession({
+      reason,
+      useBeacon: false,
+    });
+
   container =
     document.getElementById(
       'container'
@@ -405,6 +585,8 @@ function renderExample() {
 
   time +=
     deltaTime;
+
+  frame += 1;
 
   updatePhysics(
     deltaTime
@@ -1946,6 +2128,123 @@ Promise.all([
     Jolt.destroy(halfExtent);
   }
 
+  const bodyIdToObjectId =
+    new Map();
+
+  for (
+    const [objectId, body]
+    of bodies.entries()
+  ) {
+    bodyIdToObjectId.set(
+      body.GetID().GetIndexAndSequenceNumber(),
+      objectId
+    );
+  }
+
+  const objectIdFromBodyIndex =
+  (bodyIndex) =>
+    bodyIdToObjectId.get(
+      bodyIndex
+    ) ??
+    `body_${bodyIndex}`;
+
+  const snapshotIntervalSeconds =
+    1;
+
+  let nextSnapshotAt = 0;
+
+  captureDebugSnapshot =
+  () => {
+    const objects = {};
+
+    for (
+      const [objectId, body]
+      of bodies.entries()
+    ) {
+      const position =
+        body.GetPosition();
+
+      const rotation =
+        body.GetRotation();
+
+      objects[objectId] = {
+        position: [
+          position.GetX(),
+          position.GetY(),
+          position.GetZ(),
+        ],
+
+        rotation: [
+          rotation.GetX(),
+          rotation.GetY(),
+          rotation.GetZ(),
+          rotation.GetW(),
+        ],
+      };
+    }
+
+    const playerPosition =
+      character
+        ? character.GetPosition()
+        : null;
+
+    if (playerPosition) {
+      objects.player_1 = {
+        position: [
+          playerPosition.GetX(),
+          playerPosition.GetY(),
+          playerPosition.GetZ(),
+        ],
+      };
+    }
+
+    debugRecorder.snapshot({
+      frame,
+      time,
+      objects,
+    });
+  };
+
+  emitDebugEvent({
+    type: "state_change",
+    objectId: "level",
+
+    from: {
+      loaded: false,
+    },
+
+    to: {
+      loaded: true,
+      scene: sceneFileFromRoute(),
+      sessionId: debugSessionId,
+    },
+
+    causedBy: {
+      type: "engine",
+      objectId: "game_boot",
+    },
+  });
+
+  emitDebugEvent({
+    type: "state_change",
+    objectId: "debug_session",
+
+    from: {
+      active: false,
+    },
+
+    to: {
+      active: true,
+      sceneId: sceneIdFromRoute(),
+      sessionId: debugSessionId,
+    },
+
+    causedBy: {
+      type: "engine",
+      objectId: "debug_recorder",
+    },
+  });
+
   const lavaObjectId = bodies.get('lava').GetID().GetIndexAndSequenceNumber();
   const conveyorBeltObjectId = bodies.get('conveyor').GetID().GetIndexAndSequenceNumber();
   const conveyorSpeed = sceneData.objects.find(object => object.id === 'conveyor').speed ?? 5;
@@ -2029,6 +2328,26 @@ Promise.all([
       lavaObjectId
     ) {
 
+      if (!isInLava) {
+        emitDebugEvent({
+          type: "state_change",
+          objectId: "player_1",
+
+          from: {
+            inLava: false,
+          },
+
+          to: {
+            inLava: true,
+          },
+
+          causedBy: {
+            type: "collision",
+            objectId: "lava",
+          },
+        });
+      }
+
       isInLava =
         true;
     }
@@ -2081,6 +2400,38 @@ Promise.all([
 
       settings.mCanReceiveImpulses = true;
 
+      const contactedBodyIndex =
+        bodyID2.GetIndexAndSequenceNumber();
+
+      const cubePosition =
+        tealCube.GetPosition();
+
+      const cubeLinearVelocity =
+        tealCube.GetLinearVelocity();
+
+      const collisionEvent =
+        emitDebugEvent({
+          type: "collision",
+
+          a: "player_1",
+          b: objectIdFromBodyIndex(
+            contactedBodyIndex
+          ),
+
+          position: [
+            cubePosition.GetX(),
+            cubePosition.GetY(),
+            cubePosition.GetZ(),
+          ],
+
+          relativeVelocity:
+            Math.hypot(
+              cubeLinearVelocity.GetX(),
+              cubeLinearVelocity.GetY(),
+              cubeLinearVelocity.GetZ(),
+            ),
+        });
+
       tealCubeContactCount++;
 
       // The player touching the cube becomes its temporary
@@ -2092,6 +2443,27 @@ Promise.all([
         console.log(
           "Player collided with the teal cube"
         );
+
+        emitDebugEvent({
+          type: "state_change",
+          objectId: "teal-cube",
+
+          from: {
+            touched: false,
+          },
+
+          to: {
+            touched: true,
+          },
+
+          causedBy: {
+            type: "collision",
+            objectId: "player_1",
+          },
+
+          parentEventId:
+            collisionEvent.id,
+        });
 
         tealCubeWasContacted = true;
 
@@ -2105,6 +2477,20 @@ Promise.all([
           1.5;
 
         audio.currentTime = 0;
+
+        emitDebugEvent({
+          type: "music",
+          objectId: "teal-cube",
+
+          event: "note_on",
+          note: "collision_sfx",
+          velocity: 1,
+
+          causedBy: "player_1",
+
+          parentEventId:
+            collisionEvent.id,
+        });
 
         audio.play().catch(error =>
           console.error(
@@ -2170,10 +2556,36 @@ Promise.all([
       tealCubeId
     ) {
 
+      const previousContactCount =
+        tealCubeContactCount;
+
       tealCubeContactCount = Math.max(
         0,
         tealCubeContactCount - 1
       );
+
+      if (
+        previousContactCount > 0 &&
+        tealCubeContactCount === 0
+      ) {
+        emitDebugEvent({
+          type: "state_change",
+          objectId: "teal-cube",
+
+          from: {
+            touched: true,
+          },
+
+          to: {
+            touched: false,
+          },
+
+          causedBy: {
+            type: "collision_end",
+            objectId: "player_1",
+          },
+        });
+      }
 
       console.log(
         "Player stopped touching teal cube"
@@ -2314,6 +2726,27 @@ Promise.all([
     if (
       isInLava
     ) {
+
+      emitDebugEvent({
+        type: "state_change",
+        objectId: "player_1",
+
+        from: {
+          inLava: true,
+        },
+
+        to: {
+          inLava: false,
+          respawned: true,
+          respawnPosition:
+            sceneData.respawnPosition,
+        },
+
+        causedBy: {
+          type: "respawn",
+          objectId: "lava",
+        },
+      });
 
       _tmpRVec3.Set(...sceneData.respawnPosition);
 
@@ -2861,6 +3294,16 @@ Promise.all([
     // Only the authoritative client actually sends this.
     sendTealCubeState();
 
+    if (
+      time >=
+      nextSnapshotAt
+    ) {
+      captureDebugSnapshot();
+
+      nextSnapshotAt =
+        time +
+        snapshotIntervalSeconds;
+    }
 
     const newdPosition =
       wrapVec3(
@@ -2998,6 +3441,44 @@ Promise.all([
     new Jolt.Vec3(...sceneData.gravity)
   );
 
+
+  document.addEventListener(
+    "visibilitychange",
+    () => {
+      if (
+        document.visibilityState ===
+        "hidden"
+      ) {
+        closeAndPersistDebugSession(
+          "visibility_hidden",
+          true
+        );
+      }
+    },
+    false
+  );
+
+  window.addEventListener(
+    "pagehide",
+    () => {
+      closeAndPersistDebugSession(
+        "pagehide",
+        true
+      );
+    },
+    false
+  );
+
+  window.addEventListener(
+    "beforeunload",
+    () => {
+      closeAndPersistDebugSession(
+        "beforeunload",
+        true
+      );
+    },
+    false
+  );
 
   // Connect only after:
   // - Three.js exists

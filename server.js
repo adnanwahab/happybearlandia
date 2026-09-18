@@ -1,9 +1,11 @@
 import { serve } from "bun";
+import { mkdir, readdir } from "node:fs/promises";
 import { validateScene } from "./game/scene-loader.js";
 import { join, normalize, relative } from "node:path";
 
 const gameRoot = normalize("./game");
 const toolsRoot = normalize("./tools");
+const dataRoot = normalize("./data");
 const sceneIdPattern = /^[a-zA-Z0-9_-]+$/;
 
 function isPathInside(rootPath, targetPath) {
@@ -30,6 +32,77 @@ function getSceneIdFromPath(pathname, prefix) {
 
 function getSceneFilePath(sceneId) {
   return normalize(join(gameRoot, `${sceneId}.json`));
+}
+
+function sanitizeName(value, fallback = "unknown") {
+  if (typeof value !== "string") {
+    return fallback;
+  }
+
+  const cleaned = value
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+
+  return cleaned || fallback;
+}
+
+function dateParts(date = new Date()) {
+  const year = String(date.getUTCFullYear());
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+
+  return {
+    dateFolder: `${year}-${month}-${day}`,
+    timestamp: `${year}${month}${day}T${String(date.getUTCHours()).padStart(2, "0")}${String(date.getUTCMinutes()).padStart(2, "0")}${String(date.getUTCSeconds()).padStart(2, "0")}.${String(date.getUTCMilliseconds()).padStart(3, "0")}Z`,
+  };
+}
+
+async function listDebugEventFiles(limit = 200) {
+  const root = normalize(join(dataRoot, "events"));
+  const out = [];
+
+  const walk = async (directoryPath) => {
+    let entries;
+
+    try {
+      entries = await readdir(directoryPath, { withFileTypes: true });
+    } catch {
+      return;
+    }
+
+    for (const entry of entries) {
+      const absolutePath = normalize(join(directoryPath, entry.name));
+
+      if (!isPathInside(root, absolutePath)) {
+        continue;
+      }
+
+      if (entry.isDirectory()) {
+        await walk(absolutePath);
+        continue;
+      }
+
+      if (!entry.isFile() || !entry.name.endsWith(".json")) {
+        continue;
+      }
+
+      const relativePath = relative(root, absolutePath);
+      const normalizedRelativePath = relativePath.split("\\").join("/");
+
+      out.push({
+        path: `/data/events/${normalizedRelativePath}`,
+        filename: entry.name,
+      });
+    }
+  };
+
+  await walk(root);
+
+  out.sort((a, b) => b.filename.localeCompare(a.filename));
+
+  return out.slice(0, limit);
 }
 
 // -------------------------------------------------------------------------
@@ -108,6 +181,104 @@ const server = serve({
         "Not found",
         {
           status: 404,
+        }
+      );
+    }
+
+    // ---------------------------------------------------------------------
+    // Debug events API
+    // ---------------------------------------------------------------------
+
+    if (url.pathname === "/api/debug/events") {
+      if (request.method === "GET") {
+        const requestedLimit = Number(url.searchParams.get("limit") ?? 200);
+        const limit = Number.isFinite(requestedLimit)
+          ? Math.max(1, Math.min(1000, Math.floor(requestedLimit)))
+          : 200;
+
+        const files = await listDebugEventFiles(limit);
+
+        return new Response(
+          JSON.stringify({
+            ok: true,
+            count: files.length,
+            files,
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      if (request.method !== "POST") {
+        return new Response("Method not allowed", {
+          status: 405,
+          headers: { Allow: "GET, POST" },
+        });
+      }
+
+      let payload;
+
+      try {
+        payload = JSON.parse(await request.text());
+      } catch {
+        return new Response("Invalid JSON body", { status: 400 });
+      }
+
+      const events = Array.isArray(payload?.events) ? payload.events : [];
+      const snapshots = Array.isArray(payload?.snapshots) ? payload.snapshots : [];
+
+      const sceneId = sanitizeName(payload?.sceneId ?? "scene");
+      const sessionId = sanitizeName(payload?.sessionId ?? crypto.randomUUID());
+
+      const { dateFolder, timestamp } = dateParts(new Date());
+      const eventsDirectory = normalize(join(dataRoot, "events", dateFolder));
+
+      if (!isPathInside(dataRoot, eventsDirectory)) {
+        return new Response("Invalid output path", { status: 400 });
+      }
+
+      await mkdir(eventsDirectory, { recursive: true });
+
+      const fileName = `${timestamp}-${sceneId}-${sessionId}.json`;
+      const outputPath = normalize(join(eventsDirectory, fileName));
+
+      if (!isPathInside(dataRoot, outputPath)) {
+        return new Response("Invalid output file", { status: 400 });
+      }
+
+      const document = {
+        schemaVersion: 1,
+        kind: "debug_session",
+        savedAt: new Date().toISOString(),
+        sceneId,
+        sessionId,
+        reason: typeof payload?.reason === "string" ? payload.reason : "unknown",
+        startedAt: typeof payload?.startedAt === "string" ? payload.startedAt : null,
+        endedAt: typeof payload?.endedAt === "string" ? payload.endedAt : null,
+        metadata: {
+          userAgent: typeof payload?.metadata?.userAgent === "string" ? payload.metadata.userAgent : null,
+          locationPath: typeof payload?.metadata?.locationPath === "string" ? payload.metadata.locationPath : null,
+          eventCount: events.length,
+          snapshotCount: snapshots.length,
+        },
+        events,
+        snapshots,
+      };
+
+      await Bun.write(outputPath, `${JSON.stringify(document, null, 2)}\n`);
+
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          file: `/data/events/${dateFolder}/${fileName}`,
+          eventCount: events.length,
+          snapshotCount: snapshots.length,
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -248,6 +419,51 @@ const server = serve({
       );
 
       if (!isPathInside(toolsRoot, filePath)) {
+        return new Response(
+          "Not found",
+          {
+            status: 404,
+          }
+        );
+      }
+
+      const file = Bun.file(filePath);
+
+      if (await file.exists()) {
+        return new Response(file);
+      }
+
+      return new Response(
+        "Not found",
+        {
+          status: 404,
+        }
+      );
+    }
+
+    // ---------------------------------------------------------------------
+    // Static data files
+    // ---------------------------------------------------------------------
+
+    if (
+      url.pathname === "/data" ||
+      url.pathname.startsWith("/data/")
+    ) {
+      const relativePath =
+        decodeURIComponent(
+          url.pathname
+            .slice("/data".length)
+            .replace(/^\/+/, "")
+        ) || "index.html";
+
+      const filePath = normalize(
+        join(
+          dataRoot,
+          relativePath
+        )
+      );
+
+      if (!isPathInside(dataRoot, filePath)) {
         return new Response(
           "Not found",
           {

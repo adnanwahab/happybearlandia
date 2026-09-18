@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Timeline Viewer</title>
+
+    <script type="importmap">
+            {
+                "imports": {
+                    "three": "https://unpkg.com/three@0.173.0/build/three.module.js",
+                    "three/addons/": "https://unpkg.com/three@0.173.0/examples/jsm/"
+                }
+            }
+        </script>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      }
+
+      body {
+        margin: 0;
+        background: #0f1115;
+        color: #e8eaee;
+      }
+
+      .layout {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 18px;
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: 2fr auto auto auto;
+        gap: 10px;
+        align-items: end;
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        font-size: 12px;
+        color: #c5cad3;
+      }
+
+      input,
+      select,
+      button {
+        border: 1px solid #313949;
+        border-radius: 6px;
+        padding: 8px 10px;
+        background: #0f131a;
+        color: #e8eaee;
+        font-size: 14px;
+      }
+
+      button {
+        border: none;
+        background: #2563eb;
+        cursor: pointer;
+      }
+
+      .timeline-controls {
+        margin-top: 12px;
+        display: grid;
+        grid-template-columns: auto 1fr auto auto;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .timeline-controls input[type="range"] {
+        width: 100%;
+        padding: 0;
+      }
+
+      .grid {
+        margin-top: 14px;
+        display: grid;
+        grid-template-columns: 1.4fr 1fr;
+        gap: 12px;
+      }
+
+      .stack {
+        display: grid;
+        gap: 12px;
+      }
+
+      .panel {
+        border: 1px solid #2d3440;
+        border-radius: 8px;
+        background: #171b22;
+        overflow: hidden;
+      }
+
+      .panel-header {
+        padding: 10px 12px;
+        font-weight: 600;
+        border-bottom: 1px solid #2d3440;
+      }
+
+      .panel-body {
+        padding: 12px;
+      }
+
+      .summary {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        font-size: 13px;
+        opacity: 0.9;
+        margin-bottom: 10px;
+      }
+
+      .viewer {
+        height: 420px;
+        border-radius: 6px;
+        overflow: hidden;
+        background: #0b0e13;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid #2b323d;
+        text-align: left;
+        padding: 8px;
+        vertical-align: top;
+      }
+
+      tbody tr {
+        cursor: pointer;
+      }
+
+      tbody tr:hover {
+        background: #202734;
+      }
+
+      tr.future {
+        opacity: 0.45;
+      }
+
+      tr.active {
+        outline: 1px solid #60a5fa;
+      }
+
+      pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .tiny {
+        font-size: 12px;
+        opacity: 0.82;
+      }
+
+      @media (max-width: 1000px) {
+        .controls,
+        .timeline-controls,
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <h1>Game Event Timeline Viewer</h1>
+      <p class="tiny">Static HTML + Three.js state visualizer + scrubber. Click any event to jump in time.</p>
+
+      <div class="controls">
+        <label>
+          Event JSON URL
+          <input id="events-url" value="/data/events/structured-events.sample.json" />
+        </label>
+
+        <label>
+          Type filter
+          <select id="type-filter">
+            <option value="">All types</option>
+          </select>
+        </label>
+
+        <label>
+          Object filter
+          <select id="object-filter">
+            <option value="">All objects</option>
+          </select>
+        </label>
+
+        <button id="load">Load</button>
+      </div>
+
+      <div class="timeline-controls panel" style="margin-top:12px;padding:10px;">
+        <span class="tiny">Time scrubber</span>
+        <input id="time-slider" type="range" min="0" max="1" step="0.001" value="0" />
+        <span id="time-value" class="tiny">0.000s</span>
+        <button id="play">Play</button>
+      </div>
+
+      <div class="grid">
+        <section class="stack">
+          <section class="panel">
+            <div class="panel-header">3D State Visualizer</div>
+            <div class="panel-body">
+              <div id="viewer" class="viewer"></div>
+              <p class="tiny" style="margin-top:8px;">Objects are positioned from latest known snapshot/state at scrub time.</p>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">Timeline</div>
+            <div class="panel-body">
+              <div id="summary" class="summary"></div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Frame</th>
+                    <th>Type</th>
+                    <th>Object(s)</th>
+                    <th>Details</th>
+                  </tr>
+                </thead>
+                <tbody id="rows"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <section class="stack">
+          <section class="panel">
+            <div class="panel-header">State at Scrub Time</div>
+            <div class="panel-body">
+              <pre id="state-json">Load events to inspect state.</pre>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">Selected Event</div>
+            <div class="panel-body">
+              <pre id="selected">Select an event row to inspect full JSON.</pre>
+            </div>
+          </section>
+        </section>
+      </div>
+    </div>
+
+    <script type="module">
+      import * as THREE from 'https://unpkg.com/three@0.173.0/build/three.module.js';
+      import { OrbitControls } from 'https://unpkg.com/three@0.173.0/examples/jsm/controls/OrbitControls.js';
+
+      const urlInput = document.getElementById('events-url');
+      const typeFilter = document.getElementById('type-filter');
+      const objectFilter = document.getElementById('object-filter');
+      const loadButton = document.getElementById('load');
+      const rowsEl = document.getElementById('rows');
+      const summaryEl = document.getElementById('summary');
+      const selectedEl = document.getElementById('selected');
+      const stateJsonEl = document.getElementById('state-json');
+      const sliderEl = document.getElementById('time-slider');
+      const timeValueEl = document.getElementById('time-value');
+      const playButton = document.getElementById('play');
+      const viewerEl = document.getElementById('viewer');
+
+      const query = new URLSearchParams(window.location.search);
+      const eventsUrlParam = query.get('eventsUrl');
+      if (eventsUrlParam) urlInput.value = eventsUrlParam;
+
+      let events = [];
+      let snapshots = [];
+      let selectedEventId = null;
+      let minTime = 0;
+      let maxTime = 1;
+      let isPlaying = false;
+      let lastFrameAt = null;
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 2000);
+      camera.position.set(8, 8, 12);
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(viewerEl.clientWidth || 600, viewerEl.clientHeight || 420);
+      viewerEl.appendChild(renderer.domElement);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.target.set(0, 1, 0);
+      controls.update();
+
+      const hemi = new THREE.HemisphereLight(0xffffff, 0x223344, 0.9);
+      const dir = new THREE.DirectionalLight(0xffffff, 0.7);
+      dir.position.set(8, 12, 6);
+      const grid = new THREE.GridHelper(30, 30, 0x445566, 0x334455);
+      scene.add(hemi, dir, grid);
+
+      const meshes = new Map();
+
+      const deepClone = (value) => JSON.parse(JSON.stringify(value));
+
+      const hashColor = (key) => {
+        let hash = 0;
+        for (let i = 0; i < key.length; i += 1) hash = ((hash << 5) - hash) + key.charCodeAt(i);
+        const hue = Math.abs(hash % 360);
+        const color = new THREE.Color();
+        color.setHSL(hue / 360, 0.55, 0.52);
+        return color;
+      };
+
+      const objectFromEvent = (event) => event.objectId || [event.a, event.b].filter(Boolean).join(' ↔ ') || '—';
+
+      const detailFromEvent = (event) => {
+        if (event.from !== undefined && event.to !== undefined) {
+          return `${JSON.stringify(event.from)} → ${JSON.stringify(event.to)}`;
+        }
+        if (event.event) return `${event.event}${event.note ? ` (${event.note})` : ''}`;
+        if (event.causedBy) return `cause: ${typeof event.causedBy === 'string' ? event.causedBy : JSON.stringify(event.causedBy)}`;
+        return '—';
+      };
+
+      const allTimes = () => {
+        const out = [];
+        for (const e of events) if (Number.isFinite(Number(e.time))) out.push(Number(e.time));
+        for (const s of snapshots) if (Number.isFinite(Number(s.time))) out.push(Number(s.time));
+        return out;
+      };
+
+      const ensureMesh = (objectId) => {
+        if (meshes.has(objectId)) return meshes.get(objectId);
+
+        const geometry = objectId.startsWith('player')
+          ? new THREE.SphereGeometry(0.35, 16, 12)
+          : new THREE.BoxGeometry(0.5, 0.5, 0.5);
+
+        const material = new THREE.MeshStandardMaterial({
+          color: hashColor(objectId),
+          roughness: 0.4,
+          metalness: 0.1,
+          emissive: 0x000000,
+        });
+
+        const mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+        meshes.set(objectId, mesh);
+        return mesh;
+      };
+
+      const setSliderRange = () => {
+        sliderEl.min = String(minTime);
+        sliderEl.max = String(maxTime);
+        sliderEl.value = String(minTime);
+      };
+
+      const applyStateChange = (state, event) => {
+        const objectId = event.objectId;
+        if (!objectId) return;
+
+        state[objectId] ??= {};
+
+        if (event.property && event.to !== undefined && typeof event.to !== 'object') {
+          state[objectId][event.property] = event.to;
+          return;
+        }
+
+        if (event.to && typeof event.to === 'object') {
+          Object.assign(state[objectId], deepClone(event.to));
+        }
+      };
+
+      const stateAtTime = (targetTime) => {
+        const latestSnapshot = snapshots
+          .filter((snapshot) => Number(snapshot.time) <= targetTime)
+          .sort((a, b) => Number(b.time) - Number(a.time))[0];
+
+        const state = latestSnapshot?.objects ? deepClone(latestSnapshot.objects) : {};
+
+        const orderedEvents = [...events]
+          .filter((event) => Number(event.time) <= targetTime)
+          .sort((a, b) => Number(a.time) - Number(b.time) || (a.id ?? 0) - (b.id ?? 0));
+
+        for (const event of orderedEvents) {
+          if (event.type === 'state_change') {
+            applyStateChange(state, event);
+          }
+
+          if (event.type === 'collision' && Array.isArray(event.position) && event.a) {
+            state[event.a] ??= {};
+            state[event.a].position = deepClone(event.position);
+          }
+        }
+
+        return state;
+      };
+
+      const updateVisualizer = (targetTime) => {
+        const state = stateAtTime(targetTime);
+        const objectIds = Object.keys(state);
+
+        objectIds.forEach((objectId, index) => {
+          const objectState = state[objectId] || {};
+          const mesh = ensureMesh(objectId);
+
+          const fallbackAngle = (index / Math.max(1, objectIds.length)) * Math.PI * 2;
+          const fallbackPosition = [
+            Math.cos(fallbackAngle) * 3,
+            0.5,
+            Math.sin(fallbackAngle) * 3,
+          ];
+
+          const position = Array.isArray(objectState.position) ? objectState.position : fallbackPosition;
+          mesh.position.set(position[0] ?? 0, position[1] ?? 0.5, position[2] ?? 0);
+
+          if (Array.isArray(objectState.rotation) && objectState.rotation.length === 4) {
+            mesh.quaternion.set(
+              objectState.rotation[0] ?? 0,
+              objectState.rotation[1] ?? 0,
+              objectState.rotation[2] ?? 0,
+              objectState.rotation[3] ?? 1,
+            );
+          }
+
+          const changedRecently = events.some((event) =>
+            event.objectId === objectId &&
+            Number(event.time) <= targetTime &&
+            Number(event.time) >= targetTime - 0.15
+          );
+
+          mesh.material.emissive.set(changedRecently ? 0x2255cc : 0x000000);
+
+          const active = ['pressed', 'open', 'active', 'enabled', 'moving', 'touched']
+            .some((key) => objectState[key] === true);
+
+          if (active) {
+            mesh.scale.set(1.2, 1.2, 1.2);
+          } else {
+            mesh.scale.set(1, 1, 1);
+          }
+        });
+
+        for (const [objectId, mesh] of meshes.entries()) {
+          mesh.visible = objectIds.includes(objectId);
+        }
+
+        stateJsonEl.textContent = JSON.stringify(state, null, 2);
+      };
+
+      const refreshFilters = () => {
+        const types = [...new Set(events.map((event) => event.type).filter(Boolean))].sort();
+        const objectIds = [...new Set(events.flatMap((event) => {
+          const ids = [];
+          if (event.objectId) ids.push(event.objectId);
+          if (event.a) ids.push(event.a);
+          if (event.b) ids.push(event.b);
+          if (event.causedBy && typeof event.causedBy === 'object' && event.causedBy.objectId) ids.push(event.causedBy.objectId);
+          return ids;
+        }))].sort();
+
+        typeFilter.innerHTML = '<option value="">All types</option>' + types.map((type) => `<option value="${type}">${type}</option>`).join('');
+        objectFilter.innerHTML = '<option value="">All objects</option>' + objectIds.map((id) => `<option value="${id}">${id}</option>`).join('');
+      };
+
+      const renderRows = () => {
+        const typeValue = typeFilter.value;
+        const objectValue = objectFilter.value;
+        const now = Number(sliderEl.value);
+
+        const filtered = events.filter((event) => {
+          if (typeValue && event.type !== typeValue) return false;
+          if (!objectValue) return true;
+
+          return [
+            event.objectId,
+            event.a,
+            event.b,
+            event.causedBy && typeof event.causedBy === 'object' ? event.causedBy.objectId : null,
+          ].includes(objectValue);
+        });
+
+        const upToNow = filtered.filter((event) => Number(event.time) <= now);
+
+        summaryEl.innerHTML = `
+          <span>Events (filtered): <strong>${filtered.length}</strong></span>
+          <span>Up to scrubber: <strong>${upToNow.length}</strong></span>
+          <span>Range: <strong>${minTime.toFixed(3)}s</strong> - <strong>${maxTime.toFixed(3)}s</strong></span>
+        `;
+
+        rowsEl.innerHTML = filtered
+          .sort((a, b) => Number(a.time) - Number(b.time) || (a.id ?? 0) - (b.id ?? 0))
+          .map((event) => {
+            const futureClass = Number(event.time) > now ? 'future' : '';
+            const activeClass = Number(event.id) === Number(selectedEventId) ? 'active' : '';
+
+            return `
+              <tr class="${futureClass} ${activeClass}" data-event-id="${event.id}">
+                <td>${(Number(event.time) || 0).toFixed(3)}</td>
+                <td>${event.frame ?? '—'}</td>
+                <td>${event.type ?? '—'}</td>
+                <td>${objectFromEvent(event)}</td>
+                <td>${detailFromEvent(event)}</td>
+              </tr>
+            `;
+          })
+          .join('');
+      };
+
+      const updateTime = (targetTime) => {
+        const clamped = Math.max(minTime, Math.min(maxTime, Number(targetTime)));
+        sliderEl.value = String(clamped);
+        timeValueEl.textContent = `${clamped.toFixed(3)}s`;
+        updateVisualizer(clamped);
+        renderRows();
+      };
+
+      const loadEvents = async () => {
+        selectedEl.textContent = 'Loading...';
+
+        try {
+          const response = await fetch(urlInput.value.trim());
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+          const payload = await response.json();
+          events = Array.isArray(payload) ? payload : (Array.isArray(payload.events) ? payload.events : []);
+          snapshots = Array.isArray(payload?.snapshots) ? payload.snapshots : [];
+
+          const times = allTimes();
+          minTime = times.length ? Math.min(...times) : 0;
+          maxTime = times.length ? Math.max(...times) : minTime + 1;
+          if (maxTime <= minTime) maxTime = minTime + 1;
+
+          selectedEventId = null;
+          refreshFilters();
+          setSliderRange();
+          updateTime(minTime);
+
+          selectedEl.textContent = 'Loaded. Click any event to inspect and jump scrubber.';
+        } catch (error) {
+          events = [];
+          snapshots = [];
+          minTime = 0;
+          maxTime = 1;
+          selectedEventId = null;
+          refreshFilters();
+          setSliderRange();
+          updateTime(0);
+          selectedEl.textContent = `Unable to load events: ${error.message}`;
+        }
+      };
+
+      rowsEl.addEventListener('click', (event) => {
+        const row = event.target.closest('tr[data-event-id]');
+        if (!row) return;
+
+        const id = Number(row.dataset.eventId);
+        const found = events.find((item) => Number(item.id) === id);
+        if (!found) return;
+
+        selectedEventId = id;
+        selectedEl.textContent = JSON.stringify(found, null, 2);
+        updateTime(Number(found.time) || minTime);
+      });
+
+      sliderEl.addEventListener('input', () => updateTime(Number(sliderEl.value)));
+      typeFilter.addEventListener('change', () => renderRows());
+      objectFilter.addEventListener('change', () => renderRows());
+      loadButton.addEventListener('click', loadEvents);
+
+      playButton.addEventListener('click', () => {
+        isPlaying = !isPlaying;
+        playButton.textContent = isPlaying ? 'Pause' : 'Play';
+        lastFrameAt = null;
+      });
+
+      const animate = (nowMs) => {
+        requestAnimationFrame(animate);
+
+        if (isPlaying) {
+          if (lastFrameAt === null) lastFrameAt = nowMs;
+          const delta = (nowMs - lastFrameAt) / 1000;
+          lastFrameAt = nowMs;
+
+          const next = Number(sliderEl.value) + delta;
+          if (next >= maxTime) {
+            updateTime(maxTime);
+            isPlaying = false;
+            playButton.textContent = 'Play';
+          } else {
+            updateTime(next);
+          }
+        }
+
+        controls.update();
+        renderer.render(scene, camera);
+      };
+
+      const onResize = () => {
+        const width = viewerEl.clientWidth || 600;
+        const height = viewerEl.clientHeight || 420;
+        renderer.setSize(width, height);
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+      };
+
+      window.addEventListener('resize', onResize, false);
+
+      onResize();
+      animate(performance.now());
+      loadEvents();
+    </script>
+  </body>
+</html>
