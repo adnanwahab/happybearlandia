@@ -483,6 +483,566 @@ function getThreeObjectForBody(body, color) {
    const tealCubeGlowDuration = 5;
    const audio = new Audio('./game/sound.m4a');
 
+   // =====================================================================
+   // MULTIPLAYER
+   // =====================================================================
+
+   let socket = null;
+
+   let localPlayerId = null;
+
+   // Map player ID -> Three.js remote-player mesh
+   const remotePlayers = new Map();
+
+   // Network throttling.
+   //
+   // Physics/rendering can run at 60+ FPS,
+   // but we don't need to send 60+ WebSocket messages every second.
+   let lastStateSentAt = 0;
+
+   let lastSentPosition =
+     new THREE.Vector3(
+       Number.POSITIVE_INFINITY,
+       0,
+       0
+     );
+
+   let lastSentQuaternion =
+     new THREE.Quaternion();
+
+   let lastSentCrouched = null;
+
+   // 50ms = maximum 20 state updates / second.
+   const NETWORK_SEND_INTERVAL_MS = 50;
+
+   const POSITION_EPSILON_SQ = 0.0001;
+
+   const ROTATION_EPSILON = 0.0001;
+
+
+   // =====================================================================
+   // CREATE REMOTE PLAYER GEOMETRY
+   // =====================================================================
+
+   const makeRemoteGeometry = (
+     crouched
+   ) => {
+
+     if (crouched) {
+
+       return new THREE.CapsuleGeometry(
+         characterRadiusCrouching,
+         characterHeightCrouching,
+         4,
+         8
+       ).translate(
+         0,
+         0.5 *
+           characterHeightCrouching +
+           characterRadiusCrouching,
+         0
+       );
+
+     }
+
+     return new THREE.CapsuleGeometry(
+       characterRadiusStanding,
+       characterHeightStanding,
+       4,
+       8
+     ).translate(
+       0,
+       0.5 *
+         characterHeightStanding +
+         characterRadiusStanding,
+       0
+     );
+   };
+
+
+   // =====================================================================
+   // CREATE / UPDATE A REMOTE PLAYER
+   // =====================================================================
+
+   function applyRemotePlayerState(
+     playerId,
+     state
+   ) {
+
+     // Don't accidentally create a second
+     // representation of ourselves.
+     if (
+       !playerId ||
+       playerId === localPlayerId
+     ) {
+       return;
+     }
+
+     let mesh =
+       remotePlayers.get(
+         playerId
+       );
+
+     // ---------------------------------------------------------------
+     // Player doesn't exist locally yet.
+     // Create them.
+     // ---------------------------------------------------------------
+
+     if (!mesh) {
+
+       const material =
+         new THREE.MeshPhongMaterial({
+           color: 0xff66cc,
+         });
+
+       mesh =
+         new THREE.Mesh(
+           makeRemoteGeometry(
+             !!state.crouched
+           ),
+           material
+         );
+
+       mesh.userData.playerId =
+         playerId;
+
+       mesh.userData.crouched =
+         !!state.crouched;
+
+       scene.add(mesh);
+
+       remotePlayers.set(
+         playerId,
+         mesh
+       );
+
+       console.log(
+         "Created remote player:",
+         playerId
+       );
+     }
+
+     // ---------------------------------------------------------------
+     // Position
+     // ---------------------------------------------------------------
+
+     if (state.position) {
+
+       mesh.position.set(
+         state.position.x ?? 0,
+         state.position.y ?? 0,
+         state.position.z ?? 0
+       );
+
+     }
+
+     // ---------------------------------------------------------------
+     // Rotation
+     // ---------------------------------------------------------------
+
+     if (state.quaternion) {
+
+       mesh.quaternion.set(
+         state.quaternion.x ?? 0,
+         state.quaternion.y ?? 0,
+         state.quaternion.z ?? 0,
+         state.quaternion.w ?? 1
+       );
+
+     }
+
+     // ---------------------------------------------------------------
+     // Crouching
+     // ---------------------------------------------------------------
+
+     const crouched =
+       !!state.crouched;
+
+     if (
+       mesh.userData.crouched !==
+       crouched
+     ) {
+
+       mesh.geometry.dispose();
+
+       mesh.geometry =
+         makeRemoteGeometry(
+           crouched
+         );
+
+       mesh.userData.crouched =
+         crouched;
+
+     }
+   }
+
+
+   // =====================================================================
+   // REMOVE REMOTE PLAYER
+   // =====================================================================
+
+   function removeRemotePlayer(
+     playerId
+   ) {
+
+     const mesh =
+       remotePlayers.get(
+         playerId
+       );
+
+     if (!mesh) {
+       return;
+     }
+
+     scene.remove(mesh);
+
+     mesh.geometry.dispose();
+
+     mesh.material.dispose();
+
+     remotePlayers.delete(
+       playerId
+     );
+
+     console.log(
+       "Removed remote player:",
+       playerId
+     );
+   }
+
+
+   // =====================================================================
+   // SEND OUR LOCAL CHARACTER STATE
+   // =====================================================================
+
+   function sendLocalPlayerState(
+     force = false
+   ) {
+
+     if (
+       !socket ||
+       socket.readyState !==
+         WebSocket.OPEN ||
+       !character
+     ) {
+       return;
+     }
+
+     const now =
+       performance.now();
+
+     // ---------------------------------------------------------------
+     // Throttle normal movement updates
+     // ---------------------------------------------------------------
+
+     if (
+       !force &&
+       now - lastStateSentAt <
+         NETWORK_SEND_INTERVAL_MS
+     ) {
+       return;
+     }
+
+     // Get actual Jolt character transform.
+     const position =
+       wrapVec3(
+         character.GetPosition()
+       );
+
+     const quaternion =
+       wrapQuat(
+         character.GetRotation()
+       );
+
+     // ---------------------------------------------------------------
+     // Only send something when it changed.
+     // ---------------------------------------------------------------
+
+     const positionChanged =
+       position.distanceToSquared(
+         lastSentPosition
+       ) >
+       POSITION_EPSILON_SQ;
+
+     const rotationChanged =
+       1 -
+         Math.abs(
+           quaternion.dot(
+             lastSentQuaternion
+           )
+         ) >
+       ROTATION_EPSILON;
+
+     const crouchChanged =
+       isCrouched !==
+       lastSentCrouched;
+
+     if (
+       !force &&
+       !positionChanged &&
+       !rotationChanged &&
+       !crouchChanged
+     ) {
+       return;
+     }
+
+     // ---------------------------------------------------------------
+     // Send transform
+     // ---------------------------------------------------------------
+
+     socket.send(
+       JSON.stringify({
+         type: "playerState",
+
+         position: {
+           x: position.x,
+           y: position.y,
+           z: position.z,
+         },
+
+         quaternion: {
+           x: quaternion.x,
+           y: quaternion.y,
+           z: quaternion.z,
+           w: quaternion.w,
+         },
+
+         crouched:
+           isCrouched,
+       })
+     );
+
+     // Remember what we sent.
+     lastStateSentAt = now;
+
+     lastSentPosition.copy(
+       position
+     );
+
+     lastSentQuaternion.copy(
+       quaternion
+     );
+
+     lastSentCrouched =
+       isCrouched;
+   }
+
+
+   // =====================================================================
+   // CONNECT TO SERVER
+   // =====================================================================
+
+   function connectMultiplayer() {
+
+     const scheme =
+       location.protocol === "https:"
+         ? "wss"
+         : "ws";
+
+     const serverUrl =
+       `${scheme}://${location.host}/ws`;
+
+     console.log(
+       "Connecting to:",
+       serverUrl
+     );
+
+     socket =
+       new WebSocket(
+         serverUrl
+       );
+
+
+     // -----------------------------------------------------------------
+     // CONNECTED
+     // -----------------------------------------------------------------
+
+     socket.onopen = () => {
+
+       console.log(
+         "WebSocket connected"
+       );
+
+       // Immediately send our current transform.
+       sendLocalPlayerState(
+         true
+       );
+
+     };
+
+
+     // -----------------------------------------------------------------
+     // MESSAGE FROM SERVER
+     // -----------------------------------------------------------------
+
+     socket.onmessage = (
+       event
+     ) => {
+
+       let msg;
+
+       try {
+
+         msg =
+           JSON.parse(
+             event.data
+           );
+
+       } catch (error) {
+
+         console.warn(
+           "Ignoring invalid multiplayer message",
+           error
+         );
+
+         return;
+
+       }
+
+       switch (msg.type) {
+
+         // ===============================================================
+         // Initial connection
+         // ===============================================================
+
+         case "welcome": {
+
+           localPlayerId =
+             msg.playerId;
+
+           console.log(
+             "My multiplayer player ID:",
+             localPlayerId
+           );
+
+           // Create everyone who was online
+           // before us.
+           for (
+             const player
+             of msg.players ?? []
+           ) {
+
+             if (
+               player.id !==
+               localPlayerId
+             ) {
+
+               applyRemotePlayerState(
+                 player.id,
+                 player.state ?? {}
+               );
+
+             }
+
+           }
+
+           // Send our transform again now that
+           // initialization is complete.
+           sendLocalPlayerState(
+             true
+           );
+
+           break;
+         }
+
+
+         // ===============================================================
+         // Someone connected
+         // ===============================================================
+
+         case "playerJoined": {
+
+           if (
+             msg.playerId !==
+             localPlayerId
+           ) {
+
+             applyRemotePlayerState(
+               msg.playerId,
+               msg.state ?? {}
+             );
+
+           }
+
+           break;
+         }
+
+
+         // ===============================================================
+         // Someone moved
+         // ===============================================================
+
+         case "playerState": {
+
+           applyRemotePlayerState(
+             msg.playerId,
+             msg
+           );
+
+           break;
+         }
+
+
+         // ===============================================================
+         // Someone disconnected
+         // ===============================================================
+
+         case "playerLeft": {
+
+           removeRemotePlayer(
+             msg.playerId
+           );
+
+           break;
+         }
+
+       }
+
+     };
+
+
+     // -----------------------------------------------------------------
+     // DISCONNECTED
+     // -----------------------------------------------------------------
+
+     socket.onclose = () => {
+
+       console.log(
+         "WebSocket disconnected"
+       );
+
+       // Remove all remote meshes.
+       for (
+         const playerId
+         of [...remotePlayers.keys()]
+       ) {
+
+         removeRemotePlayer(
+           playerId
+         );
+
+       }
+
+     };
+
+
+     // -----------------------------------------------------------------
+     // ERROR
+     // -----------------------------------------------------------------
+
+     socket.onerror = (
+       error
+     ) => {
+
+       console.error(
+         "WebSocket error:",
+         error
+       );
+
+     };
+
+   }
+
    const updateTealCubeGlow = (currentTime) => {
     if (!tealCubeMaterial || tealCubeGlowStartTime === null)
      return;
@@ -804,7 +1364,8 @@ function getThreeObjectForBody(body, color) {
     handleInput(cameraDirectionV, input.jump, input.switchStance, deltaTime);
 
     const oldPosition = wrapVec3(character.GetPosition());
-    prePhysicsUpdate(deltaTime);
+     prePhysicsUpdate(deltaTime);
+     sendLocalPlayerState();
     const newdPosition = wrapVec3(character.GetPosition());
     camera.position.add(newdPosition.sub(oldPosition));
    };
@@ -825,21 +1386,8 @@ function getThreeObjectForBody(body, color) {
      input.jump = true;
     } else if (keyCode == 16) {
      input.crouched = true;
-    } else if (keyCode == 16) {
-     input.crouched = true;
     }
 
-    if (socket && socket.readyState === WebSocket.OPEN) {
-     const position = character.GetPosition();
-     socket.send(JSON.stringify({
-      event: "playerMoved",
-      position: {
-       x: position.GetX(),
-       y: position.GetY(),
-       z: position.GetZ()
-      }
-     }));
-    }
    };
    function onDocumentKeyUp(event) {
     var keyCode = event.which;
@@ -864,41 +1412,22 @@ function getThreeObjectForBody(body, color) {
     initShape();
     setCrouched(input.crouched, true);
    });
+    physicsSystem.SetGravity(
+      new Jolt.Vec3(
+        0,
+        -25,
+        0
+      )
+    );
 
-   physicsSystem.SetGravity(new Jolt.Vec3(0, -25, 0));
-  });
+    // Connect only after:
+    // - Three.js exists
+    // - Jolt exists
+    // - character exists
+    // - scene exists
+    connectMultiplayer();
+
+    });
+
 
 //connectivityvar socket = null;
-var socket = null;
-
-function connect() {
-  const scheme =
-    location.protocol === "https:"
-      ? "wss"
-      : "ws";
-
-  const serverUrl =
-    `${scheme}://${location.host}/ws`;
-
-  socket = new WebSocket(serverUrl);
-
-  socket.onopen = () => {
-    console.log("WebSocket connected");
-  };
-
-  socket.onmessage = event => {
-    const msg = JSON.parse(event.data);
-
-    console.log("Received:", msg);
-  };
-
-  socket.onclose = () => {
-    console.log("WebSocket disconnected");
-  };
-
-  socket.onerror = error => {
-    console.error("WebSocket error:", error);
-  };
-}
-
-connect();
