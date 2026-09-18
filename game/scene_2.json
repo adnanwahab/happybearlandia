@@ -1,0 +1,203 @@
+{
+  "gravity": [
+    0,
+    -20,
+    0
+  ],
+  "playerSpawn": [
+    -18,
+    2,
+    0
+  ],
+  "respawnPosition": [
+    -18,
+    2,
+    0
+  ],
+  "objects": [
+    {
+      "id": "floor",
+      "type": "box",
+      "position": [
+        0,
+        -0.5,
+        0
+      ],
+      "size": [
+        120,
+        1,
+        120
+      ],
+      "motion": "static",
+      "color": "#b8c7d9",
+      "friction": 0.3
+    },
+    {
+      "id": "left-wall",
+      "type": "box",
+      "position": [
+        -55,
+        3,
+        0
+      ],
+      "size": [
+        1,
+        6,
+        110
+      ],
+      "motion": "static",
+      "color": "#ffffff"
+    },
+    {
+      "id": "right-wall",
+      "type": "box",
+      "position": [
+        55,
+        3,
+        0
+      ],
+      "size": [
+        1,
+        6,
+        110
+      ],
+      "motion": "static",
+      "color": "#ffffff"
+    },
+    {
+      "id": "conveyor",
+      "type": "box",
+      "position": [
+        -10,
+        0.1,
+        0
+      ],
+      "size": [
+        16,
+        0.5,
+        5
+      ],
+      "motion": "static",
+      "color": "#2244dd",
+      "behavior": "conveyor",
+      "speed": 8
+    },
+    {
+      "id": "teal-cube",
+      "type": "box",
+      "position": [
+        -18,
+        4,
+        -10
+      ],
+      "size": [
+        1.6,
+        1.6,
+        1.6
+      ],
+      "motion": "dynamic",
+      "color": "#00ffff",
+      "mass": 22,
+      "friction": 0.08,
+      "networked": true,
+      "behavior": "pushable"
+    },
+    {
+      "id": "platform-a",
+      "type": "box",
+      "position": [
+        5,
+        1,
+        -10
+      ],
+      "size": [
+        7,
+        0.5,
+        7
+      ],
+      "motion": "static",
+      "color": "#8bd17c"
+    },
+    {
+      "id": "platform-b",
+      "type": "box",
+      "position": [
+        16,
+        2.2,
+        -18
+      ],
+      "size": [
+        7,
+        0.5,
+        7
+      ],
+      "motion": "static",
+      "color": "#8bd17c"
+    },
+    {
+      "id": "platform-c",
+      "type": "box",
+      "position": [
+        28,
+        3.8,
+        -10
+      ],
+      "size": [
+        7,
+        0.5,
+        7
+      ],
+      "motion": "static",
+      "color": "#8bd17c"
+    },
+    {
+      "id": "goal-pad",
+      "type": "box",
+      "position": [
+        40,
+        4.4,
+        -10
+      ],
+      "size": [
+        9,
+        0.5,
+        9
+      ],
+      "motion": "static",
+      "color": "#ffe47a"
+    },
+    {
+      "id": "lava",
+      "type": "box",
+      "position": [
+        0,
+        -45,
+        0
+      ],
+      "size": [
+        2200,
+        4,
+        2200
+      ],
+      "motion": "static",
+      "color": "#cc2222",
+      "behavior": "lava"
+    },
+    {
+      "id": "cuboid-1",
+      "type": "box",
+      "position": [
+        0,
+        1,
+        0
+      ],
+      "size": [
+        2,
+        2,
+        2
+      ],
+      "motion": "static",
+      "color": "#66ccff"
+    }
+  ]
+}

@@ -3,6 +3,34 @@ import { validateScene } from "./game/scene-loader.js";
 import { join, normalize, relative } from "node:path";
 
 const gameRoot = normalize("./game");
+const toolsRoot = normalize("./tools");
+const sceneIdPattern = /^[a-zA-Z0-9_-]+$/;
+
+function isPathInside(rootPath, targetPath) {
+  return !relative(rootPath, targetPath).startsWith("..");
+}
+
+function getSceneIdFromPath(pathname, prefix) {
+  if (!pathname.startsWith(prefix)) {
+    return null;
+  }
+
+  const remainder = pathname.slice(prefix.length).replace(/^\/+/, "");
+
+  if (!remainder || remainder.includes("/")) {
+    return null;
+  }
+
+  if (!sceneIdPattern.test(remainder)) {
+    return null;
+  }
+
+  return remainder;
+}
+
+function getSceneFilePath(sceneId) {
+  return normalize(join(gameRoot, `${sceneId}.json`));
+}
 
 // -------------------------------------------------------------------------
 // Multiplayer player state
@@ -37,7 +65,7 @@ let cubeState = {
 };
 
 const server = serve({
-  port: 3000,
+  port: Number(process.env.PORT ?? 3000),
 
   async fetch(request, server) {
     const url = new URL(request.url);
@@ -85,6 +113,119 @@ const server = serve({
     }
 
     // ---------------------------------------------------------------------
+    // Scene API
+    // ---------------------------------------------------------------------
+
+    const sceneApiId = getSceneIdFromPath(url.pathname, "/api/scenes/");
+
+    if (sceneApiId) {
+      const sceneFilePath = getSceneFilePath(sceneApiId);
+
+      if (!isPathInside(gameRoot, sceneFilePath)) {
+        return new Response("Not found", { status: 404 });
+      }
+
+      if (request.method === "GET") {
+        const sceneFile = Bun.file(sceneFilePath);
+
+        if (!(await sceneFile.exists())) {
+          return new Response("Scene not found", { status: 404 });
+        }
+
+        return new Response(sceneFile, {
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      if (request.method === "POST") {
+        let payload;
+
+        try {
+          payload = await request.json();
+        } catch {
+          return new Response("Invalid JSON body", { status: 400 });
+        }
+
+        let validated;
+
+        try {
+          validated = validateScene(payload);
+        } catch (error) {
+          return new Response(error?.message ?? "Invalid scene data", {
+            status: 400,
+          });
+        }
+
+        await Bun.write(sceneFilePath, `${JSON.stringify(validated, null, 2)}\n`);
+
+        return new Response(
+          JSON.stringify({ ok: true, sceneId: sceneApiId }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      return new Response("Method not allowed", {
+        status: 405,
+        headers: { Allow: "GET, POST" },
+      });
+    }
+
+    // ---------------------------------------------------------------------
+    // /game/:id and /edit/:id app routes
+    // ---------------------------------------------------------------------
+
+    const gameSceneId = getSceneIdFromPath(url.pathname, "/game/");
+
+    if (gameSceneId) {
+      const sceneFilePath = getSceneFilePath(gameSceneId);
+
+      if (!isPathInside(gameRoot, sceneFilePath)) {
+        return new Response("Not found", { status: 404 });
+      }
+
+      const sceneFile = Bun.file(sceneFilePath);
+
+      if (!(await sceneFile.exists())) {
+        return new Response("Scene not found", { status: 404 });
+      }
+
+      const gameIndex = Bun.file(join(gameRoot, "index.html"));
+
+      if (await gameIndex.exists()) {
+        return new Response(gameIndex);
+      }
+
+      return new Response("Not found", { status: 404 });
+    }
+
+    const editSceneId = getSceneIdFromPath(url.pathname, "/edit/");
+
+    if (editSceneId) {
+      const sceneFilePath = getSceneFilePath(editSceneId);
+
+      if (!isPathInside(gameRoot, sceneFilePath)) {
+        return new Response("Not found", { status: 404 });
+      }
+
+      const sceneFile = Bun.file(sceneFilePath);
+
+      if (!(await sceneFile.exists())) {
+        return new Response("Scene not found", { status: 404 });
+      }
+
+      const editFile = Bun.file(join(toolsRoot, "edit-game.html"));
+
+      if (await editFile.exists()) {
+        return new Response(editFile);
+      }
+
+      return new Response("Not found", { status: 404 });
+    }
+
+    // ---------------------------------------------------------------------
     // Static tool files
     // ---------------------------------------------------------------------
 
@@ -101,17 +242,12 @@ const server = serve({
 
       const filePath = normalize(
         join(
-          "./tools",
+          toolsRoot,
           relativePath
         )
       );
 
-      if (
-        relative(
-          "./tools",
-          filePath
-        ).startsWith("..")
-      ) {
+      if (!isPathInside(toolsRoot, filePath)) {
         return new Response(
           "Not found",
           {
@@ -156,12 +292,7 @@ const server = serve({
         )
       );
 
-      if (
-        relative(
-          gameRoot,
-          filePath
-        ).startsWith("..")
-      ) {
+      if (!isPathInside(gameRoot, filePath)) {
         return new Response(
           "Not found",
           {

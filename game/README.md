@@ -46,3 +46,23 @@ they do not enable new gameplay behaviors or multiplayer objects.
 `validateScene` for tools to reuse. Invalid files produce an on-screen startup
 error. This format currently supports boxes only; behavior code stays in
 `index.js`, while geometry and initial physics values live in JSON.
+
+## Browser integration test
+
+From the repository root:
+
+```sh
+bun install
+bunx playwright install chromium
+bun run test:e2e
+```
+
+Playwright starts and stops a separate Bun server on port 3100. The tests open
+both `/game` and `/game/` in Chromium, check that the scene JSON loads, wait for
+the multiplayer welcome and a visible canvas, and run several animation frames.
+JavaScript exceptions, console errors, failed requests, and HTTP errors fail
+the test. Internet access is required for the game's Three.js and Jolt CDN
+imports. Failed runs retain a trace and browser error attachment under
+`test-results/`.
+
+The `*.e2e.js` filenames keep these tests separate from Bun's unit test discovery.

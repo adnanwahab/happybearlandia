@@ -41,6 +41,18 @@ const wrapQuat = (q) =>
     q.GetW()
   );
 
+const sceneFileFromRoute = () => {
+  const pathParts = window.location.pathname
+    .split('/')
+    .filter(Boolean);
+
+  if (pathParts[0] === 'game' && pathParts[1]) {
+    return `${pathParts[1]}.json`;
+  }
+
+  return 'scene.json';
+};
+
 // Object layers
 const LAYER_NON_MOVING = 0;
 const LAYER_MOVING = 1;
@@ -923,7 +935,7 @@ function getThreeObjectForBody(
 
 Promise.all([
   initJolt(),
-  loadScene(new URL('./scene.json', import.meta.url))
+  loadScene(new URL(`./${sceneFileFromRoute()}`, import.meta.url))
 ]).then(function ([Jolt, sceneData]) {
 
   initExample(
@@ -1040,7 +1052,7 @@ Promise.all([
 
   const audio =
     new Audio(
-      './game/sound.m4a'
+      new URL('./sound.m4a', import.meta.url).href
     );
 
 

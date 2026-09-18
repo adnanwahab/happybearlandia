@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scene Editor</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      }
+
+      body {
+        margin: 0;
+        background: #0f1115;
+        color: #e8eaee;
+      }
+
+      .layout {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .toolbar {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      button {
+        border: none;
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 14px;
+        background: #2563eb;
+        color: white;
+        cursor: pointer;
+      }
+
+      button.secondary {
+        background: #374151;
+      }
+
+      .status {
+        margin-left: auto;
+        font-size: 13px;
+        opacity: 0.9;
+      }
+
+      .meta {
+        margin: 12px 0 18px;
+        font-size: 14px;
+        opacity: 0.85;
+      }
+
+      .objects {
+        display: grid;
+        gap: 12px;
+      }
+
+      .object {
+        border: 1px solid #2d3440;
+        border-radius: 8px;
+        padding: 12px;
+        background: #171b22;
+      }
+
+      .object-title {
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: 8px;
+      }
+
+      label {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 12px;
+        color: #c5cad3;
+      }
+
+      input,
+      select {
+        border: 1px solid #313949;
+        border-radius: 6px;
+        padding: 6px 8px;
+        background: #0f131a;
+        color: #e8eaee;
+      }
+
+      .error {
+        color: #ff8a8a;
+        margin-top: 8px;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <div class="toolbar">
+        <button id="add-cuboid">Add Cuboid</button>
+        <button id="save-now" class="secondary">Save Now</button>
+        <div id="status" class="status">Loading...</div>
+      </div>
+
+      <div id="meta" class="meta"></div>
+      <div id="objects" class="objects"></div>
+      <div id="error" class="error"></div>
+    </div>
+
+    <script>
+      const pathParts = window.location.pathname.split('/').filter(Boolean);
+      const sceneId = pathParts[0] === 'edit' && pathParts[1] ? pathParts[1] : 'scene';
+      const sceneApiUrl = `/api/scenes/${sceneId}`;
+
+      const statusEl = document.getElementById('status');
+      const metaEl = document.getElementById('meta');
+      const objectsEl = document.getElementById('objects');
+      const errorEl = document.getElementById('error');
+      const addCuboidButton = document.getElementById('add-cuboid');
+      const saveNowButton = document.getElementById('save-now');
+
+      let sceneData = null;
+      let saveTimer = null;
+      let saving = false;
+
+      function setStatus(message) {
+        statusEl.textContent = message;
+      }
+
+      function setError(message = '') {
+        errorEl.textContent = message;
+      }
+
+      function uniqueObjectId(base = 'cuboid') {
+        const ids = new Set(sceneData.objects.map(object => object.id));
+        let index = 1;
+        let candidate = `${base}-${index}`;
+
+        while (ids.has(candidate)) {
+          index += 1;
+          candidate = `${base}-${index}`;
+        }
+
+        return candidate;
+      }
+
+      function updateMeta() {
+        metaEl.textContent = `Editing /game/${sceneId}.json — ${sceneData.objects.length} objects`;
+      }
+
+      function toNumber(value, fallback = 0) {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : fallback;
+      }
+
+      function updateObjectValue(objectIndex, key, value) {
+        const object = sceneData.objects[objectIndex];
+        object[key] = value;
+        queueSave();
+      }
+
+      function queueSave() {
+        if (saveTimer) {
+          clearTimeout(saveTimer);
+        }
+
+        setStatus(saving ? 'Saving...' : 'Unsaved changes...');
+
+        saveTimer = setTimeout(() => {
+          saveScene();
+        }, 500);
+      }
+
+      async function saveScene() {
+        if (!sceneData || saving) {
+          return;
+        }
+
+        saving = true;
+        setStatus('Saving...');
+        setError('');
+
+        try {
+          const response = await fetch(sceneApiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(sceneData)
+          });
+
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || `Save failed (HTTP ${response.status})`);
+          }
+
+          setStatus(`Saved at ${new Date().toLocaleTimeString()}`);
+        } catch (error) {
+          setStatus('Save failed');
+          setError(error.message);
+        } finally {
+          saving = false;
+        }
+      }
+
+      function objectEditor(object, objectIndex) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'object';
+
+        wrapper.innerHTML = `
+          <div class="object-title">${object.id}</div>
+          <div class="grid">
+            <label>
+              id
+              <input data-field="id" type="text" value="${object.id}" />
+            </label>
+            <label>
+              color
+              <input data-field="color" type="text" value="${object.color ?? '#ffffff'}" />
+            </label>
+            <label>
+              motion
+              <select data-field="motion">
+                <option value="static" ${object.motion === 'dynamic' ? '' : 'selected'}>static</option>
+                <option value="dynamic" ${object.motion === 'dynamic' ? 'selected' : ''}>dynamic</option>
+              </select>
+            </label>
+            <label>
+              pos x
+              <input data-field="pos-x" type="number" step="0.1" value="${object.position?.[0] ?? 0}" />
+            </label>
+            <label>
+              pos y
+              <input data-field="pos-y" type="number" step="0.1" value="${object.position?.[1] ?? 0}" />
+            </label>
+            <label>
+              pos z
+              <input data-field="pos-z" type="number" step="0.1" value="${object.position?.[2] ?? 0}" />
+            </label>
+            <label>
+              size x
+              <input data-field="size-x" type="number" min="0.1" step="0.1" value="${object.size?.[0] ?? 1}" />
+            </label>
+            <label>
+              size y
+              <input data-field="size-y" type="number" min="0.1" step="0.1" value="${object.size?.[1] ?? 1}" />
+            </label>
+            <label>
+              size z
+              <input data-field="size-z" type="number" min="0.1" step="0.1" value="${object.size?.[2] ?? 1}" />
+            </label>
+          </div>
+        `;
+
+        wrapper.querySelectorAll('input,select').forEach(input => {
+          input.addEventListener('change', () => {
+            const field = input.dataset.field;
+            const value = input.value;
+            const target = sceneData.objects[objectIndex];
+
+            if (field === 'id') {
+              updateObjectValue(objectIndex, 'id', value.trim());
+              wrapper.querySelector('.object-title').textContent = value.trim() || '(empty id)';
+              return;
+            }
+
+            if (field === 'color') {
+              updateObjectValue(objectIndex, 'color', value.trim());
+              return;
+            }
+
+            if (field === 'motion') {
+              updateObjectValue(objectIndex, 'motion', value);
+              return;
+            }
+
+            if (field.startsWith('pos-')) {
+              const axis = field.split('-')[1];
+              const axisMap = { x: 0, y: 1, z: 2 };
+              target.position[axisMap[axis]] = toNumber(value, 0);
+              queueSave();
+              return;
+            }
+
+            if (field.startsWith('size-')) {
+              const axis = field.split('-')[1];
+              const axisMap = { x: 0, y: 1, z: 2 };
+              target.size[axisMap[axis]] = Math.max(0.1, toNumber(value, 1));
+              queueSave();
+            }
+          });
+        });
+
+        return wrapper;
+      }
+
+      function render() {
+        objectsEl.innerHTML = '';
+        sceneData.objects.forEach((object, objectIndex) => {
+          objectsEl.appendChild(objectEditor(object, objectIndex));
+        });
+        updateMeta();
+      }
+
+      addCuboidButton.addEventListener('click', () => {
+        if (!sceneData) {
+          return;
+        }
+
+        sceneData.objects.push({
+          id: uniqueObjectId('cuboid'),
+          type: 'box',
+          position: [0, 1, 0],
+          size: [2, 2, 2],
+          motion: 'static',
+          color: '#66ccff'
+        });
+
+        render();
+        queueSave();
+      });
+
+      saveNowButton.addEventListener('click', () => {
+        if (saveTimer) {
+          clearTimeout(saveTimer);
+          saveTimer = null;
+        }
+        saveScene();
+      });
+
+      async function boot() {
+        setStatus('Loading...');
+        setError('');
+
+        try {
+          const response = await fetch(sceneApiUrl);
+
+          if (!response.ok) {
+            throw new Error(`Could not load scene (HTTP ${response.status})`);
+          }
+
+          sceneData = await response.json();
+          render();
+          setStatus('Loaded');
+        } catch (error) {
+          setStatus('Load failed');
+          setError(error.message);
+        }
+      }
+
+      boot();
+    </script>
+  </body>
+</html>

@@ -1,3 +1,9 @@
 {
-  "name": "fly_io_observable"
+  "name": "fly_io_observable",
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
+  },
+  "scripts": {
+    "test:e2e": "playwright test"
+  }
 }

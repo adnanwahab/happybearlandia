@@ -1,9 +1,23 @@
 
-<div><script src="https://cdn.tailwindcss.com"></script>
+<div>
+  <script src="https://cdn.tailwindcss.com"></script>
 
-    <div><h1>Twitch Plays Robot</h1></div>
-<div class="grid grid-cols-1 gap-4 w-full">
-    <iframe src="/game" class="w-full aspect-video"></iframe>
-    <!--<iframe src="/tools/braindance.html" class="w-full aspect-video"></iframe>-->
-</div>
+  <div class="p-4 space-y-4">
+    <h1 class="text-2xl font-bold">Twitch Plays Robot</h1>
+
+    <div class="rounded border p-3 space-y-2">
+      <h2 class="font-semibold">Quick links</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+        <a class="underline text-blue-600" href="/game/scene">Play Scene 1</a>
+        <a class="underline text-blue-600" href="/game/scene_2">Play Scene 2</a>
+        <a class="underline text-blue-600" href="/edit/scene">Edit Scene 1</a>
+        <a class="underline text-blue-600" href="/edit/scene_2">Edit Scene 2</a>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 w-full">
+      <iframe src="/game/scene" class="w-full aspect-video"></iframe>
+      <!--<iframe src="/tools/braindance.html" class="w-full aspect-video"></iframe>-->
+    </div>
+  </div>
 </div>
