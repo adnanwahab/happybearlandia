@@ -163,10 +163,31 @@
     font-size: 13px;
     line-height: 1.6;
   }
+
+  .transliteration {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 72px;
+    width: 100%;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, #315b9b, #172238);
+    border-bottom: 1px solid #6599e6;
+    color: #eef5ff;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
 </style>
+
 </head>
 
 <body>
+
+
 
 <div id="app">
 
@@ -176,7 +197,11 @@
     Paint exactly which pixels should animate. Only marked pixels are palette-cycled.
   </div>
 
+
   <div class="stage">
+      <div class="transliteration">
+      </div>
+      <script src="index.js"></script>
     <canvas id="canvas"></canvas>
 
     <div class="status" id="status">
@@ -976,6 +1001,56 @@ pauseBtn.addEventListener(
 // IMAGE LOADING
 // ======================================================
 
+function loadImageSource(src) {
+
+  const img =
+    new Image();
+
+  img.onload =
+    () => {
+
+      const maxWidth =
+        1100;
+
+      const scale =
+        Math.min(
+          1,
+          maxWidth / img.width
+        );
+
+      canvas.width =
+        Math.round(
+          img.width * scale
+        );
+
+      canvas.height =
+        Math.round(
+          img.height * scale
+        );
+
+      ctx.imageSmoothingEnabled =
+        false;
+
+      ctx.drawImage(
+        img,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+
+      prepareImage();
+
+      if (src.startsWith("blob:"))
+        URL.revokeObjectURL(src);
+
+    };
+
+  img.src = src;
+
+}
+
+
 document
   .querySelector("#file")
   .addEventListener(
@@ -988,55 +1063,14 @@ document
       if (!file)
         return;
 
-      const img =
-        new Image();
-
-      img.onload =
-        () => {
-
-          const maxWidth =
-            1100;
-
-          const scale =
-            Math.min(
-              1,
-              maxWidth / img.width
-            );
-
-          canvas.width =
-            Math.round(
-              img.width * scale
-            );
-
-          canvas.height =
-            Math.round(
-              img.height * scale
-            );
-
-          ctx.imageSmoothingEnabled =
-            false;
-
-          ctx.drawImage(
-            img,
-            0,
-            0,
-            canvas.width,
-            canvas.height
-          );
-
-          prepareImage();
-
-          URL.revokeObjectURL(
-            img.src
-          );
-
-        };
-
-      img.src =
-        URL.createObjectURL(file);
+      loadImageSource(
+        URL.createObjectURL(file)
+      );
 
     }
   );
+
+loadImageSource("scene.png");
 
 
 // ======================================================

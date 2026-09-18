@@ -16,3 +16,16 @@ const transliteration = `
   Wa La Ya\`uduhu Hifzuhuma
 
   Wa Huwa Al-Aliy Al-Azim`
+
+const sentences = transliteration.trim().split(/\n\s*\n/)
+let sentenceIndex = 0
+
+function writeNextSentence() {
+  document.querySelector('.transliteration').textContent = sentences[sentenceIndex]
+  sentenceIndex = (sentenceIndex + 1) % sentences.length
+}
+
+writeNextSentence()
+setInterval(writeNextSentence, 10000)
+
+console.log('index.js')
