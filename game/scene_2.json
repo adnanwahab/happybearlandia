@@ -19,7 +19,7 @@
       "id": "floor",
       "type": "box",
       "position": [
-        0,
+        10,
         -0.5,
         0
       ],

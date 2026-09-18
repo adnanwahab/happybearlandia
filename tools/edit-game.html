@@ -1,6 +1,14 @@
 <!doctype html>
 <html lang="en">
   <head>
+      <script type="importmap">
+              {
+                  "imports": {
+                      "three": "https://unpkg.com/three@0.173.0/build/three.module.js",
+                      "three/addons/": "https://unpkg.com/three@0.173.0/examples/jsm/"
+                  }
+              }
+          </script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Scene Editor</title>
@@ -17,7 +25,7 @@
       }
 
       .layout {
-        max-width: 1000px;
+        max-width: 1200px;
         margin: 0 auto;
         padding: 20px;
       }
@@ -53,6 +61,15 @@
         margin: 12px 0 18px;
         font-size: 14px;
         opacity: 0.85;
+      }
+
+      .preview {
+        height: 420px;
+        border: 1px solid #2d3440;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #0b0e13;
+        margin-bottom: 16px;
       }
 
       .objects {
@@ -111,17 +128,22 @@
       </div>
 
       <div id="meta" class="meta"></div>
+      <div id="preview" class="preview"></div>
       <div id="objects" class="objects"></div>
       <div id="error" class="error"></div>
     </div>
 
-    <script>
+    <script type="module">
+      import * as THREE from 'https://unpkg.com/three@0.173.0/build/three.module.js';
+      import { OrbitControls } from 'https://unpkg.com/three@0.173.0/examples/jsm/controls/OrbitControls.js';
+
       const pathParts = window.location.pathname.split('/').filter(Boolean);
       const sceneId = pathParts[0] === 'edit' && pathParts[1] ? pathParts[1] : 'scene';
       const sceneApiUrl = `/api/scenes/${sceneId}`;
 
       const statusEl = document.getElementById('status');
       const metaEl = document.getElementById('meta');
+      const previewEl = document.getElementById('preview');
       const objectsEl = document.getElementById('objects');
       const errorEl = document.getElementById('error');
       const addCuboidButton = document.getElementById('add-cuboid');
@@ -130,6 +152,12 @@
       let sceneData = null;
       let saveTimer = null;
       let saving = false;
+
+      let renderer;
+      let previewScene;
+      let camera;
+      let controls;
+      const sceneObjectsGroup = new THREE.Group();
 
       function setStatus(message) {
         statusEl.textContent = message;
@@ -165,6 +193,7 @@
         const object = sceneData.objects[objectIndex];
         object[key] = value;
         queueSave();
+        refreshPreview();
       }
 
       function queueSave() {
@@ -207,6 +236,109 @@
         } finally {
           saving = false;
         }
+      }
+
+      function sanitizeColor(color) {
+        return /^#[\da-f]{6}$/i.test(color ?? '')
+          ? color
+          : '#cccccc';
+      }
+
+      function refreshPreview() {
+        if (!sceneData || !previewScene) {
+          return;
+        }
+
+        while (sceneObjectsGroup.children.length > 0) {
+          const child = sceneObjectsGroup.children.pop();
+          child.geometry.dispose();
+          child.material.dispose();
+        }
+
+        for (const object of sceneData.objects) {
+          if (object.type !== 'box') {
+            continue;
+          }
+
+          const sx = Math.max(0.1, toNumber(object.size?.[0], 1));
+          const sy = Math.max(0.1, toNumber(object.size?.[1], 1));
+          const sz = Math.max(0.1, toNumber(object.size?.[2], 1));
+
+          const geometry = new THREE.BoxGeometry(sx, sy, sz);
+          const color = sanitizeColor(object.color);
+          const material = new THREE.MeshStandardMaterial({
+            color,
+            metalness: 0.1,
+            roughness: 0.85
+          });
+
+          const mesh = new THREE.Mesh(geometry, material);
+          mesh.position.set(
+            toNumber(object.position?.[0], 0),
+            toNumber(object.position?.[1], 0),
+            toNumber(object.position?.[2], 0)
+          );
+
+          if (Array.isArray(object.rotation) && object.rotation.length === 4) {
+            mesh.quaternion.set(
+              toNumber(object.rotation[0], 0),
+              toNumber(object.rotation[1], 0),
+              toNumber(object.rotation[2], 0),
+              toNumber(object.rotation[3], 1)
+            );
+          }
+
+          sceneObjectsGroup.add(mesh);
+        }
+      }
+
+      function initPreview() {
+        previewScene = new THREE.Scene();
+        previewScene.background = new THREE.Color(0x0b0e13);
+
+        const width = previewEl.clientWidth;
+        const height = previewEl.clientHeight;
+
+        camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 3000);
+        camera.position.set(35, 25, 35);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(width, height);
+        previewEl.appendChild(renderer.domElement);
+
+        controls = new OrbitControls(camera, renderer.domElement);
+        controls.target.set(0, 2, 0);
+        controls.enableDamping = true;
+
+        const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+        dirLight.position.set(16, 24, 12);
+
+        const grid = new THREE.GridHelper(160, 80, 0x405060, 0x263341);
+        const axes = new THREE.AxesHelper(6);
+
+        previewScene.add(ambient);
+        previewScene.add(dirLight);
+        previewScene.add(grid);
+        previewScene.add(axes);
+        previewScene.add(sceneObjectsGroup);
+
+        function animate() {
+          requestAnimationFrame(animate);
+          controls.update();
+          renderer.render(previewScene, camera);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+          const newWidth = previewEl.clientWidth;
+          const newHeight = previewEl.clientHeight;
+          camera.aspect = newWidth / newHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(newWidth, newHeight);
+        });
       }
 
       function objectEditor(object, objectIndex) {
@@ -285,6 +417,7 @@
               const axisMap = { x: 0, y: 1, z: 2 };
               target.position[axisMap[axis]] = toNumber(value, 0);
               queueSave();
+              refreshPreview();
               return;
             }
 
@@ -293,6 +426,7 @@
               const axisMap = { x: 0, y: 1, z: 2 };
               target.size[axisMap[axis]] = Math.max(0.1, toNumber(value, 1));
               queueSave();
+              refreshPreview();
             }
           });
         });
@@ -306,6 +440,7 @@
           objectsEl.appendChild(objectEditor(object, objectIndex));
         });
         updateMeta();
+        refreshPreview();
       }
 
       addCuboidButton.addEventListener('click', () => {
@@ -337,6 +472,8 @@
       async function boot() {
         setStatus('Loading...');
         setError('');
+
+        initPreview();
 
         try {
           const response = await fetch(sceneApiUrl);
