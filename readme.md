@@ -40,4 +40,5 @@ bun run dev
 fly deploy
 
 # references
-https://www.youtube.com/watch?v=4Tr0otuiQuU&list=RD4Tr0otuiQuU&start_radio=1
+- https://www.youtube.com/watch?v=4Tr0otuiQuU&list=RD4Tr0otuiQuU&start_radio=1
+- https://github.com/jhuckaby/canvascycle

@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3D Go Board</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #111;
+      font-family: system-ui, sans-serif;
+    }
+
+    #info {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 10;
+
+      padding: 14px 18px;
+
+      color: white;
+      background: rgba(0, 0, 0, 0.55);
+
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+
+      backdrop-filter: blur(8px);
+    }
+
+    #info h2 {
+      margin: 0 0 5px;
+      font-size: 18px;
+    }
+
+    #info p {
+      margin: 3px 0;
+      font-size: 13px;
+      opacity: 0.8;
+    }
+
+    #turn {
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="info">
+  <h2>3D Go Board</h2>
+
+  <p>Click an intersection to place a stone.</p>
+  <p>Drag to rotate • Scroll to zoom</p>
+
+  <p>
+    Turn:
+    <span id="turn">Black</span>
+  </p>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+
+import * as THREE from "three";
+
+import { OrbitControls }
+from "three/addons/controls/OrbitControls.js";
+
+
+// -----------------------------------------------------
+// Scene
+// -----------------------------------------------------
+
+const scene = new THREE.Scene();
+
+scene.background = new THREE.Color(0x111315);
+
+
+// -----------------------------------------------------
+// Camera
+// -----------------------------------------------------
+
+const camera = new THREE.PerspectiveCamera(
+  45,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  100
+);
+
+camera.position.set(0, 15, 16);
+
+
+// -----------------------------------------------------
+// Renderer
+// -----------------------------------------------------
+
+const renderer = new THREE.WebGLRenderer({
+  antialias: true
+});
+
+renderer.setSize(
+  window.innerWidth,
+  window.innerHeight
+);
+
+renderer.setPixelRatio(
+  Math.min(window.devicePixelRatio, 2)
+);
+
+renderer.shadowMap.enabled = true;
+
+renderer.shadowMap.type =
+  THREE.PCFSoftShadowMap;
+
+document.body.appendChild(
+  renderer.domElement
+);
+
+
+// -----------------------------------------------------
+// Controls
+// -----------------------------------------------------
+
+const controls = new OrbitControls(
+  camera,
+  renderer.domElement
+);
+
+controls.target.set(0, 0, 0);
+
+controls.enableDamping = true;
+
+controls.minDistance = 8;
+
+controls.maxDistance = 30;
+
+controls.maxPolarAngle =
+  Math.PI / 2.05;
+
+
+// -----------------------------------------------------
+// Lighting
+// -----------------------------------------------------
+
+const ambient =
+  new THREE.AmbientLight(
+    0xffffff,
+    1.7
+  );
+
+scene.add(ambient);
+
+
+const keyLight =
+  new THREE.DirectionalLight(
+    0xffe2b5,
+    3
+  );
+
+keyLight.position.set(
+  6,
+  12,
+  8
+);
+
+keyLight.castShadow = true;
+
+keyLight.shadow.mapSize.set(
+  2048,
+  2048
+);
+
+scene.add(keyLight);
+
+
+const fillLight =
+  new THREE.DirectionalLight(
+    0xaac8ff,
+    1
+  );
+
+fillLight.position.set(
+  -8,
+  7,
+  -5
+);
+
+scene.add(fillLight);
+
+
+// -----------------------------------------------------
+// Constants
+// -----------------------------------------------------
+
+const BOARD_SIZE = 19;
+
+const GRID_SPACING = 0.6;
+
+const BOARD_WIDTH =
+  GRID_SPACING * 20;
+
+const GRID_WIDTH =
+  GRID_SPACING * 18;
+
+const HALF_GRID =
+  GRID_WIDTH / 2;
+
+const BOARD_TOP = 0.6;
+
+
+// -----------------------------------------------------
+// Board
+// -----------------------------------------------------
+
+const boardGeometry =
+  new THREE.BoxGeometry(
+    BOARD_WIDTH,
+    0.6,
+    BOARD_WIDTH
+  );
+
+
+const boardMaterial =
+  new THREE.MeshStandardMaterial({
+    color: 0xc98d4c,
+    roughness: 0.65,
+    metalness: 0
+  });
+
+
+const board =
+  new THREE.Mesh(
+    boardGeometry,
+    boardMaterial
+  );
+
+board.position.y = 0.3;
+
+board.receiveShadow = true;
+
+scene.add(board);
+
+
+// -----------------------------------------------------
+// Board edge
+// -----------------------------------------------------
+
+const edgeGeometry =
+  new THREE.BoxGeometry(
+    BOARD_WIDTH + 0.16,
+    0.25,
+    BOARD_WIDTH + 0.16
+  );
+
+const edgeMaterial =
+  new THREE.MeshStandardMaterial({
+    color: 0x69401f,
+    roughness: 0.8
+  });
+
+const edge =
+  new THREE.Mesh(
+    edgeGeometry,
+    edgeMaterial
+  );
+
+edge.position.y = 0.12;
+
+scene.add(edge);
+
+
+// Make sure board appears above edge.
+
+board.renderOrder = 1;
+
+
+// -----------------------------------------------------
+// Grid lines
+// -----------------------------------------------------
+
+const gridMaterial =
+  new THREE.LineBasicMaterial({
+    color: 0x2c1a0d
+  });
+
+
+function createLine(
+  x1,
+  z1,
+  x2,
+  z2
+) {
+
+  const points = [
+    new THREE.Vector3(
+      x1,
+      BOARD_TOP + 0.012,
+      z1
+    ),
+
+    new THREE.Vector3(
+      x2,
+      BOARD_TOP + 0.012,
+      z2
+    )
+  ];
+
+  const geometry =
+    new THREE.BufferGeometry()
+      .setFromPoints(points);
+
+  const line =
+    new THREE.Line(
+      geometry,
+      gridMaterial
+    );
+
+  scene.add(line);
+
+}
+
+
+// Vertical and horizontal grid lines.
+
+for (
+  let i = 0;
+  i < BOARD_SIZE;
+  i++
+) {
+
+  const pos =
+    -HALF_GRID +
+    i * GRID_SPACING;
+
+  createLine(
+    pos,
+    -HALF_GRID,
+    pos,
+    HALF_GRID
+  );
+
+  createLine(
+    -HALF_GRID,
+    pos,
+    HALF_GRID,
+    pos
+  );
+
+}
+
+
+// -----------------------------------------------------
+// Star points
+// -----------------------------------------------------
+
+const starPoints = [
+  [3, 3],
+  [3, 9],
+  [3, 15],
+
+  [9, 3],
+  [9, 9],
+  [9, 15],
+
+  [15, 3],
+  [15, 9],
+  [15, 15]
+];
+
+
+const starGeometry =
+  new THREE.CircleGeometry(
+    0.07,
+    24
+  );
+
+const starMaterial =
+  new THREE.MeshBasicMaterial({
+    color: 0x1b120b
+  });
+
+
+for (
+  const [x, z]
+  of starPoints
+) {
+
+  const star =
+    new THREE.Mesh(
+      starGeometry,
+      starMaterial
+    );
+
+  star.rotation.x =
+    -Math.PI / 2;
+
+  star.position.set(
+    -HALF_GRID +
+      x * GRID_SPACING,
+
+    BOARD_TOP + 0.016,
+
+    -HALF_GRID +
+      z * GRID_SPACING
+  );
+
+  scene.add(star);
+
+}
+
+
+// -----------------------------------------------------
+// Stones
+// -----------------------------------------------------
+
+const stoneGeometry =
+  new THREE.SphereGeometry(
+    0.255,
+    32,
+    18
+  );
+
+stoneGeometry.scale(
+  1,
+  0.45,
+  1
+);
+
+
+const blackMaterial =
+  new THREE.MeshStandardMaterial({
+    color: 0x070707,
+    roughness: 0.24,
+    metalness: 0.05
+  });
+
+
+const whiteMaterial =
+  new THREE.MeshStandardMaterial({
+    color: 0xf2efe6,
+    roughness: 0.28
+  });
+
+
+const stones =
+  new Map();
+
+
+function key(x, z) {
+
+  return `${x},${z}`;
+
+}
+
+
+function boardPosition(
+  x,
+  z
+) {
+
+  return {
+
+    x:
+      -HALF_GRID +
+      x * GRID_SPACING,
+
+    z:
+      -HALF_GRID +
+      z * GRID_SPACING
+
+  };
+
+}
+
+
+function addStone(
+  x,
+  z,
+  color
+) {
+
+  const id =
+    key(x, z);
+
+  if (
+    stones.has(id)
+  ) {
+
+    return;
+
+  }
+
+
+  const position =
+    boardPosition(
+      x,
+      z
+    );
+
+
+  const stone =
+    new THREE.Mesh(
+
+      stoneGeometry,
+
+      color === "black"
+        ? blackMaterial
+        : whiteMaterial
+
+    );
+
+
+  stone.position.set(
+    position.x,
+    BOARD_TOP + 0.17,
+    position.z
+  );
+
+
+  stone.castShadow = true;
+
+  stone.receiveShadow = true;
+
+
+  stone.userData = {
+    x,
+    z,
+    color
+  };
+
+
+  stones.set(
+    id,
+    stone
+  );
+
+  scene.add(stone);
+
+}
+
+
+// -----------------------------------------------------
+// Example starting position
+// -----------------------------------------------------
+
+const startingPosition = [
+
+  [3, 3, "black"],
+  [15, 15, "black"],
+  [15, 3, "white"],
+  [3, 15, "white"],
+
+  [9, 9, "black"],
+
+  [9, 10, "white"],
+  [10, 9, "white"],
+
+  [8, 9, "black"],
+
+  [4, 4, "white"],
+  [5, 4, "black"],
+  [4, 5, "black"],
+
+  [14, 14, "white"],
+  [13, 14, "black"],
+  [14, 13, "black"]
+
+];
+
+
+startingPosition.forEach(
+  ([x, z, color]) => {
+
+    addStone(
+      x,
+      z,
+      color
+    );
+
+  }
+);
+
+
+// -----------------------------------------------------
+// Invisible intersection targets
+// -----------------------------------------------------
+
+const intersectionMeshes = [];
+
+const targetGeometry =
+  new THREE.CircleGeometry(
+    0.23,
+    16
+  );
+
+const invisibleMaterial =
+  new THREE.MeshBasicMaterial({
+
+    transparent: true,
+
+    opacity: 0,
+
+    depthWrite: false
+
+  });
+
+
+for (
+  let x = 0;
+  x < BOARD_SIZE;
+  x++
+) {
+
+  for (
+    let z = 0;
+    z < BOARD_SIZE;
+    z++
+  ) {
+
+    const p =
+      boardPosition(
+        x,
+        z
+      );
+
+
+    const target =
+      new THREE.Mesh(
+        targetGeometry,
+        invisibleMaterial
+      );
+
+
+    target.rotation.x =
+      -Math.PI / 2;
+
+
+    target.position.set(
+      p.x,
+      BOARD_TOP + 0.025,
+      p.z
+    );
+
+
+    target.userData = {
+      x,
+      z
+    };
+
+
+    intersectionMeshes.push(
+      target
+    );
+
+
+    scene.add(target);
+
+  }
+
+}
+
+
+// -----------------------------------------------------
+// Hover indicator
+// -----------------------------------------------------
+
+const hoverGeometry =
+  new THREE.RingGeometry(
+    0.16,
+    0.26,
+    32
+  );
+
+
+const hoverMaterial =
+  new THREE.MeshBasicMaterial({
+
+    color: 0xffcc55,
+
+    transparent: true,
+
+    opacity: 0.8,
+
+    side: THREE.DoubleSide
+
+  });
+
+
+const hover =
+  new THREE.Mesh(
+    hoverGeometry,
+    hoverMaterial
+  );
+
+
+hover.rotation.x =
+  -Math.PI / 2;
+
+
+hover.visible = false;
+
+
+scene.add(
+  hover
+);
+
+
+// -----------------------------------------------------
+// Raycaster
+// -----------------------------------------------------
+
+const raycaster =
+  new THREE.Raycaster();
+
+
+const mouse =
+  new THREE.Vector2();
+
+
+let hoveredIntersection =
+  null;
+
+
+function updateMouse(event) {
+
+  mouse.x =
+    (
+      event.clientX /
+      window.innerWidth
+    ) * 2 - 1;
+
+
+  mouse.y =
+    -(
+      event.clientY /
+      window.innerHeight
+    ) * 2 + 1;
+
+}
+
+
+// -----------------------------------------------------
+// Hover
+// -----------------------------------------------------
+
+window.addEventListener(
+  "pointermove",
+  event => {
+
+    updateMouse(event);
+
+
+    raycaster.setFromCamera(
+      mouse,
+      camera
+    );
+
+
+    const hits =
+      raycaster.intersectObjects(
+        intersectionMeshes
+      );
+
+
+    if (
+      hits.length === 0
+    ) {
+
+      hover.visible = false;
+
+      hoveredIntersection = null;
+
+      return;
+
+    }
+
+
+    const target =
+      hits[0].object;
+
+
+    const {
+      x,
+      z
+    } =
+      target.userData;
+
+
+    hoveredIntersection = {
+      x,
+      z
+    };
+
+
+    const position =
+      boardPosition(
+        x,
+        z
+      );
+
+
+    hover.position.set(
+      position.x,
+      BOARD_TOP + 0.04,
+      position.z
+    );
+
+
+    hover.visible =
+      !stones.has(
+        key(x, z)
+      );
+
+  }
+);
+
+
+// -----------------------------------------------------
+// Place stones
+// -----------------------------------------------------
+
+let currentTurn =
+  "black";
+
+
+const turnElement =
+  document.getElementById(
+    "turn"
+  );
+
+
+window.addEventListener(
+  "click",
+  () => {
+
+    if (
+      !hoveredIntersection
+    ) {
+
+      return;
+
+    }
+
+
+    const {
+      x,
+      z
+    } =
+      hoveredIntersection;
+
+
+    if (
+      stones.has(
+        key(x, z)
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    addStone(
+      x,
+      z,
+      currentTurn
+    );
+
+
+    currentTurn =
+      currentTurn === "black"
+        ? "white"
+        : "black";
+
+
+    turnElement.textContent =
+      currentTurn === "black"
+        ? "Black"
+        : "White";
+
+
+    hover.visible = false;
+
+  }
+);
+
+
+// -----------------------------------------------------
+// Floor
+// -----------------------------------------------------
+
+const floorGeometry =
+  new THREE.PlaneGeometry(
+    80,
+    80
+  );
+
+
+const floorMaterial =
+  new THREE.MeshStandardMaterial({
+    color: 0x161819,
+    roughness: 1
+  });
+
+
+const floor =
+  new THREE.Mesh(
+    floorGeometry,
+    floorMaterial
+  );
+
+
+floor.rotation.x =
+  -Math.PI / 2;
+
+
+floor.position.y =
+  -0.02;
+
+
+floor.receiveShadow =
+  true;
+
+
+scene.add(
+  floor
+);
+
+
+// -----------------------------------------------------
+// Resize
+// -----------------------------------------------------
+
+window.addEventListener(
+  "resize",
+  () => {
+
+    camera.aspect =
+      window.innerWidth /
+      window.innerHeight;
+
+
+    camera.updateProjectionMatrix();
+
+
+    renderer.setSize(
+      window.innerWidth,
+      window.innerHeight
+    );
+
+  }
+);
+
+
+// -----------------------------------------------------
+// Animation
+// -----------------------------------------------------
+
+function animate() {
+
+  requestAnimationFrame(
+    animate
+  );
+
+
+  controls.update();
+
+
+  renderer.render(
+    scene,
+    camera
+  );
+
+}
+
+
+animate();
+
+</script>
+
+</body>
+</html>
