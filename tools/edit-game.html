@@ -122,6 +122,7 @@
   <body>
     <div class="layout">
       <div class="toolbar">
+        <button id="play-scene" class="secondary">Play</button>
         <button id="add-cuboid">Add Cuboid</button>
         <button id="save-now" class="secondary">Save Now</button>
         <div id="status" class="status">Loading...</div>
@@ -138,7 +139,9 @@
       import { OrbitControls } from 'https://unpkg.com/three@0.173.0/examples/jsm/controls/OrbitControls.js';
 
       const pathParts = window.location.pathname.split('/').filter(Boolean);
-      const sceneId = pathParts[0] === 'edit' && pathParts[1] ? pathParts[1] : 'scene';
+      const sceneId = (pathParts[0] === 'edit' || pathParts[0] === 'edit-game') && pathParts[1]
+        ? pathParts[1]
+        : 'scene';
       const sceneApiUrl = `/api/scenes/${sceneId}`;
 
       const statusEl = document.getElementById('status');
@@ -146,6 +149,7 @@
       const previewEl = document.getElementById('preview');
       const objectsEl = document.getElementById('objects');
       const errorEl = document.getElementById('error');
+      const playSceneButton = document.getElementById('play-scene');
       const addCuboidButton = document.getElementById('add-cuboid');
       const saveNowButton = document.getElementById('save-now');
 
@@ -208,7 +212,11 @@
         }, 500);
       }
 
-      async function saveScene() {
+      playSceneButton.addEventListener('click', () => {
+        window.location.href = `/game/${sceneId}`;
+      });
+
+      async function loadScene() {
         if (!sceneData || saving) {
           return;
         }

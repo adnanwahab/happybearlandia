@@ -372,7 +372,9 @@ const server = serve({
       return new Response("Not found", { status: 404 });
     }
 
-    const editSceneId = getSceneIdFromPath(url.pathname, "/edit/");
+    const editSceneId =
+      getSceneIdFromPath(url.pathname, "/edit/") ??
+      getSceneIdFromPath(url.pathname, "/edit-game/");
 
     if (editSceneId) {
       const sceneFilePath = getSceneFilePath(editSceneId);
