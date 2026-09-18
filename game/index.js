@@ -825,6 +825,20 @@ function getThreeObjectForBody(body, color) {
      input.jump = true;
     } else if (keyCode == 16) {
      input.crouched = true;
+    } else if (keyCode == 16) {
+     input.crouched = true;
+    }
+
+    if (socket && socket.readyState === WebSocket.OPEN) {
+     const position = character.GetPosition();
+     socket.send(JSON.stringify({
+      event: "playerMoved",
+      position: {
+       x: position.GetX(),
+       y: position.GetY(),
+       z: position.GetZ()
+      }
+     }));
     }
    };
    function onDocumentKeyUp(event) {

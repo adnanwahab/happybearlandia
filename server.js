@@ -63,19 +63,6 @@ const server = serve({
       });
     }
 
-    // Root index file
-    // if (url.pathname === "/twitch-plays-robot") {
-    //   const file = Bun.file("./tools/twitch-plays-robot.html");
-
-    //   if (await file.exists()) {
-    //     return new Response(file);
-    //   }
-
-    //   return new Response("Not found", {
-    //     status: 404,
-    //   });
-    // }
-
     // Static game files
     if (url.pathname === "/game" || url.pathname.startsWith("/game/")) {
       const relativePath =
@@ -135,11 +122,15 @@ const server = serve({
 
       console.log("Game message:", msg);
 
-      // Broadcast to all OTHER clients subscribed to "game"
-      ws.publish(
-        "game",
-        JSON.stringify(msg)
-      );
+      if (msg.type === "playerMoved") {
+        console.log("Player moved", msg);
+
+        // Broadcast the movement data to all other clients subscribed to "game".
+        ws.publish(
+          "game",
+          JSON.stringify(msg)
+        );
+      }
     },
 
     close(ws) {
