@@ -611,45 +611,7 @@ function createBox(
 
   return body;
 }
-function createSphere(
-  position,
-  radius,
-  motionType,
-  layer,
-  color = 0xffffff
-) {
 
-  let shape =
-    new Jolt.SphereShape(
-      radius,
-      null
-    );
-
-  let creationSettings =
-    new Jolt.BodyCreationSettings(
-      shape,
-      position,
-      Jolt.Quat.prototype.sIdentity(),
-      motionType,
-      layer
-    );
-
-  let body =
-    bodyInterface.CreateBody(
-      creationSettings
-    );
-
-  Jolt.destroy(
-    creationSettings
-  );
-
-  addToScene(
-    body,
-    color
-  );
-
-  return body;
-}
 
 
 function createMeshForShape(
@@ -1151,6 +1113,17 @@ function (Jolt) {
   const remotePlayers =
     new Map();
 
+  // Which player currently controls the networked teal cube.
+  // The server is the source of truth for this ID.
+  let cubeAuthorityPlayerId =
+    null;
+
+  let lastCubeStateSentAt =
+    0;
+
+  const CUBE_NETWORK_SEND_INTERVAL_MS =
+    50;
+
   let lastStateSentAt =
     0;
 
@@ -1428,6 +1401,196 @@ function (Jolt) {
   }
 
 
+  // =====================================================================
+  // TEAL CUBE MULTIPLAYER
+  // =====================================================================
+
+  function claimTealCubeAuthority() {
+
+    if (
+      !socket ||
+      socket.readyState !==
+        WebSocket.OPEN ||
+      !localPlayerId
+    ) {
+
+      return;
+    }
+
+    if (
+      cubeAuthorityPlayerId ===
+      localPlayerId
+    ) {
+
+      return;
+    }
+
+    // The server accepts cube claims, so optimistically mark this
+    // client authoritative immediately. This prevents an incoming
+    // stale cubeState from fighting the local push while the claim
+    // is making its round trip to the server.
+    cubeAuthorityPlayerId =
+      localPlayerId;
+
+    socket.send(
+      JSON.stringify({
+        type: "cubeClaim"
+      })
+    );
+  }
+
+
+  function sendTealCubeState(
+    force = false
+  ) {
+
+    if (
+      !socket ||
+      socket.readyState !==
+        WebSocket.OPEN ||
+      !tealCube ||
+      cubeAuthorityPlayerId !==
+        localPlayerId
+    ) {
+
+      return;
+    }
+
+    const now =
+      performance.now();
+
+    if (
+      !force &&
+      now -
+        lastCubeStateSentAt <
+        CUBE_NETWORK_SEND_INTERVAL_MS
+    ) {
+
+      return;
+    }
+
+    const position =
+      tealCube.GetPosition();
+
+    const quaternion =
+      tealCube.GetRotation();
+
+    const linearVelocity =
+      tealCube.GetLinearVelocity();
+
+    const angularVelocity =
+      tealCube.GetAngularVelocity();
+
+    socket.send(
+      JSON.stringify({
+        type: "cubeState",
+
+        position: {
+          x: position.GetX(),
+          y: position.GetY(),
+          z: position.GetZ()
+        },
+
+        quaternion: {
+          x: quaternion.GetX(),
+          y: quaternion.GetY(),
+          z: quaternion.GetZ(),
+          w: quaternion.GetW()
+        },
+
+        linearVelocity: {
+          x: linearVelocity.GetX(),
+          y: linearVelocity.GetY(),
+          z: linearVelocity.GetZ()
+        },
+
+        angularVelocity: {
+          x: angularVelocity.GetX(),
+          y: angularVelocity.GetY(),
+          z: angularVelocity.GetZ()
+        }
+      })
+    );
+
+    lastCubeStateSentAt =
+      now;
+  }
+
+
+  function applyRemoteTealCubeState(
+    state
+  ) {
+
+    if (
+      !tealCube ||
+      !state
+    ) {
+
+      return;
+    }
+
+    const position =
+      new Jolt.RVec3(
+        state.position?.x ?? 0,
+        state.position?.y ?? 0,
+        state.position?.z ?? 0
+      );
+
+    const rotation =
+      new Jolt.Quat(
+        state.quaternion?.x ?? 0,
+        state.quaternion?.y ?? 0,
+        state.quaternion?.z ?? 0,
+        state.quaternion?.w ?? 1
+      );
+
+    const linearVelocity =
+      new Jolt.Vec3(
+        state.linearVelocity?.x ?? 0,
+        state.linearVelocity?.y ?? 0,
+        state.linearVelocity?.z ?? 0
+      );
+
+    const angularVelocity =
+      new Jolt.Vec3(
+        state.angularVelocity?.x ?? 0,
+        state.angularVelocity?.y ?? 0,
+        state.angularVelocity?.z ?? 0
+      );
+
+    // Update the actual Jolt body rather than only moving its Three.js
+    // mesh. The render loop copies the Jolt transform to the mesh.
+    bodyInterface.SetPositionAndRotation(
+      tealCube.GetID(),
+      position,
+      rotation,
+      Jolt.EActivation_Activate
+    );
+
+    bodyInterface.SetLinearAndAngularVelocity(
+      tealCube.GetID(),
+      linearVelocity,
+      angularVelocity
+    );
+
+    Jolt.destroy(
+      position
+    );
+
+    Jolt.destroy(
+      rotation
+    );
+
+    Jolt.destroy(
+      linearVelocity
+    );
+
+    Jolt.destroy(
+      angularVelocity
+    );
+  }
+
+
   function connectMultiplayer() {
 
     const scheme =
@@ -1503,6 +1666,25 @@ function (Jolt) {
             localPlayerId
           );
 
+          // Receive the server's current cube authority and state.
+          cubeAuthorityPlayerId =
+            msg.cubeAuthorityPlayerId ??
+            null;
+
+          console.log(
+            "Cube authority:",
+            cubeAuthorityPlayerId
+          );
+
+          if (
+            msg.cubeState
+          ) {
+
+            applyRemoteTealCubeState(
+              msg.cubeState
+            );
+          }
+
           for (
             const player
             of msg.players ??
@@ -1525,6 +1707,18 @@ function (Jolt) {
           sendLocalPlayerState(
             true
           );
+
+          // If the server selected us as the cube authority,
+          // immediately publish the current Jolt state.
+          if (
+            cubeAuthorityPlayerId ===
+            localPlayerId
+          ) {
+
+            sendTealCubeState(
+              true
+            );
+          }
 
           break;
         }
@@ -1564,6 +1758,49 @@ function (Jolt) {
           removeRemotePlayer(
             msg.playerId
           );
+
+          break;
+        }
+
+
+        case "cubeAuthority": {
+
+          cubeAuthorityPlayerId =
+            msg.playerId ??
+            null;
+
+          console.log(
+            "Cube authority is now:",
+            cubeAuthorityPlayerId
+          );
+
+          if (
+            cubeAuthorityPlayerId ===
+            localPlayerId
+          ) {
+
+            sendTealCubeState(
+              true
+            );
+          }
+
+          break;
+        }
+
+
+        case "cubeState": {
+
+          // The authoritative client owns its local simulation.
+          // Everyone else applies the state received from the server.
+          if (
+            cubeAuthorityPlayerId !==
+            localPlayerId
+          ) {
+
+            applyRemoteTealCubeState(
+              msg
+            );
+          }
 
           break;
         }
@@ -1834,6 +2071,7 @@ function (Jolt) {
       // Friction
       0.05
     );
+
   const tealCubeId =
     tealCube
       .GetID()
@@ -1941,38 +2179,6 @@ function (Jolt) {
 
 
 
-  // ============================================================
-  // PLAYER STOPS TOUCHING TEAL CUBE
-  // ============================================================
-
-  characterContactListener.OnContactRemoved = (
-    character,
-    bodyID2,
-    subShapeID2
-  ) => {
-
-    bodyID2 = Jolt.wrapPointer(
-      bodyID2,
-      Jolt.BodyID
-    );
-
-    if (
-      bodyID2.GetIndexAndSequenceNumber() ===
-      tealCubeId
-    ) {
-
-      tealCubeContactCount = Math.max(
-        0,
-        tealCubeContactCount - 1
-      );
-
-      console.log(
-        "Player stopped touching teal cube"
-      );
-    }
-  };
-
-
 
   // ============================================================
   // PLAYER FIRST TOUCHES TEAL CUBE
@@ -2005,6 +2211,10 @@ function (Jolt) {
       settings.mCanReceiveImpulses = true;
 
       tealCubeContactCount++;
+
+      // The player touching the cube becomes its temporary
+      // multiplayer authority.
+      claimTealCubeAuthority();
 
       if (!tealCubeWasContacted) {
 
@@ -2925,6 +3135,10 @@ function (Jolt) {
 
 
     sendLocalPlayerState();
+
+
+    // Only the authoritative client actually sends this.
+    sendTealCubeState();
 
 
     const newdPosition =

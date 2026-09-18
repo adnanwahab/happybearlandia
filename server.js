@@ -4,22 +4,51 @@ import { join, normalize, relative } from "node:path";
 const gameRoot = normalize("./game");
 
 // -------------------------------------------------------------------------
-// Multiplayer state
+// Multiplayer player state
 // -------------------------------------------------------------------------
 
-// playerId -> {
-//   position: { x, y, z },
-//   quaternion: { x, y, z, w },
-//   crouched: boolean
-// }
 const players = new Map();
 
 function finiteNumber(value, fallback = 0) {
   const number = Number(value);
+
   return Number.isFinite(number)
     ? number
     : fallback;
 }
+
+// -------------------------------------------------------------------------
+// Multiplayer teal cube state
+// -------------------------------------------------------------------------
+
+let cubeAuthorityPlayerId = null;
+
+let cubeState = {
+  position: {
+    x: -10,
+    y: 5,
+    z: 10,
+  },
+
+  quaternion: {
+    x: 0,
+    y: 0,
+    z: 0,
+    w: 1,
+  },
+
+  linearVelocity: {
+    x: 0,
+    y: 0,
+    z: 0,
+  },
+
+  angularVelocity: {
+    x: 0,
+    y: 0,
+    z: 0,
+  },
+};
 
 const server = serve({
   port: 3000,
@@ -34,7 +63,6 @@ const server = serve({
     if (url.pathname === "/ws") {
       const upgraded = server.upgrade(request, {
         data: {
-          // Every socket gets its own server-generated player ID.
           playerId: crypto.randomUUID(),
         },
       });
@@ -52,7 +80,7 @@ const server = serve({
     }
 
     // ---------------------------------------------------------------------
-    // Root index
+    // Root
     // ---------------------------------------------------------------------
 
     if (url.pathname === "/") {
@@ -193,8 +221,20 @@ const server = serve({
 
       ws.subscribe("game");
 
-      // Send the new player all players
-      // that already exist.
+      // First connected player controls the cube initially.
+      if (
+        cubeAuthorityPlayerId === null
+      ) {
+        cubeAuthorityPlayerId =
+          playerId;
+
+        console.log(
+          "Initial cube authority:",
+          cubeAuthorityPlayerId
+        );
+      }
+
+      // Tell this client about the existing world.
       ws.send(
         JSON.stringify({
           type: "welcome",
@@ -208,6 +248,10 @@ const server = serve({
                 state,
               })
             ),
+
+          cubeState,
+
+          cubeAuthorityPlayerId,
         })
       );
 
@@ -233,8 +277,6 @@ const server = serve({
         initialState
       );
 
-      // Tell everyone else that
-      // this player joined.
       ws.publish(
         "game",
 
@@ -249,7 +291,7 @@ const server = serve({
     },
 
     // ---------------------------------------------------------------------
-    // Receive player movement
+    // Receive messages
     // ---------------------------------------------------------------------
 
     message(ws, message) {
@@ -267,76 +309,214 @@ const server = serve({
         return;
       }
 
-      // For now playerState is the only
-      // network message we accept.
-      if (
-        msg.type !== "playerState"
-      ) {
-        return;
-      }
-
       const playerId =
         ws.data.playerId;
 
-      // Sanitize incoming numbers.
-      const state = {
-        position: {
-          x: finiteNumber(
-            msg.position?.x
-          ),
+      // ===================================================================
+      // PLAYER STATE
+      // ===================================================================
 
-          y: finiteNumber(
-            msg.position?.y
-          ),
+      if (
+        msg.type === "playerState"
+      ) {
+        const state = {
+          position: {
+            x: finiteNumber(
+              msg.position?.x
+            ),
 
-          z: finiteNumber(
-            msg.position?.z
-          ),
-        },
+            y: finiteNumber(
+              msg.position?.y
+            ),
 
-        quaternion: {
-          x: finiteNumber(
-            msg.quaternion?.x
-          ),
+            z: finiteNumber(
+              msg.position?.z
+            ),
+          },
 
-          y: finiteNumber(
-            msg.quaternion?.y
-          ),
+          quaternion: {
+            x: finiteNumber(
+              msg.quaternion?.x
+            ),
 
-          z: finiteNumber(
-            msg.quaternion?.z
-          ),
+            y: finiteNumber(
+              msg.quaternion?.y
+            ),
 
-          w: finiteNumber(
-            msg.quaternion?.w,
-            1
-          ),
-        },
+            z: finiteNumber(
+              msg.quaternion?.z
+            ),
 
-        crouched:
-          Boolean(
-            msg.crouched
-          ),
-      };
+            w: finiteNumber(
+              msg.quaternion?.w,
+              1
+            ),
+          },
 
-      // Store the latest player state.
-      players.set(
-        playerId,
-        state
-      );
+          crouched:
+            Boolean(
+              msg.crouched
+            ),
+        };
 
-      // Broadcast it to every OTHER client.
-      ws.publish(
-        "game",
-
-        JSON.stringify({
-          type: "playerState",
-
+        players.set(
           playerId,
+          state
+        );
 
-          ...state,
-        })
-      );
+        ws.publish(
+          "game",
+
+          JSON.stringify({
+            type: "playerState",
+
+            playerId,
+
+            ...state,
+          })
+        );
+
+        return;
+      }
+
+      // ===================================================================
+      // PLAYER CLAIMS TEAL CUBE
+      // ===================================================================
+
+      if (
+        msg.type === "cubeClaim"
+      ) {
+        if (
+          cubeAuthorityPlayerId !==
+          playerId
+        ) {
+          cubeAuthorityPlayerId =
+            playerId;
+
+          console.log(
+            "Cube authority changed:",
+            cubeAuthorityPlayerId
+          );
+
+          const authorityMessage =
+            JSON.stringify({
+              type:
+                "cubeAuthority",
+
+              playerId:
+                cubeAuthorityPlayerId,
+            });
+
+          // Send to claimant.
+          ws.send(
+            authorityMessage
+          );
+
+          // Send to everyone else.
+          ws.publish(
+            "game",
+            authorityMessage
+          );
+        }
+
+        return;
+      }
+
+      // ===================================================================
+      // TEAL CUBE STATE
+      // ===================================================================
+
+      if (
+        msg.type === "cubeState"
+      ) {
+        // Ignore cube updates from clients
+        // that do not own the cube.
+        if (
+          cubeAuthorityPlayerId !==
+          playerId
+        ) {
+          return;
+        }
+
+        cubeState = {
+          position: {
+            x: finiteNumber(
+              msg.position?.x
+            ),
+
+            y: finiteNumber(
+              msg.position?.y
+            ),
+
+            z: finiteNumber(
+              msg.position?.z
+            ),
+          },
+
+          quaternion: {
+            x: finiteNumber(
+              msg.quaternion?.x
+            ),
+
+            y: finiteNumber(
+              msg.quaternion?.y
+            ),
+
+            z: finiteNumber(
+              msg.quaternion?.z
+            ),
+
+            w: finiteNumber(
+              msg.quaternion?.w,
+              1
+            ),
+          },
+
+          linearVelocity: {
+            x: finiteNumber(
+              msg.linearVelocity?.x
+            ),
+
+            y: finiteNumber(
+              msg.linearVelocity?.y
+            ),
+
+            z: finiteNumber(
+              msg.linearVelocity?.z
+            ),
+          },
+
+          angularVelocity: {
+            x: finiteNumber(
+              msg.angularVelocity?.x
+            ),
+
+            y: finiteNumber(
+              msg.angularVelocity?.y
+            ),
+
+            z: finiteNumber(
+              msg.angularVelocity?.z
+            ),
+          },
+        };
+
+        // Broadcast to everyone except
+        // the authoritative client.
+        ws.publish(
+          "game",
+
+          JSON.stringify({
+            type: "cubeState",
+
+            playerId,
+
+            ...cubeState,
+          })
+        );
+
+        return;
+      }
     },
 
     // ---------------------------------------------------------------------
@@ -364,6 +544,36 @@ const server = serve({
           playerId,
         })
       );
+
+      // If this player controlled the cube,
+      // transfer authority to another player.
+      if (
+        cubeAuthorityPlayerId ===
+        playerId
+      ) {
+        cubeAuthorityPlayerId =
+          players.keys()
+            .next()
+            .value ??
+          null;
+
+        console.log(
+          "New cube authority:",
+          cubeAuthorityPlayerId
+        );
+
+        server.publish(
+          "game",
+
+          JSON.stringify({
+            type:
+              "cubeAuthority",
+
+            playerId:
+              cubeAuthorityPlayerId,
+          })
+        );
+      }
     },
 
     error(ws, error) {
