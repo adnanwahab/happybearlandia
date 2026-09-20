@@ -1,4 +1,5 @@
-./data/webcam/*
+./data/webcam
+./data/microphone
 
 # dependencies (bun install)
 node_modules
