@@ -105,7 +105,7 @@ const audioFFmpeg = Bun.spawn([
   "alsa",
 
   "-i",
-  "hw:1,0",
+  "hw:3,0",
 
   "-t",
   "900",
