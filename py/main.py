@@ -135,15 +135,15 @@ def save_hand_data(hand_index, hand_landmarks, rvec, tvec):
 
     temporary_file.replace(OUTPUT_FILE)
 
-    output_file = "data/mediapipe/hand_rotation.json"
-    bucket_name = os.environ["S3_BUCKET"]  # set in environment
-    s3_key = "data/mediapipe/hand_rotation.json"
+    # output_file = "data/mediapipe/hand_rotation.json"
+    # bucket_name = os.environ["S3_BUCKET"]  # set in environment
+    # s3_key = "data/mediapipe/hand_rotation.json"
     print('trying to upload')
-    try:
-        upload_file_to_s3(output_file, bucket_name, s3_key, region=os.getenv("AWS_REGION"))
-        print(f"Uploaded {output_file} -> s3://{bucket_name}/{s3_key}")
-    except (BotoCoreError, ClientError) as e:
-        print(f"S3 upload failed: {e}")
+    # try:
+    #     upload_file_to_s3(output_file, bucket_name, s3_key, region=os.getenv("AWS_REGION"))
+    #     print(f"Uploaded {output_file} -> s3://{bucket_name}/{s3_key}")
+    # except (BotoCoreError, ClientError) as e:
+    #     print(f"S3 upload failed: {e}")
 
 
 
