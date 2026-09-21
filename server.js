@@ -8,6 +8,8 @@ const toolsRoot = normalize("./tools");
 const dataRoot = normalize("./data");
 const sceneIdPattern = /^[a-zA-Z0-9_-]+$/;
 
+import homepage from './index.html'
+
 function isPathInside(rootPath, targetPath) {
   return !relative(rootPath, targetPath).startsWith("..");
 }
@@ -138,7 +140,12 @@ let cubeState = {
 };
 
 const server = serve({
+
   port: Number(process.env.PORT ?? 3000),
+
+  routes: {
+    "/": homepage,
+  },
 
   async fetch(request, server) {
     const url = new URL(request.url);
@@ -170,20 +177,20 @@ const server = serve({
     // Root
     // ---------------------------------------------------------------------
 
-    if (url.pathname === "/") {
-      const file = Bun.file("./index.html");
+    // if (url.pathname === "/") {
+    //   const file = Bun.file("./index.html");
 
-      if (await file.exists()) {
-        return new Response(file);
-      }
+    //   if (await file.exists()) {
+    //     return new Response(file);
+    //   }
 
-      return new Response(
-        "Not found",
-        {
-          status: 404,
-        }
-      );
-    }
+    //   return new Response(
+    //     "Not found",
+    //     {
+    //       status: 404,
+    //     }
+    //   );
+    // }
 
     // ---------------------------------------------------------------------
     // Debug events API
@@ -372,7 +379,9 @@ const server = serve({
       return new Response("Not found", { status: 404 });
     }
 
-    const editSceneId = getSceneIdFromPath(url.pathname, "/edit/");
+    const editSceneId =
+      getSceneIdFromPath(url.pathname, "/edit/") ??
+      getSceneIdFromPath(url.pathname, "/edit-game/");
 
     if (editSceneId) {
       const sceneFilePath = getSceneFilePath(editSceneId);

@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hand Rotation Visualizer</title>
+    <style>
+      html, body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #0f1220;
+        color: #e7eaf3;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      }
+
+      #app {
+        width: 100%;
+        height: 100%;
+      }
+
+      .hud {
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        padding: 10px 12px;
+        background: rgba(0, 0, 0, 0.45);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 8px;
+        font-size: 12px;
+        line-height: 1.4;
+        white-space: pre;
+        backdrop-filter: blur(4px);
+      }
+
+      .ok { color: #7ee787; }
+      .warn { color: #ffd866; }
+      .err { color: #ff7b72; }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="hud" class="hud">Starting…</div>
+
+    <script type="module">
+      import * as THREE from "https://unpkg.com/three@0.168.0/build/three.module.js";
+
+      const DATA_URL =
+        "https://happybearlandia.s3.us-east-2.amazonaws.com/data/mediapipe/hand_rotation.json";
+      const POLL_MS = 300;
+
+      // Increase if movement is too subtle
+      const ROTATION_GAIN = 3.0;
+
+      // Change these if axis mapping is different in your data
+      const AXIS_MAP = { x: "x", y: "y", z: "z" };
+
+      const app = document.getElementById("app");
+      const hud = document.getElementById("hud");
+
+      // Scene setup
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0f1220);
+
+      const camera = new THREE.PerspectiveCamera(
+        55,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        100
+      );
+      camera.position.set(0, 0, 3.8);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      app.appendChild(renderer.domElement);
+
+      // Lights
+      const hemi = new THREE.HemisphereLight(0xffffff, 0x223355, 1.1);
+      scene.add(hemi);
+      const dir = new THREE.DirectionalLight(0xffffff, 0.8);
+      dir.position.set(2, 2, 3);
+      scene.add(dir);
+
+      // Plane + helper frame
+      const planeGeom = new THREE.PlaneGeometry(1.8, 1.2, 1, 1);
+      const planeMat = new THREE.MeshStandardMaterial({
+        color: 0x6ea8fe,
+        metalness: 0.05,
+        roughness: 0.45,
+        side: THREE.DoubleSide,
+      });
+      const plane = new THREE.Mesh(planeGeom, planeMat);
+      scene.add(plane);
+
+      const edges = new THREE.LineSegments(
+        new THREE.EdgesGeometry(planeGeom),
+        new THREE.LineBasicMaterial({ color: 0xffffff })
+      );
+      plane.add(edges);
+
+      const axes = new THREE.AxesHelper(1.5);
+      scene.add(axes);
+
+      // Rotation state
+      const target = new THREE.Euler(0, 0, 0, "XYZ");
+
+      function toNum(v) {
+        const n = Number(v);
+        return Number.isFinite(n) ? n : null;
+      }
+
+      function maybeRadians(a) {
+        // If it looks like degrees, convert to radians
+        if (Math.abs(a) > Math.PI * 2 + 0.001) return (a * Math.PI) / 180;
+        return a;
+      }
+
+      function readXYZ(obj) {
+        if (!obj || typeof obj !== "object") return null;
+
+        // Common key aliases
+        const x = toNum(obj.x ?? obj.rx ?? obj.pitch ?? obj.alpha);
+        const y = toNum(obj.y ?? obj.ry ?? obj.yaw ?? obj.beta);
+        const z = toNum(obj.z ?? obj.rz ?? obj.roll ?? obj.gamma);
+
+        if (x == null || y == null || z == null) return null;
+        return { x: maybeRadians(x), y: maybeRadians(y), z: maybeRadians(z) };
+      }
+
+      // Flexible parser for many JSON shapes:
+      // [x,y,z], {x,y,z}, {rotation:{...}}, {data:{rotation:{...}}}, etc.
+      function extractRotation(data) {
+        return data.rotation_vector
+        if (!data) return null;
+
+        if (Array.isArray(data) && data.length >= 3) {
+          const x = toNum(data[0]), y = toNum(data[1]), z = toNum(data[2]);
+          if (x != null && y != null && z != null) {
+            return { x: maybeRadians(x), y: maybeRadians(y), z: maybeRadians(z) };
+          }
+        }
+
+        const candidates = [
+          data,
+          data.rotation,
+          data.hand_rotation,
+          data.handRotation,
+          data.data,
+          data.data?.rotation,
+          data.result,
+          data.result?.rotation,
+        ];
+
+        for (const c of candidates) {
+          const r = readXYZ(c);
+          if (r) return r;
+        }
+
+        return null;
+      }
+
+      let lastOk = 0;
+      let lastErr = "";
+      let inFlight = false;
+
+      async function poll() {
+        if (inFlight) return;
+        inFlight = true;
+
+        try {
+          // Cache-buster so updates are seen immediately
+          const res = await fetch(`${DATA_URL}?t=${Date.now()}`, {
+            cache: "no-store",
+          });
+
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+          }
+
+          const json = await res.json();
+          const rot = extractRotation(json);
+
+          if (!rot) {
+            throw new Error("Could not parse rotation from JSON");
+          }
+
+          target.set(
+            rot[AXIS_MAP.x] * ROTATION_GAIN,
+            rot[AXIS_MAP.y] * ROTATION_GAIN,
+            rot[AXIS_MAP.z] * ROTATION_GAIN
+          );
+
+          // Useful while debugging:
+          console.log("raw json:", json, "parsed rot:", rot, "target:", target);
+
+          lastOk = Date.now();
+          lastErr = "";
+
+          hud.innerHTML =
+            `<span class="ok">CONNECTED</span>\n` +
+            `URL: ${DATA_URL}\n` +
+            `x: ${rot.x.toFixed(4)} rad\n` +
+            `y: ${rot.y.toFixed(4)} rad\n` +
+            `z: ${rot.z.toFixed(4)} rad\n` +
+            `gain: ${ROTATION_GAIN}\n` +
+            `updated: ${new Date(lastOk).toLocaleTimeString()}`;
+        } catch (err) {
+          lastErr = err instanceof Error ? err.message : String(err);
+          hud.innerHTML =
+            `<span class="err">ERROR</span>\n` +
+            `URL: ${DATA_URL}\n` +
+            `${lastErr}`;
+        } finally {
+          inFlight = false;
+        }
+      }
+
+      // Smooth interpolation
+      function animate() {
+        requestAnimationFrame(animate);
+
+        plane.rotation.x += (target.x - plane.rotation.x) * 0.18;
+        plane.rotation.y += (target.y - plane.rotation.y) * 0.18;
+        plane.rotation.z += (target.z - plane.rotation.z) * 0.18;
+
+        // For hard-debugging, use this instead:
+        // plane.rotation.copy(target);
+
+        renderer.render(scene, camera);
+      }
+
+      animate();
+      poll();
+      setInterval(poll, POLL_MS);
+
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    </script>
+  </body>
+</html>

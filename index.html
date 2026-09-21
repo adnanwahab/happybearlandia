@@ -1,27 +1,13 @@
-
-<div>
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <div class="p-4 space-y-4">
-    <h1 class="text-2xl font-bold">Twitch Plays Robot</h1>
-
-    <div class="rounded border p-3 space-y-2">
-      <h2 class="font-semibold">Quick links</h2>
-      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 text-sm">
-        <a class="underline text-blue-600" href="/game/scene">Play Scene 1</a>
-        <a class="underline text-blue-600" href="/game/scene_2">Play Scene 2</a>
-        <a class="underline text-blue-600" href="/game/scene_3">Play Scene 3</a>
-        <a class="underline text-blue-600" href="/edit/scene">Edit Scene 1</a>
-        <a class="underline text-blue-600" href="/edit/scene_2">Edit Scene 2</a>
-        <a class="underline text-blue-600" href="/edit/scene_3">Edit Scene 3</a>
-        <a class="underline text-blue-600" href="/tools/debug-events.html">Debug Sessions</a>
-        <a class="underline text-blue-600" href="/api/scenes/scene_3">scene_3.json</a>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 gap-4 w-full">
-      <iframe src="/game/scene" class="w-full aspect-video"></iframe>
-      <!--<iframe src="/tools/braindance.html" class="w-full aspect-video"></iframe>-->
-    </div>
-  </div>
-</div>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Twitch Plays Robot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./index.jsx"></script>
+  </body>
+</html>
