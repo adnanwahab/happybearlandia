@@ -60,6 +60,54 @@
       "color": "#ffffff"
     },
     {
+      "id": "tree-1",
+      "type": "box",
+      "position": [
+        -8,
+        2,
+        18
+      ],
+      "size": [
+        2,
+        4,
+        2
+      ],
+      "motion": "static",
+      "color": "#2f7f35"
+    },
+    {
+      "id": "tree-2",
+      "type": "box",
+      "position": [
+        0,
+        2,
+        18
+      ],
+      "size": [
+        2,
+        4,
+        2
+      ],
+      "motion": "static",
+      "color": "#2f7f35"
+    },
+    {
+      "id": "tree-3",
+      "type": "box",
+      "position": [
+        8,
+        2,
+        18
+      ],
+      "size": [
+        2,
+        4,
+        2
+      ],
+      "motion": "static",
+      "color": "#2f7f35"
+    },
+    {
       "id": "conveyor",
       "type": "box",
       "position": [

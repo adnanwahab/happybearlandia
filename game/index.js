@@ -4,6 +4,8 @@ import initJolt from 'https://www.unpkg.com/jolt-physics/dist/jolt-physics.wasm-
 import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 import { OrbitControls } from
   "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+import { OBJLoader } from
+  "https://unpkg.com/three@0.160.0/examples/jsm/loaders/OBJLoader.js";
 // Graphics variables
 var container, stats;
 var camera, controls, scene, renderer;
@@ -222,6 +224,161 @@ const LAYER_NON_MOVING = 0;
 const LAYER_MOVING = 1;
 const NUM_OBJECT_LAYERS = 2;
 
+const INVENTORY_SLOT_COUNT = 6;
+const STRAWBERRY_EMOJI = "🍓";
+const TREE_OBJECT_ID_PREFIX = "tree-";
+
+const treeModelUrl =
+  new URL(
+    "../data/obj/tree.obj",
+    import.meta.url
+  ).toString();
+
+let treeModelTemplate = null;
+let treeModelTemplateSize = null;
+
+let inventoryOverlay = null;
+let inventorySlotElements = [];
+let inventorySlots = Array(INVENTORY_SLOT_COUNT).fill(null);
+
+function renderInventoryOverlay() {
+  if (!inventoryOverlay) {
+    return;
+  }
+
+  for (let i = 0; i < INVENTORY_SLOT_COUNT; i++) {
+    inventorySlotElements[i].textContent = inventorySlots[i] ?? "";
+  }
+}
+
+function resetInventory() {
+  inventorySlots = Array(INVENTORY_SLOT_COUNT).fill(null);
+  renderInventoryOverlay();
+}
+
+function addStrawberryToInventory() {
+  const emptySlotIndex = inventorySlots.findIndex(slot => slot == null);
+
+  if (emptySlotIndex === -1) {
+    return false;
+  }
+
+  inventorySlots[emptySlotIndex] = STRAWBERRY_EMOJI;
+  renderInventoryOverlay();
+
+  return true;
+}
+
+function useInventorySlot(slotIndex) {
+  if (
+    slotIndex < 0 ||
+    slotIndex >= INVENTORY_SLOT_COUNT
+  ) {
+    return null;
+  }
+
+  const item = inventorySlots[slotIndex];
+
+  if (item == null) {
+    return null;
+  }
+
+  inventorySlots[slotIndex] = null;
+  renderInventoryOverlay();
+
+  return item;
+}
+
+function ensureInventoryOverlay() {
+  inventoryOverlay?.remove();
+
+  inventoryOverlay = document.createElement("div");
+  inventoryOverlay.id = "inventory-overlay";
+  inventoryOverlay.style.position = "fixed";
+  inventoryOverlay.style.left = "50%";
+  inventoryOverlay.style.bottom = "0";
+  inventoryOverlay.style.transform = "translateX(-50%)";
+  inventoryOverlay.style.display = "grid";
+  inventoryOverlay.style.gridTemplateColumns = "repeat(6, 52px)";
+  inventoryOverlay.style.gap = "10px";
+  inventoryOverlay.style.padding = "10px";
+  inventoryOverlay.style.background = "rgba(0, 0, 0, 0.35)";
+  inventoryOverlay.style.border = "1px solid rgba(255, 255, 255, 0.5)";
+  inventoryOverlay.style.borderRadius = "12px";
+  inventoryOverlay.style.backdropFilter = "blur(2px)";
+  inventoryOverlay.style.pointerEvents = "none";
+  inventoryOverlay.style.zIndex = "9998";
+
+  inventorySlotElements = [];
+
+  for (let i = 0; i < INVENTORY_SLOT_COUNT; i++) {
+    const slot = document.createElement("div");
+    slot.style.width = "52px";
+    slot.style.height = "52px";
+    slot.style.display = "flex";
+    slot.style.alignItems = "center";
+    slot.style.justifyContent = "center";
+    slot.style.fontSize = "30px";
+    slot.style.background = "rgba(255, 255, 255, 0.2)";
+    slot.style.border = "1px solid rgba(255, 255, 255, 0.65)";
+    slot.style.borderRadius = "8px";
+
+    inventoryOverlay.appendChild(slot);
+    inventorySlotElements.push(slot);
+  }
+
+  document.body.appendChild(inventoryOverlay);
+  resetInventory();
+}
+
+function loadTreeModel() {
+  const loader =
+    new OBJLoader();
+
+  return new Promise(resolve => {
+    loader.load(
+      treeModelUrl,
+      object => {
+        object.traverse(node => {
+          if (node.isMesh) {
+            node.castShadow = false;
+            node.receiveShadow = false;
+          }
+        });
+
+        object.updateMatrixWorld(true);
+
+        const bbox =
+          new THREE.Box3().setFromObject(object);
+
+        const size =
+          new THREE.Vector3();
+
+        const center =
+          new THREE.Vector3();
+
+        bbox.getSize(size);
+        bbox.getCenter(center);
+
+        object.position.sub(center);
+
+        treeModelTemplate = object;
+        treeModelTemplateSize = size;
+
+        resolve(object);
+      },
+      undefined,
+      error => {
+        console.warn(
+          "Unable to load tree model:",
+          error
+        );
+
+        resolve(null);
+      }
+    );
+  });
+}
 
 function onWindowResize() {
 
@@ -480,6 +637,8 @@ function initExample(
   container.innerHTML =
     "";
 
+  ensureInventoryOverlay();
+
   onExampleUpdate =
     updateFunction;
 
@@ -605,13 +764,15 @@ function renderExample() {
 
 function addToThreeScene(
   body,
-  color
+  color,
+  objectId = null
 ) {
 
   let threeObject =
     getThreeObjectForBody(
       body,
-      color
+      color,
+      objectId
     );
 
   threeObject
@@ -631,7 +792,8 @@ function addToThreeScene(
 
 function addToScene(
   body,
-  color
+  color,
+  objectId = null
 ) {
 
   bodyInterface.AddBody(
@@ -641,7 +803,8 @@ function addToScene(
 
   addToThreeScene(
     body,
-    color
+    color,
+    objectId
   );
 }
 
@@ -692,7 +855,8 @@ function createBox(
   layer,
   color = 0xffffff,
   mass = null,
-  friction = 0.2
+  friction = 0.2,
+  objectId = null
 ) {
 
   let shape =
@@ -742,7 +906,8 @@ function createBox(
 
   addToScene(
     body,
-    color
+    color,
+    objectId
   );
 
   return body;
@@ -947,10 +1112,94 @@ function getSoftBodyMesh(
 }
 
 
+function createTreeObjectForBody(
+  body
+) {
+  if (
+    !treeModelTemplate ||
+    !treeModelTemplateSize
+  ) {
+    return null;
+  }
+
+  const shape =
+    body.GetShape();
+
+  if (
+    shape.GetSubType() !==
+    Jolt.EShapeSubType_Box
+  ) {
+    return null;
+  }
+
+  const boxShape =
+    Jolt.castObject(
+      shape,
+      Jolt.BoxShape
+    );
+
+  const extent =
+    wrapVec3(
+      boxShape.GetHalfExtent()
+    ).multiplyScalar(2);
+
+  const safeSize =
+    new THREE.Vector3(
+      Math.max(treeModelTemplateSize.x, 0.0001),
+      Math.max(treeModelTemplateSize.y, 0.0001),
+      Math.max(treeModelTemplateSize.z, 0.0001)
+    );
+
+  const uniformScale =
+    Math.min(
+      extent.x / safeSize.x,
+      extent.y / safeSize.y,
+      extent.z / safeSize.z
+    );
+
+  const treeObject =
+    treeModelTemplate.clone(true);
+
+  treeObject.scale.setScalar(
+    uniformScale
+  );
+
+  return treeObject;
+}
+
 function getThreeObjectForBody(
   body,
-  color
+  color,
+  objectId = null
 ) {
+
+  const useTreeModel =
+    objectId?.startsWith(
+      TREE_OBJECT_ID_PREFIX
+    ) ?? false;
+
+  if (useTreeModel) {
+    const treeObject =
+      createTreeObjectForBody(
+        body
+      );
+
+    if (treeObject) {
+      treeObject.position.copy(
+        wrapVec3(
+          body.GetPosition()
+        )
+      );
+
+      treeObject.quaternion.copy(
+        wrapQuat(
+          body.GetRotation()
+        )
+      );
+
+      return treeObject;
+    }
+  }
 
   let material =
     new THREE.MeshPhongMaterial({
@@ -1117,7 +1366,8 @@ function getThreeObjectForBody(
 
 Promise.all([
   initJolt(),
-  loadScene(new URL(`./${sceneFileFromRoute()}`, import.meta.url))
+  loadScene(new URL(`./${sceneFileFromRoute()}`, import.meta.url)),
+  loadTreeModel()
 ]).then(function ([Jolt, sceneData]) {
 
   initExample(
@@ -2120,7 +2370,8 @@ Promise.all([
       position, rotation, halfExtent,
       dynamic ? Jolt.EMotionType_Dynamic : Jolt.EMotionType_Static,
       dynamic ? LAYER_MOVING : LAYER_NON_MOVING,
-      object.color ?? '#ffffff', object.mass ?? null, object.friction ?? 0.2
+      object.color ?? '#ffffff', object.mass ?? null, object.friction ?? 0.2,
+      object.id
     );
     bodies.set(object.id, body);
     Jolt.destroy(position);
@@ -2393,15 +2644,28 @@ Promise.all([
       Jolt.CharacterContactSettings
     );
 
+    const contactedBodyIndex =
+      bodyID2.GetIndexAndSequenceNumber();
+
+    const contactedObjectId =
+      objectIdFromBodyIndex(
+        contactedBodyIndex
+      );
+
     if (
-      bodyID2.GetIndexAndSequenceNumber() ===
+      contactedObjectId.startsWith(
+        TREE_OBJECT_ID_PREFIX
+      )
+    ) {
+      addStrawberryToInventory();
+    }
+
+    if (
+      contactedBodyIndex ===
       tealCubeId
     ) {
 
       settings.mCanReceiveImpulses = true;
-
-      const contactedBodyIndex =
-        bodyID2.GetIndexAndSequenceNumber();
 
       const cubePosition =
         tealCube.GetPosition();
@@ -2414,9 +2678,7 @@ Promise.all([
           type: "collision",
 
           a: "player_1",
-          b: objectIdFromBodyIndex(
-            contactedBodyIndex
-          ),
+          b: contactedObjectId,
 
           position: [
             cubePosition.GetX(),
@@ -3341,6 +3603,31 @@ Promise.all([
     var keyCode =
       event.which;
 
+    if (
+      keyCode >= 49 &&
+      keyCode <= 54
+    ) {
+      if (!event.repeat) {
+        useInventorySlot(
+          keyCode - 49
+        );
+      }
+
+      return;
+    }
+
+    if (
+      keyCode >= 97 &&
+      keyCode <= 102
+    ) {
+      if (!event.repeat) {
+        useInventorySlot(
+          keyCode - 97
+        );
+      }
+
+      return;
+    }
 
     if (
       keyCode ==

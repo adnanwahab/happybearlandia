@@ -5,7 +5,14 @@ simulators, games, tools, robots
 
 this repo has a physics puzzle game that makes data for machine learning
 
-![HappyBearLandia screenshot](./data/screenshot.gif)
+
+## /game
+## /edit (Augmented_reality)
+## /pick-and-place multiplayer_robots
+## /inference
+## /training
+## /data
+
 
 # hardware 
 https://www.hiwonder.com/products/nexarm6-axis

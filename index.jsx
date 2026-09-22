@@ -20,6 +20,9 @@ function App() {
           Multiplayer physics playground for designing, testing, and editing interactive scenes.
         </p>
       </header>
+      <section>
+        <iframe width="100%" height="500" src="./game"></iframe>
+      </section>
 
       <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
         <h2 className="text-lg font-semibold">Quick links</h2>
