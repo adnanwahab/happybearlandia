@@ -35,7 +35,7 @@ function getSceneIdFromPath(pathname, prefix) {
 }
 
 function getSceneFilePath(sceneId) {
-  return normalize(join(gameRoot, `${sceneId}.json`));
+  return normalize(join(gameRoot, "scene", `${sceneId}.json`));
 }
 
 function sanitizeName(value, fallback = "unknown") {

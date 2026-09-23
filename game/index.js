@@ -217,7 +217,7 @@ const sceneIdFromRoute = () => {
 };
 
 const sceneFileFromRoute = () =>
-  `${sceneIdFromRoute()}.json`;
+  `scene/${sceneIdFromRoute()}.json`;
 
 // Object layers
 const LAYER_NON_MOVING = 0;
