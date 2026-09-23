@@ -65,49 +65,113 @@
       "color": "#ffffff"
     },
     {
-      "id": "tree-1",
+      "id": "tree-strawberry",
+      "type": "box",
+      "position": [
+        -24,
+        3,
+        18
+      ],
+      "size": [
+        3,
+        6,
+        3
+      ],
+      "motion": "static",
+      "color": "#2f7f35"
+    },
+    {
+      "id": "tree-apple",
+      "type": "box",
+      "position": [
+        -16,
+        3,
+        18
+      ],
+      "size": [
+        3,
+        6,
+        3
+      ],
+      "motion": "static",
+      "color": "#2f7f35"
+    },
+    {
+      "id": "tree-orange",
       "type": "box",
       "position": [
         -8,
-        2,
+        3,
         18
       ],
       "size": [
-        2,
-        4,
-        2
+        3,
+        6,
+        3
       ],
       "motion": "static",
       "color": "#2f7f35"
     },
     {
-      "id": "tree-2",
+      "id": "tree-banana",
       "type": "box",
       "position": [
         0,
-        2,
+        3,
         18
       ],
       "size": [
-        2,
-        4,
-        2
+        3,
+        6,
+        3
       ],
       "motion": "static",
       "color": "#2f7f35"
     },
     {
-      "id": "tree-3",
+      "id": "tree-grape",
       "type": "box",
       "position": [
         8,
-        2,
+        3,
         18
       ],
       "size": [
-        2,
-        4,
-        2
+        3,
+        6,
+        3
+      ],
+      "motion": "static",
+      "color": "#2f7f35"
+    },
+    {
+      "id": "tree-blueberry",
+      "type": "box",
+      "position": [
+        16,
+        3,
+        18
+      ],
+      "size": [
+        3,
+        6,
+        3
+      ],
+      "motion": "static",
+      "color": "#2f7f35"
+    },
+    {
+      "id": "tree-pear",
+      "type": "box",
+      "position": [
+        24,
+        3,
+        18
+      ],
+      "size": [
+        3,
+        6,
+        3
       ],
       "motion": "static",
       "color": "#2f7f35"

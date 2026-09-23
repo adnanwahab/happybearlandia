@@ -229,9 +229,39 @@ const LAYER_NON_MOVING = 0;
 const LAYER_MOVING = 1;
 const NUM_OBJECT_LAYERS = 2;
 
-const INVENTORY_SLOT_COUNT = 6;
-const STRAWBERRY_EMOJI = "🍓";
+const INVENTORY_SLOT_COUNT = 7;
 const TREE_OBJECT_ID_PREFIX = "tree-";
+
+const FRUIT_DEFINITIONS = {
+  strawberry: {
+    emoji: "🍓",
+    color: "#e53935",
+  },
+  apple: {
+    emoji: "🍎",
+    color: "#d32f2f",
+  },
+  orange: {
+    emoji: "🍊",
+    color: "#fb8c00",
+  },
+  banana: {
+    emoji: "🍌",
+    color: "#fdd835",
+  },
+  grape: {
+    emoji: "🍇",
+    color: "#7e57c2",
+  },
+  blueberry: {
+    emoji: "🫐",
+    color: "#3949ab",
+  },
+  pear: {
+    emoji: "🍐",
+    color: "#9ccc65",
+  },
+};
 
 const treeModelUrl =
   new URL(
@@ -269,17 +299,30 @@ function resetInventory() {
   renderInventoryOverlay();
 }
 
-function addStrawberryToInventory() {
+function addItemToInventory(itemEmoji) {
   const emptySlotIndex = inventorySlots.findIndex(slot => slot == null);
 
   if (emptySlotIndex === -1) {
     return false;
   }
 
-  inventorySlots[emptySlotIndex] = STRAWBERRY_EMOJI;
+  inventorySlots[emptySlotIndex] = itemEmoji;
   renderInventoryOverlay();
 
   return true;
+}
+
+function fruitIdForTreeObjectId(objectId) {
+  if (!objectId?.startsWith(TREE_OBJECT_ID_PREFIX)) {
+    return null;
+  }
+
+  const fruitId =
+    objectId.slice(TREE_OBJECT_ID_PREFIX.length);
+
+  return FRUIT_DEFINITIONS[fruitId]
+    ? fruitId
+    : null;
 }
 
 function useInventorySlot(slotIndex) {
@@ -312,7 +355,8 @@ function ensureInventoryOverlay() {
   inventoryOverlay.style.bottom = "0";
   inventoryOverlay.style.transform = "translateX(-50%)";
   inventoryOverlay.style.display = "grid";
-  inventoryOverlay.style.gridTemplateColumns = "repeat(6, 52px)";
+  inventoryOverlay.style.gridTemplateColumns =
+    `repeat(${INVENTORY_SLOT_COUNT}, 52px)`;
   inventoryOverlay.style.gap = "10px";
   inventoryOverlay.style.padding = "10px";
   inventoryOverlay.style.background = "rgba(0, 0, 0, 0.35)";
@@ -374,6 +418,8 @@ function loadTreeModel() {
         bbox.getCenter(center);
 
         object.position.sub(center);
+        object.position.y +=
+          size.y / 2;
 
         treeModelTemplate = object;
         treeModelTemplateSize = size;
@@ -981,6 +1027,67 @@ function createBox(
 
 
 
+function createSphere(
+  position,
+  rotation,
+  radius,
+  motionType,
+  layer,
+  color = 0xffffff,
+  mass = 1,
+  friction = 0.35,
+  objectId = null
+) {
+
+  let shape =
+    new Jolt.SphereShape(
+      radius,
+      null
+    );
+
+  let creationSettings =
+    new Jolt.BodyCreationSettings(
+      shape,
+      position,
+      rotation,
+      motionType,
+      layer
+    );
+
+  creationSettings.mFriction =
+    friction;
+
+  if (
+    motionType === Jolt.EMotionType_Dynamic
+  ) {
+    creationSettings.mOverrideMassProperties =
+      Jolt.EOverrideMassProperties_CalculateInertia;
+
+    creationSettings
+      .mMassPropertiesOverride
+      .mMass =
+      mass;
+  }
+
+  let body =
+    bodyInterface.CreateBody(
+      creationSettings
+    );
+
+  Jolt.destroy(
+    creationSettings
+  );
+
+  addToScene(
+    body,
+    color,
+    objectId
+  );
+
+  return body;
+}
+
+
 function createMeshForShape(
   shape
 ) {
@@ -1230,7 +1337,36 @@ function createTreeObjectForBody(
     uniformScale
   );
 
+  treeObject.userData.treeYOffset =
+    -extent.y * 0.5;
+
   return treeObject;
+}
+
+function createFruitTreeDecoration(
+  fruitColor
+) {
+  const material =
+    new THREE.MeshPhongMaterial({
+      color: fruitColor,
+      emissive: fruitColor,
+      emissiveIntensity: 0.2,
+    });
+
+  const fruit =
+    new THREE.Mesh(
+      new THREE.SphereGeometry(
+        0.32,
+        20,
+        20
+      ),
+      material
+    );
+
+  fruit.castShadow = false;
+  fruit.receiveShadow = false;
+
+  return fruit;
 }
 
 function createPlayerCharacterVisual(
@@ -1309,6 +1445,11 @@ function getThreeObjectForBody(
           body.GetPosition()
         )
       );
+
+      treeObject.position.y +=
+        treeObject.userData
+          .treeYOffset ??
+        0;
 
       treeObject.quaternion.copy(
         wrapQuat(
@@ -2505,6 +2646,368 @@ if (!isGalleryRoute()) {
     ) ??
     `body_${bodyIndex}`;
 
+  const droppedFruitByTreeId =
+    new Map();
+
+  const fruitBodiesByBodyIndex =
+    new Map();
+
+  const fruitDecorationsByTreeId =
+    new Map();
+
+  const fruitRestPositionByTreeId =
+    new Map();
+
+  const getTreeHalfExtent =
+  (treeBody) => {
+    const shape =
+      treeBody.GetShape();
+
+    if (
+      shape.GetSubType() !==
+      Jolt.EShapeSubType_Box
+    ) {
+      return new THREE.Vector3(
+        1,
+        2,
+        1
+      );
+    }
+
+    const boxShape =
+      Jolt.castObject(
+        shape,
+        Jolt.BoxShape
+      );
+
+    return wrapVec3(
+      boxShape.GetHalfExtent()
+    );
+  };
+
+  const findThreeObjectForBodyIndex =
+  (bodyIndex) =>
+    dynamicObjects.find(
+      object =>
+        object
+          .userData
+          .body
+          .GetID()
+          .GetIndexAndSequenceNumber() ===
+        bodyIndex
+    ) ?? null;
+
+  const placeFruitOnTree =
+  (treeObjectId) => {
+    const fruitId =
+      fruitIdForTreeObjectId(
+        treeObjectId
+      );
+
+    if (!fruitId) {
+      return;
+    }
+
+    const treeBody =
+      bodies.get(treeObjectId);
+
+    if (!treeBody) {
+      return;
+    }
+
+    const fruitDefinition =
+      FRUIT_DEFINITIONS[fruitId];
+
+    const fruitDecoration =
+      createFruitTreeDecoration(
+        fruitDefinition.color
+      );
+
+    const treePosition =
+      treeBody.GetPosition();
+
+    const halfExtent =
+      getTreeHalfExtent(treeBody);
+
+    fruitDecoration.position.set(
+      treePosition.GetX() +
+        halfExtent.x * 0.35,
+      treePosition.GetY() +
+        halfExtent.y * 0.45,
+      treePosition.GetZ() +
+        halfExtent.z * 0.35
+    );
+
+    scene.add(
+      fruitDecoration
+    );
+
+    fruitDecorationsByTreeId.set(
+      treeObjectId,
+      fruitDecoration
+    );
+
+    fruitRestPositionByTreeId.set(
+      treeObjectId,
+      fruitDecoration.position.clone()
+    );
+  };
+
+  const dropFruitFromTree =
+  (treeObjectId) => {
+    if (
+      droppedFruitByTreeId.has(
+        treeObjectId
+      )
+    ) {
+      return;
+    }
+
+    const fruitId =
+      fruitIdForTreeObjectId(
+        treeObjectId
+      );
+
+    if (!fruitId) {
+      return;
+    }
+
+    const treeBody =
+      bodies.get(treeObjectId);
+
+    if (!treeBody) {
+      return;
+    }
+
+    const fruitDecoration =
+      fruitDecorationsByTreeId.get(
+        treeObjectId
+      );
+
+    if (fruitDecoration) {
+      scene.remove(
+        fruitDecoration
+      );
+
+      fruitDecorationsByTreeId.delete(
+        treeObjectId
+      );
+    }
+
+    const fruitDefinition =
+      FRUIT_DEFINITIONS[fruitId];
+
+    const treePosition =
+      treeBody.GetPosition();
+
+    const halfExtent =
+      getTreeHalfExtent(treeBody);
+
+    const fruitRadius =
+      0.32;
+
+    const restFruitPosition =
+      fruitDecoration
+        ?.position
+        .clone() ??
+      fruitRestPositionByTreeId.get(
+        treeObjectId
+      ) ??
+      new THREE.Vector3(
+        treePosition.GetX() +
+          halfExtent.x * 0.35,
+        treePosition.GetY() +
+          halfExtent.y * 0.45,
+        treePosition.GetZ() +
+          halfExtent.z * 0.35
+      );
+
+    const fruitPosition =
+      new Jolt.RVec3(
+        restFruitPosition.x,
+        restFruitPosition.y,
+        restFruitPosition.z
+      );
+
+    const fruitRotation =
+      new Jolt.Quat(
+        0,
+        0,
+        0,
+        1
+      );
+
+    const fruitObjectId =
+      `fruit-${fruitId}-${treeObjectId}`;
+
+    const fruitBody =
+      createSphere(
+        fruitPosition,
+        fruitRotation,
+        fruitRadius,
+        Jolt.EMotionType_Dynamic,
+        LAYER_MOVING,
+        fruitDefinition.color,
+        1,
+        0.4,
+        fruitObjectId
+      );
+
+    const fruitBodyIndex =
+      fruitBody
+        .GetID()
+        .GetIndexAndSequenceNumber();
+
+    bodyIdToObjectId.set(
+      fruitBodyIndex,
+      fruitObjectId
+    );
+
+    fruitBodiesByBodyIndex.set(
+      fruitBodyIndex,
+      {
+        treeObjectId,
+        fruitId,
+        emoji:
+          fruitDefinition.emoji,
+      }
+    );
+
+    droppedFruitByTreeId.set(
+      treeObjectId,
+      fruitBodyIndex
+    );
+
+    const outwardDirection =
+      new THREE.Vector3(
+        restFruitPosition.x -
+          treePosition.GetX(),
+        0,
+        restFruitPosition.z -
+          treePosition.GetZ()
+      );
+
+    if (
+      outwardDirection.lengthSq() <
+      0.0001
+    ) {
+      outwardDirection.set(
+        1,
+        0,
+        0
+      );
+    } else {
+      outwardDirection.normalize();
+    }
+
+    if (
+      typeof fruitBody.SetLinearVelocity ===
+      "function"
+    ) {
+      const dropVelocity =
+        new Jolt.Vec3(
+          outwardDirection.x * 1.4,
+          -1.2,
+          outwardDirection.z * 1.4
+        );
+
+      fruitBody.SetLinearVelocity(
+        dropVelocity
+      );
+
+      Jolt.destroy(
+        dropVelocity
+      );
+    }
+
+    if (
+      typeof fruitBody.SetAngularVelocity ===
+      "function"
+    ) {
+      const spinVelocity =
+        new Jolt.Vec3(
+          3,
+          1.5,
+          -2.5
+        );
+
+      fruitBody.SetAngularVelocity(
+        spinVelocity
+      );
+
+      Jolt.destroy(
+        spinVelocity
+      );
+    }
+
+    Jolt.destroy(
+      fruitPosition
+    );
+
+    Jolt.destroy(
+      fruitRotation
+    );
+  };
+
+  const pickupDroppedFruit =
+  (fruitBodyIndex) => {
+    const fruitState =
+      fruitBodiesByBodyIndex.get(
+        fruitBodyIndex
+      );
+
+    if (!fruitState) {
+      return false;
+    }
+
+    if (
+      !addItemToInventory(
+        fruitState.emoji
+      )
+    ) {
+      return false;
+    }
+
+    const fruitThreeObject =
+      findThreeObjectForBodyIndex(
+        fruitBodyIndex
+      );
+
+    if (!fruitThreeObject) {
+      return false;
+    }
+
+    removeFromScene(
+      fruitThreeObject
+    );
+
+    fruitBodiesByBodyIndex.delete(
+      fruitBodyIndex
+    );
+
+    bodyIdToObjectId.delete(
+      fruitBodyIndex
+    );
+
+    droppedFruitByTreeId.delete(
+      fruitState.treeObjectId
+    );
+
+    return true;
+  };
+
+  for (const objectId of bodies.keys()) {
+    if (
+      objectId.startsWith(
+        TREE_OBJECT_ID_PREFIX
+      )
+    ) {
+      placeFruitOnTree(
+        objectId
+      );
+    }
+  }
+
   const snapshotIntervalSeconds =
     1;
 
@@ -2763,7 +3266,19 @@ if (!isGalleryRoute()) {
         TREE_OBJECT_ID_PREFIX
       )
     ) {
-      addStrawberryToInventory();
+      dropFruitFromTree(
+        contactedObjectId
+      );
+    }
+
+    if (
+      fruitBodiesByBodyIndex.has(
+        contactedBodyIndex
+      )
+    ) {
+      pickupDroppedFruit(
+        contactedBodyIndex
+      );
     }
 
     if (
@@ -3695,7 +4210,9 @@ if (!isGalleryRoute()) {
 
     if (
       keyCode >= 49 &&
-      keyCode <= 54
+      keyCode <
+        49 +
+        INVENTORY_SLOT_COUNT
     ) {
       if (!event.repeat) {
         useInventorySlot(
@@ -3708,7 +4225,9 @@ if (!isGalleryRoute()) {
 
     if (
       keyCode >= 97 &&
-      keyCode <= 102
+      keyCode <
+        97 +
+        INVENTORY_SLOT_COUNT
     ) {
       if (!event.repeat) {
         useInventorySlot(

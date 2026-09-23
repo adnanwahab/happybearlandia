@@ -5,6 +5,15 @@ simulators, games, tools, robots
 
 this repo has a physics puzzle game that makes data for machine learning
 
+# Usage instructions
+
+how to run application locally
+
+\`bun run dev\`
+
+how to run augmented reality locally
+
+op run --env-file=.env.op -- bun scripts/fs-sync-mediapipe.ts
 
 ## /game
 ## /edit (Augmented_reality)

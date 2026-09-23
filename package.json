@@ -4,6 +4,7 @@
     "@playwright/test": "^1.63.0"
   },
   "scripts": {
+    "start": "bun run server.js",
     "test:e2e": "playwright test",
     "screenshot:index": "bun scripts/screenshot-index.js"
   },

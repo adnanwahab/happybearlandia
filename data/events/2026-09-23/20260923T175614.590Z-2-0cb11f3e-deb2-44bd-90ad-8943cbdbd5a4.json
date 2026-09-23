@@ -1,0 +1,7834 @@
+{
+  "schemaVersion": 1,
+  "kind": "debug_session",
+  "savedAt": "2026-09-23T17:56:14.590Z",
+  "sceneId": "2",
+  "sessionId": "0cb11f3e-deb2-44bd-90ad-8943cbdbd5a4",
+  "reason": "beforeunload",
+  "startedAt": "2026-09-23T17:55:28.462Z",
+  "endedAt": "2026-09-23T17:56:14.570Z",
+  "metadata": {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+    "locationPath": "/game/2",
+    "eventCount": 31,
+    "snapshotCount": 47
+  },
+  "events": [
+    {
+      "id": 1,
+      "frame": 0,
+      "time": 0,
+      "type": "state_change",
+      "objectId": "level",
+      "from": {
+        "loaded": false
+      },
+      "to": {
+        "loaded": true,
+        "scene": "scene/2.json",
+        "sessionId": "0cb11f3e-deb2-44bd-90ad-8943cbdbd5a4"
+      },
+      "causedBy": {
+        "type": "engine",
+        "objectId": "game_boot"
+      }
+    },
+    {
+      "id": 2,
+      "frame": 0,
+      "time": 0,
+      "type": "state_change",
+      "objectId": "debug_session",
+      "from": {
+        "active": false
+      },
+      "to": {
+        "active": true,
+        "sceneId": "2",
+        "sessionId": "0cb11f3e-deb2-44bd-90ad-8943cbdbd5a4"
+      },
+      "causedBy": {
+        "type": "engine",
+        "objectId": "debug_recorder"
+      }
+    },
+    {
+      "id": 3,
+      "frame": 1668,
+      "time": 27.758099999994016,
+      "type": "collision",
+      "a": "player_1",
+      "b": "teal-cube",
+      "position": [
+        -35.521575927734375,
+        0.7799996137619019,
+        -13.709181785583496
+      ],
+      "relativeVelocity": 0
+    },
+    {
+      "id": 4,
+      "frame": 1668,
+      "time": 27.758099999994016,
+      "type": "state_change",
+      "objectId": "teal-cube",
+      "from": {
+        "touched": false
+      },
+      "to": {
+        "touched": true
+      },
+      "causedBy": {
+        "type": "collision",
+        "objectId": "player_1"
+      },
+      "parentEventId": 3
+    },
+    {
+      "id": 5,
+      "frame": 1668,
+      "time": 27.758099999994016,
+      "type": "music",
+      "objectId": "teal-cube",
+      "event": "note_on",
+      "note": "collision_sfx",
+      "velocity": 1,
+      "causedBy": "player_1",
+      "parentEventId": 3
+    },
+    {
+      "id": 6,
+      "frame": 1675,
+      "time": 27.874400000005934,
+      "type": "state_change",
+      "objectId": "teal-cube",
+      "from": {
+        "touched": true
+      },
+      "to": {
+        "touched": false
+      },
+      "causedBy": {
+        "type": "collision_end",
+        "objectId": "player_1"
+      }
+    },
+    {
+      "id": 7,
+      "frame": 1676,
+      "time": 27.890900000005935,
+      "type": "collision",
+      "a": "player_1",
+      "b": "teal-cube",
+      "position": [
+        -36.32703399658203,
+        0.9259268641471863,
+        -13.097370147705078
+      ],
+      "relativeVelocity": 10.695132858955645
+    },
+    {
+      "id": 8,
+      "frame": 1676,
+      "time": 27.890900000005935,
+      "type": "state_change",
+      "objectId": "teal-cube",
+      "from": {
+        "touched": false
+      },
+      "to": {
+        "touched": true
+      },
+      "causedBy": {
+        "type": "collision",
+        "objectId": "player_1"
+      },
+      "parentEventId": 7
+    },
+    {
+      "id": 9,
+      "frame": 1676,
+      "time": 27.890900000005935,
+      "type": "music",
+      "objectId": "teal-cube",
+      "event": "note_on",
+      "note": "collision_sfx",
+      "velocity": 1,
+      "causedBy": "player_1",
+      "parentEventId": 7
+    },
+    {
+      "id": 10,
+      "frame": 1677,
+      "time": 27.907700000002954,
+      "type": "state_change",
+      "objectId": "teal-cube",
+      "from": {
+        "touched": true
+      },
+      "to": {
+        "touched": false
+      },
+      "causedBy": {
+        "type": "collision_end",
+        "objectId": "player_1"
+      }
+    },
+    {
+      "id": 11,
+      "frame": 1703,
+      "time": 28.34120000000294,
+      "type": "collision",
+      "a": "player_1",
+      "b": "teal-cube",
+      "position": [
+        -39.976383209228516,
+        0.7854710817337036,
+        -10.387369155883789
+      ],
+      "relativeVelocity": 9.26843439315339
+    },
+    {
+      "id": 12,
+      "frame": 1703,
+      "time": 28.34120000000294,
+      "type": "state_change",
+      "objectId": "teal-cube",
+      "from": {
+        "touched": false
+      },
+      "to": {
+        "touched": true
+      },
+      "causedBy": {
+        "type": "collision",
+        "objectId": "player_1"
+      },
+      "parentEventId": 11
+    },
+    {
+      "id": 13,
+      "frame": 1703,
+      "time": 28.34120000000294,
+      "type": "music",
+      "objectId": "teal-cube",
+      "event": "note_on",
+      "note": "collision_sfx",
+      "velocity": 1,
+      "causedBy": "player_1",
+      "parentEventId": 11
+    },
+    {
+      "id": 14,
+      "frame": 1706,
+      "time": 28.39129999999698,
+      "type": "state_change",
+      "objectId": "teal-cube",
+      "from": {
+        "touched": true
+      },
+      "to": {
+        "touched": false
+      },
+      "causedBy": {
+        "type": "collision_end",
+        "objectId": "player_1"
+      }
+    },
+    {
+      "id": 15,
+      "frame": 1707,
+      "time": 28.40729999999698,
+      "type": "collision",
+      "a": "player_1",
+      "b": "teal-cube",
+      "position": [
+        -40.48933029174805,
+        0.7863827347755432,
+        -10.000205993652344
+      ],
+      "relativeVelocity": 9.766289241735226
+    },
+    {
+      "id": 16,
+      "frame": 1707,
+      "time": 28.40729999999698,
+      "type": "state_change",
+      "objectId": "teal-cube",
+      "from": {
+        "touched": false
+      },
+      "to": {
+        "touched": true
+      },
+      "causedBy": {
+        "type": "collision",
+        "objectId": "player_1"
+      },
+      "parentEventId": 15
+    },
+    {
+      "id": 17,
+      "frame": 1707,
+      "time": 28.40729999999698,
+      "type": "music",
+      "objectId": "teal-cube",
+      "event": "note_on",
+      "note": "collision_sfx",
+      "velocity": 1,
+      "causedBy": "player_1",
+      "parentEventId": 15
+    },
+    {
+      "id": 18,
+      "frame": 1708,
+      "time": 28.424599999993998,
+      "type": "state_change",
+      "objectId": "teal-cube",
+      "from": {
+        "touched": true
+      },
+      "to": {
+        "touched": false
+      },
+      "causedBy": {
+        "type": "collision_end",
+        "objectId": "player_1"
+      }
+    },
+    {
+      "id": 19,
+      "frame": 1709,
+      "time": 28.441099999993998,
+      "type": "collision",
+      "a": "player_1",
+      "b": "teal-cube",
+      "position": [
+        -40.759944915771484,
+        0.7863827347755432,
+        -9.793542861938477
+      ],
+      "relativeVelocity": 10.043617634587644
+    },
+    {
+      "id": 20,
+      "frame": 1709,
+      "time": 28.441099999993998,
+      "type": "state_change",
+      "objectId": "teal-cube",
+      "from": {
+        "touched": false
+      },
+      "to": {
+        "touched": true
+      },
+      "causedBy": {
+        "type": "collision",
+        "objectId": "player_1"
+      },
+      "parentEventId": 19
+    },
+    {
+      "id": 21,
+      "frame": 1709,
+      "time": 28.441099999993998,
+      "type": "music",
+      "objectId": "teal-cube",
+      "event": "note_on",
+      "note": "collision_sfx",
+      "velocity": 1,
+      "causedBy": "player_1",
+      "parentEventId": 19
+    },
+    {
+      "id": 22,
+      "frame": 1710,
+      "time": 28.457900000005917,
+      "type": "state_change",
+      "objectId": "teal-cube",
+      "from": {
+        "touched": true
+      },
+      "to": {
+        "touched": false
+      },
+      "causedBy": {
+        "type": "collision_end",
+        "objectId": "player_1"
+      }
+    },
+    {
+      "id": 23,
+      "frame": 1711,
+      "time": 28.47370000000294,
+      "type": "collision",
+      "a": "player_1",
+      "b": "teal-cube",
+      "position": [
+        -41.02945327758789,
+        0.7863827347755432,
+        -9.585029602050781
+      ],
+      "relativeVelocity": 10.423036939451755
+    },
+    {
+      "id": 24,
+      "frame": 1711,
+      "time": 28.47370000000294,
+      "type": "state_change",
+      "objectId": "teal-cube",
+      "from": {
+        "touched": false
+      },
+      "to": {
+        "touched": true
+      },
+      "causedBy": {
+        "type": "collision",
+        "objectId": "player_1"
+      },
+      "parentEventId": 23
+    },
+    {
+      "id": 25,
+      "frame": 1711,
+      "time": 28.47370000000294,
+      "type": "music",
+      "objectId": "teal-cube",
+      "event": "note_on",
+      "note": "collision_sfx",
+      "velocity": 1,
+      "causedBy": "player_1",
+      "parentEventId": 23
+    },
+    {
+      "id": 26,
+      "frame": 1712,
+      "time": 28.491200000002937,
+      "type": "state_change",
+      "objectId": "teal-cube",
+      "from": {
+        "touched": true
+      },
+      "to": {
+        "touched": false
+      },
+      "causedBy": {
+        "type": "collision_end",
+        "objectId": "player_1"
+      }
+    },
+    {
+      "id": 27,
+      "frame": 1715,
+      "time": 28.54129999999698,
+      "type": "collision",
+      "a": "player_1",
+      "b": "teal-cube",
+      "position": [
+        -41.594215393066406,
+        0.7863827347755432,
+        -9.144124984741211
+      ],
+      "relativeVelocity": 10.506964565434297
+    },
+    {
+      "id": 28,
+      "frame": 1715,
+      "time": 28.54129999999698,
+      "type": "state_change",
+      "objectId": "teal-cube",
+      "from": {
+        "touched": false
+      },
+      "to": {
+        "touched": true
+      },
+      "causedBy": {
+        "type": "collision",
+        "objectId": "player_1"
+      },
+      "parentEventId": 27
+    },
+    {
+      "id": 29,
+      "frame": 1715,
+      "time": 28.54129999999698,
+      "type": "music",
+      "objectId": "teal-cube",
+      "event": "note_on",
+      "note": "collision_sfx",
+      "velocity": 1,
+      "causedBy": "player_1",
+      "parentEventId": 27
+    },
+    {
+      "id": 30,
+      "frame": 1716,
+      "time": 28.55790000000592,
+      "type": "state_change",
+      "objectId": "teal-cube",
+      "from": {
+        "touched": true
+      },
+      "to": {
+        "touched": false
+      },
+      "causedBy": {
+        "type": "collision_end",
+        "objectId": "player_1"
+      }
+    },
+    {
+      "id": 31,
+      "frame": 2766,
+      "time": 46.05770000000273,
+      "type": "state_change",
+      "objectId": "debug_session",
+      "from": {
+        "active": true
+      },
+      "to": {
+        "active": false
+      },
+      "causedBy": {
+        "type": "lifecycle",
+        "objectId": "beforeunload"
+      }
+    }
+  ],
+  "snapshots": [
+    {
+      "frame": 0,
+      "time": 0,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -18,
+            4,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -18,
+            2,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 63,
+      "time": 1.00829999999702,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -13.078495025634766,
+            0.34999987483024597,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 124,
+      "time": 2.0250000000000004,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -4.939291954040527,
+            0.34999990463256836,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 184,
+      "time": 3.0250999999940418,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -2.0199999809265137,
+            0.34957948327064514,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 245,
+      "time": 4.041599999994044,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -1.9026134014129639,
+            0.3461416959762573,
+            -1.4386813640594482
+          ]
+        }
+      }
+    },
+    {
+      "frame": 305,
+      "time": 5.041599999994044,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            4.789035797119141,
+            -4.3749167843998293e-8,
+            -3.019251585006714
+          ]
+        }
+      }
+    },
+    {
+      "frame": 366,
+      "time": 6.058099999994043,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            0.14419637620449066,
+            4.093953609466553,
+            -11.600786209106445
+          ]
+        }
+      }
+    },
+    {
+      "frame": 426,
+      "time": 7.058299999997024,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            5.825113773345947,
+            1.5939602851867676,
+            -10.610321044921875
+          ]
+        }
+      }
+    },
+    {
+      "frame": 487,
+      "time": 8.076099999994046,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            10.60489559173584,
+            6.749928951263428,
+            -17.498991012573242
+          ]
+        }
+      }
+    },
+    {
+      "frame": 548,
+      "time": 9.091500000000014,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            21.9987850189209,
+            1.913426160812378,
+            -15.975496292114258
+          ]
+        }
+      }
+    },
+    {
+      "frame": 608,
+      "time": 10.09150000000002,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            23.008163452148438,
+            0.7180326581001282,
+            -12.038860321044922
+          ]
+        }
+      }
+    },
+    {
+      "frame": 669,
+      "time": 11.108200000002999,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            15.555622100830078,
+            4.443482875823975,
+            -19.3981990814209
+          ]
+        }
+      }
+    },
+    {
+      "frame": 730,
+      "time": 12.124900000005976,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            19.49382781982422,
+            6.4150800704956055,
+            -15.26159381866455
+          ]
+        }
+      }
+    },
+    {
+      "frame": 791,
+      "time": 13.141500000000017,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            28.030004501342773,
+            4.049999713897705,
+            -11.337940216064453
+          ]
+        }
+      }
+    },
+    {
+      "frame": 851,
+      "time": 14.141599999994055,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            34.21241760253906,
+            9.516619682312012,
+            -11.212272644042969
+          ]
+        }
+      }
+    },
+    {
+      "frame": 912,
+      "time": 15.158200000003003,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            37.4830322265625,
+            4.650000095367432,
+            -9.826664924621582
+          ]
+        }
+      }
+    },
+    {
+      "frame": 972,
+      "time": 16.15829999999704,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            37.4830322265625,
+            4.650000095367432,
+            -9.826664924621582
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1033,
+      "time": 17.174700000003003,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            32.52000045776367,
+            1.3151479959487915,
+            -11.426136016845703
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1094,
+      "time": 18.191400000005984,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            28.6080322265625,
+            5.259746074676514,
+            -10.36526870727539
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1155,
+      "time": 19.208000000000013,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            17.507192611694336,
+            0.9854198694229126,
+            -11.153826713562012
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1215,
+      "time": 20.20809999999405,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            6.257333755493164,
+            5.133311748504639,
+            -7.072421550750732
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1276,
+      "time": 21.22459999999405,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -3.1350347995758057,
+            0.3499999940395355,
+            -1.4624149799346924
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1337,
+      "time": 22.24129999999703,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -1.9185588359832764,
+            0.34615373611450195,
+            1.407609462738037
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1398,
+      "time": 23.258000000000006,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -3.587501049041748,
+            -1.115471377488575e-7,
+            6.24197244644165
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1459,
+      "time": 24.27470000000298,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -10.737339973449707,
+            0.34999993443489075,
+            2.104403018951416
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1520,
+      "time": 25.29079999999701,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -12.984160423278809,
+            0.34999996423721313,
+            -1.618272304534912
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1580,
+      "time": 26.291400000005947,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -21.126733779907227,
+            -1.8931334011540457e-7,
+            -5.865434169769287
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1641,
+      "time": 27.30790000000594,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -35.521575927734375,
+            0.7799996137619019,
+            -13.709181785583496
+          ],
+          "rotation": [
+            -5.9575828714741874e-9,
+            0.9440996646881104,
+            -1.2467523902159883e-8,
+            -0.3296602666378021
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -28.83249282836914,
+            -1.2556628803395142e-7,
+            -13.840490341186523
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1702,
+      "time": 28.324599999994,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -39.85286331176758,
+            0.7854710817337036,
+            -10.479100227355957
+          ],
+          "rotation": [
+            0.00035420386120676994,
+            0.9359474778175354,
+            0.0003750189207494259,
+            -0.352139413356781
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -39.08991622924805,
+            -1.2155497586263664e-7,
+            -12.360766410827637
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1763,
+      "time": 29.340200000002923,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -47.29283905029297,
+            0.7863827347755432,
+            -4.695237159729004
+          ],
+          "rotation": [
+            -0.0001558198855491355,
+            0.9205940961837769,
+            0.0005803765379823744,
+            -0.39052045345306396
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -46.10905075073242,
+            -8.246351512752881e-8,
+            -9.206103324890137
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1823,
+      "time": 30.34129999999696,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -52.19713592529297,
+            -0.83382648229599,
+            -0.8851827383041382
+          ],
+          "rotation": [
+            -0.3287644386291504,
+            0.8595727682113647,
+            -0.14131103456020355,
+            -0.36480116844177246
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -49.21662139892578,
+            -2.3123342884900921e-7,
+            -4.6028571128845215
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1883,
+      "time": 31.341400000005898,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -56.47724151611328,
+            -18.36016082763672,
+            2.403749942779541
+          ],
+          "rotation": [
+            -0.8696462512016296,
+            0.2933654487133026,
+            -0.3768836259841919,
+            -0.12494365125894547
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -48.90287780761719,
+            -6.68410109483375e-8,
+            6.174615859985352
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1944,
+      "time": 32.35779999999695,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -59.4842529296875,
+            -42.20000076293945,
+            4.985551834106445
+          ],
+          "rotation": [
+            -0.9121106266975403,
+            -5.238267135609931e-7,
+            -0.4099442958831787,
+            5.732491104026849e-8
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -48.47277069091797,
+            -2.4534205067539006e-7,
+            7.816298484802246
+          ]
+        }
+      }
+    },
+    {
+      "frame": 2004,
+      "time": 33.35779999999695,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -59.522544860839844,
+            -42.20000076293945,
+            5.06605339050293
+          ],
+          "rotation": [
+            -0.9121106266975403,
+            -5.238267135609931e-7,
+            -0.4099442958831787,
+            5.732491104026849e-8
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -48.47277069091797,
+            -2.4534205067539006e-7,
+            7.816298484802246
+          ]
+        }
+      }
+    },
+    {
+      "frame": 2065,
+      "time": 34.37449999999992,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -59.522544860839844,
+            -42.20000076293945,
+            5.06605339050293
+          ],
+          "rotation": [
+            -0.9121106266975403,
+            -5.238267135609931e-7,
+            -0.4099442958831787,
+            5.732491104026849e-8
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -48.47277069091797,
+            -2.4534205067539006e-7,
+            7.816298484802246
+          ]
+        }
+      }
+    },
+    {
+      "frame": 2126,
+      "time": 35.39129999999693,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -59.522544860839844,
+            -42.20000076293945,
+            5.06605339050293
+          ],
+          "rotation": [
+            -0.9121106266975403,
+            -5.238267135609931e-7,
+            -0.4099442958831787,
+            5.732491104026849e-8
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -44.74632263183594,
+            -2.0034055125961459e-7,
+            10.936530113220215
+          ]
+        }
+      }
+    },
+    {
+      "frame": 2186,
+      "time": 36.39149999999989,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -59.522544860839844,
+            -42.20000076293945,
+            5.06605339050293
+          ],
+          "rotation": [
+            -0.9121106266975403,
+            -5.238267135609931e-7,
+            -0.4099442958831787,
+            5.732491104026849e-8
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -39.5566520690918,
+            -5.128538305143593e-7,
+            19.078323364257812
+          ]
+        }
+      }
+    },
+    {
+      "frame": 2247,
+      "time": 37.40779999999689,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -59.522544860839844,
+            -42.20000076293945,
+            5.06605339050293
+          ],
+          "rotation": [
+            -0.9121106266975403,
+            -5.238267135609931e-7,
+            -0.4099442958831787,
+            5.732491104026849e-8
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -33.596412658691406,
+            -2.1026490060194192e-7,
+            29.64318084716797
+          ]
+        }
+      }
+    },
+    {
+      "frame": 2308,
+      "time": 38.42359999999391,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -59.522544860839844,
+            -42.20000076293945,
+            5.06605339050293
+          ],
+          "rotation": [
+            -0.9121106266975403,
+            -5.238267135609931e-7,
+            -0.4099442958831787,
+            5.732491104026849e-8
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -25.952892303466797,
+            -1.4607672937927418e-7,
+            38.757102966308594
+          ]
+        }
+      }
+    },
+    {
+      "frame": 2368,
+      "time": 39.42440000000583,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -59.522544860839844,
+            -42.20000076293945,
+            5.06605339050293
+          ],
+          "rotation": [
+            -0.9121106266975403,
+            -5.238267135609931e-7,
+            -0.4099442958831787,
+            5.732491104026849e-8
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -14.263757705688477,
+            -2.1906562608364766e-7,
+            41.137027740478516
+          ]
+        }
+      }
+    },
+    {
+      "frame": 2428,
+      "time": 40.42440000000583,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -59.522544860839844,
+            -42.20000076293945,
+            5.06605339050293
+          ],
+          "rotation": [
+            -0.9121106266975403,
+            -5.238267135609931e-7,
+            -0.4099442958831787,
+            5.732491104026849e-8
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -8.7645902633667,
+            -5.4485354894495686e-8,
+            33.147918701171875
+          ]
+        }
+      }
+    },
+    {
+      "frame": 2489,
+      "time": 41.440499999999844,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -59.522544860839844,
+            -42.20000076293945,
+            5.06605339050293
+          ],
+          "rotation": [
+            -0.9121106266975403,
+            -5.238267135609931e-7,
+            -0.4099442958831787,
+            5.732491104026849e-8
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -6.407951354980469,
+            5.302702903747559,
+            21.98853302001953
+          ]
+        }
+      }
+    },
+    {
+      "frame": 2549,
+      "time": 42.44090000000576,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -59.522544860839844,
+            -42.20000076293945,
+            5.06605339050293
+          ],
+          "rotation": [
+            -0.9121106266975403,
+            -5.238267135609931e-7,
+            -0.4099442958831787,
+            5.732491104026849e-8
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -3.88336443901062,
+            -4.497772465583694e-8,
+            10.98728084564209
+          ]
+        }
+      }
+    },
+    {
+      "frame": 2610,
+      "time": 43.45759999999382,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -59.522544860839844,
+            -42.20000076293945,
+            5.06605339050293
+          ],
+          "rotation": [
+            -0.9121106266975403,
+            -5.238267135609931e-7,
+            -0.4099442958831787,
+            5.732491104026849e-8
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            0.8728750944137573,
+            2.743753671646118,
+            0.889793336391449
+          ]
+        }
+      }
+    },
+    {
+      "frame": 2671,
+      "time": 44.4742999999968,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -59.522544860839844,
+            -42.20000076293945,
+            5.06605339050293
+          ],
+          "rotation": [
+            -0.9121106266975403,
+            -5.238267135609931e-7,
+            -0.4099442958831787,
+            5.732491104026849e-8
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            2.121197462081909,
+            3.092550277709961,
+            -2.056633710861206
+          ]
+        }
+      }
+    },
+    {
+      "frame": 2732,
+      "time": 45.49090000000572,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -59.522544860839844,
+            -42.20000076293945,
+            5.06605339050293
+          ],
+          "rotation": [
+            -0.9121106266975403,
+            -5.238267135609931e-7,
+            -0.4099442958831787,
+            5.732491104026849e-8
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            2.121197462081909,
+            -2.069864422082901e-7,
+            -2.056633949279785
+          ]
+        }
+      }
+    },
+    {
+      "frame": 2766,
+      "time": 46.05770000000273,
+      "objects": {
+        "floor": {
+          "position": [
+            10,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            55,
+            3,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -10,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -59.522544860839844,
+            -42.20000076293945,
+            5.06605339050293
+          ],
+          "rotation": [
+            -0.9121106266975403,
+            -5.238267135609931e-7,
+            -0.4099442958831787,
+            5.732491104026849e-8
+          ]
+        },
+        "platform-a": {
+          "position": [
+            5,
+            1,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-b": {
+          "position": [
+            16,
+            2.200000047683716,
+            -18
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "platform-c": {
+          "position": [
+            28,
+            3.799999952316284,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "goal-pad": {
+          "position": [
+            40,
+            4.400000095367432,
+            -10
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -45,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "cuboid-1": {
+          "position": [
+            0,
+            1,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            2.121197462081909,
+            -2.069864422082901e-7,
+            -2.056633949279785
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -6,7 +6,7 @@ const copy = () => structuredClone(scene);
 
 describe('editable game scene', () => {
   it('preserves the original geometry and physics settings', () => {
-    expect(validateScene(copy()).objects).toHaveLength(64);
+    expect(validateScene(copy()).objects).toHaveLength(68);
     expect(scene.objects.filter(object => object.id.startsWith('stair-'))).toHaveLength(45);
     expect(scene.objects.filter(object => object.id.startsWith('slope-'))).toHaveLength(10);
     expect(scene.gravity).toEqual([0, -25, 0]);
@@ -36,7 +36,7 @@ describe('editable game scene', () => {
 
   it('loads JSON and reports HTTP and malformed JSON errors', async () => {
     const url = `data:application/json,${encodeURIComponent(JSON.stringify(scene))}`;
-    expect((await loadScene(url)).objects).toHaveLength(64);
+    expect((await loadScene(url)).objects).toHaveLength(68);
     await expect(loadScene('data:application/json,invalid')).rejects.toThrow();
     const originalFetch = globalThis.fetch;
     try {
