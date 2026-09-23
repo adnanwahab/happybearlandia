@@ -1,5 +1,7 @@
 import { createRoot } from "react-dom/client";
 
+import {useEffect} from "react"
+
 const scenes = ["scene", "scene_2", "scene_3"];
 
 const links = [
@@ -12,6 +14,9 @@ const links = [
 
 
 function App() {
+  useEffect(() => {
+    console.log('client side logic')
+  }, [])
   return (
     <main className="mx-auto max-w-7xl space-y-8 px-4 py-8 md:px-8">
       <header className="space-y-2">

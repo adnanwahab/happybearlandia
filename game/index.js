@@ -234,8 +234,16 @@ const treeModelUrl =
     import.meta.url
   ).toString();
 
+const happyBearModelUrl =
+  new URL(
+    "../data/obj/happy-bear.obj",
+    import.meta.url
+  ).toString();
+
 let treeModelTemplate = null;
 let treeModelTemplateSize = null;
+let happyBearModelTemplate = null;
+let happyBearModelTemplateSize = null;
 
 let inventoryOverlay = null;
 let inventorySlotElements = [];
@@ -371,6 +379,59 @@ function loadTreeModel() {
       error => {
         console.warn(
           "Unable to load tree model:",
+          error
+        );
+
+        resolve(null);
+      }
+    );
+  });
+}
+
+function loadHappyBearModel() {
+  const loader =
+    new OBJLoader();
+
+  return new Promise(resolve => {
+    loader.load(
+      happyBearModelUrl,
+      object => {
+        object.traverse(node => {
+          if (node.isMesh) {
+            node.castShadow = false;
+            node.receiveShadow = false;
+          }
+        });
+
+        object.updateMatrixWorld(true);
+
+        const bbox =
+          new THREE.Box3().setFromObject(object);
+
+        const size =
+          new THREE.Vector3();
+
+        const center =
+          new THREE.Vector3();
+
+        bbox.getSize(size);
+        bbox.getCenter(center);
+
+        object.position.set(
+          -center.x,
+          -bbox.min.y,
+          -center.z
+        );
+
+        happyBearModelTemplate = object;
+        happyBearModelTemplateSize = size;
+
+        resolve(object);
+      },
+      undefined,
+      error => {
+        console.warn(
+          "Unable to load happy-bear model:",
           error
         );
 
@@ -1167,6 +1228,59 @@ function createTreeObjectForBody(
   return treeObject;
 }
 
+function createPlayerCharacterVisual(
+  characterRadiusStanding,
+  characterHeightStanding
+) {
+  if (
+    !happyBearModelTemplate ||
+    !happyBearModelTemplateSize
+  ) {
+    const fallbackMaterial =
+      new THREE.MeshPhongMaterial({
+        color: 0xffff00
+      });
+
+    return new THREE.Mesh(
+      new THREE.CapsuleGeometry(
+        characterRadiusStanding,
+        characterHeightStanding,
+        4,
+        8
+      ).translate(
+        0,
+        0.5 *
+          characterHeightStanding +
+          characterRadiusStanding,
+        0
+      ),
+      fallbackMaterial
+    );
+  }
+
+  const targetHeight =
+    characterHeightStanding +
+    (2 * characterRadiusStanding);
+
+  const safeHeight =
+    Math.max(
+      happyBearModelTemplateSize.y,
+      0.0001
+    );
+
+  const uniformScale =
+    targetHeight / safeHeight;
+
+  const characterVisual =
+    happyBearModelTemplate.clone(true);
+
+  characterVisual.scale.setScalar(
+    uniformScale
+  );
+
+  return characterVisual;
+}
+
 function getThreeObjectForBody(
   body,
   color,
@@ -1367,7 +1481,8 @@ function getThreeObjectForBody(
 Promise.all([
   initJolt(),
   loadScene(new URL(`./${sceneFileFromRoute()}`, import.meta.url)),
-  loadTreeModel()
+  loadTreeModel(),
+  loadHappyBearModel()
 ]).then(function ([Jolt, sceneData]) {
 
   initExample(
@@ -1438,23 +1553,8 @@ Promise.all([
   let allowSliding =
     false;
 
-  const geometry =
-    new THREE.BoxGeometry(
-      1,
-      1,
-      1
-    );
-
-  const material =
-    new THREE.MeshPhongMaterial({
-      color: 0xffff00
-    });
-
   let threeCharacter =
-    new THREE.Mesh(
-      geometry,
-      material
-    );
+    new THREE.Group();
 
   let desiredVelocity =
     new THREE.Vector3();
@@ -3414,26 +3514,10 @@ Promise.all([
   );
 
 
-  threeCharacter.geometry =
-    new THREE.CapsuleGeometry(
-
+  threeCharacter =
+    createPlayerCharacterVisual(
       characterRadiusStanding,
-
-      characterHeightStanding,
-
-      4,
-
-      8
-
-    ).translate(
-
-      0,
-
-      0.5 *
-        characterHeightStanding +
-        characterRadiusStanding,
-
-      0
+      characterHeightStanding
     );
 
 
