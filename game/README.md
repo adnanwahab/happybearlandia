@@ -1,6 +1,6 @@
 # Editing the game scene
 
-`scene.json` is loaded before the game starts. An external editor can read and
+`scene/1.json` is loaded before the game starts. An external editor can read and
 write this file without generating JavaScript. Reload the page after editing;
 restart the server too when changing the networked cube's initial transform.
 

@@ -109,6 +109,35 @@ async function listDebugEventFiles(limit = 200) {
   return out.slice(0, limit);
 }
 
+async function listScreenshotFiles(limit = 9) {
+  const root = normalize(join(dataRoot, "screenshots"));
+  let entries;
+
+  try {
+    entries = await readdir(root, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+
+  const images = entries
+    .filter(entry => {
+      if (!entry.isFile()) {
+        return false;
+      }
+
+      return /\.(png|jpe?g|webp|gif)$/i.test(entry.name);
+    })
+    .map(entry => entry.name)
+    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }))
+    .slice(0, limit)
+    .map(name => ({
+      name,
+      url: `/data/screenshots/${encodeURIComponent(name)}`,
+    }));
+
+  return images;
+}
+
 // -------------------------------------------------------------------------
 // Multiplayer player state
 // -------------------------------------------------------------------------
@@ -129,7 +158,7 @@ function finiteNumber(value, fallback = 0) {
 
 let cubeAuthorityPlayerId = null;
 
-const sceneData = validateScene(await Bun.file(new URL('./game/scene.json', import.meta.url)).json());
+const sceneData = validateScene(await Bun.file(new URL('./game/scene/1.json', import.meta.url)).json());
 const cubeDefinition = sceneData.objects.find(object => object.id === 'teal-cube');
 const [cubeX, cubeY, cubeZ] = cubeDefinition.position;
 const [cubeQX, cubeQY, cubeQZ, cubeQW] = cubeDefinition.rotation ?? [0, 0, 0, 1];
@@ -238,7 +267,7 @@ const server = serve({
       const events = Array.isArray(payload?.events) ? payload.events : [];
       const snapshots = Array.isArray(payload?.snapshots) ? payload.snapshots : [];
 
-      const sceneId = sanitizeName(payload?.sceneId ?? "scene");
+      const sceneId = sanitizeName(payload?.sceneId ?? "1");
       const sessionId = sanitizeName(payload?.sessionId ?? crypto.randomUUID());
 
       const { dateFolder, timestamp } = dateParts(new Date());
@@ -284,6 +313,38 @@ const server = serve({
           file: `/data/events/${dateFolder}/${fileName}`,
           eventCount: events.length,
           snapshotCount: snapshots.length,
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // ---------------------------------------------------------------------
+    // Screenshot listing API
+    // ---------------------------------------------------------------------
+
+    if (url.pathname === "/api/screenshots") {
+      if (request.method !== "GET") {
+        return new Response("Method not allowed", {
+          status: 405,
+          headers: { Allow: "GET" },
+        });
+      }
+
+      const requestedLimit = Number(url.searchParams.get("limit") ?? 9);
+      const limit = Number.isFinite(requestedLimit)
+        ? Math.max(1, Math.min(100, Math.floor(requestedLimit)))
+        : 9;
+
+      const files = await listScreenshotFiles(limit);
+
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          count: files.length,
+          files,
         }),
         {
           status: 200,

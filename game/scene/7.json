@@ -1,0 +1,178 @@
+{
+  "gravity": [0, -25, 0],
+  "playerSpawn": [-20, 1.5, 0],
+  "respawnPosition": [-20, 1.5, 0],
+  "objects": [
+    {
+      "id": "floor",
+      "type": "box",
+      "position": [0, -0.5, 0],
+      "size": [120, 1, 80],
+      "motion": "static",
+      "color": "#c7c7c7",
+      "friction": 0.35
+    },
+    {
+      "id": "left-wall",
+      "type": "box",
+      "position": [-58, 4, 0],
+      "size": [1, 8, 70],
+      "motion": "static",
+      "color": "#ffffff"
+    },
+    {
+      "id": "right-wall",
+      "type": "box",
+      "position": [58, 4, 0],
+      "size": [1, 8, 70],
+      "motion": "static",
+      "color": "#ffffff"
+    },
+    {
+      "id": "lava",
+      "type": "box",
+      "position": [0, -50, 0],
+      "size": [2200, 4, 2200],
+      "motion": "static",
+      "color": "#cc2222",
+      "behavior": "lava"
+    },
+    {
+      "id": "conveyor",
+      "type": "box",
+      "position": [-18, 0.1, 0],
+      "size": [14, 0.5, 6],
+      "motion": "static",
+      "color": "#2244dd",
+      "behavior": "conveyor",
+      "speed": 6
+    },
+    {
+      "id": "teal-cube",
+      "type": "box",
+      "position": [-23, 2.4, 0],
+      "size": [1.4, 1.4, 1.4],
+      "motion": "dynamic",
+      "color": "#00ffff",
+      "mass": 16,
+      "friction": 0.15,
+      "networked": true,
+      "behavior": "pushable"
+    },
+
+    {
+      "id": "start-platform",
+      "type": "box",
+      "position": [-20, 1.1, 0],
+      "size": [8, 0.6, 8],
+      "motion": "static",
+      "color": "#90c9ff"
+    },
+    {
+      "id": "approach-platform",
+      "type": "box",
+      "position": [-10, 2.2, 0],
+      "size": [8, 0.6, 8],
+      "motion": "static",
+      "color": "#90c9ff"
+    },
+
+    {
+      "id": "pulley-tower-left",
+      "type": "box",
+      "position": [2, 6, 0],
+      "size": [2, 12, 6],
+      "motion": "static",
+      "color": "#8a8a8a"
+    },
+    {
+      "id": "pulley-tower-right",
+      "type": "box",
+      "position": [18, 6, 0],
+      "size": [2, 12, 6],
+      "motion": "static",
+      "color": "#8a8a8a"
+    },
+    {
+      "id": "pulley-top-beam",
+      "type": "box",
+      "position": [10, 11.2, 0],
+      "size": [18, 0.8, 4],
+      "motion": "static",
+      "color": "#6f6f6f"
+    },
+
+    {
+      "id": "pulley-wheel-left",
+      "type": "box",
+      "position": [4.8, 10.5, 0],
+      "size": [1.2, 1.2, 4.2],
+      "motion": "static",
+      "color": "#f5c96b"
+    },
+    {
+      "id": "pulley-wheel-right",
+      "type": "box",
+      "position": [15.2, 10.5, 0],
+      "size": [1.2, 1.2, 4.2],
+      "motion": "static",
+      "color": "#f5c96b"
+    },
+
+    {
+      "id": "rope-left",
+      "type": "box",
+      "position": [4.8, 7.6, 0],
+      "size": [0.35, 5.2, 0.35],
+      "motion": "static",
+      "color": "#d9c49a"
+    },
+    {
+      "id": "rope-right",
+      "type": "box",
+      "position": [15.2, 6.8, 0],
+      "size": [0.35, 6.8, 0.35],
+      "motion": "static",
+      "color": "#d9c49a"
+    },
+
+    {
+      "id": "pulley-car-left",
+      "type": "box",
+      "position": [4.8, 4.5, 0],
+      "size": [5.5, 0.6, 5.5],
+      "motion": "static",
+      "color": "#9be58d",
+      "friction": 0.45
+    },
+    {
+      "id": "pulley-car-right",
+      "type": "box",
+      "position": [15.2, 3.7, 0],
+      "size": [5.5, 0.6, 5.5],
+      "motion": "static",
+      "color": "#9be58d",
+      "friction": 0.45
+    },
+
+    {
+      "id": "counterweight-crate",
+      "type": "box",
+      "position": [15.2, 5.3, 0],
+      "size": [2.2, 2.2, 2.2],
+      "motion": "dynamic",
+      "color": "#b58a5c",
+      "mass": 36,
+      "friction": 0.5
+    },
+
+    {
+      "id": "exit-platform",
+      "type": "box",
+      "position": [28, 5.4, 0],
+      "size": [10, 0.8, 10],
+      "motion": "static",
+      "color": "#ffe47a"
+    }
+  ]
+}

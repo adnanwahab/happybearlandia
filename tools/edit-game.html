@@ -141,7 +141,7 @@
       const pathParts = window.location.pathname.split('/').filter(Boolean);
       const sceneId = (pathParts[0] === 'edit' || pathParts[0] === 'edit-game') && pathParts[1]
         ? pathParts[1]
-        : 'scene';
+        : '1';
       const sceneApiUrl = `/api/scenes/${sceneId}`;
 
       const statusEl = document.getElementById('status');
@@ -185,7 +185,7 @@
       }
 
       function updateMeta() {
-        metaEl.textContent = `Editing /game/${sceneId}.json — ${sceneData.objects.length} objects`;
+        metaEl.textContent = `Editing /game/scene/${sceneId}.json — ${sceneData.objects.length} objects`;
       }
 
       function toNumber(value, fallback = 0) {

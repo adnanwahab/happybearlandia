@@ -213,7 +213,12 @@ const sceneIdFromRoute = () => {
     return pathParts[1];
   }
 
-  return 'scene';
+  return '1';
+};
+
+const isGalleryRoute = () => {
+  const pathname = window.location.pathname;
+  return pathname === '/game' || pathname === '/game/';
 };
 
 const sceneFileFromRoute = () =>
@@ -1478,12 +1483,13 @@ function getThreeObjectForBody(
 }
 
 
-Promise.all([
-  initJolt(),
-  loadScene(new URL(`./${sceneFileFromRoute()}`, import.meta.url)),
-  loadTreeModel(),
-  loadHappyBearModel()
-]).then(function ([Jolt, sceneData]) {
+if (!isGalleryRoute()) {
+  Promise.all([
+    initJolt(),
+    loadScene(new URL(`./${sceneFileFromRoute()}`, import.meta.url)),
+    loadTreeModel(),
+    loadHappyBearModel()
+  ]).then(function ([Jolt, sceneData]) {
 
   initExample(
     Jolt,
@@ -3860,10 +3866,11 @@ Promise.all([
   connectMultiplayer();
   renderExample();
 
-}).catch(error => {
-  console.error('Unable to start game:', error);
-  document.getElementById('container').textContent = `Unable to start game: ${error.message}`;
-});
+  }).catch(error => {
+    console.error('Unable to start game:', error);
+    document.getElementById('container').textContent = `Unable to start game: ${error.message}`;
+  });
+}
 
 
 // connectivity

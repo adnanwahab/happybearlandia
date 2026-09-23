@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-for (const path of ['/game', '/game/']) {
+for (const path of ['/game/1']) {
   test(`${path} initializes the scene without browser errors`, async ({ page }) => {
     const errors = [];
     let welcomed = false;
@@ -16,7 +16,7 @@ for (const path of ['/game', '/game/']) {
     });
     page.on('response', response => {
       if (response.status() >= 400) errors.push(`${response.status()} ${response.url()}`);
-      if (new URL(response.url()).pathname === '/game/scene.json' && response.ok()) {
+      if (new URL(response.url()).pathname === '/game/scene/1.json' && response.ok()) {
         sceneLoaded = true;
       }
     });
