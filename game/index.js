@@ -3868,3 +3868,11 @@ Promise.all([
 
 // connectivity
 var socket = null;
+
+
+export function startGame() {
+
+}
+export function stopGame() {
+
+}

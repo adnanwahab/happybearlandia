@@ -10,6 +10,8 @@ const sceneIdPattern = /^[a-zA-Z0-9_-]+$/;
 
 import homepage from './index.html'
 
+const jsxTranspiler = new Bun.Transpiler({ loader: "jsx" });
+
 function isPathInside(rootPath, targetPath) {
   return !relative(rootPath, targetPath).startsWith("..");
 }
@@ -529,6 +531,17 @@ const server = serve({
       const file = Bun.file(filePath);
 
       if (await file.exists()) {
+        if (filePath.endsWith(".jsx")) {
+          const source = await file.text();
+          const transpiled = jsxTranspiler.transformSync(source);
+
+          return new Response(transpiled, {
+            headers: {
+              "Content-Type": "application/javascript; charset=utf-8",
+            },
+          });
+        }
+
         return new Response(file);
       }
 
