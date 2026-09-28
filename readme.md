@@ -1,5 +1,7 @@
 
-# HappyBearLandia - Computer Vision for Beginners
+# HappyBearLandia - VR Game Studio 
+
+# Computer Vision for Beginners
 
 simulators, games, tools, robots
 
