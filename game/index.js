@@ -231,6 +231,7 @@ const NUM_OBJECT_LAYERS = 2;
 
 const INVENTORY_SLOT_COUNT = 7;
 const TREE_OBJECT_ID_PREFIX = "tree-";
+const LIGHT_SWITCH_OBJECT_ID = "light-switch";
 
 const FRUIT_DEFINITIONS = {
   strawberry: {
@@ -275,10 +276,18 @@ const happyBearModelUrl =
     import.meta.url
   ).toString();
 
+const lightSwitchOnModelUrl =
+  new URL(
+    "../data/obj/light_switch_on.obj",
+    import.meta.url
+  ).toString();
+
 let treeModelTemplate = null;
 let treeModelTemplateSize = null;
 let happyBearModelTemplate = null;
 let happyBearModelTemplateSize = null;
+let lightSwitchOnModelTemplate = null;
+let lightSwitchOnModelTemplateSize = null;
 
 let inventoryOverlay = null;
 let inventorySlotElements = [];
@@ -483,6 +492,59 @@ function loadHappyBearModel() {
       error => {
         console.warn(
           "Unable to load happy-bear model:",
+          error
+        );
+
+        resolve(null);
+      }
+    );
+  });
+}
+
+function loadLightSwitchOnModel() {
+  const loader =
+    new OBJLoader();
+
+  return new Promise(resolve => {
+    loader.load(
+      lightSwitchOnModelUrl,
+      object => {
+        object.traverse(node => {
+          if (node.isMesh) {
+            node.castShadow = false;
+            node.receiveShadow = false;
+          }
+        });
+
+        object.updateMatrixWorld(true);
+
+        const bbox =
+          new THREE.Box3().setFromObject(object);
+
+        const size =
+          new THREE.Vector3();
+
+        const center =
+          new THREE.Vector3();
+
+        bbox.getSize(size);
+        bbox.getCenter(center);
+
+        object.position.set(
+          -center.x,
+          -bbox.min.y,
+          -center.z
+        );
+
+        lightSwitchOnModelTemplate = object;
+        lightSwitchOnModelTemplateSize = size;
+
+        resolve(object);
+      },
+      undefined,
+      error => {
+        console.warn(
+          "Unable to load light-switch model:",
           error
         );
 
@@ -1369,10 +1431,66 @@ function createFruitTreeDecoration(
   return fruit;
 }
 
-function createPlayerCharacterVisual(
-  characterRadiusStanding,
-  characterHeightStanding
+function createLightSwitchObjectForBody(
+  body
 ) {
+  if (
+    !lightSwitchOnModelTemplate ||
+    !lightSwitchOnModelTemplateSize
+  ) {
+    return null;
+  }
+
+  const shape =
+    body.GetShape();
+
+  if (
+    shape.GetSubType() !==
+    Jolt.EShapeSubType_Box
+  ) {
+    return null;
+  }
+
+  const boxShape =
+    Jolt.castObject(
+      shape,
+      Jolt.BoxShape
+    );
+
+  const extent =
+    wrapVec3(
+      boxShape.GetHalfExtent()
+    ).multiplyScalar(2);
+
+  const safeSize =
+    new THREE.Vector3(
+      Math.max(lightSwitchOnModelTemplateSize.x, 0.0001),
+      Math.max(lightSwitchOnModelTemplateSize.y, 0.0001),
+      Math.max(lightSwitchOnModelTemplateSize.z, 0.0001)
+    );
+
+  const uniformScale =
+    Math.min(
+      extent.x / safeSize.x,
+      extent.y / safeSize.y,
+      extent.z / safeSize.z
+    );
+
+  const lightSwitchObject =
+    lightSwitchOnModelTemplate.clone(true);
+
+  lightSwitchObject.scale.setScalar(
+    uniformScale
+  );
+
+  lightSwitchObject.userData.modelYOffset =
+    -extent.y * 0.5;
+
+  return lightSwitchObject;
+}
+
+function createPlayerCharacterVisual(characterRadiusStanding,
+characterHeightStanding) {
   if (
     !happyBearModelTemplate ||
     !happyBearModelTemplateSize
@@ -1458,6 +1576,34 @@ function getThreeObjectForBody(
       );
 
       return treeObject;
+    }
+  }
+
+  if (objectId === LIGHT_SWITCH_OBJECT_ID) {
+    const lightSwitchObject =
+      createLightSwitchObjectForBody(
+        body
+      );
+
+    if (lightSwitchObject) {
+      lightSwitchObject.position.copy(
+        wrapVec3(
+          body.GetPosition()
+        )
+      );
+
+      lightSwitchObject.position.y +=
+        lightSwitchObject.userData
+          .modelYOffset ??
+        0;
+
+      lightSwitchObject.quaternion.copy(
+        wrapQuat(
+          body.GetRotation()
+        )
+      );
+
+      return lightSwitchObject;
     }
   }
 
@@ -1629,7 +1775,8 @@ if (!isGalleryRoute()) {
     initJolt(),
     loadScene(new URL(`./${sceneFileFromRoute()}`, import.meta.url)),
     loadTreeModel(),
-    loadHappyBearModel()
+    loadHappyBearModel(),
+    loadLightSwitchOnModel()
   ]).then(function ([Jolt, sceneData]) {
 
   initExample(
@@ -4396,9 +4543,9 @@ if (!isGalleryRoute()) {
 var socket = null;
 
 
-export function startGame() {
+function startGame() {
 
 }
-export function stopGame() {
+function stopGame() {
 
 }

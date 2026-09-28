@@ -1,5 +1,7 @@
 import { createRoot } from "react-dom/client";
 
+
+
 import {useEffect} from "react"
 
 const scenes = ["scene", "scene_2", "scene_3"];
@@ -18,10 +20,10 @@ function App() {
     console.log('client side logic')
   }, [])
   return (
-    <main className="mx-auto max-w-7xl space-y-8 px-4 py-8 md:px-8">
+    <main className="mx-auto max-w-7xl space-y-8 px-4 py-8 md:px-8 bg-blue-900 text-blue-200 min-h-screen">
       <header className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">HappyBearLandia</h1>
-        <p className="max-w-3xl text-sm text-slate-600">
+        <p className="max-w-3xl text-sm text-blue-200">
           Multiplayer physics playground for designing, testing, and editing interactive scenes.
         </p>
       </header>
@@ -29,7 +31,7 @@ function App() {
         <iframe width="100%" height="500" src="./game"></iframe>
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+      <section className="rounded-xl border border-slate-200 bg-blue-900 p-4 shadow-sm space-y-3 text-blue-200">
         <h2 className="text-lg font-semibold">Quick links</h2>
 
         <nav className="grid grid-cols-2 gap-2 text-sm md:grid-cols-4 lg:grid-cols-8">
@@ -46,11 +48,11 @@ function App() {
       </section>
 
       <section className="space-y-4">
-        <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <article className="rounded-xl border border-slate-200 bg-blue-900 p-4 shadow-sm text-blue-200">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div className="md:w-1/2 space-y-2">
               <h2 className="text-xl font-semibold">Games</h2>
-              <p className="text-justify text-slate-700">
+              <p className="text-justify text-blue-200">
                 A document-based simulator that generates structured gameplay data to improve neural network effectiveness and scenario coverage.
               </p>
             </div>
@@ -65,11 +67,11 @@ function App() {
           </div>
         </article>
 
-        <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <article className="rounded-xl border border-slate-200 bg-blue-900 p-4 shadow-sm text-blue-200">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div className="md:w-1/2 space-y-2">
               <h2 className="text-xl font-semibold">Multiplayer Robots</h2>
-              <p className="text-justify text-slate-700">
+              <p className="text-justify text-blue-200">
                 Multiple players can enter the same scene, control robot avatars in real time, and coordinate puzzle actions together. This helps you validate scene logic, timing, and interaction rules under real multiplayer conditions.
               </p>
             </div>
@@ -84,11 +86,11 @@ function App() {
           </div>
         </article>
 
-        <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <article className="rounded-xl border border-slate-200 bg-blue-900 p-4 shadow-sm text-blue-200">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div className="md:w-1/2 space-y-2">
               <h2 className="text-xl font-semibold">Augmented Reality</h2>
-              <p className="text-justify text-slate-700">
+              <p className="text-justify text-blue-200">
                 Design scenes for AR by placing objects, testing spatial relationships, and previewing interactive behavior before deployment. This workflow makes it easier to iterate on scale, layout, and player guidance in mixed-reality experiences.
               </p>
             </div>
@@ -106,10 +108,16 @@ function App() {
         </article>
       </section>
 
+      <section>
+
+        <iframe width="100%" height="500" src="./tools"></iframe>
+
+      </section>
+
       <footer>
         <a
           href="https://github.com/adnanwahab/happybearlandia"
-          className="text-sm font-medium text-blue-700 underline hover:text-blue-900"
+          className="text-sm font-medium text-blue-200 underline hover:text-blue-100"
         >
           Github Repo
         </a>

@@ -252,6 +252,15 @@
       "friction": 0.4
     },
     {
+      "id": "light-switch",
+      "type": "box",
+      "position": [13.95, 0.4, 0],
+      "size": [0.8, 0.8, 0.8],
+      "motion": "static",
+      "color": "#8f8f8f",
+      "friction": 0.4
+    },
+    {
       "id": "lava",
       "type": "box",
       "position": [0, -50, 0],

@@ -1,5 +1,5 @@
 
-# HappyBearLandia
+# HappyBearLandia - Computer Vision for Beginners
 
 simulators, games, tools, robots
 
