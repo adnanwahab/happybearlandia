@@ -210,6 +210,384 @@
       "motion": "static",
       "color": "#ffffff",
       "modelUrl": "/data/glb/carpet.glb"
+    },
+    {
+      "id": "glb-plant-nw-1",
+      "type": "box",
+      "position": [-76, 1.4, -15],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-nw-2",
+      "type": "box",
+      "position": [-39, 1.4, -21],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-nw-3",
+      "type": "box",
+      "position": [-22, 1.4, -21],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-vip-1",
+      "type": "box",
+      "position": [-20, 1.4, -34],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-vip-2",
+      "type": "box",
+      "position": [20, 1.4, -34],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-ne-1",
+      "type": "box",
+      "position": [52, 1.4, -16],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-ne-2",
+      "type": "box",
+      "position": [64, 1.4, -16],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-ne-3",
+      "type": "box",
+      "position": [76, 1.4, -14],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-slots-1",
+      "type": "box",
+      "position": [-57, 1.4, -10],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-slots-2",
+      "type": "box",
+      "position": [-57, 1.4, 4],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-slots-3",
+      "type": "box",
+      "position": [-57, 1.4, 19],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-slots-4",
+      "type": "box",
+      "position": [-45, 1.4, 19],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-slot-top-1",
+      "type": "box",
+      "position": [-72, 1.8, -12],
+      "size": [2.2, 3.6, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/slot_machine.glb"
+    },
+    {
+      "id": "glb-slot-top-2",
+      "type": "box",
+      "position": [-68, 1.8, -12],
+      "size": [2.2, 3.6, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/slot_machine.glb"
+    },
+    {
+      "id": "glb-slot-top-3",
+      "type": "box",
+      "position": [-64, 1.8, -12],
+      "size": [2.2, 3.6, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/slot_machine.glb"
+    },
+    {
+      "id": "glb-slot-top-4",
+      "type": "box",
+      "position": [-60, 1.8, -12],
+      "size": [2.2, 3.6, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/slot_machine.glb"
+    },
+    {
+      "id": "glb-slot-mid-1",
+      "type": "box",
+      "position": [-72, 1.8, 2],
+      "size": [2.2, 3.6, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/slot_machine.glb"
+    },
+    {
+      "id": "glb-slot-mid-2",
+      "type": "box",
+      "position": [-68, 1.8, 2],
+      "size": [2.2, 3.6, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/slot_machine.glb"
+    },
+    {
+      "id": "glb-slot-mid-3",
+      "type": "box",
+      "position": [-64, 1.8, 2],
+      "size": [2.2, 3.6, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/slot_machine.glb"
+    },
+    {
+      "id": "glb-slot-mid-4",
+      "type": "box",
+      "position": [-60, 1.8, 2],
+      "size": [2.2, 3.6, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/slot_machine.glb"
+    },
+    {
+      "id": "glb-slot-bottom-1",
+      "type": "box",
+      "position": [-72, 1.8, 17],
+      "size": [2.2, 3.6, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/slot_machine.glb"
+    },
+    {
+      "id": "glb-slot-bottom-2",
+      "type": "box",
+      "position": [-68, 1.8, 17],
+      "size": [2.2, 3.6, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/slot_machine.glb"
+    },
+    {
+      "id": "glb-slot-bottom-3",
+      "type": "box",
+      "position": [-64, 1.8, 17],
+      "size": [2.2, 3.6, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/slot_machine.glb"
+    },
+    {
+      "id": "glb-slot-bottom-4",
+      "type": "box",
+      "position": [-60, 1.8, 17],
+      "size": [2.2, 3.6, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/slot_machine.glb"
+    },
+    {
+      "id": "glb-plant-center-1", 
+      "type": "box",
+      "position": [-2, 1.4, -16],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-center-2",
+      "type": "box",
+      "position": [28, 1.4, -15],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-center-3",
+      "type": "box",
+      "position": [33, 1.4, -6],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-center-4",
+      "type": "box",
+      "position": [-7, 1.4, 19],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-center-5",
+      "type": "box",
+      "position": [8, 1.4, 19],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-center-6",
+      "type": "box",
+      "position": [-49, 1.4, 18],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-lounge-1",
+      "type": "box",
+      "position": [55, 1.4, -2],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-lounge-2",
+      "type": "box",
+      "position": [55, 1.4, 14],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-lounge-3",
+      "type": "box",
+      "position": [58, 1.4, 22],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-lounge-4",
+      "type": "box",
+      "position": [66, 1.4, 10],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-south-1",
+      "type": "box",
+      "position": [-70, 1.4, 30],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-south-2",
+      "type": "box",
+      "position": [-42, 1.4, 33],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-south-3",
+      "type": "box",
+      "position": [-24, 1.4, 33],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-south-4",
+      "type": "box",
+      "position": [-8, 1.4, 33],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-south-5",
+      "type": "box",
+      "position": [8, 1.4, 33],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-south-6",
+      "type": "box",
+      "position": [24, 1.4, 33],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-south-7",
+      "type": "box",
+      "position": [42, 1.4, 33],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
+    },
+    {
+      "id": "glb-plant-south-8",
+      "type": "box",
+      "position": [70, 1.4, 30],
+      "size": [2.2, 2.8, 2.2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_potted_palm.glb"
     }
   ]
 }
