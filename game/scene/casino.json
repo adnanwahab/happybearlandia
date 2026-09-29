@@ -46,6 +46,15 @@
       "color": "#f7f0d0"
     },
     {
+      "id": "glb-casino-perimeter-walls",
+      "type": "box",
+      "position": [0, 4, 0],
+      "size": [160, 8, 80],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_perimeter_wall.glb"
+    },
+    {
       "id": "wall-restrooms-front-left",
       "type": "box",
       "position": [-68.5, 4, -22],
@@ -141,14 +150,7 @@
       "motion": "static",
       "color": "#f7f0d0"
     },
-    {
-      "id": "wall-bar-lounge-left",
-      "type": "box",
-      "position": [52, 4, 8],
-      "size": [1, 8, 52],
-      "motion": "static",
-      "color": "#f7f0d0"
-    },
+
     {
       "id": "wall-cashier-back",
       "type": "box",
@@ -188,6 +190,15 @@
       "size": [10, 8, 1],
       "motion": "static",
       "color": "#f7f0d0"
+    },
+    {
+      "id": "glb-casino-cashier-booth",
+      "type": "box",
+      "position": [35, 1.6, 12],
+      "size": [22, 3.2, 12],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_cashier_booth.glb"
     },
     {
       "id": "glb-poker-table-clean",
@@ -235,6 +246,15 @@
       "modelUrl": "/data/glb/tuxedo_bear.glb"
     },
     {
+      "id": "glb-casino-carpet",
+      "type": "box",
+      "position": [0, 0.06, 0],
+      "size": [158, 0.12, 89],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_carpet.glb"
+    },
+    {
       "id": "glb-carpet",
       "type": "box",
       "position": [0, 0.06, 20],
@@ -251,6 +271,24 @@
       "motion": "static",
       "color": "#ffffff",
       "modelUrl": "/data/glb/casino_bar.glb"
+    },
+    {
+      "id": "glb-bar-lounge-wooden-floor",
+      "type": "box",
+      "position": [66, 0.06, 8],
+      "size": [24, 0.12, 38],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/bar_loung_wooden_floor.glb"
+    },
+    {
+      "id": "glb-lounge-grand-piano",
+      "type": "box",
+      "position": [60, 1.1, 18],
+      "size": [6, 2.2, 4],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/lounge_grand_piano.glb"
     },
     {
       "id": "glb-plant-nw-1",

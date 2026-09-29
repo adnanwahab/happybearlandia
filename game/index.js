@@ -426,6 +426,26 @@ let lightSwitchOnModelTemplateSize = null;
 const glbModelTemplatesByUrl =
   new Map();
 
+const sceneModelUrlAliases =
+  new Map([
+    [
+      "/data/glb/bar_loung_wooden_floor.glb",
+      "/data/glb/bar_lounge_wooden_floor.glb",
+    ],
+    [
+      "/data/glb/casino_cashierbooth.glb",
+      "/data/glb/casino_cashier_booth.glb",
+    ],
+    [
+      "/data/glb/casino_perimeter_wall.glb",
+      "/data/glb/casino_perimeter_walls.glb",
+    ],
+    [
+      "/data/glb/casino perimeter wall.glb",
+      "/data/glb/casino_perimeter_walls.glb",
+    ],
+  ]);
+
 let inventoryOverlay = null;
 let inventorySlotElements = [];
 let inventorySlots = Array(INVENTORY_SLOT_COUNT).fill(null);
@@ -694,8 +714,13 @@ function loadLightSwitchOnModel() {
 function modelTemplateUrlFromSceneUrl(
   sceneUrl
 ) {
+  const aliasedSceneUrl =
+    sceneModelUrlAliases.get(
+      sceneUrl
+    ) ?? sceneUrl;
+
   return new URL(
-    sceneUrl,
+    aliasedSceneUrl,
     import.meta.url
   ).toString();
 }
