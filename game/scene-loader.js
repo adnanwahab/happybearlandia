@@ -39,11 +39,18 @@ export function validateScene(scene) {
     if (object.friction !== undefined && (!Number.isFinite(object.friction) || object.friction < 0)) fail(`${label}.friction must be nonnegative`);
     if (object.speed !== undefined && !Number.isFinite(object.speed)) fail(`${label}.speed must be finite`);
   }
-  for (const id of ['lava', 'conveyor', 'teal-cube']) {
-    if (!ids.has(id)) fail(`missing gameplay object ${id}`);
-  }
-  if (scene.objects.find(object => object.id === 'teal-cube').motion !== 'dynamic') {
-    fail('teal-cube must be dynamic');
+  const tealCube =
+    scene.objects.find(
+      object =>
+        object.id === "teal-cube"
+    );
+
+  if (
+    tealCube &&
+    tealCube.motion !==
+      "dynamic"
+  ) {
+    fail("teal-cube must be dynamic");
   }
   return scene;
 }

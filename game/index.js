@@ -3315,16 +3315,52 @@ if (!isGalleryRoute()) {
     },
   });
 
-  const lavaObjectId = bodies.get('lava').GetID().GetIndexAndSequenceNumber();
-  const conveyorBeltObjectId = bodies.get('conveyor').GetID().GetIndexAndSequenceNumber();
-  const conveyorSpeed = sceneData.objects.find(object => object.id === 'conveyor').speed ?? 5;
-  const tealCube = bodies.get('teal-cube');
-  const tealCubeId = tealCube.GetID().GetIndexAndSequenceNumber();
+  const lavaBody =
+    bodies.get("lava") ??
+    null;
+
+  const lavaObjectId =
+    lavaBody
+      ? lavaBody.GetID().GetIndexAndSequenceNumber()
+      : null;
+
+  const conveyorBody =
+    bodies.get("conveyor") ??
+    null;
+
+  const conveyorBeltObjectId =
+    conveyorBody
+      ? conveyorBody.GetID().GetIndexAndSequenceNumber()
+      : null;
+
+  const conveyorSpeed =
+    sceneData.objects.find(
+      object =>
+        object.id === "conveyor"
+    )?.speed ?? 5;
+
+  const tealCube =
+    bodies.get("teal-cube") ??
+    null;
+
+  const tealCubeId =
+    tealCube
+      ? tealCube.GetID().GetIndexAndSequenceNumber()
+      : null;
+
   let isInLava = false;
-  tealCubeObject = dynamicObjects.find(object => object.userData.body === tealCube);
+
+  tealCubeObject =
+    tealCube
+      ? dynamicObjects.find(
+          object =>
+            object.userData.body === tealCube
+        )
+      : null;
 
   tealCubeMaterial =
-    tealCubeObject.material;
+    tealCubeObject?.material ??
+    null;
 
 
   // ============================================================
@@ -3358,6 +3394,8 @@ if (!isGalleryRoute()) {
       );
 
     if (
+      conveyorBeltObjectId !==
+        null &&
       body2
         .GetID()
         .GetIndexAndSequenceNumber() ==
@@ -3393,6 +3431,8 @@ if (!isGalleryRoute()) {
       );
 
     if (
+      lavaObjectId !==
+        null &&
       bodyID2
         .GetIndexAndSequenceNumber() ==
       lavaObjectId
@@ -3492,6 +3532,8 @@ if (!isGalleryRoute()) {
     }
 
     if (
+      tealCubeId !==
+        null &&
       contactedBodyIndex ===
       tealCubeId
     ) {
@@ -3562,12 +3604,16 @@ if (!isGalleryRoute()) {
 
         tealCubeGlowStartTime = time;
 
-        tealCubeMaterial.emissive.set(
-          0x00ffff
-        );
+        if (
+          tealCubeMaterial
+        ) {
+          tealCubeMaterial.emissive.set(
+            0x00ffff
+          );
 
-        tealCubeMaterial.emissiveIntensity =
-          1.5;
+          tealCubeMaterial.emissiveIntensity =
+            1.5;
+        }
 
         audio.currentTime = 0;
 
@@ -3620,6 +3666,8 @@ if (!isGalleryRoute()) {
     );
 
     if (
+      tealCubeId !==
+        null &&
       bodyID2.GetIndexAndSequenceNumber() ===
       tealCubeId
     ) {
@@ -3645,6 +3693,8 @@ if (!isGalleryRoute()) {
     );
 
     if (
+      tealCubeId !==
+        null &&
       bodyID2.GetIndexAndSequenceNumber() ===
       tealCubeId
     ) {

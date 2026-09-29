@@ -1,0 +1,400 @@
+{
+  "schemaVersion": 1,
+  "kind": "debug_session",
+  "savedAt": "2026-09-29T16:16:04.987Z",
+  "sceneId": "casino",
+  "sessionId": "bfbd89df-c897-412e-a5de-9283abf7faf2",
+  "reason": "beforeunload",
+  "startedAt": "2026-09-29T16:16:01.606Z",
+  "endedAt": "2026-09-29T16:16:04.980Z",
+  "metadata": {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+    "locationPath": "/game/casino",
+    "eventCount": 3,
+    "snapshotCount": 5
+  },
+  "events": [
+    {
+      "id": 1,
+      "frame": 0,
+      "time": 0,
+      "type": "state_change",
+      "objectId": "level",
+      "from": {
+        "loaded": false
+      },
+      "to": {
+        "loaded": true,
+        "scene": "scene/casino.json",
+        "sessionId": "bfbd89df-c897-412e-a5de-9283abf7faf2"
+      },
+      "causedBy": {
+        "type": "engine",
+        "objectId": "game_boot"
+      }
+    },
+    {
+      "id": 2,
+      "frame": 0,
+      "time": 0,
+      "type": "state_change",
+      "objectId": "debug_session",
+      "from": {
+        "active": false
+      },
+      "to": {
+        "active": true,
+        "sceneId": "casino",
+        "sessionId": "bfbd89df-c897-412e-a5de-9283abf7faf2"
+      },
+      "causedBy": {
+        "type": "engine",
+        "objectId": "debug_recorder"
+      }
+    },
+    {
+      "id": 3,
+      "frame": 202,
+      "time": 3.330700000002983,
+      "type": "state_change",
+      "objectId": "debug_session",
+      "from": {
+        "active": true
+      },
+      "to": {
+        "active": false
+      },
+      "causedBy": {
+        "type": "lifecycle",
+        "objectId": "beforeunload"
+      }
+    }
+  ],
+  "snapshots": [
+    {
+      "frame": 0,
+      "time": 0,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.5,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 63,
+      "time": 1.0133000000119206,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            -1.9744038581848145e-7,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 123,
+      "time": 2.0142000000029814,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            -1.9744038581848145e-7,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 184,
+      "time": 3.030800000011923,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            -1.9744038581848145e-7,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 202,
+      "time": 3.330700000002983,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            -1.9744038581848145e-7,
+            0
+          ]
+        }
+      }
+    }
+  ]
+}

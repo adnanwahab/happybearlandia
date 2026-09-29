@@ -13,13 +13,24 @@ describe('editable game scene', () => {
     expect(scene.objects.find(object => object.id === 'teal-cube').size).toEqual([1.5, 1.5, 1.5]);
   });
 
-  it('rejects ambiguous IDs and missing gameplay objects', () => {
+  it('rejects ambiguous IDs', () => {
     const duplicate = copy();
     duplicate.objects.push(duplicate.objects[0]);
     expect(() => validateScene(duplicate)).toThrow('unique');
-    const missing = copy();
-    missing.objects = missing.objects.filter(object => object.id !== 'teal-cube');
-    expect(() => validateScene(missing)).toThrow('missing gameplay object teal-cube');
+  });
+
+  it('allows scenes without optional gameplay objects', () => {
+    const missingTealCube = copy();
+    missingTealCube.objects = missingTealCube.objects.filter(object => object.id !== 'teal-cube');
+    expect(() => validateScene(missingTealCube)).not.toThrow();
+
+    const missingLava = copy();
+    missingLava.objects = missingLava.objects.filter(object => object.id !== 'lava');
+    expect(() => validateScene(missingLava)).not.toThrow();
+
+    const missingConveyor = copy();
+    missingConveyor.objects = missingConveyor.objects.filter(object => object.id !== 'conveyor');
+    expect(() => validateScene(missingConveyor)).not.toThrow();
   });
 
   it('rejects invalid physics values before constructing bodies', () => {
