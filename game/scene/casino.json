@@ -46,34 +46,66 @@
       "color": "#f7f0d0"
     },
     {
-      "id": "wall-restrooms-front",
+      "id": "wall-restrooms-front-left",
       "type": "box",
-      "position": [-55, 4, -22],
-      "size": [48, 8, 1],
+      "position": [-68.5, 4, -22],
+      "size": [21, 8, 1],
       "motion": "static",
       "color": "#f7f0d0"
     },
     {
-      "id": "wall-vip-front",
+      "id": "wall-restrooms-front-right",
       "type": "box",
-      "position": [0, 4, -22],
-      "size": [62, 8, 1],
+      "position": [-41.5, 4, -22],
+      "size": [21, 8, 1],
       "motion": "static",
       "color": "#f7f0d0"
     },
     {
-      "id": "wall-staff-front",
+      "id": "wall-vip-front-left",
       "type": "box",
-      "position": [44, 4, -22],
-      "size": [26, 8, 1],
+      "position": [-17.5, 4, -22],
+      "size": [27, 8, 1],
       "motion": "static",
       "color": "#f7f0d0"
     },
     {
-      "id": "wall-security-front",
+      "id": "wall-vip-front-right",
       "type": "box",
-      "position": [68, 4, -22],
-      "size": [22, 8, 1],
+      "position": [17.5, 4, -22],
+      "size": [27, 8, 1],
+      "motion": "static",
+      "color": "#f7f0d0"
+    },
+    {
+      "id": "wall-staff-front-left",
+      "type": "box",
+      "position": [36, 4, -22],
+      "size": [10, 8, 1],
+      "motion": "static",
+      "color": "#f7f0d0"
+    },
+    {
+      "id": "wall-staff-front-right",
+      "type": "box",
+      "position": [52, 4, -22],
+      "size": [10, 8, 1],
+      "motion": "static",
+      "color": "#f7f0d0"
+    },
+    {
+      "id": "wall-security-front-left",
+      "type": "box",
+      "position": [61, 4, -22],
+      "size": [8, 8, 1],
+      "motion": "static",
+      "color": "#f7f0d0"
+    },
+    {
+      "id": "wall-security-front-right",
+      "type": "box",
+      "position": [75, 4, -22],
+      "size": [8, 8, 1],
       "motion": "static",
       "color": "#f7f0d0"
     },
