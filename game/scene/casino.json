@@ -8,7 +8,7 @@
       "id": "floor",
       "type": "box",
       "position": [0, -0.5, 0],
-      "size": [120, 1, 80],
+      "size": [160, 1, 80],
       "motion": "static",
       "color": "#8b1e1e",
       "friction": 0.35
@@ -16,15 +16,15 @@
     {
       "id": "left-wall",
       "type": "box",
-      "position": [-59.5, 4, 0],
+      "position": [-79.5, 4, 0],
       "size": [1, 8, 70],
       "motion": "static",
-      "color": "#0000ff"
+      "color": "#f7f0d0"
     },
     {
       "id": "right-wall",
       "type": "box",
-      "position": [59.5, 4, 0],
+      "position": [79.5, 4, 0],
       "size": [1, 8, 70],
       "motion": "static",
       "color": "#f7f0d0"
@@ -33,7 +33,7 @@
       "id": "north-wall",
       "type": "box",
       "position": [0, 4, -39.5],
-      "size": [110, 8, 1],
+      "size": [150, 8, 1],
       "motion": "static",
       "color": "#f7f0d0"
     },
@@ -41,7 +41,119 @@
       "id": "south-wall",
       "type": "box",
       "position": [0, 4, 39.5],
-      "size": [110, 8, 1],
+      "size": [150, 8, 1],
+      "motion": "static",
+      "color": "#f7f0d0"
+    },
+    {
+      "id": "wall-restrooms-front",
+      "type": "box",
+      "position": [-55, 4, -22],
+      "size": [48, 8, 1],
+      "motion": "static",
+      "color": "#f7f0d0"
+    },
+    {
+      "id": "wall-vip-front",
+      "type": "box",
+      "position": [0, 4, -22],
+      "size": [62, 8, 1],
+      "motion": "static",
+      "color": "#f7f0d0"
+    },
+    {
+      "id": "wall-staff-front",
+      "type": "box",
+      "position": [44, 4, -22],
+      "size": [26, 8, 1],
+      "motion": "static",
+      "color": "#f7f0d0"
+    },
+    {
+      "id": "wall-security-front",
+      "type": "box",
+      "position": [68, 4, -22],
+      "size": [22, 8, 1],
+      "motion": "static",
+      "color": "#f7f0d0"
+    },
+    {
+      "id": "divider-restrooms-vip",
+      "type": "box",
+      "position": [-31, 4, -31],
+      "size": [1, 8, 17],
+      "motion": "static",
+      "color": "#f7f0d0"
+    },
+    {
+      "id": "divider-vip-staff",
+      "type": "box",
+      "position": [31, 4, -31],
+      "size": [1, 8, 17],
+      "motion": "static",
+      "color": "#f7f0d0"
+    },
+    {
+      "id": "divider-staff-security",
+      "type": "box",
+      "position": [57, 4, -31],
+      "size": [1, 8, 17],
+      "motion": "static",
+      "color": "#f7f0d0"
+    },
+    {
+      "id": "divider-men-women-restrooms",
+      "type": "box",
+      "position": [-55, 4, -31],
+      "size": [1, 8, 17],
+      "motion": "static",
+      "color": "#f7f0d0"
+    },
+    {
+      "id": "wall-bar-lounge-left",
+      "type": "box",
+      "position": [52, 4, 8],
+      "size": [1, 8, 52],
+      "motion": "static",
+      "color": "#f7f0d0"
+    },
+    {
+      "id": "wall-cashier-back",
+      "type": "box",
+      "position": [35, 4, 6],
+      "size": [22, 8, 1],
+      "motion": "static",
+      "color": "#f7f0d0"
+    },
+    {
+      "id": "wall-cashier-left",
+      "type": "box",
+      "position": [24, 4, 12],
+      "size": [1, 8, 12],
+      "motion": "static",
+      "color": "#f7f0d0"
+    },
+    {
+      "id": "wall-cashier-right",
+      "type": "box",
+      "position": [46, 4, 12],
+      "size": [1, 8, 12],
+      "motion": "static",
+      "color": "#f7f0d0"
+    },
+    {
+      "id": "wall-cashier-front-left",
+      "type": "box",
+      "position": [29, 4, 18],
+      "size": [10, 8, 1],
+      "motion": "static",
+      "color": "#f7f0d0"
+    },
+    {
+      "id": "wall-cashier-front-right",
+      "type": "box",
+      "position": [41, 4, 18],
+      "size": [10, 8, 1],
       "motion": "static",
       "color": "#f7f0d0"
     },
