@@ -1,6 +1,8 @@
 
 # HappyBearLandia - VR Game Studio 
 
+![map](map.png)
+
 # Computer Vision for Beginners
 
 simulators, games, tools, robots

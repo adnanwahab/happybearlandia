@@ -13,6 +13,29 @@ import { GLTFLoader } from
 var container, stats;
 var camera, controls, scene, renderer;
 
+const rotatingPointLights = [];
+const rotatingLightOrbitCenter =
+  new THREE.Vector3(
+    0,
+    0,
+    0
+  );
+
+let rotatingLightRadius =
+  10;
+
+let rotatingLightHeightOffset =
+  8;
+
+const rotatingLightAngularSpeed =
+  0.9;
+
+let rotatingLightIntensity =
+  120;
+
+let rotatingLightDistance =
+  300;
+
 const floorTextureLoader =
   new THREE.TextureLoader();
 
@@ -266,6 +289,74 @@ const isGalleryRoute = () => {
 
 const sceneFileFromRoute = () =>
   `scene/${sceneIdFromRoute()}.json`;
+
+const configureRotatingLightsForScene =
+(sceneData) => {
+  const sceneObjects =
+    sceneData?.objects ?? [];
+
+  const carpetObject =
+    sceneObjects.find(
+      object =>
+        typeof object.id === "string" &&
+        object.id
+          .toLowerCase()
+          .includes("carpet")
+    ) ??
+    null;
+
+  if (
+    carpetObject?.position &&
+    carpetObject?.size
+  ) {
+    rotatingLightOrbitCenter.set(
+      carpetObject.position[0] ?? 0,
+      carpetObject.position[1] ?? 0,
+      carpetObject.position[2] ?? 0
+    );
+
+    const carpetWidth =
+      carpetObject.size[0] ?? 10;
+
+    const carpetDepth =
+      carpetObject.size[2] ?? 10;
+
+    const carpetThickness =
+      carpetObject.size[1] ?? 0.2;
+
+    rotatingLightRadius =
+      Math.max(
+        3,
+        Math.min(
+          carpetWidth,
+          carpetDepth
+        ) * 0.3
+      );
+
+    rotatingLightHeightOffset =
+      Math.max(
+        5,
+        carpetThickness * 0.5 + 8
+      );
+
+    return;
+  }
+
+  const floorObject =
+    sceneObjects.find(
+      object => object.id === "floor"
+    ) ??
+    null;
+
+  rotatingLightOrbitCenter.set(
+    floorObject?.position?.[0] ?? 0,
+    floorObject?.position?.[1] ?? 0,
+    floorObject?.position?.[2] ?? 0
+  );
+
+  rotatingLightRadius = 10;
+  rotatingLightHeightOffset = 8;
+};
 
 // Object layers
 const LAYER_NON_MOVING = 0;
@@ -802,6 +893,49 @@ async function initGraphics() {
     dirLight
   );
 
+  rotatingPointLights.length = 0;
+
+  const pointLightColors = [
+    0xff4d4d,
+    0x4dff88,
+    0x4da6ff,
+  ];
+
+  for (let i = 0; i < pointLightColors.length; i++) {
+    const pointLight =
+      new THREE.PointLight(
+        pointLightColors[i],
+        rotatingLightIntensity,
+        rotatingLightDistance,
+        1
+      );
+
+    const bulb =
+      new THREE.Mesh(
+        new THREE.SphereGeometry(
+          0.45,
+          16,
+          16
+        ),
+        new THREE.MeshBasicMaterial({
+          color:
+            pointLightColors[i],
+        })
+      );
+
+    pointLight.add(
+      bulb
+    );
+
+    scene.add(
+      pointLight
+    );
+
+    rotatingPointLights.push(
+      pointLight
+    );
+  }
+
   controls =
     new OrbitControls(
       camera,
@@ -1101,6 +1235,23 @@ function renderExample() {
   controls.update(
     deltaTime
   );
+
+  for (let i = 0; i < rotatingPointLights.length; i++) {
+    const angle =
+      time * rotatingLightAngularSpeed +
+      i * (Math.PI * 2) / rotatingPointLights.length;
+
+    rotatingPointLights[i].position.set(
+      rotatingLightOrbitCenter.x +
+        Math.cos(angle) * rotatingLightRadius,
+
+      rotatingLightOrbitCenter.y +
+        rotatingLightHeightOffset,
+
+      rotatingLightOrbitCenter.z +
+        Math.sin(angle) * rotatingLightRadius
+    );
+  }
 
   const frameTexturesReady =
     floorTextureTemplateByPath.size === 0 ||
@@ -2090,6 +2241,10 @@ if (!isGalleryRoute()) {
   activeFloorTexturePath =
     sceneData.floorTexture ??
     DEFAULT_FLOOR_TEXTURE_PATH;
+
+  configureRotatingLightsForScene(
+    sceneData
+  );
 
   await initExample(
     Jolt,
