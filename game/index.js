@@ -2088,6 +2088,8 @@ function getThreeObjectForBody(
           new THREE.MeshPhongMaterial({
             color: 0xffffff,
             map: floorTexture,
+            specular: 0xffffff,
+            shininess: 120,
           });
       }
 
