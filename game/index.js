@@ -1,7 +1,8 @@
 import { loadScene } from './scene-loader.js';
 import { DebugRecorder } from './debug-recorder.js';
 import initJolt from 'https://www.unpkg.com/jolt-physics/dist/jolt-physics.wasm-compat.js';
-import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+import * as THREE from "three";
+import {WebGPURenderer} from "three/webgpu";
 import { OrbitControls } from
   "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js";
 import { OBJLoader } from
@@ -737,10 +738,14 @@ function onWindowResize() {
 }
 
 
-function initGraphics() {
+async function initGraphics() {
 
   renderer =
-    new THREE.WebGLRenderer();
+    new WebGPURenderer({
+      antialias: true,
+    });
+
+  await renderer.init();
 
   renderer.setClearColor(
     0xbfd1e5
@@ -947,7 +952,7 @@ function updatePhysics(
 }
 
 
-function initExample(
+async function initExample(
   Jolt,
   updateFunction
 ) {
@@ -984,7 +989,7 @@ function initExample(
   onExampleUpdate =
     updateFunction;
 
-  initGraphics();
+  await initGraphics();
 
   initPhysics();
 
@@ -1097,10 +1102,18 @@ function renderExample() {
     deltaTime
   );
 
-  renderer.render(
-    scene,
-    camera
-  );
+  const frameTexturesReady =
+    floorTextureTemplateByPath.size === 0 ||
+    Array.from(floorTextureTemplateByPath.values()).every(
+      texture => texture?.image?.complete === true
+    );
+
+  if (frameTexturesReady) {
+    renderer.render(
+      scene,
+      camera
+    );
+  }
 }
 
 
@@ -2078,7 +2091,7 @@ if (!isGalleryRoute()) {
     sceneData.floorTexture ??
     DEFAULT_FLOOR_TEXTURE_PATH;
 
-  initExample(
+  await initExample(
     Jolt,
     null
   );

@@ -201,6 +201,15 @@
       "motion": "static",
       "color": "#ffffff",
       "modelUrl": "/data/glb/tuxedo_bear.glb"
+    },
+    {
+      "id": "glb-carpet",
+      "type": "box",
+      "position": [0, 0.06, 20],
+      "size": [17, 0.12, 30],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/carpet.glb"
     }
   ]
 }
