@@ -17,7 +17,7 @@
       "id": "left-wall",
       "type": "box",
       "position": [-79.5, 4, 0],
-      "size": [1, 8, 70],
+      "size": [1, 8, 80],
       "motion": "static",
       "color": "#f7f0d0"
     },
@@ -25,7 +25,7 @@
       "id": "right-wall",
       "type": "box",
       "position": [79.5, 4, 0],
-      "size": [1, 8, 70],
+      "size": [1, 8, 80],
       "motion": "static",
       "color": "#f7f0d0"
     },
@@ -33,7 +33,7 @@
       "id": "north-wall",
       "type": "box",
       "position": [0, 4, -39.5],
-      "size": [150, 8, 1],
+      "size": [160, 8, 1],
       "motion": "static",
       "color": "#f7f0d0"
     },
@@ -41,7 +41,7 @@
       "id": "south-wall",
       "type": "box",
       "position": [0, 4, 39.5],
-      "size": [150, 8, 1],
+      "size": [160, 8, 1],
       "motion": "static",
       "color": "#f7f0d0"
     },
@@ -242,6 +242,15 @@
       "motion": "static",
       "color": "#ffffff",
       "modelUrl": "/data/glb/carpet.glb"
+    },
+    {
+      "id": "glb-casino-bar",
+      "type": "box",
+      "position": [68, 1.6, 2],
+      "size": [16, 3.2, 10],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_bar.glb"
     },
     {
       "id": "glb-plant-nw-1",
@@ -460,7 +469,7 @@
       "modelUrl": "/data/glb/slot_machine.glb"
     },
     {
-      "id": "glb-plant-center-1", 
+      "id": "glb-plant-center-1",
       "type": "box",
       "position": [-2, 1.4, -16],
       "size": [2.2, 2.8, 2.2],
