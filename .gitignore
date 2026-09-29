@@ -1,4 +1,4 @@
-data/events/*.json
+data/events/*
 data/webcam
 data/microphone
 

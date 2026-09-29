@@ -6,6 +6,8 @@ import { OrbitControls } from
   "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js";
 import { OBJLoader } from
   "https://unpkg.com/three@0.160.0/examples/jsm/loaders/OBJLoader.js";
+import { GLTFLoader } from
+  "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
 // Graphics variables
 var container, stats;
 var camera, controls, scene, renderer;
@@ -329,6 +331,9 @@ let happyBearModelTemplateSize = null;
 let lightSwitchOnModelTemplate = null;
 let lightSwitchOnModelTemplateSize = null;
 
+const glbModelTemplatesByUrl =
+  new Map();
+
 let inventoryOverlay = null;
 let inventorySlotElements = [];
 let inventorySlots = Array(INVENTORY_SLOT_COUNT).fill(null);
@@ -592,6 +597,129 @@ function loadLightSwitchOnModel() {
       }
     );
   });
+}
+
+function modelTemplateUrlFromSceneUrl(
+  sceneUrl
+) {
+  return new URL(
+    sceneUrl,
+    import.meta.url
+  ).toString();
+}
+
+function loadGlbModel(
+  sceneUrl
+) {
+  const modelTemplateUrl =
+    modelTemplateUrlFromSceneUrl(
+      sceneUrl
+    );
+
+  if (
+    glbModelTemplatesByUrl.has(
+      modelTemplateUrl
+    )
+  ) {
+    return Promise.resolve(
+      glbModelTemplatesByUrl.get(
+        modelTemplateUrl
+      )
+    );
+  }
+
+  const loader =
+    new GLTFLoader();
+
+  return new Promise(resolve => {
+    loader.load(
+      modelTemplateUrl,
+      gltf => {
+        const modelRoot =
+          gltf.scene ??
+          gltf.scenes?.[0] ??
+          null;
+
+        if (!modelRoot) {
+          console.warn(
+            `Unable to load glb model (no scene root): ${sceneUrl}`
+          );
+
+          resolve(null);
+          return;
+        }
+
+        modelRoot.traverse(node => {
+          if (node.isMesh) {
+            node.castShadow = false;
+            node.receiveShadow = false;
+          }
+        });
+
+        modelRoot.updateMatrixWorld(true);
+
+        const bbox =
+          new THREE.Box3().setFromObject(modelRoot);
+
+        const size =
+          new THREE.Vector3();
+
+        const center =
+          new THREE.Vector3();
+
+        bbox.getSize(size);
+        bbox.getCenter(center);
+
+        modelRoot.position.set(
+          -center.x,
+          -bbox.min.y,
+          -center.z
+        );
+
+        const glbTemplate = {
+          modelRoot,
+          size,
+        };
+
+        glbModelTemplatesByUrl.set(
+          modelTemplateUrl,
+          glbTemplate
+        );
+
+        resolve(glbTemplate);
+      },
+      undefined,
+      error => {
+        console.warn(
+          `Unable to load glb model ${sceneUrl}:`,
+          error
+        );
+
+        resolve(null);
+      }
+    );
+  });
+}
+
+function loadSceneGlbModels(
+  sceneData
+) {
+  const sceneModelUrls =
+    Array.from(
+      new Set(
+        sceneData.objects
+          .map(object => object.modelUrl)
+          .filter(
+            modelUrl =>
+              typeof modelUrl === "string" &&
+              modelUrl.trim()
+          )
+      )
+    );
+
+  return Promise.all(
+    sceneModelUrls.map(loadGlbModel)
+  );
 }
 
 function onWindowResize() {
@@ -979,14 +1107,16 @@ function renderExample() {
 function addToThreeScene(
   body,
   color,
-  objectId = null
+  objectId = null,
+  sceneObject = null
 ) {
 
   let threeObject =
     getThreeObjectForBody(
       body,
       color,
-      objectId
+      objectId,
+      sceneObject
     );
 
   threeObject
@@ -1007,7 +1137,8 @@ function addToThreeScene(
 function addToScene(
   body,
   color,
-  objectId = null
+  objectId = null,
+  sceneObject = null
 ) {
 
   bodyInterface.AddBody(
@@ -1018,7 +1149,8 @@ function addToScene(
   addToThreeScene(
     body,
     color,
-    objectId
+    objectId,
+    sceneObject
   );
 }
 
@@ -1070,7 +1202,8 @@ function createBox(
   color = 0xffffff,
   mass = null,
   friction = 0.2,
-  objectId = null
+  objectId = null,
+  sceneObject = null
 ) {
 
   let shape =
@@ -1121,7 +1254,8 @@ function createBox(
   addToScene(
     body,
     color,
-    objectId
+    objectId,
+    sceneObject
   );
 
   return body;
@@ -1529,6 +1663,74 @@ function createLightSwitchObjectForBody(
   return lightSwitchObject;
 }
 
+function createSceneModelObjectForBody(
+  body,
+  modelUrl
+) {
+  if (
+    typeof modelUrl !== "string" ||
+    !modelUrl.trim()
+  ) {
+    return null;
+  }
+
+  const modelTemplateUrl =
+    modelTemplateUrlFromSceneUrl(
+      modelUrl
+    );
+
+  const glbTemplate =
+    glbModelTemplatesByUrl.get(
+      modelTemplateUrl
+    );
+
+  if (!glbTemplate) {
+    return null;
+  }
+
+  const shape =
+    body.GetShape();
+
+  if (
+    shape.GetSubType() !==
+    Jolt.EShapeSubType_Box
+  ) {
+    return null;
+  }
+
+  const boxShape =
+    Jolt.castObject(
+      shape,
+      Jolt.BoxShape
+    );
+
+  const extent =
+    wrapVec3(
+      boxShape.GetHalfExtent()
+    ).multiplyScalar(2);
+
+  const safeSize =
+    new THREE.Vector3(
+      Math.max(glbTemplate.size.x, 0.0001),
+      Math.max(glbTemplate.size.y, 0.0001),
+      Math.max(glbTemplate.size.z, 0.0001)
+    );
+
+  const sceneModel =
+    glbTemplate.modelRoot.clone(true);
+
+  sceneModel.scale.set(
+    extent.x / safeSize.x,
+    extent.y / safeSize.y,
+    extent.z / safeSize.z
+  );
+
+  sceneModel.userData.modelYOffset =
+    -extent.y * 0.5;
+
+  return sceneModel;
+}
+
 function createPlayerCharacterVisual(characterRadiusStanding,
 characterHeightStanding) {
   if (
@@ -1583,7 +1785,8 @@ characterHeightStanding) {
 function getThreeObjectForBody(
   body,
   color,
-  objectId = null
+  objectId = null,
+  sceneObject = null
 ) {
 
   const useTreeModel =
@@ -1644,6 +1847,35 @@ function getThreeObjectForBody(
       );
 
       return lightSwitchObject;
+    }
+  }
+
+  if (sceneObject?.modelUrl) {
+    const sceneModelObject =
+      createSceneModelObjectForBody(
+        body,
+        sceneObject.modelUrl
+      );
+
+    if (sceneModelObject) {
+      sceneModelObject.position.copy(
+        wrapVec3(
+          body.GetPosition()
+        )
+      );
+
+      sceneModelObject.position.y +=
+        sceneModelObject.userData
+          .modelYOffset ??
+        0;
+
+      sceneModelObject.quaternion.copy(
+        wrapQuat(
+          body.GetRotation()
+        )
+      );
+
+      return sceneModelObject;
     }
   }
 
@@ -1836,7 +2068,11 @@ if (!isGalleryRoute()) {
     loadTreeModel(),
     loadHappyBearModel(),
     loadLightSwitchOnModel()
-  ]).then(function ([Jolt, sceneData]) {
+  ]).then(async function ([Jolt, sceneData]) {
+
+  await loadSceneGlbModels(
+    sceneData
+  );
 
   activeFloorTexturePath =
     sceneData.floorTexture ??
@@ -2828,7 +3064,8 @@ if (!isGalleryRoute()) {
       dynamic ? Jolt.EMotionType_Dynamic : Jolt.EMotionType_Static,
       dynamic ? LAYER_MOVING : LAYER_NON_MOVING,
       object.color ?? '#ffffff', object.mass ?? null, object.friction ?? 0.2,
-      object.id
+      object.id,
+      object
     );
     bodies.set(object.id, body);
     Jolt.destroy(position);

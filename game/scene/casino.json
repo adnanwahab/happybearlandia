@@ -16,17 +16,79 @@
     {
       "id": "left-wall",
       "type": "box",
-      "position": [-58, 4, 0],
+      "position": [-59.5, 4, 0],
+      "size": [1, 8, 70],
+      "motion": "static",
+      "color": "#0000ff"
+    },
+    {
+      "id": "right-wall",
+      "type": "box",
+      "position": [59.5, 4, 0],
       "size": [1, 8, 70],
       "motion": "static",
       "color": "#f7f0d0"
     },
     {
-      "id": "right-wall",
+      "id": "north-wall",
       "type": "box",
-      "position": [58, 4, 0],
-      "size": [1, 8, 70],
+      "position": [0, 4, -39.5],
+      "size": [110, 8, 1],
       "motion": "static",
       "color": "#f7f0d0"
-    }  ]
+    },
+    {
+      "id": "south-wall",
+      "type": "box",
+      "position": [0, 4, 39.5],
+      "size": [110, 8, 1],
+      "motion": "static",
+      "color": "#f7f0d0"
+    },
+    {
+      "id": "glb-poker-table-clean",
+      "type": "box",
+      "position": [0, 1, 0],
+      "size": [6, 2, 4],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/poker_table_clean.glb"
+    },
+    {
+      "id": "glb-poker-table",
+      "type": "box",
+      "position": [15, 1, 0],
+      "size": [6, 2, 4],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/poker_table.glb"
+    },
+    {
+      "id": "glb-poker-chair",
+      "type": "box",
+      "position": [15, 1, 4],
+      "size": [2, 2, 2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/poker_chair.glb"
+    },
+    {
+      "id": "glb-roulette",
+      "type": "box",
+      "position": [-15, 1, 0],
+      "size": [5, 2, 5],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/roulette.glb"
+    },
+    {
+      "id": "glb-tuxedo-bear",
+      "type": "box",
+      "position": [0, 1.5, -10],
+      "size": [2, 3, 2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/tuxedo_bear.glb"
+    }
+  ]
 }

@@ -38,6 +38,7 @@ export function validateScene(scene) {
     if (object.mass !== undefined && (!Number.isFinite(object.mass) || object.mass <= 0)) fail(`${label}.mass must be positive`);
     if (object.friction !== undefined && (!Number.isFinite(object.friction) || object.friction < 0)) fail(`${label}.friction must be nonnegative`);
     if (object.speed !== undefined && !Number.isFinite(object.speed)) fail(`${label}.speed must be finite`);
+    if (object.modelUrl !== undefined && (typeof object.modelUrl !== 'string' || !object.modelUrl.trim())) fail(`${label}.modelUrl must be a non-empty string path`);
   }
   const tealCube =
     scene.objects.find(
