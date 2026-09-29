@@ -1,0 +1,8655 @@
+{
+  "schemaVersion": 1,
+  "kind": "debug_session",
+  "savedAt": "2026-09-29T16:02:35.719Z",
+  "sceneId": "casino",
+  "sessionId": "b2459e65-233b-40ca-a5ff-42bea3e13294",
+  "reason": "beforeunload",
+  "startedAt": "2026-09-29T16:02:03.693Z",
+  "endedAt": "2026-09-29T16:02:35.708Z",
+  "metadata": {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+    "locationPath": "/game/casino",
+    "eventCount": 3,
+    "snapshotCount": 33
+  },
+  "events": [
+    {
+      "id": 1,
+      "frame": 0,
+      "time": 0,
+      "type": "state_change",
+      "objectId": "level",
+      "from": {
+        "loaded": false
+      },
+      "to": {
+        "loaded": true,
+        "scene": "scene/casino.json",
+        "sessionId": "b2459e65-233b-40ca-a5ff-42bea3e13294"
+      },
+      "causedBy": {
+        "type": "engine",
+        "objectId": "game_boot"
+      }
+    },
+    {
+      "id": 2,
+      "frame": 0,
+      "time": 0,
+      "type": "state_change",
+      "objectId": "debug_session",
+      "from": {
+        "active": false
+      },
+      "to": {
+        "active": true,
+        "sceneId": "casino",
+        "sessionId": "b2459e65-233b-40ca-a5ff-42bea3e13294"
+      },
+      "causedBy": {
+        "type": "engine",
+        "objectId": "debug_recorder"
+      }
+    },
+    {
+      "id": 3,
+      "frame": 1920,
+      "time": 31.969499999999943,
+      "type": "state_change",
+      "objectId": "debug_session",
+      "from": {
+        "active": true
+      },
+      "to": {
+        "active": false
+      },
+      "causedBy": {
+        "type": "lifecycle",
+        "objectId": "beforeunload"
+      }
+    }
+  ],
+  "snapshots": [
+    {
+      "frame": 0,
+      "time": 0,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -23,
+            2.4000000953674316,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.199999809265137,
+            5.300000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.5,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 62,
+      "time": 1.0032999999970196,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            16.367605209350586,
+            5.089710235595703,
+            -0.034135185182094574
+          ],
+          "rotation": [
+            0.00490653095766902,
+            0.010882717557251453,
+            -0.000051685779908439144,
+            0.9999287724494934
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 122,
+      "time": 2.0032999999970205,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            16.276521682739258,
+            5.0897932052612305,
+            -0.6075747013092041
+          ],
+          "rotation": [
+            0.004782577510923147,
+            0.11026789247989655,
+            -0.00047311821253970265,
+            0.9938903450965881
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 183,
+      "time": 3.0200000000000022,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            16.117992401123047,
+            5.09011697769165,
+            -1.3045963048934937
+          ],
+          "rotation": [
+            0.00506823742762208,
+            0.1260385662317276,
+            -0.00028785402537323534,
+            0.9920124411582947
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 244,
+      "time": 4.035199999988082,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 304,
+      "time": 5.036599999994046,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 365,
+      "time": 6.053099999994047,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 425,
+      "time": 7.05319999998809,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 486,
+      "time": 8.06979999999703,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 546,
+      "time": 9.06979999999703,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 606,
+      "time": 10.069799999997034,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 667,
+      "time": 11.086500000000019,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 728,
+      "time": 12.103299999997041,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 789,
+      "time": 13.119299999997043,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 849,
+      "time": 14.11979999999705,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 910,
+      "time": 15.136299999997057,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 970,
+      "time": 16.1363999999911,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1031,
+      "time": 17.15309999999407,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1092,
+      "time": 18.16959999999406,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1153,
+      "time": 19.186299999997036,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1214,
+      "time": 20.202899999991068,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1274,
+      "time": 21.202899999991068,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1335,
+      "time": 22.21949999999999,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1396,
+      "time": 23.23609999999403,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1457,
+      "time": 24.25289999999104,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1518,
+      "time": 25.26939999999103,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1578,
+      "time": 26.269499999999955,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1638,
+      "time": 27.26959999999399,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1699,
+      "time": 28.286199999988032,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1759,
+      "time": 29.286199999988032,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1820,
+      "time": 30.30289999999101,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1881,
+      "time": 31.31939999999101,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "frame": 1920,
+      "time": 31.969499999999943,
+      "objects": {
+        "floor": {
+          "position": [
+            0,
+            -0.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "left-wall": {
+          "position": [
+            -58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "right-wall": {
+          "position": [
+            58,
+            4,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "lava": {
+          "position": [
+            0,
+            -50,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "conveyor": {
+          "position": [
+            -18,
+            0.10000000149011612,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "teal-cube": {
+          "position": [
+            -2.5173227787017822,
+            0.6800000071525574,
+            16.35112953186035
+          ],
+          "rotation": [
+            -0.8731034994125366,
+            5.335557773378241e-9,
+            0.4875349998474121,
+            -2.2784519160268246e-8
+          ]
+        },
+        "start-platform": {
+          "position": [
+            -20,
+            1.100000023841858,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "approach-platform": {
+          "position": [
+            -10,
+            2.200000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-left": {
+          "position": [
+            2,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-tower-right": {
+          "position": [
+            18,
+            6,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-top-beam": {
+          "position": [
+            10,
+            11.199999809265137,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-left": {
+          "position": [
+            4.800000190734863,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-wheel-right": {
+          "position": [
+            15.199999809265137,
+            10.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-left": {
+          "position": [
+            4.800000190734863,
+            7.599999904632568,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "rope-right": {
+          "position": [
+            15.199999809265137,
+            6.800000190734863,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-left": {
+          "position": [
+            4.800000190734863,
+            4.5,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "pulley-car-right": {
+          "position": [
+            15.199999809265137,
+            3.700000047683716,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "counterweight-crate": {
+          "position": [
+            15.730537414550781,
+            5.088337421417236,
+            -1.5687867403030396
+          ],
+          "rotation": [
+            -0.0018099811859428883,
+            0.09572416543960571,
+            -0.00017502802074886858,
+            0.9954062104225159
+          ]
+        },
+        "exit-platform": {
+          "position": [
+            28,
+            5.400000095367432,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "player_1": {
+          "position": [
+            -20,
+            1.3999998569488525,
+            0
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -10,6 +10,11 @@ export function validateScene(scene) {
   vector(scene.gravity, 3, 'gravity');
   vector(scene.playerSpawn, 3, 'playerSpawn');
   vector(scene.respawnPosition, 3, 'respawnPosition');
+  if (scene.floorTexture !== undefined) {
+    if (typeof scene.floorTexture !== 'string' || !scene.floorTexture.trim()) {
+      fail('floorTexture must be a non-empty string path');
+    }
+  }
   if (!Array.isArray(scene.objects)) fail('objects must be an array');
   const ids = new Set();
   for (const object of scene.objects) {

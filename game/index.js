@@ -10,6 +10,46 @@ import { OBJLoader } from
 var container, stats;
 var camera, controls, scene, renderer;
 
+const floorTextureLoader =
+  new THREE.TextureLoader();
+
+const DEFAULT_FLOOR_TEXTURE_PATH =
+  '/data/textures/Grass005_1K-PNG/Grass005_1K-PNG_Color.png';
+
+const floorTextureTemplateByPath =
+  new Map();
+
+let activeFloorTexturePath =
+  DEFAULT_FLOOR_TEXTURE_PATH;
+
+const getFloorTextureTemplate =
+  () => {
+    const texturePath =
+      activeFloorTexturePath ??
+      DEFAULT_FLOOR_TEXTURE_PATH;
+
+    if (!floorTextureTemplateByPath.has(texturePath)) {
+      const floorTextureTemplate =
+        floorTextureLoader.load(texturePath);
+
+      floorTextureTemplate.colorSpace =
+        THREE.SRGBColorSpace;
+
+      floorTextureTemplate.wrapS =
+        THREE.RepeatWrapping;
+
+      floorTextureTemplate.wrapT =
+        THREE.RepeatWrapping;
+
+      floorTextureTemplateByPath.set(
+        texturePath,
+        floorTextureTemplate
+      );
+    }
+
+    return floorTextureTemplateByPath.get(texturePath);
+  };
+
 // Timers
 var clock = new THREE.Clock();
 var time = 0;
@@ -1636,6 +1676,25 @@ function getThreeObjectForBody(
           2
         );
 
+      if (objectId === 'floor') {
+        const floorTexture =
+          getFloorTextureTemplate().clone();
+
+        floorTexture.repeat.set(
+          Math.max(1, extent.x / 4),
+          Math.max(1, extent.z / 4)
+        );
+
+        floorTexture.needsUpdate =
+          true;
+
+        material =
+          new THREE.MeshPhongMaterial({
+            color: 0xffffff,
+            map: floorTexture,
+          });
+      }
+
       threeObject =
         new THREE.Mesh(
           new THREE.BoxGeometry(
@@ -1778,6 +1837,10 @@ if (!isGalleryRoute()) {
     loadHappyBearModel(),
     loadLightSwitchOnModel()
   ]).then(function ([Jolt, sceneData]) {
+
+  activeFloorTexturePath =
+    sceneData.floorTexture ??
+    DEFAULT_FLOOR_TEXTURE_PATH;
 
   initExample(
     Jolt,

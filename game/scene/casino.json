@@ -1,0 +1,64 @@
+{
+  "gravity": [0, -25, 0],
+  "playerSpawn": [-20, 1.5, 0],
+  "respawnPosition": [-20, 1.5, 0],
+  "floorTexture": "/data/textures/casino_floor/Tiles074_1K-PNG_Color.png",
+  "objects": [
+    {
+      "id": "floor",
+      "type": "box",
+      "position": [0, -0.5, 0],
+      "size": [120, 1, 80],
+      "motion": "static",
+      "color": "#8b1e1e",
+      "friction": 0.35
+    },
+    {
+      "id": "left-wall",
+      "type": "box",
+      "position": [-58, 4, 0],
+      "size": [1, 8, 70],
+      "motion": "static",
+      "color": "#f7f0d0"
+    },
+    {
+      "id": "right-wall",
+      "type": "box",
+      "position": [58, 4, 0],
+      "size": [1, 8, 70],
+      "motion": "static",
+      "color": "#f7f0d0"
+    },
+    {
+      "id": "lava",
+      "type": "box",
+      "position": [0, -50, 0],
+      "size": [2200, 4, 2200],
+      "motion": "static",
+      "color": "#4b0012",
+      "behavior": "lava"
+    },
+    {
+      "id": "conveyor",
+      "type": "box",
+      "position": [-18, 0.1, 0],
+      "size": [14, 0.5, 6],
+      "motion": "static",
+      "color": "#111111",
+      "behavior": "conveyor",
+      "speed": 6
+    },
+    {
+      "id": "teal-cube",
+      "type": "box",
+      "position": [-23, 2.4, 0],
+      "size": [1.4, 1.4, 1.4],
+      "motion": "dynamic",
+      "color": "#ffd700",
+      "mass": 16,
+      "friction": 0.15,
+      "networked": true,
+      "behavior": "pushable"
+    }
+  ]
+}
