@@ -1,0 +1,113 @@
+<iframe src="/game/1" id="anim-js-resize"></iframe>
+
+<iframe src="/game/1" class="anim-banner-to-square"></iframe>
+
+<iframe src="/game/1" class="anim-door-hinge"></iframe>
+
+<iframe src="/game/1" class="anim-float-tilt"></iframe>
+
+<button id="try-game-btn" type="button">try game</button>
+
+<style>
+.anim-banner-to-square,
+.anim-door-hinge,
+.anim-float-tilt {
+  width: 320px;
+  height: 180px;
+  border: 0;
+  display: block;
+  margin: 16px 0;
+  transform-style: preserve-3d;
+}
+
+#try-game-btn {
+  display: inline-block;
+  margin: 16px 0 8px;
+}
+
+#anim-js-resize {
+  width: 900px;
+  height: 100px;
+  border: 0;
+  display: block;
+  margin: 0 0 16px;
+}
+
+/* 1) Banner rectangle -> square (tween Y scale) */
+.anim-banner-to-square {
+  transform-origin: center;
+  animation: bannerToSquare 3.2s ease-in-out infinite alternate;
+}
+
+@keyframes bannerToSquare {
+  0% {
+    transform: scaleY(0.56);
+    border-radius: 8px;
+  }
+  100% {
+    transform: scaleY(1);
+    border-radius: 18px;
+  }
+}
+
+/* 2) Door hinge rotate */
+.anim-door-hinge {
+  transform-origin: left center;
+  animation: doorHinge 2.4s ease-in-out infinite alternate;
+}
+
+@keyframes doorHinge {
+  0% {
+    transform: perspective(900px) rotateY(0deg);
+  }
+  100% {
+    transform: perspective(900px) rotateY(-72deg);
+  }
+}
+
+/* 3) Choice: subtle floating 3D tilt */
+.anim-float-tilt {
+  animation: floatTilt 4s ease-in-out infinite;
+}
+
+@keyframes floatTilt {
+  0%,
+  100% {
+    transform: perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0px);
+  }
+  25% {
+    transform: perspective(900px) rotateX(6deg) rotateY(-8deg) translateY(-6px);
+  }
+  50% {
+    transform: perspective(900px) rotateX(-4deg) rotateY(8deg) translateY(0px);
+  }
+  75% {
+    transform: perspective(900px) rotateX(5deg) rotateY(-5deg) translateY(-4px);
+  }
+}
+</style>
+
+<script>
+(() => {
+  const btn = document.getElementById('try-game-btn');
+  const iframe = document.getElementById('anim-js-resize');
+
+  btn.addEventListener('click', () => {
+    const startHeight = 100;
+    const endHeight = 500;
+    const duration = 900;
+    const start = performance.now();
+
+    const step = (now) => {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const h = startHeight + (endHeight - startHeight) * eased;
+      iframe.style.height = `${h}px`;
+
+      if (t < 1) requestAnimationFrame(step);
+    };
+
+    requestAnimationFrame(step);
+  });
+})();
+</script>
