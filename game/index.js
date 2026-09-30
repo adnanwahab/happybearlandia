@@ -2066,11 +2066,28 @@ function getThreeObjectForBody(
           .modelYOffset ??
         0;
 
-      sceneModelObject.quaternion.copy(
-        wrapQuat(
-          body.GetRotation()
-        )
-      );
+      if (
+        sceneObject?.id ===
+          "glb-vip-room-right-couch" &&
+        Array.isArray(
+          sceneObject.rotation
+        ) &&
+        sceneObject.rotation.length ===
+          4
+      ) {
+        sceneModelObject.quaternion.set(
+          sceneObject.rotation[0],
+          sceneObject.rotation[1],
+          sceneObject.rotation[2],
+          sceneObject.rotation[3]
+        );
+      } else {
+        sceneModelObject.quaternion.copy(
+          wrapQuat(
+            body.GetRotation()
+          )
+        );
+      }
 
       return sceneModelObject;
     }

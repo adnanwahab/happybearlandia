@@ -303,17 +303,9 @@
       "size": [158, 0.12, 89],
       "motion": "static",
       "color": "#ffffff",
-      "modelUrl": "/data/glb/casino_carpet.glb"
+      "modelUrl": "/data/glb/casino_carpet_plane_2x1.glb"
     },
-    {
-      "id": "glb-carpet",
-      "type": "box",
-      "position": [0, 0.06, 0],
-      "size": [17, 0.12, 50],
-      "motion": "static",
-      "color": "#ffffff",
-      "modelUrl": "/data/glb/carpet.glb"
-    },
+
     {
       "id": "glb-casino-bar",
       "type": "box",
@@ -335,8 +327,8 @@
     {
       "id": "glb-bar-lounge-wooden-floor",
       "type": "box",
-      "position": [66, 0.06, 8],
-      "size": [24, 0.12, 58],
+      "position": [66, 0.1, 0],
+      "size": [24, 0.12, 80],
       "motion": "static",
       "color": "#ffffff",
       "modelUrl": "/data/glb/bar_loung_wooden_floor.glb"
@@ -346,9 +338,19 @@
       "type": "box",
       "position": [19, 1.1, -33],
       "size": [6, 2.2, 3],
+      "rotation": [0, 0.7071067811865475, 0, 0.7071067811865476],
       "motion": "static",
       "color": "#ffffff",
       "modelUrl": "/data/glb/vip_room_right_couch.glb"
+    },
+    {
+      "id": "glb-vip-room-gold-framed-portrait",
+      "type": "box",
+      "position": [0, 4.2, -35.9],
+      "size": [12, 7, 0.3],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/gold_framed_portrait.glb"
     },
     {
       "id": "glb-vip-room-poker-table",
@@ -369,7 +371,7 @@
       "modelUrl": "/data/glb/vip_room_double_door.glb"
     },
     {
-      "id": "glb-staff-room-chair", 
+      "id": "glb-staff-room-chair",
       "type": "box",
       "position": [44, 1, -31],
       "size": [2, 2, 2],
