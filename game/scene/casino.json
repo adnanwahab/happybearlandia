@@ -281,7 +281,7 @@
     {
       "id": "glb-tuxedo-bear-cashier",
       "type": "box",
-      "position": [35, 1.5, 16],
+      "position": [35, 1.5, 9.5],
       "size": [2, 3, 2],
       "motion": "static",
       "color": "#ffffff",
@@ -290,7 +290,7 @@
     {
       "id": "glb-tuxedo-bear-bar",
       "type": "box",
-      "position": [70, 1.5, 5],
+      "position": [72, 1.5, 1.5],
       "size": [2, 3, 2],
       "motion": "static",
       "color": "#ffffff",
@@ -308,8 +308,8 @@
     {
       "id": "glb-carpet",
       "type": "box",
-      "position": [0, 0.06, 20],
-      "size": [17, 0.12, 30],
+      "position": [0, 0.06, 0],
+      "size": [17, 0.12, 50],
       "motion": "static",
       "color": "#ffffff",
       "modelUrl": "/data/glb/carpet.glb"
@@ -324,18 +324,72 @@
       "modelUrl": "/data/glb/casino_bar.glb"
     },
     {
+      "id": "glb-bar-lounge-couch",
+      "type": "box",
+      "position": [57, 1.1, 4],
+      "size": [8, 2.2, 4],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/bar_lounge_couch.glb"
+    },
+    {
       "id": "glb-bar-lounge-wooden-floor",
       "type": "box",
       "position": [66, 0.06, 8],
-      "size": [24, 0.12, 38],
+      "size": [24, 0.12, 58],
       "motion": "static",
       "color": "#ffffff",
       "modelUrl": "/data/glb/bar_loung_wooden_floor.glb"
     },
     {
+      "id": "glb-vip-room-right-couch",
+      "type": "box",
+      "position": [19, 1.1, -33],
+      "size": [6, 2.2, 3],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/vip_room_right_couch.glb"
+    },
+    {
+      "id": "glb-vip-room-poker-table",
+      "type": "box",
+      "position": [0, 1, -31],
+      "size": [6, 2, 4],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/poker_table.glb"
+    },
+    {
+      "id": "glb-vip-room-double-door",
+      "type": "box",
+      "position": [0, 2, -22],
+      "size": [8, 4, 1],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/vip_room_double_door.glb"
+    },
+    {
+      "id": "glb-staff-room-chair", 
+      "type": "box",
+      "position": [44, 1, -31],
+      "size": [2, 2, 2],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/poker_chair.glb"
+    },
+    {
+      "id": "glb-staff-room-security-lockers",
+      "type": "box",
+      "position": [53.5, 1, -38.7],
+      "size": [1.2, 2, 0.8],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/security_lockers.glb"
+    },
+    {
       "id": "glb-lounge-grand-piano",
       "type": "box",
-      "position": [60, 1.1, 18],
+      "position": [70, 1.1, 25.5],
       "size": [6, 2.2, 4],
       "motion": "static",
       "color": "#ffffff",
