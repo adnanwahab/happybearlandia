@@ -290,6 +290,19 @@ const isGalleryRoute = () => {
 const sceneFileFromRoute = () =>
   `scene/${sceneIdFromRoute()}.json`;
 
+const CONVERSATION_INTERACTION_RANGE =
+  5;
+
+const CONVERSATION_SCENE_EVENT_NAME =
+  "hbl:conversation-scene";
+
+const CONVERSATION_PROXIMITY_EVENT_NAME =
+  "hbl:conversation-proximity";
+
+window.__hblDialogActive =
+  window.__hblDialogActive ===
+  true;
+
 const configureRotatingLightsForScene =
 (sceneData) => {
   const sceneObjects =
@@ -2067,8 +2080,6 @@ function getThreeObjectForBody(
         0;
 
       if (
-        sceneObject?.id ===
-          "glb-vip-room-right-couch" &&
         Array.isArray(
           sceneObject.rotation
         ) &&
@@ -3312,6 +3323,146 @@ if (!isGalleryRoute()) {
       bodyIndex
     ) ??
     `body_${bodyIndex}`;
+
+  const conversationNpcs =
+    sceneData.objects.filter(
+      object =>
+        Array.isArray(
+          object.conversations
+        ) &&
+        object.conversations.length >
+          0
+    );
+
+  const conversationBodiesByNpcId =
+    new Map(
+      conversationNpcs
+        .map(npc => [
+          npc.id,
+          bodies.get(npc.id) ??
+            null,
+        ])
+        .filter(
+          ([, body]) => body !== null
+        )
+    );
+
+  const publishedConversationScene = {
+    sceneId: sceneIdFromRoute(),
+    range:
+      CONVERSATION_INTERACTION_RANGE,
+    npcs: conversationNpcs.map(
+      npc => ({
+        id: npc.id,
+        conversations:
+          npc.conversations,
+      })
+    ),
+  };
+
+  window.__hblConversationScene =
+    publishedConversationScene;
+
+  window.dispatchEvent(
+    new CustomEvent(
+      CONVERSATION_SCENE_EVENT_NAME,
+      {
+        detail:
+          publishedConversationScene,
+      }
+    )
+  );
+
+  let currentNearbyConversationNpcId =
+    null;
+
+  const publishConversationProximity =
+  (npcId) => {
+    const payload = {
+      npcId,
+      range:
+        CONVERSATION_INTERACTION_RANGE,
+    };
+
+    window.__hblConversationProximity =
+      payload;
+
+    window.dispatchEvent(
+      new CustomEvent(
+        CONVERSATION_PROXIMITY_EVENT_NAME,
+        {
+          detail: payload,
+        }
+      )
+    );
+  };
+
+  const updateConversationProximity =
+  () => {
+    if (!character) {
+      return;
+    }
+
+    const playerPosition =
+      wrapVec3(
+        character.GetPosition()
+      );
+
+    let nearestNpcId =
+      null;
+
+    let nearestDistance =
+      Number.POSITIVE_INFINITY;
+
+    for (const npc of conversationNpcs) {
+      const npcBody =
+        conversationBodiesByNpcId.get(
+          npc.id
+        );
+
+      if (!npcBody) {
+        continue;
+      }
+
+      const npcPosition =
+        wrapVec3(
+          npcBody.GetPosition()
+        );
+
+      const distance =
+        playerPosition.distanceTo(
+          npcPosition
+        );
+
+      if (
+        distance <=
+          CONVERSATION_INTERACTION_RANGE &&
+        distance < nearestDistance
+      ) {
+        nearestDistance =
+          distance;
+
+        nearestNpcId =
+          npc.id;
+      }
+    }
+
+    if (
+      nearestNpcId !==
+      currentNearbyConversationNpcId
+    ) {
+      currentNearbyConversationNpcId =
+        nearestNpcId;
+
+      publishConversationProximity(
+        nearestNpcId
+      );
+    }
+  };
+
+  publishConversationProximity(
+    null
+  );
 
   const droppedFruitByTreeId =
     new Map();
@@ -4851,11 +5002,23 @@ if (!isGalleryRoute()) {
       );
 
 
+    const isConversationDialogOpen =
+      window.__hblDialogActive ===
+      true;
+
     handleInput(
 
-      cameraDirectionV,
+      isConversationDialogOpen
+        ? new THREE.Vector3(
+            0,
+            0,
+            0
+          )
+        : cameraDirectionV,
 
-      input.jump,
+      isConversationDialogOpen
+        ? false
+        : input.jump,
 
       deltaTime
     );
@@ -4871,6 +5034,7 @@ if (!isGalleryRoute()) {
       deltaTime
     );
 
+    updateConversationProximity();
 
     sendLocalPlayerState();
 

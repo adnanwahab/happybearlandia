@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "https://esm.sh/react@19.1.1";
+import React, { useEffect, useMemo, useRef, useState } from "https://esm.sh/react@19.1.1";
 import "./index.js";
 
 const h = React.createElement;
@@ -195,8 +195,324 @@ function ScreenshotGallery() {
   );
 }
 
+function getFirstConversation(npc) {
+  if (!npc || !Array.isArray(npc.conversations) || npc.conversations.length === 0) {
+    return null;
+  }
+
+  return npc.conversations[0] ?? null;
+}
+
 function GameplayOverlay() {
-  return null;
+  const [conversationScene, setConversationScene] = useState(
+    () => window.__hblConversationScene ?? { npcs: [], range: 5 },
+  );
+
+  const [nearbyNpcId, setNearbyNpcId] = useState(
+    () => window.__hblConversationProximity?.npcId ?? null,
+  );
+
+  const [activeNpcId, setActiveNpcId] = useState(null);
+  const [activeConversationId, setActiveConversationId] = useState(null);
+  const [currentNodeId, setCurrentNodeId] = useState(null);
+
+  const lastAutoOpenedNpcIdRef = useRef(null);
+
+  const npcById = useMemo(() => {
+    const map = new Map();
+
+    for (const npc of conversationScene?.npcs ?? []) {
+      if (npc?.id) {
+        map.set(npc.id, npc);
+      }
+    }
+
+    return map;
+  }, [conversationScene]);
+
+  const activeNpc = activeNpcId ? npcById.get(activeNpcId) ?? null : null;
+  const activeConversation = useMemo(() => {
+    if (!activeNpc) {
+      return null;
+    }
+
+    return getFirstConversation(activeNpc);
+  }, [activeNpc]);
+
+  const currentNode = useMemo(() => {
+    if (!activeConversation || !currentNodeId) {
+      return null;
+    }
+
+    return activeConversation.tree?.[currentNodeId] ?? null;
+  }, [activeConversation, currentNodeId]);
+
+  const dialogChoices = Array.isArray(currentNode?.choices) ? currentNode.choices : [];
+
+  function setDialogActiveFlag(active) {
+    window.__hblDialogActive = active === true;
+  }
+
+  function closeConversation() {
+    setActiveNpcId(null);
+    setActiveConversationId(null);
+    setCurrentNodeId(null);
+    setDialogActiveFlag(false);
+  }
+
+  function openConversationForNpc(npcId) {
+    const npc = npcById.get(npcId);
+    const conversation = getFirstConversation(npc);
+
+    if (!npc || !conversation || !conversation.start) {
+      return false;
+    }
+
+    setActiveNpcId(npcId);
+    setActiveConversationId(conversation.id ?? `${npcId}-conversation`);
+    setCurrentNodeId(conversation.start);
+    setDialogActiveFlag(true);
+
+    return true;
+  }
+
+  function chooseDialogOption(choiceIndex) {
+    const choice = dialogChoices[choiceIndex];
+
+    if (!choice) {
+      return;
+    }
+
+    const nextNodeId = choice.next;
+
+    if (!nextNodeId || !activeConversation?.tree?.[nextNodeId]) {
+      closeConversation();
+      return;
+    }
+
+    setCurrentNodeId(nextNodeId);
+  }
+
+  useEffect(() => {
+    function handleConversationSceneEvent(event) {
+      if (event?.detail) {
+        setConversationScene(event.detail);
+      }
+    }
+
+    function handleConversationProximityEvent(event) {
+      setNearbyNpcId(event?.detail?.npcId ?? null);
+    }
+
+    window.addEventListener("hbl:conversation-scene", handleConversationSceneEvent);
+    window.addEventListener("hbl:conversation-proximity", handleConversationProximityEvent);
+
+    return () => {
+      window.removeEventListener("hbl:conversation-scene", handleConversationSceneEvent);
+      window.removeEventListener("hbl:conversation-proximity", handleConversationProximityEvent);
+      setDialogActiveFlag(false);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!nearbyNpcId) {
+      lastAutoOpenedNpcIdRef.current = null;
+
+      if (activeNpcId) {
+        closeConversation();
+      }
+
+      return;
+    }
+
+    if (activeNpcId && activeNpcId !== nearbyNpcId) {
+      closeConversation();
+      return;
+    }
+
+    if (!activeNpcId && lastAutoOpenedNpcIdRef.current !== nearbyNpcId) {
+      const opened = openConversationForNpc(nearbyNpcId);
+
+      if (opened) {
+        lastAutoOpenedNpcIdRef.current = nearbyNpcId;
+      }
+    }
+  }, [nearbyNpcId, activeNpcId, npcById]);
+
+  useEffect(() => {
+    if (!activeConversationId) {
+      return;
+    }
+
+    function onKeyDown(event) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeConversation();
+        return;
+      }
+
+      const index = Number.parseInt(event.key, 10);
+
+      if (!Number.isInteger(index) || index < 1 || index > 9) {
+        return;
+      }
+
+      event.preventDefault();
+      chooseDialogOption(index - 1);
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [activeConversationId, dialogChoices, activeConversation]);
+
+  useEffect(() => {
+    if (activeConversationId && !currentNode) {
+      closeConversation();
+    }
+  }, [activeConversationId, currentNode]);
+
+  const nearbyPromptVisible = nearbyNpcId && !activeConversationId;
+
+  return h(
+    React.Fragment,
+    null,
+    nearbyPromptVisible
+      ? h(
+          "div",
+          {
+            style: {
+              position: "fixed",
+              left: "50%",
+              bottom: "86px",
+              transform: "translateX(-50%)",
+              padding: "8px 12px",
+              background: "rgba(0, 0, 0, 0.75)",
+              border: "1px solid rgba(255,255,255,0.35)",
+              borderRadius: "8px",
+              color: "#f8fafc",
+              fontSize: "13px",
+              letterSpacing: "0.2px",
+              zIndex: 10003,
+              pointerEvents: "none",
+            },
+          },
+          "Bear nearby... starting conversation",
+        )
+      : null,
+    activeConversationId && currentNode
+      ? h(
+          "div",
+          {
+            style: {
+              position: "fixed",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "rgba(2, 6, 23, 0.55)",
+              zIndex: 10004,
+            },
+          },
+          h(
+            "div",
+            {
+              style: {
+                width: "min(760px, 92vw)",
+                background: "linear-gradient(180deg, #0f172a, #111827)",
+                color: "#e2e8f0",
+                border: "1px solid rgba(148, 163, 184, 0.45)",
+                borderRadius: "14px",
+                boxShadow: "0 18px 70px rgba(0,0,0,0.45)",
+                padding: "18px",
+              },
+            },
+            h(
+              "div",
+              {
+                style: {
+                  marginBottom: "10px",
+                  color: "#93c5fd",
+                  fontWeight: 600,
+                },
+              },
+              currentNode.speaker ?? "Bear",
+            ),
+            h(
+              "div",
+              {
+                style: {
+                  lineHeight: 1.45,
+                  fontSize: "15px",
+                  marginBottom: "14px",
+                  whiteSpace: "pre-wrap",
+                },
+              },
+              currentNode.text ?? "...",
+            ),
+            dialogChoices.length > 0
+              ? h(
+                  "div",
+                  {
+                    style: {
+                      display: "grid",
+                      gap: "8px",
+                    },
+                  },
+                  ...dialogChoices.map((choice, index) =>
+                    h(
+                      "button",
+                      {
+                        key: choice.id ?? `${activeConversationId}-${currentNodeId}-${index}`,
+                        type: "button",
+                        onClick: () => chooseDialogOption(index),
+                        style: {
+                          textAlign: "left",
+                          background: "rgba(30, 41, 59, 0.92)",
+                          color: "#f8fafc",
+                          border: "1px solid rgba(148, 163, 184, 0.55)",
+                          borderRadius: "9px",
+                          padding: "10px 12px",
+                          cursor: "pointer",
+                        },
+                      },
+                      `${index + 1}. ${choice.text ?? "Continue"}`,
+                    ),
+                  ),
+                )
+              : h(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: closeConversation,
+                    style: {
+                      background: "#2563eb",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "9px",
+                      padding: "10px 14px",
+                      cursor: "pointer",
+                    },
+                  },
+                  currentNode.end ? "End conversation" : "Close",
+                ),
+            h(
+              "div",
+              {
+                style: {
+                  marginTop: "12px",
+                  color: "#94a3b8",
+                  fontSize: "12px",
+                },
+              },
+              "Press 1-9 to choose • Esc to close",
+            ),
+          ),
+        )
+      : null,
+  );
 }
 
 export default function App() {
