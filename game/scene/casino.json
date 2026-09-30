@@ -300,7 +300,7 @@
       "id": "glb-casino-carpet",
       "type": "box",
       "position": [0, 0.06, 0],
-      "size": [158, 0.12, 89],
+      "size": [158, 0.12, 80],
       "motion": "static",
       "color": "#ffffff",
       "modelUrl": "/data/glb/casino_carpet_plane_2x1.glb"
