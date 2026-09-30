@@ -444,6 +444,14 @@ const sceneModelUrlAliases =
       "/data/glb/casino perimeter wall.glb",
       "/data/glb/casino_perimeter_walls.glb",
     ],
+    [
+      "/data/glb/security room desk.glb",
+      "/data/glb/security_room_desk.glb",
+    ],
+    [
+      "/data/glb/blackhack_table.glb",
+      "/data/glb/blackjack_table.glb",
+    ],
   ]);
 
 let inventoryOverlay = null;
