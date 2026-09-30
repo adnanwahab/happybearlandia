@@ -134,16 +134,6 @@
       "color": "#f7f0d0"
     },
     {
-      "id": "divider-men-women-restrooms",
-      "type": "box",
-      "position": [-55, 4, -31],
-      "size": [1, 8, 17],
-      "motion": "static",
-      "color": "#f7f0d0"
-    },
-
-
-    {
       "id": "glb-casino-cashier-booth",
       "type": "box",
       "position": [35, 1.6, 12],
@@ -151,6 +141,15 @@
       "motion": "static",
       "color": "#ffffff",
       "modelUrl": "/data/glb/casino_cashier_booth.glb"
+    },
+    {
+      "id": "glb-cashier-rope-barrier",
+      "type": "box",
+      "position": [35, 1, 20.5],
+      "size": [12, 2, 4],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/casino_rope_barrier_with_floor.glb"
     },
     {
       "id": "glb-security-room-desk",
@@ -164,7 +163,7 @@
     {
       "id": "glb-poker-table-clean",
       "type": "box",
-      "position": [0, 1, 0],
+      "position": [0, 1, 12],
       "size": [6, 2, 4],
       "motion": "static",
       "color": "#ffffff",
@@ -173,7 +172,7 @@
     {
       "id": "glb-poker-table",
       "type": "box",
-      "position": [15, 1, 0],
+      "position": [15, 1, 12],
       "size": [6, 2, 4],
       "motion": "static",
       "color": "#ffffff",
@@ -191,8 +190,8 @@
     {
       "id": "glb-roulette",
       "type": "box",
-      "position": [-15, 1, 0],
-      "size": [5, 2, 5],
+      "position": [-15, 1, 12],
+      "size": [10, 2, 5],
       "motion": "static",
       "color": "#ffffff",
       "modelUrl": "/data/glb/roulette_table_with_wheel.glb"
@@ -227,7 +226,7 @@
     {
       "id": "glb-tuxedo-bear-blackjack-1",
       "type": "box",
-      "position": [-22, 1.5, -6],
+      "position": [-22, 1.5, -6.5],
       "size": [2, 3, 2],
       "motion": "static",
       "color": "#ffffff",
@@ -236,7 +235,7 @@
     {
       "id": "glb-tuxedo-bear-blackjack-2",
       "type": "box",
-      "position": [0, 1.5, -6],
+      "position": [0, 1.5, -6.5],
       "size": [2, 3, 2],
       "motion": "static",
       "color": "#ffffff",
@@ -245,7 +244,7 @@
     {
       "id": "glb-tuxedo-bear-blackjack-3",
       "type": "box",
-      "position": [22, 1.5, -6],
+      "position": [22, 1.5, -6.5],
       "size": [2, 3, 2],
       "motion": "static",
       "color": "#ffffff",
@@ -254,7 +253,7 @@
     {
       "id": "glb-tuxedo-bear-roulette",
       "type": "box",
-      "position": [-10, 1.5, 0],
+      "position": [-15, 1.5, 8],
       "size": [2, 3, 2],
       "motion": "static",
       "color": "#ffffff",
@@ -263,7 +262,7 @@
     {
       "id": "glb-tuxedo-bear-poker-clean",
       "type": "box",
-      "position": [-4, 1.5, 0],
+      "position": [0, 1.5, 8.5],
       "size": [2, 3, 2],
       "motion": "static",
       "color": "#ffffff",
@@ -272,7 +271,7 @@
     {
       "id": "glb-tuxedo-bear-poker",
       "type": "box",
-      "position": [19, 1.5, 0],
+      "position": [15, 1.5, 8.5],
       "size": [2, 3, 2],
       "motion": "static",
       "color": "#ffffff",
@@ -281,7 +280,7 @@
     {
       "id": "glb-tuxedo-bear-cashier",
       "type": "box",
-      "position": [35, 1.5, 9.5],
+      "position": [35, 1.5, 19.5],
       "size": [2, 3, 2],
       "motion": "static",
       "color": "#ffffff",
@@ -290,7 +289,7 @@
     {
       "id": "glb-tuxedo-bear-bar",
       "type": "box",
-      "position": [72, 1.5, 1.5],
+      "position": [68, 1.5, 12],
       "size": [2, 3, 2],
       "motion": "static",
       "color": "#ffffff",
@@ -310,7 +309,7 @@
       "id": "glb-casino-bar",
       "type": "box",
       "position": [68, 1.6, 2],
-      "size": [16, 3.2, 10],
+      "size": [24, 3.2, 18],
       "motion": "static",
       "color": "#ffffff",
       "modelUrl": "/data/glb/casino_bar.glb"
@@ -396,6 +395,15 @@
       "motion": "static",
       "color": "#ffffff",
       "modelUrl": "/data/glb/lounge_grand_piano.glb"
+    },
+    {
+      "id": "glb-lounge-piano-carpet",
+      "type": "box",
+      "position": [70, 1.1, 25.5],
+      "size": [8, 0.12, 6],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/lounge_piano_carpet.glb"
     },
     {
       "id": "glb-plant-nw-1",
