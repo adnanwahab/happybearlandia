@@ -12,6 +12,7 @@
     "@aws-sdk/client-s3": "^3.1136.0",
     "@headlessui/react": "^2.2.10",
     "bun-plugin-tailwind": "^0.1.2",
+    "jolt-physics": "^1.1.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-router": "^8.4.0",

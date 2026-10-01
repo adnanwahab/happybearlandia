@@ -108,7 +108,7 @@ export function validateSceneConversations(data) {
 
 export async function loadSceneConversations(sceneId) {
   const response = await fetch(
-    `./conversations/${sceneId}.json`
+    `/game/conversations/${sceneId}.json`
   );
 
   if (response.status === 404) {

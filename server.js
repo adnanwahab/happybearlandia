@@ -2,7 +2,13 @@ import { serve } from "bun";
 import { mkdir, readdir } from "node:fs/promises";
 import { validateScene } from "./game/scene-loader.js";
 import { join, normalize, relative } from "node:path";
+import { fileURLToPath } from "node:url";
 
+const projectRoot = normalize(fileURLToPath(new URL(".", import.meta.url)));
+// const gameRoot = normalize(join(projectRoot, "game"));
+// const toolsRoot = normalize(join(projectRoot, "tools"));
+// const dataRoot = normalize(join(projectRoot, "data"));
+//
 const gameRoot = normalize("./game");
 const toolsRoot = normalize("./tools");
 const dataRoot = normalize("./data");
@@ -22,7 +28,10 @@ function getSceneIdFromPath(pathname, prefix) {
     return null;
   }
 
-  const remainder = pathname.slice(prefix.length).replace(/^\/+/, "");
+  const remainder = pathname
+    .slice(prefix.length)
+    .replace(/^\/+/, "")
+    .replace(/\/+$/, "");
 
   if (!remainder || remainder.includes("/")) {
     return null;
@@ -178,6 +187,7 @@ const server = serve({
   routes: {
     "/": homepage,
     "/game": gamepage,
+    "/game/casino": gamepage,
   },
 
   async fetch(request, server) {
@@ -423,25 +433,11 @@ const server = serve({
     const gameSceneId = getSceneIdFromPath(url.pathname, "/game/");
 
     if (gameSceneId) {
-      const sceneFilePath = getSceneFilePath(gameSceneId);
+      return gamepage;
+    }
 
-      if (!isPathInside(gameRoot, sceneFilePath)) {
-        return new Response("Not found", { status: 404 });
-      }
-
-      const sceneFile = Bun.file(sceneFilePath);
-
-      if (!(await sceneFile.exists())) {
-        return new Response("Scene not found", { status: 404 });
-      }
-
-      const gameIndex = Bun.file(join(gameRoot, "index.html"));
-
-      if (await gameIndex.exists()) {
-        return new Response(gameIndex);
-      }
-
-      return new Response("Not found", { status: 404 });
+    if (url.pathname === "/game/") {
+      return gamepage;
     }
 
     const editSceneId =
@@ -568,6 +564,7 @@ const server = serve({
       url.pathname === "/game" ||
       url.pathname.startsWith("/game/")
     ) {
+      console.log('hello world', url.pathname)
       const relativePath =
         decodeURIComponent(
           url.pathname

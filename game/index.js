@@ -1,14 +1,11 @@
 import { loadScene, loadSceneConversations } from './scene-loader.js';
 import { DebugRecorder } from './debug-recorder.js';
-import initJolt from 'https://www.unpkg.com/jolt-physics/dist/jolt-physics.wasm-compat.js';
+import initJolt from 'jolt-physics/wasm-compat';
 import * as THREE from "three";
 import {WebGPURenderer} from "three/webgpu";
-import { OrbitControls } from
-  "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js";
-import { OBJLoader } from
-  "https://unpkg.com/three@0.160.0/examples/jsm/loaders/OBJLoader.js";
-import { GLTFLoader } from
-  "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 // Graphics variables
 var container, stats;
 var camera, controls, scene, renderer;
@@ -451,7 +448,7 @@ const isGalleryRoute = () => {
 };
 
 const sceneFileFromRoute = () =>
-  `scene/${sceneIdFromRoute()}.json`;
+  `/api/scenes/${sceneIdFromRoute()}`;
 
 const CONVERSATION_INTERACTION_RANGE =
   5;
@@ -575,22 +572,13 @@ const FRUIT_DEFINITIONS = {
 };
 
 const treeModelUrl =
-  new URL(
-    "../data/obj/tree.obj",
-    import.meta.url
-  ).toString();
+  "/data/obj/tree.obj";
 
 const happyBearModelUrl =
-  new URL(
-    "../data/glb/bear-player.glb",
-    import.meta.url
-  ).toString();
+  "/data/glb/bear-player.glb";
 
 const lightSwitchOnModelUrl =
-  new URL(
-    "../data/obj/light_switch_on.obj",
-    import.meta.url
-  ).toString();
+  "/data/obj/light_switch_on.obj";
 
 let treeModelTemplate = null;
 let treeModelTemplateSize = null;
@@ -928,10 +916,13 @@ function modelTemplateUrlFromSceneUrl(
       sceneUrl
     ) ?? sceneUrl;
 
-  return new URL(
-    aliasedSceneUrl,
-    import.meta.url
-  ).toString();
+  if (/^(?:https?:)?\/\//i.test(aliasedSceneUrl)) {
+    return aliasedSceneUrl;
+  }
+
+  return aliasedSceneUrl.startsWith("/")
+    ? aliasedSceneUrl
+    : `/${aliasedSceneUrl.replace(/^\.?\/+/, "")}`;
 }
 
 function loadGlbModel(
@@ -2611,7 +2602,7 @@ function getThreeObjectForBody(
 if (!isGalleryRoute()) {
   Promise.all([
     initJolt(),
-    loadScene(new URL(`./${sceneFileFromRoute()}`, import.meta.url)),
+    loadScene(sceneFileFromRoute()),
     loadSceneConversations(sceneIdFromRoute()),
     loadTreeModel(),
     loadHappyBearModel(),
@@ -2785,7 +2776,7 @@ if (!isGalleryRoute()) {
 
   const audio =
     new Audio(
-      new URL('./sound.m4a', import.meta.url).href
+      "/game/sound.m4a"
     );
 
 

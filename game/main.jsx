@@ -1,11 +1,8 @@
-import { createRoot } from "react-dom/client";
-//import App from "./App.jsx";
-// import "./index.css";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-// import "./index.js";
+import { createRoot } from "react-dom/client";
 
-// const h = React.createElement;
+import "./index.js";
 
 function isGalleryRoute(pathname) {
   return pathname === "/game" || pathname === "/game/";
@@ -58,13 +55,15 @@ function ScreenshotGallery() {
     return files.map(file => {
       const sceneId = sceneIdFromScreenshotName(file.name);
       return <article key={file.name}>
+        <a href={`/game/${sceneId}`}>
         <img src={file.url} alt={file.name} loading="lazy" style={{
           width: "100%",
           height: "180px",
           objectFit: "cover",
           display: "block",
           background: "#020617",
-        }} />
+          }} />
+          </a>
       </article>
 
 
@@ -439,14 +438,29 @@ function GameplayOverlay() {
   );
 }
 
+import { Routes, Route } from "react-router";
+
+
 export default function App() {
   const gallery = isGalleryRoute(window.location.pathname);
+
   return gallery ? <ScreenshotGallery /> : <GameplayOverlay />;
+
+  return <StrictMode>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/game" element={<ScreenshotGallery/>} />
+        <Route path="/game/:sceneId" element={<GameplayOverlay/>} />
+      </Routes>
+    </BrowserRouter>
+  </StrictMode>;
+
 }
 
 
 //function App() { }
-
+import { StrictMode } from "react";
+import { BrowserRouter } from "react-router";
 createRoot(document.getElementById("root")).render(
   React.createElement(App)
 );
