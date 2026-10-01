@@ -1119,6 +1119,288 @@
           }
         }
       ]
+    },
+    {
+      "id": "glb-sitting-bear-bar-lounge-couch-1",
+      "conversations": [
+        {
+          "id": "lounge-couch-1-main",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "Lounge Guest",
+              "text": "Best seat in the bar. From here you can watch who celebrates and who is pretending.",
+              "choices": [
+                {
+                  "id": "start-choice-1",
+                  "text": "See anything unusual tonight?",
+                  "next": "unusual"
+                },
+                {
+                  "id": "start-choice-2",
+                  "text": "Who should I pay attention to?",
+                  "next": "attention"
+                },
+                {
+                  "id": "start-choice-3",
+                  "text": "Enjoy your night.",
+                  "next": "goodbye"
+                }
+              ]
+            },
+            "unusual": {
+              "speaker": "Lounge Guest",
+              "text": "A few guests passed through staff doors they should not know about.",
+              "end": true
+            },
+            "attention": {
+              "speaker": "Lounge Guest",
+              "text": "Watch who talks quietly with security and loudly with nobody else.",
+              "end": true
+            },
+            "goodbye": {
+              "speaker": "Lounge Guest",
+              "text": "Luck to you. Keep your head up and your chips close.",
+              "end": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "glb-sitting-bear-bar-lounge-couch-2",
+      "conversations": [
+        {
+          "id": "lounge-couch-2-main",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "Lounge Guest",
+              "text": "I come here for quiet, but this casino never stays quiet for long.",
+              "choices": [
+                {
+                  "id": "start-choice-1",
+                  "text": "What changed tonight?",
+                  "next": "changed"
+                },
+                {
+                  "id": "start-choice-2",
+                  "text": "Any advice for a newcomer?",
+                  "next": "advice"
+                },
+                {
+                  "id": "start-choice-3",
+                  "text": "I will let you relax.",
+                  "next": "relax"
+                }
+              ]
+            },
+            "changed": {
+              "speaker": "Lounge Guest",
+              "text": "The staff floor has had more traffic than the gaming floor. That is rarely good.",
+              "end": true
+            },
+            "advice": {
+              "speaker": "Lounge Guest",
+              "text": "Ask polite questions and leave before answers get expensive.",
+              "end": true
+            },
+            "relax": {
+              "speaker": "Lounge Guest",
+              "text": "Appreciated. The lounge is one of the last calm corners left.",
+              "end": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "glb-sitting-bear-bar-lounge-couch-middle",
+      "conversations": [
+        {
+          "id": "lounge-couch-middle-main",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "Lounge Guest",
+              "text": "Middle couch, perfect sightline. Blackjack, cashier, staff doors — all in one glance.",
+              "choices": [
+                {
+                  "id": "start-choice-1",
+                  "text": "What do you watch first?",
+                  "next": "watch-first"
+                },
+                {
+                  "id": "start-choice-2",
+                  "text": "Who runs this place at night?",
+                  "next": "runs-night"
+                },
+                {
+                  "id": "start-choice-3",
+                  "text": "Thanks for the tip.",
+                  "next": "thanks"
+                }
+              ]
+            },
+            "watch-first": {
+              "speaker": "Lounge Guest",
+              "text": "Cashier windows. Money always tells you where the real story is.",
+              "end": true
+            },
+            "runs-night": {
+              "speaker": "Lounge Guest",
+              "text": "Officially management. Unofficially, whoever security greets before anyone else.",
+              "end": true
+            },
+            "thanks": {
+              "speaker": "Lounge Guest",
+              "text": "Anytime. Keep moving and you will keep learning.",
+              "end": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "glb-sitting-bear-vip-room-right-couch",
+      "conversations": [
+        {
+          "id": "vip-right-couch-main",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "VIP Guest",
+              "text": "This side of VIP is for people who already know the rules. Do you?",
+              "choices": [
+                {
+                  "id": "start-choice-1",
+                  "text": "Tell me one rule.",
+                  "next": "one-rule"
+                },
+                {
+                  "id": "start-choice-2",
+                  "text": "Who is meeting in VIP tonight?",
+                  "next": "who-meeting"
+                },
+                {
+                  "id": "start-choice-3",
+                  "text": "I will stay out of your way.",
+                  "next": "stay-out"
+                }
+              ]
+            },
+            "one-rule": {
+              "speaker": "VIP Guest",
+              "text": "Never ask for names; ask for timing. Timing keeps you safer.",
+              "end": true
+            },
+            "who-meeting": {
+              "speaker": "VIP Guest",
+              "text": "People with chips, people with access, and one person with neither.",
+              "end": true
+            },
+            "stay-out": {
+              "speaker": "VIP Guest",
+              "text": "Smart. Curiosity is welcome, but only in measured doses.",
+              "end": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "glb-sitting-bear-vip-room-left-couch",
+      "conversations": [
+        {
+          "id": "vip-left-couch-main",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "VIP Guest",
+              "text": "You are not the first to wander into VIP looking for answers.",
+              "choices": [
+                {
+                  "id": "start-choice-1",
+                  "text": "Did they find what they wanted?",
+                  "next": "find-wanted"
+                },
+                {
+                  "id": "start-choice-2",
+                  "text": "What should I avoid?",
+                  "next": "avoid"
+                },
+                {
+                  "id": "start-choice-3",
+                  "text": "Any safe path through this?",
+                  "next": "safe-path"
+                }
+              ]
+            },
+            "find-wanted": {
+              "speaker": "VIP Guest",
+              "text": "Some did. Most found more questions.",
+              "end": true
+            },
+            "avoid": {
+              "speaker": "VIP Guest",
+              "text": "Avoid promises from strangers and silence from friends.",
+              "end": true
+            },
+            "safe-path": {
+              "speaker": "VIP Guest",
+              "text": "Talk to the bartender first. Information there is cheaper than mistakes here.",
+              "end": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "glb-sitting-bear-lounge-piano",
+      "conversations": [
+        {
+          "id": "lounge-piano-main",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "Piano Listener",
+              "text": "The piano covers conversations better than any wall in this casino.",
+              "choices": [
+                {
+                  "id": "start-choice-1",
+                  "text": "Heard anything useful?",
+                  "next": "useful"
+                },
+                {
+                  "id": "start-choice-2",
+                  "text": "Why sit over here?",
+                  "next": "why-here"
+                },
+                {
+                  "id": "start-choice-3",
+                  "text": "I just like the music.",
+                  "next": "music"
+                }
+              ]
+            },
+            "useful": {
+              "speaker": "Piano Listener",
+              "text": "A conversation about shifting schedules in security — tonight, specifically.",
+              "end": true
+            },
+            "why-here": {
+              "speaker": "Piano Listener",
+              "text": "Because people confess near music. They think melody makes them hard to overhear.",
+              "end": true
+            },
+            "music": {
+              "speaker": "Piano Listener",
+              "text": "Then enjoy it while you can. Quiet moments are rare on this floor.",
+              "end": true
+            }
+          }
+        }
+      ]
     }
   ]
 }

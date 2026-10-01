@@ -1,5 +1,5 @@
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 import "./index.js";
@@ -234,15 +234,9 @@ function GameplayOverlay() {
     () => window.__hblConversationScene ?? { npcs: [], range: 5 },
   );
 
-  const [nearbyNpcId, setNearbyNpcId] = useState(
-    () => window.__hblConversationProximity?.npcId ?? null,
-  );
-
   const [activeNpcId, setActiveNpcId] = useState(null);
   const [activeConversationId, setActiveConversationId] = useState(null);
   const [currentNodeId, setCurrentNodeId] = useState(null);
-
-  const lastAutoOpenedNpcIdRef = useRef(null);
 
   const npcById = useMemo(() => {
     const map = new Map();
@@ -326,44 +320,29 @@ function GameplayOverlay() {
       }
     }
 
-    function handleConversationProximityEvent(event) {
-      setNearbyNpcId(event?.detail?.npcId ?? null);
+    function handleConversationInteractionEvent(event) {
+      const npcId = event?.detail?.npcId ?? null;
+
+      if (!npcId) {
+        return;
+      }
+
+      if (activeConversationId) {
+        return;
+      }
+
+      openConversationForNpc(npcId);
     }
 
     window.addEventListener("hbl:conversation-scene", handleConversationSceneEvent);
-    window.addEventListener("hbl:conversation-proximity", handleConversationProximityEvent);
+    window.addEventListener("hbl:conversation-interaction", handleConversationInteractionEvent);
 
     return () => {
       window.removeEventListener("hbl:conversation-scene", handleConversationSceneEvent);
-      window.removeEventListener("hbl:conversation-proximity", handleConversationProximityEvent);
+      window.removeEventListener("hbl:conversation-interaction", handleConversationInteractionEvent);
       setDialogActiveFlag(false);
     };
-  }, []);
-
-  useEffect(() => {
-    if (!nearbyNpcId) {
-      lastAutoOpenedNpcIdRef.current = null;
-
-      if (activeNpcId) {
-        closeConversation();
-      }
-
-      return;
-    }
-
-    if (activeNpcId && activeNpcId !== nearbyNpcId) {
-      closeConversation();
-      return;
-    }
-
-    if (!activeNpcId && lastAutoOpenedNpcIdRef.current !== nearbyNpcId) {
-      const opened = openConversationForNpc(nearbyNpcId);
-
-      if (opened) {
-        lastAutoOpenedNpcIdRef.current = nearbyNpcId;
-      }
-    }
-  }, [nearbyNpcId, activeNpcId, npcById]);
+  }, [activeConversationId, activeNpcId, npcById]);
 
   useEffect(() => {
     if (!activeConversationId) {
@@ -400,32 +379,8 @@ function GameplayOverlay() {
     }
   }, [activeConversationId, currentNode]);
 
-  const nearbyPromptVisible = nearbyNpcId && !activeConversationId;
-
-
   return (
     <>
-      {nearbyPromptVisible ? (
-        <div
-          style={{
-            position: "fixed",
-            left: "50%",
-            bottom: "86px",
-            transform: "translateX(-50%)",
-            padding: "8px 12px",
-            background: "rgba(0, 0, 0, 0.75)",
-            border: "1px solid rgba(255,255,255,0.35)",
-            borderRadius: "8px",
-            color: "#f8fafc",
-            fontSize: "13px",
-            letterSpacing: "0.2px",
-            zIndex: 10003,
-            pointerEvents: "none",
-          }}
-        >
-          Bear nearby... starting conversation
-        </div>
-      ) : null}
       {activeConversationId && currentNode ? (
         <div
           style={{

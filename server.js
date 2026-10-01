@@ -5,13 +5,9 @@ import { join, normalize, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const projectRoot = normalize(fileURLToPath(new URL(".", import.meta.url)));
-// const gameRoot = normalize(join(projectRoot, "game"));
-// const toolsRoot = normalize(join(projectRoot, "tools"));
-// const dataRoot = normalize(join(projectRoot, "data"));
-//
-const gameRoot = normalize("./game");
-const toolsRoot = normalize("./tools");
-const dataRoot = normalize("./data");
+const gameRoot = normalize(join(projectRoot, "game"));
+const toolsRoot = normalize(join(projectRoot, "tools"));
+const dataRoot = normalize(join(projectRoot, "data"));
 const sceneIdPattern = /^[a-zA-Z0-9_-]+$/;
 
 import homepage from './index.html'
@@ -611,7 +607,6 @@ const server = serve({
       url.pathname === "/game" ||
       url.pathname.startsWith("/game/")
     ) {
-      console.log('hello world', url.pathname)
       const relativePath =
         decodeURIComponent(
           url.pathname

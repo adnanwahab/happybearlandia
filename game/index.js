@@ -2,7 +2,6 @@ import { loadScene, loadSceneConversations } from './scene-loader.js';
 import { DebugRecorder } from './debug-recorder.js';
 import initJolt from 'jolt-physics/wasm-compat';
 import * as THREE from "three";
-import {WebGPURenderer} from "three/webgpu";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { TransformControls } from "three/addons/controls/TransformControls.js";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
@@ -298,6 +297,7 @@ const sceneObjectPointerDownState = {
   pointerId: null,
   clientX: 0,
   clientY: 0,
+  shiftKey: false,
 };
 
 const sceneObjectBoundsBox =
@@ -322,6 +322,15 @@ const TRANSFORM_SAVE_DEBOUNCE_MS =
 
 const DEFAULT_TRANSFORM_OBJECT_ID =
   "glb-tuxedo-bear-roulette";
+
+let conversationNpcIds =
+  new Set();
+
+const conversationInteractionLastTriggeredAtByNpcId =
+  new Map();
+
+const CONVERSATION_INTERACTION_COOLDOWN_MS =
+  700;
 
 function roundSceneNumber(
   value
@@ -352,6 +361,65 @@ function sceneObjectFromId(
   return editableSceneData.objects.find(
     object => object.id === objectId
   ) ?? null;
+}
+
+function publishConversationInteraction(
+  npcId,
+  trigger = "click"
+) {
+  if (
+    typeof npcId !== "string" ||
+    !npcId.trim()
+  ) {
+    return false;
+  }
+
+  if (
+    conversationNpcIds.size > 0 &&
+    !conversationNpcIds.has(npcId)
+  ) {
+    return false;
+  }
+
+  const now =
+    performance.now();
+
+  const previousAt =
+    conversationInteractionLastTriggeredAtByNpcId.get(
+      npcId
+    ) ?? -Infinity;
+
+  if (
+    now - previousAt <
+    CONVERSATION_INTERACTION_COOLDOWN_MS
+  ) {
+    return false;
+  }
+
+  conversationInteractionLastTriggeredAtByNpcId.set(
+    npcId,
+    now
+  );
+
+  const payload = {
+    npcId,
+    trigger,
+    at: Date.now(),
+  };
+
+  window.__hblConversationInteraction =
+    payload;
+
+  window.dispatchEvent(
+    new CustomEvent(
+      CONVERSATION_INTERACTION_EVENT_NAME,
+      {
+        detail: payload,
+      }
+    )
+  );
+
+  return true;
 }
 
 function sanitizedSceneForSave() {
@@ -836,12 +904,17 @@ function resetSceneObjectPointerDownState() {
     0;
   sceneObjectPointerDownState.clientY =
     0;
+  sceneObjectPointerDownState.shiftKey =
+    false;
 }
 
 function onSceneObjectPointerDown(
   event
 ) {
-  if (event.button !== 0) {
+  if (
+    Number.isFinite(event.button) &&
+    event.button !== 0
+  ) {
     return;
   }
 
@@ -863,17 +936,72 @@ function onSceneObjectPointerDown(
       ? event.clientY
       : 0;
 
-  onSceneObjectClick(event);
+  sceneObjectPointerDownState.shiftKey =
+    event.shiftKey === true;
 }
 
 function onSceneObjectPointerUp(
   event
 ) {
-  if (event.button !== 0) {
+  if (
+    Number.isFinite(event.button) &&
+    event.button !== 0
+  ) {
     return;
   }
 
+  const wasPointerDownActive =
+    sceneObjectPointerDownState.active;
+
+  const pointerIdMatches =
+    sceneObjectPointerDownState.pointerId ===
+      null ||
+    sceneObjectPointerDownState.pointerId ===
+      event.pointerId;
+
+  const upClientX =
+    Number.isFinite(event.clientX)
+      ? event.clientX
+      : sceneObjectPointerDownState.clientX;
+
+  const upClientY =
+    Number.isFinite(event.clientY)
+      ? event.clientY
+      : sceneObjectPointerDownState.clientY;
+
+  const deltaX =
+    upClientX -
+    sceneObjectPointerDownState.clientX;
+
+  const deltaY =
+    upClientY -
+    sceneObjectPointerDownState.clientY;
+
+  const dragDistance =
+    Math.hypot(deltaX, deltaY);
+
+  const shouldHandleAsClick =
+    wasPointerDownActive &&
+    pointerIdMatches &&
+    dragDistance <=
+      SCENE_OBJECT_CLICK_DRAG_THRESHOLD_PX;
+
+  const shiftKey =
+    event.shiftKey === true ||
+    sceneObjectPointerDownState.shiftKey;
+
   resetSceneObjectPointerDownState();
+
+  if (!shouldHandleAsClick) {
+    return;
+  }
+
+  onSceneObjectClick({
+    ...event,
+    clientX: upClientX,
+    clientY: upClientY,
+    shiftKey,
+  });
 }
 
 function findClickableSceneObjectByBoundsRaycast(
@@ -1006,6 +1134,10 @@ function onSceneObjectClick(
     }
 
     console.log(clickedObjectId);
+    publishConversationInteraction(
+      clickedObjectId,
+      "click"
+    );
   }
 }
 
@@ -1035,8 +1167,8 @@ const CONVERSATION_INTERACTION_RANGE =
 const CONVERSATION_SCENE_EVENT_NAME =
   "hbl:conversation-scene";
 
-const CONVERSATION_PROXIMITY_EVENT_NAME =
-  "hbl:conversation-proximity";
+const CONVERSATION_INTERACTION_EVENT_NAME =
+  "hbl:conversation-interaction";
 
 window.__hblDialogActive =
   window.__hblDialogActive ===
@@ -1636,11 +1768,9 @@ function onWindowResize() {
 async function initGraphics() {
 
   renderer =
-    new WebGPURenderer({
+    new THREE.WebGLRenderer({
       antialias: true,
     });
-
-  await renderer.init();
 
   renderer.setClearColor(
     0xbfd1e5
@@ -1743,7 +1873,7 @@ async function initGraphics() {
   controls =
     new OrbitControls(
       camera,
-      container
+      renderer.domElement
     );
 
   transformControls =
@@ -4429,18 +4559,15 @@ if (!isGalleryRoute()) {
           0
     );
 
-  const conversationBodiesByNpcId =
-    new Map(
-      conversationNpcs
-        .map(npc => [
-          npc.id,
-          bodies.get(npc.id) ??
-            null,
-        ])
-        .filter(
-          ([, body]) => body !== null
-        )
+
+  conversationNpcIds =
+    new Set(
+      conversationNpcs.map(
+        npc => npc.id
+      )
     );
+
+  conversationInteractionLastTriggeredAtByNpcId.clear();
 
   const publishedConversationScene = {
     sceneId: sceneIdFromRoute(),
@@ -4468,96 +4595,7 @@ if (!isGalleryRoute()) {
     )
   );
 
-  let currentNearbyConversationNpcId =
-    null;
 
-  const publishConversationProximity =
-  (npcId) => {
-    const payload = {
-      npcId,
-      range:
-        CONVERSATION_INTERACTION_RANGE,
-    };
-
-    window.__hblConversationProximity =
-      payload;
-
-    window.dispatchEvent(
-      new CustomEvent(
-        CONVERSATION_PROXIMITY_EVENT_NAME,
-        {
-          detail: payload,
-        }
-      )
-    );
-  };
-
-  const updateConversationProximity =
-  () => {
-    if (!character) {
-      return;
-    }
-
-    const playerPosition =
-      wrapVec3(
-        character.GetPosition()
-      );
-
-    let nearestNpcId =
-      null;
-
-    let nearestDistance =
-      Number.POSITIVE_INFINITY;
-
-    for (const npc of conversationNpcs) {
-      const npcBody =
-        conversationBodiesByNpcId.get(
-          npc.id
-        );
-
-      if (!npcBody) {
-        continue;
-      }
-
-      const npcPosition =
-        wrapVec3(
-          npcBody.GetPosition()
-        );
-
-      const distance =
-        playerPosition.distanceTo(
-          npcPosition
-        );
-
-      if (
-        distance <=
-          CONVERSATION_INTERACTION_RANGE &&
-        distance < nearestDistance
-      ) {
-        nearestDistance =
-          distance;
-
-        nearestNpcId =
-          npc.id;
-      }
-    }
-
-    if (
-      nearestNpcId !==
-      currentNearbyConversationNpcId
-    ) {
-      currentNearbyConversationNpcId =
-        nearestNpcId;
-
-      publishConversationProximity(
-        nearestNpcId
-      );
-    }
-  };
-
-  publishConversationProximity(
-    null
-  );
 
   const droppedFruitByTreeId =
     new Map();
@@ -5213,6 +5251,11 @@ if (!isGalleryRoute()) {
       objectIdFromBodyIndex(
         contactedBodyIndex
       );
+
+    publishConversationInteraction(
+      contactedObjectId,
+      "collision"
+    );
 
     if (
       contactedObjectId.startsWith(
@@ -6213,8 +6256,6 @@ if (!isGalleryRoute()) {
         deltaTime
       );
     }
-
-    updateConversationProximity();
 
     sendLocalPlayerState();
 
