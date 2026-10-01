@@ -324,18 +324,24 @@
       "id": "glb-security-room-desk",
       "type": "box",
       "position": [
-        74,
-        1.2,
+        70,
+        0,
         -36
       ],
       "size": [
-        8,
-        2.4,
-        4
+        16,
+        4.8,
+        8
+      ],
+      "rotation": [
+        -0.7071067811865475,
+        0,
+        0,
+        0.7071067811865476
       ],
       "motion": "static",
       "color": "#ffffff",
-      "modelUrl": "/data/glb/security_room_desk.glb"
+      "modelUrl": "/data/glb/security_desk_two_monitors.glb"
     },
     {
       "id": "glb-poker-table-clean",
@@ -511,9 +517,9 @@
       "id": "glb-tuxedo-bear-roulette",
       "type": "box",
       "position": [
-        -15,
-        1.5,
-        8
+        -10.044452,
+        4.520604,
+        -2.79305
       ],
       "size": [
         2,
@@ -522,7 +528,13 @@
       ],
       "motion": "static",
       "color": "#ffffff",
-      "modelUrl": "/data/glb/tuxedo_bear.glb"
+      "modelUrl": "/data/glb/tuxedo_bear.glb",
+      "rotation": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
       "id": "glb-tuxedo-bear-poker-clean",
@@ -670,7 +682,7 @@
       ],
       "motion": "static",
       "color": "#ffffff",
-      "modelUrl": "/data/glb/sitting_bear_no_couch.glb"
+      "modelUrl": "/data/glb/bear-player-sitting.glb"
     },
     {
       "id": "glb-bar-lounge-couch-2",
@@ -716,7 +728,7 @@
       ],
       "motion": "static",
       "color": "#ffffff",
-      "modelUrl": "/data/glb/sitting_bear_no_couch.glb"
+      "modelUrl": "/data/glb/bear-player-sitting.glb"
     },
     {
       "id": "glb-bar-lounge-couch-middle",
@@ -762,7 +774,7 @@
       ],
       "motion": "static",
       "color": "#ffffff",
-      "modelUrl": "/data/glb/sitting_bear_no_couch.glb"
+      "modelUrl": "/data/glb/bear-player-sitting.glb"
     },
     {
       "id": "glb-bar-lounge-tables",
@@ -831,7 +843,7 @@
       ],
       "size": [
         2,
-        2,
+        10,
         2
       ],
       "rotation": [
@@ -842,7 +854,7 @@
       ],
       "motion": "static",
       "color": "#ffffff",
-      "modelUrl": "/data/glb/sitting_bear_no_couch.glb"
+      "modelUrl": "/data/glb/bear-player-sitting.glb"
     },
     {
       "id": "glb-vip-room-left-couch",
@@ -888,7 +900,7 @@
       ],
       "motion": "static",
       "color": "#ffffff",
-      "modelUrl": "/data/glb/sitting_bear_no_couch.glb"
+      "modelUrl": "/data/glb/bear-player-sitting.glb"
     },
     {
       "id": "glb-vip-room-gold-framed-portrait",
@@ -1010,6 +1022,80 @@
       "modelUrl": "/data/glb/security_lockers.glb"
     },
     {
+      "id": "glb-staff-room-black-storage-cabinet",
+      "type": "box",
+      "position": [
+        47.5,
+        1,
+        -38.7
+      ],
+      "size": [
+        1.4,
+        2,
+        1
+      ],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/staff_room_black_storage_cabinet.glb"
+    },
+    {
+      "id": "glb-staff-room-right-storage-cabinet",
+      "type": "box",
+      "position": [
+        56.2,
+        1,
+        -30
+      ],
+      "size": [
+        1.2,
+        2,
+        2
+      ],
+      "rotation": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865476
+      ],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/staff_room_right_storage_cabinet.glb"
+    },
+    {
+      "id": "glb-security-office-chair",
+      "type": "box",
+      "position": [
+        66,
+        1,
+        -30
+      ],
+      "size": [
+        2,
+        2,
+        2
+      ],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/security_office_chair.glb"
+    },
+    {
+      "id": "glb-security-room-top-left-cabinet",
+      "type": "box",
+      "position": [
+        60.5,
+        1,
+        -38.7
+      ],
+      "size": [
+        2,
+        2,
+        1
+      ],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/security_room_top_left_cabinet.glb"
+    },
+    {
       "id": "glb-lounge-grand-piano",
       "type": "box",
       "position": [
@@ -1030,24 +1116,18 @@
       "id": "glb-sitting-bear-lounge-piano",
       "type": "box",
       "position": [
-        68.5,
-        1,
-        25.5
+        70.5,
+        2,
+        28.5
       ],
       "size": [
         2,
         2,
         2
       ],
-      "rotation": [
-        0,
-        -0.7071067811865475,
-        0,
-        0.7071067811865476
-      ],
       "motion": "static",
       "color": "#ffffff",
-      "modelUrl": "/data/glb/sitting_bear_no_couch.glb"
+      "modelUrl": "/data/glb/bear-player-sitting.glb"
     },
     {
       "id": "glb-lounge-piano-carpet",

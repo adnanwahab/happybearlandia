@@ -4,6 +4,7 @@ import initJolt from 'jolt-physics/wasm-compat';
 import * as THREE from "three";
 import {WebGPURenderer} from "three/webgpu";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { TransformControls } from "three/addons/controls/TransformControls.js";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 // Graphics variables
@@ -292,6 +293,418 @@ const sceneObjectClickRaycaster =
 const sceneObjectClickPointer =
   new THREE.Vector2();
 
+let transformControls = null;
+let transformControlsHelper =
+  null;
+let editableSceneData = null;
+
+let editableSceneSaveTimeoutId = null;
+let editableSceneSaveInFlight = false;
+let editableSceneSavePending = false;
+
+const TRANSFORM_SAVE_DEBOUNCE_MS =
+  350;
+
+const DEFAULT_TRANSFORM_OBJECT_ID =
+  "glb-tuxedo-bear-roulette";
+
+function roundSceneNumber(
+  value
+) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return 0;
+  }
+
+  return Number(
+    number.toFixed(6)
+  );
+}
+
+function sceneObjectFromId(
+  objectId
+) {
+  if (
+    !editableSceneData ||
+    !Array.isArray(
+      editableSceneData.objects
+    )
+  ) {
+    return null;
+  }
+
+  return editableSceneData.objects.find(
+    object => object.id === objectId
+  ) ?? null;
+}
+
+function sanitizedSceneForSave() {
+  if (!editableSceneData) {
+    return null;
+  }
+
+  return {
+    ...editableSceneData,
+    objects:
+      editableSceneData.objects.map(
+        object => {
+          const {
+            conversations: _ignoredConversations,
+            ...persistableObject
+          } = object;
+
+          return persistableObject;
+        }
+      ),
+  };
+}
+
+async function persistSceneEditsNow() {
+  if (!editableSceneData) {
+    return;
+  }
+
+  if (editableSceneSaveInFlight) {
+    editableSceneSavePending =
+      true;
+    return;
+  }
+
+  editableSceneSaveInFlight =
+    true;
+
+  try {
+    const payload =
+      sanitizedSceneForSave();
+
+    if (!payload) {
+      return;
+    }
+
+    const response =
+      await fetch(
+        sceneFileFromRoute(),
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+    if (!response.ok) {
+      throw new Error(
+        `Unable to save scene edits (HTTP ${response.status})`
+      );
+    }
+  } catch (error) {
+    console.warn(
+      "Unable to save scene edits:",
+      error
+    );
+  } finally {
+    editableSceneSaveInFlight =
+      false;
+
+    if (editableSceneSavePending) {
+      editableSceneSavePending =
+        false;
+      persistSceneEditsNow();
+    }
+  }
+}
+
+function scheduleSceneEditsSave() {
+  if (editableSceneSaveTimeoutId) {
+    clearTimeout(
+      editableSceneSaveTimeoutId
+    );
+  }
+
+  editableSceneSaveTimeoutId =
+    setTimeout(() => {
+      editableSceneSaveTimeoutId =
+        null;
+      persistSceneEditsNow();
+    }, TRANSFORM_SAVE_DEBOUNCE_MS);
+}
+
+function syncJoltBodyFromThreeObject(
+  object3d
+) {
+  const body =
+    object3d?.userData?.body;
+
+  const JoltNamespace =
+    window.Jolt;
+
+  if (
+    !body ||
+    !bodyInterface ||
+    !JoltNamespace
+  ) {
+    return;
+  }
+
+  const quaternion =
+    object3d.quaternion
+      .clone()
+      .normalize();
+
+  const position =
+    new JoltNamespace.RVec3(
+      object3d.position.x,
+      object3d.position.y,
+      object3d.position.z
+    );
+
+  const rotation =
+    new JoltNamespace.Quat(
+      quaternion.x,
+      quaternion.y,
+      quaternion.z,
+      quaternion.w
+    );
+
+  bodyInterface.SetPositionAndRotation(
+    body.GetID(),
+    position,
+    rotation,
+    JoltNamespace.EActivation_Activate
+  );
+
+  JoltNamespace.destroy(
+    position
+  );
+
+  JoltNamespace.destroy(
+    rotation
+  );
+}
+
+function applyTransformEditToSceneObject(
+  object3d
+) {
+  const objectId =
+    object3d?.userData?.objectId;
+
+  if (
+    typeof objectId !== "string" ||
+    !objectId.trim()
+  ) {
+    return false;
+  }
+
+  const sceneObject =
+    sceneObjectFromId(objectId);
+
+  if (!sceneObject) {
+    return false;
+  }
+
+  let changed = false;
+
+  const nextPosition = [
+    roundSceneNumber(
+      object3d.position.x
+    ),
+    roundSceneNumber(
+      object3d.position.y
+    ),
+    roundSceneNumber(
+      object3d.position.z
+    ),
+  ];
+
+  if (
+    !Array.isArray(sceneObject.position) ||
+    sceneObject.position[0] !== nextPosition[0] ||
+    sceneObject.position[1] !== nextPosition[1] ||
+    sceneObject.position[2] !== nextPosition[2]
+  ) {
+    sceneObject.position =
+      nextPosition;
+    changed = true;
+  }
+
+  const quaternion =
+    object3d.quaternion
+      .clone()
+      .normalize();
+
+  const nextRotation = [
+    roundSceneNumber(
+      quaternion.x
+    ),
+    roundSceneNumber(
+      quaternion.y
+    ),
+    roundSceneNumber(
+      quaternion.z
+    ),
+    roundSceneNumber(
+      quaternion.w
+    ),
+  ];
+
+  if (
+    !Array.isArray(sceneObject.rotation) ||
+    sceneObject.rotation[0] !== nextRotation[0] ||
+    sceneObject.rotation[1] !== nextRotation[1] ||
+    sceneObject.rotation[2] !== nextRotation[2] ||
+    sceneObject.rotation[3] !== nextRotation[3]
+  ) {
+    sceneObject.rotation =
+      nextRotation;
+    changed = true;
+  }
+
+  if (
+    object3d.userData
+      ?.rotationOverride
+  ) {
+    object3d.userData
+      .rotationOverride
+      .copy(quaternion);
+  }
+
+  const baseScale =
+    object3d.userData
+      ?.transformBaseScale;
+
+  const baseSize =
+    object3d.userData
+      ?.transformBaseSize;
+
+  if (
+    baseScale &&
+    Array.isArray(baseSize) &&
+    baseSize.length === 3
+  ) {
+    const scaleRatioX =
+      object3d.scale.x /
+      Math.max(baseScale.x, 0.0001);
+
+    const scaleRatioY =
+      object3d.scale.y /
+      Math.max(baseScale.y, 0.0001);
+
+    const scaleRatioZ =
+      object3d.scale.z /
+      Math.max(baseScale.z, 0.0001);
+
+    const nextSize = [
+      roundSceneNumber(
+        Math.max(
+          0.001,
+          baseSize[0] * scaleRatioX
+        )
+      ),
+      roundSceneNumber(
+        Math.max(
+          0.001,
+          baseSize[1] * scaleRatioY
+        )
+      ),
+      roundSceneNumber(
+        Math.max(
+          0.001,
+          baseSize[2] * scaleRatioZ
+        )
+      ),
+    ];
+
+    if (
+      !Array.isArray(sceneObject.size) ||
+      sceneObject.size[0] !== nextSize[0] ||
+      sceneObject.size[1] !== nextSize[1] ||
+      sceneObject.size[2] !== nextSize[2]
+    ) {
+      sceneObject.size =
+        nextSize;
+      changed = true;
+    }
+  }
+
+  return changed;
+}
+
+function detachTransformControls() {
+  if (!transformControls) {
+    return;
+  }
+
+  transformControls.detach();
+
+  if (controls) {
+    controls.enabled = true;
+  }
+
+  if (editableSceneSaveTimeoutId) {
+    clearTimeout(
+      editableSceneSaveTimeoutId
+    );
+    editableSceneSaveTimeoutId =
+      null;
+    persistSceneEditsNow();
+  }
+}
+
+function findClickableSceneObjectById(
+  objectId
+) {
+  if (
+    typeof objectId !== "string" ||
+    !objectId.trim()
+  ) {
+    return null;
+  }
+
+  return clickableSceneObjectRoots.find(
+    object3d =>
+      object3d?.userData?.objectId === objectId
+  ) ?? null;
+}
+
+function attachTransformControlsToObject(
+  object3d
+) {
+  if (!transformControls || !object3d) {
+    return;
+  }
+
+  const objectId =
+    object3d.userData
+      ?.objectId;
+
+  const sceneObject =
+    sceneObjectFromId(objectId);
+
+  if (sceneObject) {
+    object3d.userData.transformBaseScale =
+      object3d.scale.clone();
+
+    object3d.userData.transformBaseSize =
+      [
+        sceneObject.size[0],
+        sceneObject.size[1],
+        sceneObject.size[2],
+      ];
+  }
+
+  transformControls.attach(
+    object3d
+  );
+
+  if (typeof objectId === "string") {
+    console.log(
+      `Editing ${objectId}. Transform mode keys: T=move, R=rotate, Y=scale, Esc=detach.`
+    );
+  }
+}
+
 // The update function
 var onExampleUpdate;
 
@@ -409,6 +822,10 @@ function onSceneObjectClick(
     );
 
   if (intersections.length === 0) {
+    if (event.shiftKey) {
+      detachTransformControls();
+    }
+
     return;
   }
 
@@ -426,6 +843,13 @@ function onSceneObjectClick(
       "string" &&
     clickedObjectId.trim()
   ) {
+    if (event.shiftKey) {
+      attachTransformControlsToObject(
+        clickedRoot
+      );
+      return;
+    }
+
     console.log(clickedObjectId);
   }
 }
@@ -1166,6 +1590,121 @@ async function initGraphics() {
       camera,
       container
     );
+
+  transformControls =
+    new TransformControls(
+      camera,
+      renderer.domElement
+    );
+
+  transformControls.setMode(
+    "translate"
+  );
+
+  transformControls.setSpace(
+    "world"
+  );
+
+  transformControls.setSize(
+    3.2
+  );
+
+  transformControls.showX =
+    true;
+
+  transformControls.showY =
+    true;
+
+  transformControls.showZ =
+    true;
+
+  transformControls.addEventListener(
+    "dragging-changed",
+    event => {
+      controls.enabled =
+        !event.value;
+
+      if (!event.value) {
+        persistSceneEditsNow();
+      }
+    }
+  );
+
+  transformControls.addEventListener(
+    "objectChange",
+    () => {
+      const editingObject =
+        transformControls.object;
+
+      if (!editingObject) {
+        return;
+      }
+
+      const changed =
+        applyTransformEditToSceneObject(
+          editingObject
+        );
+
+      syncJoltBodyFromThreeObject(
+        editingObject
+      );
+
+      if (changed) {
+        scheduleSceneEditsSave();
+      }
+    }
+  );
+
+  transformControlsHelper =
+    typeof transformControls.getHelper ===
+      "function"
+      ? transformControls.getHelper()
+      : null;
+
+  if (transformControlsHelper) {
+    transformControlsHelper.renderOrder =
+      10000;
+
+    transformControlsHelper.frustumCulled =
+      false;
+
+    transformControlsHelper.traverse(
+      child => {
+        if (!child.material) {
+          return;
+        }
+
+        const materials =
+          Array.isArray(
+            child.material
+          )
+            ? child.material
+            : [child.material];
+
+        for (const material of materials) {
+          material.depthTest =
+            false;
+
+          material.depthWrite =
+            false;
+
+          material.transparent =
+            true;
+
+          material.needsUpdate =
+            true;
+        }
+      }
+    );
+
+    scene.add(
+      transformControlsHelper
+    );
+  } else {
+    scene.add(
+      transformControls
+    );
+  }
 
   container.appendChild(
     renderer.domElement
@@ -2645,6 +3184,9 @@ if (!isGalleryRoute()) {
       return objectWithoutConversations;
     });
 
+  editableSceneData =
+    sceneData;
+
   await loadSceneGlbModels(
     sceneData
   );
@@ -3682,6 +4224,21 @@ if (!isGalleryRoute()) {
     bodyIdToObjectId.set(
       body.GetID().GetIndexAndSequenceNumber(),
       objectId
+    );
+  }
+
+  const defaultTransformObject =
+    findClickableSceneObjectById(
+      DEFAULT_TRANSFORM_OBJECT_ID
+    );
+
+  if (defaultTransformObject) {
+    attachTransformControlsToObject(
+      defaultTransformObject
+    );
+  } else {
+    console.warn(
+      `Default transform object not found: ${DEFAULT_TRANSFORM_OBJECT_ID}`
     );
   }
 
@@ -5541,6 +6098,40 @@ if (!isGalleryRoute()) {
 
     var keyCode =
       event.which;
+
+    if (
+      transformControls?.object
+    ) {
+      if (keyCode === 84) {
+        transformControls.setMode(
+          "translate"
+        );
+        event.preventDefault();
+        return;
+      }
+
+      if (keyCode === 82) {
+        transformControls.setMode(
+          "rotate"
+        );
+        event.preventDefault();
+        return;
+      }
+
+      if (keyCode === 89) {
+        transformControls.setMode(
+          "scale"
+        );
+        event.preventDefault();
+        return;
+      }
+
+      if (keyCode === 27) {
+        detachTransformControls();
+        event.preventDefault();
+        return;
+      }
+    }
 
     if (
       keyCode >= 49 &&
