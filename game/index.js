@@ -293,6 +293,16 @@ const sceneObjectClickRaycaster =
 const sceneObjectClickPointer =
   new THREE.Vector2();
 
+const sceneObjectPointerDownState = {
+  active: false,
+  pointerId: null,
+  clientX: 0,
+  clientY: 0,
+};
+
+const SCENE_OBJECT_CLICK_DRAG_THRESHOLD_PX =
+  6;
+
 let transformControls = null;
 let transformControlsHelper =
   null;
@@ -777,6 +787,135 @@ function findClickableSceneObjectRoot(
   return null;
 }
 
+function setSceneObjectClickPointerFromEvent(
+  event,
+  canvasRect
+) {
+  const fallbackX =
+    canvasRect.left +
+    canvasRect.width * 0.5;
+
+  const fallbackY =
+    canvasRect.top +
+    canvasRect.height * 0.5;
+
+  const clientX =
+    Number.isFinite(event?.clientX)
+      ? event.clientX
+      : fallbackX;
+
+  const clientY =
+    Number.isFinite(event?.clientY)
+      ? event.clientY
+      : fallbackY;
+
+  sceneObjectClickPointer.x =
+    ((clientX - canvasRect.left) /
+      canvasRect.width) *
+      2 -
+    1;
+
+  sceneObjectClickPointer.y =
+    -((clientY - canvasRect.top) /
+      canvasRect.height) *
+      2 +
+    1;
+}
+
+function resetSceneObjectPointerDownState() {
+  sceneObjectPointerDownState.active =
+    false;
+  sceneObjectPointerDownState.pointerId =
+    null;
+  sceneObjectPointerDownState.clientX =
+    0;
+  sceneObjectPointerDownState.clientY =
+    0;
+}
+
+function onSceneObjectPointerDown(
+  event
+) {
+  if (event.button !== 0) {
+    return;
+  }
+
+  sceneObjectPointerDownState.active =
+    true;
+
+  sceneObjectPointerDownState.pointerId =
+    Number.isFinite(event.pointerId)
+      ? event.pointerId
+      : null;
+
+  sceneObjectPointerDownState.clientX =
+    Number.isFinite(event.clientX)
+      ? event.clientX
+      : 0;
+
+  sceneObjectPointerDownState.clientY =
+    Number.isFinite(event.clientY)
+      ? event.clientY
+      : 0;
+}
+
+function onSceneObjectPointerUp(
+  event
+) {
+  if (event.button !== 0) {
+    return;
+  }
+
+  if (!sceneObjectPointerDownState.active) {
+    onSceneObjectClick(event);
+    return;
+  }
+
+  const samePointer =
+    sceneObjectPointerDownState.pointerId ===
+      null ||
+    !Number.isFinite(event.pointerId) ||
+    event.pointerId ===
+      sceneObjectPointerDownState.pointerId;
+
+  const upX =
+    Number.isFinite(event.clientX)
+      ? event.clientX
+      : sceneObjectPointerDownState.clientX;
+
+  const upY =
+    Number.isFinite(event.clientY)
+      ? event.clientY
+      : sceneObjectPointerDownState.clientY;
+
+  const deltaX =
+    upX -
+    sceneObjectPointerDownState.clientX;
+
+  const deltaY =
+    upY -
+    sceneObjectPointerDownState.clientY;
+
+  const movedDistance =
+    Math.hypot(deltaX, deltaY);
+
+  resetSceneObjectPointerDownState();
+
+  if (!samePointer) {
+    return;
+  }
+
+  if (
+    movedDistance >
+      SCENE_OBJECT_CLICK_DRAG_THRESHOLD_PX &&
+    !event.shiftKey
+  ) {
+    return;
+  }
+
+  onSceneObjectClick(event);
+}
+
 function onSceneObjectClick(
   event
 ) {
@@ -798,17 +937,10 @@ function onSceneObjectClick(
     return;
   }
 
-  sceneObjectClickPointer.x =
-    ((event.clientX - canvasRect.left) /
-      canvasRect.width) *
-      2 -
-    1;
-
-  sceneObjectClickPointer.y =
-    -((event.clientY - canvasRect.top) /
-      canvasRect.height) *
-      2 +
-    1;
+  setSceneObjectClickPointerFromEvent(
+    event,
+    canvasRect
+  );
 
   sceneObjectClickRaycaster.setFromCamera(
     sceneObjectClickPointer,
@@ -1711,8 +1843,23 @@ async function initGraphics() {
   );
 
   renderer.domElement.addEventListener(
-    "click",
-    onSceneObjectClick
+    "pointerdown",
+    onSceneObjectPointerDown
+  );
+
+  renderer.domElement.addEventListener(
+    "pointerup",
+    onSceneObjectPointerUp
+  );
+
+  renderer.domElement.addEventListener(
+    "pointercancel",
+    resetSceneObjectPointerDownState
+  );
+
+  renderer.domElement.addEventListener(
+    "pointerleave",
+    resetSceneObjectPointerDownState
   );
 
   window.addEventListener(
