@@ -1,0 +1,15 @@
+export const PokerState = {
+  WAITING: "waiting",
+  START_HAND: "start_hand",
+  DEAL_HOLE_CARDS: "deal_hole_cards",
+  PREFLOP_BETTING: "preflop_betting",
+  FLOP: "flop",
+  FLOP_BETTING: "flop_betting",
+  TURN: "turn",
+  TURN_BETTING: "turn_betting",
+  RIVER: "river",
+  RIVER_BETTING: "river_betting",
+  SHOWDOWN: "showdown",
+  PAYOUT: "payout",
+  COMPLETE: "complete",
+};

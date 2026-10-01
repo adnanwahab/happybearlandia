@@ -6,6 +6,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { TransformControls } from "three/addons/controls/TransformControls.js";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { createCasinoPokerController } from "./poker/CasinoPokerController.js";
 // Graphics variables
 var container, stats;
 var camera, controls, scene, renderer;
@@ -1172,6 +1173,10 @@ const CONVERSATION_INTERACTION_EVENT_NAME =
 
 window.__hblDialogActive =
   window.__hblDialogActive ===
+  true;
+
+window.__hblPokerDialogActive =
+  window.__hblPokerDialogActive ===
   true;
 
 const configureRotatingLightsForScene =
@@ -3659,6 +3664,9 @@ if (!isGalleryRoute()) {
   let lastSentQuaternion =
     new THREE.Quaternion();
 
+  let casinoPokerController =
+    null;
+
   let lastSentCrouched =
     null;
 
@@ -4595,6 +4603,69 @@ if (!isGalleryRoute()) {
     )
   );
 
+  if (
+    sceneIdFromRoute() ===
+    "casino"
+  ) {
+    const pokerTableObject =
+      findClickableSceneObjectById(
+        "glb-poker-table"
+      ) ??
+      findClickableSceneObjectById(
+        "glb-poker-table-clean"
+      );
+
+    if (pokerTableObject) {
+      const pokerTableObjectId =
+        pokerTableObject.userData
+          ?.objectId;
+
+      const pokerTableSceneObject =
+        sceneObjectFromId(
+          pokerTableObjectId
+        );
+
+      const tableHalfHeight =
+        pokerTableSceneObject
+          ?.size?.[1] !=
+          null
+          ? pokerTableSceneObject
+              .size[1] *
+            0.5
+          : 1;
+
+      const tableY =
+        pokerTableObject
+          .position.y +
+        tableHalfHeight +
+        0.03;
+
+      casinoPokerController =
+        createCasinoPokerController(
+          {
+            scene,
+            camera,
+            renderer,
+            controls,
+            tableCenter:
+              pokerTableObject.position.clone(),
+            tableY,
+            getPlayerPosition:
+              () => {
+                if (!character) {
+                  return null;
+                }
+
+                return wrapVec3(
+                  character.GetPosition()
+                );
+              },
+          }
+        );
+
+      await casinoPokerController.init();
+    }
+  }
 
 
   const droppedFruitByTreeId =
@@ -6177,9 +6248,17 @@ if (!isGalleryRoute()) {
       window.__hblDialogActive ===
       true;
 
+    const isPokerDialogOpen =
+      window.__hblPokerDialogActive ===
+      true;
+
+    const isInteractionDialogOpen =
+      isConversationDialogOpen ||
+      isPokerDialogOpen;
+
     handleInput(
 
-      isConversationDialogOpen
+      isInteractionDialogOpen
         ? new THREE.Vector3(
             0,
             0,
@@ -6187,7 +6266,7 @@ if (!isGalleryRoute()) {
           )
         : cameraDirectionV,
 
-      isConversationDialogOpen
+      isInteractionDialogOpen
         ? false
         : input.jump,
 
@@ -6234,7 +6313,7 @@ if (!isGalleryRoute()) {
           .length();
 
       const shouldPlayWalkAnimation =
-        !isConversationDialogOpen &&
+        !isInteractionDialogOpen &&
         horizontalSpeed >=
           PLAYER_WALK_SPEED_THRESHOLD;
 
@@ -6280,11 +6359,17 @@ if (!isGalleryRoute()) {
       );
 
 
-    camera.position.add(
+    if (!isPokerDialogOpen) {
+      camera.position.add(
 
-      newdPosition.sub(
-        oldPosition
-      )
+        newdPosition.sub(
+          oldPosition
+        )
+      );
+    }
+
+    casinoPokerController?.update(
+      deltaTime
     );
   };
 
@@ -6309,6 +6394,37 @@ if (!isGalleryRoute()) {
 
     var keyCode =
       event.which;
+
+    const isConversationDialogOpen =
+      window.__hblDialogActive ===
+      true;
+
+    if (
+      !isConversationDialogOpen &&
+      casinoPokerController?.onKeyDown(
+        event
+      )
+    ) {
+      return;
+    }
+
+    const isPokerDialogOpen =
+      window.__hblPokerDialogActive ===
+      true;
+
+    if (
+      isPokerDialogOpen &&
+      (
+        keyCode === 87 ||
+        keyCode === 83 ||
+        keyCode === 65 ||
+        keyCode === 68 ||
+        keyCode === 32
+      )
+    ) {
+      event.preventDefault();
+      return;
+    }
 
     if (
       transformControls?.object
@@ -6439,6 +6555,23 @@ if (!isGalleryRoute()) {
     var keyCode =
       event.which;
 
+    const isPokerDialogOpen =
+      window.__hblPokerDialogActive ===
+      true;
+
+    if (isPokerDialogOpen) {
+      input.forwardPressed =
+        false;
+      input.backwardPressed =
+        false;
+      input.leftPressed =
+        false;
+      input.rightPressed =
+        false;
+      input.jump =
+        false;
+      return;
+    }
 
     if (
       keyCode ==

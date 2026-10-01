@@ -713,8 +713,8 @@
       "type": "box",
       "position": [
         52,
-        1.1,
-        24
+        1.093817,
+        29.802353
       ],
       "size": [
         8,
@@ -723,9 +723,9 @@
       ],
       "rotation": [
         0,
-        0.7071067811865475,
+        0.707107,
         0,
-        0.7071067811865476
+        0.707107
       ],
       "motion": "static",
       "color": "#ffffff",
@@ -737,7 +737,7 @@
       "position": [
         52,
         2.604672,
-        24
+        30.613778
       ],
       "size": [
         2,
@@ -758,7 +758,7 @@
       "id": "glb-bar-lounge-couch-middle",
       "type": "box",
       "position": [
-        52,
+        57.964033,
         1.1,
         14
       ],
@@ -769,9 +769,9 @@
       ],
       "rotation": [
         0,
-        -0.7071067811865475,
+        -0.707107,
         0,
-        0.7071067811865476
+        0.707107
       ],
       "motion": "static",
       "color": "#ffffff",
@@ -781,7 +781,7 @@
       "id": "glb-sitting-bear-bar-lounge-couch-middle",
       "type": "box",
       "position": [
-        52,
+        58.032205,
         2.128784,
         14
       ],
@@ -804,9 +804,9 @@
       "id": "glb-bar-lounge-tables",
       "type": "box",
       "position": [
-        56,
-        1.1,
-        16
+        55.100112,
+        1.025081,
+        23.118919
       ],
       "size": [
         4,
@@ -815,7 +815,13 @@
       ],
       "motion": "static",
       "color": "#ffffff",
-      "modelUrl": "/data/glb/bar_lounge_tables.glb"
+      "modelUrl": "/data/glb/bar_lounge_tables.glb",
+      "rotation": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
       "id": "glb-bar-lounge-wooden-floor",
@@ -941,7 +947,7 @@
       ],
       "motion": "static",
       "color": "#ffffff",
-      "modelUrl": "/data/glb/gold_framed_portrait.glb"
+      "modelUrl": "/data/glb/gold_framed_portrait_wizard.glb"
     },
     {
       "id": "glb-vip-room-poker-table",
@@ -1039,80 +1045,6 @@
         -0.514954,
         0.462163
       ]
-    },
-    {
-      "id": "glb-staff-room-top-left-cabinet",
-      "type": "box",
-      "position": [
-        34.2,
-        1,
-        -38.7
-      ],
-      "size": [
-        3.8,
-        5.2,
-        3.8
-      ],
-      "motion": "static",
-      "color": "#ffffff",
-      "modelUrl": "/data/glb/staff_room_top_left_cabinet.glb"
-    },
-    {
-      "id": "glb-staff-room-left-desk",
-      "type": "box",
-      "position": [
-        37.2,
-        1,
-        -30.8
-      ],
-      "size": [
-        8.2,
-        4.4,
-        3.6
-      ],
-      "motion": "static",
-      "color": "#ffffff",
-      "modelUrl": "/data/glb/staff_room_left_desk.glb",
-      "rotation": [
-        0,
-        0,
-        0,
-        1
-      ]
-    },
-    {
-      "id": "glb-staff-room-door",
-      "type": "box",
-      "position": [
-        44,
-        0,
-        -21.5
-      ],
-      "size": [
-        6,
-        8,
-        1
-      ],
-      "motion": "static",
-      "color": "#ffffff",
-      "modelUrl": "/data/glb/staff_room_door.glb"
-    },
-    {
-      "id": "glb-staff-room-brass-wall-sconce",
-      "type": "box",
-      "position": [
-        39.5,
-        5,
-        -22.2
-      ],
-      "size": [
-        1.2,
-        2.2,
-        0.8
-      ],
-      "motion": "static",
-      "color": "#ffffff",
-      "modelUrl": "/data/glb/brass_wall_sconce.glb"
     },
     {
       "id": "glb-staff-room-security-lockers",
@@ -1811,9 +1743,9 @@
       "id": "glb-plant-lounge-2",
       "type": "box",
       "position": [
-        55,
-        1.4,
-        14
+        58.117889,
+        1.342226,
+        14.002853
       ],
       "size": [
         2.2,
@@ -1822,7 +1754,13 @@
       ],
       "motion": "static",
       "color": "#ffffff",
-      "modelUrl": "/data/glb/casino_potted_palm.glb"
+      "modelUrl": "/data/glb/casino_potted_palm.glb",
+      "rotation": [
+        0,
+        0,
+        0,
+        1
+      ]
     },
     {
       "id": "glb-plant-lounge-3",

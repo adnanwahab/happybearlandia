@@ -228,6 +228,20 @@ function getFirstConversation(npc) {
   return npc.conversations[0] ?? null;
 }
 
+const POKER_UI_EVENT_NAME = "hbl:poker-ui";
+const POKER_ACTION_EVENT_NAME = "hbl:poker-action";
+
+function emitPokerAction(action, amount = null) {
+  window.dispatchEvent(
+    new CustomEvent(POKER_ACTION_EVENT_NAME, {
+      detail: {
+        action,
+        amount,
+      },
+    }),
+  );
+}
+
 function GameplayOverlay() {
 
   const [conversationScene, setConversationScene] = useState(
@@ -237,6 +251,37 @@ function GameplayOverlay() {
   const [activeNpcId, setActiveNpcId] = useState(null);
   const [activeConversationId, setActiveConversationId] = useState(null);
   const [currentNodeId, setCurrentNodeId] = useState(null);
+
+  const [pokerUi, setPokerUi] = useState(
+    () =>
+      window.__hblPokerUi ?? {
+        active: false,
+        nearTable: false,
+        canSit: false,
+        canStand: false,
+        running: false,
+        state: "waiting",
+        message: "",
+        players: [],
+        communityCards: [],
+        humanCards: [],
+        pot: 0,
+        currentBet: 0,
+        callAmount: 0,
+        minRaiseTo: 0,
+        maxRaiseTo: 0,
+        suggestedRaiseTo: 0,
+        isHumanTurn: false,
+        availableActions: {
+          fold: false,
+          check: false,
+          call: false,
+          raise: false,
+        },
+      },
+  );
+
+  const [raiseToAmount, setRaiseToAmount] = useState(0);
 
   const npcById = useMemo(() => {
     const map = new Map();
@@ -345,6 +390,41 @@ function GameplayOverlay() {
   }, [activeConversationId, activeNpcId, npcById]);
 
   useEffect(() => {
+    function handlePokerUiEvent(event) {
+      if (event?.detail) {
+        setPokerUi(event.detail);
+      }
+    }
+
+    window.addEventListener(POKER_UI_EVENT_NAME, handlePokerUiEvent);
+
+    return () => {
+      window.removeEventListener(POKER_UI_EVENT_NAME, handlePokerUiEvent);
+    };
+  }, []);
+
+  useEffect(() => {
+    const min = Number.isFinite(pokerUi?.minRaiseTo) ? pokerUi.minRaiseTo : 0;
+    const max = Number.isFinite(pokerUi?.maxRaiseTo) ? pokerUi.maxRaiseTo : min;
+    const suggested = Number.isFinite(pokerUi?.suggestedRaiseTo)
+      ? pokerUi.suggestedRaiseTo
+      : min;
+
+    if (max <= 0) {
+      setRaiseToAmount(0);
+      return;
+    }
+
+    setRaiseToAmount(prev => {
+      if (!Number.isFinite(prev) || prev < min || prev > max) {
+        return Math.max(min, Math.min(max, suggested));
+      }
+
+      return prev;
+    });
+  }, [pokerUi?.minRaiseTo, pokerUi?.maxRaiseTo, pokerUi?.suggestedRaiseTo]);
+
+  useEffect(() => {
     if (!activeConversationId) {
       return;
     }
@@ -379,8 +459,202 @@ function GameplayOverlay() {
     }
   }, [activeConversationId, currentNode]);
 
+  const pokerPlayers = pokerUi?.players ?? [];
+  const humanPlayer = pokerPlayers.find(player => player?.isHuman) ?? null;
+  const dealerPlayer = pokerPlayers.find(player => player?.id === pokerUi?.dealerPlayerId) ?? null;
+  const smallBlindPlayer = pokerPlayers.find(player => player?.id === pokerUi?.smallBlindPlayerId) ?? null;
+  const bigBlindPlayer = pokerPlayers.find(player => player?.id === pokerUi?.bigBlindPlayerId) ?? null;
+
+  const minRaiseTo = Number.isFinite(pokerUi?.minRaiseTo) ? pokerUi.minRaiseTo : 0;
+  const maxRaiseTo = Number.isFinite(pokerUi?.maxRaiseTo) ? pokerUi.maxRaiseTo : minRaiseTo;
+  const canRaise = pokerUi?.availableActions?.raise === true;
+
   return (
     <>
+      {!pokerUi?.active && pokerUi?.canSit ? (
+        <div
+          style={{
+            position: "fixed",
+            left: "50%",
+            bottom: "28px",
+            transform: "translateX(-50%)",
+            background: "rgba(2, 6, 23, 0.82)",
+            color: "#f8fafc",
+            border: "1px solid rgba(148, 163, 184, 0.5)",
+            borderRadius: "999px",
+            padding: "8px 10px",
+            fontSize: "13px",
+            zIndex: 10003,
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          <span>{pokerUi?.promptText ?? "Press E to play poker"}</span>
+          <button
+            type="button"
+            onClick={() => emitPokerAction("start")}
+            style={{
+              border: "1px solid rgba(148, 163, 184, 0.55)",
+              borderRadius: "999px",
+              background: "rgba(30, 41, 59, 0.95)",
+              color: "#f8fafc",
+              padding: "4px 8px",
+              cursor: "pointer",
+            }}
+          >
+            Sit
+          </button>
+        </div>
+      ) : null}
+
+      {pokerUi?.active ? (
+        <div
+          style={{
+            position: "fixed",
+            right: "18px",
+            bottom: "18px",
+            width: "min(420px, 90vw)",
+            background: "rgba(2, 6, 23, 0.84)",
+            border: "1px solid rgba(148, 163, 184, 0.45)",
+            borderRadius: "12px",
+            color: "#e2e8f0",
+            padding: "12px",
+            zIndex: 10003,
+            backdropFilter: "blur(6px)",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", gap: "8px", marginBottom: "8px" }}>
+            <strong>Poker Table</strong>
+            <button
+              type="button"
+              onClick={() => emitPokerAction("stand")}
+              style={{
+                border: "1px solid rgba(148, 163, 184, 0.5)",
+                borderRadius: "8px",
+                background: "rgba(30, 41, 59, 0.95)",
+                color: "#f8fafc",
+                padding: "4px 8px",
+                cursor: "pointer",
+              }}
+            >
+              Stand up (E)
+            </button>
+          </div>
+
+          <div style={{ fontSize: "13px", color: "#93c5fd", marginBottom: "6px" }}>
+            {pokerUi?.message ?? ""}
+          </div>
+
+          <div style={{ fontSize: "12px", color: "#cbd5e1", marginBottom: "8px" }}>
+            Dealer: {dealerPlayer?.name ?? "--"} • SB: {smallBlindPlayer?.name ?? "--"} (${pokerUi?.smallBlindAmount ?? 0}) • BB: {bigBlindPlayer?.name ?? "--"} (${pokerUi?.bigBlindAmount ?? 0})
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "8px", marginBottom: "8px" }}>
+            <div>Pot: <strong>${pokerUi?.pot ?? 0}</strong></div>
+            <div>Current bet: <strong>${pokerUi?.currentBet ?? 0}</strong></div>
+            <div>Your chips: <strong>${humanPlayer?.chips ?? 0}</strong></div>
+            <div>Your cards: <strong>{(pokerUi?.humanCards ?? []).join(" ") || "--"}</strong></div>
+          </div>
+
+          <div style={{ fontSize: "12px", color: "#cbd5e1", marginBottom: "8px" }}>
+            Community: {(pokerUi?.communityCards ?? []).join(" ") || "(none yet)"}
+          </div>
+
+          <div style={{ display: "grid", gap: "8px" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+              <button
+                type="button"
+                onClick={() => emitPokerAction("fold")}
+                disabled={!pokerUi?.availableActions?.fold}
+                style={{
+                  background: "#991b1b",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  padding: "8px 10px",
+                  cursor: pokerUi?.availableActions?.fold ? "pointer" : "not-allowed",
+                  opacity: pokerUi?.availableActions?.fold ? 1 : 0.5,
+                }}
+              >
+                Fold
+              </button>
+
+              <button
+                type="button"
+                onClick={() => emitPokerAction("check")}
+                disabled={!pokerUi?.availableActions?.check}
+                style={{
+                  background: "#1d4ed8",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  padding: "8px 10px",
+                  cursor: pokerUi?.availableActions?.check ? "pointer" : "not-allowed",
+                  opacity: pokerUi?.availableActions?.check ? 1 : 0.5,
+                }}
+              >
+                Check
+              </button>
+
+              <button
+                type="button"
+                onClick={() => emitPokerAction("call")}
+                disabled={!pokerUi?.availableActions?.call}
+                style={{
+                  background: "#0f766e",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  padding: "8px 10px",
+                  cursor: pokerUi?.availableActions?.call ? "pointer" : "not-allowed",
+                  opacity: pokerUi?.availableActions?.call ? 1 : 0.5,
+                }}
+              >
+                Call ${pokerUi?.callAmount ?? 0}
+              </button>
+            </div>
+
+            <div style={{ opacity: canRaise ? 1 : 0.55 }}>
+              <div style={{ fontSize: "12px", marginBottom: "4px" }}>
+                Raise to ${raiseToAmount}
+              </div>
+
+              <input
+                type="range"
+                min={minRaiseTo}
+                max={Math.max(minRaiseTo, maxRaiseTo)}
+                step={pokerUi?.currentBet >= 20 ? 20 : 10}
+                value={Math.max(minRaiseTo, Math.min(maxRaiseTo, raiseToAmount || minRaiseTo))}
+                disabled={!canRaise}
+                onChange={event => setRaiseToAmount(Number(event.target.value))}
+                style={{ width: "100%" }}
+              />
+
+              <button
+                type="button"
+                disabled={!canRaise}
+                onClick={() => emitPokerAction("raise", raiseToAmount)}
+                style={{
+                  marginTop: "6px",
+                  width: "100%",
+                  background: "#7c3aed",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  padding: "8px 10px",
+                  cursor: canRaise ? "pointer" : "not-allowed",
+                  opacity: canRaise ? 1 : 0.5,
+                }}
+              >
+                Raise
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {activeConversationId && currentNode ? (
         <div
           style={{
