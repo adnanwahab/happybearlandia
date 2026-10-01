@@ -289,10 +289,10 @@ var bodyInterface;
 // List of objects spawned
 var dynamicObjects = [];
 
-const clickableSceneModelRoots = [];
-const sceneModelClickRaycaster =
+const clickableSceneObjectRoots = [];
+const sceneObjectClickRaycaster =
   new THREE.Raycaster();
-const sceneModelClickPointer =
+const sceneObjectClickPointer =
   new THREE.Vector2();
 
 // The update function
@@ -339,7 +339,7 @@ function selectWalkAnimationClip(
   return preferredWalkClip ?? clips[0] ?? null;
 }
 
-function findClickableSceneModelRoot(
+function findClickableSceneObjectRoot(
   object3d
 ) {
   let current =
@@ -348,13 +348,13 @@ function findClickableSceneModelRoot(
   while (current) {
     if (
       current.userData
-        ?.isClickableSceneModel ===
+        ?.isClickableSceneObject ===
         true &&
       typeof current.userData
-        ?.sceneObjectId ===
+        ?.objectId ===
         "string" &&
       current.userData
-        .sceneObjectId
+        .objectId
         .trim()
     ) {
       return current;
@@ -367,13 +367,13 @@ function findClickableSceneModelRoot(
   return null;
 }
 
-function onSceneModelClick(
+function onSceneObjectClick(
   event
 ) {
   if (
     !renderer ||
     !camera ||
-    clickableSceneModelRoots.length === 0
+    clickableSceneObjectRoots.length === 0
   ) {
     return;
   }
@@ -388,26 +388,26 @@ function onSceneModelClick(
     return;
   }
 
-  sceneModelClickPointer.x =
+  sceneObjectClickPointer.x =
     ((event.clientX - canvasRect.left) /
       canvasRect.width) *
       2 -
     1;
 
-  sceneModelClickPointer.y =
+  sceneObjectClickPointer.y =
     -((event.clientY - canvasRect.top) /
       canvasRect.height) *
       2 +
     1;
 
-  sceneModelClickRaycaster.setFromCamera(
-    sceneModelClickPointer,
+  sceneObjectClickRaycaster.setFromCamera(
+    sceneObjectClickPointer,
     camera
   );
 
   const intersections =
-    sceneModelClickRaycaster.intersectObjects(
-      clickableSceneModelRoots,
+    sceneObjectClickRaycaster.intersectObjects(
+      clickableSceneObjectRoots,
       true
     );
 
@@ -416,13 +416,13 @@ function onSceneModelClick(
   }
 
   const clickedRoot =
-    findClickableSceneModelRoot(
+    findClickableSceneObjectRoot(
       intersections[0].object
     );
 
   const clickedObjectId =
     clickedRoot?.userData
-      ?.sceneObjectId ?? null;
+      ?.objectId ?? null;
 
   if (
     typeof clickedObjectId ===
@@ -1182,7 +1182,7 @@ async function initGraphics() {
 
   renderer.domElement.addEventListener(
     "click",
-    onSceneModelClick
+    onSceneObjectClick
   );
 
   window.addEventListener(
@@ -1542,18 +1542,17 @@ function addToThreeScene(
     body;
 
   if (
-    sceneObject?.modelUrl &&
     typeof objectId === "string" &&
     objectId.trim()
   ) {
     threeObject.userData
-      .isClickableSceneModel =
+      .isClickableSceneObject =
       true;
 
-    threeObject.userData.sceneObjectId =
+    threeObject.userData.objectId =
       objectId;
 
-    clickableSceneModelRoots.push(
+    clickableSceneObjectRoots.push(
       threeObject
     );
   }
@@ -1625,14 +1624,14 @@ function removeFromScene(
     1
   );
 
-  const clickableModelIdx =
-    clickableSceneModelRoots.indexOf(
+  const clickableObjectIdx =
+    clickableSceneObjectRoots.indexOf(
       threeObject
     );
 
-  if (clickableModelIdx >= 0) {
-    clickableSceneModelRoots.splice(
-      clickableModelIdx,
+  if (clickableObjectIdx >= 0) {
+    clickableSceneObjectRoots.splice(
+      clickableObjectIdx,
       1
     );
   }

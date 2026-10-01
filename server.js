@@ -9,6 +9,7 @@ const dataRoot = normalize("./data");
 const sceneIdPattern = /^[a-zA-Z0-9_-]+$/;
 
 import homepage from './index.html'
+import gamepage from './game/index.html'
 
 const jsxTranspiler = new Bun.Transpiler({ loader: "jsx" });
 
@@ -176,6 +177,7 @@ const server = serve({
 
   routes: {
     "/": homepage,
+    "/game": gamepage,
   },
 
   async fetch(request, server) {

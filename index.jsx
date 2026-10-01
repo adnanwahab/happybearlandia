@@ -28,7 +28,7 @@ function App() {
         </p>
       </header>
       <section>
-        <iframe width="100%" height="500" src="./game"></iframe>
+        <iframe width="100%" height="500" src="./game/casino"></iframe>
       </section>
 
       <section className="rounded-xl border border-slate-200 bg-blue-900 p-4 shadow-sm space-y-3 text-blue-200">

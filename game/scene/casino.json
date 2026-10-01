@@ -650,6 +650,29 @@
       "modelUrl": "/data/glb/bar_lounge_couch.glb"
     },
     {
+      "id": "glb-sitting-bear-bar-lounge-couch-1",
+      "type": "box",
+      "position": [
+        52,
+        1,
+        4
+      ],
+      "size": [
+        2,
+        2,
+        2
+      ],
+      "rotation": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865476
+      ],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/sitting_bear_no_couch.glb"
+    },
+    {
       "id": "glb-bar-lounge-couch-2",
       "type": "box",
       "position": [
@@ -673,6 +696,29 @@
       "modelUrl": "/data/glb/bar_lounge_couch.glb"
     },
     {
+      "id": "glb-sitting-bear-bar-lounge-couch-2",
+      "type": "box",
+      "position": [
+        52,
+        1,
+        24
+      ],
+      "size": [
+        2,
+        2,
+        2
+      ],
+      "rotation": [
+        0,
+        0.7071067811865475,
+        0,
+        0.7071067811865476
+      ],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/sitting_bear_no_couch.glb"
+    },
+    {
       "id": "glb-bar-lounge-couch-middle",
       "type": "box",
       "position": [
@@ -694,6 +740,29 @@
       "motion": "static",
       "color": "#ffffff",
       "modelUrl": "/data/glb/bar_lounge_couch.glb"
+    },
+    {
+      "id": "glb-sitting-bear-bar-lounge-couch-middle",
+      "type": "box",
+      "position": [
+        52,
+        1,
+        14
+      ],
+      "size": [
+        2,
+        2,
+        2
+      ],
+      "rotation": [
+        0,
+        -0.7071067811865475,
+        0,
+        0.7071067811865476
+      ],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/sitting_bear_no_couch.glb"
     },
     {
       "id": "glb-bar-lounge-tables",
@@ -753,6 +822,29 @@
       "modelUrl": "/data/glb/vip_room_right_couch.glb"
     },
     {
+      "id": "glb-sitting-bear-vip-room-right-couch",
+      "type": "box",
+      "position": [
+        28,
+        1,
+        -33
+      ],
+      "size": [
+        2,
+        2,
+        2
+      ],
+      "rotation": [
+        0,
+        -0.7071067811865475,
+        0,
+        0.7071067811865476
+      ],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/sitting_bear_no_couch.glb"
+    },
+    {
       "id": "glb-vip-room-left-couch",
       "type": "box",
       "position": [
@@ -776,12 +868,35 @@
       "modelUrl": "/data/glb/vip_left_couch.glb"
     },
     {
+      "id": "glb-sitting-bear-vip-room-left-couch",
+      "type": "box",
+      "position": [
+        -27,
+        1,
+        -33
+      ],
+      "size": [
+        2,
+        2,
+        2
+      ],
+      "rotation": [
+        0.5,
+        -0.5,
+        -0.5,
+        -0.5
+      ],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/sitting_bear_no_couch.glb"
+    },
+    {
       "id": "glb-vip-room-gold-framed-portrait",
       "type": "box",
       "position": [
         0,
         4.2,
-        -35.9
+        -38.9
       ],
       "size": [
         12,
@@ -910,6 +1025,29 @@
       "motion": "static",
       "color": "#ffffff",
       "modelUrl": "/data/glb/lounge_grand_piano.glb"
+    },
+    {
+      "id": "glb-sitting-bear-lounge-piano",
+      "type": "box",
+      "position": [
+        68.5,
+        1,
+        25.5
+      ],
+      "size": [
+        2,
+        2,
+        2
+      ],
+      "rotation": [
+        0,
+        -0.7071067811865475,
+        0,
+        0.7071067811865476
+      ],
+      "motion": "static",
+      "color": "#ffffff",
+      "modelUrl": "/data/glb/sitting_bear_no_couch.glb"
     },
     {
       "id": "glb-lounge-piano-carpet",
