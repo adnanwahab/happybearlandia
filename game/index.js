@@ -1,4 +1,4 @@
-import { loadScene } from './scene-loader.js';
+import { loadScene, loadSceneConversations } from './scene-loader.js';
 import { DebugRecorder } from './debug-recorder.js';
 import initJolt from 'https://www.unpkg.com/jolt-physics/dist/jolt-physics.wasm-compat.js';
 import * as THREE from "three";
@@ -45,8 +45,25 @@ const DEFAULT_FLOOR_TEXTURE_PATH =
 const floorTextureTemplateByPath =
   new Map();
 
+const DEFAULT_CASINO_INNER_WALL_TEXTURE_PATH =
+  '/data/textures/wall_texture_casino.png';
+
+const CASINO_PERIMETER_WALL_IDS =
+  new Set([
+    'left-wall',
+    'right-wall',
+    'north-wall',
+    'south-wall',
+  ]);
+
+const wallTextureTemplateByPath =
+  new Map();
+
 let activeFloorTexturePath =
   DEFAULT_FLOOR_TEXTURE_PATH;
+
+let activeInnerWallTexturePath =
+  null;
 
 const getFloorTextureTemplate =
   () => {
@@ -74,6 +91,30 @@ const getFloorTextureTemplate =
     }
 
     return floorTextureTemplateByPath.get(texturePath);
+  };
+
+const getWallTextureTemplate =
+  (texturePath) => {
+    if (!wallTextureTemplateByPath.has(texturePath)) {
+      const wallTextureTemplate =
+        floorTextureLoader.load(texturePath);
+
+      wallTextureTemplate.colorSpace =
+        THREE.SRGBColorSpace;
+
+      wallTextureTemplate.wrapS =
+        THREE.RepeatWrapping;
+
+      wallTextureTemplate.wrapT =
+        THREE.RepeatWrapping;
+
+      wallTextureTemplateByPath.set(
+        texturePath,
+        wallTextureTemplate
+      );
+    }
+
+    return wallTextureTemplateByPath.get(texturePath);
   };
 
 // Timers
@@ -248,6 +289,12 @@ var bodyInterface;
 // List of objects spawned
 var dynamicObjects = [];
 
+const clickableSceneModelRoots = [];
+const sceneModelClickRaycaster =
+  new THREE.Raycaster();
+const sceneModelClickPointer =
+  new THREE.Vector2();
+
 // The update function
 var onExampleUpdate;
 
@@ -269,6 +316,122 @@ const wrapQuat = (q) =>
     q.GetZ(),
     q.GetW()
   );
+
+function selectWalkAnimationClip(
+  clips
+) {
+  if (
+    !Array.isArray(clips) ||
+    clips.length === 0
+  ) {
+    return null;
+  }
+
+  const preferredWalkClip =
+    clips.find(
+      clip =>
+        typeof clip?.name === "string" &&
+        /(walk|run|locomotion)/i.test(
+          clip.name
+        )
+    ) ?? null;
+
+  return preferredWalkClip ?? clips[0] ?? null;
+}
+
+function findClickableSceneModelRoot(
+  object3d
+) {
+  let current =
+    object3d ?? null;
+
+  while (current) {
+    if (
+      current.userData
+        ?.isClickableSceneModel ===
+        true &&
+      typeof current.userData
+        ?.sceneObjectId ===
+        "string" &&
+      current.userData
+        .sceneObjectId
+        .trim()
+    ) {
+      return current;
+    }
+
+    current =
+      current.parent ?? null;
+  }
+
+  return null;
+}
+
+function onSceneModelClick(
+  event
+) {
+  if (
+    !renderer ||
+    !camera ||
+    clickableSceneModelRoots.length === 0
+  ) {
+    return;
+  }
+
+  const canvasRect =
+    renderer.domElement.getBoundingClientRect();
+
+  if (
+    canvasRect.width <= 0 ||
+    canvasRect.height <= 0
+  ) {
+    return;
+  }
+
+  sceneModelClickPointer.x =
+    ((event.clientX - canvasRect.left) /
+      canvasRect.width) *
+      2 -
+    1;
+
+  sceneModelClickPointer.y =
+    -((event.clientY - canvasRect.top) /
+      canvasRect.height) *
+      2 +
+    1;
+
+  sceneModelClickRaycaster.setFromCamera(
+    sceneModelClickPointer,
+    camera
+  );
+
+  const intersections =
+    sceneModelClickRaycaster.intersectObjects(
+      clickableSceneModelRoots,
+      true
+    );
+
+  if (intersections.length === 0) {
+    return;
+  }
+
+  const clickedRoot =
+    findClickableSceneModelRoot(
+      intersections[0].object
+    );
+
+  const clickedObjectId =
+    clickedRoot?.userData
+      ?.sceneObjectId ?? null;
+
+  if (
+    typeof clickedObjectId ===
+      "string" &&
+    clickedObjectId.trim()
+  ) {
+    console.log(clickedObjectId);
+  }
+}
 
 const sceneIdFromRoute = () => {
   const pathParts = window.location.pathname
@@ -419,7 +582,7 @@ const treeModelUrl =
 
 const happyBearModelUrl =
   new URL(
-    "../data/obj/happy-bear.obj",
+    "../data/glb/bear-player.glb",
     import.meta.url
   ).toString();
 
@@ -433,6 +596,7 @@ let treeModelTemplate = null;
 let treeModelTemplateSize = null;
 let happyBearModelTemplate = null;
 let happyBearModelTemplateSize = null;
+let happyBearModelAnimationClips = [];
 let lightSwitchOnModelTemplate = null;
 let lightSwitchOnModelTemplateSize = null;
 
@@ -628,12 +792,28 @@ function loadTreeModel() {
 
 function loadHappyBearModel() {
   const loader =
-    new OBJLoader();
+    new GLTFLoader();
 
   return new Promise(resolve => {
     loader.load(
       happyBearModelUrl,
-      object => {
+      gltf => {
+        const object =
+          gltf.scene ??
+          gltf.scenes?.[0] ??
+          null;
+
+        if (!object) {
+          console.warn(
+            "Unable to load bear-player model (no scene root)."
+          );
+
+          happyBearModelAnimationClips = [];
+
+          resolve(null);
+          return;
+        }
+
         object.traverse(node => {
           if (node.isMesh) {
             node.castShadow = false;
@@ -663,15 +843,23 @@ function loadHappyBearModel() {
 
         happyBearModelTemplate = object;
         happyBearModelTemplateSize = size;
+        happyBearModelAnimationClips =
+          Array.isArray(
+            gltf.animations
+          )
+            ? gltf.animations
+            : [];
 
         resolve(object);
       },
       undefined,
       error => {
         console.warn(
-          "Unable to load happy-bear model:",
+          "Unable to load bear-player model:",
           error
         );
+
+        happyBearModelAnimationClips = [];
 
         resolve(null);
       }
@@ -992,6 +1180,11 @@ async function initGraphics() {
     renderer.domElement
   );
 
+  renderer.domElement.addEventListener(
+    "click",
+    onSceneModelClick
+  );
+
   window.addEventListener(
     'resize',
     onWindowResize,
@@ -1246,6 +1439,16 @@ function renderExample() {
     );
 
     if (
+      objThree.userData
+        .rotationOverride
+    ) {
+      objThree.quaternion.copy(
+        objThree.userData
+          .rotationOverride
+      );
+    }
+
+    if (
       body.GetBodyType() ==
       Jolt.EBodyType_SoftBody
     ) {
@@ -1299,9 +1502,13 @@ function renderExample() {
     );
   }
 
+  const textureTemplates = [
+    ...floorTextureTemplateByPath.values(),
+    ...wallTextureTemplateByPath.values(),
+  ];
+
   const frameTexturesReady =
-    floorTextureTemplateByPath.size === 0 ||
-    Array.from(floorTextureTemplateByPath.values()).every(
+    textureTemplates.every(
       texture => texture?.image?.complete === true
     );
 
@@ -1333,6 +1540,23 @@ function addToThreeScene(
     .userData
     .body =
     body;
+
+  if (
+    sceneObject?.modelUrl &&
+    typeof objectId === "string" &&
+    objectId.trim()
+  ) {
+    threeObject.userData
+      .isClickableSceneModel =
+      true;
+
+    threeObject.userData.sceneObjectId =
+      objectId;
+
+    clickableSceneModelRoots.push(
+      threeObject
+    );
+  }
 
   scene.add(
     threeObject
@@ -1400,6 +1624,18 @@ function removeFromScene(
     idx,
     1
   );
+
+  const clickableModelIdx =
+    clickableSceneModelRoots.indexOf(
+      threeObject
+    );
+
+  if (clickableModelIdx >= 0) {
+    clickableSceneModelRoots.splice(
+      clickableModelIdx,
+      1
+    );
+  }
 }
 
 
@@ -1989,6 +2225,9 @@ characterHeightStanding) {
     uniformScale
   );
 
+  characterVisual.userData.animationClips =
+    happyBearModelAnimationClips;
+
   return characterVisual;
 }
 
@@ -2086,11 +2325,20 @@ function getThreeObjectForBody(
         sceneObject.rotation.length ===
           4
       ) {
-        sceneModelObject.quaternion.set(
-          sceneObject.rotation[0],
-          sceneObject.rotation[1],
-          sceneObject.rotation[2],
-          sceneObject.rotation[3]
+        const rotationOverride =
+          new THREE.Quaternion(
+            sceneObject.rotation[0],
+            sceneObject.rotation[1],
+            sceneObject.rotation[2],
+            sceneObject.rotation[3]
+          );
+
+        sceneModelObject.userData
+          .rotationOverride =
+          rotationOverride;
+
+        sceneModelObject.quaternion.copy(
+          rotationOverride
         );
       } else {
         sceneModelObject.quaternion.copy(
@@ -2151,6 +2399,79 @@ function getThreeObjectForBody(
             map: floorTexture,
             specular: 0xffffff,
             shininess: 120,
+          });
+      }
+
+      const objectTexturePath =
+        typeof sceneObject?.texture === 'string' &&
+        sceneObject.texture.trim()
+          ? sceneObject.texture
+          : null;
+
+      if (objectTexturePath) {
+        const objectTexture =
+          getWallTextureTemplate(
+            objectTexturePath
+          ).clone();
+
+        objectTexture.repeat.set(
+          Math.max(
+            1,
+            Math.max(extent.x, extent.z) / 4
+          ),
+          Math.max(1, extent.y / 4)
+        );
+
+        objectTexture.needsUpdate =
+          true;
+
+        material =
+          new THREE.MeshPhongMaterial({
+            color: 0xffffff,
+            map: objectTexture,
+            specular: 0x777777,
+            shininess: 40,
+          });
+      }
+
+      const isCasinoWallLikeObject =
+        (objectId?.includes('wall') ?? false) ||
+        (objectId?.startsWith('divider-') ?? false);
+
+      const isCasinoInnerWall =
+        sceneIdFromRoute() === 'casino' &&
+        isCasinoWallLikeObject &&
+        !CASINO_PERIMETER_WALL_IDS.has(
+          objectId
+        );
+
+      if (
+        !objectTexturePath &&
+        isCasinoInnerWall &&
+        activeInnerWallTexturePath
+      ) {
+        const wallTexture =
+          getWallTextureTemplate(
+            activeInnerWallTexturePath
+          ).clone();
+
+        wallTexture.repeat.set(
+          Math.max(
+            1,
+            Math.max(extent.x, extent.z) / 4
+          ),
+          Math.max(1, extent.y / 4)
+        );
+
+        wallTexture.needsUpdate =
+          true;
+
+        material =
+          new THREE.MeshPhongMaterial({
+            color: 0xffffff,
+            map: wallTexture,
+            specular: 0x777777,
+            shininess: 40,
           });
       }
 
@@ -2292,10 +2613,47 @@ if (!isGalleryRoute()) {
   Promise.all([
     initJolt(),
     loadScene(new URL(`./${sceneFileFromRoute()}`, import.meta.url)),
+    loadSceneConversations(sceneIdFromRoute()),
     loadTreeModel(),
     loadHappyBearModel(),
     loadLightSwitchOnModel()
-  ]).then(async function ([Jolt, sceneData]) {
+  ]).then(async function ([Jolt, sceneData, sceneConversations]) {
+
+  const conversationsByNpcId =
+    new Map(
+      (sceneConversations?.npcs ?? [])
+        .map(npc => [
+          npc.id,
+          npc.conversations,
+        ])
+    );
+
+  sceneData.objects =
+    sceneData.objects.map(object => {
+      const conversations =
+        conversationsByNpcId.get(
+          object.id
+        );
+
+      if (
+        Array.isArray(
+          conversations
+        ) &&
+        conversations.length > 0
+      ) {
+        return {
+          ...object,
+          conversations,
+        };
+      }
+
+      const {
+        conversations: _ignoredConversations,
+        ...objectWithoutConversations
+      } = object;
+
+      return objectWithoutConversations;
+    });
 
   await loadSceneGlbModels(
     sceneData
@@ -2304,6 +2662,14 @@ if (!isGalleryRoute()) {
   activeFloorTexturePath =
     sceneData.floorTexture ??
     DEFAULT_FLOOR_TEXTURE_PATH;
+
+  activeInnerWallTexturePath =
+    sceneData.innerWallTexture ??
+    (
+      sceneIdFromRoute() === 'casino'
+        ? DEFAULT_CASINO_INNER_WALL_TEXTURE_PATH
+        : null
+    );
 
   configureRotatingLightsForScene(
     sceneData
@@ -2379,6 +2745,18 @@ if (!isGalleryRoute()) {
 
   let threeCharacter =
     new THREE.Group();
+
+  let playerAnimationMixer =
+    null;
+
+  let playerWalkAction =
+    null;
+
+  let playerWalkBlendWeight =
+    0;
+
+  const PLAYER_WALK_SPEED_THRESHOLD =
+    0.2;
 
   let desiredVelocity =
     new THREE.Vector3();
@@ -4913,6 +5291,39 @@ if (!isGalleryRoute()) {
   threeCharacter.userData.body =
     character;
 
+  const playerAnimationClips =
+    threeCharacter.userData
+      ?.animationClips ?? [];
+
+  const walkClip =
+    selectWalkAnimationClip(
+      playerAnimationClips
+    );
+
+  if (walkClip) {
+    playerAnimationMixer =
+      new THREE.AnimationMixer(
+        threeCharacter
+      );
+
+    playerWalkAction =
+      playerAnimationMixer.clipAction(
+        walkClip
+      );
+
+    playerWalkAction.setLoop(
+      THREE.LoopRepeat,
+      Infinity
+    );
+
+    playerWalkAction.clampWhenFinished =
+      false;
+
+    playerWalkAction
+      .setEffectiveWeight(0)
+      .play();
+  }
+
 
   controls.target =
     threeCharacter.position;
@@ -5033,6 +5444,58 @@ if (!isGalleryRoute()) {
     prePhysicsUpdate(
       deltaTime
     );
+
+    if (
+      playerAnimationMixer &&
+      playerWalkAction
+    ) {
+      const characterUp =
+        wrapVec3(
+          character.GetUp()
+        ).normalize();
+
+      const linearVelocity =
+        wrapVec3(
+          character.GetLinearVelocity()
+        );
+
+      const verticalVelocity =
+        characterUp
+          .clone()
+          .multiplyScalar(
+            linearVelocity.dot(
+              characterUp
+            )
+          );
+
+      const horizontalSpeed =
+        linearVelocity
+          .sub(verticalVelocity)
+          .length();
+
+      const shouldPlayWalkAnimation =
+        !isConversationDialogOpen &&
+        horizontalSpeed >=
+          PLAYER_WALK_SPEED_THRESHOLD;
+
+      playerWalkBlendWeight =
+        THREE.MathUtils.damp(
+          playerWalkBlendWeight,
+          shouldPlayWalkAnimation
+            ? 1
+            : 0,
+          14,
+          deltaTime
+        );
+
+      playerWalkAction.setEffectiveWeight(
+        playerWalkBlendWeight
+      );
+
+      playerAnimationMixer.update(
+        deltaTime
+      );
+    }
 
     updateConversationProximity();
 

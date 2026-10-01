@@ -15,6 +15,11 @@ export function validateScene(scene) {
       fail('floorTexture must be a non-empty string path');
     }
   }
+  if (scene.innerWallTexture !== undefined) {
+    if (typeof scene.innerWallTexture !== 'string' || !scene.innerWallTexture.trim()) {
+      fail('innerWallTexture must be a non-empty string path');
+    }
+  }
   if (!Array.isArray(scene.objects)) fail('objects must be an array');
   const ids = new Set();
   for (const object of scene.objects) {
@@ -39,6 +44,7 @@ export function validateScene(scene) {
     if (object.friction !== undefined && (!Number.isFinite(object.friction) || object.friction < 0)) fail(`${label}.friction must be nonnegative`);
     if (object.speed !== undefined && !Number.isFinite(object.speed)) fail(`${label}.speed must be finite`);
     if (object.modelUrl !== undefined && (typeof object.modelUrl !== 'string' || !object.modelUrl.trim())) fail(`${label}.modelUrl must be a non-empty string path`);
+    if (object.texture !== undefined && (typeof object.texture !== 'string' || !object.texture.trim())) fail(`${label}.texture must be a non-empty string path`);
   }
   const tealCube =
     scene.objects.find(
@@ -60,4 +66,62 @@ export async function loadScene(url) {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Unable to load scene: HTTP ${response.status}`);
   return validateScene(await response.json());
+}
+
+export function validateSceneConversations(data) {
+  const fail = message => {
+    throw new Error(`Invalid scene conversations: ${message}`);
+  };
+
+  if (!data || typeof data !== 'object') {
+    fail('expected an object');
+  }
+
+  if (!Array.isArray(data.npcs)) {
+    fail('npcs must be an array');
+  }
+
+  const ids = new Set();
+
+  for (const npc of data.npcs) {
+    if (!npc || typeof npc !== 'object') {
+      fail('each npc entry must be an object');
+    }
+
+    if (typeof npc.id !== 'string' || !npc.id.trim()) {
+      fail('each npc needs a non-empty string id');
+    }
+
+    if (ids.has(npc.id)) {
+      fail(`duplicate npc id: ${npc.id}`);
+    }
+
+    ids.add(npc.id);
+
+    if (!Array.isArray(npc.conversations)) {
+      fail(`${npc.id}.conversations must be an array`);
+    }
+  }
+
+  return data;
+}
+
+export async function loadSceneConversations(sceneId) {
+  const response = await fetch(
+    `./conversations/${sceneId}.json`
+  );
+
+  if (response.status === 404) {
+    return { npcs: [] };
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      `Unable to load conversations for scene ${sceneId}: HTTP ${response.status}`
+    );
+  }
+
+  return validateSceneConversations(
+    await response.json()
+  );
 }

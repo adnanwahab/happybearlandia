@@ -1,0 +1,1124 @@
+{
+  "npcs": [
+    {
+      "id": "glb-tuxedo-bear-blackjack-1",
+      "conversations": [
+        {
+          "id": "blackjack-dealer-1-main",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "Blackjack Dealer",
+              "text": "Welcome to the table. Cards are honest. Players are usually more complicated. What can I do for you?",
+              "choices": [
+                {
+                  "id": "start-choice-1",
+                  "text": "Teach me how this table works.",
+                  "next": "learn-table"
+                },
+                {
+                  "id": "start-choice-2",
+                  "text": "Heard any interesting rumors tonight?",
+                  "next": "ask-rumors"
+                },
+                {
+                  "id": "start-choice-3",
+                  "text": "How long have you worked here?",
+                  "next": "ask-dealer"
+                }
+              ]
+            },
+            "learn-table": {
+              "speaker": "Blackjack Dealer",
+              "text": "Simple goal: get closer to twenty-one than the house without going over. The interesting part is deciding when to stop.",
+              "choices": [
+                {
+                  "id": "learn-table-choice-1",
+                  "text": "What is the safest way to play?",
+                  "next": "learn-table-end-1"
+                },
+                {
+                  "id": "learn-table-choice-2",
+                  "text": "What should I watch for at the table?",
+                  "next": "learn-table-end-2"
+                },
+                {
+                  "id": "learn-table-choice-3",
+                  "text": "I'm ready. Deal me in.",
+                  "next": "learn-table-end-3"
+                }
+              ]
+            },
+            "learn-table-end-1": {
+              "speaker": "Blackjack Dealer",
+              "text": "Safe is relative, but patience beats panic. Learn the basic decisions before you start chasing luck.",
+              "end": true
+            },
+            "learn-table-end-2": {
+              "speaker": "Blackjack Dealer",
+              "text": "Watch the dealer's up-card, your own total, and the mood of the table. People reveal plenty when money starts moving.",
+              "end": true
+            },
+            "learn-table-end-3": {
+              "speaker": "Blackjack Dealer",
+              "text": "Take a seat when you're ready. Once the cards are out, hesitation gets expensive.",
+              "end": true
+            },
+            "ask-rumors": {
+              "speaker": "Blackjack Dealer",
+              "text": "Rumors? In a casino? Never. But the VIP room has been busier than usual, and not everyone going in looks like a high roller.",
+              "choices": [
+                {
+                  "id": "ask-rumors-choice-1",
+                  "text": "Who has been going into VIP?",
+                  "next": "ask-rumors-end-1"
+                },
+                {
+                  "id": "ask-rumors-choice-2",
+                  "text": "Why would security ignore someone?",
+                  "next": "ask-rumors-end-2"
+                },
+                {
+                  "id": "ask-rumors-choice-3",
+                  "text": "Forget I asked.",
+                  "next": "ask-rumors-end-3"
+                }
+              ]
+            },
+            "ask-rumors-end-1": {
+              "speaker": "Blackjack Dealer",
+              "text": "A few regulars, one nervous staffer, and someone security pretended not to notice.",
+              "end": true
+            },
+            "ask-rumors-end-2": {
+              "speaker": "Blackjack Dealer",
+              "text": "That is exactly the sort of question that makes dealers suddenly remember they have cards to shuffle.",
+              "end": true
+            },
+            "ask-rumors-end-3": {
+              "speaker": "Blackjack Dealer",
+              "text": "Probably wise. Curiosity is cheap until someone notices it.",
+              "end": true
+            },
+            "ask-dealer": {
+              "speaker": "Blackjack Dealer",
+              "text": "Long enough to know every table has two games: the one printed on the felt and the one happening between the people.",
+              "choices": [
+                {
+                  "id": "ask-dealer-choice-1",
+                  "text": "Which game matters more?",
+                  "next": "ask-dealer-end-1"
+                },
+                {
+                  "id": "ask-dealer-choice-2",
+                  "text": "Do you like working here?",
+                  "next": "ask-dealer-end-2"
+                },
+                {
+                  "id": "ask-dealer-choice-3",
+                  "text": "Any advice for a newcomer?",
+                  "next": "ask-dealer-end-3"
+                }
+              ]
+            },
+            "ask-dealer-end-1": {
+              "speaker": "Blackjack Dealer",
+              "text": "The second one. Cards decide a hand. People decide what happens after.",
+              "end": true
+            },
+            "ask-dealer-end-2": {
+              "speaker": "Blackjack Dealer",
+              "text": "Most nights. The casino is predictable right up until it isn't.",
+              "end": true
+            },
+            "ask-dealer-end-3": {
+              "speaker": "Blackjack Dealer",
+              "text": "Know where the exits are, tip the bartender, and never assume a smiling bear is relaxed.",
+              "end": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "glb-tuxedo-bear-blackjack-2",
+      "conversations": [
+        {
+          "id": "blackjack-dealer-2-main",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "Blackjack Dealer",
+              "text": "Good evening. Keep your hands where the cameras can see them and we will get along beautifully.",
+              "choices": [
+                {
+                  "id": "start-choice-1",
+                  "text": "You pay a lot of attention to the cameras.",
+                  "next": "ask-cameras"
+                },
+                {
+                  "id": "start-choice-2",
+                  "text": "How do you spot a cheater?",
+                  "next": "ask-cheating"
+                },
+                {
+                  "id": "start-choice-3",
+                  "text": "Anything unusual happen on your shift?",
+                  "next": "ask-shift"
+                }
+              ]
+            },
+            "ask-cameras": {
+              "speaker": "Blackjack Dealer",
+              "text": "Occupational habit. Security watches the cards, the chips, the doors, and especially anyone who thinks they are not being watched.",
+              "choices": [
+                {
+                  "id": "ask-cameras-choice-1",
+                  "text": "Where are the blind spots?",
+                  "next": "ask-cameras-end-1"
+                },
+                {
+                  "id": "ask-cameras-choice-2",
+                  "text": "Does security miss much?",
+                  "next": "ask-cameras-end-2"
+                },
+                {
+                  "id": "ask-cameras-choice-3",
+                  "text": "I'm not planning anything.",
+                  "next": "ask-cameras-end-3"
+                }
+              ]
+            },
+            "ask-cameras-end-1": {
+              "speaker": "Blackjack Dealer",
+              "text": "If I knew one, I would not announce it across a blackjack table.",
+              "end": true
+            },
+            "ask-cameras-end-2": {
+              "speaker": "Blackjack Dealer",
+              "text": "They miss things. Everyone does. The trick is knowing whether it was a mistake or permission.",
+              "end": true
+            },
+            "ask-cameras-end-3": {
+              "speaker": "Blackjack Dealer",
+              "text": "Of course not. Nobody ever is.",
+              "end": true
+            },
+            "ask-cheating": {
+              "speaker": "Blackjack Dealer",
+              "text": "Patterns. Strange bets. Partners who never look at each other. People who become very calm at exactly the wrong moment.",
+              "choices": [
+                {
+                  "id": "ask-cheating-choice-1",
+                  "text": "What happens when you catch one?",
+                  "next": "ask-cheating-end-1"
+                },
+                {
+                  "id": "ask-cheating-choice-2",
+                  "text": "Ever caught someone important?",
+                  "next": "ask-cheating-end-2"
+                },
+                {
+                  "id": "ask-cheating-choice-3",
+                  "text": "Could someone cheat the house?",
+                  "next": "ask-cheating-end-3"
+                }
+              ]
+            },
+            "ask-cheating-end-1": {
+              "speaker": "Blackjack Dealer",
+              "text": "I stop the game. Security decides whether the conversation continues somewhere quieter.",
+              "end": true
+            },
+            "ask-cheating-end-2": {
+              "speaker": "Blackjack Dealer",
+              "text": "Important people are rarely caught. They are usually escorted.",
+              "end": true
+            },
+            "ask-cheating-end-3": {
+              "speaker": "Blackjack Dealer",
+              "text": "For a hand? Certainly. For long? That is a much harder profession.",
+              "end": true
+            },
+            "ask-shift": {
+              "speaker": "Blackjack Dealer",
+              "text": "A chip tray came up short, then balanced itself ten minutes later. Money does not usually apologize and return on its own.",
+              "choices": [
+                {
+                  "id": "ask-shift-choice-1",
+                  "text": "Who had access to the tray?",
+                  "next": "ask-shift-end-1"
+                },
+                {
+                  "id": "ask-shift-choice-2",
+                  "text": "Did you report it?",
+                  "next": "ask-shift-end-2"
+                },
+                {
+                  "id": "ask-shift-choice-3",
+                  "text": "Sounds like an inside job.",
+                  "next": "ask-shift-end-3"
+                }
+              ]
+            },
+            "ask-shift-end-1": {
+              "speaker": "Blackjack Dealer",
+              "text": "Dealer, pit staff, cashier, and anyone clever enough to make that list incomplete.",
+              "end": true
+            },
+            "ask-shift-end-2": {
+              "speaker": "Blackjack Dealer",
+              "text": "Naturally. The report disappeared faster than the chips did.",
+              "end": true
+            },
+            "ask-shift-end-3": {
+              "speaker": "Blackjack Dealer",
+              "text": "Maybe. Or maybe the casino has learned to steal from itself.",
+              "end": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "glb-tuxedo-bear-blackjack-3",
+      "conversations": [
+        {
+          "id": "blackjack-dealer-3-main",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "Blackjack Dealer",
+              "text": "You look like someone deciding whether to gamble or ask questions. Questions are cheaper, for now.",
+              "choices": [
+                {
+                  "id": "start-choice-1",
+                  "text": "What do you know about the VIP room?",
+                  "next": "ask-vip"
+                },
+                {
+                  "id": "start-choice-2",
+                  "text": "Who should I talk to around here?",
+                  "next": "ask-regulars"
+                },
+                {
+                  "id": "start-choice-3",
+                  "text": "Anything I should avoid?",
+                  "next": "ask-warning"
+                }
+              ]
+            },
+            "ask-vip": {
+              "speaker": "Blackjack Dealer",
+              "text": "Enough to stay out of it. High rollers go in through the front. Problems seem to leave through the staff side.",
+              "choices": [
+                {
+                  "id": "ask-vip-choice-1",
+                  "text": "What kind of problems?",
+                  "next": "ask-vip-end-1"
+                },
+                {
+                  "id": "ask-vip-choice-2",
+                  "text": "Who controls access?",
+                  "next": "ask-vip-end-2"
+                },
+                {
+                  "id": "ask-vip-choice-3",
+                  "text": "Can you get me inside?",
+                  "next": "ask-vip-end-3"
+                }
+              ]
+            },
+            "ask-vip-end-1": {
+              "speaker": "Blackjack Dealer",
+              "text": "Debts, arguments, people who suddenly decide they have somewhere else to be.",
+              "end": true
+            },
+            "ask-vip-end-2": {
+              "speaker": "Blackjack Dealer",
+              "text": "Officially, management. Unofficially, whoever security was told not to bother.",
+              "end": true
+            },
+            "ask-vip-end-3": {
+              "speaker": "Blackjack Dealer",
+              "text": "Not directly. But people with the right story sometimes find doors opening for them.",
+              "end": true
+            },
+            "ask-regulars": {
+              "speaker": "Blackjack Dealer",
+              "text": "The bartender hears everything, the cashier remembers amounts, and roulette remembers faces. Pick the kind of truth you need.",
+              "choices": [
+                {
+                  "id": "ask-regulars-choice-1",
+                  "text": "Why the bartender?",
+                  "next": "ask-regulars-end-1"
+                },
+                {
+                  "id": "ask-regulars-choice-2",
+                  "text": "Why the cashier?",
+                  "next": "ask-regulars-end-2"
+                },
+                {
+                  "id": "ask-regulars-choice-3",
+                  "text": "Why roulette?",
+                  "next": "ask-regulars-end-3"
+                }
+              ]
+            },
+            "ask-regulars-end-1": {
+              "speaker": "Blackjack Dealer",
+              "text": "People talk when they drink, and bartenders learn to listen without looking curious.",
+              "end": true
+            },
+            "ask-regulars-end-2": {
+              "speaker": "Blackjack Dealer",
+              "text": "Chips become money there. Money leaves a trail, even when people try not to.",
+              "end": true
+            },
+            "ask-regulars-end-3": {
+              "speaker": "Blackjack Dealer",
+              "text": "Same crowd every night. A dealer notices when a familiar face stops showing up.",
+              "end": true
+            },
+            "ask-warning": {
+              "speaker": "Blackjack Dealer",
+              "text": "Do not follow staff through locked doors unless you know why you are doing it. And do not owe favors to security.",
+              "choices": [
+                {
+                  "id": "ask-warning-choice-1",
+                  "text": "Why not security?",
+                  "next": "ask-warning-end-1"
+                },
+                {
+                  "id": "ask-warning-choice-2",
+                  "text": "What is behind the staff doors?",
+                  "next": "ask-warning-end-2"
+                },
+                {
+                  "id": "ask-warning-choice-3",
+                  "text": "I can handle myself.",
+                  "next": "ask-warning-end-3"
+                }
+              ]
+            },
+            "ask-warning-end-1": {
+              "speaker": "Blackjack Dealer",
+              "text": "Because their favors have interest.",
+              "end": true
+            },
+            "ask-warning-end-2": {
+              "speaker": "Blackjack Dealer",
+              "text": "Mostly boring things. The dangerous part is the one boring thing someone does not want you to see.",
+              "end": true
+            },
+            "ask-warning-end-3": {
+              "speaker": "Blackjack Dealer",
+              "text": "Everybody says that before the casino tests the claim.",
+              "end": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "glb-tuxedo-bear-roulette",
+      "conversations": [
+        {
+          "id": "roulette-dealer-main",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "Roulette Dealer",
+              "text": "Red, black, odd, even. Everyone wants the wheel to tell them something about the future. What are you hoping to hear?",
+              "choices": [
+                {
+                  "id": "start-choice-1",
+                  "text": "Is there any way to read the wheel?",
+                  "next": "ask-wheel"
+                },
+                {
+                  "id": "start-choice-2",
+                  "text": "You recognize most of the regulars?",
+                  "next": "ask-regular"
+                },
+                {
+                  "id": "start-choice-3",
+                  "text": "Do you believe in luck?",
+                  "next": "ask-luck"
+                }
+              ]
+            },
+            "ask-wheel": {
+              "speaker": "Roulette Dealer",
+              "text": "You can read people. The wheel is less cooperative. Anyone promising certainty is selling something.",
+              "choices": [
+                {
+                  "id": "ask-wheel-choice-1",
+                  "text": "So there is no strategy?",
+                  "next": "ask-wheel-end-1"
+                },
+                {
+                  "id": "ask-wheel-choice-2",
+                  "text": "Do regulars have favorite numbers?",
+                  "next": "ask-wheel-end-2"
+                },
+                {
+                  "id": "ask-wheel-choice-3",
+                  "text": "What number would you pick?",
+                  "next": "ask-wheel-end-3"
+                }
+              ]
+            },
+            "ask-wheel-end-1": {
+              "speaker": "Roulette Dealer",
+              "text": "There are ways to manage risk. There is no conversation that makes probability sentimental.",
+              "end": true
+            },
+            "ask-wheel-end-2": {
+              "speaker": "Roulette Dealer",
+              "text": "Always. Birthdays, anniversaries, room numbers, old mistakes.",
+              "end": true
+            },
+            "ask-wheel-end-3": {
+              "speaker": "Roulette Dealer",
+              "text": "Whichever one keeps you entertained without making you desperate.",
+              "end": true
+            },
+            "ask-regular": {
+              "speaker": "Roulette Dealer",
+              "text": "The serious ones. A guest used to bet the same corner every night, then vanished three nights ago.",
+              "choices": [
+                {
+                  "id": "ask-regular-choice-1",
+                  "text": "Who was it?",
+                  "next": "ask-regular-end-1"
+                },
+                {
+                  "id": "ask-regular-choice-2",
+                  "text": "Did security notice?",
+                  "next": "ask-regular-end-2"
+                },
+                {
+                  "id": "ask-regular-choice-3",
+                  "text": "Where did they usually go afterward?",
+                  "next": "ask-regular-end-3"
+                }
+              ]
+            },
+            "ask-regular-end-1": {
+              "speaker": "Roulette Dealer",
+              "text": "A quiet bear in a charcoal suit. Never drank. Always cashed out exactly one stack at a time.",
+              "end": true
+            },
+            "ask-regular-end-2": {
+              "speaker": "Roulette Dealer",
+              "text": "Security notices everything. Whether they act is a different question.",
+              "end": true
+            },
+            "ask-regular-end-3": {
+              "speaker": "Roulette Dealer",
+              "text": "Toward the cashier, then the lounge. After that, I had a wheel to watch.",
+              "end": true
+            },
+            "ask-luck": {
+              "speaker": "Roulette Dealer",
+              "text": "I believe people call it luck when they cannot see the machinery underneath.",
+              "choices": [
+                {
+                  "id": "ask-luck-choice-1",
+                  "text": "That sounds cynical.",
+                  "next": "ask-luck-end-1"
+                },
+                {
+                  "id": "ask-luck-choice-2",
+                  "text": "So everything is controlled?",
+                  "next": "ask-luck-end-2"
+                },
+                {
+                  "id": "ask-luck-choice-3",
+                  "text": "Maybe tonight is my night.",
+                  "next": "ask-luck-end-3"
+                }
+              ]
+            },
+            "ask-luck-end-1": {
+              "speaker": "Roulette Dealer",
+              "text": "It is a casino. Cynicism is just optimism with receipts.",
+              "end": true
+            },
+            "ask-luck-end-2": {
+              "speaker": "Roulette Dealer",
+              "text": "No. Randomness is real. So are people trying to take credit for it.",
+              "end": true
+            },
+            "ask-luck-end-3": {
+              "speaker": "Roulette Dealer",
+              "text": "Then make sure tomorrow morning still belongs to you.",
+              "end": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "glb-tuxedo-bear-poker-clean",
+      "conversations": [
+        {
+          "id": "poker-host-main",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "Poker Host",
+              "text": "Table's open. Poker is mostly a conversation where the chips do the shouting.",
+              "choices": [
+                {
+                  "id": "start-choice-1",
+                  "text": "What makes a good poker player?",
+                  "next": "ask-poker"
+                },
+                {
+                  "id": "start-choice-2",
+                  "text": "Are there tournaments here?",
+                  "next": "ask-tournament"
+                },
+                {
+                  "id": "start-choice-3",
+                  "text": "Why is this table so quiet?",
+                  "next": "ask-table"
+                }
+              ]
+            },
+            "ask-poker": {
+              "speaker": "Poker Host",
+              "text": "Patience, memory, and the ability to look bored while your brain is on fire.",
+              "choices": [
+                {
+                  "id": "ask-poker-choice-1",
+                  "text": "What should I watch in other players?",
+                  "next": "ask-poker-end-1"
+                },
+                {
+                  "id": "ask-poker-choice-2",
+                  "text": "How much is bluffing really used?",
+                  "next": "ask-poker-end-2"
+                },
+                {
+                  "id": "ask-poker-choice-3",
+                  "text": "Can you teach me?",
+                  "next": "ask-poker-end-3"
+                }
+              ]
+            },
+            "ask-poker-end-1": {
+              "speaker": "Poker Host",
+              "text": "Timing. Hands. Breathing. And the stories they tell with their bets.",
+              "end": true
+            },
+            "ask-poker-end-2": {
+              "speaker": "Poker Host",
+              "text": "Less than movies suggest, more than nervous players hope.",
+              "end": true
+            },
+            "ask-poker-end-3": {
+              "speaker": "Poker Host",
+              "text": "Sit a few hands, bet small, and explain every decision to yourself. That is a better teacher than bravado.",
+              "end": true
+            },
+            "ask-tournament": {
+              "speaker": "Poker Host",
+              "text": "Small ones on ordinary nights. Private games happen too, but invitations travel quietly.",
+              "choices": [
+                {
+                  "id": "ask-tournament-choice-1",
+                  "text": "How do I get invited?",
+                  "next": "ask-tournament-end-1"
+                },
+                {
+                  "id": "ask-tournament-choice-2",
+                  "text": "Who runs the private games?",
+                  "next": "ask-tournament-end-2"
+                },
+                {
+                  "id": "ask-tournament-choice-3",
+                  "text": "Where are they held?",
+                  "next": "ask-tournament-end-3"
+                }
+              ]
+            },
+            "ask-tournament-end-1": {
+              "speaker": "Poker Host",
+              "text": "Play consistently, do not cause problems, and make someone think your presence is useful.",
+              "end": true
+            },
+            "ask-tournament-end-2": {
+              "speaker": "Poker Host",
+              "text": "Officially? The casino. In practice, the guest with the deepest stack usually sets the temperature.",
+              "end": true
+            },
+            "ask-tournament-end-3": {
+              "speaker": "Poker Host",
+              "text": "Sometimes VIP. Sometimes somewhere that does not appear on the public floor plan.",
+              "end": true
+            },
+            "ask-table": {
+              "speaker": "Poker Host",
+              "text": "Because the loud players already lost. The ones still sitting have learned not to advertise.",
+              "choices": [
+                {
+                  "id": "ask-table-choice-1",
+                  "text": "Anyone here I should worry about?",
+                  "next": "ask-table-end-1"
+                },
+                {
+                  "id": "ask-table-choice-2",
+                  "text": "What do you notice about me?",
+                  "next": "ask-table-end-2"
+                },
+                {
+                  "id": "ask-table-choice-3",
+                  "text": "Deal me in.",
+                  "next": "ask-table-end-3"
+                }
+              ]
+            },
+            "ask-table-end-1": {
+              "speaker": "Poker Host",
+              "text": "Worry is inefficient. Pay attention instead.",
+              "end": true
+            },
+            "ask-table-end-2": {
+              "speaker": "Poker Host",
+              "text": "You ask before you bet. That already makes you unusual.",
+              "end": true
+            },
+            "ask-table-end-3": {
+              "speaker": "Poker Host",
+              "text": "Take a seat. Your first lesson starts when you think you have a good hand.",
+              "end": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "glb-tuxedo-bear-poker",
+      "conversations": [
+        {
+          "id": "poker-dealer-main",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "Poker Dealer",
+              "text": "High-stakes side of the floor. If you came for easy money, the exit is still behind you.",
+              "choices": [
+                {
+                  "id": "start-choice-1",
+                  "text": "How high do the stakes get?",
+                  "next": "ask-highstakes"
+                },
+                {
+                  "id": "start-choice-2",
+                  "text": "Ever seen a marked deck?",
+                  "next": "ask-marked"
+                },
+                {
+                  "id": "start-choice-3",
+                  "text": "I heard about a private game.",
+                  "next": "ask-private"
+                }
+              ]
+            },
+            "ask-highstakes": {
+              "speaker": "Poker Dealer",
+              "text": "Higher than the signs admit. Some games are played for chips. Others are played for access, favors, and silence.",
+              "choices": [
+                {
+                  "id": "ask-highstakes-choice-1",
+                  "text": "What kind of favors?",
+                  "next": "ask-highstakes-end-1"
+                },
+                {
+                  "id": "ask-highstakes-choice-2",
+                  "text": "Who plays those games?",
+                  "next": "ask-highstakes-end-2"
+                },
+                {
+                  "id": "ask-highstakes-choice-3",
+                  "text": "How do I get into one?",
+                  "next": "ask-highstakes-end-3"
+                }
+              ]
+            },
+            "ask-highstakes-end-1": {
+              "speaker": "Poker Dealer",
+              "text": "Introductions. Information. Doors opening after hours.",
+              "end": true
+            },
+            "ask-highstakes-end-2": {
+              "speaker": "Poker Dealer",
+              "text": "People who do not enjoy being described by dealers.",
+              "end": true
+            },
+            "ask-highstakes-end-3": {
+              "speaker": "Poker Dealer",
+              "text": "First become useful. Money gets attention; usefulness gets invitations.",
+              "end": true
+            },
+            "ask-marked": {
+              "speaker": "Poker Dealer",
+              "text": "Once. The marks were almost perfect. The player using them was not.",
+              "choices": [
+                {
+                  "id": "ask-marked-choice-1",
+                  "text": "What happened to them?",
+                  "next": "ask-marked-end-1"
+                },
+                {
+                  "id": "ask-marked-choice-2",
+                  "text": "How did you spot it?",
+                  "next": "ask-marked-end-2"
+                },
+                {
+                  "id": "ask-marked-choice-3",
+                  "text": "Could somebody pull it off?",
+                  "next": "ask-marked-end-3"
+                }
+              ]
+            },
+            "ask-marked-end-1": {
+              "speaker": "Poker Dealer",
+              "text": "Security took them away from the table. I never saw them play here again.",
+              "end": true
+            },
+            "ask-marked-end-2": {
+              "speaker": "Poker Dealer",
+              "text": "The cards were too clean in exactly the same places.",
+              "end": true
+            },
+            "ask-marked-end-3": {
+              "speaker": "Poker Dealer",
+              "text": "Maybe. But cheating a casino means defeating people whose full-time job is expecting you.",
+              "end": true
+            },
+            "ask-private": {
+              "speaker": "Poker Dealer",
+              "text": "Then you heard the first rule: people talk. The second rule is that nobody admits the game exists.",
+              "choices": [
+                {
+                  "id": "ask-private-choice-1",
+                  "text": "Give me a name.",
+                  "next": "ask-private-end-1"
+                },
+                {
+                  "id": "ask-private-choice-2",
+                  "text": "Give me a time.",
+                  "next": "ask-private-end-2"
+                },
+                {
+                  "id": "ask-private-choice-3",
+                  "text": "Forget it.",
+                  "next": "ask-private-end-3"
+                }
+              ]
+            },
+            "ask-private-end-1": {
+              "speaker": "Poker Dealer",
+              "text": "Start with the bar. Ask about the bear who orders sparkling water and never sits.",
+              "end": true
+            },
+            "ask-private-end-2": {
+              "speaker": "Poker Dealer",
+              "text": "Late enough that the tourists are gone, early enough that morning staff has not arrived.",
+              "end": true
+            },
+            "ask-private-end-3": {
+              "speaker": "Poker Dealer",
+              "text": "Good instinct. Private games are usually expensive before the first card is dealt.",
+              "end": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "glb-tuxedo-bear-cashier",
+      "conversations": [
+        {
+          "id": "cashier-main",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "Casino Cashier",
+              "text": "Chips in, money out, receipts if you want them. What are we doing today?",
+              "choices": [
+                {
+                  "id": "start-choice-1",
+                  "text": "How does cashing out work?",
+                  "next": "ask-cashing"
+                },
+                {
+                  "id": "start-choice-2",
+                  "text": "Any strange transactions lately?",
+                  "next": "ask-strange"
+                },
+                {
+                  "id": "start-choice-3",
+                  "text": "How do casino comps work?",
+                  "next": "ask-comps"
+                }
+              ]
+            },
+            "ask-cashing": {
+              "speaker": "Casino Cashier",
+              "text": "Give me the chips, I verify the amount, and we settle the value. Large transactions get extra attention.",
+              "choices": [
+                {
+                  "id": "ask-cashing-choice-1",
+                  "text": "How large is 'large'?",
+                  "next": "ask-cashing-end-1"
+                },
+                {
+                  "id": "ask-cashing-choice-2",
+                  "text": "Can I cash out someone else's chips?",
+                  "next": "ask-cashing-end-2"
+                },
+                {
+                  "id": "ask-cashing-choice-3",
+                  "text": "Do you keep records?",
+                  "next": "ask-cashing-end-3"
+                }
+              ]
+            },
+            "ask-cashing-end-1": {
+              "speaker": "Casino Cashier",
+              "text": "Large enough that paperwork becomes part of the experience.",
+              "end": true
+            },
+            "ask-cashing-end-2": {
+              "speaker": "Casino Cashier",
+              "text": "Chips move between people all the time. Suspicious patterns are another matter.",
+              "end": true
+            },
+            "ask-cashing-end-3": {
+              "speaker": "Casino Cashier",
+              "text": "The casino keeps more records than most guests imagine.",
+              "end": true
+            },
+            "ask-strange": {
+              "speaker": "Casino Cashier",
+              "text": "One guest has been converting small stacks repeatedly instead of making one large cash-out. That is unusual behavior.",
+              "choices": [
+                {
+                  "id": "ask-strange-choice-1",
+                  "text": "Why split it up?",
+                  "next": "ask-strange-end-1"
+                },
+                {
+                  "id": "ask-strange-choice-2",
+                  "text": "Do you know who it is?",
+                  "next": "ask-strange-end-2"
+                },
+                {
+                  "id": "ask-strange-choice-3",
+                  "text": "Did you tell security?",
+                  "next": "ask-strange-end-3"
+                }
+              ]
+            },
+            "ask-strange-end-1": {
+              "speaker": "Casino Cashier",
+              "text": "Could be nerves. Could be a habit. Could be someone trying not to make one transaction look important.",
+              "end": true
+            },
+            "ask-strange-end-2": {
+              "speaker": "Casino Cashier",
+              "text": "I know the face. I do not give customer details to strangers.",
+              "end": true
+            },
+            "ask-strange-end-3": {
+              "speaker": "Casino Cashier",
+              "text": "Anything unusual gets noted. What happens after that is above my window.",
+              "end": true
+            },
+            "ask-comps": {
+              "speaker": "Casino Cashier",
+              "text": "Play generates attention, attention generates offers. Rooms, meals, access. The casino likes loyal guests.",
+              "choices": [
+                {
+                  "id": "ask-comps-choice-1",
+                  "text": "Can comps get me into VIP?",
+                  "next": "ask-comps-end-1"
+                },
+                {
+                  "id": "ask-comps-choice-2",
+                  "text": "Who is the best host to talk to?",
+                  "next": "ask-comps-end-2"
+                },
+                {
+                  "id": "ask-comps-choice-3",
+                  "text": "Can you add comps to my account?",
+                  "next": "ask-comps-end-3"
+                }
+              ]
+            },
+            "ask-comps-end-1": {
+              "speaker": "Casino Cashier",
+              "text": "Enough play can open some doors. Other doors require a host.",
+              "end": true
+            },
+            "ask-comps-end-2": {
+              "speaker": "Casino Cashier",
+              "text": "Ask at the bar during the quieter hours. Hosts tend to circulate where guests linger.",
+              "end": true
+            },
+            "ask-comps-end-3": {
+              "speaker": "Casino Cashier",
+              "text": "Not from this window. I handle value, not affection.",
+              "end": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "glb-tuxedo-bear-bar",
+      "conversations": [
+        {
+          "id": "bartender-main",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "Bartender",
+              "text": "Welcome to the lounge. I pour drinks, hear stories, and forget names on request. What will it be?",
+              "choices": [
+                {
+                  "id": "start-choice-1",
+                  "text": "I'm looking for information, not a drink.",
+                  "next": "ask-rumor"
+                },
+                {
+                  "id": "start-choice-2",
+                  "text": "Who are the interesting regulars?",
+                  "next": "ask-regulars"
+                },
+                {
+                  "id": "start-choice-3",
+                  "text": "You seem to know everything that happens here.",
+                  "next": "ask-bartender"
+                }
+              ]
+            },
+            "ask-rumor": {
+              "speaker": "Bartender",
+              "text": "Information costs more, mostly because people regret giving it away. What are you looking for?",
+              "choices": [
+                {
+                  "id": "ask-rumor-choice-1",
+                  "text": "Something about the VIP room.",
+                  "next": "ask-rumor-end-1"
+                },
+                {
+                  "id": "ask-rumor-choice-2",
+                  "text": "Something about security.",
+                  "next": "ask-rumor-end-2"
+                },
+                {
+                  "id": "ask-rumor-choice-3",
+                  "text": "Something nobody else knows.",
+                  "next": "ask-rumor-end-3"
+                }
+              ]
+            },
+            "ask-rumor-end-1": {
+              "speaker": "Bartender",
+              "text": "VIP has had a late-night crowd lately. Same faces, same corner, lots of conversations that stop when staff walks by.",
+              "end": true
+            },
+            "ask-rumor-end-2": {
+              "speaker": "Bartender",
+              "text": "Security has been rotating patrols more often. Either management is nervous or somebody wants the floor to feel nervous.",
+              "end": true
+            },
+            "ask-rumor-end-3": {
+              "speaker": "Bartender",
+              "text": "A service door near the staff area has been opening after closing time. I know because the same three guests arrive here right afterward.",
+              "end": true
+            },
+            "ask-regulars": {
+              "speaker": "Bartender",
+              "text": "Depends what you mean by interesting. Rich, dangerous, lonely, or useful?",
+              "choices": [
+                {
+                  "id": "ask-regulars-choice-1",
+                  "text": "Useful.",
+                  "next": "ask-regulars-end-1"
+                },
+                {
+                  "id": "ask-regulars-choice-2",
+                  "text": "Dangerous.",
+                  "next": "ask-regulars-end-2"
+                },
+                {
+                  "id": "ask-regulars-choice-3",
+                  "text": "Lonely.",
+                  "next": "ask-regulars-end-3"
+                }
+              ]
+            },
+            "ask-regulars-end-1": {
+              "speaker": "Bartender",
+              "text": "Talk to the cashier if you need numbers. Roulette if you need faces. Me if you need connections.",
+              "end": true
+            },
+            "ask-regulars-end-2": {
+              "speaker": "Bartender",
+              "text": "The dangerous ones rarely look dangerous. Watch who other people make room for.",
+              "end": true
+            },
+            "ask-regulars-end-3": {
+              "speaker": "Bartender",
+              "text": "Half the casino. Loneliness keeps bar stools warm and slot machines busy.",
+              "end": true
+            },
+            "ask-bartender": {
+              "speaker": "Bartender",
+              "text": "Not everything. Just what people say when they believe the person holding the glass is furniture.",
+              "choices": [
+                {
+                  "id": "ask-bartender-choice-1",
+                  "text": "Ever use that information?",
+                  "next": "ask-bartender-end-1"
+                },
+                {
+                  "id": "ask-bartender-choice-2",
+                  "text": "Why stay here?",
+                  "next": "ask-bartender-end-2"
+                },
+                {
+                  "id": "ask-bartender-choice-3",
+                  "text": "Can I trust you?",
+                  "next": "ask-bartender-end-3"
+                }
+              ]
+            },
+            "ask-bartender-end-1": {
+              "speaker": "Bartender",
+              "text": "Only to keep trouble from spilling across my bar.",
+              "end": true
+            },
+            "ask-bartender-end-2": {
+              "speaker": "Bartender",
+              "text": "Best seat in the building. Everybody eventually comes through the lounge.",
+              "end": true
+            },
+            "ask-bartender-end-3": {
+              "speaker": "Bartender",
+              "text": "Trust is a large order. Start with a small question.",
+              "end": true
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
