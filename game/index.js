@@ -6272,7 +6272,12 @@ if (!isGalleryRoute()) {
     if (
       transformControls?.object
     ) {
-      if (keyCode === 84) {
+      // T or 7 (top row / numpad) => translate
+      if (
+        keyCode === 84 ||
+        keyCode === 55 ||
+        keyCode === 103
+      ) {
         transformControls.setMode(
           "translate"
         );
@@ -6280,17 +6285,27 @@ if (!isGalleryRoute()) {
         return;
       }
 
-      if (keyCode === 82) {
+      // Y or 8 (top row / numpad) => scale
+      if (
+        keyCode === 89 ||
+        keyCode === 56 ||
+        keyCode === 104
+      ) {
         transformControls.setMode(
-          "rotate"
+          "scale"
         );
         event.preventDefault();
         return;
       }
 
-      if (keyCode === 89) {
+      // R or 9 (top row / numpad) => rotate
+      if (
+        keyCode === 82 ||
+        keyCode === 57 ||
+        keyCode === 105
+      ) {
         transformControls.setMode(
-          "scale"
+          "rotate"
         );
         event.preventDefault();
         return;
