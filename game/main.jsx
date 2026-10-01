@@ -8,37 +8,59 @@ function isGalleryRoute(pathname) {
   return pathname === "/game" || pathname === "/game/";
 }
 
-function sceneIdFromScreenshotName(name) {
-  const match = String(name).match(/^(\d+)/);
-  return match ? match[1] : null;
+function filenameWithoutExtension(name) {
+  return String(name).replace(/\.[^.]+$/, "");
 }
 
 function ScreenshotGallery() {
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
-  const [files, setFiles] = useState([]);
+  const [scenes, setScenes] = useState([]);
+  const [previewBySceneId, setPreviewBySceneId] = useState({});
+  const [hoveredSceneId, setHoveredSceneId] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
       try {
-        const response = await fetch("/api/screenshots?limit=9");
+        const [scenesResponse, screenshotsResponse] = await Promise.all([
+          fetch("/api/scenes"),
+          fetch("/api/screenshots?limit=100"),
+        ]);
 
-        if (!response.ok) {
-          throw new Error(`Unable to load screenshots (HTTP ${response.status})`);
+        if (!scenesResponse.ok) {
+          throw new Error(`Unable to load scenes (HTTP ${scenesResponse.status})`);
         }
 
-        const payload = await response.json();
-        const nextFiles = Array.isArray(payload?.files) ? payload.files.slice(0, 9) : [];
+        if (!screenshotsResponse.ok) {
+          throw new Error(`Unable to load screenshots (HTTP ${screenshotsResponse.status})`);
+        }
+
+        const scenePayload = await scenesResponse.json();
+        const screenshotPayload = await screenshotsResponse.json();
+
+        const nextScenes = Array.isArray(scenePayload?.scenes) ? scenePayload.scenes : [];
+        const screenshotFiles = Array.isArray(screenshotPayload?.files) ? screenshotPayload.files : [];
+
+        const nextPreviewBySceneId = {};
+
+        for (const screenshot of screenshotFiles) {
+          const sceneId = filenameWithoutExtension(screenshot?.name ?? "");
+
+          if (sceneId && typeof screenshot?.url === "string") {
+            nextPreviewBySceneId[sceneId] = screenshot.url;
+          }
+        }
 
         if (!cancelled) {
-          setFiles(nextFiles);
+          setScenes(nextScenes);
+          setPreviewBySceneId(nextPreviewBySceneId);
           setStatus("ready");
         }
       } catch (loadError) {
         if (!cancelled) {
-          setError(loadError?.message ?? "Unable to load screenshots");
+          setError(loadError?.message ?? "Unable to load gallery");
           setStatus("error");
         }
       }
@@ -52,23 +74,87 @@ function ScreenshotGallery() {
   }, []);
 
   const gridContent = useMemo(() => {
-    return files.map(file => {
-      const sceneId = sceneIdFromScreenshotName(file.name);
-      return <article key={file.name}>
-        <a href={`/game/${sceneId}`}>
-        <img src={file.url} alt={file.name} loading="lazy" style={{
-          width: "100%",
-          height: "180px",
-          objectFit: "cover",
-          display: "block",
-          background: "#020617",
-          }} />
+    return scenes.map(scene => {
+      const sceneId = scene?.id ?? "";
+      const sceneName = scene?.name ?? `${sceneId}.json`;
+      const sceneLabel = filenameWithoutExtension(sceneName);
+      const previewUrl = previewBySceneId[sceneId] ?? null;
+      const isHovered = hoveredSceneId === sceneId;
+
+      return (
+        <article
+          key={sceneId || sceneName}
+          onMouseEnter={() => setHoveredSceneId(sceneId)}
+          onMouseLeave={() => setHoveredSceneId(null)}
+          style={{
+            borderRadius: "12px",
+            overflow: "hidden",
+            border: "1px solid #334155",
+            background: "#0b1220",
+          }}
+        >
+          <a
+            href={`/game/${sceneId}`}
+            style={{
+              display: "block",
+              position: "relative",
+              textDecoration: "none",
+            }}
+          >
+            {previewUrl ? (
+              <img
+                src={previewUrl}
+                alt={sceneName}
+                loading="lazy"
+                style={{
+                  width: "100%",
+                  height: "180px",
+                  objectFit: "cover",
+                  display: "block",
+                  background: "#020617",
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: "100%",
+                  height: "180px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "linear-gradient(135deg, #1e293b, #0f172a)",
+                  color: "#94a3b8",
+                  fontSize: "14px",
+                }}
+              >
+                No preview image
+              </div>
+            )}
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                padding: "10px 12px",
+                background: "rgba(2, 6, 23, 0.75)",
+                color: "#f8fafc",
+                fontSize: "14px",
+                fontWeight: 600,
+                letterSpacing: "0.01em",
+                opacity: isHovered ? 1 : 0,
+                transform: isHovered ? "translateY(0)" : "translateY(-6px)",
+                transition: "opacity 120ms ease, transform 120ms ease",
+                pointerEvents: "none",
+              }}
+            >
+              {sceneLabel}
+            </div>
           </a>
-      </article>
-
-
+        </article>
+      );
     });
-  }, [files]);
+  }, [hoveredSceneId, previewBySceneId, scenes]);
 
   return (
     <main
@@ -89,9 +175,11 @@ function ScreenshotGallery() {
           padding: "24px",
         }}
       >
-        <h1 style={{ margin: "0 0 8px", fontSize: "28px" }}>Game Screenshots</h1>
-        <p style={{ margin: "0 0 20px", color: "#94a3b8" }}>3x3 gallery from data/screenshots</p>
-        {status === "loading" ? <div>Loading screenshots...</div> : null}
+        <h1 style={{ margin: "0 0 8px", fontSize: "28px" }}>Game Scenes</h1>
+        <p style={{ margin: "0 0 20px", color: "#94a3b8" }}>
+          All scenes from <code>game/scene</code>. Hover a preview to see the filename.
+        </p>
+        {status === "loading" ? <div>Loading scenes...</div> : null}
         {status === "error" ? (
           <div
             style={{
@@ -104,7 +192,7 @@ function ScreenshotGallery() {
             {error}
           </div>
         ) : null}
-        {status === "ready" && files.length === 0 ? (
+        {status === "ready" && scenes.length === 0 ? (
           <div
             style={{
               border: "1px dashed #334155",
@@ -113,14 +201,14 @@ function ScreenshotGallery() {
               color: "#94a3b8",
             }}
           >
-            No screenshots found yet. Add images to data/screenshots or run bun run screenshot:index.
+            No scenes found in <code>game/scene</code>.
           </div>
         ) : null}
-        {status === "ready" && files.length > 0 ? (
+        {status === "ready" && scenes.length > 0 ? (
           <section
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+              gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
               gap: "16px",
             }}
           >

@@ -300,6 +300,11 @@ const sceneObjectPointerDownState = {
   clientY: 0,
 };
 
+const sceneObjectBoundsBox =
+  new THREE.Box3();
+const sceneObjectBoundsHitPoint =
+  new THREE.Vector3();
+
 const SCENE_OBJECT_CLICK_DRAG_THRESHOLD_PX =
   6;
 
@@ -857,6 +862,8 @@ function onSceneObjectPointerDown(
     Number.isFinite(event.clientY)
       ? event.clientY
       : 0;
+
+  onSceneObjectClick(event);
 }
 
 function onSceneObjectPointerUp(
@@ -866,54 +873,51 @@ function onSceneObjectPointerUp(
     return;
   }
 
-  if (!sceneObjectPointerDownState.active) {
-    onSceneObjectClick(event);
-    return;
-  }
-
-  const samePointer =
-    sceneObjectPointerDownState.pointerId ===
-      null ||
-    !Number.isFinite(event.pointerId) ||
-    event.pointerId ===
-      sceneObjectPointerDownState.pointerId;
-
-  const upX =
-    Number.isFinite(event.clientX)
-      ? event.clientX
-      : sceneObjectPointerDownState.clientX;
-
-  const upY =
-    Number.isFinite(event.clientY)
-      ? event.clientY
-      : sceneObjectPointerDownState.clientY;
-
-  const deltaX =
-    upX -
-    sceneObjectPointerDownState.clientX;
-
-  const deltaY =
-    upY -
-    sceneObjectPointerDownState.clientY;
-
-  const movedDistance =
-    Math.hypot(deltaX, deltaY);
-
   resetSceneObjectPointerDownState();
+}
 
-  if (!samePointer) {
-    return;
+function findClickableSceneObjectByBoundsRaycast(
+  ray
+) {
+  let nearestObject =
+    null;
+
+  let nearestDistance =
+    Number.POSITIVE_INFINITY;
+
+  for (const object3d of clickableSceneObjectRoots) {
+    if (!object3d) {
+      continue;
+    }
+
+    sceneObjectBoundsBox.setFromObject(
+      object3d
+    );
+
+    if (sceneObjectBoundsBox.isEmpty()) {
+      continue;
+    }
+
+    const hitPoint =
+      ray.intersectBox(
+        sceneObjectBoundsBox,
+        sceneObjectBoundsHitPoint
+      );
+
+    if (!hitPoint) {
+      continue;
+    }
+
+    const distance =
+      ray.origin.distanceTo(hitPoint);
+
+    if (distance < nearestDistance) {
+      nearestDistance = distance;
+      nearestObject = object3d;
+    }
   }
 
-  if (
-    movedDistance >
-      SCENE_OBJECT_CLICK_DRAG_THRESHOLD_PX &&
-    !event.shiftKey
-  ) {
-    return;
-  }
-
-  onSceneObjectClick(event);
+  return nearestObject;
 }
 
 function onSceneObjectClick(
@@ -924,6 +928,10 @@ function onSceneObjectClick(
     !camera ||
     clickableSceneObjectRoots.length === 0
   ) {
+    return;
+  }
+
+  if (transformControls?.dragging) {
     return;
   }
 
@@ -942,6 +950,10 @@ function onSceneObjectClick(
     canvasRect
   );
 
+  scene.updateMatrixWorld(
+    true
+  );
+
   sceneObjectClickRaycaster.setFromCamera(
     sceneObjectClickPointer,
     camera
@@ -953,18 +965,29 @@ function onSceneObjectClick(
       true
     );
 
-  if (intersections.length === 0) {
+  let clickedRoot = null;
+
+  if (intersections.length > 0) {
+    clickedRoot =
+      findClickableSceneObjectRoot(
+        intersections[0].object
+      );
+  }
+
+  if (!clickedRoot) {
+    clickedRoot =
+      findClickableSceneObjectByBoundsRaycast(
+        sceneObjectClickRaycaster.ray
+      );
+  }
+
+  if (!clickedRoot) {
     if (event.shiftKey) {
       detachTransformControls();
     }
 
     return;
   }
-
-  const clickedRoot =
-    findClickableSceneObjectRoot(
-      intersections[0].object
-    );
 
   const clickedObjectId =
     clickedRoot?.userData

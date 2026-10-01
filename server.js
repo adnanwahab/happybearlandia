@@ -148,6 +148,30 @@ async function listScreenshotFiles(limit = 9) {
   return images;
 }
 
+async function listSceneFiles() {
+  const root = normalize(join(gameRoot, "scene"));
+  let entries;
+
+  try {
+    entries = await readdir(root, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+
+  return entries
+    .filter(entry => entry.isFile() && entry.name.endsWith(".json"))
+    .map(entry => {
+      const id = entry.name.replace(/\.json$/i, "");
+
+      return {
+        id,
+        name: entry.name,
+      };
+    })
+    .filter(scene => sceneIdPattern.test(scene.id))
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }));
+}
+
 // -------------------------------------------------------------------------
 // Multiplayer player state
 // -------------------------------------------------------------------------
@@ -368,6 +392,29 @@ const server = serve({
     // ---------------------------------------------------------------------
     // Scene API
     // ---------------------------------------------------------------------
+
+    if (url.pathname === "/api/scenes") {
+      if (request.method !== "GET") {
+        return new Response("Method not allowed", {
+          status: 405,
+          headers: { Allow: "GET" },
+        });
+      }
+
+      const scenes = await listSceneFiles();
+
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          count: scenes.length,
+          scenes,
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
 
     const sceneApiId = getSceneIdFromPath(url.pathname, "/api/scenes/");
 
