@@ -1339,6 +1339,11 @@ let inventoryOverlay = null;
 let inventorySlotElements = [];
 let inventorySlots = Array(INVENTORY_SLOT_COUNT).fill(null);
 
+let fpsOverlay = null;
+let fpsFrameCount = 0;
+let fpsElapsedSeconds = 0;
+const FPS_OVERLAY_UPDATE_INTERVAL_SECONDS = 0.25;
+
 function renderInventoryOverlay() {
   if (!inventoryOverlay) {
     return;
@@ -1441,6 +1446,50 @@ function ensureInventoryOverlay() {
 
   document.body.appendChild(inventoryOverlay);
   resetInventory();
+}
+
+function ensureFpsOverlay() {
+  fpsOverlay?.remove();
+
+  fpsOverlay = document.createElement("div");
+  fpsOverlay.id = "fps-overlay";
+  fpsOverlay.style.position = "fixed";
+  fpsOverlay.style.top = "12px";
+  fpsOverlay.style.right = "12px";
+  fpsOverlay.style.padding = "6px 10px";
+  fpsOverlay.style.color = "#ffffff";
+  fpsOverlay.style.fontFamily = "monospace";
+  fpsOverlay.style.fontSize = "14px";
+  fpsOverlay.style.background = "rgba(0, 0, 0, 0.55)";
+  fpsOverlay.style.border = "1px solid rgba(255, 255, 255, 0.45)";
+  fpsOverlay.style.borderRadius = "8px";
+  fpsOverlay.style.pointerEvents = "none";
+  fpsOverlay.style.zIndex = "9999";
+  fpsOverlay.textContent = "FPS: --";
+
+  fpsFrameCount = 0;
+  fpsElapsedSeconds = 0;
+
+  document.body.appendChild(fpsOverlay);
+}
+
+function updateFpsOverlay(deltaTime) {
+  if (!fpsOverlay || !Number.isFinite(deltaTime) || deltaTime <= 0) {
+    return;
+  }
+
+  fpsFrameCount += 1;
+  fpsElapsedSeconds += deltaTime;
+
+  if (fpsElapsedSeconds < FPS_OVERLAY_UPDATE_INTERVAL_SECONDS) {
+    return;
+  }
+
+  const fps = Math.round(fpsFrameCount / fpsElapsedSeconds);
+  fpsOverlay.textContent = `FPS: ${fps}`;
+
+  fpsFrameCount = 0;
+  fpsElapsedSeconds = 0;
 }
 
 function loadTreeModel() {
@@ -2193,6 +2242,7 @@ async function initExample(
     "";
 
   ensureInventoryOverlay();
+  ensureFpsOverlay();
 
   onExampleUpdate =
     updateFunction;
@@ -2346,6 +2396,8 @@ function renderExample() {
     textureTemplates.every(
       texture => texture?.image?.complete === true
     );
+
+  updateFpsOverlay(deltaTime);
 
   if (frameTexturesReady) {
     renderer.render(

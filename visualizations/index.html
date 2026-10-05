@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Port Calder grid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500&display=swap">
+<style>
+  :root {
+    --night: #0A1322;      /* sea, gutters, dropout cells */
+    --sea-line: #1A2A42;   /* depth contours */
+    --slate: #34476A;      /* district without power */
+    --slate-edge: #4C6189; /* idle ties between districts */
+    --moon: #C3D0E4;       /* labels on unpowered districts */
+    --sodium: #F7AB2F;     /* district with power */
+    --spark: #FFF1CC;      /* surge cells while power arrives */
+    --umber: #3A2203;      /* labels on powered districts */
+    --paper: #E3E9F3;
+    --muted: #8D9DB6;
+    --display: 'Big Shoulders Display', 'Big Shoulders', 'Arial Narrow', 'Roboto Condensed', sans-serif;
+    --text: 'Public Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--night);
+    color: var(--paper);
+    font: 400 15px/1.45 var(--text);
+    display: flex;
+    flex-direction: column;
+    padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+    -webkit-tap-highlight-color: transparent;
+  }
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 14px 32px;
+    padding: clamp(18px, 3.2vw, 36px) clamp(18px, 4vw, 52px) 0;
+  }
+  h1 {
+    margin: 0;
+    font: 800 clamp(34px, 4.6vw, 58px)/0.9 var(--display);
+    letter-spacing: 0.01em;
+  }
+  .status { margin: 12px 0 0; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .hint { margin: 2px 0 0; color: var(--muted); }
+  button {
+    font: 500 15px/1 var(--text);
+    color: var(--night);
+    background: var(--paper);
+    border: 0;
+    border-radius: 3px;
+    padding: 12px 18px;
+    min-width: 11.5em;
+    cursor: pointer;
+  }
+  button:hover { background: #fff; }
+  button:disabled { background: var(--slate); color: var(--moon); cursor: progress; }
+  button:focus-visible { outline: 2px solid var(--sodium); outline-offset: 3px; }
+  main {
+    flex: 1;
+    min-height: 0;
+    padding: clamp(10px, 2vw, 22px) clamp(10px, 3vw, 40px) clamp(14px, 2.6vw, 30px);
+  }
+  #map { display: block; width: 100%; height: 100%; overflow: visible; }
+
+  .coast-ring { fill: none; stroke-linejoin: round; }
+  .island { fill: var(--night); stroke: var(--night); stroke-width: 2; stroke-linejoin: round; }
+
+  .tie { stroke-width: 5; stroke: var(--slate-edge); }
+  .tie.on { stroke: var(--sodium); }
+
+  .district { cursor: pointer; outline: none; }
+  #map.busy .district { cursor: progress; }
+  .district[data-state="off"] .base { fill: var(--slate); }
+  .district[data-state="on"]  .base { fill: var(--sodium); }
+  .district[data-to="on"]  .over { fill: var(--sodium); }
+  .district[data-to="off"] .over { fill: var(--slate); }
+  .district[data-to="on"]  .glitch { fill: var(--spark); }
+  .district[data-to="off"] .glitch { fill: var(--night); }
+  .over, .glitch { shape-rendering: crispEdges; }
+
+  .label { pointer-events: none; user-select: none; -webkit-user-select: none; }
+  .label .name { font: 800 30px var(--display); letter-spacing: 0.01em; }
+  .label .note { font: 500 12px var(--text); letter-spacing: 0.02em; }
+  .district[data-state="off"] .label-from text { fill: var(--moon); }
+  .district[data-state="on"]  .label-from text { fill: var(--umber); }
+  .district[data-to="on"]  .label-to text { fill: var(--umber); }
+  .district[data-to="off"] .label-to text { fill: var(--moon); }
+  .label .note { fill-opacity: 0.82; }
+
+  .edge { fill: none; stroke: transparent; stroke-width: 2.5; pointer-events: none; }
+  #map:not(.busy) .district:hover .edge { stroke: rgba(227, 233, 243, 0.5); }
+  .district:focus-visible .edge { stroke: var(--paper); stroke-width: 3; }
+
+  .ripple { fill: none; stroke: var(--paper); stroke-width: 2; pointer-events: none; }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  @media (max-width: 560px) {
+    header { align-items: flex-start; }
+    button { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Port Calder grid</h1>
+    <p class="status" id="status" aria-hidden="true">0 of 0 districts powered</p>
+    <p class="hint" id="hint">Click a district to restore power from there.</p>
+  </div>
+  <button id="toggle" type="button">Restore power</button>
+</header>
+<main>
+  <svg id="map" role="group" aria-label="Map of Port Calder's power districts"></svg>
+</main>
+<p class="sr-only" id="announce" aria-live="polite"></p>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script>
+(() => {
+  'use strict';
+  if (!window.d3) {
+    document.getElementById('hint').textContent = 'D3 didn\u2019t load from cdn.jsdelivr.net. Check your connection and reload the page.';
+    document.getElementById('toggle').disabled = true;
+    return;
+  }
+
+  // How it works
+  //  1. buildCity() makes Voronoi districts, trims them to an island, and adds a
+  //     tie wherever two districts share a long enough border.
+  //  2. planTakeover() runs Dijkstra over districts: each one starts when the
+  //     front in a neighbour reaches their shared tie.
+  //  3. planDistrict() grows the front cell by cell with random edge costs, then
+  //     groups cells into horizontal runs with a small timeline each (flash,
+  //     switch, sometimes flip back once).
+  //  4. frame(t) rebuilds two <path> elements per active district: runs that
+  //     have switched, and runs that are flashing. The switched path also clips
+  //     a second copy of the label, so text changes colour as the front passes.
+
+  // ---------------------------------------------------------------------------
+  // Tunables
+  // ---------------------------------------------------------------------------
+  const LAYOUT_SEED = 0.58;     // change for a different city
+  const SITES_PER_MPX = 33;     // Voronoi sites per million square units, before trimming to an island
+  const GUTTER = 14;            // gap between districts (viewBox units)
+  const CELL = 6;               // size of one glitch cell
+  const RUN_CELLS = [1, 2, 2, 3, 3, 3, 4, 4, 5, 6, 7, 9]; // horizontal run lengths, in cells
+  const SPEED = 460;            // average speed of the takeover front, units per second
+  const H_BIAS = 0.72;          // < 1 makes the front race sideways, like scanlines
+  const CROSS_DELAY = 0.07;     // seconds for power to jump a tie into the next district
+  const MIN_TIE = 40;           // shortest shared border that gets a tie
+  const GLITCH_CHANCE = 0.38;   // share of runs that flash ahead of the front
+  const RELAPSE_CHANCE = 0.14;  // share of runs that flip back once before settling
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const pointerVerb = window.matchMedia('(hover: none)').matches ? 'Tap' : 'Click';
+
+  const COPY = {
+    on:  { note: 'Powered',  verb: 'cut',     button: 'Cut power',     busy: 'Restoring power…' },
+    off: { note: 'No power', verb: 'restore', button: 'Restore power', busy: 'Cutting power…' }
+  };
+  const COASTAL = ['Harbor', 'Quayside', 'Saltmarsh', 'Breakwater', 'Ropewalk', 'Docklands', 'Pier Row', 'Cannery', 'Shingle End', 'Tidewater', 'Wharfside', 'Netloft'];
+  const INLAND  = ['Old Mill', 'Foundry', 'Lantern Hill', 'Ironworks', 'Bellwood', 'Kiln Yard', 'Chapel Fields', 'Marketgate', 'Hatters Lane', 'Hollins Park', 'Tannery Row', 'Gasworks'];
+
+  // ---------------------------------------------------------------------------
+  // Geometry helpers
+  // ---------------------------------------------------------------------------
+  const openRing = p => p.slice(0, -1);
+  const keyOf = p => `${p[0].toFixed(3)},${p[1].toFixed(3)}`;
+  const pathOf = pts => `M${pts.map(p => `${p[0].toFixed(2)},${p[1].toFixed(2)}`).join('L')}Z`;
+
+  // Clip a polygon to the half-plane (p - a) · n >= d.
+  function clipHalfPlane(pts, a, nx, ny, d) {
+    const out = [];
+    const f = p => (p[0] - a[0]) * nx + (p[1] - a[1]) * ny - d;
+    for (let i = 0; i < pts.length; i++) {
+      const p = pts[i], q = pts[(i + 1) % pts.length];
+      const fp = f(p), fq = f(q);
+      if (fp >= 0) out.push(p);
+      if ((fp >= 0) !== (fq >= 0)) {
+        const t = fp / (fp - fq);
+        out.push([p[0] + t * (q[0] - p[0]), p[1] + t * (q[1] - p[1])]);
+      }
+    }
+    return out;
+  }
+
+  // Shrink a convex polygon by d on every side (intersection of offset half-planes).
+  function insetConvex(poly, d) {
+    const sign = Math.sign(d3.polygonArea(poly)) || 1;
+    let out = poly.slice();
+    for (let i = 0; i < poly.length; i++) {
+      const a = poly[i], b = poly[(i + 1) % poly.length];
+      const ex = b[0] - a[0], ey = b[1] - a[1], len = Math.hypot(ex, ey);
+      if (len < 1e-9) continue;
+      out = clipHalfPlane(out, a, (ey / len) * sign, (-ex / len) * sign, d);
+      if (out.length < 3) return null;
+    }
+    return out;
+  }
+
+  // Leftmost and rightmost x where a horizontal line crosses the polygon.
+  function chordAt(poly, y) {
+    let lo = Infinity, hi = -Infinity;
+    for (let i = 0; i < poly.length; i++) {
+      const a = poly[i], b = poly[(i + 1) % poly.length];
+      if ((a[1] <= y && b[1] >= y) || (b[1] <= y && a[1] >= y)) {
+        const t = a[1] === b[1] ? 0 : (y - a[1]) / (b[1] - a[1]);
+        const x = a[0] + t * (b[0] - a[0]);
+        lo = Math.min(lo, x); hi = Math.max(hi, x);
+      }
+    }
+    return [lo, hi];
+  }
+
+  // ---------------------------------------------------------------------------
+  // City: Voronoi districts trimmed to an island, with ties across shared borders
+  // ---------------------------------------------------------------------------
+  function buildCity(W, H) {
+    const rand = d3.randomLcg(LAYOUT_SEED);
+    let sites = [];
+    const count = Math.max(28, Math.round(SITES_PER_MPX * W * H / 1e6));
+    for (let i = 0; i < count; i++) {            // best-candidate sampling
+      let best = null, bestD = -1;
+      for (let k = 0; k < 14; k++) {
+        const p = [rand() * W, rand() * H];
+        let dmin = Infinity;
+        for (const q of sites) dmin = Math.min(dmin, (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2);
+        if (dmin > bestD) { bestD = dmin; best = p; }
+      }
+      sites.push(best);
+    }
+    for (let k = 0; k < 2; k++) {                 // Lloyd relaxation evens out the cells
+      const v = d3.Delaunay.from(sites).voronoi([0, 0, W, H]);
+      sites = sites.map((_, i) => d3.polygonCentroid(openRing(v.cellPolygon(i))));
+    }
+    const vor = d3.Delaunay.from(sites).voronoi([0, 0, W, H]);
+
+    // Keep the cells inside a wobbly ellipse, away from the frame.
+    const cx = W / 2, cy = H / 2, rx = W / 2, ry = H / 2;
+    const ph1 = rand() * Math.PI * 2, ph2 = rand() * Math.PI * 2;
+    const districts = [];
+    sites.forEach((site, i) => {
+      const cell = openRing(vor.cellPolygon(i));
+      const [x, y] = d3.polygonCentroid(cell);
+      const a = Math.atan2((y - cy) / ry, (x - cx) / rx);
+      const r = Math.hypot((x - cx) / rx, (y - cy) / ry);
+      const limit = 0.78 + 0.1 * Math.sin(3 * a + ph1) + 0.07 * Math.sin(5 * a + ph2);
+      const onFrame = cell.some(([px, py]) => px < 1 || py < 1 || px > W - 1 || py > H - 1);
+      if (r >= limit || onFrame) return;
+      const poly = insetConvex(cell, GUTTER / 2);
+      if (poly) districts.push({ id: districts.length, site, cell, poly });
+    });
+
+    // Directed edges: a shared border appears once in each direction.
+    const edgeOwner = new Map();
+    districts.forEach(d => d.cell.forEach((a, k) => {
+      const b = d.cell[(k + 1) % d.cell.length];
+      edgeOwner.set(`${keyOf(a)}>${keyOf(b)}`, { d, a, b });
+    }));
+    const coast = [], shared = [];
+    for (const [key, e] of edgeOwner) {
+      const [ka, kb] = key.split('>');
+      const twin = edgeOwner.get(`${kb}>${ka}`);
+      if (!twin) coast.push(e);
+      else if (e.d.id < twin.d.id) shared.push({ a: e.d, b: twin.d, p: e.a, q: e.b });
+    }
+    districts.forEach(d => {
+      const shore = d3.sum(coast.filter(e => e.d === d), e => Math.hypot(e.b[0] - e.a[0], e.b[1] - e.a[1]));
+      d.coastal = shore > 0.3 * d3.polygonLength(d.cell);
+      d.ties = [];
+    });
+
+    // Ties sit at the middle of each long-enough shared border, spanning the gutter.
+    const ties = [];
+    const addTie = s => {
+      const ux = s.q[0] - s.p[0], uy = s.q[1] - s.p[1], len = Math.hypot(ux, uy);
+      let nx = -uy / len, ny = ux / len;
+      if ((s.b.site[0] - s.a.site[0]) * nx + (s.b.site[1] - s.a.site[1]) * ny < 0) { nx = -nx; ny = -ny; }
+      const mx = (s.p[0] + s.q[0]) / 2, my = (s.p[1] + s.q[1]) / 2;
+      const at = k => [mx + nx * k, my + ny * k];
+      const tie = {
+        a: s.a, b: s.b,
+        endA: at(-GUTTER / 2), endB: at(GUTTER / 2),
+        seedA: at(-GUTTER / 2 - CELL * 1.5), seedB: at(GUTTER / 2 + CELL * 1.5)
+      };
+      ties.push(tie); s.a.ties.push(tie); s.b.ties.push(tie);
+    };
+    const parent = districts.map((_, i) => i);
+    const find = i => (parent[i] === i ? i : (parent[i] = find(parent[i])));
+    const length = s => Math.hypot(s.q[0] - s.p[0], s.q[1] - s.p[1]);
+    shared.sort((s, t) => length(t) - length(s));
+    for (const s of shared) if (length(s) >= MIN_TIE) { addTie(s); parent[find(s.a.id)] = find(s.b.id); }
+    for (const s of shared) {                     // keep the network connected
+      if (find(s.a.id) !== find(s.b.id) && length(s) > GUTTER * 1.5) { addTie(s); parent[find(s.a.id)] = find(s.b.id); }
+    }
+
+    // Chain the coast edges into closed loops for the island outline.
+    const byStart = new Map(coast.map(e => [keyOf(e.a), e]));
+    const loops = [], used = new Set();
+    for (const e of coast) {
+      if (used.has(e)) continue;
+      const loop = [];
+      let cur = e;
+      while (cur && !used.has(cur)) { used.add(cur); loop.push(cur.a); cur = byStart.get(keyOf(cur.b)); }
+      if (loop.length > 2) loops.push(loop);
+    }
+
+    // Names: coastal districts get waterfront names.
+    const pick = (list, r) => { const i = Math.floor(r() * list.length); return list.splice(i, 1)[0]; };
+    const coastal = COASTAL.slice(), inland = INLAND.slice();
+    districts.forEach(d => {
+      d.name = (d.coastal && coastal.length ? pick(coastal, rand) : pick(inland.length ? inland : coastal, rand)) || `District ${d.id + 1}`;
+      d.centroid = d3.polygonCentroid(d.poly);
+      d.rows = rasterize(d.poly);
+    });
+    return { districts, ties, loops };
+  }
+
+  // Grid rows covered by a district: for each row, the span of cells touching it.
+  function rasterize(poly) {
+    const [x0, x1] = d3.extent(poly, p => p[0]);
+    const [y0, y1] = d3.extent(poly, p => p[1]);
+    const c0 = Math.floor(x0 / CELL), c1 = Math.ceil(x1 / CELL);
+    const r0 = Math.floor(y0 / CELL), r1 = Math.ceil(y1 / CELL);
+    const touches = (c, r) => {
+      const x = c * CELL, y = r * CELL, e = 0.01, s = CELL - 0.01;
+      return d3.polygonContains(poly, [x + CELL / 2, y + CELL / 2]) ||
+        d3.polygonContains(poly, [x + e, y + e]) || d3.polygonContains(poly, [x + s, y + e]) ||
+        d3.polygonContains(poly, [x + e, y + s]) || d3.polygonContains(poly, [x + s, y + s]);
+    };
+    const rows = [];
+    for (let r = r0; r < r1; r++) {
+      let a = -1, b = -1;
+      for (let c = c0; c < c1; c++) if (touches(c, r)) { if (a < 0) a = c; b = c + 1; }
+      rows.push({ r, a, b });                     // a < 0 means the row is empty
+    }
+    return rows;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Takeover planning
+  // ---------------------------------------------------------------------------
+  const OFF = 0, ON = 1, GLITCH = 2;
+
+  class MinHeap {
+    constructor() { this.k = []; this.v = []; }
+    get size() { return this.k.length; }
+    push(key, val) {
+      const k = this.k, v = this.v;
+      let i = k.length; k.push(key); v.push(val);
+      while (i > 0) {
+        const p = (i - 1) >> 1;
+        if (k[p] <= key) break;
+        k[i] = k[p]; v[i] = v[p]; i = p;
+      }
+      k[i] = key; v[i] = val;
+    }
+    pop() {
+      const k = this.k, v = this.v, topK = k[0], topV = v[0];
+      const lastK = k.pop(), lastV = v.pop();
+      if (k.length) {
+        let i = 0;
+        for (;;) {
+          let c = 2 * i + 1;
+          if (c >= k.length) break;
+          if (c + 1 < k.length && k[c + 1] < k[c]) c++;
+          if (k[c] >= lastK) break;
+          k[i] = k[c]; v[i] = v[c]; i = c;
+        }
+        k[i] = lastK; v[i] = lastV;
+      }
+      return [topK, topV];
+    }
+  }
+
+  // One district: grow the takeover from the seed across the cell grid with
+  // randomized shortest paths (first-passage percolation), which gives the
+  // front its ragged edge. Then cut each row into random horizontal runs; a run
+  // switches as soon as the front touches any of its cells, so long runs
+  // streak out ahead of the front.
+  function planDistrict(d, seed, rand) {
+    const rows = d.rows, R = rows.length;
+    const off = new Int32Array(R + 1);
+    for (let k = 0; k < R; k++) off[k + 1] = off[k] + (rows[k].a < 0 ? 0 : rows[k].b - rows[k].a);
+    const n = off[R];
+    const rowOf = new Int32Array(n);
+    for (let k = 0; k < R; k++) rowOf.fill(k, off[k], off[k + 1]);
+    const colOf = i => rows[rowOf[i]].a + (i - off[rowOf[i]]);
+    const cellAt = (k, c) => (k < 0 || k >= R || rows[k].a < 0 || c < rows[k].a || c >= rows[k].b) ? -1 : off[k] + c - rows[k].a;
+    const cx = i => (colOf(i) + 0.5) * CELL, cy = i => (rows[rowOf[i]].r + 0.5) * CELL;
+
+    const dist = new Float64Array(n).fill(Infinity);
+    const heap = new MinHeap();
+    let nearest = 0, nearestD = Infinity;
+    for (let i = 0; i < n; i++) {
+      const e = Math.hypot(cx(i) - seed[0], cy(i) - seed[1]);
+      if (e < nearestD) { nearestD = e; nearest = i; }
+      if (e < CELL * 1.6) { dist[i] = e * 0.3; heap.push(dist[i], i); }
+    }
+    if (!heap.size) { dist[nearest] = 0; heap.push(0, nearest); }
+    const relax = (du, v, base) => {
+      if (v < 0) return;
+      const w = base * (0.06 + Math.pow(-Math.log(1 - rand()), 1.5)); // heavy-tailed jitter
+      if (du + w < dist[v]) { dist[v] = du + w; heap.push(dist[v], v); }
+    };
+    while (heap.size) {
+      const [du, u] = heap.pop();
+      if (du > dist[u]) continue;
+      const k = rowOf[u], c = colOf(u);
+      relax(du, cellAt(k, c - 1), CELL * H_BIAS);
+      relax(du, cellAt(k, c + 1), CELL * H_BIAS);
+      relax(du, cellAt(k - 1, c), CELL);
+      relax(du, cellAt(k + 1, c), CELL);
+    }
+
+    // Convert path cost to seconds so the front moves at roughly SPEED.
+    const ratios = [];
+    for (let i = 0; i < n; i++) {
+      const e = Math.hypot(cx(i) - seed[0], cy(i) - seed[1]);
+      if (e > CELL * 5 && isFinite(dist[i])) ratios.push(dist[i] / e);
+    }
+    const scale = (d3.median(ratios) || 1) * SPEED;
+
+    const runs = [];
+    for (let k = 0; k < R; k++) {
+      const row = rows[k];
+      if (row.a < 0) continue;
+      for (let c = row.a; c < row.b;) {
+        const len = Math.min(RUN_CELLS[Math.floor(rand() * RUN_CELLS.length)], row.b - c);
+        let t = Infinity;
+        for (let j = 0; j < len; j++) t = Math.min(t, dist[off[k] + c + j - row.a]);
+        const x = c * CELL, y = row.r * CELL, w = len * CELL;
+        runs.push({ cx: x + w / 2, cy: y + CELL / 2, raw: t / scale, d: `M${x} ${y}h${w}v${CELL}h${-w}z` });
+        c += len;
+      }
+    }
+    const finite = runs.map(r => r.raw).filter(isFinite).sort(d3.ascending);
+    const cap = (d3.quantileSorted(finite, 0.985) || 0) * 1.12;
+
+    let first = Infinity, end = 0;
+    runs.forEach(r => {
+      const t = Math.min(isFinite(r.raw) ? r.raw : cap, cap);
+      r.t = t;
+      const ev = [];
+      if (!reduceMotion && rand() < GLITCH_CHANCE) ev.push(t - (0.02 + rand() * 0.07), GLITCH);
+      ev.push(t, ON);
+      if (!reduceMotion && rand() < RELAPSE_CHANCE) {
+        const back = t + 0.04 + rand() * 0.16;
+        ev.push(back, rand() < 0.55 ? OFF : GLITCH, back + 0.03 + rand() * 0.09, ON);
+      }
+      r.ev = ev;
+      first = Math.min(first, ev[0]);
+      end = Math.max(end, ev[ev.length - 2]);
+    });
+    return { runs, first, end };
+  }
+
+  const stateAt = (ev, t) => {
+    let s = OFF;
+    for (let k = 0; k < ev.length && ev[k] <= t; k += 2) s = ev[k + 1];
+    return s;
+  };
+
+  // Arrival time of the run closest to a point.
+  function arrivalNear(plan, p) {
+    let best = null, bd = Infinity;
+    for (const r of plan.runs) {
+      const e = (r.cx - p[0]) ** 2 + (r.cy - p[1]) ** 2;
+      if (e < bd) { bd = e; best = r; }
+    }
+    return best ? best.t : 0;
+  }
+
+  // Whole city: Dijkstra over districts. A district starts when the front in a
+  // neighbour reaches their shared tie, seeded at that tie.
+  function planTakeover(origin, seed, rand) {
+    districts.forEach(d => { d.start = Infinity; d.seed = null; d.plan = null; d.done = false; });
+    origin.start = 0; origin.seed = seed;
+    for (;;) {
+      let u = null;
+      for (const d of districts) if (!d.plan && d.start < Infinity && (!u || d.start < u.start)) u = d;
+      if (!u) break;
+      u.plan = planDistrict(u, u.seed, rand);
+      for (const tie of u.ties) {
+        const v = tie.a === u ? tie.b : tie.a;
+        if (v.plan) continue;
+        const reach = u.start + arrivalNear(u.plan, tie.a === u ? tie.endA : tie.endB) + CROSS_DELAY;
+        if (reach < v.start) { v.start = reach; v.seed = tie.a === u ? tie.seedB : tie.seedA; }
+      }
+    }
+    ties.forEach(tie => {
+      tie.fire = Math.min(
+        tie.a.plan ? tie.a.start + arrivalNear(tie.a.plan, tie.endA) : Infinity,
+        tie.b.plan ? tie.b.start + arrivalNear(tie.b.plan, tie.endB) : Infinity
+      );
+      tie.fired = false;
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Rendering
+  // ---------------------------------------------------------------------------
+  const svg = d3.select('#map');
+  const box = svg.node().getBoundingClientRect();
+  const aspect = box.width > 0 && box.height > 0 ? box.width / box.height : 1.6;
+  const W = aspect >= 1 ? Math.round(780 * Math.min(aspect, 2.3)) : 780;
+  const H = aspect >= 1 ? 780 : Math.round(780 / Math.max(aspect, 0.5));
+
+  const { districts, ties, loops } = buildCity(W, H);
+  const RINGS = [[84, 0.4], [54, 0.65], [27, 1]];  // depth contours: distance from shore, opacity
+  {
+    const pad = RINGS[0][0] + 4;
+    const xs = loops.flat().map(p => p[0]), ys = loops.flat().map(p => p[1]);
+    const [x0, x1] = d3.extent(xs), [y0, y1] = d3.extent(ys);
+    svg.attr('viewBox', [x0 - pad, y0 - pad, x1 - x0 + 2 * pad, y1 - y0 + 2 * pad].map(Math.round).join(' '))
+      .attr('preserveAspectRatio', 'xMidYMid meet');
+  }
+  let boardState = 'off';
+  let running = false;
+
+  const defs = svg.append('defs');
+  const coastPath = loops.map(pathOf).join('');
+
+  // Depth contours: wide stroke, then a slightly narrower stroke of sea colour.
+  const sea = svg.append('g').attr('aria-hidden', 'true');
+  RINGS.forEach(([r, o]) => {
+    sea.append('path').attr('class', 'coast-ring').attr('d', coastPath)
+      .attr('stroke', 'var(--sea-line)').attr('stroke-opacity', o).attr('stroke-width', r * 2);
+    sea.append('path').attr('class', 'coast-ring').attr('d', coastPath)
+      .attr('stroke', 'var(--night)').attr('stroke-width', r * 2 - 3);
+  });
+  svg.append('path').attr('class', 'island').attr('d', coastPath).attr('aria-hidden', 'true');
+
+  const tieSel = svg.append('g').attr('aria-hidden', 'true')
+    .selectAll('line').data(ties).join('line')
+    .attr('class', 'tie')
+    .attr('x1', t => t.endA[0]).attr('y1', t => t.endA[1])
+    .attr('x2', t => t.endB[0]).attr('y2', t => t.endB[1]);
+
+  defs.selectAll('clipPath.shape').data(districts).join('clipPath')
+    .attr('class', 'shape').attr('id', d => `shape-${d.id}`)
+    .append('path').attr('d', d => pathOf(d.poly));
+  defs.selectAll('clipPath.lit').data(districts).join('clipPath')
+    .attr('class', 'lit').attr('id', d => `lit-${d.id}`)
+    .append('path').each(function (d) { d.litClip = this; });
+
+  const districtSel = svg.append('g').selectAll('g.district').data(districts).join('g')
+    .attr('class', 'district')
+    .attr('data-state', 'off').attr('data-to', 'on')
+    .attr('tabindex', 0).attr('role', 'button')
+    .on('click', (event, d) => trigger(d, d3.pointer(event, svg.node())))
+    .on('keydown', (event, d) => {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); trigger(d, d.labelAt); }
+    });
+
+  const inner = districtSel.append('g').attr('clip-path', d => `url(#shape-${d.id})`);
+  inner.append('path').attr('class', 'base').attr('d', d => pathOf(d.poly));
+  inner.append('g').attr('class', 'label label-from');
+  inner.append('path').attr('class', 'glitch').each(function (d) { d.glitchEl = this; });
+  inner.append('path').attr('class', 'over').each(function (d) { d.overEl = this; });
+  inner.append('g').attr('class', 'label label-to').attr('clip-path', d => `url(#lit-${d.id})`);
+  districtSel.append('path').attr('class', 'edge').attr('d', d => pathOf(d.poly));
+
+  districtSel.selectAll('g.label').each(function (d) {
+    const g = d3.select(this);
+    g.append('text').attr('class', 'name').attr('text-anchor', 'middle').text(d.name);
+    g.append('text').attr('class', 'note').attr('text-anchor', 'middle');
+  });
+
+  // Fit each name to the width of its district at the label line.
+  function placeLabels() {
+    districtSel.each(function (d) {
+      const g = d3.select(this);
+      const probe = g.select('.label-from .name').attr('font-size', 30).node();
+      const natural = probe.getComputedTextLength() || d.name.length * 13;
+      const [x, y] = d.centroid;
+      const [lo, hi] = chordAt(d.poly, y - 4);
+      const size = Math.max(16, Math.min(34, 30 * (hi - lo - 28) / natural));
+      const nameY = y + size * 0.36 - 8.5, noteY = nameY + 17;
+      g.selectAll('.name').attr('font-size', size).attr('x', x).attr('y', nameY);
+      g.selectAll('.note').attr('x', x).attr('y', noteY);
+      d.labelAt = [x, y];
+    });
+  }
+
+  function setLabels() {
+    const to = boardState === 'on' ? 'off' : 'on';
+    districtSel.select('.label-from .note').text(COPY[boardState].note);
+    districtSel.select('.label-to .note').text(COPY[to].note);
+    districtSel.attr('aria-label', d => `${d.name}, ${COPY[boardState].note.toLowerCase()}. Activate to ${COPY[boardState].verb} power from here.`);
+  }
+
+  const statusEl = document.getElementById('status');
+  const hintEl = document.getElementById('hint');
+  const button = document.getElementById('toggle');
+  const announce = document.getElementById('announce');
+  const total = districts.length;
+  let shown = -1;
+  const status = n => { if (n !== shown) { shown = n; statusEl.textContent = `${n} of ${total} districts powered`; } };
+
+  function syncUI() {
+    button.disabled = running;
+    button.textContent = running ? COPY[boardState === 'on' ? 'off' : 'on'].busy : COPY[boardState].button;
+    hintEl.textContent = `${pointerVerb} a district to ${COPY[boardState].verb} power from there.`;
+    svg.classed('busy', running);
+  }
+
+  function ripple(p) {
+    if (reduceMotion) return;
+    svg.append('circle').attr('class', 'ripple')
+      .attr('cx', p[0]).attr('cy', p[1]).attr('r', 4).attr('stroke-opacity', 0.9)
+      .transition().duration(700).ease(d3.easeCubicOut)
+      .attr('r', 54).attr('stroke-opacity', 0)
+      .remove();
+  }
+
+  function finishDistrict(d, to) {
+    d.done = true;
+    d.overEl.setAttribute('d', '');
+    d.glitchEl.setAttribute('d', '');
+    d.litClip.setAttribute('d', '');
+    const g = d3.select(d.node).attr('data-state', to);
+    g.select('.label-from .note').text(COPY[to].note);
+  }
+
+  // Draw the city at time t (seconds since the takeover began). Returns true when finished.
+  function frame(t, to) {
+    let finished = true, switched = 0;
+    for (const d of districts) {
+      if (d.done) { switched++; continue; }
+      finished = false;
+      const p = d.plan;
+      const tl = t - d.start;
+      if (!p || tl >= p.end) { finishDistrict(d, to); switched++; continue; }
+      if (tl < p.first) continue;
+      let over = '', glitch = '';
+      for (const r of p.runs) {
+        const s = stateAt(r.ev, tl);
+        if (s === ON) over += r.d; else if (s === GLITCH) glitch += r.d;
+      }
+      d.overEl.setAttribute('d', over);
+      d.litClip.setAttribute('d', over);
+      d.glitchEl.setAttribute('d', glitch);
+    }
+    tieSel.each(function (tie) {
+      if (!tie.fired && t >= tie.fire) { tie.fired = true; this.classList.toggle('on', to === 'on'); }
+    });
+    status(to === 'on' ? switched : total - switched);
+    return finished;
+  }
+
+  function trigger(origin, seed) {
+    if (running) return;
+    const to = boardState === 'on' ? 'off' : 'on';
+    planTakeover(origin, seed, d3.randomLcg(Math.random()));
+    running = true;
+    districtSel.attr('data-to', to);
+    setLabels();
+    syncUI();
+    ripple(seed);
+    announce.textContent = to === 'on' ? 'Restoring power.' : 'Cutting power.';
+    const timer = d3.timer(elapsed => {
+      if (!frame(elapsed / 1000, to)) return;
+      timer.stop();
+      boardState = to;
+      running = false;
+      districtSel.attr('data-to', boardState === 'on' ? 'off' : 'on');
+      setLabels();
+      syncUI();
+      announce.textContent = to === 'on' ? `Power restored to all ${total} districts.` : `Power cut in all ${total} districts.`;
+    });
+  }
+
+  districtSel.each(function (d) { d.node = this; });
+
+  // Start from the westernmost district, near its western edge.
+  function defaultOrigin() {
+    const d = districts.reduce((m, e) => (e.centroid[0] < m.centroid[0] ? e : m));
+    const [lo, hi] = chordAt(d.poly, d.centroid[1]);
+    return [d, [lo + (hi - lo) * 0.18, d.centroid[1] + 30]];
+  }
+
+  button.addEventListener('click', () => {
+    const [d, p] = defaultOrigin();
+    trigger(d, p);
+  });
+
+  setLabels();
+  status(0);
+  syncUI();
+  const ready = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+  Promise.race([ready, new Promise(r => setTimeout(r, 1500))]).then(() => {
+    placeLabels();
+    if (!reduceMotion) setTimeout(() => button.click(), 650);
+  });
+  if (document.fonts) document.fonts.addEventListener('loadingdone', placeLabels);
+
+})();
+</script>
+</body>
+</html>
