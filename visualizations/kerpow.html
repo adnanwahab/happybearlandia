@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: white;
+      font-family: Arial, sans-serif;
+    }
+
+    #app {
+      position: fixed;
+      inset: 0;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    #pow {
+      position: absolute;
+      top: 35px;
+      left: 35px;
+
+      font-family: "Comic Sans MS", "Marker Felt", cursive;
+      font-size: clamp(30px, 5vw, 72px);
+      font-weight: 900;
+      color: #174be8;
+
+      transform: rotate(-10deg);
+      user-select: none;
+
+      /* Slightly hand-drawn appearance */
+      letter-spacing: -5px;
+
+      z-index: 10;
+    }
+
+    #controls {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+
+      display: flex;
+      gap: 8px;
+
+      background: rgba(255, 255, 255, 0.85);
+      padding: 8px;
+      border-radius: 10px;
+
+      z-index: 20;
+    }
+
+    button {
+      border: 1px solid #ccc;
+      background: white;
+      padding: 8px 13px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    button:hover {
+      background: #eee;
+    }
+
+    button.active {
+      background: #174be8;
+      color: white;
+      border-color: #174be8;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="app"></div>
+
+<div id="pow">
+  KER POW!
+</div>
+
+<div id="controls">
+  <button id="baseButton">Base</button>
+  <button id="fullButton" class="active">Full diagram</button>
+</div>
+
+
+<script type="module">
+
+import * as THREE from
+  "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js";
+
+
+/* ---------------------------------------------------------
+   Renderer
+--------------------------------------------------------- */
+
+const renderer = new THREE.WebGLRenderer({
+  antialias: true,
+  alpha: true
+});
+
+renderer.setPixelRatio(
+  Math.min(window.devicePixelRatio, 2)
+);
+
+renderer.setSize(
+  window.innerWidth,
+  window.innerHeight
+);
+
+renderer.outputColorSpace =
+  THREE.SRGBColorSpace;
+
+document
+  .getElementById("app")
+  .appendChild(renderer.domElement);
+
+
+/* ---------------------------------------------------------
+   Scene
+--------------------------------------------------------- */
+
+const scene =
+  new THREE.Scene();
+
+scene.background =
+  new THREE.Color(0xffffff);
+
+
+/* ---------------------------------------------------------
+   Orthographic camera
+
+   Gives the diagram an almost isometric / illustration look.
+--------------------------------------------------------- */
+
+const camera =
+  new THREE.OrthographicCamera();
+
+camera.position.set(
+  7,
+  6,
+  9
+);
+
+camera.lookAt(
+  0,
+  1.2,
+  0
+);
+
+
+/* ---------------------------------------------------------
+   Lighting
+--------------------------------------------------------- */
+
+scene.add(
+  new THREE.HemisphereLight(
+    0xffffff,
+    0xffffff,
+    3
+  )
+);
+
+const light =
+  new THREE.DirectionalLight(
+    0xffffff,
+    4
+  );
+
+light.position.set(
+  -4,
+  8,
+  6
+);
+
+scene.add(light);
+
+
+/* ---------------------------------------------------------
+   Colors
+--------------------------------------------------------- */
+
+const RED =
+  0xff3429;
+
+const LIGHT_RED =
+  0xff7777;
+
+const BLUE =
+  0x1757e8;
+
+
+/* ---------------------------------------------------------
+   Red horizontal plane
+--------------------------------------------------------- */
+
+const floorGeometry =
+  new THREE.PlaneGeometry(
+    11,
+    8
+  );
+
+const floorMaterial =
+  new THREE.MeshBasicMaterial({
+    color: LIGHT_RED,
+    transparent: true,
+    opacity: 0.24,
+    side: THREE.DoubleSide,
+    depthWrite: false
+  });
+
+const floor =
+  new THREE.Mesh(
+    floorGeometry,
+    floorMaterial
+  );
+
+floor.rotation.x =
+  -Math.PI / 2;
+
+floor.position.y =
+  0;
+
+floor.renderOrder =
+  -10;
+
+scene.add(floor);
+
+
+/* ---------------------------------------------------------
+   Red cylinder
+--------------------------------------------------------- */
+
+const cylinderGeometry =
+  new THREE.CylinderGeometry(
+    0.52,
+    0.52,
+    1.35,
+    64
+  );
+
+const cylinderMaterial =
+  new THREE.MeshStandardMaterial({
+    color: 0xff3b35,
+    roughness: 0.35,
+    metalness: 0
+  });
+
+const cylinder =
+  new THREE.Mesh(
+    cylinderGeometry,
+    cylinderMaterial
+  );
+
+cylinder.position.set(
+  2.2,
+  0.675,
+  0.45
+);
+
+scene.add(cylinder);
+
+
+/* ---------------------------------------------------------
+   Cylinder top highlight
+
+   Helps reproduce the bright white/pink cylinder top.
+--------------------------------------------------------- */
+
+const topGeometry =
+  new THREE.CircleGeometry(
+    0.505,
+    64
+  );
+
+const topMaterial =
+  new THREE.MeshBasicMaterial({
+    color: 0xffcccc,
+    transparent: true,
+    opacity: 0.75,
+    side: THREE.DoubleSide
+  });
+
+const cylinderTop =
+  new THREE.Mesh(
+    topGeometry,
+    topMaterial
+  );
+
+cylinderTop.rotation.x =
+  -Math.PI / 2;
+
+cylinderTop.position.set(
+  cylinder.position.x,
+  1.356,
+  cylinder.position.z
+);
+
+scene.add(cylinderTop);
+
+
+/* ---------------------------------------------------------
+   Utility: thick 3D arrow segment
+--------------------------------------------------------- */
+
+function createArrowSegment(
+  start,
+  end,
+  color = RED,
+  shaftRadius = 0.045,
+  headLength = 0.25,
+  headRadius = 0.14
+) {
+
+  const group =
+    new THREE.Group();
+
+  const direction =
+    new THREE.Vector3()
+      .subVectors(end, start);
+
+  const length =
+    direction.length();
+
+  direction.normalize();
+
+  const shaftLength =
+    Math.max(
+      0.05,
+      length - headLength
+    );
+
+
+  /* Arrow shaft */
+
+  const shaftGeometry =
+    new THREE.CylinderGeometry(
+      shaftRadius,
+      shaftRadius,
+      shaftLength,
+      12
+    );
+
+  const material =
+    new THREE.MeshBasicMaterial({
+      color
+    });
+
+  const shaft =
+    new THREE.Mesh(
+      shaftGeometry,
+      material
+    );
+
+  const yAxis =
+    new THREE.Vector3(0, 1, 0);
+
+  shaft.quaternion.setFromUnitVectors(
+    yAxis,
+    direction
+  );
+
+  shaft.position
+    .copy(start)
+    .addScaledVector(
+      direction,
+      shaftLength / 2
+    );
+
+  group.add(shaft);
+
+
+  /* Arrow head */
+
+  const coneGeometry =
+    new THREE.ConeGeometry(
+      headRadius,
+      headLength,
+      16
+    );
+
+  const cone =
+    new THREE.Mesh(
+      coneGeometry,
+      material
+    );
+
+  cone.quaternion.setFromUnitVectors(
+    yAxis,
+    direction
+  );
+
+  cone.position
+    .copy(start)
+    .addScaledVector(
+      direction,
+      shaftLength +
+      headLength / 2
+    );
+
+  group.add(cone);
+
+  return group;
+}
+
+
+/* ---------------------------------------------------------
+   Utility: arrow path
+--------------------------------------------------------- */
+
+function createArrowPath(points) {
+
+  const group =
+    new THREE.Group();
+
+  for (
+    let i = 0;
+    i < points.length - 1;
+    i++
+  ) {
+
+    group.add(
+      createArrowSegment(
+        points[i],
+        points[i + 1]
+      )
+    );
+  }
+
+  return group;
+}
+
+
+/* ---------------------------------------------------------
+   Main red zig-zag path
+--------------------------------------------------------- */
+
+const y =
+  0.07;
+
+const mainPath =
+  createArrowPath([
+    new THREE.Vector3(-4.3, y,  1.55),
+    new THREE.Vector3(-2.8, y,  1.20),
+    new THREE.Vector3(-2.25, y, 0.25),
+    new THREE.Vector3(-1.65, y, 0.72),
+    new THREE.Vector3(-0.65, y, 0.48),
+    new THREE.Vector3( 0.45, y, 0.43),
+    new THREE.Vector3( 1.35, y, 0.48)
+  ]);
+
+scene.add(mainPath);
+
+
+/* ---------------------------------------------------------
+   Branch around cylinder
+--------------------------------------------------------- */
+
+const lowerBranch =
+  createArrowPath([
+    new THREE.Vector3(1.35, y, 0.48),
+    new THREE.Vector3(2.25, y, -0.25)
+  ]);
+
+scene.add(lowerBranch);
+
+
+const upperBranch =
+  createArrowPath([
+    new THREE.Vector3(2.25, y, -0.25),
+    new THREE.Vector3(3.25, y, 0.05)
+  ]);
+
+scene.add(upperBranch);
+
+
+/* ---------------------------------------------------------
+   Full diagram group
+
+   Everything in this group disappears in "Base" mode.
+--------------------------------------------------------- */
+
+const fullDiagram =
+  new THREE.Group();
+
+scene.add(fullDiagram);
+
+
+/* ---------------------------------------------------------
+   Blue vertical translucent plane
+--------------------------------------------------------- */
+
+const verticalPlaneGeometry =
+  new THREE.PlaneGeometry(
+    7.2,
+    6.4
+  );
+
+const verticalPlaneMaterial =
+  new THREE.MeshBasicMaterial({
+    color: 0x7298ff,
+    transparent: true,
+    opacity: 0.20,
+    side: THREE.DoubleSide,
+    depthWrite: false
+  });
+
+const verticalPlane =
+  new THREE.Mesh(
+    verticalPlaneGeometry,
+    verticalPlaneMaterial
+  );
+
+verticalPlane.position.set(
+  -0.7,
+  2.65,
+  -0.45
+);
+
+verticalPlane.renderOrder =
+  -5;
+
+fullDiagram.add(verticalPlane);
+
+
+/* ---------------------------------------------------------
+   Blue upward arrow
+--------------------------------------------------------- */
+
+function makeArrowShape() {
+
+  const shape =
+    new THREE.Shape();
+
+  shape.moveTo(
+    -0.48,
+    0
+  );
+
+  shape.lineTo(
+    0.48,
+    0
+  );
+
+  shape.lineTo(
+    0.48,
+    2.25
+  );
+
+  shape.lineTo(
+    1.25,
+    2.25
+  );
+
+  shape.lineTo(
+    0,
+    3.85
+  );
+
+  shape.lineTo(
+    -1.25,
+    2.25
+  );
+
+  shape.lineTo(
+    -0.48,
+    2.25
+  );
+
+  shape.closePath();
+
+  return shape;
+}
+
+
+const blueArrowGeometry =
+  new THREE.ShapeGeometry(
+    makeArrowShape()
+  );
+
+const blueArrowMaterial =
+  new THREE.MeshBasicMaterial({
+    color: BLUE,
+    transparent: true,
+    opacity: 0.58,
+    side: THREE.DoubleSide,
+    depthWrite: false
+  });
+
+const blueArrow =
+  new THREE.Mesh(
+    blueArrowGeometry,
+    blueArrowMaterial
+  );
+
+blueArrow.position.set(
+  -0.7,
+  0.03,
+  -0.38
+);
+
+fullDiagram.add(blueArrow);
+
+
+/* ---------------------------------------------------------
+   Glass / transparent sphere
+--------------------------------------------------------- */
+
+const bubble =
+  new THREE.Mesh(
+    new THREE.SphereGeometry(
+      0.36,
+      32,
+      32
+    ),
+
+    new THREE.MeshPhysicalMaterial({
+      color: 0xffffff,
+
+      transparent: true,
+      opacity: 0.38,
+
+      roughness: 0.15,
+      metalness: 0,
+
+      transmission: 0.4,
+
+      side: THREE.DoubleSide,
+
+      depthWrite: false
+    })
+  );
+
+bubble.position.set(
+  -0.75,
+  0.37,
+  -0.28
+);
+
+fullDiagram.add(bubble);
+
+
+/* ---------------------------------------------------------
+   Colored particles inside sphere
+--------------------------------------------------------- */
+
+const particleCount =
+  90;
+
+const positions =
+  new Float32Array(
+    particleCount * 3
+  );
+
+const colors =
+  new Float32Array(
+    particleCount * 3
+  );
+
+
+const blue =
+  new THREE.Color(
+    0x4ba6ff
+  );
+
+const green =
+  new THREE.Color(
+    0xc4ec62
+  );
+
+
+for (
+  let i = 0;
+  i < particleCount;
+  i++
+) {
+
+  let x;
+  let yy;
+  let z;
+
+  /*
+     Rejection sampling makes random
+     points inside a sphere.
+  */
+
+  do {
+
+    x =
+      Math.random() * 2 - 1;
+
+    yy =
+      Math.random() * 2 - 1;
+
+    z =
+      Math.random() * 2 - 1;
+
+  }
+  while (
+    x * x +
+    yy * yy +
+    z * z > 1
+  );
+
+
+  const radius =
+    0.27;
+
+  positions[
+    i * 3
+  ] =
+    x * radius;
+
+  positions[
+    i * 3 + 1
+  ] =
+    yy * radius;
+
+  positions[
+    i * 3 + 2
+  ] =
+    z * radius;
+
+
+  const color =
+    Math.random() > 0.5
+      ? blue
+      : green;
+
+  colors[
+    i * 3
+  ] =
+    color.r;
+
+  colors[
+    i * 3 + 1
+  ] =
+    color.g;
+
+  colors[
+    i * 3 + 2
+  ] =
+    color.b;
+}
+
+
+const particleGeometry =
+  new THREE.BufferGeometry();
+
+particleGeometry.setAttribute(
+  "position",
+  new THREE.BufferAttribute(
+    positions,
+    3
+  )
+);
+
+particleGeometry.setAttribute(
+  "color",
+  new THREE.BufferAttribute(
+    colors,
+    3
+  )
+);
+
+
+const particles =
+  new THREE.Points(
+    particleGeometry,
+
+    new THREE.PointsMaterial({
+      size: 0.065,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.9
+    })
+  );
+
+particles.position.copy(
+  bubble.position
+);
+
+fullDiagram.add(particles);
+
+
+/* ---------------------------------------------------------
+   Red path toward bubble
+--------------------------------------------------------- */
+
+const bubblePath =
+  createArrowPath([
+    new THREE.Vector3(
+      -1.65,
+      y,
+      0.72
+    ),
+
+    new THREE.Vector3(
+      -1.65,
+      y,
+      -0.10
+    ),
+
+    new THREE.Vector3(
+      -0.75,
+      y,
+      -0.28
+    )
+  ]);
+
+fullDiagram.add(
+  bubblePath
+);
+
+
+/* ---------------------------------------------------------
+   UI
+--------------------------------------------------------- */
+
+const pow =
+  document.getElementById("pow");
+
+const baseButton =
+  document.getElementById("baseButton");
+
+const fullButton =
+  document.getElementById("fullButton");
+
+
+function showFull() {
+
+  fullDiagram.visible =
+    true;
+
+  pow.style.display =
+    "block";
+
+  fullButton.classList.add(
+    "active"
+  );
+
+  baseButton.classList.remove(
+    "active"
+  );
+
+  render();
+}
+
+
+function showBase() {
+
+  fullDiagram.visible =
+    false;
+
+  pow.style.display =
+    "none";
+
+  baseButton.classList.add(
+    "active"
+  );
+
+  fullButton.classList.remove(
+    "active"
+  );
+
+  render();
+}
+
+
+baseButton.addEventListener(
+  "click",
+  showBase
+);
+
+fullButton.addEventListener(
+  "click",
+  showFull
+);
+
+
+/* ---------------------------------------------------------
+   Resize / orthographic framing
+--------------------------------------------------------- */
+
+function resize() {
+
+  const width =
+    window.innerWidth;
+
+  const height =
+    window.innerHeight;
+
+  const aspect =
+    width / height;
+
+  const viewHeight =
+    8.8;
+
+  camera.left =
+    -(viewHeight * aspect) / 2;
+
+  camera.right =
+    (viewHeight * aspect) / 2;
+
+  camera.top =
+    viewHeight / 2;
+
+  camera.bottom =
+    -viewHeight / 2;
+
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(
+    width,
+    height
+  );
+
+  render();
+}
+
+
+window.addEventListener(
+  "resize",
+  resize
+);
+
+
+/* ---------------------------------------------------------
+   Render
+--------------------------------------------------------- */
+
+function render() {
+
+  renderer.render(
+    scene,
+    camera
+  );
+}
+
+
+resize();
+
+</script>
+
+</body>
+</html>

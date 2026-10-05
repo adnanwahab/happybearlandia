@@ -13,6 +13,7 @@ const sceneIdPattern = /^[a-zA-Z0-9_-]+$/;
 import homepage from './index.html'
 import gamepage from './game/index.html'
 import visualizationsPage from './visualizations/index.html'
+import visualizationsKerpowPage from './visualizations/kerpow.html'
 
 const jsxTranspiler = new Bun.Transpiler({ loader: "jsx" });
 
@@ -211,6 +212,7 @@ const server = serve({
     "/game/casino": gamepage,
     "/visualizations": visualizationsPage,
     "/visualizations/index.html": visualizationsPage,
+    "/visualizations/kerpow.html": visualizationsKerpowPage,
   },
 
   async fetch(request, server) {
