@@ -14,6 +14,7 @@ import homepage from './index.html'
 import gamepage from './game/index.html'
 import visualizationsPage from './visualizations/index.html'
 import visualizationsKerpowPage from './visualizations/kerpow.html'
+import visualizationsPaintingOutsideFramePage from './visualizations/painting-outside-frame.html'
 
 const jsxTranspiler = new Bun.Transpiler({ loader: "jsx" });
 
@@ -213,6 +214,8 @@ const server = serve({
     "/visualizations": visualizationsPage,
     "/visualizations/index.html": visualizationsPage,
     "/visualizations/kerpow.html": visualizationsKerpowPage,
+    "/visualizations/painting-outside-frame.html": visualizationsPaintingOutsideFramePage,
+    "/visualizations/rainbow-brain.html": visualizationsPage,
   },
 
   async fetch(request, server) {

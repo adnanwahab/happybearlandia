@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A conversation in color — D3</title>
+
+  <style>
+    :root { color-scheme: dark; }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100svh;
+      padding: 34px 20px;
+      display: grid;
+      place-items: center;
+      background: #080d18;
+      color: #f2f4fb;
+      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    }
+
+    main { width: min(1120px, 100%); }
+
+    header { padding: 0 12px 18px; }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: #9eaac3;
+      font-size: 11px;
+      font-weight: 650;
+      letter-spacing: .22em;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(26px, 4vw, 42px);
+      font-weight: 550;
+      letter-spacing: -.04em;
+    }
+
+    .subtitle {
+      margin: 12px 0 0;
+      color: #9ca8bd;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .stage {
+      overflow: hidden;
+      border: 1px solid #263044;
+      border-radius: 24px;
+      background:
+        radial-gradient(
+          ellipse at 50% 42%,
+          #172039,
+          #0c1221 75%
+        );
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+      padding: 18px 22px;
+      border-top: 1px solid #263044;
+      background: #0c1221;
+    }
+
+    button {
+      min-width: 100px;
+      border: 1px solid #46516b;
+      border-radius: 999px;
+      padding: 10px 18px;
+      background: #1c2940;
+      color: #f2f4fb;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    button:hover { background: #293956; }
+
+    button:focus-visible,
+    input:focus-visible {
+      outline: 2px solid #83dcff;
+      outline-offset: 5px;
+    }
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: #acb8cc;
+    }
+
+    input {
+      width: 110px;
+      accent-color: #a6bfff;
+      cursor: pointer;
+    }
+
+    output {
+      min-width: 36px;
+      color: #e4eaf7;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .note {
+      margin-left: auto;
+      color: #a3afc5;
+      font-size: 11px;
+    }
+
+    #error {
+      padding: 24px;
+      color: #ffb7b7;
+    }
+
+    @media (max-width: 620px) {
+      body { padding: 24px 10px; }
+
+      .controls {
+        gap: 16px;
+        padding: 16px;
+      }
+
+      .note {
+        width: 100%;
+        margin-left: 0;
+      }
+
+      input { width: 90px; }
+    }
+  </style>
+</head>
+
+<body>
+<main>
+  <header>
+    <p class="eyebrow">A STUDY IN COMMUNICATION</p>
+    <h1>A conversation, in color.</h1>
+    <p class="subtitle">
+      Two people talking. Rainbow ripples expanding
+      from the center of each head.
+    </p>
+  </header>
+
+  <section class="stage" aria-label="Animated conversation diagram">
+    <svg
+      id="diagram"
+      viewBox="0 0 1120 590"
+      role="img"
+      aria-labelledby="scene-title scene-description"
+    >
+      <title id="scene-title">
+        Two people talking with rainbow waves
+      </title>
+
+      <desc id="scene-description">
+        Two illustrated people face each other.
+        Colored circles radiate outward from the center
+        of each head while their mouths and speech
+        bubbles animate.
+      </desc>
+    </svg>
+
+    <p id="error" role="alert" hidden>
+      D3 could not load. Check your internet connection
+      and reload this page.
+    </p>
+
+    <div class="controls">
+      <button id="play" type="button" disabled>Pause</button>
+
+      <label>
+        Speed
+        <input
+          id="speed"
+          type="range"
+          min="0.25"
+          max="2.5"
+          step="0.05"
+          value="1"
+          disabled
+        >
+        <output id="speed-value" for="speed">1.00×</output>
+      </label>
+
+      <label>
+        Wave strength
+        <input
+          id="strength"
+          type="range"
+          min="0.2"
+          max="1"
+          step="0.05"
+          value="0.8"
+          disabled
+        >
+      </label>
+
+      <span class="note">
+        The bright dots mark the wave origins.
+      </span>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+
+<script>
+(() => {
+  if (!window.d3) {
+    document.querySelector("#error").hidden = false;
+    return;
+  }
+
+  // --------------------------------------------------
+  // Settings
+  // --------------------------------------------------
+
+  const settings = {
+    maxRadius: 410,
+    ringsPerPerson: 14,
+    pixelsPerSecond: 45
+  };
+
+  const rainbow = [
+    "#ff698c",
+    "#ffa65c",
+    "#ffe783",
+    "#83e8aa",
+    "#64ddff",
+    "#8398ff",
+    "#d692ff"
+  ];
+
+  // Each person's x/y is also their wave-emission origin.
+  const people = [
+    {
+      x: 320,
+      y: 280,
+      direction: 1,
+      skin: "#e8b594",
+      hair: "#292a3b",
+      shirt: "#607fbd",
+      label: "PERSON A"
+    },
+    {
+      x: 800,
+      y: 280,
+      direction: -1,
+      skin: "#b97c66",
+      hair: "#292235",
+      shirt: "#a66a9a",
+      label: "PERSON B"
+    }
+  ];
+
+  let speed = 1;
+  let strength = 0.8;
+  let time = 1400;
+  let timer = null;
+
+  const svg = d3.select("#diagram");
+
+  // Small helper for creating SVG elements with D3.
+  function add(parent, tag, attributes = {}) {
+    const element = parent.append(tag);
+
+    for (const [key, value] of Object.entries(attributes)) {
+      element.attr(key, value);
+    }
+
+    return element;
+  }
+
+  const defs = svg.append("defs");
+
+  // --------------------------------------------------
+  // Background and effects
+  // --------------------------------------------------
+
+  const fade = add(defs, "radialGradient", {
+    id: "field-fade"
+  });
+
+  add(fade, "stop", {
+    offset: "45%",
+    "stop-color": "white"
+  });
+
+  add(fade, "stop", {
+    offset: "100%",
+    "stop-color": "black"
+  });
+
+  const mask = add(defs, "mask", {
+    id: "field-mask",
+    maskUnits: "userSpaceOnUse",
+    x: 0,
+    y: 0,
+    width: 1120,
+    height: 590
+  });
+
+  add(mask, "rect", {
+    width: 1120,
+    height: 590,
+    fill: "url(#field-fade)"
+  });
+
+  const glow = add(defs, "filter", {
+    id: "source-glow",
+    x: "-200%",
+    y: "-200%",
+    width: "500%",
+    height: "500%"
+  });
+
+  add(glow, "feGaussianBlur", {
+    stdDeviation: 4,
+    result: "blur"
+  });
+
+  const merge = glow.append("feMerge");
+
+  add(merge, "feMergeNode", { in: "blur" });
+  add(merge, "feMergeNode", { in: "SourceGraphic" });
+
+  const grid = add(defs, "pattern", {
+    id: "grid",
+    width: 28,
+    height: 28,
+    patternUnits: "userSpaceOnUse"
+  });
+
+  add(grid, "circle", {
+    cx: 1,
+    cy: 1,
+    r: 0.75,
+    fill: "#8390ae",
+    opacity: 0.16
+  });
+
+  add(svg, "rect", {
+    width: 1120,
+    height: 590,
+    fill: "url(#grid)"
+  });
+
+  add(svg, "line", {
+    x1: 110,
+    x2: 1010,
+    y1: 511,
+    y2: 511,
+    stroke: "#344159",
+    "stroke-width": 1
+  });
+
+  // --------------------------------------------------
+  // Rainbow waves
+  // --------------------------------------------------
+
+  // Reuse a fixed number of circles rather than
+  // continuously creating new elements.
+  const waveData = people.flatMap((person, personIndex) =>
+    d3.range(settings.ringsPerPerson).map(index => ({
+      person,
+      personIndex,
+      index,
+      progress: 0
+    }))
+  );
+
+  const waveLayer = add(svg, "g", {
+    mask: "url(#field-mask)",
+    fill: "none",
+    "pointer-events": "none"
+  });
+
+  const rings = waveLayer
+    .selectAll("circle")
+    .data(waveData)
+    .join("circle")
+    .attr("cx", d => d.person.x)
+    .attr("cy", d => d.person.y)
+    .attr("stroke", d => rainbow[d.index % rainbow.length])
+    .attr("stroke-width", 2.3);
+
+  // --------------------------------------------------
+  // People
+  // --------------------------------------------------
+
+  const mouths = [];
+  const bubbles = [];
+
+  people.forEach((person, index) => {
+    const p = person;
+
+    // Both profiles are drawn facing right.
+    // Mirroring makes the second profile face left.
+    const g = add(svg, "g", {
+      transform:
+        `translate(${p.x},${p.y}) scale(${p.direction},1)`
+    });
+
+    add(g, "ellipse", {
+      cx: 0,
+      cy: 231,
+      rx: 112,
+      ry: 9,
+      fill: "#030814",
+      opacity: 0.6
+    });
+
+    // Longer hair behind the second person's shoulders.
+    if (index === 1) {
+      add(g, "path", {
+        d: `
+          M-45,-38
+          C-91,-12 -78,73 -48,112
+          L12,93 L-9,-43Z
+        `,
+        fill: p.hair
+      });
+    }
+
+    // Shoulders and torso.
+    add(g, "path", {
+      d: `
+        M-24,73
+        C-86,78 -102,125 -102,230
+        L92,230
+        C89,137 60,91 17,78Z
+      `,
+      fill: p.shirt
+    });
+
+    // Neck.
+    add(g, "path", {
+      d: "M-18,46 L-20,82 Q-2,105 20,80 L15,43Z",
+      fill: p.skin
+    });
+
+    add(g, "path", {
+      d: "M-19,62 Q0,78 17,65 L16,47 L-18,46Z",
+      fill: "#5e343a",
+      opacity: 0.18
+    });
+
+    // Collar.
+    add(g, "path", {
+      d: "M-27,83 Q-3,111 27,85",
+      fill: "none",
+      stroke: "#ffffff",
+      "stroke-width": 2,
+      opacity: 0.25
+    });
+
+    // Bent arm, with a shadow beneath it.
+    add(g, "path", {
+      d: "M-39,127 Q-48,187 9,190 L80,170",
+      fill: "none",
+      stroke: "#17223b",
+      "stroke-width": 33,
+      "stroke-linecap": "round",
+      opacity: 0.22
+    });
+
+    add(g, "path", {
+      d: "M-41,120 Q-48,172 10,176 L78,158",
+      fill: "none",
+      stroke: p.shirt,
+      "stroke-width": 31,
+      "stroke-linecap": "round"
+    });
+
+    // Open hand gesturing toward the other person.
+    add(g, "path", {
+      d: `
+        M73,147 L91,143 L108,127
+        Q113,125 113,132
+        L105,143 L129,137
+        Q137,138 131,144
+        L111,153 L130,151
+        Q137,153 131,158
+        L104,166
+        Q91,170 79,162Z
+      `,
+      fill: p.skin
+    });
+
+    // Head: its central cranial point is local (0, 0).
+    add(g, "path", {
+      d: `
+        M-48,-26
+        C-50,-64 -10,-80 23,-64
+        C45,-56 48,-38 43,-17
+        L58,5
+        Q63,13 46,16
+        L46,25
+        Q51,29 44,34
+        Q49,46 28,51
+        L9,52 L-17,46
+        C-41,41 -50,13 -48,-26Z
+      `,
+      fill: p.skin
+    });
+
+    // Hair.
+    add(g, "path", {
+      d: index === 0
+        ? `
+          M-48,12
+          C-70,-20 -48,-69 -13,-73
+          C14,-88 49,-61 44,-38
+          C27,-31 12,-38 0,-48
+          C-6,-24 -33,-27 -31,-3
+          L-35,21Z
+        `
+        : `
+          M-48,24
+          C-71,-10 -56,-67 -17,-76
+          C16,-88 47,-64 45,-38
+          Q18,-30 5,-51
+          Q-5,-15 -29,-9
+          L-29,24Z
+        `,
+      fill: p.hair
+    });
+
+    // Ear.
+    add(g, "ellipse", {
+      cx: -28,
+      cy: 10,
+      rx: 10,
+      ry: 14,
+      fill: p.skin
+    });
+
+    add(g, "path", {
+      d: "M-31,6 Q-20,1 -24,15",
+      fill: "none",
+      stroke: "#69494a",
+      "stroke-width": 1.7,
+      opacity: 0.5
+    });
+
+    // Eyebrow and eye.
+    add(g, "path", {
+      d: "M24,-16 Q33,-21 40,-16",
+      fill: "none",
+      stroke: p.hair,
+      "stroke-width": 2.5,
+      "stroke-linecap": "round"
+    });
+
+    add(g, "ellipse", {
+      cx: 34,
+      cy: -8,
+      rx: 2.7,
+      ry: 3.3,
+      fill: "#252134"
+    });
+
+    // Animated mouth.
+    mouths.push(
+      add(g, "ellipse", {
+        cx: 44,
+        cy: 30,
+        rx: 5,
+        ry: 2,
+        fill: "#593348"
+      })
+    );
+
+    add(svg, "text", {
+      x: p.x,
+      y: 551,
+      fill: "#bec9df",
+      "text-anchor": "middle",
+      "font-size": 11,
+      "letter-spacing": 3
+    }).text(p.label);
+  });
+
+  // --------------------------------------------------
+  // Visible wave origins inside the heads
+  // --------------------------------------------------
+
+  const coreClip = add(defs, "clipPath", {
+    id: "head-cores"
+  });
+
+  people.forEach(p => {
+    add(coreClip, "circle", {
+      cx: p.x,
+      cy: p.y,
+      r: 33
+    });
+  });
+
+  // Foreground copies reveal small waves inside each head.
+  // Larger waves remain behind the people.
+  const coreRings = add(svg, "g", {
+    "clip-path": "url(#head-cores)",
+    fill: "none",
+    "pointer-events": "none"
+  })
+    .selectAll("circle")
+    .data(waveData)
+    .join("circle")
+    .attr("cx", d => d.person.x)
+    .attr("cy", d => d.person.y)
+    .attr("stroke", d => rainbow[d.index % rainbow.length])
+    .attr("stroke-width", 1.4);
+
+  const origins = svg
+    .append("g")
+    .selectAll("circle")
+    .data(people)
+    .join("circle")
+    .attr("cx", d => d.x)
+    .attr("cy", d => d.y)
+    .attr("r", 4)
+    .attr("fill", "#f4f1ff")
+    .attr("filter", "url(#source-glow)");
+
+  // --------------------------------------------------
+  // Speech bubbles
+  // --------------------------------------------------
+
+  const bubbleData = [
+    {
+      x: 369,
+      y: 111,
+      text: "I had an idea…",
+      tail: "M27,55 L10,82 L53,55"
+    },
+    {
+      x: 581,
+      y: 111,
+      text: "Tell me about it.",
+      tail: "M124,55 L166,82 L150,55"
+    }
+  ];
+
+  bubbleData.forEach(b => {
+    // Not inside the mirrored groups, so text stays readable.
+    const g = add(svg, "g", {
+      transform: `translate(${b.x},${b.y})`
+    });
+
+    add(g, "path", {
+      d: b.tail,
+      fill: "#202d46",
+      stroke: "#52617d",
+      "stroke-width": 1
+    });
+
+    add(g, "rect", {
+      width: 170,
+      height: 57,
+      rx: 19,
+      fill: "#202d46",
+      stroke: "#52617d"
+    });
+
+    // Hide the small seam where the tail meets the bubble.
+    add(g, "rect", {
+      x: b.x < 500 ? 29 : 126,
+      y: 54,
+      width: 21,
+      height: 4,
+      fill: "#202d46"
+    });
+
+    add(g, "text", {
+      x: 85,
+      y: 34,
+      fill: "#f0f3ff",
+      "text-anchor": "middle",
+      "font-size": 14
+    }).text(b.text);
+
+    bubbles.push(g);
+  });
+
+  // --------------------------------------------------
+  // Animation
+  // --------------------------------------------------
+
+  function render() {
+    const distance =
+      time / 1000 * settings.pixelsPerSecond;
+
+    waveData.forEach(d => {
+      const spacing =
+        d.index * settings.maxRadius / settings.ringsPerPerson;
+
+      const offset = d.personIndex * 13;
+
+      d.progress =
+        ((distance + spacing + offset) % settings.maxRadius)
+        / settings.maxRadius;
+    });
+
+    const radius = d =>
+      Math.max(0.1, d.progress * settings.maxRadius);
+
+    // Fade in close to the source, then fade out with distance.
+    const opacity = d =>
+      strength
+      * Math.min(d.progress * 15, 1)
+      * Math.pow(1 - d.progress, 1.45);
+
+    rings
+      .attr("r", radius)
+      .attr("opacity", opacity);
+
+    coreRings
+      .attr("r", radius)
+      .attr("opacity", d =>
+        radius(d) < 33 ? opacity(d) * 0.6 : 0
+      );
+
+    origins.attr(
+      "r",
+      3.7 + Math.sin(time / 350) * 0.6
+    );
+
+    // Switch speakers every 2.7 animation seconds.
+    const speaker = Math.floor(time / 2700) % 2;
+
+    mouths.forEach((mouth, index) => {
+      mouth.attr(
+        "ry",
+        index === speaker
+          ? 2 + 3.6 * Math.abs(Math.sin(time / 115))
+          : 1.3
+      );
+    });
+
+    bubbles.forEach((bubble, index) => {
+      bubble.attr("opacity", index === speaker ? 1 : 0.42);
+    });
+  }
+
+  function setPlaying(playing) {
+    if (timer) timer.stop();
+    timer = null;
+
+    if (playing) {
+      let previous = 0;
+
+      timer = d3.timer(elapsed => {
+        // Limit large jumps after an interrupted frame.
+        time += Math.min(elapsed - previous, 64) * speed;
+        previous = elapsed;
+        render();
+      });
+    }
+
+    d3.select("#play")
+      .text(playing ? "Pause" : "Play")
+      .attr(
+        "aria-label",
+        playing ? "Pause animation" : "Play animation"
+      );
+  }
+
+  // --------------------------------------------------
+  // Controls
+  // --------------------------------------------------
+
+  d3.selectAll(".controls button, .controls input")
+    .property("disabled", false);
+
+  d3.select("#play").on("click", () => {
+    setPlaying(!timer);
+  });
+
+  d3.select("#speed").on("input", function () {
+    speed = Number(this.value);
+
+    d3.select("#speed-value")
+      .text(`${speed.toFixed(2)}×`);
+  });
+
+  d3.select("#strength").on("input", function () {
+    strength = Number(this.value);
+    render();
+  });
+
+  // Start paused for visitors who prefer reduced motion.
+  const reducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  );
+
+  reducedMotion.addEventListener("change", event => {
+    if (event.matches) setPlaying(false);
+  });
+
+  window.addEventListener("pagehide", () => {
+    setPlaying(false);
+  });
+
+  render();
+  setPlaying(!reducedMotion.matches);
+})();
+</script>
+</body>
+</html>

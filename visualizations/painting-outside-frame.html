@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #111;
+  }
+
+  canvas {
+    display: block;
+  }
+
+  #label {
+    position: fixed;
+    left: 18px;
+    bottom: 16px;
+    color: rgba(255,255,255,.75);
+    font: 12px/1.4 system-ui, sans-serif;
+    pointer-events: none;
+    text-shadow: 0 1px 3px black;
+  }
+</style>
+</head>
+
+<body>
+
+<div id="label">
+  Click anywhere to restart the mural
+</div>
+
+<script type="module">
+import * as THREE from
+  "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js";
+
+/* -------------------------------------------------------
+   THREE.JS SETUP
+------------------------------------------------------- */
+
+const renderer = new THREE.WebGLRenderer({
+  antialias: true
+});
+
+renderer.setPixelRatio(
+  Math.min(window.devicePixelRatio, 2)
+);
+
+renderer.setSize(
+  window.innerWidth,
+  window.innerHeight
+);
+
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+
+scene.background = new THREE.Color(0xd9d4cb);
+
+/* -------------------------------------------------------
+   CAMERA
+------------------------------------------------------- */
+
+const camera = new THREE.PerspectiveCamera(
+  42,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  100
+);
+
+camera.position.set(
+  0,
+  -0.1,
+  13
+);
+
+camera.lookAt(
+  0,
+  0,
+  0
+);
+
+/* -------------------------------------------------------
+   LIGHTING
+------------------------------------------------------- */
+
+scene.add(
+  new THREE.AmbientLight(
+    0xffffff,
+    2.5
+  )
+);
+
+const light =
+  new THREE.DirectionalLight(
+    0xffffff,
+    2
+  );
+
+light.position.set(
+  3,
+  5,
+  8
+);
+
+scene.add(light);
+
+/* -------------------------------------------------------
+   MURAL SHADER
+------------------------------------------------------- */
+
+const uniforms = {
+  uTime: {
+    value: 0
+  },
+
+  uRestart: {
+    value: 0
+  }
+};
+
+const vertexShader = /* glsl */`
+
+varying vec2 vUv;
+
+void main() {
+
+  vUv = uv;
+
+  gl_Position =
+    projectionMatrix *
+    modelViewMatrix *
+    vec4(position, 1.0);
+
+}
+
+`;
+
+const fragmentShader = /* glsl */`
+
+precision highp float;
+
+uniform float uTime;
+uniform float uRestart;
+
+varying vec2 vUv;
+
+#define PI 3.14159265359
+
+/* -------------------------------------------------------
+   RANDOM / NOISE
+------------------------------------------------------- */
+
+float hash21(vec2 p)
+{
+  p = fract(
+    p * vec2(
+      123.34,
+      456.21
+    )
+  );
+
+  p += dot(
+    p,
+    p + 45.32
+  );
+
+  return fract(
+    p.x * p.y
+  );
+}
+
+
+float noise(vec2 p)
+{
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+
+  f =
+    f * f *
+    (3.0 - 2.0 * f);
+
+  float a =
+    hash21(i);
+
+  float b =
+    hash21(
+      i + vec2(1.0,0.0)
+    );
+
+  float c =
+    hash21(
+      i + vec2(0.0,1.0)
+    );
+
+  float d =
+    hash21(
+      i + vec2(1.0,1.0)
+    );
+
+  return mix(
+    mix(a,b,f.x),
+    mix(c,d,f.x),
+    f.y
+  );
+}
+
+
+float fbm(vec2 p)
+{
+  float value = 0.0;
+  float amplitude = 0.5;
+
+  mat2 rot =
+    mat2(
+      0.80, 0.60,
+     -0.60, 0.80
+    );
+
+  for(int i = 0; i < 6; i++)
+  {
+    value +=
+      noise(p) *
+      amplitude;
+
+    p =
+      rot *
+      p *
+      2.03;
+
+    amplitude *= 0.5;
+  }
+
+  return value;
+}
+
+
+/* -------------------------------------------------------
+   PETAL SHAPES
+------------------------------------------------------- */
+
+float petalLayer(
+  vec2 p,
+  float radius,
+  float count,
+  float distortion,
+  float rotation
+)
+{
+  float angle =
+    atan(
+      p.y,
+      p.x
+    ) + rotation;
+
+  float r =
+    length(p);
+
+  float petals =
+    sin(
+      angle * count +
+      sin(angle * 2.0) * 0.5
+    );
+
+  float edge =
+    radius +
+    petals * distortion;
+
+  return
+    1.0 -
+    smoothstep(
+      edge - 0.06,
+      edge + 0.04,
+      r
+    );
+}
+
+
+/* -------------------------------------------------------
+   FLOWER
+------------------------------------------------------- */
+
+vec3 flowerColor(vec2 p)
+{
+  float r =
+    length(p);
+
+  float angle =
+    atan(
+      p.y,
+      p.x
+    );
+
+  float n1 =
+    fbm(
+      p * 6.0
+    );
+
+  float n2 =
+    fbm(
+      p * 17.0 +
+      vec2(2.5)
+    );
+
+  float folds =
+    sin(
+      angle * 8.0 -
+      r * 25.0 +
+      n1 * 4.0
+    );
+
+  folds =
+    folds * 0.5 +
+    0.5;
+
+  /* warm petal palette */
+
+  vec3 red =
+    vec3(
+      0.95,
+      0.10,
+      0.055
+    );
+
+  vec3 orange =
+    vec3(
+      1.00,
+      0.31,
+      0.055
+    );
+
+  vec3 yellow =
+    vec3(
+      1.00,
+      0.72,
+      0.17
+    );
+
+  vec3 magenta =
+    vec3(
+      0.56,
+      0.07,
+      0.30
+    );
+
+  vec3 col =
+    mix(
+      red,
+      orange,
+      folds
+    );
+
+  col =
+    mix(
+      col,
+      yellow,
+      pow(
+        clamp(
+          folds + n2 * 0.25,
+          0.0,
+          1.0
+        ),
+        3.0
+      )
+    );
+
+  /* purple shadows */
+
+  float shadow =
+    smoothstep(
+      0.43,
+      0.78,
+      sin(
+        angle * 5.0 -
+        r * 19.0 +
+        n1 * 4.0
+      ) * 0.5 +
+      0.5
+    );
+
+  col =
+    mix(
+      col,
+      magenta,
+      shadow * 0.55
+    );
+
+  /* highlighted brush fibres */
+
+  float brush =
+    noise(
+      vec2(
+        angle * 20.0,
+        r * 90.0
+      )
+    );
+
+  col +=
+    vec3(
+      1.0,
+      0.52,
+      0.17
+    ) *
+    pow(brush, 7.0) *
+    0.18;
+
+  return col;
+}
+
+
+/* -------------------------------------------------------
+   MAIN
+------------------------------------------------------- */
+
+void main()
+{
+  vec2 uv = vUv;
+
+  /*
+     Wall aspect compensation.
+
+     Center of the mural is deliberately
+     slightly above center.
+  */
+
+  vec2 p =
+    uv - vec2(
+      0.5,
+      0.54
+    );
+
+  p.x *= 1.72;
+
+  /*
+     Make the flower a little wider,
+     similar to the reference image.
+  */
+
+  vec2 flowerP = p;
+
+  flowerP.x *= 0.86;
+  flowerP.y *= 1.10;
+
+  float r =
+    length(p);
+
+  float time =
+    max(
+      0.0,
+      uTime - uRestart
+    );
+
+
+  /* ----------------------------------------------------
+     ANIMATION PROGRESS
+
+     0.0 = tiny painting
+     ~1.4 = wall covered
+  ---------------------------------------------------- */
+
+  float progress =
+    min(
+      1.65,
+      0.045 +
+      time * 0.15
+    );
+
+
+  /* ----------------------------------------------------
+     IRREGULAR LIQUID / PAINT EDGE
+  ---------------------------------------------------- */
+
+  float largeNoise =
+    fbm(
+      p * 2.8 +
+      vec2(
+        time * 0.025,
+        0.0
+      )
+    );
+
+  float mediumNoise =
+    fbm(
+      p * 7.0 -
+      vec2(
+        0.0,
+        time * 0.02
+      )
+    );
+
+  float distortedDistance =
+    r
+    - largeNoise * 0.16
+    - mediumNoise * 0.045;
+
+
+  float paintInside =
+    1.0 -
+    smoothstep(
+      progress - 0.03,
+      progress + 0.035,
+      distortedDistance
+    );
+
+
+  /* ----------------------------------------------------
+     BLUE EXPANDING FRONT
+  ---------------------------------------------------- */
+
+  float frontDistance =
+    abs(
+      distortedDistance -
+      progress
+    );
+
+  float blueFront =
+    1.0 -
+    smoothstep(
+      0.02,
+      0.25,
+      frontDistance
+    );
+
+  blueFront *=
+    smoothstep(
+      progress + 0.12,
+      progress - 0.12,
+      distortedDistance
+    );
+
+
+  /*
+     leave a thick blue boundary around
+     the warm flower
+  */
+
+  float blueRing =
+    smoothstep(
+      progress - 0.48,
+      progress - 0.10,
+      distortedDistance
+    );
+
+  blueRing *=
+    paintInside;
+
+
+  /* ----------------------------------------------------
+     ROSE SHAPE
+  ---------------------------------------------------- */
+
+  float outerPetals =
+    petalLayer(
+      flowerP,
+      0.98,
+      7.0,
+      0.14,
+      0.3
+    );
+
+  float petals2 =
+    petalLayer(
+      flowerP * 1.27,
+      0.90,
+      6.0,
+      0.13,
+      -0.5
+    );
+
+  float petals3 =
+    petalLayer(
+      flowerP * 1.75,
+      0.77,
+      5.0,
+      0.14,
+      0.6
+    );
+
+  float petals4 =
+    petalLayer(
+      flowerP * 2.45,
+      0.65,
+      5.0,
+      0.15,
+      -0.2
+    );
+
+  float rose =
+    max(
+      outerPetals,
+      max(
+        petals2,
+        max(
+          petals3,
+          petals4
+        )
+      )
+    );
+
+
+  /*
+     Rose appears slightly behind
+     the moving blue paint front.
+  */
+
+  float flowerReveal =
+    1.0 -
+    smoothstep(
+      progress - 0.27,
+      progress - 0.07,
+      distortedDistance
+    );
+
+  rose *=
+    flowerReveal;
+
+
+  /* ----------------------------------------------------
+     WALL BASE
+  ---------------------------------------------------- */
+
+  vec3 wall =
+    vec3(
+      0.965,
+      0.955,
+      0.93
+    );
+
+  /*
+     subtle plaster texture
+  */
+
+  float plaster =
+    noise(
+      uv * 300.0
+    );
+
+  wall *=
+    0.97 +
+    plaster * 0.05;
+
+
+  /* ----------------------------------------------------
+     BLUE PAINT
+  ---------------------------------------------------- */
+
+  float blueNoise =
+    fbm(
+      p * 8.0
+    );
+
+  vec3 darkBlue =
+    vec3(
+      0.055,
+      0.16,
+      0.43
+    );
+
+  vec3 brightBlue =
+    vec3(
+      0.05,
+      0.43,
+      0.78
+    );
+
+  vec3 cyan =
+    vec3(
+      0.18,
+      0.63,
+      0.86
+    );
+
+  vec3 blue =
+    mix(
+      darkBlue,
+      brightBlue,
+      blueNoise
+    );
+
+  blue =
+    mix(
+      blue,
+      cyan,
+      pow(
+        noise(
+          p * 22.0
+        ),
+        3.0
+      ) * 0.55
+    );
+
+
+  /* ----------------------------------------------------
+     WARM ROSE PIGMENT
+  ---------------------------------------------------- */
+
+  vec3 warm =
+    flowerColor(
+      flowerP
+    );
+
+
+  /* ----------------------------------------------------
+     GREEN TRANSITION AROUND OUTER PETALS
+  ---------------------------------------------------- */
+
+  float greenBand =
+    smoothstep(
+      0.70,
+      0.94,
+      length(flowerP)
+    );
+
+  greenBand *=
+    1.0 -
+    smoothstep(
+      0.92,
+      1.15,
+      length(flowerP)
+    );
+
+  vec3 green =
+    vec3(
+      0.10,
+      0.39,
+      0.25
+    );
+
+  warm =
+    mix(
+      warm,
+      green,
+      greenBand * 0.68
+    );
+
+
+  /* ----------------------------------------------------
+     COMPOSITING
+  ---------------------------------------------------- */
+
+  vec3 color =
+    wall;
+
+  /*
+     Blue wash appears first.
+  */
+
+  float blueMask =
+    max(
+      blueRing,
+      blueFront
+    );
+
+  blueMask *=
+    paintInside;
+
+  color =
+    mix(
+      color,
+      blue,
+      blueMask
+    );
+
+
+  /*
+     Rose grows behind the blue wave.
+  */
+
+  color =
+    mix(
+      color,
+      warm,
+      rose * paintInside
+    );
+
+
+  /* ----------------------------------------------------
+     BLUE LOWER BORDER
+
+     Gives the mural the blue rim seen
+     below the giant flower.
+  ---------------------------------------------------- */
+
+  float lowerBorder =
+    smoothstep(
+      -0.05,
+      -0.45,
+      flowerP.y
+    );
+
+  lowerBorder *=
+    rose;
+
+  float outerFlower =
+    smoothstep(
+      0.47,
+      1.02,
+      length(flowerP)
+    );
+
+  float rim =
+    lowerBorder *
+    outerFlower;
+
+  color =
+    mix(
+      color,
+      blue,
+      rim * 0.82
+    );
+
+
+  /* ----------------------------------------------------
+     PAINTERLY STREAKS
+  ---------------------------------------------------- */
+
+  float strokes =
+    noise(
+      vec2(
+        p.x * 65.0 +
+        sin(p.y * 20.0) * 2.0,
+        p.y * 8.0
+      )
+    );
+
+  strokes =
+    pow(
+      strokes,
+      7.0
+    );
+
+  color +=
+    strokes *
+    paintInside *
+    vec3(
+      0.09,
+      0.08,
+      0.07
+    );
+
+
+  /* ----------------------------------------------------
+     RANDOM PAINT SPLATTER NEAR FRONT
+  ---------------------------------------------------- */
+
+  vec2 cells =
+    floor(
+      uv * vec2(
+        130.0,
+        80.0
+      )
+    );
+
+  float speck =
+    hash21(cells);
+
+  float splatterRegion =
+    1.0 -
+    smoothstep(
+      0.03,
+      0.24,
+      abs(
+        distortedDistance -
+        progress
+      )
+    );
+
+  float dotMask =
+    step(
+      0.973,
+      speck
+    );
+
+  color =
+    mix(
+      color,
+      blue,
+      dotMask *
+      splatterRegion *
+      0.7
+    );
+
+
+  /* ----------------------------------------------------
+     SOFT CINEMATIC LIGHT
+  ---------------------------------------------------- */
+
+  float vignette =
+    uv.x *
+    uv.y *
+    (1.0 - uv.x) *
+    (1.0 - uv.y);
+
+  vignette =
+    pow(
+      vignette * 16.0,
+      0.12
+    );
+
+  color *=
+    0.78 +
+    vignette * 0.25;
+
+
+  gl_FragColor =
+    vec4(
+      color,
+      1.0
+    );
+}
+
+`;
+
+const wallMaterial =
+  new THREE.ShaderMaterial({
+    uniforms,
+    vertexShader,
+    fragmentShader
+  });
+
+
+/* -------------------------------------------------------
+   WALL
+------------------------------------------------------- */
+
+const WALL_WIDTH = 16;
+const WALL_HEIGHT = 9;
+
+const wall =
+  new THREE.Mesh(
+    new THREE.PlaneGeometry(
+      WALL_WIDTH,
+      WALL_HEIGHT,
+      1,
+      1
+    ),
+    wallMaterial
+  );
+
+scene.add(wall);
+
+
+/* -------------------------------------------------------
+   FLOOR
+------------------------------------------------------- */
+
+const floor =
+  new THREE.Mesh(
+    new THREE.PlaneGeometry(
+      30,
+      15
+    ),
+    new THREE.MeshStandardMaterial({
+      color: 0xcfc3b2,
+      roughness: 0.9
+    })
+  );
+
+floor.rotation.x =
+  -Math.PI / 2;
+
+floor.position.set(
+  0,
+  -4.5,
+  4.3
+);
+
+scene.add(floor);
+
+
+/* -------------------------------------------------------
+   GOLD PICTURE FRAME
+------------------------------------------------------- */
+
+const frame =
+  new THREE.Group();
+
+frame.position.set(
+  0,
+  0.15,
+  0.12
+);
+
+scene.add(frame);
+
+const goldMaterial =
+  new THREE.MeshStandardMaterial({
+    color: 0xaa681c,
+    roughness: 0.32,
+    metalness: 0.7
+  });
+
+function frameBar(
+  width,
+  height,
+  x,
+  y
+) {
+
+  const mesh =
+    new THREE.Mesh(
+      new THREE.BoxGeometry(
+        width,
+        height,
+        0.11
+      ),
+      goldMaterial
+    );
+
+  mesh.position.set(
+    x,
+    y,
+    0
+  );
+
+  frame.add(mesh);
+
+}
+
+
+/* frame dimensions */
+
+const fw = 1.45;
+const fh = 1.75;
+const thickness = 0.16;
+
+frameBar(
+  fw,
+  thickness,
+  0,
+  fh / 2
+);
+
+frameBar(
+  fw,
+  thickness,
+  0,
+  -fh / 2
+);
+
+frameBar(
+  thickness,
+  fh,
+  -fw / 2,
+  0
+);
+
+frameBar(
+  thickness,
+  fh,
+  fw / 2,
+  0
+);
+
+
+/* -------------------------------------------------------
+   SMALL PAINTING INSIDE FRAME
+------------------------------------------------------- */
+
+const paintingMaterial =
+  new THREE.ShaderMaterial({
+
+    vertexShader,
+
+    fragmentShader: /* glsl */`
+
+precision highp float;
+
+varying vec2 vUv;
+
+float circle(
+  vec2 uv,
+  vec2 center,
+  float radius
+)
+{
+  return
+    1.0 -
+    smoothstep(
+      radius,
+      radius + 0.018,
+      length(
+        uv - center
+      )
+    );
+}
+
+void main()
+{
+  vec2 uv = vUv;
+
+  vec3 col =
+    vec3(
+      0.91,
+      0.92,
+      0.86
+    );
+
+  /*
+     stems
+  */
+
+  float stem1 =
+    1.0 -
+    smoothstep(
+      0.008,
+      0.017,
+      abs(
+        uv.x -
+        (
+          0.43 +
+          (uv.y - 0.15) * 0.05
+        )
+      )
+    );
+
+  stem1 *=
+    smoothstep(
+      0.1,
+      0.7,
+      uv.y
+    );
+
+  float stem2 =
+    1.0 -
+    smoothstep(
+      0.008,
+      0.017,
+      abs(
+        uv.x -
+        (
+          0.57 -
+          (uv.y - 0.2) * 0.08
+        )
+      )
+    );
+
+  stem2 *=
+    smoothstep(
+      0.1,
+      0.78,
+      uv.y
+    );
+
+  col =
+    mix(
+      col,
+      vec3(
+        0.17,
+        0.43,
+        0.19
+      ),
+      max(
+        stem1,
+        stem2
+      )
+    );
+
+
+  /*
+     purple flowers
+  */
+
+  float flower1 =
+    circle(
+      uv,
+      vec2(
+        0.42,
+        0.68
+      ),
+      0.11
+    );
+
+  float flower2 =
+    circle(
+      uv,
+      vec2(
+        0.60,
+        0.55
+      ),
+      0.10
+    );
+
+  float flower3 =
+    circle(
+      uv,
+      vec2(
+        0.50,
+        0.40
+      ),
+      0.075
+    );
+
+  vec3 purple =
+    vec3(
+      0.50,
+      0.20,
+      0.63
+    );
+
+  col =
+    mix(
+      col,
+      purple,
+      max(
+        flower1,
+        max(
+          flower2,
+          flower3
+        )
+      )
+    );
+
+  gl_FragColor =
+    vec4(
+      col,
+      1.0
+    );
+}
+
+`
+  });
+
+const painting =
+  new THREE.Mesh(
+    new THREE.PlaneGeometry(
+      1.13,
+      1.42
+    ),
+    paintingMaterial
+  );
+
+painting.position.z =
+  0.01;
+
+frame.add(painting);
+
+
+/* -------------------------------------------------------
+   BASEBOARD
+------------------------------------------------------- */
+
+const baseboard =
+  new THREE.Mesh(
+    new THREE.BoxGeometry(
+      16,
+      0.10,
+      0.13
+    ),
+    new THREE.MeshStandardMaterial({
+      color: 0x5d5c58,
+      roughness: 0.7
+    })
+  );
+
+baseboard.position.set(
+  0,
+  -4.45,
+  0.15
+);
+
+scene.add(baseboard);
+
+
+/* -------------------------------------------------------
+   ANIMATION
+------------------------------------------------------- */
+
+const clock =
+  new THREE.Clock();
+
+let accumulatedTime = 0;
+
+function animate()
+{
+  requestAnimationFrame(
+    animate
+  );
+
+  accumulatedTime +=
+    clock.getDelta();
+
+  uniforms.uTime.value =
+    accumulatedTime;
+
+  /*
+     tiny camera movement gives the
+     otherwise flat mural some life
+  */
+
+  const t =
+    accumulatedTime;
+
+  camera.position.x =
+    Math.sin(t * 0.12) *
+    0.08;
+
+  camera.position.y =
+    -0.1 +
+    Math.sin(t * 0.17) *
+    0.025;
+
+  camera.lookAt(
+    0,
+    0,
+    0
+  );
+
+  renderer.render(
+    scene,
+    camera
+  );
+}
+
+animate();
+
+
+/* -------------------------------------------------------
+   CLICK TO RESTART
+------------------------------------------------------- */
+
+window.addEventListener(
+  "pointerdown",
+  () => {
+
+    uniforms.uRestart.value =
+      accumulatedTime;
+
+  }
+);
+
+
+/* -------------------------------------------------------
+   RESIZE
+------------------------------------------------------- */
+
+window.addEventListener(
+  "resize",
+  () => {
+
+    camera.aspect =
+      window.innerWidth /
+      window.innerHeight;
+
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(
+      window.innerWidth,
+      window.innerHeight
+    );
+
+  }
+);
+
+</script>
+
+</body>
+</html>
