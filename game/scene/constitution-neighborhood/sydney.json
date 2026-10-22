@@ -1,0 +1,765 @@
+{
+  "gravity": [
+    0,
+    -25,
+    0
+  ],
+  "playerSpawn": [
+    0,
+    1.5,
+    0
+  ],
+  "respawnPosition": [
+    0,
+    1.5,
+    0
+  ],
+  "floorTexture": "/data/textures/Grass005_1K-PNG/Grass005_1K-PNG_Color.png",
+  "objects": [
+    {
+      "id": "floor",
+      "type": "box",
+      "position": [
+        0,
+        -0.5,
+        0
+      ],
+      "size": [
+        180,
+        1,
+        180
+      ],
+      "motion": "static",
+      "color": "#4f944e",
+      "friction": 0.5
+    },
+    {
+      "id": "left-wall",
+      "type": "box",
+      "position": [
+        -89.5,
+        3,
+        0
+      ],
+      "size": [
+        1,
+        6,
+        180
+      ],
+      "motion": "static",
+      "color": "#94a3b8"
+    },
+    {
+      "id": "right-wall",
+      "type": "box",
+      "position": [
+        89.5,
+        3,
+        0
+      ],
+      "size": [
+        1,
+        6,
+        180
+      ],
+      "motion": "static",
+      "color": "#94a3b8"
+    },
+    {
+      "id": "north-wall",
+      "type": "box",
+      "position": [
+        0,
+        3,
+        -89.5
+      ],
+      "size": [
+        180,
+        6,
+        1
+      ],
+      "motion": "static",
+      "color": "#94a3b8"
+    },
+    {
+      "id": "south-wall",
+      "type": "box",
+      "position": [
+        0,
+        3,
+        89.5
+      ],
+      "size": [
+        180,
+        6,
+        1
+      ],
+      "motion": "static",
+      "color": "#94a3b8"
+    },
+    {
+      "id": "park-path-east-west",
+      "type": "box",
+      "position": [
+        0,
+        0.03,
+        0
+      ],
+      "size": [
+        122,
+        0.06,
+        10
+      ],
+      "motion": "static",
+      "color": "#8b7d67"
+    },
+    {
+      "id": "park-path-north-south",
+      "type": "box",
+      "position": [
+        0,
+        0.03,
+        0
+      ],
+      "size": [
+        10,
+        0.06,
+        122
+      ],
+      "motion": "static",
+      "color": "#8b7d67"
+    },
+    {
+      "id": "park-circle",
+      "type": "box",
+      "position": [
+        0,
+        0.05,
+        0
+      ],
+      "size": [
+        22,
+        0.1,
+        22
+      ],
+      "motion": "static",
+      "color": "#9ca3af"
+    },
+    {
+      "id": "park-bench-north",
+      "type": "box",
+      "position": [
+        0,
+        0.55,
+        -12
+      ],
+      "size": [
+        8,
+        1.1,
+        1.8
+      ],
+      "motion": "static",
+      "color": "#7c2d12"
+    },
+    {
+      "id": "park-bench-south",
+      "type": "box",
+      "position": [
+        0,
+        0.55,
+        12
+      ],
+      "size": [
+        8,
+        1.1,
+        1.8
+      ],
+      "motion": "static",
+      "color": "#7c2d12"
+    },
+    {
+      "id": "park-tree-1",
+      "type": "box",
+      "position": [
+        -62,
+        2.6,
+        -58
+      ],
+      "size": [
+        5.4,
+        5.2,
+        5.4
+      ],
+      "motion": "static",
+      "color": "#166534"
+    },
+    {
+      "id": "park-tree-2",
+      "type": "box",
+      "position": [
+        62,
+        2.6,
+        -58
+      ],
+      "size": [
+        5.4,
+        5.2,
+        5.4
+      ],
+      "motion": "static",
+      "color": "#166534"
+    },
+    {
+      "id": "park-tree-3",
+      "type": "box",
+      "position": [
+        -62,
+        2.6,
+        58
+      ],
+      "size": [
+        5.4,
+        5.2,
+        5.4
+      ],
+      "motion": "static",
+      "color": "#166534"
+    },
+    {
+      "id": "park-tree-4",
+      "type": "box",
+      "position": [
+        62,
+        2.6,
+        58
+      ],
+      "size": [
+        5.4,
+        5.2,
+        5.4
+      ],
+      "motion": "static",
+      "color": "#166534"
+    },
+    {
+      "id": "house-1-floor",
+      "type": "box",
+      "position": [
+        -54,
+        0.35,
+        -12
+      ],
+      "size": [
+        22,
+        0.7,
+        16
+      ],
+      "motion": "static",
+      "color": "#f8fafc"
+    },
+    {
+      "id": "house-1-wall-left",
+      "type": "box",
+      "position": [
+        -64.5,
+        2.5,
+        -12
+      ],
+      "size": [
+        1,
+        4.4,
+        16
+      ],
+      "motion": "static",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "house-1-wall-right",
+      "type": "box",
+      "position": [
+        -43.5,
+        2.5,
+        -12
+      ],
+      "size": [
+        1,
+        4.4,
+        16
+      ],
+      "motion": "static",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "house-1-wall-back",
+      "type": "box",
+      "position": [
+        -54,
+        2.5,
+        -19.5
+      ],
+      "size": [
+        22,
+        4.4,
+        1
+      ],
+      "motion": "static",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "house-1-porch",
+      "type": "box",
+      "position": [
+        -54,
+        0.15,
+        -5.5
+      ],
+      "size": [
+        10,
+        0.3,
+        3
+      ],
+      "motion": "static",
+      "color": "#a16207"
+    },
+    {
+      "id": "house-1-task-station",
+      "type": "box",
+      "position": [
+        -54,
+        0.9,
+        -14.5
+      ],
+      "size": [
+        6,
+        1.2,
+        2.6
+      ],
+      "motion": "static",
+      "color": "#9f1239"
+    },
+    {
+      "id": "house-2-floor",
+      "type": "box",
+      "position": [
+        -18,
+        0.35,
+        -12
+      ],
+      "size": [
+        22,
+        0.7,
+        16
+      ],
+      "motion": "static",
+      "color": "#f8fafc"
+    },
+    {
+      "id": "house-2-wall-left",
+      "type": "box",
+      "position": [
+        -28.5,
+        2.5,
+        -12
+      ],
+      "size": [
+        1,
+        4.4,
+        16
+      ],
+      "motion": "static",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "house-2-wall-right",
+      "type": "box",
+      "position": [
+        -7.5,
+        2.5,
+        -12
+      ],
+      "size": [
+        1,
+        4.4,
+        16
+      ],
+      "motion": "static",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "house-2-wall-back",
+      "type": "box",
+      "position": [
+        -18,
+        2.5,
+        -19.5
+      ],
+      "size": [
+        22,
+        4.4,
+        1
+      ],
+      "motion": "static",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "house-2-porch",
+      "type": "box",
+      "position": [
+        -18,
+        0.15,
+        -5.5
+      ],
+      "size": [
+        10,
+        0.3,
+        3
+      ],
+      "motion": "static",
+      "color": "#a16207"
+    },
+    {
+      "id": "house-2-task-station",
+      "type": "box",
+      "position": [
+        -18,
+        0.9,
+        -14.5
+      ],
+      "size": [
+        6,
+        1.2,
+        2.6
+      ],
+      "motion": "static",
+      "color": "#1d4ed8"
+    },
+    {
+      "id": "house-3-floor",
+      "type": "box",
+      "position": [
+        18,
+        0.35,
+        -12
+      ],
+      "size": [
+        22,
+        0.7,
+        16
+      ],
+      "motion": "static",
+      "color": "#f8fafc"
+    },
+    {
+      "id": "house-3-wall-left",
+      "type": "box",
+      "position": [
+        7.5,
+        2.5,
+        -12
+      ],
+      "size": [
+        1,
+        4.4,
+        16
+      ],
+      "motion": "static",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "house-3-wall-right",
+      "type": "box",
+      "position": [
+        28.5,
+        2.5,
+        -12
+      ],
+      "size": [
+        1,
+        4.4,
+        16
+      ],
+      "motion": "static",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "house-3-wall-back",
+      "type": "box",
+      "position": [
+        18,
+        2.5,
+        -19.5
+      ],
+      "size": [
+        22,
+        4.4,
+        1
+      ],
+      "motion": "static",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "house-3-porch",
+      "type": "box",
+      "position": [
+        18,
+        0.15,
+        -5.5
+      ],
+      "size": [
+        10,
+        0.3,
+        3
+      ],
+      "motion": "static",
+      "color": "#a16207"
+    },
+    {
+      "id": "house-3-task-station",
+      "type": "box",
+      "position": [
+        18,
+        0.9,
+        -14.5
+      ],
+      "size": [
+        6,
+        1.2,
+        2.6
+      ],
+      "motion": "static",
+      "color": "#0f766e"
+    },
+    {
+      "id": "house-4-floor",
+      "type": "box",
+      "position": [
+        54,
+        0.35,
+        -12
+      ],
+      "size": [
+        22,
+        0.7,
+        16
+      ],
+      "motion": "static",
+      "color": "#f8fafc"
+    },
+    {
+      "id": "house-4-wall-left",
+      "type": "box",
+      "position": [
+        43.5,
+        2.5,
+        -12
+      ],
+      "size": [
+        1,
+        4.4,
+        16
+      ],
+      "motion": "static",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "house-4-wall-right",
+      "type": "box",
+      "position": [
+        64.5,
+        2.5,
+        -12
+      ],
+      "size": [
+        1,
+        4.4,
+        16
+      ],
+      "motion": "static",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "house-4-wall-back",
+      "type": "box",
+      "position": [
+        54,
+        2.5,
+        -19.5
+      ],
+      "size": [
+        22,
+        4.4,
+        1
+      ],
+      "motion": "static",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "house-4-porch",
+      "type": "box",
+      "position": [
+        54,
+        0.15,
+        -5.5
+      ],
+      "size": [
+        10,
+        0.3,
+        3
+      ],
+      "motion": "static",
+      "color": "#a16207"
+    },
+    {
+      "id": "house-4-task-station",
+      "type": "box",
+      "position": [
+        54,
+        0.9,
+        -14.5
+      ],
+      "size": [
+        6,
+        1.2,
+        2.6
+      ],
+      "motion": "static",
+      "color": "#b45309"
+    },
+    {
+      "id": "resident-house-1-chores",
+      "type": "box",
+      "position": [
+        -54,
+        1.2,
+        -11.2
+      ],
+      "size": [
+        1.5,
+        2.4,
+        1.5
+      ],
+      "motion": "dynamic",
+      "color": "#f59e0b",
+      "mass": 3,
+      "friction": 1
+    },
+    {
+      "id": "resident-house-2-screen-time",
+      "type": "box",
+      "position": [
+        -18,
+        1.2,
+        -11.2
+      ],
+      "size": [
+        1.5,
+        2.4,
+        1.5
+      ],
+      "motion": "dynamic",
+      "color": "#22c55e",
+      "mass": 3,
+      "friction": 1
+    },
+    {
+      "id": "resident-house-3-rent",
+      "type": "box",
+      "position": [
+        18,
+        1.2,
+        -11.2
+      ],
+      "size": [
+        1.5,
+        2.4,
+        1.5
+      ],
+      "motion": "dynamic",
+      "color": "#f97316",
+      "mass": 3,
+      "friction": 1
+    },
+    {
+      "id": "resident-house-4-curfew",
+      "type": "box",
+      "position": [
+        54,
+        1.2,
+        -11.2
+      ],
+      "size": [
+        1.5,
+        2.4,
+        1.5
+      ],
+      "motion": "dynamic",
+      "color": "#60a5fa",
+      "mass": 3,
+      "friction": 1
+    },
+    {
+      "id": "culture-sydney-opera-shell-1",
+      "type": "box",
+      "position": [
+        -70,
+        1.8,
+        -62
+      ],
+      "size": [
+        10,
+        3.6,
+        6
+      ],
+      "motion": "static",
+      "color": "#e2e8f0"
+    },
+    {
+      "id": "culture-sydney-opera-shell-2",
+      "type": "box",
+      "position": [
+        -60,
+        2.2,
+        -62
+      ],
+      "size": [
+        10,
+        4.4,
+        6
+      ],
+      "motion": "static",
+      "color": "#f1f5f9"
+    },
+    {
+      "id": "culture-sydney-opera-shell-3",
+      "type": "box",
+      "position": [
+        -50,
+        1.6,
+        -62
+      ],
+      "size": [
+        10,
+        3.2,
+        6
+      ],
+      "motion": "static",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "culture-sydney-harbor-plaza",
+      "type": "box",
+      "position": [
+        -60,
+        0.08,
+        -50
+      ],
+      "size": [
+        34,
+        0.16,
+        14
+      ],
+      "motion": "static",
+      "color": "#0ea5e9"
+    }
+  ]
+}

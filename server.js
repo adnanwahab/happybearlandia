@@ -1,5 +1,5 @@
 import { serve } from "bun";
-import { mkdir, readdir } from "node:fs/promises";
+import { mkdir, readdir, readFile } from "node:fs/promises";
 import { validateScene } from "./game/scene-loader.js";
 import { join, normalize, relative } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,11 +13,89 @@ const sceneIdPattern = /^[a-zA-Z0-9_\-]+$/;
 import homepage from './index.html'
 import gamepage from './game/index.html'
 
+async function loadProjectEnvFiles() {
+  const protectedKeys = new Set(
+    Object.entries(process.env)
+      .filter(([, value]) => typeof value === "string" && value.trim() !== "")
+      .map(([key]) => key)
+  );
+
+  const parseAndApply = source => {
+    const lines = source.split(/\r?\n/);
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+
+      if (!trimmed || trimmed.startsWith("#")) {
+        continue;
+      }
+
+      const match = trimmed.match(/^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
+
+      if (!match) {
+        continue;
+      }
+
+      const [, key, rawValue] = match;
+
+      if (protectedKeys.has(key)) {
+        continue;
+      }
+
+      let value = rawValue.trim();
+
+      if (
+        (value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))
+      ) {
+        value = value.slice(1, -1);
+      } else {
+        value = value.replace(/\s+#.*$/, "").trim();
+      }
+
+      process.env[key] = value;
+    }
+  };
+
+  for (const fileName of [".env", ".env.local", ".env.op"]) {
+    try {
+      const fullPath = join(projectRoot, fileName);
+      const source = await readFile(fullPath, "utf8");
+      parseAndApply(source);
+    } catch (error) {
+      if (error?.code !== "ENOENT") {
+        console.warn(`Failed to load ${fileName}:`, error);
+      }
+    }
+  }
+}
+
+await loadProjectEnvFiles();
 
 const jsxTranspiler = new Bun.Transpiler({ loader: "jsx" });
 
 function isPathInside(rootPath, targetPath) {
   return !relative(rootPath, targetPath).startsWith("..");
+}
+
+function normalizeSceneId(value) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const parts = value
+    .split("/")
+    .filter(Boolean);
+
+  if (parts.length === 0) {
+    return null;
+  }
+
+  if (!parts.every(part => sceneIdPattern.test(part))) {
+    return null;
+  }
+
+  return parts.join("/");
 }
 
 function getSceneIdFromPath(pathname, prefix) {
@@ -30,19 +108,21 @@ function getSceneIdFromPath(pathname, prefix) {
     .replace(/^\/+/, "")
     .replace(/\/+$/, "");
 
-  if (!remainder || remainder.includes("/")) {
+  if (!remainder) {
     return null;
   }
 
-  if (!sceneIdPattern.test(remainder)) {
-    return null;
-  }
-
-  return remainder;
+  return normalizeSceneId(remainder);
 }
 
 function getSceneFilePath(sceneId) {
-  return normalize(join(gameRoot, "scene", `${sceneId}.json`));
+  const normalizedSceneId = normalizeSceneId(sceneId);
+
+  if (!normalizedSceneId) {
+    return null;
+  }
+
+  return normalize(join(gameRoot, "scene", `${normalizedSceneId}.json`));
 }
 
 function sanitizeName(value, fallback = "unknown") {
@@ -67,6 +147,133 @@ function dateParts(date = new Date()) {
   return {
     dateFolder: `${year}-${month}-${day}`,
     timestamp: `${year}${month}${day}T${String(date.getUTCHours()).padStart(2, "0")}${String(date.getUTCMinutes()).padStart(2, "0")}${String(date.getUTCSeconds()).padStart(2, "0")}.${String(date.getUTCMilliseconds()).padStart(3, "0")}Z`,
+  };
+}
+
+function extractOpenAiText(payload) {
+  if (typeof payload?.output_text === "string" && payload.output_text.trim()) {
+    return payload.output_text.trim();
+  }
+
+  const output = Array.isArray(payload?.output) ? payload.output : [];
+
+  for (const item of output) {
+    const content = Array.isArray(item?.content) ? item.content : [];
+
+    for (const part of content) {
+      const candidate = part?.text ?? part?.output_text ?? null;
+
+      if (typeof candidate === "string" && candidate.trim()) {
+        return candidate.trim();
+      }
+    }
+  }
+
+  return null;
+}
+
+async function getOpenAiConversationReply({
+  sceneId,
+  npcId,
+  npcName,
+  conversationContext,
+  userMessage,
+}) {
+  const rawApiKey = process.env.OPENAI_API_KEY;
+  const apiKey = typeof rawApiKey === "string" ? rawApiKey.trim() : "";
+
+  if (!apiKey) {
+    return {
+      ok: false,
+      status: 503,
+      error: "OPENAI_API_KEY is not configured on the server.",
+    };
+  }
+
+  if (apiKey.startsWith("op://")) {
+    return {
+      ok: false,
+      status: 503,
+      error:
+        "OPENAI_API_KEY is still a 1Password reference (op://...). Start the server with `op run --env-file=.env.op -- bun run server.js` or set a real key in .env.",
+    };
+  }
+
+  const model = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
+
+  const systemPrompt = [
+    "You are roleplaying a single NPC in a simulation game.",
+    "Respond in one concise paragraph (max 120 words).",
+    "Stay in-character and grounded in the city context.",
+    "Do not include markdown.",
+  ].join(" ");
+
+  const userPrompt = [
+    `Scene: ${sceneId ?? "unknown"}`,
+    `NPC ID: ${npcId ?? "unknown"}`,
+    `NPC Name: ${npcName ?? "Resident"}`,
+    `Current dialog context: ${conversationContext ?? "(none)"}`,
+    `Player message: ${userMessage}`,
+  ].join("\n");
+
+  const response = await fetch("https://api.openai.com/v1/responses", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      temperature: 0.8,
+      max_output_tokens: 220,
+      input: [
+        {
+          role: "system",
+          content: [
+            {
+              type: "input_text",
+              text: systemPrompt,
+            },
+          ],
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text: userPrompt,
+            },
+          ],
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    return {
+      ok: false,
+      status: 502,
+      error: `OpenAI request failed (HTTP ${response.status})`,
+      details: errorBody.slice(0, 500),
+    };
+  }
+
+  const payload = await response.json();
+  const reply = extractOpenAiText(payload);
+
+  if (!reply) {
+    return {
+      ok: false,
+      status: 502,
+      error: "OpenAI returned no text output.",
+    };
+  }
+
+  return {
+    ok: true,
+    reply,
+    model,
   };
 }
 
@@ -147,26 +354,63 @@ async function listScreenshotFiles(limit = 9) {
 
 async function listSceneFiles() {
   const root = normalize(join(gameRoot, "scene"));
-  let entries;
+  const out = [];
 
-  try {
-    entries = await readdir(root, { withFileTypes: true });
-  } catch {
-    return [];
-  }
+  const walk = async (directoryPath, relativePrefix = "") => {
+    let entries;
 
-  return entries
-    .filter(entry => entry.isFile() && entry.name.endsWith(".json"))
-    .map(entry => {
-      const id = entry.name.replace(/\.json$/i, "");
+    try {
+      entries = await readdir(directoryPath, { withFileTypes: true });
+    } catch {
+      return;
+    }
 
-      return {
-        id,
-        name: entry.name,
-      };
+    for (const entry of entries) {
+      const absolutePath = normalize(join(directoryPath, entry.name));
+
+      if (!isPathInside(root, absolutePath)) {
+        continue;
+      }
+
+      if (entry.isDirectory()) {
+        const nextPrefix = relativePrefix
+          ? `${relativePrefix}/${entry.name}`
+          : entry.name;
+
+        await walk(absolutePath, nextPrefix);
+        continue;
+      }
+
+      if (!entry.isFile() || !entry.name.endsWith(".json")) {
+        continue;
+      }
+
+      const fileStem = entry.name.replace(/\.json$/i, "");
+      const id = relativePrefix
+        ? `${relativePrefix}/${fileStem}`
+        : fileStem;
+
+      const normalizedId = normalizeSceneId(id);
+
+      if (!normalizedId) {
+        continue;
+      }
+
+      out.push({
+        id: normalizedId,
+        name: `${normalizedId}.json`,
+      });
+    }
+  };
+
+  await walk(root);
+
+  return out.sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, {
+      numeric: true,
+      sensitivity: "base",
     })
-    .filter(scene => sceneIdPattern.test(scene.id))
-    .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" }));
+  );
 }
 
 // -------------------------------------------------------------------------
@@ -193,13 +437,18 @@ const sceneData = validateScene(await Bun.file(new URL('./game/scene/1.json', im
 const cubeDefinition = sceneData.objects.find(object => object.id === 'teal-cube');
 
 const sceneRoutes = Object.fromEntries(
-  (await listSceneFiles()).map(scene => [`/game/${scene.id}`, gamepage])
+  (await listSceneFiles()).flatMap(scene => [
+    [`/game/${scene.id}`, gamepage],
+    [`/game/${scene.id}/`, gamepage],
+  ])
 );
 
 const appRoutes = {
   "/": homepage,
   "/game": gamepage,
   "/game/": gamepage,
+  "/game/constitution-neighborhood/:city": gamepage,
+  "/game/constitution-neighborhood/:city/": gamepage,
   ...sceneRoutes,
 };
 const [cubeX, cubeY, cubeZ] = cubeDefinition.position;
@@ -389,6 +638,73 @@ const server = serve({
     }
 
     // ---------------------------------------------------------------------
+    // Open-ended NPC conversation API
+    // ---------------------------------------------------------------------
+
+    if (url.pathname === "/api/conversations/open-ended") {
+      if (request.method !== "POST") {
+        return new Response("Method not allowed", {
+          status: 405,
+          headers: { Allow: "POST" },
+        });
+      }
+
+      let payload;
+
+      try {
+        payload = await request.json();
+      } catch {
+        return new Response("Invalid JSON body", { status: 400 });
+      }
+
+      const userMessage =
+        typeof payload?.message === "string"
+          ? payload.message.trim()
+          : "";
+
+      if (!userMessage) {
+        return new Response("message is required", { status: 400 });
+      }
+
+      const result = await getOpenAiConversationReply({
+        sceneId: typeof payload?.sceneId === "string" ? payload.sceneId : "unknown",
+        npcId: typeof payload?.npcId === "string" ? payload.npcId : "unknown",
+        npcName: typeof payload?.npcName === "string" ? payload.npcName : "Resident",
+        conversationContext:
+          typeof payload?.conversationContext === "string"
+            ? payload.conversationContext
+            : "",
+        userMessage,
+      });
+
+      if (!result.ok) {
+        return new Response(
+          JSON.stringify({
+            ok: false,
+            error: result.error,
+            details: result.details ?? null,
+          }),
+          {
+            status: result.status ?? 502,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          reply: result.reply,
+          model: result.model,
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // ---------------------------------------------------------------------
     // Scene API
     // ---------------------------------------------------------------------
 
@@ -420,7 +736,7 @@ const server = serve({
     if (sceneApiId) {
       const sceneFilePath = getSceneFilePath(sceneApiId);
 
-      if (!isPathInside(gameRoot, sceneFilePath)) {
+      if (!sceneFilePath || !isPathInside(gameRoot, sceneFilePath)) {
         return new Response("Not found", { status: 404 });
       }
 
@@ -493,7 +809,7 @@ const server = serve({
     if (editSceneId) {
       const sceneFilePath = getSceneFilePath(editSceneId);
 
-      if (!isPathInside(gameRoot, sceneFilePath)) {
+      if (!sceneFilePath || !isPathInside(gameRoot, sceneFilePath)) {
         return new Response("Not found", { status: 404 });
       }
 

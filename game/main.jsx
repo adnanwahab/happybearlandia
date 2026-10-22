@@ -1,5 +1,5 @@
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 import "./index.js";
@@ -18,7 +18,7 @@ function sceneIdFromPathname(pathname) {
     .filter(Boolean);
 
   if (parts[0] === "game" && parts[1]) {
-    return parts[1];
+    return parts.slice(1).join("/");
   }
 
   return "1";
@@ -26,138 +26,259 @@ function sceneIdFromPathname(pathname) {
 
 const CONSTITUTION_NEIGHBORHOOD_SCENE_ID = "constitution-neighborhood";
 
-const DEFAULT_CONSTITUTION_NEIGHBORHOOD_SPEC = `# Constitution Neighborhood Spec
-
-## 1) Nested rule documents by scope
-- World: treaties, trade rules, migration rules
-- Country: constitution (hard limits)
-- City: ordinances, zoning, taxes, policing budget
-- Neighborhood: HOA rules and local norms
-- House: chores, curfew, screen time, rent expectations
-
-Lower levels inherit from higher levels and can only narrow them.
-Conflicts are linted and marked invalid (e.g. unconstitutional rules do not apply).
-
-## 2) Rules shift incentives, not direct behavior
-Represent three rule types:
-- Constraints: required/forbidden actions
-- Incentives: taxes, fines, subsidies, allowances
-- Enforcement: detection odds and responsible enforcers
-
-Agents choose actions from needs + traits:
-- hunger, sleep, money, social, safety, status
-
-Expected cost example:
-- fine: $500
-- enforcement probability: 0.20
-- expected cost added to action utility: $100
-
-Example rule:
-scope city: Houston
-law noise_ordinance:
-  forbid  play_loud_music  between 22:00 and 07:00
-  fine    250
-  enforce 0.15  (scaled by police_budget)
-
-## 3) Legal prose compiler workflow
-- LLM compiles prose clauses into structured rules
-- Every compiled rule keeps source-clause traceability
-- Human reviews/approves before simulation runs
-- Runtime stays deterministic over approved rules only
-
-Potential sources:
-- Municode / American Legal (city codes)
-- eCFR (federal regs)
-- constitutional texts
-- user-pasted HOA covenants
-
-## 4) Multi-scale simulation detail
-- House: individuals, minute ticks
-- Neighborhood: agents + shared places, hourly ticks
-- City: grouped cohorts + markets + budget + traffic, daily ticks
-- World: countries as agents (trade, migration, conflict), monthly ticks
-
-Techniques:
-- Simulate in detail where camera is focused; aggregate elsewhere
-- Couple levels both ways:
-  - Bottom-up: individual outcomes -> city metrics
-  - Top-down: wages/rent/prices -> household conditions
-
-## 5) Real data + uncertainty
-Data inputs:
-- OpenStreetMap buildings/roads
-- city zoning GIS
-- Census ACS
-- BLS
-- World Bank
-
-Method:
-1. Calibrate baseline to current reality
-2. Change one rule and compare runs
-3. Run many random seeds and report ranges, not single-point predictions
-
-## 6) Visualization requirements
-- Continuous zoom: world -> city -> neighborhood -> house cutaway
-- Heatmaps: happiness, money flow, violations, enforcement
-- A/B law compare worlds side-by-side
-- Decision trace on click: needs + laws + penalties that tipped choice
-- Multi-tab editor with cross-level conflict warnings
-
-## 7) Architecture
-rule docs -> compiler (LLM + review) -> approved rules
-real-world data -> world builder -> ECS simulation (Web Worker, later Rust/WASM)
-simulation snapshots -> renderer (Three.js / deck.gl) + charts + decision traces
-
-## 8) Build order
-1. House (3-5 people, 6 needs, ~10 rule types, decision traces)
-2. Neighborhood (shared places + norm spread)
-3. City (grouped populations + budget + zoning + one real city dataset)
-4. Constitution layer + cross-level conflict checker
-5. World level
-
-## Map goals
-- Neighborhood map visible in-panel
-- World map visible in-panel
-- Later: bind map overlays to simulation metrics
-`;
-
-function NeighborhoodMiniMap() {
-  const landmarkStyle = {
-    position: "absolute",
-    borderRadius: "6px",
-    border: "1px solid rgba(148, 163, 184, 0.6)",
-    color: "#e2e8f0",
-    fontSize: "10px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    textAlign: "center",
-  };
-
-  return (
-    <div
-      style={{
-        position: "relative",
-        width: "100%",
-        height: "170px",
-        borderRadius: "10px",
-        border: "1px solid rgba(148, 163, 184, 0.35)",
-        background: "#0b1220",
-        overflow: "hidden",
-      }}
-    >
-      <div style={{ position: "absolute", inset: 0, background: "#142332" }} />
-      <div style={{ position: "absolute", top: "45%", left: 0, right: 0, height: "12%", background: "#1f2937" }} />
-      <div style={{ position: "absolute", left: "47%", top: 0, bottom: 0, width: "9%", background: "#1f2937" }} />
-      <div style={{ ...landmarkStyle, left: "8%", top: "14%", width: "22%", height: "22%", background: "#166534" }}>Park</div>
-      <div style={{ ...landmarkStyle, left: "66%", top: "12%", width: "24%", height: "24%", background: "#1d4ed8" }}>School</div>
-      <div style={{ ...landmarkStyle, left: "67%", top: "62%", width: "22%", height: "24%", background: "#7c2d12" }}>Store</div>
-      <div style={{ ...landmarkStyle, left: "10%", top: "64%", width: "42%", height: "20%", background: "#334155" }}>Homes</div>
-    </div>
-  );
+function neighborhoodRouteForCity(citySlug) {
+  return `/game/${CONSTITUTION_NEIGHBORHOOD_SCENE_ID}/${citySlug}`;
 }
 
-function WorldMiniMap() {
+const CONSTITUTION_SCOPE_TABS = [
+  {
+    id: "world",
+    label: "World",
+    subtitle: "Treaties, trade rules, migration rules",
+  },
+  {
+    id: "country",
+    label: "Country",
+    subtitle: "Constitution (hard limits)",
+  },
+  {
+    id: "city",
+    label: "City",
+    subtitle: "Ordinances, zoning, taxes, policing budget",
+  },
+  {
+    id: "neighborhood",
+    label: "Neighborhood",
+    subtitle: "HOA rules and local norms",
+  },
+  {
+    id: "house",
+    label: "House",
+    subtitle: "Chores, curfew, screen time, rent",
+  },
+];
+
+const DEFAULT_CONSTITUTION_SCOPE_DOCS = {
+  world: `# World\n\nScope: treaties, trade rules, migration rules\n\n- treaty_open_labor_mobility:\n  - migration_permit_score >= 0.70\n  - annual cap by corridor\n- trade_rule_food_imports:\n  - tariff: 2%\n  - subsidy: staple foods +3%\n- sanctions_rule:\n  - restricted goods list maintained quarterly\n`,
+  country: `# Country\n\nScope: the constitution, which sets hard limits on everything below it\n\nHard limits:\n- Equal protection and due process\n- No city/neighborhood/house rule may violate constitutional rights\n- Rule conflicts are flagged and invalidated at compile time\n\nConstitutional checker:\n- lower_scope_rule must narrow, never broaden, higher-scope constraints\n`,
+  city: `# City\n\nScope: ordinances, zoning, taxes, policing budget\n\n- zoning:\n  - max_building_height: 3 stories (in residential district R1)\n- tax:\n  - sales_tax_local: 1.5%\n  - property_tax: progressive by assessed value\n- policing_budget:\n  - patrol_hours_weight: 0.35\n  - response_time_target_minutes: 9\n`,
+  neighborhood: `# Neighborhood\n\nScope: HOA rules, local norms\n\n- quiet_hours: 22:00-07:00\n- shared_space_rules:\n  - park_cleanup_rotation: weekly\n  - pet_leash_required: true\n- norm_spread_model:\n  - influence_radius: 3 homes\n  - adoption_decay: 0.12\n`,
+  house: `# House\n\nScope: house rules (chores, curfew, screen time, who pays rent)\n\nHouse A:\n- chores: dishes by 20:00\n- curfew: 21:30\n\nHouse B:\n- screen_time_weekday_minutes: 90\n- chores: laundry on Tue/Thu\n\nHouse C:\n- shared_rent_split: 40/30/30\n- late_rent_penalty: 5%\n\nHouse D:\n- quiet_after: 22:00\n- chores: trash out on Wednesday\n`,
+};
+
+const DEFAULT_ACTIVE_SCOPE_TAB = "world";
+
+const HOUSE_TASKS = [
+  "House A: resident doing dishes (chores)",
+  "House B: resident on timed screen session (screen time)",
+  "House C: resident bookkeeping rent split (who pays rent)",
+  "House D: resident preparing for curfew routine",
+];
+
+const CITY_NEIGHBORHOOD_MAP_CONFIG = {
+  "new-york": {
+    cityLabel: "New York",
+    grass: "#3f7f43",
+    accentA: { x: 36, y: 20, w: 34, h: 22, color: "#334155", label: "Skyline" },
+    accentB: { x: 40, y: 48, w: 26, h: 12, color: "#0f172a", label: "Subway" },
+  },
+  london: {
+    cityLabel: "London",
+    grass: "#4a874a",
+    accentA: { x: 36, y: 20, w: 12, h: 24, color: "#c2410c", label: "Tower" },
+    accentB: { x: 52, y: 48, w: 22, h: 10, color: "#dc2626", label: "Bus" },
+  },
+  tokyo: {
+    cityLabel: "Tokyo",
+    grass: "#4a8b4a",
+    accentA: { x: 34, y: 20, w: 26, h: 8, color: "#dc2626", label: "Torii" },
+    accentB: { x: 42, y: 46, w: 24, h: 10, color: "#f59e0b", label: "Lanterns" },
+  },
+  lagos: {
+    cityLabel: "Lagos",
+    grass: "#3a7a3f",
+    accentA: { x: 34, y: 20, w: 30, h: 12, color: "#0369a1", label: "Lagoon" },
+    accentB: { x: 40, y: 44, w: 26, h: 12, color: "#22c55e", label: "Market" },
+  },
+  "sao-paulo": {
+    cityLabel: "Sao Paulo",
+    grass: "#4c8445",
+    accentA: { x: 34, y: 20, w: 30, h: 8, color: "#7c3aed", label: "Mural" },
+    accentB: { x: 38, y: 44, w: 30, h: 12, color: "#1d4ed8", label: "Court" },
+  },
+  sydney: {
+    cityLabel: "Sydney",
+    grass: "#4f8f4f",
+    accentA: { x: 34, y: 20, w: 30, h: 10, color: "#e2e8f0", label: "Opera" },
+    accentB: { x: 38, y: 44, w: 30, h: 12, color: "#0ea5e9", label: "Harbor" },
+  },
+  cairo: {
+    cityLabel: "Cairo",
+    grass: "#879a4b",
+    accentA: { x: 34, y: 20, w: 24, h: 12, color: "#ca8a04", label: "Pyramids" },
+    accentB: { x: 40, y: 44, w: 26, h: 12, color: "#f59e0b", label: "Bazaar" },
+  },
+  mumbai: {
+    cityLabel: "Mumbai",
+    grass: "#4d8447",
+    accentA: { x: 34, y: 20, w: 30, h: 10, color: "#64748b", label: "Rail" },
+    accentB: { x: 40, y: 44, w: 26, h: 12, color: "#b45309", label: "Kiosk" },
+  },
+  paris: {
+    cityLabel: "Paris",
+    grass: "#5a9150",
+    accentA: { x: 36, y: 20, w: 16, h: 12, color: "#d4d4d8", label: "Arch" },
+    accentB: { x: 52, y: 44, w: 18, h: 12, color: "#7c2d12", label: "Cafe" },
+  },
+  "mexico-city": {
+    cityLabel: "Mexico City",
+    grass: "#4c8a47",
+    accentA: { x: 34, y: 20, w: 30, h: 12, color: "#9ca3af", label: "Zocalo" },
+    accentB: { x: 40, y: 44, w: 26, h: 12, color: "#16a34a", label: "Market" },
+  },
+};
+
+function getConstitutionNeighborhoodCitySlug(sceneId) {
+  if (!sceneId || typeof sceneId !== "string") {
+    return null;
+  }
+
+  if (!sceneId.startsWith(`${CONSTITUTION_NEIGHBORHOOD_SCENE_ID}/`)) {
+    return null;
+  }
+
+  const suffix = sceneId.slice(`${CONSTITUTION_NEIGHBORHOOD_SCENE_ID}/`.length).trim();
+
+  return suffix || null;
+}
+
+function titleCaseLabel(value) {
+  return String(value)
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function buildMiniMapConfigFromSceneData(sceneId, sceneData) {
+  const citySlug = getConstitutionNeighborhoodCitySlug(sceneId);
+  const staticConfig = citySlug ? CITY_NEIGHBORHOOD_MAP_CONFIG[citySlug] ?? null : null;
+  const objects = Array.isArray(sceneData?.objects) ? sceneData.objects : [];
+
+  const floorObject = objects.find(object => object?.id === "floor");
+  const floorHalfWidth = Math.max(40, (floorObject?.size?.[0] ?? 180) / 2);
+  const floorHalfDepth = Math.max(40, (floorObject?.size?.[2] ?? 180) / 2);
+
+  const toMiniMapPoint = (worldX, worldZ) => ({
+    x: 180 + (worldX / floorHalfWidth) * 140,
+    y: 90 + (worldZ / floorHalfDepth) * 64,
+  });
+
+  const cultureObjects = objects.filter(object =>
+    typeof object?.id === "string" && object.id.startsWith("culture-")
+  );
+
+  const accentObjects = cultureObjects.slice(0, 2);
+
+  const accentA = accentObjects[0]
+    ? {
+        color: accentObjects[0].color ?? staticConfig?.accentA?.color ?? "#475569",
+        label: titleCaseLabel(
+          accentObjects[0].id
+            .replace(/^culture-/, "")
+            .split("-")
+            .slice(1)
+            .join("-")
+        ),
+      }
+    : staticConfig?.accentA ?? null;
+
+  const accentB = accentObjects[1]
+    ? {
+        color: accentObjects[1].color ?? staticConfig?.accentB?.color ?? "#64748b",
+        label: titleCaseLabel(
+          accentObjects[1].id
+            .replace(/^culture-/, "")
+            .split("-")
+            .slice(1)
+            .join("-")
+        ),
+      }
+    : staticConfig?.accentB ?? null;
+
+  const houseFloors = objects
+    .filter(object =>
+      typeof object?.id === "string" &&
+      /^house-\d+-floor$/i.test(object.id)
+    )
+    .map((house, index) => {
+      const point = toMiniMapPoint(
+        house.position?.[0] ?? 0,
+        house.position?.[2] ?? 0
+      );
+
+      return {
+        id: house.id,
+        number: index + 1,
+        x: point.x,
+        y: point.y,
+      };
+    });
+
+  const residentPoints = objects
+    .filter(object =>
+      typeof object?.id === "string" &&
+      object.id.startsWith("resident-house-")
+    )
+    .map(object => {
+      const point = toMiniMapPoint(
+        object.position?.[0] ?? 0,
+        object.position?.[2] ?? 0
+      );
+
+      return {
+        id: object.id,
+        x: point.x,
+        y: point.y,
+      };
+    });
+
+  return {
+    cityLabel:
+      staticConfig?.cityLabel ??
+      (citySlug ? titleCaseLabel(citySlug) : null),
+    grass:
+      floorObject?.color ??
+      staticConfig?.grass ??
+      "#315f2d",
+    accentA: accentA
+      ? {
+          x: staticConfig?.accentA?.x ?? 36,
+          y: staticConfig?.accentA?.y ?? 20,
+          w: staticConfig?.accentA?.w ?? 28,
+          h: staticConfig?.accentA?.h ?? 12,
+          ...accentA,
+        }
+      : null,
+    accentB: accentB
+      ? {
+          x: staticConfig?.accentB?.x ?? 40,
+          y: staticConfig?.accentB?.y ?? 44,
+          w: staticConfig?.accentB?.w ?? 26,
+          h: staticConfig?.accentB?.h ?? 12,
+          ...accentB,
+        }
+      : null,
+    houses: houseFloors,
+    residents: residentPoints,
+  };
+}
+
+function NeighborhoodMiniMap({ citySlug = null, mapConfig = null }) {
+  const cityConfig =
+    mapConfig ??
+    (citySlug ? CITY_NEIGHBORHOOD_MAP_CONFIG[citySlug] ?? null : null);
+
   return (
     <svg
       viewBox="0 0 360 180"
@@ -169,26 +290,312 @@ function WorldMiniMap() {
         background: "#0b1220",
       }}
     >
-      <rect x="0" y="0" width="360" height="180" fill="#082f49" />
-      <path d="M24 58 L72 45 L112 58 L126 80 L88 98 L38 90 Z" fill="#14532d" />
-      <path d="M130 44 L188 36 L228 52 L214 78 L166 88 L136 72 Z" fill="#166534" />
-      <path d="M244 48 L320 54 L334 84 L300 106 L250 98 L232 72 Z" fill="#15803d" />
-      <circle cx="164" cy="82" r="4" fill="#facc15" />
-      <circle cx="286" cy="88" r="4" fill="#f97316" />
-      <circle cx="86" cy="78" r="4" fill="#38bdf8" />
-      <text x="10" y="170" fontSize="11" fill="#cbd5e1">World policy layer (concept preview)</text>
+      <rect x="0" y="0" width="360" height="180" fill={cityConfig?.grass ?? "#315f2d"} />
+
+      <rect x="40" y="84" width="280" height="12" rx="6" fill="#8b7d67" />
+      <rect x="174" y="24" width="12" height="132" rx="6" fill="#8b7d67" />
+      <rect x="156" y="72" width="48" height="36" rx="8" fill="#9ca3af" opacity="0.85" />
+
+      {(cityConfig?.houses?.length > 0
+        ? cityConfig.houses
+        : [
+            { id: "fallback-house-1", number: 1, x: 101, y: 57 },
+            { id: "fallback-house-2", number: 2, x: 259, y: 57 },
+            { id: "fallback-house-3", number: 3, x: 101, y: 123 },
+            { id: "fallback-house-4", number: 4, x: 259, y: 123 },
+          ]).map(house => (
+        <g key={house.id}>
+          <rect
+            x={house.x - 11}
+            y={house.y - 8}
+            width="22"
+            height="16"
+            rx="4"
+            fill="#f8fafc"
+            stroke="#334155"
+            strokeWidth="1"
+          />
+          <text
+            x={house.x}
+            y={house.y + 3}
+            textAnchor="middle"
+            fontSize="9"
+            fill="#0f172a"
+          >
+            {house.number}
+          </text>
+        </g>
+      ))}
+
+      {(cityConfig?.residents?.length > 0
+        ? cityConfig.residents
+        : [
+            { id: "fallback-resident-1", x: 96, y: 62 },
+            { id: "fallback-resident-2", x: 254, y: 62 },
+            { id: "fallback-resident-3", x: 96, y: 128 },
+            { id: "fallback-resident-4", x: 254, y: 128 },
+          ]).map(resident => (
+        <circle
+          key={resident.id}
+          cx={resident.x}
+          cy={resident.y}
+          r="2.6"
+          fill="#facc15"
+          stroke="#f8fafc"
+          strokeWidth="1"
+        />
+      ))}
+
+      {cityConfig?.accentA ? (
+        <>
+          <rect
+            x={cityConfig.accentA.x}
+            y={cityConfig.accentA.y}
+            width={cityConfig.accentA.w}
+            height={cityConfig.accentA.h}
+            rx="4"
+            fill={cityConfig.accentA.color}
+            opacity="0.92"
+          />
+          <text
+            x={cityConfig.accentA.x + cityConfig.accentA.w / 2}
+            y={cityConfig.accentA.y + cityConfig.accentA.h / 2 + 3}
+            textAnchor="middle"
+            fontSize="9"
+            fill="#f8fafc"
+          >
+            {cityConfig.accentA.label}
+          </text>
+        </>
+      ) : null}
+
+      {cityConfig?.accentB ? (
+        <>
+          <rect
+            x={cityConfig.accentB.x}
+            y={cityConfig.accentB.y}
+            width={cityConfig.accentB.w}
+            height={cityConfig.accentB.h}
+            rx="4"
+            fill={cityConfig.accentB.color}
+            opacity="0.92"
+          />
+          <text
+            x={cityConfig.accentB.x + cityConfig.accentB.w / 2}
+            y={cityConfig.accentB.y + cityConfig.accentB.h / 2 + 3}
+            textAnchor="middle"
+            fontSize="9"
+            fill="#f8fafc"
+          >
+            {cityConfig.accentB.label}
+          </text>
+        </>
+      ) : null}
+
+      <text x="8" y="172" fontSize="11" fill="#dbeafe">
+        {cityConfig?.cityLabel
+          ? `${cityConfig.cityLabel}: ${(cityConfig?.houses?.length ?? 0) || 4} houses, city landmarks`
+          : "Neighborhood: grassy park + dynamic house layouts"}
+      </text>
     </svg>
   );
 }
 
-function ConstitutionNeighborhoodPanel({ textValue, onTextChange }) {
+const WORLD_CITIES = [
+  { slug: "new-york", name: "New York", country: "USA", coordinates: [-74.006, 40.7128] },
+  { slug: "london", name: "London", country: "UK", coordinates: [-0.1276, 51.5072] },
+  { slug: "tokyo", name: "Tokyo", country: "Japan", coordinates: [139.6917, 35.6895] },
+  { slug: "lagos", name: "Lagos", country: "Nigeria", coordinates: [3.3792, 6.5244] },
+  { slug: "sao-paulo", name: "Sao Paulo", country: "Brazil", coordinates: [-46.6333, -23.5505] },
+  { slug: "sydney", name: "Sydney", country: "Australia", coordinates: [151.2093, -33.8688] },
+  { slug: "cairo", name: "Cairo", country: "Egypt", coordinates: [31.2357, 30.0444] },
+  { slug: "mumbai", name: "Mumbai", country: "India", coordinates: [72.8777, 19.076] },
+  { slug: "paris", name: "Paris", country: "France", coordinates: [2.3522, 48.8566] },
+  { slug: "mexico-city", name: "Mexico City", country: "Mexico", coordinates: [-99.1332, 19.4326] },
+];
+
+let cachedDeckScriptPromise = null;
+
+function ensureDeckGlScript() {
+  if (window.deck) {
+    return Promise.resolve(window.deck);
+  }
+
+  if (cachedDeckScriptPromise) {
+    return cachedDeckScriptPromise;
+  }
+
+  cachedDeckScriptPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/deck.gl@9.0.35/dist.min.js";
+    script.async = true;
+    script.onload = () => resolve(window.deck);
+    script.onerror = () => reject(new Error("Unable to load deck.gl"));
+    document.head.appendChild(script);
+  });
+
+  return cachedDeckScriptPromise;
+}
+
+function WorldMiniMap({ onCityClick }) {
+  const containerRef = useRef(null);
+  const deckInstanceRef = useRef(null);
+  const [status, setStatus] = useState("loading");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function mountDeck() {
+      try {
+        const deck = await ensureDeckGlScript();
+
+        if (cancelled || !containerRef.current || !deck) {
+          return;
+        }
+
+        const { Deck, GeoJsonLayer, ScatterplotLayer, TextLayer } = deck;
+
+        const worldLayer = new GeoJsonLayer({
+          id: "world-countries",
+          data: "https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson",
+          filled: true,
+          stroked: true,
+          getFillColor: [24, 73, 120, 180],
+          getLineColor: [148, 163, 184, 190],
+          lineWidthMinPixels: 1,
+          pickable: false,
+        });
+
+        const cityLayer = new ScatterplotLayer({
+          id: "world-cities",
+          data: WORLD_CITIES,
+          getPosition: d => d.coordinates,
+          getRadius: 260000,
+          radiusMinPixels: 4,
+          radiusMaxPixels: 10,
+          getFillColor: [250, 204, 21, 230],
+          getLineColor: [255, 255, 255, 220],
+          lineWidthMinPixels: 1,
+          stroked: true,
+          pickable: true,
+          onClick: info => {
+            const city = info?.object;
+
+            if (city?.slug && typeof onCityClick === "function") {
+              onCityClick(city);
+            }
+          },
+        });
+
+        const cityLabels = new TextLayer({
+          id: "world-city-labels",
+          data: WORLD_CITIES,
+          getPosition: d => d.coordinates,
+          getText: d => d.name,
+          getSize: 11,
+          sizeUnits: "pixels",
+          getColor: [226, 232, 240, 255],
+          getTextAnchor: "start",
+          getAlignmentBaseline: "center",
+          getPixelOffset: [8, -2],
+          pickable: false,
+        });
+
+        const deckInstance = new Deck({
+          parent: containerRef.current,
+          initialViewState: {
+            longitude: 10,
+            latitude: 18,
+            zoom: 0.9,
+            minZoom: 0.7,
+            maxZoom: 4,
+            pitch: 0,
+            bearing: 0,
+          },
+          controller: true,
+          layers: [worldLayer, cityLayer, cityLabels],
+          getTooltip: ({ object }) =>
+            object?.name
+              ? `${object.name}, ${object.country}`
+              : null,
+          parameters: {
+            clearColor: [11, 18, 32, 1],
+          },
+        });
+
+        deckInstanceRef.current = deckInstance;
+        setStatus("ready");
+      } catch {
+        if (!cancelled) {
+          setStatus("error");
+        }
+      }
+    }
+
+    mountDeck();
+
+    return () => {
+      cancelled = true;
+
+      if (deckInstanceRef.current) {
+        deckInstanceRef.current.finalize();
+        deckInstanceRef.current = null;
+      }
+    };
+  }, [onCityClick]);
+
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: "170px",
+        borderRadius: "10px",
+        border: "1px solid rgba(148, 163, 184, 0.35)",
+        background: "#0b1220",
+        overflow: "hidden",
+        position: "relative",
+      }}
+    >
+      <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
+      {status !== "ready" ? (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#cbd5e1",
+            fontSize: "11px",
+            background: "rgba(2, 6, 23, 0.6)",
+          }}
+        >
+          {status === "loading" ? "Loading deck.gl world map..." : "Unable to load deck.gl map"}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function ConstitutionNeighborhoodPanel({
+  scopeDocs,
+  activeScopeTab,
+  onSelectScopeTab,
+  onScopeDocChange,
+  onCityClick,
+  citySlug,
+  cityMiniMapConfig,
+}) {
+  const activeTabMeta = CONSTITUTION_SCOPE_TABS.find(tab => tab.id === activeScopeTab) ?? CONSTITUTION_SCOPE_TABS[0];
+  const activeDocText = scopeDocs?.[activeTabMeta.id] ?? "";
+
   return (
     <aside
       style={{
         position: "fixed",
         top: "12px",
         left: "12px",
-        width: "min(560px, 44vw)",
+        width: "min(620px, 48vw)",
         height: "calc(100vh - 24px)",
         background: "rgba(2, 6, 23, 0.9)",
         border: "1px solid rgba(148, 163, 184, 0.45)",
@@ -196,7 +603,7 @@ function ConstitutionNeighborhoodPanel({ textValue, onTextChange }) {
         boxShadow: "0 16px 50px rgba(0, 0, 0, 0.45)",
         color: "#e2e8f0",
         display: "grid",
-        gridTemplateRows: "auto auto auto 1fr",
+        gridTemplateRows: "auto auto auto auto auto 1fr",
         gap: "10px",
         padding: "12px",
         overflow: "hidden",
@@ -207,28 +614,63 @@ function ConstitutionNeighborhoodPanel({ textValue, onTextChange }) {
       <div>
         <div style={{ fontWeight: 700, fontSize: "16px", marginBottom: "4px" }}>Constitution Neighborhood Workbench</div>
         <div style={{ fontSize: "12px", color: "#94a3b8" }}>
-          Route-specific side panel with editor, neighborhood map, and world map.
+          Grassy park neighborhood with 4 houses and household rule-behavior tasks.
         </div>
       </div>
 
       <div style={{ display: "grid", gap: "8px", gridTemplateColumns: "1fr 1fr" }}>
         <div>
-          <div style={{ fontSize: "12px", color: "#93c5fd", marginBottom: "4px" }}>Neighborhood map</div>
-          <NeighborhoodMiniMap />
+          <div style={{ fontSize: "12px", color: "#93c5fd", marginBottom: "4px" }}>
+            Neighborhood map{cityMiniMapConfig?.cityLabel ? ` (${cityMiniMapConfig.cityLabel})` : citySlug ? ` (${citySlug})` : ""}
+          </div>
+          <NeighborhoodMiniMap citySlug={citySlug} mapConfig={cityMiniMapConfig} />
         </div>
         <div>
-          <div style={{ fontSize: "12px", color: "#93c5fd", marginBottom: "4px" }}>World map</div>
-          <WorldMiniMap />
+          <div style={{ fontSize: "12px", color: "#93c5fd", marginBottom: "4px" }}>World map (click a city)</div>
+          <WorldMiniMap onCityClick={onCityClick} />
         </div>
+      </div>
+
+      <div style={{ fontSize: "11px", color: "#94a3b8", border: "1px solid rgba(148, 163, 184, 0.3)", borderRadius: "8px", padding: "8px" }}>
+        <div style={{ fontWeight: 600, color: "#cbd5e1", marginBottom: "4px" }}>Household task simulation in-scene</div>
+        {HOUSE_TASKS.map(task => (
+          <div key={task}>• {task}</div>
+        ))}
+      </div>
+
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+        {CONSTITUTION_SCOPE_TABS.map(tab => {
+          const active = tab.id === activeTabMeta.id;
+
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => onSelectScopeTab(tab.id)}
+              style={{
+                border: "1px solid rgba(148, 163, 184, 0.45)",
+                borderRadius: "999px",
+                background: active ? "#1d4ed8" : "rgba(30, 41, 59, 0.92)",
+                color: "#f8fafc",
+                fontSize: "12px",
+                padding: "5px 10px",
+                cursor: "pointer",
+              }}
+              title={tab.subtitle}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
       <div style={{ fontSize: "12px", color: "#94a3b8" }}>
-        Edit live specification notes below (stored in localStorage).
+        <strong style={{ color: "#cbd5e1" }}>{activeTabMeta.label}</strong>: {activeTabMeta.subtitle}
       </div>
 
       <textarea
-        value={textValue}
-        onChange={event => onTextChange(event.target.value)}
+        value={activeDocText}
+        onChange={event => onScopeDocChange(activeTabMeta.id, event.target.value)}
         spellCheck={false}
         style={{
           width: "100%",
@@ -480,18 +922,57 @@ function emitPokerAction(action, amount = null) {
 
 function GameplayOverlay() {
   const sceneId = sceneIdFromPathname(window.location.pathname);
-  const isConstitutionNeighborhoodRoute = sceneId === CONSTITUTION_NEIGHBORHOOD_SCENE_ID;
+  const currentConstitutionCitySlug = getConstitutionNeighborhoodCitySlug(sceneId);
 
-  const [constitutionSpecText, setConstitutionSpecText] = useState(() => {
+  const isConstitutionNeighborhoodRoute =
+    sceneId === CONSTITUTION_NEIGHBORHOOD_SCENE_ID ||
+    sceneId.startsWith(`${CONSTITUTION_NEIGHBORHOOD_SCENE_ID}/`);
+
+  const [activeScopeTab, setActiveScopeTab] = useState(() => {
     if (!isConstitutionNeighborhoodRoute) {
-      return DEFAULT_CONSTITUTION_NEIGHBORHOOD_SPEC;
+      return DEFAULT_ACTIVE_SCOPE_TAB;
     }
 
     try {
-      return localStorage.getItem("hbl:constitution-neighborhood:spec") ?? DEFAULT_CONSTITUTION_NEIGHBORHOOD_SPEC;
+      return localStorage.getItem("hbl:constitution-neighborhood:active-scope") ?? DEFAULT_ACTIVE_SCOPE_TAB;
     } catch {
-      return DEFAULT_CONSTITUTION_NEIGHBORHOOD_SPEC;
+      return DEFAULT_ACTIVE_SCOPE_TAB;
     }
+  });
+
+  const [constitutionScopeDocs, setConstitutionScopeDocs] = useState(() => {
+    if (!isConstitutionNeighborhoodRoute) {
+      return DEFAULT_CONSTITUTION_SCOPE_DOCS;
+    }
+
+    try {
+      const stored = localStorage.getItem("hbl:constitution-neighborhood:scope-docs");
+
+      if (!stored) {
+        return DEFAULT_CONSTITUTION_SCOPE_DOCS;
+      }
+
+      const parsed = JSON.parse(stored);
+
+      if (!parsed || typeof parsed !== "object") {
+        return DEFAULT_CONSTITUTION_SCOPE_DOCS;
+      }
+
+      return {
+        ...DEFAULT_CONSTITUTION_SCOPE_DOCS,
+        ...parsed,
+      };
+    } catch {
+      return DEFAULT_CONSTITUTION_SCOPE_DOCS;
+    }
+  });
+
+  const [cityMiniMapConfig, setCityMiniMapConfig] = useState(() => {
+    if (!isConstitutionNeighborhoodRoute) {
+      return null;
+    }
+
+    return buildMiniMapConfigFromSceneData(sceneId, null);
   });
 
   const [conversationScene, setConversationScene] = useState(
@@ -532,6 +1013,10 @@ function GameplayOverlay() {
   );
 
   const [raiseToAmount, setRaiseToAmount] = useState(0);
+  const [openEndedPrompt, setOpenEndedPrompt] = useState("");
+  const [openEndedReply, setOpenEndedReply] = useState("");
+  const [openEndedError, setOpenEndedError] = useState("");
+  const [openEndedLoading, setOpenEndedLoading] = useState(false);
 
   const npcById = useMemo(() => {
     const map = new Map();
@@ -572,6 +1057,10 @@ function GameplayOverlay() {
     setActiveNpcId(null);
     setActiveConversationId(null);
     setCurrentNodeId(null);
+    setOpenEndedPrompt("");
+    setOpenEndedReply("");
+    setOpenEndedError("");
+    setOpenEndedLoading(false);
     setDialogActiveFlag(false);
   }
 
@@ -606,6 +1095,50 @@ function GameplayOverlay() {
     }
 
     setCurrentNodeId(nextNodeId);
+  }
+
+  async function submitOpenEndedPrompt() {
+    const message = openEndedPrompt.trim();
+
+    if (!message || openEndedLoading || !activeNpcId) {
+      return;
+    }
+
+    setOpenEndedLoading(true);
+    setOpenEndedError("");
+
+    try {
+      const response = await fetch("/api/conversations/open-ended", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sceneId,
+          npcId: activeNpcId,
+          npcName: currentNode?.speaker ?? "Resident",
+          conversationContext: currentNode?.text ?? "",
+          message,
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok || payload?.ok !== true || typeof payload?.reply !== "string") {
+        const detailSuffix =
+          typeof payload?.details === "string" && payload.details.trim()
+            ? `\n${payload.details.trim()}`
+            : "";
+        throw new Error((payload?.error ?? `Request failed (HTTP ${response.status})`) + detailSuffix);
+      }
+
+      setOpenEndedReply(payload.reply);
+      setOpenEndedPrompt("");
+    } catch (error) {
+      setOpenEndedError(error?.message ?? "Unable to get NPC response.");
+    } finally {
+      setOpenEndedLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -725,18 +1258,74 @@ function GameplayOverlay() {
     }
 
     try {
-      localStorage.setItem("hbl:constitution-neighborhood:spec", constitutionSpecText);
+      localStorage.setItem("hbl:constitution-neighborhood:scope-docs", JSON.stringify(constitutionScopeDocs));
+      localStorage.setItem("hbl:constitution-neighborhood:active-scope", activeScopeTab);
     } catch {
       // Ignore storage errors in private/incognito contexts.
     }
-  }, [constitutionSpecText, isConstitutionNeighborhoodRoute]);
+  }, [constitutionScopeDocs, activeScopeTab, isConstitutionNeighborhoodRoute]);
+
+  useEffect(() => {
+    if (!isConstitutionNeighborhoodRoute) {
+      setCityMiniMapConfig(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadSceneMiniMapConfig() {
+      try {
+        const response = await fetch(`/api/scenes/${sceneId}`);
+
+        if (!response.ok) {
+          if (!cancelled) {
+            setCityMiniMapConfig(buildMiniMapConfigFromSceneData(sceneId, null));
+          }
+
+          return;
+        }
+
+        const sceneData = await response.json();
+
+        if (!cancelled) {
+          setCityMiniMapConfig(buildMiniMapConfigFromSceneData(sceneId, sceneData));
+        }
+      } catch {
+        if (!cancelled) {
+          setCityMiniMapConfig(buildMiniMapConfigFromSceneData(sceneId, null));
+        }
+      }
+    }
+
+    loadSceneMiniMapConfig();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isConstitutionNeighborhoodRoute, sceneId]);
 
   return (
     <>
       {isConstitutionNeighborhoodRoute ? (
         <ConstitutionNeighborhoodPanel
-          textValue={constitutionSpecText}
-          onTextChange={setConstitutionSpecText}
+          scopeDocs={constitutionScopeDocs}
+          activeScopeTab={activeScopeTab}
+          onSelectScopeTab={setActiveScopeTab}
+          onScopeDocChange={(scopeId, value) => {
+            setConstitutionScopeDocs(prev => ({
+              ...prev,
+              [scopeId]: value,
+            }));
+          }}
+          onCityClick={city => {
+            if (!city?.slug) {
+              return;
+            }
+
+            window.location.href = neighborhoodRouteForCity(city.slug);
+          }}
+          citySlug={currentConstitutionCitySlug}
+          cityMiniMapConfig={cityMiniMapConfig}
         />
       ) : null}
 
@@ -939,6 +1528,8 @@ function GameplayOverlay() {
           <div
             style={{
               width: "min(760px, 92vw)",
+              maxHeight: "90vh",
+              overflowY: "auto",
               background: "linear-gradient(180deg, #0f172a, #111827)",
               color: "#e2e8f0",
               border: "1px solid rgba(148, 163, 184, 0.45)",
@@ -1008,6 +1599,91 @@ function GameplayOverlay() {
                 {currentNode.end ? "End conversation" : "Close"}
               </button>
             )}
+
+            <div
+              style={{
+                marginTop: "14px",
+                borderTop: "1px solid rgba(148, 163, 184, 0.3)",
+                paddingTop: "12px",
+                display: "grid",
+                gap: "8px",
+                position: "sticky",
+                bottom: 0,
+                background: "rgba(15, 23, 42, 0.98)",
+              }}
+            >
+              <div style={{ fontSize: "12px", color: "#93c5fd", fontWeight: 600 }}>
+                Ask an open-ended question
+              </div>
+              <textarea
+                value={openEndedPrompt}
+                onChange={event => setOpenEndedPrompt(event.target.value)}
+                onKeyDown={event => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    submitOpenEndedPrompt();
+                  }
+                }}
+                placeholder="Ask this resident anything..."
+                rows={3}
+                style={{
+                  width: "100%",
+                  borderRadius: "8px",
+                  border: "1px solid rgba(148, 163, 184, 0.5)",
+                  background: "rgba(15, 23, 42, 0.8)",
+                  color: "#e2e8f0",
+                  padding: "8px 10px",
+                  resize: "vertical",
+                  fontSize: "13px",
+                }}
+              />
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <button
+                  type="button"
+                  onClick={submitOpenEndedPrompt}
+                  disabled={openEndedLoading || !openEndedPrompt.trim()}
+                  style={{
+                    background: "#0f766e",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    padding: "8px 12px",
+                    cursor: openEndedLoading || !openEndedPrompt.trim() ? "not-allowed" : "pointer",
+                    opacity: openEndedLoading || !openEndedPrompt.trim() ? 0.6 : 1,
+                  }}
+                >
+                  {openEndedLoading ? "Asking..." : "Ask NPC"}
+                </button>
+                <span style={{ fontSize: "11px", color: "#94a3b8" }}>
+                  Enter to send • Shift+Enter newline
+                </span>
+              </div>
+
+              {openEndedError ? (
+                <div style={{ fontSize: "12px", color: "#fda4af" }}>{openEndedError}</div>
+              ) : null}
+
+              {openEndedReply ? (
+                <div
+                  style={{
+                    fontSize: "13px",
+                    lineHeight: 1.45,
+                    color: "#e2e8f0",
+                    background: "rgba(30, 41, 59, 0.8)",
+                    border: "1px solid rgba(148, 163, 184, 0.45)",
+                    borderRadius: "8px",
+                    padding: "10px",
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  <div style={{ fontSize: "11px", color: "#93c5fd", marginBottom: "4px" }}>
+                    NPC (GPT)
+                  </div>
+                  {openEndedReply}
+                </div>
+              ) : null}
+            </div>
+
             <div
               style={{
                 marginTop: "12px",

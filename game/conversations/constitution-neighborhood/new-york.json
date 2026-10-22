@@ -1,0 +1,474 @@
+{
+  "npcs": [
+    {
+      "id": "resident-house-1-chores",
+      "conversations": [
+        {
+          "id": "resident-house-1-chores-context",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "Resident 1",
+              "text": "Welcome to New York. I am managing chores while living near the skyline blocks.",
+              "choices": [
+                {
+                  "id": "c1",
+                  "text": "How do local rules affect this task?",
+                  "next": "rules"
+                },
+                {
+                  "id": "c2",
+                  "text": "What is changing in this neighborhood?",
+                  "next": "change"
+                },
+                {
+                  "id": "c3",
+                  "text": "Thanks, carry on.",
+                  "next": "end"
+                }
+              ]
+            },
+            "rules": {
+              "speaker": "Resident 1",
+              "text": "At the house level we coordinate chores. City and neighborhood rules around zoning, quiet hours, and costs shape how easy that is in New York.",
+              "end": true
+            },
+            "change": {
+              "speaker": "Resident 1",
+              "text": "People are adapting to policy trade-offs here: affordability, safety, and social norms. Around the skyline blocks, you can see those choices play out day to day.",
+              "end": true
+            },
+            "end": {
+              "speaker": "Resident 1",
+              "text": "Anytime. In this simulation, rules become incentives, and incentives become behavior.",
+              "end": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "resident-house-2-screen-time",
+      "conversations": [
+        {
+          "id": "resident-house-2-screen-time-context",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "Resident 2",
+              "text": "Welcome to New York. I am managing screen time while living near the subway entrance.",
+              "choices": [
+                {
+                  "id": "c1",
+                  "text": "How do local rules affect this task?",
+                  "next": "rules"
+                },
+                {
+                  "id": "c2",
+                  "text": "What is changing in this neighborhood?",
+                  "next": "change"
+                },
+                {
+                  "id": "c3",
+                  "text": "Thanks, carry on.",
+                  "next": "end"
+                }
+              ]
+            },
+            "rules": {
+              "speaker": "Resident 2",
+              "text": "At the house level we coordinate screen time. City and neighborhood rules around zoning, quiet hours, and costs shape how easy that is in New York.",
+              "end": true
+            },
+            "change": {
+              "speaker": "Resident 2",
+              "text": "People are adapting to policy trade-offs here: affordability, safety, and social norms. Around the subway entrance, you can see those choices play out day to day.",
+              "end": true
+            },
+            "end": {
+              "speaker": "Resident 2",
+              "text": "Anytime. In this simulation, rules become incentives, and incentives become behavior.",
+              "end": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "resident-house-3-rent",
+      "conversations": [
+        {
+          "id": "resident-house-3-rent-context",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "Resident 3",
+              "text": "Welcome to New York. I am managing rent while living near the high-rise zoning.",
+              "choices": [
+                {
+                  "id": "c1",
+                  "text": "How do local rules affect this task?",
+                  "next": "rules"
+                },
+                {
+                  "id": "c2",
+                  "text": "What is changing in this neighborhood?",
+                  "next": "change"
+                },
+                {
+                  "id": "c3",
+                  "text": "Thanks, carry on.",
+                  "next": "end"
+                }
+              ]
+            },
+            "rules": {
+              "speaker": "Resident 3",
+              "text": "At the house level we coordinate rent. City and neighborhood rules around zoning, quiet hours, and costs shape how easy that is in New York.",
+              "end": true
+            },
+            "change": {
+              "speaker": "Resident 3",
+              "text": "People are adapting to policy trade-offs here: affordability, safety, and social norms. Around the high-rise zoning, you can see those choices play out day to day.",
+              "end": true
+            },
+            "end": {
+              "speaker": "Resident 3",
+              "text": "Anytime. In this simulation, rules become incentives, and incentives become behavior.",
+              "end": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "resident-house-4-curfew",
+      "conversations": [
+        {
+          "id": "resident-house-4-curfew-context",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "Resident 4",
+              "text": "Welcome to New York. I am managing curfew while living near the skyline blocks.",
+              "choices": [
+                {
+                  "id": "c1",
+                  "text": "How do local rules affect this task?",
+                  "next": "rules"
+                },
+                {
+                  "id": "c2",
+                  "text": "What is changing in this neighborhood?",
+                  "next": "change"
+                },
+                {
+                  "id": "c3",
+                  "text": "Thanks, carry on.",
+                  "next": "end"
+                }
+              ]
+            },
+            "rules": {
+              "speaker": "Resident 4",
+              "text": "At the house level we coordinate curfew. City and neighborhood rules around zoning, quiet hours, and costs shape how easy that is in New York.",
+              "end": true
+            },
+            "change": {
+              "speaker": "Resident 4",
+              "text": "People are adapting to policy trade-offs here: affordability, safety, and social norms. Around the skyline blocks, you can see those choices play out day to day.",
+              "end": true
+            },
+            "end": {
+              "speaker": "Resident 4",
+              "text": "Anytime. In this simulation, rules become incentives, and incentives become behavior.",
+              "end": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "resident-house-5-school",
+      "conversations": [
+        {
+          "id": "resident-house-5-school-context",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "Resident 5",
+              "text": "Welcome to New York. I am managing school while living near the subway entrance.",
+              "choices": [
+                {
+                  "id": "c1",
+                  "text": "How do local rules affect this task?",
+                  "next": "rules"
+                },
+                {
+                  "id": "c2",
+                  "text": "What is changing in this neighborhood?",
+                  "next": "change"
+                },
+                {
+                  "id": "c3",
+                  "text": "Thanks, carry on.",
+                  "next": "end"
+                }
+              ]
+            },
+            "rules": {
+              "speaker": "Resident 5",
+              "text": "At the house level we coordinate school. City and neighborhood rules around zoning, quiet hours, and costs shape how easy that is in New York.",
+              "end": true
+            },
+            "change": {
+              "speaker": "Resident 5",
+              "text": "People are adapting to policy trade-offs here: affordability, safety, and social norms. Around the subway entrance, you can see those choices play out day to day.",
+              "end": true
+            },
+            "end": {
+              "speaker": "Resident 5",
+              "text": "Anytime. In this simulation, rules become incentives, and incentives become behavior.",
+              "end": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "resident-house-6-community",
+      "conversations": [
+        {
+          "id": "resident-house-6-community-context",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "Resident 6",
+              "text": "Welcome to New York. I am managing community while living near the high-rise zoning.",
+              "choices": [
+                {
+                  "id": "c1",
+                  "text": "How do local rules affect this task?",
+                  "next": "rules"
+                },
+                {
+                  "id": "c2",
+                  "text": "What is changing in this neighborhood?",
+                  "next": "change"
+                },
+                {
+                  "id": "c3",
+                  "text": "Thanks, carry on.",
+                  "next": "end"
+                }
+              ]
+            },
+            "rules": {
+              "speaker": "Resident 6",
+              "text": "At the house level we coordinate community. City and neighborhood rules around zoning, quiet hours, and costs shape how easy that is in New York.",
+              "end": true
+            },
+            "change": {
+              "speaker": "Resident 6",
+              "text": "People are adapting to policy trade-offs here: affordability, safety, and social norms. Around the high-rise zoning, you can see those choices play out day to day.",
+              "end": true
+            },
+            "end": {
+              "speaker": "Resident 6",
+              "text": "Anytime. In this simulation, rules become incentives, and incentives become behavior.",
+              "end": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "resident-house-7-work",
+      "conversations": [
+        {
+          "id": "resident-house-7-work-context",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "Resident 7",
+              "text": "Welcome to New York. I am managing work while living near the skyline blocks.",
+              "choices": [
+                {
+                  "id": "c1",
+                  "text": "How do local rules affect this task?",
+                  "next": "rules"
+                },
+                {
+                  "id": "c2",
+                  "text": "What is changing in this neighborhood?",
+                  "next": "change"
+                },
+                {
+                  "id": "c3",
+                  "text": "Thanks, carry on.",
+                  "next": "end"
+                }
+              ]
+            },
+            "rules": {
+              "speaker": "Resident 7",
+              "text": "At the house level we coordinate work. City and neighborhood rules around zoning, quiet hours, and costs shape how easy that is in New York.",
+              "end": true
+            },
+            "change": {
+              "speaker": "Resident 7",
+              "text": "People are adapting to policy trade-offs here: affordability, safety, and social norms. Around the skyline blocks, you can see those choices play out day to day.",
+              "end": true
+            },
+            "end": {
+              "speaker": "Resident 7",
+              "text": "Anytime. In this simulation, rules become incentives, and incentives become behavior.",
+              "end": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "resident-house-8-family",
+      "conversations": [
+        {
+          "id": "resident-house-8-family-context",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "Resident 8",
+              "text": "Welcome to New York. I am managing family while living near the subway entrance.",
+              "choices": [
+                {
+                  "id": "c1",
+                  "text": "How do local rules affect this task?",
+                  "next": "rules"
+                },
+                {
+                  "id": "c2",
+                  "text": "What is changing in this neighborhood?",
+                  "next": "change"
+                },
+                {
+                  "id": "c3",
+                  "text": "Thanks, carry on.",
+                  "next": "end"
+                }
+              ]
+            },
+            "rules": {
+              "speaker": "Resident 8",
+              "text": "At the house level we coordinate family. City and neighborhood rules around zoning, quiet hours, and costs shape how easy that is in New York.",
+              "end": true
+            },
+            "change": {
+              "speaker": "Resident 8",
+              "text": "People are adapting to policy trade-offs here: affordability, safety, and social norms. Around the subway entrance, you can see those choices play out day to day.",
+              "end": true
+            },
+            "end": {
+              "speaker": "Resident 8",
+              "text": "Anytime. In this simulation, rules become incentives, and incentives become behavior.",
+              "end": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "resident-house-9-chores",
+      "conversations": [
+        {
+          "id": "resident-house-9-chores-context",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "Resident 9",
+              "text": "Welcome to New York. I am managing chores while living near the high-rise zoning.",
+              "choices": [
+                {
+                  "id": "c1",
+                  "text": "How do local rules affect this task?",
+                  "next": "rules"
+                },
+                {
+                  "id": "c2",
+                  "text": "What is changing in this neighborhood?",
+                  "next": "change"
+                },
+                {
+                  "id": "c3",
+                  "text": "Thanks, carry on.",
+                  "next": "end"
+                }
+              ]
+            },
+            "rules": {
+              "speaker": "Resident 9",
+              "text": "At the house level we coordinate chores. City and neighborhood rules around zoning, quiet hours, and costs shape how easy that is in New York.",
+              "end": true
+            },
+            "change": {
+              "speaker": "Resident 9",
+              "text": "People are adapting to policy trade-offs here: affordability, safety, and social norms. Around the high-rise zoning, you can see those choices play out day to day.",
+              "end": true
+            },
+            "end": {
+              "speaker": "Resident 9",
+              "text": "Anytime. In this simulation, rules become incentives, and incentives become behavior.",
+              "end": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "resident-house-10-screen-time",
+      "conversations": [
+        {
+          "id": "resident-house-10-screen-time-context",
+          "start": "start",
+          "tree": {
+            "start": {
+              "speaker": "Resident 10",
+              "text": "Welcome to New York. I am managing screen time while living near the skyline blocks.",
+              "choices": [
+                {
+                  "id": "c1",
+                  "text": "How do local rules affect this task?",
+                  "next": "rules"
+                },
+                {
+                  "id": "c2",
+                  "text": "What is changing in this neighborhood?",
+                  "next": "change"
+                },
+                {
+                  "id": "c3",
+                  "text": "Thanks, carry on.",
+                  "next": "end"
+                }
+              ]
+            },
+            "rules": {
+              "speaker": "Resident 10",
+              "text": "At the house level we coordinate screen time. City and neighborhood rules around zoning, quiet hours, and costs shape how easy that is in New York.",
+              "end": true
+            },
+            "change": {
+              "speaker": "Resident 10",
+              "text": "People are adapting to policy trade-offs here: affordability, safety, and social norms. Around the skyline blocks, you can see those choices play out day to day.",
+              "end": true
+            },
+            "end": {
+              "speaker": "Resident 10",
+              "text": "Anytime. In this simulation, rules become incentives, and incentives become behavior.",
+              "end": true
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

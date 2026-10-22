@@ -34,6 +34,9 @@ let rotatingLightIntensity =
 let rotatingLightDistance =
   300;
 
+let useRotatingPointLights =
+  true;
+
 const floorTextureLoader =
   new THREE.TextureLoader();
 
@@ -1148,7 +1151,7 @@ const sceneIdFromRoute = () => {
     .filter(Boolean);
 
   if (pathParts[0] === 'game' && pathParts[1]) {
-    return pathParts[1];
+    return pathParts.slice(1).join('/');
   }
 
   return '1';
@@ -1161,6 +1164,20 @@ const isGalleryRoute = () => {
 
 const sceneFileFromRoute = () =>
   `/api/scenes/${sceneIdFromRoute()}`;
+
+const isConstitutionNeighborhoodSceneRoute =
+  () => {
+    const sceneId =
+      sceneIdFromRoute();
+
+    return (
+      sceneId ===
+        "constitution-neighborhood" ||
+      sceneId.startsWith(
+        "constitution-neighborhood/"
+      )
+    );
+  };
 
 const CONVERSATION_INTERACTION_RANGE =
   5;
@@ -1183,6 +1200,9 @@ const configureRotatingLightsForScene =
 (sceneData) => {
   const sceneObjects =
     sceneData?.objects ?? [];
+
+  useRotatingPointLights =
+    !isConstitutionNeighborhoodSceneRoute();
 
   const carpetObject =
     sceneObjects.find(
@@ -1827,7 +1847,9 @@ async function initGraphics() {
     });
 
   renderer.setClearColor(
-    0xbfd1e5
+    isConstitutionNeighborhoodSceneRoute()
+      ? 0xdbeafe
+      : 0xbfd1e5
   );
 
   renderer.setPixelRatio(
@@ -1849,9 +1871,15 @@ async function initGraphics() {
     );
 
   camera.position.set(
-    0,
-    15,
-    30
+    isConstitutionNeighborhoodSceneRoute()
+      ? 0
+      : 0,
+    isConstitutionNeighborhoodSceneRoute()
+      ? 22
+      : 15,
+    isConstitutionNeighborhoodSceneRoute()
+      ? 46
+      : 30
   );
 
   camera.lookAt(
@@ -1865,10 +1893,37 @@ async function initGraphics() {
   scene =
     new THREE.Scene();
 
+  const ambientLight =
+    new THREE.AmbientLight(
+      0xffffff,
+      isConstitutionNeighborhoodSceneRoute()
+        ? 0.7
+        : 0.35
+    );
+
+  scene.add(
+    ambientLight
+  );
+
+  const hemisphereLight =
+    new THREE.HemisphereLight(
+      0xdbeafe,
+      0x355e3b,
+      isConstitutionNeighborhoodSceneRoute()
+        ? 0.85
+        : 0.2
+    );
+
+  scene.add(
+    hemisphereLight
+  );
+
   var dirLight =
     new THREE.DirectionalLight(
       0xffffff,
-      1
+      isConstitutionNeighborhoodSceneRoute()
+        ? 1.4
+        : 1
     );
 
   dirLight.position.set(
@@ -1883,45 +1938,47 @@ async function initGraphics() {
 
   rotatingPointLights.length = 0;
 
-  const pointLightColors = [
-    0xff4d4d,
-    0x4dff88,
-    0x4da6ff,
-  ];
+  if (useRotatingPointLights) {
+    const pointLightColors = [
+      0xff4d4d,
+      0x4dff88,
+      0x4da6ff,
+    ];
 
-  for (let i = 0; i < pointLightColors.length; i++) {
-    const pointLight =
-      new THREE.PointLight(
-        pointLightColors[i],
-        rotatingLightIntensity,
-        rotatingLightDistance,
-        1
+    for (let i = 0; i < pointLightColors.length; i++) {
+      const pointLight =
+        new THREE.PointLight(
+          pointLightColors[i],
+          rotatingLightIntensity,
+          rotatingLightDistance,
+          1
+        );
+
+      const bulb =
+        new THREE.Mesh(
+          new THREE.SphereGeometry(
+            0.45,
+            16,
+            16
+          ),
+          new THREE.MeshBasicMaterial({
+            color:
+              pointLightColors[i],
+          })
+        );
+
+      pointLight.add(
+        bulb
       );
 
-    const bulb =
-      new THREE.Mesh(
-        new THREE.SphereGeometry(
-          0.45,
-          16,
-          16
-        ),
-        new THREE.MeshBasicMaterial({
-          color:
-            pointLightColors[i],
-        })
+      scene.add(
+        pointLight
       );
 
-    pointLight.add(
-      bulb
-    );
-
-    scene.add(
-      pointLight
-    );
-
-    rotatingPointLights.push(
-      pointLight
-    );
+      rotatingPointLights.push(
+        pointLight
+      );
+    }
   }
 
   controls =
@@ -4574,6 +4631,348 @@ if (!isGalleryRoute()) {
     Jolt.destroy(halfExtent);
   }
 
+  const isConstitutionNeighborhoodScene =
+    isConstitutionNeighborhoodSceneRoute();
+
+  const residentTaskLabelFromObjectId =
+  (objectId) => {
+    const taskSlug =
+      String(objectId)
+        .split("-")
+        .slice(3)
+        .join("-")
+        .trim();
+
+    if (!taskSlug) {
+      return "Household Task";
+    }
+
+    const pretty =
+      taskSlug
+        .split("-")
+        .filter(Boolean)
+        .map(part =>
+          part.charAt(0)
+            .toUpperCase() +
+          part.slice(1)
+        )
+        .join(" ");
+
+    return pretty;
+  };
+
+  const constitutionNeighborhoodActors =
+    isConstitutionNeighborhoodScene
+      ? sceneData.objects
+          .filter(
+            object =>
+              typeof object?.id ===
+                "string" &&
+              object.id.startsWith(
+                "resident-house-"
+              )
+          )
+          .map((residentObject, index) => {
+            const body =
+              bodies.get(
+                residentObject.id
+              ) ?? null;
+
+            return {
+              objectId:
+                residentObject.id,
+              mode:
+                index % 3 === 1
+                  ? "circle"
+                  : "line",
+              center: {
+                x:
+                  residentObject
+                    .position?.[0] ??
+                  0,
+                y:
+                  residentObject
+                    .position?.[1] ??
+                  1.2,
+                z:
+                  residentObject
+                    .position?.[2] ??
+                  0,
+              },
+              travel:
+                index % 3 === 1
+                  ? 1.7 +
+                    (index % 2) *
+                      0.55
+                  : 2.4 +
+                    (index % 4) *
+                      0.6,
+              speed:
+                0.45 +
+                (index % 5) *
+                  0.08,
+              phase:
+                index * 0.9,
+              label:
+                residentTaskLabelFromObjectId(
+                  residentObject.id
+                ),
+              body,
+            };
+          })
+          .filter(config => config.body)
+      : [];
+
+  const createTaskLabelSprite =
+  (text) => {
+    const canvas =
+      document.createElement(
+        "canvas"
+      );
+
+    canvas.width = 384;
+    canvas.height = 92;
+
+    const context =
+      canvas.getContext("2d");
+
+    if (!context) {
+      return null;
+    }
+
+    context.clearRect(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    context.fillStyle =
+      "rgba(2, 6, 23, 0.92)";
+
+    context.strokeStyle =
+      "rgba(147, 197, 253, 0.92)";
+
+    context.lineWidth = 3;
+
+    if (typeof context.roundRect === "function") {
+      context.beginPath();
+      context.roundRect(
+        4,
+        4,
+        canvas.width - 8,
+        canvas.height - 8,
+        16
+      );
+      context.fill();
+      context.stroke();
+    } else {
+      context.fillRect(
+        4,
+        4,
+        canvas.width - 8,
+        canvas.height - 8
+      );
+      context.strokeRect(
+        4,
+        4,
+        canvas.width - 8,
+        canvas.height - 8
+      );
+    }
+
+    context.fillStyle =
+      "#f8fafc";
+
+    context.font =
+      "600 28px Inter, system-ui, sans-serif";
+
+    context.textAlign =
+      "center";
+
+    context.textBaseline =
+      "middle";
+
+    context.fillText(
+      text,
+      canvas.width / 2,
+      canvas.height / 2
+    );
+
+    const texture =
+      new THREE.CanvasTexture(
+        canvas
+      );
+
+    texture.needsUpdate =
+      true;
+
+    texture.colorSpace =
+      THREE.SRGBColorSpace;
+
+    const material =
+      new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+        depthTest: false,
+        depthWrite: false,
+      });
+
+    const sprite =
+      new THREE.Sprite(
+        material
+      );
+
+    sprite.scale.set(
+      8,
+      1.9,
+      1
+    );
+
+    sprite.renderOrder =
+      1000;
+
+    return sprite;
+  };
+
+  const constitutionNeighborhoodLabelSprites =
+    isConstitutionNeighborhoodScene
+      ? constitutionNeighborhoodActors
+          .map(actor => {
+            const labelText =
+              actor.label ??
+              actor.objectId;
+
+            const sprite =
+              createTaskLabelSprite(
+                labelText
+              );
+
+            if (!sprite) {
+              return null;
+            }
+
+            scene.add(sprite);
+
+            return {
+              actor,
+              sprite,
+            };
+          })
+          .filter(Boolean)
+      : [];
+
+  const updateConstitutionNeighborhoodActors =
+  (simTime) => {
+    if (
+      !isConstitutionNeighborhoodScene ||
+      constitutionNeighborhoodActors.length === 0
+    ) {
+      return;
+    }
+
+    for (const actor of constitutionNeighborhoodActors) {
+      const oscillator =
+        simTime * actor.speed +
+        actor.phase;
+
+      let x = actor.center.x;
+      let z = actor.center.z;
+
+      if (actor.mode === "circle") {
+        x +=
+          Math.cos(oscillator) *
+          actor.travel;
+
+        z +=
+          Math.sin(oscillator) *
+          actor.travel;
+      } else {
+        x +=
+          Math.sin(oscillator) *
+          actor.travel;
+      }
+
+      const yaw =
+        actor.mode === "circle"
+          ? oscillator +
+            Math.PI / 2
+          : Math.cos(oscillator) >= 0
+            ? Math.PI / 2
+            : -Math.PI / 2;
+
+      const position =
+        new Jolt.RVec3(
+          x,
+          actor.center.y,
+          z
+        );
+
+      const rotation =
+        new Jolt.Quat(
+          0,
+          Math.sin(yaw / 2),
+          0,
+          Math.cos(yaw / 2)
+        );
+
+      bodyInterface.SetPositionAndRotation(
+        actor.body.GetID(),
+        position,
+        rotation,
+        Jolt.EActivation_Activate
+      );
+
+      if (
+        typeof bodyInterface.SetLinearAndAngularVelocity ===
+        "function"
+      ) {
+        const linearVelocity =
+          new Jolt.Vec3(
+            0,
+            0,
+            0
+          );
+
+        const angularVelocity =
+          new Jolt.Vec3(
+            0,
+            0,
+            0
+          );
+
+        bodyInterface.SetLinearAndAngularVelocity(
+          actor.body.GetID(),
+          linearVelocity,
+          angularVelocity
+        );
+
+        Jolt.destroy(
+          linearVelocity
+        );
+
+        Jolt.destroy(
+          angularVelocity
+        );
+      }
+
+      Jolt.destroy(position);
+      Jolt.destroy(rotation);
+    }
+
+    for (const labelEntry of constitutionNeighborhoodLabelSprites) {
+      const actorPosition =
+        labelEntry.actor.body.GetPosition();
+
+      labelEntry.sprite.position.set(
+        actorPosition.GetX(),
+        actorPosition.GetY() +
+          2.6,
+        actorPosition.GetZ()
+      );
+    }
+  };
+
   const bodyIdToObjectId =
     new Map();
 
@@ -6307,6 +6706,10 @@ if (!isGalleryRoute()) {
     const isInteractionDialogOpen =
       isConversationDialogOpen ||
       isPokerDialogOpen;
+
+    updateConstitutionNeighborhoodActors(
+      time
+    );
 
     handleInput(
 

@@ -1,188 +1,701 @@
 {
-  "gravity": [0, -25, 0],
-  "playerSpawn": [0, 1.5, 0],
-  "respawnPosition": [0, 1.5, 0],
+  "gravity": [
+    0,
+    -25,
+    0
+  ],
+  "playerSpawn": [
+    0,
+    1.5,
+    0
+  ],
+  "respawnPosition": [
+    0,
+    1.5,
+    0
+  ],
+  "floorTexture": "/data/textures/Grass005_1K-PNG/Grass005_1K-PNG_Color.png",
   "objects": [
     {
       "id": "floor",
       "type": "box",
-      "position": [0, -0.5, 0],
-      "size": [220, 1, 220],
+      "position": [
+        0,
+        -0.5,
+        0
+      ],
+      "size": [
+        180,
+        1,
+        180
+      ],
       "motion": "static",
-      "color": "#4b5563",
-      "friction": 0.4
+      "color": "#4f8f45",
+      "friction": 0.5
     },
     {
       "id": "left-wall",
       "type": "box",
-      "position": [-109.5, 4, 0],
-      "size": [1, 8, 220],
+      "position": [
+        -89.5,
+        3,
+        0
+      ],
+      "size": [
+        1,
+        6,
+        180
+      ],
       "motion": "static",
-      "color": "#cbd5e1"
+      "color": "#94a3b8"
     },
     {
       "id": "right-wall",
       "type": "box",
-      "position": [109.5, 4, 0],
-      "size": [1, 8, 220],
+      "position": [
+        89.5,
+        3,
+        0
+      ],
+      "size": [
+        1,
+        6,
+        180
+      ],
       "motion": "static",
-      "color": "#cbd5e1"
+      "color": "#94a3b8"
     },
     {
       "id": "north-wall",
       "type": "box",
-      "position": [0, 4, -109.5],
-      "size": [220, 8, 1],
+      "position": [
+        0,
+        3,
+        -89.5
+      ],
+      "size": [
+        180,
+        6,
+        1
+      ],
       "motion": "static",
-      "color": "#cbd5e1"
+      "color": "#94a3b8"
     },
     {
       "id": "south-wall",
       "type": "box",
-      "position": [0, 4, 109.5],
-      "size": [220, 8, 1],
+      "position": [
+        0,
+        3,
+        89.5
+      ],
+      "size": [
+        180,
+        6,
+        1
+      ],
+      "motion": "static",
+      "color": "#94a3b8"
+    },
+    {
+      "id": "park-path-east-west",
+      "type": "box",
+      "position": [
+        0,
+        0.03,
+        0
+      ],
+      "size": [
+        122,
+        0.06,
+        10
+      ],
+      "motion": "static",
+      "color": "#8b7d67"
+    },
+    {
+      "id": "park-path-north-south",
+      "type": "box",
+      "position": [
+        0,
+        0.03,
+        0
+      ],
+      "size": [
+        10,
+        0.06,
+        122
+      ],
+      "motion": "static",
+      "color": "#8b7d67"
+    },
+    {
+      "id": "park-circle",
+      "type": "box",
+      "position": [
+        0,
+        0.05,
+        0
+      ],
+      "size": [
+        22,
+        0.1,
+        22
+      ],
+      "motion": "static",
+      "color": "#9ca3af"
+    },
+    {
+      "id": "park-bench-north",
+      "type": "box",
+      "position": [
+        0,
+        0.55,
+        -12
+      ],
+      "size": [
+        8,
+        1.1,
+        1.8
+      ],
+      "motion": "static",
+      "color": "#7c2d12"
+    },
+    {
+      "id": "park-bench-south",
+      "type": "box",
+      "position": [
+        0,
+        0.55,
+        12
+      ],
+      "size": [
+        8,
+        1.1,
+        1.8
+      ],
+      "motion": "static",
+      "color": "#7c2d12"
+    },
+    {
+      "id": "park-tree-1",
+      "type": "box",
+      "position": [
+        -62,
+        2.6,
+        -58
+      ],
+      "size": [
+        5.4,
+        5.2,
+        5.4
+      ],
+      "motion": "static",
+      "color": "#166534"
+    },
+    {
+      "id": "park-tree-2",
+      "type": "box",
+      "position": [
+        62,
+        2.6,
+        -58
+      ],
+      "size": [
+        5.4,
+        5.2,
+        5.4
+      ],
+      "motion": "static",
+      "color": "#166534"
+    },
+    {
+      "id": "park-tree-3",
+      "type": "box",
+      "position": [
+        -62,
+        2.6,
+        58
+      ],
+      "size": [
+        5.4,
+        5.2,
+        5.4
+      ],
+      "motion": "static",
+      "color": "#166534"
+    },
+    {
+      "id": "park-tree-4",
+      "type": "box",
+      "position": [
+        62,
+        2.6,
+        58
+      ],
+      "size": [
+        5.4,
+        5.2,
+        5.4
+      ],
+      "motion": "static",
+      "color": "#166534"
+    },
+    {
+      "id": "house-a-floor",
+      "type": "box",
+      "position": [
+        -38,
+        0.35,
+        -30
+      ],
+      "size": [
+        26,
+        0.7,
+        20
+      ],
+      "motion": "static",
+      "color": "#f8fafc"
+    },
+    {
+      "id": "house-a-wall-left",
+      "type": "box",
+      "position": [
+        -50.5,
+        2.7,
+        -30
+      ],
+      "size": [
+        1,
+        4.8,
+        20
+      ],
       "motion": "static",
       "color": "#cbd5e1"
     },
-
     {
-      "id": "neighborhood-map-pad",
+      "id": "house-a-wall-right",
       "type": "box",
-      "position": [0, 0.05, -48],
-      "size": [100, 0.1, 70],
+      "position": [
+        -25.5,
+        2.7,
+        -30
+      ],
+      "size": [
+        1,
+        4.8,
+        20
+      ],
       "motion": "static",
-      "color": "#0f172a"
+      "color": "#cbd5e1"
     },
     {
-      "id": "neighborhood-road-east-west",
+      "id": "house-a-wall-back",
       "type": "box",
-      "position": [0, 0.2, -48],
-      "size": [96, 0.2, 8],
+      "position": [
+        -38,
+        2.7,
+        -39.5
+      ],
+      "size": [
+        26,
+        4.8,
+        1
+      ],
       "motion": "static",
-      "color": "#111827"
+      "color": "#cbd5e1"
     },
     {
-      "id": "neighborhood-road-north-south",
+      "id": "house-a-porch",
       "type": "box",
-      "position": [0, 0.2, -48],
-      "size": [8, 0.2, 64],
+      "position": [
+        -38,
+        0.15,
+        -20
+      ],
+      "size": [
+        12,
+        0.3,
+        4
+      ],
       "motion": "static",
-      "color": "#111827"
+      "color": "#a16207"
     },
     {
-      "id": "neighborhood-park",
+      "id": "house-b-floor",
       "type": "box",
-      "position": [-30, 0.5, -70],
-      "size": [18, 1, 14],
+      "position": [
+        38,
+        0.35,
+        -30
+      ],
+      "size": [
+        26,
+        0.7,
+        20
+      ],
       "motion": "static",
-      "color": "#166534"
+      "color": "#f8fafc"
     },
     {
-      "id": "neighborhood-school",
+      "id": "house-b-wall-left",
       "type": "box",
-      "position": [30, 1.2, -69],
-      "size": [20, 2.4, 16],
+      "position": [
+        25.5,
+        2.7,
+        -30
+      ],
+      "size": [
+        1,
+        4.8,
+        20
+      ],
       "motion": "static",
-      "color": "#1d4ed8"
+      "color": "#cbd5e1"
     },
     {
-      "id": "neighborhood-store",
+      "id": "house-b-wall-right",
       "type": "box",
-      "position": [28, 1, -28],
-      "size": [16, 2, 14],
+      "position": [
+        50.5,
+        2.7,
+        -30
+      ],
+      "size": [
+        1,
+        4.8,
+        20
+      ],
       "motion": "static",
-      "color": "#b45309"
+      "color": "#cbd5e1"
     },
     {
-      "id": "neighborhood-housing-block-a",
+      "id": "house-b-wall-back",
       "type": "box",
-      "position": [-38, 0.8, -28],
-      "size": [22, 1.6, 12],
+      "position": [
+        38,
+        2.7,
+        -39.5
+      ],
+      "size": [
+        26,
+        4.8,
+        1
+      ],
       "motion": "static",
-      "color": "#64748b"
+      "color": "#cbd5e1"
     },
     {
-      "id": "neighborhood-housing-block-b",
+      "id": "house-b-porch",
       "type": "box",
-      "position": [-12, 0.8, -24],
-      "size": [18, 1.6, 10],
+      "position": [
+        38,
+        0.15,
+        -20
+      ],
+      "size": [
+        12,
+        0.3,
+        4
+      ],
       "motion": "static",
-      "color": "#64748b"
-    },
-
-    {
-      "id": "world-map-pad",
-      "type": "box",
-      "position": [0, 0.05, 46],
-      "size": [120, 0.1, 70],
-      "motion": "static",
-      "color": "#082f49"
-    },
-    {
-      "id": "world-continent-west",
-      "type": "box",
-      "position": [-35, 0.6, 40],
-      "size": [24, 1.2, 16],
-      "motion": "static",
-      "color": "#166534"
+      "color": "#a16207"
     },
     {
-      "id": "world-continent-central",
+      "id": "house-c-floor",
       "type": "box",
-      "position": [-2, 0.6, 48],
-      "size": [30, 1.2, 20],
+      "position": [
+        -38,
+        0.35,
+        30
+      ],
+      "size": [
+        26,
+        0.7,
+        20
+      ],
       "motion": "static",
-      "color": "#15803d"
+      "color": "#f8fafc"
     },
     {
-      "id": "world-continent-east",
+      "id": "house-c-wall-left",
       "type": "box",
-      "position": [36, 0.6, 44],
-      "size": [34, 1.2, 18],
+      "position": [
+        -50.5,
+        2.7,
+        30
+      ],
+      "size": [
+        1,
+        4.8,
+        20
+      ],
       "motion": "static",
-      "color": "#166534"
+      "color": "#cbd5e1"
     },
     {
-      "id": "world-policy-node-a",
+      "id": "house-c-wall-right",
       "type": "box",
-      "position": [-6, 1.1, 42],
-      "size": [2, 2.2, 2],
+      "position": [
+        -25.5,
+        2.7,
+        30
+      ],
+      "size": [
+        1,
+        4.8,
+        20
+      ],
       "motion": "static",
-      "color": "#facc15"
+      "color": "#cbd5e1"
     },
     {
-      "id": "world-policy-node-b",
+      "id": "house-c-wall-back",
       "type": "box",
-      "position": [30, 1.1, 46],
-      "size": [2, 2.2, 2],
+      "position": [
+        -38,
+        2.7,
+        39.5
+      ],
+      "size": [
+        26,
+        4.8,
+        1
+      ],
+      "motion": "static",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "house-c-porch",
+      "type": "box",
+      "position": [
+        -38,
+        0.15,
+        20
+      ],
+      "size": [
+        12,
+        0.3,
+        4
+      ],
+      "motion": "static",
+      "color": "#a16207"
+    },
+    {
+      "id": "house-d-floor",
+      "type": "box",
+      "position": [
+        38,
+        0.35,
+        30
+      ],
+      "size": [
+        26,
+        0.7,
+        20
+      ],
+      "motion": "static",
+      "color": "#f8fafc"
+    },
+    {
+      "id": "house-d-wall-left",
+      "type": "box",
+      "position": [
+        25.5,
+        2.7,
+        30
+      ],
+      "size": [
+        1,
+        4.8,
+        20
+      ],
+      "motion": "static",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "house-d-wall-right",
+      "type": "box",
+      "position": [
+        50.5,
+        2.7,
+        30
+      ],
+      "size": [
+        1,
+        4.8,
+        20
+      ],
+      "motion": "static",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "house-d-wall-back",
+      "type": "box",
+      "position": [
+        38,
+        2.7,
+        39.5
+      ],
+      "size": [
+        26,
+        4.8,
+        1
+      ],
+      "motion": "static",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "house-d-porch",
+      "type": "box",
+      "position": [
+        38,
+        0.15,
+        20
+      ],
+      "size": [
+        12,
+        0.3,
+        4
+      ],
+      "motion": "static",
+      "color": "#a16207"
+    },
+    {
+      "id": "house-a-task-station",
+      "type": "box",
+      "position": [
+        -38,
+        0.95,
+        -34
+      ],
+      "size": [
+        7,
+        1.2,
+        2.8
+      ],
+      "motion": "static",
+      "color": "#2563eb"
+    },
+    {
+      "id": "house-b-task-station",
+      "type": "box",
+      "position": [
+        38,
+        0.95,
+        -34
+      ],
+      "size": [
+        7,
+        1.2,
+        2.8
+      ],
+      "motion": "static",
+      "color": "#0f766e"
+    },
+    {
+      "id": "house-c-task-station",
+      "type": "box",
+      "position": [
+        -38,
+        0.95,
+        34
+      ],
+      "size": [
+        7,
+        1.2,
+        2.8
+      ],
+      "motion": "static",
+      "color": "#7c3aed"
+    },
+    {
+      "id": "house-d-task-station",
+      "type": "box",
+      "position": [
+        38,
+        0.95,
+        34
+      ],
+      "size": [
+        7,
+        1.2,
+        2.8
+      ],
       "motion": "static",
       "color": "#f97316"
     },
     {
-      "id": "world-policy-node-c",
+      "id": "resident-house-a-chores",
       "type": "box",
-      "position": [-34, 1.1, 42],
-      "size": [2, 2.2, 2],
-      "motion": "static",
-      "color": "#38bdf8"
+      "position": [
+        -38,
+        1.2,
+        -29
+      ],
+      "size": [
+        1.5,
+        2.4,
+        1.5
+      ],
+      "motion": "dynamic",
+      "color": "#f59e0b",
+      "mass": 3,
+      "friction": 1
     },
-
     {
-      "id": "constitution-podium",
+      "id": "resident-house-b-screen-time",
       "type": "box",
-      "position": [0, 1.2, 0],
-      "size": [18, 2.4, 10],
-      "motion": "static",
-      "color": "#334155"
+      "position": [
+        38,
+        1.2,
+        -29
+      ],
+      "size": [
+        1.5,
+        2.4,
+        1.5
+      ],
+      "motion": "dynamic",
+      "color": "#22c55e",
+      "mass": 3,
+      "friction": 1
     },
     {
-      "id": "lava",
+      "id": "resident-house-c-rent",
       "type": "box",
-      "position": [0, -50, 0],
-      "size": [2000, 4, 2000],
-      "motion": "static",
-      "color": "#cc2222",
-      "behavior": "lava"
+      "position": [
+        -38,
+        1.2,
+        29
+      ],
+      "size": [
+        1.5,
+        2.4,
+        1.5
+      ],
+      "motion": "dynamic",
+      "color": "#f97316",
+      "mass": 3,
+      "friction": 1
+    },
+    {
+      "id": "resident-house-d-curfew",
+      "type": "box",
+      "position": [
+        38,
+        1.2,
+        29
+      ],
+      "size": [
+        1.5,
+        2.4,
+        1.5
+      ],
+      "motion": "dynamic",
+      "color": "#60a5fa",
+      "mass": 3,
+      "friction": 1
     }
   ]
 }
