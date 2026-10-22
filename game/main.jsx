@@ -12,6 +12,242 @@ function filenameWithoutExtension(name) {
   return String(name).replace(/\.[^.]+$/, "");
 }
 
+function sceneIdFromPathname(pathname) {
+  const parts = String(pathname)
+    .split("/")
+    .filter(Boolean);
+
+  if (parts[0] === "game" && parts[1]) {
+    return parts[1];
+  }
+
+  return "1";
+}
+
+const CONSTITUTION_NEIGHBORHOOD_SCENE_ID = "constitution-neighborhood";
+
+const DEFAULT_CONSTITUTION_NEIGHBORHOOD_SPEC = `# Constitution Neighborhood Spec
+
+## 1) Nested rule documents by scope
+- World: treaties, trade rules, migration rules
+- Country: constitution (hard limits)
+- City: ordinances, zoning, taxes, policing budget
+- Neighborhood: HOA rules and local norms
+- House: chores, curfew, screen time, rent expectations
+
+Lower levels inherit from higher levels and can only narrow them.
+Conflicts are linted and marked invalid (e.g. unconstitutional rules do not apply).
+
+## 2) Rules shift incentives, not direct behavior
+Represent three rule types:
+- Constraints: required/forbidden actions
+- Incentives: taxes, fines, subsidies, allowances
+- Enforcement: detection odds and responsible enforcers
+
+Agents choose actions from needs + traits:
+- hunger, sleep, money, social, safety, status
+
+Expected cost example:
+- fine: $500
+- enforcement probability: 0.20
+- expected cost added to action utility: $100
+
+Example rule:
+scope city: Houston
+law noise_ordinance:
+  forbid  play_loud_music  between 22:00 and 07:00
+  fine    250
+  enforce 0.15  (scaled by police_budget)
+
+## 3) Legal prose compiler workflow
+- LLM compiles prose clauses into structured rules
+- Every compiled rule keeps source-clause traceability
+- Human reviews/approves before simulation runs
+- Runtime stays deterministic over approved rules only
+
+Potential sources:
+- Municode / American Legal (city codes)
+- eCFR (federal regs)
+- constitutional texts
+- user-pasted HOA covenants
+
+## 4) Multi-scale simulation detail
+- House: individuals, minute ticks
+- Neighborhood: agents + shared places, hourly ticks
+- City: grouped cohorts + markets + budget + traffic, daily ticks
+- World: countries as agents (trade, migration, conflict), monthly ticks
+
+Techniques:
+- Simulate in detail where camera is focused; aggregate elsewhere
+- Couple levels both ways:
+  - Bottom-up: individual outcomes -> city metrics
+  - Top-down: wages/rent/prices -> household conditions
+
+## 5) Real data + uncertainty
+Data inputs:
+- OpenStreetMap buildings/roads
+- city zoning GIS
+- Census ACS
+- BLS
+- World Bank
+
+Method:
+1. Calibrate baseline to current reality
+2. Change one rule and compare runs
+3. Run many random seeds and report ranges, not single-point predictions
+
+## 6) Visualization requirements
+- Continuous zoom: world -> city -> neighborhood -> house cutaway
+- Heatmaps: happiness, money flow, violations, enforcement
+- A/B law compare worlds side-by-side
+- Decision trace on click: needs + laws + penalties that tipped choice
+- Multi-tab editor with cross-level conflict warnings
+
+## 7) Architecture
+rule docs -> compiler (LLM + review) -> approved rules
+real-world data -> world builder -> ECS simulation (Web Worker, later Rust/WASM)
+simulation snapshots -> renderer (Three.js / deck.gl) + charts + decision traces
+
+## 8) Build order
+1. House (3-5 people, 6 needs, ~10 rule types, decision traces)
+2. Neighborhood (shared places + norm spread)
+3. City (grouped populations + budget + zoning + one real city dataset)
+4. Constitution layer + cross-level conflict checker
+5. World level
+
+## Map goals
+- Neighborhood map visible in-panel
+- World map visible in-panel
+- Later: bind map overlays to simulation metrics
+`;
+
+function NeighborhoodMiniMap() {
+  const landmarkStyle = {
+    position: "absolute",
+    borderRadius: "6px",
+    border: "1px solid rgba(148, 163, 184, 0.6)",
+    color: "#e2e8f0",
+    fontSize: "10px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    textAlign: "center",
+  };
+
+  return (
+    <div
+      style={{
+        position: "relative",
+        width: "100%",
+        height: "170px",
+        borderRadius: "10px",
+        border: "1px solid rgba(148, 163, 184, 0.35)",
+        background: "#0b1220",
+        overflow: "hidden",
+      }}
+    >
+      <div style={{ position: "absolute", inset: 0, background: "#142332" }} />
+      <div style={{ position: "absolute", top: "45%", left: 0, right: 0, height: "12%", background: "#1f2937" }} />
+      <div style={{ position: "absolute", left: "47%", top: 0, bottom: 0, width: "9%", background: "#1f2937" }} />
+      <div style={{ ...landmarkStyle, left: "8%", top: "14%", width: "22%", height: "22%", background: "#166534" }}>Park</div>
+      <div style={{ ...landmarkStyle, left: "66%", top: "12%", width: "24%", height: "24%", background: "#1d4ed8" }}>School</div>
+      <div style={{ ...landmarkStyle, left: "67%", top: "62%", width: "22%", height: "24%", background: "#7c2d12" }}>Store</div>
+      <div style={{ ...landmarkStyle, left: "10%", top: "64%", width: "42%", height: "20%", background: "#334155" }}>Homes</div>
+    </div>
+  );
+}
+
+function WorldMiniMap() {
+  return (
+    <svg
+      viewBox="0 0 360 180"
+      style={{
+        width: "100%",
+        height: "170px",
+        borderRadius: "10px",
+        border: "1px solid rgba(148, 163, 184, 0.35)",
+        background: "#0b1220",
+      }}
+    >
+      <rect x="0" y="0" width="360" height="180" fill="#082f49" />
+      <path d="M24 58 L72 45 L112 58 L126 80 L88 98 L38 90 Z" fill="#14532d" />
+      <path d="M130 44 L188 36 L228 52 L214 78 L166 88 L136 72 Z" fill="#166534" />
+      <path d="M244 48 L320 54 L334 84 L300 106 L250 98 L232 72 Z" fill="#15803d" />
+      <circle cx="164" cy="82" r="4" fill="#facc15" />
+      <circle cx="286" cy="88" r="4" fill="#f97316" />
+      <circle cx="86" cy="78" r="4" fill="#38bdf8" />
+      <text x="10" y="170" fontSize="11" fill="#cbd5e1">World policy layer (concept preview)</text>
+    </svg>
+  );
+}
+
+function ConstitutionNeighborhoodPanel({ textValue, onTextChange }) {
+  return (
+    <aside
+      style={{
+        position: "fixed",
+        top: "12px",
+        left: "12px",
+        width: "min(560px, 44vw)",
+        height: "calc(100vh - 24px)",
+        background: "rgba(2, 6, 23, 0.9)",
+        border: "1px solid rgba(148, 163, 184, 0.45)",
+        borderRadius: "12px",
+        boxShadow: "0 16px 50px rgba(0, 0, 0, 0.45)",
+        color: "#e2e8f0",
+        display: "grid",
+        gridTemplateRows: "auto auto auto 1fr",
+        gap: "10px",
+        padding: "12px",
+        overflow: "hidden",
+        zIndex: 10003,
+        backdropFilter: "blur(6px)",
+      }}
+    >
+      <div>
+        <div style={{ fontWeight: 700, fontSize: "16px", marginBottom: "4px" }}>Constitution Neighborhood Workbench</div>
+        <div style={{ fontSize: "12px", color: "#94a3b8" }}>
+          Route-specific side panel with editor, neighborhood map, and world map.
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gap: "8px", gridTemplateColumns: "1fr 1fr" }}>
+        <div>
+          <div style={{ fontSize: "12px", color: "#93c5fd", marginBottom: "4px" }}>Neighborhood map</div>
+          <NeighborhoodMiniMap />
+        </div>
+        <div>
+          <div style={{ fontSize: "12px", color: "#93c5fd", marginBottom: "4px" }}>World map</div>
+          <WorldMiniMap />
+        </div>
+      </div>
+
+      <div style={{ fontSize: "12px", color: "#94a3b8" }}>
+        Edit live specification notes below (stored in localStorage).
+      </div>
+
+      <textarea
+        value={textValue}
+        onChange={event => onTextChange(event.target.value)}
+        spellCheck={false}
+        style={{
+          width: "100%",
+          height: "100%",
+          borderRadius: "10px",
+          border: "1px solid rgba(148, 163, 184, 0.45)",
+          background: "#020617",
+          color: "#e2e8f0",
+          padding: "10px",
+          resize: "none",
+          fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace",
+          fontSize: "12px",
+          lineHeight: 1.4,
+        }}
+      />
+    </aside>
+  );
+}
+
 function ScreenshotGallery() {
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
@@ -243,6 +479,20 @@ function emitPokerAction(action, amount = null) {
 }
 
 function GameplayOverlay() {
+  const sceneId = sceneIdFromPathname(window.location.pathname);
+  const isConstitutionNeighborhoodRoute = sceneId === CONSTITUTION_NEIGHBORHOOD_SCENE_ID;
+
+  const [constitutionSpecText, setConstitutionSpecText] = useState(() => {
+    if (!isConstitutionNeighborhoodRoute) {
+      return DEFAULT_CONSTITUTION_NEIGHBORHOOD_SPEC;
+    }
+
+    try {
+      return localStorage.getItem("hbl:constitution-neighborhood:spec") ?? DEFAULT_CONSTITUTION_NEIGHBORHOOD_SPEC;
+    } catch {
+      return DEFAULT_CONSTITUTION_NEIGHBORHOOD_SPEC;
+    }
+  });
 
   const [conversationScene, setConversationScene] = useState(
     () => window.__hblConversationScene ?? { npcs: [], range: 5 },
@@ -469,8 +719,27 @@ function GameplayOverlay() {
   const maxRaiseTo = Number.isFinite(pokerUi?.maxRaiseTo) ? pokerUi.maxRaiseTo : minRaiseTo;
   const canRaise = pokerUi?.availableActions?.raise === true;
 
+  useEffect(() => {
+    if (!isConstitutionNeighborhoodRoute) {
+      return;
+    }
+
+    try {
+      localStorage.setItem("hbl:constitution-neighborhood:spec", constitutionSpecText);
+    } catch {
+      // Ignore storage errors in private/incognito contexts.
+    }
+  }, [constitutionSpecText, isConstitutionNeighborhoodRoute]);
+
   return (
     <>
+      {isConstitutionNeighborhoodRoute ? (
+        <ConstitutionNeighborhoodPanel
+          textValue={constitutionSpecText}
+          onTextChange={setConstitutionSpecText}
+        />
+      ) : null}
+
       {!pokerUi?.active && pokerUi?.canSit ? (
         <div
           style={{

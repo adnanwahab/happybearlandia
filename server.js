@@ -8,13 +8,11 @@ const projectRoot = normalize(fileURLToPath(new URL(".", import.meta.url)));
 const gameRoot = normalize(join(projectRoot, "game"));
 const toolsRoot = normalize(join(projectRoot, "tools"));
 const dataRoot = normalize(join(projectRoot, "data"));
-const sceneIdPattern = /^[a-zA-Z0-9_-]+$/;
+const sceneIdPattern = /^[a-zA-Z0-9_\-]+$/;
 
 import homepage from './index.html'
 import gamepage from './game/index.html'
-import visualizationsPage from './visualizations/index.html'
-import visualizationsKerpowPage from './visualizations/kerpow.html'
-import visualizationsPaintingOutsideFramePage from './visualizations/painting-outside-frame.html'
+
 
 const jsxTranspiler = new Bun.Transpiler({ loader: "jsx" });
 
@@ -193,6 +191,17 @@ let cubeAuthorityPlayerId = null;
 
 const sceneData = validateScene(await Bun.file(new URL('./game/scene/1.json', import.meta.url)).json());
 const cubeDefinition = sceneData.objects.find(object => object.id === 'teal-cube');
+
+const sceneRoutes = Object.fromEntries(
+  (await listSceneFiles()).map(scene => [`/game/${scene.id}`, gamepage])
+);
+
+const appRoutes = {
+  "/": homepage,
+  "/game": gamepage,
+  "/game/": gamepage,
+  ...sceneRoutes,
+};
 const [cubeX, cubeY, cubeZ] = cubeDefinition.position;
 const [cubeQX, cubeQY, cubeQZ, cubeQW] = cubeDefinition.rotation ?? [0, 0, 0, 1];
 
@@ -207,16 +216,7 @@ const server = serve({
 
   port: Number(process.env.PORT ?? 3000),
 
-  routes: {
-    "/": homepage,
-    "/game": gamepage,
-    "/game/casino": gamepage,
-    "/visualizations": visualizationsPage,
-    "/visualizations/index.html": visualizationsPage,
-    "/visualizations/kerpow.html": visualizationsKerpowPage,
-    "/visualizations/painting-outside-frame.html": visualizationsPaintingOutsideFramePage,
-    "/visualizations/rainbow-brain.html": visualizationsPage,
-  },
+  routes: appRoutes,
 
   async fetch(request, server) {
     const url = new URL(request.url);
@@ -248,20 +248,15 @@ const server = serve({
     // Root
     // ---------------------------------------------------------------------
 
-    // if (url.pathname === "/") {
-    //   const file = Bun.file("./index.html");
+    if (url.pathname === "/") {
+      return new Response("Not found", {
+        status: 404,
+      });
+    }
 
-    //   if (await file.exists()) {
-    //     return new Response(file);
-    //   }
-
-    //   return new Response(
-    //     "Not found",
-    //     {
-    //       status: 404,
-    //     }
-    //   );
-    // }
+    if (url.pathname === "/game") {
+      return new Response("Not found", { status: 404 });
+    }
 
     // ---------------------------------------------------------------------
     // Debug events API
@@ -484,11 +479,11 @@ const server = serve({
     const gameSceneId = getSceneIdFromPath(url.pathname, "/game/");
 
     if (gameSceneId) {
-      return gamepage;
+      return new Response("Not found", { status: 404 });
     }
 
     if (url.pathname === "/game/") {
-      return gamepage;
+      return new Response("Not found", { status: 404 });
     }
 
     const editSceneId =

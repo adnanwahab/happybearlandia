@@ -1,0 +1,188 @@
+{
+  "gravity": [0, -25, 0],
+  "playerSpawn": [0, 1.5, 0],
+  "respawnPosition": [0, 1.5, 0],
+  "objects": [
+    {
+      "id": "floor",
+      "type": "box",
+      "position": [0, -0.5, 0],
+      "size": [220, 1, 220],
+      "motion": "static",
+      "color": "#4b5563",
+      "friction": 0.4
+    },
+    {
+      "id": "left-wall",
+      "type": "box",
+      "position": [-109.5, 4, 0],
+      "size": [1, 8, 220],
+      "motion": "static",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "right-wall",
+      "type": "box",
+      "position": [109.5, 4, 0],
+      "size": [1, 8, 220],
+      "motion": "static",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "north-wall",
+      "type": "box",
+      "position": [0, 4, -109.5],
+      "size": [220, 8, 1],
+      "motion": "static",
+      "color": "#cbd5e1"
+    },
+    {
+      "id": "south-wall",
+      "type": "box",
+      "position": [0, 4, 109.5],
+      "size": [220, 8, 1],
+      "motion": "static",
+      "color": "#cbd5e1"
+    },
+
+    {
+      "id": "neighborhood-map-pad",
+      "type": "box",
+      "position": [0, 0.05, -48],
+      "size": [100, 0.1, 70],
+      "motion": "static",
+      "color": "#0f172a"
+    },
+    {
+      "id": "neighborhood-road-east-west",
+      "type": "box",
+      "position": [0, 0.2, -48],
+      "size": [96, 0.2, 8],
+      "motion": "static",
+      "color": "#111827"
+    },
+    {
+      "id": "neighborhood-road-north-south",
+      "type": "box",
+      "position": [0, 0.2, -48],
+      "size": [8, 0.2, 64],
+      "motion": "static",
+      "color": "#111827"
+    },
+    {
+      "id": "neighborhood-park",
+      "type": "box",
+      "position": [-30, 0.5, -70],
+      "size": [18, 1, 14],
+      "motion": "static",
+      "color": "#166534"
+    },
+    {
+      "id": "neighborhood-school",
+      "type": "box",
+      "position": [30, 1.2, -69],
+      "size": [20, 2.4, 16],
+      "motion": "static",
+      "color": "#1d4ed8"
+    },
+    {
+      "id": "neighborhood-store",
+      "type": "box",
+      "position": [28, 1, -28],
+      "size": [16, 2, 14],
+      "motion": "static",
+      "color": "#b45309"
+    },
+    {
+      "id": "neighborhood-housing-block-a",
+      "type": "box",
+      "position": [-38, 0.8, -28],
+      "size": [22, 1.6, 12],
+      "motion": "static",
+      "color": "#64748b"
+    },
+    {
+      "id": "neighborhood-housing-block-b",
+      "type": "box",
+      "position": [-12, 0.8, -24],
+      "size": [18, 1.6, 10],
+      "motion": "static",
+      "color": "#64748b"
+    },
+
+    {
+      "id": "world-map-pad",
+      "type": "box",
+      "position": [0, 0.05, 46],
+      "size": [120, 0.1, 70],
+      "motion": "static",
+      "color": "#082f49"
+    },
+    {
+      "id": "world-continent-west",
+      "type": "box",
+      "position": [-35, 0.6, 40],
+      "size": [24, 1.2, 16],
+      "motion": "static",
+      "color": "#166534"
+    },
+    {
+      "id": "world-continent-central",
+      "type": "box",
+      "position": [-2, 0.6, 48],
+      "size": [30, 1.2, 20],
+      "motion": "static",
+      "color": "#15803d"
+    },
+    {
+      "id": "world-continent-east",
+      "type": "box",
+      "position": [36, 0.6, 44],
+      "size": [34, 1.2, 18],
+      "motion": "static",
+      "color": "#166534"
+    },
+    {
+      "id": "world-policy-node-a",
+      "type": "box",
+      "position": [-6, 1.1, 42],
+      "size": [2, 2.2, 2],
+      "motion": "static",
+      "color": "#facc15"
+    },
+    {
+      "id": "world-policy-node-b",
+      "type": "box",
+      "position": [30, 1.1, 46],
+      "size": [2, 2.2, 2],
+      "motion": "static",
+      "color": "#f97316"
+    },
+    {
+      "id": "world-policy-node-c",
+      "type": "box",
+      "position": [-34, 1.1, 42],
+      "size": [2, 2.2, 2],
+      "motion": "static",
+      "color": "#38bdf8"
+    },
+
+    {
+      "id": "constitution-podium",
+      "type": "box",
+      "position": [0, 1.2, 0],
+      "size": [18, 2.4, 10],
+      "motion": "static",
+      "color": "#334155"
+    },
+    {
+      "id": "lava",
+      "type": "box",
+      "position": [0, -50, 0],
+      "size": [2000, 4, 2000],
+      "motion": "static",
+      "color": "#cc2222",
+      "behavior": "lava"
+    }
+  ]
+}
