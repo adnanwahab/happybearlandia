@@ -44,7 +44,23 @@ HappyBearLandia/
       00-00.mp4
 
 # how to run locally
-bun run dev
+bun run start
+
+## World map `.env` setup (recommended)
+
+Bun auto-loads `.env` from the project root, so you can configure world map connectivity once:
+
+1. Copy the template:
+   `cp .env.example .env`
+2. Edit `.env` and set a reachable Overpass endpoint:
+   - `OVERPASS_URL=https://<reachable-host>/api/interpreter`
+   - `OVERPASS_TIMEOUT_MS=15000`
+3. Start server:
+   `bun server.js`
+4. Validate connectivity:
+   - `/api/config` shows active runtime config (safe fields only)
+   - `/api/overpass-health` should show `reachable: 1+`
+   - `/api/area?lat=40.7265&lng=-73.9815` should return `"source":"osm"` when reachable
 
 # how to deploy
 

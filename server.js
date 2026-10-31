@@ -1,10 +1,30 @@
 import { serve } from "bun";
 import { extname, join, normalize, relative } from "node:path";
-import { handleArea, OVERPASS_URL, OVERPASS_TIMEOUT_MS } from "./world/api.js";
+import { handleArea, handleOverpassHealth, OVERPASS_ENDPOINTS, OVERPASS_TIMEOUT_MS } from "./world/api.js";
 
 const PORT = Number(process.env.PORT) || 3000;
+const DEAR_CONGRESS_URL = process.env.DEAR_CONGRESS_URL || "https://dear-congress.fly.dev/api";
 
 const notFound = () => new Response("Not found", { status: 404 });
+
+function handleConfig() {
+  return Response.json({
+    source: "runtime-config",
+    generatedAt: new Date().toISOString(),
+    config: {
+      port: PORT,
+      overpass: {
+        endpoints: OVERPASS_ENDPOINTS,
+        timeoutMs: OVERPASS_TIMEOUT_MS,
+      },
+      dearCongress: {
+        baseUrl: DEAR_CONGRESS_URL,
+      },
+    },
+  }, {
+    headers: { "cache-control": "no-store" },
+  });
+}
 
 // Serve one file, or 404.
 async function serveFile(path) {
@@ -39,6 +59,43 @@ async function serveStatic(prefix, root, pathname) {
 // Does this path belong to /prefix (exactly, or something under it)?
 const under = (pathname, prefix) => pathname === prefix || pathname.startsWith(prefix + "/");
 
+async function proxyDearCongress(request) {
+  const url = new URL(request.url);
+  const raw = url.pathname.replace(/^\/api\/dear-congress/, "");
+  const remainder = raw.replace(/^\/+/, "") || "packages";
+  const base = DEAR_CONGRESS_URL.endsWith("/") ? DEAR_CONGRESS_URL : DEAR_CONGRESS_URL + "/";
+  const upstream = new URL(remainder + url.search, base);
+  try {
+    const res = await fetch(upstream, {
+      method: "GET",
+      headers: {
+        accept: "application/json",
+        "user-agent": "HappyBearLandia/0.1 (+https://happybearlandia.fly.dev)",
+      },
+      signal: AbortSignal.timeout(8000),
+    });
+
+    // Dear-congress may not expose all guessed paths; return empty package list instead of browser 404 noise.
+    if (res.status === 404) {
+      return Response.json({ packages: [], error: `dear-congress route not found: ${upstream.pathname}` }, {
+        status: 200,
+        headers: { "cache-control": "no-store" },
+      });
+    }
+
+    const text = await res.text();
+    return new Response(text, {
+      status: res.status,
+      headers: {
+        "content-type": res.headers.get("content-type") || "application/json; charset=utf-8",
+        "cache-control": "no-store",
+      },
+    });
+  } catch (err) {
+    return Response.json({ error: `dear-congress proxy failed: ${String(err?.message || err)}` }, { status: 502 });
+  }
+}
+
 const server = serve({
   port: PORT,
 
@@ -53,6 +110,7 @@ const server = serve({
 
     // Home
     if (pathname === "/") return serveFile("./index.html");
+    if (pathname === "/favicon.ico") return new Response(null, { status: 204 });
 
     // Twitch plays robot (short URL kept for old links)
     if (pathname === "/twitch-plays-robot") return serveFile("./tools/twitch-plays-robot.html");
@@ -64,7 +122,18 @@ const server = serve({
     if (under(pathname, "/game")) return serveStatic("/game", "./game", pathname);
 
     // Synthetic world: /world?lat=29.7286&lng=-95.4746
-    if (pathname === "/api/area") return handleArea(new URL(request.url));
+    if (pathname === "/api/area") {
+      try {
+        return await handleArea(new URL(request.url));
+      } catch (err) {
+        const msg = String(err?.message || err);
+        console.error(`[world] /api/area unhandled error: ${msg}`);
+        return Response.json({ source: "none", error: `area handler crashed: ${msg}` }, { status: 200 });
+      }
+    }
+    if (pathname === "/api/overpass-health") return handleOverpassHealth();
+    if (pathname === "/api/config") return handleConfig();
+    if (under(pathname, "/api/dear-congress")) return proxyDearCongress(request);
     if (under(pathname, "/world")) {
       if (pathname.endsWith("/api.js")) return notFound(); // server-only code
       return serveStatic("/world", "./world", pathname);
@@ -108,4 +177,5 @@ console.log(`  /world  http://localhost:${server.port}/world?lat=29.7286&lng=-95
 console.log(`  /tools  http://localhost:${server.port}/tools/scene-reconstruction`);
 console.log(`  /blog   http://localhost:${server.port}/blog (after building blog/)`);
 console.log(`  ws      ws://localhost:${server.port}/ws`);
-console.log(`  overpass ${OVERPASS_URL} (timeout ${OVERPASS_TIMEOUT_MS}ms)`);
+console.log(`  overpass ${OVERPASS_ENDPOINTS.join(" | ")} (timeout ${OVERPASS_TIMEOUT_MS}ms)`);
+console.log(`  dear-congress proxy base ${DEAR_CONGRESS_URL}`);

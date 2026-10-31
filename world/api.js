@@ -2,12 +2,27 @@
 // OpenStreetMap (Overpass API), simplify them, and cache per ~200 m cell.
 // The client falls back to a procedural town if this fails or returns nothing.
 
-export const OVERPASS_URL = process.env.OVERPASS_URL || "https://overpass-api.de/api/interpreter";
+// Public Overpass servers are busy and sometimes refuse requests, so try a few.
+export const OVERPASS_ENDPOINTS = process.env.OVERPASS_URL
+  ? [process.env.OVERPASS_URL]
+  : [
+      "https://overpass-api.de/api/interpreter",
+      "https://lz4.overpass-api.de/api/interpreter",
+      "https://z.overpass-api.de/api/interpreter",
+      "https://overpass.private.coffee/api/interpreter",
+      "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+      "https://overpass.openstreetmap.ru/api/interpreter",
+      "https://overpass.nchc.org.tw/api/interpreter",
+    ];
+export const OVERPASS_URL = OVERPASS_ENDPOINTS[0];
+const USER_AGENT = "HappyBearLandia/0.1 (+https://happybearlandia.fly.dev)";
+
 const DEFAULT_OVERPASS_TIMEOUT_MS = 8000;
 const parsedOverpassTimeoutMs = Number(process.env.OVERPASS_TIMEOUT_MS);
 export const OVERPASS_TIMEOUT_MS = Number.isFinite(parsedOverpassTimeoutMs) && parsedOverpassTimeoutMs >= 1000
   ? Math.floor(parsedOverpassTimeoutMs)
   : DEFAULT_OVERPASS_TIMEOUT_MS;
+
 const cache = new Map(); // key -> { at, body }
 const TTL_MS = 1000 * 60 * 60 * 24;
 const MAX_BUILDINGS = 1200;
@@ -16,6 +31,103 @@ function errorText(err) {
   if (err instanceof Error) return err.message;
   if (typeof err === "string") return err;
   try { return JSON.stringify(err); } catch { return String(err); }
+}
+
+function endpointLabel(endpoint) {
+  try { return new URL(endpoint).host; } catch { return endpoint; }
+}
+
+async function overpass(endpoint, query, timeoutMs = OVERPASS_TIMEOUT_MS) {
+  const body = "data=" + encodeURIComponent(query);
+  const common = {
+    headers: {
+      "content-type": "application/x-www-form-urlencoded",
+      "user-agent": USER_AGENT,
+      accept: "application/json",
+    },
+    signal: AbortSignal.timeout(timeoutMs),
+  };
+
+  // Try POST first (standard), then GET for networks that proxy/filter POST oddly.
+  let res = await fetch(endpoint, { ...common, method: "POST", body });
+  if (res.status === 406 || res.status === 405 || res.status === 415) {
+    const q = endpoint + (endpoint.includes("?") ? "&" : "?") + body;
+    res = await fetch(q, { ...common, method: "GET" });
+  }
+  if (!res.ok) throw new Error(String(res.status));
+  return await res.json();
+}
+
+async function queryOverpass(query, timeoutMs = OVERPASS_TIMEOUT_MS) {
+  const attempts = OVERPASS_ENDPOINTS.map((endpoint) => {
+    const host = endpointLabel(endpoint);
+    return overpass(endpoint, query, timeoutMs)
+      .then((json) => ({ ok: true, json, host }))
+      .catch((err) => {
+        const reason = err?.name === "TimeoutError" ? "timed out" : errorText(err);
+        return { ok: false, host, reason };
+      });
+  });
+
+  const settled = await Promise.all(attempts);
+  const winner = settled.find((s) => s.ok);
+  if (winner) return winner.json;
+
+  const errors = settled.map((s) => `${s.host} ${s.reason}`);
+  const allTimeout = errors.length > 0 && errors.every((e) => /timed out/i.test(e));
+  if (allTimeout) {
+    throw new Error(`All Overpass endpoints timed out (possible network/proxy block). Tried: ${errors.join("; ")}`);
+  }
+  throw new Error(errors.join("; "));
+}
+
+async function probeOverpass(endpoint) {
+  const host = endpointLabel(endpoint);
+  const t0 = Date.now();
+  const timeout = Math.max(2000, Math.min(6000, OVERPASS_TIMEOUT_MS));
+  const probeQuery = "[out:json][timeout:5];node(0,0,0,0);out 1;";
+  const body = "data=" + encodeURIComponent(probeQuery);
+
+  try {
+    let res = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "content-type": "application/x-www-form-urlencoded",
+        "user-agent": USER_AGENT,
+        accept: "application/json",
+      },
+      body,
+      signal: AbortSignal.timeout(timeout),
+    });
+
+    if (res.status === 406 || res.status === 405 || res.status === 415) {
+      const q = endpoint + (endpoint.includes("?") ? "&" : "?") + body;
+      res = await fetch(q, {
+        method: "GET",
+        headers: { "user-agent": USER_AGENT, accept: "application/json" },
+        signal: AbortSignal.timeout(timeout),
+      });
+    }
+
+    return {
+      endpoint,
+      host,
+      ok: res.ok,
+      status: res.status,
+      ms: Date.now() - t0,
+      error: res.ok ? null : `HTTP ${res.status}`,
+    };
+  } catch (err) {
+    const reason = err?.name === "TimeoutError" ? "timed out" : errorText(err);
+    return {
+      endpoint,
+      host,
+      ok: false,
+      status: null,
+      ms: Date.now() - t0,
+      error: reason,
+    };
+  }
 }
 
 function bbox(lat, lng, radiusM) {
@@ -37,14 +149,41 @@ function classify(tags = {}) {
   return null; // unknown — the client decides from size
 }
 
+function isConnectivityFailure(text) {
+  const t = String(text || "").toLowerCase();
+  return (
+    t.includes("unable to connect")
+    || t.includes("timed out")
+    || t.includes("enotfound")
+    || t.includes("econnreset")
+    || t.includes("econnrefused")
+    || t.includes("network")
+  );
+}
+
 export async function getArea(lat, lng, radiusM = 400) {
   const key = `${lat.toFixed(3)},${lng.toFixed(3)},${radiusM}`;
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < TTL_MS) return hit.body;
 
-  const [s, w, n, e] = bbox(lat, lng, radiusM);
-  const b = `${s},${w},${n},${e}`;
-  const query = `[out:json][timeout:25];
+  const radii = [...new Set([radiusM, 250, 150].filter((r) => Number.isFinite(r) && r > 40))];
+  let json = null;
+  let usedRadius = radiusM;
+  const tries = [];
+  const startedAt = Date.now();
+  const AREA_REQUEST_BUDGET_MS = Math.max(4500, Math.min(11000, OVERPASS_TIMEOUT_MS + 1500));
+
+  for (const r of radii) {
+    const elapsed = Date.now() - startedAt;
+    const remaining = AREA_REQUEST_BUDGET_MS - elapsed;
+    if (remaining < 1000) {
+      tries.push(`${r}m: skipped (request time budget exhausted)`);
+      break;
+    }
+
+    const [s, w, n, e] = bbox(lat, lng, r);
+    const b = `${s},${w},${n},${e}`;
+    const query = `[out:json][timeout:25];
 (
   way["building"](${b});
   way["leisure"~"^(park|playground)$"](${b});
@@ -54,19 +193,20 @@ export async function getArea(lat, lng, radiusM = 400) {
 );
 out tags geom;`;
 
-  let res;
-  try {
-    res = await fetch(OVERPASS_URL, {
-      method: "POST",
-      headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: "data=" + encodeURIComponent(query),
-      signal: AbortSignal.timeout(OVERPASS_TIMEOUT_MS),
-    });
-  } catch (err) {
-    throw new Error(`Overpass fetch failed: ${errorText(err)}`);
+    try {
+      json = await queryOverpass(query, Math.max(1000, Math.min(OVERPASS_TIMEOUT_MS, remaining)));
+      usedRadius = r;
+      break;
+    } catch (err) {
+      const msg = errorText(err);
+      tries.push(`${r}m: ${msg}`);
+      if (isConnectivityFailure(msg)) break;
+    }
   }
-  if (!res.ok) throw new Error(`Overpass ${res.status}`);
-  const json = await res.json();
+
+  if (!json) {
+    throw new Error(`Overpass failed (${tries.join(" | ")})`);
+  }
 
   const buildings = [];
   const pois = [];
@@ -91,7 +231,7 @@ out tags geom;`;
   const body = {
     source: "osm",
     origin: { lat, lng },
-    radiusM,
+    radiusM: usedRadius,
     buildings: buildings.slice(0, MAX_BUILDINGS),
     roads: roads.slice(0, 3000),
     pois,
@@ -110,7 +250,21 @@ export async function handleArea(url) {
   try {
     return Response.json(await getArea(lat, lng));
   } catch (err) {
+    console.warn(`[world] map data failed for ${lat},${lng}: ${errorText(err)}`);
     // Client will build a procedural town instead.
     return Response.json({ source: "none", error: errorText(err) }, { status: 200 });
   }
+}
+
+export async function handleOverpassHealth() {
+  const results = await Promise.all(OVERPASS_ENDPOINTS.map((endpoint) => probeOverpass(endpoint)));
+  const ok = results.filter((r) => r.ok).length;
+  return Response.json({
+    source: "overpass-health",
+    generatedAt: new Date().toISOString(),
+    timeoutMs: Math.max(2000, Math.min(6000, OVERPASS_TIMEOUT_MS)),
+    endpoints: OVERPASS_ENDPOINTS,
+    summary: { reachable: ok, total: results.length },
+    results,
+  });
 }

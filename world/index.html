@@ -31,6 +31,10 @@
   #loading { position: fixed; inset: 0; display: grid; place-items: center; font-size: 16px; color: var(--muted); }
   .legend { display: flex; flex-wrap: wrap; gap: 8px; font-size: 11px; color: var(--muted); }
   .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+  .warn { margin-top: 8px; padding: 8px 10px; border: 1px solid color-mix(in srgb, #d2552d 55%, var(--line)); border-radius: 8px; background: color-mix(in srgb, #d2552d 12%, transparent); color: color-mix(in srgb, #d2552d 70%, var(--ink)); font-size: 12px; }
+  #netdiagDetails { margin-top: 6px; }
+  #netdiagDetails summary { cursor: pointer; }
+  #netdiagErrors { margin-top: 6px; white-space: pre-wrap; line-height: 1.35; }
   @media (max-width: 640px) { #inspect { top: auto; bottom: 12px; right: 12px; left: 12px; width: auto; } #feed { display: none; } }
 </style>
 <script type="importmap">
@@ -72,13 +76,30 @@
   </div>
   <div class="need"><span>Mood</span><div class="bar"><i id="mood"></i></div><b id="moodN" style="font-size:12px;width:24px;text-align:right"></b></div>
   <div class="row muted" id="counts"></div>
-  <div class="row"><label class="muted"><input type="checkbox" id="transit" /> Policy: frequent buses (people travel 1.8× faster)</label></div>
+  <div class="row">
+    <label class="muted" for="policy">Plan package</label>
+    <select id="policy" aria-label="Plan package">
+      <option value="none">None</option>
+      <option value="t_brt">BRT corridor</option>
+      <option value="h_lots">Lot reform</option>
+      <option value="f_drainage">Drainage investment</option>
+      <option value="balanced">Balanced package</option>
+    </select>
+    <button id="stormBtn" type="button">Storm</button>
+  </div>
+  <div class="muted" id="policyNote"></div>
   <div class="legend">
     <span><i style="background:#d9cbb4"></i>home</span><span><i style="background:#8fa6c4"></i>work</span>
     <span><i style="background:#e0875a"></i>food</span><span><i style="background:#c9a23a"></i>shop</span>
     <span><i style="background:#9b7fd1"></i>school</span><span><i style="background:#7fb26a"></i>park</span>
   </div>
   <div class="muted" id="source" style="margin-top:6px"></div>
+  <div class="muted" id="netdiag" style="margin-top:6px"></div>
+  <div id="netwarn" class="warn" hidden></div>
+  <details id="netdiagDetails" class="muted" hidden>
+    <summary>Overpass endpoint errors</summary>
+    <div id="netdiagErrors"></div>
+  </details>
 </div>
 
 <div class="panel" id="feed" aria-live="polite"></div>

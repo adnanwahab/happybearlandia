@@ -7,9 +7,19 @@ import { createWorld, clock } from "./sim.js";
 /* Where are we?  /world?lat=29.7286&lng=-95.4746&people=500         */
 /* ---------------------------------------------------------------- */
 const params = new URLSearchParams(location.search);
+
+function parseCoord(raw, fallback) {
+  const n = Number(raw);
+  if (Number.isFinite(n)) return n;
+  const s = String(raw ?? "").trim();
+  const m = s.match(/^-?\d+(?:\.\d+)?/);
+  const p = m ? Number(m[0]) : NaN;
+  return Number.isFinite(p) ? p : fallback;
+}
+
 const origin = {
-  lat: Number(params.get("lat") ?? 29.7286),
-  lng: Number(params.get("lng") ?? -95.4746),
+  lat: parseCoord(params.get("lat"), 29.7286),
+  lng: parseCoord(params.get("lng"), -95.4746),
 };
 const maxPeople = Math.min(3000, Number(params.get("people") ?? 500));
 const $ = (id) => document.getElementById(id);
@@ -34,16 +44,78 @@ $("here").onclick = () => navigator.geolocation?.getCurrentPosition((p) => go(p.
 /* ---------------------------------------------------------------- */
 let area = { source: "none" };
 try {
-  const res = await fetch(`/api/area?lat=${origin.lat}&lng=${origin.lng}`);
-  area = await res.json();
-} catch { /* offline: procedural town */ }
+  const res = await fetch(`/api/area?lat=${origin.lat}&lng=${origin.lng}`, { signal: AbortSignal.timeout(12000) });
+  if (!res.ok) {
+    area = { source: "none", error: `area HTTP ${res.status}` };
+  } else {
+    area = await res.json();
+  }
+} catch (err) {
+  area = { source: "none", error: `area request failed: ${String(err?.message || err)}` };
+}
 
 const town = buildTown(origin, area, { maxPeople });
 const world = createWorld(town);
 $("source").textContent = town.source === "osm"
   ? `${town.buildings.length} real buildings (${town.attribution}) · ${town.people.length} synthetic residents`
-  : `No map data here, so this is a procedural town · ${town.people.length} synthetic residents`;
+  : area.error
+    ? `Couldn't load map data (${area.error}), so this is a procedural town · ${town.people.length} synthetic residents`
+    : `No map data here, so this is a procedural town · ${town.people.length} synthetic residents`;
 $("loading").remove();
+
+async function loadNetworkDiagnostics() {
+  const el = $("netdiag");
+  const warnEl = $("netwarn");
+  const detailsEl = $("netdiagDetails");
+  const errorsEl = $("netdiagErrors");
+  if (!el) return;
+
+  const setErrorList = (rows) => {
+    if (!detailsEl || !errorsEl) return;
+    if (!rows?.length) {
+      detailsEl.hidden = true;
+      errorsEl.textContent = "";
+      return;
+    }
+    detailsEl.hidden = false;
+    errorsEl.textContent = rows
+      .map((r) => `• ${r.host || "(unknown host)"}: ${r.error || (r.status ? `HTTP ${r.status}` : "unknown error")} (${r.ms ?? "?"}ms)`)
+      .join("\n");
+  };
+
+  try {
+    const res = await fetch("/api/overpass-health", { signal: AbortSignal.timeout(9000) });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const health = await res.json();
+    const reachable = health?.summary?.reachable ?? 0;
+    const total = health?.summary?.total ?? 0;
+    const results = Array.isArray(health?.results) ? health.results : [];
+    const failures = results.filter((r) => !r.ok);
+    const best = results.find((r) => r.ok);
+    const bestTxt = best ? ` · best ${best.host} ${best.ms}ms` : "";
+
+    el.innerHTML = `Network: Overpass ${reachable}/${total} reachable${bestTxt} · <a href="/api/overpass-health" target="_blank" rel="noopener">details</a>`;
+
+    setErrorList(failures);
+
+    if (warnEl) {
+      const blocked = total > 0 && reachable === 0;
+      warnEl.hidden = !blocked;
+      if (blocked) {
+        warnEl.textContent = "Network blocks Overpass; procedural fallback in use. Connect through a network/VPN that can reach Overpass or set OVERPASS_URL to a reachable interpreter.";
+      }
+    }
+  } catch (err) {
+    if (warnEl) {
+      warnEl.hidden = false;
+      warnEl.textContent = "Overpass health check unavailable; map data may be blocked and procedural fallback is in use.";
+    }
+    setErrorList([]);
+    el.textContent = `Network: Overpass health unavailable (${String(err?.message || err)})`;
+  }
+}
+
+loadNetworkDiagnostics();
 
 /* ---------------------------------------------------------------- */
 /* Scene                                                             */
@@ -136,7 +208,170 @@ for (const btn of $("speeds").children) btn.onclick = () => {
   speed = Number(btn.dataset.s);
   for (const b of $("speeds").children) b.classList.toggle("on", b === btn);
 };
-$("transit").onchange = (e) => { world.speedMult = e.target.checked ? 1.8 : 1; world.log(e.target.checked ? "Policy: frequent buses now running" : "Policy: frequent buses cut", "civic"); };
+
+const BASE_POLICY_PACKAGES = {
+  none: { label: "No package", speedMult: 1, floodMitigation: 0, housingGrowth: 0, source: "local" },
+  t_brt: { label: "BRT corridor", speedMult: 1.8, floodMitigation: 0, housingGrowth: 0, source: "local" },
+  h_lots: { label: "Lot reform", speedMult: 1.05, floodMitigation: 0, housingGrowth: 0.35, source: "local" },
+  f_drainage: { label: "Drainage investment", speedMult: 1, floodMitigation: 0.16, housingGrowth: 0, source: "local" },
+  balanced: { label: "Balanced package", speedMult: 1.45, floodMitigation: 0.1, housingGrowth: 0.2, source: "local" },
+};
+
+let PLAN_PACKAGES = { ...BASE_POLICY_PACKAGES };
+world.policy = { id: "none", ...PLAN_PACKAGES.none, displaced: 0, floodedNow: 0 };
+
+function slug(v) {
+  return String(v || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "pkg";
+}
+
+function proposalIdFrom(item) {
+  return item?.proposal?.id || item?.proposalId || item?.id || item?.proposal_id || null;
+}
+
+function packageRows(payload) {
+  if (Array.isArray(payload)) return payload;
+  return payload?.packages || payload?.results || payload?.items || payload?.data?.packages || payload?.data?.results || [];
+}
+
+function derivePolicyProfile(name, id, proposalIds) {
+  let speedMult = 1, floodMitigation = 0, housingGrowth = 0;
+  for (const pid0 of proposalIds) {
+    const pid = String(pid0).toLowerCase();
+    if (pid === "t_brt" || pid.includes("brt") || pid.includes("transit")) speedMult = Math.max(speedMult, 1.8);
+    if (pid === "f_drainage" || pid.includes("drain") || pid.includes("flood")) floodMitigation += 0.16;
+    if (pid === "h_lots" || pid.includes("lot") || pid.includes("housing")) housingGrowth += 0.35;
+  }
+  return {
+    id,
+    label: name,
+    speedMult: Math.min(2.2, speedMult),
+    floodMitigation: Math.min(0.35, floodMitigation),
+    housingGrowth: Math.min(1.5, housingGrowth),
+    source: "dear-congress",
+    proposalIds,
+  };
+}
+
+function refreshPolicySelect(selected = "none") {
+  const sel = $("policy");
+  const options = Object.entries(PLAN_PACKAGES)
+    .map(([id, p]) => `<option value="${id}">${p.label}</option>`)
+    .join("");
+  sel.innerHTML = options;
+  sel.value = PLAN_PACKAGES[selected] ? selected : "none";
+}
+
+function applyPolicy(id) {
+  const k = PLAN_PACKAGES[id] ? id : "none";
+  const p = PLAN_PACKAGES[k];
+  world.policy = { ...world.policy, id: k, label: p.label, speedMult: p.speedMult, floodMitigation: p.floodMitigation, housingGrowth: p.housingGrowth, source: p.source };
+  world.speedMult = p.speedMult;
+  const src = p.source === "dear-congress" ? " · source: dear-congress" : " · source: local";
+  $("policyNote").textContent = `${p.label} · transit ×${p.speedMult.toFixed(2)} · flood mitigation ${Math.round(p.floodMitigation * 100)}% · housing growth ${Math.round(p.housingGrowth * 100)}%${src}`;
+  world.log(`Policy package set: ${p.label}`, "civic");
+}
+
+async function loadPolicyPackages() {
+  const q = new URLSearchParams({ lat: String(origin.lat), lng: String(origin.lng) }).toString();
+  const explicit = params.get("plans");
+  const candidates = [
+    ...(explicit ? [explicit] : []),
+    `/api/dear-congress/packages?${q}`,
+    `/api/dear-congress/package-results?${q}`,
+  ];
+
+  for (const url of candidates) {
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+      if (!res.ok) continue;
+      const payload = await res.json();
+      const rows = packageRows(payload);
+      if (!Array.isArray(rows) || !rows.length) continue;
+
+      const next = { ...BASE_POLICY_PACKAGES };
+      let n = 0;
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const name = row?.name || row?.title || row?.label || `Package ${i + 1}`;
+        const id = slug(row?.id || row?.slug || name);
+        const items = row?.items || row?.proposals || row?.package?.items || [];
+        const proposalIds = Array.from(new Set(items.map(proposalIdFrom).filter(Boolean)));
+        if (!proposalIds.length) continue;
+        next[id] = derivePolicyProfile(name, id, proposalIds);
+        n++;
+      }
+      if (!n) continue;
+
+      PLAN_PACKAGES = next;
+      refreshPolicySelect("none");
+      world.log(`Loaded ${n} plan packages from dear-congress`, "civic");
+      return true;
+    } catch {
+      // try next endpoint
+    }
+  }
+  world.log("Could not load dear-congress packages; using local policy presets", "info");
+  refreshPolicySelect("none");
+  return false;
+}
+
+function lowlandScore(b) {
+  const [x, z] = b.center;
+  const n = Math.sin(x * 0.0041 + z * 0.0057 + b.index * 0.77 + town.seedKey.length * 0.13) * 43758.5453;
+  return n - Math.floor(n); // 0..1
+}
+
+function nearestSafeHome(fromHome) {
+  const src = town.buildings[fromHome];
+  const homes = town.buildings.filter((b) => b.kind === "home" && !b.state.flooded);
+  let best = null, bestD = Infinity;
+  for (const h of homes) {
+    const d = (h.center[0] - src.center[0]) ** 2 + (h.center[1] - src.center[1]) ** 2;
+    if (d < bestD) { bestD = d; best = h; }
+  }
+  return best;
+}
+
+function triggerStorm() {
+  const baseFlood = 0.24;
+  const cut = Math.max(0.04, baseFlood - world.policy.floodMitigation);
+  let floodedNow = 0;
+  for (const b of town.buildings) {
+    if (b.kind === "park") { b.state.flooded = false; continue; }
+    b.state.flooded = lowlandScore(b) < cut;
+    if (b.state.flooded) floodedNow++;
+  }
+
+  let displaced = 0;
+  for (const p of town.people) {
+    const home = town.buildings[p.home];
+    if (!home?.state?.flooded) continue;
+    const safe = nearestSafeHome(p.home);
+    if (!safe) continue;
+    displaced++;
+    p.home = safe.index;
+    p.mode = "idle";
+    p.action = null;
+    p.target = null;
+    p.path = null;
+    p.pathI = 0;
+    p.x = safe.center[0] + (world.rand() - 0.5) * 4;
+    p.z = safe.center[1] + (world.rand() - 0.5) * 4;
+    p.doing = "displaced after storm";
+    p.needs.energy = Math.max(0, p.needs.energy - 12);
+    p.needs.fun = Math.max(0, p.needs.fun - 15);
+    p.needs.social = Math.max(0, p.needs.social - 10);
+  }
+
+  world.policy.floodedNow = floodedNow;
+  world.policy.displaced = displaced;
+  world.log(`Storm hit: ${floodedNow} parcels flooded, ${displaced} residents displaced`, "civic");
+}
+
+$("policy").onchange = (e) => applyPolicy(e.target.value);
+$("stormBtn").onclick = () => triggerStorm();
+await loadPolicyPackages();
+applyPolicy($("policy").value || "none");
 
 const ray = new THREE.Raycaster();
 const ptr = new THREE.Vector2();
@@ -295,7 +530,8 @@ function updateBuildings(daylight) {
     mat.emissiveIntensity = b.kind === "park" ? 0 : Math.min(0.55, n * 0.08) * (1 - daylight * 0.7);
     const base = KIND_COLOR[b.kind];
     let c = base;
-    if (!b.state.open) c = 0x6f6f6f;
+    if (b.state.flooded) c = 0x3d6fa6;
+    else if (!b.state.open) c = 0x6f6f6f;
     else if (b.state.maxStock && b.state.stock < 5) c = 0x9a8f86;      // sold out: greyed
     else if (b.kind === "park") c = new THREE.Color(base).lerp(new THREE.Color(0x8a7a52), b.state.litter / 120).getHex();
     mat.color.setHex(c);
@@ -308,7 +544,8 @@ function updateHud() {
   $("mood").style.width = `${s.mood}%`;
   $("moodN").textContent = s.mood.toFixed(0);
   const top = Object.entries(s.doing).sort((a, b) => b[1] - a[1]).slice(0, 4);
-  $("counts").textContent = top.map(([k, v]) => `${v} ${k}`).join(" · ");
+  const status = world.policy.floodedNow ? ` · ${world.policy.floodedNow} flooded parcels · ${world.policy.displaced} displaced` : "";
+  $("counts").textContent = top.map(([k, v]) => `${v} ${k}`).join(" · ") + status;
   if (world.events.length && world.events[0] !== lastEvents) {
     lastEvents = world.events[0];
     $("feed").innerHTML = world.events.slice(0, 25)

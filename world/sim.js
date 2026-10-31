@@ -6,6 +6,7 @@ import { rng, hashSeed } from "./gen.js";
 
 const DECAY = { hunger: 0.09, energy: 0.045, fun: 0.05, social: 0.04 }; // per game minute
 const WALK_M_PER_MIN = 80;
+const ROAD_CONNECT_MAX_M = 220;
 
 /**
  * Each action: where it happens, how long, what it does to needs per minute,
@@ -81,10 +82,128 @@ const clamp = (v) => (v < 0 ? 0 : v > 100 ? 100 : v);
 // Sims-style curve: a need at 20 matters far more than a need at 70.
 const urgency = (v) => ((100 - v) / 100) ** 2;
 
+function roadNodeKey(x, z) {
+  return `${x.toFixed(1)},${z.toFixed(1)}`;
+}
+
+function buildRoadGraph(roads = []) {
+  const nodes = [];
+  const adj = [];
+  const byKey = new Map();
+
+  const nodeId = (x, z) => {
+    const key = roadNodeKey(x, z);
+    if (byKey.has(key)) return byKey.get(key);
+    const id = nodes.length;
+    byKey.set(key, id);
+    nodes.push([x, z]);
+    adj.push([]);
+    return id;
+  };
+
+  for (const rd of roads) {
+    const pts = rd?.pts || [];
+    for (let i = 1; i < pts.length; i++) {
+      const [ax, az] = pts[i - 1];
+      const [bx, bz] = pts[i];
+      if (![ax, az, bx, bz].every(Number.isFinite)) continue;
+      const a = nodeId(ax, az), b = nodeId(bx, bz);
+      if (a === b) continue;
+      const d = Math.hypot(bx - ax, bz - az);
+      if (d < 0.5) continue;
+      adj[a].push([b, d]);
+      adj[b].push([a, d]);
+    }
+  }
+
+  return { nodes, adj };
+}
+
+function nearestRoadNode(graph, x, z, maxDist = ROAD_CONNECT_MAX_M) {
+  let best = -1;
+  let bestD2 = maxDist * maxDist;
+  for (let i = 0; i < graph.nodes.length; i++) {
+    const [nx, nz] = graph.nodes[i];
+    const d2 = (nx - x) ** 2 + (nz - z) ** 2;
+    if (d2 < bestD2) { bestD2 = d2; best = i; }
+  }
+  return best;
+}
+
+function aStarRoad(graph, start, goal) {
+  if (start === goal) return [start];
+  const n = graph.nodes.length;
+  const g = new Array(n).fill(Infinity);
+  const f = new Array(n).fill(Infinity);
+  const came = new Array(n).fill(-1);
+  const open = [start];
+  const inOpen = new Array(n).fill(false);
+  inOpen[start] = true;
+  g[start] = 0;
+
+  const heuristic = (id) => {
+    const [x1, z1] = graph.nodes[id];
+    const [x2, z2] = graph.nodes[goal];
+    return Math.hypot(x2 - x1, z2 - z1);
+  };
+  f[start] = heuristic(start);
+
+  while (open.length) {
+    let bestI = 0;
+    for (let i = 1; i < open.length; i++) if (f[open[i]] < f[open[bestI]]) bestI = i;
+    const cur = open[bestI];
+    open.splice(bestI, 1);
+    inOpen[cur] = false;
+
+    if (cur === goal) {
+      const ids = [cur];
+      let at = cur;
+      while (came[at] !== -1) { at = came[at]; ids.push(at); }
+      ids.reverse();
+      return ids;
+    }
+
+    for (const [next, w] of graph.adj[cur]) {
+      const cand = g[cur] + w;
+      if (cand >= g[next]) continue;
+      came[next] = cur;
+      g[next] = cand;
+      f[next] = cand + heuristic(next);
+      if (!inOpen[next]) {
+        open.push(next);
+        inOpen[next] = true;
+      }
+    }
+  }
+
+  return null;
+}
+
+function roadWaypoints(graph, sx, sz, tx, tz) {
+  if (!graph.nodes.length) return [[tx, tz]];
+  const start = nearestRoadNode(graph, sx, sz);
+  const goal = nearestRoadNode(graph, tx, tz);
+  if (start < 0 || goal < 0) return [[tx, tz]];
+  const path = aStarRoad(graph, start, goal);
+  if (!path || !path.length) return [[tx, tz]];
+
+  const out = [];
+  for (const id of path) out.push(graph.nodes[id]);
+  out.push([tx, tz]);
+
+  const deduped = [];
+  for (const p of out) {
+    const prev = deduped[deduped.length - 1];
+    if (!prev || Math.hypot(p[0] - prev[0], p[1] - prev[1]) > 1) deduped.push(p);
+  }
+  return deduped;
+}
+
 export function createWorld(town, opts = {}) {
   const r = rng(hashSeed(town.seedKey + ":sim"));
   const byKind = {};
   for (const b of town.buildings) (byKind[b.kind] ||= []).push(b);
+  const roadGraph = buildRoadGraph(town.roads || []);
 
   const w = {
     ...town,
@@ -161,19 +280,22 @@ export function createWorld(town, opts = {}) {
       const s = score(p, id, a, b);
       if (s > bestS) { bestS = s; best = [id, a, b]; }
     }
-    if (!best) { p.mode = "doing"; p.until = w.t + 15; p.doing = "idling"; return; }
+    if (!best) { p.mode = "doing"; p.until = w.t + 15; p.doing = "idling"; p.path = null; p.pathI = 0; return; }
     const [id, a, b] = best;
     p.action = id; p.target = b.index;
     const j = r.range(-0.3, 0.3);
-    p.tx = b.center[0] + j * Math.sqrt(b.area || 100) * 0.5;
-    p.tz = b.center[1] + j * Math.sqrt(b.area || 100) * 0.5;
+    const tx = b.center[0] + j * Math.sqrt(b.area || 100) * 0.5;
+    const tz = b.center[1] + j * Math.sqrt(b.area || 100) * 0.5;
+    p.path = roadWaypoints(roadGraph, p.x, p.z, tx, tz);
+    p.pathI = 0;
+    [p.tx, p.tz] = p.path[0] || [tx, tz];
     p.mode = "moving"; p.doing = `walking to ${b.name}`;
   }
 
   function arrive(p) {
     const a = ACTIONS[p.action];
     const b = w.buildings[p.target];
-    if (a.ok && !a.ok(p, b, w)) { p.mode = "idle"; return; } // it changed while walking (sold out!)
+    if (a.ok && !a.ok(p, b, w)) { p.mode = "idle"; p.path = null; p.pathI = 0; return; } // it changed while walking (sold out!)
     a.start?.(p, b, w);
     if (p.action === "eat_out") w.stats.meals++;
     if (p.action === "groceries") w.stats.groceries++;
@@ -189,7 +311,7 @@ export function createWorld(town, opts = {}) {
     const b = w.buildings[p.target];
     if (b) b.state.visitors = Math.max(0, b.state.visitors - 1);
     if (p.action === "work" || p.action === "study") p.workedToday = true;
-    p.mode = "idle"; p.action = null;
+    p.mode = "idle"; p.action = null; p.path = null; p.pathI = 0;
   }
 
   // --------------------------------------------------------------------
@@ -223,8 +345,18 @@ export function createWorld(town, opts = {}) {
       else if (p.mode === "moving") {
         const dx = p.tx - p.x, dz = p.tz - p.z;
         const d = Math.hypot(dx, dz), step = WALK_M_PER_MIN * w.speedMult;
-        if (d <= step) { p.x = p.tx; p.z = p.tz; arrive(p); }
-        else { p.x += (dx / d) * step; p.z += (dz / d) * step; }
+        if (d <= step) {
+          p.x = p.tx; p.z = p.tz;
+          if (p.path && p.pathI < p.path.length - 1) {
+            p.pathI += 1;
+            [p.tx, p.tz] = p.path[p.pathI];
+          } else {
+            arrive(p);
+          }
+        } else {
+          p.x += (dx / d) * step;
+          p.z += (dz / d) * step;
+        }
       } else if (p.mode === "doing" && w.t >= p.until) finish(p);
     }
   }
