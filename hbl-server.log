@@ -1,0 +1,6 @@
+HappyBearLandia running at http://localhost:4315
+  /game   http://localhost:4315/game
+  /world  http://localhost:4315/world?lat=29.7286&lng=-95.4746
+  /tools  http://localhost:4315/tools/scene-reconstruction
+  /blog   http://localhost:4315/blog (after building blog/)
+  ws      ws://localhost:4315/ws

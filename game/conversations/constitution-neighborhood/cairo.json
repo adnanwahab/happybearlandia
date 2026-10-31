@@ -45,7 +45,39 @@
             }
           }
         }
-      ]
+      ],
+      "name": "Resident 1",
+      "personality": {
+        "playfulness": 0.5,
+        "extroversion": 0.52,
+        "spontaneity": 0.47,
+        "competitiveness": 0.45,
+        "independence": 0.55
+      },
+      "current_state": {
+        "location": "constitution-neighborhood/cairo",
+        "activity": "talking_with_guests",
+        "mood": 0.55,
+        "energy": 0.6
+      },
+      "conversation_mode": {
+        "open_ended": true,
+        "continuous": true,
+        "starter": "Welcome to Cairo. I am managing chores while living near the pyramid plaza.",
+        "suggested_player_prompts": [
+          "How do local rules affect this task?",
+          "What is changing in this neighborhood?",
+          "Thanks, carry on."
+        ]
+      },
+      "relationship_defaults": {
+        "familiarity": 0.2,
+        "comfort": 0.35,
+        "trust": 0.3,
+        "attraction": 0.2,
+        "affection": 0.25,
+        "fun": 0.3
+      }
     },
     {
       "id": "resident-house-2-screen-time",
@@ -92,7 +124,39 @@
             }
           }
         }
-      ]
+      ],
+      "name": "Resident 2",
+      "personality": {
+        "playfulness": 0.5,
+        "extroversion": 0.52,
+        "spontaneity": 0.47,
+        "competitiveness": 0.45,
+        "independence": 0.55
+      },
+      "current_state": {
+        "location": "constitution-neighborhood/cairo",
+        "activity": "talking_with_guests",
+        "mood": 0.55,
+        "energy": 0.6
+      },
+      "conversation_mode": {
+        "open_ended": true,
+        "continuous": true,
+        "starter": "Welcome to Cairo. I am managing screen time while living near the bazaar street.",
+        "suggested_player_prompts": [
+          "How do local rules affect this task?",
+          "What is changing in this neighborhood?",
+          "Thanks, carry on."
+        ]
+      },
+      "relationship_defaults": {
+        "familiarity": 0.2,
+        "comfort": 0.35,
+        "trust": 0.3,
+        "attraction": 0.2,
+        "affection": 0.25,
+        "fun": 0.3
+      }
     },
     {
       "id": "resident-house-3-rent",
@@ -139,7 +203,39 @@
             }
           }
         }
-      ]
+      ],
+      "name": "Resident 3",
+      "personality": {
+        "playfulness": 0.5,
+        "extroversion": 0.52,
+        "spontaneity": 0.47,
+        "competitiveness": 0.45,
+        "independence": 0.55
+      },
+      "current_state": {
+        "location": "constitution-neighborhood/cairo",
+        "activity": "talking_with_guests",
+        "mood": 0.55,
+        "energy": 0.6
+      },
+      "conversation_mode": {
+        "open_ended": true,
+        "continuous": true,
+        "starter": "Welcome to Cairo. I am managing rent while living near the heat-hour schedule.",
+        "suggested_player_prompts": [
+          "How do local rules affect this task?",
+          "What is changing in this neighborhood?",
+          "Thanks, carry on."
+        ]
+      },
+      "relationship_defaults": {
+        "familiarity": 0.2,
+        "comfort": 0.35,
+        "trust": 0.3,
+        "attraction": 0.2,
+        "affection": 0.25,
+        "fun": 0.3
+      }
     },
     {
       "id": "resident-house-4-curfew",
@@ -186,7 +282,39 @@
             }
           }
         }
-      ]
+      ],
+      "name": "Resident 4",
+      "personality": {
+        "playfulness": 0.5,
+        "extroversion": 0.52,
+        "spontaneity": 0.47,
+        "competitiveness": 0.45,
+        "independence": 0.55
+      },
+      "current_state": {
+        "location": "constitution-neighborhood/cairo",
+        "activity": "talking_with_guests",
+        "mood": 0.55,
+        "energy": 0.6
+      },
+      "conversation_mode": {
+        "open_ended": true,
+        "continuous": true,
+        "starter": "Welcome to Cairo. I am managing curfew while living near the pyramid plaza.",
+        "suggested_player_prompts": [
+          "How do local rules affect this task?",
+          "What is changing in this neighborhood?",
+          "Thanks, carry on."
+        ]
+      },
+      "relationship_defaults": {
+        "familiarity": 0.2,
+        "comfort": 0.35,
+        "trust": 0.3,
+        "attraction": 0.2,
+        "affection": 0.25,
+        "fun": 0.3
+      }
     },
     {
       "id": "resident-house-5-school",
@@ -233,7 +361,303 @@
             }
           }
         }
+      ],
+      "name": "Resident 5",
+      "personality": {
+        "playfulness": 0.5,
+        "extroversion": 0.52,
+        "spontaneity": 0.47,
+        "competitiveness": 0.45,
+        "independence": 0.55
+      },
+      "current_state": {
+        "location": "constitution-neighborhood/cairo",
+        "activity": "talking_with_guests",
+        "mood": 0.55,
+        "energy": 0.6
+      },
+      "conversation_mode": {
+        "open_ended": true,
+        "continuous": true,
+        "starter": "Welcome to Cairo. I am managing school while living near the bazaar street.",
+        "suggested_player_prompts": [
+          "How do local rules affect this task?",
+          "What is changing in this neighborhood?",
+          "Thanks, carry on."
+        ]
+      },
+      "relationship_defaults": {
+        "familiarity": 0.2,
+        "comfort": 0.35,
+        "trust": 0.3,
+        "attraction": 0.2,
+        "affection": 0.25,
+        "fun": 0.3
+      }
+    }
+  ],
+  "schema_version": "conversation-state-v2",
+  "conversation_sessions": [],
+  "conversation_messages": [],
+  "npc_memories": [
+    {
+      "npc_id": "resident-house-1-chores",
+      "player_id": null,
+      "memory": "At the house level we coordinate chores. City and neighborhood rules around zoning, quiet hours, and costs shape how easy that is in Cairo.",
+      "importance": 0.58,
+      "tags": [
+        "constitution-neighborhood/cairo",
+        "constitution-neighborhood"
       ]
+    },
+    {
+      "npc_id": "resident-house-1-chores",
+      "player_id": null,
+      "memory": "People are adapting to policy trade-offs here: affordability, safety, and social norms. Around the pyramid plaza, you can see those choices play out day to day.",
+      "importance": 0.5,
+      "tags": [
+        "constitution-neighborhood/cairo",
+        "constitution-neighborhood"
+      ]
+    },
+    {
+      "npc_id": "resident-house-1-chores",
+      "player_id": null,
+      "memory": "Anytime. In this simulation, rules become incentives, and incentives become behavior.",
+      "importance": 0.42,
+      "tags": [
+        "constitution-neighborhood/cairo",
+        "constitution-neighborhood"
+      ]
+    },
+    {
+      "npc_id": "resident-house-2-screen-time",
+      "player_id": null,
+      "memory": "At the house level we coordinate screen time. City and neighborhood rules around zoning, quiet hours, and costs shape how easy that is in Cairo.",
+      "importance": 0.58,
+      "tags": [
+        "constitution-neighborhood/cairo",
+        "constitution-neighborhood"
+      ]
+    },
+    {
+      "npc_id": "resident-house-2-screen-time",
+      "player_id": null,
+      "memory": "People are adapting to policy trade-offs here: affordability, safety, and social norms. Around the bazaar street, you can see those choices play out day to day.",
+      "importance": 0.5,
+      "tags": [
+        "constitution-neighborhood/cairo",
+        "constitution-neighborhood"
+      ]
+    },
+    {
+      "npc_id": "resident-house-2-screen-time",
+      "player_id": null,
+      "memory": "Anytime. In this simulation, rules become incentives, and incentives become behavior.",
+      "importance": 0.42,
+      "tags": [
+        "constitution-neighborhood/cairo",
+        "constitution-neighborhood"
+      ]
+    },
+    {
+      "npc_id": "resident-house-3-rent",
+      "player_id": null,
+      "memory": "At the house level we coordinate rent. City and neighborhood rules around zoning, quiet hours, and costs shape how easy that is in Cairo.",
+      "importance": 0.58,
+      "tags": [
+        "constitution-neighborhood/cairo",
+        "constitution-neighborhood"
+      ]
+    },
+    {
+      "npc_id": "resident-house-3-rent",
+      "player_id": null,
+      "memory": "People are adapting to policy trade-offs here: affordability, safety, and social norms. Around the heat-hour schedule, you can see those choices play out day to day.",
+      "importance": 0.5,
+      "tags": [
+        "constitution-neighborhood/cairo",
+        "constitution-neighborhood"
+      ]
+    },
+    {
+      "npc_id": "resident-house-3-rent",
+      "player_id": null,
+      "memory": "Anytime. In this simulation, rules become incentives, and incentives become behavior.",
+      "importance": 0.42,
+      "tags": [
+        "constitution-neighborhood/cairo",
+        "constitution-neighborhood"
+      ]
+    },
+    {
+      "npc_id": "resident-house-4-curfew",
+      "player_id": null,
+      "memory": "At the house level we coordinate curfew. City and neighborhood rules around zoning, quiet hours, and costs shape how easy that is in Cairo.",
+      "importance": 0.58,
+      "tags": [
+        "constitution-neighborhood/cairo",
+        "constitution-neighborhood"
+      ]
+    },
+    {
+      "npc_id": "resident-house-4-curfew",
+      "player_id": null,
+      "memory": "People are adapting to policy trade-offs here: affordability, safety, and social norms. Around the pyramid plaza, you can see those choices play out day to day.",
+      "importance": 0.5,
+      "tags": [
+        "constitution-neighborhood/cairo",
+        "constitution-neighborhood"
+      ]
+    },
+    {
+      "npc_id": "resident-house-4-curfew",
+      "player_id": null,
+      "memory": "Anytime. In this simulation, rules become incentives, and incentives become behavior.",
+      "importance": 0.42,
+      "tags": [
+        "constitution-neighborhood/cairo",
+        "constitution-neighborhood"
+      ]
+    },
+    {
+      "npc_id": "resident-house-5-school",
+      "player_id": null,
+      "memory": "At the house level we coordinate school. City and neighborhood rules around zoning, quiet hours, and costs shape how easy that is in Cairo.",
+      "importance": 0.58,
+      "tags": [
+        "constitution-neighborhood/cairo",
+        "constitution-neighborhood"
+      ]
+    },
+    {
+      "npc_id": "resident-house-5-school",
+      "player_id": null,
+      "memory": "People are adapting to policy trade-offs here: affordability, safety, and social norms. Around the bazaar street, you can see those choices play out day to day.",
+      "importance": 0.5,
+      "tags": [
+        "constitution-neighborhood/cairo",
+        "constitution-neighborhood"
+      ]
+    },
+    {
+      "npc_id": "resident-house-5-school",
+      "player_id": null,
+      "memory": "Anytime. In this simulation, rules become incentives, and incentives become behavior.",
+      "importance": 0.42,
+      "tags": [
+        "constitution-neighborhood/cairo",
+        "constitution-neighborhood"
+      ]
+    }
+  ],
+  "npc_goals": [
+    {
+      "npc_id": "resident-house-1-chores",
+      "type": "manage_household",
+      "target_id": null,
+      "priority": 0.68,
+      "status": "active",
+      "payload": {
+        "source": "conversation-bootstrap",
+        "scene_id": "constitution-neighborhood/cairo"
+      }
+    },
+    {
+      "npc_id": "resident-house-2-screen-time",
+      "type": "manage_household",
+      "target_id": null,
+      "priority": 0.68,
+      "status": "active",
+      "payload": {
+        "source": "conversation-bootstrap",
+        "scene_id": "constitution-neighborhood/cairo"
+      }
+    },
+    {
+      "npc_id": "resident-house-3-rent",
+      "type": "manage_household",
+      "target_id": null,
+      "priority": 0.68,
+      "status": "active",
+      "payload": {
+        "source": "conversation-bootstrap",
+        "scene_id": "constitution-neighborhood/cairo"
+      }
+    },
+    {
+      "npc_id": "resident-house-4-curfew",
+      "type": "manage_household",
+      "target_id": null,
+      "priority": 0.68,
+      "status": "active",
+      "payload": {
+        "source": "conversation-bootstrap",
+        "scene_id": "constitution-neighborhood/cairo"
+      }
+    },
+    {
+      "npc_id": "resident-house-5-school",
+      "type": "manage_household",
+      "target_id": null,
+      "priority": 0.68,
+      "status": "active",
+      "payload": {
+        "source": "conversation-bootstrap",
+        "scene_id": "constitution-neighborhood/cairo"
+      }
+    }
+  ],
+  "npc_relationships": [
+    {
+      "npc_id": "resident-house-1-chores",
+      "player_id": "__default__",
+      "familiarity": 0.2,
+      "comfort": 0.35,
+      "trust": 0.3,
+      "attraction": 0.2,
+      "affection": 0.25,
+      "fun": 0.3
+    },
+    {
+      "npc_id": "resident-house-2-screen-time",
+      "player_id": "__default__",
+      "familiarity": 0.2,
+      "comfort": 0.35,
+      "trust": 0.3,
+      "attraction": 0.2,
+      "affection": 0.25,
+      "fun": 0.3
+    },
+    {
+      "npc_id": "resident-house-3-rent",
+      "player_id": "__default__",
+      "familiarity": 0.2,
+      "comfort": 0.35,
+      "trust": 0.3,
+      "attraction": 0.2,
+      "affection": 0.25,
+      "fun": 0.3
+    },
+    {
+      "npc_id": "resident-house-4-curfew",
+      "player_id": "__default__",
+      "familiarity": 0.2,
+      "comfort": 0.35,
+      "trust": 0.3,
+      "attraction": 0.2,
+      "affection": 0.25,
+      "fun": 0.3
+    },
+    {
+      "npc_id": "resident-house-5-school",
+      "player_id": "__default__",
+      "familiarity": 0.2,
+      "comfort": 0.35,
+      "trust": 0.3,
+      "attraction": 0.2,
+      "affection": 0.25,
+      "fun": 0.3
     }
   ]
 }

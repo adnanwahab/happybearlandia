@@ -138,7 +138,39 @@
             }
           }
         }
-      ]
+      ],
+      "name": "Blackjack Dealer",
+      "personality": {
+        "playfulness": 0.46,
+        "extroversion": 0.62,
+        "spontaneity": 0.35,
+        "competitiveness": 0.74,
+        "independence": 0.61
+      },
+      "current_state": {
+        "location": "casino",
+        "activity": "talking_with_guests",
+        "mood": 0.58,
+        "energy": 0.64
+      },
+      "conversation_mode": {
+        "open_ended": true,
+        "continuous": true,
+        "starter": "Welcome to the table. Cards are honest. Players are usually more complicated. What can I do for you?",
+        "suggested_player_prompts": [
+          "Teach me how this table works.",
+          "Heard any interesting rumors tonight?",
+          "How long have you worked here?"
+        ]
+      },
+      "relationship_defaults": {
+        "familiarity": 0.2,
+        "comfort": 0.35,
+        "trust": 0.3,
+        "attraction": 0.2,
+        "affection": 0.25,
+        "fun": 0.3
+      }
     },
     {
       "id": "glb-tuxedo-bear-blackjack-2",
@@ -278,7 +310,39 @@
             }
           }
         }
-      ]
+      ],
+      "name": "Blackjack Dealer",
+      "personality": {
+        "playfulness": 0.46,
+        "extroversion": 0.62,
+        "spontaneity": 0.35,
+        "competitiveness": 0.74,
+        "independence": 0.61
+      },
+      "current_state": {
+        "location": "casino",
+        "activity": "talking_with_guests",
+        "mood": 0.58,
+        "energy": 0.64
+      },
+      "conversation_mode": {
+        "open_ended": true,
+        "continuous": true,
+        "starter": "Good evening. Keep your hands where the cameras can see them and we will get along beautifully.",
+        "suggested_player_prompts": [
+          "You pay a lot of attention to the cameras.",
+          "How do you spot a cheater?",
+          "Anything unusual happen on your shift?"
+        ]
+      },
+      "relationship_defaults": {
+        "familiarity": 0.2,
+        "comfort": 0.35,
+        "trust": 0.3,
+        "attraction": 0.2,
+        "affection": 0.25,
+        "fun": 0.3
+      }
     },
     {
       "id": "glb-tuxedo-bear-blackjack-3",
@@ -418,7 +482,39 @@
             }
           }
         }
-      ]
+      ],
+      "name": "Blackjack Dealer",
+      "personality": {
+        "playfulness": 0.46,
+        "extroversion": 0.62,
+        "spontaneity": 0.35,
+        "competitiveness": 0.74,
+        "independence": 0.61
+      },
+      "current_state": {
+        "location": "casino",
+        "activity": "talking_with_guests",
+        "mood": 0.58,
+        "energy": 0.64
+      },
+      "conversation_mode": {
+        "open_ended": true,
+        "continuous": true,
+        "starter": "You look like someone deciding whether to gamble or ask questions. Questions are cheaper, for now.",
+        "suggested_player_prompts": [
+          "What do you know about the VIP room?",
+          "Who should I talk to around here?",
+          "Anything I should avoid?"
+        ]
+      },
+      "relationship_defaults": {
+        "familiarity": 0.2,
+        "comfort": 0.35,
+        "trust": 0.3,
+        "attraction": 0.2,
+        "affection": 0.25,
+        "fun": 0.3
+      }
     },
     {
       "id": "glb-tuxedo-bear-roulette",
@@ -558,7 +654,39 @@
             }
           }
         }
-      ]
+      ],
+      "name": "Roulette Dealer",
+      "personality": {
+        "playfulness": 0.46,
+        "extroversion": 0.62,
+        "spontaneity": 0.35,
+        "competitiveness": 0.74,
+        "independence": 0.61
+      },
+      "current_state": {
+        "location": "casino",
+        "activity": "talking_with_guests",
+        "mood": 0.58,
+        "energy": 0.64
+      },
+      "conversation_mode": {
+        "open_ended": true,
+        "continuous": true,
+        "starter": "Red, black, odd, even. Everyone wants the wheel to tell them something about the future. What are you hoping to hear?",
+        "suggested_player_prompts": [
+          "Is there any way to read the wheel?",
+          "You recognize most of the regulars?",
+          "Do you believe in luck?"
+        ]
+      },
+      "relationship_defaults": {
+        "familiarity": 0.2,
+        "comfort": 0.35,
+        "trust": 0.3,
+        "attraction": 0.2,
+        "affection": 0.25,
+        "fun": 0.3
+      }
     },
     {
       "id": "glb-tuxedo-bear-poker-clean",
@@ -698,7 +826,39 @@
             }
           }
         }
-      ]
+      ],
+      "name": "Poker Host",
+      "personality": {
+        "playfulness": 0.51,
+        "extroversion": 0.55,
+        "spontaneity": 0.31,
+        "competitiveness": 0.83,
+        "independence": 0.73
+      },
+      "current_state": {
+        "location": "casino",
+        "activity": "talking_with_guests",
+        "mood": 0.63,
+        "energy": 0.71
+      },
+      "conversation_mode": {
+        "open_ended": true,
+        "continuous": true,
+        "starter": "Table's open. Poker is mostly a conversation where the chips do the shouting.",
+        "suggested_player_prompts": [
+          "What makes a good poker player?",
+          "Are there tournaments here?",
+          "Why is this table so quiet?"
+        ]
+      },
+      "relationship_defaults": {
+        "familiarity": 0.2,
+        "comfort": 0.35,
+        "trust": 0.3,
+        "attraction": 0.2,
+        "affection": 0.25,
+        "fun": 0.3
+      }
     },
     {
       "id": "glb-tuxedo-bear-poker",
@@ -838,7 +998,39 @@
             }
           }
         }
-      ]
+      ],
+      "name": "Poker Dealer",
+      "personality": {
+        "playfulness": 0.46,
+        "extroversion": 0.62,
+        "spontaneity": 0.35,
+        "competitiveness": 0.74,
+        "independence": 0.61
+      },
+      "current_state": {
+        "location": "casino",
+        "activity": "talking_with_guests",
+        "mood": 0.63,
+        "energy": 0.71
+      },
+      "conversation_mode": {
+        "open_ended": true,
+        "continuous": true,
+        "starter": "High-stakes side of the floor. If you came for easy money, the exit is still behind you.",
+        "suggested_player_prompts": [
+          "How high do the stakes get?",
+          "Ever seen a marked deck?",
+          "I heard about a private game."
+        ]
+      },
+      "relationship_defaults": {
+        "familiarity": 0.2,
+        "comfort": 0.35,
+        "trust": 0.3,
+        "attraction": 0.2,
+        "affection": 0.25,
+        "fun": 0.3
+      }
     },
     {
       "id": "glb-tuxedo-bear-cashier",
@@ -978,7 +1170,39 @@
             }
           }
         }
-      ]
+      ],
+      "name": "Casino Cashier",
+      "personality": {
+        "playfulness": 0.22,
+        "extroversion": 0.48,
+        "spontaneity": 0.24,
+        "competitiveness": 0.41,
+        "independence": 0.57
+      },
+      "current_state": {
+        "location": "casino",
+        "activity": "talking_with_guests",
+        "mood": 0.41,
+        "energy": 0.56
+      },
+      "conversation_mode": {
+        "open_ended": true,
+        "continuous": true,
+        "starter": "Chips in, money out, receipts if you want them. What are we doing today?",
+        "suggested_player_prompts": [
+          "How does cashing out work?",
+          "Any strange transactions lately?",
+          "How do casino comps work?"
+        ]
+      },
+      "relationship_defaults": {
+        "familiarity": 0.2,
+        "comfort": 0.35,
+        "trust": 0.3,
+        "attraction": 0.2,
+        "affection": 0.25,
+        "fun": 0.3
+      }
     },
     {
       "id": "glb-tuxedo-bear-bar",
@@ -1005,6 +1229,22 @@
                   "id": "start-choice-3",
                   "text": "You seem to know everything that happens here.",
                   "next": "ask-bartender"
+                },
+                {
+                  "id": "start-choice-4",
+                  "text": "Walk the floor with me for a bit.",
+                  "next": "follow-player",
+                  "socialAction": {
+                    "type": "start_following"
+                  }
+                },
+                {
+                  "id": "start-choice-5",
+                  "text": "Hold this spot. I will find you here.",
+                  "next": "stop-following",
+                  "socialAction": {
+                    "type": "stop_following"
+                  }
                 }
               ]
             },
@@ -1115,10 +1355,54 @@
               "speaker": "Bartender",
               "text": "Trust is a large order. Start with a small question.",
               "end": true
+            },
+            "follow-player": {
+              "speaker": "Bartender",
+              "text": "Alright. I can leave the bar for a minute. Lead the way.",
+              "end": true
+            },
+            "stop-following": {
+              "speaker": "Bartender",
+              "text": "Got it. I will hold position here until you need me again.",
+              "end": true
             }
           }
         }
-      ]
+      ],
+      "name": "Bartender",
+      "personality": {
+        "playfulness": 0.66,
+        "extroversion": 0.79,
+        "spontaneity": 0.58,
+        "competitiveness": 0.29,
+        "independence": 0.49
+      },
+      "current_state": {
+        "location": "casino",
+        "activity": "talking_with_guests",
+        "mood": 0.72,
+        "energy": 0.67
+      },
+      "conversation_mode": {
+        "open_ended": true,
+        "continuous": true,
+        "starter": "Welcome to the lounge. I pour drinks, hear stories, and forget names on request. What will it be?",
+        "suggested_player_prompts": [
+          "I'm looking for information, not a drink.",
+          "Who are the interesting regulars?",
+          "You seem to know everything that happens here.",
+          "Walk the floor with me for a bit.",
+          "Hold this spot. I will find you here."
+        ]
+      },
+      "relationship_defaults": {
+        "familiarity": 0.2,
+        "comfort": 0.35,
+        "trust": 0.3,
+        "attraction": 0.2,
+        "affection": 0.25,
+        "fun": 0.3
+      }
     },
     {
       "id": "glb-sitting-bear-bar-lounge-couch-1",
@@ -1165,7 +1449,39 @@
             }
           }
         }
-      ]
+      ],
+      "name": "Lounge Guest",
+      "personality": {
+        "playfulness": 0.66,
+        "extroversion": 0.79,
+        "spontaneity": 0.58,
+        "competitiveness": 0.29,
+        "independence": 0.49
+      },
+      "current_state": {
+        "location": "casino",
+        "activity": "talking_with_guests",
+        "mood": 0.72,
+        "energy": 0.67
+      },
+      "conversation_mode": {
+        "open_ended": true,
+        "continuous": true,
+        "starter": "Best seat in the bar. From here you can watch who celebrates and who is pretending.",
+        "suggested_player_prompts": [
+          "See anything unusual tonight?",
+          "Who should I pay attention to?",
+          "Enjoy your night."
+        ]
+      },
+      "relationship_defaults": {
+        "familiarity": 0.2,
+        "comfort": 0.35,
+        "trust": 0.3,
+        "attraction": 0.2,
+        "affection": 0.25,
+        "fun": 0.3
+      }
     },
     {
       "id": "glb-sitting-bear-bar-lounge-couch-2",
@@ -1212,7 +1528,39 @@
             }
           }
         }
-      ]
+      ],
+      "name": "Lounge Guest",
+      "personality": {
+        "playfulness": 0.66,
+        "extroversion": 0.79,
+        "spontaneity": 0.58,
+        "competitiveness": 0.29,
+        "independence": 0.49
+      },
+      "current_state": {
+        "location": "casino",
+        "activity": "talking_with_guests",
+        "mood": 0.72,
+        "energy": 0.67
+      },
+      "conversation_mode": {
+        "open_ended": true,
+        "continuous": true,
+        "starter": "I come here for quiet, but this casino never stays quiet for long.",
+        "suggested_player_prompts": [
+          "What changed tonight?",
+          "Any advice for a newcomer?",
+          "I will let you relax."
+        ]
+      },
+      "relationship_defaults": {
+        "familiarity": 0.2,
+        "comfort": 0.35,
+        "trust": 0.3,
+        "attraction": 0.2,
+        "affection": 0.25,
+        "fun": 0.3
+      }
     },
     {
       "id": "glb-sitting-bear-bar-lounge-couch-middle",
@@ -1223,7 +1571,7 @@
           "tree": {
             "start": {
               "speaker": "Lounge Guest",
-              "text": "Middle couch, perfect sightline. Blackjack, cashier, staff doors — all in one glance.",
+              "text": "Middle couch, perfect sightline. Blackjack, cashier, staff doors \u2014 all in one glance.",
               "choices": [
                 {
                   "id": "start-choice-1",
@@ -1259,7 +1607,39 @@
             }
           }
         }
-      ]
+      ],
+      "name": "Lounge Guest",
+      "personality": {
+        "playfulness": 0.66,
+        "extroversion": 0.79,
+        "spontaneity": 0.58,
+        "competitiveness": 0.29,
+        "independence": 0.49
+      },
+      "current_state": {
+        "location": "casino",
+        "activity": "talking_with_guests",
+        "mood": 0.72,
+        "energy": 0.67
+      },
+      "conversation_mode": {
+        "open_ended": true,
+        "continuous": true,
+        "starter": "Middle couch, perfect sightline. Blackjack, cashier, staff doors \u2014 all in one glance.",
+        "suggested_player_prompts": [
+          "What do you watch first?",
+          "Who runs this place at night?",
+          "Thanks for the tip."
+        ]
+      },
+      "relationship_defaults": {
+        "familiarity": 0.2,
+        "comfort": 0.35,
+        "trust": 0.3,
+        "attraction": 0.2,
+        "affection": 0.25,
+        "fun": 0.3
+      }
     },
     {
       "id": "glb-sitting-bear-vip-room-right-couch",
@@ -1306,7 +1686,39 @@
             }
           }
         }
-      ]
+      ],
+      "name": "VIP Guest",
+      "personality": {
+        "playfulness": 0.33,
+        "extroversion": 0.41,
+        "spontaneity": 0.37,
+        "competitiveness": 0.62,
+        "independence": 0.72
+      },
+      "current_state": {
+        "location": "casino",
+        "activity": "talking_with_guests",
+        "mood": 0.55,
+        "energy": 0.6
+      },
+      "conversation_mode": {
+        "open_ended": true,
+        "continuous": true,
+        "starter": "This side of VIP is for people who already know the rules. Do you?",
+        "suggested_player_prompts": [
+          "Tell me one rule.",
+          "Who is meeting in VIP tonight?",
+          "I will stay out of your way."
+        ]
+      },
+      "relationship_defaults": {
+        "familiarity": 0.2,
+        "comfort": 0.35,
+        "trust": 0.3,
+        "attraction": 0.2,
+        "affection": 0.25,
+        "fun": 0.3
+      }
     },
     {
       "id": "glb-sitting-bear-vip-room-left-couch",
@@ -1353,7 +1765,39 @@
             }
           }
         }
-      ]
+      ],
+      "name": "VIP Guest",
+      "personality": {
+        "playfulness": 0.33,
+        "extroversion": 0.41,
+        "spontaneity": 0.37,
+        "competitiveness": 0.62,
+        "independence": 0.72
+      },
+      "current_state": {
+        "location": "casino",
+        "activity": "talking_with_guests",
+        "mood": 0.55,
+        "energy": 0.6
+      },
+      "conversation_mode": {
+        "open_ended": true,
+        "continuous": true,
+        "starter": "You are not the first to wander into VIP looking for answers.",
+        "suggested_player_prompts": [
+          "Did they find what they wanted?",
+          "What should I avoid?",
+          "Any safe path through this?"
+        ]
+      },
+      "relationship_defaults": {
+        "familiarity": 0.2,
+        "comfort": 0.35,
+        "trust": 0.3,
+        "attraction": 0.2,
+        "affection": 0.25,
+        "fun": 0.3
+      }
     },
     {
       "id": "glb-sitting-bear-lounge-piano",
@@ -1385,7 +1829,7 @@
             },
             "useful": {
               "speaker": "Piano Listener",
-              "text": "A conversation about shifting schedules in security — tonight, specifically.",
+              "text": "A conversation about shifting schedules in security \u2014 tonight, specifically.",
               "end": true
             },
             "why-here": {
@@ -1400,7 +1844,780 @@
             }
           }
         }
+      ],
+      "name": "Piano Listener",
+      "personality": {
+        "playfulness": 0.5,
+        "extroversion": 0.52,
+        "spontaneity": 0.47,
+        "competitiveness": 0.45,
+        "independence": 0.55
+      },
+      "current_state": {
+        "location": "casino",
+        "activity": "talking_with_guests",
+        "mood": 0.55,
+        "energy": 0.6
+      },
+      "conversation_mode": {
+        "open_ended": true,
+        "continuous": true,
+        "starter": "The piano covers conversations better than any wall in this casino.",
+        "suggested_player_prompts": [
+          "Heard anything useful?",
+          "Why sit over here?",
+          "I just like the music."
+        ]
+      },
+      "relationship_defaults": {
+        "familiarity": 0.2,
+        "comfort": 0.35,
+        "trust": 0.3,
+        "attraction": 0.2,
+        "affection": 0.25,
+        "fun": 0.3
+      }
+    }
+  ],
+  "schema_version": "conversation-state-v2",
+  "conversation_sessions": [],
+  "conversation_messages": [],
+  "npc_memories": [
+    {
+      "npc_id": "glb-tuxedo-bear-blackjack-1",
+      "player_id": null,
+      "memory": "Simple goal: get closer to twenty-one than the house without going over. The interesting part is deciding when to stop.",
+      "importance": 0.58,
+      "tags": [
+        "casino",
+        "casino"
       ]
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-blackjack-1",
+      "player_id": null,
+      "memory": "Safe is relative, but patience beats panic. Learn the basic decisions before you start chasing luck.",
+      "importance": 0.5,
+      "tags": [
+        "casino",
+        "casino"
+      ]
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-blackjack-1",
+      "player_id": null,
+      "memory": "Watch the dealer's up-card, your own total, and the mood of the table. People reveal plenty when money starts moving.",
+      "importance": 0.42,
+      "tags": [
+        "casino",
+        "casino"
+      ]
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-blackjack-2",
+      "player_id": null,
+      "memory": "Occupational habit. Security watches the cards, the chips, the doors, and especially anyone who thinks they are not being watched.",
+      "importance": 0.58,
+      "tags": [
+        "casino",
+        "casino"
+      ]
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-blackjack-2",
+      "player_id": null,
+      "memory": "If I knew one, I would not announce it across a blackjack table.",
+      "importance": 0.5,
+      "tags": [
+        "casino",
+        "casino"
+      ]
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-blackjack-2",
+      "player_id": null,
+      "memory": "They miss things. Everyone does. The trick is knowing whether it was a mistake or permission.",
+      "importance": 0.42,
+      "tags": [
+        "casino",
+        "casino"
+      ]
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-blackjack-3",
+      "player_id": null,
+      "memory": "Enough to stay out of it. High rollers go in through the front. Problems seem to leave through the staff side.",
+      "importance": 0.58,
+      "tags": [
+        "casino",
+        "casino"
+      ]
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-blackjack-3",
+      "player_id": null,
+      "memory": "Debts, arguments, people who suddenly decide they have somewhere else to be.",
+      "importance": 0.5,
+      "tags": [
+        "casino",
+        "casino"
+      ]
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-blackjack-3",
+      "player_id": null,
+      "memory": "Officially, management. Unofficially, whoever security was told not to bother.",
+      "importance": 0.42,
+      "tags": [
+        "casino",
+        "casino"
+      ]
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-roulette",
+      "player_id": null,
+      "memory": "You can read people. The wheel is less cooperative. Anyone promising certainty is selling something.",
+      "importance": 0.58,
+      "tags": [
+        "casino",
+        "casino"
+      ]
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-roulette",
+      "player_id": null,
+      "memory": "There are ways to manage risk. There is no conversation that makes probability sentimental.",
+      "importance": 0.5,
+      "tags": [
+        "casino",
+        "casino"
+      ]
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-roulette",
+      "player_id": null,
+      "memory": "Always. Birthdays, anniversaries, room numbers, old mistakes.",
+      "importance": 0.42,
+      "tags": [
+        "casino",
+        "casino"
+      ]
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-poker-clean",
+      "player_id": null,
+      "memory": "Patience, memory, and the ability to look bored while your brain is on fire.",
+      "importance": 0.58,
+      "tags": [
+        "casino",
+        "casino"
+      ]
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-poker-clean",
+      "player_id": null,
+      "memory": "Timing. Hands. Breathing. And the stories they tell with their bets.",
+      "importance": 0.5,
+      "tags": [
+        "casino",
+        "casino"
+      ]
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-poker-clean",
+      "player_id": null,
+      "memory": "Less than movies suggest, more than nervous players hope.",
+      "importance": 0.42,
+      "tags": [
+        "casino",
+        "casino"
+      ]
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-poker",
+      "player_id": null,
+      "memory": "Higher than the signs admit. Some games are played for chips. Others are played for access, favors, and silence.",
+      "importance": 0.58,
+      "tags": [
+        "casino",
+        "casino"
+      ]
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-poker",
+      "player_id": null,
+      "memory": "Introductions. Information. Doors opening after hours.",
+      "importance": 0.5,
+      "tags": [
+        "casino",
+        "casino"
+      ]
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-poker",
+      "player_id": null,
+      "memory": "People who do not enjoy being described by dealers.",
+      "importance": 0.42,
+      "tags": [
+        "casino",
+        "casino"
+      ]
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-cashier",
+      "player_id": null,
+      "memory": "Give me the chips, I verify the amount, and we settle the value. Large transactions get extra attention.",
+      "importance": 0.58,
+      "tags": [
+        "casino",
+        "casino"
+      ]
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-cashier",
+      "player_id": null,
+      "memory": "Large enough that paperwork becomes part of the experience.",
+      "importance": 0.5,
+      "tags": [
+        "casino",
+        "casino"
+      ]
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-cashier",
+      "player_id": null,
+      "memory": "Chips move between people all the time. Suspicious patterns are another matter.",
+      "importance": 0.42,
+      "tags": [
+        "casino",
+        "casino"
+      ]
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-bar",
+      "player_id": null,
+      "memory": "Information costs more, mostly because people regret giving it away. What are you looking for?",
+      "importance": 0.58,
+      "tags": [
+        "casino",
+        "casino",
+        "bar"
+      ]
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-bar",
+      "player_id": null,
+      "memory": "VIP has had a late-night crowd lately. Same faces, same corner, lots of conversations that stop when staff walks by.",
+      "importance": 0.5,
+      "tags": [
+        "casino",
+        "casino",
+        "bar"
+      ]
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-bar",
+      "player_id": null,
+      "memory": "Security has been rotating patrols more often. Either management is nervous or somebody wants the floor to feel nervous.",
+      "importance": 0.42,
+      "tags": [
+        "casino",
+        "casino",
+        "bar"
+      ]
+    },
+    {
+      "npc_id": "glb-sitting-bear-bar-lounge-couch-1",
+      "player_id": null,
+      "memory": "A few guests passed through staff doors they should not know about.",
+      "importance": 0.58,
+      "tags": [
+        "casino",
+        "casino",
+        "bar"
+      ]
+    },
+    {
+      "npc_id": "glb-sitting-bear-bar-lounge-couch-1",
+      "player_id": null,
+      "memory": "Watch who talks quietly with security and loudly with nobody else.",
+      "importance": 0.5,
+      "tags": [
+        "casino",
+        "casino",
+        "bar"
+      ]
+    },
+    {
+      "npc_id": "glb-sitting-bear-bar-lounge-couch-1",
+      "player_id": null,
+      "memory": "Luck to you. Keep your head up and your chips close.",
+      "importance": 0.42,
+      "tags": [
+        "casino",
+        "casino",
+        "bar"
+      ]
+    },
+    {
+      "npc_id": "glb-sitting-bear-bar-lounge-couch-2",
+      "player_id": null,
+      "memory": "The staff floor has had more traffic than the gaming floor. That is rarely good.",
+      "importance": 0.58,
+      "tags": [
+        "casino",
+        "casino",
+        "bar"
+      ]
+    },
+    {
+      "npc_id": "glb-sitting-bear-bar-lounge-couch-2",
+      "player_id": null,
+      "memory": "Ask polite questions and leave before answers get expensive.",
+      "importance": 0.5,
+      "tags": [
+        "casino",
+        "casino",
+        "bar"
+      ]
+    },
+    {
+      "npc_id": "glb-sitting-bear-bar-lounge-couch-2",
+      "player_id": null,
+      "memory": "Appreciated. The lounge is one of the last calm corners left.",
+      "importance": 0.42,
+      "tags": [
+        "casino",
+        "casino",
+        "bar"
+      ]
+    },
+    {
+      "npc_id": "glb-sitting-bear-bar-lounge-couch-middle",
+      "player_id": null,
+      "memory": "Cashier windows. Money always tells you where the real story is.",
+      "importance": 0.58,
+      "tags": [
+        "casino",
+        "casino",
+        "bar"
+      ]
+    },
+    {
+      "npc_id": "glb-sitting-bear-bar-lounge-couch-middle",
+      "player_id": null,
+      "memory": "Officially management. Unofficially, whoever security greets before anyone else.",
+      "importance": 0.5,
+      "tags": [
+        "casino",
+        "casino",
+        "bar"
+      ]
+    },
+    {
+      "npc_id": "glb-sitting-bear-bar-lounge-couch-middle",
+      "player_id": null,
+      "memory": "Anytime. Keep moving and you will keep learning.",
+      "importance": 0.42,
+      "tags": [
+        "casino",
+        "casino",
+        "bar"
+      ]
+    },
+    {
+      "npc_id": "glb-sitting-bear-vip-room-right-couch",
+      "player_id": null,
+      "memory": "Never ask for names; ask for timing. Timing keeps you safer.",
+      "importance": 0.58,
+      "tags": [
+        "casino",
+        "casino",
+        "vip"
+      ]
+    },
+    {
+      "npc_id": "glb-sitting-bear-vip-room-right-couch",
+      "player_id": null,
+      "memory": "People with chips, people with access, and one person with neither.",
+      "importance": 0.5,
+      "tags": [
+        "casino",
+        "casino",
+        "vip"
+      ]
+    },
+    {
+      "npc_id": "glb-sitting-bear-vip-room-right-couch",
+      "player_id": null,
+      "memory": "Smart. Curiosity is welcome, but only in measured doses.",
+      "importance": 0.42,
+      "tags": [
+        "casino",
+        "casino",
+        "vip"
+      ]
+    },
+    {
+      "npc_id": "glb-sitting-bear-vip-room-left-couch",
+      "player_id": null,
+      "memory": "Some did. Most found more questions.",
+      "importance": 0.58,
+      "tags": [
+        "casino",
+        "casino",
+        "vip"
+      ]
+    },
+    {
+      "npc_id": "glb-sitting-bear-vip-room-left-couch",
+      "player_id": null,
+      "memory": "Avoid promises from strangers and silence from friends.",
+      "importance": 0.5,
+      "tags": [
+        "casino",
+        "casino",
+        "vip"
+      ]
+    },
+    {
+      "npc_id": "glb-sitting-bear-vip-room-left-couch",
+      "player_id": null,
+      "memory": "Talk to the bartender first. Information there is cheaper than mistakes here.",
+      "importance": 0.42,
+      "tags": [
+        "casino",
+        "casino",
+        "vip"
+      ]
+    },
+    {
+      "npc_id": "glb-sitting-bear-lounge-piano",
+      "player_id": null,
+      "memory": "A conversation about shifting schedules in security \u2014 tonight, specifically.",
+      "importance": 0.58,
+      "tags": [
+        "casino",
+        "casino"
+      ]
+    },
+    {
+      "npc_id": "glb-sitting-bear-lounge-piano",
+      "player_id": null,
+      "memory": "Because people confess near music. They think melody makes them hard to overhear.",
+      "importance": 0.5,
+      "tags": [
+        "casino",
+        "casino"
+      ]
+    },
+    {
+      "npc_id": "glb-sitting-bear-lounge-piano",
+      "player_id": null,
+      "memory": "Then enjoy it while you can. Quiet moments are rare on this floor.",
+      "importance": 0.42,
+      "tags": [
+        "casino",
+        "casino"
+      ]
+    }
+  ],
+  "npc_goals": [
+    {
+      "npc_id": "glb-tuxedo-bear-blackjack-1",
+      "type": "run_table",
+      "target_id": null,
+      "priority": 0.76,
+      "status": "active",
+      "payload": {
+        "source": "conversation-bootstrap",
+        "scene_id": "casino"
+      }
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-blackjack-2",
+      "type": "run_table",
+      "target_id": null,
+      "priority": 0.76,
+      "status": "active",
+      "payload": {
+        "source": "conversation-bootstrap",
+        "scene_id": "casino"
+      }
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-blackjack-3",
+      "type": "run_table",
+      "target_id": null,
+      "priority": 0.76,
+      "status": "active",
+      "payload": {
+        "source": "conversation-bootstrap",
+        "scene_id": "casino"
+      }
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-roulette",
+      "type": "run_table",
+      "target_id": null,
+      "priority": 0.76,
+      "status": "active",
+      "payload": {
+        "source": "conversation-bootstrap",
+        "scene_id": "casino"
+      }
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-poker-clean",
+      "type": "run_table",
+      "target_id": null,
+      "priority": 0.78,
+      "status": "active",
+      "payload": {
+        "source": "conversation-bootstrap",
+        "scene_id": "casino"
+      }
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-poker",
+      "type": "run_table",
+      "target_id": null,
+      "priority": 0.78,
+      "status": "active",
+      "payload": {
+        "source": "conversation-bootstrap",
+        "scene_id": "casino"
+      }
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-cashier",
+      "type": "exchange_chips",
+      "target_id": null,
+      "priority": 0.81,
+      "status": "active",
+      "payload": {
+        "source": "conversation-bootstrap",
+        "scene_id": "casino"
+      }
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-bar",
+      "type": "serve_guests",
+      "target_id": null,
+      "priority": 0.72,
+      "status": "active",
+      "payload": {
+        "source": "conversation-bootstrap",
+        "scene_id": "casino"
+      }
+    },
+    {
+      "npc_id": "glb-sitting-bear-bar-lounge-couch-1",
+      "type": "serve_guests",
+      "target_id": null,
+      "priority": 0.72,
+      "status": "active",
+      "payload": {
+        "source": "conversation-bootstrap",
+        "scene_id": "casino"
+      }
+    },
+    {
+      "npc_id": "glb-sitting-bear-bar-lounge-couch-2",
+      "type": "serve_guests",
+      "target_id": null,
+      "priority": 0.72,
+      "status": "active",
+      "payload": {
+        "source": "conversation-bootstrap",
+        "scene_id": "casino"
+      }
+    },
+    {
+      "npc_id": "glb-sitting-bear-bar-lounge-couch-middle",
+      "type": "serve_guests",
+      "target_id": null,
+      "priority": 0.72,
+      "status": "active",
+      "payload": {
+        "source": "conversation-bootstrap",
+        "scene_id": "casino"
+      }
+    },
+    {
+      "npc_id": "glb-sitting-bear-vip-room-right-couch",
+      "type": "socialize",
+      "target_id": null,
+      "priority": 0.55,
+      "status": "active",
+      "payload": {
+        "source": "conversation-bootstrap",
+        "scene_id": "casino"
+      }
+    },
+    {
+      "npc_id": "glb-sitting-bear-vip-room-left-couch",
+      "type": "socialize",
+      "target_id": null,
+      "priority": 0.55,
+      "status": "active",
+      "payload": {
+        "source": "conversation-bootstrap",
+        "scene_id": "casino"
+      }
+    },
+    {
+      "npc_id": "glb-sitting-bear-lounge-piano",
+      "type": "socialize",
+      "target_id": null,
+      "priority": 0.55,
+      "status": "active",
+      "payload": {
+        "source": "conversation-bootstrap",
+        "scene_id": "casino"
+      }
+    }
+  ],
+  "npc_relationships": [
+    {
+      "npc_id": "glb-tuxedo-bear-blackjack-1",
+      "player_id": "__default__",
+      "familiarity": 0.2,
+      "comfort": 0.35,
+      "trust": 0.3,
+      "attraction": 0.2,
+      "affection": 0.25,
+      "fun": 0.3
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-blackjack-2",
+      "player_id": "__default__",
+      "familiarity": 0.2,
+      "comfort": 0.35,
+      "trust": 0.3,
+      "attraction": 0.2,
+      "affection": 0.25,
+      "fun": 0.3
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-blackjack-3",
+      "player_id": "__default__",
+      "familiarity": 0.2,
+      "comfort": 0.35,
+      "trust": 0.3,
+      "attraction": 0.2,
+      "affection": 0.25,
+      "fun": 0.3
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-roulette",
+      "player_id": "__default__",
+      "familiarity": 0.2,
+      "comfort": 0.35,
+      "trust": 0.3,
+      "attraction": 0.2,
+      "affection": 0.25,
+      "fun": 0.3
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-poker-clean",
+      "player_id": "__default__",
+      "familiarity": 0.2,
+      "comfort": 0.35,
+      "trust": 0.3,
+      "attraction": 0.2,
+      "affection": 0.25,
+      "fun": 0.3
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-poker",
+      "player_id": "__default__",
+      "familiarity": 0.2,
+      "comfort": 0.35,
+      "trust": 0.3,
+      "attraction": 0.2,
+      "affection": 0.25,
+      "fun": 0.3
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-cashier",
+      "player_id": "__default__",
+      "familiarity": 0.2,
+      "comfort": 0.35,
+      "trust": 0.3,
+      "attraction": 0.2,
+      "affection": 0.25,
+      "fun": 0.3
+    },
+    {
+      "npc_id": "glb-tuxedo-bear-bar",
+      "player_id": "__default__",
+      "familiarity": 0.2,
+      "comfort": 0.35,
+      "trust": 0.3,
+      "attraction": 0.2,
+      "affection": 0.25,
+      "fun": 0.3
+    },
+    {
+      "npc_id": "glb-sitting-bear-bar-lounge-couch-1",
+      "player_id": "__default__",
+      "familiarity": 0.2,
+      "comfort": 0.35,
+      "trust": 0.3,
+      "attraction": 0.2,
+      "affection": 0.25,
+      "fun": 0.3
+    },
+    {
+      "npc_id": "glb-sitting-bear-bar-lounge-couch-2",
+      "player_id": "__default__",
+      "familiarity": 0.2,
+      "comfort": 0.35,
+      "trust": 0.3,
+      "attraction": 0.2,
+      "affection": 0.25,
+      "fun": 0.3
+    },
+    {
+      "npc_id": "glb-sitting-bear-bar-lounge-couch-middle",
+      "player_id": "__default__",
+      "familiarity": 0.2,
+      "comfort": 0.35,
+      "trust": 0.3,
+      "attraction": 0.2,
+      "affection": 0.25,
+      "fun": 0.3
+    },
+    {
+      "npc_id": "glb-sitting-bear-vip-room-right-couch",
+      "player_id": "__default__",
+      "familiarity": 0.2,
+      "comfort": 0.35,
+      "trust": 0.3,
+      "attraction": 0.2,
+      "affection": 0.25,
+      "fun": 0.3
+    },
+    {
+      "npc_id": "glb-sitting-bear-vip-room-left-couch",
+      "player_id": "__default__",
+      "familiarity": 0.2,
+      "comfort": 0.35,
+      "trust": 0.3,
+      "attraction": 0.2,
+      "affection": 0.25,
+      "fun": 0.3
+    },
+    {
+      "npc_id": "glb-sitting-bear-lounge-piano",
+      "player_id": "__default__",
+      "familiarity": 0.2,
+      "comfort": 0.35,
+      "trust": 0.3,
+      "attraction": 0.2,
+      "affection": 0.25,
+      "fun": 0.3
     }
   ]
 }

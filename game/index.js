@@ -1188,6 +1188,12 @@ const CONVERSATION_SCENE_EVENT_NAME =
 const CONVERSATION_INTERACTION_EVENT_NAME =
   "hbl:conversation-interaction";
 
+const CONVERSATION_CHOICE_EVENT_NAME =
+  "hbl:conversation-choice";
+
+const CONVERSATION_SOCIAL_RESULT_EVENT_NAME =
+  "hbl:conversation-social-result";
+
 window.__hblDialogActive =
   window.__hblDialogActive ===
   true;
@@ -3562,36 +3568,50 @@ if (!isGalleryRoute()) {
     loadLightSwitchOnModel()
   ]).then(async function ([Jolt, sceneData, sceneConversations]) {
 
-  const conversationsByNpcId =
+  const conversationNpcById =
     new Map(
       (sceneConversations?.npcs ?? [])
         .map(npc => [
           npc.id,
-          npc.conversations,
+          npc,
         ])
     );
 
   sceneData.objects =
     sceneData.objects.map(object => {
-      const conversations =
-        conversationsByNpcId.get(
+      const npcConversationData =
+        conversationNpcById.get(
           object.id
-        );
+        ) ?? null;
 
       if (
-        Array.isArray(
-          conversations
-        ) &&
-        conversations.length > 0
+        npcConversationData &&
+        (
+          (Array.isArray(npcConversationData.conversations) && npcConversationData.conversations.length > 0) ||
+          (typeof npcConversationData?.conversation_mode?.starter === "string" &&
+            npcConversationData.conversation_mode.starter.trim().length > 0)
+        )
       ) {
         return {
           ...object,
-          conversations,
+          conversations: Array.isArray(npcConversationData.conversations)
+            ? npcConversationData.conversations
+            : [],
+          name: npcConversationData.name ?? null,
+          personality: npcConversationData.personality ?? null,
+          current_state: npcConversationData.current_state ?? null,
+          relationship_defaults: npcConversationData.relationship_defaults ?? null,
+          conversation_mode: npcConversationData.conversation_mode ?? null,
         };
       }
 
       const {
         conversations: _ignoredConversations,
+        name: _ignoredName,
+        personality: _ignoredPersonality,
+        current_state: _ignoredCurrentState,
+        relationship_defaults: _ignoredRelationshipDefaults,
+        conversation_mode: _ignoredConversationMode,
         ...objectWithoutConversations
       } = object;
 
@@ -4299,6 +4319,9 @@ if (!isGalleryRoute()) {
 
           localPlayerId =
             msg.playerId;
+
+          window.__hblLocalPlayerId =
+            localPlayerId;
 
           console.log(
             "My multiplayer player ID:",
@@ -5011,11 +5034,17 @@ if (!isGalleryRoute()) {
   const conversationNpcs =
     sceneData.objects.filter(
       object =>
-        Array.isArray(
-          object.conversations
-        ) &&
-        object.conversations.length >
-          0
+        (
+          Array.isArray(
+            object.conversations
+          ) &&
+          object.conversations.length >
+            0
+        ) ||
+        (
+          typeof object?.conversation_mode?.starter === "string" &&
+          object.conversation_mode.starter.trim().length > 0
+        )
     );
 
 
@@ -5035,6 +5064,11 @@ if (!isGalleryRoute()) {
     npcs: conversationNpcs.map(
       npc => ({
         id: npc.id,
+        name: npc.name ?? null,
+        personality: npc.personality ?? null,
+        current_state: npc.current_state ?? null,
+        relationship_defaults: npc.relationship_defaults ?? null,
+        conversation_mode: npc.conversation_mode ?? null,
         conversations:
           npc.conversations,
       })
@@ -5053,6 +5087,518 @@ if (!isGalleryRoute()) {
       }
     )
   );
+
+  const isCasinoScene =
+    sceneIdFromRoute() ===
+    "casino";
+
+
+  const socialActionNpcIds =
+    new Set(
+      conversationNpcs.map(
+        npc => npc.id
+      )
+    );
+
+  const casinoFollowerStatesByNpcId =
+    new Map();
+
+  if (isCasinoScene) {
+    for (const npc of conversationNpcs) {
+      if (bodies.has(npc.id)) {
+        casinoFollowerStatesByNpcId.set(
+          npc.id,
+          {
+            following: false,
+          }
+        );
+      }
+    }
+
+    if (
+      typeof bodyInterface.SetMotionType ===
+      "function"
+    ) {
+      for (const npcId of socialActionNpcIds) {
+        const body =
+          bodies.get(npcId) ?? null;
+
+        if (!body) {
+          continue;
+        }
+
+        if (
+          typeof bodyInterface.SetObjectLayer ===
+          "function"
+        ) {
+          bodyInterface.SetObjectLayer(
+            body.GetID(),
+            LAYER_MOVING
+          );
+        }
+
+        bodyInterface.SetMotionType(
+          body.GetID(),
+          Jolt.EMotionType_Kinematic,
+          Jolt.EActivation_Activate
+        );
+      }
+    }
+  }
+
+  const setCasinoNpcFollowing =
+  (
+    npcId,
+    following
+  ) => {
+    if (!isCasinoScene) {
+      return false;
+    }
+
+    if (!socialActionNpcIds.has(npcId)) {
+      return false;
+    }
+
+    const state =
+      casinoFollowerStatesByNpcId.get(
+        npcId
+      );
+
+    if (!state) {
+      return false;
+    }
+
+    state.following =
+      following === true;
+
+    return true;
+  };
+
+  const emitCasinoSocialResult =
+  (
+    npcId,
+    action,
+    accepted,
+    stance,
+    message
+  ) => {
+    window.dispatchEvent(
+      new CustomEvent(
+        CONVERSATION_SOCIAL_RESULT_EVENT_NAME,
+        {
+          detail: {
+            sceneId: "casino",
+            npcId,
+            action,
+            accepted,
+            stance,
+            message,
+            at: Date.now(),
+          },
+        }
+      )
+    );
+  };
+
+  const randomFromString =
+  (value) => {
+    let hash = 0;
+
+    for (let i = 0; i < value.length; i += 1) {
+      hash =
+        (hash * 31 +
+          value.charCodeAt(i)) |
+        0;
+    }
+
+    return (
+      (hash >>> 0) /
+      4294967295
+    );
+  };
+
+  const baseFollowWillingnessForNpc =
+  (npcId) => {
+    if (npcId === "glb-tuxedo-bear-bar") {
+      return 0.85;
+    }
+
+    if (
+      npcId.startsWith(
+        "glb-tuxedo-bear-"
+      )
+    ) {
+      return 0.62;
+    }
+
+    if (
+      npcId.includes("vip-room")
+    ) {
+      return 0.38;
+    }
+
+    if (
+      npcId.startsWith(
+        "glb-sitting-bear-"
+      )
+    ) {
+      return 0.27;
+    }
+
+    return 0.52;
+  };
+
+  const evaluateCasinoFollowDecision =
+  (
+    npcId,
+    detail
+  ) => {
+    const followState =
+      casinoFollowerStatesByNpcId.get(
+        npcId
+      ) ?? null;
+
+    let score =
+      baseFollowWillingnessForNpc(
+        npcId
+      );
+
+    if (followState?.following) {
+      score += 0.14;
+    }
+
+    const npcBody =
+      bodies.get(npcId) ??
+      null;
+
+    if (npcBody && character) {
+      const npcPosition =
+        npcBody.GetPosition();
+      const playerPosition =
+        character.GetPosition();
+
+      const distance =
+        Math.hypot(
+          playerPosition.GetX() -
+            npcPosition.GetX(),
+          playerPosition.GetZ() -
+            npcPosition.GetZ()
+        );
+
+      if (distance <= 8) {
+        score += 0.1;
+      } else if (distance >= 18) {
+        score -= 0.12;
+      }
+    }
+
+    const deterministicVariance =
+      randomFromString(
+        `${npcId}:${detail.nodeId ?? ""}`
+      ) - 0.5;
+
+    score += deterministicVariance * 0.18;
+
+    if (score >= 0.58) {
+      return {
+        accepted: true,
+        stance: "accept",
+        message:
+          "Alright. Lead the way.",
+      };
+    }
+
+    if (score >= 0.43) {
+      return {
+        accepted: false,
+        stance: "delay",
+        message:
+          "Not yet. I need a minute before I leave this spot.",
+      };
+    }
+
+    return {
+      accepted: false,
+      stance: "reject",
+      message:
+        "No thanks. I would rather stay here.",
+    };
+  };
+
+  const handleConversationChoiceEvent =
+  (event) => {
+    if (!isCasinoScene) {
+      return;
+    }
+
+    const detail =
+      event?.detail ?? null;
+
+    if (!detail || detail.sceneId !== "casino") {
+      return;
+    }
+
+    const npcId =
+      typeof detail.npcId === "string"
+        ? detail.npcId
+        : null;
+
+    const socialAction =
+      detail.choice?.socialAction ??
+      null;
+
+    if (!npcId || !socialAction) {
+      return;
+    }
+
+    if (!socialActionNpcIds.has(npcId)) {
+      emitCasinoSocialResult(
+        npcId,
+        socialAction.type,
+        false,
+        "reject",
+        "I cannot do that right now."
+      );
+      return;
+    }
+
+    if (socialAction.type === "start_following") {
+      const decision =
+        evaluateCasinoFollowDecision(
+          npcId,
+          detail
+        );
+
+      if (decision.accepted) {
+        setCasinoNpcFollowing(
+          npcId,
+          true
+        );
+      }
+
+      emitCasinoSocialResult(
+        npcId,
+        socialAction.type,
+        decision.accepted,
+        decision.stance,
+        decision.message
+      );
+      return;
+    }
+
+    if (socialAction.type === "stop_following") {
+      setCasinoNpcFollowing(
+        npcId,
+        false
+      );
+
+      emitCasinoSocialResult(
+        npcId,
+        socialAction.type,
+        true,
+        "accept",
+        "Got it. I will stay here."
+      );
+      return;
+    }
+
+    emitCasinoSocialResult(
+      npcId,
+      socialAction.type,
+      false,
+      "reject",
+      "I do not understand that request."
+    );
+  };
+
+  if (
+    typeof window.__hblConversationChoiceHandler ===
+    "function"
+  ) {
+    window.removeEventListener(
+      CONVERSATION_CHOICE_EVENT_NAME,
+      window.__hblConversationChoiceHandler
+    );
+  }
+
+  window.__hblConversationChoiceHandler =
+    handleConversationChoiceEvent;
+
+  window.addEventListener(
+    CONVERSATION_CHOICE_EVENT_NAME,
+    handleConversationChoiceEvent
+  );
+
+  const updateCasinoFollowerActors =
+  (deltaTime) => {
+    if (
+      !isCasinoScene ||
+      !character ||
+      casinoFollowerStatesByNpcId.size === 0
+    ) {
+      return;
+    }
+
+    const playerPosition =
+      character.GetPosition();
+
+    const playerX =
+      playerPosition.GetX();
+    const playerZ =
+      playerPosition.GetZ();
+
+    const stopDistance =
+      2.5;
+
+    const baseSpeed =
+      2.8;
+
+    const catchupSpeed =
+      4.2;
+
+    for (
+      const [npcId, state]
+      of casinoFollowerStatesByNpcId.entries()
+    ) {
+      if (!state.following) {
+        continue;
+      }
+
+      const body =
+        bodies.get(npcId) ??
+        null;
+
+      if (!body) {
+        continue;
+      }
+
+      const npcPosition =
+        body.GetPosition();
+
+      const npcX =
+        npcPosition.GetX();
+      const npcY =
+        npcPosition.GetY();
+      const npcZ =
+        npcPosition.GetZ();
+
+      const toPlayerX =
+        playerX - npcX;
+      const toPlayerZ =
+        playerZ - npcZ;
+
+      const planarDistance =
+        Math.hypot(
+          toPlayerX,
+          toPlayerZ
+        );
+
+      if (
+        !Number.isFinite(planarDistance) ||
+        planarDistance <=
+          stopDistance
+      ) {
+        continue;
+      }
+
+      const stepSpeed =
+        planarDistance > 9
+          ? catchupSpeed
+          : baseSpeed;
+
+      const moveDistance =
+        Math.min(
+          planarDistance - stopDistance,
+          Math.max(
+            0,
+            deltaTime *
+              stepSpeed
+          )
+        );
+
+      if (moveDistance <= 0) {
+        continue;
+      }
+
+      const dirX =
+        toPlayerX /
+        planarDistance;
+
+      const dirZ =
+        toPlayerZ /
+        planarDistance;
+
+      const nextX =
+        npcX + dirX * moveDistance;
+
+      const nextZ =
+        npcZ + dirZ * moveDistance;
+
+      const yaw =
+        Math.atan2(
+          dirX,
+          dirZ
+        );
+
+      const position =
+        new Jolt.RVec3(
+          nextX,
+          npcY,
+          nextZ
+        );
+
+      const rotation =
+        new Jolt.Quat(
+          0,
+          Math.sin(yaw / 2),
+          0,
+          Math.cos(yaw / 2)
+        );
+
+      bodyInterface.SetPositionAndRotation(
+        body.GetID(),
+        position,
+        rotation,
+        Jolt.EActivation_Activate
+      );
+
+      if (
+        typeof bodyInterface.SetLinearAndAngularVelocity ===
+        "function"
+      ) {
+        const linearVelocity =
+          new Jolt.Vec3(
+            0,
+            0,
+            0
+          );
+
+        const angularVelocity =
+          new Jolt.Vec3(
+            0,
+            0,
+            0
+          );
+
+        bodyInterface.SetLinearAndAngularVelocity(
+          body.GetID(),
+          linearVelocity,
+          angularVelocity
+        );
+
+        Jolt.destroy(
+          linearVelocity
+        );
+
+        Jolt.destroy(
+          angularVelocity
+        );
+      }
+
+      Jolt.destroy(position);
+      Jolt.destroy(rotation);
+    }
+  };
 
   if (
     sceneIdFromRoute() ===
@@ -6709,6 +7255,10 @@ if (!isGalleryRoute()) {
 
     updateConstitutionNeighborhoodActors(
       time
+    );
+
+    updateCasinoFollowerActors(
+      deltaTime
     );
 
     handleInput(

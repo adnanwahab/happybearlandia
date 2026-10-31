@@ -898,16 +898,68 @@ function ScreenshotGallery() {
   );
 }
 
+function getOrCreateConversationPlayerId() {
+  const storageKey = "hbl:conversation-player-id";
+
+  try {
+    const existing = localStorage.getItem(storageKey);
+
+    if (typeof existing === "string" && existing.trim()) {
+      return existing.trim();
+    }
+
+    const generated =
+      typeof crypto?.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `player-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+
+    localStorage.setItem(storageKey, generated);
+    return generated;
+  } catch {
+    return "local-player";
+  }
+}
+
 function getFirstConversation(npc) {
-  if (!npc || !Array.isArray(npc.conversations) || npc.conversations.length === 0) {
+  if (!npc) {
     return null;
   }
 
-  return npc.conversations[0] ?? null;
+  if (Array.isArray(npc.conversations) && npc.conversations.length > 0) {
+    return npc.conversations[0] ?? null;
+  }
+
+  const starter = npc?.conversation_mode?.starter;
+
+  if (typeof starter !== "string" || !starter.trim()) {
+    return null;
+  }
+
+  const suggestedPrompts = Array.isArray(npc?.conversation_mode?.suggested_player_prompts)
+    ? npc.conversation_mode.suggested_player_prompts
+    : [];
+
+  return {
+    id: `${npc.id}-open-ended`,
+    start: "start",
+    tree: {
+      start: {
+        speaker: npc.name ?? "Resident",
+        text: starter,
+        choices: suggestedPrompts.slice(0, 6).map((text, index) => ({
+          id: `${npc.id}-suggested-${index + 1}`,
+          text,
+          next: null,
+        })),
+      },
+    },
+  };
 }
 
 const POKER_UI_EVENT_NAME = "hbl:poker-ui";
 const POKER_ACTION_EVENT_NAME = "hbl:poker-action";
+const CONVERSATION_CHOICE_EVENT_NAME = "hbl:conversation-choice";
+const CONVERSATION_SOCIAL_RESULT_EVENT_NAME = "hbl:conversation-social-result";
 
 function emitPokerAction(action, amount = null) {
   window.dispatchEvent(
@@ -979,6 +1031,8 @@ function GameplayOverlay() {
     () => window.__hblConversationScene ?? { npcs: [], range: 5 },
   );
 
+  const conversationPlayerId = useMemo(() => getOrCreateConversationPlayerId(), []);
+
   const [activeNpcId, setActiveNpcId] = useState(null);
   const [activeConversationId, setActiveConversationId] = useState(null);
   const [currentNodeId, setCurrentNodeId] = useState(null);
@@ -1015,8 +1069,10 @@ function GameplayOverlay() {
   const [raiseToAmount, setRaiseToAmount] = useState(0);
   const [openEndedPrompt, setOpenEndedPrompt] = useState("");
   const [openEndedReply, setOpenEndedReply] = useState("");
+  const [openEndedTranscript, setOpenEndedTranscript] = useState([]);
   const [openEndedError, setOpenEndedError] = useState("");
   const [openEndedLoading, setOpenEndedLoading] = useState(false);
+  const [socialFeedback, setSocialFeedback] = useState(null);
 
   const npcById = useMemo(() => {
     const map = new Map();
@@ -1059,8 +1115,10 @@ function GameplayOverlay() {
     setCurrentNodeId(null);
     setOpenEndedPrompt("");
     setOpenEndedReply("");
+    setOpenEndedTranscript([]);
     setOpenEndedError("");
     setOpenEndedLoading(false);
+    setSocialFeedback(null);
     setDialogActiveFlag(false);
   }
 
@@ -1075,6 +1133,8 @@ function GameplayOverlay() {
     setActiveNpcId(npcId);
     setActiveConversationId(conversation.id ?? `${npcId}-conversation`);
     setCurrentNodeId(conversation.start);
+    setSocialFeedback(null);
+    setOpenEndedTranscript([]);
     setDialogActiveFlag(true);
 
     return true;
@@ -1089,7 +1149,30 @@ function GameplayOverlay() {
 
     const nextNodeId = choice.next;
 
-    if (!nextNodeId || !activeConversation?.tree?.[nextNodeId]) {
+    setSocialFeedback(null);
+
+    window.dispatchEvent(
+      new CustomEvent(CONVERSATION_CHOICE_EVENT_NAME, {
+        detail: {
+          sceneId,
+          npcId: activeNpcId,
+          conversationId: activeConversationId,
+          nodeId: currentNodeId,
+          choice,
+          nextNodeId,
+          at: Date.now(),
+        },
+      }),
+    );
+
+    if (!nextNodeId) {
+      if (typeof choice.text === "string" && choice.text.trim()) {
+        setOpenEndedPrompt(choice.text);
+      }
+      return;
+    }
+
+    if (!activeConversation?.tree?.[nextNodeId]) {
       closeConversation();
       return;
     }
@@ -1104,23 +1187,86 @@ function GameplayOverlay() {
       return;
     }
 
+    const normalizedMessage = message.toLowerCase();
+
+    const wantsFollow =
+      normalizedMessage.includes("follow me") ||
+      normalizedMessage.includes("come with me") ||
+      normalizedMessage.includes("walk with me");
+
+    const wantsStopFollowing =
+      normalizedMessage.includes("wait here") ||
+      normalizedMessage.includes("stay here") ||
+      normalizedMessage.includes("stop following");
+
+    if (wantsFollow || wantsStopFollowing) {
+      window.dispatchEvent(
+        new CustomEvent(CONVERSATION_CHOICE_EVENT_NAME, {
+          detail: {
+            sceneId,
+            npcId: activeNpcId,
+            conversationId: activeConversationId,
+            nodeId: currentNodeId,
+            choice: {
+              id: "open-ended-social-action",
+              text: message,
+              socialAction: {
+                type: wantsFollow
+                  ? "start_following"
+                  : "stop_following",
+              },
+            },
+            nextNodeId: currentNodeId,
+            at: Date.now(),
+          },
+        }),
+      );
+    }
+
     setOpenEndedLoading(true);
     setOpenEndedError("");
 
     try {
-      const response = await fetch("/api/conversations/open-ended", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      setOpenEndedTranscript(previous => [
+        ...previous,
+        {
+          role: "player",
+          text: message,
+          at: Date.now(),
         },
-        body: JSON.stringify({
-          sceneId,
-          npcId: activeNpcId,
-          npcName: currentNode?.speaker ?? "Resident",
-          conversationContext: currentNode?.text ?? "",
-          message,
-        }),
-      });
+      ]);
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+
+      let response;
+
+      try {
+        response = await fetch("/api/conversations/open-ended", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            sceneId,
+            npcId: activeNpcId,
+            npcName: currentNode?.speaker ?? activeNpc?.name ?? "Resident",
+            conversationContext: currentNode?.text ?? activeNpc?.conversation_mode?.starter ?? "",
+            npcProfile: {
+              name: activeNpc?.name ?? null,
+              personality: activeNpc?.personality ?? null,
+              current_state: activeNpc?.current_state ?? null,
+              relationship_defaults: activeNpc?.relationship_defaults ?? null,
+              conversation_mode: activeNpc?.conversation_mode ?? null,
+            },
+            playerId: conversationPlayerId,
+            message,
+          }),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
 
       const payload = await response.json().catch(() => ({}));
 
@@ -1133,9 +1279,22 @@ function GameplayOverlay() {
       }
 
       setOpenEndedReply(payload.reply);
+      setOpenEndedTranscript(previous => [
+        ...previous,
+        {
+          role: "npc",
+          text: payload.reply,
+          at: Date.now(),
+        },
+      ]);
       setOpenEndedPrompt("");
     } catch (error) {
-      setOpenEndedError(error?.message ?? "Unable to get NPC response.");
+      const isAbort = error?.name === "AbortError";
+      setOpenEndedError(
+        isAbort
+          ? "NPC response timed out. Please try again."
+          : (error?.message ?? "Unable to get NPC response."),
+      );
     } finally {
       setOpenEndedLoading(false);
     }
@@ -1185,6 +1344,36 @@ function GameplayOverlay() {
       window.removeEventListener(POKER_UI_EVENT_NAME, handlePokerUiEvent);
     };
   }, []);
+
+  useEffect(() => {
+    function handleConversationSocialResultEvent(event) {
+      const detail = event?.detail ?? null;
+
+      if (!detail || detail.sceneId !== sceneId) {
+        return;
+      }
+
+      if (!activeNpcId || detail.npcId !== activeNpcId) {
+        return;
+      }
+
+      if (typeof detail.message !== "string" || !detail.message.trim()) {
+        return;
+      }
+
+      setSocialFeedback({
+        stance: detail.stance ?? (detail.accepted ? "accept" : "reject"),
+        message: detail.message,
+        at: detail.at ?? Date.now(),
+      });
+    }
+
+    window.addEventListener(CONVERSATION_SOCIAL_RESULT_EVENT_NAME, handleConversationSocialResultEvent);
+
+    return () => {
+      window.removeEventListener(CONVERSATION_SOCIAL_RESULT_EVENT_NAME, handleConversationSocialResultEvent);
+    };
+  }, [activeNpcId, sceneId]);
 
   useEffect(() => {
     const min = Number.isFinite(pokerUi?.minRaiseTo) ? pokerUi.minRaiseTo : 0;
@@ -1557,6 +1746,31 @@ function GameplayOverlay() {
             >
               {currentNode.text ?? "..."}
             </div>
+            {socialFeedback?.message ? (
+              <div
+                style={{
+                  marginBottom: "12px",
+                  padding: "9px 11px",
+                  borderRadius: "8px",
+                  border: "1px solid rgba(148, 163, 184, 0.45)",
+                  background:
+                    socialFeedback.stance === "accept"
+                      ? "rgba(20, 83, 45, 0.38)"
+                      : socialFeedback.stance === "delay"
+                        ? "rgba(113, 63, 18, 0.38)"
+                        : "rgba(127, 29, 29, 0.38)",
+                  color:
+                    socialFeedback.stance === "accept"
+                      ? "#86efac"
+                      : socialFeedback.stance === "delay"
+                        ? "#fcd34d"
+                        : "#fecaca",
+                  fontSize: "13px",
+                }}
+              >
+                {socialFeedback.message}
+              </div>
+            ) : null}
             {dialogChoices.length > 0 ? (
               <div
                 style={{
@@ -1663,7 +1877,42 @@ function GameplayOverlay() {
                 <div style={{ fontSize: "12px", color: "#fda4af" }}>{openEndedError}</div>
               ) : null}
 
-              {openEndedReply ? (
+              {openEndedTranscript.length > 0 ? (
+                <div
+                  style={{
+                    display: "grid",
+                    gap: "8px",
+                    maxHeight: "220px",
+                    overflowY: "auto",
+                    paddingRight: "2px",
+                  }}
+                >
+                  {openEndedTranscript.map((turn, index) => {
+                    const isNpc = turn?.role === "npc";
+
+                    return (
+                      <div
+                        key={`${turn?.at ?? "turn"}-${index}`}
+                        style={{
+                          fontSize: "13px",
+                          lineHeight: 1.45,
+                          color: "#e2e8f0",
+                          background: isNpc ? "rgba(30, 41, 59, 0.8)" : "rgba(15, 118, 110, 0.22)",
+                          border: "1px solid rgba(148, 163, 184, 0.45)",
+                          borderRadius: "8px",
+                          padding: "10px",
+                          whiteSpace: "pre-wrap",
+                        }}
+                      >
+                        <div style={{ fontSize: "11px", color: "#93c5fd", marginBottom: "4px" }}>
+                          {isNpc ? "NPC" : "You"}
+                        </div>
+                        {turn?.text ?? ""}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : openEndedReply ? (
                 <div
                   style={{
                     fontSize: "13px",
@@ -1677,7 +1926,7 @@ function GameplayOverlay() {
                   }}
                 >
                   <div style={{ fontSize: "11px", color: "#93c5fd", marginBottom: "4px" }}>
-                    NPC (GPT)
+                    NPC
                   </div>
                   {openEndedReply}
                 </div>

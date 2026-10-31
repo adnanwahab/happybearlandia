@@ -81,6 +81,20 @@ export function validateSceneConversations(data) {
     fail('npcs must be an array');
   }
 
+  const optionalArrayFields = [
+    'npc_relationships',
+    'conversation_sessions',
+    'conversation_messages',
+    'npc_memories',
+    'npc_goals',
+  ];
+
+  for (const field of optionalArrayFields) {
+    if (data[field] !== undefined && !Array.isArray(data[field])) {
+      fail(`${field} must be an array when provided`);
+    }
+  }
+
   const ids = new Set();
 
   for (const npc of data.npcs) {
@@ -98,8 +112,17 @@ export function validateSceneConversations(data) {
 
     ids.add(npc.id);
 
-    if (!Array.isArray(npc.conversations)) {
-      fail(`${npc.id}.conversations must be an array`);
+    const hasConversations = Array.isArray(npc.conversations);
+    const hasOpenEndedStarter =
+      typeof npc?.conversation_mode?.starter === 'string' &&
+      npc.conversation_mode.starter.trim().length > 0;
+
+    if (!hasConversations && !hasOpenEndedStarter) {
+      fail(`${npc.id} must define conversations[] or conversation_mode.starter`);
+    }
+
+    if (hasConversations && npc.conversations.length === 0 && !hasOpenEndedStarter) {
+      fail(`${npc.id}.conversations is empty and no conversation_mode.starter is provided`);
     }
   }
 
