@@ -29,6 +29,7 @@ function go(lat, lng) {
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
   const q = new URLSearchParams({ lat: lat.toFixed(5), lng: lng.toFixed(5) });
   if (params.get("people")) q.set("people", params.get("people"));
+  if (params.get("year")) q.set("year", params.get("year"));
   location.search = q.toString();
 }
 $("goto").onsubmit = (e) => {
@@ -209,16 +210,74 @@ for (const btn of $("speeds").children) btn.onclick = () => {
   for (const b of $("speeds").children) b.classList.toggle("on", b === btn);
 };
 
+const POLICY_RULES = {
+  t_bus: { label: "Bus frequency", lagYears: 0, rampYears: 2, speedAdd: 0.45 },
+  t_brt: { label: "BRT corridor", lagYears: 2, rampYears: 2, speedAdd: 0.8 },
+  h_lots: { label: "Lot reform", lagYears: 1, rampYears: 5, housingGrowthAdd: 0.35 },
+  h_vouchers: { label: "Housing vouchers", lagYears: 0, rampYears: 1, voucherMonthlyAdd: 35 },
+  s_311: { label: "311 service", lagYears: 0, rampYears: 1, parkCleanupAdd: 0.65 },
+  f_drainage: { label: "Drainage investment", lagYears: 2, rampYears: 4, floodMitigationAdd: 0.16 },
+  f_buyouts: { label: "Floodplain buyouts", lagYears: 1, rampYears: 3, floodMitigationAdd: 0.12 },
+  sb_filing: { label: "Small-biz filing", lagYears: 0, rampYears: 2, restockBoostAdd: 0.2, hiringBoostAdd: 0.1 },
+  sb_payroll: { label: "Small-biz payroll", lagYears: 1, rampYears: 2, restockBoostAdd: 0.2, hiringBoostAdd: 0.2 },
+};
+
 const BASE_POLICY_PACKAGES = {
-  none: { label: "No package", speedMult: 1, floodMitigation: 0, housingGrowth: 0, source: "local" },
-  t_brt: { label: "BRT corridor", speedMult: 1.8, floodMitigation: 0, housingGrowth: 0, source: "local" },
-  h_lots: { label: "Lot reform", speedMult: 1.05, floodMitigation: 0, housingGrowth: 0.35, source: "local" },
-  f_drainage: { label: "Drainage investment", speedMult: 1, floodMitigation: 0.16, housingGrowth: 0, source: "local" },
-  balanced: { label: "Balanced package", speedMult: 1.45, floodMitigation: 0.1, housingGrowth: 0.2, source: "local" },
+  none: {
+    id: "none",
+    label: "No package",
+    source: "local",
+    proposalIds: [],
+    effects: { speedMult: 1, floodMitigation: 0, housingGrowth: 0, voucherMonthly: 0, parkCleanupBoost: 0, restockBoost: 0, hiringBoost: 0 },
+    unsupported: [],
+  },
+  balanced: {
+    id: "balanced",
+    label: "Balanced",
+    source: "local",
+    proposalIds: ["t_brt", "h_lots", "f_drainage", "s_311"],
+    unsupported: [],
+  },
+  "minimal-change": {
+    id: "minimal-change",
+    label: "Minimal change",
+    source: "local",
+    proposalIds: ["t_bus", "s_311", "sb_filing"],
+    unsupported: [],
+  },
+  "most-popular": {
+    id: "most-popular",
+    label: "Most popular",
+    source: "local",
+    proposalIds: ["t_brt", "h_vouchers", "f_drainage", "sb_payroll"],
+    unsupported: [],
+  },
 };
 
 let PLAN_PACKAGES = { ...BASE_POLICY_PACKAGES };
-world.policy = { id: "none", ...PLAN_PACKAGES.none, displaced: 0, floodedNow: 0 };
+let activePolicyId = "none";
+let policyYear = Math.max(0, Math.min(10, Number(params.get("year") ?? 0) || 0));
+const planYearEl = $("planYear");
+const planYearNEl = $("planYearN");
+if (planYearEl) planYearEl.value = String(policyYear);
+if (planYearNEl) planYearNEl.textContent = `Year ${policyYear}`;
+
+world.policy = {
+  id: "none",
+  label: "No package",
+  source: "local",
+  proposalIds: [],
+  unsupported: [],
+  floodedNow: 0,
+  displaced: 0,
+  speedMult: 1,
+  floodMitigation: 0,
+  housingGrowth: 0,
+  voucherMonthly: 0,
+  parkCleanupBoost: 0,
+  restockBoost: 0,
+  hiringBoost: 0,
+};
 
 function slug(v) {
   return String(v || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "pkg";
@@ -233,22 +292,75 @@ function packageRows(payload) {
   return payload?.packages || payload?.results || payload?.items || payload?.data?.packages || payload?.data?.results || [];
 }
 
-function derivePolicyProfile(name, id, proposalIds) {
-  let speedMult = 1, floodMitigation = 0, housingGrowth = 0;
-  for (const pid0 of proposalIds) {
-    const pid = String(pid0).toLowerCase();
-    if (pid === "t_brt" || pid.includes("brt") || pid.includes("transit")) speedMult = Math.max(speedMult, 1.8);
-    if (pid === "f_drainage" || pid.includes("drain") || pid.includes("flood")) floodMitigation += 0.16;
-    if (pid === "h_lots" || pid.includes("lot") || pid.includes("housing")) housingGrowth += 0.35;
+function effectProgress(lagYears, rampYears, year) {
+  if (year < lagYears) return 0;
+  if (!Number.isFinite(rampYears) || rampYears <= 0) return 1;
+  return Math.max(0, Math.min(1, (year - lagYears) / rampYears));
+}
+
+function resolveRuleForProposal(pid0) {
+  const pid = String(pid0 || "").toLowerCase();
+  if (POLICY_RULES[pid]) return { id: pid, rule: POLICY_RULES[pid] };
+  if (pid.includes("brt")) return { id: "t_brt", rule: POLICY_RULES.t_brt };
+  if (pid.includes("bus") || pid.includes("transit")) return { id: "t_bus", rule: POLICY_RULES.t_bus };
+  if (pid.includes("lot") || pid.includes("zoning") || pid.includes("housing")) return { id: "h_lots", rule: POLICY_RULES.h_lots };
+  if (pid.includes("voucher")) return { id: "h_vouchers", rule: POLICY_RULES.h_vouchers };
+  if (pid.includes("311") || pid.includes("clean")) return { id: "s_311", rule: POLICY_RULES.s_311 };
+  if (pid.includes("drain") || pid.includes("flood")) return { id: "f_drainage", rule: POLICY_RULES.f_drainage };
+  if (pid.includes("buyout")) return { id: "f_buyouts", rule: POLICY_RULES.f_buyouts };
+  if (pid.includes("payroll")) return { id: "sb_payroll", rule: POLICY_RULES.sb_payroll };
+  if (pid.includes("filing") || pid.includes("permit") || pid.includes("small") || pid.startsWith("sb_")) return { id: "sb_filing", rule: POLICY_RULES.sb_filing };
+  return null;
+}
+
+function computeEffectsForYear(proposalIds, year) {
+  const effects = {
+    speedMult: 1,
+    floodMitigation: 0,
+    housingGrowth: 0,
+    voucherMonthly: 0,
+    parkCleanupBoost: 0,
+    restockBoost: 0,
+    hiringBoost: 0,
+  };
+  const unsupported = [];
+
+  for (const pid of proposalIds) {
+    const mapped = resolveRuleForProposal(pid);
+    if (!mapped) {
+      unsupported.push(pid);
+      continue;
+    }
+    const p = effectProgress(mapped.rule.lagYears, mapped.rule.rampYears, year);
+    effects.speedMult += (mapped.rule.speedAdd || 0) * p;
+    effects.floodMitigation += (mapped.rule.floodMitigationAdd || 0) * p;
+    effects.housingGrowth += (mapped.rule.housingGrowthAdd || 0) * p;
+    effects.voucherMonthly += (mapped.rule.voucherMonthlyAdd || 0) * p;
+    effects.parkCleanupBoost += (mapped.rule.parkCleanupAdd || 0) * p;
+    effects.restockBoost += (mapped.rule.restockBoostAdd || 0) * p;
+    effects.hiringBoost += (mapped.rule.hiringBoostAdd || 0) * p;
   }
+
+  effects.speedMult = Math.min(2.6, Math.max(1, effects.speedMult));
+  effects.floodMitigation = Math.min(0.45, Math.max(0, effects.floodMitigation));
+  effects.housingGrowth = Math.min(1.8, Math.max(0, effects.housingGrowth));
+  effects.voucherMonthly = Math.min(120, Math.max(0, effects.voucherMonthly));
+  effects.parkCleanupBoost = Math.min(1.2, Math.max(0, effects.parkCleanupBoost));
+  effects.restockBoost = Math.min(1.1, Math.max(0, effects.restockBoost));
+  effects.hiringBoost = Math.min(0.8, Math.max(0, effects.hiringBoost));
+
+  return { effects, unsupported: Array.from(new Set(unsupported)) };
+}
+
+function derivePolicyProfile(name, id, proposalIds, source = "dear-congress") {
+  const full = computeEffectsForYear(proposalIds, 10);
   return {
     id,
     label: name,
-    speedMult: Math.min(2.2, speedMult),
-    floodMitigation: Math.min(0.35, floodMitigation),
-    housingGrowth: Math.min(1.5, housingGrowth),
-    source: "dear-congress",
+    source,
     proposalIds,
+    effects: full.effects,
+    unsupported: full.unsupported,
   };
 }
 
@@ -261,57 +373,86 @@ function refreshPolicySelect(selected = "none") {
   sel.value = PLAN_PACKAGES[selected] ? selected : "none";
 }
 
-function applyPolicy(id) {
+function applyPolicy(id, year = policyYear) {
   const k = PLAN_PACKAGES[id] ? id : "none";
   const p = PLAN_PACKAGES[k];
-  world.policy = { ...world.policy, id: k, label: p.label, speedMult: p.speedMult, floodMitigation: p.floodMitigation, housingGrowth: p.housingGrowth, source: p.source };
-  world.speedMult = p.speedMult;
-  const src = p.source === "dear-congress" ? " · source: dear-congress" : " · source: local";
-  $("policyNote").textContent = `${p.label} · transit ×${p.speedMult.toFixed(2)} · flood mitigation ${Math.round(p.floodMitigation * 100)}% · housing growth ${Math.round(p.housingGrowth * 100)}%${src}`;
-  world.log(`Policy package set: ${p.label}`, "civic");
+  const staged = computeEffectsForYear(p.proposalIds || [], year);
+
+  world.policy = {
+    ...world.policy,
+    id: k,
+    label: p.label,
+    source: p.source,
+    proposalIds: p.proposalIds || [],
+    unsupported: staged.unsupported,
+    speedMult: staged.effects.speedMult,
+    floodMitigation: staged.effects.floodMitigation,
+    housingGrowth: staged.effects.housingGrowth,
+    voucherMonthly: staged.effects.voucherMonthly,
+    parkCleanupBoost: staged.effects.parkCleanupBoost,
+    restockBoost: staged.effects.restockBoost,
+    hiringBoost: staged.effects.hiringBoost,
+  };
+
+  world.speedMult = staged.effects.speedMult;
+  world.parkCleanupBoost = staged.effects.parkCleanupBoost;
+  world.restockBoost = staged.effects.restockBoost;
+  world.hiringBoost = staged.effects.hiringBoost;
+  world.voucherMonthly = staged.effects.voucherMonthly;
+
+  const src = p.source === "dear-congress" ? "dear-congress" : "local";
+  const pendingTxt = staged.unsupported.length
+    ? ` · not simulated yet: ${staged.unsupported.slice(0, 4).join(", ")}${staged.unsupported.length > 4 ? "…" : ""}`
+    : "";
+
+  $("policyNote").textContent = `${p.label} · year ${year} · transit ×${staged.effects.speedMult.toFixed(2)} · flood mitigation ${Math.round(staged.effects.floodMitigation * 100)}% · housing growth ${Math.round(staged.effects.housingGrowth * 100)}% · vouchers $${staged.effects.voucherMonthly.toFixed(0)}/mo · source: ${src}${pendingTxt}`;
 }
 
 async function loadPolicyPackages() {
-  const q = new URLSearchParams({ lat: String(origin.lat), lng: String(origin.lng) }).toString();
   const explicit = params.get("plans");
-  const candidates = [
-    ...(explicit ? [explicit] : []),
-    `/api/dear-congress/packages?${q}`,
-    `/api/dear-congress/package-results?${q}`,
+  const q = new URLSearchParams({ lat: String(origin.lat), lng: String(origin.lng) }).toString();
+  const attempts = [
+    { kind: "post", url: "/api/plan", body: JSON.stringify({}) },
+    ...(explicit ? [{ kind: "get", url: explicit }] : []),
+    { kind: "get", url: `/api/dear-congress/packages?${q}` },
+    { kind: "get", url: `/api/dear-congress/package-results?${q}` },
   ];
 
-  for (const url of candidates) {
+  for (const attempt of attempts) {
     try {
-      const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+      const res = await fetch(attempt.url, attempt.kind === "post"
+        ? { method: "POST", headers: { "content-type": "application/json" }, body: attempt.body, signal: AbortSignal.timeout(8000) }
+        : { signal: AbortSignal.timeout(8000) });
       if (!res.ok) continue;
       const payload = await res.json();
       const rows = packageRows(payload);
       if (!Array.isArray(rows) || !rows.length) continue;
 
-      const next = { ...BASE_POLICY_PACKAGES };
+      const next = { none: BASE_POLICY_PACKAGES.none };
       let n = 0;
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
-        const name = row?.name || row?.title || row?.label || `Package ${i + 1}`;
+        const name = row?.name || row?.title || row?.label || row?.packageName || `Package ${i + 1}`;
         const id = slug(row?.id || row?.slug || name);
         const items = row?.items || row?.proposals || row?.package?.items || [];
         const proposalIds = Array.from(new Set(items.map(proposalIdFrom).filter(Boolean)));
         if (!proposalIds.length) continue;
-        next[id] = derivePolicyProfile(name, id, proposalIds);
+        next[id] = derivePolicyProfile(name, id, proposalIds, "dear-congress");
         n++;
       }
       if (!n) continue;
 
       PLAN_PACKAGES = next;
-      refreshPolicySelect("none");
+      refreshPolicySelect(activePolicyId);
       world.log(`Loaded ${n} plan packages from dear-congress`, "civic");
       return true;
     } catch {
       // try next endpoint
     }
   }
-  world.log("Could not load dear-congress packages; using local policy presets", "info");
-  refreshPolicySelect("none");
+
+  world.log("Could not load synthesized plan packages; using local presets", "info");
+  refreshPolicySelect(activePolicyId);
   return false;
 }
 
@@ -368,10 +509,152 @@ function triggerStorm() {
   world.log(`Storm hit: ${floodedNow} parcels flooded, ${displaced} residents displaced`, "civic");
 }
 
-$("policy").onchange = (e) => applyPolicy(e.target.value);
+$("policy").onchange = (e) => {
+  activePolicyId = e.target.value;
+  applyPolicy(activePolicyId, policyYear);
+};
+
+if (planYearEl) {
+  planYearEl.oninput = (e) => {
+    policyYear = Math.max(0, Math.min(10, Number(e.target.value) || 0));
+    if (planYearNEl) planYearNEl.textContent = `Year ${policyYear}`;
+    params.set("year", String(policyYear));
+    applyPolicy(activePolicyId, policyYear);
+  };
+}
+
 $("stormBtn").onclick = () => triggerStorm();
 await loadPolicyPackages();
-applyPolicy($("policy").value || "none");
+activePolicyId = $("policy").value || "none";
+applyPolicy(activePolicyId, policyYear);
+
+const tileKey = `${origin.lat.toFixed(3)},${origin.lng.toFixed(3)}`;
+const journalDayStorageKey = `hbl:world:journal-day:${tileKey}`;
+let lastJournalDay = Number(localStorage.getItem(journalDayStorageKey) ?? -1);
+if (!Number.isFinite(lastJournalDay)) lastJournalDay = -1;
+let journalInFlight = false;
+const journalDiag = { day: lastJournalDay, attempted: 0, posted: 0, status: "idle", lastError: null };
+
+function renderJournalDiagnostics() {
+  const el = $("journaldiag");
+  if (!el) return;
+  const dayTxt = Number.isFinite(journalDiag.day) && journalDiag.day >= 0 ? `day ${journalDiag.day}` : "day —";
+  const countTxt = `${journalDiag.posted}/${journalDiag.attempted}`;
+  const warn = journalDiag.lastError ? " ⚠" : "";
+  el.textContent = `Journals${warn}: ${dayTxt} · posted ${countTxt} · ${journalDiag.status}`;
+  el.title = journalDiag.lastError ? `Last publish error: ${journalDiag.lastError}` : "";
+}
+
+renderJournalDiagnostics();
+
+function residentMood(p) {
+  const n = p?.needs || {};
+  return (Number(n.hunger || 0) + Number(n.energy || 0) + Number(n.fun || 0) + Number(n.social || 0)) / 4;
+}
+
+function worstNeedLabel(p) {
+  const entries = Object.entries(p?.needs || {});
+  if (!entries.length) return "general stress";
+  entries.sort((a, b) => a[1] - b[1]);
+  const [k] = entries[0];
+  return ({ hunger: "food insecurity", energy: "exhaustion", fun: "burnout", social: "isolation" })[k] || "general stress";
+}
+
+function recentFrustration() {
+  const e = (world.events || []).find((x) => ["soldout", "litter", "fridge", "civic"].includes(x.kind));
+  return e?.text || null;
+}
+
+function makeJournalText(p, frustration) {
+  const low = worstNeedLabel(p);
+  const weather = world.policy?.floodedNow ? ` After the storm, ${world.policy.floodedNow} parcels flooded.` : "";
+  const local = frustration ? ` Today I noticed: ${frustration}.` : "";
+  return `${p.name} from tile ${tileKey}: I'm worried about ${low}.${local}${weather} I want policies that improve daily life in this neighborhood.`;
+}
+
+async function publishSyntheticJournalsForDay(day) {
+  if (journalInFlight) return;
+  journalInFlight = true;
+  journalDiag.day = day;
+  journalDiag.status = "publishing";
+  renderJournalDiagnostics();
+
+  try {
+    const byMood = [...town.people]
+      .map((p, i) => ({ p, i, mood: residentMood(p) }))
+      .sort((a, b) => a.mood - b.mood);
+    const unhappy = byMood.filter((x) => x.mood < 50).slice(0, 3);
+    const picked = unhappy.length ? unhappy : byMood.slice(0, 2);
+
+    if (!picked.length) {
+      journalDiag.attempted = 0;
+      journalDiag.posted = 0;
+      journalDiag.status = "no candidates";
+      journalDiag.lastError = null;
+      lastJournalDay = day;
+      localStorage.setItem(journalDayStorageKey, String(day));
+      renderJournalDiagnostics();
+      return;
+    }
+
+    const frustration = recentFrustration();
+    journalDiag.attempted = picked.length;
+    journalDiag.posted = 0;
+    journalDiag.lastError = null;
+
+    let ok = 0;
+    for (const { p, i, mood } of picked) {
+      const text = makeJournalText(p, frustration);
+      const payload = {
+        kind: "journal",
+        synthetic: true,
+        source: "happybearlandia-world",
+        tileId: tileKey,
+        day,
+        residentId: String(p.id ?? i),
+        title: `Journal · ${p.name}`,
+        text,
+        body: text,
+        content: text,
+        metadata: {
+          lat: origin.lat,
+          lng: origin.lng,
+          policyId: world.policy?.id || "none",
+          policyYear,
+          mood: Number(mood.toFixed(1)),
+          needs: p.needs,
+        },
+      };
+
+      try {
+        const res = await fetch("/api/publish_draft", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "x-voter-id": `synthetic-${tileKey}-${String(p.id ?? i)}`,
+          },
+          body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(8000),
+        });
+        if (res.ok) ok++;
+      } catch (err) {
+        journalDiag.lastError = String(err?.message || err || "request failed");
+        // continue posting next resident
+      }
+      journalDiag.posted = ok;
+      renderJournalDiagnostics();
+    }
+
+    lastJournalDay = day;
+    localStorage.setItem(journalDayStorageKey, String(day));
+    journalDiag.status = ok > 0 ? "published" : "upstream unavailable";
+    if (ok > 0) journalDiag.lastError = null;
+    world.log(`Published ${ok}/${picked.length} synthetic journals for day ${day}`, "civic");
+    renderJournalDiagnostics();
+  } finally {
+    journalInFlight = false;
+  }
+}
 
 const ray = new THREE.Raycaster();
 const ptr = new THREE.Vector2();
@@ -459,6 +742,12 @@ function frame(now) {
   const steps = Math.floor(acc);
   if (steps > 0) { world.step(Math.min(steps, 240)); acc -= steps; }
 
+  // Once per simulated day per tile: publish a few synthetic resident journals.
+  // Trigger after 8:00 local sim time so demos show the loop quickly.
+  if (world.day() > lastJournalDay && world.minuteOfDay() >= 8 * 60) {
+    publishSyntheticJournalsForDay(world.day());
+  }
+
   // Day / night
   const m = world.minuteOfDay();
   const daylight = Math.max(0, Math.sin(((m - 6 * 60) / (14 * 60)) * Math.PI)); // 6am–8pm arc
@@ -540,6 +829,12 @@ function updateBuildings(daylight) {
 
 function updateHud() {
   $("clock").textContent = clock(world.t);
+  if (!journalInFlight) {
+    if (world.day() <= lastJournalDay) journalDiag.status = "done for today";
+    else if (world.minuteOfDay() < 8 * 60) journalDiag.status = "waiting for 08:00";
+    else journalDiag.status = "pending";
+    renderJournalDiagnostics();
+  }
   const s = world.summary();
   $("mood").style.width = `${s.mood}%`;
   $("moodN").textContent = s.mood.toFixed(0);

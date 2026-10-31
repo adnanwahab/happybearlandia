@@ -209,6 +209,10 @@ export function createWorld(town, opts = {}) {
     ...town,
     t: opts.startMinute ?? 6 * 60 + 30, // absolute game minutes since day 0
     speedMult: 1,
+    parkCleanupBoost: 0,
+    restockBoost: 0,
+    hiringBoost: 0,
+    voucherMonthly: 0,
     events: [],
     stats: { spent: 0, meals: 0, groceries: 0, cleanups: 0 },
     byKind,
@@ -321,11 +325,27 @@ export function createWorld(town, opts = {}) {
     w.t += 1;
     const m = w.minuteOfDay();
     if (m === 0) for (const p of w.people) p.workedToday = false;
-    // Deliveries: shops at 6:00 and 14:00, kitchens prep every hour while open.
-    for (const b of byKind.shop || []) if (m === 6 * 60 || m === 14 * 60) restock(b, b.state.maxStock);
-    for (const b of byKind.food || []) if (m % 60 === 0 && w.isOpen(b)) restock(b, Math.min(b.state.maxStock, b.state.stock + 6), true);
-    // Litter slowly blows away / city crew at 5am
-    for (const b of byKind.park || []) if (m === 5 * 60) b.state.litter = Math.max(0, b.state.litter - 15);
+    // Deliveries: shops at 6:00 and 14:00 (+18:00 when small-biz support ramps in), kitchens prep every hour while open.
+    const extraDelivery = w.restockBoost >= 0.18 && m === 18 * 60;
+    for (const b of byKind.shop || []) if (m === 6 * 60 || m === 14 * 60 || extraDelivery) restock(b, b.state.maxStock);
+    const prepBase = 6;
+    for (const b of byKind.food || []) if (m % 60 === 0 && w.isOpen(b)) restock(b, Math.min(b.state.maxStock, b.state.stock + Math.round(prepBase * (1 + w.restockBoost))), true);
+
+    // Litter slowly blows away / city crew at 5am (boosted by 311-type service policies)
+    const cleanupAtDawn = Math.round(15 * (1 + w.parkCleanupBoost));
+    for (const b of byKind.park || []) if (m === 5 * 60) b.state.litter = Math.max(0, b.state.litter - cleanupAtDawn);
+
+    // Once every 30 game days: voucher-style support to lower-cash households.
+    if (m === 0 && w.day() > 0 && w.day() % 30 === 0 && w.voucherMonthly > 0) {
+      let supported = 0;
+      for (const p of w.people) {
+        if (p.money <= 90) {
+          p.money += w.voucherMonthly;
+          supported++;
+        }
+      }
+      if (supported) w.log(`Voucher support deposited to ${supported} households`, "civic");
+    }
 
     for (const p of w.people) {
       const a = p.mode === "doing" && p.action ? ACTIONS[p.action] : null;
@@ -339,7 +359,10 @@ export function createWorld(town, opts = {}) {
         }
         p.needs[need] = clamp(p.needs[need] + d);
       }
-      if (a?.pay) p.money += a.pay;
+      if (a?.pay) {
+        const wageBoost = p.action === "work" ? 1 + w.hiringBoost * 0.5 : 1;
+        p.money += a.pay * wageBoost;
+      }
 
       if (p.mode === "idle") decide(p);
       else if (p.mode === "moving") {

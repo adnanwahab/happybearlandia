@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 
-import "./index.js";
+import "/game/index.js";
 
 function isGalleryRoute(pathname) {
   return pathname === "/game" || pathname === "/game/";

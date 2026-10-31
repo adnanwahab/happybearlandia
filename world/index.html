@@ -79,13 +79,17 @@
   <div class="row">
     <label class="muted" for="policy">Plan package</label>
     <select id="policy" aria-label="Plan package">
-      <option value="none">None</option>
-      <option value="t_brt">BRT corridor</option>
-      <option value="h_lots">Lot reform</option>
-      <option value="f_drainage">Drainage investment</option>
-      <option value="balanced">Balanced package</option>
+      <option value="none">No package</option>
+      <option value="balanced">Balanced</option>
+      <option value="minimal-change">Minimal change</option>
+      <option value="most-popular">Most popular</option>
     </select>
     <button id="stormBtn" type="button">Storm</button>
+  </div>
+  <div class="row" style="margin-top:2px">
+    <label class="muted" for="planYear">Year of plan</label>
+    <input id="planYear" type="range" min="0" max="10" step="1" value="0" style="flex:1" />
+    <span id="planYearN" class="muted" style="min-width:52px;text-align:right">Year 0</span>
   </div>
   <div class="muted" id="policyNote"></div>
   <div class="legend">
@@ -94,6 +98,7 @@
     <span><i style="background:#9b7fd1"></i>school</span><span><i style="background:#7fb26a"></i>park</span>
   </div>
   <div class="muted" id="source" style="margin-top:6px"></div>
+  <div class="muted" id="journaldiag" style="margin-top:6px"></div>
   <div class="muted" id="netdiag" style="margin-top:6px"></div>
   <div id="netwarn" class="warn" hidden></div>
   <details id="netdiagDetails" class="muted" hidden>
