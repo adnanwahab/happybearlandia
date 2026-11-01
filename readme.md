@@ -5,6 +5,8 @@
 
 # Computer Vision for Beginners
 
+# simulate so much data can visualize long term trends
+
 simulators, games, tools, robots
 
 this repo has a physics puzzle game that makes data for machine learning
