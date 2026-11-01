@@ -143,6 +143,124 @@ function applyPolicyToWorld(world, policyEffects) {
   };
 }
 
+function policyContributions(proposalIds, year, adoptedYearByProposal = null) {
+  const out = {};
+  for (const pid of proposalIds || []) {
+    const mapped = resolveRuleForProposal(pid);
+    if (!mapped) continue;
+    const adoptedYear = adoptedYearByProposal && Number.isFinite(adoptedYearByProposal[pid])
+      ? Number(adoptedYearByProposal[pid])
+      : 0;
+    const yearsInEffect = year - adoptedYear;
+    const p = Math.max(0, Math.min(1, (mapped.rule.rampYears <= 0)
+      ? (yearsInEffect >= mapped.rule.lagYears ? 1 : 0)
+      : ((yearsInEffect - mapped.rule.lagYears) / mapped.rule.rampYears)));
+    out[pid] = {
+      speedAdd: Number(mapped.rule.speedAdd || 0) * p,
+      floodMitigationAdd: Number(mapped.rule.floodMitigationAdd || 0) * p,
+    };
+  }
+  return out;
+}
+
+function estimateStormDisplacement(world, severity, floodMitigation) {
+  const baseFlood = 0.24 * Math.max(0.65, Math.min(1.45, severity));
+  const cut = Math.max(0.04, baseFlood - Number(floodMitigation || 0));
+
+  const flooded = new Set();
+  for (const b of world.buildings) {
+    if (b.kind === "park") continue;
+    if (lowlandScore(b, world.seedKey) < cut) flooded.add(b.index);
+  }
+
+  const safeHomes = world.buildings.filter((b) => b.kind === "home" && !flooded.has(b.index));
+  if (!safeHomes.length) return 0;
+
+  let displaced = 0;
+  for (const p of world.people) {
+    if (flooded.has(p.home)) displaced++;
+  }
+  return displaced;
+}
+
+function computeRawSeverities(sim) {
+  const population = Math.max(1, Number(sim.population || 1));
+  const overWalkComplaint = Number(sim.outcomes?.overWalkComplaint || 0);
+  const displacedResidents = Number(sim.outcomes?.displacedResidents || 0);
+  const transit = Math.max(0, Math.min(1, (overWalkComplaint / population) / 0.3));
+  const flooding = Math.max(0, Math.min(1, displacedResidents / (0.1 * population)));
+  return { transit, flooding };
+}
+
+function movingAvg3(values) {
+  const xs = values.filter((x) => Number.isFinite(x));
+  if (!xs.length) return 0;
+  return xs.reduce((a, b) => a + b, 0) / xs.length;
+}
+
+function deriveSynthesisOutcomes(sim, rawSeverityHistory, impactHistory, proposalIds, adoptedYearByProposal, year) {
+  const raw = computeRawSeverities(sim);
+
+  const transitSevSeries = [...rawSeverityHistory.transit, raw.transit].slice(-3);
+  const floodingSevSeries = [...rawSeverityHistory.flooding, raw.flooding].slice(-3);
+  const transitSeverity = Math.max(0, Math.min(1, movingAvg3(transitSevSeries)));
+  const floodingSeverity = Math.max(0, Math.min(1, movingAvg3(floodingSevSeries)));
+
+  const items = {};
+  const rawImpacts = {};
+
+  const avgImpact = (pid, value) => {
+    const hist = Array.isArray(impactHistory?.[pid]) ? impactHistory[pid] : [];
+    return Math.max(0, Math.min(1, movingAvg3([...hist, value].slice(-3))));
+  };
+
+  const displacedWithAll = Number(sim.stormDiagnostics?.displacedWithAll ?? sim.outcomes?.displacedResidents ?? 0);
+  for (const pid of ["f_drainage", "f_buyouts"]) {
+    const displacedWithout = Number(sim.stormDiagnostics?.displacedWithoutByItem?.[pid]);
+    const without = Number.isFinite(displacedWithout) ? Math.max(0, displacedWithout) : Math.max(0, displacedWithAll);
+    const withIt = Math.max(0, displacedWithAll);
+    const impactRaw = without > 0 ? Math.max(0, Math.min(1, (without - withIt) / without)) : 0;
+
+    const mapped = resolveRuleForProposal(pid);
+    const lag = Number(mapped?.rule?.lagYears || 0);
+    const ramp = Number(mapped?.rule?.rampYears || 0);
+    const adoptedYear = Number.isFinite(adoptedYearByProposal?.[pid]) ? Number(adoptedYearByProposal[pid]) : null;
+    const yearsInEffect = adoptedYear === null ? 0 : year - adoptedYear;
+
+    rawImpacts[pid] = impactRaw;
+    items[pid] = { impact: avgImpact(pid, impactRaw), maturing: adoptedYear !== null && yearsInEffect < (lag + ramp) };
+  }
+
+  const population = Math.max(1, Number(sim.population || 1));
+  const withTransit = Math.max(0, Math.min(population, Number(sim.outcomes?.overWalkComplaint || 0)));
+  const totalSpeedAdd = Math.max(0, Number(sim.outcomes?.speedMult || 1) - 1);
+  for (const pid of ["t_bus", "t_brt"]) {
+    const share = totalSpeedAdd > 0
+      ? Math.max(0, Math.min(1, Number(sim.policyContributionByItem?.[pid]?.speedAdd || 0) / totalSpeedAdd))
+      : 0;
+    const withoutTransit = Math.max(withTransit, Math.min(population, withTransit + (population - withTransit) * share));
+    const impactRaw = withoutTransit > 0 ? Math.max(0, Math.min(1, (withoutTransit - withTransit) / withoutTransit)) : 0;
+
+    const mapped = resolveRuleForProposal(pid);
+    const lag = Number(mapped?.rule?.lagYears || 0);
+    const ramp = Number(mapped?.rule?.rampYears || 0);
+    const adoptedYear = Number.isFinite(adoptedYearByProposal?.[pid]) ? Number(adoptedYearByProposal[pid]) : null;
+    const yearsInEffect = adoptedYear === null ? 0 : year - adoptedYear;
+
+    rawImpacts[pid] = impactRaw;
+    items[pid] = { impact: avgImpact(pid, impactRaw), maturing: adoptedYear !== null && yearsInEffect < (lag + ramp) };
+  }
+
+  return {
+    needs: {
+      transit: { severity: transitSeverity },
+      flooding: { severity: floodingSeverity },
+    },
+    items,
+    raw: { ...raw, impacts: rawImpacts },
+  };
+}
+
 function collectDailyJournalCandidates(world, packageLabel, year, tileKey, buildingsById, dayIndex, yearStartMs) {
   const out = [];
   for (const p of world.people) {
@@ -254,6 +372,7 @@ async function simulateYear({ town, proposalIds, year, packageLabel, seed, adopt
   }
 
   const staged = computeEffectsForYear(proposalIds, year, adoptedYearByProposal).effects;
+  const policyContributionByItem = policyContributions(proposalIds, year, adoptedYearByProposal);
   applyPolicyToWorld(world, staged);
 
   let soldOutEvents = 0;
@@ -268,11 +387,28 @@ async function simulateYear({ town, proposalIds, year, packageLabel, seed, adopt
   let displacedResidents = 0;
   const litterSamples = [];
   const weeklyJournalCandidates = [];
+  let stormDiagnostics = {
+    displacedNoMitigation: 0,
+    displacedWithAll: 0,
+    displacedWithoutByItem: {},
+  };
 
   for (let d = 0; d < days; d++) {
     if (d === stormDay) {
       world.step(12 * 60);
-      const storm = applyStorm(world, stormSeverity(seed, year));
+      const severity = stormSeverity(seed, year);
+      const totalFloodMitigation = Number(staged.floodMitigation || 0);
+      const displacedNoMitigation = estimateStormDisplacement(world, severity, 0);
+      const displacedWithAll = estimateStormDisplacement(world, severity, totalFloodMitigation);
+      const displacedWithoutByItem = {};
+      for (const pid of Object.keys(policyContributionByItem)) {
+        const itemMit = Number(policyContributionByItem[pid]?.floodMitigationAdd || 0);
+        if (itemMit <= 0) continue;
+        displacedWithoutByItem[pid] = estimateStormDisplacement(world, severity, Math.max(0, totalFloodMitigation - itemMit));
+      }
+      stormDiagnostics = { displacedNoMitigation, displacedWithAll, displacedWithoutByItem };
+
+      const storm = applyStorm(world, severity);
       displacedResidents += storm.displaced;
       world.step(6 * 60); // to 18:00
     } else {
@@ -304,7 +440,14 @@ async function simulateYear({ town, proposalIds, year, packageLabel, seed, adopt
     if (kind === "transit") journalCounts.transit++;
   }
 
-  return { outcomes, journals, journalCounts };
+  return {
+    outcomes,
+    journals,
+    journalCounts,
+    population: world.people.length,
+    policyContributionByItem,
+    stormDiagnostics,
+  };
 }
 
 function isNotSimulatedProposal(id) {
@@ -364,6 +507,18 @@ export async function runExperiment({ town, packageName, years = 10, seed = "wor
     seed,
     yearStartMs: startMs - 365 * 24 * 60 * 60 * 1000,
   });
+  const rawSeverityHistory = { transit: [], flooding: [] };
+  const impactHistory = { t_bus: [], t_brt: [], f_drainage: [], f_buyouts: [] };
+  let previousOutcomes = deriveSynthesisOutcomes(baseline, rawSeverityHistory, impactHistory, [], {}, 0);
+  rawSeverityHistory.transit.push(Number(previousOutcomes.raw?.transit || 0));
+  rawSeverityHistory.flooding.push(Number(previousOutcomes.raw?.flooding || 0));
+  if (rawSeverityHistory.transit.length > 3) rawSeverityHistory.transit.shift();
+  if (rawSeverityHistory.flooding.length > 3) rawSeverityHistory.flooding.shift();
+  for (const pid of Object.keys(impactHistory)) {
+    impactHistory[pid].push(Number(previousOutcomes.raw?.impacts?.[pid] || 0));
+    if (impactHistory[pid].length > 3) impactHistory[pid].shift();
+  }
+
   onYear?.({ year: 0, packageName, packageId: "none", proposalIds: [], changesFromPrevious: null, outcomes: baseline.outcomes });
   plansByYear.push({ year: 0, packageId: "none", proposalIds: [], changesFromPrevious: null, notSimulatedChanges: [] });
 
@@ -373,6 +528,7 @@ export async function runExperiment({ town, packageName, years = 10, seed = "wor
       includeSynthetic: false,
       extraEntries: journalsSoFar,
       now: new Date(yearNowMs).toISOString(),
+      outcomes: previousOutcomes,
       previous: {},
       challengerStreak: {},
     };
@@ -422,6 +578,16 @@ export async function runExperiment({ town, packageName, years = 10, seed = "wor
     for (const j of sim.journals) journalsSoFar.push(j);
     if (journalsSoFar.length > 200) journalsSoFar.splice(0, journalsSoFar.length - 200);
 
+    previousOutcomes = deriveSynthesisOutcomes(sim, rawSeverityHistory, impactHistory, pkg.proposalIds, nextAdoptedYearByProposal, year);
+    rawSeverityHistory.transit.push(Number(previousOutcomes.raw?.transit || 0));
+    rawSeverityHistory.flooding.push(Number(previousOutcomes.raw?.flooding || 0));
+    if (rawSeverityHistory.transit.length > 3) rawSeverityHistory.transit.shift();
+    if (rawSeverityHistory.flooding.length > 3) rawSeverityHistory.flooding.shift();
+    for (const pid of Object.keys(impactHistory)) {
+      impactHistory[pid].push(Number(previousOutcomes.raw?.impacts?.[pid] || 0));
+      if (impactHistory[pid].length > 3) impactHistory[pid].shift();
+    }
+
     onYear?.({
       year,
       packageName,
@@ -431,6 +597,7 @@ export async function runExperiment({ town, packageName, years = 10, seed = "wor
       outcomes: sim.outcomes,
       journalCounts: sim.journalCounts,
       notSimulatedChanges,
+      synthOutcomes: previousOutcomes,
     });
 
     previousSelection = { id: pkg.id, proposalIds: [...pkg.proposalIds] };

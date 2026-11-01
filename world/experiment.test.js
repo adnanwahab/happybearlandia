@@ -81,6 +81,35 @@ describe("runExperiment", () => {
     expect(a).toBe(b);
   }, 30000);
 
+  test("f_drainage full-effect impact is > 0 in a high-displacement year (>10% pop)", async () => {
+    const town = makeTown(260);
+    const pop = town.people.length;
+    const byYear = [];
+
+    await runExperiment({
+      town,
+      packageName: "Balanced",
+      years: 10,
+      seed: "impact-raw-counts-check",
+      fetchPlan: async () => [
+        {
+          id: "balanced-pkg-id",
+          name: "Balanced",
+          items: [{ proposal: { id: "f_drainage" } }],
+          challengerStreak: {},
+        },
+      ],
+      onYear: (y) => byYear.push(y),
+    });
+
+    const hit = byYear.find((y) =>
+      y.year >= 7
+      && Number(y.outcomes?.displacedResidents || 0) > 0.1 * pop
+      && Number(y.synthOutcomes?.items?.f_drainage?.impact || 0) > 0,
+    );
+    expect(hit).toBeTruthy();
+  });
+
   test("passes previous/challengerStreak from year 2 onward (and sends {} in year 1)", async () => {
     const town = makeTown(220);
     const calls = [];
@@ -109,6 +138,8 @@ describe("runExperiment", () => {
     expect(calls.length).toBe(3);
     expect(calls[0]?.previous).toEqual({});
     expect(calls[0]?.challengerStreak).toEqual({});
+    expect(typeof calls[0]?.outcomes?.needs?.transit?.severity).toBe("number");
+    expect(typeof calls[0]?.outcomes?.needs?.flooding?.severity).toBe("number");
     expect(calls[1]?.previous).toEqual({
       "balanced-pkg-id": ["t_brt", "f_drainage"],
     });
@@ -121,6 +152,8 @@ describe("runExperiment", () => {
     expect(calls[2]?.challengerStreak).toEqual({
       "balanced-pkg-id": { f_buyouts: 2 },
     });
+    expect(typeof calls[2]?.outcomes?.items?.t_bus?.impact).toBe("number");
+    expect(typeof calls[2]?.outcomes?.items?.t_brt?.impact).toBe("number");
   });
 
   test("10-year 3-package what-if run does not change dear-congress entries or answers", async () => {
