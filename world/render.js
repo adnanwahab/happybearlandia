@@ -274,7 +274,7 @@ for (const b of town.buildings) {
   const geo = new THREE.ExtrudeGeometry(shape, { depth: b.height, bevelEnabled: false });
   geo.rotateX(-Math.PI / 2);
   b.baseColor = baseColorFor(b);
-  const mat = new THREE.MeshLambertMaterial({ color: b.baseColor, emissive: 0xffc46b, emissiveIntensity: 0 });
+  const mat = new THREE.MeshLambertMaterial({ color: b.baseColor, emissive: b.baseColor, emissiveIntensity: 0 });
   const m = new THREE.Mesh(geo, mat);
   m.castShadow = b.kind !== "park";
   m.receiveShadow = true;
@@ -1913,9 +1913,10 @@ function updateBuildings(daylight) {
   for (const b of town.buildings) {
     const mat = b.mesh.material;
     const n = occupied.get(b.index) || 0;
-    // Windows glow at night where people are inside; busy shops glow a little by day.
-    mat.emissiveIntensity = b.kind === "park" ? 0 : Math.min(0.55, n * 0.08) * (1 - daylight * 0.7);
     const base = b.baseColor || KIND_COLOR[b.kind];
+    mat.emissive.setHex(base);
+    // Windows glow at night where people are inside; busy shops glow a little by day.
+    mat.emissiveIntensity = b.kind === "park" ? 0 : Math.min(0.45, n * 0.07) * (1 - daylight * 0.85);
     let c = base;
     if (b.state.flooded) c = 0x3d6fa6;
     else if (!b.state.open) c = 0x6f6f6f;
