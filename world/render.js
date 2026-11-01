@@ -415,7 +415,7 @@ async function loadPolicyPackages() {
         const items = row?.items || row?.proposals || row?.package?.items || [];
         const proposalIds = Array.from(new Set(items.map(proposalIdFrom).filter(Boolean)));
         if (!proposalIds.length) continue;
-        next[id] = derivePolicyProfile(name, id, proposalIds, "dear-congress");
+        next[id] = { ...derivePolicyProfile(name, id, proposalIds, "dear-congress"), remoteId: String(row?.id ?? name) };
         if (compared) {
           const rawDiff = payload.diff?.[row?.id] || payload.diff?.[id] || payload.diff?.[name] || { addedBySimulated: [], removedBySimulated: [], moneyMovedB: 0 };
           compareDiffById[id] = rawDiff;
@@ -973,10 +973,16 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 const fmt = (x) => Number(x || 0).toFixed(1);
 const signed = (x) => `${x >= 0 ? "+" : "−"}${Math.abs(x).toFixed(1)}`;
 
+// The Balanced package, whichever id it has: presets use "balanced", but when
+// dear-congress loads it replaces them with its own ids ("a", "b", "c").
+function balancedPackageId() {
+  const ids = Object.keys(PLAN_PACKAGES).filter((id) => id !== "none" && !id.startsWith("cycle-"));
+  return ids.find((id) => /balanced/i.test(PLAN_PACKAGES[id].label)) || ids[0] || "none";
+}
+
 function cyclePackageId() {
-  if (activePolicyId && activePolicyId !== "none" && !activePolicyId.startsWith("cycle-")) return activePolicyId;
-  const fromCongress = Object.keys(PLAN_PACKAGES).find((id) => PLAN_PACKAGES[id].source === "dear-congress");
-  return fromCongress || "balanced";
+  if (PLAN_PACKAGES[activePolicyId] && activePolicyId !== "none" && !activePolicyId.startsWith("cycle-")) return activePolicyId;
+  return balancedPackageId();
 }
 
 // A bare "+0.0" hides why nothing happened, so later cycles say what changed.
@@ -1037,7 +1043,7 @@ function runCycle() {
   pendingCycleSource = pkg.source;
   cycleWorker.postMessage({
     type: "run",
-    payload: { origin, area, maxPeople, proposalIds: pkg.proposalIds || [], label: pkg.label, year, days: 7 },
+    payload: { origin, area, maxPeople, proposalIds: pkg.proposalIds || [], label: pkg.label, remoteId: pkg.remoteId || null, year, days: 7 },
   });
 }
 
@@ -1289,10 +1295,11 @@ async function playDemo() {
     await demoHold(7000);
 
     // Cycle 1: the Balanced plan vs. an identical town with no plan.
-    activePolicyId = "balanced";
-    $("policy").value = "balanced";
+    activePolicyId = balancedPackageId();
+    $("policy").value = activePolicyId;
     policyYear = 3;
-    demoCaption("Cycle 1", "Trying the Balanced plan for a week, next to an identical copy of the town with no plan…");
+    const plan1Label = PLAN_PACKAGES[activePolicyId]?.label || "Balanced";
+    demoCaption("Cycle 1", `Trying the ${plan1Label} plan for a week, next to an identical copy of the town with no plan…`);
     const r1 = await demoCycle(runCycle);
     deltas.push(r1.avg.withPlan - r1.avg.noPlan);
     demoShow("noPlan");
@@ -1300,7 +1307,7 @@ async function playDemo() {
     await demoHold(5000);
     demoShow("withPlan");
     followResident(r1.best.index);
-    demoCaption("Cycle 1", `With the Balanced plan: ${fmt(r1.avg.withPlan)} (${signed(deltas[0])}). ${r1.improved} residents are better off, mostly from shorter commutes.`);
+    demoCaption("Cycle 1", `With the ${plan1Label} plan: ${fmt(r1.avg.withPlan)} (${signed(deltas[0])}). ${r1.improved} residents are better off, mostly from shorter commutes.`);
     await demoHold();
     if (r1.worst) {
       demoShow("withPlan", "worst");

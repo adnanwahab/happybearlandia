@@ -128,28 +128,48 @@ function localNextPlan(plan1Ids, counts) {
 
 // Ask dear-congress for a re-synthesized plan given the residents' journals.
 // Same request shape the 10-year experiment uses. Returns null if unreachable.
-async function liveNextPlan(plan1Label, plan1Ids, journalTexts, names) {
+//
+// dear-congress only adopts a challenger proposal after it wins 2 syntheses in a
+// row (CHALLENGER_PERSISTENCE), so `previous` must be keyed by its own package id
+// and the returned challengerStreak carried into the next cycle's request.
+async function liveNextPlan({ remoteId, label, proposalIds, streak }, journalTexts, names) {
   const entries = [];
   const now = Date.now();
   journalTexts.forEach((text, i) => {
     if (text && entries.length < 24) entries.push({ text, author: names[i], createdAt: new Date(now - (entries.length % 24) * 60000).toISOString() });
   });
+  const body = JSON.stringify({
+    includeSynthetic: false,
+    extraEntries: entries,
+    previous: { [remoteId || label]: proposalIds },
+    challengerStreak: { [remoteId || label]: streak || {} },
+  });
+  const post = () => fetch("/api/plan", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body,
+    signal: AbortSignal.timeout(10000),
+  });
   try {
-    const res = await fetch("/api/plan", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ includeSynthetic: false, extraEntries: entries, previous: { [plan1Label]: plan1Ids } }),
-      signal: AbortSignal.timeout(10000),
-    });
+    // One retry on a network error: after a long simulation the kept-alive
+    // connection may have been closed by the server.
+    const res = await post().catch(() => post());
     if (!res.ok) return null;
     const payload = await res.json();
     const rows = Array.isArray(payload) ? payload : payload?.packages || payload?.results || payload?.items || payload?.data?.packages || [];
-    const needle = String(plan1Label || "").toLowerCase();
-    const row = rows.find((r) => String(r?.name || r?.title || r?.label || "").toLowerCase() === needle) || rows[0];
+    const needle = String(label || "").toLowerCase();
+    const row = (remoteId && rows.find((r) => String(r?.id) === String(remoteId)))
+      || rows.find((r) => String(r?.name || r?.title || r?.label || "").toLowerCase() === needle)
+      || rows[0];
     if (!row) return null;
     const items = row.items || row.proposals || row.package?.items || [];
     const ids = [...new Set(items.map((it) => it?.proposal?.id || it?.proposalId || it?.id || it?.proposal_id).filter(Boolean))];
-    return ids.length ? { proposalIds: ids, label: row.name || row.title || row.label || plan1Label } : null;
+    const nextStreak = row.challengerStreak && typeof row.challengerStreak === "object" ? row.challengerStreak : {};
+    // Proposals dear-congress is leaning toward but hasn't adopted yet.
+    const warming = Object.entries(nextStreak)
+      .filter(([id, n]) => !id.startsWith("__") && n > 0 && !ids.includes(id))
+      .map(([id, n]) => ({ id, label: ruleLabel(id), streak: n }));
+    return ids.length ? { proposalIds: ids, label: row.name || row.title || row.label || label, streak: nextStreak, warming } : null;
   } catch {
     return null;
   }
@@ -202,7 +222,7 @@ async function cycle1(payload, progress) {
   const journalsAfter = journals(plan.world, plan.byId);
   const scores = { before: [...plan.before], noPlan: [...base.after], withPlan: [...plan.after] };
 
-  state = { env, history: [plan1Ids], plan1Ids, plan1Label: payload.label, planWorld: plan.world, planById: plan.byId, cycle1Scores: scores };
+  state = { env, history: [plan1Ids], plan1Ids, plan1Label: payload.label, remoteId: payload.remoteId || null, streak: {}, planWorld: plan.world, planById: plan.byId, cycle1Scores: scores };
 
   return {
     cycle: 1,
@@ -217,7 +237,7 @@ async function cycle1(payload, progress) {
 
 async function cycle2(progress) {
   if (!state) throw new Error("Run cycle 1 first");
-  const { env, history, plan1Ids, plan1Label, planWorld, planById, cycle1Scores } = state;
+  const { env, history, plan1Ids, plan1Label, remoteId, streak, planWorld, planById, cycle1Scores } = state;
 
   progress("Reading residents' journals", 0.02);
   const counts = complaintCounts(planWorld);
@@ -225,7 +245,10 @@ async function cycle2(progress) {
   const local = localNextPlan(plan1Ids, counts);
 
   progress("Asking dear-congress for the next plan", 0.05);
-  const live = await liveNextPlan(plan1Label, plan1Ids, journalsNow, planWorld.people.map((p) => p.name));
+  const live = await liveNextPlan({ remoteId, label: plan1Label, proposalIds: plan1Ids, streak }, journalsNow, planWorld.people.map((p) => p.name));
+  const warmingTxt = live?.warming?.length
+    ? `; it's leaning toward ${live.warming.map((w) => `${w.label} (${w.streak} of 2 rounds)`).join(", ")}`
+    : "";
   const have = canonical(plan1Ids);
   const liveAdds = live ? [...canonical(live.proposalIds)].filter((id) => !have.has(id)) : [];
 
@@ -238,7 +261,7 @@ async function cycle2(progress) {
     plan2Ids = [...plan1Ids, ...local.add];
     source = "local";
     note = live
-      ? "dear-congress kept the same simulated proposals, so the next fix was picked locally from the complaints"
+      ? `dear-congress kept the same simulated proposals${warmingTxt}, so the next fix was picked locally from the complaints`
       : "dear-congress wasn't reachable, so the next fix was picked locally from the complaints";
   }
   const before = canonical(plan1Ids), after = canonical(plan2Ids);
@@ -272,7 +295,7 @@ async function cycle2(progress) {
   for (let i = 1; i < c1Delta.length; i++) if (c1Delta[i] < c1Delta[hurt]) hurt = i;
 
   // The fork continues from here, so a third cycle would build on plan 2.
-  state = { ...state, history: [...history, plan2Ids], plan1Ids: plan2Ids, planWorld: fork.world, planById: fork.byId, cycle1Scores: scores };
+  state = { ...state, history: [...history, plan2Ids], plan1Ids: plan2Ids, streak: live?.streak || streak, planWorld: fork.world, planById: fork.byId, cycle1Scores: scores };
 
   return {
     cycle: 2,
