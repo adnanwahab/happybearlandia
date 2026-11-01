@@ -251,6 +251,8 @@ const BASE_POLICY_PACKAGES = {
 };
 
 let PLAN_PACKAGES = { ...BASE_POLICY_PACKAGES };
+let PLAN_COMPARE_DIFF = {};
+let BALANCED_SIM_NOTE = "";
 let activePolicyId = "none";
 let policyYear = Math.max(0, Math.min(10, Number(params.get("year") ?? 0) || 0));
 const planYearEl = $("planYear");
@@ -331,16 +333,17 @@ function applyPolicy(id, year = policyYear) {
     ? ` · not simulated yet: ${staged.unsupported.slice(0, 4).join(", ")}${staged.unsupported.length > 4 ? "…" : ""}`
     : "";
 
-  $("policyNote").textContent = `${p.label} · year ${year} · transit ×${staged.effects.speedMult.toFixed(2)} · flood mitigation ${Math.round(staged.effects.floodMitigation * 100)}% · housing growth ${Math.round(staged.effects.housingGrowth * 100)}% · vouchers $${staged.effects.voucherMonthly.toFixed(0)}/mo · source: ${src}${pendingTxt}`;
+  const simNote = BALANCED_SIM_NOTE ? ` · ${BALANCED_SIM_NOTE}` : "";
+  $("policyNote").textContent = `${p.label} · year ${year} · transit ×${staged.effects.speedMult.toFixed(2)} · flood mitigation ${Math.round(staged.effects.floodMitigation * 100)}% · housing growth ${Math.round(staged.effects.housingGrowth * 100)}% · vouchers $${staged.effects.voucherMonthly.toFixed(0)}/mo · source: ${src}${pendingTxt}${simNote}`;
 }
 
 async function loadPolicyPackages() {
   const explicit = params.get("plans");
   const q = new URLSearchParams({ lat: String(origin.lat), lng: String(origin.lng) }).toString();
+  const syntheticOn = params.get("synthetic") !== "0";
   const attempts = [
-    // Count this world's simulated residents' journals when synthesizing (dear-congress
-    // leaves them out by default). Add ?synthetic=0 to see the plan from real journals only.
-    { kind: "post", url: "/api/plan", body: JSON.stringify({ includeSynthetic: params.get("synthetic") !== "0" }) },
+    // Ask for compare view and then pick real or blended based on ?synthetic=0.
+    { kind: "post", url: "/api/plan", body: JSON.stringify({ compare: true }) },
     ...(explicit ? [{ kind: "get", url: explicit }] : []),
     { kind: "get", url: `/api/dear-congress/packages?${q}` },
     { kind: "get", url: `/api/dear-congress/package-results?${q}` },
@@ -353,10 +356,13 @@ async function loadPolicyPackages() {
         : { signal: AbortSignal.timeout(8000) });
       if (!res.ok) continue;
       const payload = await res.json();
-      const rows = packageRows(payload);
+
+      const compared = payload && typeof payload === "object" && Array.isArray(payload.real) && Array.isArray(payload.blended);
+      const rows = compared ? (syntheticOn ? payload.blended : payload.real) : packageRows(payload);
       if (!Array.isArray(rows) || !rows.length) continue;
 
       const next = { none: BASE_POLICY_PACKAGES.none };
+      const compareDiffById = {};
       let n = 0;
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
@@ -366,11 +372,27 @@ async function loadPolicyPackages() {
         const proposalIds = Array.from(new Set(items.map(proposalIdFrom).filter(Boolean)));
         if (!proposalIds.length) continue;
         next[id] = derivePolicyProfile(name, id, proposalIds, "dear-congress");
+        if (compared) {
+          const rawDiff = payload.diff?.[row?.id] || payload.diff?.[id] || payload.diff?.[name] || { addedBySimulated: [], removedBySimulated: [], moneyMovedB: 0 };
+          compareDiffById[id] = rawDiff;
+        }
         n++;
       }
       if (!n) continue;
 
       PLAN_PACKAGES = next;
+      PLAN_COMPARE_DIFF = compareDiffById;
+      const balancedId = Object.keys(next).find((k) => /balanced/i.test(next[k]?.label || ""));
+      const d = balancedId ? PLAN_COMPARE_DIFF[balancedId] : null;
+      if (d) {
+        const add = (d.addedBySimulated || []).length;
+        const rem = (d.removedBySimulated || []).length;
+        BALANCED_SIM_NOTE = add || rem
+          ? `Simulated residents changed Balanced: +${add} −${rem}`
+          : "Simulated residents changed Balanced: no change";
+      } else {
+        BALANCED_SIM_NOTE = "";
+      }
       refreshPolicySelect(activePolicyId);
       world.log(`Loaded ${n} plan packages from dear-congress`, "civic");
       return true;

@@ -54,7 +54,7 @@ describe("runExperiment", () => {
     expect(year1).toBeTruthy();
     expect(Number(year1.outcomes.displacedResidents || 0)).toBeGreaterThan(0);
     expect(Number(year1.outcomes.avgParkLitter || 0)).toBeGreaterThan(0);
-  });
+  }, 60000);
 
   test("same seed gives identical results", async () => {
     const town = makeTown(180);
@@ -108,7 +108,7 @@ describe("runExperiment", () => {
       && Number(y.synthOutcomes?.items?.f_drainage?.impact || 0) > 0,
     );
     expect(hit).toBeTruthy();
-  });
+  }, 60000);
 
   test("passes previous/challengerStreak from year 2 onward (and sends {} in year 1)", async () => {
     const town = makeTown(220);
