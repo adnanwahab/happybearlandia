@@ -3,6 +3,10 @@
 
 ![map](map.png)
 
+# write journal -> synthesize plan -> simulate 100 realities from that plan 
+
+
+
 # Computer Vision for Beginners
 
 # simulate so much data can visualize long term trends
