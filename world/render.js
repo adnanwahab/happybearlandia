@@ -460,6 +460,9 @@ applyPolicy(activePolicyId, policyYear);
 
 const EXP_PACKAGES = ["Balanced", "Minimal change", "Most popular"];
 let experimentWorker = null;
+let lastExperimentSeed = null;
+let lastCompletedRunSeed = null;
+let lastCompletedRunFingerprint = null;
 
 function lineChartSvg(title, byPkg, key, colorByPkg) {
   const w = 470, h = 120, pad = 24;
@@ -511,6 +514,88 @@ function lineChartSvg(title, byPkg, key, colorByPkg) {
     ${lines}
   </svg></div>`;
 }
+
+function defaultExperimentSeed() {
+  return `${town.seedKey}|exp-v1`;
+}
+
+function getRequestedExperimentSeed() {
+  const input = $("experimentSeedInput");
+  const candidate = String(input?.value || "").trim();
+  if (candidate) return candidate;
+  if (lastExperimentSeed) return String(lastExperimentSeed);
+  return defaultExperimentSeed();
+}
+
+function setExperimentControlsDisabled(disabled) {
+  const copyBtn = $("copyExperimentSeed");
+  const input = $("experimentSeedInput");
+  const resetBtn = $("resetExperimentSeed");
+  const rerunBtn = $("rerunExperimentSeed");
+  if (copyBtn) copyBtn.disabled = !!disabled;
+  if (input) input.disabled = !!disabled;
+  if (resetBtn) resetBtn.disabled = !!disabled;
+  if (rerunBtn) rerunBtn.disabled = !!disabled;
+}
+
+function setExperimentSeedUI(seed) {
+  const code = $("experimentSeed");
+  const copyBtn = $("copyExperimentSeed");
+  const input = $("experimentSeedInput");
+  if (!code || !copyBtn) return;
+
+  const value = String(seed || "").trim();
+  code.textContent = value;
+  code.title = value;
+  if (input) input.value = value;
+  copyBtn.textContent = "Copy";
+}
+
+async function copyExperimentSeed() {
+  const seed = String(lastExperimentSeed || "").trim();
+  const btn = $("copyExperimentSeed");
+  if (!seed || !btn) return;
+
+  let ok = false;
+  try {
+    await navigator.clipboard.writeText(seed);
+    ok = true;
+  } catch {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = seed;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.top = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, ta.value.length);
+      ok = document.execCommand("copy");
+      ta.remove();
+    } catch {
+      ok = false;
+    }
+  }
+
+  btn.textContent = ok ? "Copied" : "Copy failed";
+  setTimeout(() => {
+    if (btn.textContent !== "Copy") btn.textContent = "Copy";
+  }, 1200);
+}
+
+$("copyExperimentSeed")?.addEventListener("click", copyExperimentSeed);
+$("resetExperimentSeed")?.addEventListener("click", () => {
+  const input = $("experimentSeedInput");
+  const def = defaultExperimentSeed();
+  if (input) input.value = def;
+  setExperimentSeedUI(def);
+});
+$("rerunExperimentSeed")?.addEventListener("click", () => {
+  if (experimentWorker) return;
+  runExperiment10Years();
+});
+lastExperimentSeed = defaultExperimentSeed();
+setExperimentSeedUI(lastExperimentSeed);
 
 function renderExperimentResults(results) {
   const panel = $("experimentPanel");
@@ -566,6 +651,39 @@ function setExperimentStatus(text) {
   if (el) el.textContent = text;
 }
 
+function resultsFingerprint(results) {
+  const compact = {};
+  for (const name of EXP_PACKAGES) {
+    const hist = results?.[name]?.history || [];
+    const y10 = hist.find((r) => r.year === 10) || hist[hist.length - 1] || { outcomes: {} };
+    compact[name] = {
+      floodedParcels: Number(y10.outcomes?.floodedParcels ?? 0),
+      displacedResidents: Number(y10.outcomes?.displacedResidents ?? 0),
+      avgWalkMinutes: Number(y10.outcomes?.avgWalkMinutes ?? 0),
+      avgMood: Number(y10.outcomes?.avgMood ?? 0),
+    };
+  }
+  return JSON.stringify(compact);
+}
+
+function renderExperimentComparison(seed, results) {
+  const el = $("experimentCompare");
+  if (!el) return;
+  const nextSeed = String(seed || "").trim();
+  const nextFp = resultsFingerprint(results);
+
+  if (!lastCompletedRunFingerprint) {
+    el.textContent = `Last run seed: ${nextSeed} · baseline (first completed run)`;
+  } else {
+    const changed = nextFp !== lastCompletedRunFingerprint;
+    const delta = changed ? "changed vs previous run" : "same as previous run";
+    el.textContent = `Last run seed: ${nextSeed} · ${delta}`;
+  }
+
+  lastCompletedRunSeed = nextSeed;
+  lastCompletedRunFingerprint = nextFp;
+}
+
 async function readStateEntryCount() {
   try {
     const res = await fetch("/api/dear-congress/state", { signal: AbortSignal.timeout(6000) });
@@ -582,7 +700,12 @@ function runExperiment10Years() {
   if (experimentWorker) return;
   const btn = $("runExperimentBtn");
   if (btn) btn.disabled = true;
+  setExperimentControlsDisabled(true);
   setExperimentStatus("Starting…");
+
+  const experimentSeed = getRequestedExperimentSeed();
+  lastExperimentSeed = experimentSeed;
+  setExperimentSeedUI(experimentSeed);
 
   const beforeStatePromise = readStateEntryCount();
 
@@ -597,12 +720,15 @@ function runExperiment10Years() {
     if (msg.type === "error") {
       setExperimentStatus(`Experiment failed: ${msg.error}`);
       if (btn) btn.disabled = false;
+      setExperimentControlsDisabled(false);
       experimentWorker?.terminate();
       experimentWorker = null;
       return;
     }
     if (msg.type === "done") {
-      renderExperimentResults(msg.results || {});
+      const results = msg.results || {};
+      renderExperimentResults(results);
+      renderExperimentComparison(experimentSeed, results);
       const before = await beforeStatePromise;
       const after = await readStateEntryCount();
       const stateMsg = before != null && after != null
@@ -610,6 +736,7 @@ function runExperiment10Years() {
         : "done";
       setExperimentStatus(`Run 10 years: ${stateMsg}`);
       if (btn) btn.disabled = false;
+      setExperimentControlsDisabled(false);
       experimentWorker?.terminate();
       experimentWorker = null;
     }
@@ -622,7 +749,7 @@ function runExperiment10Years() {
       area,
       maxPeople,
       years: 10,
-      seed: `${town.seedKey}|exp-v1`,
+      seed: experimentSeed,
     },
   });
 }

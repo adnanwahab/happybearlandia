@@ -39,6 +39,12 @@
   .exp-grid { display: grid; gap: 10px; margin-top: 8px; }
   .exp-chart { border: 1px solid var(--line); border-radius: 8px; padding: 6px; }
   .exp-chart h2 { margin: 0 0 6px; font-size: 12px; font-weight: 600; color: var(--muted); }
+  .exp-seed { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 11px; color: var(--muted); flex-wrap: wrap; }
+  .exp-seed code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; padding: 2px 6px; border: 1px solid var(--line); border-radius: 6px; background: color-mix(in srgb, var(--panel) 85%, transparent); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .exp-seed input { min-width: 160px; max-width: 240px; padding: 3px 7px; font-size: 11px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: inherit; }
+  .exp-seed button { padding: 3px 7px; font-size: 11px; }
+  .exp-seed button.icon { min-width: 26px; padding: 3px 6px; }
+  .exp-compare { margin-top: 4px; font-size: 11px; color: var(--muted); }
   .exp-footnote { font-size: 11px; color: var(--muted); margin-top: 8px; }
   .exp-table { width: 100%; border-collapse: collapse; font-size: 11px; }
   .exp-table td, .exp-table th { border-top: 1px solid var(--line); padding: 4px 6px; text-align: left; vertical-align: top; }
@@ -102,6 +108,18 @@
     <button id="runExperimentBtn" type="button">Run 10 years</button>
     <span class="muted" id="experimentStatus">Idle</span>
   </div>
+  <div class="row" style="margin-top:2px">
+    <span class="exp-compare" id="experimentCompare">No completed run yet.</span>
+  </div>
+  <div class="exp-seed" id="experimentSeedRow">
+    <span>Seed:</span>
+    <code id="experimentSeed" title="Experiment seed"></code>
+    <button id="copyExperimentSeed" type="button" aria-label="Copy experiment seed">Copy</button>
+    <input id="experimentSeedInput" type="text" aria-label="Experiment seed input" placeholder="enter seed" />
+    <button id="resetExperimentSeed" class="icon" type="button" aria-label="Reset to default seed" title="Reset to default seed">↺</button>
+    <button id="rerunExperimentSeed" type="button" aria-label="Rerun with this seed">Rerun</button>
+  </div>
+
   <div class="muted" id="policyNote"></div>
   <div class="legend">
     <span><i style="background:#d9cbb4"></i>home</span><span><i style="background:#8fa6c4"></i>work</span>
@@ -121,7 +139,8 @@
 <div class="panel" id="feed" aria-live="polite"></div>
 <div class="panel" id="inspect"></div>
 <div class="panel" id="experimentPanel" style="display:none">
-  <h1></h1>10-year experiment</h1>
+  <h1>10-year experiment</h1>
+
   <div class="exp-grid" id="experimentCharts"></div>
   <div id="experimentTableWrap"></div>
   <div class="exp-footnote">Simulated outcomes with synthetic residents — illustrative, not a forecast.</div>

@@ -56,7 +56,8 @@ function pickPackage(payload, packageName) {
 
 function lowlandScore(b, seedKey) {
   const [x, z] = b.center || [0, 0];
-  const n = Math.sin(x * 0.0041 + z * 0.0057 + b.index * 0.77 + String(seedKey || "").length * 0.13) * 43758.5453;
+  const phase = (hashSeed(String(seedKey || "")) % 100000) / 100000;
+  const n = Math.sin(x * 0.0041 + z * 0.0057 + b.index * 0.77 + phase * Math.PI * 2) * 43758.5453;
   return n - Math.floor(n);
 }
 
