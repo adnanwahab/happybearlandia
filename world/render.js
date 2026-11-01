@@ -992,10 +992,12 @@ function cycleStatusText(r, n) {
   const d = r.avg.withPlan - r.avg.noPlan;
   if (n === 1) return `Cycle 1: ${signed(d)} well-being vs no plan`;
   const vs = `vs keeping plan ${n - 1}`;
+  if (r.waiting) return `Cycle ${n}: dear-congress is leaning toward ${r.waiting.label} (${r.waiting.streak} of ${r.waiting.needed}), plan unchanged this week`;
   const added = changeLabels(r.added);
   const removed = changeLabels(r.removed);
   if (!added.length && !removed.length) return `Cycle ${n}: no fixable complaints left, so plan ${n} = plan ${n - 1}`;
-  const what = added.length ? `+ ${added.join(", ")}` : `− ${removed.join(", ")}`;
+  const by = r.source === "dear-congress" ? "dear-congress adopted " : "";
+  const what = `${by}${added.length ? `+ ${added.join(", ")}` : `− ${removed.join(", ")}`}`;
   if (Math.abs(d) < 0.05) return `Cycle ${n}: ${what}, but no measurable effect within a week`;
   return `Cycle ${n}: ${what} → ${signed(d)} well-being ${vs}`;
 }
@@ -1164,9 +1166,13 @@ function renderCyclePanel() {
   const changes = n > 1 ? `
     <div class="cy-who" style="margin-top:8px">
       <div class="lbl">What residents' journals changed</div>
-      ${addedLabels.length ? addedLabels.map((name) => `<div><b style="color:var(--accent)">+ ${esc(name)}</b></div>`).join("") : `<div class="muted">No new simulated proposal.</div>`}
+      ${r.waiting
+        ? `<div><b>⏳ Leaning toward ${esc(r.waiting.label)}</b> <span class="muted">(${r.waiting.streak} of ${r.waiting.needed} rounds)</span></div>`
+        : addedLabels.length
+          ? addedLabels.map((name) => `<div><b style="color:var(--accent)">+ ${esc(name)}</b>${r.source === "dear-congress" ? ` <span class="muted">adopted by dear-congress</span>` : ""}</div>`).join("")
+          : `<div class="muted">No new simulated proposal.</div>`}
       ${removedLabels.length ? removedLabels.map((name) => `<div class="muted">− ${esc(name)}</div>`).join("") : ""}
-      ${r.target ? `<div class="muted">Top fixable complaint: ${esc(r.target?.label || r.target?.id || "that issue")} (${r.target.count} residents)</div>` : ""}
+      ${r.target ? `<div class="muted">${r.source === "dear-congress" ? "Complaint it answers" : "Top fixable complaint"}: ${esc(r.target?.label || r.target?.id || "that issue")} (${r.target.count} residents)</div>` : ""}
       <div class="muted" style="margin-top:2px">${esc(r.note)}</div>
       ${r.unreachable?.length ? `<div class="warn">Can't fix yet: ${r.unreachable.map((u) => `${esc(u?.label || u?.id || "unknown")} (${u?.count ?? 0} residents)`).join(", ")}. No proposal in the plan catalog reaches this in the simulation.</div>` : ""}
     </div>` : "";
@@ -1176,10 +1182,10 @@ function renderCyclePanel() {
   const followUp = n > 1 && f ? `
     <div class="cy-who">
       <div class="row" style="justify-content:space-between;margin:0"><b>${esc(f.name)}</b><button id="cycleFollowUp">Follow</button></div>
-      <div class="lbl">Hurt most by plan ${prev}. Did plan ${n} help?</div>
+      <div class="lbl">Hurt most by plan ${f.byPlan}. Did plan ${n} help?</div>
       <div class="cy-fric" style="grid-template-columns:1fr auto;margin-top:4px">
-        ${prev === 1 ? `<span>No plan</span><span>${fmt(f.noPlan1)}</span>` : `<span>Before plan ${prev}</span><span>${fmt(f.noPlan1)}</span>`}
-        <span>Plan ${prev}</span><span>${fmt(f.plan1)}</span>
+        ${f.byPlan === 1 ? `<span>No plan</span><span>${fmt(f.noPlan1)}</span>` : `<span>Before plan ${f.byPlan}</span><span>${fmt(f.noPlan1)}</span>`}
+        <span>Plan ${f.byPlan}</span><span>${fmt(f.plan1)}</span>
         <span>A week later, keeping plan ${prev}</span><span>${fmt(f.keepPlan1)}</span>
         <span><b>A week later, with plan ${n}</b></span><span><b style="color:${f.plan2 > f.keepPlan1 ? "var(--accent)" : "inherit"}">${fmt(f.plan2)}</b></span>
       </div>
@@ -1252,7 +1258,10 @@ $("runCycleBtn")?.addEventListener("click", runCycle);
 /* ---------------------------------------------------------------- */
 /* Demo mode: three cycles hands-free, with captions and follow-cam.  */
 /* ---------------------------------------------------------------- */
-const DEMO_URL = "/world/?lat=29.7286&lng=-95.4746&people=500&demo=1";
+// synthetic=0: load dear-congress packages from real journals only, the same view
+// cycles use. The blended view counts synthetic journals the world has published
+// over time (including grocery complaints), which would make cycle 1 unpredictable.
+const DEMO_URL = "/world/?lat=29.7286&lng=-95.4746&people=500&demo=1&synthetic=0";
 const DEMO_HOLD_MS = 8000; // how long each caption stays up
 const demo = { running: false, paused: false, skip: false, stopped: false };
 
@@ -1317,13 +1326,13 @@ async function playDemo() {
     const plan1Label = PLAN_PACKAGES[activePolicyId]?.label || "Balanced";
     demoCaption("Cycle 1", `Trying the ${plan1Label} plan for a week, next to an identical copy of the town with no plan…`);
     const r1 = await demoCycle(runCycle);
-    deltas.push(r1.avg.withPlan - r1.avg.noPlan);
+    deltas.push({ n: 1, text: signed(r1.avg.withPlan - r1.avg.noPlan) });
     demoShow("noPlan");
     demoCaption("Cycle 1", `A week with no plan: average well-being ${fmt(r1.avg.noPlan)}.`);
     await demoHold(5000);
     demoShow("withPlan");
     followResident(r1.best.index);
-    demoCaption("Cycle 1", `With the ${plan1Label} plan: ${fmt(r1.avg.withPlan)} (${signed(deltas[0])}). ${r1.improved} residents are better off, mostly from shorter commutes.`);
+    demoCaption("Cycle 1", `With the ${plan1Label} plan: ${fmt(r1.avg.withPlan)} (${deltas[0].text}). ${r1.improved} residents are better off, mostly from shorter commutes.`);
     await demoHold();
     if (r1.worst) {
       demoShow("withPlan", "worst");
@@ -1332,31 +1341,42 @@ async function playDemo() {
       await demoHold();
     }
 
-    // Cycles 2–3: residents' journals pick the next change.
-    for (const n of [2, 3]) {
+    // Then let residents' journals drive the plan until two more changes land.
+    // With dear-congress live, a change can take two cycles: it leans first, then adopts.
+    let changes = 0;
+    for (let n = 2; n <= 5 && changes < 2; n++) {
       demoCaption(`Cycle ${n}`, `Reading this week's journals to pick the next change…`);
       const r = await demoCycle(runNextCycle);
       const d = r.avg.withPlan - r.avg.noPlan;
+      const why = r.target ? `${r.target.count} residents wrote about ${r.target?.label || r.target?.id || "that issue"}` : "Residents' journals changed the plan";
+      if (r.waiting) {
+        deltas.push({ n, text: "waited" });
+        demoShow("withPlan");
+        demoCaption(`Cycle ${n}`, `${why}. dear-congress is leaning toward ${r.waiting.label} (${r.waiting.streak} of ${r.waiting.needed} rounds), but it won't change a city plan on one week of evidence. The plan stays the same this week.`);
+        await demoHold();
+        continue;
+      }
       if (!r.added?.length && !r.removed?.length) {
         demoCaption(`Cycle ${n}`, "The journals don't point at anything the plan catalog can still fix, so the plan stays as it is.");
         await demoHold();
         break;
       }
-      deltas.push(d);
-      const why = r.target ? `${r.target.count} residents wrote about ${r.target?.label || r.target?.id || "that issue"}` : "Residents' journals changed the plan";
+      changes++;
+      deltas.push({ n, text: signed(d) });
       const what = changeLabels(r.added).join(" and ") || "no new simulated proposal";
+      const action = r.source === "dear-congress" ? `dear-congress adopted ${what}` : `${what} added`;
       demoShow("withPlan");
-      demoCaption(`Cycle ${n}`, `${why} → ${what} added. ${signed(d)} well-being compared with keeping plan ${n - 1}; ${r.improved} residents better off, ${r.worse} worse off.`);
+      demoCaption(`Cycle ${n}`, `${why} → ${action}. ${signed(d)} well-being compared with keeping plan ${n - 1}; ${r.improved} residents better off, ${r.worse} worse off.`);
       await demoHold();
       const f = r.followUp;
       if (f && f.plan2 - f.keepPlan1 >= 3) { // only a recovery worth pointing at
         followResident(f.index);
-        demoCaption(`Cycle ${n}`, `${f.name} was hurt most by plan ${n - 1}. Keeping it: ${fmt(f.keepPlan1)}. With plan ${n}: ${fmt(f.plan2)}.`);
+        demoCaption(`Cycle ${n}`, `${f.name} was hurt most by plan ${f.byPlan}. Keeping the current plan: ${fmt(f.keepPlan1)}. With plan ${n}: ${fmt(f.plan2)}.`);
         await demoHold();
       }
     }
 
-    demoCaption("Recap", `${deltas.map((d, i) => `Cycle ${i + 1}: ${signed(d)}`).join(" · ")}. Each number compares against an identical town on the same seed, so it's the plan's effect, not luck.`);
+    demoCaption("Recap", `${deltas.map((x) => `Cycle ${x.n}: ${x.text}`).join(" · ")}. Each number compares against an identical town on the same seed, so it's the plan's effect, not luck.`);
   } catch (err) {
     if (!(err instanceof DemoStopped)) demoCaption("Demo stopped", `Something went wrong: ${err?.message || err}`);
   } finally {

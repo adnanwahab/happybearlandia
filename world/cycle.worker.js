@@ -222,7 +222,11 @@ async function cycle1(payload, progress) {
   const journalsAfter = journals(plan.world, plan.byId);
   const scores = { before: [...plan.before], noPlan: [...base.after], withPlan: [...plan.after] };
 
-  state = { env, history: [plan1Ids], plan1Ids, plan1Label: payload.label, remoteId: payload.remoteId || null, streak: {}, planWorld: plan.world, planById: plan.byId, cycle1Scores: scores };
+  state = {
+    env, cycle: 1, history: [plan1Ids], plan1Ids, plan1Label: payload.label, remoteId: payload.remoteId || null, streak: {},
+    planWorld: plan.world, planById: plan.byId, cycle1Scores: scores,
+    hurtRef: { scores, plan: 1 }, // the last change, for "who did it hurt, and did the next change help?"
+  };
 
   return {
     cycle: 1,
@@ -235,9 +239,20 @@ async function cycle1(payload, progress) {
   };
 }
 
+// The complaint a proposal answers, if residents are reporting it right now.
+function complaintFor(proposalId, counts) {
+  const id = resolveRuleForProposal(proposalId)?.id;
+  if (!id) return null;
+  const hits = Object.entries(counts)
+    .filter(([k, n]) => n > 0 && COMPLAINTS[k].fixes.includes(id))
+    .sort((a, b) => b[1] - a[1]);
+  return hits.length ? { id: hits[0][0], label: COMPLAINTS[hits[0][0]].label, count: hits[0][1] } : null;
+}
+
 async function cycle2(progress) {
   if (!state) throw new Error("Run cycle 1 first");
-  const { env, history, plan1Ids, plan1Label, remoteId, streak, planWorld, planById, cycle1Scores } = state;
+  const { env, history, plan1Ids, plan1Label, remoteId, streak, planWorld, planById, cycle1Scores, hurtRef } = state;
+  const n = (state.cycle || 1) + 1;
 
   progress("Reading residents' journals", 0.02);
   const counts = complaintCounts(planWorld);
@@ -246,78 +261,110 @@ async function cycle2(progress) {
 
   progress("Asking dear-congress for the next plan", 0.05);
   const live = await liveNextPlan({ remoteId, label: plan1Label, proposalIds: plan1Ids, streak }, journalsNow, planWorld.people.map((p) => p.name));
-  const warmingTxt = live?.warming?.length
-    ? `; it's leaning toward ${live.warming.map((w) => `${w.label} (${w.streak} of 2 rounds)`).join(", ")}`
-    : "";
   const have = canonical(plan1Ids);
   const liveAdds = live ? [...canonical(live.proposalIds)].filter((id) => !have.has(id)) : [];
+  // A proposal dear-congress is leaning toward that answers something residents report now.
+  const pending = (live?.warming || [])
+    .map((w) => ({ ...w, complaint: complaintFor(w.id, counts) }))
+    .find((w) => w.complaint && !have.has(resolveRuleForProposal(w.id)?.id));
 
-  let plan2Ids, source, note;
+  let plan2Ids, source, note, waiting = null, target = null;
   if (live && liveAdds.length) {
     plan2Ids = live.proposalIds;
     source = "dear-congress";
-    note = `dear-congress re-synthesized the plan from residents' journals`;
+    note = "dear-congress re-synthesized the plan from residents' journals";
+    target = liveAdds.map((id) => complaintFor(id, counts)).find(Boolean) || null;
+  } else if (pending) {
+    // dear-congress adopts a change only after it wins two syntheses in a row.
+    // Respect that instead of overriding it locally: hold the plan for a week.
+    plan2Ids = plan1Ids;
+    source = "dear-congress";
+    waiting = { id: resolveRuleForProposal(pending.id)?.id || pending.id, label: pending.label, streak: pending.streak, needed: 2 };
+    target = pending.complaint;
+    note = `dear-congress is leaning toward ${pending.label} (${pending.streak} of 2 rounds). It changes the plan only after a second week of evidence, so the plan stays the same this week`;
   } else {
     plan2Ids = [...plan1Ids, ...local.add];
     source = "local";
+    target = local.target;
     note = live
-      ? `dear-congress kept the same simulated proposals${warmingTxt}, so the next fix was picked locally from the complaints`
+      ? "dear-congress kept the same simulated proposals, so the next fix was picked locally from the complaints"
       : "dear-congress wasn't reachable, so the next fix was picked locally from the complaints";
   }
   const before = canonical(plan1Ids), after = canonical(plan2Ids);
   const added = [...after].filter((id) => !before.has(id));
   const removed = [...before].filter((id) => !after.has(id));
+  const changed = added.length > 0 || removed.length > 0;
 
-  // Fork the plan world by replaying everything it has lived through, then give the fork the new plan.
-  const forkTotal = WARMUP_DAYS + history.length * (env.days - 1);
-  let forked = 0;
-  const fork = await replayHistory(env, history, async () => {
-    forked++;
-    progress("Forking the plan-1 world", 0.1 + 0.4 * (forked / forkTotal));
-    await null;
-  });
+  // Fork the plan world by replaying everything it has lived through, then give the
+  // fork the new plan. If nothing simulated changed, the fork would be identical, so skip it.
+  let fork = { world: planWorld, byId: planById };
+  if (changed) {
+    const forkTotal = WARMUP_DAYS + history.length * (env.days - 1);
+    let forked = 0;
+    fork = await replayHistory(env, history, async () => {
+      forked++;
+      progress(`Forking the plan ${n - 1} world`, 0.1 + 0.4 * (forked / forkTotal));
+      await null;
+    });
+  }
   const staged = applyPlan(fork.world, plan2Ids, env.year);
 
   for (let d = 0; d < env.days - 1; d++) {
-    progress(`Simulating day ${d + 1} of ${env.days}: plan 1 vs plan 2`, 0.5 + 0.48 * ((d + 1) / env.days));
+    progress(changed ? `Simulating day ${d + 1} of ${env.days}: plan ${n - 1} vs plan ${n}` : `Simulating day ${d + 1} of ${env.days}`, 0.5 + 0.48 * ((d + 1) / env.days));
     planWorld.step(1440);
-    fork.world.step(1440);
+    if (changed) fork.world.step(1440);
     await null;
   }
   const keep = recordDay(planWorld);
-  const next = recordDay(fork.world);
+  const next = changed ? recordDay(fork.world) : keep;
   const scores = { before: cycle1Scores.withPlan, noPlan: [...keep], withPlan: [...next] };
   const j1 = journals(fork.world, fork.byId);
 
-  // Follow up on whoever cycle 1 hurt most: did plan 2 help them?
-  const c1Delta = cycle1Scores.withPlan.map((x, i) => x - cycle1Scores.noPlan[i]);
-  let hurt = 0;
-  for (let i = 1; i < c1Delta.length; i++) if (c1Delta[i] < c1Delta[hurt]) hurt = i;
+  // Follow up on whoever the last change hurt most: did this change help them?
+  let followUp = null;
+  if (changed) {
+    const d0 = hurtRef.scores.withPlan.map((x, i) => x - hurtRef.scores.noPlan[i]);
+    let hurt = 0;
+    for (let i = 1; i < d0.length; i++) if (d0[i] < d0[hurt]) hurt = i;
+    followUp = {
+      index: hurt,
+      name: planWorld.people[hurt].name,
+      byPlan: hurtRef.plan,
+      noPlan1: hurtRef.scores.noPlan[hurt],
+      plan1: hurtRef.scores.withPlan[hurt],
+      keepPlan1: keep[hurt],
+      plan2: next[hurt],
+    };
+  }
 
-  // The fork continues from here, so a third cycle would build on plan 2.
-  state = { ...state, history: [...history, plan2Ids], plan1Ids: plan2Ids, streak: live?.streak || streak, planWorld: fork.world, planById: fork.byId, cycle1Scores: scores };
+  // The fork continues from here, so the next cycle builds on this plan.
+  state = {
+    ...state,
+    cycle: n,
+    history: [...history, plan2Ids],
+    plan1Ids: plan2Ids,
+    streak: live?.streak || streak,
+    planWorld: fork.world,
+    planById: fork.byId,
+    cycle1Scores: scores,
+    hurtRef: changed ? { scores, plan: n } : hurtRef,
+  };
 
   return {
-    cycle: 2,
+    cycle: n,
     days: env.days,
     year: env.year,
     proposalIds: plan2Ids,
     unsupported: staged.unsupported,
     source,
     note,
+    waiting,
     added: added.map((id) => ({ id, label: ruleLabel(id) })),
     removed: removed.map((id) => ({ id, label: ruleLabel(id) })),
-    target: source === "local" ? local.target : null,
+    target,
     unreachable: local.unreachable,
     complaints: Object.entries(counts).map(([id, count]) => ({ id, label: COMPLAINTS[id].label, count, reachable: COMPLAINTS[id].fixes.length > 0 })),
-    followUp: {
-      index: hurt,
-      name: planWorld.people[hurt].name,
-      noPlan1: cycle1Scores.noPlan[hurt],
-      plan1: cycle1Scores.withPlan[hurt],
-      keepPlan1: keep[hurt],
-      plan2: next[hurt],
-    },
+    followUp,
     scores,
     ...summarize(scores, planWorld, fork.world, journalsNow, j1),
   };
