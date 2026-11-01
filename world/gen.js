@@ -44,6 +44,33 @@ function centroid(pts) {
   return [x / pts.length, z / pts.length];
 }
 
+function pointInRing(lat, lng, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const yi = ring[i][0], xi = ring[i][1];
+    const yj = ring[j][0], xj = ring[j][1];
+    const intersect = ((yi > lat) !== (yj > lat))
+      && (lng < ((xj - xi) * (lat - yi)) / ((yj - yi) || 1e-12) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+function floodZoneForBuilding(b, area, proj) {
+  const zones = Array.isArray(area?.floodZones) ? area.floodZones : [];
+  if (!zones.length) return "X";
+  const [lat, lng] = proj.toLatLng(b.center[0], b.center[1]);
+  for (const z of zones) {
+    const polys = Array.isArray(z?.polygons) ? z.polygons : [];
+    for (const ring of polys) {
+      if (Array.isArray(ring) && ring.length >= 3 && pointInRing(lat, lng, ring)) {
+        return z.zone === "AE" || z.zone === "A" || z.zone === "VE" || z.zone === "X500" ? z.zone : "X";
+      }
+    }
+  }
+  return "X";
+}
+
 const FIRST = ["Maria", "James", "Aisha", "Wei", "Carlos", "Priya", "Jamal", "Sofia", "Diego", "Mei", "Omar", "Grace",
   "Luis", "Fatima", "Noah", "Ana", "Kofi", "Hana", "Mateo", "Zara", "Ethan", "Lina", "Tunde", "Rosa", "Sam", "Yuki",
   "Ivan", "Leila", "Ben", "Nia", "Raj", "Elena", "Kwame", "Chloe", "Ali", "Ines", "Theo", "Amara", "Jin", "Lucia"];
@@ -156,6 +183,7 @@ export function buildTown(origin, area, opts = {}) {
     b.index = i;
     b.height = b.kind === "park" ? 0.3 : (b.levels ? b.levels * 3.2 : KIND_HEIGHT[b.kind] * r.range(0.7, 1.4));
     b.name = b.name || defaultName(b.kind, r);
+    b.floodZone = floodZoneForBuilding(b, area, proj);
     // Mutable world state lives on buildings (see sim.js).
     b.state = {
       open: true,

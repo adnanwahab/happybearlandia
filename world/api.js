@@ -27,6 +27,12 @@ const cache = new Map(); // key -> { at, body }
 const TTL_MS = 1000 * 60 * 60 * 24;
 const MAX_BUILDINGS = 1200;
 
+const NFHL_LAYER_URL = process.env.NFHL_LAYER_URL
+  || "https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/28/query";
+const NFHL_TIMEOUT_MS = Number.isFinite(Number(process.env.NFHL_TIMEOUT_MS))
+  ? Math.max(1500, Number(process.env.NFHL_TIMEOUT_MS))
+  : 9000;
+
 function errorText(err) {
   if (err instanceof Error) return err.message;
   if (typeof err === "string") return err;
@@ -161,6 +167,52 @@ function isConnectivityFailure(text) {
   );
 }
 
+function mapFloodZone(zoneRaw) {
+  const z = String(zoneRaw || "").trim().toUpperCase();
+  if (z === "AE" || z === "A" || z === "VE") return z;
+  if (z.includes("0.2") || z.includes("500") || z === "X500") return "X500";
+  return "X";
+}
+
+async function queryNFHL(s, w, n, e) {
+  const url = new URL(NFHL_LAYER_URL);
+  url.searchParams.set("where", "1=1");
+  url.searchParams.set("geometry", `${w},${s},${e},${n}`);
+  url.searchParams.set("geometryType", "esriGeometryEnvelope");
+  url.searchParams.set("inSR", "4326");
+  url.searchParams.set("spatialRel", "esriSpatialRelIntersects");
+  url.searchParams.set("outFields", "FLD_ZONE");
+  url.searchParams.set("returnGeometry", "true");
+  url.searchParams.set("outSR", "4326");
+  url.searchParams.set("f", "json");
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: { accept: "application/json", "user-agent": USER_AGENT },
+    signal: AbortSignal.timeout(NFHL_TIMEOUT_MS),
+  });
+  if (!res.ok) throw new Error(`NFHL HTTP ${res.status}`);
+
+  const payload = await res.json();
+  if (payload?.error) throw new Error(payload.error?.message || "NFHL query error");
+
+  const out = [];
+  for (const f of payload?.features || []) {
+    const fld = mapFloodZone(f?.attributes?.FLD_ZONE);
+    const rings = Array.isArray(f?.geometry?.rings) ? f.geometry.rings : [];
+    const polygons = rings
+      .map((ring) => Array.isArray(ring)
+        ? ring
+          .map((p) => Array.isArray(p) && p.length >= 2 ? [Number(p[1]), Number(p[0])] : null)
+          .filter((p) => p && Number.isFinite(p[0]) && Number.isFinite(p[1]))
+        : [])
+      .filter((r) => r.length >= 3);
+    if (!polygons.length) continue;
+    out.push({ zone: fld, polygons });
+  }
+  return out;
+}
+
 export async function getArea(lat, lng, radiusM = 400) {
   const key = `${lat.toFixed(3)},${lng.toFixed(3)},${radiusM}`;
   const hit = cache.get(key);
@@ -169,6 +221,7 @@ export async function getArea(lat, lng, radiusM = 400) {
   const radii = [...new Set([radiusM, 250, 150].filter((r) => Number.isFinite(r) && r > 40))];
   let json = null;
   let usedRadius = radiusM;
+  let bboxUsed = null;
   const tries = [];
   const startedAt = Date.now();
   const AREA_REQUEST_BUDGET_MS = Math.max(4500, Math.min(11000, OVERPASS_TIMEOUT_MS + 1500));
@@ -196,6 +249,7 @@ out tags geom;`;
     try {
       json = await queryOverpass(query, Math.max(1000, Math.min(OVERPASS_TIMEOUT_MS, remaining)));
       usedRadius = r;
+      bboxUsed = { s, w, n, e };
       break;
     } catch (err) {
       const msg = errorText(err);
@@ -204,14 +258,11 @@ out tags geom;`;
     }
   }
 
-  if (!json) {
-    throw new Error(`Overpass failed (${tries.join(" | ")})`);
-  }
-
   const buildings = [];
   const pois = [];
   const roads = [];
-  for (const el of json.elements || []) {
+  if (json) {
+    for (const el of json.elements || []) {
     if (el.type === "way" && el.tags?.highway && el.geometry?.length >= 2) {
       roads.push({ kind: el.tags.highway, pts: el.geometry.map((g) => [g.lat, g.lon]) });
     } else if (el.type === "way" && el.geometry?.length >= 4) {
@@ -226,16 +277,36 @@ out tags geom;`;
     } else if (el.type === "node") {
       pois.push({ kind: classify(el.tags), name: el.tags?.name || null, lat: el.lat, lng: el.lon });
     }
+    }
+  }
+
+  let floodZones = [];
+  let floodZonesSource = "fema-nfhl";
+  let floodZonesError = null;
+  if (bboxUsed) {
+    try {
+      floodZones = await queryNFHL(bboxUsed.s, bboxUsed.w, bboxUsed.n, bboxUsed.e);
+    } catch (err) {
+      floodZonesSource = "fallback-lowland";
+      floodZonesError = errorText(err);
+    }
+  } else {
+    floodZonesSource = "fallback-lowland";
+    floodZonesError = `Overpass failed (${tries.join(" | ")})`;
   }
 
   const body = {
-    source: "osm",
+    source: json ? "osm" : "none",
     origin: { lat, lng },
     radiusM: usedRadius,
     buildings: buildings.slice(0, MAX_BUILDINGS),
     roads: roads.slice(0, 3000),
     pois,
-    attribution: "© OpenStreetMap contributors",
+    floodZones,
+    floodZonesSource,
+    floodZonesError,
+    attribution: json ? "© OpenStreetMap contributors" : null,
+    error: json ? null : `Overpass failed (${tries.join(" | ")})`,
   };
   cache.set(key, { at: Date.now(), body });
   return body;
@@ -252,7 +323,7 @@ export async function handleArea(url) {
   } catch (err) {
     console.warn(`[world] map data failed for ${lat},${lng}: ${errorText(err)}`);
     // Client will build a procedural town instead.
-    return Response.json({ source: "none", error: errorText(err) }, { status: 200 });
+    return Response.json({ source: "none", error: errorText(err), floodZonesSource: "fallback-lowland", floodZonesError: errorText(err), floodZones: [] }, { status: 200 });
   }
 }
 

@@ -190,6 +190,31 @@ async function proxyDearCongress(request) {
   }
 }
 
+async function handleOutcomes() {
+  const base = DEAR_CONGRESS_URL.endsWith("/") ? DEAR_CONGRESS_URL : DEAR_CONGRESS_URL + "/";
+  const upstream = new URL("outcomes", base);
+  try {
+    const res = await fetch(upstream, {
+      method: "GET",
+      headers: {
+        accept: "application/json",
+        "user-agent": "HappyBearLandia/0.1 (+https://happybearlandia.fly.dev)",
+      },
+      signal: AbortSignal.timeout(8000),
+    });
+    const text = await res.text();
+    return new Response(text, {
+      status: res.status,
+      headers: {
+        "content-type": res.headers.get("content-type") || "application/json; charset=utf-8",
+        "cache-control": "no-store",
+      },
+    });
+  } catch (err) {
+    return Response.json({ error: `outcomes proxy failed: ${String(err?.message || err)}` }, { status: 502 });
+  }
+}
+
 async function handlePlan(request) {
   if (request.method !== "POST") {
     return Response.json({ error: "Use POST /api/plan" }, { status: 405, headers: { allow: "POST" } });
@@ -315,6 +340,7 @@ const server = serve({
     if (pathname === "/api/overpass-health") return handleOverpassHealth();
     if (pathname === "/api/config") return handleConfig();
     if (pathname === "/api/plan") return handlePlan(request);
+    if (pathname === "/api/outcomes") return handleOutcomes();
     if (pathname === "/api/publish_draft") return handlePublishDraft(request);
     if (pathname === "/api/scenes") return handleScenes();
     if (pathname.startsWith("/api/scenes/")) return handleSceneById(pathname);

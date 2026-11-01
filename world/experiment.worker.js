@@ -17,11 +17,17 @@ async function fetchPlanRemote(body) {
   return normalizePackages(payload);
 }
 
+async function fetchOutcomesRemote() {
+  const res = await fetch("/api/outcomes", { method: "GET" });
+  if (!res.ok) throw new Error(`outcomes HTTP ${res.status}`);
+  return await res.json();
+}
+
 self.onmessage = async (ev) => {
   const msg = ev?.data || {};
   if (msg.type !== "run") return;
 
-  const { origin, area, maxPeople, years = 10, seed = "world-exp" } = msg.payload || {};
+  const { origin, area, maxPeople, years = 10, seed = "world-exp", mode = "replay" } = msg.payload || {};
   try {
     const town = buildTown(origin, area, { maxPeople: maxPeople || 500 });
     const packageNames = ["Balanced", "Minimal change", "Most popular"];
@@ -36,14 +42,27 @@ self.onmessage = async (ev) => {
         packageName,
         years,
         seed,
+        mode,
         fetchPlan: fetchPlanRemote,
-        onYear: ({ year, proposalIds, changesFromPrevious, outcomes }) => {
-          history.push({ year, outcomes, changesFromPrevious });
-          plansByYear.push({ year, proposalIds, changesFromPrevious });
+        fetchOutcomes: fetchOutcomesRemote,
+        onYear: (y) => {
+          history.push({
+            year: y.year,
+            yearLabel: y.yearLabel,
+            replay: y.replay,
+            replayDataSource: y.replayDataSource,
+            stormSeverity: y.stormSeverity,
+            outcomes: y.outcomes,
+            changesFromPrevious: y.changesFromPrevious,
+          });
+          plansByYear.push({ year: y.year, yearLabel: y.yearLabel, proposalIds: y.proposalIds, changesFromPrevious: y.changesFromPrevious, notSimulatedChanges: y.notSimulatedChanges });
           self.postMessage({
             type: "progress",
             packageName,
-            year,
+            year: y.year,
+            yearLabel: y.yearLabel,
+            replay: y.replay,
+            stormSeverity: y.stormSeverity,
             years,
             donePackages: i,
             totalPackages: packageNames.length,

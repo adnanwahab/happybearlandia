@@ -71,6 +71,33 @@ function lowlandScore(b, seedKey) {
   return n - Math.floor(n);
 }
 
+export function floodZoneBucket(zoneRaw) {
+  const z = String(zoneRaw || "X").toUpperCase();
+  if (z === "AE" || z === "A" || z === "VE") return 0; // 100-year
+  if (z === "X500") return 1; // 500-year
+  return 2; // X/other
+}
+
+function floodOrderScore(b, seedKey) {
+  const bucket = floodZoneBucket(b?.floodZone);
+  const tie = lowlandScore(b, seedKey);
+  return bucket + tie / 10;
+}
+
+export function selectFloodedBuildingIds(buildings, seedKey, floodFraction) {
+  const active = (buildings || []).filter((b) => b.kind !== "park");
+  if (!active.length) return new Set();
+  const frac = Math.max(0, Math.min(1, Number(floodFraction || 0)));
+  const n = Math.max(0, Math.min(active.length, Math.round(active.length * frac)));
+  const ranked = [...active].sort((a, b) => {
+    const da = floodOrderScore(a, seedKey);
+    const db = floodOrderScore(b, seedKey);
+    if (da !== db) return da - db;
+    return (a.index ?? 0) - (b.index ?? 0);
+  });
+  return new Set(ranked.slice(0, n).map((b) => b.index));
+}
+
 function nearestSafeHome(world, fromHomeIndex) {
   const src = world.buildings[fromHomeIndex];
   const homes = world.buildings.filter((b) => b.kind === "home" && !b.state.flooded);
@@ -88,14 +115,16 @@ function nearestSafeHome(world, fromHomeIndex) {
 
 function applyStorm(world, severity = 1) {
   const baseFlood = 0.24 * Math.max(0.65, Math.min(1.45, severity));
-  const cut = Math.max(0.04, baseFlood - Number(world.policy?.floodMitigation || 0));
+  const floodFraction = Math.max(0, Math.min(1, baseFlood - Number(world.policy?.floodMitigation || 0)));
+  const floodedIds = selectFloodedBuildingIds(world.buildings, world.seedKey, floodFraction);
+
   let floodedNow = 0;
   for (const b of world.buildings) {
     if (b.kind === "park") {
       b.state.flooded = false;
       continue;
     }
-    b.state.flooded = lowlandScore(b, world.seedKey) < cut;
+    b.state.flooded = floodedIds.has(b.index);
     if (b.state.flooded) floodedNow++;
   }
 
@@ -165,13 +194,9 @@ function policyContributions(proposalIds, year, adoptedYearByProposal = null) {
 
 function estimateStormDisplacement(world, severity, floodMitigation) {
   const baseFlood = 0.24 * Math.max(0.65, Math.min(1.45, severity));
-  const cut = Math.max(0.04, baseFlood - Number(floodMitigation || 0));
+  const floodFraction = Math.max(0, Math.min(1, baseFlood - Number(floodMitigation || 0)));
 
-  const flooded = new Set();
-  for (const b of world.buildings) {
-    if (b.kind === "park") continue;
-    if (lowlandScore(b, world.seedKey) < cut) flooded.add(b.index);
-  }
+  const flooded = selectFloodedBuildingIds(world.buildings, world.seedKey, floodFraction);
 
   const safeHomes = world.buildings.filter((b) => b.kind === "home" && !flooded.has(b.index));
   if (!safeHomes.length) return 0;
@@ -334,6 +359,34 @@ function stormSeverity(seed, year) {
   return 0.8 + r() * 0.6;
 }
 
+async function fetchReplayFloodSeverities(fetchOutcomes) {
+  try {
+    const payload = await fetchOutcomes();
+    const rows = Array.isArray(payload?.outcomes?.series) ? payload.outcomes.series : (Array.isArray(payload?.series) ? payload.series : []);
+    const flood = rows
+      .filter((r) => String(r?.needId || "") === "flooding")
+      .map((r) => ({ year: Number(r.year), severity: Number(r.severity) }))
+      .filter((r) => Number.isFinite(r.year) && Number.isFinite(r.severity));
+
+    if (!flood.length) throw new Error("no flooding outcomes series");
+
+    const years = Array.from({ length: 10 }, (_, i) => 2015 + i);
+    const byYear = new Map(flood.map((r) => [r.year, Math.max(0, Math.min(1, r.severity))]));
+    const known = [...byYear.values()];
+    const fallback = known.length ? [...known].sort((a, b) => a - b)[Math.floor(known.length / 2)] : 0.8;
+    return {
+      source: "real",
+      series: years.map((y) => ({ year: y, severity: byYear.get(y) ?? fallback })),
+    };
+  } catch {
+    const years = Array.from({ length: 10 }, (_, i) => 2015 + i);
+    return {
+      source: "simulated",
+      series: years.map((y, i) => ({ year: y, severity: 0.8 + (i % 3) * 0.1 })),
+    };
+  }
+}
+
 function weekOutcomes(world, soldOutEvents, displacedResidents, litterSamples) {
   const floodedParcels = world.buildings.filter((b) => b.state?.flooded).length;
   const avgWalkMinutes = world.people.length
@@ -362,7 +415,7 @@ function classifyJournalType(text) {
   return "other";
 }
 
-async function simulateYear({ town, proposalIds, year, packageLabel, seed, adoptedYearByProposal = null, yearStartMs }) {
+async function simulateYear({ town, proposalIds, year, packageLabel, seed, adoptedYearByProposal = null, yearStartMs, stormSeverityValue = null }) {
   const simTown = cloneTown(town);
   const world = createWorld(simTown, { startMinute: 0 });
   const buildingsById = {};
@@ -396,7 +449,7 @@ async function simulateYear({ town, proposalIds, year, packageLabel, seed, adopt
   for (let d = 0; d < days; d++) {
     if (d === stormDay) {
       world.step(12 * 60);
-      const severity = stormSeverity(seed, year);
+      const severity = Number.isFinite(stormSeverityValue) ? Number(stormSeverityValue) : stormSeverity(seed, year);
       const totalFloodMitigation = Number(staged.floodMitigation || 0);
       const displacedNoMitigation = estimateStormDisplacement(world, severity, 0);
       const displacedWithAll = estimateStormDisplacement(world, severity, totalFloodMitigation);
@@ -447,6 +500,7 @@ async function simulateYear({ town, proposalIds, year, packageLabel, seed, adopt
     population: world.people.length,
     policyContributionByItem,
     stormDiagnostics,
+    stormSeverity: Number.isFinite(stormSeverityValue) ? Number(stormSeverityValue) : stormSeverity(seed, year),
   };
 }
 
@@ -489,7 +543,21 @@ async function inferExperimentStartMs() {
   }
 }
 
-export async function runExperiment({ town, packageName, years = 10, seed = "world-exp", fetchPlan, onYear, experimentStartMs }) {
+export async function runExperiment({
+  town,
+  packageName,
+  years = 10,
+  seed = "world-exp",
+  fetchPlan,
+  onYear,
+  experimentStartMs,
+  mode = "synthetic",
+  fetchOutcomes = async () => {
+    const res = await fetch("/api/outcomes", { signal: AbortSignal.timeout(6000) });
+    if (!res.ok) throw new Error(`outcomes HTTP ${res.status}`);
+    return await res.json();
+  },
+}) {
   const journalsSoFar = [];
   const plansByYear = [];
   let previousSelection = null;
@@ -510,6 +578,8 @@ export async function runExperiment({ town, packageName, years = 10, seed = "wor
   const rawSeverityHistory = { transit: [], flooding: [] };
   const impactHistory = { t_bus: [], t_brt: [], f_drainage: [], f_buyouts: [] };
   let previousOutcomes = deriveSynthesisOutcomes(baseline, rawSeverityHistory, impactHistory, [], {}, 0);
+  const replay = mode === "replay" ? await fetchReplayFloodSeverities(fetchOutcomes) : { source: "simulated", series: [] };
+  const replaySeverities = replay.series;
   rawSeverityHistory.transit.push(Number(previousOutcomes.raw?.transit || 0));
   rawSeverityHistory.flooding.push(Number(previousOutcomes.raw?.flooding || 0));
   if (rawSeverityHistory.transit.length > 3) rawSeverityHistory.transit.shift();
@@ -519,10 +589,13 @@ export async function runExperiment({ town, packageName, years = 10, seed = "wor
     if (impactHistory[pid].length > 3) impactHistory[pid].shift();
   }
 
-  onYear?.({ year: 0, packageName, packageId: "none", proposalIds: [], changesFromPrevious: null, outcomes: baseline.outcomes });
+  onYear?.({ year: 0, packageName, packageId: "none", proposalIds: [], changesFromPrevious: null, outcomes: baseline.outcomes, yearLabel: mode === "replay" ? "2014" : "Y0" });
   plansByYear.push({ year: 0, packageId: "none", proposalIds: [], changesFromPrevious: null, notSimulatedChanges: [] });
 
-  for (let year = 1; year <= years; year++) {
+  const replayYears = replaySeverities.map((x) => x.year);
+  const effectiveYears = mode === "replay" ? replayYears.length : years;
+
+  for (let year = 1; year <= effectiveYears; year++) {
     const yearNowMs = startMs + (year - 1) * 365 * 24 * 60 * 60 * 1000;
     const body = {
       includeSynthetic: false,
@@ -556,6 +629,9 @@ export async function runExperiment({ town, packageName, years = 10, seed = "wor
       nextAdoptedYearByProposal[pid] = Number.isFinite(adoptedYearByProposal[pid]) ? adoptedYearByProposal[pid] : year;
     }
 
+    const replayYear = mode === "replay" ? replaySeverities[year - 1]?.year : null;
+    const replaySeverity = mode === "replay" ? replaySeverities[year - 1]?.severity : null;
+
     const sim = await simulateYear({
       town,
       proposalIds: pkg.proposalIds,
@@ -564,6 +640,7 @@ export async function runExperiment({ town, packageName, years = 10, seed = "wor
       seed,
       adoptedYearByProposal: nextAdoptedYearByProposal,
       yearStartMs: yearNowMs,
+      stormSeverityValue: replaySeverity,
     });
 
     const notSimulatedChanges = formatNotSimulatedChanges(pkg.changesFromPrevious, proposalCostById);
@@ -590,6 +667,10 @@ export async function runExperiment({ town, packageName, years = 10, seed = "wor
 
     onYear?.({
       year,
+      yearLabel: mode === "replay" ? String(replayYear || (2014 + year)) : `Y${year}`,
+      replay: mode === "replay",
+      replayDataSource: mode === "replay" ? replay.source : null,
+      stormSeverity: sim.stormSeverity,
       packageName,
       packageId: pkg.id,
       proposalIds: pkg.proposalIds,

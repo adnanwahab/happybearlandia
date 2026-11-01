@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { isAbsolute, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { buildTown } from "./gen.js";
-import { runExperiment } from "./experiment.js";
+import { runExperiment, selectFloodedBuildingIds } from "./experiment.js";
 
 const DEAR_CONGRESS_ROOT_CANDIDATES = [
   process.env.DEAR_CONGRESS_ROOT,
@@ -110,6 +110,52 @@ describe("runExperiment", () => {
     expect(hit).toBeTruthy();
   }, 60000);
 
+  test("flood zone ordering: 100-year zones flood before X at same severity", () => {
+    const buildings = [
+      { index: 0, kind: "home", floodZone: "X", center: [0, 0] },
+      { index: 1, kind: "home", floodZone: "AE", center: [10, 0] },
+      { index: 2, kind: "home", floodZone: "X500", center: [20, 0] },
+      { index: 3, kind: "home", floodZone: "X", center: [30, 0] },
+    ];
+    const flooded = selectFloodedBuildingIds(buildings, "seed", 0.5); // 2/4
+    expect(flooded.has(1)).toBe(true); // AE first
+    expect(flooded.has(0) || flooded.has(3)).toBe(false); // X should not beat 100-year when slots are limited
+  });
+
+  test("replay severities come from outcomes fixture and peak in 2017", async () => {
+    const town = makeTown(140);
+    const history = [];
+    const fixture = {
+      outcomes: {
+        series: [
+          { needId: "flooding", year: 2015, severity: 0.2 },
+          { needId: "flooding", year: 2016, severity: 0.5 },
+          { needId: "flooding", year: 2017, severity: 1.0 },
+          { needId: "flooding", year: 2018, severity: 0.4 },
+          { needId: "flooding", year: 2019, severity: 0.3 },
+          { needId: "flooding", year: 2020, severity: 0.6 },
+          { needId: "flooding", year: 2021, severity: 0.4 },
+          { needId: "flooding", year: 2022, severity: 0.7 },
+          { needId: "flooding", year: 2023, severity: 0.5 },
+          { needId: "flooding", year: 2024, severity: 0.6 },
+        ],
+      },
+    };
+
+    await runExperiment({
+      town,
+      packageName: "Balanced",
+      mode: "replay",
+      seed: "replay-fixture",
+      fetchOutcomes: async () => fixture,
+      fetchPlan: async () => fakePlanPayload(),
+      onYear: (y) => { if (y.year > 0) history.push(y); },
+    });
+
+    const peak = [...history].sort((a, b) => Number(b.stormSeverity || 0) - Number(a.stormSeverity || 0))[0];
+    expect(peak?.yearLabel).toBe("2017");
+  });
+
   test("passes previous/challengerStreak from year 2 onward (and sends {} in year 1)", async () => {
     const town = makeTown(220);
     const calls = [];
@@ -154,6 +200,25 @@ describe("runExperiment", () => {
     });
     expect(typeof calls[2]?.outcomes?.items?.t_bus?.impact).toBe("number");
     expect(typeof calls[2]?.outcomes?.items?.t_brt?.impact).toBe("number");
+  });
+
+  test("replay fallback works when outcomes are unavailable", async () => {
+    const town = makeTown(160);
+    const seen = [];
+
+    await runExperiment({
+      town,
+      packageName: "Balanced",
+      mode: "replay",
+      seed: "replay-fallback",
+      fetchOutcomes: async () => { throw new Error("outcomes down"); },
+      fetchPlan: async () => fakePlanPayload(),
+      onYear: (y) => { if (y.year > 0) seen.push(y); },
+    });
+
+    expect(seen.length).toBe(10);
+    expect(seen.every((y) => Number.isFinite(Number(y.stormSeverity)))).toBe(true);
+    expect(seen.every((y) => y.replayDataSource === "simulated")).toBe(true);
   });
 
   test("10-year 3-package what-if run does not change dear-congress entries or answers", async () => {

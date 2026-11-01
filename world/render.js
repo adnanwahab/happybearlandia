@@ -4,6 +4,7 @@ import { buildTown, projector } from "./gen.js";
 import { createWorld, clock } from "./sim.js";
 import { journalFor, WALK_COMPLAINT_MINUTES } from "./journal.js";
 import { computeEffectsForYear, derivePolicyProfile } from "./policy.js";
+import { replayStormStrengthLabel } from "./replay-label.js";
 
 /* ---------------------------------------------------------------- */
 /* Where are we?  /world?lat=29.7286&lng=-95.4746&people=500         */
@@ -59,18 +60,43 @@ try {
 
 const town = buildTown(origin, area, { maxPeople });
 const world = createWorld(town);
+const isHarrisCountyTile = origin.lat >= 29.3 && origin.lat <= 30.25 && origin.lng >= -95.95 && origin.lng <= -94.9;
+let measuredOutcomesLatest = {};
 const geoProj = projector(origin);
 const buildingsById = {};
 for (const b of town.buildings) {
   buildingsById[b.index] = b;
   buildingsById[b.id] = b;
 }
+const floodSourceTxt = area.floodZonesSource === "fema-nfhl"
+  ? `FEMA NFHL flood zones loaded (${(area.floodZones || []).length} polygons)`
+  : `FEMA flood zones unavailable (${area.floodZonesError || "request failed"}); using local lowland fallback.`;
+
 $("source").textContent = town.source === "osm"
-  ? `${town.buildings.length} real buildings (${town.attribution}) · ${town.people.length} synthetic residents`
+  ? `${town.buildings.length} real buildings (${town.attribution}) · ${town.people.length} synthetic residents · ${floodSourceTxt}`
   : area.error
-    ? `Couldn't load map data (${area.error}), so this is a procedural town · ${town.people.length} synthetic residents`
-    : `No map data here, so this is a procedural town · ${town.people.length} synthetic residents`;
+    ? `Couldn't load map data (${area.error}), so this is a procedural town · ${town.people.length} synthetic residents · ${floodSourceTxt}`
+    : `No map data here, so this is a procedural town · ${town.people.length} synthetic residents · ${floodSourceTxt}`;
 $("loading").remove();
+
+async function loadMeasuredOutcomes() {
+  if (!isHarrisCountyTile) return;
+  try {
+    const res = await fetch("/api/outcomes", { signal: AbortSignal.timeout(6000) });
+    if (!res.ok) return;
+    const payload = await res.json();
+    const rows = Array.isArray(payload?.outcomes?.series) ? payload.outcomes.series : [];
+    const latest = {};
+    for (const r of rows) {
+      const k = String(r?.needId || "");
+      if (!k) continue;
+      if (!latest[k] || Number(r.year) > Number(latest[k].year)) latest[k] = r;
+    }
+    measuredOutcomesLatest = latest;
+  } catch {
+    measuredOutcomesLatest = {};
+  }
+}
 
 async function loadNetworkDiagnostics() {
   const el = $("netdiag");
@@ -125,6 +151,7 @@ async function loadNetworkDiagnostics() {
 }
 
 loadNetworkDiagnostics();
+loadMeasuredOutcomes();
 
 /* ---------------------------------------------------------------- */
 /* Scene                                                             */
@@ -425,8 +452,31 @@ function lowlandScore(b) {
   return n - Math.floor(n); // 0..1
 }
 
-function floodCutNow() {
-  return Math.max(0.04, 0.24 - (world.policy?.floodMitigation || 0));
+function floodZoneBucket(zoneRaw) {
+  const z = String(zoneRaw || "X").toUpperCase();
+  if (z === "AE" || z === "A" || z === "VE") return 0;
+  if (z === "X500") return 1;
+  return 2;
+}
+
+function floodFractionNow() {
+  return Math.max(0, Math.min(1, 0.24 - (world.policy?.floodMitigation || 0)));
+}
+
+function floodPriorityScore(b) {
+  return floodZoneBucket(b.floodZone) + lowlandScore(b) / 10;
+}
+
+function selectFloodedIds(fraction) {
+  const active = town.buildings.filter((b) => b.kind !== "park");
+  const n = Math.max(0, Math.min(active.length, Math.round(active.length * Math.max(0, Math.min(1, fraction)))));
+  const ranked = [...active].sort((a, b) => {
+    const da = floodPriorityScore(a);
+    const db = floodPriorityScore(b);
+    if (da !== db) return da - db;
+    return a.index - b.index;
+  });
+  return new Set(ranked.slice(0, n).map((b) => b.index));
 }
 
 function floodImpactNotes() {
@@ -442,7 +492,8 @@ function updateOverlayLegend() {
   if (overlayMode === "flood") {
     const fm = Math.round((world.policy?.floodMitigation || 0) * 100);
     const impacts = floodImpactNotes();
-    overlayLegendEl.textContent = `flood mitigation ${fm}%${impacts ? ` · impact shares ${impacts}` : ""}`;
+    const src = area.floodZonesSource === "fema-nfhl" ? "FEMA flood zones" : "lowland fallback";
+    overlayLegendEl.textContent = `${src} · flood mitigation ${fm}%${impacts ? ` · impact shares ${impacts}` : ""}`;
   } else if (overlayMode === "commute") {
     overlayLegendEl.textContent = `home color = avg walk minutes (threshold ${WALK_COMPLAINT_MINUTES}m)`;
   } else if (overlayMode === "journals") {
@@ -484,12 +535,11 @@ function nearestSafeHome(fromHome) {
 }
 
 function triggerStorm() {
-  const baseFlood = 0.24;
-  const cut = Math.max(0.04, baseFlood - world.policy.floodMitigation);
+  const floodedIds = selectFloodedIds(floodFractionNow());
   let floodedNow = 0;
   for (const b of town.buildings) {
     if (b.kind === "park") { b.state.flooded = false; continue; }
-    b.state.flooded = lowlandScore(b) < cut;
+    b.state.flooded = floodedIds.has(b.index);
     if (b.state.flooded) floodedNow++;
   }
 
@@ -546,7 +596,7 @@ let lastExperimentSeed = null;
 let lastCompletedRunSeed = null;
 let lastCompletedRunFingerprint = null;
 
-function lineChartSvg(title, byPkg, key, colorByPkg) {
+function lineChartSvg(title, byPkg, key, colorByPkg, opts = {}) {
   const w = 470, h = 120, pad = 24;
   const ptsAll = [];
   for (const name of EXP_PACKAGES) {
@@ -573,10 +623,17 @@ function lineChartSvg(title, byPkg, key, colorByPkg) {
     return parts.join(" ");
   };
 
-  const xTicks = [0, 5, 10].map((x) => {
-    const xx = pad + (x / 10) * (w - pad * 2);
-    return `<text x="${xx}" y="${h - 6}" text-anchor="middle" fill="currentColor" opacity="0.65" font-size="10">${x}</text>`;
+  const labels = Array.isArray(opts.xLabels) && opts.xLabels.length ? opts.xLabels : ["0", "5", "10"];
+  const nTick = Math.max(1, labels.length - 1);
+  const xTicks = labels.map((label, i) => {
+    const xx = pad + (i / nTick) * (w - pad * 2);
+    return `<text x="${xx}" y="${h - 6}" text-anchor="middle" fill="currentColor" opacity="0.65" font-size="10">${label}</text>`;
   }).join("");
++
++  const marks = (opts.markYears || []).map((i) => {
++    const xx = pad + (i / nTick) * (w - pad * 2);
++    return `<line x1="${xx}" y1="${pad}" x2="${xx}" y2="${h - pad}" stroke="#d2552d" opacity="0.35" stroke-dasharray="3 3" />`;
++  }).join("");
 
   const yTop = `<text x="4" y="12" fill="currentColor" opacity="0.65" font-size="10">${hi.toFixed(1)}</text>`;
   const yBot = `<text x="4" y="${h - pad + 12}" fill="currentColor" opacity="0.65" font-size="10">${lo.toFixed(1)}</text>`;
@@ -593,6 +650,7 @@ function lineChartSvg(title, byPkg, key, colorByPkg) {
     ${xTicks}
     ${yTop}
     ${yBot}
++    ${marks}
     ${lines}
   </svg></div>`;
 }
@@ -709,14 +767,24 @@ function renderExperimentResults(results) {
     return plans.some((p) => Array.isArray(p?.notSimulatedChanges) && p.notSimulatedChanges.length > 0);
   });
 
+  const replay = EXP_PACKAGES.some((name) => (byPkg[name] || []).some((r) => r?.replay));
+  const balancedHist = byPkg["Balanced"] || [];
+  const labels = replay
+    ? balancedHist.map((r) => String(r?.yearLabel || r?.year || "")).filter(Boolean)
+    : ["0", "5", "10"];
+  const markYears = replay
+    ? (balancedHist.map((r, i) => Number(r?.stormSeverity) >= 0.8 ? i : -1).filter((i) => i >= 0))
+    : [];
+
   charts.innerHTML = [
     anyNotSimulatedChanged
       ? `<div class="warn" style="margin:0 0 8px 0">This plan changes things the simulator doesn't model — outcomes shown don't include them.</div>`
       : "",
-    lineChartSvg("Flooded parcels", byPkg, "floodedParcels", colors),
-    lineChartSvg("Displaced residents", byPkg, "displacedResidents", colors),
-    lineChartSvg("Commute / walk minutes", byPkg, "avgWalkMinutes", colors),
-    lineChartSvg("Mood", byPkg, "avgMood", colors),
+    replay ? `<div class="muted" style="margin:0 0 8px 0">${replayStormStrengthLabel(!EXP_PACKAGES.some((name) => (byPkg[name] || []).some((r) => r?.replayDataSource === "simulated")))}</div>` : "",
+    lineChartSvg("Flooded parcels", byPkg, "floodedParcels", colors, { xLabels: labels, markYears }),
+    lineChartSvg("Displaced residents", byPkg, "displacedResidents", colors, { xLabels: labels, markYears }),
+    lineChartSvg("Commute / walk minutes", byPkg, "avgWalkMinutes", colors, { xLabels: labels, markYears }),
+    lineChartSvg("Mood", byPkg, "avgMood", colors, { xLabels: labels, markYears }),
   ].join("");
 
   const rows = EXP_PACKAGES.map((name) => {
@@ -830,7 +898,10 @@ function runExperiment10Years() {
     const msg = ev?.data || {};
     if (msg.type === "progress") {
       const pkg = msg.packageName;
-      setExperimentStatus(`Running ${pkg}: year ${msg.year}/10 (${msg.donePackages + 1}/3 packages)`);
+      const replayTxt = msg.replay
+        ? ` · ${String(msg.yearLabel || "?")} severity ${(Number(msg.stormSeverity) || 0).toFixed(2)}`
+        : "";
+      setExperimentStatus(`Running ${pkg}: year ${msg.year}/10 (${msg.donePackages + 1}/3 packages)${replayTxt}`);
       return;
     }
     if (msg.type === "error") {
@@ -865,6 +936,7 @@ function runExperiment10Years() {
       area,
       maxPeople,
       years: 10,
+      mode: "replay",
       seed: experimentSeed,
     },
   });
@@ -1265,7 +1337,7 @@ function frame(now) {
 function updateBuildings(daylight) {
   const occupied = new Map();
   for (const p of town.people) if (p.mode === "doing" && p.target != null) occupied.set(p.target, (occupied.get(p.target) || 0) + 1);
-  const cut = floodCutNow();
+  const floodSourceReal = area.floodZonesSource === "fema-nfhl";
   const walkByHome = new Map();
   for (const p of town.people) {
     const rec = walkByHome.get(p.home) || { sum: 0, n: 0 };
@@ -1285,7 +1357,11 @@ function updateBuildings(daylight) {
     else if (b.state.maxStock && b.state.stock < 5) c = 0x9a8f86;      // sold out: greyed
 
     if (overlayMode === "flood") {
-      if (b.kind === "home" && !b.state.flooded && lowlandScore(b) < cut) c = 0x8fb6da;
+      const z = String(b.floodZone || "X");
+      if (floodSourceReal) {
+        if (z === "AE" || z === "A" || z === "VE") c = b.state.flooded ? 0x2f5f90 : 0x5f88b4;
+        else if (z === "X500") c = b.state.flooded ? 0x5f88b4 : 0x9fc0de;
+      } else if (b.kind === "home" && !b.state.flooded && lowlandScore(b) < floodFractionNow()) c = 0x8fb6da;
     }
     if (overlayMode === "commute" && b.kind === "home") {
       const rec = walkByHome.get(b.index);
@@ -1315,6 +1391,28 @@ function updateHud() {
   const top = Object.entries(s.doing).sort((a, b) => b[1] - a[1]).slice(0, 4);
   const status = world.policy.floodedNow ? ` · ${world.policy.floodedNow} flooded parcels · ${world.policy.displaced} displaced` : "";
   $("counts").textContent = top.map(([k, v]) => `${v} ${k}`).join(" · ") + status;
+  const rc = $("realConditions");
+  if (rc) {
+    if (!isHarrisCountyTile) {
+      rc.textContent = "Real conditions panel is shown for Harris County tiles.";
+    } else {
+      const flood = measuredOutcomesLatest.flooding;
+      const transit = measuredOutcomesLatest.transit;
+      if (!flood) {
+        rc.textContent = "Real data unavailable";
+      } else {
+        const pop = Math.max(1, town.people.length);
+        const commuteShare = town.people.filter((p) => Number(p.walkMinutesAvg3d || p.today?.walkMinutes || 0) > WALK_COMPLAINT_MINUTES).length / pop;
+        const floodSeveritySim = Math.max(0, Math.min(1, Number(world.policy?.displaced || 0) / (0.1 * pop)));
+        const floodTxt = `${floodSeveritySim.toFixed(2)} sim vs ${Number(flood.severity).toFixed(2)} measured (${flood.year}, ${flood.source?.name || "source"})`;
+        const transitTxt = transit
+          ? `${commuteShare.toFixed(2)} sim vs ${Number(transit.value).toFixed(3)} measured (${transit.year}, ${transit.source?.name || "source"})`
+          : `${commuteShare.toFixed(2)} sim vs n/a measured`;
+        rc.textContent = `Flooding severity: ${floodTxt} · Commute share over ${WALK_COMPLAINT_MINUTES}m: ${transitTxt}`;
+      }
+    }
+  }
+
   if (world.events.length && world.events[0] !== lastEvents) {
     lastEvents = world.events[0];
     $("feed").innerHTML = world.events.slice(0, 25)
