@@ -416,9 +416,9 @@ function classifyJournalType(text) {
   return "other";
 }
 
-async function simulateYear({ town, proposalIds, year, packageLabel, seed, adoptedYearByProposal = null, yearStartMs, stormSeverityValue = null }) {
+export async function simulateYear({ town, proposalIds, year, packageLabel, seed, adoptedYearByProposal = null, yearStartMs, stormSeverityValue = null, runSeed = null }) {
   const simTown = cloneTown(town);
-  const world = createWorld(simTown, { startMinute: 0 });
+  const world = createWorld(simTown, { startMinute: 0, runSeed });
   const buildingsById = {};
   for (const b of simTown.buildings) {
     buildingsById[b.index] = b;

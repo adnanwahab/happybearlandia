@@ -218,7 +218,9 @@ function newToday(day) {
 }
 
 export function createWorld(town, opts = {}) {
-  const r = rng(hashSeed(town.seedKey + ":sim"));
+  // opts.runSeed varies the sim's dice for paired multi-seed experiments. Without it the
+  // world draws exactly the same numbers as before (seeded by location only).
+  const r = rng(hashSeed(town.seedKey + ":sim" + (opts.runSeed != null ? `:${opts.runSeed}` : "")));
   const byKind = {};
   for (const b of town.buildings) (byKind[b.kind] ||= []).push(b);
   const roadGraph = buildRoadGraph(town.roads || []);
