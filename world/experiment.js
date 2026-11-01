@@ -147,13 +147,58 @@ function collectDailyJournalCandidates(world, packageLabel, year, tileKey, build
       year,
     });
     if (!text) continue;
+
+    const floodSeverity = sourceDay.displaced ? 2 : (sourceDay.homeFlooded ? 1 : 0);
+    const transitSeverity = Number(probe.walkMinutesAvg3d || sourceDay.walkMinutes || 0);
+    const streetsSeverity = Number(sourceDay.dirtyParkVisits || 0);
+    const soldOutCount = Array.isArray(sourceDay.soldOutAt) ? sourceDay.soldOutAt.length : 0;
+    const groceriesSeverity = soldOutCount + (sourceDay.emptyFridge ? 1 : 0);
+
     out.push({
+      key: `${String(p.id ?? p.name)}:${String(sourceDay.day ?? 0)}`,
       mood: ((p.needs.hunger + p.needs.energy + p.needs.fun + p.needs.social) / 4),
-      hasFlood: !!(sourceDay.displaced || sourceDay.homeFlooded),
       entry: { text, author: p.name },
+      severity: {
+        flood: floodSeverity,
+        transit: transitSeverity,
+        streets: streetsSeverity,
+        groceries: groceriesSeverity,
+      },
     });
   }
   return out;
+}
+
+function pickWeeklyJournalsByProblem(candidates, maxTotal = 12, perProblemCap = 4) {
+  const types = ["flood", "transit", "streets", "groceries"];
+  const byType = {};
+
+  for (const t of types) {
+    byType[t] = candidates
+      .filter((c) => Number(c?.severity?.[t] || 0) > 0)
+      .sort((a, b) => (Number(b.severity[t] || 0) - Number(a.severity[t] || 0)) || (a.mood - b.mood));
+  }
+
+  const selected = [];
+  const selectedPerType = Object.fromEntries(types.map((t) => [t, 0]));
+  const used = new Set();
+
+  for (let round = 0; round < perProblemCap && selected.length < maxTotal; round++) {
+    for (const t of types) {
+      if (selected.length >= maxTotal) break;
+      if (selectedPerType[t] >= perProblemCap) continue;
+
+      const pool = byType[t] || [];
+      const next = pool.find((c) => !used.has(c.key));
+      if (!next) continue;
+
+      used.add(next.key);
+      selected.push(next);
+      selectedPerType[t]++;
+    }
+  }
+
+  return selected.slice(0, maxTotal).map((x) => x.entry);
 }
 
 function stormSeverity(seed, year) {
@@ -225,13 +270,7 @@ async function simulateYear({ town, proposalIds, year, packageLabel, seed }) {
     weeklyJournalCandidates.push(...dayCandidates);
   }
 
-  const rankedWeek = weeklyJournalCandidates.sort((a, b) => a.mood - b.mood);
-  const pickedWeek = rankedWeek.slice(0, 12);
-  if (!pickedWeek.some((x) => x.hasFlood)) {
-    const floodCandidate = rankedWeek.find((x) => x.hasFlood);
-    if (floodCandidate && pickedWeek.length) pickedWeek[pickedWeek.length - 1] = floodCandidate;
-  }
-  const journals = pickedWeek.map((x) => x.entry);
+  const journals = pickWeeklyJournalsByProblem(weeklyJournalCandidates, 12, 4);
 
   const outcomes = weekOutcomes(world, soldOutEvents, displacedResidents, litterSamples);
   return { outcomes, journals };
@@ -254,7 +293,7 @@ export async function runExperiment({ town, packageName, years = 10, seed = "wor
   plansByYear.push({ year: 0, packageId: "none", proposalIds: [], changesFromPrevious: null });
 
   for (let year = 1; year <= years; year++) {
-    const body = { includeSynthetic: false, extraEntries: journalsSoFar };
+    const body = { includeSynthetic: false, extraEntries: journalsSoFar, previous: {} };
     if (year > 1 && previousSelection?.id) {
       body.previous = { [previousSelection.id]: previousSelection.proposalIds };
     }

@@ -633,13 +633,13 @@ function renderExperimentResults(results) {
     const hist = byPkg[name] || [];
     const y10Outcomes = hist.find((r) => r.year === 10) || hist[hist.length - 1] || { outcomes: {} };
     const plans = results?.[name]?.plansByYear || [];
-    const y1Plan = plans.find((p) => p.year === 1) || {};
+    const y2Plan = plans.find((p) => p.year === 2) || {};
     const y5Plan = plans.find((p) => p.year === 5) || {};
     const y10Plan = plans.find((p) => p.year === 10) || plans[plans.length - 1] || {};
-    const p1 = (y1Plan.proposalIds || []).join(", ") || "—";
+    const p2 = (y2Plan.proposalIds || []).join(", ") || "—";
     const p5 = (y5Plan.proposalIds || []).join(", ") || "—";
     const p10 = (y10Plan.proposalIds || []).join(", ") || "—";
-    const c1 = formatPlanChanges(y1Plan.changesFromPrevious);
+    const c2 = formatPlanChanges(y2Plan.changesFromPrevious);
     const c5 = formatPlanChanges(y5Plan.changesFromPrevious);
     const c10 = formatPlanChanges(y10Plan.changesFromPrevious);
     return `<tr>
@@ -648,8 +648,8 @@ function renderExperimentResults(results) {
       <td>${Number(y10Outcomes.outcomes.displacedResidents ?? 0).toFixed(0)}</td>
       <td>${Number(y10Outcomes.outcomes.avgWalkMinutes ?? 0).toFixed(1)}</td>
       <td>${Number(y10Outcomes.outcomes.avgMood ?? 0).toFixed(1)}</td>
-      <td>${p1}</td>
-      <td>${c1}</td>
+      <td>${p2}</td>
+      <td>${c2}</td>
       <td>${p5}</td>
       <td>${c5}</td>
       <td>${p10}</td>
@@ -658,9 +658,10 @@ function renderExperimentResults(results) {
   }).join("");
 
   tableWrap.innerHTML = `<table class="exp-table">
-    <thead><tr><th>Package</th><th>Flooded (Y10)</th><th>Displaced (Y10)</th><th>Walk min (Y10)</th><th>Mood (Y10)</th><th>Items Y1</th><th>Plan changes Y1</th><th>Items Y5</th><th>Plan changes Y5</th><th>Items Y10</th><th>Plan changes Y10</th></tr></thead>
+    <thead><tr><th>Package</th><th>Flooded (Y10)</th><th>Displaced (Y10)</th><th>Walk min (Y10)</th><th>Mood (Y10)</th><th>Items Y2</th><th>Plan changes Y2</th><th>Items Y5</th><th>Plan changes Y5</th><th>Items Y10</th><th>Plan changes Y10</th></tr></thead>
     <tbody>${rows}</tbody>
-  </table>`;
+  </table>
+  <div class="muted" style="margin-top:6px">Most popular ranks only by votes, so journals don't change it. Minimal change rarely adopts new programs.</div>`;
 
   panel.style.display = "block";
 }
@@ -799,6 +800,38 @@ function residentMood(p) {
   return (Number(n.hunger || 0) + Number(n.energy || 0) + Number(n.fun || 0) + Number(n.social || 0)) / 4;
 }
 
+function pickJournalsByProblem(candidates, maxTotal = 12, perProblemCap = 4) {
+  const types = ["flood", "transit", "streets", "groceries"];
+  const byType = {};
+
+  for (const t of types) {
+    byType[t] = candidates
+      .filter((c) => Number(c?.severity?.[t] || 0) > 0)
+      .sort((a, b) => (Number(b.severity[t] || 0) - Number(a.severity[t] || 0)) || (a.mood - b.mood));
+  }
+
+  const selected = [];
+  const selectedPerType = Object.fromEntries(types.map((t) => [t, 0]));
+  const used = new Set();
+
+  for (let round = 0; round < perProblemCap && selected.length < maxTotal; round++) {
+    for (const t of types) {
+      if (selected.length >= maxTotal) break;
+      if (selectedPerType[t] >= perProblemCap) continue;
+
+      const pool = byType[t] || [];
+      const next = pool.find((c) => !used.has(c.key));
+      if (!next) continue;
+
+      used.add(next.key);
+      selected.push(next);
+      selectedPerType[t]++;
+    }
+  }
+
+  return selected.slice(0, maxTotal);
+}
+
 function worstNeedLabel(p) {
   const entries = Object.entries(p?.needs || {});
   if (!entries.length) return "general stress";
@@ -832,22 +865,30 @@ async function publishSyntheticJournalsForDay(day) {
         policyLabel: world.policy?.label || "No package",
         year: policyYear,
       });
-      if (text) candidates.push({
-        p: probe,
-        i,
-        mood: residentMood(p),
-        text,
-        hasFlood: !!(sourceDay.displaced || sourceDay.homeFlooded),
-      });
+      if (text) {
+        const floodSeverity = sourceDay.displaced ? 2 : (sourceDay.homeFlooded ? 1 : 0);
+        const transitSeverity = Number(probe.walkMinutesAvg3d || sourceDay.walkMinutes || 0);
+        const streetsSeverity = Number(sourceDay.dirtyParkVisits || 0);
+        const soldOutCount = Array.isArray(sourceDay.soldOutAt) ? sourceDay.soldOutAt.length : 0;
+        const groceriesSeverity = soldOutCount + (sourceDay.emptyFridge ? 1 : 0);
+
+        candidates.push({
+          p: probe,
+          i,
+          key: `${String(probe.id ?? i)}:${String(sourceDay.day ?? day)}`,
+          mood: residentMood(p),
+          text,
+          severity: {
+            flood: floodSeverity,
+            transit: transitSeverity,
+            streets: streetsSeverity,
+            groceries: groceriesSeverity,
+          },
+        });
+      }
     }
 
-    const ranked = candidates.sort((a, b) => a.mood - b.mood);
-    const picked = ranked.slice(0, 3);
-    const floodIdx = picked.findIndex((x) => x.hasFlood);
-    if (floodIdx < 0) {
-      const floodCandidate = ranked.find((x) => x.hasFlood);
-      if (floodCandidate && picked.length) picked[picked.length - 1] = floodCandidate;
-    }
+    const picked = pickJournalsByProblem(candidates, 3, 1);
 
     if (!picked.length) {
       journalDiag.attempted = 0;

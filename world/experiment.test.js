@@ -81,7 +81,7 @@ describe("runExperiment", () => {
     expect(a).toBe(b);
   }, 30000);
 
-  test("passes previous from year 2 onward (and not in year 1)", async () => {
+  test("passes previous from year 2 onward (and sends {} in year 1)", async () => {
     const town = makeTown(220);
     const calls = [];
 
@@ -106,7 +106,7 @@ describe("runExperiment", () => {
     });
 
     expect(calls.length).toBe(3);
-    expect(calls[0]?.previous).toBeUndefined();
+    expect(calls[0]?.previous).toEqual({});
     expect(calls[1]?.previous).toEqual({
       "balanced-pkg-id": ["t_brt", "f_drainage"],
     });
