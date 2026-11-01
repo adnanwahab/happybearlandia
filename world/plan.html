@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Plan Simulation</title>
+<style>
+  :root { --bg: #f4f1ea; --panel: #fff; --ink: #1d1d1b; --muted: #6b6a64; --line: rgba(0,0,0,.12); --accent: #2f6fd6; --good: #2e8b57; --bad: #c4492a; --neutral: #a8a69e; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #15161a; --panel: #1d1e23; --ink: #ecebe6; --muted: #9a9993; --line: rgba(255,255,255,.14); --accent: #79a8ff; --good: #5cc28a; --bad: #ef7b5c; --neutral: #6c6b66; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 system-ui, -apple-system, Segoe UI, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
+  a { color: var(--accent); }
+  header .kicker { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  h1 { font-size: 26px; line-height: 1.2; margin: 4px 0 6px; }
+  h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 10px; }
+  .muted { color: var(--muted); font-size: 12px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-top: 14px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+  .controls label { display: grid; gap: 3px; font-size: 12px; color: var(--muted); }
+  input, select, button { font: inherit; color: inherit; background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; }
+  input[type=number] { width: 80px; }
+  button.primary { border-color: var(--accent); color: var(--accent); font-weight: 600; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: default; }
+  .progress { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; margin-top: 12px; }
+  .progress > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+  .futures { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 18px; align-items: center; }
+  .dots { display: flex; flex-wrap: wrap; gap: 6px; }
+  .dot { width: 16px; height: 16px; border-radius: 50%; background: var(--neutral); }
+  .dot.pos { background: var(--good); } .dot.neg { background: var(--bad); }
+  .counts div { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  .counts div:last-child { border: 0; }
+  .headline { font-size: 20px; font-weight: 600; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 6px; border-top: 1px solid var(--line); vertical-align: top; font-variant-numeric: tabular-nums; }
+  th { font-size: 11px; color: var(--muted); font-weight: 600; border-top: 0; }
+  td.num, th.num { text-align: right; }
+  .delta.good { color: var(--good); } .delta.bad { color: var(--bad); }
+  .charts { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .chart { border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+  .chart h3 { margin: 0 0 4px; font-size: 13px; font-weight: 600; }
+  .chart svg { width: 100%; height: 120px; display: block; }
+  .legend { display: flex; gap: 14px; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .legend i { display: inline-block; width: 14px; height: 0; border-top: 2px solid; vertical-align: middle; margin-right: 5px; }
+  .actions li { padding: 6px 0; border-bottom: 1px solid var(--line); list-style: none; display: flex; gap: 8px; justify-content: space-between; flex-wrap: wrap; }
+  .actions ul { margin: 0; padding: 0; }
+  .badge { font-size: 11px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+  .badge.sim { border-color: var(--accent); color: var(--accent); }
+  .error { color: var(--bad); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  @media (max-width: 640px) { .futures { grid-template-columns: 1fr; } h1 { font-size: 22px; } th.hide, td.hide { display: none; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="kicker">HappyBearLandia · plan simulation</div>
+    <h1 id="title">Simulate a plan</h1>
+    <div class="muted" id="subtitle">Paired futures: the same synthetic neighborhood with and without the plan.</div>
+  </header>
+
+  <section class="card">
+    <div class="controls">
+      <label>Place
+        <select id="place">
+          <option value="29.7286,-95.4746">Gulfton, Houston</option>
+          <option value="29.7520,-95.3580">Downtown Houston</option>
+          <option value="29.7858,-95.8245">Katy, TX</option>
+          <option value="40.7265,-73.9815">East Village, NYC</option>
+          <option value="35.6595,139.7005">Shibuya, Tokyo</option>
+          <option value="51.5390,-0.1426">Camden, London</option>
+          <option value="6.4541,3.3947">Lagos Island</option>
+        </select>
+      </label>
+      <label>Futures <input id="seeds" type="number" min="1" max="32" value="8" /></label>
+      <label>Years <input id="years" type="number" min="1" max="10" value="5" /></label>
+      <button id="run" class="primary">Simulate</button>
+    </div>
+    <div class="progress" id="progress" hidden><i></i></div>
+    <div class="muted" id="status" style="margin-top:8px"></div>
+  </section>
+
+  <section class="card" id="futuresCard" hidden>
+    <h2>Possible futures</h2>
+    <div class="futures">
+      <div>
+        <div class="headline" id="headline"></div>
+        <div class="dots" id="dots"></div>
+        <div class="muted" id="band" style="margin-top:8px"></div>
+      </div>
+      <div class="counts" id="counts"></div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <a id="enter" href="/world">Enter this neighborhood →</a>
+    </div>
+  </section>
+
+  <section class="card" id="kpiCard" hidden>
+    <h2>Outcomes in the final year</h2>
+    <table>
+      <thead><tr><th>Measure</th><th class="num hide">Without plan</th><th class="num hide">With plan</th><th class="num">Difference</th><th class="num">Any improvement</th></tr></thead>
+      <tbody id="kpis"></tbody>
+    </table>
+    <div class="muted" style="margin-top:8px">Difference is the average across futures; the range is the middle 80% (p10–p90).</div>
+  </section>
+
+  <section class="card" id="chartsCard" hidden>
+    <h2>Year by year</h2>
+    <div class="legend"><span><i style="border-color:var(--muted);border-top-style:dashed"></i>Without plan</span><span><i style="border-color:var(--accent)"></i>With plan</span></div>
+    <div class="charts" id="charts"></div>
+  </section>
+
+  <section class="card actions" id="actionsCard" hidden>
+    <h2>What the plan does</h2>
+    <div class="muted" id="planMeta" style="margin-bottom:8px"></div>
+    <ul id="actions"></ul>
+  </section>
+
+  <p class="muted" id="disclaimer">Simulated outcomes with synthetic residents — illustrative counterfactuals, not a forecast.</p>
+</main>
+
+<script type="module">
+const $ = (id) => document.getElementById(id);
+const params = new URLSearchParams(location.search);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+// Plan from the URL: ?proposals=t_bus,f_drainage&label=Balanced  or  ?package=Balanced
+const proposals = (params.get("proposals") || "").split(",").map((s) => s.trim()).filter(Boolean);
+const packageName = params.get("package");
+const label = params.get("label") || packageName || (proposals.length ? "Custom plan" : null);
+if (label) $("title").textContent = label;
+if (params.get("seeds")) $("seeds").value = params.get("seeds");
+if (params.get("years")) $("years").value = params.get("years");
+if (params.get("lat") && params.get("lng")) {
+  const v = `${params.get("lat")},${params.get("lng")}`;
+  if (![...$("place").options].some((o) => o.value === v)) $("place").add(new Option(params.get("place") || v, v));
+  $("place").value = v;
+}
+
+// Optional ?costs=t_bus:4.1,f_drainage:2 so the dashboard can show what Dear Congress costed.
+const costs = Object.fromEntries((params.get("costs") || "").split(",").map((kv) => kv.split(":")).filter(([k, v]) => k && Number.isFinite(Number(v))).map(([k, v]) => [k.trim(), Number(v)]));
+
+function planBody() {
+  if (proposals.length) {
+    return { plan: { kind: "planspec", version: 1, planId: params.get("planId") || label.toLowerCase().replace(/[^a-z0-9]+/g, "-"), label, source: params.get("source") || "link",
+      actions: proposals.map((proposalId) => ({ proposalId, costB: costs[proposalId] ?? null })) } };
+  }
+  if (packageName) return { package: packageName };
+  return null;
+}
+
+if (!planBody()) {
+  $("status").innerHTML = 'No plan in the link. Open this page from Dear Congress, or add <code>?proposals=t_bus,f_drainage</code>.';
+  $("run").disabled = true;
+}
+
+function fmt(x, d = 1) {
+  if (!Number.isFinite(x)) return "–";
+  return Math.abs(x) >= 100 ? Math.round(x).toLocaleString() : x.toFixed(d);
+}
+const signed = (x, d = 1) => (x > 0 ? "+" : x < 0 ? "−" : "±") + fmt(Math.abs(x), d);
+const goodness = (better, d) => (Math.abs(d) < 0.05 ? 0 : (better === "lower" ? -Math.sign(d) : Math.sign(d)));
+
+function sparkline(points, key) {
+  const W = 300, H = 120, P = 20;
+  const ys = points.flatMap((p) => [p.baseline, p.plan]);
+  let lo = Math.min(...ys), hi = Math.max(...ys);
+  if (hi - lo < 1e-9) { lo -= 1; hi += 1; }
+  const pad = (hi - lo) * 0.15; lo -= pad; hi += pad;
+  const xs = points.map((p) => p.year);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs);
+  const X = (x) => P + (x1 === x0 ? (W - 2 * P) / 2 : ((x - x0) / (x1 - x0)) * (W - 2 * P));
+  const Y = (y) => H - P - ((y - lo) / (hi - lo)) * (H - 2 * P);
+  const line = (k) => points.map((p, i) => `${i ? "L" : "M"}${X(p.year).toFixed(1)},${Y(p[k]).toFixed(1)}`).join("");
+  const band = points.length > 1
+    ? points.map((p, i) => `${i ? "L" : "M"}${X(p.year).toFixed(1)},${Y(p.baseline + p.p90).toFixed(1)}`).join("")
+      + [...points].reverse().map((p) => `L${X(p.year).toFixed(1)},${Y(p.baseline + p.p10).toFixed(1)}`).join("") + "Z"
+    : "";
+  const yl = (v, y) => `<text x="2" y="${y}" font-size="10" fill="var(--muted)">${fmt(v)}</text>`;
+  const ticks = yl(hi - pad, P - 6) + yl(lo + pad, H - P + 2) + points.map((p) => `<text x="${X(p.year)}" y="${H - 3}" font-size="10" text-anchor="middle" fill="var(--muted)">Y${p.year}</text>`).join("");
+  const dots = points.length === 1
+    ? `<circle cx="${X(points[0].year)}" cy="${Y(points[0].baseline)}" r="4" fill="var(--muted)"/><circle cx="${X(points[0].year)}" cy="${Y(points[0].plan)}" r="4" fill="var(--accent)"/>`
+    : "";
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(key)} by year">
+    ${band ? `<path d="${band}" fill="var(--accent)" opacity=".12"/>` : ""}
+    <path d="${line("baseline")}" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="4 4"/>
+    <path d="${line("plan")}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+    ${dots}${ticks}
+  </svg>`;
+}
+
+function render(result) {
+  const { meta, final, series, futures } = result;
+  const metrics = meta.metrics;
+  const n = meta.seeds;
+  const place = $("place").selectedOptions[0]?.textContent || "this neighborhood";
+
+  $("subtitle").textContent = `${meta.population} synthetic residents in ${place} (${meta.townSource === "osm" ? "OpenStreetMap buildings" : "procedural town"}), ${n} paired futures.`;
+
+  // Futures
+  const m = metrics[futures.metric];
+  $("headline").textContent = futures.positive === n ? `${m.label} is clearly better in all ${n} futures by year ${futures.year}`
+    : futures.negative === n ? `${m.label} is clearly worse in all ${n} futures by year ${futures.year}`
+    : `${m.label} by year ${futures.year}: ${futures.positive} clearly better, ${futures.neutral} about the same, ${futures.negative} clearly worse`;
+  $("band").textContent = `"About the same" means within ±${futures.neutralBand} ${m.unit}. Each dot is one future; hover for its difference.`;
+  $("dots").innerHTML = futures.deltas.map((d) => {
+    const g = Math.abs(d) <= futures.neutralBand ? 0 : goodness(m.better, d);
+    return `<span class="dot ${g > 0 ? "pos" : g < 0 ? "neg" : ""}" title="${esc(signed(d, 2))} ${esc(m.unit)}"></span>`;
+  }).join("");
+  $("counts").innerHTML = `
+    <div><span>Clearly better</span><b style="color:var(--good)">${futures.positive}</b></div>
+    <div><span>About the same</span><b>${futures.neutral}</b></div>
+    <div><span>Clearly worse</span><b style="color:var(--bad)">${futures.negative}</b></div>`;
+  const [lat, lng] = $("place").value.split(",");
+  $("enter").href = `/world?lat=${lat}&lng=${lng}`;
+  $("futuresCard").hidden = false;
+
+  // KPI table
+  $("kpis").innerHTML = Object.entries(final).map(([k, v]) => {
+    const mm = metrics[k];
+    const g = goodness(mm.better, v.delta.mean);
+    return `<tr>
+      <td>${esc(mm.label)}<div class="muted">${esc(mm.unit)}, ${mm.better} is better</div></td>
+      <td class="num hide">${fmt(v.baseline.mean)}</td>
+      <td class="num hide">${fmt(v.plan.mean)}</td>
+      <td class="num"><span class="delta ${g > 0 ? "good" : g < 0 ? "bad" : ""}">${signed(v.delta.mean)}</span>
+        <div class="muted">${signed(v.delta.p10)} to ${signed(v.delta.p90)}</div></td>
+      <td class="num">${Math.round(v.improvedShare * n)} / ${n}</td>
+    </tr>`;
+  }).join("");
+  $("kpiCard").hidden = false;
+
+  // Charts
+  $("charts").innerHTML = Object.keys(metrics).map((k) => {
+    const pts = series.map((s) => ({ year: s.year, baseline: s.metrics[k].baseline.mean, plan: s.metrics[k].plan.mean, p10: s.metrics[k].delta.p10, p90: s.metrics[k].delta.p90 }));
+    return `<div class="chart"><h3>${esc(metrics[k].label)}</h3><div class="muted">${esc(metrics[k].unit)}</div>${sparkline(pts, metrics[k].label)}</div>`;
+  }).join("");
+  $("chartsCard").hidden = false;
+
+  // Actions
+  const plan = meta.plan;
+  const costed = plan.actions.filter((a) => a.costB != null);
+  $("planMeta").textContent = [
+    `${plan.actions.length} proposals`,
+    costed.length ? `$${fmt(plan.totalCostB, 2)}B/yr (illustrative${costed.length < plan.actions.length ? ", partly costed" : ""})` : null,
+    plan.unsupported.length ? `${plan.unsupported.length} not simulated yet` : "all simulated",
+  ].filter(Boolean).join(" · ");
+  $("actions").innerHTML = plan.actions.map((a) => `
+    <li><span>${esc(a.label)} <span class="muted">${esc(a.proposalId)}</span></span>
+      <span class="row"><span class="muted">from Y${a.startYear}${a.costB != null ? ` · $${fmt(a.costB, 2)}B` : ""}</span>
+      <span class="badge ${a.simulated ? "sim" : ""}">${a.simulated ? "simulated" : "not simulated yet"}</span></span></li>`).join("");
+  $("actionsCard").hidden = false;
+  $("disclaimer").textContent = meta.disclaimer;
+}
+
+async function run() {
+  const body = planBody();
+  if (!body) return;
+  const [lat, lng] = $("place").value.split(",").map(Number);
+  Object.assign(body, {
+    location: { lat, lng, name: $("place").selectedOptions[0]?.textContent },
+    seeds: Number($("seeds").value),
+    years: Number($("years").value),
+  });
+  $("run").disabled = true;
+  $("progress").hidden = false;
+  $("progress").firstElementChild.style.width = "0";
+  $("status").textContent = "Starting…";
+  try {
+    const res = await fetch("/api/world/experiments", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+    const job = await res.json();
+    if (!res.ok) throw new Error(job.error || `HTTP ${res.status}`);
+    for (;;) {
+      await new Promise((r) => setTimeout(r, 1000));
+      const s = await (await fetch(job.statusUrl)).json();
+      const { step = 0, totalSteps = 0 } = s.progress || {};
+      $("progress").firstElementChild.style.width = totalSteps ? `${(100 * step) / totalSteps}%` : "4%";
+      $("status").textContent = s.status === "queued" ? "Waiting for another simulation to finish…"
+        : `Simulating futures… ${step}/${totalSteps || "?"} world-years`;
+      if (s.status === "error") throw new Error(s.error);
+      if (s.status === "done") {
+        render(s.result);
+        $("status").textContent = `Done in ${(s.result.meta.elapsedMs / 1000).toFixed(0)}s.`;
+        break;
+      }
+    }
+  } catch (err) {
+    $("status").innerHTML = `<span class="error">${esc(err.message || err)}</span>`;
+  } finally {
+    $("run").disabled = false;
+    $("progress").hidden = true;
+  }
+}
+
+$("run").onclick = run;
+if (planBody() && params.get("autorun") !== "0") run();
+</script>
+</body>
+</html>
