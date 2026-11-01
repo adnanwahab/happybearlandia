@@ -387,9 +387,15 @@ async function loadPolicyPackages() {
       if (d) {
         const add = (d.addedBySimulated || []).length;
         const rem = (d.removedBySimulated || []).length;
-        BALANCED_SIM_NOTE = add || rem
-          ? `Simulated residents changed Balanced: +${add} −${rem}`
-          : "Simulated residents changed Balanced: no change";
+        const pending = Array.isArray(d.pending) ? d.pending : [];
+        if (add || rem) {
+          BALANCED_SIM_NOTE = `Simulated residents changed Balanced: +${add} −${rem}`;
+        } else if (pending.length) {
+          const p = pending[0];
+          BALANCED_SIM_NOTE = `Simulated residents are pushing: +${p.id} (${p.streak} of ${p.needed} years)`;
+        } else {
+          BALANCED_SIM_NOTE = "Simulated residents changed Balanced: no change";
+        }
       } else {
         BALANCED_SIM_NOTE = "";
       }
