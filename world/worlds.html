@@ -86,7 +86,7 @@ const people = Math.max(20, Math.min(300, Math.floor(Number(params.get("people")
 const baseSeed = params.get("seed");
 // Each live world is a full 3D scene; browsers allow ~16 WebGL contexts per page, and
 // laptops struggle well before that. Off-screen worlds are unloaded to stay under the cap.
-let maxLive = Number(params.get("live")) || 6;
+let maxLive = Number(params.get("live")) || 12;
 $("live").value = String(maxLive);
 
 $("back").href = `/world/realities.html?${new URLSearchParams({ simulation: snapshotId || "", runs: String(runs), years: String(years), seed: baseSeed || "", people: String(people) })}`;
