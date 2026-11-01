@@ -79,6 +79,40 @@ describe("runExperiment", () => {
     const a = await once();
     const b = await once();
     expect(a).toBe(b);
+  }, 30000);
+
+  test("passes previous from year 2 onward (and not in year 1)", async () => {
+    const town = makeTown(220);
+    const calls = [];
+
+    await runExperiment({
+      town,
+      packageName: "Balanced",
+      years: 3,
+      seed: "previous-input-check",
+      fetchPlan: async (body) => {
+        calls.push(body || {});
+        return [
+          {
+            id: "balanced-pkg-id",
+            name: "Balanced",
+            items: [
+              { proposal: { id: "t_brt" } },
+              { proposal: { id: "f_drainage" } },
+            ],
+          },
+        ];
+      },
+    });
+
+    expect(calls.length).toBe(3);
+    expect(calls[0]?.previous).toBeUndefined();
+    expect(calls[1]?.previous).toEqual({
+      "balanced-pkg-id": ["t_brt", "f_drainage"],
+    });
+    expect(calls[2]?.previous).toEqual({
+      "balanced-pkg-id": ["t_brt", "f_drainage"],
+    });
   });
 
   test("10-year 3-package what-if run does not change dear-congress entries or answers", async () => {

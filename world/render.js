@@ -597,6 +597,16 @@ $("rerunExperimentSeed")?.addEventListener("click", () => {
 lastExperimentSeed = defaultExperimentSeed();
 setExperimentSeedUI(lastExperimentSeed);
 
+function formatPlanChanges(changes) {
+  const added = Array.isArray(changes?.added) ? changes.added : [];
+  const removed = Array.isArray(changes?.removed) ? changes.removed : [];
+  const parts = [
+    ...added.map((id) => `+${id}`),
+    ...removed.map((id) => `−${id}`),
+  ];
+  return parts.length ? parts.join(" ") : "—";
+}
+
 function renderExperimentResults(results) {
   const panel = $("experimentPanel");
   const charts = $("experimentCharts");
@@ -621,25 +631,34 @@ function renderExperimentResults(results) {
 
   const rows = EXP_PACKAGES.map((name) => {
     const hist = byPkg[name] || [];
-    const y10 = hist.find((r) => r.year === 10) || hist[hist.length - 1] || { outcomes: {} };
+    const y10Outcomes = hist.find((r) => r.year === 10) || hist[hist.length - 1] || { outcomes: {} };
     const plans = results?.[name]?.plansByYear || [];
-    const p1 = (plans.find((p) => p.year === 1)?.proposalIds || []).join(", ") || "—";
-    const p5 = (plans.find((p) => p.year === 5)?.proposalIds || []).join(", ") || "—";
-    const p10 = (plans.find((p) => p.year === 10)?.proposalIds || []).join(", ") || "—";
+    const y1Plan = plans.find((p) => p.year === 1) || {};
+    const y5Plan = plans.find((p) => p.year === 5) || {};
+    const y10Plan = plans.find((p) => p.year === 10) || plans[plans.length - 1] || {};
+    const p1 = (y1Plan.proposalIds || []).join(", ") || "—";
+    const p5 = (y5Plan.proposalIds || []).join(", ") || "—";
+    const p10 = (y10Plan.proposalIds || []).join(", ") || "—";
+    const c1 = formatPlanChanges(y1Plan.changesFromPrevious);
+    const c5 = formatPlanChanges(y5Plan.changesFromPrevious);
+    const c10 = formatPlanChanges(y10Plan.changesFromPrevious);
     return `<tr>
       <th>${name}</th>
-      <td>${Number(y10.outcomes.floodedParcels ?? 0).toFixed(0)}</td>
-      <td>${Number(y10.outcomes.displacedResidents ?? 0).toFixed(0)}</td>
-      <td>${Number(y10.outcomes.avgWalkMinutes ?? 0).toFixed(1)}</td>
-      <td>${Number(y10.outcomes.avgMood ?? 0).toFixed(1)}</td>
+      <td>${Number(y10Outcomes.outcomes.floodedParcels ?? 0).toFixed(0)}</td>
+      <td>${Number(y10Outcomes.outcomes.displacedResidents ?? 0).toFixed(0)}</td>
+      <td>${Number(y10Outcomes.outcomes.avgWalkMinutes ?? 0).toFixed(1)}</td>
+      <td>${Number(y10Outcomes.outcomes.avgMood ?? 0).toFixed(1)}</td>
       <td>${p1}</td>
+      <td>${c1}</td>
       <td>${p5}</td>
+      <td>${c5}</td>
       <td>${p10}</td>
+      <td>${c10}</td>
     </tr>`;
   }).join("");
 
   tableWrap.innerHTML = `<table class="exp-table">
-    <thead><tr><th>Package</th><th>Flooded (Y10)</th><th>Displaced (Y10)</th><th>Walk min (Y10)</th><th>Mood (Y10)</th><th>Items Y1</th><th>Items Y5</th><th>Items Y10</th></tr></thead>
+    <thead><tr><th>Package</th><th>Flooded (Y10)</th><th>Displaced (Y10)</th><th>Walk min (Y10)</th><th>Mood (Y10)</th><th>Items Y1</th><th>Plan changes Y1</th><th>Items Y5</th><th>Plan changes Y5</th><th>Items Y10</th><th>Plan changes Y10</th></tr></thead>
     <tbody>${rows}</tbody>
   </table>`;
 

@@ -37,9 +37,9 @@ self.onmessage = async (ev) => {
         years,
         seed,
         fetchPlan: fetchPlanRemote,
-        onYear: ({ year, proposalIds, outcomes }) => {
-          history.push({ year, outcomes });
-          plansByYear.push({ year, proposalIds });
+        onYear: ({ year, proposalIds, changesFromPrevious, outcomes }) => {
+          history.push({ year, outcomes, changesFromPrevious });
+          plansByYear.push({ year, proposalIds, changesFromPrevious });
           self.postMessage({
             type: "progress",
             packageName,

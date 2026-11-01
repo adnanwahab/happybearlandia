@@ -51,6 +51,7 @@ function pickPackage(payload, packageName) {
     id: found?.id || found?.slug || found?.name || packageName,
     label: found?.name || found?.title || found?.label || packageName,
     proposalIds,
+    changesFromPrevious: found?.changesFromPrevious || null,
   };
 }
 
@@ -239,6 +240,7 @@ async function simulateYear({ town, proposalIds, year, packageLabel, seed }) {
 export async function runExperiment({ town, packageName, years = 10, seed = "world-exp", fetchPlan, onYear }) {
   const journalsSoFar = [];
   const plansByYear = [];
+  let previousSelection = null;
 
   // Baseline year 0 (no policy package selected yet).
   const baseline = await simulateYear({
@@ -248,12 +250,22 @@ export async function runExperiment({ town, packageName, years = 10, seed = "wor
     packageLabel: "No package",
     seed,
   });
-  onYear?.({ year: 0, packageName, proposalIds: [], outcomes: baseline.outcomes });
-  plansByYear.push({ year: 0, proposalIds: [] });
+  onYear?.({ year: 0, packageName, packageId: "none", proposalIds: [], changesFromPrevious: null, outcomes: baseline.outcomes });
+  plansByYear.push({ year: 0, packageId: "none", proposalIds: [], changesFromPrevious: null });
 
   for (let year = 1; year <= years; year++) {
-    const payload = await fetchPlan({ includeSynthetic: false, extraEntries: journalsSoFar });
-    const pkg = pickPackage(payload, packageName) || { label: packageName, proposalIds: [] };
+    const body = { includeSynthetic: false, extraEntries: journalsSoFar };
+    if (year > 1 && previousSelection?.id) {
+      body.previous = { [previousSelection.id]: previousSelection.proposalIds };
+    }
+
+    const payload = await fetchPlan(body);
+    const pkg = pickPackage(payload, packageName) || {
+      id: packageName,
+      label: packageName,
+      proposalIds: [],
+      changesFromPrevious: null,
+    };
 
     const sim = await simulateYear({
       town,
@@ -263,11 +275,25 @@ export async function runExperiment({ town, packageName, years = 10, seed = "wor
       seed,
     });
 
-    plansByYear.push({ year, proposalIds: pkg.proposalIds });
+    plansByYear.push({
+      year,
+      packageId: pkg.id,
+      proposalIds: pkg.proposalIds,
+      changesFromPrevious: pkg.changesFromPrevious || null,
+    });
     for (const j of sim.journals) journalsSoFar.push(j);
     if (journalsSoFar.length > 200) journalsSoFar.splice(0, journalsSoFar.length - 200);
 
-    onYear?.({ year, packageName, proposalIds: pkg.proposalIds, outcomes: sim.outcomes });
+    onYear?.({
+      year,
+      packageName,
+      packageId: pkg.id,
+      proposalIds: pkg.proposalIds,
+      changesFromPrevious: pkg.changesFromPrevious || null,
+      outcomes: sim.outcomes,
+    });
+
+    previousSelection = { id: pkg.id, proposalIds: [...pkg.proposalIds] };
   }
 
   return { packageName, plansByYear };
