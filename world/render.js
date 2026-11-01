@@ -12,6 +12,14 @@ import { replayStormStrengthLabel } from "./replay-label.js";
 /* ---------------------------------------------------------------- */
 const params = new URLSearchParams(location.search);
 
+// /world?simulation=…&reality=N enters one reality from the realities page (index.html
+// sends a link without &reality to /world/realities.html before this module loads).
+const simulationId = params.get("simulation");
+const realityIndex = params.get("reality");
+const realityRunSeed = simulationId && realityIndex != null && params.get("seed")
+  ? `${params.get("seed")}:reality:${Number(realityIndex)}`
+  : null;
+
 function parseCoord(raw, fallback) {
   if (raw == null || String(raw).trim() === "") return fallback; // Number(null) is 0, which would land at 0,0
   const n = Number(raw);
@@ -64,7 +72,7 @@ if (!demoMode) try {
 }
 
 const town = buildTown(origin, area, { maxPeople });
-const world = createWorld(town);
+const world = createWorld(town, realityRunSeed ? { runSeed: realityRunSeed } : {});
 const isHarrisCountyTile = origin.lat >= 29.3 && origin.lat <= 30.25 && origin.lng >= -95.95 && origin.lng <= -94.9;
 let measuredOutcomesLatest = {};
 const geoProj = projector(origin);
@@ -603,6 +611,23 @@ if (planYearEl) {
 $("stormBtn").onclick = () => triggerStorm();
 await loadPolicyPackages();
 activePolicyId = $("policy").value || "none";
+if (realityRunSeed) {
+  // Entering one reality from the realities page: run its frozen plan with its seed.
+  try {
+    const res = await fetch(`/api/dear-congress/simulation-snapshots/${encodeURIComponent(simulationId)}`, { signal: AbortSignal.timeout(8000) });
+    const snap = (await res.json())?.snapshot;
+    if (snap?.plan?.proposalIds?.length) {
+      PLAN_PACKAGES = {
+        ...PLAN_PACKAGES,
+        snapshot: derivePolicyProfile(`${snap.plan.label} (frozen plan) · reality #${Number(realityIndex)}`, "snapshot", snap.plan.proposalIds, "dear-congress"),
+      };
+      refreshPolicySelect("snapshot");
+      activePolicyId = "snapshot";
+    }
+  } catch (err) {
+    console.warn("[world] could not load simulation snapshot", err);
+  }
+}
 applyPolicy(activePolicyId, policyYear);
 
 const EXP_PACKAGES = ["Balanced", "Minimal change", "Most popular"];

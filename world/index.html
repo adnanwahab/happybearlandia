@@ -67,6 +67,14 @@
   .cy-scale { height: 8px; border-radius: 4px; background: linear-gradient(90deg, #d2463c, #d2be3c, #3cbe50); margin: 4px 0 2px; }
   @media (max-width: 640px) { #inspect { top: auto; bottom: 12px; right: 12px; left: 12px; width: auto; } #feed { display: none; } #experimentPanel { left: 12px; right: 12px; width: auto; } }
 </style>
+<script>
+  // Dear Congress "Simulate realities" links land on /world?simulation=…: show the outcome
+  // landscape first. Runs before the 3D module so it works even if three.js is slow to load.
+  (function () {
+    var q = new URLSearchParams(location.search);
+    if (q.get("simulation") && q.get("reality") == null) location.replace("/world/realities.html" + location.search);
+  })();
+</script>
 <script type="importmap">
 { "imports": {
   "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
