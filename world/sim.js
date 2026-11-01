@@ -241,6 +241,7 @@ export function createWorld(town, opts = {}) {
     hiringBoost: 0,
     voucherMonthly: 0,
     groceryDelivery: 0, // 0–1: share of nearly-empty home fridges refilled each afternoon
+    wageMult: 1, // economy-wide pay level (possible-worlds conditions); 1 = unchanged
     events: [],
     stats: { spent: 0, meals: 0, groceries: 0, cleanups: 0 },
     byKind,
@@ -429,7 +430,7 @@ export function createWorld(town, opts = {}) {
       }
       if (a?.pay) {
         const wageBoost = p.action === "work" ? 1 + w.hiringBoost * 0.5 : 1;
-        p.money += a.pay * wageBoost;
+        p.money += a.pay * wageBoost * (w.wageMult ?? 1);
       }
 
       if (p.mode === "idle") decide(p);

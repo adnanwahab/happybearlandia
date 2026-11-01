@@ -114,7 +114,7 @@ function nearestSafeHome(world, fromHomeIndex) {
 }
 
 function applyStorm(world, severity = 1) {
-  const baseFlood = 0.24 * Math.max(0.65, Math.min(1.45, severity));
+  const baseFlood = 0.24 * Math.max(0.5, Math.min(2.2, severity));
   const floodFraction = Math.max(0, Math.min(1, baseFlood - Number(world.policy?.floodMitigation || 0)));
   const floodedIds = selectFloodedBuildingIds(world.buildings, world.seedKey, floodFraction);
 
@@ -194,7 +194,7 @@ function policyContributions(proposalIds, year, adoptedYearByProposal = null) {
 }
 
 function estimateStormDisplacement(world, severity, floodMitigation) {
-  const baseFlood = 0.24 * Math.max(0.65, Math.min(1.45, severity));
+  const baseFlood = 0.24 * Math.max(0.5, Math.min(2.2, severity));
   const floodFraction = Math.max(0, Math.min(1, baseFlood - Number(floodMitigation || 0)));
 
   const flooded = selectFloodedBuildingIds(world.buildings, world.seedKey, floodFraction);
@@ -416,7 +416,48 @@ function classifyJournalType(text) {
   return "other";
 }
 
-export async function simulateYear({ town, proposalIds, year, packageLabel, seed, adoptedYearByProposal = null, yearStartMs, stormSeverityValue = null, runSeed = null, collectPeople = false }) {
+/**
+ * Scale every plan lever toward "no effect" by `scale` (plan delivery: 0 = nothing
+ * delivered, 1 = as designed, >1 = better than designed).
+ */
+export function scalePolicyEffects(effects, scale = 1) {
+  const k = Math.max(0, Number.isFinite(scale) ? scale : 1);
+  if (k === 1) return effects;
+  return {
+    ...effects,
+    speedMult: 1 + (effects.speedMult - 1) * k,
+    floodMitigation: Math.min(0.45, effects.floodMitigation * k),
+    housingGrowth: effects.housingGrowth * k,
+    voucherMonthly: effects.voucherMonthly * k,
+    parkCleanupBoost: effects.parkCleanupBoost * k,
+    restockBoost: effects.restockBoost * k,
+    hiringBoost: effects.hiringBoost * k,
+    groceryDelivery: Math.min(1, effects.groceryDelivery * k),
+  };
+}
+
+/**
+ * World conditions (possible-worlds engine, futures.js). All optional; the defaults
+ * leave the simulation byte-for-byte as before.
+ *  moneyMult   households' cash at the start of the week
+ *  wageMult    pay per hour worked
+ *  restockAdd  added to shop/kitchen restock rate (supply chains; negative = shortages)
+ *  cleanupAdd  added to park cleanup (civic trust, city crews)
+ *  mobilityMult multiplies walking/transit speed (street conditions)
+ *  stormMult   multiplies this year's storm severity (climate)
+ *  planScale   how much of the plan's designed effect is delivered
+ */
+export function applyConditions(world, simTown, conditions) {
+  if (!conditions) return;
+  const c = conditions;
+  if (Number.isFinite(c.moneyMult) && c.moneyMult !== 1) for (const p of world.people) p.money = Math.max(0, p.money * c.moneyMult);
+  if (Number.isFinite(c.wageMult)) world.wageMult = Math.max(0.1, c.wageMult);
+  if (Number.isFinite(c.restockAdd)) world.restockBoost = Math.max(-0.9, world.restockBoost + c.restockAdd);
+  if (Number.isFinite(c.cleanupAdd)) world.parkCleanupBoost = Math.max(-0.9, world.parkCleanupBoost + c.cleanupAdd);
+  if (Number.isFinite(c.mobilityMult)) world.speedMult = Math.max(0.3, world.speedMult * c.mobilityMult);
+}
+
+export async function simulateYear({ town, proposalIds, year, packageLabel, seed, adoptedYearByProposal = null, yearStartMs, stormSeverityValue = null, runSeed = null, collectPeople = false, conditions = null }) {
   const simTown = cloneTown(town);
   const world = createWorld(simTown, { startMinute: 0, runSeed });
   const buildingsById = {};
@@ -425,9 +466,16 @@ export async function simulateYear({ town, proposalIds, year, packageLabel, seed
     buildingsById[b.id] = b;
   }
 
-  const staged = computeEffectsForYear(proposalIds, year, adoptedYearByProposal).effects;
+  const staged = scalePolicyEffects(computeEffectsForYear(proposalIds, year, adoptedYearByProposal).effects, conditions?.planScale);
   const policyContributionByItem = policyContributions(proposalIds, year, adoptedYearByProposal);
+  if (Number.isFinite(conditions?.planScale) && conditions.planScale !== 1) {
+    for (const v of Object.values(policyContributionByItem)) {
+      v.speedAdd *= Math.max(0, conditions.planScale);
+      v.floodMitigationAdd *= Math.max(0, conditions.planScale);
+    }
+  }
   applyPolicyToWorld(world, staged);
+  applyConditions(world, simTown, conditions);
 
   let soldOutEvents = 0;
   const baseLog = world.log;
@@ -452,7 +500,7 @@ export async function simulateYear({ town, proposalIds, year, packageLabel, seed
   for (let d = 0; d < days; d++) {
     if (d === stormDay) {
       world.step(12 * 60);
-      const severity = Number.isFinite(stormSeverityValue) ? Number(stormSeverityValue) : stormSeverity(seed, year);
+      const severity = (Number.isFinite(stormSeverityValue) ? Number(stormSeverityValue) : stormSeverity(seed, year)) * (Number.isFinite(conditions?.stormMult) ? conditions.stormMult : 1);
       const totalFloodMitigation = Number(staged.floodMitigation || 0);
       const displacedNoMitigation = estimateStormDisplacement(world, severity, 0);
       const displacedWithAll = estimateStormDisplacement(world, severity, totalFloodMitigation);
@@ -534,7 +582,7 @@ export async function simulateYear({ town, proposalIds, year, packageLabel, seed
     population: world.people.length,
     policyContributionByItem,
     stormDiagnostics,
-    stormSeverity: Number.isFinite(stormSeverityValue) ? Number(stormSeverityValue) : stormSeverity(seed, year),
+    stormSeverity: (Number.isFinite(stormSeverityValue) ? Number(stormSeverityValue) : stormSeverity(seed, year)) * (Number.isFinite(conditions?.stormMult) ? conditions.stormMult : 1),
   };
 }
 
