@@ -100,6 +100,10 @@
       <a id="whyBest">Explain best</a> · <a id="whyMedian">Explain median</a> · <a id="whyWorst">Explain worst</a>
     </div>
     <div class="row" style="margin-top:10px">
+      <a class="btn" id="openLab">Open the Possible Worlds Lab →</a>
+      <span class="muted">Vary the economy, climate, trust and plan delivery; add random events; compare plans; branch history.</span>
+    </div>
+    <div class="row" style="margin-top:10px">
       <a class="btn" id="viewAll">View all as live worlds →</a>
       <span class="muted">A grid of every reality, a few running live at a time.</span>
     </div>
@@ -205,6 +209,7 @@ const verdictKey = `hbl:realities:${snapshotId}:${baseSeed}:${years}:${people}`;
 {
   const q = new URLSearchParams({ simulation: snapshotId, runs: String(runs), years: String(years), seed: baseSeed, people: String(people) });
   $("viewAll").href = `/world/worlds.html?${q}`;
+  $("openLab").href = `/world/lab.html?${q}`;
 }
 
 function whyUrl(index) {

@@ -1,0 +1,1303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Possible Worlds Lab</title>
+<style>
+  :root {
+    --bg: #f4f1ea; --panel: #fff; --ink: #1d1d1b; --muted: #6b6a64; --line: rgba(0,0,0,.12); --grid: rgba(0,0,0,.07);
+    --accent: #2f6fd6; --good: #2e8b57; --bad: #c4492a; --mixed: #b9b6ad;
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15161a; --panel: #1d1e23; --ink: #ecebe6; --muted: #9a9993; --line: rgba(255,255,255,.14); --grid: rgba(255,255,255,.07);
+      --accent: #79a8ff; --good: #5cc28a; --bad: #ef7b5c; --mixed: #6c6b66;
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181;
+    }
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 system-ui, -apple-system, Segoe UI, sans-serif; }
+  a { color: var(--accent); }
+  header { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); }
+  .bar { max-width: 1180px; margin: 0 auto; padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+  .kicker { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  h1 { font-size: 18px; margin: 0; line-height: 1.25; }
+  h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 4px; }
+  h3 { font-size: 15px; margin: 0 0 6px; }
+  .q { font-size: 20px; font-weight: 650; margin: 0 0 10px; line-height: 1.25; }
+  .grow { flex: 1; min-width: 220px; }
+  .muted { color: var(--muted); font-size: 12px; }
+  label { font-size: 12px; color: var(--muted); display: inline-flex; gap: 6px; align-items: center; }
+  select, input[type=number], input[type=text], input[type=search] { font: inherit; font-size: 13px; color: inherit; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
+  input[type=number] { width: 72px; }
+  button, .btn { font: inherit; font-size: 13px; color: var(--accent); background: transparent; border: 1px solid var(--accent); border-radius: 8px; padding: 5px 11px; cursor: pointer; text-decoration: none; display: inline-block; white-space: nowrap; }
+  button.primary { background: var(--accent); color: var(--panel); }
+  button.plain, .btn.plain { color: var(--ink); border-color: var(--line); }
+  button:disabled { opacity: .5; cursor: default; }
+  main { max-width: 1180px; margin: 0 auto; padding: 14px 16px 80px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-top: 14px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+  .two > .card { margin-top: 0; }
+  .progress { height: 4px; background: var(--line); overflow: hidden; }
+  .progress > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+  details.cfg { margin-top: 10px; }
+  details.cfg summary { cursor: pointer; font-size: 13px; color: var(--accent); }
+  .cfg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px 18px; margin-top: 10px; }
+  .cfg-grid .item { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; align-items: center; font-size: 13px; }
+  .cfg-grid .item .muted { grid-column: 1 / -1; }
+  .cfg-grid input[type=range] { width: 120px; }
+  .warn { margin-top: 10px; padding: 8px 10px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--bad) 50%, var(--line)); background: color-mix(in srgb, var(--bad) 10%, transparent); font-size: 13px; }
+  .empty { color: var(--muted); font-size: 13px; padding: 18px 0; text-align: center; }
+
+  /* Robustness */
+  .rob { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 20px; align-items: start; }
+  .big { font-size: 46px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+  .stats div { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+  .stats b { display: block; font-size: 18px; font-variant-numeric: tabular-nums; }
+  .vbar { display: flex; height: 14px; border-radius: 4px; overflow: hidden; gap: 2px; margin: 8px 0 4px; }
+  .vbar i { display: block; height: 100%; min-width: 0; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--muted); }
+  .legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; background: var(--c); }
+  .legend .ln::before { height: 2px; vertical-align: 3px; }
+  .legend .dash::before { height: 0; border-top: 2px dashed var(--c); background: none; vertical-align: 3px; }
+  .strip { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 10px; }
+  .wdot { width: 13px; height: 13px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; background: var(--mixed); }
+  .wdot.improved { background: var(--good); } .wdot.worse { background: var(--bad); }
+  .wdot.hit { outline: 2px solid var(--ink); outline-offset: 1px; }
+  .wdot.dim { opacity: .25; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 6px; border-top: 1px solid var(--line); vertical-align: middle; font-variant-numeric: tabular-nums; }
+  th { font-size: 11px; color: var(--muted); font-weight: 600; border-top: 0; }
+  .num { text-align: right; }
+  .good { color: var(--good); } .bad { color: var(--bad); }
+  .minibar { display: flex; height: 8px; width: 120px; border-radius: 3px; overflow: hidden; gap: 1px; }
+  .minibar i { display: block; height: 100%; }
+  .matrix { display: grid; gap: 2px; margin-top: 10px; align-items: center; }
+  .matrix .lab { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 6px; }
+  .matrix .cells { display: flex; gap: 1px; }
+  .matrix .cells i { flex: 1; height: 12px; min-width: 2px; background: var(--mixed); cursor: pointer; }
+  .matrix .cells i.improved { background: var(--good); } .matrix .cells i.worse { background: var(--bad); }
+  .matrix .cells i.win { box-shadow: inset 0 -3px 0 var(--ink); }
+
+  /* Search */
+  .search { display: flex; gap: 8px; }
+  .search input { flex: 1; font-size: 15px; padding: 8px 12px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip { font-size: 12px; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+  .chip.understood { border-color: var(--accent); color: var(--accent); cursor: default; }
+  .chip.unknown { border-style: dashed; color: var(--muted); cursor: default; }
+  .count { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  /* Bars */
+  .hbars { display: grid; grid-template-columns: minmax(120px, 190px) minmax(0, 1fr) 52px; gap: 6px 10px; align-items: center; font-size: 13px; }
+  .hbars .track { height: 12px; background: var(--grid); border-radius: 3px; overflow: hidden; }
+  .hbars .track i { display: block; height: 100%; border-radius: 0 3px 3px 0; background: var(--s1); }
+  .hbars .track i.rest { background: var(--mixed); }
+  .hbars .sub { grid-column: 2 / -1; margin-top: -4px; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { border: 0; border-radius: 0; color: var(--muted); }
+  .seg button.on { background: var(--accent); color: var(--panel); }
+
+  /* Tree */
+  svg { display: block; }
+  svg text { fill: var(--muted); font-size: 11px; font-family: inherit; }
+  .tree-host { overflow-x: auto; }
+  .tip { font-size: 13px; margin-top: 8px; padding: 8px 10px; border-left: 3px solid var(--accent); background: color-mix(in srgb, var(--accent) 7%, transparent); border-radius: 0 8px 8px 0; }
+  .forks { margin: 8px 0 0; padding-left: 18px; font-size: 13px; }
+  .forks li { margin: 3px 0; }
+
+  /* Lists */
+  .items { display: grid; gap: 10px; }
+  .item-card { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .item-card .hd { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+  .item-card .hd b { font-size: 14px; }
+  .fragile { display: flex; align-items: flex-end; gap: 3px; height: 46px; margin: 6px 0 2px; }
+  .fragile i { flex: 1; background: var(--s4); border-radius: 3px 3px 0 0; min-height: 1px; }
+  .fragile-x { display: flex; gap: 3px; } .fragile-x span { flex: 1; text-align: center; font-size: 10px; color: var(--muted); }
+  .pill { font-size: 11px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+  .pill.improved { color: var(--good); border-color: var(--good); } .pill.worse { color: var(--bad); border-color: var(--bad); }
+
+  /* Drawer */
+  #drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(820px, 100%); background: var(--bg); border-left: 1px solid var(--line); z-index: 40; overflow-y: auto; box-shadow: -10px 0 30px rgba(0,0,0,.15); }
+  #drawer .dh { position: sticky; top: 0; z-index: 2; background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); padding: 10px 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  #drawer .db { padding: 0 16px 60px; }
+  #scrim { position: fixed; inset: 0; background: rgba(0,0,0,.25); z-index: 39; }
+  .tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 12px; }
+  .tabs button { border-color: var(--line); color: var(--muted); }
+  .tabs button.on { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+  .scrub { display: flex; gap: 10px; align-items: center; margin: 10px 0 4px; }
+  .scrub input[type=range] { flex: 1; }
+  .yearbig { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; min-width: 64px; }
+  .conds { display: grid; grid-template-columns: 140px minmax(0, 1fr) 70px; gap: 4px 10px; align-items: center; font-size: 12px; }
+  .conds .track { position: relative; height: 8px; background: var(--grid); border-radius: 4px; }
+  .conds .track i { position: absolute; top: -2px; width: 12px; height: 12px; border-radius: 50%; background: var(--s1); transform: translateX(-6px); }
+  .conds .track s { position: absolute; top: -1px; width: 2px; height: 10px; background: var(--muted); transform: translateX(-1px); }
+  .events { list-style: none; margin: 6px 0 0; padding: 0; font-size: 13px; }
+  .events li { padding: 3px 0; }
+  .twin { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .twin .item-card h3 { font-size: 14px; }
+  .life { list-style: none; margin: 10px 0 0; padding: 0; border-left: 2px solid var(--line); }
+  .life li { position: relative; padding: 4px 0 6px 16px; font-size: 13px; }
+  .life li::before { content: ""; position: absolute; left: -6px; top: 10px; width: 10px; height: 10px; border-radius: 50%; background: var(--panel); border: 2px solid var(--muted); }
+  .life li.good::before { border-color: var(--good); } .life li.bad::before { border-color: var(--bad); }
+  .life li.world { color: var(--muted); }
+  .life .yr { font-weight: 600; font-variant-numeric: tabular-nums; margin-right: 6px; }
+  .people { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; }
+  .people button { text-align: left; color: var(--ink); border-color: var(--line); white-space: normal; }
+  .people button.on { border-color: var(--accent); }
+  .meta { font-size: 12px; color: var(--muted); margin-top: 18px; line-height: 1.7; }
+  .meta code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
+  @media (max-width: 760px) {
+    .two, .rob, .twin { grid-template-columns: 1fr; }
+    .hbars { grid-template-columns: minmax(100px, 130px) minmax(0, 1fr) 46px; }
+    .conds { grid-template-columns: 100px minmax(0, 1fr) 60px; }
+    .big { font-size: 38px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="grow">
+      <div class="kicker">HappyBearLandia · possible worlds lab</div>
+      <h1 id="title">Loading…</h1>
+    </div>
+    <label>Worlds <input type="number" id="runs" min="10" max="1000" step="10" /></label>
+    <label>Years <input type="number" id="years" min="2" max="10" /></label>
+    <label>Simulate
+      <select id="step"><option value="1">every year</option><option value="2">every 2nd year</option><option value="3">every 3rd year</option></select>
+    </label>
+    <button id="run" class="primary">Run</button>
+    <button id="stop" class="plain" hidden>Stop</button>
+    <a class="btn plain" id="back">← Results</a>
+    <a class="btn plain" id="gridLink">Live grid</a>
+  </div>
+  <div class="progress" id="progress" hidden><i></i></div>
+</header>
+
+<main>
+  <div class="muted" id="status"></div>
+  <div class="warn" id="covWarn" hidden></div>
+
+  <section class="card">
+    <h2>Assumptions</h2>
+    <div class="muted">Each world draws its own conditions and events from these ranges, then lives through them year by year — with no plan and with each plan, same residents, same dice.</div>
+    <details class="cfg" id="condCfg"><summary>World conditions (starting ranges)</summary><div class="cfg-grid" id="condGrid"></div></details>
+    <details class="cfg" id="shockCfg"><summary>Random events (chance per year)</summary><div class="cfg-grid" id="shockGrid"></div></details>
+    <details class="cfg" id="planCfg"><summary>Plans to compare on the same worlds</summary><div class="cfg-grid" id="planGrid"></div></details>
+    <div class="row" style="margin-top:10px"><span class="muted" id="estimate"></span><button class="plain" id="resetCfg">Reset assumptions</button></div>
+  </section>
+
+  <div id="results" hidden>
+    <section class="card" id="robCard">
+      <h2>Robustness</h2>
+      <p class="q" id="robQ">Across how many plausible worlds does this plan work?</p>
+      <div class="rob">
+        <div>
+          <div class="big" id="robPct">–</div>
+          <div class="muted">of worlds improved by the plan</div>
+          <div class="stats">
+            <div><span class="muted">Median</span><b id="robMed">–</b></div>
+            <div><span class="muted">Worst 10%</span><b id="robP10">–</b></div>
+            <div><span class="muted">Best 10%</span><b id="robP90">–</b></div>
+          </div>
+        </div>
+        <div>
+          <div class="vbar" id="robBar"></div>
+          <div class="legend" id="robLegend"></div>
+          <div class="strip" id="strip" aria-label="Every world, sorted by the plan's effect"></div>
+          <div class="muted" style="margin-top:6px">Each dot is one world, sorted from worst to best plan effect. Click one to step inside.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="cmpCard">
+      <h2>Compare plans</h2>
+      <p class="q">Which plan survives the widest range of futures?</p>
+      <div id="cmpBody"></div>
+    </section>
+
+    <section class="card" id="searchCard">
+      <h2>Find worlds</h2>
+      <form class="search" id="searchForm"><input type="search" id="query" placeholder="worlds where well-being rises but walking gets worse" autocomplete="off" /><button>Search</button></form>
+      <div class="chips" id="examples"></div>
+      <div class="chips" id="understood"></div>
+      <div class="row" style="margin-top:10px" id="searchOut" hidden><span class="count" id="searchCount"></span><span class="muted" id="searchNote"></span><a id="searchGrid" class="btn plain">Show in live grid</a><button class="plain" id="searchClear">Clear</button></div>
+      <div class="chips" id="searchHits"></div>
+    </section>
+
+    <div class="row" style="margin-top:16px;justify-content:space-between">
+      <h2 style="margin:0">Explaining the differences</h2>
+      <div class="seg" id="targetSeg" role="group" aria-label="Explain">
+        <button data-t="effect" class="on">Plan's effect</button><button data-t="quality">How good the world is</button>
+      </div>
+    </div>
+    <div class="two" style="margin-top:10px">
+      <section class="card">
+        <h2>Sensitivity</h2>
+        <p class="q" id="sensQ">What determines success?</p>
+        <div class="hbars" id="sens"></div>
+        <div class="muted" id="sensNote" style="margin-top:8px"></div>
+      </section>
+      <section class="card">
+        <h2>Uncertainty breakdown</h2>
+        <p class="q">Why are the futures different?</p>
+        <div class="hbars" id="decomp"></div>
+        <div class="muted" id="decompNote" style="margin-top:8px"></div>
+      </section>
+    </div>
+
+    <section class="card">
+      <h2>Divergence</h2>
+      <p class="q">Where do worlds fork?</p>
+      <div class="muted">All worlds start together. Each fork is the earliest condition or event that best separates how worlds ended up; line height is where each group ended. Click a fork for its story, a branch end to list its worlds.</div>
+      <div class="tree-host"><svg id="tree" role="img" aria-label="Tree of forks in history"></svg></div>
+      <div class="tip" id="treeTip" hidden></div>
+      <ol class="forks" id="forkList"></ol>
+    </section>
+
+    <section class="card">
+      <h2>Critical junctures 🦋</h2>
+      <p class="q">Where is the modeled world fragile?</p>
+      <div class="muted" id="bfNote"></div>
+      <div class="fragile" id="fragile"></div><div class="fragile-x" id="fragileX"></div>
+      <div class="items" id="butterflies" style="margin-top:12px"></div>
+    </section>
+
+    <section class="card">
+      <h2>Weird worlds</h2>
+      <p class="q">Which futures are strangest — and why?</p>
+      <div class="items" id="weird"></div>
+    </section>
+  </div>
+
+  <div class="meta" id="meta"></div>
+</main>
+
+<div id="scrim" hidden></div>
+<aside id="drawer" hidden aria-label="One world">
+  <div class="dh">
+    <div class="grow"><div class="kicker" id="dKicker"></div><h1 id="dTitle"></h1></div>
+    <a class="btn plain" id="d3d" target="_blank" rel="noopener">Open in 3D ↗</a>
+    <a class="btn plain" id="dWhy" target="_blank" rel="noopener">Plan levers ↗</a>
+    <button class="plain" id="dClose" aria-label="Close">✕</button>
+  </div>
+  <div class="db">
+    <div class="tabs" id="dTabs">
+      <button data-tab="timeline" class="on">Timeline</button>
+      <button data-tab="branch">Branch from here</button>
+      <button data-tab="twin">Twin worlds</button>
+      <button data-tab="lives">Lives</button>
+    </div>
+
+    <section class="card" id="chartCard">
+      <div class="row" style="justify-content:space-between">
+        <label>Show <select id="dMetric"></select></label>
+        <div class="legend" id="dLegend"></div>
+      </div>
+      <svg id="dChart" role="img" aria-label="This world over time"></svg>
+      <div class="scrub">
+        <button class="plain" id="dPlay">▶ Play</button>
+        <span class="yearbig" id="dYear"></span>
+        <input type="range" id="dScrub" min="1" step="1" aria-label="Year" />
+      </div>
+    </section>
+
+    <div data-pane="timeline">
+      <div class="two" style="margin-top:14px">
+        <section class="card"><h3 id="dYearTitle"></h3><table><thead><tr><th>Outcome</th><th class="num">No plan</th><th class="num">With plan</th><th class="num">Change</th></tr></thead><tbody id="dMetrics"></tbody></table><div class="muted" id="dMetricsNote"></div></section>
+        <section class="card"><h3>World conditions</h3><div class="conds" id="dConds"></div><div class="muted" style="margin-top:6px">Dot: this year (with events). Tick: underlying level. Track spans the assumed starting range.</div><h3 style="margin-top:12px">What happened</h3><ul class="events" id="dEvents"></ul></section>
+      </div>
+    </div>
+
+    <div data-pane="branch" hidden>
+      <section class="card">
+        <h3>Change history at <span id="bYear"></span></h3>
+        <div class="muted">Pick a year with the scrubber, change one thing, and the world replays from there with the same residents and the same dice. Everything before the fork stays identical.</div>
+        <div class="row" style="margin-top:10px">
+          <select id="bKind">
+            <option value="cond">Set a condition</option>
+            <option value="force">Start an event this year</option>
+            <option value="block">Prevent an event from here on</option>
+            <option value="delay">Change when the plan starts</option>
+          </select>
+          <select id="bKey"></select>
+          <input type="range" id="bVal" /><span id="bValTxt" class="muted"></span>
+          <button class="primary" id="bGo">Simulate from here</button>
+        </div>
+        <div class="muted" id="bStatus" style="margin-top:6px"></div>
+      </section>
+      <section class="card"><h3>Branches</h3><div id="bList" class="items"></div></section>
+    </div>
+
+    <div data-pane="twin" hidden>
+      <section class="card">
+        <h3>Twin worlds</h3>
+        <div class="muted">A twin is this exact world — same residents, same dice, same everything — except for one thing. The difference between the two is the effect of that one thing.</div>
+        <div class="row" style="margin-top:10px">
+          <select id="tKey"></select>
+          <button class="primary" id="tGo">Make the twin</button>
+          <button class="plain" id="tSuggest">Suggest one</button>
+        </div>
+        <div class="muted" id="tStatus" style="margin-top:6px"></div>
+      </section>
+      <div id="tOut"></div>
+    </div>
+
+    <div data-pane="lives" hidden>
+      <section class="card">
+        <h3>Residents' lives</h3>
+        <div class="muted">Follows every resident through this world's years, with the plan and without it. Each simulated year is one week of their life; the neighborhood starts fresh each year, so a move after a flood doesn't carry over.</div>
+        <div class="row" style="margin-top:10px"><button class="primary" id="lGo">Simulate lives</button><span class="muted" id="lStatus"></span></div>
+      </section>
+      <div id="lOut"></div>
+    </div>
+  </div>
+</aside>
+
+<script type="module">
+import { buildTown } from "./gen.js";
+import { coverage, snapshotToPlan } from "./multiverse.js";
+import { METRICS } from "./paired.js";
+import {
+  CONDITIONS, CONDITION_KEYS, FUTURES_VERSION, SHOCKS, SHOCK_KEYS, conditionLevel, decodeAssumptions, defaultAssumptions,
+  encodeAssumptions, normalizeAssumptions, planVariants, simYears,
+} from "./futures.js";
+import {
+  EXAMPLE_QUERIES, RESIDUAL_LABEL, buildLives, butterflyPoints, comparePlans, describeEventChange, divergenceTree,
+  explainVariance, lifeImpact, robustness, scoreFutures, scoreOne, searchFutures, weirdWorlds, yearStory,
+} from "./futures-analysis.js";
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const params = new URLSearchParams(location.search);
+const DEFAULT_ORIGIN = { lat: 29.7286, lng: -95.4746 };
+const START_YEAR = new Date().getFullYear();
+const SERIES = ["var(--s1)", "var(--s2)", "var(--s3)", "var(--s4)", "var(--s5)"];
+const fmtPct = (x, d = 1) => `${x > 0.0005 ? "+" : x < -0.0005 ? "−" : "±"}${Math.abs(x * 100).toFixed(d)}%`;
+const fmtNum = (x, d = 1) => (Math.abs(x) >= 100 ? Math.round(x).toLocaleString() : (+x).toFixed(d));
+const signed = (x, d = 1) => `${x > 0.0005 ? "+" : x < -0.0005 ? "−" : "±"}${fmtNum(Math.abs(x), d)}`;
+const tone = (k, d) => (Math.abs(d) < 1e-6 ? "" : (METRICS[k].better === "lower" ? d < 0 : d > 0) ? "good" : "bad");
+const verdictWord = { improved: "improved", mixed: "mixed", worse: "worse" };
+const calYear = (y) => START_YEAR + y;
+
+/* ------------------------------------------------------------------ */
+/* Inputs                                                              */
+/* ------------------------------------------------------------------ */
+const snapshotId = params.get("simulation");
+let runs = Math.max(10, Math.min(1000, Math.floor(Number(params.get("runs")) || 100)));
+let years = Math.max(2, Math.min(10, Math.floor(Number(params.get("years")) || 10)));
+let step = Math.max(1, Math.min(3, Math.floor(Number(params.get("step")) || 1)));
+const people = Math.max(20, Math.min(300, Math.floor(Number(params.get("people")) || 60)));
+let baseSeed = params.get("seed");
+if (!baseSeed) { baseSeed = String(crypto.getRandomValues(new Uint32Array(1))[0]); params.set("seed", baseSeed); }
+let assumptions = decodeAssumptions(params.get("a"));
+let chosenVariants = (params.get("plans") || "").split(",").filter(Boolean);
+
+$("runs").value = runs; $("years").value = years; $("step").value = String(step);
+
+const backQ = new URLSearchParams({ simulation: snapshotId || "", runs: String(runs), years: String(years), seed: baseSeed, people: String(people) });
+$("back").href = `/world/realities.html?${backQ}`;
+$("gridLink").href = `/world/worlds.html?${backQ}`;
+
+if (!snapshotId) {
+  $("title").textContent = "Missing simulation";
+  $("status").innerHTML = 'Open the lab from a realities page, or add <code>?simulation=…</code> from Dear Congress.';
+  throw new Error("no snapshot");
+}
+
+let snapshot;
+try {
+  const res = await fetch(`/api/dear-congress/simulation-snapshots/${encodeURIComponent(snapshotId)}`, { signal: AbortSignal.timeout(10000) });
+  snapshot = (await res.json())?.snapshot;
+  if (!snapshot?.plan) throw new Error(`HTTP ${res.status}`);
+} catch (err) {
+  $("title").textContent = "Couldn't load this simulation";
+  $("status").textContent = `Dear Congress didn't return ${snapshotId} (${err.message || err}).`;
+  throw err;
+}
+const spec = snapshotToPlan(snapshot);
+const variants = planVariants(spec);
+const cov = coverage(spec);
+const origin = snapshot.location ? { lat: snapshot.location.lat, lng: snapshot.location.lng } : DEFAULT_ORIGIN;
+if (cov.share < 0.5) {
+  $("covWarn").hidden = false;
+  $("covWarn").textContent = cov.modeled === 0
+    ? "None of this plan's changes are modeled yet, so the plan will show no effect in any world."
+    : `Only ${cov.modeled} of ${cov.total} changes in this plan are modeled; the worlds below only reflect those.`;
+}
+
+let area = { source: "none" };
+try {
+  const res = await fetch(`/api/area?lat=${origin.lat}&lng=${origin.lng}`, { signal: AbortSignal.timeout(12000) });
+  if (res.ok) area = await res.json();
+} catch { /* procedural town */ }
+const town = buildTown(origin, area, { maxPeople: people });
+
+/* ------------------------------------------------------------------ */
+/* Assumption controls                                                 */
+/* ------------------------------------------------------------------ */
+function renderConfig() {
+  $("condGrid").innerHTML = CONDITION_KEYS.map((k) => {
+    const c = CONDITIONS[k], [lo, hi] = assumptions.ranges[k];
+    return `<div class="item"><span>${esc(c.label)}</span><span>
+      <input type="number" step="0.01" data-cond="${k}" data-end="0" value="${lo}" aria-label="${esc(c.label)} low"> –
+      <input type="number" step="0.01" data-cond="${k}" data-end="1" value="${hi}" aria-label="${esc(c.label)} high"></span>
+      <span class="muted">${esc(c.unit)} · today = ${c.neutral} · drifts ±${c.drift}/yr</span></div>`;
+  }).join("") + `<div class="item"><span>Volatility</span><span><input type="range" min="0" max="3" step="0.25" id="vol" value="${assumptions.volatility}"> <b id="volTxt">${assumptions.volatility}×</b></span><span class="muted">scales every yearly drift</span></div>
+    <div class="item"><span>Plans can start late</span><span><input type="checkbox" id="delayOn" ${assumptions.delay ? "checked" : ""}></span><span class="muted">60% on time, 27% one year late, 13% two</span></div>`;
+  $("shockGrid").innerHTML = SHOCK_KEYS.map((k) => {
+    const s = SHOCKS[k];
+    const eff = Object.entries(s.effects).map(([c, v]) => `${CONDITIONS[c].short} ${v > 0 ? "+" : "−"}${Math.abs(v)}`).join(", ");
+    const frag = Object.entries(s.fragility).map(([c, f]) => `${f < 0 ? "low" : "high"} ${CONDITIONS[c].short}`).join(", ");
+    return `<div class="item"><span>${s.icon} ${esc(s.label)}</span><span><input type="range" min="0" max="0.3" step="0.005" data-shock="${k}" value="${assumptions.shockRates[k]}"> <b data-shocktxt="${k}">${(assumptions.shockRates[k] * 100).toFixed(1)}%</b></span>
+      <span class="muted">${s.duration} yr, ${s.recovery} recovery · ${esc(eff)}${frag ? ` · likelier with ${esc(frag)}` : ""}</span></div>`;
+  }).join("");
+  $("planGrid").innerHTML = `<div class="item"><span><b>${esc(spec.label)}</b> (the plan)</span><span>always</span></div>` + variants.map((v) => `
+    <div class="item"><span>${esc(v.spec.label)}</span><span><input type="checkbox" data-variant="${esc(v.id)}" ${chosenVariants.includes(v.id) ? "checked" : ""}></span></div>`).join("");
+
+  for (const el of document.querySelectorAll("[data-cond]")) el.onchange = () => {
+    const k = el.dataset.cond, r = [...assumptions.ranges[k]];
+    r[Number(el.dataset.end)] = Number(el.value);
+    assumptions = normalizeAssumptions({ ...assumptions, ranges: { ...assumptions.ranges, [k]: r } });
+    configChanged();
+  };
+  for (const el of document.querySelectorAll("[data-shock]")) el.oninput = () => {
+    assumptions = normalizeAssumptions({ ...assumptions, shockRates: { ...assumptions.shockRates, [el.dataset.shock]: Number(el.value) } });
+    document.querySelector(`[data-shocktxt="${el.dataset.shock}"]`).textContent = `${(Number(el.value) * 100).toFixed(1)}%`;
+    configChanged(false);
+  };
+  $("vol").oninput = () => { assumptions = normalizeAssumptions({ ...assumptions, volatility: Number($("vol").value) }); $("volTxt").textContent = `${assumptions.volatility}×`; configChanged(false); };
+  $("delayOn").onchange = () => { assumptions = normalizeAssumptions({ ...assumptions, delay: $("delayOn").checked }); configChanged(false); };
+  for (const el of document.querySelectorAll("[data-variant]")) el.onchange = () => {
+    chosenVariants = [...document.querySelectorAll("[data-variant]:checked")].map((x) => x.dataset.variant);
+    configChanged(false);
+  };
+}
+
+function plansNow() {
+  return [spec, ...chosenVariants.map((id) => variants.find((v) => v.id === id)?.spec).filter(Boolean)];
+}
+function planLabels() { return plansNow().map((p, i) => (i === 0 ? p.label : p.label)); }
+
+function storageKey() {
+  return `hbl:lab:${snapshotId}:${baseSeed}:${years}:${people}:${step}:${encodeAssumptions(assumptions)}:${chosenVariants.join(",")}`;
+}
+
+function syncUrl() {
+  params.set("runs", String(runs)); params.set("years", String(years)); params.set("step", String(step)); params.set("people", String(people));
+  const a = encodeAssumptions(assumptions);
+  if (a) params.set("a", a); else params.delete("a");
+  if (chosenVariants.length) params.set("plans", chosenVariants.join(",")); else params.delete("plans");
+  history.replaceState(null, "", `${location.pathname}?${params}`);
+}
+
+function estimate() {
+  const sims = runs * simYears(years, step).length * (1 + plansNow().length);
+  const pool = Math.max(1, Math.min(8, (navigator.hardwareConcurrency || 4) - 1));
+  const secs = (sims * 0.25) / pool;
+  $("estimate").textContent = `${runs} worlds × ${simYears(years, step).length} simulated years × ${1 + plansNow().length} versions (no plan + ${plansNow().length} plan${plansNow().length > 1 ? "s" : ""}) ≈ ${sims.toLocaleString()} simulated weeks, about ${secs > 90 ? `${Math.ceil(secs / 60)} min` : `${Math.ceil(secs)} s`} on ${pool} worker${pool === 1 ? "" : "s"}.`;
+}
+
+function configChanged(rerender = true) {
+  if (rerender) renderConfig();
+  syncUrl();
+  estimate();
+  $("status").textContent = S.futures.length ? "Assumptions changed — press Run to simulate these worlds." : "";
+}
+
+$("resetCfg").onclick = () => { assumptions = defaultAssumptions(); chosenVariants = []; configChanged(); };
+for (const id of ["runs", "years", "step"]) $(id).onchange = () => {
+  runs = Math.max(10, Math.min(1000, Math.floor(Number($("runs").value) || 100)));
+  years = Math.max(2, Math.min(10, Math.floor(Number($("years").value) || 10)));
+  step = Number($("step").value) || 1;
+  $("runs").value = runs; $("years").value = years;
+  configChanged(false);
+};
+
+/* ------------------------------------------------------------------ */
+/* State + running                                                     */
+/* ------------------------------------------------------------------ */
+const S = { futures: [], scored: null, effModel: null, model: null, target: "effect", labels: [], cfg: null, matches: null, tree: null };
+let workers = [];
+function stopAll() { for (const w of workers) { w.postMessage({ type: "stop" }); w.terminate(); } workers = []; }
+
+function runAll() {
+  stopAll();
+  syncUrl();
+  const plans = plansNow();
+  S.cfg = { years, step, assumptions, plans, labels: plans.map((p) => p.label), key: storageKey() };
+  S.futures = [];
+  const results = [];
+  const pool = Math.max(1, Math.min(runs, 8, (navigator.hardwareConcurrency || 4) - 1));
+  const slices = Array.from({ length: pool }, () => []);
+  for (let i = 0; i < runs; i++) slices[i % pool].push(i);
+  let finished = 0;
+  const t0 = performance.now();
+  let lastPaint = 0;
+  $("run").hidden = true; $("stop").hidden = false; $("progress").hidden = false;
+  const paint = (force) => {
+    const now = performance.now();
+    if (!force && now - lastPaint < 1500) return;
+    lastPaint = now;
+    const n = results.length;
+    $("progress").firstElementChild.style.width = `${(100 * n) / runs}%`;
+    const rate = n / ((now - t0) / 1000);
+    const left = rate > 0 ? (runs - n) / rate : NaN;
+    $("status").textContent = n < runs
+      ? `${n} / ${runs} worlds simulated${Number.isFinite(left) ? ` · about ${left > 90 ? `${Math.ceil(left / 60)} min` : `${Math.ceil(left)} s`} left` : ""} · early results update as worlds finish`
+      : `${runs} worlds in ${((now - t0) / 1000).toFixed(0)} s.`;
+    if (n >= 8) { S.futures = [...results].sort((a, b) => a.index - b.index); analyze(n === runs); }
+  };
+  const done = () => {
+    stopAll();
+    $("run").hidden = false; $("stop").hidden = true; $("progress").hidden = true;
+    S.futures = [...results].sort((a, b) => a.index - b.index);
+    paint(true);
+    save();
+  };
+  slices.forEach((indices) => {
+    const w = new Worker(new URL("./futures.worker.js", import.meta.url), { type: "module" });
+    w.onmessage = (ev) => {
+      const m = ev.data || {};
+      if (m.type === "future") { results.push(m.future); paint(false); }
+      if (m.type === "error") { $("status").innerHTML = `<span class="bad">${esc(m.error)}</span>`; stopAll(); $("run").hidden = false; $("stop").hidden = true; }
+      if (m.type === "done" && ++finished === slices.length) done();
+    };
+    w.postMessage({ type: "run", input: { origin, area, maxPeople: people, indices, baseSeed, years, step, assumptions, plans } });
+    workers.push(w);
+  });
+  $("stop").onclick = () => { $("status").textContent = `Stopped after ${results.length} worlds.`; done(); };
+}
+$("run").onclick = runAll;
+
+function save() {
+  // Per-world numbers only (people and branches aren't kept). Also lets the live grid search.
+  try {
+    const data = { at: Date.now(), version: FUTURES_VERSION, cfg: { years, step, assumptions: S.cfg.assumptions, labels: S.cfg.labels, variants: chosenVariants }, futures: S.futures };
+    localStorage.setItem(S.cfg.key, JSON.stringify(data));
+    localStorage.setItem(`hbl:lab-latest:${snapshotId}:${baseSeed}`, S.cfg.key);
+  } catch { /* storage full or off: results stay in this tab */ }
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(storageKey());
+    const d = raw ? JSON.parse(raw) : null;
+    if (!d?.futures?.length || d.version !== FUTURES_VERSION) return false;
+    S.futures = d.futures.slice(0, runs).sort((a, b) => a.index - b.index);
+    const plans = plansNow();
+    S.cfg = { years, step, assumptions, plans, labels: plans.map((p) => p.label), key: storageKey() };
+    $("status").textContent = `${S.futures.length} worlds loaded from this browser (simulated ${new Date(d.at).toLocaleString()}). Run again to re-simulate.`;
+    analyze(true);
+    return true;
+  } catch { return false; }
+}
+
+/* ------------------------------------------------------------------ */
+/* Analysis                                                            */
+/* ------------------------------------------------------------------ */
+function analyze(full) {
+  if (!S.futures.length) return;
+  $("results").hidden = false;
+  S.scored = scoreFutures(S.futures, { needs: snapshot.needs });
+  S.labels = S.cfg.labels;
+  renderRobustness();
+  renderCompare();
+  if (!full) return;
+  S.effModel = explainVariance(S.futures, S.scored.rows.map((r) => r.final[0]), { assumptions });
+  renderExplanations();
+  renderButterflies();
+  renderWeird();
+  if ($("query").value.trim()) runSearch();
+}
+
+function targetValues() {
+  return S.scored.rows.map((r) => (S.target === "quality" ? r.qualityFinal : r.final[0]));
+}
+
+function renderExplanations() {
+  S.model = S.target === "effect" ? S.effModel : explainVariance(S.futures, targetValues(), { assumptions });
+  renderSensitivity();
+  renderDecomp();
+  renderTree();
+}
+
+for (const b of $("targetSeg").querySelectorAll("button")) b.onclick = () => {
+  S.target = b.dataset.t;
+  for (const x of $("targetSeg").querySelectorAll("button")) x.classList.toggle("on", x === b);
+  if (S.effModel) renderExplanations();
+};
+
+/* Robustness ------------------------------------------------------- */
+function renderRobustness() {
+  const r = robustness(S.scored, 0);
+  $("robQ").textContent = `Across how many of ${r.n} plausible worlds does ${spec.label} work?`;
+  $("robPct").textContent = `${Math.round(r.robustness * 100)}%`;
+  $("robMed").textContent = fmtPct(r.median);
+  $("robP10").textContent = fmtPct(r.p10);
+  $("robP90").textContent = fmtPct(r.p90);
+  $("robMed").className = r.median > 0 ? "good" : r.median < 0 ? "bad" : "";
+  $("robP10").className = r.p10 > 0 ? "good" : r.p10 < 0 ? "bad" : "";
+  $("robP90").className = r.p90 > 0 ? "good" : r.p90 < 0 ? "bad" : "";
+  $("robBar").innerHTML = [["improved", r.beneficial, "var(--good)"], ["mixed", r.mixed, "var(--mixed)"], ["worse", r.harmful, "var(--bad)"]]
+    .filter(([, n]) => n).map(([v, n, c]) => `<i style="flex:${n};background:${c}" title="${n} ${v}"></i>`).join("");
+  $("robLegend").innerHTML = `<span style="--c:var(--good)">Beneficial ${r.beneficial}</span><span style="--c:var(--mixed)">Mixed / about the same ${r.mixed}</span><span style="--c:var(--bad)">Harmful ${r.harmful}</span>`;
+  const sorted = [...S.scored.rows].sort((a, b) => a.final[0] - b.final[0]);
+  $("strip").innerHTML = sorted.map((row) => `<button class="wdot ${row.verdict[0]}" data-w="${row.index}" title="World #${row.index} · ${verdictWord[row.verdict[0]]} · plan ${fmtPct(row.final[0])} · world quality ${row.qualityFinal.toFixed(0)}"></button>`).join("");
+  markMatches();
+}
+
+$("strip").onclick = (e) => { const w = e.target.closest("[data-w]"); if (w) openWorld(Number(w.dataset.w)); };
+
+/* Compare ---------------------------------------------------------- */
+function renderCompare() {
+  const P = S.scored.plans;
+  if (P < 2) {
+    $("cmpBody").innerHTML = `<div class="empty">Only one plan was simulated. Open <b>Plans to compare</b> under Assumptions, tick a few variants (without a proposal, only one proposal, or adding one), and press Run — every plan is tested on exactly the same worlds.</div>`;
+    return;
+  }
+  const c = comparePlans(S.scored, S.labels);
+  const best = Math.max(...c.plans.map((p) => p.robustness));
+  const rows = c.plans.map((p) => `<tr>
+    <td>${esc(p.label)}${p.index === 0 ? ' <span class="pill">the plan</span>' : ""}</td>
+    <td><div class="minibar"><i style="flex:${p.beneficial};background:var(--good)"></i><i style="flex:${p.mixed};background:var(--mixed)"></i><i style="flex:${p.harmful};background:var(--bad)"></i></div></td>
+    <td class="num"><b>${Math.round(p.robustness * 100)}%</b>${p.robustness === best ? " ★" : ""}</td>
+    <td class="num">${p.beneficial} / ${p.mixed} / ${p.harmful}</td>
+    <td class="num">${fmtPct(p.median)}</td><td class="num">${fmtPct(p.p10)}</td>
+    <td class="num">${p.wins}</td>
+    <td class="num">${(p.meanRegret * 100).toFixed(1)} · ${(p.maxRegret * 100).toFixed(1)}</td>
+  </tr>`).join("");
+  const order = [...S.scored.rows].sort((a, b) => a.final[0] - b.final[0]);
+  const matrix = c.plans.map((p) => `<div class="lab" title="${esc(p.label)}">${esc(p.label)}</div><div class="cells">${order.map((r) => {
+    const winner = r.final.indexOf(Math.max(...r.final));
+    return `<i class="${r.verdict[p.index]}${winner === p.index ? " win" : ""}" data-w="${r.index}" title="World #${r.index} · ${esc(p.label)}: ${fmtPct(r.final[p.index])}${winner === p.index ? " · best plan here" : ""}"></i>`;
+  }).join("")}</div>`).join("");
+  $("cmpBody").innerHTML = `
+    <div style="overflow-x:auto"><table style="min-width:640px"><thead><tr><th>Plan</th><th>Outcomes</th><th class="num">Robustness</th><th class="num">Good / mixed / bad</th><th class="num">Median</th><th class="num">Worst 10%</th><th class="num">Best plan in</th><th class="num">Regret avg · worst</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="muted" style="margin-top:6px">Every plan ran on the same ${S.scored.rows.length} worlds — same conditions, events and residents — so each column below is a controlled comparison. Regret is how far a plan fell short of the best plan in that world (points of plan score).</div>
+    <div class="matrix" style="grid-template-columns:minmax(90px,200px) minmax(0,1fr)">${matrix}</div>
+    <div class="muted" style="margin-top:4px">World by world, sorted by ${esc(spec.label)}'s effect. Underline marks the best plan in that world. Click a cell to open the world.</div>`;
+  $("cmpBody").querySelector(".matrix").onclick = (e) => { const w = e.target.closest("[data-w]"); if (w) openWorld(Number(w.dataset.w)); };
+}
+
+/* Search ----------------------------------------------------------- */
+$("examples").innerHTML = EXAMPLE_QUERIES.map((q) => `<button class="chip" type="button">${esc(q)}</button>`).join("");
+$("examples").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; $("query").value = b.textContent; runSearch(); };
+$("searchForm").onsubmit = (e) => { e.preventDefault(); runSearch(); };
+let searchTimer = null;
+$("query").oninput = () => { clearTimeout(searchTimer); searchTimer = setTimeout(runSearch, 350); };
+$("searchClear").onclick = () => { $("query").value = ""; runSearch(); };
+
+function runSearch() {
+  const q = $("query").value.trim();
+  if (!q || !S.scored) {
+    S.matches = null;
+    $("understood").innerHTML = ""; $("searchHits").innerHTML = ""; $("searchOut").hidden = true;
+    markMatches();
+    return;
+  }
+  const r = searchFutures(q, S.futures, S.scored, { assumptions });
+  S.matches = new Set(r.matches);
+  $("understood").innerHTML = [
+    ...(r.clauses.length ? [`<span class="muted">Understood as:</span>`] : []),
+    ...r.clauses.map((c) => `<span class="chip understood">${esc(c.label)}</span>`),
+    ...r.unknown.map((u) => `<span class="chip unknown" title="Not understood — ignored">? ${esc(u)}</span>`),
+  ].join("");
+  $("searchOut").hidden = false;
+  $("searchCount").textContent = `${r.matches.length} / ${S.futures.length}`;
+  $("searchNote").textContent = r.clauses.length ? "worlds match" : "Nothing understood yet — try one of the examples.";
+  const qq = new URLSearchParams(backQ); qq.set("q", q);
+  $("searchGrid").href = `/world/worlds.html?${qq}`;
+  const rows = new Map(S.scored.rows.map((x) => [x.index, x]));
+  $("searchHits").innerHTML = r.matches.slice(0, 120).map((i) => {
+    const row = rows.get(i);
+    return `<button class="chip" data-w="${i}"><span class="${row.verdict[0] === "improved" ? "good" : row.verdict[0] === "worse" ? "bad" : ""}">#${i} ${fmtPct(row.final[0])}</span></button>`;
+  }).join("");
+  markMatches();
+}
+$("searchHits").onclick = (e) => { const w = e.target.closest("[data-w]"); if (w) openWorld(Number(w.dataset.w)); };
+
+function markMatches() {
+  for (const d of $("strip").querySelectorAll(".wdot")) {
+    const i = Number(d.dataset.w);
+    d.classList.toggle("hit", !!S.matches?.has(i));
+    d.classList.toggle("dim", !!S.matches && !S.matches.has(i));
+  }
+}
+
+function showWorldList(indices, text) {
+  $("query").value = "";
+  S.matches = new Set(indices);
+  $("understood").innerHTML = `<span class="chip understood">${esc(text)}</span>`;
+  $("searchOut").hidden = false;
+  $("searchCount").textContent = `${indices.length} / ${S.futures.length}`;
+  $("searchNote").textContent = "worlds";
+  $("searchGrid").href = `/world/worlds.html?${new URLSearchParams({ ...Object.fromEntries(backQ), ids: indices.join(",") })}`;
+  const rows = new Map(S.scored.rows.map((x) => [x.index, x]));
+  $("searchHits").innerHTML = indices.map((i) => `<button class="chip" data-w="${i}">#${i} ${fmtPct(rows.get(i).final[0])}</button>`).join("");
+  markMatches();
+  $("searchCard").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+/* Sensitivity + decomposition ------------------------------------- */
+function unitOf(v) { return S.target === "quality" ? `${signed(v)} pts` : fmtPct(v); }
+
+function renderSensitivity() {
+  const m = S.model;
+  $("sensQ").textContent = S.target === "quality" ? "What makes a world turn out well?" : "What determines whether the plan succeeds?";
+  const top = m.features.filter((f) => f.share >= 0.005).slice(0, 9);
+  const max = Math.max(m.residual, ...top.map((f) => f.share), 0.01);
+  $("sens").innerHTML = top.map((f) => {
+    const dir = f.kind === "shock" ? (f.direction > 0 ? "helps" : "hurts") : (f.direction > 0 ? "higher helps" : "higher hurts");
+    return `<span>${esc(f.label)}</span><span class="track"><i style="width:${(100 * f.share) / max}%"></i></span><span class="num">${Math.round(f.share * 100)}%</span>
+      <span class="muted sub">${dir} · low → high: ${unitOf(f.swing)}</span>`;
+  }).join("") + `<span>Everything else</span><span class="track"><i class="rest" style="width:${(100 * m.residual) / max}%"></i></span><span class="num">${Math.round(m.residual * 100)}%</span>`;
+  $("sensNote").textContent = `Share of the differences between worlds each assumption accounts for (Shapley shares of a regression across ${m.n} worlds, R² ${m.adjR2}). "Low → high" is the change from a world at the 10th to the 90th percentile of that assumption. Everything else is mostly residents' own choices.`;
+}
+
+function renderDecomp() {
+  const m = S.model;
+  const rows = [...m.groups.map((g) => ({ label: g.label, share: g.share })), { label: RESIDUAL_LABEL, share: m.residual, rest: true }].sort((a, b) => b.share - a.share);
+  const max = Math.max(...rows.map((r) => r.share), 0.01);
+  $("decomp").innerHTML = rows.map((r) => `<span>${esc(r.label)}</span><span class="track"><i class="${r.rest ? "rest" : ""}" style="width:${(100 * r.share) / max}%"></i></span><span class="num">${Math.round(r.share * 100)}%</span>`).join("");
+  const world = m.groups.filter((g) => g.id !== "implementation").reduce((s, g) => s + g.share, 0);
+  const impl = m.groups.find((g) => g.id === "implementation")?.share || 0;
+  $("decompNote").textContent = `The world itself (events, economy, climate, trust, streets) accounts for ${Math.round(world * 100)}%; how the plan is delivered, ${Math.round(impl * 100)}%; residents' choices and chance, ${Math.round(m.residual * 100)}%. Model uncertainty — whether this simulator's rules are right — isn't in this chart: every world here uses the same rules.`;
+}
+
+/* Divergence tree --------------------------------------------------- */
+function renderTree() {
+  const t = divergenceTree(S.futures, S.scored, { target: S.target, assumptions });
+  S.tree = t;
+  const svg = $("tree");
+  if (!t.root) { svg.innerHTML = ""; return; }
+  const W = 900, H = 340, L = 40, R = 190, T = 18, B = 28;
+  const nodes = [];
+  (function walk(n, parent) { nodes.push({ n, parent }); for (const c of n.children) walk(c, n); })(t.root, null);
+  const ys = nodes.map((x) => x.n.mean);
+  let lo = Math.min(...ys), hi = Math.max(...ys);
+  if (hi - lo < 1e-6) { lo -= 1; hi += 1; }
+  const pad = (hi - lo) * 0.1;
+  const X = (yr) => L + (yr / t.maxYear) * (W - L - R);
+  const Y = (v) => T + (1 - (v - (lo - pad)) / (hi - lo + 2 * pad)) * (H - T - B);
+  const ref = S.target === "quality" ? 50 : 0;
+  const maxN = t.root.n;
+  const color = (v) => (S.target === "quality" ? (v > 51 ? "var(--good)" : v < 49 ? "var(--bad)" : "var(--mixed)") : (v > 0.1 ? "var(--good)" : v < -0.1 ? "var(--bad)" : "var(--mixed)"));
+  const unit = S.target === "quality" ? " pts" : "%";
+  const fv = (v) => (S.target === "quality" ? v.toFixed(1) : `${v > 0 ? "+" : v < 0 ? "−" : "±"}${Math.abs(v).toFixed(1)}%`);
+  let g = "";
+  for (let y = 0; y <= t.maxYear; y++) g += `<line x1="${X(y)}" x2="${X(y)}" y1="${T}" y2="${H - B}" stroke="var(--grid)"/><text x="${X(y)}" y="${H - 8}" text-anchor="middle">${calYear(y)}</text>`;
+  if (ref >= lo - pad && ref <= hi + pad) g += `<line x1="${L}" x2="${W - R}" y1="${Y(ref)}" y2="${Y(ref)}" stroke="var(--muted)" stroke-dasharray="3 3"/><text x="${L - 4}" y="${Y(ref) + 4}" text-anchor="end">${S.target === "quality" ? "avg" : "0"}</text>`;
+  let lines = "", marks = "", labels = "";
+  const leaves = [];
+  const forks = [];
+  for (const { n, parent } of nodes) {
+    const sw = Math.max(1.5, 7 * Math.sqrt(n.n / maxN));
+    const x0 = parent ? X(parent.split.year) : X(0);
+    const y0 = parent ? Y(parent.mean) : Y(n.mean);
+    const xEnd = n.split ? X(n.split.year) : X(t.maxYear);
+    const xs = n.split ? xEnd : X(t.maxYear);
+    // diagonal from the parent's fork to this group's level, then flat to its own fork or the end
+    const xBend = parent ? Math.min(xEnd, x0 + Math.max(18, (xEnd - x0) * 0.35)) : x0;
+    lines += `<path d="M${x0},${y0} L${xBend},${Y(n.mean)} L${xs},${Y(n.mean)}" fill="none" stroke="${n.children.length ? "var(--muted)" : color(n.mean)}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" opacity="${n.children.length ? 0.55 : 0.9}"/>`;
+    if (n.split) {
+      forks.push(n);
+      marks += `<circle cx="${xEnd}" cy="${Y(n.mean)}" r="8" fill="var(--panel)" stroke="var(--accent)" stroke-width="2" data-fork="${n.id}" style="cursor:pointer"><title>${esc(n.split.text)}</title></circle><text x="${xEnd}" y="${Y(n.mean) - 12}" text-anchor="middle" style="fill:var(--accent)">${forks.length}</text>`;
+    } else {
+      leaves.push(n);
+    }
+  }
+  // Leaf labels: in line with their branch, nudged apart so close endings don't overlap.
+  const placed = leaves.map((n) => ({ n, y: Y(n.mean) })).sort((a, b) => a.y - b.y);
+  for (let i = 1; i < placed.length; i++) placed[i].y = Math.max(placed[i].y, placed[i - 1].y + 15);
+  const over = placed.length ? placed[placed.length - 1].y - (H - B) : 0;
+  if (over > 0) for (const p of placed) p.y -= over;
+  for (const { n, y } of placed) {
+    const yl = Y(n.mean);
+    labels += `<g data-leaf="${n.id}" style="cursor:pointer">${Math.abs(y - yl) > 2 ? `<line x1="${X(t.maxYear) + 2}" y1="${yl}" x2="${X(t.maxYear) + 8}" y2="${y}" stroke="var(--muted)"/>` : ""}<rect x="${X(t.maxYear) + 6}" y="${y - 8}" width="${R - 12}" height="16" fill="transparent"/><text x="${X(t.maxYear) + 10}" y="${y + 4}" style="fill:var(--ink)">${n.n} worlds · ${fv(n.mean)}</text><title>${esc(n.branch || "all worlds")} — click to list them</title></g>`;
+  }
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.style.minWidth = "640px";
+  svg.innerHTML = g + lines + marks + labels;
+  $("forkList").innerHTML = forks.map((n, i) => `<li><b>${i + 1}.</b> ${esc(n.split.text)}${n.split.visibleYear ? ` <span class="muted">The groups' paths visibly separate by ${calYear(n.split.visibleYear)}.</span>` : ""}</li>`).join("") || `<li class="muted">No single condition or event clearly splits these worlds — their differences are spread across many small causes and residents' choices.</li>`;
+  $("treeTip").hidden = true;
+  svg.onclick = (e) => {
+    const f = e.target.closest("[data-fork]");
+    const l = e.target.closest("[data-leaf]");
+    const find = (id) => nodes.find((x) => x.n.id === id)?.n;
+    if (f) {
+      const n = find(Number(f.dataset.fork));
+      $("treeTip").hidden = false;
+      $("treeTip").innerHTML = `<b>${calYear(n.split.year)} divergence</b> · ${esc(n.split.what)}<br>${esc(n.split.text)}<br><span class="muted">This fork accounts for ${Math.round(n.split.explained * 100)}% of all the variation in ${S.target === "quality" ? "how good worlds ended up" : "the plan's effect"}.</span>
+        <div class="row" style="margin-top:6px">${n.children.map((c) => `<button class="plain" data-list="${c.id}">List ${c.n} worlds: ${esc(c.branch)}</button>`).join("")}</div>`;
+      $("treeTip").onclick = (ev) => { const b = ev.target.closest("[data-list]"); if (b) { const c = find(Number(b.dataset.list)); showWorldList(c.indices, c.branch); } };
+    } else if (l) {
+      const n = find(Number(l.dataset.leaf));
+      const path = [];
+      let cur = n;
+      while (cur) { if (cur.branch) path.unshift(cur.branch); cur = nodes.find((x) => x.n.children.includes(cur))?.n; }
+      showWorldList(n.indices, path.join(" → ") || "all worlds");
+    }
+  };
+}
+
+/* Butterflies ------------------------------------------------------- */
+function renderButterflies() {
+  const b = butterflyPoints(S.futures, S.effModel, { assumptions, top: 6 });
+  S.butterflies = b;
+  $("bfNote").textContent = `Each world was nudged ${b.tried.toLocaleString()} ways — one condition, 3% of its range, in one year. ${b.tipping.toLocaleString()} of those tiny nudges changed which events happened later (a weak economy makes a recession likelier, low trust makes unrest likelier, and one event can set off another). Bars: where tipping nudges happen, by year.`;
+  const maxY = Math.max(1, ...Object.values(b.byYear));
+  const ys = Array.from({ length: years - 1 }, (_, i) => i + 1);
+  $("fragile").innerHTML = ys.map((y) => `<i style="height:${(100 * (b.byYear[y] || 0)) / maxY}%" title="${calYear(y)}: ${b.byYear[y] || 0} tipping nudges"></i>`).join("");
+  $("fragileX").innerHTML = ys.map((y) => `<span>${calYear(y)}</span>`).join("");
+  $("butterflies").innerHTML = b.top.length ? b.top.map((x, i) => {
+    const c = CONDITIONS[x.key];
+    return `<div class="item-card">
+      <div class="hd"><b>🦋 World #${x.index} · ${calYear(x.year)}</b><span class="muted">${esc(c.label)} ${c.fmt(x.from)} → ${c.fmt(x.to)} (${x.nudge > 0 ? "+" : "−"}${Math.round(Math.abs(x.nudge) * 100)}% of its range)</span></div>
+      <div style="margin-top:4px">Later history changes: ${esc(describeEventChange(x))}.</div>
+      <div class="muted">Estimated plan score: ${fmtPct(x.predicted.before)} → ${fmtPct(x.predicted.after)} (from the sensitivity model)</div>
+      <div class="row" style="margin-top:6px"><button class="plain" data-verify="${i}">Verify by simulating</button><button class="plain" data-open="${x.index}">Open world</button><span class="muted" data-vout="${i}"></span></div>
+    </div>`;
+  }).join("") : `<div class="empty">No tiny nudge changed later events in these worlds. Raise event chances or volatility under Assumptions to explore a more fragile world.</div>`;
+}
+
+$("butterflies").onclick = async (e) => {
+  const o = e.target.closest("[data-open]");
+  if (o) return openWorld(Number(o.dataset.open));
+  const v = e.target.closest("[data-verify]");
+  if (!v) return;
+  const x = S.butterflies.top[Number(v.dataset.verify)];
+  const out = document.querySelector(`[data-vout="${v.dataset.verify}"]`);
+  v.disabled = true;
+  out.textContent = "Simulating the nudged world…";
+  try {
+    const f = futureOf(x.index);
+    const alt = await job({ index: x.index, override: { fromYear: x.year, set: { [x.key]: x.to } }, reuse: f, plans: [S.cfg.plans[0]] });
+    const a = scoreOne(S.scored, f), b = scoreOne(S.scored, alt);
+    out.innerHTML = `Simulated: plan score <b>${fmtPct(a.final)}</b> → <b>${fmtPct(b.final)}</b>; world quality ${a.qualityFinal.toFixed(1)} → ${b.qualityFinal.toFixed(1)}.`;
+  } catch (err) { out.textContent = String(err.message || err); }
+  v.disabled = false;
+};
+
+/* Weird worlds ------------------------------------------------------ */
+function renderWeird() {
+  const w = weirdWorlds(S.futures, S.scored, S.effModel, { top: 4 });
+  const rare = (p) => (p <= 0 ? "less than 1 in 10,000" : p < 1e-4 ? "less than 1 in 10,000" : `about 1 in ${Math.max(2, Math.round(1 / p)).toLocaleString()}`);
+  $("weird").innerHTML = w.worlds.map((x, i) => {
+    const f = futureOf(x.index);
+    const shocks = f.shocks.map((s) => `${SHOCKS[s.id].icon} ${SHOCKS[s.id].label.toLowerCase()} ${calYear(s.year)}`).join(", ") || "no major events";
+    return `<div class="item-card">
+      <div class="hd"><b>${i === 0 ? "Most surprising: " : ""}World #${x.index}</b><span class="pill ${S.scored.rows.find((r) => r.index === x.index).verdict[0]}">plan ${fmtPct(x.final)}</span>
+      <span class="muted">Rarity: a typical world lands this far from average ${rare(x.rarity)} times</span></div>
+      <table style="margin-top:6px"><tbody>${x.traits.map((t) => `<tr><td>${esc(t.label)}</td><td class="num">${fmtNum(t.value)} ${esc(t.unit)}</td><td class="num muted">typical ${fmtNum(t.typical)}</td><td class="num muted">${t.z > 0 ? "+" : "−"}${Math.abs(t.z).toFixed(1)} sd</td></tr>`).join("") || `<tr><td class="muted" colspan="4">Unusual in combination rather than in any one outcome.</td></tr>`}</tbody></table>
+      <div class="muted" style="margin-top:6px">Why? Events: ${esc(shocks)}. ${f.delay ? `Plan started ${f.delay} yr late. ` : ""}${x.surprise != null && Math.abs(x.surprise) >= 1.5 ? `Its plan effect is ${Math.abs(x.surprise).toFixed(1)} sd ${x.surprise > 0 ? "better" : "worse"} than its conditions predict — residents' choices did that.` : "Its conditions mostly explain its plan effect."}</div>
+      <div class="row" style="margin-top:6px"><button class="plain" data-open="${x.index}">Step inside</button></div>
+    </div>`;
+  }).join("");
+}
+$("weird").onclick = (e) => { const o = e.target.closest("[data-open]"); if (o) openWorld(Number(o.dataset.open)); };
+
+/* ------------------------------------------------------------------ */
+/* Interactive jobs (branches, twins, lives)                           */
+/* ------------------------------------------------------------------ */
+let jobW = null, jobSeq = 0;
+const pending = new Map();
+function job(input, onProgress = null) {
+  if (!jobW) {
+    jobW = new Worker(new URL("./futures.worker.js", import.meta.url), { type: "module" });
+    jobW.onmessage = (ev) => {
+      const m = ev.data || {};
+      const p = pending.get(m.id);
+      if (!p) return;
+      if (m.type === "progress") p.onProgress?.(m.year);
+      if (m.type === "result") { pending.delete(m.id); p.resolve(m.future); }
+      if (m.type === "error") { pending.delete(m.id); p.reject(new Error(m.error)); }
+    };
+  }
+  const id = ++jobSeq;
+  return new Promise((resolve, reject) => {
+    pending.set(id, { resolve, reject, onProgress });
+    jobW.postMessage({ type: "job", id, input: { origin, area, maxPeople: people, baseSeed, years: S.cfg.years, step: S.cfg.step, assumptions: S.cfg.assumptions, plans: S.cfg.plans, ...input } });
+  });
+}
+
+function futureOf(i) { return S.futures.find((f) => f.index === i); }
+
+/* ------------------------------------------------------------------ */
+/* One world: timeline, branch, twin, lives                            */
+/* ------------------------------------------------------------------ */
+const W = { index: null, year: 1, branches: [], playing: null, lives: null, person: null };
+
+$("dMetric").innerHTML = [
+  `<option value="effect">Plan score (vs no plan)</option>`,
+  `<option value="quality">World quality</option>`,
+  ...Object.entries(METRICS).map(([k, m]) => `<option value="m:${k}">${esc(m.label)} (${esc(m.unit)})</option>`),
+].join("");
+$("dMetric").onchange = drawChart;
+
+function openWorld(index) {
+  const f = futureOf(index);
+  if (!f) return;
+  W.index = index; W.branches = []; W.lives = null; W.person = null;
+  W.year = Math.min(W.year || 1, S.cfg.years);
+  const row = S.scored.rows.find((r) => r.index === index);
+  $("dKicker").textContent = `World #${index} of ${S.futures.length}`;
+  $("dTitle").innerHTML = `${esc(spec.label)}: <span class="${row.verdict[0] === "improved" ? "good" : row.verdict[0] === "worse" ? "bad" : ""}">${verdictWord[row.verdict[0]]} ${fmtPct(row.final[0])}</span> <span class="muted">· world quality ${row.qualityFinal.toFixed(0)}${f.delay ? ` · plan ${f.delay} yr late` : ""}</span>`;
+  const q3 = new URLSearchParams({ lat: String(origin.lat), lng: String(origin.lng), people: String(people), simulation: snapshotId, reality: String(index), seed: baseSeed, year: String(S.cfg.years) });
+  $("d3d").href = `/world?${q3}`;
+  $("dWhy").href = `/world/reality.html?${new URLSearchParams({ simulation: snapshotId, reality: String(index), seed: baseSeed, year: String(S.cfg.years), people: String(people), runs: String(runs) })}`;
+  $("dScrub").max = String(S.cfg.years);
+  $("dScrub").value = String(W.year);
+  $("bList").innerHTML = `<div class="muted">No branches yet.</div>`;
+  $("tOut").innerHTML = ""; $("tStatus").textContent = "";
+  $("lOut").innerHTML = ""; $("lStatus").textContent = "";
+  fillBranchKeys();
+  fillTwinKeys();
+  $("drawer").hidden = false; $("scrim").hidden = false;
+  $("drawer").scrollTop = 0;
+  params.set("world", String(index)); history.replaceState(null, "", `${location.pathname}?${params}`);
+  setYear(W.year);
+}
+function closeWorld() {
+  stopPlay();
+  $("drawer").hidden = true; $("scrim").hidden = true;
+  params.delete("world"); history.replaceState(null, "", `${location.pathname}?${params}`);
+}
+$("dClose").onclick = closeWorld;
+$("scrim").onclick = closeWorld;
+addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("drawer").hidden) closeWorld(); });
+
+for (const b of $("dTabs").querySelectorAll("button")) b.onclick = () => {
+  for (const x of $("dTabs").querySelectorAll("button")) x.classList.toggle("on", x === b);
+  for (const p of document.querySelectorAll("[data-pane]")) p.hidden = p.dataset.pane !== b.dataset.tab;
+};
+
+function seriesOf(f, which) {
+  const sc = scoreOne(S.scored, f);
+  if (which === "effect") return { plan: sc.effect.map((v) => v * 100), base: null, unit: "%" };
+  if (which === "quality") return { plan: sc.quality, base: null, unit: "pts" };
+  const k = which.slice(2);
+  return { plan: f.simYears.map((y) => f.years[y].plans[0][k]), base: f.simYears.map((y) => f.years[y].baseline[k]), unit: METRICS[k].unit };
+}
+
+function drawChart() {
+  const f = futureOf(W.index);
+  if (!f) return;
+  const which = $("dMetric").value;
+  const main = seriesOf(f, which);
+  const branchSeries = W.branches.map((b) => ({ b, s: seriesOf(b.future, which) }));
+  const all = [...main.plan, ...(main.base || []), ...branchSeries.flatMap((x) => [...x.s.plan, ...(x.s.base || [])])];
+  if (which === "effect") all.push(0);
+  let lo = Math.min(...all), hi = Math.max(...all);
+  if (hi - lo < 1e-6) { lo -= 1; hi += 1; }
+  const pad = (hi - lo) * 0.12;
+  lo -= pad; hi += pad;
+  const Wd = 760, H = 240, L = 48, R = 14, T = 26, B = 26;
+  const N = S.cfg.years;
+  const X = (y) => L + ((y - 1) / Math.max(1, N - 1)) * (Wd - L - R);
+  const Y = (v) => T + (1 - (v - lo) / (hi - lo)) * (H - T - B);
+  const ys = f.simYears;
+  const line = (vals, color, dash = "", fromYear = 1) => {
+    const pts = ys.map((y, i) => [y, vals[i]]).filter(([y]) => y >= fromYear);
+    return `<polyline points="${pts.map(([y, v]) => `${X(y)},${Y(v)}`).join(" ")}" fill="none" stroke="${color}" stroke-width="2" ${dash ? `stroke-dasharray="${dash}"` : ""} stroke-linejoin="round" stroke-linecap="round"/>` + pts.map(([y, v]) => `<circle cx="${X(y)}" cy="${Y(v)}" r="3" fill="${color}"><title>${calYear(y)}: ${fmtNum(v)} ${main.unit}</title></circle>`).join("");
+  };
+  let g = "";
+  const ticks = 4;
+  for (let i = 0; i <= ticks; i++) { const v = lo + ((hi - lo) * i) / ticks; g += `<line x1="${L}" x2="${Wd - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/><text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end">${fmtNum(v)}</text>`; }
+  for (let y = 1; y <= N; y++) g += `<text x="${X(y)}" y="${H - 8}" text-anchor="middle">${calYear(y)}</text>`;
+  if (which === "effect") g += `<line x1="${L}" x2="${Wd - R}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--muted)" stroke-dasharray="3 3"/>`;
+  // events along the bottom
+  for (const p of f.path) for (const id of p.started) g += `<text x="${X(p.year)}" y="14" text-anchor="middle" style="font-size:12px"><title>${esc(SHOCKS[id].label)} begins ${calYear(p.year)}</title>${SHOCKS[id].icon}</text>`;
+  let body = "";
+  if (main.base) body += line(main.base, "var(--muted)", "4 3");
+  body += line(main.plan, "var(--s1)");
+  branchSeries.forEach(({ b, s }, i) => {
+    const c = SERIES[(i + 1) % SERIES.length];
+    // fork from the last shared simulated year
+    const from = b.fromYear || 1;
+    const prevY = [...ys].reverse().find((y) => y < from);
+    const vals = s.plan;
+    if (prevY != null) body += `<line x1="${X(prevY)}" y1="${Y(main.plan[ys.indexOf(prevY)])}" x2="${X(ys.find((y) => y >= from))}" y2="${Y(vals[ys.findIndex((y) => y >= from)])}" stroke="${c}" stroke-width="2"/>`;
+    body += line(vals, c, "", from);
+  });
+  const cursor = `<line x1="${X(W.year)}" x2="${X(W.year)}" y1="${T}" y2="${H - B}" stroke="var(--ink)" stroke-width="1" opacity=".5"/>`;
+  $("dChart").setAttribute("viewBox", `0 0 ${Wd} ${H}`);
+  $("dChart").innerHTML = g + body + cursor;
+  $("dLegend").innerHTML = [`<span class="ln" style="--c:var(--s1)">${main.base ? "With plan" : "This world"}</span>`, main.base ? `<span class="dash" style="--c:var(--muted)">No plan</span>` : "", ...W.branches.map((b, i) => `<span class="ln" style="--c:${SERIES[(i + 1) % SERIES.length]}">${esc(b.short)}</span>`)].join("");
+}
+
+$("dChart").onclick = (e) => {
+  const r = $("dChart").getBoundingClientRect();
+  const x = ((e.clientX - r.left) / r.width) * 760;
+  const y = Math.round(1 + ((x - 48) / (760 - 62)) * (S.cfg.years - 1));
+  setYear(Math.max(1, Math.min(S.cfg.years, y)));
+};
+
+function nearestSimYear(f, y) { return [...f.simYears].reverse().find((s) => s <= y) ?? f.simYears[0]; }
+
+function setYear(y) {
+  W.year = y;
+  $("dScrub").value = String(y);
+  $("dYear").textContent = calYear(y);
+  $("bYear").textContent = calYear(y);
+  const f = futureOf(W.index);
+  const sy = nearestSimYear(f, y);
+  const row = f.years[sy];
+  $("dYearTitle").textContent = `${calYear(sy)}${sy !== y ? ` (last simulated year before ${calYear(y)})` : ""}`;
+  $("dMetrics").innerHTML = Object.entries(METRICS).map(([k, m]) => {
+    const b = row.baseline[k], p = row.plans[0][k], d = p - b;
+    return `<tr><td>${esc(m.label)}<div class="muted">${esc(m.unit)}</div></td><td class="num">${fmtNum(b)}</td><td class="num">${fmtNum(p)}</td><td class="num ${tone(k, d)}">${signed(d)}</td></tr>`;
+  }).join("");
+  $("dMetricsNote").textContent = `One simulated week of ${calYear(sy)}; storm strength ${row.storm.toFixed(2)}.`;
+  const p = f.path[y - 1];
+  $("dConds").innerHTML = CONDITION_KEYS.map((k) => {
+    const c = CONDITIONS[k];
+    const lv = Math.max(0, Math.min(1, conditionLevel(k, p.eff[k], S.cfg.assumptions)));
+    const bl = Math.max(0, Math.min(1, conditionLevel(k, p.base[k], S.cfg.assumptions)));
+    return `<span>${esc(c.label)}</span><span class="track" title="${esc(c.unit)}"><s style="left:${bl * 100}%"></s><i style="left:${lv * 100}%"></i></span><span class="num">${c.fmt(p.eff[k])}</span>`;
+  }).join("");
+  const story = yearStory(f, y, S.cfg.assumptions);
+  $("dEvents").innerHTML = story.map((s) => `<li>${esc(s.text)}</li>`).join("") || `<li class="muted">A quiet year.</li>`;
+  drawChart();
+  syncBranchControl();
+}
+$("dScrub").oninput = () => setYear(Number($("dScrub").value));
+
+function stopPlay() { clearInterval(W.playing); W.playing = null; $("dPlay").textContent = "▶ Play"; }
+$("dPlay").onclick = () => {
+  if (W.playing) return stopPlay();
+  if (W.year >= S.cfg.years) setYear(1);
+  $("dPlay").textContent = "❚❚ Pause";
+  W.playing = setInterval(() => { if (W.year >= S.cfg.years) return stopPlay(); setYear(W.year + 1); }, 1100);
+};
+
+/* Branch from here -------------------------------------------------- */
+function fillBranchKeys() { syncBranchControl(); }
+$("bKind").onchange = syncBranchControl;
+$("bKey").onchange = () => syncBranchControl(true);
+$("bVal").oninput = () => updateBranchText();
+
+function syncBranchControl(keepKey = false) {
+  const f = futureOf(W.index);
+  if (!f) return;
+  const kind = $("bKind").value;
+  const prevKey = $("bKey").value;
+  let opts = [];
+  if (kind === "cond") opts = CONDITION_KEYS.map((k) => [k, CONDITIONS[k].label]);
+  if (kind === "force") opts = SHOCK_KEYS.map((k) => [k, `${SHOCKS[k].icon} ${SHOCKS[k].label}`]);
+  if (kind === "block") {
+    const later = [...new Set(f.path.filter((p) => p.year >= W.year).flatMap((p) => p.started))];
+    opts = later.length ? later.map((k) => [k, `${SHOCKS[k].icon} ${SHOCKS[k].label}`]) : [["", "No events from this year on"]];
+  }
+  if (kind === "delay") opts = [["delay", "Plan start"]];
+  $("bKey").innerHTML = opts.map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join("");
+  if (keepKey || opts.some(([v]) => v === prevKey)) $("bKey").value = opts.some(([v]) => v === prevKey) ? prevKey : opts[0][0];
+  const k = $("bKey").value;
+  const showVal = kind === "cond" || kind === "delay";
+  $("bVal").hidden = !showVal; $("bValTxt").hidden = !showVal;
+  if (kind === "cond") {
+    const c = CONDITIONS[k];
+    $("bVal").min = String(c.clamp[0]); $("bVal").max = String(c.clamp[1]); $("bVal").step = "0.01";
+    $("bVal").value = String(f.path[W.year - 1].base[k]);
+  } else if (kind === "delay") {
+    $("bVal").min = "0"; $("bVal").max = "4"; $("bVal").step = "1"; $("bVal").value = String(f.delay);
+  }
+  $("bGo").disabled = kind === "block" && !k;
+  updateBranchText();
+}
+
+function updateBranchText() {
+  const f = futureOf(W.index);
+  const kind = $("bKind").value, k = $("bKey").value, v = Number($("bVal").value);
+  if (kind === "cond") $("bValTxt").textContent = `${CONDITIONS[k].fmt(f.path[W.year - 1].base[k])} → ${CONDITIONS[k].fmt(v)}`;
+  if (kind === "delay") $("bValTxt").textContent = `${f.delay} → ${v} yr late`;
+}
+
+$("bGo").onclick = async () => {
+  const f = futureOf(W.index);
+  const kind = $("bKind").value, k = $("bKey").value, v = Number($("bVal").value), y = W.year;
+  let override, short, desc;
+  if (kind === "cond") { override = { fromYear: y, set: { [k]: v } }; short = `${CONDITIONS[k].short} ${CONDITIONS[k].fmt(v)} from ${calYear(y)}`; desc = `${CONDITIONS[k].label} set to ${CONDITIONS[k].fmt(v)} in ${calYear(y)} (was ${CONDITIONS[k].fmt(f.path[y - 1].base[k])})`; }
+  if (kind === "force") { override = { fromYear: y, force: [{ id: k, year: y }] }; short = `${SHOCKS[k].label} ${calYear(y)}`; desc = `${SHOCKS[k].label} starts in ${calYear(y)}`; }
+  if (kind === "block") { override = { fromYear: y, block: [{ id: k }] }; short = `no ${SHOCKS[k].label.toLowerCase()} from ${calYear(y)}`; desc = `${SHOCKS[k].label} prevented from ${calYear(y)} on`; }
+  if (kind === "delay") { override = { fromYear: 1, delay: v }; short = `plan ${v} yr late`; desc = `Plan starts ${v} year${v === 1 ? "" : "s"} late (was ${f.delay})`; }
+  $("bGo").disabled = true;
+  $("bStatus").textContent = "Simulating the branch…";
+  try {
+    const alt = await job({ index: W.index, override, reuse: f, plans: [S.cfg.plans[0]] }, (yr) => { $("bStatus").textContent = `Simulating ${calYear(yr)}…`; });
+    W.branches.push({ future: alt, fromYear: override.delay != null ? 1 : y, short, desc, override });
+    $("bStatus").textContent = "";
+    renderBranches();
+    drawChart();
+  } catch (err) { $("bStatus").textContent = String(err.message || err); }
+  $("bGo").disabled = false;
+};
+
+function eventDiff(a, b) {
+  const key = (s) => `${s.id}@${s.year}`;
+  const A = new Set(a.shocks.map(key)), Bs = new Set(b.shocks.map(key));
+  const gone = a.shocks.filter((s) => !Bs.has(key(s))), added = b.shocks.filter((s) => !A.has(key(s)));
+  const nm = (s) => `${SHOCKS[s.id].icon} ${SHOCKS[s.id].label.toLowerCase()} ${calYear(s.year)}`;
+  return [gone.length ? `no ${gone.map(nm).join(", no ")}` : "", added.length ? `${added.map(nm).join(", ")} instead` : ""].filter(Boolean).join("; ");
+}
+
+function renderBranches() {
+  const f = futureOf(W.index);
+  const a = scoreOne(S.scored, f);
+  $("bList").innerHTML = W.branches.map((br, i) => {
+    const b = scoreOne(S.scored, br.future);
+    const ev = eventDiff(f, br.future);
+    return `<div class="item-card"><div class="hd"><b style="color:${SERIES[(i + 1) % SERIES.length]}">━</b><b>${esc(br.desc)}</b></div>
+      <div>Plan score ${fmtPct(a.final)} → <b class="${b.final > a.final ? "good" : b.final < a.final ? "bad" : ""}">${fmtPct(b.final)}</b> · world quality ${a.qualityFinal.toFixed(1)} → <b>${b.qualityFinal.toFixed(1)}</b></div>
+      <div class="muted">${ev ? `Later events changed: ${esc(ev)}.` : "Same events as the original."}</div>
+      <div class="row" style="margin-top:6px"><button class="plain" data-rm="${i}">Remove</button></div></div>`;
+  }).join("") || `<div class="muted">No branches yet.</div>`;
+}
+$("bList").onclick = (e) => { const r = e.target.closest("[data-rm]"); if (!r) return; W.branches.splice(Number(r.dataset.rm), 1); renderBranches(); drawChart(); };
+
+/* Twins -------------------------------------------------------------- */
+function twinOptions(f) {
+  const a = S.cfg.assumptions;
+  const out = [];
+  for (const k of CONDITION_KEYS) {
+    const [lo, hi] = a.ranges[k];
+    const lvl = conditionLevel(k, f.path[0].base[k], a);
+    const to = lvl >= 0.5 ? lo + 0.1 * (hi - lo) : lo + 0.9 * (hi - lo);
+    out.push({ id: `cond:${k}`, label: `${lvl >= 0.5 ? "Low" : "High"} ${CONDITIONS[k].label.toLowerCase()} (${CONDITIONS[k].fmt(to)} instead of ${CONDITIONS[k].fmt(f.path[0].base[k])})`, override: { fromYear: 1, set: { [k]: to } }, featureId: `cond:${k}` });
+  }
+  const seen = new Set();
+  for (const s of f.shocks) {
+    if (seen.has(s.id)) continue; seen.add(s.id);
+    out.push({ id: `noshock:${s.id}`, label: `Without the ${SHOCKS[s.id].label.toLowerCase()}`, override: { fromYear: 1, block: [{ id: s.id }] }, featureId: `shock:${s.id}` });
+  }
+  for (const k of SHOCK_KEYS) if (!seen.has(k)) out.push({ id: `shock:${k}`, label: `With a ${SHOCKS[k].label.toLowerCase()} in ${calYear(2)}`, override: { fromYear: 1, force: [{ id: k, year: 2 }] }, featureId: `shock:${k}` });
+  out.push({ id: "delay", label: f.delay ? "Plan starts on time" : "Plan starts 2 years late", override: { fromYear: 1, delay: f.delay ? 0 : 2 }, featureId: "delay" });
+  for (const v of variants.filter((x) => x.id.startsWith("without:"))) out.push({ id: v.id, label: `Plan ${v.spec.label.toLowerCase()}`, plans: [v.spec], featureId: null });
+  out.push({ id: "noplan", label: "No plan at all", noPlan: true });
+  return out;
+}
+function fillTwinKeys() {
+  const f = futureOf(W.index);
+  W.twinOpts = twinOptions(f);
+  $("tKey").innerHTML = W.twinOpts.map((o, i) => `<option value="${i}">${esc(o.label)}</option>`).join("");
+}
+$("tSuggest").onclick = () => {
+  const top = S.effModel?.features.find((x) => W.twinOpts.some((o) => o.featureId === x.id));
+  const i = top ? W.twinOpts.findIndex((o) => o.featureId === top.id) : 0;
+  $("tKey").value = String(Math.max(0, i));
+  $("tStatus").textContent = top ? `${top.label} matters most across these worlds (${Math.round(top.share * 100)}% of the differences), so its twin is the most informative.` : "";
+};
+$("tGo").onclick = async () => {
+  const f = futureOf(W.index);
+  const o = W.twinOpts[Number($("tKey").value)];
+  $("tGo").disabled = true;
+  $("tStatus").textContent = "Simulating the twin…";
+  try {
+    let twin;
+    if (o.noPlan) twin = { ...f, years: Object.fromEntries(Object.entries(f.years).map(([y, v]) => [y, { ...v, plans: [v.baseline] }])) };
+    else twin = await job({ index: W.index, override: o.override || null, plans: o.plans || [S.cfg.plans[0]] }, (yr) => { $("tStatus").textContent = `Simulating ${calYear(yr)}…`; });
+    $("tStatus").textContent = "";
+    renderTwin(f, twin, o);
+  } catch (err) { $("tStatus").textContent = String(err.message || err); }
+  $("tGo").disabled = false;
+};
+function renderTwin(f, twin, o) {
+  const last = f.simYears[f.simYears.length - 1];
+  const a = scoreOne(S.scored, f), b = scoreOne(S.scored, twin);
+  const ev = eventDiff(f, twin);
+  const card = (title, fut, sc, other) => `<div class="item-card"><h3>${esc(title)}</h3>
+    <div class="muted">${fut.shocks.map((s) => `${SHOCKS[s.id].icon} ${SHOCKS[s.id].label.toLowerCase()} ${calYear(s.year)}`).join(", ") || "no major events"}${fut.delay ? ` · plan ${fut.delay} yr late` : ""}</div>
+    <table style="margin-top:6px"><tbody>
+      <tr><td>Plan score</td><td class="num"><b>${fmtPct(sc.final)}</b></td></tr>
+      <tr><td>World quality</td><td class="num"><b>${sc.qualityFinal.toFixed(1)}</b></td></tr>
+      ${Object.entries(METRICS).map(([k, m]) => { const v = fut.years[last].plans[0][k], d = v - other.years[last].plans[0][k]; return `<tr><td>${esc(m.label)}</td><td class="num">${fmtNum(v)} ${d && fut !== f ? `<span class="${tone(k, d)}">(${signed(d)})</span>` : ""}</td></tr>`; }).join("")}
+    </tbody></table></div>`;
+  $("tOut").innerHTML = `<section class="card"><div class="muted">Same seed, same residents, same dice, and same everything else. Only difference: <b>${esc(o.label)}</b>.${ev ? ` Because events depend on conditions, that also changed later events: ${esc(ev)}.` : ""}</div>
+    <div class="twin" style="margin-top:10px">${card(`World #${f.index}`, f, a, twin)}${card("Its twin", twin, b, f)}</div>
+    <div style="margin-top:10px">Effect of <b>${esc(o.label.toLowerCase())}</b> in this world: plan score ${signed((b.final - a.final) * 100)} pts, world quality ${signed(b.qualityFinal - a.qualityFinal)} pts (${calYear(last)}).</div>
+    <div class="row" style="margin-top:8px"><button class="plain" id="tChart">Show twin on the timeline</button></div></section>`;
+  $("tChart").onclick = () => { W.branches.push({ future: twin, fromYear: 1, short: "twin", desc: `Twin: ${o.label}`, override: o.override }); renderBranches(); drawChart(); $("chartCard").scrollIntoView({ behavior: "smooth" }); };
+}
+
+/* Lives --------------------------------------------------------------- */
+$("lGo").onclick = async () => {
+  $("lGo").disabled = true;
+  $("lStatus").textContent = "Simulating every resident, with and without the plan…";
+  try {
+    const f = await job({ index: W.index, collectPeople: true, plans: [S.cfg.plans[0]] }, (yr) => { $("lStatus").textContent = `Simulating ${calYear(yr)}…`; });
+    W.lives = buildLives(f).map((l) => ({ ...l, impact: lifeImpact(l) })).sort((a, b) => b.impact - a.impact);
+    W.livesFuture = f;
+    $("lStatus").textContent = `${W.lives.length} residents.`;
+    renderLives();
+  } catch (err) { $("lStatus").textContent = String(err.message || err); }
+  $("lGo").disabled = false;
+};
+function renderLives() {
+  const L = W.lives;
+  const helped = L.filter((l) => l.impact > 0.5).slice(0, 6);
+  const hurt = L.filter((l) => l.impact < -0.5).slice(-6).reverse();
+  const btn = (l) => `<button data-p="${l.id}" class="${W.person === l.id ? "on" : ""}"><b>${esc(l.name)}</b>, ${l.age}<br><span class="muted">${esc(l.trait)}${l.worker ? " · works" : ""}${l.student ? " · student" : ""}</span></button>`;
+  $("lOut").innerHTML = `<section class="card">
+      <h3>The plan helped most</h3><div class="people">${helped.map(btn).join("") || '<span class="muted">Nobody clearly.</span>'}</div>
+      <h3 style="margin-top:12px">The plan hurt most</h3><div class="people">${hurt.map(btn).join("") || '<span class="muted">Nobody clearly.</span>'}</div>
+      <div class="row" style="margin-top:12px"><label>Anyone <select id="lAny">${L.map((l) => `<option value="${l.id}">${esc(l.name)}, ${l.age}</option>`).join("")}</select></label></div>
+    </section><div id="lPerson"></div>`;
+  $("lOut").querySelectorAll("[data-p]").forEach((b) => (b.onclick = () => showPerson(Number(b.dataset.p))));
+  $("lAny").onchange = () => showPerson(Number($("lAny").value));
+  showPerson(W.person ?? (helped[0] || L[0]).id);
+}
+function showPerson(id) {
+  W.person = id;
+  const l = W.lives.find((x) => x.id === id);
+  if (!l) return;
+  $("lOut").querySelectorAll("[data-p]").forEach((b) => b.classList.toggle("on", Number(b.dataset.p) === id));
+  $("lAny").value = String(id);
+  const spark = (key, label, better) => {
+    const vals = l.years.flatMap((y) => [y.plan[key], y.base[key]]);
+    let lo = Math.min(...vals), hi = Math.max(...vals);
+    if (hi - lo < 1e-6) { lo -= 1; hi += 1; }
+    const Wd = 340, H = 90, Lp = 30, T = 8, B = 18;
+    const X = (i) => Lp + (i / Math.max(1, l.years.length - 1)) * (Wd - Lp - 8);
+    const Y = (v) => T + (1 - (v - lo) / (hi - lo)) * (H - T - B);
+    const pl = (sel, c, dash) => `<polyline points="${l.years.map((y, i) => `${X(i)},${Y(y[sel][key])}`).join(" ")}" fill="none" stroke="${c}" stroke-width="2" ${dash ? 'stroke-dasharray="4 3"' : ""}/>`;
+    return `<div><div class="muted">${esc(label)} <span>(${better} is better)</span></div><svg viewBox="0 0 ${Wd} ${H}" style="width:100%;max-width:340px">
+      <text x="${Lp - 4}" y="${Y(hi) + 4}" text-anchor="end">${fmtNum(hi, 0)}</text><text x="${Lp - 4}" y="${Y(lo) + 4}" text-anchor="end">${fmtNum(lo, 0)}</text>
+      ${l.years.map((y, i) => `<text x="${X(i)}" y="${H - 4}" text-anchor="middle">${String(calYear(y.year)).slice(2)}</text>`).join("")}
+      ${pl("base", "var(--muted)", true)}${pl("plan", "var(--s1)")}</svg></div>`;
+  };
+  const byYear = new Map();
+  for (const e of l.events) { if (!byYear.has(e.year)) byYear.set(e.year, []); byYear.get(e.year).push(e); }
+  $("lPerson").innerHTML = `<section class="card">
+    <h3>${esc(l.name)} <span class="muted">· ${l.age} in ${START_YEAR} · ${esc(l.trait)}${l.worker ? " · works" : ""}${l.student ? " · student" : ""}</span></h3>
+    <div class="muted">Overall, the plan made ${esc(l.name)}'s years ${l.impact > 0.5 ? "better" : l.impact < -0.5 ? "worse" : "about the same"} (life score ${signed(l.impact)}).</div>
+    <div class="legend" style="margin-top:8px"><span class="ln" style="--c:var(--s1)">With the plan</span><span class="dash" style="--c:var(--muted)">Without it</span></div>
+    <div class="two" style="margin-top:6px">${spark("walkMinutesPerDay", "Walking, min/day", "lower")}${spark("mood", "Mood", "higher")}</div>
+    <ul class="life">${[...byYear.entries()].map(([y, evs]) => evs.map((e, i) => `<li class="${e.tone} ${e.kind === "world" ? "world" : ""}">${i === 0 ? `<span class="yr">${calYear(y)} · age ${e.age}</span>` : ""}${esc(e.text)}</li>`).join("")).join("") || `<li>Life goes on much the same, with or without the plan.</li>`}</ul>
+  </section>`;
+}
+
+/* ------------------------------------------------------------------ */
+/* Start                                                               */
+/* ------------------------------------------------------------------ */
+$("title").textContent = `${snapshot.plan.label} plan · possible worlds`;
+$("meta").innerHTML = `${town.people.length} synthetic residents in ${town.source === "osm" ? "OpenStreetMap buildings" : "a procedural town"} at ${origin.lat.toFixed(3)}, ${origin.lng.toFixed(3)}.
+  World <i>i</i> uses seed <code>${esc(baseSeed)}:reality:<i>i</i></code> for residents, conditions and events — the same seed as the realities page, plus uncertain world conditions. Engine <code>${FUTURES_VERSION}</code>.<br>
+  Each simulated year is one week of the agent simulation. Conditions, events and their chances are assumptions you can change above; the explanations describe these simulated worlds, not the real one.`;
+renderConfig();
+estimate();
+const loaded = load();
+if (!loaded) {
+  if (params.get("autorun") === "1") runAll();
+  else $("status").textContent = "Set assumptions, then press Run.";
+}
+if (loaded && params.get("world") != null) openWorld(Number(params.get("world")));
+</script>
+</body>
+</html>

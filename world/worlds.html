@@ -63,9 +63,11 @@
     </label>
     <label>Live at once
       <select id="live">
-        <option>4</option><option></option>6</option><option>9</option><option>12</option><option selected>100</option>
+        <option>4</option><option>6</option><option>9</option><option>12</option><option selected>100</option>
       </select>
     </label>
+    <input type="search" id="q" placeholder="Search worlds (from the lab)…" aria-label="Search worlds" style="font:inherit;font-size:13px;color:inherit;background:transparent;border:1px solid var(--line);border-radius:8px;padding:5px 9px;min-width:220px" />
+    <a class="btn" id="lab">Lab →</a>
     <a class="btn" id="back">← Results</a>
   </div>
 </header>
@@ -75,6 +77,7 @@
 </main>
 
 <script type="module">
+import { searchFutures, scoreFutures } from "./futures-analysis.js";
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const params = new URLSearchParams(location.search);
@@ -90,6 +93,7 @@ let maxLive = Number(params.get("live")) || 100;
 $("live").value = String(maxLive);
 
 $("back").href = `/world/realities.html?${new URLSearchParams({ simulation: snapshotId || "", runs: String(runs), years: String(years), seed: baseSeed || "", people: String(people) })}`;
+$("lab").href = `/world/lab.html?${new URLSearchParams({ simulation: snapshotId || "", runs: String(runs), years: String(years), seed: baseSeed || "", people: String(people) })}`;
 
 if (!snapshotId || !baseSeed) {
   $("title").textContent = "Missing simulation";
@@ -153,9 +157,35 @@ for (let i = 0; i < runs; i++) {
   tiles.set(i, t);
 }
 
+// Search: worlds simulated in the Possible Worlds Lab (same browser) carry conditions,
+// events and per-year outcomes, so the grid can be filtered with the lab's query language.
+// ?ids=1,2,3 shows exactly those worlds (e.g. one branch of the divergence tree).
+let labData = null;
+try {
+  const key = localStorage.getItem(`hbl:lab-latest:${snapshotId}:${baseSeed}`);
+  const raw = key ? localStorage.getItem(key) : null;
+  const d = raw ? JSON.parse(raw) : null;
+  if (d?.futures?.length) labData = { futures: d.futures, assumptions: d.cfg?.assumptions, scored: scoreFutures(d.futures, { needs: snapshot?.needs || [] }) };
+} catch { labData = null; }
+const idsParam = params.get("ids");
+let searchSet = idsParam ? new Set(idsParam.split(",").map(Number).filter(Number.isFinite)) : null;
+$("q").value = params.get("q") || "";
+if (!labData) { $("q").disabled = !idsParam; $("q").placeholder = idsParam ? "Showing the lab's list" : "Run the lab to search worlds"; }
+function applySearch() {
+  const q = $("q").value.trim();
+  if (!q) { searchSet = idsParam && !params.get("q") ? searchSet : null; return; }
+  if (!labData) return;
+  const r = searchFutures(q, labData.futures, labData.scored, { assumptions: labData.assumptions });
+  searchSet = new Set(r.matches);
+  $("note").textContent = `${r.matches.length} of ${labData.futures.length} worlds match: ${r.clauses.map((c) => c.label).join(" · ") || "nothing understood"}${r.unknown.length ? ` (ignored: ${r.unknown.join(", ")})` : ""}. Conditions and events come from the lab; the live worlds show residents and the plan.`;
+}
+let qTimer = null;
+$("q").oninput = () => { clearTimeout(qTimer); qTimer = setTimeout(() => { applySearch(); arrange(); }, 350); };
+
 function arrange() {
   const filter = $("filter").value, order = $("order").value;
   let list = [...tiles.keys()];
+  if (searchSet) list = list.filter((i) => searchSet.has(i));
   if (verdicts && filter !== "all") list = list.filter((i) => verdicts.get(i)?.verdict === filter);
   if (verdicts && order !== "index") {
     const score = (i) => verdicts.get(i)?.score ?? 0;
@@ -229,6 +259,8 @@ addEventListener("message", (ev) => {
 $("filter").onchange = arrange;
 $("order").onchange = arrange;
 $("live").onchange = () => { maxLive = Number($("live").value); schedule(); };
+applySearch();
+if (searchSet && !$("q").value.trim()) $("note").textContent = `Showing ${searchSet.size} worlds picked in the lab.`;
 arrange();
 </script>
 </body>
