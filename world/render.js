@@ -240,24 +240,41 @@ scene.add(ground);
 
 // Buildings
 const KIND_COLOR = { home: 0xd9cbb4, work: 0x8fa6c4, food: 0xe0875a, shop: 0xc9a23a, school: 0x9b7fd1, park: 0x7fb26a };
-const KIND_PALETTE = {
-  home: [0xd9cbb4, 0xdcc6a1, 0xcec0aa, 0xe0cfb7],
-  work: [0x8fa6c4, 0x7f97b7, 0x93a8bf],
-  food: [0xe0875a, 0xd97847, 0xe59a6f],
-  shop: [0xc9a23a, 0xb68f2f, 0xd0ac4b],
-  school: [0x9b7fd1, 0x8e72c4, 0xa487d9],
-  park: [0x7fb26a, 0x75a65f, 0x86bb71],
-};
-const baseColorFor = (b) => {
-  const list = KIND_PALETTE[b.kind] || [KIND_COLOR[b.kind] || 0xc7b9a2];
-  return list[Math.abs(Number(b.index) || 0) % list.length];
-};
+
+function hash32(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+// Deterministic per-building tint: keeps kind identity but makes nearby homes visibly different.
+function baseColorFor(b) {
+  const base = new THREE.Color(KIND_COLOR[b.kind] || 0xc7b9a2);
+  const hsl = { h: 0, s: 0, l: 0 };
+  base.getHSL(hsl);
+
+  const h = hash32(`${b.id || "b"}:${b.index}:${b.kind}`);
+  const r0 = (h & 1023) / 1023;           // 0..1
+  const r1 = ((h >>> 10) & 1023) / 1023;  // 0..1
+  const r2 = ((h >>> 20) & 1023) / 1023;  // 0..1
+
+  // Wider spread than before so variation is obvious even with warm lighting.
+  hsl.h = (hsl.h + (r0 - 0.5) * 0.09 + 1) % 1;
+  hsl.s = Math.min(1, Math.max(0, hsl.s * (0.75 + r1 * 0.8)));
+  hsl.l = Math.min(0.82, Math.max(0.35, hsl.l * (0.75 + r2 * 0.9)));
+
+  return new THREE.Color().setHSL(hsl.h, hsl.s, hsl.l).getHex();
+}
 const meshes = [];
 for (const b of town.buildings) {
   const shape = new THREE.Shape(b.poly.map(([x, z]) => new THREE.Vector2(x, -z)));
   const geo = new THREE.ExtrudeGeometry(shape, { depth: b.height, bevelEnabled: false });
   geo.rotateX(-Math.PI / 2);
-  const mat = new THREE.MeshLambertMaterial({ color: baseColorFor(b), emissive: 0xffc46b, emissiveIntensity: 0 });
+  b.baseColor = baseColorFor(b);
+  const mat = new THREE.MeshLambertMaterial({ color: b.baseColor, emissive: 0xffc46b, emissiveIntensity: 0 });
   const m = new THREE.Mesh(geo, mat);
   m.castShadow = b.kind !== "park";
   m.receiveShadow = true;
@@ -1898,7 +1915,7 @@ function updateBuildings(daylight) {
     const n = occupied.get(b.index) || 0;
     // Windows glow at night where people are inside; busy shops glow a little by day.
     mat.emissiveIntensity = b.kind === "park" ? 0 : Math.min(0.55, n * 0.08) * (1 - daylight * 0.7);
-    const base = baseColorFor(b);
+    const base = b.baseColor || KIND_COLOR[b.kind];
     let c = base;
     if (b.state.flooded) c = 0x3d6fa6;
     else if (!b.state.open) c = 0x6f6f6f;
