@@ -972,6 +972,8 @@ let cycleWho = "best";
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const fmt = (x) => Number(x || 0).toFixed(1);
 const signed = (x) => `${x >= 0 ? "+" : "−"}${Math.abs(x).toFixed(1)}`;
+const changeLabel = (x) => x?.label || x?.id || (typeof x === "string" ? x : "");
+const changeLabels = (arr) => (Array.isArray(arr) ? arr.map(changeLabel).filter(Boolean) : []);
 
 // The Balanced package, whichever id it has: presets use "balanced", but when
 // dear-congress loads it replaces them with its own ids ("a", "b", "c").
@@ -990,8 +992,10 @@ function cycleStatusText(r, n) {
   const d = r.avg.withPlan - r.avg.noPlan;
   if (n === 1) return `Cycle 1: ${signed(d)} well-being vs no plan`;
   const vs = `vs keeping plan ${n - 1}`;
-  if (!r.added?.length && !r.removed?.length) return `Cycle ${n}: no fixable complaints left, so plan ${n} = plan ${n - 1}`;
-  const what = r.added?.length ? `+ ${r.added.map((a) => a.label).join(", ")}` : `− ${r.removed.map((a) => a.label).join(", ")}`;
+  const added = changeLabels(r.added);
+  const removed = changeLabels(r.removed);
+  if (!added.length && !removed.length) return `Cycle ${n}: no fixable complaints left, so plan ${n} = plan ${n - 1}`;
+  const what = added.length ? `+ ${added.join(", ")}` : `− ${removed.join(", ")}`;
   if (Math.abs(d) < 0.05) return `Cycle ${n}: ${what}, but no measurable effect within a week`;
   return `Cycle ${n}: ${what} → ${signed(d)} well-being ${vs}`;
 }
@@ -1023,8 +1027,17 @@ function startCycleWorker() {
 
 function runCycle() {
   if (cycleBusy) return;
-  const pkgId = cyclePackageId();
-  const pkg = PLAN_PACKAGES[pkgId];
+  const requestedId = cyclePackageId();
+  const pkg = PLAN_PACKAGES[requestedId]
+    || PLAN_PACKAGES.balanced
+    || Object.values(PLAN_PACKAGES).find((p) => p?.id && p.id !== "none")
+    || PLAN_PACKAGES.none;
+  if (!pkg) {
+    $("cycleStatus").textContent = "Cycle failed: no plan packages available";
+    return;
+  }
+  const pkgId = pkg.id || requestedId || "none";
+  const pkgLabel = pkg.label || pkgId;
   const year = policyYear || 3; // effects ramp in over years; year 0 would show nothing
   setCycleBusy(true);
   $("cycleStatus").textContent = "Starting…";
@@ -1039,11 +1052,11 @@ function runCycle() {
   applyPolicy(pkgId, year);
 
   startCycleWorker(); // a fresh cycle 1 starts from fresh worlds
-  pendingCycleLabel = pkg.label;
+  pendingCycleLabel = pkgLabel;
   pendingCycleSource = pkg.source;
   cycleWorker.postMessage({
     type: "run",
-    payload: { origin, area, maxPeople, proposalIds: pkg.proposalIds || [], label: pkg.label, remoteId: pkg.remoteId || null, year, days: 7 },
+    payload: { origin, area, maxPeople, proposalIds: pkg.proposalIds || [], label: pkgLabel, remoteId: pkg.remoteId || null, year, days: 7 },
   });
 }
 
@@ -1086,7 +1099,8 @@ function onCycleDone(result) {
   $("cycleStatus").textContent = cycleStatusText(r, n);
   $("cycleShowBtn").hidden = false;
   const vs = n === 1 ? "vs no plan" : `vs keeping plan ${n - 1}`;
-  world.log(`Cycle ${n}${n > 1 && r.added?.length ? ` (+ ${r.added.map((a) => a.label).join(", ")})` : `: ${label}`} → ${signed(d)} avg well-being ${vs}`, "civic");
+  const addedForLog = changeLabels(r.added);
+  world.log(`Cycle ${n}${n > 1 && addedForLog.length ? ` (+ ${addedForLog.join(", ")})` : `: ${label}`} → ${signed(d)} avg well-being ${vs}`, "civic");
   setCycleBusy(false);
   renderCyclePanel();
   $("cyclePanel").scrollTop = 0;
@@ -1144,15 +1158,17 @@ function renderCyclePanel() {
     ? `<div class="cy-tabs">${cycleResults.map((_, i) => `<button data-cycle="${i}" class="${i === cycleIdx ? "on" : ""}">Cycle ${i + 1}</button>`).join("")}</div>`
     : "";
 
+  const addedLabels = changeLabels(r.added);
+  const removedLabels = changeLabels(r.removed);
   // Cycle 2+: what the journals changed, and what nothing in the catalog can fix yet.
   const changes = n > 1 ? `
     <div class="cy-who" style="margin-top:8px">
       <div class="lbl">What residents' journals changed</div>
-      ${r.added?.length ? r.added.map((a) => `<div><b style="color:var(--accent)">+ ${esc(a.label)}</b></div>`).join("") : `<div class="muted">No new simulated proposal.</div>`}
-      ${r.removed?.length ? r.removed.map((a) => `<div class="muted">− ${esc(a.label)}</div>`).join("") : ""}
-      ${r.target ? `<div class="muted">Top fixable complaint: ${esc(r.target.label)} (${r.target.count} residents)</div>` : ""}
+      ${addedLabels.length ? addedLabels.map((name) => `<div><b style="color:var(--accent)">+ ${esc(name)}</b></div>`).join("") : `<div class="muted">No new simulated proposal.</div>`}
+      ${removedLabels.length ? removedLabels.map((name) => `<div class="muted">− ${esc(name)}</div>`).join("") : ""}
+      ${r.target ? `<div class="muted">Top fixable complaint: ${esc(r.target?.label || r.target?.id || "that issue")} (${r.target.count} residents)</div>` : ""}
       <div class="muted" style="margin-top:2px">${esc(r.note)}</div>
-      ${r.unreachable?.length ? `<div class="warn">Can't fix yet: ${r.unreachable.map((u) => `${esc(u.label)} (${u.count} residents)`).join(", ")}. No proposal in the plan catalog reaches this in the simulation.</div>` : ""}
+      ${r.unreachable?.length ? `<div class="warn">Can't fix yet: ${r.unreachable.map((u) => `${esc(u?.label || u?.id || "unknown")} (${u?.count ?? 0} residents)`).join(", ")}. No proposal in the plan catalog reaches this in the simulation.</div>` : ""}
     </div>` : "";
 
   // Cycle 2+: follow up on whoever the previous plan hurt most.
@@ -1327,8 +1343,8 @@ async function playDemo() {
         break;
       }
       deltas.push(d);
-      const why = r.target ? `${r.target.count} residents wrote about ${r.target.label}` : "Residents' journals changed the plan";
-      const what = r.added.map((a) => a.label).join(" and ");
+      const why = r.target ? `${r.target.count} residents wrote about ${r.target?.label || r.target?.id || "that issue"}` : "Residents' journals changed the plan";
+      const what = changeLabels(r.added).join(" and ") || "no new simulated proposal";
       demoShow("withPlan");
       demoCaption(`Cycle ${n}`, `${why} → ${what} added. ${signed(d)} well-being compared with keeping plan ${n - 1}; ${r.improved} residents better off, ${r.worse} worse off.`);
       await demoHold();

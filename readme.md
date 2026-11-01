@@ -9,6 +9,9 @@
 
 # explore many futures from simulator
 
+# Simulator visualizes list of proposals from dear-congress.fly.dev
+# simulator helps system
+
 Imagine clicking anywhere in your Replay Analyzer
 Your /replay-analyzer/:scene_id could eventually have a timeline like:
 00:00 ━━━━━━━━━●━━━━━━━━━━━━━━━━━━━━ 00:30
