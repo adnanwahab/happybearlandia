@@ -20,7 +20,11 @@ export const ACTIONS = {
   eat_home: {
     at: "home", label: "cooking at home", minutes: () => 30, rate: { hunger: 2.6, social: 0.2 },
     ok: (p, b) => b.state.fridge > 0,
-    start: (p, b, w) => { b.state.fridge -= 1; if (b.state.fridge === 0 && w.rand() < 0.08) w.log(`${p.name}'s fridge is empty`, "fridge", b); },
+    start: (p, b, w) => {
+      b.state.fridge -= 1;
+      if (b.state.fridge <= 0) p.today.emptyFridge = true;
+      if (b.state.fridge === 0 && w.rand() < 0.08) w.log(`${p.name}'s fridge is empty`, "fridge", b);
+    },
   },
   relax_home: { at: "home", label: "watching TV", minutes: () => 60, rate: { fun: 0.55, social: 0.15 } },
   work: {
@@ -56,6 +60,7 @@ export const ACTIONS = {
     rate: { fun: 1.0, social: 0.6 }, littered: true, // fun scales down with litter
     ok: (p, b, w) => w.isDaytime(),
     start: (p, b, w) => {
+      if (b.state.litter > 50) p.today.dirtyParkVisits += 1;
       b.state.litter = Math.min(100, b.state.litter + (p.trait === "outdoorsy" ? 0.5 : 2));
       if (b.state.litter >= 60 && !b.flaggedDirty) { b.flaggedDirty = true; w.log(`${b.name} is getting trashed`, "litter", b); }
     },
@@ -65,6 +70,7 @@ export const ACTIONS = {
     ok: (p, b, w) => w.isDaytime() && b.state.litter > 45 && p.age >= 10,
     advert: () => ({ fun: 25, social: 15 }),
     start: (p, b, w) => {
+      if (b.state.litter > 50) p.today.dirtyParkVisits += 1;
       b.state.litter = Math.max(0, b.state.litter - 40);
       b.flaggedDirty = false;
       w.log(`${p.name} cleaned up ${b.name}`, "civic", b);
@@ -199,11 +205,30 @@ function roadWaypoints(graph, sx, sz, tx, tz) {
   return deduped;
 }
 
+function newToday(day) {
+  return {
+    day,
+    walkMinutes: 0,
+    soldOutAt: [],
+    emptyFridge: false,
+    dirtyParkVisits: 0,
+    displaced: false,
+    homeFlooded: false,
+  };
+}
+
 export function createWorld(town, opts = {}) {
   const r = rng(hashSeed(town.seedKey + ":sim"));
   const byKind = {};
   for (const b of town.buildings) (byKind[b.kind] ||= []).push(b);
   const roadGraph = buildRoadGraph(town.roads || []);
+  const initialDay = Math.floor((opts.startMinute ?? 6 * 60 + 30) / 1440);
+
+  for (const p of town.people) {
+    p.today = newToday(initialDay);
+    p.walkHistory = [];
+    p.walkMinutesAvg3d = 0;
+  }
 
   const w = {
     ...town,
@@ -240,7 +265,11 @@ export function createWorld(town, opts = {}) {
       else if (a.at === "job") places = p.job != null ? [w.buildings[p.job]] : [];
       else if (a.at === "school") places = p.school != null ? [w.buildings[p.school]] : [];
       else places = nearest(byKind[a.at] || [], p, 6);
-      for (const b of places) if (!a.ok || a.ok(p, b, w)) out.push([id, a, b]);
+      for (const b of places) {
+        const ok = !a.ok || a.ok(p, b, w);
+        if (!ok && id === "eat_home" && b?.state?.fridge <= 0) p.today.emptyFridge = true;
+        if (ok) out.push([id, a, b]);
+      }
     }
     return out;
   }
@@ -299,7 +328,12 @@ export function createWorld(town, opts = {}) {
   function arrive(p) {
     const a = ACTIONS[p.action];
     const b = w.buildings[p.target];
-    if (a.ok && !a.ok(p, b, w)) { p.mode = "idle"; p.path = null; p.pathI = 0; return; } // it changed while walking (sold out!)
+    if (a.ok && !a.ok(p, b, w)) {
+      if ((p.action === "eat_out" || p.action === "groceries") && b?.name) {
+        if (!p.today.soldOutAt.includes(b.name)) p.today.soldOutAt.push(b.name);
+      }
+      p.mode = "idle"; p.path = null; p.pathI = 0; return;
+    } // it changed while walking (sold out!)
     a.start?.(p, b, w);
     if (p.action === "eat_out") w.stats.meals++;
     if (p.action === "groceries") w.stats.groceries++;
@@ -324,7 +358,18 @@ export function createWorld(town, opts = {}) {
   function minute() {
     w.t += 1;
     const m = w.minuteOfDay();
-    if (m === 0) for (const p of w.people) p.workedToday = false;
+    if (m === 0) {
+      const d = w.day();
+      for (const p of w.people) {
+        p.workedToday = false;
+        const prevWalk = Number(p.today?.walkMinutes || 0);
+        p.walkHistory = [...(p.walkHistory || []), prevWalk].slice(-3);
+        p.walkMinutesAvg3d = p.walkHistory.length
+          ? p.walkHistory.reduce((a, b) => a + b, 0) / p.walkHistory.length
+          : 0;
+        p.today = newToday(d);
+      }
+    }
     // Deliveries: shops at 6:00 and 14:00 (+18:00 when small-biz support ramps in), kitchens prep every hour while open.
     const extraDelivery = w.restockBoost >= 0.18 && m === 18 * 60;
     for (const b of byKind.shop || []) if (m === 6 * 60 || m === 14 * 60 || extraDelivery) restock(b, b.state.maxStock);
@@ -366,6 +411,7 @@ export function createWorld(town, opts = {}) {
 
       if (p.mode === "idle") decide(p);
       else if (p.mode === "moving") {
+        p.today.walkMinutes += 1;
         const dx = p.tx - p.x, dz = p.tz - p.z;
         const d = Math.hypot(dx, dz), step = WALK_M_PER_MIN * w.speedMult;
         if (d <= step) {

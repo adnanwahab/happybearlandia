@@ -2,6 +2,8 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { buildTown } from "./gen.js";
 import { createWorld, clock } from "./sim.js";
+import { journalFor } from "./journal.js";
+import { computeEffectsForYear, derivePolicyProfile } from "./policy.js";
 
 /* ---------------------------------------------------------------- */
 /* Where are we?  /world?lat=29.7286&lng=-95.4746&people=500         */
@@ -57,6 +59,11 @@ try {
 
 const town = buildTown(origin, area, { maxPeople });
 const world = createWorld(town);
+const buildingsById = {};
+for (const b of town.buildings) {
+  buildingsById[b.index] = b;
+  buildingsById[b.id] = b;
+}
 $("source").textContent = town.source === "osm"
   ? `${town.buildings.length} real buildings (${town.attribution}) · ${town.people.length} synthetic residents`
   : area.error
@@ -210,17 +217,6 @@ for (const btn of $("speeds").children) btn.onclick = () => {
   for (const b of $("speeds").children) b.classList.toggle("on", b === btn);
 };
 
-const POLICY_RULES = {
-  t_bus: { label: "Bus frequency", lagYears: 0, rampYears: 2, speedAdd: 0.45 },
-  t_brt: { label: "BRT corridor", lagYears: 2, rampYears: 2, speedAdd: 0.8 },
-  h_lots: { label: "Lot reform", lagYears: 1, rampYears: 5, housingGrowthAdd: 0.35 },
-  h_vouchers: { label: "Housing vouchers", lagYears: 0, rampYears: 1, voucherMonthlyAdd: 35 },
-  s_311: { label: "311 service", lagYears: 0, rampYears: 1, parkCleanupAdd: 0.65 },
-  f_drainage: { label: "Drainage investment", lagYears: 2, rampYears: 4, floodMitigationAdd: 0.16 },
-  f_buyouts: { label: "Floodplain buyouts", lagYears: 1, rampYears: 3, floodMitigationAdd: 0.12 },
-  sb_filing: { label: "Small-biz filing", lagYears: 0, rampYears: 2, restockBoostAdd: 0.2, hiringBoostAdd: 0.1 },
-  sb_payroll: { label: "Small-biz payroll", lagYears: 1, rampYears: 2, restockBoostAdd: 0.2, hiringBoostAdd: 0.2 },
-};
 
 const BASE_POLICY_PACKAGES = {
   none: {
@@ -292,87 +288,7 @@ function packageRows(payload) {
   return payload?.packages || payload?.results || payload?.items || payload?.data?.packages || payload?.data?.results || [];
 }
 
-function effectProgress(lagYears, rampYears, year) {
-  if (year < lagYears) return 0;
-  if (!Number.isFinite(rampYears) || rampYears <= 0) return 1;
-  return Math.max(0, Math.min(1, (year - lagYears) / rampYears));
-}
 
-const NOT_SIMULATED = new Set([
-  "cc_credit", "cc_subsidy", "cc_licensing", "cc_public",
-  "h_transit", "h_residency",
-  "hc_chc", "hc_public", "mh_workforce", "mh_988",
-  "i_roofs", "i_reinsurance", "fx_taxcut", "fx_review",
-]);
-
-function resolveRuleForProposal(pid0) {
-  const pid = String(pid0 || "").toLowerCase();
-  if (POLICY_RULES[pid]) return { id: pid, rule: POLICY_RULES[pid] };
-  // Known dear-congress catalog items the world doesn't model yet. Listed so the fuzzy
-  // matching below can't misfire on them (e.g. h_transit is housing, not buses).
-  if (NOT_SIMULATED.has(pid)) return null;
-  if (pid.includes("brt")) return { id: "t_brt", rule: POLICY_RULES.t_brt };
-  if (pid.includes("bus") || pid.includes("transit")) return { id: "t_bus", rule: POLICY_RULES.t_bus };
-  if (pid.includes("lot") || pid.includes("zoning") || pid.includes("housing")) return { id: "h_lots", rule: POLICY_RULES.h_lots };
-  if (pid.includes("voucher")) return { id: "h_vouchers", rule: POLICY_RULES.h_vouchers };
-  if (pid.includes("311") || pid.includes("clean")) return { id: "s_311", rule: POLICY_RULES.s_311 };
-  if (pid.includes("drain") || pid.includes("flood")) return { id: "f_drainage", rule: POLICY_RULES.f_drainage };
-  if (pid.includes("buyout")) return { id: "f_buyouts", rule: POLICY_RULES.f_buyouts };
-  if (pid.includes("payroll")) return { id: "sb_payroll", rule: POLICY_RULES.sb_payroll };
-  if (pid.includes("filing") || pid.includes("permit") || pid.includes("small") || pid.startsWith("sb_")) return { id: "sb_filing", rule: POLICY_RULES.sb_filing };
-  return null;
-}
-
-function computeEffectsForYear(proposalIds, year) {
-  const effects = {
-    speedMult: 1,
-    floodMitigation: 0,
-    housingGrowth: 0,
-    voucherMonthly: 0,
-    parkCleanupBoost: 0,
-    restockBoost: 0,
-    hiringBoost: 0,
-  };
-  const unsupported = [];
-
-  for (const pid of proposalIds) {
-    const mapped = resolveRuleForProposal(pid);
-    if (!mapped) {
-      unsupported.push(pid);
-      continue;
-    }
-    const p = effectProgress(mapped.rule.lagYears, mapped.rule.rampYears, year);
-    effects.speedMult += (mapped.rule.speedAdd || 0) * p;
-    effects.floodMitigation += (mapped.rule.floodMitigationAdd || 0) * p;
-    effects.housingGrowth += (mapped.rule.housingGrowthAdd || 0) * p;
-    effects.voucherMonthly += (mapped.rule.voucherMonthlyAdd || 0) * p;
-    effects.parkCleanupBoost += (mapped.rule.parkCleanupAdd || 0) * p;
-    effects.restockBoost += (mapped.rule.restockBoostAdd || 0) * p;
-    effects.hiringBoost += (mapped.rule.hiringBoostAdd || 0) * p;
-  }
-
-  effects.speedMult = Math.min(2.6, Math.max(1, effects.speedMult));
-  effects.floodMitigation = Math.min(0.45, Math.max(0, effects.floodMitigation));
-  effects.housingGrowth = Math.min(1.8, Math.max(0, effects.housingGrowth));
-  effects.voucherMonthly = Math.min(120, Math.max(0, effects.voucherMonthly));
-  effects.parkCleanupBoost = Math.min(1.2, Math.max(0, effects.parkCleanupBoost));
-  effects.restockBoost = Math.min(1.1, Math.max(0, effects.restockBoost));
-  effects.hiringBoost = Math.min(0.8, Math.max(0, effects.hiringBoost));
-
-  return { effects, unsupported: Array.from(new Set(unsupported)) };
-}
-
-function derivePolicyProfile(name, id, proposalIds, source = "dear-congress") {
-  const full = computeEffectsForYear(proposalIds, 10);
-  return {
-    id,
-    label: name,
-    source,
-    proposalIds,
-    effects: full.effects,
-    unsupported: full.unsupported,
-  };
-}
 
 function refreshPolicySelect(selected = "none") {
   const sel = $("policy");
@@ -499,6 +415,8 @@ function triggerStorm() {
   for (const p of town.people) {
     const home = town.buildings[p.home];
     if (!home?.state?.flooded) continue;
+    p.today.homeFlooded = true;
+    p.today.displaced = true;
     const safe = nearestSafeHome(p.home);
     if (!safe) continue;
     displaced++;
@@ -518,7 +436,7 @@ function triggerStorm() {
 
   world.policy.floodedNow = floodedNow;
   world.policy.displaced = displaced;
-  world.log(`Storm hit: ${floodedNow} parcels flooded, ${displaced} residents displaced`, "civic");
+  world.log(`Storm hit: ${floodedNow} parcels flooded, ${displaced} residents displaced`, "storm");
 }
 
 $("policy").onchange = (e) => {
@@ -540,10 +458,181 @@ await loadPolicyPackages();
 activePolicyId = $("policy").value || "none";
 applyPolicy(activePolicyId, policyYear);
 
+const EXP_PACKAGES = ["Balanced", "Minimal change", "Most popular"];
+let experimentWorker = null;
+
+function lineChartSvg(title, byPkg, key, colorByPkg) {
+  const w = 470, h = 120, pad = 24;
+  const ptsAll = [];
+  for (const name of EXP_PACKAGES) {
+    for (const row of (byPkg[name] || [])) {
+      ptsAll.push(Number(row?.outcomes?.[key] ?? 0));
+    }
+  }
+  const min = ptsAll.length ? Math.min(...ptsAll) : 0;
+  const max = ptsAll.length ? Math.max(...ptsAll) : 1;
+  const lo = min === max ? min - 1 : min;
+  const hi = min === max ? max + 1 : max;
+
+  const pathFor = (rows) => {
+    const series = rows || [];
+    if (!series.length) return "";
+    const n = Math.max(1, series.length - 1);
+    const parts = [];
+    for (let i = 0; i < series.length; i++) {
+      const x = pad + (i / n) * (w - pad * 2);
+      const v = Number(series[i]?.outcomes?.[key] ?? 0);
+      const y = h - pad - ((v - lo) / (hi - lo)) * (h - pad * 2);
+      parts.push(`${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`);
+    }
+    return parts.join(" ");
+  };
+
+  const xTicks = [0, 5, 10].map((x) => {
+    const xx = pad + (x / 10) * (w - pad * 2);
+    return `<text x="${xx}" y="${h - 6}" text-anchor="middle" fill="currentColor" opacity="0.65" font-size="10">${x}</text>`;
+  }).join("");
+
+  const yTop = `<text x="4" y="12" fill="currentColor" opacity="0.65" font-size="10">${hi.toFixed(1)}</text>`;
+  const yBot = `<text x="4" y="${h - pad + 12}" fill="currentColor" opacity="0.65" font-size="10">${lo.toFixed(1)}</text>`;
+
+  const lines = EXP_PACKAGES.map((name) => {
+    const d = pathFor(byPkg[name]);
+    if (!d) return "";
+    return `<path d="${d}" fill="none" stroke="${colorByPkg[name]}" stroke-width="2" />`;
+  }).join("");
+
+  return `<div class="exp-chart"><h2>${title}</h2><svg viewBox="0 0 ${w} ${h}" width="100%" height="120" aria-label="${title}">
+    <line x1="${pad}" y1="${h - pad}" x2="${w - pad}" y2="${h - pad}" stroke="currentColor" opacity="0.22" />
+    <line x1="${pad}" y1="${pad}" x2="${pad}" y2="${h - pad}" stroke="currentColor" opacity="0.22" />
+    ${xTicks}
+    ${yTop}
+    ${yBot}
+    ${lines}
+  </svg></div>`;
+}
+
+function renderExperimentResults(results) {
+  const panel = $("experimentPanel");
+  const charts = $("experimentCharts");
+  const tableWrap = $("experimentTableWrap");
+  if (!panel || !charts || !tableWrap) return;
+
+  const colors = {
+    "Balanced": "#2f6fd6",
+    "Minimal change": "#2aa162",
+    "Most popular": "#d27b2d",
+  };
+
+  const byPkg = {};
+  for (const name of EXP_PACKAGES) byPkg[name] = results?.[name]?.history || [];
+
+  charts.innerHTML = [
+    lineChartSvg("Flooded parcels", byPkg, "floodedParcels", colors),
+    lineChartSvg("Displaced residents", byPkg, "displacedResidents", colors),
+    lineChartSvg("Commute / walk minutes", byPkg, "avgWalkMinutes", colors),
+    lineChartSvg("Mood", byPkg, "avgMood", colors),
+  ].join("");
+
+  const rows = EXP_PACKAGES.map((name) => {
+    const hist = byPkg[name] || [];
+    const y10 = hist.find((r) => r.year === 10) || hist[hist.length - 1] || { outcomes: {} };
+    const plans = results?.[name]?.plansByYear || [];
+    const p1 = (plans.find((p) => p.year === 1)?.proposalIds || []).join(", ") || "—";
+    const p5 = (plans.find((p) => p.year === 5)?.proposalIds || []).join(", ") || "—";
+    const p10 = (plans.find((p) => p.year === 10)?.proposalIds || []).join(", ") || "—";
+    return `<tr>
+      <th>${name}</th>
+      <td>${Number(y10.outcomes.floodedParcels ?? 0).toFixed(0)}</td>
+      <td>${Number(y10.outcomes.displacedResidents ?? 0).toFixed(0)}</td>
+      <td>${Number(y10.outcomes.avgWalkMinutes ?? 0).toFixed(1)}</td>
+      <td>${Number(y10.outcomes.avgMood ?? 0).toFixed(1)}</td>
+      <td>${p1}</td>
+      <td>${p5}</td>
+      <td>${p10}</td>
+    </tr>`;
+  }).join("");
+
+  tableWrap.innerHTML = `<table class="exp-table">
+    <thead><tr><th>Package</th><th>Flooded (Y10)</th><th>Displaced (Y10)</th><th>Walk min (Y10)</th><th>Mood (Y10)</th><th>Items Y1</th><th>Items Y5</th><th>Items Y10</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+
+  panel.style.display = "block";
+}
+
+function setExperimentStatus(text) {
+  const el = $("experimentStatus");
+  if (el) el.textContent = text;
+}
+
+async function readStateEntryCount() {
+  try {
+    const res = await fetch("/api/dear-congress/state", { signal: AbortSignal.timeout(6000) });
+    if (!res.ok) return null;
+    const payload = await res.json();
+    const entries = payload?.entries;
+    return Array.isArray(entries) ? entries.length : null;
+  } catch {
+    return null;
+  }
+}
+
+function runExperiment10Years() {
+  if (experimentWorker) return;
+  const btn = $("runExperimentBtn");
+  if (btn) btn.disabled = true;
+  setExperimentStatus("Starting…");
+
+  const beforeStatePromise = readStateEntryCount();
+
+  experimentWorker = new Worker(new URL("./experiment.worker.js", import.meta.url), { type: "module" });
+  experimentWorker.onmessage = async (ev) => {
+    const msg = ev?.data || {};
+    if (msg.type === "progress") {
+      const pkg = msg.packageName;
+      setExperimentStatus(`Running ${pkg}: year ${msg.year}/10 (${msg.donePackages + 1}/3 packages)`);
+      return;
+    }
+    if (msg.type === "error") {
+      setExperimentStatus(`Experiment failed: ${msg.error}`);
+      if (btn) btn.disabled = false;
+      experimentWorker?.terminate();
+      experimentWorker = null;
+      return;
+    }
+    if (msg.type === "done") {
+      renderExperimentResults(msg.results || {});
+      const before = await beforeStatePromise;
+      const after = await readStateEntryCount();
+      const stateMsg = before != null && after != null
+        ? `done · dear-congress entries ${before} → ${after}`
+        : "done";
+      setExperimentStatus(`Run 10 years: ${stateMsg}`);
+      if (btn) btn.disabled = false;
+      experimentWorker?.terminate();
+      experimentWorker = null;
+    }
+  };
+
+  experimentWorker.postMessage({
+    type: "run",
+    payload: {
+      origin,
+      area,
+      maxPeople,
+      years: 10,
+      seed: `${town.seedKey}|exp-v1`,
+    },
+  });
+}
+
+$("runExperimentBtn")?.addEventListener("click", runExperiment10Years);
+
 const tileKey = `${origin.lat.toFixed(3)},${origin.lng.toFixed(3)}`;
-const journalDayStorageKey = `hbl:world:journal-day:${tileKey}`;
-let lastJournalDay = Number(localStorage.getItem(journalDayStorageKey) ?? -1);
-if (!Number.isFinite(lastJournalDay)) lastJournalDay = -1;
+const JOURNAL_COOLDOWN_MS = 5 * 60 * 1000;
+const journalPostedAtKey = `hbl:world:journal-posted-at:${tileKey}`;
+let lastJournalDay = -1;
 let journalInFlight = false;
 const journalDiag = { day: lastJournalDay, attempted: 0, posted: 0, status: "idle", lastError: null };
 
@@ -573,15 +662,8 @@ function worstNeedLabel(p) {
 }
 
 function recentFrustration() {
-  const e = (world.events || []).find((x) => ["soldout", "litter", "fridge", "civic"].includes(x.kind));
+  const e = (world.events || []).find((x) => ["soldout", "litter", "fridge", "storm"].includes(x.kind));
   return e?.text || null;
-}
-
-function makeJournalText(p, frustration) {
-  const low = worstNeedLabel(p);
-  const weather = world.policy?.floodedNow ? ` After the storm, ${world.policy.floodedNow} parcels flooded.` : "";
-  const local = frustration ? ` Today I noticed: ${frustration}.` : "";
-  return `${p.name} from tile ${tileKey}: I'm worried about ${low}.${local}${weather} I want policies that improve daily life in this neighborhood.`;
 }
 
 async function publishSyntheticJournalsForDay(day) {
@@ -592,11 +674,24 @@ async function publishSyntheticJournalsForDay(day) {
   renderJournalDiagnostics();
 
   try {
-    const byMood = [...town.people]
-      .map((p, i) => ({ p, i, mood: residentMood(p) }))
-      .sort((a, b) => a.mood - b.mood);
-    const unhappy = byMood.filter((x) => x.mood < 50).slice(0, 3);
-    const picked = unhappy.length ? unhappy : byMood.slice(0, 2);
+    const moods = town.people.map((p) => Number(p.walkMinutesAvg3d || 0)).sort((a, b) => a - b);
+    const q80 = moods.length ? moods[Math.floor((moods.length - 1) * 0.8)] : 0;
+
+    const candidates = [];
+    for (let i = 0; i < town.people.length; i++) {
+      const p = town.people[i];
+      const highWalk = Number(p.walkMinutesAvg3d || 0) > 60 || (q80 > 0 && Number(p.walkMinutesAvg3d || 0) >= q80);
+      const probe = { ...p, today: { ...(p.today || {}), highWalk } };
+      const text = journalFor(probe, {
+        tileKey,
+        buildingsById,
+        policyLabel: world.policy?.label || "No package",
+        year: policyYear,
+      });
+      if (text) candidates.push({ p: probe, i, mood: residentMood(p), text });
+    }
+
+    const picked = candidates.sort((a, b) => a.mood - b.mood).slice(0, 3);
 
     if (!picked.length) {
       journalDiag.attempted = 0;
@@ -604,19 +699,31 @@ async function publishSyntheticJournalsForDay(day) {
       journalDiag.status = "no candidates";
       journalDiag.lastError = null;
       lastJournalDay = day;
-      localStorage.setItem(journalDayStorageKey, String(day));
       renderJournalDiagnostics();
       return;
     }
 
-    const frustration = recentFrustration();
+    let postedAt = 0;
+    try {
+      postedAt = Number(localStorage.getItem(journalPostedAtKey) || 0);
+      if (!Number.isFinite(postedAt)) postedAt = 0;
+    } catch {
+      postedAt = 0;
+    }
+
+    if (Date.now() - postedAt < JOURNAL_COOLDOWN_MS) {
+      journalDiag.status = "skipped: this tile posted recently";
+      lastJournalDay = day;
+      renderJournalDiagnostics();
+      return;
+    }
+
     journalDiag.attempted = picked.length;
     journalDiag.posted = 0;
     journalDiag.lastError = null;
 
     let ok = 0;
-    for (const { p, i, mood } of picked) {
-      const text = makeJournalText(p, frustration);
+    for (const { p, i, mood, text } of picked) {
       const payload = {
         kind: "journal",
         synthetic: true,
@@ -635,6 +742,9 @@ async function publishSyntheticJournalsForDay(day) {
           policyYear,
           mood: Number(mood.toFixed(1)),
           needs: p.needs,
+          today: p.today,
+          walkMinutesAvg3d: Number(p.walkMinutesAvg3d || 0),
+          recentFrustration: recentFrustration(),
         },
       };
 
@@ -658,7 +768,9 @@ async function publishSyntheticJournalsForDay(day) {
     }
 
     lastJournalDay = day;
-    localStorage.setItem(journalDayStorageKey, String(day));
+    if (ok > 0) {
+      try { localStorage.setItem(journalPostedAtKey, String(Date.now())); } catch {}
+    }
     journalDiag.status = ok > 0 ? "published" : "upstream unavailable";
     if (ok > 0) journalDiag.lastError = null;
     world.log(`Published ${ok}/${picked.length} synthetic journals for day ${day}`, "civic");

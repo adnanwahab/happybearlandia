@@ -13,6 +13,7 @@
   #top { top: 12px; left: 12px; width: 300px; max-width: calc(100vw - 48px); }
   #feed { bottom: 12px; left: 12px; width: 300px; max-width: calc(100vw - 48px); max-height: 32vh; overflow: auto; }
   #inspect { top: 12px; right: 12px; width: 260px; display: none; }
+  #experimentPanel { right: 12px; bottom: 12px; width: min(520px, calc(100vw - 48px)); max-height: 40vh; overflow: auto; }
   h1 { font-size: 15px; font-weight: 600; margin: 0 0 8px; }
   .row { display: flex; gap: 6px; align-items: center; margin: 6px 0; flex-wrap: wrap; }
   input[type=text] { flex: 1; min-width: 0; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: inherit; font: inherit; }
@@ -35,7 +36,13 @@
   #netdiagDetails { margin-top: 6px; }
   #netdiagDetails summary { cursor: pointer; }
   #netdiagErrors { margin-top: 6px; white-space: pre-wrap; line-height: 1.35; }
-  @media (max-width: 640px) { #inspect { top: auto; bottom: 12px; right: 12px; left: 12px; width: auto; } #feed { display: none; } }
+  .exp-grid { display: grid; gap: 10px; margin-top: 8px; }
+  .exp-chart { border: 1px solid var(--line); border-radius: 8px; padding: 6px; }
+  .exp-chart h2 { margin: 0 0 6px; font-size: 12px; font-weight: 600; color: var(--muted); }
+  .exp-footnote { font-size: 11px; color: var(--muted); margin-top: 8px; }
+  .exp-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .exp-table td, .exp-table th { border-top: 1px solid var(--line); padding: 4px 6px; text-align: left; vertical-align: top; }
+  @media (max-width: 640px) { #inspect { top: auto; bottom: 12px; right: 12px; left: 12px; width: auto; } #feed { display: none; } #experimentPanel { left: 12px; right: 12px; width: auto; } }
 </style>
 <script type="importmap">
 { "imports": {
@@ -91,6 +98,10 @@
     <input id="planYear" type="range" min="0" max="10" step="1" value="0" style="flex:1" />
     <span id="planYearN" class="muted" style="min-width:52px;text-align:right">Year 0</span>
   </div>
+  <div class="row" style="margin-top:2px">
+    <button id="runExperimentBtn" type="button">Run 10 years</button>
+    <span class="muted" id="experimentStatus">Idle</span>
+  </div>
   <div class="muted" id="policyNote"></div>
   <div class="legend">
     <span><i style="background:#d9cbb4"></i>home</span><span><i style="background:#8fa6c4"></i>work</span>
@@ -109,6 +120,12 @@
 
 <div class="panel" id="feed" aria-live="polite"></div>
 <div class="panel" id="inspect"></div>
+<div class="panel" id="experimentPanel" style="display:none">
+  <h1></h1>10-year experiment</h1>
+  <div class="exp-grid" id="experimentCharts"></div>
+  <div id="experimentTableWrap"></div>
+  <div class="exp-footnote">Simulated outcomes with synthetic residents — illustrative, not a forecast.</div>
+</div>
 
 <script type="module" src="/world/render.js"></script>
 </body>
