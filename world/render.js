@@ -1,5 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import WebGPU from "three/addons/capabilities/WebGPU.js";
+import WebGPURenderer from "three/addons/renderers/webgpu/WebGPURenderer.js";
 import { buildTown, projector } from "./gen.js";
 import { createWorld, clock } from "./sim.js";
 import { journalFor, WALK_COMPLAINT_MINUTES } from "./journal.js";
@@ -175,11 +177,31 @@ loadMeasuredOutcomes();
 /* ---------------------------------------------------------------- */
 /* Scene                                                             */
 /* ---------------------------------------------------------------- */
-const renderer = new THREE.WebGLRenderer({ antialias: !embedMode });
-renderer.setPixelRatio(embedMode ? 1 : Math.min(devicePixelRatio, 2));
-renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = !embedMode;
+const preferWebGPU = params.get("renderer") !== "webgl";
+
+async function createRenderer() {
+  if (preferWebGPU && WebGPU.isAvailable()) {
+    try {
+      const r = new WebGPURenderer({ antialias: !embedMode });
+      await r.init();
+      r.setPixelRatio(embedMode ? 1 : Math.min(devicePixelRatio, 2));
+      r.setSize(innerWidth, innerHeight);
+      if (r.shadowMap) r.shadowMap.enabled = !embedMode;
+      return { renderer: r, mode: "webgpu" };
+    } catch (err) {
+      console.warn("[world] WebGPU renderer init failed; falling back to WebGL", err);
+    }
+  }
+  const r = new THREE.WebGLRenderer({ antialias: !embedMode });
+  r.setPixelRatio(embedMode ? 1 : Math.min(devicePixelRatio, 2));
+  r.setSize(innerWidth, innerHeight);
+  r.shadowMap.enabled = !embedMode;
+  return { renderer: r, mode: "webgl" };
+}
+
+const { renderer, mode: rendererMode } = await createRenderer();
 $("view").appendChild(renderer.domElement);
+$("source").textContent += ` · renderer ${rendererMode.toUpperCase()}`;
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 1, 5000);

@@ -63,7 +63,7 @@
     </label>
     <label>Live at once
       <select id="live">
-        <option>4</option><option selected>6</option><option>9</option><option>12</option>
+        <option>4</option><option></option>6</option><option>9</option><option>12</option><option selected>100</option>
       </select>
     </label>
     <a class="btn" id="back">← Results</a>
@@ -84,9 +84,9 @@ const runs = Math.max(1, Math.min(1000, Math.floor(Number(params.get("runs")) ||
 const years = Math.max(1, Math.min(10, Math.floor(Number(params.get("years")) || 10)));
 const people = Math.max(20, Math.min(300, Math.floor(Number(params.get("people")) || 60)));
 const baseSeed = params.get("seed");
-// Each live world is a full 3D scene; browsers allow ~16 WebGL contexts per page, and
-// laptops struggle well before that. Off-screen worlds are unloaded to stay under the cap.
-let maxLive = Number(params.get("live")) || 12;
+// Each live world is a full 3D scene. We still unload off-screen worlds, but this
+// local workflow defaults to many live tiles at once for faster broad inspection.
+let maxLive = Number(params.get("live")) || 100;
 $("live").value = String(maxLive);
 
 $("back").href = `/world/realities.html?${new URLSearchParams({ simulation: snapshotId || "", runs: String(runs), years: String(years), seed: baseSeed || "", people: String(people) })}`;
