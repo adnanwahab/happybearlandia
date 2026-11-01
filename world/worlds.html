@@ -143,6 +143,7 @@ for (let i = 0; i < runs; i++) {
     <div class="tile-head">
       <b>#${i}</b>
       <span class="grow">${v ? `<span class="pill ${v.verdict}">${v.verdict} · ${v.score > 0 ? "+" : ""}${(v.score * 100).toFixed(1)}%</span>` : ""}</span>
+      <a href="/world/reality.html?${esc(new URLSearchParams({ simulation: snapshotId, reality: String(i), seed: baseSeed, year: String(years), people: String(people), runs: String(runs) }).toString())}" target="_blank" rel="noopener">Why?</a>
       <a href="${esc(worldUrl(i))}" target="_blank" rel="noopener">Open ↗</a>
     </div>
     <div class="screen"><div class="idle"><span>Not running</span><button type="button">Run here</button></div></div>`;

@@ -637,6 +637,9 @@ if (realityRunSeed) {
 }
 applyPolicy(activePolicyId, policyYear);
 
+// ?person=<id> (from "why this reality"): select that resident and follow them.
+if (params.get("person") != null) followResident(Number(params.get("person")));
+
 const EXP_PACKAGES = ["Balanced", "Minimal change", "Most popular"];
 let experimentWorker = null;
 let lastExperimentSeed = null;

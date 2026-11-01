@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Why This Reality</title>
+<style>
+  :root { --bg: #f4f1ea; --panel: #fff; --ink: #1d1d1b; --muted: #6b6a64; --line: rgba(0,0,0,.12); --accent: #2f6fd6; --good: #2e8b57; --bad: #c4492a; --mixed: #b9b6ad; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #15161a; --panel: #1d1e23; --ink: #ecebe6; --muted: #9a9993; --line: rgba(255,255,255,.14); --accent: #79a8ff; --good: #5cc28a; --bad: #ef7b5c; --mixed: #6c6b66; } }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 system-ui, -apple-system, Segoe UI, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
+  a { color: var(--accent); }
+  .kicker { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  h1 { font-size: 26px; line-height: 1.2; margin: 4px 0 6px; }
+  h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 10px; }
+  h3 { font-size: 15px; margin: 0; }
+  .muted { color: var(--muted); font-size: 12px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-top: 14px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .btn { font: inherit; font-size: 13px; color: var(--accent); border: 1px solid var(--accent); border-radius: 8px; padding: 5px 10px; text-decoration: none; display: inline-block; background: transparent; cursor: pointer; }
+  .progress { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; margin: 10px 0 4px; }
+  .progress > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+  .good { color: var(--good); } .bad { color: var(--bad); }
+
+  .outcome { padding: 12px 0; border-top: 1px solid var(--line); }
+  .outcome:first-of-type { border-top: 0; padding-top: 0; }
+  .outcome-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+  .outcome-head .big { font-size: 20px; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .chain { margin-top: 8px; display: grid; gap: 4px; }
+  .cause { display: grid; grid-template-columns: minmax(0, 1fr) 160px 70px; gap: 10px; align-items: center; font-size: 13px; }
+  .cause .lbl small { display: block; color: var(--muted); font-size: 11px; }
+  .track { position: relative; height: 10px; background: color-mix(in srgb, var(--line) 50%, transparent); border-radius: 5px; }
+  .track::after { content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--muted); }
+  .track i { position: absolute; top: 0; bottom: 0; border-radius: 5px; }
+  .cause .val { text-align: right; font-variant-numeric: tabular-nums; }
+
+  .people { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 10px; }
+  .person { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; gap: 6px; }
+  .person.better { border-color: color-mix(in srgb, var(--good) 45%, var(--line)); }
+  .person.worse { border-color: color-mix(in srgb, var(--bad) 45%, var(--line)); }
+  .person-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+  .person dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: 12.5px; }
+  .person dt { color: var(--muted); }
+  .person dd { margin: 0; font-variant-numeric: tabular-nums; text-align: right; }
+  .why { font-size: 12px; color: var(--muted); }
+  .tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+  .tabs button { font: inherit; font-size: 13px; border: 1px solid var(--line); border-radius: 999px; padding: 3px 12px; background: transparent; color: inherit; cursor: pointer; }
+  .tabs button.on { border-color: var(--accent); color: var(--accent); }
+  .levers { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .lever { font-size: 12px; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); }
+  .meta { font-size: 12px; color: var(--muted); margin-top: 18px; line-height: 1.7; }
+  @media (max-width: 640px) { .cause { grid-template-columns: minmax(0, 1fr) 70px; } .cause .track { display: none; } h1 { font-size: 22px; } }
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">HappyBearLandia · why this reality</div>
+  <h1 id="title">Loading…</h1>
+  <div class="muted" id="subtitle"></div>
+  <div class="row" style="margin-top:10px">
+    <a class="btn" id="watch">Watch it in 3D</a>
+    <a class="btn" id="back">← All realities</a>
+  </div>
+  <div class="progress" id="progress"><i></i></div>
+  <div class="muted" id="status">Simulating this reality with the plan, without it, and without each proposal…</div>
+
+  <section class="card" id="causesCard" hidden>
+    <h2>What changed, and what caused it</h2>
+    <p class="muted" style="margin-top:-4px">Each bar is what that proposal adds in this reality: the plan is re-run without it, same events, and the difference is its effect. "Together" is what only shows up when proposals act at once.</p>
+    <div id="outcomes"></div>
+  </section>
+
+  <section class="card" id="peopleCard" hidden>
+    <h2>The same people, with and without the plan</h2>
+    <div class="tabs"><button id="tabBetter" class="on">Better off</button><button id="tabWorse">Worse off</button></div>
+    <div class="muted" id="peopleNote" style="margin-bottom:10px"></div>
+    <div class="people" id="people"></div>
+  </section>
+
+  <section class="card" id="leversCard" hidden>
+    <h2>Plan in effect in year <span id="leverYear"></span></h2>
+    <div class="levers" id="levers"></div>
+    <div class="muted" id="notModeled" style="margin-top:10px"></div>
+  </section>
+
+  <div class="meta" id="meta"></div>
+</main>
+
+<script type="module">
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const params = new URLSearchParams(location.search);
+const fmt = (x, d = 1) => !Number.isFinite(x) ? "–" : Math.abs(x) >= 100 ? Math.round(x).toLocaleString() : x.toFixed(d);
+const signed = (x, d = 1) => (x > 0.0005 ? "+" : x < -0.0005 ? "−" : "±") + fmt(Math.abs(x), d);
+const toneOf = (better, d) => Math.abs(d) < 0.05 ? "" : ((better === "lower" ? d < 0 : d > 0) ? "good" : "bad");
+
+const snapshotId = params.get("simulation");
+const index = Math.max(0, Math.floor(Number(params.get("reality")) || 0));
+const baseSeed = params.get("seed");
+const year = Math.max(1, Math.min(10, Math.floor(Number(params.get("year")) || 10)));
+const people = Math.max(20, Math.min(300, Math.floor(Number(params.get("people")) || 60)));
+const runs = params.get("runs") || "100";
+
+function worldUrl(personId = null) {
+  const q = new URLSearchParams({ lat: String(origin.lat), lng: String(origin.lng), people: String(people), simulation: snapshotId, reality: String(index), seed: baseSeed, year: String(year) });
+  if (personId != null) q.set("person", String(personId));
+  return `/world?${q}`;
+}
+
+if (!snapshotId || !baseSeed) {
+  $("title").textContent = "Missing simulation";
+  $("status").innerHTML = "Open this from a realities page, or add <code>?simulation=…&amp;seed=…&amp;reality=…</code>.";
+  $("progress").hidden = true;
+  throw new Error("missing params");
+}
+
+let snapshot;
+try {
+  const res = await fetch(`/api/dear-congress/simulation-snapshots/${encodeURIComponent(snapshotId)}`, { signal: AbortSignal.timeout(10000) });
+  const body = await res.json();
+  snapshot = body?.snapshot;
+  if (!snapshot?.plan) throw new Error(body?.error || `HTTP ${res.status}`);
+} catch (err) {
+  $("title").textContent = "Couldn't load this simulation";
+  $("status").textContent = String(err.message || err);
+  $("progress").hidden = true;
+  throw err;
+}
+const origin = snapshot.location ? { lat: snapshot.location.lat, lng: snapshot.location.lng } : { lat: 29.7286, lng: -95.4746 };
+
+$("title").textContent = `Reality #${index}: why it turned out this way`;
+$("subtitle").textContent = `${snapshot.plan.label} plan, year ${year}. Same residents, same storm, same random events, compared with and without the plan.`;
+$("watch").href = worldUrl();
+$("back").href = `/world/realities.html?${new URLSearchParams({ simulation: snapshotId, runs, years: String(year), seed: baseSeed, people: String(people) })}`;
+
+let area = { source: "none" };
+try {
+  const res = await fetch(`/api/area?lat=${origin.lat}&lng=${origin.lng}`, { signal: AbortSignal.timeout(12000) });
+  if (res.ok) area = await res.json();
+} catch { /* procedural town, same as the realities page */ }
+
+/* ------------------------------------------------------------------ */
+function renderCauses(r) {
+  $("outcomes").innerHTML = Object.entries(r.outcomes).map(([k, o]) => {
+    const c = r.causes[k];
+    const rows = [...c.parts.map((p) => ({ label: p.label, sub: p.levers.join(", "), v: p.effect })),
+      ...(Math.abs(c.together) > 0.005 ? [{ label: "Together", sub: "only when proposals act at once", v: c.together }] : [])];
+    const max = Math.max(1e-9, ...rows.map((x) => Math.abs(x.v)), Math.abs(o.delta));
+    const bar = (v) => {
+      const w = (Math.abs(v) / max) * 50;
+      const t = toneOf(o.better, v);
+      const color = t === "good" ? "var(--good)" : t === "bad" ? "var(--bad)" : "var(--mixed)";
+      return `<span class="track"><i style="${v >= 0 ? `left:50%` : `left:${50 - w}%`};width:${w}%;background:${color}"></i></span>`;
+    };
+    const chain = rows.length
+      ? rows.map((x) => `<div class="cause"><span class="lbl">${esc(x.label)}${x.sub ? `<small>${esc(x.sub)}</small>` : ""}</span>${bar(x.v)}<span class="val ${toneOf(o.better, x.v)}">${signed(x.v)}</span></div>`).join("")
+      : `<div class="muted">No modeled proposal changes this in this reality.</div>`;
+    return `<div class="outcome">
+      <div class="outcome-head"><h3>${esc(o.label)} <span class="muted">${esc(o.unit)}, ${o.better} is better</span></h3>
+        <span><span class="big ${toneOf(o.better, o.delta)}">${signed(o.delta)}</span> <span class="muted">${fmt(o.baseline)} → ${fmt(o.plan)}</span></span></div>
+      <div class="chain">${chain}</div>
+    </div>`;
+  }).join("");
+  $("causesCard").hidden = false;
+}
+
+function personWhy(p, r) {
+  const bits = [];
+  const ch = p.changes;
+  if (ch.displaced?.good > 0) bits.push("flood protection kept their home dry, so the storm didn't displace them");
+  if (ch.displaced?.good < 0) bits.push("the storm displaced them in this version of the week");
+  if (ch.walkMinutesPerDay.delta < -3 && r.levers.speedMult > 1) bits.push(`trips are ${r.levers.speedMult.toFixed(2)}× faster with the transit changes`);
+  if (ch.walkMinutesPerDay.delta > 3) bits.push("their days played out differently and they walked further");
+  if (ch.emptyFridgeDays.delta < 0 && r.levers.groceryDelivery > 0) bits.push("grocery delivery refilled their fridge");
+  if (ch.money.delta > 5 && (r.levers.voucherMonthly > 0 || r.levers.hiringBoost > 0)) bits.push("rent help or higher small-business pay left them more money");
+  if (!bits.length) bits.push("small knock-on changes: the same choices landed at different times");
+  return bits.join("; ");
+}
+
+function renderPeople(r, which) {
+  const list = r.people[which];
+  const f = r.people.fields;
+  $("tabBetter").classList.toggle("on", which === "better");
+  $("tabWorse").classList.toggle("on", which === "worse");
+  const c = r.people.counts;
+  $("peopleNote").textContent = `${c.better} residents ended the week better off, ${c.worse} worse, ${c.same} about the same. Showing the ${which === "better" ? "most helped" : "most hurt"}.`;
+  $("people").innerHTML = list.length ? list.map((p) => {
+    const rows = Object.entries(p.changes)
+      .filter(([k, ch]) => k !== "displaced" && Math.abs(ch.delta) >= (k === "mood" ? 0.2 : 0.5))
+      .map(([k, ch]) => `<dt>${esc(f[k].label)}</dt><dd>${fmt(ch.before)} → ${fmt(ch.after)} <span class="${ch.good > 0 ? "good" : ch.good < 0 ? "bad" : ""}">(${signed(ch.delta)})</span></dd>`).join("");
+    const disp = p.changes.displaced ? `<dt>Storm</dt><dd class="${p.changes.displaced.good > 0 ? "good" : "bad"}">${p.changes.displaced.before ? "displaced" : "stayed home"} → ${p.changes.displaced.after ? "displaced" : "stayed home"}</dd>` : "";
+    const who = [p.age < 18 ? `${p.age}, student` : `${p.age}`, p.worker ? "works" : p.age >= 18 ? "not working" : null, p.trait].filter(Boolean).join(" · ");
+    return `<div class="person ${which}">
+      <div class="person-head"><b>${esc(p.name)}</b><span class="muted">${esc(who)}</span></div>
+      <dl>${disp}${rows || `<dt>Week</dt><dd>small changes only</dd>`}</dl>
+      <div class="why">Why: ${esc(personWhy(p, r))}.</div>
+      <a href="${esc(worldUrl(p.id))}" target="_blank" rel="noopener">Follow ${esc(p.name.split(" ")[0])} in 3D ↗</a>
+    </div>`;
+  }).join("") : `<div class="muted">Nobody ended the week ${which === "better" ? "better" : "worse"} off in this reality.</div>`;
+  $("peopleCard").hidden = false;
+}
+
+function renderLevers(r) {
+  const L = r.levers;
+  const items = [
+    L.speedMult > 1 && `Trips ${L.speedMult.toFixed(2)}× faster`,
+    L.floodMitigation > 0 && `${Math.round(L.floodMitigation * 100)}% fewer homes flooded`,
+    L.housingGrowth > 0 && `Housing growth +${Math.round(L.housingGrowth * 100)}%`,
+    L.voucherMonthly > 0 && `$${Math.round(L.voucherMonthly)}/mo rent help`,
+    L.parkCleanupBoost > 0 && `Park cleanup +${Math.round(L.parkCleanupBoost * 100)}%`,
+    L.restockBoost > 0 && `Restocking +${Math.round(L.restockBoost * 100)}%`,
+    L.hiringBoost > 0 && `Small-business pay +${Math.round(L.hiringBoost * 50)}%`,
+    L.groceryDelivery > 0 && `Grocery delivery ${Math.round(L.groceryDelivery * 100)}%`,
+  ].filter(Boolean);
+  $("leverYear").textContent = String(year);
+  $("levers").innerHTML = items.length ? items.map((x) => `<span class="lever">${esc(x)}</span>`).join("") : `<span class="muted">Nothing modeled is in effect yet.</span>`;
+  $("notModeled").textContent = r.notModeled.length
+    ? `Not modeled yet, so not part of this explanation: ${r.notModeled.map((x) => x.label).join("; ")}.`
+    : "";
+  $("leversCard").hidden = false;
+}
+
+const worker = new Worker(new URL("./explain.worker.js", import.meta.url), { type: "module" });
+worker.onmessage = (ev) => {
+  const m = ev.data || {};
+  if (m.type === "progress") {
+    $("progress").firstElementChild.style.width = `${(100 * m.step) / m.total}%`;
+    $("status").textContent = `Simulating… ${m.step} of ${m.total} versions of this week`;
+  }
+  if (m.type === "error") { $("status").innerHTML = `<span class="bad">${esc(m.error)}</span>`; $("progress").hidden = true; }
+  if (m.type === "done") {
+    const r = m.result;
+    $("progress").hidden = true;
+    $("status").textContent = `Storm strength ${fmt(r.stormSeverity, 2)} this year · ${r.population} residents compared one by one.`;
+    renderCauses(r);
+    renderPeople(r, "better");
+    renderLevers(r);
+    $("tabBetter").onclick = () => renderPeople(r, "better");
+    $("tabWorse").onclick = () => renderPeople(r, "worse");
+    $("meta").innerHTML = `Snapshot <code>${esc(snapshotId)}</code> · reality seed <code>${esc(r.seed)}</code> · year ${year} · one simulated week per version.<br>Simulated outcomes with synthetic residents — illustrative counterfactuals, not a forecast.`;
+    worker.terminate();
+  }
+};
+worker.postMessage({ type: "run", input: { snapshot, origin, area, maxPeople: people, index, baseSeed, year } });
+</script>
+</body>
+</html>

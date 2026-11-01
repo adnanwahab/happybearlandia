@@ -416,7 +416,7 @@ function classifyJournalType(text) {
   return "other";
 }
 
-export async function simulateYear({ town, proposalIds, year, packageLabel, seed, adoptedYearByProposal = null, yearStartMs, stormSeverityValue = null, runSeed = null }) {
+export async function simulateYear({ town, proposalIds, year, packageLabel, seed, adoptedYearByProposal = null, yearStartMs, stormSeverityValue = null, runSeed = null, collectPeople = false }) {
   const simTown = cloneTown(town);
   const world = createWorld(simTown, { startMinute: 0, runSeed });
   const buildingsById = {};
@@ -438,6 +438,8 @@ export async function simulateYear({ town, proposalIds, year, packageLabel, seed
 
   const days = 5;
   const stormDay = 2;
+  // Optional per-resident week summary (for "why did this happen?"). Off by default.
+  const perPerson = collectPeople ? world.people.map(() => ({ walk: 0, moodSum: 0, days: 0, displaced: false, emptyFridgeDays: 0, soldOut: 0, dirtyPark: 0 })) : null;
   let displacedResidents = 0;
   const litterSamples = [];
   const weeklyJournalCandidates = [];
@@ -475,6 +477,20 @@ export async function simulateYear({ town, proposalIds, year, packageLabel, seed
 
     world.step(6 * 60); // midnight reset -> yesterday becomes available
 
+    if (perPerson) {
+      world.people.forEach((p, i) => {
+        const y = p.yesterday || {};
+        const acc = perPerson[i];
+        acc.walk += Number(y.walkMinutes || 0);
+        acc.moodSum += (p.needs.hunger + p.needs.energy + p.needs.fun + p.needs.social) / 4;
+        acc.days += 1;
+        acc.displaced = acc.displaced || !!y.displaced;
+        if (y.emptyFridge) acc.emptyFridgeDays += 1;
+        acc.soldOut += Array.isArray(y.soldOutAt) ? y.soldOutAt.length : 0;
+        acc.dirtyPark += Number(y.dirtyParkVisits || 0);
+      });
+    }
+
     const dayCandidates = collectDailyJournalCandidates(world, packageLabel, year, simTown.seedKey || "tile", buildingsById, d, yearStartMs);
     weeklyJournalCandidates.push(...dayCandidates);
   }
@@ -494,8 +510,25 @@ export async function simulateYear({ town, proposalIds, year, packageLabel, seed
     if (kind === "transit") journalCounts.transit++;
   }
 
+  const people = perPerson
+    ? world.people.map((p, i) => {
+      const a = perPerson[i];
+      return {
+        id: p.id, name: p.name, age: p.age, trait: p.trait, worker: p.job != null, student: p.school != null,
+        walkMinutesPerDay: a.days ? a.walk / a.days : 0,
+        mood: a.days ? a.moodSum / a.days : 0,
+        money: Number(p.money || 0),
+        displaced: a.displaced,
+        emptyFridgeDays: a.emptyFridgeDays,
+        soldOutHits: a.soldOut,
+        dirtyParkVisits: a.dirtyPark,
+      };
+    })
+    : undefined;
+
   return {
     outcomes,
+    people,
     journals,
     journalCounts,
     population: world.people.length,

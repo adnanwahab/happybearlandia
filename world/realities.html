@@ -95,6 +95,10 @@
       <a class="btn" id="enterWorst">Enter worst</a>
       <span class="muted">or click any dot</span>
     </div>
+    <div class="row" id="explainRow" style="margin-top:10px" hidden>
+      <span class="muted">Why did it turn out that way?</span>
+      <a id="whyBest">Explain best</a> · <a id="whyMedian">Explain median</a> · <a id="whyWorst">Explain worst</a>
+    </div>
     <div class="row" style="margin-top:10px">
       <a class="btn" id="viewAll">View all as live worlds →</a>
       <span class="muted">A grid of every reality, a few running live at a time.</span>
@@ -203,6 +207,11 @@ const verdictKey = `hbl:realities:${snapshotId}:${baseSeed}:${years}:${people}`;
   $("viewAll").href = `/world/worlds.html?${q}`;
 }
 
+function whyUrl(index) {
+  const q = new URLSearchParams({ simulation: snapshotId, reality: String(index), seed: baseSeed, year: String(years), people: String(people), runs: String(runs) });
+  return `/world/reality.html?${q}`;
+}
+
 function enterUrl(index) {
   const q = new URLSearchParams({
     lat: String(origin.lat), lng: String(origin.lng), people: String(people),
@@ -284,6 +293,10 @@ function render(summary, done) {
     $("enterBest").textContent = `Enter best (#${summary.best})`;
     $("enterMedian").textContent = `Enter median (#${summary.median})`;
     $("enterWorst").textContent = `Enter worst (#${summary.worst})`;
+    $("explainRow").hidden = false;
+    $("whyBest").href = whyUrl(summary.best);
+    $("whyMedian").href = whyUrl(summary.median);
+    $("whyWorst").href = whyUrl(summary.worst);
     // Hand the verdicts to the worlds grid (same browser) so it can label and sort tiles.
     try {
       localStorage.setItem(verdictKey, JSON.stringify({ at: Date.now(), count: summary.count, realities: summary.realities }));
@@ -314,6 +327,7 @@ function run() {
   $("stop").hidden = false;
   $("progress").hidden = false;
   $("enterRow").hidden = true;
+  $("explainRow").hidden = true;
 
   const paint = (force = false) => {
     const now = performance.now();
