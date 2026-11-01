@@ -298,9 +298,19 @@ function effectProgress(lagYears, rampYears, year) {
   return Math.max(0, Math.min(1, (year - lagYears) / rampYears));
 }
 
+const NOT_SIMULATED = new Set([
+  "cc_credit", "cc_subsidy", "cc_licensing", "cc_public",
+  "h_transit", "h_residency",
+  "hc_chc", "hc_public", "mh_workforce", "mh_988",
+  "i_roofs", "i_reinsurance", "fx_taxcut", "fx_review",
+]);
+
 function resolveRuleForProposal(pid0) {
   const pid = String(pid0 || "").toLowerCase();
   if (POLICY_RULES[pid]) return { id: pid, rule: POLICY_RULES[pid] };
+  // Known dear-congress catalog items the world doesn't model yet. Listed so the fuzzy
+  // matching below can't misfire on them (e.g. h_transit is housing, not buses).
+  if (NOT_SIMULATED.has(pid)) return null;
   if (pid.includes("brt")) return { id: "t_brt", rule: POLICY_RULES.t_brt };
   if (pid.includes("bus") || pid.includes("transit")) return { id: "t_bus", rule: POLICY_RULES.t_bus };
   if (pid.includes("lot") || pid.includes("zoning") || pid.includes("housing")) return { id: "h_lots", rule: POLICY_RULES.h_lots };
@@ -412,7 +422,9 @@ async function loadPolicyPackages() {
   const explicit = params.get("plans");
   const q = new URLSearchParams({ lat: String(origin.lat), lng: String(origin.lng) }).toString();
   const attempts = [
-    { kind: "post", url: "/api/plan", body: JSON.stringify({}) },
+    // Count this world's simulated residents' journals when synthesizing (dear-congress
+    // leaves them out by default). Add ?synthetic=0 to see the plan from real journals only.
+    { kind: "post", url: "/api/plan", body: JSON.stringify({ includeSynthetic: params.get("synthetic") !== "0" }) },
     ...(explicit ? [{ kind: "get", url: explicit }] : []),
     { kind: "get", url: `/api/dear-congress/packages?${q}` },
     { kind: "get", url: `/api/dear-congress/package-results?${q}` },
