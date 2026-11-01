@@ -48,6 +48,19 @@
   .exp-footnote { font-size: 11px; color: var(--muted); margin-top: 8px; }
   .exp-table { width: 100%; border-collapse: collapse; font-size: 11px; }
   .exp-table td, .exp-table th { border-top: 1px solid var(--line); padding: 4px 6px; text-align: left; vertical-align: top; }
+  #cyclePanel { right: 12px; bottom: 12px; width: min(380px, calc(100vw - 48px)); max-height: 56vh; overflow: auto; }
+  .cy-big { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0; }
+  .cy-big div { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+  .cy-big b { display: block; font-size: 20px; font-variant-numeric: tabular-nums; }
+  .cy-big .win { border-color: var(--accent); }
+  .cy-tabs { display: flex; gap: 4px; margin: 6px 0; }
+  .cy-tabs button { flex: 1; font-size: 12px; }
+  .cy-fric { display: grid; grid-template-columns: 74px 1fr 1fr; gap: 4px 8px; font-size: 12px; align-items: center; }
+  .cy-fric .h { color: var(--muted); font-size: 11px; }
+  .cy-who { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
+  .cy-who blockquote { margin: 4px 0 6px; padding-left: 8px; border-left: 2px solid var(--line); font-size: 12px; }
+  .cy-who .lbl { font-size: 11px; color: var(--muted); }
+  .cy-scale { height: 8px; border-radius: 4px; background: linear-gradient(90deg, #d2463c, #d2be3c, #3cbe50); margin: 4px 0 2px; }
   @media (max-width: 640px) { #inspect { top: auto; bottom: 12px; right: 12px; left: 12px; width: auto; } #feed { display: none; } #experimentPanel { left: 12px; right: 12px; width: auto; } }
 </style>
 <script type="importmap">
@@ -111,8 +124,14 @@
       <option value="flood">flood</option>
       <option value="commute">commute</option>
       <option value="journals">journals</option>
+      <option value="wellbeing">well-being</option>
+      <option value="cycle" disabled>cycle result</option>
     </select>
     <span class="muted" id="overlayLegend"></span>
+  </div>
+  <div class="row" style="margin-top:2px">
+    <button id="runCycleBtn" type="button" title="Apply the selected plan for a simulated week and compare against no plan">Run cycle</button>
+    <span class="muted" id="cycleStatus">One week, plan vs no plan</span>
   </div>
   <div class="row" style="margin-top:2px">
     <button id="runExperimentBtn" type="button">Run 10 years</button>
@@ -156,6 +175,8 @@
   <div id="experimentTableWrap"></div>
   <div class="exp-footnote">Simulated outcomes with synthetic residents — illustrative, not a forecast.</div>
 </div>
+
+<div class="panel" id="cyclePanel" style="display:none"></div>
 
 <script type="module" src="/world/render.js"></script>
 </body>

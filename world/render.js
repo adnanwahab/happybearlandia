@@ -4,6 +4,7 @@ import { buildTown, projector } from "./gen.js";
 import { createWorld, clock } from "./sim.js";
 import { journalFor, WALK_COMPLAINT_MINUTES } from "./journal.js";
 import { computeEffectsForYear, derivePolicyProfile } from "./policy.js";
+import { wellbeing, wellbeingHex } from "./wellbeing.js";
 import { replayStormStrengthLabel } from "./replay-label.js";
 
 /* ---------------------------------------------------------------- */
@@ -12,6 +13,7 @@ import { replayStormStrengthLabel } from "./replay-label.js";
 const params = new URLSearchParams(location.search);
 
 function parseCoord(raw, fallback) {
+  if (raw == null || String(raw).trim() === "") return fallback; // Number(null) is 0, which would land at 0,0
   const n = Number(raw);
   if (Number.isFinite(n)) return n;
   const s = String(raw ?? "").trim();
@@ -241,6 +243,8 @@ let speed = 10; // game minutes per real second
 let selected = null; // { type: "person"|"building"|"journal", id }
 let follow = false;
 let overlayMode = "none";
+let cycleResult = null;     // last Run cycle result from cycle.worker.js
+let cycleView = "withPlan"; // which scores the "cycle" overlay shows: before | noPlan | withPlan
 let todayJournalPosts = [];
 let journalPins = [];
 const overlayEl = $("overlayMode");
@@ -498,6 +502,11 @@ function updateOverlayLegend() {
     overlayLegendEl.textContent = `home color = avg walk minutes (threshold ${WALK_COMPLAINT_MINUTES}m)`;
   } else if (overlayMode === "journals") {
     overlayLegendEl.textContent = `${todayJournalPosts.length} journal pin${todayJournalPosts.length === 1 ? "" : "s"} today`;
+  } else if (overlayMode === "wellbeing") {
+    overlayLegendEl.textContent = "residents: red = struggling → green = doing well (live)";
+  } else if (overlayMode === "cycle") {
+    const label = { before: "before the plan", noPlan: "a week later, no plan", withPlan: "a week later, with plan" }[cycleView];
+    overlayLegendEl.textContent = cycleResult ? `residents colored by well-being ${label}` : "run a cycle first";
   } else {
     overlayLegendEl.textContent = "";
   }
@@ -629,11 +638,11 @@ function lineChartSvg(title, byPkg, key, colorByPkg, opts = {}) {
     const xx = pad + (i / nTick) * (w - pad * 2);
     return `<text x="${xx}" y="${h - 6}" text-anchor="middle" fill="currentColor" opacity="0.65" font-size="10">${label}</text>`;
   }).join("");
-+
-+  const marks = (opts.markYears || []).map((i) => {
-+    const xx = pad + (i / nTick) * (w - pad * 2);
-+    return `<line x1="${xx}" y1="${pad}" x2="${xx}" y2="${h - pad}" stroke="#d2552d" opacity="0.35" stroke-dasharray="3 3" />`;
-+  }).join("");
+
+  const marks = (opts.markYears || []).map((i) => {
+    const xx = pad + (i / nTick) * (w - pad * 2);
+    return `<line x1="${xx}" y1="${pad}" x2="${xx}" y2="${h - pad}" stroke="#d2552d" opacity="0.35" stroke-dasharray="3 3" />`;
+  }).join("");
 
   const yTop = `<text x="4" y="12" fill="currentColor" opacity="0.65" font-size="10">${hi.toFixed(1)}</text>`;
   const yBot = `<text x="4" y="${h - pad + 12}" fill="currentColor" opacity="0.65" font-size="10">${lo.toFixed(1)}</text>`;
@@ -650,7 +659,7 @@ function lineChartSvg(title, byPkg, key, colorByPkg, opts = {}) {
     ${xTicks}
     ${yTop}
     ${yBot}
-+    ${marks}
+    ${marks}
     ${lines}
   </svg></div>`;
 }
@@ -828,6 +837,8 @@ function renderExperimentResults(results) {
   <div class="muted" style="margin-top:6px">Most popular ranks only by votes, so journals don't change it. Minimal change rarely adopts new programs.</div>`;
 
   panel.style.display = "block";
+  const cyclePanel = $("cyclePanel");
+  if (cyclePanel) cyclePanel.style.display = "none";
 }
 
 function setExperimentStatus(text) {
@@ -943,6 +954,144 @@ function runExperiment10Years() {
 }
 
 $("runExperimentBtn")?.addEventListener("click", runExperiment10Years);
+
+/* ---------------------------------------------------------------- */
+/* Run cycle: one week of the selected plan vs. no plan, same seed.  */
+/* ---------------------------------------------------------------- */
+let cycleWorker = null;
+let cycleWho = "best";
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmt = (x) => Number(x || 0).toFixed(1);
+const signed = (x) => `${x >= 0 ? "+" : "−"}${Math.abs(x).toFixed(1)}`;
+
+function cyclePackageId() {
+  if (activePolicyId && activePolicyId !== "none") return activePolicyId;
+  const fromCongress = Object.keys(PLAN_PACKAGES).find((id) => PLAN_PACKAGES[id].source === "dear-congress");
+  return fromCongress || "balanced";
+}
+
+function runCycle() {
+  if (cycleWorker) return;
+  const pkgId = cyclePackageId();
+  const pkg = PLAN_PACKAGES[pkgId];
+  const year = policyYear || 3; // effects ramp in over years; year 0 would show nothing
+  const btn = $("runCycleBtn");
+  const status = $("cycleStatus");
+  btn.disabled = true;
+  status.textContent = "Starting…";
+
+  // The visible world adopts the plan too, so what you watch matches what was measured.
+  $("policy").value = pkgId;
+  activePolicyId = pkgId;
+  policyYear = year;
+  if (planYearEl) planYearEl.value = String(year);
+  if (planYearNEl) planYearNEl.textContent = `Year ${year}`;
+  applyPolicy(pkgId, year);
+
+  cycleWorker = new Worker(new URL("./cycle.worker.js", import.meta.url), { type: "module" });
+  const finish = () => { cycleWorker?.terminate(); cycleWorker = null; btn.disabled = false; };
+  cycleWorker.onmessage = (ev) => {
+    const msg = ev?.data || {};
+    if (msg.type === "progress") { status.textContent = `${msg.stage}…`; return; }
+    if (msg.type === "error") { status.textContent = `Cycle failed: ${msg.error}`; finish(); return; }
+    if (msg.type === "done") {
+      cycleResult = { ...msg.result, label: pkg.label, source: pkg.source };
+      cycleView = "withPlan";
+      cycleWho = "best";
+      const opt = overlayEl?.querySelector('option[value="cycle"]');
+      if (opt) opt.disabled = false;
+      overlayMode = "cycle";
+      if (overlayEl) overlayEl.value = "cycle";
+      const d = cycleResult.avg.withPlan - cycleResult.avg.noPlan;
+      status.textContent = `${pkg.label}: ${signed(d)} well-being vs no plan`;
+      world.log(`Cycle: ${pkg.label} → ${signed(d)} avg well-being vs no plan after ${cycleResult.days} days`, "civic");
+      renderCyclePanel();
+      followResident(cycleResult.best.index);
+      finish();
+    }
+  };
+  cycleWorker.postMessage({
+    type: "run",
+    payload: { origin, area, maxPeople, proposalIds: pkg.proposalIds || [], year, days: 7 },
+  });
+}
+
+function followResident(i) {
+  if (i == null || !town.people[i]) return;
+  select({ type: "person", id: i });
+  follow = true; // select() resets follow
+  renderInspector();
+}
+
+function renderCyclePanel() {
+  const r = cycleResult;
+  const el = $("cyclePanel");
+  if (!r) { el.style.display = "none"; return; }
+  $("experimentPanel").style.display = "none";
+  el.style.display = "block";
+
+  const d = r.avg.withPlan - r.avg.noPlan;
+  const tab = (id, label) => `<button data-cyview="${id}" class="${cycleView === id ? "on" : ""}">${label}</button>`;
+  const rows = [["commute", "Commute"], ["home", "Flooded home"], ["groceries", "Groceries"], ["parks", "Dirty parks"]]
+    .filter(([k]) => r.frictions.noPlan[k] > 0.05 || r.frictions.withPlan[k] > 0.05)
+    .map(([k, label]) => {
+      const a = r.frictions.noPlan[k], b = r.frictions.withPlan[k];
+      return `<span>${label}</span><span>−${fmt(a)}</span><span${b < a - 0.05 ? ' style="color:var(--accent)"' : ""}>−${fmt(b)}</span>`;
+    }).join("");
+  const who = cycleWho === "worst" && r.worst ? r.worst : r.best;
+  const whoDelta = who.withPlan - who.noPlan;
+
+  el.innerHTML = `
+    <div class="row" style="justify-content:space-between;margin:0">
+      <h1 style="margin:0">Civic cycle · ${esc(r.label)}</h1>
+      <button id="cycleClose" aria-label="Close">✕</button>
+    </div>
+    <div class="muted">${r.days} simulated days · plan year ${r.year} · same seed, with and without the plan${r.source === "dear-congress" ? " · plan from dear-congress" : ""}</div>
+    <div class="cy-big">
+      <div><span class="muted">Before</span><b>${fmt(r.avg.before)}</b></div>
+      <div><span class="muted">No plan</span><b>${fmt(r.avg.noPlan)}</b></div>
+      <div class="${d > 0 ? "win" : ""}"><span class="muted">With plan</span><b>${fmt(r.avg.withPlan)}</b></div>
+    </div>
+    <div><b>${signed(d)}</b> average well-being from the plan · <b>${r.improved}</b> residents better off, <b>${r.worse}</b> worse off</div>
+    <div class="cy-tabs">${tab("before", "Before")}${tab("noPlan", "No plan")}${tab("withPlan", "With plan")}</div>
+    <div class="cy-scale"></div>
+    <div class="row muted" style="justify-content:space-between;margin:0;font-size:11px"><span>struggling</span><span>doing well</span></div>
+    ${rows ? `<div class="cy-fric" style="margin-top:8px"><span class="h">Points lost to</span><span class="h">No plan</span><span class="h">With plan</span>${rows}</div>` : ""}
+    ${r.unsupported?.length ? `<div class="muted" style="margin-top:6px">Not simulated: ${esc(r.unsupported.slice(0, 4).join(", "))}</div>` : ""}
+    <div class="cy-who">
+      <div class="row" style="justify-content:space-between;margin:0">
+        <b>${esc(who.name)}</b>
+        <span class="muted">${fmt(who.noPlan)} → ${fmt(who.withPlan)} (${signed(whoDelta)})</span>
+      </div>
+      <div class="lbl">${cycleWho === "worst" ? "Hurt most by the plan" : "Helped most by the plan"}</div>
+      <div class="lbl" style="margin-top:6px">Journal, day 1</div>
+      <blockquote>${esc(who.journalBefore) || '<span class="muted">No complaints.</span>'}</blockquote>
+      <div class="lbl">Journal, day ${r.days}, with the plan</div>
+      <blockquote>${esc(who.journalAfter) || '<span class="muted">No complaints.</span>'}</blockquote>
+      <div class="row">
+        <button id="cycleFollow">Follow ${esc(who.name.split(" ")[0])}</button>
+        ${r.worst ? `<button id="cycleWhoToggle">${cycleWho === "worst" ? "Who it helped" : "Who got worse?"}</button>` : ""}
+      </div>
+    </div>
+    <div class="exp-footnote">Synthetic residents. Well-being = day-averaged mood minus commute, housing, grocery and park frictions. Illustrative, not a forecast.</div>`;
+
+  el.querySelectorAll("[data-cyview]").forEach((b) => (b.onclick = () => {
+    cycleView = b.dataset.cyview;
+    overlayMode = "cycle";
+    if (overlayEl) overlayEl.value = "cycle";
+    renderCyclePanel();
+  }));
+  $("cycleClose").onclick = () => { el.style.display = "none"; };
+  $("cycleFollow").onclick = () => followResident(who.index);
+  const toggle = $("cycleWhoToggle");
+  if (toggle) toggle.onclick = () => {
+    cycleWho = cycleWho === "worst" ? "best" : "worst";
+    renderCyclePanel();
+    followResident((cycleWho === "worst" ? r.worst : r.best).index);
+  };
+}
+
+$("runCycleBtn")?.addEventListener("click", runCycle);
 
 const tileKey = `${origin.lat.toFixed(3)},${origin.lng.toFixed(3)}`;
 const JOURNAL_COOLDOWN_MS = 5 * 60 * 1000;
@@ -1281,19 +1430,25 @@ function frame(now) {
   sun.position.set(Math.cos(ang) * 400, Math.max(40, Math.sin(ang) * 500), 200);
 
   // People
+  // In the well-being and cycle overlays everyone is shown (indoors too), colored red→green.
+  const wbOverlay = overlayMode === "wellbeing" || (overlayMode === "cycle" && cycleResult);
+  const cycleScores = overlayMode === "cycle" && cycleResult ? cycleResult.scores[cycleView] : null;
   for (let i = 0; i < town.people.length; i++) {
     const p = town.people[i];
     const s = smooth[i];
     const k = 1 - Math.exp(-dt * 10);
     s.x += (p.x - s.x) * k;
     s.z += (p.z - s.z) * k;
-    const visible = p.mode === "moving" || OUTDOOR.has(p.action) || (selected?.type === "person" && selected.id === i);
-    const scale = visible ? (p.age < 13 ? 0.7 : 1) : 0;
+    const visible = wbOverlay || p.mode === "moving" || OUTDOOR.has(p.action) || (selected?.type === "person" && selected.id === i);
+    const scale = visible ? (p.age < 13 ? 0.7 : 1) * (wbOverlay ? 1.8 : 1) : 0;
     tmp.position.set(s.x, 0, s.z);
     tmp.scale.setScalar(scale);
     tmp.updateMatrix();
     people.setMatrixAt(i, tmp.matrix);
-    people.setColorAt(i, color.setHex(ACTION_COLOR[p.mode === "moving" ? "walking" : p.action || "idle"]));
+    const hex = cycleScores ? wellbeingHex(cycleScores[i] ?? 0)
+      : wbOverlay ? wellbeingHex(wellbeing(p))
+      : ACTION_COLOR[p.mode === "moving" ? "walking" : p.action || "idle"];
+    people.setColorAt(i, color.setHex(hex));
   }
   people.instanceMatrix.needsUpdate = true;
   if (people.instanceColor) people.instanceColor.needsUpdate = true;
