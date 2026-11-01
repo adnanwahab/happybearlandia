@@ -324,8 +324,10 @@ const server = serve({
       return new Response("WebSocket upgrade failed", { status: 400 });
     }
 
-    // Home
-    if (pathname === "/") return serveFile("./index.html");
+    // Home → world
+    if (pathname === "/") {
+      return Response.redirect(`/world?lat=29.7286&lng=-95.4746`, 302);
+    }
     if (pathname === "/favicon.ico") return new Response(null, { status: 204 });
 
     // Twitch plays robot (short URL kept for old links)
