@@ -48,8 +48,11 @@ $("here").onclick = () => navigator.geolocation?.getCurrentPosition((p) => go(p.
 /* ---------------------------------------------------------------- */
 /* Load map data → synthetic town → world                            */
 /* ---------------------------------------------------------------- */
+// ?demo=1 pins the town: skip OpenStreetMap so the procedural town (and the story
+// the demo tells) is identical on every machine, regardless of what Overpass returns.
+const demoMode = params.get("demo") === "1";
 let area = { source: "none" };
-try {
+if (!demoMode) try {
   const res = await fetch(`/api/area?lat=${origin.lat}&lng=${origin.lng}`, { signal: AbortSignal.timeout(12000) });
   if (!res.ok) {
     area = { source: "none", error: `area HTTP ${res.status}` };
@@ -78,7 +81,9 @@ $("source").textContent = town.source === "osm"
   ? `${town.buildings.length} real buildings (${town.attribution}) · ${town.people.length} synthetic residents · ${floodSourceTxt}`
   : area.error
     ? `Couldn't load map data (${area.error}), so this is a procedural town · ${town.people.length} synthetic residents · ${floodSourceTxt}`
-    : `No map data here, so this is a procedural town · ${town.people.length} synthetic residents · ${floodSourceTxt}`;
+    : demoMode
+      ? `Demo town (pinned procedural layout) · ${town.people.length} synthetic residents`
+      : `No map data here, so this is a procedural town · ${town.people.length} synthetic residents · ${floodSourceTxt}`;
 $("loading").remove();
 
 async function loadMeasuredOutcomes() {
@@ -999,7 +1004,13 @@ function startCycleWorker() {
     const msg = ev?.data || {};
     const status = $("cycleStatus");
     if (msg.type === "progress") { status.textContent = `${msg.stage}…`; return; }
-    if (msg.type === "error") { status.textContent = `Cycle failed: ${msg.error}`; setCycleBusy(false); return; }
+    if (msg.type === "error") {
+      status.textContent = `Cycle failed: ${msg.error}`;
+      setCycleBusy(false);
+      cycleWaiter?.reject(new Error(msg.error));
+      cycleWaiter = null;
+      return;
+    }
     if (msg.type === "done") onCycleDone(msg.result);
   };
 }
@@ -1074,6 +1085,14 @@ function onCycleDone(result) {
   renderCyclePanel();
   $("cyclePanel").scrollTop = 0;
   followResident(n > 1 && r.followUp ? r.followUp.index : r.best.index);
+  cycleWaiter?.resolve(r);
+  cycleWaiter = null;
+}
+
+// Lets the demo await a cycle: call before posting the run/next message.
+let cycleWaiter = null;
+function nextCycleResult() {
+  return new Promise((resolve, reject) => { cycleWaiter = { resolve, reject }; });
 }
 
 function followResident(i) {
@@ -1208,6 +1227,138 @@ function renderCyclePanel() {
 }
 
 $("runCycleBtn")?.addEventListener("click", runCycle);
+/* ---------------------------------------------------------------- */
+/* Demo mode: three cycles hands-free, with captions and follow-cam.  */
+/* ---------------------------------------------------------------- */
+const DEMO_URL = "/world/?lat=29.7286&lng=-95.4746&people=500&demo=1";
+const DEMO_HOLD_MS = 8000; // how long each caption stays up
+const demo = { running: false, paused: false, skip: false, stopped: false };
+
+class DemoStopped extends Error {}
+
+function demoCaption(step, text) {
+  $("demoBar").hidden = false;
+  $("demoStep").textContent = step;
+  $("demoCaption").textContent = text;
+}
+
+// Waits `ms` of unpaused time; Next ends it early; Stop aborts the demo.
+function demoHold(ms = DEMO_HOLD_MS) {
+  return new Promise((resolve, reject) => {
+    let left = ms, last = performance.now();
+    const t = setInterval(() => {
+      const now = performance.now();
+      if (!demo.paused) left -= now - last;
+      last = now;
+      if (demo.stopped) { clearInterval(t); reject(new DemoStopped()); }
+      else if (left <= 0 || demo.skip) { demo.skip = false; clearInterval(t); resolve(); }
+    }, 100);
+  });
+}
+
+function demoShow(view, who = "best") {
+  cycleView = view;
+  cycleWho = who;
+  overlayMode = "cycle";
+  if (overlayEl) overlayEl.value = "cycle";
+  renderCyclePanel();
+}
+
+async function demoCycle(start) {
+  const pending = nextCycleResult();
+  start();
+  const r = await pending;
+  if (demo.stopped) throw new DemoStopped();
+  demo.skip = false; // a Next pressed while computing shouldn't skip the result caption
+  return r;
+}
+
+async function playDemo() {
+  if (demo.running) return;
+  if (!demoMode) { location.href = `${DEMO_URL}&autoplay=1`; return; } // demo needs the pinned town
+  Object.assign(demo, { running: true, paused: false, skip: false, stopped: false });
+  $("demoBtn").disabled = true;
+  $("demoPause").textContent = "❚❚ Pause";
+  $("demoPause").hidden = $("demoSkip").hidden = false;
+  $("demoStop").textContent = "Stop";
+  const deltas = [];
+  try {
+    overlayMode = "wellbeing";
+    if (overlayEl) overlayEl.value = "wellbeing";
+    demoCaption("The town", `${town.people.length} simulated residents. Each one journals about their day. Red means struggling, green means doing well.`);
+    await demoHold(7000);
+
+    // Cycle 1: the Balanced plan vs. an identical town with no plan.
+    activePolicyId = "balanced";
+    $("policy").value = "balanced";
+    policyYear = 3;
+    demoCaption("Cycle 1", "Trying the Balanced plan for a week, next to an identical copy of the town with no plan…");
+    const r1 = await demoCycle(runCycle);
+    deltas.push(r1.avg.withPlan - r1.avg.noPlan);
+    demoShow("noPlan");
+    demoCaption("Cycle 1", `A week with no plan: average well-being ${fmt(r1.avg.noPlan)}.`);
+    await demoHold(5000);
+    demoShow("withPlan");
+    followResident(r1.best.index);
+    demoCaption("Cycle 1", `With the Balanced plan: ${fmt(r1.avg.withPlan)} (${signed(deltas[0])}). ${r1.improved} residents are better off, mostly from shorter commutes.`);
+    await demoHold();
+    if (r1.worst) {
+      demoShow("withPlan", "worst");
+      followResident(r1.worst.index);
+      demoCaption("Cycle 1", `But ${r1.worse} residents are worse off, like ${r1.worst.name}: ${fmt(r1.worst.noPlan)} without the plan, ${fmt(r1.worst.withPlan)} with it. They write about it in their journals.`);
+      await demoHold();
+    }
+
+    // Cycles 2–3: residents' journals pick the next change.
+    for (const n of [2, 3]) {
+      demoCaption(`Cycle ${n}`, `Reading this week's journals to pick the next change…`);
+      const r = await demoCycle(runNextCycle);
+      const d = r.avg.withPlan - r.avg.noPlan;
+      if (!r.added?.length && !r.removed?.length) {
+        demoCaption(`Cycle ${n}`, "The journals don't point at anything the plan catalog can still fix, so the plan stays as it is.");
+        await demoHold();
+        break;
+      }
+      deltas.push(d);
+      const why = r.target ? `${r.target.count} residents wrote about ${r.target.label}` : "Residents' journals changed the plan";
+      const what = r.added.map((a) => a.label).join(" and ");
+      demoShow("withPlan");
+      demoCaption(`Cycle ${n}`, `${why} → ${what} added. ${signed(d)} well-being compared with keeping plan ${n - 1}; ${r.improved} residents better off, ${r.worse} worse off.`);
+      await demoHold();
+      const f = r.followUp;
+      if (f && f.plan2 - f.keepPlan1 >= 3) { // only a recovery worth pointing at
+        followResident(f.index);
+        demoCaption(`Cycle ${n}`, `${f.name} was hurt most by plan ${n - 1}. Keeping it: ${fmt(f.keepPlan1)}. With plan ${n}: ${fmt(f.plan2)}.`);
+        await demoHold();
+      }
+    }
+
+    demoCaption("Recap", `${deltas.map((d, i) => `Cycle ${i + 1}: ${signed(d)}`).join(" · ")}. Each number compares against an identical town on the same seed, so it's the plan's effect, not luck.`);
+  } catch (err) {
+    if (!(err instanceof DemoStopped)) demoCaption("Demo stopped", `Something went wrong: ${err?.message || err}`);
+  } finally {
+    demo.running = false;
+    $("demoBtn").disabled = false;
+    // Finished: leave the recap up with just a Close button.
+    $("demoPause").hidden = $("demoSkip").hidden = true;
+    $("demoStop").textContent = "Close";
+  }
+}
+
+$("demoBtn")?.addEventListener("click", playDemo);
+$("demoPause")?.addEventListener("click", () => {
+  demo.paused = !demo.paused;
+  $("demoPause").textContent = demo.paused ? "▶ Resume" : "❚❚ Pause";
+});
+$("demoSkip")?.addEventListener("click", () => { demo.skip = true; });
+$("demoStop")?.addEventListener("click", () => {
+  demo.stopped = true;
+  $("demoBar").hidden = true;
+  cycleWaiter?.reject(new DemoStopped());
+  cycleWaiter = null;
+});
+if (demoMode && params.get("autoplay") === "1") setTimeout(playDemo, 1500);
+
 // Reopen results after closing the panel or after the 10-year experiment took its corner.
 $("cycleShowBtn")?.addEventListener("click", () => {
   if (!cycleResults.length) return;
