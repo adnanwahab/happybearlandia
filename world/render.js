@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { buildTown } from "./gen.js";
 import { createWorld, clock } from "./sim.js";
-import { journalFor } from "./journal.js";
+import { journalFor, WALK_COMPLAINT_MINUTES } from "./journal.js";
 import { computeEffectsForYear, derivePolicyProfile } from "./policy.js";
 
 /* ---------------------------------------------------------------- */
@@ -674,24 +674,34 @@ async function publishSyntheticJournalsForDay(day) {
   renderJournalDiagnostics();
 
   try {
-    const moods = town.people.map((p) => Number(p.walkMinutesAvg3d || 0)).sort((a, b) => a - b);
-    const q80 = moods.length ? moods[Math.floor((moods.length - 1) * 0.8)] : 0;
-
     const candidates = [];
     for (let i = 0; i < town.people.length; i++) {
       const p = town.people[i];
-      const highWalk = Number(p.walkMinutesAvg3d || 0) > 60 || (q80 > 0 && Number(p.walkMinutesAvg3d || 0) >= q80);
-      const probe = { ...p, today: { ...(p.today || {}), highWalk } };
+      const sourceDay = world.day() === 0 ? (p.today || null) : (p.yesterday || null);
+      if (!sourceDay) continue;
+      const probe = { ...p, today: sourceDay, walkMinutesAvg3d: Number(p.walkMinutesAvg3d || 0) };
       const text = journalFor(probe, {
         tileKey,
         buildingsById,
         policyLabel: world.policy?.label || "No package",
         year: policyYear,
       });
-      if (text) candidates.push({ p: probe, i, mood: residentMood(p), text });
+      if (text) candidates.push({
+        p: probe,
+        i,
+        mood: residentMood(p),
+        text,
+        hasFlood: !!(sourceDay.displaced || sourceDay.homeFlooded),
+      });
     }
 
-    const picked = candidates.sort((a, b) => a.mood - b.mood).slice(0, 3);
+    const ranked = candidates.sort((a, b) => a.mood - b.mood);
+    const picked = ranked.slice(0, 3);
+    const floodIdx = picked.findIndex((x) => x.hasFlood);
+    if (floodIdx < 0) {
+      const floodCandidate = ranked.find((x) => x.hasFlood);
+      if (floodCandidate && picked.length) picked[picked.length - 1] = floodCandidate;
+    }
 
     if (!picked.length) {
       journalDiag.attempted = 0;
@@ -744,6 +754,7 @@ async function publishSyntheticJournalsForDay(day) {
           needs: p.needs,
           today: p.today,
           walkMinutesAvg3d: Number(p.walkMinutesAvg3d || 0),
+          walkComplaintMinutes: WALK_COMPLAINT_MINUTES,
           recentFrustration: recentFrustration(),
         },
       };

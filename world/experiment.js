@@ -132,13 +132,12 @@ function applyPolicyToWorld(world, policyEffects) {
   };
 }
 
-function collectWeekJournals(world, packageLabel, year, tileKey, buildingsById) {
-  const walks = world.people.map((p) => Number(p.walkMinutesAvg3d || 0)).sort((a, b) => a - b);
-  const q80 = walks.length ? walks[Math.floor((walks.length - 1) * 0.8)] : 0;
+function collectDailyJournalCandidates(world, packageLabel, year, tileKey, buildingsById) {
   const out = [];
   for (const p of world.people) {
-    const highWalk = Number(p.walkMinutesAvg3d || 0) > 60 || (q80 > 0 && Number(p.walkMinutesAvg3d || 0) >= q80);
-    const probe = { ...p, today: { ...(p.today || {}), highWalk } };
+    const sourceDay = p.yesterday || null;
+    if (!sourceDay) continue;
+    const probe = { ...p, today: sourceDay, walkMinutesAvg3d: Number(p.walkMinutesAvg3d || 0) };
     const text = journalFor(probe, {
       tileKey,
       buildingsById,
@@ -146,10 +145,13 @@ function collectWeekJournals(world, packageLabel, year, tileKey, buildingsById) 
       year,
     });
     if (!text) continue;
-    out.push({ mood: ((p.needs.hunger + p.needs.energy + p.needs.fun + p.needs.social) / 4), entry: { text, author: p.name } });
+    out.push({
+      mood: ((p.needs.hunger + p.needs.energy + p.needs.fun + p.needs.social) / 4),
+      hasFlood: !!(sourceDay.displaced || sourceDay.homeFlooded),
+      entry: { text, author: p.name },
+    });
   }
-  out.sort((a, b) => a.mood - b.mood);
-  return out.slice(0, 12).map((x) => x.entry);
+  return out;
 }
 
 function stormSeverity(seed, year) {
@@ -157,15 +159,15 @@ function stormSeverity(seed, year) {
   return 0.8 + r() * 0.6;
 }
 
-function weekOutcomes(world, soldOutEvents) {
+function weekOutcomes(world, soldOutEvents, displacedResidents, litterSamples) {
   const floodedParcels = world.buildings.filter((b) => b.state?.flooded).length;
-  const displacedResidents = world.people.filter((p) => p.today?.displaced).length;
   const avgWalkMinutes = world.people.length
     ? world.people.reduce((s, p) => s + Number(p.walkMinutesAvg3d || p.today?.walkMinutes || 0), 0) / world.people.length
     : 0;
   const avgMood = Number(world.summary().mood || 0);
-  const parks = world.buildings.filter((b) => b.kind === "park");
-  const avgParkLitter = parks.length ? parks.reduce((s, p) => s + Number(p.state?.litter || 0), 0) / parks.length : 0;
+  const avgParkLitter = litterSamples.length
+    ? litterSamples.reduce((a, b) => a + b, 0) / litterSamples.length
+    : 0;
   return {
     floodedParcels,
     displacedResidents,
@@ -178,7 +180,7 @@ function weekOutcomes(world, soldOutEvents) {
 
 async function simulateYear({ town, proposalIds, year, packageLabel, seed }) {
   const simTown = cloneTown(town);
-  const world = createWorld(simTown);
+  const world = createWorld(simTown, { startMinute: 0 });
   const buildingsById = {};
   for (const b of simTown.buildings) {
     buildingsById[b.index] = b;
@@ -195,15 +197,41 @@ async function simulateYear({ town, proposalIds, year, packageLabel, seed }) {
     return baseLog(text, kind, building);
   };
 
-  const days = 7;
-  const stormDay = 3;
+  const days = 5;
+  const stormDay = 2;
+  let displacedResidents = 0;
+  const litterSamples = [];
+  const weeklyJournalCandidates = [];
+
   for (let d = 0; d < days; d++) {
-    if (d === stormDay) applyStorm(world, stormSeverity(seed, year));
-    world.step(1440);
+    if (d === stormDay) {
+      world.step(12 * 60);
+      const storm = applyStorm(world, stormSeverity(seed, year));
+      displacedResidents += storm.displaced;
+      world.step(6 * 60); // to 18:00
+    } else {
+      world.step(18 * 60); // to 18:00
+    }
+
+    const parks = world.buildings.filter((b) => b.kind === "park");
+    const litterAt18 = parks.length ? parks.reduce((s, p) => s + Number(p.state?.litter || 0), 0) / parks.length : 0;
+    litterSamples.push(litterAt18);
+
+    world.step(6 * 60); // midnight reset -> yesterday becomes available
+
+    const dayCandidates = collectDailyJournalCandidates(world, packageLabel, year, simTown.seedKey || "tile", buildingsById);
+    weeklyJournalCandidates.push(...dayCandidates);
   }
 
-  const outcomes = weekOutcomes(world, soldOutEvents);
-  const journals = collectWeekJournals(world, packageLabel, year, simTown.seedKey || "tile", buildingsById);
+  const rankedWeek = weeklyJournalCandidates.sort((a, b) => a.mood - b.mood);
+  const pickedWeek = rankedWeek.slice(0, 12);
+  if (!pickedWeek.some((x) => x.hasFlood)) {
+    const floodCandidate = rankedWeek.find((x) => x.hasFlood);
+    if (floodCandidate && pickedWeek.length) pickedWeek[pickedWeek.length - 1] = floodCandidate;
+  }
+  const journals = pickedWeek.map((x) => x.entry);
+
+  const outcomes = weekOutcomes(world, soldOutEvents, displacedResidents, litterSamples);
   return { outcomes, journals };
 }
 

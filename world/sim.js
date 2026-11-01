@@ -362,7 +362,8 @@ export function createWorld(town, opts = {}) {
       const d = w.day();
       for (const p of w.people) {
         p.workedToday = false;
-        const prevWalk = Number(p.today?.walkMinutes || 0);
+        p.yesterday = p.today;
+        const prevWalk = Number(p.yesterday?.walkMinutes || 0);
         p.walkHistory = [...(p.walkHistory || []), prevWalk].slice(-3);
         p.walkMinutesAvg3d = p.walkHistory.length
           ? p.walkHistory.reduce((a, b) => a + b, 0) / p.walkHistory.length

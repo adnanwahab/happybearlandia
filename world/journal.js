@@ -19,10 +19,11 @@ function floodedHome(person, ctx) {
   return !!home?.state?.flooded;
 }
 
+export const WALK_COMPLAINT_MINUTES = 60;
+
 function transitBurdened(person) {
   const avg = Number(person?.walkMinutesAvg3d || 0);
-  const top20 = !!person?.today?.highWalk;
-  return avg > 60 || top20;
+  return avg > WALK_COMPLAINT_MINUTES;
 }
 
 function floodSentence(seed) {

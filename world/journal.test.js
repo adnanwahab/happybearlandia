@@ -84,4 +84,11 @@ describe("journalFor", () => {
     const b = journalFor(p, baseCtx());
     expect(a).toBe(b);
   });
+
+  test("walkMinutesAvg3d at 20 does not create transit complaint", () => {
+    const p = basePerson();
+    p.walkMinutesAvg3d = 20;
+    const text = journalFor(p, baseCtx());
+    expect(text).toBeNull();
+  });
 });
