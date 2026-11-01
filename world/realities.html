@@ -95,6 +95,10 @@
       <a class="btn" id="enterWorst">Enter worst</a>
       <span class="muted">or click any dot</span>
     </div>
+    <div class="row" style="margin-top:10px">
+      <a class="btn" id="viewAll">View all as live worlds →</a>
+      <span class="muted">A grid of every reality, a few running live at a time.</span>
+    </div>
   </section>
 
   <section class="card" id="metricsCard" hidden>
@@ -193,6 +197,12 @@ try {
 const town = buildTown(origin, area, { maxPeople: people });
 const placeName = origin.name || `${origin.lat.toFixed(2)}, ${origin.lng.toFixed(2)}`;
 
+const verdictKey = `hbl:realities:${snapshotId}:${baseSeed}:${years}:${people}`;
+{
+  const q = new URLSearchParams({ simulation: snapshotId, runs: String(runs), years: String(years), seed: baseSeed, people: String(people) });
+  $("viewAll").href = `/world/worlds.html?${q}`;
+}
+
 function enterUrl(index) {
   const q = new URLSearchParams({
     lat: String(origin.lat), lng: String(origin.lng), people: String(people),
@@ -274,6 +284,10 @@ function render(summary, done) {
     $("enterBest").textContent = `Enter best (#${summary.best})`;
     $("enterMedian").textContent = `Enter median (#${summary.median})`;
     $("enterWorst").textContent = `Enter worst (#${summary.worst})`;
+    // Hand the verdicts to the worlds grid (same browser) so it can label and sort tiles.
+    try {
+      localStorage.setItem(verdictKey, JSON.stringify({ at: Date.now(), count: summary.count, realities: summary.realities }));
+    } catch { /* storage off: the grid still works, just without verdicts */ }
   }
 }
 

@@ -9,6 +9,7 @@
   @media (prefers-color-scheme: dark) { :root { --bg: #15161a; --panel: rgba(24,25,30,.92); --ink: #ecebe6; --muted: #9a9993; --line: rgba(255,255,255,.14); --accent: #79a8ff; } }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, Segoe UI, sans-serif; overflow: hidden; }
   #view { position: fixed; inset: 0; }
+  html.embed .panel, html.embed #tag { display: none !important; }
   .panel { position: fixed; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; backdrop-filter: blur(6px); }
   #top { top: 12px; left: 12px; width: 300px; max-width: calc(100vw - 48px); }
   #feed { bottom: 12px; left: 12px; width: 300px; max-width: calc(100vw - 48px); max-height: 32vh; overflow: auto; }

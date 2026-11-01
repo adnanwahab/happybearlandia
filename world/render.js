@@ -19,6 +19,10 @@ const realityIndex = params.get("reality");
 const realityRunSeed = simulationId && realityIndex != null && params.get("seed")
   ? `${params.get("seed")}:reality:${Number(realityIndex)}`
   : null;
+// ?embed=1: a bare world for the "all possible worlds" grid (no panels, lighter rendering,
+// reports its clock and mood to the parent page).
+const embedMode = params.get("embed") === "1";
+if (embedMode) document.documentElement.classList.add("embed");
 
 function parseCoord(raw, fallback) {
   if (raw == null || String(raw).trim() === "") return fallback; // Number(null) is 0, which would land at 0,0
@@ -171,10 +175,10 @@ loadMeasuredOutcomes();
 /* ---------------------------------------------------------------- */
 /* Scene                                                             */
 /* ---------------------------------------------------------------- */
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const renderer = new THREE.WebGLRenderer({ antialias: !embedMode });
+renderer.setPixelRatio(embedMode ? 1 : Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = true;
+renderer.shadowMap.enabled = !embedMode;
 $("view").appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
@@ -184,6 +188,8 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 0, 0);
 controls.maxPolarAngle = Math.PI * 0.47;
 controls.enableDamping = true;
+// In the grid, let the mouse wheel scroll the page instead of zooming each tiny world.
+if (embedMode) controls.enableZoom = false;
 
 const hemi = new THREE.HemisphereLight(0xffffff, 0x8a8170, 1.1);
 scene.add(hemi);
@@ -252,7 +258,7 @@ scene.add(ring);
 /* ---------------------------------------------------------------- */
 /* Interaction                                                       */
 /* ---------------------------------------------------------------- */
-let speed = 10; // game minutes per real second
+let speed = Math.max(1, Math.min(600, Number(params.get("speed")) || 10)); // game minutes per real second
 let selected = null; // { type: "person"|"building"|"journal", id }
 let follow = false;
 let overlayMode = "none";
@@ -609,7 +615,8 @@ if (planYearEl) {
 }
 
 $("stormBtn").onclick = () => triggerStorm();
-await loadPolicyPackages();
+// A world embedded in the grid only needs its frozen plan, so it skips synthesizing packages.
+if (!(embedMode && realityRunSeed)) await loadPolicyPackages();
 activePolicyId = $("policy").value || "none";
 if (realityRunSeed) {
   // Entering one reality from the realities page: run its frozen plan with its seed.
@@ -1743,6 +1750,7 @@ $("feed").addEventListener("click", (e) => {
 /* ---------------------------------------------------------------- */
 const night = new THREE.Color(0x1a1d2b), day = new THREE.Color(0xdfe7ee), sky = new THREE.Color();
 let acc = 0, slowTimer = 0, lastEvents = -1;
+let lastEmbedPostT = -Infinity;
 let last = performance.now();
 
 function frame(now) {
@@ -1756,7 +1764,8 @@ function frame(now) {
 
   // Once per simulated day per tile: publish a few synthetic resident journals.
   // Trigger after 8:00 local sim time so demos show the loop quickly.
-  if (world.day() > lastJournalDay && world.minuteOfDay() >= 8 * 60) {
+  // Possible realities are counterfactual worlds: their residents never post to Dear Congress.
+  if (!realityRunSeed && world.day() > lastJournalDay && world.minuteOfDay() >= 8 * 60) {
     publishSyntheticJournalsForDay(world.day());
   }
 
@@ -1823,6 +1832,11 @@ function frame(now) {
     updateHud();
     updateOverlayLegend();
     if (selected) renderInspector();
+    if (embedMode && window.parent !== window && world.t - lastEmbedPostT >= 60) {
+      lastEmbedPostT = world.t;
+      const s = world.summary();
+      window.parent.postMessage({ type: "hbl-world", reality: realityIndex == null ? null : Number(realityIndex), clock: clock(world.t), day: world.day(), mood: s.mood, displaced: world.policy?.displaced || 0 }, location.origin);
+    }
   }
 
   controls.update();
