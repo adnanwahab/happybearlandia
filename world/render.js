@@ -622,7 +622,15 @@ function renderExperimentResults(results) {
   const byPkg = {};
   for (const name of EXP_PACKAGES) byPkg[name] = results?.[name]?.history || [];
 
+  const anyNotSimulatedChanged = EXP_PACKAGES.some((name) => {
+    const plans = results?.[name]?.plansByYear || [];
+    return plans.some((p) => Array.isArray(p?.notSimulatedChanges) && p.notSimulatedChanges.length > 0);
+  });
+
   charts.innerHTML = [
+    anyNotSimulatedChanged
+      ? `<div class="warn" style="margin:0 0 8px 0">This plan changes things the simulator doesn't model — outcomes shown don't include them.</div>`
+      : "",
     lineChartSvg("Flooded parcels", byPkg, "floodedParcels", colors),
     lineChartSvg("Displaced residents", byPkg, "displacedResidents", colors),
     lineChartSvg("Commute / walk minutes", byPkg, "avgWalkMinutes", colors),
@@ -642,6 +650,9 @@ function renderExperimentResults(results) {
     const c2 = formatPlanChanges(y2Plan.changesFromPrevious);
     const c5 = formatPlanChanges(y5Plan.changesFromPrevious);
     const c10 = formatPlanChanges(y10Plan.changesFromPrevious);
+    const ns2 = (Array.isArray(y2Plan.notSimulatedChanges) && y2Plan.notSimulatedChanges.length) ? y2Plan.notSimulatedChanges.join(", ") : "—";
+    const ns5 = (Array.isArray(y5Plan.notSimulatedChanges) && y5Plan.notSimulatedChanges.length) ? y5Plan.notSimulatedChanges.join(", ") : "—";
+    const ns10 = (Array.isArray(y10Plan.notSimulatedChanges) && y10Plan.notSimulatedChanges.length) ? y10Plan.notSimulatedChanges.join(", ") : "—";
     return `<tr>
       <th>${name}</th>
       <td>${Number(y10Outcomes.outcomes.floodedParcels ?? 0).toFixed(0)}</td>
@@ -654,11 +665,14 @@ function renderExperimentResults(results) {
       <td>${c5}</td>
       <td>${p10}</td>
       <td>${c10}</td>
+      <td>${ns2}</td>
+      <td>${ns5}</td>
+      <td>${ns10}</td>
     </tr>`;
   }).join("");
 
   tableWrap.innerHTML = `<table class="exp-table">
-    <thead><tr><th>Package</th><th>Flooded (Y10)</th><th>Displaced (Y10)</th><th>Walk min (Y10)</th><th>Mood (Y10)</th><th>Items Y2</th><th>Plan changes Y2</th><th>Items Y5</th><th>Plan changes Y5</th><th>Items Y10</th><th>Plan changes Y10</th></tr></thead>
+    <thead><tr><th>Package</th><th>Flooded (Y10)</th><th>Displaced (Y10)</th><th>Walk min (Y10)</th><th>Mood (Y10)</th><th>Items Y2</th><th>Plan changes Y2</th><th>Items Y5</th><th>Plan changes Y5</th><th>Items Y10</th><th>Plan changes Y10</th><th>Not simulated Y2</th><th>Not simulated Y5</th><th>Not simulated Y10</th></tr></thead>
     <tbody>${rows}</tbody>
   </table>
   <div class="muted" style="margin-top:6px">Most popular ranks only by votes, so journals don't change it. Minimal change rarely adopts new programs.</div>`;

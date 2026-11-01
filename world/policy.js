@@ -17,7 +17,7 @@ export const NOT_SIMULATED = new Set([
   "i_roofs", "i_reinsurance", "fx_taxcut", "fx_review",
 ]);
 
-function effectProgress(lagYears, rampYears, year) {
+export function effectProgress(lagYears, rampYears, year) {
   if (year < lagYears) return 0;
   if (!Number.isFinite(rampYears) || rampYears <= 0) return 1;
   return Math.max(0, Math.min(1, (year - lagYears) / rampYears));
@@ -39,7 +39,7 @@ export function resolveRuleForProposal(pid0) {
   return null;
 }
 
-export function computeEffectsForYear(proposalIds, year) {
+export function computeEffectsForYear(proposalIds, year, adoptedYearByProposal = null) {
   const effects = {
     speedMult: 1,
     floodMitigation: 0,
@@ -57,7 +57,11 @@ export function computeEffectsForYear(proposalIds, year) {
       unsupported.push(pid);
       continue;
     }
-    const p = effectProgress(mapped.rule.lagYears, mapped.rule.rampYears, year);
+    const adoptedYear = adoptedYearByProposal && Number.isFinite(adoptedYearByProposal[pid])
+      ? Number(adoptedYearByProposal[pid])
+      : 0;
+    const yearsInEffect = year - adoptedYear;
+    const p = effectProgress(mapped.rule.lagYears, mapped.rule.rampYears, yearsInEffect);
     effects.speedMult += (mapped.rule.speedAdd || 0) * p;
     effects.floodMitigation += (mapped.rule.floodMitigationAdd || 0) * p;
     effects.housingGrowth += (mapped.rule.housingGrowthAdd || 0) * p;

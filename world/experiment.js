@@ -1,7 +1,7 @@
 import { hashSeed, rng } from "./gen.js";
 import { createWorld } from "./sim.js";
-import { journalFor } from "./journal.js";
-import { computeEffectsForYear } from "./policy.js";
+import { journalFor, WALK_COMPLAINT_MINUTES } from "./journal.js";
+import { computeEffectsForYear, NOT_SIMULATED, resolveRuleForProposal } from "./policy.js";
 
 function cloneTown(town) {
   return {
@@ -47,11 +47,20 @@ function pickPackage(payload, packageName) {
 
   const items = found?.items || found?.proposals || found?.package?.items || [];
   const proposalIds = Array.from(new Set(items.map(proposalIdFrom).filter(Boolean)));
+  const proposalCosts = {};
+  for (const item of items) {
+    const id = proposalIdFrom(item);
+    const c = Number(item?.proposal?.costB ?? item?.costB ?? item?.proposalCostB);
+    if (id && Number.isFinite(c)) proposalCosts[id] = c;
+  }
+
   return {
     id: found?.id || found?.slug || found?.name || packageName,
     label: found?.name || found?.title || found?.label || packageName,
     proposalIds,
     changesFromPrevious: found?.changesFromPrevious || null,
+    challengerStreak: found?.challengerStreak || {},
+    proposalCosts,
   };
 }
 
@@ -134,7 +143,7 @@ function applyPolicyToWorld(world, policyEffects) {
   };
 }
 
-function collectDailyJournalCandidates(world, packageLabel, year, tileKey, buildingsById) {
+function collectDailyJournalCandidates(world, packageLabel, year, tileKey, buildingsById, dayIndex, yearStartMs) {
   const out = [];
   for (const p of world.people) {
     const sourceDay = p.yesterday || null;
@@ -153,11 +162,12 @@ function collectDailyJournalCandidates(world, packageLabel, year, tileKey, build
     const streetsSeverity = Number(sourceDay.dirtyParkVisits || 0);
     const soldOutCount = Array.isArray(sourceDay.soldOutAt) ? sourceDay.soldOutAt.length : 0;
     const groceriesSeverity = soldOutCount + (sourceDay.emptyFridge ? 1 : 0);
+    const createdAt = new Date(yearStartMs + dayIndex * 24 * 60 * 60 * 1000 + 18 * 60 * 60 * 1000).toISOString();
 
     out.push({
       key: `${String(p.id ?? p.name)}:${String(sourceDay.day ?? 0)}`,
       mood: ((p.needs.hunger + p.needs.energy + p.needs.fun + p.needs.social) / 4),
-      entry: { text, author: p.name },
+      entry: { text, author: p.name, createdAt },
       severity: {
         flood: floodSeverity,
         transit: transitSeverity,
@@ -215,6 +225,7 @@ function weekOutcomes(world, soldOutEvents, displacedResidents, litterSamples) {
   const avgParkLitter = litterSamples.length
     ? litterSamples.reduce((a, b) => a + b, 0) / litterSamples.length
     : 0;
+  const overWalkComplaint = world.people.filter((p) => Number(p.walkMinutesAvg3d || p.today?.walkMinutes || 0) > WALK_COMPLAINT_MINUTES).length;
   return {
     floodedParcels,
     displacedResidents,
@@ -222,10 +233,18 @@ function weekOutcomes(world, soldOutEvents, displacedResidents, litterSamples) {
     avgMood,
     soldOutEvents,
     avgParkLitter,
+    overWalkComplaint,
   };
 }
 
-async function simulateYear({ town, proposalIds, year, packageLabel, seed }) {
+function classifyJournalType(text) {
+  const t = String(text || "").toLowerCase();
+  if (t.includes("flood") || t.includes("storm") || t.includes("drainage")) return "flood";
+  if (t.includes("commute") || t.includes("bus")) return "transit";
+  return "other";
+}
+
+async function simulateYear({ town, proposalIds, year, packageLabel, seed, adoptedYearByProposal = null, yearStartMs }) {
   const simTown = cloneTown(town);
   const world = createWorld(simTown, { startMinute: 0 });
   const buildingsById = {};
@@ -234,7 +253,7 @@ async function simulateYear({ town, proposalIds, year, packageLabel, seed }) {
     buildingsById[b.id] = b;
   }
 
-  const staged = computeEffectsForYear(proposalIds, year).effects;
+  const staged = computeEffectsForYear(proposalIds, year, adoptedYearByProposal).effects;
   applyPolicyToWorld(world, staged);
 
   let soldOutEvents = 0;
@@ -266,20 +285,75 @@ async function simulateYear({ town, proposalIds, year, packageLabel, seed }) {
 
     world.step(6 * 60); // midnight reset -> yesterday becomes available
 
-    const dayCandidates = collectDailyJournalCandidates(world, packageLabel, year, simTown.seedKey || "tile", buildingsById);
+    const dayCandidates = collectDailyJournalCandidates(world, packageLabel, year, simTown.seedKey || "tile", buildingsById, d, yearStartMs);
     weeklyJournalCandidates.push(...dayCandidates);
   }
 
   const journals = pickWeeklyJournalsByProblem(weeklyJournalCandidates, 12, 4);
 
-  const outcomes = weekOutcomes(world, soldOutEvents, displacedResidents, litterSamples);
-  return { outcomes, journals };
+  const outcomes = {
+    ...weekOutcomes(world, soldOutEvents, displacedResidents, litterSamples),
+    speedMult: Number(world.speedMult || 1),
+    floodMitigation: Number(world.policy?.floodMitigation || 0),
+  };
+
+  const journalCounts = { flood: 0, transit: 0 };
+  for (const j of journals) {
+    const kind = classifyJournalType(j?.text);
+    if (kind === "flood") journalCounts.flood++;
+    if (kind === "transit") journalCounts.transit++;
+  }
+
+  return { outcomes, journals, journalCounts };
 }
 
-export async function runExperiment({ town, packageName, years = 10, seed = "world-exp", fetchPlan, onYear }) {
+function isNotSimulatedProposal(id) {
+  const pid = String(id || "").toLowerCase();
+  return NOT_SIMULATED.has(pid) || !resolveRuleForProposal(pid);
+}
+
+function formatNotSimulatedChanges(changesFromPrevious, costByProposalId) {
+  const out = [];
+  const added = Array.isArray(changesFromPrevious?.added) ? changesFromPrevious.added : [];
+  const removed = Array.isArray(changesFromPrevious?.removed) ? changesFromPrevious.removed : [];
+
+  for (const id of added) {
+    if (!isNotSimulatedProposal(id)) continue;
+    const c = Number(costByProposalId[id]);
+    out.push(`+${id}${Number.isFinite(c) ? ` ($${c}B)` : ""}`);
+  }
+  for (const id of removed) {
+    if (!isNotSimulatedProposal(id)) continue;
+    const c = Number(costByProposalId[id]);
+    out.push(`−${id}${Number.isFinite(c) ? ` ($${c}B)` : ""}`);
+  }
+  return out;
+}
+
+async function inferExperimentStartMs() {
+  try {
+    const res = await fetch("/api/dear-congress/state", { signal: AbortSignal.timeout(6000) });
+    if (!res.ok) return Date.now();
+    const payload = await res.json();
+    const entries = Array.isArray(payload?.entries) ? payload.entries : [];
+    const times = entries
+      .map((e) => Date.parse(String(e?.createdAt || "")))
+      .filter((t) => Number.isFinite(t));
+    if (!times.length) return Date.now();
+    return Math.max(...times);
+  } catch {
+    return Date.now();
+  }
+}
+
+export async function runExperiment({ town, packageName, years = 10, seed = "world-exp", fetchPlan, onYear, experimentStartMs }) {
   const journalsSoFar = [];
   const plansByYear = [];
   let previousSelection = null;
+  let previousChallengerStreak = null;
+  let adoptedYearByProposal = {};
+  const startMs = Number.isFinite(experimentStartMs) ? Number(experimentStartMs) : await inferExperimentStartMs();
+  const proposalCostById = {};
 
   // Baseline year 0 (no policy package selected yet).
   const baseline = await simulateYear({
@@ -288,14 +362,23 @@ export async function runExperiment({ town, packageName, years = 10, seed = "wor
     year: 0,
     packageLabel: "No package",
     seed,
+    yearStartMs: startMs - 365 * 24 * 60 * 60 * 1000,
   });
   onYear?.({ year: 0, packageName, packageId: "none", proposalIds: [], changesFromPrevious: null, outcomes: baseline.outcomes });
-  plansByYear.push({ year: 0, packageId: "none", proposalIds: [], changesFromPrevious: null });
+  plansByYear.push({ year: 0, packageId: "none", proposalIds: [], changesFromPrevious: null, notSimulatedChanges: [] });
 
   for (let year = 1; year <= years; year++) {
-    const body = { includeSynthetic: false, extraEntries: journalsSoFar, previous: {} };
+    const yearNowMs = startMs + (year - 1) * 365 * 24 * 60 * 60 * 1000;
+    const body = {
+      includeSynthetic: false,
+      extraEntries: journalsSoFar,
+      now: new Date(yearNowMs).toISOString(),
+      previous: {},
+      challengerStreak: {},
+    };
     if (year > 1 && previousSelection?.id) {
       body.previous = { [previousSelection.id]: previousSelection.proposalIds };
+      body.challengerStreak = { [previousSelection.id]: previousChallengerStreak || {} };
     }
 
     const payload = await fetchPlan(body);
@@ -304,7 +387,18 @@ export async function runExperiment({ town, packageName, years = 10, seed = "wor
       label: packageName,
       proposalIds: [],
       changesFromPrevious: null,
+      challengerStreak: {},
+      proposalCosts: {},
     };
+
+    for (const [id, cost] of Object.entries(pkg.proposalCosts || {})) {
+      if (Number.isFinite(Number(cost))) proposalCostById[id] = Number(cost);
+    }
+
+    const nextAdoptedYearByProposal = {};
+    for (const pid of pkg.proposalIds) {
+      nextAdoptedYearByProposal[pid] = Number.isFinite(adoptedYearByProposal[pid]) ? adoptedYearByProposal[pid] : year;
+    }
 
     const sim = await simulateYear({
       town,
@@ -312,13 +406,18 @@ export async function runExperiment({ town, packageName, years = 10, seed = "wor
       year,
       packageLabel: pkg.label,
       seed,
+      adoptedYearByProposal: nextAdoptedYearByProposal,
+      yearStartMs: yearNowMs,
     });
+
+    const notSimulatedChanges = formatNotSimulatedChanges(pkg.changesFromPrevious, proposalCostById);
 
     plansByYear.push({
       year,
       packageId: pkg.id,
       proposalIds: pkg.proposalIds,
       changesFromPrevious: pkg.changesFromPrevious || null,
+      notSimulatedChanges,
     });
     for (const j of sim.journals) journalsSoFar.push(j);
     if (journalsSoFar.length > 200) journalsSoFar.splice(0, journalsSoFar.length - 200);
@@ -330,9 +429,13 @@ export async function runExperiment({ town, packageName, years = 10, seed = "wor
       proposalIds: pkg.proposalIds,
       changesFromPrevious: pkg.changesFromPrevious || null,
       outcomes: sim.outcomes,
+      journalCounts: sim.journalCounts,
+      notSimulatedChanges,
     });
 
     previousSelection = { id: pkg.id, proposalIds: [...pkg.proposalIds] };
+    previousChallengerStreak = { ...(pkg.challengerStreak || {}) };
+    adoptedYearByProposal = nextAdoptedYearByProposal;
   }
 
   return { packageName, plansByYear };
