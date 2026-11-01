@@ -1,3 +1,6 @@
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+
 // Server side of /world: fetch real buildings + places around a lat/lng from
 // OpenStreetMap (Overpass API), simplify them, and cache per ~200 m cell.
 // The client falls back to a procedural town if this fails or returns nothing.
@@ -24,6 +27,16 @@ export const OVERPASS_TIMEOUT_MS = Number.isFinite(parsedOverpassTimeoutMs) && p
   : DEFAULT_OVERPASS_TIMEOUT_MS;
 
 const cache = new Map(); // key -> { at, body }
+// Last-known-good OSM snapshots on disk. Commit the files for demo coordinates so a
+// deploy still has real map data when every public Overpass server is down.
+const SNAPSHOT_DIR = process.env.AREA_SNAPSHOT_DIR || join(import.meta.dir, "area-cache");
+function snapshotPath(key) { return join(SNAPSHOT_DIR, key.replace(/[^0-9.,-]/g, "_") + ".json"); }
+function readSnapshot(key) {
+  try { const f = snapshotPath(key); return existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : null; } catch { return null; }
+}
+function writeSnapshot(key, body) {
+  try { mkdirSync(SNAPSHOT_DIR, { recursive: true }); writeFileSync(snapshotPath(key), JSON.stringify(body)); } catch {}
+}
 const TTL_MS = 1000 * 60 * 60 * 24;
 const MAX_BUILDINGS = 1200;
 
@@ -283,16 +296,13 @@ out tags geom;`;
   let floodZones = [];
   let floodZonesSource = "fema-nfhl";
   let floodZonesError = null;
-  if (bboxUsed) {
-    try {
-      floodZones = await queryNFHL(bboxUsed.s, bboxUsed.w, bboxUsed.n, bboxUsed.e);
-    } catch (err) {
-      floodZonesSource = "fallback-lowland";
-      floodZonesError = errorText(err);
-    }
-  } else {
+  // FEMA NFHL is a separate service; don't skip it just because Overpass failed.
+  const fb = bboxUsed || (([s, w, n, e]) => ({ s, w, n, e }))(bbox(lat, lng, radiusM));
+  try {
+    floodZones = await queryNFHL(fb.s, fb.w, fb.n, fb.e);
+  } catch (err) {
     floodZonesSource = "fallback-lowland";
-    floodZonesError = `Overpass failed (${tries.join(" | ")})`;
+    floodZonesError = errorText(err);
   }
 
   const body = {
@@ -308,7 +318,19 @@ out tags geom;`;
     attribution: json ? "© OpenStreetMap contributors" : null,
     error: json ? null : `Overpass failed (${tries.join(" | ")})`,
   };
-  cache.set(key, { at: Date.now(), body });
+  if (json) {
+    cache.set(key, { at: Date.now(), body });
+    writeSnapshot(key, body);
+    return body;
+  }
+  // Overpass failed: serve the last good snapshot if we have one, and never cache
+  // the failure (it used to stick for 24h on the server).
+  const snap = readSnapshot(key);
+  if (snap) {
+    const served = { ...snap, stale: true, staleReason: body.error };
+    if (!floodZones.length && snap.floodZones?.length) return served;
+    return { ...served, floodZones, floodZonesSource, floodZonesError };
+  }
   return body;
 }
 
