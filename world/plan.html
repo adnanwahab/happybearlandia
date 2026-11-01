@@ -193,7 +193,9 @@ function render(result) {
   const { meta, final, series, futures } = result;
   const metrics = meta.metrics;
   const n = meta.seeds;
-  const place = $("place").selectedOptions[0]?.textContent || "this neighborhood";
+  // Label the result with where it actually ran, not whatever the picker shows now.
+  const loc = meta.location || {};
+  const place = loc.name || (Number.isFinite(loc.lat) ? `${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)}` : "this neighborhood");
 
   $("subtitle").textContent = `${meta.population} synthetic residents in ${place} (${meta.townSource === "osm" ? "OpenStreetMap buildings" : "procedural town"}), ${n} paired futures.`;
 
@@ -211,8 +213,7 @@ function render(result) {
     <div><span>Clearly better</span><b style="color:var(--good)">${futures.positive}</b></div>
     <div><span>About the same</span><b>${futures.neutral}</b></div>
     <div><span>Clearly worse</span><b style="color:var(--bad)">${futures.negative}</b></div>`;
-  const [lat, lng] = $("place").value.split(",");
-  $("enter").href = `/world?lat=${lat}&lng=${lng}`;
+  if (Number.isFinite(loc.lat)) $("enter").href = `/world?lat=${loc.lat}&lng=${loc.lng}`;
   $("futuresCard").hidden = false;
 
   // KPI table
