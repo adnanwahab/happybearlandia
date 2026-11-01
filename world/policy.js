@@ -8,6 +8,9 @@ export const POLICY_RULES = {
   f_buyouts: { label: "Floodplain buyouts", lagYears: 1, rampYears: 3, floodMitigationAdd: 0.12 },
   sb_filing: { label: "Small-biz filing", lagYears: 0, rampYears: 2, restockBoostAdd: 0.2, hiringBoostAdd: 0.1 },
   sb_payroll: { label: "Small-biz payroll", lagYears: 1, rampYears: 2, restockBoostAdd: 0.2, hiringBoostAdd: 0.2 },
+  // Refills home fridges that are nearly empty (the "empty fridge" journal complaint).
+  // Store-side proposals (sb_*) can't reach this: shelves rarely sell out, households just run out.
+  g_delivery: { label: "Grocery delivery", lagYears: 0, rampYears: 1, groceryDeliveryAdd: 0.8 },
 };
 
 export const NOT_SIMULATED = new Set([
@@ -35,6 +38,7 @@ export function resolveRuleForProposal(pid0) {
   if (pid.includes("drain") || pid.includes("flood")) return { id: "f_drainage", rule: POLICY_RULES.f_drainage };
   if (pid.includes("buyout")) return { id: "f_buyouts", rule: POLICY_RULES.f_buyouts };
   if (pid.includes("payroll")) return { id: "sb_payroll", rule: POLICY_RULES.sb_payroll };
+  if (pid.includes("grocer") || pid.includes("pantry") || pid.includes("delivery") || pid.includes("food_access")) return { id: "g_delivery", rule: POLICY_RULES.g_delivery };
   if (pid.includes("filing") || pid.includes("permit") || pid.includes("small") || pid.startsWith("sb_")) return { id: "sb_filing", rule: POLICY_RULES.sb_filing };
   return null;
 }
@@ -48,6 +52,7 @@ export function computeEffectsForYear(proposalIds, year, adoptedYearByProposal =
     parkCleanupBoost: 0,
     restockBoost: 0,
     hiringBoost: 0,
+    groceryDelivery: 0,
   };
   const unsupported = [];
 
@@ -69,6 +74,7 @@ export function computeEffectsForYear(proposalIds, year, adoptedYearByProposal =
     effects.parkCleanupBoost += (mapped.rule.parkCleanupAdd || 0) * p;
     effects.restockBoost += (mapped.rule.restockBoostAdd || 0) * p;
     effects.hiringBoost += (mapped.rule.hiringBoostAdd || 0) * p;
+    effects.groceryDelivery += (mapped.rule.groceryDeliveryAdd || 0) * p;
   }
 
   effects.speedMult = Math.min(2.6, Math.max(1, effects.speedMult));
@@ -78,6 +84,7 @@ export function computeEffectsForYear(proposalIds, year, adoptedYearByProposal =
   effects.parkCleanupBoost = Math.min(1.2, Math.max(0, effects.parkCleanupBoost));
   effects.restockBoost = Math.min(1.1, Math.max(0, effects.restockBoost));
   effects.hiringBoost = Math.min(0.8, Math.max(0, effects.hiringBoost));
+  effects.groceryDelivery = Math.min(1, Math.max(0, effects.groceryDelivery));
 
   return { effects, unsupported: Array.from(new Set(unsupported)) };
 }

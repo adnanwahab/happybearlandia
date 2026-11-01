@@ -238,6 +238,7 @@ export function createWorld(town, opts = {}) {
     restockBoost: 0,
     hiringBoost: 0,
     voucherMonthly: 0,
+    groceryDelivery: 0, // 0–1: share of nearly-empty home fridges refilled each afternoon
     events: [],
     stats: { spent: 0, meals: 0, groceries: 0, cleanups: 0 },
     byKind,
@@ -380,6 +381,25 @@ export function createWorld(town, opts = {}) {
     // Litter slowly blows away / city crew at 5am (boosted by 311-type service policies)
     const cleanupAtDawn = Math.round(15 * (1 + w.parkCleanupBoost));
     for (const b of byKind.park || []) if (m === 5 * 60) b.state.litter = Math.max(0, b.state.litter - cleanupAtDawn);
+
+    // 07:00: grocery delivery program. Homes with less than 2 meals per resident get
+    // 3 meals per resident (about a day's food), sized by household because big
+    // households empty a fixed refill by dinner. Which homes are served is a fixed hash
+    // of (home, day), not w.rand(), so a world without the program draws the exact
+    // same random numbers as before.
+    if (m === 7 * 60 && w.groceryDelivery > 0) {
+      const residents = new Map();
+      for (const p of w.people) residents.set(p.home, (residents.get(p.home) || 0) + 1);
+      let served = 0;
+      const day = w.day();
+      for (const b of byKind.home || []) {
+        const n = residents.get(b.index) || 0;
+        if (!n || b.state.fridge >= 2 * n) continue;
+        const h = Math.imul((b.index + 1) * 2654435761 ^ (day + 1) * 40503, 2246822519) >>> 0;
+        if ((h % 1000) / 1000 < w.groceryDelivery) { b.state.fridge += 3 * n; served++; }
+      }
+      if (served) w.log(`Grocery delivery restocked ${served} home fridges`, "civic");
+    }
 
     // Once every 30 game days: voucher-style support to lower-cash households.
     if (m === 0 && w.day() > 0 && w.day() % 30 === 0 && w.voucherMonthly > 0) {

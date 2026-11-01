@@ -262,7 +262,7 @@ const BASE_POLICY_PACKAGES = {
     label: "No package",
     source: "local",
     proposalIds: [],
-    effects: { speedMult: 1, floodMitigation: 0, housingGrowth: 0, voucherMonthly: 0, parkCleanupBoost: 0, restockBoost: 0, hiringBoost: 0 },
+    effects: { speedMult: 1, floodMitigation: 0, housingGrowth: 0, voucherMonthly: 0, parkCleanupBoost: 0, restockBoost: 0, hiringBoost: 0, groceryDelivery: 0 },
     unsupported: [],
   },
   balanced: {
@@ -365,6 +365,7 @@ function applyPolicy(id, year = policyYear) {
   world.restockBoost = staged.effects.restockBoost;
   world.hiringBoost = staged.effects.hiringBoost;
   world.voucherMonthly = staged.effects.voucherMonthly;
+  world.groceryDelivery = staged.effects.groceryDelivery;
 
   const src = p.source === "dear-congress" ? "dear-congress" : "local";
   const pendingTxt = staged.unsupported.length
@@ -372,7 +373,7 @@ function applyPolicy(id, year = policyYear) {
     : "";
 
   const simNote = BALANCED_SIM_NOTE ? ` · ${BALANCED_SIM_NOTE}` : "";
-  $("policyNote").textContent = `${p.label} · year ${year} · transit ×${staged.effects.speedMult.toFixed(2)} · flood mitigation ${Math.round(staged.effects.floodMitigation * 100)}% · housing growth ${Math.round(staged.effects.housingGrowth * 100)}% · vouchers $${staged.effects.voucherMonthly.toFixed(0)}/mo · source: ${src}${pendingTxt}${simNote}`;
+  $("policyNote").textContent = `${p.label} · year ${year} · transit ×${staged.effects.speedMult.toFixed(2)} · flood mitigation ${Math.round(staged.effects.floodMitigation * 100)}% · housing growth ${Math.round(staged.effects.housingGrowth * 100)}% · vouchers $${staged.effects.voucherMonthly.toFixed(0)}/mo${staged.effects.groceryDelivery > 0 ? ` · grocery delivery ${Math.round(staged.effects.groceryDelivery * 100)}%` : ""} · source: ${src}${pendingTxt}${simNote}`;
 }
 
 async function loadPolicyPackages() {
@@ -958,27 +959,59 @@ $("runExperimentBtn")?.addEventListener("click", runExperiment10Years);
 /* ---------------------------------------------------------------- */
 /* Run cycle: one week of the selected plan vs. no plan, same seed.  */
 /* ---------------------------------------------------------------- */
-let cycleWorker = null;
+let cycleWorker = null;     // stays alive between cycles so cycle 2 continues cycle 1's worlds
+let cycleBusy = false;
+let cycleResults = [];      // one entry per completed cycle
+let cycleIdx = 0;           // which cycle the panel and overlay show
 let cycleWho = "best";
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const fmt = (x) => Number(x || 0).toFixed(1);
 const signed = (x) => `${x >= 0 ? "+" : "−"}${Math.abs(x).toFixed(1)}`;
 
 function cyclePackageId() {
-  if (activePolicyId && activePolicyId !== "none") return activePolicyId;
+  if (activePolicyId && activePolicyId !== "none" && !activePolicyId.startsWith("cycle-")) return activePolicyId;
   const fromCongress = Object.keys(PLAN_PACKAGES).find((id) => PLAN_PACKAGES[id].source === "dear-congress");
   return fromCongress || "balanced";
 }
 
+// A bare "+0.0" hides why nothing happened, so later cycles say what changed.
+function cycleStatusText(r, n) {
+  const d = r.avg.withPlan - r.avg.noPlan;
+  if (n === 1) return `Cycle 1: ${signed(d)} well-being vs no plan`;
+  const vs = `vs keeping plan ${n - 1}`;
+  if (!r.added?.length && !r.removed?.length) return `Cycle ${n}: no fixable complaints left, so plan ${n} = plan ${n - 1}`;
+  const what = r.added?.length ? `+ ${r.added.map((a) => a.label).join(", ")}` : `− ${r.removed.map((a) => a.label).join(", ")}`;
+  if (Math.abs(d) < 0.05) return `Cycle ${n}: ${what}, but no measurable effect within a week`;
+  return `Cycle ${n}: ${what} → ${signed(d)} well-being ${vs}`;
+}
+
+function setCycleBusy(busy) {
+  cycleBusy = busy;
+  $("runCycleBtn").disabled = busy;
+  const next = $("cycleNext");
+  if (next) next.disabled = busy;
+}
+
+function startCycleWorker() {
+  cycleWorker?.terminate();
+  cycleWorker = new Worker(new URL("./cycle.worker.js", import.meta.url), { type: "module" });
+  cycleWorker.onmessage = (ev) => {
+    const msg = ev?.data || {};
+    const status = $("cycleStatus");
+    if (msg.type === "progress") { status.textContent = `${msg.stage}…`; return; }
+    if (msg.type === "error") { status.textContent = `Cycle failed: ${msg.error}`; setCycleBusy(false); return; }
+    if (msg.type === "done") onCycleDone(msg.result);
+  };
+}
+
 function runCycle() {
-  if (cycleWorker) return;
+  if (cycleBusy) return;
   const pkgId = cyclePackageId();
   const pkg = PLAN_PACKAGES[pkgId];
   const year = policyYear || 3; // effects ramp in over years; year 0 would show nothing
-  const btn = $("runCycleBtn");
-  const status = $("cycleStatus");
-  btn.disabled = true;
-  status.textContent = "Starting…";
+  setCycleBusy(true);
+  $("cycleStatus").textContent = "Starting…";
+  cycleResults = [];
 
   // The visible world adopts the plan too, so what you watch matches what was measured.
   $("policy").value = pkgId;
@@ -988,32 +1021,59 @@ function runCycle() {
   if (planYearNEl) planYearNEl.textContent = `Year ${year}`;
   applyPolicy(pkgId, year);
 
-  cycleWorker = new Worker(new URL("./cycle.worker.js", import.meta.url), { type: "module" });
-  const finish = () => { cycleWorker?.terminate(); cycleWorker = null; btn.disabled = false; };
-  cycleWorker.onmessage = (ev) => {
-    const msg = ev?.data || {};
-    if (msg.type === "progress") { status.textContent = `${msg.stage}…`; return; }
-    if (msg.type === "error") { status.textContent = `Cycle failed: ${msg.error}`; finish(); return; }
-    if (msg.type === "done") {
-      cycleResult = { ...msg.result, label: pkg.label, source: pkg.source };
-      cycleView = "withPlan";
-      cycleWho = "best";
-      const opt = overlayEl?.querySelector('option[value="cycle"]');
-      if (opt) opt.disabled = false;
-      overlayMode = "cycle";
-      if (overlayEl) overlayEl.value = "cycle";
-      const d = cycleResult.avg.withPlan - cycleResult.avg.noPlan;
-      status.textContent = `${pkg.label}: ${signed(d)} well-being vs no plan`;
-      world.log(`Cycle: ${pkg.label} → ${signed(d)} avg well-being vs no plan after ${cycleResult.days} days`, "civic");
-      renderCyclePanel();
-      followResident(cycleResult.best.index);
-      finish();
-    }
-  };
+  startCycleWorker(); // a fresh cycle 1 starts from fresh worlds
+  pendingCycleLabel = pkg.label;
+  pendingCycleSource = pkg.source;
   cycleWorker.postMessage({
     type: "run",
-    payload: { origin, area, maxPeople, proposalIds: pkg.proposalIds || [], year, days: 7 },
+    payload: { origin, area, maxPeople, proposalIds: pkg.proposalIds || [], label: pkg.label, year, days: 7 },
   });
+}
+
+function runNextCycle() {
+  if (cycleBusy || !cycleWorker || !cycleResults.length) return;
+  setCycleBusy(true);
+  $("cycleStatus").textContent = "Reading residents' journals…";
+  pendingCycleLabel = null;
+  pendingCycleSource = null;
+  cycleWorker.postMessage({ type: "next" });
+}
+
+let pendingCycleLabel = null;
+let pendingCycleSource = null;
+
+function onCycleDone(result) {
+  const n = cycleResults.length + 1;
+  const label = pendingCycleLabel || `Plan ${n}`;
+  const r = { ...result, label, source: result.source || pendingCycleSource || "local" };
+  cycleResults.push(r);
+  cycleIdx = cycleResults.length - 1;
+  cycleResult = r;
+  cycleView = "withPlan";
+  cycleWho = "best";
+
+  // Later cycles: the visible world switches to the new plan too.
+  if (n > 1) {
+    const id = `cycle-${n}`;
+    PLAN_PACKAGES[id] = { id, label: `Plan ${n} (from journals)`, source: r.source, proposalIds: r.proposalIds, unsupported: [] };
+    refreshPolicySelect(id);
+    activePolicyId = id;
+    applyPolicy(id, policyYear);
+  }
+
+  const opt = overlayEl?.querySelector('option[value="cycle"]');
+  if (opt) opt.disabled = false;
+  overlayMode = "cycle";
+  if (overlayEl) overlayEl.value = "cycle";
+  const d = r.avg.withPlan - r.avg.noPlan;
+  $("cycleStatus").textContent = cycleStatusText(r, n);
+  $("cycleShowBtn").hidden = false;
+  const vs = n === 1 ? "vs no plan" : `vs keeping plan ${n - 1}`;
+  world.log(`Cycle ${n}${n > 1 && r.added?.length ? ` (+ ${r.added.map((a) => a.label).join(", ")})` : `: ${label}`} → ${signed(d)} avg well-being ${vs}`, "civic");
+  setCycleBusy(false);
+  renderCyclePanel();
+  $("cyclePanel").scrollTop = 0;
+  followResident(n > 1 && r.followUp ? r.followUp.index : r.best.index);
 }
 
 function followResident(i) {
@@ -1023,6 +1083,16 @@ function followResident(i) {
   renderInspector();
 }
 
+function showCycle(i) {
+  cycleIdx = i;
+  cycleResult = cycleResults[i];
+  cycleWho = "best";
+  overlayMode = "cycle";
+  if (overlayEl) overlayEl.value = "cycle";
+  renderCyclePanel();
+  $("cyclePanel").scrollTop = 0;
+}
+
 function renderCyclePanel() {
   const r = cycleResult;
   const el = $("cyclePanel");
@@ -1030,49 +1100,90 @@ function renderCyclePanel() {
   $("experimentPanel").style.display = "none";
   el.style.display = "block";
 
+  const n = cycleIdx + 1;
+  const prev = n - 1;
+  const names = n === 1
+    ? { before: "Before", noPlan: "No plan", withPlan: "With plan" }
+    : { before: `After plan ${prev}`, noPlan: `Keep plan ${prev}`, withPlan: `Plan ${n}` };
   const d = r.avg.withPlan - r.avg.noPlan;
-  const tab = (id, label) => `<button data-cyview="${id}" class="${cycleView === id ? "on" : ""}">${label}</button>`;
+  const tab = (id) => `<button data-cyview="${id}" class="${cycleView === id ? "on" : ""}">${names[id]}</button>`;
   const rows = [["commute", "Commute"], ["home", "Flooded home"], ["groceries", "Groceries"], ["parks", "Dirty parks"]]
     .filter(([k]) => r.frictions.noPlan[k] > 0.05 || r.frictions.withPlan[k] > 0.05)
     .map(([k, label]) => {
       const a = r.frictions.noPlan[k], b = r.frictions.withPlan[k];
-      return `<span>${label}</span><span>−${fmt(a)}</span><span${b < a - 0.05 ? ' style="color:var(--accent)"' : ""}>−${fmt(b)}</span>`;
+      return `<span>${label}</span><span>−${fmt(a)}</span><span${b < a - 0.3 ? ' style="color:var(--accent)"' : ""}>−${fmt(b)}</span>`;
     }).join("");
   const who = cycleWho === "worst" && r.worst ? r.worst : r.best;
   const whoDelta = who.withPlan - who.noPlan;
+  const cycleTabs = cycleResults.length > 1
+    ? `<div class="cy-tabs">${cycleResults.map((_, i) => `<button data-cycle="${i}" class="${i === cycleIdx ? "on" : ""}">Cycle ${i + 1}</button>`).join("")}</div>`
+    : "";
+
+  // Cycle 2+: what the journals changed, and what nothing in the catalog can fix yet.
+  const changes = n > 1 ? `
+    <div class="cy-who" style="margin-top:8px">
+      <div class="lbl">What residents' journals changed</div>
+      ${r.added?.length ? r.added.map((a) => `<div><b style="color:var(--accent)">+ ${esc(a.label)}</b></div>`).join("") : `<div class="muted">No new simulated proposal.</div>`}
+      ${r.removed?.length ? r.removed.map((a) => `<div class="muted">− ${esc(a.label)}</div>`).join("") : ""}
+      ${r.target ? `<div class="muted">Top fixable complaint: ${esc(r.target.label)} (${r.target.count} residents)</div>` : ""}
+      <div class="muted" style="margin-top:2px">${esc(r.note)}</div>
+      ${r.unreachable?.length ? `<div class="warn">Can't fix yet: ${r.unreachable.map((u) => `${esc(u.label)} (${u.count} residents)`).join(", ")}. No proposal in the plan catalog reaches this in the simulation.</div>` : ""}
+    </div>` : "";
+
+  // Cycle 2+: follow up on whoever the previous plan hurt most.
+  const f = r.followUp;
+  const followUp = n > 1 && f ? `
+    <div class="cy-who">
+      <div class="row" style="justify-content:space-between;margin:0"><b>${esc(f.name)}</b><button id="cycleFollowUp">Follow</button></div>
+      <div class="lbl">Hurt most by plan ${prev}. Did plan ${n} help?</div>
+      <div class="cy-fric" style="grid-template-columns:1fr auto;margin-top:4px">
+        ${prev === 1 ? `<span>No plan</span><span>${fmt(f.noPlan1)}</span>` : `<span>Before plan ${prev}</span><span>${fmt(f.noPlan1)}</span>`}
+        <span>Plan ${prev}</span><span>${fmt(f.plan1)}</span>
+        <span>A week later, keeping plan ${prev}</span><span>${fmt(f.keepPlan1)}</span>
+        <span><b>A week later, with plan ${n}</b></span><span><b style="color:${f.plan2 > f.keepPlan1 ? "var(--accent)" : "inherit"}">${fmt(f.plan2)}</b></span>
+      </div>
+    </div>` : "";
 
   el.innerHTML = `
     <div class="row" style="justify-content:space-between;margin:0">
-      <h1 style="margin:0">Civic cycle · ${esc(r.label)}</h1>
+      <h1 style="margin:0">${n === 1 ? `Civic cycle · ${esc(r.label)}` : `Cycle ${n} · plan ${n} from residents' journals`}</h1>
       <button id="cycleClose" aria-label="Close">✕</button>
     </div>
-    <div class="muted">${r.days} simulated days · plan year ${r.year} · same seed, with and without the plan${r.source === "dear-congress" ? " · plan from dear-congress" : ""}</div>
+    ${cycleTabs}
+    <div class="muted">${r.days} simulated days · plan year ${r.year} · same seed, ${n === 1 ? "with and without the plan" : `plan ${n} vs keeping plan ${prev}`}${r.source === "dear-congress" ? " · plan from dear-congress" : ""}</div>
     <div class="cy-big">
-      <div><span class="muted">Before</span><b>${fmt(r.avg.before)}</b></div>
-      <div><span class="muted">No plan</span><b>${fmt(r.avg.noPlan)}</b></div>
-      <div class="${d > 0 ? "win" : ""}"><span class="muted">With plan</span><b>${fmt(r.avg.withPlan)}</b></div>
+      <div><span class="muted">${names.before}</span><b>${fmt(r.avg.before)}</b></div>
+      <div><span class="muted">${names.noPlan}</span><b>${fmt(r.avg.noPlan)}</b></div>
+      <div class="${d > 0 ? "win" : ""}"><span class="muted">${names.withPlan}</span><b>${fmt(r.avg.withPlan)}</b></div>
     </div>
-    <div><b>${signed(d)}</b> average well-being from the plan · <b>${r.improved}</b> residents better off, <b>${r.worse}</b> worse off</div>
-    <div class="cy-tabs">${tab("before", "Before")}${tab("noPlan", "No plan")}${tab("withPlan", "With plan")}</div>
+    <div><b>${signed(d)}</b> average well-being ${n === 1 ? "from the plan" : `from plan ${n}`} · <b>${r.improved}</b> residents better off, <b>${r.worse}</b> worse off</div>
+    ${changes}
+    <div class="cy-tabs">${tab("before")}${tab("noPlan")}${tab("withPlan")}</div>
     <div class="cy-scale"></div>
     <div class="row muted" style="justify-content:space-between;margin:0;font-size:11px"><span>struggling</span><span>doing well</span></div>
-    ${rows ? `<div class="cy-fric" style="margin-top:8px"><span class="h">Points lost to</span><span class="h">No plan</span><span class="h">With plan</span>${rows}</div>` : ""}
+    ${rows ? `<div class="cy-fric" style="margin-top:8px"><span class="h">Points lost to</span><span class="h">${names.noPlan}</span><span class="h">${names.withPlan}</span>${rows}</div>` : ""}
     ${r.unsupported?.length ? `<div class="muted" style="margin-top:6px">Not simulated: ${esc(r.unsupported.slice(0, 4).join(", "))}</div>` : ""}
+    ${followUp}
     <div class="cy-who">
       <div class="row" style="justify-content:space-between;margin:0">
         <b>${esc(who.name)}</b>
         <span class="muted">${fmt(who.noPlan)} → ${fmt(who.withPlan)} (${signed(whoDelta)})</span>
       </div>
-      <div class="lbl">${cycleWho === "worst" ? "Hurt most by the plan" : "Helped most by the plan"}</div>
-      <div class="lbl" style="margin-top:6px">Journal, day 1</div>
-      <blockquote>${esc(who.journalBefore) || '<span class="muted">No complaints.</span>'}</blockquote>
-      <div class="lbl">Journal, day ${r.days}, with the plan</div>
-      <blockquote>${esc(who.journalAfter) || '<span class="muted">No complaints.</span>'}</blockquote>
+      <div class="lbl">${cycleWho === "worst" ? `Hurt most by ${n === 1 ? "the plan" : `plan ${n}`}` : `Helped most by ${n === 1 ? "the plan" : `plan ${n}`}`}</div>
+      <div class="lbl" style="margin-top:6px">Journal, ${n === 1 ? "day 1" : `end of cycle ${prev}`}</div>
+      <blockquote>${esc(who.journalBefore) || "<span class=\"muted\">No complaints.</span>"}</blockquote>
+      <div class="lbl">Journal, day ${r.days}, with ${n === 1 ? "the plan" : `plan ${n}`}</div>
+      <blockquote>${esc(who.journalAfter) || "<span class=\"muted\">No complaints.</span>"}</blockquote>
       <div class="row">
         <button id="cycleFollow">Follow ${esc(who.name.split(" ")[0])}</button>
         ${r.worst ? `<button id="cycleWhoToggle">${cycleWho === "worst" ? "Who it helped" : "Who got worse?"}</button>` : ""}
       </div>
     </div>
+    ${cycleIdx === cycleResults.length - 1 ? `
+    <div class="row" style="margin-top:10px">
+      <button id="cycleNext" ${cycleBusy ? "disabled" : ""} title="Residents journal about this week; their journals pick the next change">Run cycle ${cycleResults.length + 1} →</button>
+      <span class="muted">let residents' journals pick the next fix</span>
+    </div>` : ""}
     <div class="exp-footnote">Synthetic residents. Well-being = day-averaged mood minus commute, housing, grocery and park frictions. Illustrative, not a forecast.</div>`;
 
   el.querySelectorAll("[data-cyview]").forEach((b) => (b.onclick = () => {
@@ -1081,8 +1192,13 @@ function renderCyclePanel() {
     if (overlayEl) overlayEl.value = "cycle";
     renderCyclePanel();
   }));
+  el.querySelectorAll("[data-cycle]").forEach((b) => (b.onclick = () => showCycle(Number(b.dataset.cycle))));
   $("cycleClose").onclick = () => { el.style.display = "none"; };
   $("cycleFollow").onclick = () => followResident(who.index);
+  const fu = $("cycleFollowUp");
+  if (fu) fu.onclick = () => followResident(f.index);
+  const next = $("cycleNext");
+  if (next) next.onclick = runNextCycle;
   const toggle = $("cycleWhoToggle");
   if (toggle) toggle.onclick = () => {
     cycleWho = cycleWho === "worst" ? "best" : "worst";
@@ -1092,6 +1208,12 @@ function renderCyclePanel() {
 }
 
 $("runCycleBtn")?.addEventListener("click", runCycle);
+// Reopen results after closing the panel or after the 10-year experiment took its corner.
+$("cycleShowBtn")?.addEventListener("click", () => {
+  if (!cycleResults.length) return;
+  renderCyclePanel();
+  $("cyclePanel").scrollTop = 0;
+});
 
 const tileKey = `${origin.lat.toFixed(3)},${origin.lng.toFixed(3)}`;
 const JOURNAL_COOLDOWN_MS = 5 * 60 * 1000;

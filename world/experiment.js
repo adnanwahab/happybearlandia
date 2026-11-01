@@ -166,6 +166,7 @@ function applyPolicyToWorld(world, policyEffects) {
   world.restockBoost = policyEffects.restockBoost;
   world.hiringBoost = policyEffects.hiringBoost;
   world.voucherMonthly = policyEffects.voucherMonthly;
+  world.groceryDelivery = policyEffects.groceryDelivery || 0;
   world.policy = {
     ...(world.policy || {}),
     ...policyEffects,

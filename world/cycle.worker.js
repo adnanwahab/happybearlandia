@@ -1,19 +1,40 @@
-// Run one civic cycle off the main thread.
+// Run civic cycles off the main thread.
 //
-// Builds two identical copies of the visible town (same origin, area and seed),
-// records one baseline day, applies the plan package to one copy only, runs both
-// for a week, then records a final day. Comparing "with plan" to "no plan" on the
-// same seed isolates the plan's effect from the world's own drift.
+// Cycle 1: two identical copies of the visible town (same origin, area and seed).
+// After a warm-up and a baseline day, one copy gets the plan and both run a week.
+// Comparing "with plan" to "no plan" on the same seed isolates the plan's effect
+// from the world's own drift.
+//
+// Cycle 2: residents of the plan world journal about their week. Those journals
+// pick the next change (dear-congress if reachable, otherwise a local re-rank of
+// complaints), which is layered on top of plan 1 in a forked copy of the plan world
+// and compared against simply keeping plan 1 for another week.
+//
+// The sim is deterministic per seed, so forking = replaying the same history.
 
 import { buildTown } from "./gen.js";
 import { createWorld } from "./sim.js";
-import { computeEffectsForYear } from "./policy.js";
-import { journalFor } from "./journal.js";
+import { computeEffectsForYear, resolveRuleForProposal, POLICY_RULES } from "./policy.js";
+import { journalFor, WALK_COMPLAINT_MINUTES } from "./journal.js";
 import { createDayMeter, frictions, mean } from "./wellbeing.js";
 
 const SAMPLE_EVERY = 10; // game minutes between mood samples
+const WARMUP_DAYS = 3;   // the 3-day commute average starts at zero; warm it up first
 
-function makeWorld(origin, area, maxPeople) {
+// What each complaint is, and which simulated proposals can reach it.
+// Grocery complaints split in two: empty shelves (small-business proposals add
+// store deliveries) vs. an empty fridge at home (the grocery delivery program).
+const COMPLAINTS = {
+  transit: { label: "long commutes", fixes: ["t_bus", "t_brt"] },
+  streets: { label: "dirty parks", fixes: ["s_311"] },
+  flood: { label: "flooded homes", fixes: ["f_drainage", "f_buyouts"] },
+  shelves: { label: "sold-out groceries", fixes: ["sb_payroll", "sb_filing"] },
+  fridge: { label: "empty fridges at home", fixes: ["g_delivery"] },
+};
+
+let state = null; // kept between cycles so cycle 2 can continue cycle 1's worlds
+
+function makeWorld({ origin, area, maxPeople }) {
   const town = buildTown(origin, area, { maxPeople });
   const world = createWorld(town);
   const byId = {};
@@ -21,10 +42,43 @@ function makeWorld(origin, area, maxPeople) {
   return { world, byId };
 }
 
+function applyPlan(w, proposalIds, year) {
+  const staged = computeEffectsForYear(proposalIds, year);
+  const e = staged.effects;
+  Object.assign(w, {
+    speedMult: e.speedMult,
+    parkCleanupBoost: e.parkCleanupBoost,
+    restockBoost: e.restockBoost,
+    hiringBoost: e.hiringBoost,
+    voucherMonthly: e.voucherMonthly,
+    groceryDelivery: e.groceryDelivery,
+  });
+  return staged;
+}
+
 function recordDay(w) {
   const meter = createDayMeter(w.people.length);
   for (let m = 0; m < 1440; m += SAMPLE_EVERY) { w.step(SAMPLE_EVERY); meter.sample(w.people); }
   return meter.result(w.people);
+}
+
+// A world's full history: warm-up, baseline day, then one week per plan in
+// `plans` (each week ends with a recorded day). The sim is deterministic, so
+// replaying the same plan list reproduces a world exactly. That's how later
+// cycles fork the plan world: replay every plan it has lived through so far.
+async function replayHistory(env, plans, onDay) {
+  const made = makeWorld(env);
+  const w = made.world;
+  for (let d = 0; d < WARMUP_DAYS; d++) { w.step(1440); await onDay?.(); }
+  const before = recordDay(w);
+  const journalsBefore = journals(w, made.byId);
+  let after = before, staged = null;
+  for (const ids of plans) {
+    staged = applyPlan(w, ids, env.year);
+    for (let d = 0; d < env.days - 1; d++) { w.step(1440); await onDay?.(); }
+    after = recordDay(w);
+  }
+  return { ...made, before, after, journalsBefore, staged };
 }
 
 function journals(w, byId) {
@@ -39,82 +93,219 @@ function frictionAverages(w) {
   return out;
 }
 
+// How many residents had each problem yesterday (the thresholds journal.js complains at).
+function complaintCounts(w) {
+  const c = { transit: 0, streets: 0, flood: 0, shelves: 0, fridge: 0 };
+  for (const p of w.people) {
+    const d = p.yesterday || {};
+    if (Number(p.walkMinutesAvg3d || 0) > WALK_COMPLAINT_MINUTES) c.transit++;
+    if (Number(d.dirtyParkVisits || 0) >= 2) c.streets++;
+    if (d.displaced || d.homeFlooded) c.flood++;
+    if (Array.isArray(d.soldOutAt) && d.soldOutAt.length) c.shelves++;
+    if (d.emptyFridge) c.fridge++;
+  }
+  return c;
+}
+
+const canonical = (ids) => new Set((ids || []).map((id) => resolveRuleForProposal(id)?.id).filter(Boolean));
+const ruleLabel = (id) => POLICY_RULES[resolveRuleForProposal(id)?.id]?.label || id;
+
+// Local stand-in for synthesis: the most-complained-about problem that some
+// simulated proposal can still reach and plan 1 doesn't already include.
+function localNextPlan(plan1Ids, counts) {
+  const have = canonical(plan1Ids);
+  const ranked = Object.entries(counts).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
+  const unreachable = ranked
+    .filter(([k]) => COMPLAINTS[k].fixes.length === 0)
+    .map(([k, n]) => ({ id: k, label: COMPLAINTS[k].label, count: n }));
+  for (const [k, n] of ranked) {
+    // Prefer a fix that takes effect quickly; t_bus has no lag, t_brt has two years.
+    const fix = COMPLAINTS[k].fixes.find((f) => !have.has(f));
+    if (fix) return { add: [fix], target: { id: k, label: COMPLAINTS[k].label, count: n }, unreachable };
+  }
+  return { add: [], target: null, unreachable };
+}
+
+// Ask dear-congress for a re-synthesized plan given the residents' journals.
+// Same request shape the 10-year experiment uses. Returns null if unreachable.
+async function liveNextPlan(plan1Label, plan1Ids, journalTexts, names) {
+  const entries = [];
+  const now = Date.now();
+  journalTexts.forEach((text, i) => {
+    if (text && entries.length < 24) entries.push({ text, author: names[i], createdAt: new Date(now - (entries.length % 24) * 60000).toISOString() });
+  });
+  try {
+    const res = await fetch("/api/plan", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ includeSynthetic: false, extraEntries: entries, previous: { [plan1Label]: plan1Ids } }),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return null;
+    const payload = await res.json();
+    const rows = Array.isArray(payload) ? payload : payload?.packages || payload?.results || payload?.items || payload?.data?.packages || [];
+    const needle = String(plan1Label || "").toLowerCase();
+    const row = rows.find((r) => String(r?.name || r?.title || r?.label || "").toLowerCase() === needle) || rows[0];
+    if (!row) return null;
+    const items = row.items || row.proposals || row.package?.items || [];
+    const ids = [...new Set(items.map((it) => it?.proposal?.id || it?.proposalId || it?.id || it?.proposal_id).filter(Boolean))];
+    return ids.length ? { proposalIds: ids, label: row.name || row.title || row.label || plan1Label } : null;
+  } catch {
+    return null;
+  }
+}
+
+function resident(i, w, scores, j0, j1) {
+  return {
+    index: i,
+    name: w.people[i].name,
+    before: scores.before[i],
+    noPlan: scores.noPlan[i],
+    withPlan: scores.withPlan[i],
+    journalBefore: j0[i],
+    journalAfter: j1[i],
+  };
+}
+
+function summarize(scores, worldNo, worldPlan, j0, j1) {
+  const delta = scores.withPlan.map((x, i) => x - scores.noPlan[i]);
+  let best = 0, worst = 0;
+  for (let i = 1; i < delta.length; i++) {
+    if (delta[i] > delta[best]) best = i;
+    if (delta[i] < delta[worst]) worst = i;
+  }
+  return {
+    avg: { before: mean(scores.before), noPlan: mean(scores.noPlan), withPlan: mean(scores.withPlan) },
+    improved: delta.filter((x) => x > 5).length,
+    worse: delta.filter((x) => x < -5).length,
+    frictions: { noPlan: frictionAverages(worldNo), withPlan: frictionAverages(worldPlan) },
+    best: resident(best, worldPlan, scores, j0, j1),
+    worst: delta[worst] < -1 ? resident(worst, worldPlan, scores, j0, j1) : null,
+  };
+}
+
+async function cycle1(payload, progress) {
+  const env = {
+    origin: payload.origin,
+    area: payload.area,
+    maxPeople: payload.maxPeople || 500,
+    year: payload.year ?? 3,
+    days: payload.days ?? 7,
+  };
+  const plan1Ids = payload.proposalIds || [];
+  const totalDays = 2 * (WARMUP_DAYS + env.days);
+  let done = 0;
+  const tick = async (label) => { done++; progress(label(), done / totalDays); await null; };
+
+  const base = await replayHistory(env, [[]], () => tick(() => "Simulating without the plan"));
+  const plan = await replayHistory(env, [plan1Ids], () => tick(() => "Simulating with the plan"));
+  const journalsAfter = journals(plan.world, plan.byId);
+  const scores = { before: [...plan.before], noPlan: [...base.after], withPlan: [...plan.after] };
+
+  state = { env, history: [plan1Ids], plan1Ids, plan1Label: payload.label, planWorld: plan.world, planById: plan.byId, cycle1Scores: scores };
+
+  return {
+    cycle: 1,
+    days: env.days,
+    year: env.year,
+    proposalIds: plan1Ids,
+    unsupported: plan.staged.unsupported,
+    scores,
+    ...summarize(scores, base.world, plan.world, plan.journalsBefore, journalsAfter),
+  };
+}
+
+async function cycle2(progress) {
+  if (!state) throw new Error("Run cycle 1 first");
+  const { env, history, plan1Ids, plan1Label, planWorld, planById, cycle1Scores } = state;
+
+  progress("Reading residents' journals", 0.02);
+  const counts = complaintCounts(planWorld);
+  const journalsNow = journals(planWorld, planById);
+  const local = localNextPlan(plan1Ids, counts);
+
+  progress("Asking dear-congress for the next plan", 0.05);
+  const live = await liveNextPlan(plan1Label, plan1Ids, journalsNow, planWorld.people.map((p) => p.name));
+  const have = canonical(plan1Ids);
+  const liveAdds = live ? [...canonical(live.proposalIds)].filter((id) => !have.has(id)) : [];
+
+  let plan2Ids, source, note;
+  if (live && liveAdds.length) {
+    plan2Ids = live.proposalIds;
+    source = "dear-congress";
+    note = `dear-congress re-synthesized the plan from residents' journals`;
+  } else {
+    plan2Ids = [...plan1Ids, ...local.add];
+    source = "local";
+    note = live
+      ? "dear-congress kept the same simulated proposals, so the next fix was picked locally from the complaints"
+      : "dear-congress wasn't reachable, so the next fix was picked locally from the complaints";
+  }
+  const before = canonical(plan1Ids), after = canonical(plan2Ids);
+  const added = [...after].filter((id) => !before.has(id));
+  const removed = [...before].filter((id) => !after.has(id));
+
+  // Fork the plan world by replaying everything it has lived through, then give the fork the new plan.
+  const forkTotal = WARMUP_DAYS + history.length * (env.days - 1);
+  let forked = 0;
+  const fork = await replayHistory(env, history, async () => {
+    forked++;
+    progress("Forking the plan-1 world", 0.1 + 0.4 * (forked / forkTotal));
+    await null;
+  });
+  const staged = applyPlan(fork.world, plan2Ids, env.year);
+
+  for (let d = 0; d < env.days - 1; d++) {
+    progress(`Simulating day ${d + 1} of ${env.days}: plan 1 vs plan 2`, 0.5 + 0.48 * ((d + 1) / env.days));
+    planWorld.step(1440);
+    fork.world.step(1440);
+    await null;
+  }
+  const keep = recordDay(planWorld);
+  const next = recordDay(fork.world);
+  const scores = { before: cycle1Scores.withPlan, noPlan: [...keep], withPlan: [...next] };
+  const j1 = journals(fork.world, fork.byId);
+
+  // Follow up on whoever cycle 1 hurt most: did plan 2 help them?
+  const c1Delta = cycle1Scores.withPlan.map((x, i) => x - cycle1Scores.noPlan[i]);
+  let hurt = 0;
+  for (let i = 1; i < c1Delta.length; i++) if (c1Delta[i] < c1Delta[hurt]) hurt = i;
+
+  // The fork continues from here, so a third cycle would build on plan 2.
+  state = { ...state, history: [...history, plan2Ids], plan1Ids: plan2Ids, planWorld: fork.world, planById: fork.byId, cycle1Scores: scores };
+
+  return {
+    cycle: 2,
+    days: env.days,
+    year: env.year,
+    proposalIds: plan2Ids,
+    unsupported: staged.unsupported,
+    source,
+    note,
+    added: added.map((id) => ({ id, label: ruleLabel(id) })),
+    removed: removed.map((id) => ({ id, label: ruleLabel(id) })),
+    target: source === "local" ? local.target : null,
+    unreachable: local.unreachable,
+    complaints: Object.entries(counts).map(([id, count]) => ({ id, label: COMPLAINTS[id].label, count, reachable: COMPLAINTS[id].fixes.length > 0 })),
+    followUp: {
+      index: hurt,
+      name: planWorld.people[hurt].name,
+      noPlan1: cycle1Scores.noPlan[hurt],
+      plan1: cycle1Scores.withPlan[hurt],
+      keepPlan1: keep[hurt],
+      plan2: next[hurt],
+    },
+    scores,
+    ...summarize(scores, planWorld, fork.world, journalsNow, j1),
+  };
+}
+
 self.onmessage = async (ev) => {
   const msg = ev?.data || {};
-  if (msg.type !== "run") return;
-  const { origin, area, maxPeople = 500, proposalIds = [], year = 3, days = 7 } = msg.payload || {};
+  const progress = (stage, frac) => self.postMessage({ type: "progress", stage, frac });
   try {
-    const progress = (stage, frac) => self.postMessage({ type: "progress", stage, frac });
-
-    const base = makeWorld(origin, area, maxPeople);
-    const plan = makeWorld(origin, area, maxPeople);
-    const a = base.world, b = plan.world;
-
-    // Warm up first: the 3-day commute average starts at zero, so an unwarmed
-    // baseline would look rosier than any later day and mislead the "Before" number.
-    progress("Warming up the town", 0);
-    for (let d = 0; d < 3; d++) { a.step(1440); b.step(1440); await null; }
-
-    progress("Recording a baseline day", 0.2);
-    recordDay(a);
-    const before = recordDay(b);
-    const journalsBefore = journals(b, plan.byId);
-
-    const staged = computeEffectsForYear(proposalIds, year);
-    const e = staged.effects;
-    Object.assign(b, {
-      speedMult: e.speedMult,
-      parkCleanupBoost: e.parkCleanupBoost,
-      restockBoost: e.restockBoost,
-      hiringBoost: e.hiringBoost,
-      voucherMonthly: e.voucherMonthly,
-    });
-
-    const runDays = Math.max(1, days - 1);
-    for (let d = 0; d < runDays; d++) {
-      progress(`Simulating day ${d + 1} of ${days}`, 0.2 + (0.8 * (d + 1)) / (runDays + 1));
-      a.step(1440);
-      b.step(1440);
-      await null; // let progress messages flush
-    }
-
-    progress(`Recording day ${days}`, 0.97);
-    const noPlan = recordDay(a);
-    const withPlan = recordDay(b);
-    const journalsAfter = journals(b, plan.byId);
-
-    const delta = [...withPlan].map((x, i) => x - noPlan[i]);
-    let best = 0, worst = 0;
-    for (let i = 1; i < delta.length; i++) {
-      if (delta[i] > delta[best]) best = i;
-      if (delta[i] < delta[worst]) worst = i;
-    }
-    const resident = (i) => ({
-      index: i,
-      name: b.people[i].name,
-      before: before[i],
-      noPlan: noPlan[i],
-      withPlan: withPlan[i],
-      journalBefore: journalsBefore[i],
-      journalAfter: journalsAfter[i],
-    });
-
-    self.postMessage({
-      type: "done",
-      result: {
-        days,
-        year,
-        unsupported: staged.unsupported,
-        effects: e,
-        scores: { before: [...before], noPlan: [...noPlan], withPlan: [...withPlan] },
-        avg: { before: mean([...before]), noPlan: mean([...noPlan]), withPlan: mean([...withPlan]) },
-        improved: delta.filter((x) => x > 5).length,
-        worse: delta.filter((x) => x < -5).length,
-        frictions: { noPlan: frictionAverages(a), withPlan: frictionAverages(b) },
-        best: resident(best),
-        worst: delta[worst] < -1 ? resident(worst) : null,
-      },
-    });
+    if (msg.type === "run") self.postMessage({ type: "done", result: await cycle1(msg.payload || {}, progress) });
+    else if (msg.type === "next") self.postMessage({ type: "done", result: await cycle2(progress) });
   } catch (err) {
     self.postMessage({ type: "error", error: String(err?.message || err) });
   }
