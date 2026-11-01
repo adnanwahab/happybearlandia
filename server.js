@@ -1,7 +1,8 @@
 import { serve } from "bun";
 import { readdir } from "node:fs/promises";
 import { extname, join, normalize, relative } from "node:path";
-import { handleArea, handleOverpassHealth, OVERPASS_ENDPOINTS, OVERPASS_TIMEOUT_MS } from "./world/api.js";
+import { getArea, handleArea, handleOverpassHealth, OVERPASS_ENDPOINTS, OVERPASS_TIMEOUT_MS } from "./world/api.js";
+import { createExperimentsHandler } from "./world/experiments-api.js";
 
 const PORT = Number(process.env.PORT) || 3000;
 const DEAR_CONGRESS_URL = process.env.DEAR_CONGRESS_URL || "https://dear-congress.fly.dev/api";
@@ -293,6 +294,24 @@ async function handlePublishDraft(request) {
   }
 }
 
+async function fetchPlanFromDearCongress(body) {
+  const base = DEAR_CONGRESS_URL.endsWith("/") ? DEAR_CONGRESS_URL : DEAR_CONGRESS_URL + "/";
+  const res = await fetch(new URL("synthesize", base), {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      accept: "application/json",
+      "user-agent": "HappyBearLandia/0.1 (+https://happybearlandia.fly.dev)",
+    },
+    body: JSON.stringify(body || {}),
+    signal: AbortSignal.timeout(12000),
+  });
+  if (!res.ok) throw new Error(`dear-congress synthesize HTTP ${res.status}`);
+  return await res.json();
+}
+
+const handleExperiments = createExperimentsHandler({ fetchPlan: fetchPlanFromDearCongress, getArea });
+
 const server = serve({
   port: PORT,
 
@@ -339,6 +358,7 @@ const server = serve({
     }
     if (pathname === "/api/overpass-health") return handleOverpassHealth();
     if (pathname === "/api/config") return handleConfig();
+    if (under(pathname, "/api/world/experiments")) return handleExperiments(request);
     if (pathname === "/api/plan") return handlePlan(request);
     if (pathname === "/api/outcomes") return handleOutcomes();
     if (pathname === "/api/publish_draft") return handlePublishDraft(request);
@@ -347,7 +367,7 @@ const server = serve({
     if (pathname === "/api/screenshots") return handleScreenshots(new URL(request.url));
     if (under(pathname, "/api/dear-congress")) return proxyDearCongress(request);
     if (under(pathname, "/world")) {
-      if (pathname.endsWith("/api.js")) return notFound(); // server-only code
+      if (pathname.endsWith("/api.js") || pathname.endsWith("-api.js")) return notFound(); // server-only code
       return serveStatic("/world", "./world", pathname);
     }
 
