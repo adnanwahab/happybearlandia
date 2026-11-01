@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { buildTown } from "./gen.js";
+import { buildTown, projector } from "./gen.js";
 import { createWorld, clock } from "./sim.js";
 import { journalFor, WALK_COMPLAINT_MINUTES } from "./journal.js";
 import { computeEffectsForYear, derivePolicyProfile } from "./policy.js";
@@ -59,6 +59,7 @@ try {
 
 const town = buildTown(origin, area, { maxPeople });
 const world = createWorld(town);
+const geoProj = projector(origin);
 const buildingsById = {};
 for (const b of town.buildings) {
   buildingsById[b.index] = b;
@@ -210,8 +211,14 @@ scene.add(ring);
 /* Interaction                                                       */
 /* ---------------------------------------------------------------- */
 let speed = 10; // game minutes per real second
-let selected = null; // { type: "person"|"building", id }
+let selected = null; // { type: "person"|"building"|"journal", id }
 let follow = false;
+let overlayMode = "none";
+let todayJournalPosts = [];
+let journalPins = [];
+const overlayEl = $("overlayMode");
+const overlayLegendEl = $("overlayLegend");
+if (overlayEl) overlayEl.onchange = (e) => { overlayMode = e.target.value || "none"; };
 for (const btn of $("speeds").children) btn.onclick = () => {
   speed = Number(btn.dataset.s);
   for (const b of $("speeds").children) b.classList.toggle("on", b === btn);
@@ -416,6 +423,53 @@ function lowlandScore(b) {
   const [x, z] = b.center;
   const n = Math.sin(x * 0.0041 + z * 0.0057 + b.index * 0.77 + town.seedKey.length * 0.13) * 43758.5453;
   return n - Math.floor(n); // 0..1
+}
+
+function floodCutNow() {
+  return Math.max(0.04, 0.24 - (world.policy?.floodMitigation || 0));
+}
+
+function floodImpactNotes() {
+  const pids = world.policy?.proposalIds || [];
+  const out = [];
+  if (pids.includes("f_drainage")) out.push(`f_drainage≈${Math.round((0.16 / 0.28) * 100)}%`);
+  if (pids.includes("f_buyouts")) out.push(`f_buyouts≈${Math.round((0.12 / 0.28) * 100)}%`);
+  return out.join(" · ");
+}
+
+function updateOverlayLegend() {
+  if (!overlayLegendEl) return;
+  if (overlayMode === "flood") {
+    const fm = Math.round((world.policy?.floodMitigation || 0) * 100);
+    const impacts = floodImpactNotes();
+    overlayLegendEl.textContent = `flood mitigation ${fm}%${impacts ? ` · impact shares ${impacts}` : ""}`;
+  } else if (overlayMode === "commute") {
+    overlayLegendEl.textContent = `home color = avg walk minutes (threshold ${WALK_COMPLAINT_MINUTES}m)`;
+  } else if (overlayMode === "journals") {
+    overlayLegendEl.textContent = `${todayJournalPosts.length} journal pin${todayJournalPosts.length === 1 ? "" : "s"} today`;
+  } else {
+    overlayLegendEl.textContent = "";
+  }
+}
+
+function clearJournalPins() {
+  for (const p of journalPins) scene.remove(p.mesh);
+  journalPins = [];
+}
+
+function rebuildJournalPins() {
+  clearJournalPins();
+  for (let i = 0; i < todayJournalPosts.length; i++) {
+    const j = todayJournalPosts[i];
+    const b = town.buildings[j.home];
+    if (!b) continue;
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(1.4, 10, 10), new THREE.MeshBasicMaterial({ color: 0xb5523b }));
+    mesh.position.set(b.center[0], b.height + 2, b.center[1]);
+    mesh.userData = { journalIndex: i };
+    scene.add(mesh);
+    journalPins.push({ mesh, journal: j });
+  }
+  updateOverlayLegend();
 }
 
 function nearestSafeHome(fromHome) {
@@ -892,6 +946,8 @@ async function publishSyntheticJournalsForDay(day) {
   journalInFlight = true;
   journalDiag.day = day;
   journalDiag.status = "publishing";
+  todayJournalPosts = [];
+  rebuildJournalPins();
   renderJournalDiagnostics();
 
   try {
@@ -938,6 +994,7 @@ async function publishSyntheticJournalsForDay(day) {
       journalDiag.status = "no candidates";
       journalDiag.lastError = null;
       lastJournalDay = day;
+      rebuildJournalPins();
       renderJournalDiagnostics();
       return;
     }
@@ -953,6 +1010,7 @@ async function publishSyntheticJournalsForDay(day) {
     if (Date.now() - postedAt < JOURNAL_COOLDOWN_MS) {
       journalDiag.status = "skipped: this tile posted recently";
       lastJournalDay = day;
+      rebuildJournalPins();
       renderJournalDiagnostics();
       return;
     }
@@ -962,12 +1020,16 @@ async function publishSyntheticJournalsForDay(day) {
     journalDiag.lastError = null;
 
     let ok = 0;
+    todayJournalPosts = [];
     for (const { p, i, mood, text } of picked) {
+      const home = town.buildings[p.home];
+      const [lat, lng] = geoProj.toLatLng(home.center[0], home.center[1]);
       const payload = {
         kind: "journal",
         synthetic: true,
         source: "happybearlandia-world",
         tileId: tileKey,
+        location: { lat, lng },
         day,
         residentId: String(p.id ?? i),
         title: `Journal · ${p.name}`,
@@ -975,8 +1037,9 @@ async function publishSyntheticJournalsForDay(day) {
         body: text,
         content: text,
         metadata: {
-          lat: origin.lat,
-          lng: origin.lng,
+          lat,
+          lng,
+          tileId: tileKey,
           policyId: world.policy?.id || "none",
           policyYear,
           mood: Number(mood.toFixed(1)),
@@ -998,7 +1061,18 @@ async function publishSyntheticJournalsForDay(day) {
           body: JSON.stringify(payload),
           signal: AbortSignal.timeout(8000),
         });
-        if (res.ok) ok++;
+        if (res.ok) {
+          ok++;
+          const out = await res.json().catch(() => null);
+          const mappedNeed = out?.entry?.extraction?.needs?.[0]?.id || "unknown";
+          todayJournalPosts.push({
+            residentId: String(p.id ?? i),
+            name: p.name,
+            home: p.home,
+            text,
+            needId: mappedNeed,
+          });
+        }
       } catch (err) {
         journalDiag.lastError = String(err?.message || err || "request failed");
         // continue posting next resident
@@ -1013,6 +1087,7 @@ async function publishSyntheticJournalsForDay(day) {
     }
     journalDiag.status = ok > 0 ? "published" : "upstream unavailable";
     if (ok > 0) journalDiag.lastError = null;
+    rebuildJournalPins();
     world.log(`Published ${ok}/${picked.length} synthetic journals for day ${day}`, "civic");
     renderJournalDiagnostics();
   } finally {
@@ -1030,7 +1105,11 @@ renderer.domElement.addEventListener("pointerup", (e) => {
   ray.setFromCamera(ptr, camera);
   const hp = ray.intersectObject(people)[0];
   const hb = ray.intersectObjects(meshes)[0];
-  if (hp && (!hb || hp.distance < hb.distance)) select({ type: "person", id: hp.instanceId });
+  const hj = journalPins.length ? ray.intersectObjects(journalPins.map((x) => x.mesh))[0] : null;
+  if (hj) {
+    const ji = hj.object.userData.journalIndex;
+    select({ type: "journal", id: ji });
+  } else if (hp && (!hb || hp.distance < hb.distance)) select({ type: "person", id: hp.instanceId });
   else if (hb) select({ type: "building", id: hb.object.userData.b.index });
   else select(null);
 });
@@ -1051,7 +1130,14 @@ function needBars(p) {
 function renderInspector() {
   const el = $("inspect");
   if (!selected) return;
-  if (selected.type === "person") {
+  if (selected.type === "journal") {
+    const j = todayJournalPosts[selected.id];
+    if (!j) { el.innerHTML = "<div class=\"muted\">Journal pin expired.</div>"; return; }
+    el.innerHTML = `<h1>Journal pin</h1>
+      <div class="muted">${j.name} · need: ${j.needId}</div>
+      <blockquote style="margin:8px 0 0">${j.text}</blockquote>
+      <div class="row"><button data-b="${j.home}">Show home</button></div>`;
+  } else if (selected.type === "person") {
     const p = town.people[selected.id];
     const home = town.buildings[p.home];
     const job = p.job != null ? town.buildings[p.job].name : p.school != null ? town.buildings[p.school].name : "—";
@@ -1159,12 +1245,15 @@ function frame(now) {
     tag.style.display = "none";
   } else { ring.visible = false; tag.style.display = "none"; }
 
+  for (const p of journalPins) p.mesh.visible = overlayMode === "journals";
+
   // Slower UI work ~4×/s
   slowTimer += dt;
   if (slowTimer > 0.25) {
     slowTimer = 0;
     updateBuildings(daylight);
     updateHud();
+    updateOverlayLegend();
     if (selected) renderInspector();
   }
 
@@ -1176,6 +1265,14 @@ function frame(now) {
 function updateBuildings(daylight) {
   const occupied = new Map();
   for (const p of town.people) if (p.mode === "doing" && p.target != null) occupied.set(p.target, (occupied.get(p.target) || 0) + 1);
+  const cut = floodCutNow();
+  const walkByHome = new Map();
+  for (const p of town.people) {
+    const rec = walkByHome.get(p.home) || { sum: 0, n: 0 };
+    rec.sum += Number(p.walkMinutesAvg3d || 0);
+    rec.n += 1;
+    walkByHome.set(p.home, rec);
+  }
   for (const b of town.buildings) {
     const mat = b.mesh.material;
     const n = occupied.get(b.index) || 0;
@@ -1186,6 +1283,19 @@ function updateBuildings(daylight) {
     if (b.state.flooded) c = 0x3d6fa6;
     else if (!b.state.open) c = 0x6f6f6f;
     else if (b.state.maxStock && b.state.stock < 5) c = 0x9a8f86;      // sold out: greyed
+
+    if (overlayMode === "flood") {
+      if (b.kind === "home" && !b.state.flooded && lowlandScore(b) < cut) c = 0x8fb6da;
+    }
+    if (overlayMode === "commute" && b.kind === "home") {
+      const rec = walkByHome.get(b.index);
+      const avg = rec?.n ? rec.sum / rec.n : 0;
+      const t = Math.max(0, Math.min(1, avg / (WALK_COMPLAINT_MINUTES * 1.8)));
+      const r = Math.round(60 + 180 * t);
+      const g = Math.round(150 - 80 * t);
+      const bl = Math.round(80 - 50 * t);
+      c = (r << 16) | (g << 8) | bl;
+    }
     else if (b.kind === "park") c = new THREE.Color(base).lerp(new THREE.Color(0x8a7a52), b.state.litter / 120).getHex();
     mat.color.setHex(c);
   }

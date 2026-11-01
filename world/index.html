@@ -105,6 +105,16 @@
     <span id="planYearN" class="muted" style="min-width:52px;text-align:right">Year 0</span>
   </div>
   <div class="row" style="margin-top:2px">
+    <label class="muted" for="overlayMode">Overlay</label>
+    <select id="overlayMode" aria-label="Overlay mode">
+      <option value="none">none</option>
+      <option value="flood">flood</option>
+      <option value="commute">commute</option>
+      <option value="journals">journals</option>
+    </select>
+    <span class="muted" id="overlayLegend"></span>
+  </div>
+  <div class="row" style="margin-top:2px">
     <button id="runExperimentBtn" type="button">Run 10 years</button>
     <span class="muted" id="experimentStatus">Idle</span>
   </div>
