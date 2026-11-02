@@ -4,6 +4,7 @@ import { selectSimulationAdapter, simulateExperiment } from "./simulation-adapte
 import { attachOutcomeAnalysis, summarizeOutcomes } from "./outcome-analysis.js";
 import { projectOutcomeLandscape, renderOutcomeLandscape } from "./outcome-landscape.js";
 import { renderRealityInspector } from "./reality-inspector.js";
+import { analyzeSensitivity } from "./sensitivity-analysis.js";
 
 const state = {
   experiment: null,
@@ -12,6 +13,7 @@ const state = {
   worldBatch: null,
   simulationBatch: null,
   analyzedExperiment: null,
+  sensitivity: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -31,6 +33,7 @@ const tailPreview = $("#tail-preview");
 const landscapeSvg = $("#outcome-landscape");
 const landscapeSelection = $("#landscape-selection");
 const realityInspector = $("#reality-inspector");
+const sensitivityOutput = $("#sensitivity-output");
 
 function setStatus(message, error = false) {
   status.textContent = message;
@@ -72,6 +75,8 @@ function renderExperiment(experiment) {
   landscapeSvg.replaceChildren();
   landscapeSelection.textContent = "Run simulations to populate the landscape.";
   renderRealityInspector(realityInspector, null, experiment);
+  state.sensitivity = null;
+  sensitivityOutput.innerHTML = `<p class="notice">Run simulations first.</p>`;
   setStatus(`Loaded ${experiment.id}`);
 }
 
@@ -159,6 +164,17 @@ runSimulationsButton.addEventListener("click", async () => {
     landscapeSelection.textContent = `${projection.points.length} realities · ${projection.method}`;
     const worst = [...state.simulationBatch.simulations].sort((a, b) => a.score - b.score)[0];
     if (worst) renderRealityInspector(realityInspector, worst, state.experiment);
+    state.sensitivity = analyzeSensitivity(state.simulationBatch, state.experiment);
+    const top = state.sensitivity.sensitivities.slice(0, 10);
+    const failures = state.sensitivity.failureModes.slice(0, 6);
+    const rows = top.map((row) => `<tr><td>${escapeHtml(row.label)}</td><td>${escapeHtml(row.category)}</td><td>${escapeHtml(row.direction)}</td><td>${row.correlation.toFixed(3)}</td></tr>`).join("");
+    const failureRows = failures.map((row) => `<tr><td>${escapeHtml(row.label)}</td><td>${escapeHtml(row.pattern)}</td><td>${row.delta.toFixed(3)}</td></tr>`).join("");
+    sensitivityOutput.innerHTML = `
+      <h3>Top sensitivities</h3>
+      <table class="analysis-table"><thead><tr><th>Variable</th><th>Category</th><th>Association</th><th>r</th></tr></thead><tbody>${rows}</tbody></table>
+      <h3>Failure-mode separation</h3>
+      ${failureRows ? `<table class="analysis-table"><thead><tr><th>Variable</th><th>Pattern</th><th>Δ normalized</th></tr></thead><tbody>${failureRows}</tbody></table>` : `<p class="notice">Not enough positive and negative worlds to compare failure modes.</p>`}
+    `;
   } catch (error) {
     simulationSummary.textContent = error.message;
   } finally {

@@ -43,6 +43,7 @@
     .status-pill.positive { color:#8bdfac; } .status-pill.mixed { color:#e0c77e; } .status-pill.negative { color:#ed9189; }
     .driver-list { display:grid; gap:6px; } .driver-row { display:grid; grid-template-columns:minmax(160px,1fr) minmax(160px,1fr) auto; gap:10px; padding:9px 10px; border:1px solid #202a31; border-radius:8px; background:#090d11; }
     .driver-row span { color:var(--muted); font-size:11px; } .driver-row .driver-delta { color:#e0c77e; text-align:right; }
+    .analysis-table { width:100%; border-collapse:collapse; font-size:12px; } .analysis-table th,.analysis-table td { padding:8px 7px; border-bottom:1px solid #202a31; text-align:left; } .analysis-table th { color:#8f9ba6; font-weight:500; } .analysis-table td:last-child { text-align:right; color:#e0c77e; }
     pre { overflow:auto; max-height:280px; background:#090d11; border:1px solid #202a31; border-radius:9px; padding:12px; font-size:11px; }
     .status { min-height:22px; color:#aab6c0; }
     @media (max-width:900px) { .grid { grid-template-columns:1fr; } }
@@ -113,6 +114,12 @@
     <h2>07 · Reality inspector</h2>
     <p class="notice">Click any reality above to inspect the conditions that diverged furthest from the reviewed baseline.</p>
     <div id="reality-inspector"><p class="notice">Select a reality in the landscape.</p></div>
+  </section>
+
+  <section class="panel" style="margin-top:18px">
+    <h2>08 · Sensitivity & failure modes</h2>
+    <p class="notice">Correlation is diagnostic, not causal proof. Use it to find assumptions worth inspecting and to compare successful vs failed sampled worlds.</p>
+    <div id="sensitivity-output"><p class="notice">Run simulations first.</p></div>
   </section>
 </main>
 <script type="module" src="./experiment-lab.js"></script>
