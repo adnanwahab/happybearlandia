@@ -71,6 +71,38 @@ function floodZoneForBuilding(b, area, proj) {
   return "X";
 }
 
+/** Stamp late FEMA enrichment onto EXISTING building objects. This never reruns
+ * generation, changes resident identities/runtime state, or reinitializes a town.
+ * Caller should supply the core's areaKey (or check it before calling); mismatch
+ * and unavailable overlays preserve previously known building zones.
+ */
+export function applyAreaEnrichment(town, area, enrichment = area) {
+  if (!town?.origin || !Array.isArray(town.buildings) || !Number.isFinite(town.origin.lat) || !Number.isFinite(town.origin.lng)) throw new Error("An existing town with geographic origin is required.");
+  if (!area || !enrichment || (area.areaKey && enrichment.areaKey !== area.areaKey)) return { applied: false, updated: 0, reason: "Enrichment key does not match the loaded core." };
+  if (area !== enrichment && (!Number.isFinite(area.origin?.lat) || !Number.isFinite(area.origin?.lng)
+    || !Number.isFinite(enrichment.origin?.lat) || !Number.isFinite(enrichment.origin?.lng)
+    || Math.abs(area.origin.lat - enrichment.origin.lat) > 1e-7 || Math.abs(area.origin.lng - enrichment.origin.lng) > 1e-7
+    || !(area.radiusM > 0) || area.radiusM !== enrichment.radiusM)) return { applied: false, updated: 0, reason: "Enrichment origin/radius does not match the actual loaded core." };
+  const status = enrichment.floodZonesStatus;
+  town.enrichment = { areaKey: enrichment.areaKey || null, status: status || "unavailable", source: enrichment.floodZonesSource || "unavailable",
+    error: enrichment.floodZonesError || null, fetchedAt: enrichment.fetchedAt || null };
+  area.floodZonesStatus = status || "unavailable";
+  area.floodZonesError = enrichment.floodZonesError || null;
+  if (!["ready", "stale"].includes(status) || enrichment.floodZonesSource !== "fema-nfhl" || !Array.isArray(enrichment.floodZones)) return { applied: false, updated: 0, reason: "No usable FEMA overlay; prior zones retained." };
+  area.floodZones = enrichment.floodZones;
+  area.floodZonesSource = enrichment.floodZonesSource;
+  area.floodZonesFetchedAt = enrichment.fetchedAt || null;
+  const proj = projector(town.origin);
+  let updated = 0;
+  for (const building of town.buildings) {
+    if (!Array.isArray(building.center) || !building.center.every(Number.isFinite)) continue;
+    const zone = floodZoneForBuilding(building, area, proj);
+    if (building.floodZone !== zone) updated++;
+    building.floodZone = zone;
+  }
+  return { applied: true, updated, source: "fema-nfhl", status };
+}
+
 const FIRST = ["Maria", "James", "Aisha", "Wei", "Carlos", "Priya", "Jamal", "Sofia", "Diego", "Mei", "Omar", "Grace",
   "Luis", "Fatima", "Noah", "Ana", "Kofi", "Hana", "Mateo", "Zara", "Ethan", "Lina", "Tunde", "Rosa", "Sam", "Yuki",
   "Ivan", "Leila", "Ben", "Nia", "Raj", "Elena", "Kwame", "Chloe", "Ali", "Ines", "Theo", "Amara", "Jin", "Lucia"];

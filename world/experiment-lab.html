@@ -53,6 +53,15 @@
     .improvement-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:10px; } .improvement-card { border:1px solid #2b342f; background:#0a100d; border-radius:11px; padding:13px; } .improvement-card p { color:var(--muted); font-size:12px; min-height:48px; } .improvement-card small { display:block; color:#bda56e; margin:8px 0; }
     .scenario-grid { display:grid; gap:8px; margin:12px 0; } .scenario-row { display:grid; grid-template-columns:minmax(170px,1fr) minmax(180px,2fr) 80px 90px; gap:10px; align-items:center; padding:9px 10px; border:1px solid #202a31; border-radius:9px; background:#090d11; } .scenario-row.weakest { border-color:#74433f; background:#160d0c; } .scenario-row.strongest { border-color:#365b49; } .scenario-bar { height:8px; background:#1c252b; border-radius:999px; overflow:hidden; } .scenario-bar > span { display:block; height:100%; background:#c9a968; } .scenario-row.weakest .scenario-bar > span { background:#e47f77; } .scenario-row.strongest .scenario-bar > span { background:#7ed6a3; } .scenario-meta { color:var(--muted); font-size:11px; } select { border:1px solid #3a4650; border-radius:999px; background:#090d11; color:var(--text); padding:8px 12px; font:inherit; }
     pre { overflow:auto; max-height:280px; background:#090d11; border:1px solid #202a31; border-radius:9px; padding:12px; font-size:11px; }
+    .lab-nav a { color:var(--accent); text-underline-offset:4px; }
+    #live-simulation { scroll-margin-top:20px; margin-top:18px; }
+    .live-layout { display:grid; grid-template-columns:minmax(240px,.65fr) minmax(0,1.35fr); gap:18px; }
+    #live-timeline { min-width:0; }
+    #live-parameters { max-height:680px; overflow:auto; padding-right:8px; }
+    #live-parameters .live-parameter-row { display:grid; gap:8px; }
+    #live-parameters input[type=number] { width:100%; padding:8px; background:#090d11; color:var(--text); border:1px solid var(--line); border-radius:6px; font:inherit; }
+    #live-parameters input[type=range] { accent-color:var(--accent); max-width:100%; }
+    @media (max-width:900px) { .live-layout { grid-template-columns:1fr; } }
     .status { min-height:22px; color:#aab6c0; }
     @media (max-width:900px) { .grid { grid-template-columns:1fr; } }
   </style>
@@ -63,6 +72,8 @@
     <div><h2>Pensieve · HappyBearLandia</h2><h1>Civic Experiment Lab</h1></div>
     <div class="notice">journal → plan → assumptions → futures → critique → revision</div>
   </header>
+
+  <nav class="lab-nav button-row" aria-label="Lab sections"><a href="/world/decision.html?demo=1">Decision simulation demo ↗</a><a href="#live-simulation">Live simulation ↗</a><a href="#assumptions">Review assumptions</a></nav>
 
   <div class="grid">
     <section class="panel">
@@ -94,6 +105,18 @@
       <div id="plan-parameter-patch-preview"></div>
     </section>
   </div>
+
+  <section id="live-simulation" class="panel" aria-labelledby="live-heading">
+    <h2 id="live-heading">Live · Change assumptions, explore timelines</h2>
+    <p class="notice">Load a plan above to start. Parameter changes automatically compare the original assumptions (baseline) with your edited assumptions (current), using the same seeds. The assumption inspector also updates this view.</p>
+    <div class="warning">These simulated futures are modeling hypotheses, not forecasts.</div>
+    <div class="button-row"><button id="rerun-live" disabled>Recalculate live simulation</button></div>
+    <div id="live-status" class="status" role="status" aria-live="polite">Load an experiment to start the live simulation.</div>
+    <div class="live-layout">
+      <div id="live-parameters"><p class="notice">Load a plan to adjust live parameters.</p></div>
+      <div id="live-timeline"><p class="notice">Your paired timelines will appear here.</p></div>
+    </div>
+  </section>
 
   <section class="panel" style="margin-top:18px">
     <h2>03 · Seeded world generator</h2>

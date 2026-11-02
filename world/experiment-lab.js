@@ -15,8 +15,13 @@ import { buildDearCongressRevisionDraft, postDearCongressRevisionDraft } from ".
 import { buildPensieveHandoff, buildPensieveLaunchUrl, downloadPensieveHandoff, serializePensieveHandoff } from "./pensieve-handoff.js";
 import { applyPlanParameterPatch, compilePlanParameterPatch } from "./plan-parameter-patch.js";
 
+import { runLiveSimulation } from "./live-simulation.js";
+import { mountLiveParameterControls } from "./live-parameter-controls.js";
+import { mountLiveTimelineView } from "./live-timeline-view.js";
+
 const state = {
   experiment: null,
+  liveResult: null,
   inspector: null,
   overrides: {},
   parameterPatch: null,
@@ -80,6 +85,97 @@ const downloadPensieveHandoffButton = $("#download-pensieve-handoff");
 const openPensieveButton = $("#open-pensieve");
 const pensieveStatus = $("#pensieve-status");
 
+const liveStatus = $("#live-status");
+const liveTimelineContainer = $("#live-timeline");
+liveTimelineContainer.replaceChildren();
+const liveView = mountLiveTimelineView(liveTimelineContainer);
+let liveControls = null;
+let liveTimer = null;
+let liveRequest = 0;
+
+function renderLabAssumptions(experiment, initialOverrides = {}) {
+  const variables = experiment.worldModel?.variables || [];
+  const inspectorState = createInspectorState(variables);
+  for (const [id, override] of Object.entries(initialOverrides || {})) {
+    if (!inspectorState[id]) continue;
+    inspectorState[id] = {
+      baseline: Number.isFinite(Number(override.baseline)) ? Number(override.baseline) : inspectorState[id].baseline,
+      min: Number.isFinite(Number(override.min)) ? Number(override.min) : inspectorState[id].min,
+      max: Number.isFinite(Number(override.max)) ? Number(override.max) : inspectorState[id].max,
+      locked: typeof override.locked === "boolean" ? override.locked : inspectorState[id].locked,
+      dirty: true,
+    };
+  }
+  state.inspector = renderAssumptionInspector(assumptions, variables, {
+    state: inspectorState,
+    onChange(_inspectorState, overrides) {
+      state.overrides = overrides;
+      overrideOutput.textContent = JSON.stringify(overrides, null, 2);
+      previewPlanParameterPatch();
+      liveControls?.setValues(overrides);
+      scheduleLiveSimulation();
+    },
+  });
+  state.overrides = state.inspector.getOverrides();
+  overrideOutput.textContent = JSON.stringify(state.overrides, null, 2);
+}
+
+function mountLiveExperiment() {
+  $("#rerun-live").disabled = false;
+  // Invalidate pending work before replacing controls or loading another experiment.
+  clearTimeout(liveTimer);
+  liveRequest += 1;
+  liveControls?.destroy();
+  state.liveResult = null;
+  liveView.update(null);
+  liveControls = mountLiveParameterControls($("#live-parameters"), {
+    experiment: state.experiment,
+    overrides: state.overrides,
+    onChange(overrides) {
+      renderLabAssumptions(state.experiment, overrides || {});
+      previewPlanParameterPatch();
+      scheduleLiveSimulation();
+    },
+  });
+  scheduleLiveSimulation(0);
+}
+
+function scheduleLiveSimulation(delay = 180) {
+  if (!state.experiment) return;
+  clearTimeout(liveTimer);
+  // Increment immediately: an older run must not paint during the debounce.
+  const request = ++liveRequest;
+  liveView.setPending(true);
+  liveStatus.textContent = "Recalculating paired timelines…";
+  liveTimer = setTimeout(async () => {
+    const experiment = state.experiment;
+    const overrides = structuredClone(state.overrides);
+    const seed = Number(experiment.experiment?.seed);
+    const years = Number(experiment.experiment?.horizonYears);
+    try {
+      const result = await runLiveSimulation({
+        experiment, overrides,
+        seed: Number.isFinite(seed) ? seed : 42,
+        years: Number.isFinite(years) && years > 0 ? years : 10,
+        runs: 12,
+      });
+      if (request !== liveRequest) return;
+      state.liveResult = result;
+      liveView.update(result);
+      liveStatus.textContent = "Up to date · baseline and current assumptions use the same seeds · 12 paired worlds.";
+    } catch (error) {
+      if (request !== liveRequest) return;
+      const message = `Live simulation failed: ${error?.message || error}`;
+      liveView.showError(message);
+      liveStatus.textContent = message;
+    } finally {
+      if (request === liveRequest) liveView.setPending(false);
+    }
+  }, delay);
+}
+
+$("#rerun-live").addEventListener("click", () => scheduleLiveSimulation(0));
+
 function setStatus(message, error = false) {
   status.textContent = message;
   status.style.color = error ? "#e89a9a" : "#aab6c0";
@@ -102,27 +198,8 @@ function renderExperiment(experiment, provenance = null, initialOverrides = {}) 
   metricRegistry.innerHTML = metrics.length
     ? `<h3>Metric registry</h3><div class="notice">${metrics.slice(0, 10).map((metric) => `${escapeHtml(metric.label)} <small>(${escapeHtml(metric.direction)})</small>`).join(" · ")}${metrics.length > 10 ? ` · +${metrics.length - 10} more` : ""}</div>`
     : `<div class="notice">No metric registry available.</div>`;
-  const inspectorState = createInspectorState(variables);
-  for (const [id, override] of Object.entries(initialOverrides || {})) {
-    if (!inspectorState[id]) continue;
-    inspectorState[id] = {
-      baseline: Number.isFinite(Number(override.baseline)) ? Number(override.baseline) : inspectorState[id].baseline,
-      min: Number.isFinite(Number(override.min)) ? Number(override.min) : inspectorState[id].min,
-      max: Number.isFinite(Number(override.max)) ? Number(override.max) : inspectorState[id].max,
-      locked: typeof override.locked === "boolean" ? override.locked : inspectorState[id].locked,
-      dirty: true,
-    };
-  }
-  state.inspector = renderAssumptionInspector(assumptions, variables, {
-    state: inspectorState,
-    onChange(_inspectorState, overrides) {
-      state.overrides = overrides;
-      overrideOutput.textContent = JSON.stringify(overrides, null, 2);
-      previewPlanParameterPatch();
-    },
-  });
-  state.overrides = state.inspector.getOverrides();
-  overrideOutput.textContent = JSON.stringify(state.overrides, null, 2);
+  renderLabAssumptions(experiment, initialOverrides);
+  mountLiveExperiment();
   previewPlanParameterPatchButton.disabled = false;
   previewPlanParameterPatch();
   generateWorldsButton.disabled = false;
@@ -263,6 +340,43 @@ async function loadFromApi() {
   input.value = JSON.stringify(payload, null, 2);
   const resolved = extractExperiment(payload, { runs: 1000, years: 10, seed: 42 });
   renderExperiment(resolved.experiment, resolved);
+}
+
+async function loadSimulationSnapshot(params) {
+  const id = params.get("simulation");
+  setStatus(`Loading frozen Dear Congress snapshot ${id}…`);
+  const response = await fetch(`/api/dear-congress/simulation-snapshots/${encodeURIComponent(id)}`, {
+    signal: AbortSignal.timeout(10000),
+  });
+  const body = await response.json();
+  const snapshot = body?.snapshot;
+  if (!response.ok || !snapshot?.plan) throw new Error(body?.error || `Snapshot unavailable (HTTP ${response.status})`);
+  const request = { runs: 1000, years: 10, seed: 42 };
+  for (const key of ["runs", "years", "seed"]) {
+    const value = params.get(key);
+    if (value !== null && value.trim() && Number.isFinite(Number(value))) request[key] = Number(value);
+  }
+  // Snapshot financial values are denominated in billions of dollars. The civic
+  // contract accepts budget/cost, while frozen DC snapshots use budgetB/costB.
+  const snapshotPlan = {
+    ...snapshot.plan,
+    budget: snapshot.plan.budget ?? snapshot.plan.budgetB,
+    items: (snapshot.plan.items || []).map((item) => ({
+      ...item,
+      cost: item.cost ?? item.costB,
+    })),
+  };
+  const resolved = extractExperiment({ plan: snapshotPlan, id: snapshot.id }, request);
+  resolved.experiment.plan.source = {
+    ...resolved.experiment.plan.source,
+    endpoint: `/api/simulation-snapshots/${id}`,
+    simulationSnapshotId: snapshot.id || id,
+    budgetB: snapshot.plan.budgetB,
+    totalCostB: snapshot.plan.totalCostB,
+    costUnit: "USD billions",
+  };
+  input.value = JSON.stringify(resolved.experiment, null, 2);
+  renderExperiment(resolved.experiment, { source: `Dear Congress snapshot ${id}` });
 }
 
 $("#load-plan").addEventListener("click", () => {
@@ -588,8 +702,18 @@ copyExperimentLinkButton.addEventListener("click", async () => {
 });
 
 (async () => {
-  const recordId = new URL(location.href).searchParams.get("experiment");
-  if (!recordId) return;
+  const params = new URL(location.href).searchParams;
+  const recordId = params.get("experiment");
+  if (!recordId) {
+    if (params.get("simulation")) {
+      try { await loadSimulationSnapshot(params); }
+      catch (error) {
+        setStatus(`Could not load frozen snapshot: ${error?.message || error}`, true);
+        liveStatus.textContent = "Snapshot unavailable. Retry the link or load a plan above.";
+      }
+    }
+    return;
+  }
   try {
     const record = await loadExperimentRecord(recordId);
     if (record) await restoreRecord(record);

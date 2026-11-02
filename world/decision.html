@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Test housing policy across possible futures. Explore assumptions, compare alternatives, and produce a reproducible decision brief.">
+  <title>Decision Studio · HappyBearLandia</title>
+  <link rel="stylesheet" href="./decision/studio.css">
+  <link rel="stylesheet" href="./decision/visualization.css">
+  <link rel="stylesheet" href="./decision/trust.css">
+  <link rel="stylesheet" href="./decision/world-tools.css">
+  <link rel="stylesheet" href="./decision/advanced-studio.css">
+</head>
+<body>
+  <div class="studio-shell">
+    <header class="studio-header">
+      <a class="brand" href="/world/decision.html"><span class="brand-mark" aria-hidden="true">H<span>↗</span></span><span>HappyBearLandia<small>DECISION SIMULATION PLATFORM</small></span></a>
+      <nav aria-label="Studio navigation"><a href="#studio">Studio</a><a href="#physical-world">Build & edit</a><a href="#futures">Possible futures</a><a href="#trust">Evidence & brief</a></nav>
+      <button id="executive-toggle" class="quiet" aria-pressed="false">Executive mode</button>
+    </header>
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <div><div class="eyebrow"><span class="live-dot"></span> A decision deserves more than one future.</div>
+          <h1 id="hero-title">Test a decision<br>before making it.</h1>
+          <p class="hero-copy">Turn a plan, its assumptions, and uncertainty into possible futures. Compare the tradeoffs before choosing a path.</p>
+          <div class="hero-actions"><button id="try-example" class="primary">Try housing example <span aria-hidden="true">↗</span></button><button id="describe-decision" class="quiet">Describe your decision</button></div>
+          <p class="model-caption">FLAGSHIP MODEL <span>Housing affordability / city policy</span></p>
+        </div>
+        <aside class="hero-card"><div class="eyebrow">THE QUESTION</div><h2>More homes.<br>At what cost?<br>Under which conditions?</h2><p>Compare current policy with transit density, faster permits, affordable construction, and vouchers.</p><div class="hero-path"><span>Plan</span><b>→</b><span>Assumptions</span><b>→</b><span>Futures</span></div><p class="fine">Illustrative model. Explore uncertainty; review evidence and limitations.</p></aside>
+      </section>
+      <div id="app-status" class="app-status" role="status" aria-live="polite">Choose the example or describe a housing decision to get started.</div>
+      <div id="readonly-banner" class="readonly-banner" hidden>Read-only experiment · Explore the original scenarios and results. <button id="fork-shared">Make an editable copy</button></div>
+      <div id="legacy-model-banner" class="readonly-banner" hidden>This stored experiment uses an earlier model version. Its results remain unchanged. <button id="upgrade-model">Create editable draft with current model</button></div>
+      <section id="executive-summary" class="executive-summary" hidden aria-label="Executive decision summary"><div class="eyebrow">THE DECISION</div><h2 id="executive-question"></h2><p id="executive-options"></p></section>
+      <section id="studio" class="studio-section" aria-labelledby="studio-heading">
+        <div class="section-heading"><div><div class="eyebrow">01 / FRAME THE DECISION</div><h2 id="studio-heading">Your scenario studio</h2></div><div class="mode-label"><span class="live-dot"></span><span id="model-version">Housing model</span></div></div>
+        <div class="studio-grid">
+          <aside class="project-panel panel analyst-controls">
+            <label for="project-name">PROJECT NAME</label><input id="project-name" value="Affordable Housing Plan" maxlength="180">
+            <label for="decision-text">WHAT ARE YOU CONSIDERING?</label>
+            <textarea id="decision-text" rows="6" placeholder="For example: allow higher-density housing near transit, reduce permitting from 18 to 6 months, and provide $2B annually for affordable construction."></textarea>
+            <button id="compile-plan" class="primary full">Compile assumptions <span aria-hidden="true">↓</span></button>
+            <p class="fine">Text is translated into explicit, editable assumptions by the housing model. Review every value before running.</p>
+            <div id="compile-report" class="compile-report" aria-live="polite"></div>
+            <div class="panel-divider"></div><div class="subheading">PROJECT LIBRARY</div>
+            <div class="button-group"><button id="save-project">Save locally</button><button id="duplicate-project">Duplicate project</button></div>
+            <label for="local-projects">SAVED ON THIS BROWSER</label><select id="local-projects"><option value="">Choose a local project…</option></select><button id="open-local" class="full quiet">Open local project</button>
+            <div class="button-group"><button id="save-experiment">Save to server</button><button id="refresh-experiments">Refresh</button></div>
+            <label for="server-experiments">SERVER EXPERIMENTS</label><select id="server-experiments"><option value="">Choose an experiment…</option></select><button id="open-server" class="full quiet">Reopen experiment</button>
+          </aside>
+          <div class="scenario-panel panel analyst-controls">
+            <div class="panel-top"><div><div class="subheading">COMPARE ALTERNATIVES</div><p class="fine">Edit one alternative at a time. All alternatives use matched seeds.</p></div><button id="duplicate-scenario" class="quiet">+ Duplicate</button></div>
+            <div id="scenario-tabs" class="scenario-tabs" role="tablist" aria-label="Scenario alternatives"></div>
+            <div class="scenario-heading"><label for="scenario-name">SCENARIO NAME<input id="scenario-name" maxlength="120"></label><span id="scenario-kind" class="badge"></span></div>
+            <details id="stress-details"><summary>Compose stress tests</summary><div id="stress-presets" class="stress-presets"></div><p class="fine">Presets are composed by the model at execution. Numeric controls show the scenario's inputs before those shocks.</p></details>
+            <div class="button-group scenario-management"><button id="reset-scenario">Reset assumptions</button><button id="delete-scenario">Delete alternative</button></div>
+            <details id="outcome-criteria-editor"><summary>Define success, mixed & failure</summary><p class="fine">These are your recorded decision rules. Failure rules take precedence; otherwise all success rules must match, and remaining outcomes are mixed. No thresholds are inferred.</p><label>Classification<select id="criteria-mode"><option value="none">No recorded criterion</option><option value="binary">Success / failure threshold</option><option value="bands">Success / mixed / failure</option></select></label><div id="criteria-fields"></div><button id="apply-criteria" class="quiet full">Apply decision rules to this scenario</button></details>
+            <div class="parameter-heading"><h3>Make the assumptions explicit.</h3><span class="fine">Native units · editable uncertainty</span></div>
+            <div id="parameter-controls" class="parameter-controls"><p>Loading the housing schema…</p></div>
+            <details class="data-import"><summary>Bring your data · CSV / JSON</summary>
+              <p class="fine">Upload numerical inputs, map columns to model parameters, preview one row, then apply it to this scenario. Uploaded inputs remain labeled as user supplied.</p>
+              <label for="parameter-upload">INPUT DATA OR RUN MANIFEST</label><input type="file" id="parameter-upload" accept=".csv,.json,text/csv,application/json">
+              <div id="import-mapping"></div><div id="import-preview"></div><button id="apply-import" disabled>Apply mapped inputs</button>
+            </details>
+          </div>
+          <aside class="run-panel panel">
+            <div class="eyebrow">02 / EXPLORE THE POSSIBILITIES</div><h2>One plan.<br>Many possible futures.</h2>
+            <div class="run-settings analyst-controls"><label for="run-count">FUTURES PER SCENARIO<select id="run-count"><option>10</option><option selected>100</option><option>500</option><option>1000</option></select></label><div class="two-columns"><label for="run-years">YEARS<input id="run-years" type="number" min="1" max="50" value="10"></label><label for="run-seed">MATCHED SEED<input id="run-seed" type="number" min="0" max="4294967295" value="42"></label></div></div>
+            <p id="run-description" class="fine">100 futures × 4 scenarios. Same seed sequence, different choices.</p>
+            <button id="run-experiment" class="primary full">Simulate this plan <span aria-hidden="true">↗</span></button>
+            <button id="cancel-experiment" class="full quiet" disabled>Cancel experiment</button>
+            <label class="check-label analyst-controls"><input type="checkbox" id="auto-preview" checked> Recalculate a 10-run preview after edits</label>
+            <p class="fine analyst-controls">After your first run, changes trigger a small preview. Large batches always require the simulate button.</p>
+            <div class="run-progress"><div class="progress-heading"><span id="run-state">Ready to explore</span><strong id="progress-count">0 / 0</strong></div><progress id="run-progress" max="1" value="0" aria-label="Simulation progress"></progress><div class="progress-stats"><span><b id="successful-count">0</b>successful</span><span><b id="failed-count">0</b>failed</span><span><b id="elapsed-time">0s</b>elapsed</span></div></div>
+            <div id="result-context" class="result-context">No experiment has been run yet.</div>
+            <div class="panel-divider"></div><div class="subheading">REPRODUCE & SHARE</div>
+            <div class="button-group"><button id="share-experiment" disabled>Copy read-only link</button><button id="download-manifest" disabled>Download manifest</button></div>
+            <button id="reproduce-experiment" class="quiet full" disabled>Reproduce experiment</button>
+            <button id="export-project" class="quiet full">Export editable project</button>
+          </aside>
+        </div>
+      </section>
+      <section id="physical-world" class="studio-section" aria-labelledby="physical-world-heading">
+        <div class="section-heading"><div><div class="eyebrow">BUILD SOMETHING / EDIT WORLD</div><h2 id="physical-world-heading">From a proposal to a place.</h2></div><p class="fine">Specific buildings become modeled interventions.<br>Unapproved previews never change a scenario.</p></div>
+        <div class="world-stage-layout"><div class="world-stage"><div class="world-stage-toolbar"><label>Scenario<select id="building-scenario" aria-label="Building scenario"></select></label><label>Stored future<select id="building-run" aria-label="Construction future"><option value="">No stored future yet</option></select></label></div><a id="open-neighborhood-world" class="text-link world-neighborhood-link" href="/world">Open the neighborhood world ↗</a><div id="future-entry-banner" class="future-entry-banner" hidden><div><strong id="entered-future-name"></strong><p>Rendering this exact stored future. Changes remain separate drafts until approved.</p></div><button id="return-multiverse">Return to multiverse ↗</button></div><div id="building-world"></div><div class="world-month-controls"><button id="building-reset" aria-label="Rewind construction">|◀</button><button id="building-play" aria-label="Play construction">Play</button><label for="building-month">Month <output id="building-month-label">0</output></label><input id="building-month" type="range" min="0" max="120" step="1" value="0" aria-label="Construction replay month"><select id="building-speed" aria-label="Construction replay speed"><option value="1">1×</option><option value="3">3×</option><option value="6">6×</option></select></div><p id="building-context" class="fine">Configure and approve a building, then simulate to replay actual stored construction phases.</p><div id="building-project-summary" class="building-project-summary"></div></div><div id="world-tools"></div></div>
+      </section>
+      <section id="futures" class="studio-section" aria-labelledby="futures-heading"><div class="section-heading"><div><div class="eyebrow">03 / SEE THE RANGE OF OUTCOMES</div><h2 id="futures-heading">The space of possible futures</h2></div><p class="fine">Every point is an actual simulated run.<br>Explore distributions, tradeoffs, and individual futures.</p></div><div id="decision-visualizations" class="results-surface"></div><div id="selected-run" class="selected-run" hidden></div></section>
+      <section id="advanced" class="studio-section" aria-label="Decision intelligence, fork and robustness"><div id="advanced-studio"></div></section>
+      <section id="trust" class="studio-section" aria-labelledby="trust-heading"><div class="section-heading"><div><div class="eyebrow">04 / UNDERSTAND THE DECISION</div><h2 id="trust-heading">Evidence, assumptions & why</h2></div><a class="text-link" href="#studio">Return to assumptions ↑</a></div><div id="decision-trust" class="results-surface"></div></section>
+      <footer class="studio-footer"><a class="brand-text" href="/">HappyBearLandia</a><p>Decision support through explorable simulations. Model output is conditional on assumptions; it is not a forecast.</p><a href="/world/experiment-lab.html">Civic experiment lab ↗</a></footer>
+    </main>
+  </div>
+  <script type="module" src="./decision/studio.js"></script>
+</body>
+</html>

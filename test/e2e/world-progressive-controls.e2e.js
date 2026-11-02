@@ -1,0 +1,36 @@
+import {test,expect} from '@playwright/test';
+
+test('first frame precedes map, details and flood overlays arrive progressively, keyboard streams context',async({page})=>{
+ test.setTimeout(120000);const errors=[];page.on('pageerror',error=>errors.push(error.message));
+ let releaseCore,releaseFlood,releasePlan;const coreGate=new Promise(resolve=>releaseCore=resolve),floodGate=new Promise(resolve=>releaseFlood=resolve),planGate=new Promise(resolve=>releasePlan=resolve);let coreRequests=0;
+ const makeCore=url=>{const lat=Number(url.searchParams.get('lat')),lng=Number(url.searchParams.get('lng')),radiusM=Number(url.searchParams.get('radiusM')||400),areaKey=`${lat},${lng},${radiusM}`,kx=111320*Math.cos(lat*Math.PI/180),point=(x,z)=>[lat-z/110540,lng+x/kx],buildings=[];for(let i=0;i<16;i++){const x=(i%4-1.5)*100,z=(Math.floor(i/4)-1.5)*100;buildings.push({id:`fixture-${lat.toFixed(4)}-${lng.toFixed(4)}-${i}`,kind:i%5===0?'work':'home',levels:3,pts:[point(x-12,z-12),point(x+12,z-12),point(x+12,z+12),point(x-12,z+12),point(x-12,z-12)]})}return {source:'osm',origin:{lat,lng},radiusM,areaKey,bbox:{s:lat-radiusM/110540,n:lat+radiusM/110540,w:lng-radiusM/kx,e:lng+radiusM/kx},buildings,roads:[{kind:'residential',pts:[point(-350,0),point(350,0)]},{kind:'residential',pts:[point(0,-350),point(0,350)]}],pois:[],attribution:'Test geometry fixture',phase:'core',floodZones:[],floodZonesSource:'pending',floodZonesStatus:'pending',enrichment:{url:`/api/area/enrichment?lat=${lat}&lng=${lng}&radiusM=${radiusM}`,key:areaKey,status:'pending'}}};
+ await page.route('**/api/area?**',async route=>{coreRequests++;if(coreRequests===1)await coreGate;await route.fulfill({json:makeCore(new URL(route.request().url()))})});
+ await page.route('**/api/area/enrichment?**',async route=>{await floodGate;const u=new URL(route.request().url()),core=makeCore(u),{lat,lng}=core.origin;await route.fulfill({json:{...core,source:'area-enrichment',floodZonesSource:'fema-nfhl',floodZonesStatus:'ready',floodZones:[{zone:'AE',polygons:[[[lat-.02,lng-.02],[lat-.02,lng+.02],[lat+.02,lng+.02],[lat+.02,lng-.02]]]}]}})});
+ await page.route('**/api/plan',async route=>{await planGate;await route.fulfill({json:{packages:[]}})});
+ await page.route('**/api/dear-congress/**',route=>route.fulfill({json:{packages:[]}}));
+ await page.route('**/api/outcomes',route=>route.fulfill({json:{outcomes:[]}}));await page.route('**/api/overpass-health',route=>route.fulfill({json:{ok:true}}));
+ await page.goto('/world?renderer=webgl&people=30&quality=LOW',{waitUntil:'domcontentloaded'});
+ await expect.poll(()=>page.evaluate(()=>window.hblWorldStartup?.firstFrameMs)).toBeGreaterThan(0);
+ expect(await page.evaluate(()=>hblWorldStartup.mapReadyMs)).toBeNull();
+ expect(await page.locator('#loading').evaluate(node=>getComputedStyle(node).pointerEvents)).toBe('none');
+ await expect(page.locator('[data-testid=world-fps-meter]')).toContainText('RAF FPS');
+ releaseCore();await expect.poll(()=>page.evaluate(()=>hblWorldStartup.readyMs)).toBeGreaterThan(0);
+ expect(await page.evaluate(()=>hblWorldStartup.policyStatus)).toBe('loading');
+ await expect.poll(()=>page.evaluate(()=>hblWorldStartup.geometry?.successful===hblWorldStartup.geometry?.total)).toBe(true);
+ releaseFlood();releasePlan();await expect.poll(()=>page.evaluate(()=>hblWorldStartup.enrichmentStatus)).toBe('ready');expect(await page.evaluate(()=>hblWorldStartup.enrichmentUpdatedBuildings)).toBe(await page.evaluate(()=>hblWorldStartup.geometry.total));
+ await page.evaluate(()=>window.addEventListener('world:local-pan',event=>window.latestPanPose=event.detail.camera));
+ const initialUrl=page.url(),initialFootprint=await page.evaluate(()=>hblMapControls.getScreenFootprint());
+ await page.locator('#latlng').focus();await page.keyboard.press('ArrowRight');expect(await page.evaluate(()=>hblMapControls.getScreenFootprint().minX)).toBeCloseTo(initialFootprint.minX,3);
+ await page.evaluate(()=>document.activeElement.blur());await page.keyboard.down('ArrowRight');await page.waitForTimeout(1800);await page.keyboard.up('ArrowRight');
+ expect(page.url()).toBe(initialUrl);await expect.poll(()=>page.evaluate(()=>hblMapControls.getScreenFootprint().minX)).toBeGreaterThan(initialFootprint.minX+400);
+ await expect.poll(()=>page.evaluate(()=>hblMapStreamer.getState().tiles.some(t=>t.progress?.attached>0))).toBe(true);
+ expect(coreRequests).toBeGreaterThan(1);expect(await page.evaluate(()=>hblMapStreamer.getState().tileCount)).toBeLessThanOrEqual(9);
+ await expect.poll(()=>page.evaluate(()=>hblMapStreamer.getState().targetCoverage?.covered)).toBe(true);
+ await expect(page.locator('[data-mm-screen=east]')).toBeVisible();const beforeButton=await page.evaluate(()=>hblMapControls.getScreenFootprint().minX);await page.locator('[data-mm-screen=east]').click();expect(await page.evaluate(()=>hblMapControls.getScreenFootprint().minX)).toBeGreaterThan(beforeButton);expect(page.url()).toBe(initialUrl);
+ await expect.poll(()=>page.evaluate(()=>hblMapStreamer.getState().targetCoverage?.covered)).toBe(true);
+ await expect.poll(()=>page.evaluate(async()=>{const THREE=await import('/vendor/three/three.webgpu.js'),pose=latestPanPose,camera=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,1,5000);camera.position.set(pose.position.x,pose.position.y,pose.position.z);camera.lookAt(pose.target.x,pose.target.y,pose.target.z);camera.updateMatrixWorld();return hblMapStreamer.getMinimapData().buildings.filter(b=>{const p=new THREE.Vector3(b.center[0],(b.height||10)/2,b.center[1]).project(camera);return Math.abs(p.x)<.8&&Math.abs(p.y)<.8&&p.z>-1&&p.z<1}).length;})).toBeGreaterThan(0);
+ await page.waitForTimeout(500);
+ await page.screenshot({path:'/private/tmp/hbl-progressive-streaming-controls.png'});
+ console.log('Startup milestones',await page.evaluate(()=>({firstFrameMs:hblWorldStartup.firstFrameMs,mapReadyMs:hblWorldStartup.mapReadyMs,geometryReadyMs:hblWorldStartup.geometryReadyMs,readyMs:hblWorldStartup.readyMs,geometry:hblWorldStartup.geometry,stream:hblMapStreamer.getState().tileCount})));
+ expect(errors).toEqual([]);
+});

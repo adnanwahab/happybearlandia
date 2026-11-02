@@ -1,17 +1,26 @@
 import { serve } from "bun";
 import { readdir } from "node:fs/promises";
 import { extname, join, normalize, relative } from "node:path";
-import { getArea, handleArea, handleOverpassHealth, OVERPASS_ENDPOINTS, OVERPASS_TIMEOUT_MS } from "./world/api.js";
+import { getArea, handleArea, handleAreaEnrichment, handleOverpassHealth, OVERPASS_ENDPOINTS, OVERPASS_TIMEOUT_MS } from "./world/api.js";
 import { createExperimentsHandler } from "./world/experiments-api.js";
 import { buildPlanApiPayload } from "./world/plan-response.js";
 import { handlePlanParameterPatch } from "./world/plan-parameter-api.js";
 import { createServerCivicApiHandler } from "./world/server-civic-api.js";
+import { createDecisionExperimentsHandler } from "./world/decision/api.js";
+import { createWorldEditApiHandler } from "./world/ai/provider-api.js";
+import { createOptimizationApiHandler } from "./world/decision/optimization-api.js";
+
+import { createBusinessCompilerHandler } from "./world/models/business-v1/compiler-api.js";
+const handleBusinessCompiler = createBusinessCompilerHandler();
 
 const PORT = Number(process.env.PORT) || 3000;
 const DEAR_CONGRESS_URL = process.env.DEAR_CONGRESS_URL || "https://dear-congress.fly.dev/api";
 
 const notFound = () => new Response("Not found", { status: 404 });
 const handleServerCivicApi = createServerCivicApiHandler();
+const handleDecisionExperiments = createDecisionExperimentsHandler();
+const handleWorldEdits = createWorldEditApiHandler();
+const handleOptimizations = createOptimizationApiHandler();
 
 function handleConfig() {
   return Response.json({
@@ -365,11 +374,22 @@ const server = serve({
       return new Response("WebSocket upgrade failed", { status: 400 });
     }
 
-    // Home → world
-    if (pathname === "/") {
-      return Response.redirect(`/world?lat=29.7286&lng=-95.4746`, 302);
+    if (/^\/world\/bench\/(aerial-city|downtown|construction|rush-hour|night|rain)\/?$/.test(pathname)) return serveFile("./world/index.html");
+
+    // Public landing page
+    if (pathname === "/" || pathname === "/index.html") {
+      return serveFile("./index.html");
     }
     if (pathname === "/favicon.ico") return new Response(null, { status: 204 });
+    // Curated local Three modules for the building workspace. No general
+    // node_modules serving. Addons are ESM and use the page's `three` import map.
+    if (under(pathname, "/vendor/three")) {
+      let vendorPath;
+      try { vendorPath = normalize(decodeURIComponent(pathname)); } catch { return notFound(); }
+      if (["/vendor/three/three.module.js", "/vendor/three/three.core.js", "/vendor/three/three.webgpu.js", "/vendor/three/three.tsl.js"].includes(vendorPath)) return serveFile(`./node_modules/three/build/${vendorPath.split("/").at(-1)}`);
+      if (vendorPath.startsWith("/vendor/three/addons/") && vendorPath.endsWith(".js")) return serveStatic("/vendor/three/addons", "./node_modules/three/examples/jsm", vendorPath);
+      return notFound();
+    }
 
     // Twitch plays robot (short URL kept for old links)
     if (pathname === "/twitch-plays-robot") return serveFile("./tools/twitch-plays-robot.html");
@@ -389,6 +409,11 @@ const server = serve({
       return res;
     }
 
+    if (under(pathname, "/api/business")) return handleBusinessCompiler(request);
+    if (pathname === "/world/models/business-v1/compiler-api.js") return notFound();
+    if (pathname === "/business-simulator" || pathname === "/business-simulator/") return serveFile("./world/business.html");
+    if (pathname === "/world-business-simulator" || pathname === "/world-business-simulator/") return Response.redirect("/world?business_mode=true", 302);
+
     // Synthetic world: /world?lat=29.7286&lng=-95.4746
     if (pathname === "/api/area") {
       try {
@@ -399,8 +424,12 @@ const server = serve({
         return Response.json({ source: "none", error: `area handler crashed: ${msg}` }, { status: 200 });
       }
     }
+    if (pathname === "/api/area/enrichment") return handleAreaEnrichment(new URL(request.url));
     if (pathname === "/api/overpass-health") return handleOverpassHealth();
     if (pathname === "/api/config") return handleConfig();
+    if (under(pathname, "/api/decision-experiments")) return handleDecisionExperiments(request);
+    if (under(pathname, "/api/world-edits")) return handleWorldEdits(request);
+    if (under(pathname, "/api/decision-optimizations")) return handleOptimizations(request);
     if (under(pathname, "/api/experiments") || under(pathname, "/api/runs")) {
       return handleServerCivicApi(request);
     }
@@ -414,6 +443,11 @@ const server = serve({
     if (pathname === "/api/screenshots") return handleScreenshots(new URL(request.url));
     if (under(pathname, "/api/dear-congress")) return proxyDearCongress(request);
     if (under(pathname, "/world")) {
+      let decodedWorldPath;
+      try { decodedWorldPath = normalize(decodeURIComponent(pathname)); } catch { return notFound(); }
+      if (decodedWorldPath === "/world/models/business-v1/compiler-api.js") return notFound();
+      if (/^\/world\/decision\/(api|store|worker|optimization-api)\.js$/.test(decodedWorldPath)) return notFound();
+      if (/^\/world\/ai\//.test(decodedWorldPath) && !/^\/world\/ai\/(edit-schema|edit-validator|revisions)\.js$/.test(decodedWorldPath)) return notFound();
       if (pathname.endsWith("/api.js") || pathname.endsWith("-api.js")) return notFound(); // server-only code
       return serveStatic("/world", "./world", pathname);
     }

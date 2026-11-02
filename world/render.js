@@ -1,7 +1,19 @@
 import * as THREE from "three";
+import { mountMinimap } from "./minimap.js";
+import { mountVehicleInspector } from "./vehicle-inspector.js";
+import { mountMapControls } from "./map-controls.js";
+import { mountFpsMeter } from "./fps-meter.js";
+import { createMapStreamer } from "./render/map-streamer.js";
+import { mountTileNavigation, adjacentNavigationQuery, geographicTileBounds } from "./tile-navigation.js";
+import { createProgressiveLoader } from "./render/progressive-loader.js";
+import { GeometryCache, toBufferGeometry } from "./render/geometry/geometry-cache.js";
+import { benchmarkScene, configureBenchmark } from "./render/bench/scenes.js";
+import { mountWorldBuildingBridge } from "./buildings/world-bridge.js";
+import { mountBusinessMode } from "./business-mode.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import WebGPU from "three/addons/capabilities/WebGPU.js";
-import WebGPURenderer from "three/addons/renderers/webgpu/WebGPURenderer.js";
+import { createCityRenderer } from "./render/renderer/webgpu-renderer.js";
+import { mountCityRenderer } from "./render/city-renderer.js";
+import { createFacadeMaterial } from "./render/buildings/facade-material.js";
 import { buildTown, projector } from "./gen.js";
 import { createWorld, clock } from "./sim.js";
 import { journalFor, WALK_COMPLAINT_MINUTES } from "./journal.js";
@@ -13,6 +25,9 @@ import { replayStormStrengthLabel } from "./replay-label.js";
 /* Where are we?  /world?lat=29.7286&lng=-95.4746&people=500         */
 /* ---------------------------------------------------------------- */
 const params = new URLSearchParams(location.search);
+const renderBenchmark = benchmarkScene(location.pathname);
+const demoMode = params.get("demo") === "1" || !!renderBenchmark;
+const businessMode = params.get("business_mode") === "true" || params.get("business_mode") === "1";
 
 // /world?simulation=…&reality=N enters one reality from the realities page (index.html
 // sends a link without &reality to /world/realities.html before this module loads).
@@ -44,11 +59,12 @@ const maxPeople = Math.min(3000, Number(params.get("people") ?? 500));
 const $ = (id) => document.getElementById(id);
 $("latlng").value = `${origin.lat.toFixed(4)}, ${origin.lng.toFixed(4)}`;
 
-function go(lat, lng) {
+function go(lat, lng, cameraState = null, tileBounds = null) {
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
-  const q = new URLSearchParams({ lat: lat.toFixed(5), lng: lng.toFixed(5) });
-  if (params.get("people")) q.set("people", params.get("people"));
-  if (params.get("year")) q.set("year", params.get("year"));
+  const q = adjacentNavigationQuery(location.search, {lat,lng}, cameraState);
+  if (!cameraState) q.delete("tileCamera");
+  if (tileBounds?.radiusM) q.set("tileRadiusM",String(tileBounds.radiusM));
+  else if (!cameraState) q.delete("tileRadiusM");
   location.search = q.toString();
 }
 $("goto").onsubmit = (e) => {
@@ -59,24 +75,78 @@ $("goto").onsubmit = (e) => {
 $("preset").onchange = (e) => { if (e.target.value) { const [a, b] = e.target.value.split(",").map(Number); go(a, b); } };
 $("here").onclick = () => navigator.geolocation?.getCurrentPosition((p) => go(p.coords.latitude, p.coords.longitude));
 
+const startup = window.hblWorldStartup = { startedAt:performance.now(), firstFrameMs:null, mapReadyMs:null, placeholdersReadyMs:null, geometryReadyMs:null, readyMs:null, geometry:null, cancelled:false };
+const startupAbort = new AbortController();
+let policyPending=false;
+const startupDisabled=new Map([...document.querySelectorAll('#stormBtn,#runExperimentBtn,#runCycleBtn,#demoBtn,#policy')].map(node=>[node,node.disabled]));
+for(const node of startupDisabled.keys())node.disabled=true;
+let startupActive=true,startupRAF=null,manualPanRequested=false,streamingEnabled=false;
+const initialAreaRequest=(async()=>{
+  if(demoMode)return {source:"none"};
+  try {
+    const tileRadius=Number(params.get("tileRadiusM")),radiusQuery=[150,250,400].includes(tileRadius)?`&radiusM=${tileRadius}`:'';
+    const response=await fetch(`/api/area?lat=${origin.lat}&lng=${origin.lng}${radiusQuery}&core=1`,{signal:AbortSignal.any([startupAbort.signal,AbortSignal.timeout(12000)])});
+    return response.ok?await response.json():{source:"none",error:`area HTTP ${response.status}`};
+  }catch(error){return {source:"none",error:`area request failed: ${error.message}`};}
+})();
+
+const { renderer, mode: rendererMode } = await createCityRenderer({ forceWebGL: params.get("renderer") === "webgl", antialias: !embedMode });
+renderer.setSize(innerWidth, innerHeight);
+$("view").appendChild(renderer.domElement);
+
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 1, 5000);
+camera.position.set(320, 125, 450);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 30, 0);
+controls.maxPolarAngle = Math.PI * 0.47;
+controls.enableDamping = true;
+const resizeWorldView = () => {camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);};
+addEventListener("resize",resizeWorldView);
+
+const mapControls=mountMapControls({container:document.body,camera,controls,THREE,buttons:false,onPan:()=>{manualPanRequested=true;streamingEnabled=true;}});
+window.hblMapControls=mapControls;
+const fpsMeter=mountFpsMeter({container:document.body});
+addEventListener("pagehide",()=>{mapControls.destroy();fpsMeter.destroy();},{once:true});
+// Adjacent neighborhoods retain the local view orientation and zoom.
+try {
+  const view = JSON.parse(params.get("tileCamera") || "null");
+  if (view && [view.position,view.target].every(v=>Array.isArray(v)&&v.length===3&&v.every(n=>Number.isFinite(n)&&Math.abs(n)<100000))) {
+    camera.position.fromArray(view.position);controls.target.fromArray(view.target);controls.update();
+  }
+} catch {}
+// In the grid, let the mouse wheel scroll the page instead of zooming each tiny world.
+if (embedMode) controls.enableZoom = false;
+
+const hemi = new THREE.HemisphereLight(0xffffff, 0x8a8170, 1.1);
+scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xffffff, 1.6);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -280, right: 280, top: 280, bottom: -280, far: 1500 });
+sun.shadow.normalBias = .08;sun.shadow.bias = -.00015;
+scene.add(sun, sun.target);
+
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(16000, 16000), new THREE.MeshLambertMaterial({ color: 0x626b50 }));
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+
+scene.background=new THREE.Color(0xbcd3df);
+function drawStartupFrame(now){if(!startupActive||startupAbort.signal.aborted)return;mapControls.update(now);fpsMeter.update(now);controls.update();renderer.render(scene,camera);startup.firstFrameMs??=performance.now();startupRAF=requestAnimationFrame(drawStartupFrame);}
+requestAnimationFrame(drawStartupFrame);
+addEventListener("pagehide",()=>{startup.cancelled=true;startupAbort.abort();startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);removeEventListener("resize",resizeWorldView);},{once:true});
+
 /* ---------------------------------------------------------------- */
 /* Load map data → synthetic town → world                            */
 /* ---------------------------------------------------------------- */
 // ?demo=1 pins the town: skip OpenStreetMap so the procedural town (and the story
 // the demo tells) is identical on every machine, regardless of what Overpass returns.
-const demoMode = params.get("demo") === "1";
-let area = { source: "none" };
-if (!demoMode) try {
-  const res = await fetch(`/api/area?lat=${origin.lat}&lng=${origin.lng}`, { signal: AbortSignal.timeout(12000) });
-  if (!res.ok) {
-    area = { source: "none", error: `area HTTP ${res.status}` };
-  } else {
-    area = await res.json();
-  }
-} catch (err) {
-  area = { source: "none", error: `area request failed: ${String(err?.message || err)}` };
-}
 
+let area = await initialAreaRequest;
+startup.mapReadyMs=performance.now();
 const town = buildTown(origin, area, { maxPeople });
 const world = createWorld(town, realityRunSeed ? { runSeed: realityRunSeed } : {});
 const isHarrisCountyTile = origin.lat >= 29.3 && origin.lat <= 30.25 && origin.lng >= -95.95 && origin.lng <= -94.9;
@@ -87,7 +157,7 @@ for (const b of town.buildings) {
   buildingsById[b.index] = b;
   buildingsById[b.id] = b;
 }
-const floodSourceTxt = area.floodZonesSource === "fema-nfhl"
+const floodSourceTxt = area.floodZonesStatus === "pending" ? "FEMA flood zones loading; flood overlay is provisional" : area.floodZonesSource === "fema-nfhl"
   ? `FEMA NFHL flood zones loaded (${(area.floodZones || []).length} polygons)`
   : `FEMA flood zones unavailable (${area.floodZonesError || "request failed"}); using local lowland fallback.`;
 
@@ -98,7 +168,28 @@ $("source").textContent = town.source === "osm"
     : demoMode
       ? `Demo town (pinned procedural layout) · ${town.people.length} synthetic residents`
       : `No map data here, so this is a procedural town · ${town.people.length} synthetic residents · ${floodSourceTxt}`;
-$("loading").remove();
+$("loading").textContent=`Map ready · adding ${town.buildings.length} buildings…`;
+$("source").textContent += ` · renderer ${rendererMode.toUpperCase()}`;
+const tileNavigation = !embedMode ? mountTileNavigation({container: $("tile-navigation"),area,town,origin,camera,controls,THREE,navigate: (next,view,bounds)=>go(next.lat,next.lng,view,bounds)}) : null;
+addEventListener("pagehide",()=>tileNavigation?.destroy(),{once:true});
+
+
+
+async function loadAreaEnrichment(){
+  if(!area.enrichment?.url)return;
+  try {
+    await new Promise(requestAnimationFrame);
+    const response=await fetch(area.enrichment.url,{signal:AbortSignal.any([startupAbort.signal,AbortSignal.timeout(15000)])});
+    if(!response.ok)throw new Error(`enrichment HTTP ${response.status}`);
+    const overlay=await response.json();if(startupAbort.signal.aborted||overlay.areaKey!==area.areaKey)return;
+    const {applyAreaEnrichment}=await import('./gen.js');
+    if(typeof applyAreaEnrichment!=='function')throw new Error('Flood overlay update is not available.');
+    const applied=applyAreaEnrichment(town,area,overlay);if(!applied.applied)throw new Error(applied.reason||'Flood overlay does not match the loaded area');startup.enrichmentUpdatedBuildings=applied.updated;
+    const label=overlay.floodZonesStatus==='ready'?`FEMA NFHL flood zones loaded (${overlay.floodZones.length} polygons)`:overlay.floodZonesStatus==='stale'?'FEMA NFHL zones from a stale snapshot':`FEMA overlay unavailable (${overlay.floodZonesError||'no response'}); local fallback`;
+    $("source").textContent=$("source").textContent.replace(floodSourceTxt,label);startup.enrichmentStatus=overlay.floodZonesStatus;
+  }catch(error){if(!startupAbort.signal.aborted){area.floodZonesStatus='error';area.floodZonesError=error.message;startup.enrichmentStatus='error';$("source").textContent=$("source").textContent.replace(floodSourceTxt,`FEMA overlay unavailable (${error.message}); local fallback`);}}
+}
+loadAreaEnrichment();
 
 async function loadMeasuredOutcomes() {
   if (!isHarrisCountyTile) return;
@@ -177,67 +268,6 @@ loadMeasuredOutcomes();
 /* ---------------------------------------------------------------- */
 /* Scene                                                             */
 /* ---------------------------------------------------------------- */
-const preferWebGPU = params.get("renderer") !== "webgl";
-
-async function createRenderer() {
-  if (preferWebGPU && WebGPU.isAvailable()) {
-    try {
-      const r = new WebGPURenderer({ antialias: !embedMode });
-      await r.init();
-      r.setPixelRatio(embedMode ? 1 : Math.min(devicePixelRatio, 2));
-      r.setSize(innerWidth, innerHeight);
-      if (r.shadowMap) r.shadowMap.enabled = !embedMode;
-      return { renderer: r, mode: "webgpu" };
-    } catch (err) {
-      console.warn("[world] WebGPU renderer init failed; falling back to WebGL", err);
-    }
-  }
-  const r = new THREE.WebGLRenderer({ antialias: !embedMode });
-  r.setPixelRatio(embedMode ? 1 : Math.min(devicePixelRatio, 2));
-  r.setSize(innerWidth, innerHeight);
-  r.shadowMap.enabled = !embedMode;
-  return { renderer: r, mode: "webgl" };
-}
-
-const { renderer, mode: rendererMode } = await createRenderer();
-$("view").appendChild(renderer.domElement);
-$("source").textContent += ` · renderer ${rendererMode.toUpperCase()}`;
-
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 1, 5000);
-camera.position.set(260, 320, 360);
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0, 0, 0);
-controls.maxPolarAngle = Math.PI * 0.47;
-controls.enableDamping = true;
-// In the grid, let the mouse wheel scroll the page instead of zooming each tiny world.
-if (embedMode) controls.enableZoom = false;
-
-const hemi = new THREE.HemisphereLight(0xffffff, 0x8a8170, 1.1);
-scene.add(hemi);
-const sun = new THREE.DirectionalLight(0xffffff, 1.6);
-sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
-Object.assign(sun.shadow.camera, { left: -500, right: 500, top: 500, bottom: -500, far: 1500 });
-scene.add(sun, sun.target);
-
-const ground = new THREE.Mesh(new THREE.PlaneGeometry(1600, 1600), new THREE.MeshLambertMaterial({ color: 0xe6e1d4 }));
-ground.rotation.x = -Math.PI / 2;
-ground.receiveShadow = true;
-scene.add(ground);
-
-// Streets
-{
-  const pos = [];
-  for (const rd of town.roads) for (let i = 1; i < rd.pts.length; i++) {
-    const [a, b] = [rd.pts[i - 1], rd.pts[i]];
-    pos.push(a[0], 0.15, a[1], b[0], 0.15, b[1]);
-  }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
-  scene.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x9c968a })));
-}
-
 // Buildings
 const KIND_COLOR = { home: 0xd9cbb4, work: 0x8fa6c4, food: 0xe0875a, shop: 0xc9a23a, school: 0x9b7fd1, park: 0x7fb26a };
 
@@ -252,37 +282,78 @@ function hash32(s) {
 
 // Deterministic per-building tint: keeps kind identity but makes nearby homes visibly different.
 function baseColorFor(b) {
-  const base = new THREE.Color(KIND_COLOR[b.kind] || 0xc7b9a2);
-  const hsl = { h: 0, s: 0, l: 0 };
-  base.getHSL(hsl);
-
-  const h = hash32(`${b.id || "b"}:${b.index}:${b.kind}`);
-  const r0 = (h & 1023) / 1023;           // 0..1
-  const r1 = ((h >>> 10) & 1023) / 1023;  // 0..1
-  const r2 = ((h >>> 20) & 1023) / 1023;  // 0..1
-
-  // Wider spread than before so variation is obvious even with warm lighting.
-  hsl.h = (hsl.h + (r0 - 0.5) * 0.09 + 1) % 1;
-  hsl.s = Math.min(1, Math.max(0, hsl.s * (0.75 + r1 * 0.8)));
-  hsl.l = Math.min(0.82, Math.max(0.35, hsl.l * (0.75 + r2 * 0.9)));
-
-  return new THREE.Color().setHSL(hsl.h, hsl.s, hsl.l).getHex();
+  const palette = b.kind === "park" ? [0x455d35,0x50653b,0x566841]
+    : b.kind === "work" ? [0x646e73,0x85877d,0x555e62,0x99988a,0x697b80]
+    : [0x8e806b,0xa39a84,0x796b58,0x8b6250,0xaaa58f,0x696d66,0x9a8972];
+  return palette[hash32(`${b.id}:${b.kind}`) % palette.length];
 }
+
 const meshes = [];
-for (const b of town.buildings) {
-  const shape = new THREE.Shape(b.poly.map(([x, z]) => new THREE.Vector2(x, -z)));
-  const geo = new THREE.ExtrudeGeometry(shape, { depth: b.height, bevelEnabled: false });
-  geo.rotateX(-Math.PI / 2);
-  b.baseColor = baseColorFor(b);
-  const mat = new THREE.MeshLambertMaterial({ color: b.baseColor, emissive: b.baseColor, emissiveIntensity: 0 });
-  const m = new THREE.Mesh(geo, mat);
-  m.castShadow = b.kind !== "park";
-  m.receiveShadow = true;
-  m.userData.b = b;
-  b.mesh = m;
-  meshes.push(m);
-  scene.add(m);
+const facades = [];
+const geometryCache = new GeometryCache();
+// Complete, coherent town first; cheap footprint bounds make it visible while
+// the same full-quality worker geometry is generated and uploaded incrementally.
+const placeholderMaterials=new Map();
+for (const [index,b] of town.buildings.entries()) {
+  b.baseColor=baseColorFor(b);
+  if(!placeholderMaterials.has(b.kind))placeholderMaterials.set(b.kind,new THREE.MeshLambertMaterial({color:KIND_COLOR[b.kind]||0xc7b9a2}));
+  const xs=b.poly.map(p=>p[0]),zs=b.poly.map(p=>p[1]),minX=Math.min(...xs),maxX=Math.max(...xs),minZ=Math.min(...zs),maxZ=Math.max(...zs);
+  const geo=new THREE.BoxGeometry(Math.max(1,maxX-minX),b.height,Math.max(1,maxZ-minZ));geo.translate((minX+maxX)/2,b.height/2,(minZ+maxZ)/2);
+  const mesh=new THREE.Mesh(geo,placeholderMaterials.get(b.kind));mesh.castShadow=b.kind!=="park";mesh.receiveShadow=true;mesh.userData.b=b;mesh.userData.loadingGeometry=true;b.mesh=mesh;meshes.push(mesh);scene.add(mesh);
+  if(index%40===39)await new Promise(requestAnimationFrame);
 }
+startup.placeholdersReadyMs=performance.now();
+const progressiveGeometry=createProgressiveLoader({items:town.buildings,signal:startupAbort.signal,concurrency:3,frameBudgetMs:4,maxAttachmentsPerFrame:6,
+  priority:b=>Math.hypot(b.center[0]-camera.position.x,b.center[1]-camera.position.z),
+  load:b=>geometryCache.building({id:b.id,poly:b.poly,height:b.height,kind:b.kind}),
+  attach:(data,b)=>{const geo=toBufferGeometry(data),facade=createFacadeMaterial(b.baseColor,hash32(String(b.id))%1000,{...data.metadata.facade,park:b.kind==="park"}),mesh=b.mesh;const old=mesh.geometry;mesh.geometry=geo;mesh.material=facade.material;mesh.userData.loadingGeometry=false;mesh.userData.geometryTier=1;facades.push(facade);old.dispose();return()=>{geo.dispose();facade.material.dispose();};},
+  fallback:(error,b)=>{b.mesh.userData.geometryError=error.message;return()=>b.mesh.geometry.dispose();},
+  disposeSource:()=>geometryCache.dispose(),
+  onProgress:progress=>{startup.geometry=progress;const label=$("loading");if(label)label.textContent=`Detailed buildings ${progress.successful} / ${progress.total}${progress.fallbacks?` · ${progress.fallbacks} footprints retained`:''}`;}
+});
+progressiveGeometry.start().then(()=>{startup.geometryReadyMs=performance.now();if(startup.geometry?.status==='completed'&&!startup.geometry.failed)$("loading")?.remove();}).catch(error=>{if(!startupAbort.signal.aborted&&$("loading"))$("loading").textContent=`Some geometry could not load: ${error.message}`;});
+addEventListener("pagehide",()=>{progressiveGeometry.dispose();for(const material of placeholderMaterials.values())material.dispose();},{once:true});
+
+const cityRenderer = mountCityRenderer({ renderer, mode: rendererMode, scene, camera, controls, town, sun, facades, geometryCache, embed: embedMode });
+window.hblCityRenderer = cityRenderer;
+if (renderBenchmark) configureBenchmark(cityRenderer, renderBenchmark);
+addEventListener("pagehide", () => cityRenderer.destroy(), { once: true });
+renderer.domElement.addEventListener("dblclick", (event) => {
+  const bounds = renderer.domElement.getBoundingClientRect();
+  const pointer = new THREE.Vector2((event.clientX - bounds.left) / bounds.width * 2 - 1, -(event.clientY - bounds.top) / bounds.height * 2 + 1);
+  const picker = new THREE.Raycaster(); picker.setFromCamera(pointer, camera);
+  const hit = picker.intersectObjects(meshes)[0];
+  if (hit) cityRenderer.focusBuilding(hit.object.userData.b.id);
+});
+
+// Dedicated construction clock and approval tools never alter resident/day time.
+// Neighbor chunks are visual context only: never splice resident town arrays.
+const streamStatus=document.createElement('div');streamStatus.id='world-stream-status';streamStatus.setAttribute('role','status');streamStatus.textContent='Neighbor map context loads as you pan; active residents remain in the original neighborhood.';document.body.append(streamStatus);
+const retryNearby=document.createElement('button');retryNearby.type='button';retryNearby.textContent='Retry nearby map';retryNearby.id='retry-nearby-map';retryNearby.hidden=true;retryNearby.onclick=()=>mapStreamer.retry();document.body.append(retryNearby);
+let minimap=null;
+function disposeContext(group){scene.remove(group);group.traverse(node=>{node.geometry?.dispose();for(const mat of Array.isArray(node.material)?node.material:[node.material])mat?.dispose?.();});}
+const generatedContext=town.source!=='osm';
+const contextBuildings=new Map(),contextRoads=new Map();
+let pendingContextChunks=null,lastContextMapUpdate=-Infinity,contextMapBounds=null,contextViewLimited=false;
+function updateContextMinimap(chunks){if(chunks)pendingContextChunks=chunks;if(!minimap||!pendingContextChunks||performance.now()-lastContextMapUpdate<250)return;lastContextMapUpdate=performance.now();const loadedChunks=pendingContextChunks;pendingContextChunks=null;minimap.update({town,contextBuildings:[...contextBuildings.values()],contextRoads:[...[...contextRoads.values()].flat()],loadedChunks,bounds:contextMapBounds,viewLimited:contextViewLimited});}
+const mapStreamer=createMapStreamer({mode:generatedContext?'generated':'osm',buildGeneratedTile:tile=>buildTown({lat:tile.lat,lng:tile.lng},{source:'none'},{maxPeople:0}),origin,projector:geoProj,initialArea:{...area,origin:area.origin||origin},initialBuildingIds:town.buildings.map(b=>b.id),tileRadiusM:generatedContext?430:([150,250,400].includes(area.radiusM)?area.radiusM:400),geometryCache,camera,signal:startupAbort.signal,maxTiles:9,concurrency:2,
+  getTarget:()=>controls.target,
+  getView:()=>{const footprint=mapControls.getPanFootprint?.(),distance=camera.position.distanceTo(controls.target),halfHeight=distance*Math.tan(camera.getEffectiveFOV()*Math.PI/360);return {x:controls.target.x,z:controls.target.z,halfWidth:footprint?footprint.width/2:halfHeight*camera.aspect,halfDepth:footprint?footprint.depth/2:halfHeight};},
+  attachBuilding:(data,b)=>{const geometry=toBufferGeometry(data),facade=createFacadeMaterial(baseColorFor(b),hash32(String(b.id))%1000,{...data.metadata.facade,park:b.kind==="park"}),mesh=new THREE.Mesh(geometry,facade.material);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.contextBuilding=b;scene.add(mesh);facades.push(facade);contextBuildings.set(b.id,b);return()=>{contextBuildings.delete(b.id);scene.remove(mesh);geometry.dispose();facade.material.dispose();const index=facades.indexOf(facade);if(index>=0)facades.splice(index,1);};},
+  attachTile:(context,tile)=>{const group=new THREE.Group(),bounds=tile.actualBounds||tile.bounds,width=bounds.maxX-bounds.minX,depth=bounds.maxZ-bounds.minZ;const base=new THREE.Mesh(new THREE.PlaneGeometry(width,depth),new THREE.MeshLambertMaterial({color:0x626b50}));base.rotation.x=-Math.PI/2;base.position.set((bounds.minX+bounds.maxX)/2,-.12,(bounds.minZ+bounds.maxZ)/2);base.receiveShadow=true;group.add(base);const minimapRoads=[];for(const road of context.roads||[]){const projected=(road.pts||[]).map(point=>context.coordinates==='world'?point:geoProj.toXZ(point[0],point[1]));minimapRoads.push({...road,pts:projected});const points=projected.map(([x,z])=>new THREE.Vector3(x,.06,z));if(points.length<2)continue;group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),new THREE.LineBasicMaterial({color:0x92938e})));}scene.add(group);contextRoads.set(tile.key,minimapRoads);return()=>{contextRoads.delete(tile.key);disposeContext(group);};},
+  onProgress:state=>{startup.stream=state;contextMapBounds=state.activeWindowBounds;contextViewLimited=state.viewLimited;const unavailable=state.tiles.filter(tile=>tile.status==='error').length,partial=state.tiles.filter(tile=>tile.status==='partial'||tile.error&&tile.status!=='error').length;retryNearby.hidden=!unavailable&&!partial;retryNearby.disabled=state.activeFetches>0;streamStatus.textContent=`${state.mode==='generated'?'Generated':'Real-map'} neighbor context: ${state.tileCount} / 9 retained areas · ${state.buildingCount} context buildings · ${state.activeFetches} map requests${unavailable?` · ${unavailable} unavailable`:''}${partial?` · ${partial} partial`:''}${state.viewLimited?' · zoom in for complete view coverage':''}. Original resident model unchanged.`;updateContextMinimap(state.tiles);}
+});
+window.hblMapStreamer=mapStreamer;
+minimap=!embedMode?mountMinimap(document.body,{town,camera,controls,THREE,bounds:geographicTileBounds(area,town),loadedChunks:mapStreamer.getState().tiles,onPan:()=>{manualPanRequested=true;streamingEnabled=true;},onPanScreen:direction=>mapControls.panScreen(direction)}):null;
+window.hblMapControls=mapControls;
+let selectedVehicle=null,lastVehicleUpdate=0;
+const vehicleInspector=!embedMode?mountVehicleInspector(document.body,{onClose:()=>{selectedVehicle=null;}}):null;
+addEventListener('pagehide',()=>{minimap?.destroy();vehicleInspector?.destroy();},{once:true});
+
+addEventListener('pagehide',()=>{mapStreamer.dispose();streamStatus.remove();retryNearby.remove();},{once:true});
+
+const buildingBridge = !embedMode ? mountWorldBuildingBridge({ scene, camera, renderer, controls, town, THREE }) : null;
+addEventListener("pagehide", () => buildingBridge?.destroy(), { once: true });
 
 // People: one instanced capsule mesh, hidden while indoors
 const ACTION_COLOR = {
@@ -290,8 +361,8 @@ const ACTION_COLOR = {
   work: 0x4a5a78, study: 0x7a5ec2, sleep: 0x555555, eat_home: 0xb36b3b, relax_home: 0x8d6e63, idle: 0x999999,
 };
 const OUTDOOR = new Set(["play_park", "clean_park"]);
-const capsule = new THREE.CapsuleGeometry(2.2, 4.2, 4, 8);
-capsule.translate(0, 4.3, 0);
+const capsule = new THREE.CapsuleGeometry(.24, 1.12, 3, 6);
+capsule.translate(0, .8, 0);
 const people = new THREE.InstancedMesh(capsule, new THREE.MeshLambertMaterial(), town.people.length);
 people.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 people.castShadow = true;
@@ -461,8 +532,8 @@ async function loadPolicyPackages() {
   for (const attempt of attempts) {
     try {
       const res = await fetch(attempt.url, attempt.kind === "post"
-        ? { method: "POST", headers: { "content-type": "application/json" }, body: attempt.body, signal: AbortSignal.timeout(8000) }
-        : { signal: AbortSignal.timeout(8000) });
+        ? { method: "POST", headers: { "content-type": "application/json" }, body: attempt.body, signal: AbortSignal.any([startupAbort.signal,AbortSignal.timeout(8000)]) }
+        : { signal: AbortSignal.any([startupAbort.signal,AbortSignal.timeout(8000)]) });
       if (!res.ok) continue;
       const payload = await res.json();
 
@@ -667,12 +738,19 @@ if (planYearEl) {
 
 $("stormBtn").onclick = () => triggerStorm();
 // A world embedded in the grid only needs its frozen plan, so it skips synthesizing packages.
-if (!(embedMode && realityRunSeed)) await loadPolicyPackages();
+if (!(embedMode && realityRunSeed)) {
+  if(realityRunSeed)await loadPolicyPackages(); // Frozen reality ordering is unchanged.
+  else {
+    policyPending=true;startup.policyStatus='loading';refreshPolicySelect(activePolicyId);
+    for(const id of ['policy','runExperimentBtn','runCycleBtn','demoBtn'])if($(id))$(id).disabled=true;
+    loadPolicyPackages().then(ok=>{if(startupAbort.signal.aborted)return;policyPending=false;startup.policyStatus=ok?'ready':'local-fallback';if($("policyNote"))$("policyNote").textContent=$("policyNote").textContent.replace(' · remote plan packages loading; current local policy unchanged','')+(ok?'':' · using local presets; remote packages unavailable');for(const id of ['policy','runExperimentBtn','runCycleBtn','demoBtn'])if($(id))$(id).disabled=startupDisabled.get($(id))||false;});
+  }
+}
 activePolicyId = $("policy").value || "none";
 if (realityRunSeed) {
   // Entering one reality from the realities page: run its frozen plan with its seed.
   try {
-    const res = await fetch(`/api/dear-congress/simulation-snapshots/${encodeURIComponent(simulationId)}`, { signal: AbortSignal.timeout(8000) });
+    const res = await fetch(`/api/dear-congress/simulation-snapshots/${encodeURIComponent(simulationId)}`, { signal: AbortSignal.any([startupAbort.signal,AbortSignal.timeout(8000)]) });
     const snap = (await res.json())?.snapshot;
     if (snap?.plan?.proposalIds?.length) {
       PLAN_PACKAGES = {
@@ -687,6 +765,7 @@ if (realityRunSeed) {
   }
 }
 applyPolicy(activePolicyId, policyYear);
+if(policyPending)$("policyNote").textContent += " · remote plan packages loading; current local policy unchanged";
 
 // ?person=<id> (from "why this reality"): select that resident and follow them.
 if (params.get("person") != null) followResident(Number(params.get("person")));
@@ -1682,7 +1761,7 @@ async function publishSyntheticJournalsForDay(day) {
             "x-voter-id": `synthetic-${tileKey}-${String(p.id ?? i)}`,
           },
           body: JSON.stringify(payload),
-          signal: AbortSignal.timeout(8000),
+          signal: AbortSignal.any([startupAbort.signal,AbortSignal.timeout(8000)]),
         });
         if (res.ok) {
           ok++;
@@ -1720,8 +1799,23 @@ async function publishSyntheticJournalsForDay(day) {
 
 const ray = new THREE.Raycaster();
 const ptr = new THREE.Vector2();
-let downAt = null;
-renderer.domElement.addEventListener("pointerdown", (e) => { downAt = [e.clientX, e.clientY]; });
+let downAt = null,downVehicle = null;
+let businessMarker;
+const focusBusiness = b => { controls.target.set(b.center[0], 0, b.center[1]); controls.update(); };
+const businessUI = businessMode ? mountBusinessMode(world, {
+  onFocus: focusBusiness,
+  onPlace(b) {
+    if (!businessMarker) {
+      businessMarker = new THREE.Mesh(new THREE.TorusGeometry(18, 2, 8, 48), new THREE.MeshBasicMaterial({ color: 0x51e7ff, depthTest: false }));
+      businessMarker.rotation.x = -Math.PI / 2;
+      businessMarker.renderOrder = 10;
+      scene.add(businessMarker);
+    }
+    businessMarker.position.set(b.center[0], 3, b.center[1]);
+    focusBusiness(b);
+  },
+}) : null;
+renderer.domElement.addEventListener("pointerdown", (e) => { downAt = [e.clientX, e.clientY];ptr.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);ray.setFromCamera(ptr,camera);downVehicle=cityRenderer.pickVehicle?.(ray)||null; });
 renderer.domElement.addEventListener("pointerup", (e) => {
   if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) return; // was a drag
   ptr.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
@@ -1729,6 +1823,13 @@ renderer.domElement.addEventListener("pointerup", (e) => {
   const hp = ray.intersectObject(people)[0];
   const hb = ray.intersectObjects(meshes)[0];
   const hj = journalPins.length ? ray.intersectObjects(journalPins.map((x) => x.mesh))[0] : null;
+  const vehicle=cityRenderer.pickVehicle?.(ray)||downVehicle;
+  if(vehicle&&(!hb||vehicle.distance<hb.distance)&&(!hp||vehicle.distance<hp.distance)&&(!hj||vehicle.distance<hj.distance)) {select(null);selectedVehicle=vehicle.id;vehicleInspector?.select(vehicle);return;}
+  selectedVehicle=null;vehicleInspector?.select(null);
+  if (businessUI && hb) {
+    businessUI.choose(hb.object.userData.b);
+    return;
+  }
   if (hj) {
     const ji = hj.object.userData.journalIndex;
     select({ type: "journal", id: ji });
@@ -1740,6 +1841,7 @@ addEventListener("keydown", (e) => { if (e.key === "Escape") select(null); });
 
 function select(s) {
   selected = s;
+  cityRenderer.updateCity({ selectedBuilding: s?.type === "building" ? town.buildings[s.id]?.id : null });
   follow = false;
   $("inspect").style.display = s ? "block" : "none";
   renderInspector();
@@ -1783,10 +1885,13 @@ function renderInspector() {
       ${b.kind === "home" ? `<div class="muted">Fridge: ${s.fridge} meals</div>` : ""}
       ${b.kind === "park" ? `<div class="need"><span>litter</span><div class="bar"><i style="width:${s.litter}%;background:#b7871b"></i></div></div>` : ""}
       <div class="row">
+        <button id="cityFocus">Focus</button>${b.kind !== "park" ? `<button id="cityCutaway">Cutaway</button>` : ""}
         ${["food", "shop", "work", "school"].includes(b.kind) ? `<button id="toggleOpen">${s.open ? "Close it" : "Reopen"}</button>` : ""}
         ${s.maxStock ? `<button id="restock">Deliver stock</button>` : ""}
         ${b.kind === "park" ? `<button id="litterBtn">Dump litter</button>` : ""}
       </div>`;
+    $("cityFocus")?.addEventListener("click", () => cityRenderer.focusBuilding(b.id));
+    $("cityCutaway")?.addEventListener("click", () => { cityRenderer.focusBuilding(b.id); cityRenderer.setCutaway(!cityRenderer.cutawayEnabled); });
     $("toggleOpen")?.addEventListener("click", () => { s.open = !s.open; world.log(`${b.name} ${s.open ? "reopened" : "closed"} (by you)`, "civic", b); renderInspector(); });
     $("restock")?.addEventListener("click", () => { s.stock = s.maxStock; world.log(`${b.name} got a delivery (by you)`, "restock", b); renderInspector(); });
     $("litterBtn")?.addEventListener("click", () => { s.litter = Math.min(100, s.litter + 40); renderInspector(); });
@@ -1808,6 +1913,11 @@ let lastEmbedPostT = -Infinity;
 let last = performance.now();
 
 function frame(now) {
+  if(startupAbort.signal.aborted)return;
+  mapControls.update(now);fpsMeter.update(now);if(selectedVehicle&&now-lastVehicleUpdate>200){lastVehicleUpdate=now;const vehicle=cityRenderer.getVehicle?.(selectedVehicle);if(vehicle)vehicleInspector?.update(vehicle);}if(manualPanRequested){follow=false;manualPanRequested=false;}
+  if(streamingEnabled||Math.hypot(controls.target.x,controls.target.z)>400){streamingEnabled=true;mapStreamer.update();}updateContextMinimap();
+  const cpuStart = performance.now();
+  const frameMs = now - last;
   const dt = Math.min(0.1, (now - last) / 1000);
   last = now;
 
@@ -1823,13 +1933,17 @@ function frame(now) {
     publishSyntheticJournalsForDay(world.day());
   }
 
+  businessUI?.update();
+
   // Day / night
-  const m = world.minuteOfDay();
+  const m = cityRenderer.timeOfDay == null ? world.minuteOfDay() : cityRenderer.timeOfDay * 60;
   const daylight = Math.max(0, Math.sin(((m - 6 * 60) / (14 * 60)) * Math.PI)); // 6am–8pm arc
   sky.copy(night).lerp(day, daylight);
-  scene.background = sky;
-  hemi.intensity = 0.25 + 0.9 * daylight;
-  sun.intensity = 1.8 * daylight;
+  scene.background = buildingBridge?.worldVisuals.skyColor ? new THREE.Color(buildingBridge.worldVisuals.skyColor) : sky;
+  hemi.intensity = (buildingBridge?.worldVisuals.nightBrightness ?? 0.12) + 0.42 * daylight;
+  hemi.color.setHex(0xc5ddf2);hemi.groundColor.setHex(0x55523f);
+  sun.intensity = 2.8 * daylight;
+  sun.color.setHex(daylight < .35 ? 0xffce98 : 0xffefda);
   const ang = ((m - 6 * 60) / (14 * 60)) * Math.PI;
   sun.position.set(Math.cos(ang) * 400, Math.max(40, Math.sin(ang) * 500), 200);
 
@@ -1843,7 +1957,9 @@ function frame(now) {
     const k = 1 - Math.exp(-dt * 10);
     s.x += (p.x - s.x) * k;
     s.z += (p.z - s.z) * k;
-    const visible = wbOverlay || p.mode === "moving" || OUTDOOR.has(p.action) || (selected?.type === "person" && selected.id === i);
+    const selectedPerson = selected?.type === "person" && selected.id === i;
+    const withinDetailBudget = (i * 0.61803398875) % 1 < cityRenderer.density;
+    const visible = wbOverlay || selectedPerson || (withinDetailBudget && (p.mode === "moving" || OUTDOOR.has(p.action)));
     const scale = visible ? (p.age < 13 ? 0.7 : 1) * (wbOverlay ? 1.8 : 1) : 0;
     tmp.position.set(s.x, 0, s.z);
     tmp.scale.setScalar(scale);
@@ -1895,7 +2011,8 @@ function frame(now) {
   }
 
   controls.update();
-  renderer.render(scene, camera);
+  if (cityRenderer.beforeFrame(now, dt, daylight, selected?.type === "building" ? selected.id : null, buildingBridge?.worldVisuals)) renderer.render(scene, camera);
+  cityRenderer.afterFrame(now, performance.now() - cpuStart, frameMs);
   requestAnimationFrame(frame);
 }
 
@@ -1939,7 +2056,9 @@ function updateBuildings(daylight) {
       c = (r << 16) | (g << 8) | bl;
     }
     else if (b.kind === "park") c = new THREE.Color(base).lerp(new THREE.Color(0x8a7a52), b.state.litter / 120).getHex();
-    mat.color.setHex(c);
+    mat.color.set(buildingBridge?.worldVisuals.facadeColor && b.kind !== "park" ? buildingBridge.worldVisuals.facadeColor : c);
+    b.mesh.scale.y = (buildingBridge?.worldVisuals.heightScale || 1) * Math.max(0.5, Math.min(1.8, buildingBridge?.futureMapping.supplyIndex || 1));
+    if (buildingBridge?.futureMapping.recordedMonth != null && b.kind !== "park") mat.color.lerp(new THREE.Color(0x33464b), Math.max(0, Math.min(0.6, (buildingBridge.futureMapping.vacancyPercent || 0) / 100)));
   }
 }
 
@@ -1986,11 +2105,8 @@ function updateHud() {
   }
 }
 
-addEventListener("resize", () => {
-  camera.aspect = innerWidth / innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
-});
+
 
 world.log(`Welcome to ${origin.lat.toFixed(3)}, ${origin.lng.toFixed(3)}. Click a person or building.`, "info");
+startup.readyMs=performance.now();for(const [node,disabled] of startupDisabled)node.disabled=policyPending&&['policy','runExperimentBtn','runCycleBtn','demoBtn'].includes(node.id)?true:disabled;startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);
 requestAnimationFrame(frame);

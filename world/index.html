@@ -8,6 +8,13 @@
   :root { --bg: #f4f1ea; --panel: rgba(255,255,255,.92); --ink: #1d1d1b; --muted: #6b6a64; --line: rgba(0,0,0,.12); --accent: #2f6fd6; }
   @media (prefers-color-scheme: dark) { :root { --bg: #15161a; --panel: rgba(24,25,30,.92); --ink: #ecebe6; --muted: #9a9993; --line: rgba(255,255,255,.14); --accent: #79a8ff; } }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, Segoe UI, sans-serif; overflow: hidden; }
+  #businessPanel { right: 12px; bottom: 12px; width: min(340px, calc(100vw - 52px)); max-height: 75vh; overflow: auto; z-index: 6; }
+  #businessPanel label { display: block; margin: 8px 0; flex: 1; min-width: 0; }
+  #businessPanel input, #businessPanel select { display: block; box-sizing: border-box; width: 100%; padding: 7px; color: inherit; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; }
+  #businessMetrics { white-space: pre-line; font-weight: 600; }
+  .business-mode #inspect, .business-mode #experimentPanel, .business-mode #cyclePanel { display: none !important; }
+  .business-mode #top { max-height: 30vh; overflow: auto; }
+  @media (max-width: 700px) { .business-mode #top { max-height: 17vh; } #businessPanel { max-height: 49vh; } }
   #view { position: fixed; inset: 0; }
   html.embed .panel, html.embed #tag { display: none !important; }
   .panel { position: fixed; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; backdrop-filter: blur(6px); }
@@ -30,7 +37,7 @@
   #feed div:last-child { border: 0; }
   #feed b { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--muted); margin-right: 6px; }
   #tag { position: fixed; pointer-events: none; font-size: 12px; padding: 2px 6px; border-radius: 6px; background: var(--panel); border: 1px solid var(--line); display: none; transform: translate(-50%, -140%); white-space: nowrap; }
-  #loading { position: fixed; inset: 0; display: grid; place-items: center; font-size: 16px; color: var(--muted); }
+  #loading { position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:60;padding:9px 15px;border:1px solid var(--line);border-radius:9px;background:var(--panel);font-size:13px;color:var(--ink);pointer-events:none;max-width:70vw; }
   .legend { display: flex; flex-wrap: wrap; gap: 8px; font-size: 11px; color: var(--muted); }
   .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
   .warn { margin-top: 8px; padding: 8px 10px; border: 1px solid color-mix(in srgb, #d2552d 55%, var(--line)); border-radius: 8px; background: color-mix(in srgb, #d2552d 12%, transparent); color: color-mix(in srgb, #d2552d 70%, var(--ink)); font-size: 12px; }
@@ -67,6 +74,10 @@
   .cy-who .lbl { font-size: 11px; color: var(--muted); }
   .cy-scale { height: 8px; border-radius: 4px; background: linear-gradient(90deg, #d2463c, #d2be3c, #3cbe50); margin: 4px 0 2px; }
   @media (max-width: 640px) { #inspect { top: auto; bottom: 12px; right: 12px; left: 12px; width: auto; } #feed { display: none; } #experimentPanel { left: 12px; right: 12px; width: auto; } }
+  #top{max-height:calc(100vh - 24px);overflow:auto}.tile-navigation{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:7px 0;margin:6px 0}.tile-arrows{display:flex;align-items:center;gap:4px;flex-wrap:wrap}.tile-arrows>span{font-size:11px;margin-right:auto}.tile-arrows button{min-width:38px;min-height:32px;padding:4px}.tile-navigation details{font-size:11px;margin-top:4px}.tile-navigation summary{cursor:pointer}.tile-navigation [data-tile-size],.tile-navigation [data-view-size]{margin-top:4px;font-variant-numeric:tabular-nums}
+  #world-stream-status{position:fixed;bottom:52px;left:50%;transform:translateX(-50%);max-width:55vw;z-index:40;background:var(--panel);color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:5px 9px;font-size:10px;pointer-events:none}
+  #retry-nearby-map{position:fixed;bottom:85px;left:50%;transform:translateX(-50%);z-index:42;background:var(--panel);color:var(--ink);font-size:11px;padding:6px 10px}#retry-nearby-map[hidden]{display:none}
+  @media(min-width:800px){.world-fps-meter{right:calc(50% - 90px);top:12px}}
 </style>
 <script>
   // Dear Congress "Simulate realities" links land on /world?simulation=…: show the outcome
@@ -78,8 +89,10 @@
 </script>
 <script type="importmap">
 { "imports": {
-  "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-  "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  "three": "/vendor/three/three.webgpu.js",
+  "three/webgpu": "/vendor/three/three.webgpu.js",
+  "three/tsl": "/vendor/three/three.tsl.js",
+  "three/addons/": "/vendor/three/addons/"
 } }
 </script>
 </head>
@@ -90,6 +103,7 @@
 
 <div class="panel" id="top">
   <h1>HappyBearLandia · world</h1>
+  <div class="row"><a href="/business-simulator">Business Lab</a> · <a href="/world?business_mode=true">Place a business</a></div>
   <form class="row" id="goto">
     <input type="text" id="latlng" placeholder="29.7286, -95.4746" aria-label="Latitude, longitude" />
     <button>Go</button>
@@ -107,6 +121,7 @@
     </select>
     <button id="here" type="button">My location</button>
   </div>
+  <div id="tile-navigation"></div>
   <div class="row" style="justify-content: space-between">
     <div id="clock">—</div>
     <div class="row" id="speeds" style="margin:0">

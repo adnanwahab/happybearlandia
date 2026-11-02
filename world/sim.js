@@ -13,6 +13,18 @@ const ROAD_CONNECT_MAX_M = 220;
  * one-off effects on start, and when it's available.
  */
 export const ACTIONS = {
+  visit_business: {
+    at: "business", label: "visiting your business", minutes: () => 25,
+    rate: { fun: 1.2, social: 0.5 },
+    ok: (p, b, w) => w.business?.building === b.index && w.business.open && w.isDaytime() && w.business.stock > 0 && p.money >= w.business.price,
+    start: (p, b, w) => {
+      const business = w.business;
+      business.stock--; business.visits++; business.revenue += business.price;
+      p.money -= business.price;
+      w.stats.spent += business.price;
+      w.log(`${p.name} visited your business (+$${business.price.toFixed(2)})`, "business", b);
+    },
+  },
   sleep: {
     at: "home", label: "sleeping", minutes: (p) => Math.round(Math.max(60, Math.min(540, (100 - p.needs.energy) / 0.25))),
     rate: { energy: 0.25 }, // hunger also decays slower while asleep (see minute())
@@ -268,6 +280,7 @@ export function createWorld(town, opts = {}) {
       if (a.at === "home") places = [home];
       else if (a.at === "job") places = p.job != null ? [w.buildings[p.job]] : [];
       else if (a.at === "school") places = p.school != null ? [w.buildings[p.school]] : [];
+      else if (a.at === "business") places = w.business ? [w.buildings[w.business.building]] : [];
       else places = nearest(byKind[a.at] || [], p, 6);
       for (const b of places) {
         const ok = !a.ok || a.ok(p, b, w);
@@ -304,6 +317,7 @@ export function createWorld(town, opts = {}) {
     if (id === "sleep" && m >= 7 * 60 && m < 21 * 60 && p.needs.energy > 30) s = 0; // no daytime naps unless wiped out
     if (id === "relax_home") s += 0.3; // the default "nothing better to do" activity
     if (id === "work" || id === "study") { if (p.needs.hunger < 12 || p.needs.energy < 8) s *= 0.2; }
+    if (id === "visit_business") s *= (0.5 + w.business.quality / 100) * Math.min(2, 12 / Math.max(1, w.business.price));
     // Distance, traits, noise
     const dist = Math.hypot(b.center[0] - p.x, b.center[1] - p.z);
     s /= 1 + dist / (250 * w.speedMult);

@@ -7,6 +7,7 @@ import {useEffect} from "react"
 const scenes = ["scene", "scene_2", "scene_3"];
 
 const links = [
+  ["Decision simulation demo", "/world/decision.html?demo=1"],
   ...scenes.map((id, i) => [`Play Scene ${i + 1}`, `/game/${id}`]),
   ...scenes.map((id, i) => [`Edit Scene ${i + 1}`, `/edit/${id}`]),
   ["Debug Sessions", "/tools/debug-events.html"],
