@@ -62,6 +62,16 @@
       <div id="assumptions"><p class="notice">Load a plan to inspect its inferred world variables.</p></div>
     </section>
   </div>
+
+  <section class="panel" style="margin-top:18px">
+    <h2>03 · Seeded world generator</h2>
+    <p class="notice">Generate reproducible world-state vectors from the reviewed assumptions. Locked variables stay fixed; unlocked variables are sampled from their declared distributions.</p>
+    <div class="button-row">
+      <button id="generate-worlds" disabled>Generate worlds</button>
+    </div>
+    <div id="world-summary" class="status">Load a plan first.</div>
+    <pre id="world-preview">[]</pre>
+  </section>
 </main>
 <script type="module" src="./experiment-lab.js"></script>
 </body>

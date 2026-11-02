@@ -1,9 +1,11 @@
 import { renderAssumptionInspector } from "./assumption-inspector.js";
+import { generateWorlds } from "./world-generator.js";
 
 const state = {
   experiment: null,
   inspector: null,
   overrides: {},
+  worldBatch: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -12,6 +14,9 @@ const input = $("#json-input");
 const assumptions = $("#assumptions");
 const summary = $("#plan-summary");
 const overrideOutput = $("#override-output");
+const generateWorldsButton = $("#generate-worlds");
+const worldSummary = $("#world-summary");
+const worldPreview = $("#world-preview");
 
 function setStatus(message, error = false) {
   status.textContent = message;
@@ -39,6 +44,10 @@ function renderExperiment(experiment) {
   });
   state.overrides = state.inspector.getOverrides();
   overrideOutput.textContent = JSON.stringify(state.overrides, null, 2);
+  generateWorldsButton.disabled = false;
+  state.worldBatch = null;
+  worldSummary.textContent = "Ready to generate worlds.";
+  worldPreview.textContent = "[]";
   setStatus(`Loaded ${experiment.id}`);
 }
 
@@ -74,3 +83,12 @@ $("#load-json").addEventListener("click", () => {
 });
 
 window.hblExperimentLab = state;
+
+
+generateWorldsButton.addEventListener("click", () => {
+  if (!state.experiment) return;
+  state.worldBatch = generateWorlds(state.experiment, { overrides: state.overrides });
+  const first = state.worldBatch.worlds.slice(0, 3);
+  worldSummary.textContent = `${state.worldBatch.runs} deterministic worlds · seed ${state.worldBatch.seed} · ${state.worldBatch.variableIds.length} variables`;
+  worldPreview.textContent = JSON.stringify(first, null, 2);
+});
