@@ -58,3 +58,30 @@ Optional fields:
 - `explanation`: model-specific explanation object.
 
 Unknown metric ids are allowed so a simulator can evolve before the registry catches up, but invalid/non-finite values are rejected.
+
+## Built-in HBL civic dynamics model
+
+When neither an in-page simulator nor an HTTP endpoint is registered, Experiment Lab now uses the built-in `hbl-civic-dynamics.v1` adapter rather than the older implementation-only stress score.
+
+The built-in model:
+
+- advances the experiment one year at a time for the configured horizon;
+- uses the sampled world conditions as deterministic inputs;
+- models rollout delay, implementation capacity, political continuity, and deterministic shock events;
+- generates domain-aware metrics from the experiment metric registry;
+- returns a yearly `timeline`, an `events` causal log, final `metrics`, and driver explanations;
+- is deterministic for a given experiment/world pair.
+
+It intentionally reports `predictive: false`. It is a structural scenario model for comparing plans and stress-testing assumptions, not a calibrated forecast of real-world policy outcomes.
+
+Adapter precedence is:
+
+```text
+window.HBL_CIVIC_SIMULATOR
+        ↓
+window.HBL_CIVIC_SIMULATOR_ENDPOINT
+        ↓
+hbl-civic-dynamics.v1
+```
+
+The legacy implementation stress adapter remains available programmatically through `createImplementationStressAdapter()` or by resolving with `{ preferStressFallback: true }`.

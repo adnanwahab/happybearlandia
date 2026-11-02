@@ -1,5 +1,6 @@
 import { applySimulationEffectsToWorld } from "./plan-improver.js";
 import { createHttpCivicSimulator, simulatorBridgeConfig, validateCivicSimulationResult } from "./hbl-simulator-bridge.js";
+import { simulateHblCivicDynamics } from "./hbl-civic-dynamics.js";
 
 function finite(value, fallback = 0) {
   const number = Number(value);
@@ -40,6 +41,17 @@ export function createSimulationAdapter({
 }) {
   if (!id || typeof simulateWorld !== "function") throw new Error("A simulation adapter requires id and simulateWorld");
   return { id, label, predictive: Boolean(predictive), modelClass, simulateWorld, description };
+}
+
+export function createHblCivicDynamicsAdapter() {
+  return createSimulationAdapter({
+    id: "hbl-civic-dynamics.v1",
+    label: "HBL civic dynamics",
+    predictive: false,
+    modelClass: "time-stepped-civic-dynamics",
+    description: "Built-in HappyBearLandia time-stepped civic systems model with domain metrics, yearly timelines, and causal events. It is a hypothesis generator, not an empirical forecast.",
+    simulateWorld: simulateHblCivicDynamics,
+  });
 }
 
 export function createImplementationStressAdapter() {
@@ -128,7 +140,7 @@ export function createHttpSimulationAdapter(endpoint, options = {}) {
 }
 
 export function selectSimulationAdapter(globalObject = globalThis) {
-  return createGlobalSimulationAdapter(globalObject) || createImplementationStressAdapter();
+  return createGlobalSimulationAdapter(globalObject) || createHblCivicDynamicsAdapter();
 }
 
 export async function resolveSimulationAdapter(globalObject = globalThis, options = {}) {
@@ -139,7 +151,8 @@ export async function resolveSimulationAdapter(globalObject = globalThis, option
     fetchImpl: options.fetchImpl,
     meta: config.meta || options.meta,
   });
-  return createImplementationStressAdapter();
+  if (options.preferStressFallback) return createImplementationStressAdapter();
+  return createHblCivicDynamicsAdapter();
 }
 
 function normalizeSimulationResult(world, effectiveWorld, adapter, result) {
@@ -159,6 +172,9 @@ function normalizeSimulationResult(world, effectiveWorld, adapter, result) {
     score,
     status: safe.status || statusFor(score),
     metrics: safe.metrics || { score },
+    timeline: Array.isArray(safe.timeline) ? safe.timeline : [],
+    events: Array.isArray(safe.events) ? safe.events : [],
+    explanation: safe.explanation && typeof safe.explanation === "object" ? safe.explanation : null,
     trace: Array.isArray(safe.trace) ? safe.trace : [],
     model: safe.model || { id: adapter.id, predictive: adapter.predictive },
     disclaimer: safe.disclaimer || (adapter.predictive ? null : "Non-predictive simulation adapter."),

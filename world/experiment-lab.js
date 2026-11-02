@@ -208,8 +208,12 @@ generateWorldsButton.addEventListener("click", () => {
 
 function renderSimulationBatch(batch) {
   state.simulationBatch = batch;
-  const predictive = batch.adapter.predictive ? "predictive adapter" : "NON-PREDICTIVE stress test";
-  simulationSummary.textContent = `${batch.simulations.length} runs · ${batch.adapter.label} · ${predictive}`;
+  const modelLabel = batch.adapter.predictive
+    ? "predictive adapter"
+    : batch.adapter.modelClass === "stress-test"
+      ? "NON-PREDICTIVE stress test"
+      : "NON-PREDICTIVE systems model";
+  simulationSummary.textContent = `${batch.simulations.length} runs · ${batch.adapter.label} · ${modelLabel}`;
   simulationPreview.textContent = JSON.stringify(batch.simulations.slice(0, 3), null, 2);
   const outcome = summarizeOutcomes(batch);
   state.analyzedExperiment = attachOutcomeAnalysis(state.experiment, batch);

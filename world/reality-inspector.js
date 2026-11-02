@@ -45,6 +45,9 @@ export function explainReality(simulation, experiment, options = {}) {
     score: simulation?.score ?? null,
     status: simulation?.status || "unknown",
     metrics: simulation?.metrics || {},
+    timeline: Array.isArray(simulation?.timeline) ? simulation.timeline : [],
+    events: Array.isArray(simulation?.events) ? simulation.events : [],
+    explanation: simulation?.explanation || null,
     trace: simulation?.trace || [],
     adapter: simulation?.adapter || null,
     topDrivers: drivers.slice(0, limit),
@@ -112,6 +115,50 @@ export function renderRealityInspector(container, simulation, experiment) {
     metrics.appendChild(card);
   }
   container.appendChild(metrics);
+
+  if (explanation.timeline.length) {
+    container.appendChild(element("h3", "", "Year-by-year trajectory"));
+    const table = element("table", "analysis-table");
+    const headRow = document.createElement("tr");
+    ["Year", "Score", "Rollout", "Delivery", "Political", "Resilience", "Events"].forEach((label) => headRow.appendChild(element("th", "", label)));
+    const thead = document.createElement("thead");
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+    const tbody = document.createElement("tbody");
+    const rows = explanation.timeline.length <= 12
+      ? explanation.timeline
+      : explanation.timeline.filter((_, index) => index === 0 || index === explanation.timeline.length - 1 || (index + 1) % Math.ceil(explanation.timeline.length / 10) === 0);
+    for (const row of rows) {
+      const tr = document.createElement("tr");
+      tr.append(
+        element("td", "", String(row.year ?? "—")),
+        element("td", "", String(row.score ?? "—")),
+        element("td", "", row.rollout == null ? "—" : `${(Number(row.rollout) * 100).toFixed(0)}%`),
+        element("td", "", row.delivery == null ? "—" : `${(Number(row.delivery) * 100).toFixed(0)}%`),
+        element("td", "", row.politicalDurability == null ? "—" : `${(Number(row.politicalDurability) * 100).toFixed(0)}%`),
+        element("td", "", row.disruptionResilience == null ? "—" : `${(Number(row.disruptionResilience) * 100).toFixed(0)}%`),
+        element("td", "", Array.isArray(row.events) && row.events.length ? row.events.join(", ") : "—"),
+      );
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    container.appendChild(table);
+  }
+
+  if (explanation.events.length) {
+    container.appendChild(element("h3", "", "Causal event log"));
+    const eventList = element("div", "driver-list");
+    for (const item of explanation.events.slice(0, 16)) {
+      const row = element("div", "driver-row");
+      row.append(
+        element("strong", "", `Year ${item.year} · ${item.type}`),
+        element("span", "", item.description || "Modeled event"),
+        element("span", "driver-delta", `severity ${Number(item.severity || 0).toFixed(2)}`),
+      );
+      eventList.appendChild(row);
+    }
+    container.appendChild(eventList);
+  }
 
   container.appendChild(element("h3", "", "Largest world deviations"));
   const table = element("div", "driver-list");

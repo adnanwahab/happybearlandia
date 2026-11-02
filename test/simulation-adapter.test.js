@@ -1,7 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import {
+  createHblCivicDynamicsAdapter,
   createImplementationStressAdapter,
   createSimulationAdapter,
+  selectSimulationAdapter,
   simulateExperiment,
 } from "../world/simulation-adapter.js";
 
@@ -19,6 +21,31 @@ describe("simulation adapter", () => {
     expect(batch.adapter.predictive).toBe(false);
     expect(batch.simulations[0].score).toBeGreaterThan(batch.simulations[1].score);
     expect(batch.simulations[0].disclaimer).toContain("stress score");
+  });
+
+
+  test("uses HBL civic dynamics as the built-in adapter", () => {
+    const adapter = selectSimulationAdapter({});
+    expect(adapter.id).toBe("hbl-civic-dynamics.v1");
+    expect(adapter.predictive).toBe(false);
+    expect(createHblCivicDynamicsAdapter().modelClass).toBe("time-stepped-civic-dynamics");
+  });
+
+  test("preserves timelines, events, and explanations from domain adapters", async () => {
+    const adapter = createSimulationAdapter({
+      id: "timeline-demo",
+      simulateWorld: () => ({
+        score: 66,
+        metrics: { outcome: 5 },
+        timeline: [{ year: 1, score: 55 }, { year: 2, score: 66 }],
+        events: [{ year: 1, type: "rollout-start" }],
+        explanation: { positiveDrivers: ["capacity"] },
+      }),
+    });
+    const batch = await simulateExperiment(experiment, { worlds: [worldBatch.worlds[0]] }, adapter);
+    expect(batch.simulations[0].timeline).toHaveLength(2);
+    expect(batch.simulations[0].events[0].type).toBe("rollout-start");
+    expect(batch.simulations[0].explanation.positiveDrivers).toEqual(["capacity"]);
   });
 
   test("supports pluggable HBL/domain adapters", async () => {

@@ -10,7 +10,16 @@ const experiment = {
   },
 };
 
-const a = { worldId: "w1", score: 40, status: "negative", metrics: { outcome: 4 }, world: { conditions: { a: 0, b: 0.4 } } };
+const a = {
+  worldId: "w1",
+  score: 40,
+  status: "negative",
+  metrics: { outcome: 4 },
+  timeline: [{ year: 1, score: 35 }, { year: 2, score: 40 }],
+  events: [{ year: 1, type: "implementation-delay" }],
+  explanation: { negativeDrivers: ["delay"] },
+  world: { conditions: { a: 0, b: 0.4 } },
+};
 const b = { worldId: "w2", score: 80, status: "positive", metrics: { outcome: 8 }, world: { conditions: { a: 10, b: 0.45 } } };
 
 describe("reality inspector", () => {
@@ -18,6 +27,9 @@ describe("reality inspector", () => {
     const explanation = explainReality(a, experiment);
     expect(explanation.topDrivers[0].id).toBe("a");
     expect(explanation.topDrivers[0].normalizedDeviation).toBe(-0.5);
+    expect(explanation.timeline).toHaveLength(2);
+    expect(explanation.events[0].type).toBe("implementation-delay");
+    expect(explanation.explanation.negativeDrivers).toEqual(["delay"]);
   });
 
   test("compares two realities by normalized condition changes", () => {

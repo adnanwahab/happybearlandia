@@ -1,6 +1,6 @@
 import { validateCivicExperiment } from "./experiment-contract.js";
 import { generateWorlds } from "./world-generator.js";
-import { createImplementationStressAdapter, simulateExperiment } from "./simulation-adapter.js";
+import { createHblCivicDynamicsAdapter, simulateExperiment } from "./simulation-adapter.js";
 import { summarizeOutcomes } from "./outcome-analysis.js";
 
 function sameJson(a, b) {
@@ -69,7 +69,7 @@ export async function runExperimentVerification(experiment, options = {}) {
     checks.push(pass("seed-sensitivity", "all variables are fixed; seed sensitivity is not applicable"));
   }
 
-  const adapter = createImplementationStressAdapter();
+  const adapter = createHblCivicDynamicsAdapter();
   const batch = await simulateExperiment(experiment, a, adapter, { concurrency: 8 });
   const finite = batch.simulations.length === runs
     && batch.simulations.every((simulation) => Number.isFinite(simulation.score)
@@ -77,6 +77,14 @@ export async function runExperimentVerification(experiment, options = {}) {
   checks.push(finite
     ? pass("simulation-finite", `${batch.simulations.length}/${runs} simulations returned finite results`)
     : fail("simulation-finite", "simulation output contains missing, NaN, or infinite values"));
+
+  const horizon = Math.max(1, Math.round(Number(experiment?.experiment?.horizonYears) || 10));
+  const timelineOk = batch.simulations.every((simulation) => Array.isArray(simulation.timeline)
+    && simulation.timeline.length === horizon
+    && simulation.timeline.every((row) => Number.isFinite(row.score)));
+  checks.push(timelineOk
+    ? pass("simulation-timeline", `${batch.simulations.length}/${runs} simulations returned ${horizon}-year finite timelines`)
+    : fail("simulation-timeline", `one or more simulations did not return a complete ${horizon}-year timeline`));
 
   const summary = summarizeOutcomes(batch);
   const summaryOk = Number.isFinite(summary.expectedScore)

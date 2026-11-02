@@ -92,7 +92,7 @@
 
   <section class="panel" style="margin-top:18px">
     <h2>04 · Simulation adapter</h2>
-    <p class="notice">If the page exposes <code>window.HBL_CIVIC_SIMULATOR</code>, the lab uses it. Otherwise it runs a clearly labeled non-predictive implementation stress test.</p>
+    <p class="notice">The lab prefers a registered <code>window.HBL_CIVIC_SIMULATOR</code> or HTTP simulator endpoint. Otherwise it now runs HBL's built-in deterministic civic dynamics model, which produces domain metrics, yearly timelines, and causal events. It is a modeling hypothesis generator, not an empirical forecast.</p>
     <div class="button-row"><button id="run-simulations" disabled>Run worlds</button></div>
     <div id="simulation-summary" class="status">Generate worlds first.</div>
     <pre id="simulation-preview">[]</pre>
