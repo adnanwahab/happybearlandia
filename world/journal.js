@@ -1,3 +1,4 @@
+import { COMMUTE_COMPLAINT_MINUTES, commuteBurdenMinutes, householdStress } from "./simulation-observations.js";
 function hash32(str) {
   let h = 2166136261 >>> 0;
   for (let i = 0; i < str.length; i++) {
@@ -19,10 +20,11 @@ function floodedHome(person, ctx) {
   return !!home?.state?.flooded;
 }
 
-export const WALK_COMPLAINT_MINUTES = 60;
+export const WALK_COMPLAINT_MINUTES = COMMUTE_COMPLAINT_MINUTES; // backward-compatible threshold alias
+export { COMMUTE_COMPLAINT_MINUTES };
 
 function transitBurdened(person) {
-  const avg = Number(person?.walkMinutesAvg3d || 0);
+  const avg = commuteBurdenMinutes(person) ?? 0;
   return avg > WALK_COMPLAINT_MINUTES;
 }
 
@@ -37,8 +39,8 @@ function floodSentence(seed) {
 function transitSentence(seed) {
   return pick([
     "My commute keeps getting longer and I lose too much time each day.",
-    "The bus trip for my commute takes too long and throws off my day.",
-    "I need a shorter commute because the bus connection is too slow.",
+    "My daily commute takes too long and throws off my day.",
+    "I need a shorter commute because travel takes too much of my day.",
   ], seed, "transit");
 }
 
@@ -82,7 +84,7 @@ export function journalFor(person, ctx) {
   const flood = !!person.today.displaced || !!person.today.homeFlooded || floodedHome(person, ctx);
   if (flood) problems.push({ id: "flood", score: 100 });
 
-  if (transitBurdened(person)) problems.push({ id: "transit", score: Math.max(60, Number(person.walkMinutesAvg3d || 0)) });
+  if (transitBurdened(person)) problems.push({ id: "transit", score: Math.max(60, commuteBurdenMinutes(person) ?? 0) });
 
   if (Number(person.today.dirtyParkVisits || 0) >= 2) {
     problems.push({ id: "streets", score: 70 + Number(person.today.dirtyParkVisits || 0) });
@@ -91,6 +93,8 @@ export function journalFor(person, ctx) {
   if ((person.today.soldOutAt && person.today.soldOutAt.length > 0) || person.today.emptyFridge) {
     problems.push({ id: "groceries", score: 75 + (person.today.soldOutAt?.length || 0) * 5 });
   }
+
+  if (householdStress(person, ctx?.household) === true) problems.push({id:"budget",score:85});
 
   if (!problems.length) return null;
 
@@ -101,6 +105,7 @@ export function journalFor(person, ctx) {
   for (const p of top) {
     if (p.id === "flood") out.push(floodSentence(seed));
     else if (p.id === "transit") out.push(transitSentence(seed));
+    else if (p.id === "budget") out.push(pick(["Our household cash did not cover the recorded daily bills.","Daily household costs left us with a budget shortfall.","Our household could not cover all of the daily costs."],seed,"budget"));
     else if (p.id === "streets") out.push(streetsSentence(seed));
     else if (p.id === "groceries") {
       const s = groceriesSentence(person, seed);

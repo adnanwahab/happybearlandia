@@ -1,7 +1,14 @@
+import {journalCity} from './journals/presets.js';
+import {createJournalRecorder,mountCharacterJournal} from './journals/client.js';
+import {ensureJournal,journalPage,journalText,pruneSavedJournals} from './journals/model.js';
+import {legacySocial} from './relationships/model.js';
+import {renderRelationships} from './relationships/panel.js';
 import { mountConstitutionWorldHost } from './constitution-city/host.js';
 import { mountConstitutionComparison } from './constitution-visuals.js';
 import * as THREE from "three";
+import { createPhysicalPolicyLayer } from "./render/physical-policy-layer.js";
 import { createHumanInstances } from "./render/people/human-renderer.js";
+import { householdForPerson, commuteBurdenMinutes } from "./simulation-observations.js";
 import { createSimulationPlayback } from "./simulation-playback.js";
 import { personNeedsMarkup } from "./person-needs.js";
 import { mountLivingWorld } from "./population/world-view.js";
@@ -22,7 +29,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { createCityRenderer } from "./render/renderer/webgpu-renderer.js";
 import { mountCityRenderer } from "./render/city-renderer.js";
 import { createFacadeMaterial } from "./render/buildings/facade-material.js";
-import { buildTown, projector } from "./gen.js";
+import { buildTown, projector, hashSeed } from "./gen.js";
 import { createWorld, clock, legacyNeedSnapshot } from "./sim.js";
 import { journalFor, WALK_COMPLAINT_MINUTES } from "./journal.js";
 import { computeEffectsForYear, derivePolicyProfile } from "./policy.js";
@@ -158,7 +165,22 @@ let area = await initialAreaRequest;
 startup.mapReadyMs=performance.now();
 const town = buildTown(origin, area, { maxPeople });
 mountConstitutionComparison({ THREE, scene, camera, controls, town, params });
-const world = createWorld(town, { recordHistory:!embedMode, ...(realityRunSeed ? { runSeed:realityRunSeed } : {}) });
+const world = createWorld(town, { journalsEnabled:!embedMode&&!realityRunSeed&&Boolean(journalCity(origin)),recordHistory:!embedMode, ...(realityRunSeed ? { runSeed:realityRunSeed } : {}) });
+const legacyJournalCity=journalCity(origin),legacyJournalRun=`legacy:${crypto.randomUUID()}`;
+const legacyJournalRecorder=world.journals?createJournalRecorder({city:legacyJournalCity,mode:'legacy',getRunId:()=>legacyJournalRun,getMinute:()=>world.t,getPage:query=>{for(const p of world.people)ensureJournal(world.journals,String(p.id),p.name,world.t);return journalPage(world.journals,query);},onSaved:minute=>pruneSavedJournals(world.journals,minute,world.t)}):null;
+if(legacyJournalRecorder)void legacyJournalRecorder.flush(true);
+
+// Metadata is read-only; loading it never starts another simulation.
+window.hblSimulationModel={status:'loading',authority:'legacy-authoritative compatibility model'};
+void Promise.all([import('./simulation-parameters.js'),import('./simulation-observations.js')]).then(([parameters,observations])=>{
+ const parameterData=Object.fromEntries(Object.entries(parameters).filter(([,value])=>typeof value!=='function'));
+ const observed=observations.createSimulationObservationCollector().result().observations;
+ const metadata={status:'ready',authority:'legacy-authoritative compatibility model',parameters:parameterData,configuredParameters:structuredClone(world.parameters),observations:{schemaVersion:observed.schemaVersion,methods:observed.methods,limitations:observed.limitations},limits:['Daily legacy residents, living population and monthly Constitution forecasts remain separate simulation authorities.','Representative five-day annual samples carry state forward; unsampled days do not accrue economic or demographic changes.']};
+ window.hblSimulationModel=metadata;
+ const container=$('simulationModelMetadata');if(!container)return;container.replaceChildren();
+ const note=document.createElement('p');note.textContent='Registered synthetic assumptions and observation definitions. No second model is advanced by this disclosure.';container.append(note);
+ for(const[key,value]of Object.entries({parameters:metadata.parameters,observationMethods:metadata.observations.methods,limitations:[...metadata.observations.limitations,...metadata.limits]})){const detail=document.createElement('details'),summary=document.createElement('summary'),pre=document.createElement('pre');summary.textContent=key;pre.style.whiteSpace='pre-wrap';pre.style.overflowWrap='anywhere';pre.textContent=JSON.stringify(value,null,2);detail.append(summary,pre);container.append(detail);}
+}).catch(error=>{window.hblSimulationModel={status:'unavailable',authority:'legacy-authoritative compatibility model',error:error.message};const container=$('simulationModelMetadata');if(container)container.textContent=`Model metadata unavailable: ${error.message}`;});
 const isHarrisCountyTile = origin.lat >= 29.3 && origin.lat <= 30.25 && origin.lng >= -95.95 && origin.lng <= -94.9;
 let measuredOutcomesLatest = {};
 const geoProj = projector(origin);
@@ -368,6 +390,7 @@ addEventListener('pagehide',()=>{mapStreamer.dispose();streamStatus.remove();ret
 const buildingBridge = !embedMode ? mountWorldBuildingBridge({ scene, camera, renderer, controls, town, THREE }) : null;
 addEventListener("pagehide", () => buildingBridge?.destroy(), { once: true });
 const constitutionWorldHost = !embedMode ? mountConstitutionWorldHost({THREE,scene,town,camera,controls}) : null;
+window.hblConstitutionWorldHost=constitutionWorldHost;
 addEventListener("pagehide",()=>constitutionWorldHost?.destroy(),{once:true});
 
 // People: one instanced capsule mesh, hidden while indoors
@@ -380,6 +403,10 @@ const humanPeople=createHumanInstances({THREE,count:town.people.length,readable:
 const people=humanPeople.root;
 scene.add(people);
 window.hblHumanPeople=humanPeople;
+let physicalPolicySnapshot=null;
+const physicalPolicyLayer=createPhysicalPolicyLayer({THREE,scene,town});
+window.hblPhysicalPolicyLayer=physicalPolicyLayer;
+addEventListener('pagehide',()=>physicalPolicyLayer.destroy(),{once:true});
 addEventListener('pagehide',()=>humanPeople.destroy(),{once:true});
 const smooth = town.people.map((p) => ({ x: p.x, z: p.z }));
 const tmp = new THREE.Object3D();
@@ -406,11 +433,11 @@ const originalTrafficEnabled=cityRenderer.getPerformanceStats().features?.traffi
 let livingWorld=null,livingPlaybackUnsubscribe=null;
 const activityListeners=new Set();let activityRuntimeUnsubscribe=null,activityDashboard=null,activityDashboardPromise=null,activityObserver=null,activityDisposed=false;
 function notifyActivity(){if(!activityListeners.size||!window.hblWorldActivity)return;const snapshot=window.hblWorldActivity.getSnapshot();for(const listener of activityListeners)listener(snapshot);}
-function bindActivityRuntime(runtime){if(activityRuntimeUnsubscribe)return;activityRuntimeUnsubscribe=runtime.subscribe(()=>{if(livingWorld?.active)notifyActivity();});}
+function bindActivityRuntime(runtime){if(activityRuntimeUnsubscribe)return;activityRuntimeUnsubscribe=runtime.subscribe(frame=>{physicalPolicySnapshot=frame;if(livingWorld?.active)notifyActivity();});}
 const legacyActivityUnsubscribe=world.subscribeActivity(()=>{if(!livingWorld?.active)notifyActivity();});
 const playback=createSimulationPlayback({initialSpeed:speed,onChange:state=>{speed=state.paused?0:state.speed;const runtime=livingWorld?.active?livingWorld.getRuntime():null;if(runtime){runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();}for(const button of $("speeds").children)button.classList.toggle("on",Number(button.dataset.s)===(state.paused?0:state.speed));if(selected?.type==="person")renderInspector();}});
 window.hblSimulationPlayback=playback;
-livingWorld=!embedMode?mountLivingWorld({container:document.body,scene,camera,controls,THREE,town,renderer,autoActivate:!businessMode&&!simulationId&&!demoMode&&!renderBenchmark,initialMinute:!businessMode&&!simulationId&&!demoMode&&!renderBenchmark&&!params.has("living")?Math.max(425,Math.floor(world.t)):0,onRuntimeReady:runtime=>{bindActivityRuntime(runtime);const state=playback.getState();runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();if(!livingPlaybackUnsubscribe)livingPlaybackUnsubscribe=runtime.subscribe(frame=>{if(!livingWorld?.active||!frame?.runtime)return;if(Number.isFinite(frame.runtime.speed)&&frame.runtime.speed!==playback.getState().speed)playback.setSpeed(frame.runtime.speed);frame.runtime.paused?playback.pause():playback.resume();});return true;},onModeChange:active=>{people.visible=!active;follow=false;selected=null;document.documentElement.classList.remove("person-selected");$("inspect").removeAttribute("data-person-selected");$("inspect").style.display="none";cityRenderer.setFeature('traffic',active?false:originalTrafficEnabled);cityRenderer.updateCity({trafficDensity:active?0:1});document.body.classList.toggle('living-active',active);notifyActivity();const fastest=$('speeds').lastElementChild;fastest.dataset.s=active?'32':'60';fastest.textContent=active?'32×':'60×';if(active&&playback.getState().speed>32)playback.setSpeed(32);}}):null;
+livingWorld=!embedMode?mountLivingWorld({container:document.body,scene,camera,controls,THREE,town,renderer,autoActivate:!businessMode&&!simulationId&&!demoMode&&!renderBenchmark,initialMinute:6*60,onRuntimeReady:runtime=>{bindActivityRuntime(runtime);const state=playback.getState();runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();if(!livingPlaybackUnsubscribe)livingPlaybackUnsubscribe=runtime.subscribe(frame=>{if(!livingWorld?.active||!frame?.runtime)return;if(Number.isFinite(frame.runtime.speed)&&frame.runtime.speed!==playback.getState().speed)playback.setSpeed(frame.runtime.speed);frame.runtime.paused?playback.pause():playback.resume();});return true;},onModeChange:active=>{people.visible=!active;follow=false;selected=null;document.documentElement.classList.remove("person-selected");$("inspect").removeAttribute("data-person-selected");$("inspect").style.display="none";cityRenderer.setFeature('traffic',active?false:originalTrafficEnabled);cityRenderer.updateCity({trafficDensity:active?0:1});document.body.classList.toggle('living-active',active);notifyActivity();const fastest=$('speeds').lastElementChild;fastest.dataset.s=active?'32':'60';fastest.textContent=active?'32×':'60×';if(active&&playback.getState().speed>32)playback.setSpeed(32);}}):null;
 window.hblLivingWorld=livingWorld;
 window.hblWorldActivity={
  getSnapshot(){const snapshot=livingWorld?.active?livingWorld.getSnapshot():null;return livingWorld?.active?(snapshot?{...snapshot,mode:'living',peopleCount:snapshot.metrics?.syntheticPopulation??snapshot.population,people:snapshot.visibleAgents,runId:`${snapshot.runtime?.id}:${snapshot.runtime?.revision}`}:{mode:'living',peopleCount:null,minute:null,historyAvailable:false,runId:'living:resetting'}):world.getActivitySnapshot();},
@@ -433,6 +460,57 @@ activityButton.addEventListener('click',openActivityDashboard);
 addEventListener('pagehide',()=>{activityDisposed=true;legacyActivityUnsubscribe?.();activityRuntimeUnsubscribe?.();activityObserver?.disconnect();activityDashboard?.destroy();activityListeners.clear();activityButton.removeEventListener('click',openActivityDashboard);},{once:true});
 
 addEventListener('pagehide',()=>{livingPlaybackUnsubscribe?.();livingWorld?.destroy();playback.destroy();},{once:true});
+let lawPanel=null,lawLayer=null,lawsDisposed=false;
+if(!embedMode)void Promise.all([import('./laws/law-panel.js'),import('./laws/world-layer.js'),import('./laws/catalog.js'),import('./laws/comparison-client.js')]).then(([{mountLawPanel},{mountLawWorldLayer},{LAW_CATALOG},{compareLawInWorker:compareLaw}])=>{
+ if(lawsDisposed)return;lawLayer=mountLawWorldLayer({THREE,scene,town});let planInput=null;
+ const context=()=>{const frame=window.hblWorldActivity.getSnapshot(),config=livingWorld?.active?livingWorld.getSnapshot()?.config:null;const raw=config?.seed??world.seed,n=Number(raw),seed=Number.isInteger(n)&&n>=0&&n<=4294967295?n:hashSeed(String(raw??town.seedKey));return{mode:frame.mode,snapshot:frame,people:frame.people,population:frame.peopleCount??town.people.length,seed,worldContext:livingWorld?.getContext?.()||{buildings:town.buildings},populationConfig:config,sourceRunId:frame.runId};};
+ lawPanel=mountLawPanel(document.body,{laws:LAW_CATALOG,getContext:context,worldLayer:lawLayer,onPlanIdeaChange:text=>{if(planInput)planInput.value=text;},compareLaw:async(law,ctx)=>{
+  const sourceRunId=ctx.sourceRunId;const response=await compareLaw({lawId:law.id,worldContext:ctx.worldContext,seed:ctx.seed,population:ctx.population,...(law.mapping?.engine==='population'?{minutes:Math.min(1440,Math.floor(2000000/(2*ctx.population))),populationConfig:ctx.populationConfig||undefined}:{years:5}),signal:ctx.signal});
+  if(window.hblWorldActivity.getSnapshot().runId!==sourceRunId)throw Error('Visible simulation source changed. Select the law again to compare the current source.');
+  return{...response,scorecard:response.scorecard?.map(row=>({...row,current:row.current??row.selected})),supported:response.status==='completed',limitations:[...(response.limitations||[]),'Detached paired initialization uses the scene context and requested population. It is not a continuation or modification of the live household/business ledger.']};
+ },onError:error=>console.error('Law comparison unavailable',error)});
+ const panel=document.querySelector('[data-testid="law-panel"]');planInput=panel?.querySelector('textarea');if(panel&&!planInput){const label=document.createElement('label');label.textContent='Plan idea';planInput=document.createElement('textarea');planInput.rows=3;planInput.setAttribute('aria-label','Plan idea');label.append(planInput);panel.querySelector('header')?.after(label);const note=document.createElement('p');note.className='law-note';note.textContent='Selecting a law fills its exact text here. Editing this draft does not change its reviewed mechanism mapping.';label.after(note);}
+ const lawButton=document.querySelector('[data-testid=law-panel-button]');const closeCulture=()=>{culturePanel?.close?.();weatherPanel?.close?.();scrapbook?.close?.();challengePanel?.close?.();};lawButton?.addEventListener('click',closeCulture);addEventListener('pagehide',()=>lawButton?.removeEventListener('click',closeCulture),{once:true});
+ window.hblLawPanel=lawPanel;window.hblLawWorldLayer=lawLayer;
+}).catch(error=>console.error('Law catalog unavailable',error));
+addEventListener('pagehide',()=>{lawsDisposed=true;lawPanel?.destroy();lawLayer?.destroy();},{once:true});
+let shadowComparison=null,shadowPanel=null,shadowDisposed=false;
+if(params.get('shadow')==='1'&&!embedMode){
+ void Promise.all([import('./runtime/shadow-comparison.js'),import('./runtime/shadow-view.js')]).then(([{createShadowComparison},{mountShadowComparisonPanel}])=>{
+  if(shadowDisposed)return;shadowPanel=mountShadowComparisonPanel(document.body,{onPause:()=>shadowComparison?.pause(),onResume:()=>shadowComparison?.resume(),onRefresh:()=>shadowComparison?.refresh()});
+  const numericSeed=Number(world.seed),seed=Number.isInteger(numericSeed)&&numericSeed>=0&&numericSeed<=4294967295?numericSeed:hashSeed(String(world.seed??town.seedKey));
+  shadowComparison=createShadowComparison({legacyWorld:world,worldContext:livingWorld?.getContext?.()||{buildings:town.buildings},seed,population:world.people.length,isLegacyActive:()=>!livingWorld?.active,onUpdate:report=>shadowPanel?.update(report),onError:error=>console.error('Shadow comparison failed',error)});
+  window.hblShadowComparison=shadowComparison;shadowComparison.ready.catch(error=>shadowPanel?.update({status:'Shadow initialization failed',error:error.message,authority:'legacy; unchanged'}));
+ }).catch(error=>console.error('Optional shadow comparison unavailable',error));
+}
+addEventListener('pagehide',()=>{shadowDisposed=true;shadowComparison?.destroy();shadowPanel?.destroy();},{once:true});
+let challengePanel=null,challengePanelDisposed=false;
+let scrapbook=null,scrapbookDisposed=false,scrapbookUnsubscribe=null,scrapbookSource=null;
+let weatherPanel=null,weatherPanelDisposed=false,weatherPanelUnsubscribe=null,weatherPanelLastRefresh=-Infinity;
+let culturePanel=null,culturePanelDisposed=false,culturePanelUnsubscribe=null,culturePanelLastRefresh=-Infinity;
+void import('./culture/culture-panel.js').then(({mountCulturePanel})=>{
+ if(culturePanelDisposed||embedMode)return;
+ culturePanel=mountCulturePanel(document.body,{onChange:event=>{if(event.type==='schedule'&&scrapbook){const source=scrapbookSourceFrame();const culture=livingWorld?.active?livingWorld.getCultureSimulation?.():world.culture;scrapbook.observe({...source,events:culture?.snapshot?.().activeEvents||[]});}if(event.type==='open'){if(!document.querySelector('[data-testid=law-panel]')?.hidden)lawPanel?.close();weatherPanel?.close?.();scrapbook?.close?.();challengePanel?.close?.();}},getSimulation:()=>livingWorld?.active?(livingWorld.getCultureSimulation?.()??null):(world.culture??null)});
+ window.hblCulturePanel=culturePanel;
+ culturePanelUnsubscribe=window.hblWorldActivity.subscribe(()=>{const now=performance.now();if(now-culturePanelLastRefresh>=750){culturePanelLastRefresh=now;culturePanel.refresh();}});
+}).catch(error=>console.error('Culture controls unavailable',error));
+addEventListener('pagehide',()=>{culturePanelDisposed=true;culturePanelUnsubscribe?.();culturePanel?.destroy();},{once:true});
+void import('./weather/weather-panel.js').then(({mountWeatherPanel})=>{if(weatherPanelDisposed||embedMode)return;weatherPanel=mountWeatherPanel(document.body,{getSimulation:()=>livingWorld?.active?(livingWorld.getWeatherSimulation?.()??null):(world.weather??null),getObservations:()=>livingWorld?.active?(physicalPolicySnapshot?.weather?.electricity??null):(world.electricity??null),onChange:event=>{if(event.type==='open'){challengePanel?.close?.();scrapbook?.close?.();culturePanel?.close?.();if(!document.querySelector('[data-testid=law-panel]')?.hidden)lawPanel?.close();}}});window.hblWeatherPanel=weatherPanel;weatherPanelUnsubscribe=window.hblWorldActivity.subscribe(()=>{const now=performance.now();if(now-weatherPanelLastRefresh>=750){weatherPanelLastRefresh=now;weatherPanel.refresh();}});}).catch(error=>console.error('Weather controls unavailable',error));
+addEventListener('pagehide',()=>{weatherPanelDisposed=true;weatherPanelUnsubscribe?.();weatherPanel?.destroy();},{once:true});
+function scrapbookSourceFrame(frame=window.hblWorldActivity.getSnapshot()){return{minute:frame.minute??frame.clock?.minute,mode:frame.mode,runId:frame.runId,peopleCount:frame.peopleCount,seed:frame.config?.seed??world.seed??realityRunSeed??town.seedKey,modelVersion:frame.modelVersion??world.modelVersion,events:[...(frame.mode==='living'?(frame.events||[]):world.events.slice(0,12).reverse()),...((frame.mode==='living'?physicalPolicySnapshot?.culture:world.cultureSnapshot)?.activeEvents||[])]};}
+void import('./scrapbook/scrapbook.js').then(({mountCityScrapbook})=>{if(scrapbookDisposed||embedMode)return;scrapbook=mountCityScrapbook(document.body,{onOpen:()=>{challengePanel?.close?.();culturePanel?.close?.();weatherPanel?.close?.();if(!document.querySelector('[data-testid=law-panel]')?.hidden)lawPanel?.close();}});window.hblCityScrapbook=scrapbook;scrapbookSource=scrapbookSourceFrame();scrapbook.observe(scrapbookSource);scrapbookUnsubscribe=window.hblWorldActivity.subscribe(frame=>{scrapbookSource=scrapbookSourceFrame(frame);scrapbook.observe(scrapbookSource);});}).catch(error=>console.error('City scrapbook unavailable',error));
+addEventListener('pagehide',()=>{scrapbookDisposed=true;scrapbookUnsubscribe?.();scrapbook?.destroy();},{once:true});
+if(!embedMode)void Promise.all([import('./challenges/panel.js'),import('./city/seed.js')]).then(([{mountChallengePanel},{createCity,createCityFromArea}])=>{if(challengePanelDisposed)return;challengePanel=mountChallengePanel(document.body,{getInitialState:()=>{const raw=livingWorld?.active?physicalPolicySnapshot?.config?.seed:world.seed;const value=Number(raw),seed=Number.isInteger(value)&&value>=0&&value<=4294967295?value:hashSeed(String(raw??town.seedKey));const buildings=(area.buildings||[]).filter(b=>b.kind!=='park'&&Array.isArray(b.pts)&&b.pts.length>=3).slice(0,80);const state=buildings.length?createCityFromArea({...area,origin,buildings},{seed,households:30}):createCity({seed,households:30});state.provenance.assumptions.push(`Challenge sample: ${buildings.length} mapped footprints (up to80),30 synthetic households. Frozen monthly city; daily live ledgers are unchanged.`);return state;},onOpen:()=>{culturePanel?.close?.();weatherPanel?.close?.();scrapbook?.close?.();if(!document.querySelector('[data-testid=law-panel]')?.hidden)lawPanel?.close();}});window.hblChallengePanel=challengePanel;}).catch(error=>console.error('Challenge links unavailable',error));
+addEventListener('pagehide',()=>{challengePanelDisposed=true;challengePanel?.destroy();},{once:true});
+let realityPaintbrush=null,realityPaintbrushDisposed=false;
+if(!embedMode)void import('./reality/paintbrush.js').then(({mountRealityPaintbrush})=>{if(realityPaintbrushDisposed)return;realityPaintbrush=mountRealityPaintbrush({container:$('top'),THREE,scene,camera,canvas:renderer.domElement,town,controls});window.hblRealityPaintbrush=realityPaintbrush;}).catch(error=>console.error('Reality paintbrush unavailable',error));
+addEventListener('pagehide',()=>{realityPaintbrushDisposed=true;realityPaintbrush?.destroy();},{once:true});
+let cityDiffRadar=null,cityDiffRadarDisposed=false;
+if(!embedMode)void import('./reality/diff-radar-panel.js').then(({mountCityDiffRadar})=>{if(cityDiffRadarDisposed)return;cityDiffRadar=mountCityDiffRadar({container:document.body,THREE,scene,camera,controls,town,getStreamedBuildings:()=>[...contextBuildings.values()],getStreamRevision:()=>JSON.stringify(mapStreamer.getState().tiles.map(tile=>[tile.key,tile.status]))+contextBuildings.size,getPolicyRevision:()=>($('policy')?.value??'')+':'+($('planYear')?.value??'')});window.hblCityDiffRadar=cityDiffRadar;}).catch(error=>console.error('City difference radar unavailable',error));
+addEventListener('pagehide',()=>{cityDiffRadarDisposed=true;cityDiffRadar?.destroy();},{once:true});
+
+
+
 const overlayEl = $("overlayMode");
 const overlayLegendEl = $("overlayLegend");
 if (overlayEl) overlayEl.onchange = (e) => { overlayMode = e.target.value || "none"; };
@@ -556,6 +634,7 @@ function applyPolicy(id, year = policyYear) {
   world.voucherMonthly = staged.effects.voucherMonthly;
   world.groceryDelivery = staged.effects.groceryDelivery;
 
+  if(scrapbook){scrapbookSource=scrapbookSourceFrame();scrapbook.observe({...scrapbookSource,events:[{type:'POLICY_APPLIED',id:`policy:${world.policy.id}:${year}:${world.t}`,minute:world.t,title:'A policy package changes',text:`${p.label} applied at policy year ${year}. This records a configured scenario change, not proof of its outcomes.`,policyId:world.policy.id}]});}
   const src = p.source === "dear-congress" ? "dear-congress" : "local";
   const pendingTxt = staged.unsupported.length
     ? ` · not simulated yet: ${staged.unsupported.slice(0, 4).join(", ")}${staged.unsupported.length > 4 ? "…" : ""}`
@@ -689,7 +768,7 @@ function updateOverlayLegend() {
     const src = area.floodZonesSource === "fema-nfhl" ? "FEMA flood zones" : "lowland fallback";
     overlayLegendEl.textContent = `${src} · flood mitigation ${fm}%${impacts ? ` · impact shares ${impacts}` : ""}`;
   } else if (overlayMode === "commute") {
-    overlayLegendEl.textContent = `home color = avg walk minutes (threshold ${WALK_COMPLAINT_MINUTES}m)`;
+    overlayLegendEl.textContent = `home color = recorded daily total travel, all purposes (threshold ${WALK_COMPLAINT_MINUTES}m)`;
   } else if (overlayMode === "journals") {
     overlayLegendEl.textContent = `${todayJournalPosts.length} journal pin${todayJournalPosts.length === 1 ? "" : "s"} today`;
   } else if (overlayMode === "wellbeing") {
@@ -826,12 +905,14 @@ let lastCompletedRunFingerprint = null;
 
 function lineChartSvg(title, byPkg, key, colorByPkg, opts = {}) {
   const w = 470, h = 120, pad = 24;
+  const metricValue=row=>{const value=row?.outcomes?.[key]??row?.outcomes?.[opts.fallbackKey];return Number.isFinite(value)?value:undefined;};
   const ptsAll = [];
   for (const name of EXP_PACKAGES) {
     for (const row of (byPkg[name] || [])) {
-      ptsAll.push(Number(row?.outcomes?.[key] ?? 0));
+      const value=metricValue(row);if(value!==undefined)ptsAll.push(value);
     }
   }
+  if(!ptsAll.length)return `<div class="exp-chart"><h2>${title}</h2><p class="muted">Unavailable: no recorded values were supplied.</p></div>`;
   const min = ptsAll.length ? Math.min(...ptsAll) : 0;
   const max = ptsAll.length ? Math.max(...ptsAll) : 1;
   const lo = min === max ? min - 1 : min;
@@ -841,12 +922,12 @@ function lineChartSvg(title, byPkg, key, colorByPkg, opts = {}) {
     const series = rows || [];
     if (!series.length) return "";
     const n = Math.max(1, series.length - 1);
-    const parts = [];
+    const parts = [];let started=false;
     for (let i = 0; i < series.length; i++) {
       const x = pad + (i / n) * (w - pad * 2);
-      const v = Number(series[i]?.outcomes?.[key] ?? 0);
+      const v = metricValue(series[i]);if(v===undefined){started=false;continue;}
       const y = h - pad - ((v - lo) / (hi - lo)) * (h - pad * 2);
-      parts.push(`${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`);
+      parts.push(`${started ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`);started=true;
     }
     return parts.join(" ");
   };
@@ -1011,7 +1092,8 @@ function renderExperimentResults(results) {
     replay ? `<div class="muted" style="margin:0 0 8px 0">${replayStormStrengthLabel(!EXP_PACKAGES.some((name) => (byPkg[name] || []).some((r) => r?.replayDataSource === "simulated")))}</div>` : "",
     lineChartSvg("Flooded parcels", byPkg, "floodedParcels", colors, { xLabels: labels, markYears }),
     lineChartSvg("Displaced residents", byPkg, "displacedResidents", colors, { xLabels: labels, markYears }),
-    lineChartSvg("Commute / walk minutes", byPkg, "avgWalkMinutes", colors, { xLabels: labels, markYears }),
+    lineChartSvg("Commute minutes", byPkg, "avgTravelMinutes", colors, { xLabels: labels, markYears, fallbackKey:"avgWalkMinutes" }),
+    lineChartSvg("Budget-stressed households", byPkg, "budgetStressRate", colors, { xLabels: labels, markYears }),
     lineChartSvg("Mood", byPkg, "avgMood", colors, { xLabels: labels, markYears }),
   ].join("");
 
@@ -1035,7 +1117,8 @@ function renderExperimentResults(results) {
       <th>${name}</th>
       <td>${Number(y10Outcomes.outcomes.floodedParcels ?? 0).toFixed(0)}</td>
       <td>${Number(y10Outcomes.outcomes.displacedResidents ?? 0).toFixed(0)}</td>
-      <td>${Number(y10Outcomes.outcomes.avgWalkMinutes ?? 0).toFixed(1)}</td>
+      <td>${Number.isFinite(y10Outcomes.outcomes.avgTravelMinutes??y10Outcomes.outcomes.avgWalkMinutes)?Number(y10Outcomes.outcomes.avgTravelMinutes??y10Outcomes.outcomes.avgWalkMinutes).toFixed(1):"Unavailable"}</td>
+      <td>${Number.isFinite(y10Outcomes.outcomes.budgetStressRate)?(100*y10Outcomes.outcomes.budgetStressRate).toFixed(1)+"%":"Unavailable"}</td>
       <td>${Number(y10Outcomes.outcomes.avgMood ?? 0).toFixed(1)}</td>
       <td>${p2}</td>
       <td>${c2}</td>
@@ -1050,7 +1133,7 @@ function renderExperimentResults(results) {
   }).join("");
 
   tableWrap.innerHTML = `<table class="exp-table">
-    <thead><tr><th>Package</th><th>Flooded (Y10)</th><th>Displaced (Y10)</th><th>Walk min (Y10)</th><th>Mood (Y10)</th><th>Items Y2</th><th>Plan changes Y2</th><th>Items Y5</th><th>Plan changes Y5</th><th>Items Y10</th><th>Plan changes Y10</th><th>Not simulated Y2</th><th>Not simulated Y5</th><th>Not simulated Y10</th></tr></thead>
+    <thead><tr><th>Package</th><th>Flooded (Y10)</th><th>Displaced (Y10)</th><th>Commute minutes (Y10)</th><th>Budget-stressed households (Y10)</th><th>Mood (Y10)</th><th>Items Y2</th><th>Plan changes Y2</th><th>Items Y5</th><th>Plan changes Y5</th><th>Items Y10</th><th>Plan changes Y10</th><th>Not simulated Y2</th><th>Not simulated Y5</th><th>Not simulated Y10</th></tr></thead>
     <tbody>${rows}</tbody>
   </table>
   <div class="muted" style="margin-top:6px">Most popular ranks only by votes, so journals don't change it. Minimal change rarely adopts new programs.</div>`;
@@ -1151,7 +1234,7 @@ function runExperiment10Years() {
       const stateMsg = before != null && after != null
         ? `done · dear-congress entries ${before} → ${after}`
         : "done";
-      setExperimentStatus(`Run 10 years: ${stateMsg}`);
+      setExperimentStatus(`10-year longitudinal experiment: ${stateMsg}`);
       if (btn) btn.disabled = false;
       setExperimentControlsDisabled(false);
       experimentWorker?.terminate();
@@ -1706,7 +1789,7 @@ async function publishSyntheticJournalsForDay(day) {
       const p = town.people[i];
       const sourceDay = world.day() === 0 ? (p.today || null) : (p.yesterday || null);
       if (!sourceDay) continue;
-      const probe = { ...p, today: sourceDay, walkMinutesAvg3d: Number(p.walkMinutesAvg3d || 0) };
+      const probe = { ...p, today: sourceDay, travelMinutesAvg3d:p.travelMinutesAvg3d??p.walkMinutesAvg3d, walkMinutesAvg3d: Number(p.walkMinutesAvg3d || 0) };
       const text = journalFor(probe, {
         tileKey,
         buildingsById,
@@ -1715,7 +1798,7 @@ async function publishSyntheticJournalsForDay(day) {
       });
       if (text) {
         const floodSeverity = sourceDay.displaced ? 2 : (sourceDay.homeFlooded ? 1 : 0);
-        const transitSeverity = Number(probe.walkMinutesAvg3d || sourceDay.walkMinutes || 0);
+        const transitSeverity = commuteBurdenMinutes(probe,{day:sourceDay,rolling:false})??0;
         const streetsSeverity = Number(sourceDay.dirtyParkVisits || 0);
         const soldOutCount = Array.isArray(sourceDay.soldOutAt) ? sourceDay.soldOutAt.length : 0;
         const groceriesSeverity = soldOutCount + (sourceDay.emptyFridge ? 1 : 0);
@@ -1795,6 +1878,7 @@ async function publishSyntheticJournalsForDay(day) {
           mood: Number(mood.toFixed(1)),
           needs: p.needs,
           today: p.today,
+          travelMinutesAvg3d: commuteBurdenMinutes(p),
           walkMinutesAvg3d: Number(p.walkMinutesAvg3d || 0),
           walkComplaintMinutes: WALK_COMPLAINT_MINUTES,
           recentFrustration: recentFrustration(),
@@ -1906,6 +1990,7 @@ function needBars(p) {
 
 function renderInspector() {
   const el = $("inspect");
+  const previousJournal=el.querySelector('[data-character-journal]');
   if (!selected) return;
   if (selected.type === "journal") {
     const j = todayJournalPosts[selected.id];
@@ -1917,14 +2002,21 @@ function renderInspector() {
   } else if (selected.type === "person") {
     const p = town.people[selected.id];
     const home = town.buildings[p.home];
+    const household=householdForPerson(world,p),householdCash=household?.cash;
+    const cashLabel=Number.isFinite(householdCash)?`Household cash: $${householdCash.toFixed(0)}`:Number.isFinite(p.money)?`Cash (legacy record): $${p.money.toFixed(0)}`:"Household cash unavailable";
     const job = p.job != null ? town.buildings[p.job].name : p.school != null ? town.buildings[p.school].name : "—";
     el.innerHTML = `<h1>${p.name}</h1>
-      <div class="muted">${p.age} · ${p.trait} · $${p.money.toFixed(0)}</div>
+      <div class="muted">${p.age} · ${p.trait} · ${cashLabel}</div>
       <div style="margin:8px 0"><b>${p.doing}</b></div>
       ${needBars(p)}
       <div class="muted" style="margin-top:8px">Lives at ${home.name}<br/>${p.age < 18 ? "School" : "Works at"}: ${job}</div>
       <div class="row"><button id="followBtn" class="${follow ? "on" : ""}">${follow ? "Following" : "Follow"}</button><button data-b="${p.home}">Show home</button></div>`;
     $("followBtn").onclick = () => { follow = !follow; renderInspector(); };
+    el.style.maxHeight='calc(100vh - 112px)';el.style.overflowY='auto';
+    const relationships=document.createElement('section');el.append(relationships);
+    const social=legacySocial(world),id=String(p.id??selected.id);
+    const reuseJournal=previousJournal?.dataset.characterJournal===id;const journal=reuseJournal?previousJournal:document.createElement('section');journal.dataset.characterJournal=id;el.append(journal);if(!reuseJournal)mountCharacterJournal(journal,{personId:id,recorder:legacyJournalRecorder,current:()=>{const e=ensureJournal(world.journals,id,p.name,world.t);return {...structuredClone(e),text:journalText(e)};},routine:p.age<18?'wake up · school · meals · play · home · sleep':'wake up · meals · work or errands · park · home · sleep'});
+    renderRelationships(relationships,social.inspect(id),{onSelect:id=>{const index=town.people.findIndex((p,i)=>String(p.id??i)===String(id));if(index>=0)select({type:'person',id:index});},onInteract:(targetId,action)=>social.interact(id,targetId,action)});
   } else {
     const b = town.buildings[selected.id];
     const s = b.state;
@@ -1977,7 +2069,7 @@ function frame(now) {
   const simulationFrame=playback.update(now);
   if(!livingWorld?.active)acc += simulationFrame.deltaMs/1000;
   const steps = livingWorld?.active?0:Math.floor(acc);
-  if (steps > 0) { world.step(Math.min(steps, 240)); acc -= steps; if(selected?.type === "person")renderInspector(); }
+  if (steps > 0) { world.step(Math.min(steps, 240));if(legacyJournalRecorder)void legacyJournalRecorder.flush(); acc -= steps; if(selected?.type === "person")renderInspector(); }
 
   // Once per simulated day per tile: publish a few synthetic resident journals.
   // Trigger after 8:00 local sim time so demos show the loop quickly.
@@ -1989,9 +2081,13 @@ function frame(now) {
   if(!livingWorld?.active)businessUI?.update();
   livingWorld?.update(now);
 
-  // Day / night
+  // Keep the default daylight lighting independent of the simulation clock.
+  // Only follow simulated time when explicitly selected in the renderer controls.
   const livingMinute=livingWorld?.active?livingWorld.getClockMinute():null;
-  const m = Number.isFinite(livingMinute)?livingMinute%1440:cityRenderer.timeOfDay == null ? world.minuteOfDay() : cityRenderer.timeOfDay * 60;
+  const policyFrame=livingWorld?.active?physicalPolicySnapshot:null;
+  const policyMinute=Number.isFinite(livingMinute)?livingMinute:world.t;
+  physicalPolicyLayer.update({minute:policyMinute,transitService:livingWorld?.active?(policyFrame?.config?.transitService??0):(world.transitServiceMult??0),projects:world.projects??[],districts:policyFrame?.districts??[],source:livingWorld?.active?'Living configured transit service; no civic project ledger supplied':'Legacy transitServiceMult; actual civic projects only'});
+  const m = cityRenderer.timeOfDay != null ? cityRenderer.timeOfDay * 60 : Number.isFinite(livingMinute) ? livingMinute % 1440 : world.minuteOfDay();
   const daylight = Math.max(0, Math.sin(((m - 6 * 60) / (14 * 60)) * Math.PI)); // 6am–8pm arc
   sky.copy(night).lerp(day, daylight);
   scene.background = buildingBridge?.worldVisuals.skyColor ? new THREE.Color(buildingBridge.worldVisuals.skyColor) : sky;
@@ -2014,7 +2110,7 @@ function frame(now) {
     s.z += (p.z - s.z) * k;
     const selectedPerson = selected?.type === "person" && selected.id === i;
     const withinDetailBudget = (i * 0.61803398875) % 1 < cityRenderer.density;
-    const visible = wbOverlay || selectedPerson || (withinDetailBudget && (p.mode === "moving" || OUTDOOR.has(p.action)));
+    const visible = (p.travelMode!=="transit"||p.transitWaitMinutesRemaining>0)&&(wbOverlay || selectedPerson || (withinDetailBudget && (p.mode === "moving" || OUTDOOR.has(p.action))));
     const scale = visible ? (p.age < 13 ? 0.7 : 1) * (wbOverlay ? 1.8 : 1) : 0;
     const hex=cycleScores?wellbeingHex(cycleScores[i]??0):wbOverlay?wellbeingHex(wellbeing(p)):null;
     humanPeople.setPerson(i,{id:p.id??i,x:s.x,z:s.z,scale,visible,selected:selectedPerson,heading:Math.atan2(p.x-s.x,p.z-s.z),...(hex==null?{}:{shirtColor:hex})});
@@ -2060,7 +2156,7 @@ function frame(now) {
   controls.update();
   const drawCity=cityRenderer.beforeFrame(now,dt,daylight,selected?.type==='building'?selected.id:null,buildingBridge?.worldVisuals,{now:simulationFrame.simulationNow/10,dt:simulationFrame.deltaMs/10000});
   if(livingWorld?.active)livingWorld.applyBuildingOccupancy?.();
-  if(drawCity)renderer.render(scene,camera);
+  if(drawCity){renderer.render(scene,camera);if(scrapbook&&scrapbookSource)void scrapbook.afterRender(renderer.domElement,scrapbookSource);}
   cityRenderer.afterFrame(now, performance.now() - cpuStart, frameMs);
   requestAnimationFrame(frame);
 }
@@ -2072,8 +2168,7 @@ function updateBuildings(daylight) {
   const walkByHome = new Map();
   for (const p of town.people) {
     const rec = walkByHome.get(p.home) || { sum: 0, n: 0 };
-    rec.sum += Number(p.walkMinutesAvg3d || 0);
-    rec.n += 1;
+    const travel=commuteBurdenMinutes(p);if(Number.isFinite(travel)){rec.sum+=travel;rec.n+=1;}
     walkByHome.set(p.home, rec);
   }
   for (const b of town.buildings) {
@@ -2139,13 +2234,14 @@ function updateHud() {
         rc.textContent = "Real data unavailable";
       } else {
         const pop = Math.max(1, town.people.length);
-        const commuteShare = town.people.filter((p) => Number(p.walkMinutesAvg3d || p.today?.walkMinutes || 0) > WALK_COMPLAINT_MINUTES).length / pop;
+        const observedTravel=town.people.map(p=>commuteBurdenMinutes(p)).filter(Number.isFinite);
+        const commuteShare=observedTravel.length?observedTravel.filter(minutes=>minutes>WALK_COMPLAINT_MINUTES).length/observedTravel.length:null;
         const floodSeveritySim = Math.max(0, Math.min(1, Number(world.policy?.displaced || 0) / (0.1 * pop)));
         const floodTxt = `${floodSeveritySim.toFixed(2)} sim vs ${Number(flood.severity).toFixed(2)} measured (${flood.year}, ${flood.source?.name || "source"})`;
         const transitTxt = transit
-          ? `${commuteShare.toFixed(2)} sim vs ${Number(transit.value).toFixed(3)} measured (${transit.year}, ${transit.source?.name || "source"})`
-          : `${commuteShare.toFixed(2)} sim vs n/a measured`;
-        rc.textContent = `Flooding severity: ${floodTxt} · Commute share over ${WALK_COMPLAINT_MINUTES}m: ${transitTxt}`;
+          ? `${Number.isFinite(commuteShare)?commuteShare.toFixed(2):"unavailable"} sim vs ${Number(transit.value).toFixed(3)} measured (${transit.year}, ${transit.source?.name || "source"})`
+          : `${Number.isFinite(commuteShare)?commuteShare.toFixed(2):"unavailable"} sim vs n/a measured`;
+        rc.textContent = `Flooding severity: ${floodTxt} · All-purpose travel share over ${WALK_COMPLAINT_MINUTES}m (not a work-only commute measure): ${transitTxt}`;
       }
     }
   }

@@ -1,0 +1,5 @@
+import {test,expect} from 'bun:test';
+import {validateWeatherControls} from '../world/weather/weather-panel.js';
+import {createWeatherSimulation} from '../world/weather/weather-simulation.js';
+test('weather panel bounds reject invalid numbers without silently clamping',()=>{expect(validateWeatherControls({temperatureC:-10,rainIntensity:1,stormIntensity:0,automatic:false})).toMatchObject({temperatureC:-10});for(const patch of [{temperatureC:46},{rainIntensity:NaN},{stormIntensity:-1},{automatic:'yes'},{minute:500}])expect(()=>validateWeatherControls(patch)).toThrow();});
+test('manual weather controls configure real inputs without advancing time or pretending the demand multiplier is electricity consumption',()=>{const weather=createWeatherSimulation({seed:42,initialMinute:360});const result=weather.configure(validateWeatherControls({temperatureC:40,rainIntensity:.8,automatic:false}));expect(result.minute).toBe(360);expect(result.parameters.automatic).toBe(false);expect(result.effects.electricityDemandMultiplier).toBeGreaterThan(1);expect(result.demandKw).toBeUndefined();});

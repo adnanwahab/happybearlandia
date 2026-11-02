@@ -1,4 +1,5 @@
-import { normalizePopulationConfig, hash, draw, clamp } from "./contracts.js";
+import { normalizePopulationConfig, hash, draw, clamp, POPULATION_VERSION } from "./contracts.js";
+import {initializeChildren} from './children.js';
 
 export function deriveDistricts(config,context={}) {
   if(Array.isArray(context.districts)&&context.districts.length){
@@ -57,7 +58,8 @@ export function generatePopulation(input={},worldContext={}) {
   const employedTarget=Math.round(adults.length*config.employmentRate);
   for(let k=0;k<employedTarget;k++)people.employed[adults[k]]=1;
   for(let j=0;j<h;j++){let workers=0;for(let k=0;k<households.size[j];k++)workers+=people.employed[households.start[j]+k];households.nonWage[j]=households.baseIncome[j]*(workers?.15:1);for(let k=0;k<households.size[j];k++){const i=households.start[j]+k;if(people.employed[i])people.income[i]=households.baseIncome[j]*.85/workers;}}
-  const model={locations,schemaVersion:"population-state.v1",modelVersion:"1.1.0",config,seed,prefix,people,households,districts,tick:0,minute:0,events:[],eventCounts:{},traces:new Map(),timeSeries:[],metrics:{},economy:null,validation:null,provenance:{synthetic:true,demographics:config.provenance,locationSource:districts.every(d=>d.locationSource!=="synthetic")?"town/supplied locations only":"synthetic location",snapshotId:config.snapshotId,seed:config.seed},totals:{trips:0,moves:0,displacements:0,layoffs:0,hires:0,spending:0},lastDay:0,lastEffects:null};
+  const model={locations,schemaVersion:"population-state.v1",modelVersion:POPULATION_VERSION,config,seed,prefix,people,households,districts,tick:0,minute:0,events:[],eventCounts:{},traces:new Map(),social:{ties:{}},timeSeries:[],metrics:{},economy:null,validation:null,provenance:{synthetic:true,demographics:config.provenance,locationSource:districts.every(d=>d.locationSource!=="synthetic")?"town/supplied locations only":"synthetic location",snapshotId:config.snapshotId,seed:config.seed},totals:{trips:0,moves:0,displacements:0,layoffs:0,hires:0,spending:0},lastDay:0,lastEffects:null};
+  initializeChildren(model,worldContext);
   model.validation=validateSyntheticTargets(model);
   return model;
 }

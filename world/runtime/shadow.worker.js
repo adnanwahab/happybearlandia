@@ -1,0 +1,4 @@
+import {createWorldRuntime} from './world-runtime.js';
+import {policyToWorldInputs} from './policy-adapter.js';
+let runtime=null,base=null;
+self.onmessage=({data})=>{try{if(data.type==='INIT'){runtime?.destroy();runtime=createWorldRuntime(data.config);base=runtime.parameters;}else if(data.type==='ADVANCE'){if(!runtime)throw new Error('Shadow not initialized');if(data.policy)runtime.applyScenario(policyToWorldInputs(data.policy,base));const target=data.targetMinute;if(!Number.isFinite(target)||target<runtime.clock.minute)throw new Error('Shadow target must be monotonic');while(runtime.clock.minute<target)runtime.step(Math.min(1440,target-runtime.clock.minute),{visibleLimit:0});}else if(data.type!=='SNAPSHOT')throw new Error('Unknown shadow request');self.postMessage({type:'RESULT',requestId:data.requestId,snapshot:runtime.snapshot({visibleLimit:0})});}catch(error){self.postMessage({type:'ERROR',requestId:data.requestId,error:error.message});}};

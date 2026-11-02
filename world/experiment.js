@@ -1,5 +1,7 @@
 import { hashSeed, rng } from "./gen.js";
 import { createWorld } from "./sim.js";
+import { captureSimulationState } from "./simulation-state.js";
+import { createSimulationObservationCollector, commuteBurdenMinutes, householdRows, householdForPerson, householdStress, totalTravelMinutes } from "./simulation-observations.js";
 import { journalFor, WALK_COMPLAINT_MINUTES } from "./journal.js";
 import { computeEffectsForYear, NOT_SIMULATED, resolveRuleForProposal } from "./policy.js";
 
@@ -10,13 +12,10 @@ function cloneTown(town) {
       ...b,
       poly: Array.isArray(b.poly) ? b.poly.map((p) => [p[0], p[1]]) : [],
       center: Array.isArray(b.center) ? [b.center[0], b.center[1]] : [0, 0],
-      state: b.state ? { ...b.state } : {},
+      state: b.state ? structuredClone(b.state) : {},
       mesh: null,
     })),
-    people: (town.people || []).map((p) => ({
-      ...p,
-      needs: { ...(p.needs || {}) },
-    })),
+    people: (town.people || []).map((p) => {const person={...p,needs:{...(p.needs||{})},...(Array.isArray(p.path)?{path:p.path.map(point=>[...point])}:{})};if(p.moneyHousehold)Object.defineProperty(person,"moneyHousehold",{value:p.moneyHousehold,configurable:true,enumerable:false});return person;}),
     roads: (town.roads || []).map((r) => ({
       ...r,
       pts: Array.isArray(r.pts) ? r.pts.map((p) => [p[0], p[1]]) : [],
@@ -161,7 +160,8 @@ function applyStorm(world, severity = 1) {
 }
 
 function applyPolicyToWorld(world, policyEffects) {
-  world.speedMult = policyEffects.speedMult;
+  world.speedMult = 1; // compatibility: policy/conditions never accelerate pedestrians
+  world.transitServiceMult = Number(policyEffects.transitServiceMult ?? policyEffects.speedMult ?? 1);
   world.parkCleanupBoost = policyEffects.parkCleanupBoost;
   world.restockBoost = policyEffects.restockBoost;
   world.hiringBoost = policyEffects.hiringBoost;
@@ -211,7 +211,7 @@ function estimateStormDisplacement(world, severity, floodMitigation) {
 
 function computeRawSeverities(sim) {
   const population = Math.max(1, Number(sim.population || 1));
-  const overWalkComplaint = Number(sim.outcomes?.overWalkComplaint || 0);
+  const overWalkComplaint = Number(sim.outcomes?.overCommuteComplaint ?? sim.outcomes?.overWalkComplaint ?? 0);
   const displacedResidents = Number(sim.outcomes?.displacedResidents || 0);
   const transit = Math.max(0, Math.min(1, (overWalkComplaint / population) / 0.3));
   const flooding = Math.max(0, Math.min(1, displacedResidents / (0.1 * population)));
@@ -257,24 +257,10 @@ function deriveSynthesisOutcomes(sim, rawSeverityHistory, impactHistory, proposa
     items[pid] = { impact: avgImpact(pid, impactRaw), maturing: adoptedYear !== null && yearsInEffect < (lag + ramp) };
   }
 
-  const population = Math.max(1, Number(sim.population || 1));
-  const withTransit = Math.max(0, Math.min(population, Number(sim.outcomes?.overWalkComplaint || 0)));
-  const totalSpeedAdd = Math.max(0, Number(sim.outcomes?.speedMult || 1) - 1);
   for (const pid of ["t_bus", "t_brt"]) {
-    const share = totalSpeedAdd > 0
-      ? Math.max(0, Math.min(1, Number(sim.policyContributionByItem?.[pid]?.speedAdd || 0) / totalSpeedAdd))
-      : 0;
-    const withoutTransit = Math.max(withTransit, Math.min(population, withTransit + (population - withTransit) * share));
-    const impactRaw = withoutTransit > 0 ? Math.max(0, Math.min(1, (withoutTransit - withTransit) / withoutTransit)) : 0;
-
-    const mapped = resolveRuleForProposal(pid);
-    const lag = Number(mapped?.rule?.lagYears || 0);
-    const ramp = Number(mapped?.rule?.rampYears || 0);
-    const adoptedYear = Number.isFinite(adoptedYearByProposal?.[pid]) ? Number(adoptedYearByProposal[pid]) : null;
-    const yearsInEffect = adoptedYear === null ? 0 : year - adoptedYear;
-
-    rawImpacts[pid] = impactRaw;
-    items[pid] = { impact: avgImpact(pid, impactRaw), maturing: adoptedYear !== null && yearsInEffect < (lag + ramp) };
+    const mapped=resolveRuleForProposal(pid),adoptedYear=Number.isFinite(adoptedYearByProposal?.[pid])?adoptedYearByProposal[pid]:null;
+    rawImpacts[pid]=null;
+    items[pid]={impact:null,available:false,maturing:adoptedYear!==null&&year-adoptedYear<Number(mapped?.rule?.lagYears||0)+Number(mapped?.rule?.rampYears||0),method:"Unavailable: no paired without-policy travel simulation was executed. Service multipliers are inputs, not measured causal impacts."};
   }
 
   return {
@@ -292,9 +278,11 @@ function collectDailyJournalCandidates(world, packageLabel, year, tileKey, build
   for (const p of world.people) {
     const sourceDay = p.yesterday || null;
     if (!sourceDay) continue;
-    const probe = { ...p, today: sourceDay, walkMinutesAvg3d: Number(p.walkMinutesAvg3d || 0) };
+    const household=householdForPerson(world,p);
+    const probe = { ...p, today: sourceDay, householdBudget:household };
     const text = journalFor(probe, {
       tileKey,
+      household,
       buildingsById,
       policyLabel: packageLabel,
       year,
@@ -302,7 +290,8 @@ function collectDailyJournalCandidates(world, packageLabel, year, tileKey, build
     if (!text) continue;
 
     const floodSeverity = sourceDay.displaced ? 2 : (sourceDay.homeFlooded ? 1 : 0);
-    const transitSeverity = Number(probe.walkMinutesAvg3d || sourceDay.walkMinutes || 0);
+    const transitSeverity = commuteBurdenMinutes(probe) ?? 0;
+    const budgetSeverity = householdStress(probe,household)===true?Number(household?.lastShortfall||1):0;
     const streetsSeverity = Number(sourceDay.dirtyParkVisits || 0);
     const soldOutCount = Array.isArray(sourceDay.soldOutAt) ? sourceDay.soldOutAt.length : 0;
     const groceriesSeverity = soldOutCount + (sourceDay.emptyFridge ? 1 : 0);
@@ -317,6 +306,7 @@ function collectDailyJournalCandidates(world, packageLabel, year, tileKey, build
         transit: transitSeverity,
         streets: streetsSeverity,
         groceries: groceriesSeverity,
+        budget: budgetSeverity,
       },
     });
   }
@@ -324,7 +314,7 @@ function collectDailyJournalCandidates(world, packageLabel, year, tileKey, build
 }
 
 function pickWeeklyJournalsByProblem(candidates, maxTotal = 12, perProblemCap = 4) {
-  const types = ["flood", "transit", "streets", "groceries"];
+  const types = ["flood", "transit", "streets", "groceries", "budget"];
   const byType = {};
 
   for (const t of types) {
@@ -388,20 +378,20 @@ async function fetchReplayFloodSeverities(fetchOutcomes) {
   }
 }
 
-function weekOutcomes(world, soldOutEvents, displacedResidents, litterSamples) {
+function weekOutcomes(world, soldOutEvents, displacedResidents, litterSamples, collector) {
   const floodedParcels = world.buildings.filter((b) => b.state?.flooded).length;
-  const avgWalkMinutes = world.people.length
-    ? world.people.reduce((s, p) => s + Number(p.walkMinutesAvg3d || p.today?.walkMinutes || 0), 0) / world.people.length
-    : 0;
+  const observed=collector.result();
   const avgMood = Number(world.summary().mood || 0);
   const avgParkLitter = litterSamples.length
     ? litterSamples.reduce((a, b) => a + b, 0) / litterSamples.length
     : 0;
-  const overWalkComplaint = world.people.filter((p) => Number(p.walkMinutesAvg3d || p.today?.walkMinutes || 0) > WALK_COMPLAINT_MINUTES).length;
+  const overCommuteComplaint=world.people.filter(p=>(commuteBurdenMinutes(p)??0)>WALK_COMPLAINT_MINUTES).length;
+  const overWalkComplaint=world.people.filter(p=>Number(p.walkMinutesAvg3d??p.yesterday?.walkMinutes??0)>WALK_COMPLAINT_MINUTES).length;
   return {
     floodedParcels,
     displacedResidents,
-    avgWalkMinutes,
+    ...observed,
+    overCommuteComplaint,
     avgMood,
     soldOutEvents,
     avgParkLitter,
@@ -425,7 +415,8 @@ export function scalePolicyEffects(effects, scale = 1) {
   if (k === 1) return effects;
   return {
     ...effects,
-    speedMult: 1 + (effects.speedMult - 1) * k,
+    speedMult: 1 + ((effects.speedMult ?? 1) - 1) * k,
+    ...(effects.transitServiceMult!==undefined?{transitServiceMult:1+(effects.transitServiceMult-1)*k}:{}),
     floodMitigation: Math.min(0.45, effects.floodMitigation * k),
     housingGrowth: effects.housingGrowth * k,
     voucherMonthly: effects.voucherMonthly * k,
@@ -438,28 +429,30 @@ export function scalePolicyEffects(effects, scale = 1) {
 
 /**
  * World conditions (possible-worlds engine, futures.js). All optional; the defaults
- * leave the simulation byte-for-byte as before.
- *  moneyMult   households' cash at the start of the week
+ * apply to the legacy-authoritative sample only.
+ *  moneyMult   one initial wealth shock per household; not re-applied on carried years
  *  wageMult    pay per hour worked
  *  restockAdd  added to shop/kitchen restock rate (supply chains; negative = shortages)
  *  cleanupAdd  added to park cleanup (civic trust, city crews)
- *  mobilityMult multiplies walking/transit speed (street conditions)
+ *  mobilityMult scales transit service only; walking remains fixed
  *  stormMult   multiplies this year's storm severity (climate)
  *  planScale   how much of the plan's designed effect is delivered
  */
-export function applyConditions(world, simTown, conditions) {
+export function applyConditions(world, simTown, conditions, {applyInitialWealth=true} = {}) {
   if (!conditions) return;
   const c = conditions;
-  if (Number.isFinite(c.moneyMult) && c.moneyMult !== 1) for (const p of world.people) p.money = Math.max(0, p.money * c.moneyMult);
+  if (applyInitialWealth && Number.isFinite(c.moneyMult) && c.moneyMult !== 1) {const households=householdRows(world);if(!households.length&&world.people?.length)throw new Error("Initial wealth conditions require authoritative shared households.");for(const household of households){if(!Number.isFinite(household.cash))throw new Error("Household cash must be finite.");household.cash=Math.max(0,household.cash*c.moneyMult);}}
   if (Number.isFinite(c.wageMult)) world.wageMult = Math.max(0.1, c.wageMult);
   if (Number.isFinite(c.restockAdd)) world.restockBoost = Math.max(-0.9, world.restockBoost + c.restockAdd);
   if (Number.isFinite(c.cleanupAdd)) world.parkCleanupBoost = Math.max(-0.9, world.parkCleanupBoost + c.cleanupAdd);
-  if (Number.isFinite(c.mobilityMult)) world.speedMult = Math.max(0.3, world.speedMult * c.mobilityMult);
+  if (Number.isFinite(c.mobilityMult)) world.transitServiceMult = Math.max(0.3, Number(world.transitServiceMult??1) * c.mobilityMult);
 }
 
-export async function simulateYear({ town, proposalIds, year, packageLabel, seed, adoptedYearByProposal = null, yearStartMs, stormSeverityValue = null, runSeed = null, collectPeople = false, conditions = null }) {
+export async function simulateYear({ town, proposalIds, year, packageLabel, seed, adoptedYearByProposal = null, yearStartMs, stormSeverityValue = null, runSeed = null, collectPeople = false, conditions = null, longitudinalState = null }) {
   const simTown = cloneTown(town);
-  const world = createWorld(simTown, { startMinute: 0, runSeed });
+  const annualRunSeed=`${runSeed??seed}:year:${year}`;
+  const world = createWorld(simTown, { startMinute: 0, runSeed:annualRunSeed, ...(longitudinalState?{state:structuredClone(longitudinalState)}:{}) });
+  for(const building of world.buildings)if(building.state)building.state.flooded=false;
   const buildingsById = {};
   for (const b of simTown.buildings) {
     buildingsById[b.index] = b;
@@ -475,7 +468,12 @@ export async function simulateYear({ town, proposalIds, year, packageLabel, seed
     }
   }
   applyPolicyToWorld(world, staged);
-  applyConditions(world, simTown, conditions);
+  applyConditions(world, simTown, conditions,{applyInitialWealth:!longitudinalState});
+  const openingHouseholdCashTotal=householdRows(world).reduce((sum,h)=>sum+h.cash,0);
+  let sampledVoucher=null;if(world.voucherMonthly>0){if(typeof world.sampleVoucher!=="function")throw new Error("Representative annual voucher requires world.sampleVoucher(periodKey) shared-household hook.");sampledVoucher=world.sampleVoucher(`annual:${annualRunSeed}`);}
+  const representativeVoucherMonthly=world.voucherMonthly;
+  world.voucherMonthly=0; // sampled above once; do not pay again at a carried day-30 boundary
+  const collector=createSimulationObservationCollector();
 
   let soldOutEvents = 0;
   const baseLog = world.log;
@@ -487,7 +485,7 @@ export async function simulateYear({ town, proposalIds, year, packageLabel, seed
   const days = 5;
   const stormDay = 2;
   // Optional per-resident week summary (for "why did this happen?"). Off by default.
-  const perPerson = collectPeople ? world.people.map(() => ({ walk: 0, moodSum: 0, days: 0, displaced: false, emptyFridgeDays: 0, soldOut: 0, dirtyPark: 0 })) : null;
+  const perPerson = collectPeople ? world.people.map(() => ({ walk: 0, travel:0, transit:0, wait:0, stressedDays:0, moodSum: 0, days: 0, displaced: false, emptyFridgeDays: 0, soldOut: 0, dirtyPark: 0 })) : null;
   let displacedResidents = 0;
   const litterSamples = [];
   const weeklyJournalCandidates = [];
@@ -525,11 +523,13 @@ export async function simulateYear({ town, proposalIds, year, packageLabel, seed
 
     world.step(6 * 60); // midnight reset -> yesterday becomes available
 
+    collector.sample(world);
     if (perPerson) {
       world.people.forEach((p, i) => {
         const y = p.yesterday || {};
         const acc = perPerson[i];
         acc.walk += Number(y.walkMinutes || 0);
+        acc.travel += totalTravelMinutes(y)??0;acc.transit+=Number(y.transitMinutes||0);acc.wait+=Number(y.transitWaitMinutes||0);if(householdStress(p,householdForPerson(world,p))===true)acc.stressedDays++;
         acc.moodSum += (p.needs.hunger + p.needs.energy + p.needs.fun + p.needs.social) / 4;
         acc.days += 1;
         acc.displaced = acc.displaced || !!y.displaced;
@@ -546,8 +546,9 @@ export async function simulateYear({ town, proposalIds, year, packageLabel, seed
   const journals = pickWeeklyJournalsByProblem(weeklyJournalCandidates, 12, 4);
 
   const outcomes = {
-    ...weekOutcomes(world, soldOutEvents, displacedResidents, litterSamples),
-    speedMult: Number(world.speedMult || 1),
+    ...weekOutcomes(world, soldOutEvents, displacedResidents, litterSamples, collector),
+    speedMult: 1,
+    transitServiceMult: Number(world.transitServiceMult??1),
     floodMitigation: Number(world.policy?.floodMitigation || 0),
   };
 
@@ -563,6 +564,8 @@ export async function simulateYear({ town, proposalIds, year, packageLabel, seed
       const a = perPerson[i];
       return {
         id: p.id, name: p.name, age: p.age, trait: p.trait, worker: p.job != null, student: p.school != null,
+        householdId:p.householdId,householdCash:householdForPerson(world,p)?.cash??null,
+        commuteMinutesPerDay:a.days?a.travel/a.days:0,transitMinutesPerDay:a.days?a.transit/a.days:0,transitWaitMinutesPerDay:a.days?a.wait/a.days:0,budgetStressRate:a.days?a.stressedDays/a.days:0,
         walkMinutesPerDay: a.days ? a.walk / a.days : 0,
         mood: a.days ? a.moodSum / a.days : 0,
         money: Number(p.money || 0),
@@ -574,7 +577,10 @@ export async function simulateYear({ town, proposalIds, year, packageLabel, seed
     })
     : undefined;
 
+  world.voucherMonthly=representativeVoucherMonthly;
   return {
+    endState:captureSimulationState(world),
+    methods:{longitudinal:true,restoredPreviousSample:!!longitudinalState,runSeed:annualRunSeed,sampleDays:days,simulatedMinutes:days*1440,annualized:false,initialWealthShockApplied:!longitudinalState&&Number.isFinite(conditions?.moneyMult)&&conditions.moneyMult!==1,openingHouseholdCashTotal,sampledVoucher,sampledVoucherTotal:Number(world.stats.vouchers||0),scope:"Five-day annual samples carry persistent state. Intervening days are not simulated; no canonical population money/jobs are written."},
     outcomes,
     people,
     journals,
@@ -657,6 +663,7 @@ export async function runExperiment({
     seed,
     yearStartMs: startMs - 365 * 24 * 60 * 60 * 1000,
   });
+  let longitudinalState=baseline.endState;
   const rawSeverityHistory = { transit: [], flooding: [] };
   const impactHistory = { t_bus: [], t_brt: [], f_drainage: [], f_buyouts: [] };
   let previousOutcomes = deriveSynthesisOutcomes(baseline, rawSeverityHistory, impactHistory, [], {}, 0);
@@ -671,7 +678,7 @@ export async function runExperiment({
     if (impactHistory[pid].length > 3) impactHistory[pid].shift();
   }
 
-  onYear?.({ year: 0, packageName, packageId: "none", proposalIds: [], changesFromPrevious: null, outcomes: baseline.outcomes, yearLabel: mode === "replay" ? "2014" : "Y0" });
+  onYear?.({ year: 0, packageName, packageId: "none", proposalIds: [], changesFromPrevious: null, outcomes: baseline.outcomes, methods:baseline.methods, yearLabel: mode === "replay" ? "2014" : "Y0" });
   plansByYear.push({ year: 0, packageId: "none", proposalIds: [], changesFromPrevious: null, notSimulatedChanges: [] });
 
   const replayYears = replaySeverities.map((x) => x.year);
@@ -723,8 +730,10 @@ export async function runExperiment({
       adoptedYearByProposal: nextAdoptedYearByProposal,
       yearStartMs: yearNowMs,
       stormSeverityValue: replaySeverity,
+      longitudinalState,
     });
 
+    longitudinalState=sim.endState;
     const notSimulatedChanges = formatNotSimulatedChanges(pkg.changesFromPrevious, proposalCostById);
 
     plansByYear.push({
@@ -758,6 +767,8 @@ export async function runExperiment({
       proposalIds: pkg.proposalIds,
       changesFromPrevious: pkg.changesFromPrevious || null,
       outcomes: sim.outcomes,
+      methods:sim.methods,
+      stormDiagnostics:sim.stormDiagnostics,
       journalCounts: sim.journalCounts,
       notSimulatedChanges,
       synthOutcomes: previousOutcomes,
@@ -768,5 +779,5 @@ export async function runExperiment({
     adoptedYearByProposal = nextAdoptedYearByProposal;
   }
 
-  return { packageName, plansByYear };
+  return { packageName, plansByYear, endState:longitudinalState, methods:{longitudinal:true,sampleDaysPerYear:5,annualized:false,yearsCompleted:effectiveYears,samplesCompleted:effectiveYears+1,totalSampledDays:(effectiveYears+1)*5,totalSimulatedMinutes:(effectiveYears+1)*5*1440,seed,yearSeeds:Array.from({length:effectiveYears+1},(_,year)=>`${seed}:year:${year}`)} };
 }

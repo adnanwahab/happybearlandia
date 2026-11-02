@@ -1,12 +1,17 @@
+import {ensureJournal,recordJournalInterval,recordJournalMoment} from './journals/model.js';
 // Sims-style needs + utility AI. Buildings advertise actions; each person scores every
 // nearby advertisement against their needs, walks there, does it, and the action changes
 // shared world state (stock, cash, fridges, litter). Pure module, deterministic per seed.
 
 import { rng, hashSeed } from "./gen.js";
 import { createActivityHistory, recordActivity, recordHistoryEvent, snapshotActivityHistory } from "./activity-history.js";
+import { createCultureSimulation, cultureEffectsForDistrict } from "./culture/culture-simulation.js";
+import { resolveSimulationParameters, SIMULATION_MODEL_METADATA } from "./simulation-parameters.js";
+import { captureSimulationState, restoreSimulationState } from "./simulation-state.js";
+import { createWeatherSimulation } from "./weather/weather-simulation.js";
 
 const DECAY = { hunger: 0.09, energy: 0.045, fun: 0.05, social: 0.04 }; // per game minute
-// Relaxed walking pace; policy speedMult still applies.
+// Physical walking speed is independent of transit policy.
 export const WALK_M_PER_MIN = 40; // 2.4 km/h: an unhurried stroll.
 const ROAD_CONNECT_MAX_M = 220;
 
@@ -153,7 +158,7 @@ function buildRoadGraph(roads = []) {
     }
   }
 
-  return { nodes, adj };
+  return { nodes, adj, routes:new Map() };
 }
 
 function nearestRoadNode(graph, x, z, maxDist = ROAD_CONNECT_MAX_M) {
@@ -221,7 +226,9 @@ function roadWaypoints(graph, sx, sz, tx, tz) {
   const start = nearestRoadNode(graph, sx, sz);
   const goal = nearestRoadNode(graph, tx, tz);
   if (start < 0 || goal < 0) return [[tx, tz]];
-  const path = aStarRoad(graph, start, goal);
+  const key=`${start}:${goal}`;
+  let path=graph.routes.get(key);
+  if(path===undefined){path=aStarRoad(graph,start,goal);if(graph.routes.size>=4096)graph.routes.clear();graph.routes.set(key,path);}
   if (!path || !path.length) return [[tx, tz]];
 
   const out = [];
@@ -240,6 +247,9 @@ function newToday(day) {
   return {
     day,
     walkMinutes: 0,
+    travelMinutes: 0,
+    transitMinutes: 0,
+    transitWaitMinutes: 0,
     soldOutAt: [],
     emptyFridge: false,
     dirtyParkVisits: 0,
@@ -249,6 +259,7 @@ function newToday(day) {
 }
 
 export function createWorld(town, opts = {}) {
+  const parameters = resolveSimulationParameters(opts.parameters);
   // opts.runSeed varies the sim's dice for paired multi-seed experiments. Without it the
   // world draws exactly the same numbers as before (seeded by location only).
   const r = rng(hashSeed(town.seedKey + ":sim" + (opts.runSeed != null ? `:${opts.runSeed}` : "")));
@@ -261,6 +272,10 @@ export function createWorld(town, opts = {}) {
     p.today = newToday(initialDay);
     p.walkHistory = [];
     p.walkMinutesAvg3d = 0;
+    p.travelHistory = [];
+    p.travelMinutesAvg3d = 0;
+    p.travelMode = "walk";
+    p.transitWaitMinutesRemaining = 0;
   }
 
   const activityHistory = opts.recordHistory ? createActivityHistory(opts.historyOptions) : null;
@@ -268,10 +283,13 @@ export function createWorld(town, opts = {}) {
   const personRoutines = activityHistory ? new Map() : null;
   const w = {
     ...town,
+    journals:opts.journalsEnabled?{}:null,
     modelVersion: "neighborhood-activity.v2",
+    parameters,
+    modelMetadata: SIMULATION_MODEL_METADATA,
     activityHistory,
     t: opts.startMinute ?? 6 * 60, // absolute game minutes since day 0
-    speedMult: 1,
+    transitServiceMult: 1,
     parkCleanupBoost: 0,
     restockBoost: 0,
     hiringBoost: 0,
@@ -279,14 +297,14 @@ export function createWorld(town, opts = {}) {
     groceryDelivery: 0, // 0–1: share of nearly-empty home fridges refilled each afternoon
     wageMult: 1, // economy-wide pay level (possible-worlds conditions); 1 = unchanged
     events: [],
-    stats: { spent: 0, earned: 0, meals: 0, groceries: 0, cleanups: 0 },
+    stats: { spent: 0, earned: 0, meals: 0, groceries: 0, cleanups: 0, householdCosts:0, fares:0, vouchers:0 },
     byKind,
     rand: r,
     minuteOfDay: () => w.t % 1440,
     day: () => Math.floor(w.t / 1440),
     isWorkday: () => w.day() % 7 < 5,
     isDaytime: () => { const m = w.t % 1440; return m >= 7 * 60 && m < 21 * 60; },
-    isOpen: (b) => { const m = w.t % 1440; return b.state.open && m >= 7 * 60 && m < 22 * 60; },
+    isOpen: (b) => { const m = w.t % 1440; return b.state.open && w.isServiceAvailable(b) && m >= 7 * 60 && m < 22 * 60; },
     log(text, kind = "info", building = null) {
       w.events.unshift({ t: w.t, text, kind, building: building?.index ?? null });
       if (w.events.length > 60) w.events.pop();
@@ -294,8 +312,63 @@ export function createWorld(town, opts = {}) {
     },
   };
 
+  // @deprecated speedMult aliases transitServiceMult; walking stays fixed.
+  Object.defineProperty(w,'speedMult',{enumerable:true,get:()=>w.transitServiceMult,set:value=>{if(!Number.isFinite(value)||value<=0)throw new RangeError('Transit service multiplier must be positive');w.transitServiceMult=value;}});
+  w.households=[];
+  w.householdById=new Map();
+  const initialWallets=new Set();
+  for(const p of w.people){
+    const id=String(p.householdId??`person:${p.id}`);p.householdId=id;
+    let h=w.householdById.get(id);
+    if(!h){h={id,members:[],cash:0,stressedDays:0,lastDailyCost:0,lastShortfall:0,lastCostDay:initialDay,voucherPeriods:[]};w.households.push(h);w.householdById.set(id,h);}
+    h.members.push(p.id);
+    // Seed contributions once. A preexisting shared accessor is not a second
+    // contribution; its captured source wallet is counted once on reuse.
+    const source=p.moneyScope==='household'?id:(p.moneyHousehold??p);
+    if(!initialWallets.has(source)){h.cash+=Math.max(0,Number(p.money)||0);initialWallets.add(source);}
+    // Survives plain-object/JSON town cloning, so shared aliases are never
+    // mistaken for separate starting endowments on a subsequent world build.
+    p.moneyScope='household';
+    Object.defineProperty(p,'moneyHousehold',{configurable:true,enumerable:false,value:h});
+    Object.defineProperty(p,'money',{configurable:true,enumerable:true,get:()=>h.cash,set:value=>{if(!Number.isFinite(value)||value<0)throw new RangeError('Household cash must be finite and nonnegative');h.cash=value;}});
+  }
+  w.getHousehold=id=>w.householdById.get(String(id))??null;
+  w.sampleVoucher=periodKey=>{
+    if(periodKey===undefined||periodKey===null)throw new Error('Voucher period key required');
+    const key=String(periodKey);let supported=0;
+    if(!(w.voucherMonthly>0))return supported;
+    for(const h of w.households){if(h.voucherPeriods.includes(key))continue;h.voucherPeriods.push(key);if(h.cash<=parameters.voucherEligibilityCash){h.cash+=w.voucherMonthly;w.stats.vouchers+=w.voucherMonthly;supported++;}}
+    if(supported)w.log(`Voucher support deposited to ${supported} households`,'civic');
+    return supported;
+  };
+
+  // The pure culture engine follows committed simulation time, never wall time.
+  w.culture = (opts.createCultureSimulation ?? createCultureSimulation)({
+    seed: opts.runSeed ?? town.seedKey,
+    initialMinute: w.t,
+    context: { buildings: town.buildings },
+    population: town.people,
+  });
+  w.cultureSnapshot=w.culture?.snapshot?.()??null;
+  w.getCultureEffects=districtId=>cultureEffectsForDistrict(w.cultureSnapshot,districtId??'neighborhood');
+  w.cultureIntegration={authority:'Legacy simulation-clock events',effects:'Event multipliers are exposed by getCultureEffects for adapters. No automatic needs or money offsets.'};
+  w.weather=(opts.createWeatherSimulation??createWeatherSimulation)({seed:opts.runSeed??town.seedKey,initialMinute:w.t,parameters:opts.weatherParameters});
+  const bounded=(value,fallback=1)=>Number.isFinite(value)?Math.max(0,Math.min(1,value)):fallback;
+  w.refreshWeatherEffects=(snapshot=w.weather?.snapshot?.()??null)=>{
+    w.weatherSnapshot=snapshot;
+    const e=w.weatherSnapshot?.effects??{};
+    w.actualElectricityDemand=w.households.length*parameters.electricityKwPerHousehold*Math.max(0,Number.isFinite(e.electricityDemandMultiplier)?e.electricityDemandMultiplier:1);
+    const capacity=w.households.length*parameters.electricityCapacityKwPerHousehold;
+    w.electricity={demandKw:w.actualElectricityDemand,assumedCapacityKw:capacity,shortfallKw:Math.max(0,w.actualElectricityDemand-capacity),unit:'kW',source:'Explicit synthetic concurrent load and capacity assumptions; no measured grid or damage model.'};
+    w.weatherEffects={walkComfort:Math.max(.05,bounded(e.walkComfort)),parkComfort:bounded(e.parkComfort),roadAvailability:bounded(e.roadAvailability),transitAvailability:bounded(e.transitAvailability),serviceAvailability:bounded(e.serviceAvailability)*(w.actualElectricityDemand>0?Math.min(1,capacity/w.actualElectricityDemand):1)};
+  };
+  w.refreshWeatherEffects();
+  if(w.weather?.configure){const configure=w.weather.configure.bind(w.weather);w.weather.configure=patch=>{const snapshot=configure(patch);w.refreshWeatherEffects(snapshot);return snapshot;};}
+  w.isServiceAvailable=b=>b.kind==='home'||hashSeed(`${town.seedKey}:${b.id}:${Math.floor(w.t/60)}:weather-service`)/4294967296<w.weatherEffects.serviceAvailability;
+  w.weatherIntegration={walking:'Rain changes generalized comfort cost, never the physical 40 m/min pace.',outages:'Seeded coarse hourly building/trip access; synthetic electricity capacity can reduce service access. No physical damage or money offsets.'};
+
   const personId = p => String(p.id);
-  const activityOf = p => p.mode === "moving" ? "WALK" : p.mode === "doing" && p.action ? p.action.toUpperCase() : "IDLE";
+  const activityOf = p => p.mode === "moving" ? p.travelMode==='transit'?(p.transitWaitMinutesRemaining>0?'TRANSIT_WAIT':'TRANSIT') : "WALK" : p.mode === "doing" && p.action ? p.action.toUpperCase() : "IDLE";
   const placeOf = p => p.mode === "moving" ? "travel" : w.buildings[p.target??p.home]?.kind || "unknown";
   function recordRoutine(p,activity,districtId,startMinute,endMinute,needs) {
     if(!personRoutines)return;
@@ -318,8 +391,27 @@ export function createWorld(town, opts = {}) {
   }
   function completeTrip(p) {
     if(!Number.isFinite(p.tripStartedMinute))return;
-    historyEvent(p,"TRIP_COMPLETED",{mode:"walk",travelMinutes:Math.max(0,w.t-p.tripStartedMinute),distanceMeters:p.tripDistanceMeters||0,destinationId:w.buildings[p.target]?.id??null});
+    p.lastTrip={mode:p.travelMode??'walk',travelMinutes:p.tripTravelMinutes??Math.max(0,w.t-p.tripStartedMinute),walkMinutes:p.tripWalkMinutes??0,transitMinutes:p.tripTransitMinutes??0,transitWaitMinutes:p.tripWaitMinutes??0,distanceMeters:p.tripDistanceMeters||0,destinationId:w.buildings[p.target]?.id??null};
+    historyEvent(p,"TRIP_COMPLETED",p.lastTrip);
     p.tripStartedMinute=null;
+  }
+
+  function tripPlan(p,b,path=null,cost=0){
+    const sheltered=b.kind==='home'&&Math.hypot(p.x-b.center[0],p.z-b.center[1])<Math.max(10,Math.sqrt(b.area||100));
+    path??=sheltered?[b.center]:roadWaypoints(roadGraph,p.x,p.z,...b.center);
+    let previous=[p.x,p.z],distance=0;
+    for(const point of path){distance+=Math.hypot(point[0]-previous[0],point[1]-previous[1]);previous=point;}
+    const service=Math.max(.1,Math.min(5,w.transitServiceMult));
+    // Counter-style keyed draw does not consume the behavior RNG. Same year,
+    // person and destination share the same exogenous wait across policy runs.
+    const draw=hashSeed(`${town.seedKey}:${opts.runSeed??'default'}:${opts.year??initialDay}:${p.id}:${b.id}:transit-wait`)/4294967296;
+    const wait=draw*parameters.transitHeadwayMinutes/service;
+    const rideSpeed=parameters.transitMetersPerMinute*service;
+    const walk=distance/WALK_M_PER_MIN/w.weatherEffects.walkComfort,transit=wait*parameters.transitWaitWeight+distance/rideSpeed;
+    const accessDraw=hashSeed(`${town.seedKey}:${p.id}:${b.id}:${Math.floor(w.t/60)}:weather-access`)/4294967296;
+    const roadAccessible=sheltered||distance<1||accessDraw<w.weatherEffects.roadAvailability;
+    const mode=roadAccessible&&accessDraw<w.weatherEffects.transitAvailability&&distance>=parameters.minimumTransitDistanceMeters&&p.money>=parameters.transitFare+cost&&transit<walk?'transit':'walk';
+    return{path,distance,mode,wait:mode==='transit'?wait:0,rideSpeed,minutes:roadAccessible?(mode==='transit'?transit:walk):Infinity};
   }
 
   // --------------------------------------------------------------------
@@ -336,7 +428,7 @@ export function createWorld(town, opts = {}) {
       else if (a.at === "business") places = w.business ? [w.buildings[w.business.building]] : [];
       else places = nearest(byKind[a.at] || [], p, 6);
       for (const b of places) {
-        const ok = !a.ok || a.ok(p, b, w);
+        const ok = (!a.ok || a.ok(p, b, w)) && (b?.kind==='home'||w.isServiceAvailable(b));
         if (!ok && id === "eat_home" && b?.state?.fridge <= 0) p.today.emptyFridge = true;
         if (ok) out.push([id, a, b]);
       }
@@ -350,7 +442,7 @@ export function createWorld(town, opts = {}) {
       .sort((x, y) => x[1] - y[1]).slice(0, k).map((x) => x[0]);
   }
 
-  function score(p, id, a, b) {
+  function score(p, id, a, b, trip) {
     const mins = a.minutes(p, w);
     let s = 0;
     const gains = a.advert ? a.advert(p, w) : {};
@@ -371,9 +463,10 @@ export function createWorld(town, opts = {}) {
     if (id === "relax_home") s += 0.3; // the default "nothing better to do" activity
     if (id === "work" || id === "study") { if (p.needs.hunger < 12 || p.needs.energy < 8) s *= 0.2; }
     if (id === "visit_business") s *= (0.5 + w.business.quality / 100) * Math.min(2, 12 / Math.max(1, w.business.price));
+    if(a.at==='park')s*=w.weatherEffects.parkComfort;
+    if(w.journals&&m>=15*60&&m<20*60&&hashSeed(`${p.id}:${w.day()}:surprise`)%100<8&&id==='clean_park')s+=25;
     // Distance, traits, noise
-    const dist = Math.hypot(b.center[0] - p.x, b.center[1] - p.z);
-    s /= 1 + dist / (250 * w.speedMult);
+    s /= 1 + trip.minutes / (250 / WALK_M_PER_MIN);
     s *= TRAIT_BONUS[p.trait]?.[id] ?? 1;
     return s * (0.85 + r() * 0.3);
   }
@@ -382,36 +475,39 @@ export function createWorld(town, opts = {}) {
     let best = null, bestS = -1;
     const considered = activityHistory ? [] : null;
     for (const [id, a, b] of candidates(p)) {
-      const s = score(p, id, a, b);
+      const trip=tripPlan(p,b,undefined,id==='visit_business'?w.business.price:(a.cost??0));
+      if(!Number.isFinite(trip.minutes))continue;
+      const s = score(p, id, a, b,trip);
       considered?.push({activity:id,buildingId:b.id,score:s});
-      if (s > bestS) { bestS = s; best = [id, a, b]; }
+      if (s > bestS) { bestS = s; best = [id, a, b,trip]; }
     }
     if (!best) { p.action = null; p.target = null; p.mode = "doing"; p.until = w.t + 15; p.doing = "idling"; p.path = null; p.pathI = 0; return; }
-    const [id, a, b] = best;
+    const [id, a, b,trip] = best;
     if(activityHistory) {
       const decision={minute:w.t,type:"ACTIVITY_SELECTED",chosen:id,score:bestS,needs:{...p.needs},alternatives:considered.sort((a,b)=>b.score-a.score).slice(0,6),reasonCodes:["NEED_URGENCY_AND_SCHEDULE_SCORE"]};
       p.lastDecision=decision; (p.decisionHistory||=[]).push(decision); if(p.decisionHistory.length>16)p.decisionHistory.shift();
       historyEvent(p,"ACTIVITY_SELECTED",{activity:id,score:bestS,buildingId:b.id,reasonCodes:decision.reasonCodes});
     }
     p.action = id; p.target = b.index;
-    const j = r.range(-0.3, 0.3);
-    const tx = b.center[0] + j * Math.sqrt(b.area || 100) * 0.5;
-    const tz = b.center[1] + j * Math.sqrt(b.area || 100) * 0.5;
-    p.path = roadWaypoints(roadGraph, p.x, p.z, tx, tz);
+    p.path = trip.path;
     p.pathI = 0;
-    [p.tx, p.tz] = p.path[0] || [tx, tz];
-    p.mode = "moving"; p.doing = `walking to ${b.name}`;
+    [p.tx, p.tz] = p.path[0] || b.center;
+    p.travelMode=trip.mode;
+    p.transitWaitMinutesRemaining=trip.wait;
+    p.tripRideMetersPerMinute=trip.rideSpeed;
+    p.tripTravelMinutes=0;p.tripWalkMinutes=0;p.tripTransitMinutes=0;p.tripWaitMinutes=0;
+    if(trip.mode==='transit'){p.money-=parameters.transitFare;w.stats.spent+=parameters.transitFare;w.stats.fares+=parameters.transitFare;}
+    p.mode = "moving"; p.doing = `${trip.mode==='transit'?'taking transit':'walking'} to ${b.name}`;
     p.tripStartedMinute=w.t;
-    let previous=[p.x,p.z]; p.tripDistanceMeters=0;
-    for(const point of p.path){p.tripDistanceMeters+=Math.hypot(point[0]-previous[0],point[1]-previous[1]);previous=point;}
-    historyEvent(p,"TRIP_STARTED",{mode:"walk",activity:id,destinationId:b.id,distanceMeters:p.tripDistanceMeters});
+    p.tripDistanceMeters=trip.distance;
+    historyEvent(p,"TRIP_STARTED",{mode:trip.mode,activity:id,destinationId:b.id,distanceMeters:p.tripDistanceMeters,expectedWaitMinutes:trip.wait});
   }
 
   function arrive(p) {
     completeTrip(p);
     const a = ACTIONS[p.action];
     const b = w.buildings[p.target];
-    if (a.ok && !a.ok(p, b, w)) {
+    if ((a.ok && !a.ok(p, b, w)) || !w.isServiceAvailable(b)) {
       if ((p.action === "eat_out" || p.action === "groceries") && b?.name) {
         if (!p.today.soldOutAt.includes(b.name)) p.today.soldOutAt.push(b.name);
       }
@@ -424,6 +520,7 @@ export function createWorld(town, opts = {}) {
       historyEvent(p,"ACTIVITY_STARTED",{activity:"WAIT_SHIFT",buildingId:b.id}); return;
     }
     a.start?.(p, b, w);
+    if(w.journals&&p.action==='clean_park')recordJournalMoment(w.journals,String(p.id),p.name,w.t,`I stopped to help clean up ${b.name}. It was a change from my usual day.`);
     if (p.action === "eat_out") w.stats.meals++;
     if (p.action === "groceries") w.stats.groceries++;
     if (p.action === "clean_park") w.stats.cleanups++;
@@ -452,6 +549,12 @@ export function createWorld(town, opts = {}) {
     const m = w.minuteOfDay();
     if (m === 0) {
       const d = w.day();
+      for(const h of w.households){
+        if(h.lastCostDay===d)continue;
+        const cost=parameters.dailyHousingCost+parameters.dailyUtilitiesCost;
+        h.lastDailyCost=cost;h.lastShortfall=Math.max(0,cost-h.cash);h.stressedDays+=h.lastShortfall>0?1:0;
+        const paid=Math.min(h.cash,cost);h.cash-=paid;w.stats.spent+=paid;w.stats.householdCosts+=paid;h.lastCostDay=d;
+      }
       for (const p of w.people) {
         p.workedToday = false;
         p.yesterday = p.today;
@@ -460,6 +563,9 @@ export function createWorld(town, opts = {}) {
         p.walkMinutesAvg3d = p.walkHistory.length
           ? p.walkHistory.reduce((a, b) => a + b, 0) / p.walkHistory.length
           : 0;
+        p.travelHistory=[...(p.travelHistory||[]),Number(p.yesterday?.travelMinutes||0)].slice(-3);
+        p.travelMinutesAvg3d=p.travelHistory.reduce((a,b)=>a+b,0)/p.travelHistory.length;
+        p.commuteMinutesAvg3d=p.travelMinutesAvg3d;
         p.today = newToday(d);
       }
     }
@@ -494,17 +600,11 @@ export function createWorld(town, opts = {}) {
 
     // Once every 30 game days: voucher-style support to lower-cash households.
     if (m === 0 && w.day() > 0 && w.day() % 30 === 0 && w.voucherMonthly > 0) {
-      let supported = 0;
-      for (const p of w.people) {
-        if (p.money <= 90) {
-          p.money += w.voucherMonthly;
-          supported++;
-        }
-      }
-      if (supported) w.log(`Voucher support deposited to ${supported} households`, "civic");
+      w.sampleVoucher(`month:${Math.floor(w.day()/30)}`);
     }
 
     for (const p of w.people) {
+      if(w.journals){const activity=p.mode==='moving'?'TRANSIT':({sleep:'SLEEP',eat_home:'MEAL',eat_out:'DINING',relax_home:'HOME',play_park:'PARK',clean_park:'PARK',groceries:'GROCERIES',work:'WORK',study:'SCHOOL'})[p.action]??'OTHER';recordJournalInterval(w.journals,String(p.id),p.name,activity,w.t-1,w.t);}
       const beforeNeeds=activityHistory?{...p.needs}:null;
       const recordedActivity=activityOf(p),recordedPlace=placeOf(p);
       const a = p.mode === "doing" && p.action ? ACTIONS[p.action] : null;
@@ -513,7 +613,7 @@ export function createWorld(town, opts = {}) {
       }
       if (a?.pay) {
         const wageBoost = p.action === "work" ? 1 + w.hiringBoost * 0.5 : 1;
-        const earned=a.pay * wageBoost * (w.wageMult ?? 1);
+        const earned=(p.action==='work'?parameters.workPayPerMinute:a.pay) * wageBoost * (w.wageMult ?? 1);
         p.money += earned; w.stats.earned+=earned;
       }
 
@@ -524,12 +624,23 @@ export function createWorld(town, opts = {}) {
       }
       if (p.mode === "idle") decide(p);
       else if (p.mode === "moving") {
-        p.today.walkMinutes += 1;
+        let availableMinutes=1;
+        if(p.travelMode==='transit'&&p.transitWaitMinutesRemaining>0){
+          const waited=Math.min(availableMinutes,p.transitWaitMinutesRemaining);
+          p.transitWaitMinutesRemaining-=waited;availableMinutes-=waited;
+          p.today.transitWaitMinutes+=waited;p.today.travelMinutes+=waited;
+          p.tripWaitMinutes+=waited;p.tripTravelMinutes+=waited;
+        }
         // Spend one complete walking budget across short road segments; reaching
         // an intermediate waypoint must not discard the rest of this minute.
-        let remaining = WALK_M_PER_MIN * w.speedMult;
+        const speed=p.travelMode==='transit'?(p.tripRideMetersPerMinute||parameters.transitMetersPerMinute):WALK_M_PER_MIN;
+        let remaining = speed*availableMinutes;
         while (remaining > 0 && p.mode === "moving") {
           const dx = p.tx - p.x, dz = p.tz - p.z, distance = Math.hypot(dx,dz);
+          const used=Math.min(distance,remaining)/speed;
+          const key=p.travelMode==='transit'?'transitMinutes':'walkMinutes';
+          p.today[key]+=used;p.today.travelMinutes+=used;p.tripTravelMinutes=(p.tripTravelMinutes||0)+used;
+          if(p.travelMode==='transit')p.tripTransitMinutes=(p.tripTransitMinutes||0)+used;else p.tripWalkMinutes=(p.tripWalkMinutes||0)+used;
           if (distance <= remaining) {
             p.x = p.tx; p.z = p.tz; remaining -= distance;
             if (p.path && p.pathI < p.path.length-1) {
@@ -549,7 +660,11 @@ export function createWorld(town, opts = {}) {
 
   w.step = (gameMinutes) => {
     if(!Number.isInteger(gameMinutes)||gameMinutes<0)throw new RangeError("Neighborhood steps require nonnegative whole modeled minutes");
-    for (let i = 0; i < gameMinutes; i++) minute();
+    for (let i = 0; i < gameMinutes; i++) {
+      minute();
+      w.cultureSnapshot=w.culture?.stepTo(w.t)??null;
+      w.refreshWeatherEffects(w.weather?.stepTo(w.t)??null);
+    }
     if(gameMinutes&&activityHistory)for(const listener of historyListeners)try{listener({mode:"legacy",minute:w.t,peopleCount:w.people.length,modelVersion:w.modelVersion});}catch{/* A view cannot interrupt the authoritative simulation. */}
   };
   w.getActivityHistory = (query={}) => {
@@ -574,6 +689,9 @@ export function createWorld(town, opts = {}) {
     return { avg, mood: (avg.hunger + avg.energy + avg.fun + avg.social) / 4, doing };
   };
 
+  w.captureState=()=>captureSimulationState(w);
+  w.restoreState=(state,options)=>restoreSimulationState(w,state,options);
+  if(opts.state||opts.longitudinalState)w.restoreState(opts.state??opts.longitudinalState,{preserveClock:true});
   return w;
 }
 

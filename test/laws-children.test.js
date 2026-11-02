@@ -1,0 +1,31 @@
+import {test,expect} from 'bun:test';
+import {getLaw} from '../world/laws/catalog.js';
+import {compareLaw,scenarioConfig} from '../world/laws/comparison.js';
+import {createPopulationModel,serializePopulation} from '../world/population/model.js';
+import {normalizePopulationConfig} from '../world/population/contracts.js';
+import {childModePermission} from '../world/population/children.js';
+const context={districts:[{id:'local',x:0,z:0}]};
+const patches={44:{schoolRecessMinutes:40},45:{childIndependentWalkAge:6},46:{summerCampEnabled:1,summerCampCapacity:500,summerCampDailyCost:0},47:{childcareSubsidyFraction:.75,childcareCapacity:500},50:{teenSchoolStartMinute:555}};
+test('only reviewed child laws get exact parameter patches, source text and explicit fiscal limitations',()=>{
+ const exact={44:'Bring back recess, longer recess, and playgrounds with real risk.',45:'Allow kids to walk, bike and play alone (“free-range” laws, as Utah and Texas have).',46:'Offer free or cheap summer camps and after-school programs.',47:'Make child care affordable: subsidies, a cap at a share of income, or more providers.',50:'Start school later for teens (8:30 or after) for better sleep.'};
+ for(const number of[44,45,46,47,50]){const law=getLaw(number);expect(law.text).toBe(exact[number]);expect(law.title).toBe(exact[number]);expect(law.mapping.parameterPatch).toEqual(patches[number]);expect(law.mapping.engine).toBe('population');expect(law.mapping.fiscalCostsModeled).toBe(false);expect(law.scope.people).toBe(false);}
+ for(const number of[41,42,43,48,49]){expect(getLaw(number).supported).toBe(false);expect(getLaw(number).limitations[0].length).toBeGreaterThan(30);}
+ expect(getLaw(50).mapping.assumptions[0]).toContain('default08:30');
+});
+test('reviewed explicit patches validate without factors, unknown parameters, fractional clock settings or demographic regeneration',()=>{
+ const initial=normalizePopulationConfig({population:80}),before=structuredClone(initial);for(const number of[44,45,46,47,50])expect(scenarioConfig(initial,getLaw(number).mapping)).toMatchObject(patches[number]);expect(initial).toEqual(before);
+ for(const mapping of[{parameterPatch:{teenSchoolStartMinute:555.5}},{parameterPatch:{fictionalChildMood:9}},{parameterPatch:{population:100}},{parameterPatch:{teenSchoolStartMinute:555},parameterFactors:{teenSchoolStartMinute:1.1}}])expect(()=>scenarioConfig(initial,mapping)).toThrow();
+});
+test('recess and later teen-start comparisons record real child minutes under identical paired initial populations',async()=>{
+ for(const number of[44,50]){const result=await compareLaw({lawId:number,worldContext:context,population:80,populationConfig:{householdSize:4},minutes:1440});expect(result.status).toBe('completed');expect(result.manifest.pairedInitialState).toBe(true);expect(result.manifest.selectedConfig).toMatchObject(patches[number]);expect(result.manifest.initialConfig.population).toBe(result.manifest.selectedConfig.population);expect(result.manifest.initialConfig.schoolDayMinutes).toBe(result.manifest.selectedConfig.schoolDayMinutes);const key=number===44?'childRecessMinutes':'teenSleepMinutes';expect(result.selected.metrics[key]).toBeGreaterThan(result.baseline.metrics[key]);expect(result.deltas[key]).toBe(result.selected.metrics[key]-result.baseline.metrics[key]);}
+},15000);
+test('walking permission changes only its reviewed threshold; biking, supervision, driving and transit gates retain their rules',()=>{
+ const model=createPopulationModel({population:80,householdSize:4},context),i=model.children.indices[0];model.people.ageYears[i]=7;expect(childModePermission(model,i,'walk').available).toBe(false);const before={supervision:model.config.childSupervisionAge,transit:model.config.childIndependentTransitAge};model.config=scenarioConfig(model.config,getLaw(45).mapping);expect(childModePermission(model,i,'walk').available).toBe(true);expect(childModePermission(model,i,'bike').available).toBe(false);expect(childModePermission(model,i,'car').available).toBe(false);expect(model.config.childSupervisionAge).toBe(before.supervision);expect(model.config.childIndependentTransitAge).toBe(before.transit);
+});
+test('summer camp contrast stays seasonal, preserves the frozen source and never reports a public funding cost',async()=>{
+ const outside=await compareLaw({lawId:46,worldContext:context,population:80,populationConfig:{householdSize:4,summerCampCapacity:0},minutes:1440});expect(outside.baseline.metrics.childCampMinutes).toBe(0);expect(outside.selected.metrics.childCampMinutes).toBe(0);
+ const model=createPopulationModel({population:80,householdSize:4,summerCampCapacity:0,seed:42},context);model.minute=170*1440;model.lastDay=170;const state=serializePopulation(model),before=structuredClone(state),inside=await compareLaw({lawId:46,initialState:state,population:80,seed:42,minutes:1440});expect(inside.baseline.metrics.childCampMinutes).toBe(0);expect(inside.selected.metrics.childCampMinutes).toBeGreaterThan(0);expect(inside.manifest.selectedConfig.summerCampDailyCost).toBe(0);expect(inside.manifest.initialConfig.summerStartDay).toBe(inside.manifest.selectedConfig.summerStartDay);expect(state).toEqual(before);expect(inside.law.mapping.fiscalCostsModeled).toBe(false);
+},15000);
+test('childcare law uses actual enrollment/bills/subsidy exposure instead of an income or welfare offset',async()=>{
+ const result=await compareLaw({lawId:47,worldContext:context,population:80,populationConfig:{householdSize:4,childcareCapacity:0},minutes:1440});expect(result.baseline.metrics.childCareMinutes).toBe(0);expect(result.selected.metrics.childCareMinutes).toBeGreaterThan(0);expect(result.selected.metrics.childcareAccruedCost).toBeGreaterThan(0);expect(result.selected.metrics.childcareSubsidyExposure).toBeCloseTo(result.selected.metrics.childcareAccruedCost*3,6);expect(result.manifest.selectedConfig.wageMultiplier).toBe(result.manifest.initialConfig.wageMultiplier);expect(result.manifest.selectedConfig.businessTax).toBe(result.manifest.initialConfig.businessTax);expect(result.manifest.selectedConfig.childcareHourlyCost).toBe(result.manifest.initialConfig.childcareHourlyCost);expect(result.law.mapping.fiscalCostsModeled).toBe(false);
+},15000);

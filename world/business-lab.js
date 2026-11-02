@@ -1,3 +1,4 @@
+import {entrepreneurMilestones} from './entrepreneur-mode.js';
 import {createTrackedWorker} from "./workers/worker-registry.js";
 import { ARCHETYPES, EXAMPLES, createDefinition } from './models/business-v1/content.js';
 import { FIELDS, copy, approveDefinition, validateDefinition, requireApproved } from './models/business-v1/schema.js';
@@ -5,12 +6,13 @@ import { compileLocal } from './models/business-v1/compiler.js';
 import { createBusinessState, defaultPlan, simulatePeriod, forecast, financeAction, purchaseProbability, validatePlan } from './models/business-v1/index.js';
 import { replayFuture, suggestedPlan, searchPlans, paretoFrontier } from './models/business-v1/futures.js';
 
+const entrepreneurMode=new URLSearchParams(location.search).get('mode')!=='lab';
 const STORAGE = 'hbl-business-lab.v1', $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
 const money = value => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: Math.abs(value) < 100 ? 2 : 0 }).format(value);
 const pct = value => `${(value * 100).toFixed(1)}%`;
 const num = value => Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 });
-const screens = ['Describe','Plan','Run','Review','Business hub','Futures','Edit Business','Product Editor'];
+const screens = entrepreneurMode?['Start a company','Operating plan','Trade','Results','Grow company','Possible futures','Business assumptions','Product studio']:['Describe','Plan','Run','Review','Business hub','Futures','Edit Business','Product Editor'];
 let screen = 0, state = null, plan = null, draft = null, provenance = {}, warnings = [], source = '', providers = [{ id:'demo', label:'Local parser · not AI', configured:true }], provider = 'demo', futures = null, worker = null, run = null, timer = null, speed = 1, paused = false, editing = false, selectedFuture = null;
 function notice(text, error = false) { $('notice').hidden = !text; $('notice').textContent = text; $('notice').className = error ? 'error' : ''; }
 function save() {
@@ -32,6 +34,8 @@ function exportJson(name, data) {
   const a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 function renderChrome() {
+  $('businessModeLabel').textContent=entrepreneurMode?'/ Entrepreneur Mode':'/ Business Lab';$('businessModePill').textContent=entrepreneurMode?'Founder · business-v1':'business-v1';
+  const founder=$('founderProgress');founder.hidden=!entrepreneurMode;founder.innerHTML=entrepreneurMode?`<div class="card"><div class="eyebrow">ENTREPRENEUR MODE</div><strong>Build a company. Serve customers. Keep it alive.</strong><p class="muted">You control prices, staffing, suppliers, inventory, marketing and financing. This uses your existing company ledger and saved progress; government policy is outside this mode.</p><div class="row">${entrepreneurMilestones(state).map(goal=>`<span class="pill" data-founder-goal="${goal.id}" aria-label="${esc(goal.label)}: ${goal.complete?'achieved':'not achieved'}">${goal.complete?'✓':'○'} ${esc(goal.label)}</span>`).join('')}</div><p class="muted margin-top">Milestones use actual approved state, cash and cumulative profit. Illustrative business assumptions are not a real-market forecast. <a href="?mode=${entrepreneurMode?'lab':'entrepreneur'}">${entrepreneurMode?'Open classic Business Lab':'Enter Entrepreneur Mode'}</a></p></div>`:'';
   $('navigation').innerHTML = screens.map((name,i) => `<button data-screen="${i}" class="${screen === i ? 'active' : ''}" ${(!state && i > 0 && i < 7) || run || worker ? 'disabled' : ''}><span>0${i+1}</span>${name}</button>`).join('');
   $('navigation').querySelectorAll('button').forEach(b => b.onclick = () => { screen = Number(b.dataset.screen); notice(''); render(); });
   $('companyName').textContent = state?.def.name || 'An idea starts here.';
@@ -50,6 +54,7 @@ function chart(history, key = 'cash') {
 }
 function providerOptions() { return providers.map(p => `<option value="${esc(p.id)}" ${p.id === provider ? 'selected' : ''} ${p.configured ? '' : 'disabled'}>${esc(p.label)}${p.configured ? '' : ' · not configured'}</option>`).join(''); }
 async function propose(text, definition = null) {
+  if(provider==='demo'&&!definition)return compileLocal(text);
   const response = await fetch('/api/business/compile', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ text, provider, ...(definition ? { definition } : {}) }), signal:AbortSignal.timeout(45000) });
   const result = await response.json(); if (!response.ok) throw new Error(result.error || 'Compilation failed.');
   const checked = validateDefinition(result.def); if (!checked.valid) throw new Error(checked.errors.join(' '));

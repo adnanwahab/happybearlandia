@@ -1,3 +1,5 @@
+import {createCharacterJournalsHandler} from './world/journals/api.js';
+const handleCharacterJournals=createCharacterJournalsHandler({root:process.env.HBL_JOURNAL_ROOT||'.hbl-city'});
 import {createConstitutionSourceHandler} from './world/constitution-city/source-api.js';
 import {createEconomyRecordsHandler} from './world/economy-records-api.js';
 const handleEconomyRecords=createEconomyRecordsHandler();
@@ -373,6 +375,7 @@ const server = serve({
   async fetch(request, server) {
     const { pathname } = new URL(request.url);
 
+    if (pathname === "/api/character-journals") return handleCharacterJournals(request);
     if (pathname === "/api/economy-records") return handleEconomyRecords(request);
     if (pathname === "/world/economy-records" || pathname === "/world/economy-records/") return serveFile("./world/economy-records.html");
 
@@ -448,7 +451,9 @@ const server = serve({
     if (pathname === "/api/world/parameter-patch") return handlePlanParameterPatch(request);
     if (pathname === "/api/constitution-summary") return handleConstitutionSummary(request);
     if (pathname === "/api/constitution-city/plan") return handleConstitutionSource(request);
-    if (["/world/visualize-consitution", "/world/visualize-constitution"].includes(pathname.replace(/\/$/, ""))) return serveFile("./world/visualize-consitution.html");
+    if (["/reality-compiler", "/city-speaks"].includes(pathname.replace(/\/$/, ""))) return serveFile("./world/reality-compiler.html");
+    if (pathname.replace(/\/$/, "") === "/visualize-constitution") return serveFile("./world/constitution-city.html");
+    if (["/world/visualize-consitution", "/world/visualize-constitution"].includes(pathname.replace(/\/$/, ""))) return serveFile("./world/constitution-city.html");
     if (pathname === "/api/plan") return handlePlan(request);
     if (pathname === "/api/outcomes") return handleOutcomes();
     if (pathname === "/api/publish_draft") return handlePublishDraft(request);

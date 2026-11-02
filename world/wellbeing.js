@@ -6,28 +6,30 @@
 // journals about — long commutes, a flooded or lost home, empty shelves, dirty parks.
 // Those are what plan packages change, so they're what a before/after should show.
 
-import { WALK_COMPLAINT_MINUTES } from "./journal.js";
+import { COMMUTE_COMPLAINT_MINUTES, commuteBurdenMinutes, householdStress } from "./simulation-observations.js";
+export const WELLBEING_METHOD={source:"analyst-assumption",empiricallyCalibrated:false,healthOutcome:false,description:"Illustrative needs score minus recorded travel, household shortfall, housing, grocery and park frictions; not measured health or happiness."};
 
 export function moodOf(p) {
   const n = p?.needs || {};
   return (Number(n.hunger || 0) + Number(n.energy || 0) + Number(n.fun || 0) + Number(n.social || 0)) / 4;
 }
 
-// Penalties from the most recently completed day (p.yesterday) plus the 3-day walk average.
-export function frictions(p) {
+// Penalties from the most recently completed day (p.yesterday) plus the 3-day total-travel average.
+export function frictions(p, household = null) {
   const d = p?.yesterday || p?.today || {};
-  const walk = Number(p?.walkMinutesAvg3d || 0);
+  const commute = commuteBurdenMinutes(p) ?? 0;
   return {
-    commute: Math.min(25, Math.max(0, walk - WALK_COMPLAINT_MINUTES * 0.5) * 0.4),
+    commute: Math.min(25, Math.max(0, commute - COMMUTE_COMPLAINT_MINUTES * 0.5) * 0.4),
+    budget: householdStress(p, household) === true ? 12 : 0,
     home: d.displaced ? 25 : d.homeFlooded ? 15 : 0,
     groceries: (Array.isArray(d.soldOutAt) && d.soldOutAt.length ? 8 : 0) + (d.emptyFridge ? 8 : 0),
     parks: Math.min(12, Number(d.dirtyParkVisits || 0) * 4),
   };
 }
 
-export function wellbeing(p, dayMood = moodOf(p)) {
-  const f = frictions(p);
-  const score = dayMood - f.commute - f.home - f.groceries - f.parks;
+export function wellbeing(p, dayMood = moodOf(p), household = null) {
+  const f = frictions(p, household);
+  const score = dayMood - f.commute - f.budget - f.home - f.groceries - f.parks;
   return Math.max(0, Math.min(100, score));
 }
 

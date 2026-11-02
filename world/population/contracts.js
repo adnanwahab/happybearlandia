@@ -1,5 +1,5 @@
 import { recordHistoryEvent } from "../activity-history.js";
-/** Living City population1.1.0: synthetic persons, no identifiable people.
+/** Living City population1.2.0: synthetic persons, no identifiable people.
  * Worker contract: createPopulationModel(config,worldContext) -> mutable model;
  * stepPopulation(model,{tick,minutes,config?}) advances one monotone tick;
  * snapshotPopulation(model,{visibleLimit=500,selectedPersonId?}) returns bounded
@@ -12,7 +12,7 @@ import { recordHistoryEvent } from "../activity-history.js";
  * worldContext.buildings coordinates provide locations ONLY; demographics and
  * district capacities/rents are assumptions unless explicitly supplied/provenanced.
  */
-export const POPULATION_VERSION = "1.1.0";
+export const POPULATION_VERSION = "1.2.0";
 export const POPULATION_CONFIG_VERSION = "population-config.v1";
 export const ACTIVITIES = ["HOME", "WORK", "SCHOOL", "SHOPPING", "ERRAND", "DINING", "RECREATION", "HEALTHCARE", "TRANSIT", "OTHER"];
 export const MODES = ["none", "walk", "bike", "car", "bus", "rail"];
@@ -36,6 +36,22 @@ export const populationParameters = [
   p("layoffRate","Daily baseline layoff probability","probability/day",0.0005,0,0.1,0.0005), p("hiringRate","Daily job-search success probability","probability/day",0.01,0,0.5,0.005),
   p("awarenessRate","Daily service awareness diffusion","fraction/day",0.08,0,1,0.01), p("businessTax","Business revenue tax","fraction",0.03,0,0.5,0.01),
   p("constructionDisruption","District access disruption","fraction",0,0,0.9,0.05), p("maxLogEntries","Global event retention","entries",400,10,2000),
+  p('schoolStartMinute','Primary school start','minute of day',510,420,600),
+  p('teenSchoolStartMinute','Teen school start','minute of day',510,420,600),
+  p('schoolDayMinutes','School day duration','minutes',390,240,480),
+  p('schoolRecessMinutes','School recess','minutes/day',20,0,60),
+  p('childScreenMinutesPerDay','Child screen permission','minutes/day',90,0,360),
+  p('childSupervisionAge','Independent supervision age','years',12,6,18),
+  p('childIndependentWalkAge','Unescorted walking age','years',8,6,18),
+  p('childIndependentTransitAge','Unescorted transit age','years',12,8,18),
+  p('childcareCapacity','Day/after-school care seats','represented children',200,0,10000000),
+  p('childcareHourlyCost','Day/after-school care cost','USD/child/hour',5,0,100,.5),
+  p('childcareSubsidyFraction','Care subsidy fraction','fraction',0,0,1,.05),
+  p('summerCampEnabled','Summer camps enabled','0 or1',1,0,1),
+  p('summerCampCapacity','Summer camp seats','represented children',100,0,10000000),
+  p('summerCampDailyCost','Summer camp cost','USD/child/day',30,0,500),
+  p('summerStartDay','Summer starts','day of year',170,0,364),
+  p('summerEndDay','Summer ends','day of year',235,1,365),
 ];
 export const defaultPopulationConfig = Object.fromEntries(populationParameters.map(row=>[row.id,row.default]));
 export const DEFAULT_POPULATION_CONFIG = defaultPopulationConfig;
@@ -47,7 +63,9 @@ export function validatePopulationConfig(input={}) {
   const values={...defaultPopulationConfig},errors=[];
   if(!input||typeof input!=="object"||Array.isArray(input))return{valid:false,values,errors:["Config must be an object."]};
   for(const id of Object.keys(input))if(!populationParameters.some(row=>row.id===id)&&!["schemaVersion","snapshotId","provenance","events","targets","enabled"].includes(id))errors.push(`Unknown population parameter: ${id}`);
-  for(const row of populationParameters)if(input[row.id]!==undefined){const v=input[row.id];if(typeof v!=="number"||!Number.isFinite(v)||v<row.min||v>row.max||(["population","seed","maxLogEntries"].includes(row.id)&&!Number.isInteger(v)))errors.push(`${row.id} must be ${row.min}–${row.max} ${row.unit}.`);else values[row.id]=v;}
+  const integers=new Set(['population','seed','maxLogEntries','schoolStartMinute','teenSchoolStartMinute','schoolDayMinutes','schoolRecessMinutes','childScreenMinutesPerDay','childSupervisionAge','childIndependentWalkAge','childIndependentTransitAge','childcareCapacity','summerCampEnabled','summerCampCapacity','summerStartDay','summerEndDay']);
+  for(const row of populationParameters)if(input[row.id]!==undefined){const v=input[row.id];if(typeof v!=="number"||!Number.isFinite(v)||v<row.min||v>row.max||(integers.has(row.id)&&!Number.isInteger(v)))errors.push(`${row.id} must be ${row.min}–${row.max} ${row.unit}.`);else values[row.id]=v;}
+  if(values.summerEndDay<=values.summerStartDay)errors.push('Summer end must follow summer start within the modeled year.');
   if(input.schemaVersion&&input.schemaVersion!==POPULATION_CONFIG_VERSION)errors.push("Unsupported population config version.");
   const events=input.events||[];
   if(!Array.isArray(events)||events.length>64)errors.push("At most64 scheduled events are supported.");

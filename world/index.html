@@ -111,7 +111,7 @@
 <style>.embed .constitution-link{display:none}</style>
 </head>
 <body>
-<a class="constitution-link" href="/world/visualize-consitution" style="position:fixed;bottom:12px;right:12px;z-index:50;background:#152333;color:white;padding:10px;border-radius:8px">Visualize Constitution</a>
+<a class="constitution-link" href="/visualize-constitution" style="position:fixed;bottom:12px;right:12px;z-index:50;background:#152333;color:white;padding:10px;border-radius:8px">Visualize Constitution</a>
 <div id="view"></div>
 <button type="button" id="activity-dashboard-button" data-testid="activity-dashboard-button" aria-haspopup="dialog">Activity dashboard</button>
 <div id="loading">Generating your neighborhood…</div>
@@ -119,6 +119,7 @@
 
 <details class="panel" id="top" open>
   <summary title="Minimize or expand world controls"><h1>HappyBearLandia · world</h1></summary>
+  <div class="row"><a href="/reality-compiler" onclick="this.search=location.search">Reality Compiler</a> · <a href="/city-speaks" onclick="this.search=location.search">Who does this hurt?</a></div>
   <a href="/world/city-lab.html" onclick="this.search=location.search" style="color:var(--accent);font-size:12px">City Systems Laboratory ↗</a>
   <div class="row"><a href="/business-simulator">Business Lab</a> · <a href="/world?business_mode=true">Place a business</a></div>
   <div class="row" id="living-city-toolbar" aria-label="Population mode"></div>
@@ -182,7 +183,7 @@
     <span class="muted" id="cycleStatus">One week, plan vs no plan</span>
   </div>
   <div class="row" style="margin-top:2px">
-    <button id="runExperimentBtn" type="button">Run 10 years</button>
+    <button id="runExperimentBtn" type="button">10-year longitudinal experiment</button>
     <span class="muted" id="experimentStatus">Idle</span>
   </div>
   <div class="row" style="margin-top:2px">
@@ -197,6 +198,7 @@
     <button id="rerunExperimentSeed" type="button" aria-label="Rerun with this seed">Rerun</button>
   </div>
 
+  <details id="simulationModelDisclosure" class="muted"><summary>Model assumptions &amp; limitations</summary><div id="simulationModelMetadata">Legacy daily residents, living population and monthly Constitution forecasts are separate models. No empirical calibration claim. Parameter provenance is loading.</div></details>
   <div class="muted" id="policyNote"></div>
   <div class="legend">
     <span><i style="background:#d9cbb4"></i>home</span><span><i style="background:#8fa6c4"></i>work</span>
@@ -217,11 +219,11 @@
 <div class="panel" id="feed" aria-live="polite"></div>
 <div class="panel" id="inspect"></div>
 <div class="panel" id="experimentPanel" style="display:none">
-  <h1>10-year experiment</h1>
+  <h1>10-year longitudinal experiment</h1>
 
   <div class="exp-grid" id="experimentCharts"></div>
   <div id="experimentTableWrap"></div>
-  <div class="exp-footnote">Simulated outcomes with synthetic residents — illustrative, not a forecast.</div>
+  <div class="exp-footnote">Representative 5-day annual samples carry household and town state forward; this does not simulate all 3,650 days. Synthetic illustrative outcomes, not a forecast.</div>
 </div>
 
 <div class="panel" id="cyclePanel" style="display:none"></div>

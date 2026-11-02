@@ -1,6 +1,16 @@
 import { resolveConstitutionPlan, constitutionGeometry } from './constitution-visuals.js';
+import {mountLawLibrary} from './laws/library.js';
 const $=id=>document.getElementById(id);
 let frozenPlan=null;
+const lawLibrary=mountLawLibrary($('law-library'),{onSelect:law=>{
+  $('idea').value=law.text;
+  $('idea').dispatchEvent(new Event('input',{bubbles:true}));
+  $('results').hidden=true;
+  $('status').textContent=`Law ${law.number} selected. Choose Compare worlds to evaluate this plan. ${law.supported?'A reviewed model mapping is available in the law explorer.':'This proposal does not yet have a reviewed simulation mechanism; modeled effects may be unavailable.'}`;
+  $('idea').focus({preventScroll:true});
+  $('form').scrollIntoView({behavior:'smooth',block:'start'});
+}});
+addEventListener('pagehide',()=>lawLibrary.destroy(),{once:true});
 const frames=[$('baseline'),$('proposed')];
 addEventListener('message',event=>{
   if(event.origin!==location.origin || !frames.some(f=>f.contentWindow===event.source))return;

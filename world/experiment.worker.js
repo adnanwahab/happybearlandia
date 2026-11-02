@@ -37,7 +37,7 @@ self.onmessage = async (ev) => {
       const packageName = packageNames[i];
       const history = [];
       const plansByYear = [];
-      await runExperiment({
+      const experiment=await runExperiment({
         town,
         packageName,
         years,
@@ -53,6 +53,7 @@ self.onmessage = async (ev) => {
             replayDataSource: y.replayDataSource,
             stormSeverity: y.stormSeverity,
             outcomes: y.outcomes,
+            methods:y.methods,
             changesFromPrevious: y.changesFromPrevious,
           });
           plansByYear.push({ year: y.year, yearLabel: y.yearLabel, proposalIds: y.proposalIds, changesFromPrevious: y.changesFromPrevious, notSimulatedChanges: y.notSimulatedChanges });
@@ -69,7 +70,7 @@ self.onmessage = async (ev) => {
           });
         },
       });
-      results[packageName] = { history, plansByYear };
+      results[packageName] = { history, plansByYear, methods:experiment.methods };
     }
 
     self.postMessage({ type: "done", results });
