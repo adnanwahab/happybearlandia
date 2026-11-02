@@ -1,0 +1,2289 @@
+diff --git a/world/experiment-record.js b/world/experiment-record.js
+--- a/world/experiment-record.js
++++ b/world/experiment-record.js
+@@ -28,6 +28,7 @@ export function createExperimentRecord(input = {}, now = new Date()) {
+     seed: input.worldBatch?.seed ?? input.experiment.experiment?.seed ?? null,
+     overrides: input.overrides || {},
+     adapterId: input.simulationBatch?.adapter?.id || null,
++    simulationConfigId: input.simulationConfig?.id || input.worldBatch?.simulationConfig?.id || input.simulationBatch?.simulationConfig?.id || null,
+     parentRecordId,
+     revision,
+   };
+@@ -44,6 +45,7 @@ export function createExperimentRecord(input = {}, now = new Date()) {
+     },
+     experiment: input.experiment,
+     overrides: input.overrides || {},
++    simulationConfig: input.simulationConfig || input.worldBatch?.simulationConfig || input.simulationBatch?.simulationConfig || null,
+     worldBatch: input.worldBatch || null,
+     simulationBatch: input.simulationBatch || null,
+     analyzedExperiment: input.analyzedExperiment || null,
+diff --git a/world/plan-parameter-patch.js b/world/plan-parameter-patch.js
+--- a/world/plan-parameter-patch.js
++++ b/world/plan-parameter-patch.js
+@@ -401,6 +401,12 @@ export function applyPlanParameterPatch(experiment, patch, existingOverrides = {
+     nextExperiment.worldModel.variables,
+     nextExperiment.worldModel.parameterExtraction || {},
+   );
++  nextExperiment.lineage.appliedParameterPatch = {
++    id: patch.id,
++    sourceFingerprint: patch.sourceFingerprint,
++    edits: clone(patch.edits || []),
++    additions: clone(patch.additions || []),
++  };
+   nextExperiment.lineage.parameterPatches.push({
+     id: patch.id,
+     sourceFingerprint: patch.sourceFingerprint,
+diff --git a/world/simulation-adapter.js b/world/simulation-adapter.js
+--- a/world/simulation-adapter.js
++++ b/world/simulation-adapter.js
+@@ -1,4 +1,5 @@
+ import { applySimulationEffectsToWorld } from "./plan-improver.js";
++import { buildSimulationConfig } from "./simulation-config.js";
+ import { createHttpCivicSimulator, simulatorBridgeConfig, validateCivicSimulationResult } from "./hbl-simulator-bridge.js";
+ import { simulateHblCivicDynamics } from "./hbl-civic-dynamics.js";
+ import { simulateAgentCivicDynamics } from "./agent-simulator.js";
+@@ -167,14 +168,15 @@ export async function resolveSimulationAdapter(globalObject = globalThis, option
+   return createHblCivicDynamicsAdapter();
+ }
+ 
+-function normalizeSimulationResult(world, effectiveWorld, adapter, result) {
++function normalizeSimulationResult(world, effectiveWorld, adapter, result, simulationConfig = null) {
+   const safe = result && typeof result === "object" ? result : {};
+   const score = finite(safe.score ?? safe.metrics?.implementationViability, 0);
+   return {
+     id: `run_${world.id}`,
+     worldId: world.id,
+     world,
+     effectiveWorld,
++    simulationConfig,
+     adapter: {
+       id: adapter.id,
+       label: adapter.label,
+@@ -190,6 +192,7 @@ function normalizeSimulationResult(world, effectiveWorld, adapter, result) {
+     trace: Array.isArray(safe.trace) ? safe.trace : [],
+     model: safe.model || { id: adapter.id, predictive: adapter.predictive },
+     disclaimer: safe.disclaimer || (adapter.predictive ? null : "Non-predictive simulation adapter."),
++    simulationConfig,
+     raw: safe.raw,
+   };
+ }
+@@ -198,6 +201,7 @@ export async function simulateExperiment(experiment, worldBatch, adapter, option
+   if (!adapter?.simulateWorld) throw new Error("simulateExperiment requires a simulation adapter");
+   const worlds = Array.isArray(worldBatch) ? worldBatch : worldBatch?.worlds || [];
+   const concurrency = Math.max(1, Math.min(64, Math.round(finite(options.concurrency, 16))));
++  const simulationConfig = worldBatch?.simulationConfig || buildSimulationConfig(experiment, options.overrides || {}, { parameterPatch: options.parameterPatch });
+   const simulations = new Array(worlds.length);
+   let completed = 0;
+ 
+@@ -206,7 +210,7 @@ export async function simulateExperiment(experiment, worldBatch, adapter, option
+     const results = await Promise.all(chunk.map(async (world, offset) => {
+       const effectiveWorld = applySimulationEffectsToWorld(experiment, world);
+       const result = await adapter.simulateWorld({ experiment, world: effectiveWorld, sourceWorld: world, options });
+-      return [start + offset, normalizeSimulationResult(world, effectiveWorld, adapter, result)];
++      return [start + offset, normalizeSimulationResult(world, effectiveWorld, adapter, result, simulationConfig)];
+     }));
+     for (const [index, simulation] of results) {
+       simulations[index] = simulation;
+diff --git a/world/simulation-config.js b/world/simulation-config.js
+new file mode 100644
+--- /dev/null
++++ b/world/simulation-config.js
+@@ -0,0 +1,86 @@
++const isObject = (value) => Boolean(value) && typeof value === "object" && !Array.isArray(value);
++
++function finite(value, fallback = null) {
++  const number = Number(value);
++  return Number.isFinite(number) ? number : fallback;
++}
++
++function clone(value) {
++  return value == null ? value : (typeof structuredClone === "function" ? structuredClone(value) : JSON.parse(JSON.stringify(value)));
++}
++
++function stableStringify(value) {
++  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
++  if (isObject(value)) return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(",")}}`;
++  return JSON.stringify(value);
++}
++
++function hashString(value) {
++  let hash = 0x811c9dc5;
++  const text = String(value);
++  for (let index = 0; index < text.length; index += 1) {
++    hash ^= text.charCodeAt(index);
++    hash = Math.imul(hash, 0x01000193);
++  }
++  return (hash >>> 0).toString(16).padStart(8, "0");
++}
++
++export function classifyParameterConnection(variable) {
++  if (!variable) return "unknown";
++  if (variable.modelBinding || variable.connected === true) return "mechanic-connected";
++  if (variable.causalBinding || variable.causalNodeId || variable.causal_node_id) return "causal-graph-connected";
++  if (variable.source === "plan-parameter-patch" && variable.connected !== true) return "sampled-only";
++  return "model-variable";
++}
++
++export function buildSimulationConfig(experiment, overrides = {}, options = {}) {
++  const variables = Array.isArray(experiment?.worldModel?.variables) ? experiment.worldModel.variables : [];
++  const parameters = {};
++  for (const variable of variables) {
++    const override = isObject(overrides?.[variable.id]) ? overrides[variable.id] : {};
++    const rawMin = finite(override.min ?? override.range?.min, finite(variable.range?.min, 0));
++    const rawMax = finite(override.max ?? override.range?.max, finite(variable.range?.max, 1));
++    const min = Math.min(rawMin, rawMax);
++    const max = Math.max(rawMin, rawMax);
++    const baselineCandidate = finite(override.baseline, finite(variable.baseline, (min + max) / 2));
++    const baseline = Math.max(min, Math.min(max, baselineCandidate));
++    parameters[variable.id] = {
++      id: variable.id,
++      label: variable.label || variable.id,
++      category: variable.category || "custom",
++      unit: variable.unit || "index",
++      baseline,
++      min,
++      max,
++      locked: typeof override.locked === "boolean" ? override.locked : Boolean(variable.locked),
++      connection: classifyParameterConnection(variable),
++      source: override.reason ? "override" : (variable.source || "model"),
++      reason: override.reason || variable.reason || null,
++    };
++  }
++
++  const appliedPatch = options.parameterPatch
++    || experiment?.lineage?.appliedParameterPatch
++    || null;
++  const core = {
++    schemaVersion: "hbl-simulation-config.v1",
++    experimentId: experiment?.id || null,
++    planId: experiment?.plan?.id || null,
++    parameterPatchId: appliedPatch?.id || null,
++    parameterPatchSourceFingerprint: appliedPatch?.sourceFingerprint || null,
++    model: clone(experiment?.model || null),
++    parameters,
++  };
++
++  return {
++    ...core,
++    id: `simcfg_${hashString(stableStringify(core))}`,
++  };
++}
++
++export function attachSimulationConfig(target, config) {
++  if (!target || typeof target !== "object") return target;
++  return { ...target, simulationConfig: clone(config) };
++}
++
++export const __test = { stableStringify, hashString };
+diff --git a/world/simulation-config.test.js b/world/simulation-config.test.js
+new file mode 100644
+--- /dev/null
++++ b/world/simulation-config.test.js
+@@ -0,0 +1,31 @@
++import test from "node:test";
++import assert from "node:assert/strict";
++import { buildSimulationConfig, classifyParameterConnection } from "./simulation-config.js";
++
++test("simulation config snapshots effective slider baselines and ranges", () => {
++  const experiment = {
++    id: "exp_1",
++    plan: { id: "plan_1" },
++    model: { simulator: { id: "sim", version: "1" } },
++    worldModel: {
++      variables: [
++        { id: "agency_capacity", label: "Agency capacity", baseline: 0.7, range: { min: 0.3, max: 1 }, source: "heuristic-default" },
++        { id: "new_lever", baseline: 0.4, range: { min: 0, max: 1 }, source: "plan-parameter-patch", connected: false },
++      ],
++    },
++    lineage: { appliedParameterPatch: { id: "ppatch_1", sourceFingerprint: "src_1" } },
++  };
++  const config = buildSimulationConfig(experiment, { agency_capacity: { baseline: 0.82, locked: true, reason: "slider" } });
++  assert.equal(config.schemaVersion, "hbl-simulation-config.v1");
++  assert.equal(config.parameterPatchId, "ppatch_1");
++  assert.equal(config.parameters.agency_capacity.baseline, 0.82);
++  assert.equal(config.parameters.agency_capacity.locked, true);
++  assert.equal(config.parameters.new_lever.connection, "sampled-only");
++  assert.match(config.id, /^simcfg_/);
++});
++
++test("connection classification distinguishes sampled-only plan variables", () => {
++  assert.equal(classifyParameterConnection({ source: "plan-parameter-patch", connected: false }), "sampled-only");
++  assert.equal(classifyParameterConnection({ modelBinding: "housing.supply" }), "mechanic-connected");
++  assert.equal(classifyParameterConnection({ causalNodeId: "supply_capacity" }), "causal-graph-connected");
++});
+diff --git a/world/world-generator.js b/world/world-generator.js
+--- a/world/world-generator.js
++++ b/world/world-generator.js
+@@ -1,3 +1,4 @@
++import { buildSimulationConfig } from "./simulation-config.js";
+ import {
+   CORRELATION_FACTORS,
+   correlationOffset,
+@@ -130,6 +131,7 @@ export function generateWorlds(experiment, options = {}) {
+     ? deriveSeed(experiment?.id || experiment?.plan?.id || "hbl-experiment")
+     : (Math.floor(finite(configuredSeed, 0)) >>> 0);
+   const overrides = options.overrides && typeof options.overrides === "object" ? options.overrides : {};
++  const simulationConfig = buildSimulationConfig(experiment, overrides, { parameterPatch: options.parameterPatch });
+   const variables = (experiment?.worldModel?.variables || []).map((variable) => resolveVariable(variable, overrides[variable.id]));
+   const scenarioFamilies = deriveScenarioFamilies(variables, options.scenarioFamilies ?? experiment?.worldModel?.scenarioFamilies);
+   const scenarioFamilyCounts = Object.fromEntries(scenarioFamilies.map((family) => [family.id, 0]));
+@@ -183,6 +185,7 @@ export function generateWorlds(experiment, options = {}) {
+     variableIds: variables.map((variable) => variable.id),
+     scenarioFamilies,
+     scenarioFamilyCounts,
++    simulationConfig,
+     worlds,
+   };
+ }
+diff --git a/world/parameter-paired.js b/world/parameter-paired.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-paired.js
+@@ -0,0 +1,125 @@
++import { summarizeOutcomes } from "./outcome-analysis.js";
++import { simulateExperiment } from "./simulation-adapter.js";
++
++function clone(value) {
++  return value == null ? value : (typeof structuredClone === "function" ? structuredClone(value) : JSON.parse(JSON.stringify(value)));
++}
++
++function finite(value, fallback = 0) {
++  const number = Number(value);
++  return Number.isFinite(number) ? number : fallback;
++}
++
++function variableMap(experiment) {
++  return new Map((experiment?.worldModel?.variables || []).map((variable) => [variable.id, variable]));
++}
++
++function recalc(world, variable, parameterId, baseline) {
++  const min = finite(variable?.range?.min, 0);
++  const max = finite(variable?.range?.max, 1);
++  const span = max - min;
++  const value = finite(world.conditions?.[parameterId], baseline);
++  world.normalized ||= {};
++  world.deviations ||= {};
++  world.normalized[parameterId] = span > 0 ? (value - min) / span : 0.5;
++  world.deviations[parameterId] = span > 0 ? (value - baseline) / span : 0;
++}
++
++export function rebaseWorldForParameterPatch(world, experiment, patch, direction = "baseline") {
++  const next = clone(world);
++  next.conditions ||= {};
++  next.normalized ||= {};
++  next.deviations ||= {};
++  const definitions = variableMap(experiment);
++  const toBaseline = direction === "baseline";
++
++  for (const edit of patch?.edits || []) {
++    const variable = definitions.get(edit.parameterId);
++    if (!variable || !Number.isFinite(Number(next.conditions[edit.parameterId]))) continue;
++    const from = finite(edit.from, finite(variable.baseline));
++    const to = finite(edit.to, from);
++    const delta = to - from;
++    next.conditions[edit.parameterId] = finite(next.conditions[edit.parameterId]) + (toBaseline ? -delta : delta);
++    const min = finite(variable.range?.min, 0);
++    const max = finite(variable.range?.max, 1);
++    next.conditions[edit.parameterId] = Math.max(Math.min(min, max), Math.min(Math.max(min, max), next.conditions[edit.parameterId]));
++    recalc(next, variable, edit.parameterId, toBaseline ? from : to);
++  }
++
++  for (const addition of patch?.additions || []) {
++    const id = addition?.parameterId;
++    if (!id) continue;
++    const variable = definitions.get(id) || addition.variable;
++    if (toBaseline) {
++      delete next.conditions[id];
++      delete next.normalized[id];
++      delete next.deviations[id];
++    } else if (!Number.isFinite(Number(next.conditions[id]))) {
++      next.conditions[id] = finite(addition.proposedValue, finite(variable?.baseline, 0.5));
++      recalc(next, variable, id, finite(addition.proposedValue, 0.5));
++    }
++  }
++
++  next.parameterBranch = toBaseline ? "baseline" : "plan";
++  next.parameterPatchId = patch?.id || null;
++  return next;
++}
++
++export function createBaselineWorldBatch(experiment, worldBatch, patch) {
++  const worlds = (worldBatch?.worlds || []).map((world) => rebaseWorldForParameterPatch(world, experiment, patch, "baseline"));
++  return {
++    ...clone(worldBatch),
++    schemaVersion: "world-batch.v2",
++    branch: "baseline-parameters",
++    parameterPatchId: patch?.id || null,
++    worlds,
++  };
++}
++
++export function summarizePairedParameterRuns(baselineBatch, planBatch) {
++  const baselineByWorld = new Map((baselineBatch?.simulations || []).map((row) => [row.worldId, row]));
++  const pairedWorlds = (planBatch?.simulations || []).map((plan) => {
++    const baseline = baselineByWorld.get(plan.worldId);
++    return {
++      worldId: plan.worldId,
++      baselineScore: baseline?.score ?? null,
++      planScore: plan?.score ?? null,
++      scoreDelta: Number.isFinite(Number(baseline?.score)) && Number.isFinite(Number(plan?.score))
++        ? Number(plan.score) - Number(baseline.score)
++        : null,
++      baselineStatus: baseline?.status || null,
++      planStatus: plan?.status || null,
++    };
++  });
++  const deltas = pairedWorlds.map((row) => row.scoreDelta).filter(Number.isFinite);
++  const meanDelta = deltas.length ? deltas.reduce((sum, value) => sum + value, 0) / deltas.length : null;
++  return {
++    schemaVersion: "paired-parameter-summary.v1",
++    worldCount: pairedWorlds.length,
++    meanScoreDelta: meanDelta,
++    improvedWorlds: pairedWorlds.filter((row) => Number(row.scoreDelta) > 0).length,
++    unchangedWorlds: pairedWorlds.filter((row) => Number(row.scoreDelta) === 0).length,
++    worsenedWorlds: pairedWorlds.filter((row) => Number(row.scoreDelta) < 0).length,
++    pairedWorlds,
++  };
++}
++
++export async function runPairedParameterExperiment({ experiment, worldBatch, adapter, patch, options = {} }) {
++  if (!experiment || !worldBatch || !adapter || !patch) throw new Error("runPairedParameterExperiment requires experiment, worldBatch, adapter, and patch");
++  const baselineWorldBatch = createBaselineWorldBatch(experiment, worldBatch, patch);
++  const baselineBatch = await simulateExperiment(experiment, baselineWorldBatch, adapter, { ...options, parameterPatch: null });
++  const planBatch = await simulateExperiment(experiment, worldBatch, adapter, { ...options, parameterPatch: patch });
++  const paired = summarizePairedParameterRuns(baselineBatch, planBatch);
++
++  return {
++    schemaVersion: "paired-parameter-experiment.v1",
++    experimentId: experiment.id || null,
++    parameterPatchId: patch.id || null,
++    worldBatchSeed: worldBatch.seed ?? null,
++    baseline: { simulationBatch: baselineBatch, summary: summarizeOutcomes(baselineBatch) },
++    plan: { simulationBatch: planBatch, summary: summarizeOutcomes(planBatch) },
++    paired,
++  };
++}
++
++export const __test = { variableMap, recalc };
+diff --git a/world/parameter-paired.test.js b/world/parameter-paired.test.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-paired.test.js
+@@ -0,0 +1,40 @@
++import test from "node:test";
++import assert from "node:assert/strict";
++import { createSimulationAdapter } from "./simulation-adapter.js";
++import { createBaselineWorldBatch, runPairedParameterExperiment } from "./parameter-paired.js";
++
++const experiment = {
++  id: "exp_pair",
++  plan: { id: "plan_pair", actions: [] },
++  worldModel: { variables: [{ id: "x", baseline: 0.8, range: { min: 0, max: 1 } }] },
++  outcomes: { metricRegistry: [] },
++};
++
++const worldBatch = {
++  seed: 7,
++  worlds: [{ id: "world_1", seed: 11, scenarioFamily: { id: "baseline" }, factors: { economy: 0.2 }, conditions: { x: 0.8 }, normalized: { x: 0.8 }, deviations: { x: 0 } }],
++};
++
++const patch = { id: "ppatch_x", edits: [{ parameterId: "x", from: 0.5, to: 0.8 }], additions: [] };
++
++test("baseline branch preserves random world identity while reversing only the parameter shift", () => {
++  const baseline = createBaselineWorldBatch(experiment, worldBatch, patch);
++  assert.equal(baseline.worlds[0].seed, 11);
++  assert.deepEqual(baseline.worlds[0].factors, { economy: 0.2 });
++  assert.equal(baseline.worlds[0].conditions.x, 0.5);
++  assert.equal(worldBatch.worlds[0].conditions.x, 0.8);
++});
++
++test("paired parameter experiment reports within-world score deltas", async () => {
++  const adapter = createSimulationAdapter({
++    id: "test",
++    simulateWorld({ world }) {
++      return { score: world.conditions.x * 100, metrics: { x: world.conditions.x }, status: "mixed" };
++    },
++  });
++  const result = await runPairedParameterExperiment({ experiment, worldBatch, adapter, patch });
++  assert.equal(result.paired.worldCount, 1);
++  assert.equal(result.paired.pairedWorlds[0].baselineScore, 50);
++  assert.equal(result.paired.pairedWorlds[0].planScore, 80);
++  assert.equal(result.paired.pairedWorlds[0].scoreDelta, 30);
++});
+diff --git a/world/parameter-attribution.js b/world/parameter-attribution.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-attribution.js
+@@ -0,0 +1,130 @@
++import { simulateExperiment } from "./simulation-adapter.js";
++import { rebaseWorldForParameterPatch } from "./parameter-paired.js";
++
++function clone(value) {
++  return value == null ? value : (typeof structuredClone === "function" ? structuredClone(value) : JSON.parse(JSON.stringify(value)));
++}
++
++function finite(value) {
++  const number = Number(value);
++  return Number.isFinite(number) ? number : null;
++}
++
++function mean(values) {
++  const rows = values.map(finite).filter((value) => value !== null);
++  return rows.length ? rows.reduce((sum, value) => sum + value, 0) / rows.length : null;
++}
++
++function quantile(values, q) {
++  const rows = values.map(finite).filter((value) => value !== null).sort((a, b) => a - b);
++  if (!rows.length) return null;
++  const position = Math.max(0, Math.min(1, q)) * (rows.length - 1);
++  const lo = Math.floor(position), hi = Math.ceil(position), w = position - lo;
++  return rows[lo] * (1 - w) + rows[hi] * w;
++}
++
++function round(value, digits = 4) {
++  const number = finite(value);
++  if (number === null) return null;
++  const factor = 10 ** digits;
++  return Math.round(number * factor) / factor;
++}
++
++function parameterRows(patch) {
++  return [
++    ...(patch?.edits || []).map((row) => ({ kind: "edit", parameterId: row.parameterId, label: row.label || row.parameterId, row })),
++    ...(patch?.additions || []).map((row) => ({ kind: "addition", parameterId: row.parameterId, label: row.variable?.label || row.parameterId, row })),
++  ];
++}
++
++function singleParameterPatch(patch, parameter) {
++  return {
++    id: `${patch?.id || "patch"}__${parameter.parameterId}`,
++    edits: parameter.kind === "edit" ? [parameter.row] : [],
++    additions: parameter.kind === "addition" ? [parameter.row] : [],
++  };
++}
++
++function revertedWorldBatch(experiment, worldBatch, patch, parameter) {
++  const single = singleParameterPatch(patch, parameter);
++  return {
++    ...clone(worldBatch),
++    branch: `revert-${parameter.parameterId}`,
++    worlds: (worldBatch?.worlds || []).map((world) => rebaseWorldForParameterPatch(world, experiment, single, "baseline")),
++  };
++}
++
++export async function attributeParameterEffects({
++  experiment,
++  worldBatch,
++  adapter,
++  patch,
++  planBatch = null,
++  options = {},
++} = {}) {
++  if (!experiment || !worldBatch || !adapter || !patch) throw new Error("attributeParameterEffects requires experiment, worldBatch, adapter, and patch");
++  const basePlanBatch = planBatch || await simulateExperiment(experiment, worldBatch, adapter, { ...options, parameterPatch: patch });
++  const planByWorld = new Map((basePlanBatch.simulations || []).map((row) => [row.worldId, row]));
++  const attribution = [];
++  const perWorld = new Map((basePlanBatch.simulations || []).map((row) => [row.worldId, []]));
++
++  for (const parameter of parameterRows(patch)) {
++    const counterfactualWorldBatch = revertedWorldBatch(experiment, worldBatch, patch, parameter);
++    const counterfactualBatch = await simulateExperiment(experiment, counterfactualWorldBatch, adapter, { ...options, parameterPatch: patch });
++    const counterByWorld = new Map((counterfactualBatch.simulations || []).map((row) => [row.worldId, row]));
++    const contributions = [];
++
++    for (const [worldId, plan] of planByWorld) {
++      const counter = counterByWorld.get(worldId);
++      const planScore = finite(plan?.score);
++      const counterScore = finite(counter?.score);
++      const scoreContribution = planScore !== null && counterScore !== null ? planScore - counterScore : null;
++      contributions.push({ worldId, planScore, counterfactualScore: counterScore, scoreContribution: round(scoreContribution) });
++      if (perWorld.has(worldId)) perWorld.get(worldId).push({
++        parameterId: parameter.parameterId,
++        label: parameter.label,
++        scoreContribution: round(scoreContribution),
++      });
++    }
++
++    const values = contributions.map((row) => row.scoreContribution);
++    const meanContribution = mean(values);
++    attribution.push({
++      parameterId: parameter.parameterId,
++      label: parameter.label,
++      kind: parameter.kind,
++      connection: basePlanBatch?.simulationConfig?.parameters?.[parameter.parameterId]?.connection || null,
++      meanScoreContribution: round(meanContribution),
++      p10ScoreContribution: round(quantile(values, 0.1)),
++      p90ScoreContribution: round(quantile(values, 0.9)),
++      absoluteMeanContribution: round(Math.abs(meanContribution ?? 0)),
++      affectedWorlds: values.filter((value) => finite(value) !== null && Math.abs(Number(value)) > 1e-9).length,
++      worldCount: contributions.length,
++      contributions,
++      method: "leave-one-parameter-out-replay",
++      warning: "Modeled contribution from a controlled replay, not real-world causal evidence.",
++    });
++  }
++
++  attribution.sort((a, b) => b.absoluteMeanContribution - a.absoluteMeanContribution || a.parameterId.localeCompare(b.parameterId));
++  const annotatedPlanBatch = {
++    ...clone(basePlanBatch),
++    simulations: (basePlanBatch.simulations || []).map((simulation) => ({
++      ...simulation,
++      parameterContributions: (perWorld.get(simulation.worldId) || []).sort((a, b) => Math.abs(b.scoreContribution || 0) - Math.abs(a.scoreContribution || 0)),
++    })),
++  };
++
++  return {
++    schemaVersion: "parameter-attribution.v1",
++    experimentId: experiment.id || null,
++    parameterPatchId: patch.id || null,
++    metric: "score",
++    method: "leave-one-parameter-out-replay",
++    parameters: attribution,
++    annotatedPlanBatch,
++    warning: "Attribution describes this HBL model under these sampled worlds; it is not proof of real-world causation.",
++  };
++}
++
++export const __test = { mean, quantile, parameterRows, singleParameterPatch };
+diff --git a/world/parameter-attribution.test.js b/world/parameter-attribution.test.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-attribution.test.js
+@@ -0,0 +1,39 @@
++import test from "node:test";
++import assert from "node:assert/strict";
++import { createSimulationAdapter, simulateExperiment } from "./simulation-adapter.js";
++import { attributeParameterEffects } from "./parameter-attribution.js";
++
++const experiment = {
++  id: "exp_attr",
++  plan: { id: "plan_attr", actions: [] },
++  worldModel: { variables: [
++    { id: "x", baseline: 0.8, range: { min: 0, max: 1 } },
++    { id: "unused", baseline: 0.7, range: { min: 0, max: 1 } },
++  ] },
++  outcomes: { metricRegistry: [] },
++};
++const worldBatch = {
++  seed: 9,
++  worlds: [
++    { id: "w1", conditions: { x: 0.8, unused: 0.7 }, normalized: { x: 0.8, unused: 0.7 }, deviations: { x: 0, unused: 0 } },
++    { id: "w2", conditions: { x: 0.9, unused: 0.8 }, normalized: { x: 0.9, unused: 0.8 }, deviations: { x: 0.1, unused: 0.1 } },
++  ],
++};
++const patch = { id: "p1", edits: [
++  { parameterId: "x", label: "X", from: 0.5, to: 0.8 },
++  { parameterId: "unused", label: "Unused", from: 0.4, to: 0.7 },
++], additions: [] };
++
++test("leave-one-out attribution finds modeled contribution and zero for unused variables", async () => {
++  const adapter = createSimulationAdapter({
++    id: "attr-test",
++    simulateWorld({ world }) { return { score: world.conditions.x * 100, metrics: {}, status: "mixed" }; },
++  });
++  const planBatch = await simulateExperiment(experiment, worldBatch, adapter);
++  const result = await attributeParameterEffects({ experiment, worldBatch, adapter, patch, planBatch });
++  const x = result.parameters.find((row) => row.parameterId === "x");
++  const unused = result.parameters.find((row) => row.parameterId === "unused");
++  assert.equal(x.meanScoreContribution, 30);
++  assert.equal(unused.meanScoreContribution, 0);
++  assert.equal(result.annotatedPlanBatch.simulations[0].parameterContributions[0].parameterId, "x");
++});
+diff --git a/world/parameter-explanation.js b/world/parameter-explanation.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-explanation.js
+@@ -0,0 +1,69 @@
++function finite(value, fallback = null) {
++  const number = Number(value);
++  return Number.isFinite(number) ? number : fallback;
++}
++
++function variableMap(experiment) {
++  return new Map((experiment?.worldModel?.variables || []).map((variable) => [variable.id, variable]));
++}
++
++function patchMap(patch) {
++  const rows = new Map();
++  for (const edit of patch?.edits || []) rows.set(edit.parameterId, { kind: "edit", ...edit });
++  for (const addition of patch?.additions || []) rows.set(addition.parameterId, {
++    kind: "addition",
++    parameterId: addition.parameterId,
++    label: addition.variable?.label || addition.parameterId,
++    from: null,
++    to: addition.proposedValue,
++    reason: addition.reason,
++  });
++  return rows;
++}
++
++export function explainParameterReality(simulation, experiment, patch = null) {
++  const activePatch = patch || experiment?.lineage?.appliedParameterPatch || null;
++  const variables = variableMap(experiment);
++  const changes = patchMap(activePatch);
++  const contributions = Array.isArray(simulation?.parameterContributions) ? simulation.parameterContributions : [];
++
++  const rows = contributions.map((contribution) => {
++    const change = changes.get(contribution.parameterId) || {};
++    const variable = variables.get(contribution.parameterId) || {};
++    const scoreContribution = finite(contribution.scoreContribution, 0);
++    return {
++      parameterId: contribution.parameterId,
++      label: contribution.label || change.label || variable.label || contribution.parameterId,
++      from: finite(change.from),
++      to: finite(change.to ?? change.proposedValue ?? variable.baseline),
++      unit: change.unit || variable.unit || "index",
++      reason: change.reason || variable.reason || null,
++      connection: simulation?.simulationConfig?.parameters?.[contribution.parameterId]?.connection || null,
++      scoreContribution,
++      direction: scoreContribution > 1e-9 ? "helped" : scoreContribution < -1e-9 ? "hurt" : "no-modeled-effect",
++    };
++  }).sort((a, b) => Math.abs(b.scoreContribution) - Math.abs(a.scoreContribution));
++
++  const strongest = rows[0] || null;
++  const eventRows = (simulation?.events || []).slice(0, 8).map((event) => ({
++    year: event.year ?? null,
++    type: event.type || "event",
++    severity: finite(event.severity, 0),
++    description: event.description || null,
++  }));
++
++  return {
++    schemaVersion: "parameter-reality-explanation.v1",
++    worldId: simulation?.worldId || simulation?.world?.id || null,
++    parameterPatchId: activePatch?.id || simulation?.simulationConfig?.parameterPatchId || null,
++    score: finite(simulation?.score),
++    changes: rows,
++    strongest,
++    events: eventRows,
++    causalPathways: Array.isArray(simulation?.explanation?.causalPathways) ? simulation.explanation.causalPathways : [],
++    summary: strongest
++      ? `${strongest.label} ${strongest.direction === "helped" ? "helped" : strongest.direction === "hurt" ? "hurt" : "had no modeled score effect in"} this reality by ${Math.abs(strongest.scoreContribution).toFixed(2)} score points.`
++      : "No parameter replay attribution is attached to this reality yet.",
++    warning: "This explanation traces HBL model behavior, not real-world causal proof.",
++  };
++}
+diff --git a/world/parameter-explanation.test.js b/world/parameter-explanation.test.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-explanation.test.js
+@@ -0,0 +1,23 @@
++import test from "node:test";
++import assert from "node:assert/strict";
++import { explainParameterReality } from "./parameter-explanation.js";
++
++test("parameter reality explanation uses recorded per-world replay contributions", () => {
++  const experiment = {
++    worldModel: { variables: [{ id: "permit", label: "Permit delay", unit: "months", baseline: 3 }] },
++    lineage: { appliedParameterPatch: { id: "p1", edits: [{ parameterId: "permit", label: "Permit delay", from: 8, to: 3, reason: "Faster approval" }], additions: [] } },
++  };
++  const simulation = {
++    worldId: "w1",
++    score: 72,
++    simulationConfig: { parameters: { permit: { connection: "model-variable" } } },
++    parameterContributions: [{ parameterId: "permit", label: "Permit delay", scoreContribution: 6.25 }],
++    events: [{ year: 1, type: "rollout-start", severity: 0.4 }],
++  };
++  const explanation = explainParameterReality(simulation, experiment);
++  assert.equal(explanation.parameterPatchId, "p1");
++  assert.equal(explanation.changes[0].from, 8);
++  assert.equal(explanation.changes[0].to, 3);
++  assert.equal(explanation.changes[0].scoreContribution, 6.25);
++  assert.match(explanation.summary, /helped/);
++});
+diff --git a/world/reality-inspector.js b/world/reality-inspector.js
+--- a/world/reality-inspector.js
++++ b/world/reality-inspector.js
+@@ -1,3 +1,5 @@
++import { explainParameterReality } from "./parameter-explanation.js";
++
+ function finite(value, fallback = 0) {
+   const number = Number(value);
+   return Number.isFinite(number) ? number : fallback;
+@@ -55,6 +57,7 @@ export function explainReality(simulation, experiment, options = {}) {
+     feedbackLoops: Array.isArray(simulation?.explanation?.feedbackLoops) ? simulation.explanation.feedbackLoops : [],
+     topDrivers: drivers.slice(0, limit),
+     allDrivers: drivers,
++    parameterExplanation: explainParameterReality(simulation, experiment),
+   };
+ }
+ 
+@@ -128,6 +131,25 @@ export function renderRealityInspector(container, simulation, experiment) {
+   }
+   container.appendChild(metrics);
+ 
++  if (explanation.parameterExplanation?.changes?.length) {
++    container.appendChild(element("h3", "", "Why this future changed"));
++    container.appendChild(element("p", "notice", explanation.parameterExplanation.summary));
++    const contributionList = element("div", "driver-list");
++    for (const change of explanation.parameterExplanation.changes.slice(0, 8)) {
++      const row = element("div", "driver-row");
++      const fromTo = change.from == null ? `new → ${change.to ?? "—"}` : `${change.from} → ${change.to ?? "—"}`;
++      const contribution = Number(change.scoreContribution || 0);
++      row.append(
++        element("strong", "", change.label),
++        element("span", "", `${fromTo}${change.connection ? ` · ${change.connection}` : ""}`),
++        element("span", "driver-delta", `${contribution >= 0 ? "+" : ""}${contribution.toFixed(2)} score`),
++      );
++      contributionList.appendChild(row);
++    }
++    container.appendChild(contributionList);
++    container.appendChild(element("p", "notice", explanation.parameterExplanation.warning));
++  }
++
+   if (explanation.timeline.length) {
+     container.appendChild(element("h3", "", "Year-by-year trajectory"));
+     const table = element("table", "analysis-table");
+diff --git a/world/experiment-lab.html b/world/experiment-lab.html
+--- a/world/experiment-lab.html
++++ b/world/experiment-lab.html
+@@ -43,6 +43,7 @@
+     .landscape-bg { fill:#070a0d; }
+     .landscape-point { stroke:#071016; stroke-width:1.2; cursor:pointer; opacity:.82; }
+     .landscape-point.positive { fill:#7ed6a3; } .landscape-point.mixed { fill:#d8bd72; } .landscape-point.negative { fill:#e47f77; } .landscape-point.unknown { fill:#92a2ad; }
++    .landscape-point.overlay-low { fill:#7ea5d6; } .landscape-point.overlay-mid { fill:#aab4bd; } .landscape-point.overlay-high { fill:#e0bd73; }
+     .landscape-point:hover,.landscape-point:focus { stroke:#fff; stroke-width:2; opacity:1; outline:none; }
+     .reality-head { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:12px; }
+     .status-pill { border:1px solid #34414a; border-radius:999px; padding:5px 9px; font-size:11px; }
+@@ -136,6 +137,7 @@ <h2>06 · Scenario-family outcome comparison</h2>
+   <section class="panel" style="margin-top:18px">
+     <h2>07 · Outcome landscape</h2>
+     <p class="notice">Each point is one sampled reality. Nearby points have similar world conditions/outcomes under a lightweight deterministic PCA projection.</p>
++    <div class="button-row"><label class="notice" for="landscape-color">Overlay</label><select id="landscape-color"><option value="outcome">Outcome status</option><option value="plan-benefit">Plan benefit</option></select></div>
+     <svg id="outcome-landscape" class="landscape" aria-label="Outcome landscape"></svg>
+     <div id="landscape-selection" class="status">Run simulations to populate the landscape.</div>
+   </section>
+diff --git a/world/experiment-lab.js b/world/experiment-lab.js
+--- a/world/experiment-lab.js
++++ b/world/experiment-lab.js
+@@ -29,6 +29,7 @@ const state = {
+   parentRecordId: null,
+   improvementComparison: null,
+   scenarioComparison: null,
++  landscapeBatch: null,
+   revisionDraft: null,
+ };
+ 
+@@ -59,6 +60,7 @@ const scenarioTargetStatus = $("#scenario-target-status");
+ const tailPreview = $("#tail-preview");
+ const landscapeSvg = $("#outcome-landscape");
+ const landscapeSelection = $("#landscape-selection");
++const landscapeColorSelect = $("#landscape-color");
+ const realityInspector = $("#reality-inspector");
+ const sensitivityOutput = $("#sensitivity-output");
+ const improvementOutput = $("#improvement-output");
+@@ -388,6 +390,27 @@ function renderScenarioComparison(comparison) {
+   scenarioTargetStatus.textContent = weak ? `Weakest sampled family: ${weak.label}. Targeting changes the improvement search, not the sampled worlds.` : "Select a scenario family to target.";
+ }
+ 
++function renderCurrentLandscape() {
++  const batch = state.landscapeBatch;
++  if (!batch) return;
++  const raw = landscapeColorSelect.value || "outcome";
++  const projectionOptions = raw.startsWith("parameter:")
++    ? { mode: "parameter", parameterId: raw.slice("parameter:".length) }
++    : raw === "plan-benefit" ? { mode: "plan-benefit" } : { mode: "outcome" };
++  const projection = projectOutcomeLandscape(batch.simulations, projectionOptions);
++  renderOutcomeLandscape(landscapeSvg, projection, {
++    overlayMode: projectionOptions.mode,
++    onSelect(point) {
++      landscapeSelection.textContent = `${point.id} · score ${point.score} · ${point.status}`;
++      renderRealityInspector(realityInspector, point.simulation, state.experiment);
++      window.dispatchEvent(new CustomEvent("hbl:reality-selected", { detail: point }));
++    },
++  });
++  landscapeSelection.textContent = `${projection.points.length} realities · ${projection.method} · ${raw.replace("parameter:", "")}`;
++}
++
++landscapeColorSelect.addEventListener("change", renderCurrentLandscape);
++
+ function renderSimulationBatch(batch) {
+   state.simulationBatch = batch;
+   const modelLabel = batch.adapter.predictive
+@@ -413,15 +436,16 @@ function renderSimulationBatch(batch) {
+     ...state.analyzedExperiment,
+     analysis: { ...(state.analyzedExperiment?.analysis || {}), scenarioFamilies: scenarioComparison },
+   };
+-  const projection = projectOutcomeLandscape(batch.simulations);
+-  renderOutcomeLandscape(landscapeSvg, projection, {
+-    onSelect(point) {
+-      landscapeSelection.textContent = `${point.id} · score ${point.score} · ${point.status}`;
+-      renderRealityInspector(realityInspector, point.simulation, state.experiment);
+-      window.dispatchEvent(new CustomEvent("hbl:reality-selected", { detail: point }));
+-    },
+-  });
+-  landscapeSelection.textContent = `${projection.points.length} realities · ${projection.method}`;
++  state.landscapeBatch = batch;
++  const currentOverlay = landscapeColorSelect.value;
++  const options = [
++    { value: "outcome", label: "Outcome status" },
++    { value: "plan-benefit", label: "Plan benefit" },
++    ...(state.experiment?.worldModel?.variables || []).map((variable) => ({ value: `parameter:${variable.id}`, label: variable.label || variable.id })),
++  ];
++  landscapeColorSelect.innerHTML = options.map((option) => `<option value="${escapeHtml(option.value)}">${escapeHtml(option.label)}</option>`).join("");
++  landscapeColorSelect.value = options.some((option) => option.value === currentOverlay) ? currentOverlay : "outcome";
++  renderCurrentLandscape();
+   const worst = [...batch.simulations].sort((a, b) => a.score - b.score)[0];
+   if (worst) renderRealityInspector(realityInspector, worst, state.experiment);
+   state.sensitivity = analyzeSensitivity(batch, state.experiment);
+diff --git a/world/outcome-landscape-parameter.test.js b/world/outcome-landscape-parameter.test.js
+new file mode 100644
+--- /dev/null
++++ b/world/outcome-landscape-parameter.test.js
+@@ -0,0 +1,22 @@
++import test from "node:test";
++import assert from "node:assert/strict";
++import { projectOutcomeLandscape } from "./outcome-landscape.js";
++
++const simulations = [
++  { worldId: "a", score: 40, status: "negative", world: { conditions: { x: 2 }, normalized: { x: 0.2 } }, parameterContributions: [{ scoreContribution: -3 }] },
++  { worldId: "b", score: 70, status: "positive", world: { conditions: { x: 8 }, normalized: { x: 0.8 } }, parameterContributions: [{ scoreContribution: 5 }] },
++];
++
++test("landscape projection preserves world identity while exposing parameter overlay values", () => {
++  const base = projectOutcomeLandscape(simulations);
++  const overlay = projectOutcomeLandscape(simulations, { mode: "parameter", parameterId: "x" });
++  assert.deepEqual(base.points.map((row) => row.id), overlay.points.map((row) => row.id));
++  assert.equal(overlay.points[0].overlayValue, 0.2);
++  assert.equal(overlay.points[1].overlayValue, 0.8);
++});
++
++test("plan benefit overlay sums per-world parameter contributions", () => {
++  const projection = projectOutcomeLandscape(simulations, { mode: "plan-benefit" });
++  assert.equal(projection.points[0].overlayValue, -3);
++  assert.equal(projection.points[1].overlayValue, 5);
++});
+diff --git a/world/outcome-landscape.js b/world/outcome-landscape.js
+--- a/world/outcome-landscape.js
++++ b/world/outcome-landscape.js
+@@ -84,7 +84,21 @@ function scaleAxis(values) {
+   return values.map((value) => (value - center) / half);
+ }
+ 
+-export function projectOutcomeLandscape(simulations = []) {
++function overlayValue(simulation, options = {}) {
++  if (options.mode === "parameter" && options.parameterId) {
++    const normalized = simulation?.world?.normalized?.[options.parameterId];
++    if (Number.isFinite(Number(normalized))) return Number(normalized);
++    const value = simulation?.world?.conditions?.[options.parameterId];
++    return Number.isFinite(Number(value)) ? Number(value) : null;
++  }
++  if (options.mode === "plan-benefit") {
++    const values = (simulation?.parameterContributions || []).map((row) => Number(row.scoreContribution)).filter(Number.isFinite);
++    return values.length ? values.reduce((sum, value) => sum + value, 0) : 0;
++  }
++  return null;
++}
++
++export function projectOutcomeLandscape(simulations = [], options = {}) {
+   if (!simulations.length) return { method: "pca-lite-v1", variableIds: [], points: [] };
+   const variableIds = [...new Set(simulations.flatMap((row) => Object.keys(row?.world?.conditions || {})))].sort();
+   const featureIds = [...variableIds, "__outcome_score"];
+@@ -119,6 +133,7 @@ export function projectOutcomeLandscape(simulations = []) {
+       y: sy[index],
+       score: simulation.score,
+       status: simulation.status,
++      overlayValue: overlayValue(simulation, options),
+       simulation,
+     })),
+   };
+@@ -146,13 +161,19 @@ export function renderOutcomeLandscape(svg, projection, options = {}) {
+     const y = padding + ((1 - (point.y + 1) / 2)) * (height - padding * 2);
+     circle.setAttribute("cx", String(x));
+     circle.setAttribute("cy", String(y));
+-    circle.setAttribute("r", point.status === "negative" ? "4.6" : "3.8");
+-    circle.setAttribute("class", `landscape-point ${point.status || "unknown"}`);
++    const overlayEnabled = options.overlayMode && options.overlayMode !== "outcome";
++    const overlay = Number(point.overlayValue);
++    const overlayMagnitude = Number.isFinite(overlay) ? Math.min(1, Math.abs(overlay)) : 0;
++    circle.setAttribute("r", overlayEnabled ? String(3.8 + overlayMagnitude * 3.2) : (point.status === "negative" ? "4.6" : "3.8"));
++    const overlayClass = overlayEnabled && Number.isFinite(overlay)
++      ? overlay > 0.1 ? "overlay-high" : overlay < -0.1 ? "overlay-low" : "overlay-mid"
++      : "";
++    circle.setAttribute("class", `landscape-point ${overlayClass || point.status || "unknown"}`);
+     circle.setAttribute("tabindex", "0");
+     circle.setAttribute("role", "button");
+     circle.setAttribute("aria-label", `${point.id}: score ${point.score}`);
+     const title = document.createElementNS(namespace, "title");
+-    title.textContent = `${point.id} · score ${point.score} · ${point.status}`;
++    title.textContent = `${point.id} · score ${point.score} · ${point.status}${overlayEnabled && Number.isFinite(overlay) ? ` · overlay ${overlay.toFixed(3)}` : ""}`;
+     circle.appendChild(title);
+     circle.addEventListener("click", () => onSelect(point));
+     circle.addEventListener("keydown", (event) => {
+@@ -163,4 +184,4 @@ export function renderOutcomeLandscape(svg, projection, options = {}) {
+   return svg;
+ }
+ 
+-export const __test = { dot, norm, covariance, standardize, powerIteration, scaleAxis };
++export const __test = { dot, norm, covariance, standardize, powerIteration, scaleAxis, overlayValue };
+diff --git a/world/parameter-sweep.js b/world/parameter-sweep.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-sweep.js
+@@ -0,0 +1,96 @@
++import { summarizeOutcomes } from "./outcome-analysis.js";
++import { simulateExperiment } from "./simulation-adapter.js";
++
++function clone(value) {
++  return value == null ? value : (typeof structuredClone === "function" ? structuredClone(value) : JSON.parse(JSON.stringify(value)));
++}
++
++function finite(value, fallback = 0) {
++  const number = Number(value);
++  return Number.isFinite(number) ? number : fallback;
++}
++
++function clamp(value, min, max) {
++  return Math.max(min, Math.min(max, value));
++}
++
++function definition(experiment, parameterId) {
++  return (experiment?.worldModel?.variables || []).find((variable) => variable.id === parameterId) || null;
++}
++
++export function sweepValuesForVariable(variable, options = {}) {
++  if (!variable) return [];
++  if (Array.isArray(options.values) && options.values.length) {
++    const min = finite(variable.range?.min, 0), max = finite(variable.range?.max, 1);
++    return [...new Set(options.values.map(Number).filter(Number.isFinite).map((value) => clamp(value, Math.min(min, max), Math.max(min, max))))].sort((a, b) => a - b);
++  }
++  const count = Math.max(3, Math.min(11, Math.round(finite(options.count, 7))));
++  const min = finite(variable.range?.min, 0);
++  const max = finite(variable.range?.max, 1);
++  if (max <= min) return [min];
++  return Array.from({ length: count }, (_row, index) => min + (index / (count - 1)) * (max - min));
++}
++
++export function shiftWorldParameterBaseline(world, variable, currentBaseline, targetBaseline) {
++  const next = clone(world);
++  const id = variable.id;
++  const min = finite(variable.range?.min, 0);
++  const max = finite(variable.range?.max, 1);
++  const low = Math.min(min, max), high = Math.max(min, max);
++  const delta = targetBaseline - currentBaseline;
++  next.conditions ||= {};
++  next.normalized ||= {};
++  next.deviations ||= {};
++  const before = finite(next.conditions[id], currentBaseline);
++  const after = clamp(before + delta, low, high);
++  const span = high - low;
++  next.conditions[id] = after;
++  next.normalized[id] = span > 0 ? (after - low) / span : 0.5;
++  next.deviations[id] = span > 0 ? (after - targetBaseline) / span : 0;
++  next.sweep = { parameterId: id, baseline: targetBaseline };
++  return next;
++}
++
++export async function runParameterSweep({ experiment, worldBatch, adapter, parameterId, options = {} } = {}) {
++  const variable = definition(experiment, parameterId);
++  if (!variable) throw new Error(`Unknown parameter ${parameterId}`);
++  const configBaseline = worldBatch?.simulationConfig?.parameters?.[parameterId]?.baseline;
++  const currentBaseline = finite(configBaseline, finite(variable.baseline, 0.5));
++  const values = sweepValuesForVariable(variable, options);
++  const points = [];
++
++  for (const value of values) {
++    const shiftedWorldBatch = {
++      ...clone(worldBatch),
++      branch: `sweep-${parameterId}-${value}`,
++      worlds: (worldBatch?.worlds || []).map((world) => shiftWorldParameterBaseline(world, variable, currentBaseline, value)),
++    };
++    const batch = await simulateExperiment(experiment, shiftedWorldBatch, adapter, options);
++    const summary = summarizeOutcomes(batch);
++    points.push({
++      value,
++      expectedScore: summary.expectedScore,
++      robustness: summary.robustness,
++      adverseRate: summary.adverseRate,
++      simulationBatch: options.includeBatches ? batch : undefined,
++    });
++  }
++
++  const best = [...points].sort((a, b) => (Number(b.expectedScore) - Number(a.expectedScore)) || (Number(b.robustness) - Number(a.robustness)))[0] || null;
++  return {
++    schemaVersion: "parameter-sweep.v1",
++    experimentId: experiment?.id || null,
++    parameterId,
++    label: variable.label || parameterId,
++    unit: variable.unit || "index",
++    currentBaseline,
++    worldBatchSeed: worldBatch?.seed ?? null,
++    worldCount: worldBatch?.worlds?.length || 0,
++    points,
++    best,
++    deterministic: true,
++    warning: "Sweep results are model responses on fixed sampled worlds, not real-world dose-response evidence.",
++  };
++}
++
++export const __test = { definition, clamp };
+diff --git a/world/parameter-sweep.test.js b/world/parameter-sweep.test.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-sweep.test.js
+@@ -0,0 +1,31 @@
++import test from "node:test";
++import assert from "node:assert/strict";
++import { createSimulationAdapter } from "./simulation-adapter.js";
++import { runParameterSweep, shiftWorldParameterBaseline, sweepValuesForVariable } from "./parameter-sweep.js";
++
++const variable = { id: "x", label: "X", baseline: 0.5, range: { min: 0, max: 1 } };
++const experiment = { id: "e", plan: { id: "p", actions: [] }, worldModel: { variables: [variable] }, outcomes: { metricRegistry: [] } };
++const worldBatch = {
++  seed: 1,
++  simulationConfig: { parameters: { x: { baseline: 0.5 } } },
++  worlds: [{ id: "w", seed: 2, factors: { f: 0.1 }, conditions: { x: 0.6 }, normalized: { x: 0.6 }, deviations: { x: 0.1 } }],
++};
++
++test("sweep values include deterministic endpoints", () => {
++  assert.deepEqual(sweepValuesForVariable(variable, { count: 3 }), [0, 0.5, 1]);
++});
++
++test("shifting baseline preserves the world's relative random deviation when not clamped", () => {
++  const shifted = shiftWorldParameterBaseline(worldBatch.worlds[0], variable, 0.5, 0.7);
++  assert.ok(Math.abs(shifted.conditions.x - 0.8) < 1e-12);
++  assert.equal(shifted.seed, 2);
++  assert.deepEqual(shifted.factors, { f: 0.1 });
++});
++
++test("parameter sweep runs every point on the same world identities", async () => {
++  const adapter = createSimulationAdapter({ id: "test", simulateWorld({ world }) { return { score: world.conditions.x * 100, metrics: {}, status: "mixed" }; } });
++  const result = await runParameterSweep({ experiment, worldBatch, adapter, parameterId: "x", options: { values: [0.25, 0.5, 0.75] } });
++  assert.deepEqual(result.points.map((row) => row.value), [0.25, 0.5, 0.75]);
++  assert.deepEqual(result.points.map((row) => row.expectedScore), [35, 60, 85]);
++  assert.equal(result.best.value, 0.75);
++});
+diff --git a/world/parameter-interactions.js b/world/parameter-interactions.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-interactions.js
+@@ -0,0 +1,101 @@
++import { summarizeOutcomes } from "./outcome-analysis.js";
++import { rebaseWorldForParameterPatch } from "./parameter-paired.js";
++import { simulateExperiment } from "./simulation-adapter.js";
++
++function clone(value) {
++  return value == null ? value : (typeof structuredClone === "function" ? structuredClone(value) : JSON.parse(JSON.stringify(value)));
++}
++
++function finite(value, fallback = 0) {
++  const number = Number(value);
++  return Number.isFinite(number) ? number : fallback;
++}
++
++function mean(values) {
++  const rows = values.map(Number).filter(Number.isFinite);
++  return rows.length ? rows.reduce((sum, value) => sum + value, 0) / rows.length : null;
++}
++
++function patchRows(patch) {
++  return [
++    ...(patch?.edits || []).map((row) => ({ kind: "edit", id: row.parameterId, row })),
++    ...(patch?.additions || []).map((row) => ({ kind: "addition", id: row.parameterId, row })),
++  ];
++}
++
++function selectPatch(patch, ids) {
++  const wanted = new Set(ids);
++  return {
++    id: `${patch?.id || "patch"}__${[...wanted].sort().join("_")}`,
++    edits: (patch?.edits || []).filter((row) => wanted.has(row.parameterId)),
++    additions: (patch?.additions || []).filter((row) => wanted.has(row.parameterId)),
++  };
++}
++
++function revertIds(experiment, worldBatch, patch, ids, label) {
++  const subset = selectPatch(patch, ids);
++  return {
++    ...clone(worldBatch),
++    branch: label,
++    worlds: (worldBatch?.worlds || []).map((world) => rebaseWorldForParameterPatch(world, experiment, subset, "baseline")),
++  };
++}
++
++async function scoreBranch(experiment, worldBatch, adapter, options) {
++  const batch = await simulateExperiment(experiment, worldBatch, adapter, options);
++  return { batch, summary: summarizeOutcomes(batch) };
++}
++
++export async function analyzeParameterInteractions({ experiment, worldBatch, adapter, patch, options = {} } = {}) {
++  if (!experiment || !worldBatch || !adapter || !patch) throw new Error("analyzeParameterInteractions requires experiment, worldBatch, adapter, and patch");
++  const limit = Math.max(2, Math.min(8, Math.round(finite(options.limit, 5))));
++  const rows = patchRows(patch).slice(0, limit);
++  const pairs = [];
++  const planBranch = options.planBatch
++    ? { batch: options.planBatch, summary: summarizeOutcomes(options.planBatch) }
++    : await scoreBranch(experiment, worldBatch, adapter, options);
++
++  for (let i = 0; i < rows.length; i += 1) {
++    for (let j = i + 1; j < rows.length; j += 1) {
++      const a = rows[i], b = rows[j];
++      const baselineWorlds = revertIds(experiment, worldBatch, patch, [a.id, b.id], `baseline-${a.id}-${b.id}`);
++      const onlyAWorlds = revertIds(experiment, worldBatch, patch, [b.id], `only-${a.id}`);
++      const onlyBWorlds = revertIds(experiment, worldBatch, patch, [a.id], `only-${b.id}`);
++      const [baseline, onlyA, onlyB] = await Promise.all([
++        scoreBranch(experiment, baselineWorlds, adapter, options),
++        scoreBranch(experiment, onlyAWorlds, adapter, options),
++        scoreBranch(experiment, onlyBWorlds, adapter, options),
++      ]);
++      const baseScore = finite(baseline.summary.expectedScore);
++      const effectA = finite(onlyA.summary.expectedScore) - baseScore;
++      const effectB = finite(onlyB.summary.expectedScore) - baseScore;
++      const effectAB = finite(planBranch.summary.expectedScore) - baseScore;
++      const interaction = effectAB - effectA - effectB;
++      pairs.push({
++        parameterA: a.id,
++        parameterB: b.id,
++        baselineScore: baseScore,
++        effectA,
++        effectB,
++        jointEffect: effectAB,
++        interaction,
++        interactionType: interaction > 0.5 ? "synergy" : interaction < -0.5 ? "conflict" : "approximately-additive",
++        magnitude: Math.abs(interaction),
++      });
++    }
++  }
++
++  pairs.sort((a, b) => b.magnitude - a.magnitude || a.parameterA.localeCompare(b.parameterA));
++  return {
++    schemaVersion: "parameter-interactions.v1",
++    experimentId: experiment.id || null,
++    parameterPatchId: patch.id || null,
++    worldBatchSeed: worldBatch.seed ?? null,
++    worldCount: worldBatch.worlds?.length || 0,
++    pairs,
++    strongest: pairs[0] || null,
++    warning: "Interaction scores describe this HBL model on fixed sampled worlds, not real-world causal interaction effects.",
++  };
++}
++
++export const __test = { patchRows, selectPatch, revertIds, mean };
+diff --git a/world/parameter-interactions.test.js b/world/parameter-interactions.test.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-interactions.test.js
+@@ -0,0 +1,33 @@
++import test from "node:test";
++import assert from "node:assert/strict";
++import { createSimulationAdapter } from "./simulation-adapter.js";
++import { analyzeParameterInteractions } from "./parameter-interactions.js";
++
++const experiment = {
++  id: "e",
++  plan: { id: "p", actions: [] },
++  worldModel: { variables: [
++    { id: "x", baseline: 0.7, range: { min: 0, max: 1 } },
++    { id: "y", baseline: 0.8, range: { min: 0, max: 1 } },
++  ] },
++  outcomes: { metricRegistry: [] },
++};
++const worldBatch = { seed: 1, worlds: [{ id: "w", conditions: { x: 0.7, y: 0.8 }, normalized: { x: 0.7, y: 0.8 }, deviations: { x: 0, y: 0 } }] };
++const patch = { id: "p1", edits: [
++  { parameterId: "x", from: 0.5, to: 0.7 },
++  { parameterId: "y", from: 0.5, to: 0.8 },
++], additions: [] };
++
++test("additive model produces near-zero interaction", async () => {
++  const adapter = createSimulationAdapter({ id: "add", simulateWorld({ world }) { return { score: world.conditions.x * 10 + world.conditions.y * 10, metrics: {}, status: "mixed" }; } });
++  const result = await analyzeParameterInteractions({ experiment, worldBatch, adapter, patch });
++  assert.ok(Math.abs(result.pairs[0].interaction) < 1e-9);
++  assert.equal(result.pairs[0].interactionType, "approximately-additive");
++});
++
++test("nonlinear joint model detects synergy", async () => {
++  const adapter = createSimulationAdapter({ id: "syn", simulateWorld({ world }) { return { score: world.conditions.x * 10 + world.conditions.y * 10 + world.conditions.x * world.conditions.y * 20, metrics: {}, status: "mixed" }; } });
++  const result = await analyzeParameterInteractions({ experiment, worldBatch, adapter, patch });
++  assert.ok(result.pairs[0].interaction > 0.5);
++  assert.equal(result.pairs[0].interactionType, "synergy");
++});
+diff --git a/world/multi-plan-comparison.js b/world/multi-plan-comparison.js
+--- a/world/multi-plan-comparison.js
++++ b/world/multi-plan-comparison.js
+@@ -1,5 +1,6 @@
+ import { summarizeOutcomes } from "./outcome-analysis.js";
+ import { simulateExperiment } from "./simulation-adapter.js";
++import { rebaseWorldForParameterPatch } from "./parameter-paired.js";
+ 
+ function clone(value) { return value == null ? value : JSON.parse(JSON.stringify(value)); }
+ function finite(value, fallback = null) { const n = Number(value); return Number.isFinite(n) ? n : fallback; }
+@@ -97,3 +98,59 @@ export function summarizePlanComparison(comparison) {
+   const ranked = [...rows].sort((a, b) => (Number(b.robustness) - Number(a.robustness)) || (Number(b.expectedScore) - Number(a.expectedScore)));
+   return { schemaVersion: "multi-plan-summary.v1", rows, bestByRobustness: ranked[0] || null };
+ }
++
++export function createParameterVariantWorldBatch(experiment, baselineWorldBatch, parameterPatch, variantId = "variant") {
++  const worlds = (baselineWorldBatch?.worlds || []).map((world) => rebaseWorldForParameterPatch(world, experiment, parameterPatch, "plan"));
++  return {
++    ...clone(baselineWorldBatch),
++    branch: `parameter-variant-${variantId}`,
++    parameterPatchId: parameterPatch?.id || null,
++    worlds,
++  };
++}
++
++export async function compareParameterPatchVariants({
++  experiment,
++  variants = [],
++  baselineWorldBatch,
++  adapter,
++  options = {},
++} = {}) {
++  if (!experiment || !baselineWorldBatch || !adapter) throw new Error("compareParameterPatchVariants requires experiment, baselineWorldBatch, and adapter");
++  if (!variants.length) throw new Error("compareParameterPatchVariants requires at least one variant");
++  const results = [];
++
++  for (let index = 0; index < variants.length; index += 1) {
++    const variant = variants[index] || {};
++    const parameterPatch = variant.parameterPatch || variant.patch;
++    if (!parameterPatch) throw new Error(`Variant ${variant.id || index + 1} is missing parameterPatch`);
++    const variantId = variant.id || parameterPatch.id || `variant_${index + 1}`;
++    const worldBatch = createParameterVariantWorldBatch(experiment, baselineWorldBatch, parameterPatch, variantId);
++    const simulationBatch = await simulateExperiment(experiment, worldBatch, adapter, { ...options, parameterPatch });
++    results.push({
++      variantId,
++      title: variant.title || variant.label || variantId,
++      parameterPatch,
++      simulationBatch,
++      summary: summarizeOutcomes(simulationBatch),
++    });
++  }
++
++  const pairedWorlds = (baselineWorldBatch.worlds || []).map((world) => ({
++    worldId: world.id,
++    results: Object.fromEntries(results.map((result) => {
++      const simulation = result.simulationBatch.simulations.find((row) => row.worldId === world.id);
++      return [result.variantId, { score: simulation?.score ?? null, status: simulation?.status ?? null, metrics: simulation?.metrics || {} }];
++    })),
++  }));
++
++  return {
++    schemaVersion: "parameter-variant-comparison.v1",
++    experimentId: experiment.id || null,
++    worldBatchSeed: baselineWorldBatch.seed ?? null,
++    worldCount: baselineWorldBatch.worlds?.length || 0,
++    variants: results,
++    pairedWorlds,
++    summary: summarizePlanComparison({ variants: results }),
++  };
++}
+diff --git a/world/parameter-variants.test.js b/world/parameter-variants.test.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-variants.test.js
+@@ -0,0 +1,32 @@
++import test from "node:test";
++import assert from "node:assert/strict";
++import { createSimulationAdapter } from "./simulation-adapter.js";
++import { compareParameterPatchVariants } from "./multi-plan-comparison.js";
++
++const experiment = {
++  id: "e",
++  plan: { id: "p", title: "Plan", actions: [] },
++  worldModel: { variables: [{ id: "x", baseline: 0.5, range: { min: 0, max: 1 } }] },
++  outcomes: { metricRegistry: [] },
++};
++const baselineWorldBatch = {
++  seed: 123,
++  worlds: [
++    { id: "w1", seed: 1, scenarioFamily: { id: "baseline" }, factors: { f: 0.2 }, conditions: { x: 0.5 }, normalized: { x: 0.5 }, deviations: { x: 0 } },
++    { id: "w2", seed: 2, scenarioFamily: { id: "recession" }, factors: { f: -0.2 }, conditions: { x: 0.6 }, normalized: { x: 0.6 }, deviations: { x: 0.1 } },
++  ],
++};
++
++test("parameter variants run against identical baseline world identities", async () => {
++  const adapter = createSimulationAdapter({ id: "variant-test", simulateWorld({ world }) { return { score: world.conditions.x * 100, metrics: {}, status: "mixed" }; } });
++  const variants = [
++    { id: "low", parameterPatch: { id: "low-p", edits: [{ parameterId: "x", from: 0.5, to: 0.6 }], additions: [] } },
++    { id: "high", parameterPatch: { id: "high-p", edits: [{ parameterId: "x", from: 0.5, to: 0.9 }], additions: [] } },
++  ];
++  const result = await compareParameterPatchVariants({ experiment, variants, baselineWorldBatch, adapter });
++  assert.equal(result.worldCount, 2);
++  assert.deepEqual(result.pairedWorlds.map((row) => row.worldId), ["w1", "w2"]);
++  assert.equal(result.variants[0].simulationBatch.simulations[0].world.seed, 1);
++  assert.equal(result.variants[1].simulationBatch.simulations[0].world.seed, 1);
++  assert.ok(result.variants[1].summary.expectedScore > result.variants[0].summary.expectedScore);
++});
+diff --git a/world/civic-experiment.js b/world/civic-experiment.js
+--- a/world/civic-experiment.js
++++ b/world/civic-experiment.js
+@@ -91,6 +91,7 @@ function normalizeAction(item, index) {
+     metrics: asArray(proposal.metrics ?? row.metrics),
+     parameterEdits: asArray(proposal.parameterEdits ?? proposal.parameter_edits ?? row.parameterEdits ?? row.parameter_edits),
+     simulationParameters: asArray(proposal.simulationParameters ?? proposal.simulation_parameters ?? row.simulationParameters ?? row.simulation_parameters),
++    parameterConstraints: asArray(proposal.parameterConstraints ?? proposal.parameter_constraints ?? row.parameterConstraints ?? row.parameter_constraints),
+   });
+ }
+ 
+@@ -161,6 +162,7 @@ export function buildPlanManifest(synthesis, request = {}, now = new Date()) {
+     failureConditions: asArray(primary.failureConditions ?? primary.failure_conditions ?? primary.risks),
+     parameterEdits: asArray(primary.parameterEdits ?? primary.parameter_edits),
+     simulationParameters: asArray(primary.simulationParameters ?? primary.simulation_parameters),
++    parameterConstraints: asArray(primary.parameterConstraints ?? primary.parameter_constraints),
+     alternatives: packages.slice(1).map((pkg, index) => compact({
+       id: firstString(pkg.id, pkg.packageId, pkg.planId) || `alternative_${index + 1}`,
+       title: firstString(pkg.title, pkg.name, pkg.label) || `Alternative ${index + 1}`,
+diff --git a/world/parameter-constraints.js b/world/parameter-constraints.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-constraints.js
+@@ -0,0 +1,100 @@
++import { buildSimulationConfig } from "./simulation-config.js";
++
++function asArray(value) { return Array.isArray(value) ? value : []; }
++function finite(value) { const number = Number(value); return Number.isFinite(number) ? number : null; }
++
++function compare(actual, op, expected) {
++  if (actual === null || expected === null) return false;
++  if (op === ">") return actual > expected;
++  if (op === ">=") return actual >= expected;
++  if (op === "<") return actual < expected;
++  if (op === "<=") return actual <= expected;
++  if (op === "!=") return actual !== expected;
++  return actual === expected;
++}
++
++function normalizeCondition(raw) {
++  if (!raw || typeof raw !== "object") return null;
++  const parameterId = raw.parameterId ?? raw.parameter_id ?? raw.parameter ?? raw.id;
++  const value = finite(raw.value ?? raw.target ?? raw.threshold);
++  if (typeof parameterId !== "string" || !parameterId.trim() || value === null) return null;
++  return { parameterId: parameterId.trim(), op: String(raw.op || raw.operator || ">=").trim(), value };
++}
++
++export function collectParameterConstraints(experiment) {
++  const rows = [...asArray(experiment?.plan?.parameterConstraints), ...asArray(experiment?.plan?.parameter_constraints)];
++  for (const action of asArray(experiment?.plan?.actions)) {
++    rows.push(...asArray(action?.parameterConstraints), ...asArray(action?.parameter_constraints));
++  }
++  return rows.map((raw, index) => {
++    const when = normalizeCondition(raw?.if ?? raw?.when);
++    const requires = asArray(raw?.requires).map(normalizeCondition).filter(Boolean);
++    return {
++      id: raw?.id || "constraint_" + (index + 1),
++      when,
++      requires,
++      policy: ["warn", "clamp", "reject"].includes(raw?.policy) ? raw.policy : "warn",
++      message: raw?.message || null,
++    };
++  }).filter((row) => row.requires.length);
++}
++
++function valueFor(config, parameterId) { return finite(config?.parameters?.[parameterId]?.baseline); }
++function conditionMet(config, condition) {
++  if (!condition) return true;
++  return compare(valueFor(config, condition.parameterId), condition.op, condition.value);
++}
++function suggestedValue(requirement) { return requirement.value; }
++
++export function evaluateParameterConstraints(experiment, simulationConfig) {
++  const constraints = collectParameterConstraints(experiment);
++  const violations = [];
++  for (const constraint of constraints) {
++    if (!conditionMet(simulationConfig, constraint.when)) continue;
++    const failed = constraint.requires.filter((requirement) => !conditionMet(simulationConfig, requirement));
++    if (!failed.length) continue;
++    violations.push({
++      constraintId: constraint.id,
++      policy: constraint.policy,
++      message: constraint.message || ("Constraint " + constraint.id + " is not satisfied."),
++      when: constraint.when,
++      failedRequirements: failed.map((requirement) => ({
++        ...requirement,
++        actual: valueFor(simulationConfig, requirement.parameterId),
++        suggestedValue: suggestedValue(requirement),
++      })),
++    });
++  }
++  return {
++    schemaVersion: "parameter-constraint-evaluation.v1",
++    constraintCount: constraints.length,
++    violationCount: violations.length,
++    hasReject: violations.some((row) => row.policy === "reject"),
++    hasClampSuggestion: violations.some((row) => row.policy === "clamp"),
++    violations,
++    valid: !violations.some((row) => row.policy === "reject"),
++  };
++}
++
++export function validateParameterConfiguration(experiment, overrides = {}, options = {}) {
++  const simulationConfig = options.simulationConfig || buildSimulationConfig(experiment, overrides, { parameterPatch: options.parameterPatch });
++  return { simulationConfig, evaluation: evaluateParameterConstraints(experiment, simulationConfig) };
++}
++
++export function suggestedConstraintOverrides(evaluation, existingOverrides = {}) {
++  const overrides = typeof structuredClone === "function" ? structuredClone(existingOverrides || {}) : JSON.parse(JSON.stringify(existingOverrides || {}));
++  for (const violation of evaluation?.violations || []) {
++    if (violation.policy !== "clamp") continue;
++    for (const requirement of violation.failedRequirements || []) {
++      const current = overrides[requirement.parameterId] || {};
++      overrides[requirement.parameterId] = {
++        ...current,
++        baseline: requirement.suggestedValue,
++        reason: "Constraint suggestion from " + violation.constraintId + "; review before applying.",
++      };
++    }
++  }
++  return overrides;
++}
++
++export const __test = { compare, normalizeCondition, conditionMet, valueFor };
+diff --git a/world/parameter-constraints.test.js b/world/parameter-constraints.test.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-constraints.test.js
+@@ -0,0 +1,32 @@
++import test from "node:test";
++import assert from "node:assert/strict";
++import { evaluateParameterConstraints, suggestedConstraintOverrides } from "./parameter-constraints.js";
++
++const experiment = { plan: { parameterConstraints: [
++  { id: "fast-build-needs-labor", if: { parameterId: "construction_rate", op: ">", value: 2 }, requires: [{ parameterId: "labor_availability", op: ">=", value: 0.65 }], policy: "clamp", message: "High construction requires sufficient labor." },
++  { id: "hard-cap", if: { parameterId: "construction_rate", op: ">", value: 3 }, requires: [{ parameterId: "infrastructure_capacity", op: ">=", value: 0.7 }], policy: "reject" },
++] } };
++
++test("constraint evaluation reports failed requirements without mutating config", () => {
++  const config = { parameters: { construction_rate: { baseline: 2.5 }, labor_availability: { baseline: 0.5 }, infrastructure_capacity: { baseline: 0.8 } } };
++  const before = JSON.stringify(config);
++  const evaluation = evaluateParameterConstraints(experiment, config);
++  assert.equal(evaluation.violationCount, 1);
++  assert.equal(evaluation.violations[0].policy, "clamp");
++  assert.equal(evaluation.violations[0].failedRequirements[0].suggestedValue, 0.65);
++  assert.equal(JSON.stringify(config), before);
++});
++
++test("reject constraints make the configuration invalid", () => {
++  const config = { parameters: { construction_rate: { baseline: 3.5 }, labor_availability: { baseline: 0.8 }, infrastructure_capacity: { baseline: 0.5 } } };
++  const evaluation = evaluateParameterConstraints(experiment, config);
++  assert.equal(evaluation.hasReject, true);
++  assert.equal(evaluation.valid, false);
++});
++
++test("clamp policy returns a reviewable override suggestion rather than silently applying it", () => {
++  const evaluation = { violations: [{ constraintId: "c", policy: "clamp", failedRequirements: [{ parameterId: "labor", suggestedValue: 0.65 }] }] };
++  const overrides = suggestedConstraintOverrides(evaluation, { labor: { min: 0, max: 1 } });
++  assert.equal(overrides.labor.baseline, 0.65);
++  assert.match(overrides.labor.reason, /review before applying/);
++});
+diff --git a/world/dear-congress-feedback.js b/world/dear-congress-feedback.js
+--- a/world/dear-congress-feedback.js
++++ b/world/dear-congress-feedback.js
+@@ -23,6 +23,9 @@ export function buildRevisionNarrative({ experiment, improvement, comparison } =
+ 
+   if (improvement.description) lines.push(`Rationale: ${improvement.description}`);
+   if (improvement.targetVariableLabel) lines.push(`Stress-test variable: ${improvement.targetVariableLabel}`);
++  if (improvement.parameterEdit?.parameterId) {
++    lines.push(`Parameter edit: ${improvement.parameterEdit.parameterId} ${improvement.parameterEdit.operation || "set"} ${improvement.parameterEdit.value}`);
++  }
+ 
+   if (comparison) {
+     lines.push(
+@@ -55,6 +58,8 @@ export function buildDearCongressRevisionDraft({ experiment, improvement, compar
+       planId: experiment?.plan?.id || null,
+       recordId,
+       improvementId: improvement?.id || null,
++      parameterEdits: improvement?.parameterEdit ? [improvement.parameterEdit] : [],
++      evidence: improvement?.evidence || null,
+       pairedWorlds: comparison?.worldCount || comparison?.after?.worldCount || comparison?.before?.worldCount || null,
+       generatedFromSimulation: true,
+       warning: "Simulation-derived hypothesis; not causal evidence or a forecast.",
+diff --git a/world/parameter-revision.js b/world/parameter-revision.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-revision.js
+@@ -0,0 +1,127 @@
++function finite(value, fallback = null) {
++  const number = Number(value);
++  return Number.isFinite(number) ? number : fallback;
++}
++
++function hashString(value) {
++  let hash = 0x811c9dc5;
++  for (const char of String(value)) {
++    hash ^= char.charCodeAt(0);
++    hash = Math.imul(hash, 0x01000193);
++  }
++  return (hash >>> 0).toString(16).padStart(8, "0");
++}
++
++function currentValue(experiment, parameterId) {
++  const configValue = experiment?.lineage?.appliedParameterPatch?.edits?.find((row) => row.parameterId === parameterId)?.to;
++  if (Number.isFinite(Number(configValue))) return Number(configValue);
++  const variable = experiment?.worldModel?.variables?.find((row) => row.id === parameterId);
++  return finite(variable?.baseline);
++}
++
++export function generateParameterRevisionSuggestions({
++  experiment,
++  attribution = null,
++  sweeps = [],
++  constraintEvaluation = null,
++  paired = null,
++  limit = 6,
++} = {}) {
++  if (!experiment) throw new Error("generateParameterRevisionSuggestions requires experiment");
++  const suggestions = [];
++  const seen = new Set();
++
++  for (const sweep of sweeps || []) {
++    const parameterId = sweep?.parameterId;
++    const best = sweep?.best;
++    if (!parameterId || !Number.isFinite(Number(best?.value)) || seen.has(parameterId)) continue;
++    const current = finite(sweep.currentBaseline, currentValue(experiment, parameterId));
++    const target = Number(best.value);
++    if (current !== null && Math.abs(target - current) < 1e-9) continue;
++    seen.add(parameterId);
++    suggestions.push({
++      id: "parameter_revision_" + hashString(parameterId + ":sweep:" + target),
++      type: "parameter-revision",
++      title: "Move " + (sweep.label || parameterId) + " toward the best tested sweep value",
++      parameterEdit: { parameterId, operation: "set", value: target, reason: "Best expected score in fixed-world HBL parameter sweep." },
++      evidence: {
++        source: "parameter-sweep",
++        currentValue: current,
++        suggestedValue: target,
++        expectedScoreAtSuggestion: finite(best.expectedScore),
++        worldCount: sweep.worldCount || null,
++      },
++      warning: "Sweep optimum is model evidence, not real-world causal proof.",
++    });
++  }
++
++  for (const violation of constraintEvaluation?.violations || []) {
++    if (violation.policy !== "clamp") continue;
++    for (const requirement of violation.failedRequirements || []) {
++      const parameterId = requirement.parameterId;
++      if (!parameterId || seen.has(parameterId)) continue;
++      seen.add(parameterId);
++      suggestions.push({
++        id: "parameter_revision_" + hashString(parameterId + ":constraint:" + requirement.suggestedValue),
++        type: "parameter-revision",
++        title: "Satisfy feasibility constraint for " + parameterId,
++        parameterEdit: { parameterId, operation: "set", value: requirement.suggestedValue, reason: violation.message || ("Satisfy " + violation.constraintId) },
++        evidence: {
++          source: "parameter-constraint",
++          constraintId: violation.constraintId,
++          currentValue: requirement.actual,
++          suggestedValue: requirement.suggestedValue,
++        },
++        warning: "Constraint suggestions encode declared model assumptions and require human review.",
++      });
++    }
++  }
++
++  for (const row of attribution?.parameters || []) {
++    if (suggestions.length >= limit) break;
++    if (seen.has(row.parameterId) || !(Number(row.meanScoreContribution) < -0.01)) continue;
++    const applied = experiment?.lineage?.appliedParameterPatch?.edits?.find((edit) => edit.parameterId === row.parameterId);
++    if (!applied || !Number.isFinite(Number(applied.from))) continue;
++    seen.add(row.parameterId);
++    suggestions.push({
++      id: "parameter_revision_" + hashString(row.parameterId + ":revert:" + applied.from),
++      type: "parameter-revision",
++      title: "Reconsider " + (row.label || row.parameterId) + " change",
++      parameterEdit: { parameterId: row.parameterId, operation: "set", value: Number(applied.from), reason: "Leave-one-parameter-out replay improved model score when this change was reverted." },
++      evidence: {
++        source: "parameter-attribution",
++        meanScoreContribution: row.meanScoreContribution,
++        affectedWorlds: row.affectedWorlds,
++        worldCount: row.worldCount,
++        pairedMeanScoreDelta: paired?.paired?.meanScoreDelta ?? null,
++      },
++      warning: "Negative modeled contribution is not proof the real-world policy should be reversed.",
++    });
++  }
++
++  return suggestions.slice(0, Math.max(1, Math.min(20, Number(limit) || 6)));
++}
++
++export function applyParameterRevision(experiment, suggestion) {
++  if (!suggestion?.parameterEdit?.parameterId) throw new Error("Parameter revision requires parameterEdit");
++  const revision = Math.max(1, Number(experiment?.lineage?.revision || 1) + 1);
++  const edit = { ...suggestion.parameterEdit, revisionSuggestionId: suggestion.id };
++  return {
++    ...experiment,
++    id: "exp_" + hashString((experiment?.id || "experiment") + ":" + revision + ":" + suggestion.id),
++    plan: {
++      ...experiment.plan,
++      parameterEdits: [...(experiment?.plan?.parameterEdits || []), edit],
++    },
++    outcomes: { ...(experiment?.outcomes || {}), worlds: [], clusters: [] },
++    analysis: { ...(experiment?.analysis || {}), robustness: null, tailRisks: [], sensitivities: [], failureModes: [], suggestedChanges: [] },
++    lineage: {
++      ...(experiment?.lineage || {}),
++      parentExperimentId: experiment?.id || null,
++      revision,
++      appliedParameterRevisionId: suggestion.id,
++    },
++  };
++}
++
++export const __test = { hashString, currentValue };
+diff --git a/world/parameter-revision.test.js b/world/parameter-revision.test.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-revision.test.js
+@@ -0,0 +1,42 @@
++import test from "node:test";
++import assert from "node:assert/strict";
++import { applyParameterRevision, generateParameterRevisionSuggestions } from "./parameter-revision.js";
++import { buildDearCongressRevisionDraft } from "./dear-congress-feedback.js";
++
++const experiment = {
++  id: "e1",
++  plan: { id: "p1", title: "Housing plan", parameterEdits: [] },
++  worldModel: { variables: [{ id: "permit", label: "Permit delay", baseline: 3 }] },
++  lineage: { revision: 1, appliedParameterPatch: { edits: [{ parameterId: "permit", from: 8, to: 3 }] } },
++};
++
++test("sweep evidence becomes an explicit parameter edit suggestion", () => {
++  const suggestions = generateParameterRevisionSuggestions({
++    experiment,
++    sweeps: [{ parameterId: "permit", label: "Permit delay", currentBaseline: 3, worldCount: 100, best: { value: 2, expectedScore: 78 } }],
++  });
++  assert.equal(suggestions[0].parameterEdit.parameterId, "permit");
++  assert.equal(suggestions[0].parameterEdit.value, 2);
++  assert.equal(suggestions[0].evidence.source, "parameter-sweep");
++});
++
++test("negative attribution can recommend reverting the plan parameter change", () => {
++  const suggestions = generateParameterRevisionSuggestions({
++    experiment,
++    attribution: { parameters: [{ parameterId: "permit", label: "Permit delay", meanScoreContribution: -4, affectedWorlds: 8, worldCount: 10 }] },
++  });
++  assert.equal(suggestions[0].parameterEdit.value, 8);
++});
++
++test("applying a parameter revision increments lineage and Dear Congress draft carries the edit", () => {
++  const suggestion = generateParameterRevisionSuggestions({
++    experiment,
++    sweeps: [{ parameterId: "permit", currentBaseline: 3, best: { value: 2, expectedScore: 80 } }],
++  })[0];
++  const revised = applyParameterRevision(experiment, suggestion);
++  assert.equal(revised.lineage.revision, 2);
++  assert.equal(revised.plan.parameterEdits.at(-1).value, 2);
++  const draft = buildDearCongressRevisionDraft({ experiment, improvement: suggestion, comparison: null });
++  assert.equal(draft.metadata.parameterEdits[0].parameterId, "permit");
++  assert.equal(draft.metadata.evidence.source, "parameter-sweep");
++});
+diff --git a/world/experiment-lab.html b/world/experiment-lab.html
+--- a/world/experiment-lab.html
++++ b/world/experiment-lab.html
+@@ -204,6 +204,25 @@ <h2>14 · Digital Pensieve handoff</h2>
+     <div id="pensieve-status" class="status">Load an experiment first.</div>
+   </section>
+ 
++  <section class="panel" style="margin-top:18px" id="parameter-workspace">
++    <h2>15 · Plan → futures → revision workspace</h2>
++    <p class="notice">Run controlled baseline-vs-plan replays, attribute parameter effects, sweep one parameter, inspect pair interactions, and turn model evidence into an explicit plan revision without changing the sampled world IDs.</p>
++    <div class="button-row">
++      <button id="run-parameter-analysis" disabled>Run paired parameter analysis</button>
++      <select id="parameter-sweep-select" disabled aria-label="Parameter to sweep"></select>
++      <button id="run-parameter-sweep" disabled>Sweep selected</button>
++      <button id="run-parameter-interactions" disabled>Analyze interactions</button>
++    </div>
++    <div id="parameter-workspace-status" class="status">Apply a plan parameter patch, generate worlds, and run simulations first.</div>
++    <div id="paired-parameter-summary" class="metric-cards"></div>
++    <div id="parameter-constraint-output"></div>
++    <div id="parameter-attribution-output"></div>
++    <div id="parameter-sweep-output"></div>
++    <div id="parameter-interaction-output"></div>
++    <div id="parameter-revision-output"></div>
++    <div id="parameter-revision-result" class="status"></div>
++  </section>
++
+ </main>
+ <script type="module" src="./experiment-lab.js"></script>
+ </body>
+diff --git a/world/experiment-lab.js b/world/experiment-lab.js
+--- a/world/experiment-lab.js
++++ b/world/experiment-lab.js
+@@ -14,12 +14,24 @@ import { listExperimentRecords, loadExperimentRecord, saveExperimentRecord } fro
+ import { buildDearCongressRevisionDraft, postDearCongressRevisionDraft } from "./dear-congress-feedback.js";
+ import { buildPensieveHandoff, buildPensieveLaunchUrl, downloadPensieveHandoff, serializePensieveHandoff } from "./pensieve-handoff.js";
+ import { applyPlanParameterPatch, compilePlanParameterPatch } from "./plan-parameter-patch.js";
++import { runParameterSweep } from "./parameter-sweep.js";
++import { analyzeParameterInteractions } from "./parameter-interactions.js";
++import { generateParameterRevisionSuggestions } from "./parameter-revision.js";
++import { rerunParameterRevision, runParameterWorkspaceAnalysis } from "./parameter-workspace.js";
++import { validateParameterConfiguration } from "./parameter-constraints.js";
+ 
+ const state = {
+   experiment: null,
+   inspector: null,
+   overrides: {},
+   parameterPatch: null,
++  pairedParameterComparison: null,
++  parameterAttribution: null,
++  parameterSweeps: [],
++  parameterInteractions: null,
++  parameterConstraints: null,
++  parameterRevisionSuggestions: [],
++  parameterRevisionResult: null,
+   worldBatch: null,
+   simulationBatch: null,
+   analyzedExperiment: null,
+@@ -81,6 +93,18 @@ const copyPensieveHandoffButton = $("#copy-pensieve-handoff");
+ const downloadPensieveHandoffButton = $("#download-pensieve-handoff");
+ const openPensieveButton = $("#open-pensieve");
+ const pensieveStatus = $("#pensieve-status");
++const runParameterAnalysisButton = $("#run-parameter-analysis");
++const parameterSweepSelect = $("#parameter-sweep-select");
++const runParameterSweepButton = $("#run-parameter-sweep");
++const runParameterInteractionsButton = $("#run-parameter-interactions");
++const parameterWorkspaceStatus = $("#parameter-workspace-status");
++const pairedParameterSummary = $("#paired-parameter-summary");
++const parameterConstraintOutput = $("#parameter-constraint-output");
++const parameterAttributionOutput = $("#parameter-attribution-output");
++const parameterSweepOutput = $("#parameter-sweep-output");
++const parameterInteractionOutput = $("#parameter-interaction-output");
++const parameterRevisionOutput = $("#parameter-revision-output");
++const parameterRevisionResult = $("#parameter-revision-result");
+ 
+ function setStatus(message, error = false) {
+   status.textContent = message;
+@@ -136,6 +160,14 @@ function renderExperiment(experiment, provenance = null, initialOverrides = {})
+   runVerificationButton.disabled = false;
+   verificationOutput.textContent = "Ready to verify this experiment.";
+   state.worldBatch = null;
++  state.pairedParameterComparison = null;
++  state.parameterAttribution = null;
++  state.parameterSweeps = [];
++  state.parameterInteractions = null;
++  state.parameterConstraints = null;
++  state.parameterRevisionSuggestions = [];
++  state.parameterRevisionResult = null;
++  parameterRevisionResult.textContent = "";
+   worldSummary.textContent = "Ready to generate worlds.";
+   worldPreview.textContent = "[]";
+   state.simulationBatch = null;
+@@ -411,6 +443,230 @@ function renderCurrentLandscape() {
+ 
+ landscapeColorSelect.addEventListener("change", renderCurrentLandscape);
+ 
++
++function appliedParameterPatch() {
++  return state.experiment?.lineage?.appliedParameterPatch || state.parameterPatch || null;
++}
++
++function fmtPct(value) {
++  return value == null ? "—" : `${(Number(value) * 100).toFixed(1)}%`;
++}
++
++function renderParameterConstraints() {
++  if (!state.experiment) return;
++  const patch = appliedParameterPatch();
++  state.parameterConstraints = validateParameterConfiguration(state.experiment, state.overrides, { parameterPatch: patch });
++  const evaluation = state.parameterConstraints.evaluation;
++  if (!evaluation.constraintCount) {
++    parameterConstraintOutput.innerHTML = `<h3>Feasibility</h3><p class="notice">No explicit parameter constraints are declared by this plan.</p>`;
++    return;
++  }
++  if (!evaluation.violationCount) {
++    parameterConstraintOutput.innerHTML = `<h3>Feasibility</h3><p class="notice">All ${evaluation.constraintCount} declared parameter constraints are satisfied.</p>`;
++    return;
++  }
++  parameterConstraintOutput.innerHTML = `<h3>Feasibility</h3><div class="driver-list">${evaluation.violations.map((violation) => `
++    <div class="driver-row"><strong>${escapeHtml(violation.constraintId)}</strong><span>${escapeHtml(violation.message)}</span><span class="driver-delta">${escapeHtml(violation.policy)}</span></div>`).join("")}</div>`;
++}
++
++function renderPairedParameterSummary() {
++  const paired = state.pairedParameterComparison?.paired;
++  if (!paired) {
++    pairedParameterSummary.innerHTML = "";
++    return;
++  }
++  pairedParameterSummary.innerHTML = `
++    <div class="metric-card"><strong>${paired.meanScoreDelta == null ? "—" : (paired.meanScoreDelta >= 0 ? "+" : "") + paired.meanScoreDelta.toFixed(2)}</strong><span>mean plan score delta</span></div>
++    <div class="metric-card"><strong>${paired.improvedWorlds}</strong><span>worlds improved</span></div>
++    <div class="metric-card"><strong>${paired.unchangedWorlds}</strong><span>unchanged</span></div>
++    <div class="metric-card"><strong>${paired.worsenedWorlds}</strong><span>worlds worsened</span></div>`;
++}
++
++function renderParameterAttribution() {
++  const rows = state.parameterAttribution?.parameters || [];
++  if (!rows.length) {
++    parameterAttributionOutput.innerHTML = `<h3>Parameter attribution</h3><p class="notice">Run paired parameter analysis to compute leave-one-out contributions.</p>`;
++    return;
++  }
++  parameterAttributionOutput.innerHTML = `<h3>Parameter attribution</h3><table class="analysis-table"><thead><tr><th>Parameter</th><th>Connection</th><th>Mean score contribution</th><th>Affected worlds</th></tr></thead><tbody>${rows.map((row) => `
++    <tr><td>${escapeHtml(row.label || row.parameterId)}</td><td>${escapeHtml(row.connection || "unknown")}</td><td>${row.meanScoreContribution >= 0 ? "+" : ""}${row.meanScoreContribution}</td><td>${row.affectedWorlds} / ${row.worldCount}</td></tr>`).join("")}</tbody></table>`;
++}
++
++function renderParameterSweeps() {
++  const sweeps = state.parameterSweeps || [];
++  parameterSweepOutput.innerHTML = sweeps.length ? `<h3>Parameter sweeps</h3>${sweeps.map((sweep) => `
++    <div class="improvement-card"><strong>${escapeHtml(sweep.label)}</strong><p>Current ${sweep.currentBaseline} · best tested ${sweep.best?.value ?? "—"} · expected score ${sweep.best?.expectedScore ?? "—"}</p><small>${sweep.points.map((point) => `${Number(point.value).toFixed(2)}→${point.expectedScore}`).join(" · ")}</small></div>`).join("")}` : "";
++}
++
++function renderParameterInteractions() {
++  const pairs = state.parameterInteractions?.pairs || [];
++  parameterInteractionOutput.innerHTML = pairs.length ? `<h3>Parameter interactions</h3><table class="analysis-table"><thead><tr><th>A</th><th>B</th><th>Interaction</th><th>Type</th></tr></thead><tbody>${pairs.slice(0, 10).map((row) => `
++    <tr><td>${escapeHtml(row.parameterA)}</td><td>${escapeHtml(row.parameterB)}</td><td>${row.interaction >= 0 ? "+" : ""}${row.interaction.toFixed(2)}</td><td>${escapeHtml(row.interactionType)}</td></tr>`).join("")}</tbody></table>` : "";
++}
++
++function refreshParameterRevisionSuggestions() {
++  if (!state.experiment) return;
++  state.parameterRevisionSuggestions = generateParameterRevisionSuggestions({
++    experiment: state.experiment,
++    attribution: state.parameterAttribution,
++    sweeps: state.parameterSweeps,
++    constraintEvaluation: state.parameterConstraints?.evaluation,
++    paired: state.pairedParameterComparison,
++    limit: 6,
++  });
++  const suggestions = state.parameterRevisionSuggestions;
++  parameterRevisionOutput.innerHTML = suggestions.length ? `<h3>Simulation-derived plan revisions</h3><div class="improvement-list">${suggestions.map((suggestion, index) => `
++    <article class="improvement-card"><strong>${escapeHtml(suggestion.title)}</strong><p>${escapeHtml(suggestion.parameterEdit.reason || suggestion.warning || "")}</p><small>${escapeHtml(suggestion.parameterEdit.parameterId)} → ${escapeHtml(String(suggestion.parameterEdit.value))} · ${escapeHtml(suggestion.evidence?.source || "model evidence")}</small><button data-parameter-revision-index="${index}">Apply + re-run same worlds</button></article>`).join("")}</div>` : `<h3>Simulation-derived plan revisions</h3><p class="notice">Run attribution or a parameter sweep to generate revision candidates.</p>`;
++  parameterRevisionOutput.querySelectorAll("[data-parameter-revision-index]").forEach((button) => {
++    button.addEventListener("click", () => applyAndRerunParameterRevision(Number(button.dataset.parameterRevisionIndex), button));
++  });
++}
++
++function refreshParameterWorkspace() {
++  renderParameterConstraints();
++  const patch = appliedParameterPatch();
++  const ready = Boolean(state.experiment && state.worldBatch && state.simulationBatch && patch && ((patch.edits?.length || 0) + (patch.additions?.length || 0)));
++  runParameterAnalysisButton.disabled = !ready;
++  runParameterInteractionsButton.disabled = !ready;
++  const parameterIds = [...new Set([...(patch?.edits || []).map((row) => row.parameterId), ...(patch?.additions || []).map((row) => row.parameterId)])];
++  const previous = parameterSweepSelect.value;
++  parameterSweepSelect.innerHTML = parameterIds.map((id) => {
++    const variable = state.experiment?.worldModel?.variables?.find((row) => row.id === id);
++    return `<option value="${escapeHtml(id)}">${escapeHtml(variable?.label || id)}</option>`;
++  }).join("");
++  if (parameterIds.includes(previous)) parameterSweepSelect.value = previous;
++  parameterSweepSelect.disabled = !ready || !parameterIds.length;
++  runParameterSweepButton.disabled = parameterSweepSelect.disabled;
++  parameterWorkspaceStatus.textContent = ready
++    ? `Ready · ${state.worldBatch.worlds?.length || 0} fixed worlds · patch ${patch.id || "parameter patch"}`
++    : "Apply a plan parameter patch, generate worlds, and run simulations first.";
++  renderPairedParameterSummary();
++  renderParameterAttribution();
++  renderParameterSweeps();
++  renderParameterInteractions();
++  refreshParameterRevisionSuggestions();
++  const revision = state.parameterRevisionResult;
++  if (revision?.before && revision?.after) {
++    parameterRevisionResult.textContent = `Saved revision · expected score ${revision.before.expectedScore} → ${revision.after.expectedScore} · robustness ${fmtPct(revision.before.robustness)} → ${fmtPct(revision.after.robustness)} · same ids ${revision.sameWorldIds ? "yes" : "no"} · same seeds ${revision.sameWorldSeeds ? "yes" : "no"}.`;
++  } else if (!revision) {
++    parameterRevisionResult.textContent = "";
++  }
++}
++
++async function applyAndRerunParameterRevision(index, button) {
++  const suggestion = state.parameterRevisionSuggestions[index];
++  if (!suggestion || !state.worldBatch || !state.simulationBatch) return;
++  button.disabled = true;
++  parameterRevisionResult.textContent = `Applying “${suggestion.title}” and re-running the same worlds…`;
++  try {
++    const adapter = await resolveSimulationAdapter(window);
++    const result = await rerunParameterRevision({
++      experiment: state.experiment,
++      worldBatch: state.worldBatch,
++      simulationBatch: state.simulationBatch,
++      adapter,
++      suggestion,
++      overrides: state.overrides,
++      options: { concurrency: 24 },
++    });
++    const comparison = {
++      suggestion,
++      before: result.before,
++      after: result.after,
++      scoreDelta: result.scoreDelta,
++      robustnessDelta: result.robustnessDelta,
++      sameWorldIds: result.sameWorldIds,
++      sameWorldSeeds: result.sameWorldSeeds,
++    };
++    renderExperiment(result.experiment, { source: "parameter-revision", warning: null }, result.overrides);
++    state.parameterPatch = result.revisionPatch;
++    state.worldBatch = result.worldBatch;
++    worldSummary.textContent = `${result.worldBatch.worlds.length} same-id revision worlds · seed ${result.worldBatch.seed}`;
++    worldPreview.textContent = JSON.stringify(result.worldBatch.worlds.slice(0, 3), null, 2);
++    runSimulationsButton.disabled = false;
++    state.simulationBatch = result.simulationBatch;
++    renderSimulationBatch(result.simulationBatch);
++    state.parameterRevisionResult = comparison;
++    parameterRevisionResult.textContent = `Same worlds: ids ${result.sameWorldIds ? "yes" : "NO"}, seeds ${result.sameWorldSeeds ? "yes" : "NO"} · expected score ${result.before.expectedScore} → ${result.after.expectedScore} (${result.scoreDelta >= 0 ? "+" : ""}${result.scoreDelta.toFixed(2)}) · robustness ${fmtPct(result.before.robustness)} → ${fmtPct(result.after.robustness)}.`;
++    refreshParameterWorkspace();
++  } catch (error) {
++    parameterRevisionResult.textContent = `Revision re-run failed: ${error?.message || error}`;
++  } finally {
++    button.disabled = false;
++  }
++}
++
++runParameterAnalysisButton.addEventListener("click", async () => {
++  const patch = appliedParameterPatch();
++  if (!patch || !state.worldBatch || !state.simulationBatch) return;
++  runParameterAnalysisButton.disabled = true;
++  parameterWorkspaceStatus.textContent = "Running paired baseline and leave-one-parameter-out replays…";
++  try {
++    const adapter = await resolveSimulationAdapter(window);
++    const result = await runParameterWorkspaceAnalysis({
++      experiment: state.experiment,
++      worldBatch: state.worldBatch,
++      simulationBatch: state.simulationBatch,
++      adapter,
++      patch,
++      overrides: state.overrides,
++      options: { concurrency: 24 },
++    });
++    state.pairedParameterComparison = result.paired;
++    state.parameterAttribution = result.attribution;
++    state.parameterConstraints = result.parameterConstraints;
++    state.simulationBatch = result.simulationBatch;
++    renderSimulationBatch(state.simulationBatch);
++    parameterWorkspaceStatus.textContent = `Paired analysis complete on ${result.paired.paired.worldCount} worlds.`;
++  } catch (error) {
++    parameterWorkspaceStatus.textContent = `Paired analysis failed: ${error?.message || error}`;
++  } finally {
++    runParameterAnalysisButton.disabled = false;
++    refreshParameterWorkspace();
++  }
++});
++
++runParameterSweepButton.addEventListener("click", async () => {
++  const parameterId = parameterSweepSelect.value;
++  if (!parameterId || !state.worldBatch) return;
++  runParameterSweepButton.disabled = true;
++  parameterWorkspaceStatus.textContent = `Sweeping ${parameterId} on fixed worlds…`;
++  try {
++    const adapter = await resolveSimulationAdapter(window);
++    const sweep = await runParameterSweep({ experiment: state.experiment, worldBatch: state.worldBatch, adapter, parameterId, options: { count: 7, concurrency: 24 } });
++    state.parameterSweeps = [...state.parameterSweeps.filter((row) => row.parameterId !== parameterId), sweep];
++    parameterWorkspaceStatus.textContent = `Sweep complete · best tested ${sweep.best?.value ?? "—"}.`;
++  } catch (error) {
++    parameterWorkspaceStatus.textContent = `Sweep failed: ${error?.message || error}`;
++  } finally {
++    runParameterSweepButton.disabled = false;
++    refreshParameterWorkspace();
++  }
++});
++
++runParameterInteractionsButton.addEventListener("click", async () => {
++  const patch = appliedParameterPatch();
++  if (!patch || !state.worldBatch) return;
++  runParameterInteractionsButton.disabled = true;
++  parameterWorkspaceStatus.textContent = "Testing parameter pairs on fixed worlds…";
++  try {
++    const adapter = await resolveSimulationAdapter(window);
++    state.parameterInteractions = await analyzeParameterInteractions({
++      experiment: state.experiment,
++      worldBatch: state.worldBatch,
++      adapter,
++      patch,
++      options: { limit: 5, concurrency: 24, planBatch: state.simulationBatch },
++    });
++    parameterWorkspaceStatus.textContent = `Interaction analysis complete · ${state.parameterInteractions.pairs.length} pairs.`;
++  } catch (error) {
++    parameterWorkspaceStatus.textContent = `Interaction analysis failed: ${error?.message || error}`;
++  } finally {
++    runParameterInteractionsButton.disabled = false;
++    refreshParameterWorkspace();
++  }
++});
++
+ function renderSimulationBatch(batch) {
+   state.simulationBatch = batch;
+   const modelLabel = batch.adapter.predictive
+@@ -461,6 +717,7 @@ function renderSimulationBatch(batch) {
+   `;
+   state.improvements = generatePlanImprovements(state.experiment, state.sensitivity, { limit: 6 });
+   renderImprovements();
++  refreshParameterWorkspace();
+ }
+ 
+ runSimulationsButton.addEventListener("click", async () => {
+@@ -546,8 +803,16 @@ async function restoreRecord(record) {
+   if (record.scenarioComparison && !record.simulationBatch) renderScenarioComparison(record.scenarioComparison);
+   state.improvements = record.improvements?.length ? record.improvements : state.improvements;
+   state.improvementComparison = record.improvementComparison || null;
++  state.pairedParameterComparison = record.pairedParameterComparison || null;
++  state.parameterAttribution = record.parameterAttribution || null;
++  state.parameterSweeps = record.parameterSweeps || [];
++  state.parameterInteractions = record.parameterInteractions || null;
++  state.parameterConstraints = record.parameterConstraints || null;
++  state.parameterRevisionSuggestions = record.parameterRevisionSuggestions || [];
++  state.parameterRevisionResult = record.parameterRevisionResult || null;
+   prepareRevisionButton.disabled = !state.improvementComparison;
+   if (state.improvements.length) renderImprovements();
++  refreshParameterWorkspace();
+   recordStatus.textContent = `Loaded ${record.id} · saved ${record.savedAt}`;
+   copyExperimentLinkButton.disabled = false;
+   const url = new URL(location.href);
+@@ -570,6 +835,13 @@ saveExperimentButton.addEventListener("click", async () => {
+       scenarioComparison: state.scenarioComparison,
+       improvements: state.improvements,
+       improvementComparison: state.improvementComparison,
++      pairedParameterComparison: state.pairedParameterComparison,
++      parameterAttribution: state.parameterAttribution,
++      parameterSweeps: state.parameterSweeps,
++      parameterInteractions: state.parameterInteractions,
++      parameterConstraints: state.parameterConstraints,
++      parameterRevisionSuggestions: state.parameterRevisionSuggestions,
++      parameterRevisionResult: state.parameterRevisionResult,
+       parentRecordId: state.recordId || state.parentRecordId,
+       revision: state.experiment?.lineage?.revision || 1,
+     });
+@@ -634,6 +906,13 @@ function currentPensieveRecord() {
+     scenarioComparison: state.scenarioComparison,
+     improvements: state.improvements,
+     improvementComparison: state.improvementComparison,
++    pairedParameterComparison: state.pairedParameterComparison,
++    parameterAttribution: state.parameterAttribution,
++    parameterSweeps: state.parameterSweeps,
++    parameterInteractions: state.parameterInteractions,
++    parameterConstraints: state.parameterConstraints,
++    parameterRevisionSuggestions: state.parameterRevisionSuggestions,
++    parameterRevisionResult: state.parameterRevisionResult,
+     parentRecordId: state.parentRecordId,
+     revision: state.experiment?.lineage?.revision || 1,
+   });
+diff --git a/world/experiment-record.js b/world/experiment-record.js
+--- a/world/experiment-record.js
++++ b/world/experiment-record.js
+@@ -53,6 +53,13 @@ export function createExperimentRecord(input = {}, now = new Date()) {
+     scenarioComparison: input.scenarioComparison || null,
+     improvements: input.improvements || [],
+     improvementComparison: input.improvementComparison || null,
++    pairedParameterComparison: input.pairedParameterComparison || null,
++    parameterAttribution: input.parameterAttribution || null,
++    parameterSweeps: input.parameterSweeps || [],
++    parameterInteractions: input.parameterInteractions || null,
++    parameterConstraints: input.parameterConstraints || null,
++    parameterRevisionSuggestions: input.parameterRevisionSuggestions || [],
++    parameterRevisionResult: input.parameterRevisionResult || null,
+     reproducibility: buildReproducibilityManifest({
+       experiment: input.experiment,
+       worldBatch: input.worldBatch,
+@@ -72,6 +79,8 @@ export function summarizeExperimentRecord(record) {
+     parentRecordId: record?.lineage?.parentRecordId || null,
+     runs: record?.worldBatch?.runs || record?.simulationBatch?.simulations?.length || 0,
+     adapter: record?.simulationBatch?.adapter?.label || null,
++    parameterPatchId: record?.simulationConfig?.parameterPatchId || record?.experiment?.lineage?.appliedParameterPatch?.id || null,
++    parameterRevisionId: record?.parameterRevisionResult?.suggestion?.id || null,
+   };
+ }
+ 
+diff --git a/world/outcome-landscape.js b/world/outcome-landscape.js
+--- a/world/outcome-landscape.js
++++ b/world/outcome-landscape.js
+@@ -163,10 +163,15 @@ export function renderOutcomeLandscape(svg, projection, options = {}) {
+     circle.setAttribute("cy", String(y));
+     const overlayEnabled = options.overlayMode && options.overlayMode !== "outcome";
+     const overlay = Number(point.overlayValue);
+-    const overlayMagnitude = Number.isFinite(overlay) ? Math.min(1, Math.abs(overlay)) : 0;
++    const parameterOverlay = options.overlayMode === "parameter";
++    const overlayMagnitude = Number.isFinite(overlay)
++      ? parameterOverlay ? Math.min(1, Math.abs(overlay - 0.5) * 2) : Math.min(1, Math.abs(overlay))
++      : 0;
+     circle.setAttribute("r", overlayEnabled ? String(3.8 + overlayMagnitude * 3.2) : (point.status === "negative" ? "4.6" : "3.8"));
+     const overlayClass = overlayEnabled && Number.isFinite(overlay)
+-      ? overlay > 0.1 ? "overlay-high" : overlay < -0.1 ? "overlay-low" : "overlay-mid"
++      ? parameterOverlay
++        ? overlay >= 0.67 ? "overlay-high" : overlay <= 0.33 ? "overlay-low" : "overlay-mid"
++        : overlay > 0.1 ? "overlay-high" : overlay < -0.1 ? "overlay-low" : "overlay-mid"
+       : "";
+     circle.setAttribute("class", `landscape-point ${overlayClass || point.status || "unknown"}`);
+     circle.setAttribute("tabindex", "0");
+diff --git a/world/parameter-paired.js b/world/parameter-paired.js
+--- a/world/parameter-paired.js
++++ b/world/parameter-paired.js
+@@ -106,9 +106,10 @@ export function summarizePairedParameterRuns(baselineBatch, planBatch) {
+ 
+ export async function runPairedParameterExperiment({ experiment, worldBatch, adapter, patch, options = {} }) {
+   if (!experiment || !worldBatch || !adapter || !patch) throw new Error("runPairedParameterExperiment requires experiment, worldBatch, adapter, and patch");
++  const { planBatch: providedPlanBatch = null, ...simulationOptions } = options;
+   const baselineWorldBatch = createBaselineWorldBatch(experiment, worldBatch, patch);
+-  const baselineBatch = await simulateExperiment(experiment, baselineWorldBatch, adapter, { ...options, parameterPatch: null });
+-  const planBatch = await simulateExperiment(experiment, worldBatch, adapter, { ...options, parameterPatch: patch });
++  const baselineBatch = await simulateExperiment(experiment, baselineWorldBatch, adapter, { ...simulationOptions, parameterPatch: null });
++  const planBatch = providedPlanBatch || await simulateExperiment(experiment, worldBatch, adapter, { ...simulationOptions, parameterPatch: patch });
+   const paired = summarizePairedParameterRuns(baselineBatch, planBatch);
+ 
+   return {
+diff --git a/world/parameter-workspace.js b/world/parameter-workspace.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-workspace.js
+@@ -0,0 +1,121 @@
++import { summarizeOutcomes } from "./outcome-analysis.js";
++import { attributeParameterEffects } from "./parameter-attribution.js";
++import { createBaselineWorldBatch, rebaseWorldForParameterPatch, runPairedParameterExperiment } from "./parameter-paired.js";
++import { applyPlanParameterPatch } from "./plan-parameter-patch.js";
++import { applyParameterRevision } from "./parameter-revision.js";
++import { buildSimulationConfig } from "./simulation-config.js";
++import { simulateExperiment } from "./simulation-adapter.js";
++import { validateParameterConfiguration } from "./parameter-constraints.js";
++
++function clone(value) {
++  return value == null ? value : (typeof structuredClone === "function" ? structuredClone(value) : JSON.parse(JSON.stringify(value)));
++}
++
++function variableFor(experiment, parameterId) {
++  return (experiment?.worldModel?.variables || []).find((row) => row.id === parameterId) || null;
++}
++
++export function revisionSuggestionPatch(experiment, worldBatch, suggestion) {
++  const edit = suggestion?.parameterEdit;
++  if (!edit?.parameterId || !Number.isFinite(Number(edit.value))) throw new Error("Revision suggestion requires a numeric parameterEdit");
++  const parameterId = edit.parameterId;
++  const variable = variableFor(experiment, parameterId);
++  const from = Number(worldBatch?.simulationConfig?.parameters?.[parameterId]?.baseline ?? variable?.baseline ?? 0);
++  const to = Number(edit.value);
++  return {
++    schemaVersion: "hbl-parameter-patch.v1",
++    id: "revision_patch_" + String(suggestion.id || parameterId),
++    sourceFingerprint: "revision:" + String(suggestion.id || parameterId),
++    planId: experiment?.plan?.id || null,
++    experimentId: experiment?.id || null,
++    edits: [{
++      parameterId,
++      label: variable?.label || parameterId,
++      category: variable?.category || "custom",
++      unit: variable?.unit || "index",
++      from,
++      to,
++      operation: "set",
++      requestedOperation: edit.operation || "set",
++      source: "simulation-revision",
++      reason: edit.reason || suggestion.title || "Simulation-derived parameter revision.",
++      evidence: [],
++      confidence: 1,
++    }],
++    additions: [],
++    warnings: [],
++    summary: { editCount: 1, additionCount: 0, explicitEditCount: 1, heuristicEditCount: 0, unconnectedAdditionCount: 0 },
++  };
++}
++
++export async function runParameterWorkspaceAnalysis({ experiment, worldBatch, simulationBatch, adapter, patch, overrides = {}, options = {} } = {}) {
++  if (!experiment || !worldBatch || !simulationBatch || !adapter || !patch) throw new Error("runParameterWorkspaceAnalysis requires experiment, worldBatch, simulationBatch, adapter, and patch");
++  const paired = await runPairedParameterExperiment({
++    experiment,
++    worldBatch,
++    adapter,
++    patch,
++    options: { ...options, planBatch: simulationBatch },
++  });
++  const attribution = await attributeParameterEffects({
++    experiment,
++    worldBatch,
++    adapter,
++    patch,
++    planBatch: simulationBatch,
++    options,
++  });
++  const parameterConstraints = validateParameterConfiguration(experiment, overrides, { parameterPatch: patch });
++  return {
++    schemaVersion: "parameter-workspace-analysis.v1",
++    paired,
++    attribution,
++    parameterConstraints,
++    simulationBatch: attribution.annotatedPlanBatch,
++  };
++}
++
++export async function rerunParameterRevision({ experiment, worldBatch, simulationBatch, adapter, suggestion, overrides = {}, options = {} } = {}) {
++  if (!experiment || !worldBatch || !simulationBatch || !adapter || !suggestion) throw new Error("rerunParameterRevision requires experiment, worldBatch, simulationBatch, adapter, and suggestion");
++  const before = summarizeOutcomes(simulationBatch);
++  const revisedExperiment = applyParameterRevision(experiment, suggestion);
++  const revisionPatch = revisionSuggestionPatch(revisedExperiment, worldBatch, suggestion);
++  const nextOverrides = clone(overrides || {});
++  const variable = variableFor(revisedExperiment, revisionPatch.edits[0].parameterId);
++  const current = nextOverrides[revisionPatch.edits[0].parameterId] || {};
++  nextOverrides[revisionPatch.edits[0].parameterId] = {
++    ...current,
++    baseline: revisionPatch.edits[0].to,
++    min: current.min ?? variable?.range?.min,
++    max: current.max ?? variable?.range?.max,
++    locked: typeof current.locked === "boolean" ? current.locked : Boolean(variable?.locked),
++    reason: "Applied simulation-derived revision " + suggestion.id,
++  };
++  const applied = applyPlanParameterPatch(revisedExperiment, revisionPatch, nextOverrides);
++  const revisedWorldBatch = {
++    ...clone(worldBatch),
++    branch: "parameter-revision-" + suggestion.id,
++    worlds: (worldBatch.worlds || []).map((world) => rebaseWorldForParameterPatch(world, applied.experiment, revisionPatch, "plan")),
++  };
++  revisedWorldBatch.simulationConfig = buildSimulationConfig(applied.experiment, applied.overrides, { parameterPatch: revisionPatch });
++  const rerun = await simulateExperiment(applied.experiment, revisedWorldBatch, adapter, { ...options, parameterPatch: revisionPatch });
++  const after = summarizeOutcomes(rerun);
++
++  return {
++    schemaVersion: "parameter-revision-rerun.v1",
++    suggestion,
++    revisionPatch,
++    experiment: applied.experiment,
++    overrides: applied.overrides,
++    worldBatch: revisedWorldBatch,
++    simulationBatch: rerun,
++    before,
++    after,
++    scoreDelta: Number(after.expectedScore || 0) - Number(before.expectedScore || 0),
++    robustnessDelta: Number(after.robustness || 0) - Number(before.robustness || 0),
++    sameWorldIds: JSON.stringify((worldBatch.worlds || []).map((row) => row.id)) === JSON.stringify((revisedWorldBatch.worlds || []).map((row) => row.id)),
++    sameWorldSeeds: JSON.stringify((worldBatch.worlds || []).map((row) => row.seed)) === JSON.stringify((revisedWorldBatch.worlds || []).map((row) => row.seed)),
++  };
++}
++
++export { createBaselineWorldBatch };
+diff --git a/world/parameter-workspace.test.js b/world/parameter-workspace.test.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-workspace.test.js
+@@ -0,0 +1,40 @@
++import test from "node:test";
++import assert from "node:assert/strict";
++import { createSimulationAdapter, simulateExperiment } from "./simulation-adapter.js";
++import { rerunParameterRevision, runParameterWorkspaceAnalysis } from "./parameter-workspace.js";
++
++const experiment = {
++  id: "e",
++  plan: { id: "p", title: "Plan", actions: [], parameterEdits: [] },
++  worldModel: { variables: [{ id: "x", label: "X", baseline: 0.8, range: { min: 0, max: 1 } }] },
++  outcomes: { metricRegistry: [] },
++  lineage: { revision: 1, appliedParameterPatch: { id: "p1", sourceFingerprint: "s1", edits: [{ parameterId: "x", from: 0.5, to: 0.8 }], additions: [] } },
++};
++const patch = experiment.lineage.appliedParameterPatch;
++const worldBatch = {
++  seed: 42,
++  simulationConfig: { parameters: { x: { baseline: 0.8 } } },
++  worlds: [
++    { id: "w1", seed: 1, factors: {}, conditions: { x: 0.8 }, normalized: { x: 0.8 }, deviations: { x: 0 } },
++    { id: "w2", seed: 2, factors: {}, conditions: { x: 0.9 }, normalized: { x: 0.9 }, deviations: { x: 0.1 } },
++  ],
++};
++const adapter = createSimulationAdapter({ id: "workspace", simulateWorld({ world }) { return { score: world.conditions.x * 100, metrics: {}, status: "positive" }; } });
++
++test("workspace analysis pairs baseline and plan and annotates parameter contributions", async () => {
++  const planBatch = await simulateExperiment(experiment, worldBatch, adapter);
++  const result = await runParameterWorkspaceAnalysis({ experiment, worldBatch, simulationBatch: planBatch, adapter, patch });
++  assert.equal(result.paired.paired.worldCount, 2);
++  assert.equal(result.attribution.parameters[0].meanScoreContribution, 30);
++  assert.equal(result.simulationBatch.simulations[0].parameterContributions[0].parameterId, "x");
++});
++
++test("revision rerun preserves world ids and seeds", async () => {
++  const planBatch = await simulateExperiment(experiment, worldBatch, adapter);
++  const suggestion = { id: "r1", title: "Reduce X", parameterEdit: { parameterId: "x", operation: "set", value: 0.6, reason: "test" } };
++  const result = await rerunParameterRevision({ experiment, worldBatch, simulationBatch: planBatch, adapter, suggestion });
++  assert.equal(result.sameWorldIds, true);
++  assert.equal(result.sameWorldSeeds, true);
++  assert.equal(result.worldBatch.worlds[0].conditions.x, 0.6);
++  assert.equal(result.experiment.lineage.revision, 2);
++});
+diff --git a/world/simulation-config.js b/world/simulation-config.js
+--- a/world/simulation-config.js
++++ b/world/simulation-config.js
+@@ -30,7 +30,7 @@ export function classifyParameterConnection(variable) {
+   if (variable.modelBinding || variable.connected === true) return "mechanic-connected";
+   if (variable.causalBinding || variable.causalNodeId || variable.causal_node_id) return "causal-graph-connected";
+   if (variable.source === "plan-parameter-patch" && variable.connected !== true) return "sampled-only";
+-  return "model-variable";
++  return "mechanic-connected";
+ }
+ 
+ export function buildSimulationConfig(experiment, overrides = {}, options = {}) {
