@@ -1,0 +1,144 @@
+diff --git a/world/parameter-interactions.js b/world/parameter-interactions.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-interactions.js
+@@ -0,0 +1,101 @@
++import { summarizeOutcomes } from "./outcome-analysis.js";
++import { rebaseWorldForParameterPatch } from "./parameter-paired.js";
++import { simulateExperiment } from "./simulation-adapter.js";
++
++function clone(value) {
++  return value == null ? value : (typeof structuredClone === "function" ? structuredClone(value) : JSON.parse(JSON.stringify(value)));
++}
++
++function finite(value, fallback = 0) {
++  const number = Number(value);
++  return Number.isFinite(number) ? number : fallback;
++}
++
++function mean(values) {
++  const rows = values.map(Number).filter(Number.isFinite);
++  return rows.length ? rows.reduce((sum, value) => sum + value, 0) / rows.length : null;
++}
++
++function patchRows(patch) {
++  return [
++    ...(patch?.edits || []).map((row) => ({ kind: "edit", id: row.parameterId, row })),
++    ...(patch?.additions || []).map((row) => ({ kind: "addition", id: row.parameterId, row })),
++  ];
++}
++
++function selectPatch(patch, ids) {
++  const wanted = new Set(ids);
++  return {
++    id: `${patch?.id || "patch"}__${[...wanted].sort().join("_")}`,
++    edits: (patch?.edits || []).filter((row) => wanted.has(row.parameterId)),
++    additions: (patch?.additions || []).filter((row) => wanted.has(row.parameterId)),
++  };
++}
++
++function revertIds(experiment, worldBatch, patch, ids, label) {
++  const subset = selectPatch(patch, ids);
++  return {
++    ...clone(worldBatch),
++    branch: label,
++    worlds: (worldBatch?.worlds || []).map((world) => rebaseWorldForParameterPatch(world, experiment, subset, "baseline")),
++  };
++}
++
++async function scoreBranch(experiment, worldBatch, adapter, options) {
++  const batch = await simulateExperiment(experiment, worldBatch, adapter, options);
++  return { batch, summary: summarizeOutcomes(batch) };
++}
++
++export async function analyzeParameterInteractions({ experiment, worldBatch, adapter, patch, options = {} } = {}) {
++  if (!experiment || !worldBatch || !adapter || !patch) throw new Error("analyzeParameterInteractions requires experiment, worldBatch, adapter, and patch");
++  const limit = Math.max(2, Math.min(8, Math.round(finite(options.limit, 5))));
++  const rows = patchRows(patch).slice(0, limit);
++  const pairs = [];
++  const planBranch = options.planBatch
++    ? { batch: options.planBatch, summary: summarizeOutcomes(options.planBatch) }
++    : await scoreBranch(experiment, worldBatch, adapter, options);
++
++  for (let i = 0; i < rows.length; i += 1) {
++    for (let j = i + 1; j < rows.length; j += 1) {
++      const a = rows[i], b = rows[j];
++      const baselineWorlds = revertIds(experiment, worldBatch, patch, [a.id, b.id], `baseline-${a.id}-${b.id}`);
++      const onlyAWorlds = revertIds(experiment, worldBatch, patch, [b.id], `only-${a.id}`);
++      const onlyBWorlds = revertIds(experiment, worldBatch, patch, [a.id], `only-${b.id}`);
++      const [baseline, onlyA, onlyB] = await Promise.all([
++        scoreBranch(experiment, baselineWorlds, adapter, options),
++        scoreBranch(experiment, onlyAWorlds, adapter, options),
++        scoreBranch(experiment, onlyBWorlds, adapter, options),
++      ]);
++      const baseScore = finite(baseline.summary.expectedScore);
++      const effectA = finite(onlyA.summary.expectedScore) - baseScore;
++      const effectB = finite(onlyB.summary.expectedScore) - baseScore;
++      const effectAB = finite(planBranch.summary.expectedScore) - baseScore;
++      const interaction = effectAB - effectA - effectB;
++      pairs.push({
++        parameterA: a.id,
++        parameterB: b.id,
++        baselineScore: baseScore,
++        effectA,
++        effectB,
++        jointEffect: effectAB,
++        interaction,
++        interactionType: interaction > 0.5 ? "synergy" : interaction < -0.5 ? "conflict" : "approximately-additive",
++        magnitude: Math.abs(interaction),
++      });
++    }
++  }
++
++  pairs.sort((a, b) => b.magnitude - a.magnitude || a.parameterA.localeCompare(b.parameterA));
++  return {
++    schemaVersion: "parameter-interactions.v1",
++    experimentId: experiment.id || null,
++    parameterPatchId: patch.id || null,
++    worldBatchSeed: worldBatch.seed ?? null,
++    worldCount: worldBatch.worlds?.length || 0,
++    pairs,
++    strongest: pairs[0] || null,
++    warning: "Interaction scores describe this HBL model on fixed sampled worlds, not real-world causal interaction effects.",
++  };
++}
++
++export const __test = { patchRows, selectPatch, revertIds, mean };
+diff --git a/world/parameter-interactions.test.js b/world/parameter-interactions.test.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-interactions.test.js
+@@ -0,0 +1,33 @@
++import test from "node:test";
++import assert from "node:assert/strict";
++import { createSimulationAdapter } from "./simulation-adapter.js";
++import { analyzeParameterInteractions } from "./parameter-interactions.js";
++
++const experiment = {
++  id: "e",
++  plan: { id: "p", actions: [] },
++  worldModel: { variables: [
++    { id: "x", baseline: 0.7, range: { min: 0, max: 1 } },
++    { id: "y", baseline: 0.8, range: { min: 0, max: 1 } },
++  ] },
++  outcomes: { metricRegistry: [] },
++};
++const worldBatch = { seed: 1, worlds: [{ id: "w", conditions: { x: 0.7, y: 0.8 }, normalized: { x: 0.7, y: 0.8 }, deviations: { x: 0, y: 0 } }] };
++const patch = { id: "p1", edits: [
++  { parameterId: "x", from: 0.5, to: 0.7 },
++  { parameterId: "y", from: 0.5, to: 0.8 },
++], additions: [] };
++
++test("additive model produces near-zero interaction", async () => {
++  const adapter = createSimulationAdapter({ id: "add", simulateWorld({ world }) { return { score: world.conditions.x * 10 + world.conditions.y * 10, metrics: {}, status: "mixed" }; } });
++  const result = await analyzeParameterInteractions({ experiment, worldBatch, adapter, patch });
++  assert.ok(Math.abs(result.pairs[0].interaction) < 1e-9);
++  assert.equal(result.pairs[0].interactionType, "approximately-additive");
++});
++
++test("nonlinear joint model detects synergy", async () => {
++  const adapter = createSimulationAdapter({ id: "syn", simulateWorld({ world }) { return { score: world.conditions.x * 10 + world.conditions.y * 10 + world.conditions.x * world.conditions.y * 20, metrics: {}, status: "mixed" }; } });
++  const result = await analyzeParameterInteractions({ experiment, worldBatch, adapter, patch });
++  assert.ok(result.pairs[0].interaction > 0.5);
++  assert.equal(result.pairs[0].interactionType, "synergy");
++});
