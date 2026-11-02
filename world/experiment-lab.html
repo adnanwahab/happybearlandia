@@ -29,6 +29,10 @@
     .assumption-meta { color:var(--muted); font-size:11px; align-items:start; }
     .assumption-meta span { max-width:80%; }
     .lock-toggle { white-space:nowrap; color:#b9c4cc; }
+    .metric-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:8px; margin-top:12px; }
+    .metric-card { background:#090d11; border:1px solid #202a31; border-radius:10px; padding:12px; }
+    .metric-card strong { display:block; font-size:24px; font-weight:500; color:#e3c883; }
+    .metric-card span { color:var(--muted); font-size:11px; }
     pre { overflow:auto; max-height:280px; background:#090d11; border:1px solid #202a31; border-radius:9px; padding:12px; font-size:11px; }
     .status { min-height:22px; color:#aab6c0; }
     @media (max-width:900px) { .grid { grid-template-columns:1fr; } }
@@ -79,6 +83,13 @@
     <div class="button-row"><button id="run-simulations" disabled>Run worlds</button></div>
     <div id="simulation-summary" class="status">Generate worlds first.</div>
     <pre id="simulation-preview">[]</pre>
+  </section>
+
+  <section class="panel" style="margin-top:18px">
+    <h2>05 · Outcome metrics</h2>
+    <p class="notice">Summarize what usually happened, how robust the plan was across sampled worlds, and which runs form the lower tail.</p>
+    <div id="outcome-summary" class="metric-cards"><div class="notice">Run simulations first.</div></div>
+    <pre id="tail-preview">[]</pre>
   </section>
 </main>
 <script type="module" src="./experiment-lab.js"></script>

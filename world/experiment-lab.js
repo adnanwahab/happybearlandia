@@ -1,6 +1,7 @@
 import { renderAssumptionInspector } from "./assumption-inspector.js";
 import { generateWorlds } from "./world-generator.js";
 import { selectSimulationAdapter, simulateExperiment } from "./simulation-adapter.js";
+import { attachOutcomeAnalysis, summarizeOutcomes } from "./outcome-analysis.js";
 
 const state = {
   experiment: null,
@@ -8,6 +9,7 @@ const state = {
   overrides: {},
   worldBatch: null,
   simulationBatch: null,
+  analyzedExperiment: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -22,6 +24,8 @@ const worldPreview = $("#world-preview");
 const runSimulationsButton = $("#run-simulations");
 const simulationSummary = $("#simulation-summary");
 const simulationPreview = $("#simulation-preview");
+const outcomeSummary = $("#outcome-summary");
+const tailPreview = $("#tail-preview");
 
 function setStatus(message, error = false) {
   status.textContent = message;
@@ -57,6 +61,9 @@ function renderExperiment(experiment) {
   runSimulationsButton.disabled = true;
   simulationSummary.textContent = "Generate worlds first.";
   simulationPreview.textContent = "[]";
+  state.analyzedExperiment = null;
+  outcomeSummary.innerHTML = `<div class="notice">Run simulations first.</div>`;
+  tailPreview.textContent = "[]";
   setStatus(`Loaded ${experiment.id}`);
 }
 
@@ -122,6 +129,17 @@ runSimulationsButton.addEventListener("click", async () => {
     const predictive = state.simulationBatch.adapter.predictive ? "predictive adapter" : "NON-PREDICTIVE stress test";
     simulationSummary.textContent = `${state.simulationBatch.simulations.length} runs · ${state.simulationBatch.adapter.label} · ${predictive}`;
     simulationPreview.textContent = JSON.stringify(state.simulationBatch.simulations.slice(0, 3), null, 2);
+    const outcome = summarizeOutcomes(state.simulationBatch);
+    state.analyzedExperiment = attachOutcomeAnalysis(state.experiment, state.simulationBatch);
+    const percent = (value) => value == null ? "—" : `${(value * 100).toFixed(1)}%`;
+    outcomeSummary.innerHTML = `
+      <div class="metric-card"><strong>${outcome.expectedScore ?? "—"}</strong><span>expected score</span></div>
+      <div class="metric-card"><strong>${percent(outcome.robustness)}</strong><span>robust worlds</span></div>
+      <div class="metric-card"><strong>${percent(outcome.adverseRate)}</strong><span>negative worlds</span></div>
+      <div class="metric-card"><strong>${outcome.p10Score ?? "—"}</strong><span>10th percentile</span></div>
+      <div class="metric-card"><strong>${outcome.worstScore ?? "—"}</strong><span>worst sampled world</span></div>
+    `;
+    tailPreview.textContent = JSON.stringify(outcome.tailRisks, null, 2);
   } catch (error) {
     simulationSummary.textContent = error.message;
   } finally {
