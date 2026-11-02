@@ -9,6 +9,7 @@ import { createServerCivicApiHandler } from "./world/server-civic-api.js";
 import { createDecisionExperimentsHandler } from "./world/decision/api.js";
 import { createWorldEditApiHandler } from "./world/ai/provider-api.js";
 import { createOptimizationApiHandler } from "./world/decision/optimization-api.js";
+import { createConstitutionSummaryHandler } from "./world/constitution-summary-api.js";
 
 import { createBusinessCompilerHandler } from "./world/models/business-v1/compiler-api.js";
 const handleBusinessCompiler = createBusinessCompilerHandler();
@@ -21,6 +22,7 @@ const handleServerCivicApi = createServerCivicApiHandler();
 const handleDecisionExperiments = createDecisionExperimentsHandler();
 const handleWorldEdits = createWorldEditApiHandler();
 const handleOptimizations = createOptimizationApiHandler();
+const handleConstitutionSummary = createConstitutionSummaryHandler();
 
 function handleConfig() {
   return Response.json({
@@ -430,6 +432,7 @@ const server = serve({
     if (under(pathname, "/api/decision-experiments")) return handleDecisionExperiments(request);
     if (under(pathname, "/api/world-edits")) return handleWorldEdits(request);
     if (under(pathname, "/api/decision-optimizations")) return handleOptimizations(request);
+    if (pathname === "/api/constitution-summary") return handleConstitutionSummary(request);
     if (under(pathname, "/api/experiments") || under(pathname, "/api/runs")) {
       return handleServerCivicApi(request);
     }
