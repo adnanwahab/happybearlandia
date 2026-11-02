@@ -305,7 +305,7 @@ export function createWorld(town, opts = {}) {
 
   function deterministicTransitWait(p, b) {
     const mobility = SIMULATION_PARAMETERS.mobility;
-    const service = Math.max(1, Number(w.speedMult || 1));
+    const service = Math.max(0.3, Number(w.speedMult || 1));
     const base = mobility.transitBaseWaitMinutes / service;
     const h = hashSeed(`${w.seedKey}|transit|${String(w.runSeed ?? "default")}|${w.day()}|${p.id}|${b.index}`);
     const unit = (h >>> 0) / 4294967296;
@@ -317,7 +317,7 @@ export function createWorld(town, opts = {}) {
     const mobility = SIMULATION_PARAMETERS.mobility;
     const distance = Math.max(0, Number(distanceMeters || 0));
     const walkMinutes = distance / Math.max(1, mobility.walkMetersPerMinute);
-    const service = Math.max(1, Number(w.speedMult || 1));
+    const service = Math.max(0.3, Number(w.speedMult || 1));
     const transitSpeed = mobility.transitMetersPerMinute * (1 + (service - 1) * mobility.transitServiceSpeedElasticity);
     const wait = deterministicTransitWait(p, b);
     const transitMinutes = wait + distance / Math.max(1, transitSpeed);
