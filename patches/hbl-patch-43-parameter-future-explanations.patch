@@ -1,0 +1,145 @@
+diff --git a/world/parameter-explanation.js b/world/parameter-explanation.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-explanation.js
+@@ -0,0 +1,69 @@
++function finite(value, fallback = null) {
++  const number = Number(value);
++  return Number.isFinite(number) ? number : fallback;
++}
++
++function variableMap(experiment) {
++  return new Map((experiment?.worldModel?.variables || []).map((variable) => [variable.id, variable]));
++}
++
++function patchMap(patch) {
++  const rows = new Map();
++  for (const edit of patch?.edits || []) rows.set(edit.parameterId, { kind: "edit", ...edit });
++  for (const addition of patch?.additions || []) rows.set(addition.parameterId, {
++    kind: "addition",
++    parameterId: addition.parameterId,
++    label: addition.variable?.label || addition.parameterId,
++    from: null,
++    to: addition.proposedValue,
++    reason: addition.reason,
++  });
++  return rows;
++}
++
++export function explainParameterReality(simulation, experiment, patch = null) {
++  const activePatch = patch || experiment?.lineage?.appliedParameterPatch || null;
++  const variables = variableMap(experiment);
++  const changes = patchMap(activePatch);
++  const contributions = Array.isArray(simulation?.parameterContributions) ? simulation.parameterContributions : [];
++
++  const rows = contributions.map((contribution) => {
++    const change = changes.get(contribution.parameterId) || {};
++    const variable = variables.get(contribution.parameterId) || {};
++    const scoreContribution = finite(contribution.scoreContribution, 0);
++    return {
++      parameterId: contribution.parameterId,
++      label: contribution.label || change.label || variable.label || contribution.parameterId,
++      from: finite(change.from),
++      to: finite(change.to ?? change.proposedValue ?? variable.baseline),
++      unit: change.unit || variable.unit || "index",
++      reason: change.reason || variable.reason || null,
++      connection: simulation?.simulationConfig?.parameters?.[contribution.parameterId]?.connection || null,
++      scoreContribution,
++      direction: scoreContribution > 1e-9 ? "helped" : scoreContribution < -1e-9 ? "hurt" : "no-modeled-effect",
++    };
++  }).sort((a, b) => Math.abs(b.scoreContribution) - Math.abs(a.scoreContribution));
++
++  const strongest = rows[0] || null;
++  const eventRows = (simulation?.events || []).slice(0, 8).map((event) => ({
++    year: event.year ?? null,
++    type: event.type || "event",
++    severity: finite(event.severity, 0),
++    description: event.description || null,
++  }));
++
++  return {
++    schemaVersion: "parameter-reality-explanation.v1",
++    worldId: simulation?.worldId || simulation?.world?.id || null,
++    parameterPatchId: activePatch?.id || simulation?.simulationConfig?.parameterPatchId || null,
++    score: finite(simulation?.score),
++    changes: rows,
++    strongest,
++    events: eventRows,
++    causalPathways: Array.isArray(simulation?.explanation?.causalPathways) ? simulation.explanation.causalPathways : [],
++    summary: strongest
++      ? `${strongest.label} ${strongest.direction === "helped" ? "helped" : strongest.direction === "hurt" ? "hurt" : "had no modeled score effect in"} this reality by ${Math.abs(strongest.scoreContribution).toFixed(2)} score points.`
++      : "No parameter replay attribution is attached to this reality yet.",
++    warning: "This explanation traces HBL model behavior, not real-world causal proof.",
++  };
++}
+diff --git a/world/parameter-explanation.test.js b/world/parameter-explanation.test.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-explanation.test.js
+@@ -0,0 +1,23 @@
++import test from "node:test";
++import assert from "node:assert/strict";
++import { explainParameterReality } from "./parameter-explanation.js";
++
++test("parameter reality explanation uses recorded per-world replay contributions", () => {
++  const experiment = {
++    worldModel: { variables: [{ id: "permit", label: "Permit delay", unit: "months", baseline: 3 }] },
++    lineage: { appliedParameterPatch: { id: "p1", edits: [{ parameterId: "permit", label: "Permit delay", from: 8, to: 3, reason: "Faster approval" }], additions: [] } },
++  };
++  const simulation = {
++    worldId: "w1",
++    score: 72,
++    simulationConfig: { parameters: { permit: { connection: "model-variable" } } },
++    parameterContributions: [{ parameterId: "permit", label: "Permit delay", scoreContribution: 6.25 }],
++    events: [{ year: 1, type: "rollout-start", severity: 0.4 }],
++  };
++  const explanation = explainParameterReality(simulation, experiment);
++  assert.equal(explanation.parameterPatchId, "p1");
++  assert.equal(explanation.changes[0].from, 8);
++  assert.equal(explanation.changes[0].to, 3);
++  assert.equal(explanation.changes[0].scoreContribution, 6.25);
++  assert.match(explanation.summary, /helped/);
++});
+diff --git a/world/reality-inspector.js b/world/reality-inspector.js
+--- a/world/reality-inspector.js
++++ b/world/reality-inspector.js
+@@ -1,3 +1,5 @@
++import { explainParameterReality } from "./parameter-explanation.js";
++
+ function finite(value, fallback = 0) {
+   const number = Number(value);
+   return Number.isFinite(number) ? number : fallback;
+@@ -55,6 +57,7 @@ export function explainReality(simulation, experiment, options = {}) {
+     feedbackLoops: Array.isArray(simulation?.explanation?.feedbackLoops) ? simulation.explanation.feedbackLoops : [],
+     topDrivers: drivers.slice(0, limit),
+     allDrivers: drivers,
++    parameterExplanation: explainParameterReality(simulation, experiment),
+   };
+ }
+ 
+@@ -128,6 +131,25 @@ export function renderRealityInspector(container, simulation, experiment) {
+   }
+   container.appendChild(metrics);
+ 
++  if (explanation.parameterExplanation?.changes?.length) {
++    container.appendChild(element("h3", "", "Why this future changed"));
++    container.appendChild(element("p", "notice", explanation.parameterExplanation.summary));
++    const contributionList = element("div", "driver-list");
++    for (const change of explanation.parameterExplanation.changes.slice(0, 8)) {
++      const row = element("div", "driver-row");
++      const fromTo = change.from == null ? `new → ${change.to ?? "—"}` : `${change.from} → ${change.to ?? "—"}`;
++      const contribution = Number(change.scoreContribution || 0);
++      row.append(
++        element("strong", "", change.label),
++        element("span", "", `${fromTo}${change.connection ? ` · ${change.connection}` : ""}`),
++        element("span", "driver-delta", `${contribution >= 0 ? "+" : ""}${contribution.toFixed(2)} score`),
++      );
++      contributionList.appendChild(row);
++    }
++    container.appendChild(contributionList);
++    container.appendChild(element("p", "notice", explanation.parameterExplanation.warning));
++  }
++
+   if (explanation.timeline.length) {
+     container.appendChild(element("h3", "", "Year-by-year trajectory"));
+     const table = element("table", "analysis-table");
