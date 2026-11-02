@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HappyBearLandia · 100 Futures</title>
+  <style>
+    :root{color-scheme:dark;--bg:#07100f;--panel:#0d1816;--panel2:#10211d;--line:#294139;--text:#effaf4;--muted:#91aaa0;--gold:#f0c76b;--good:#77e29d;--bad:#ff8b81;--mixed:#e9c96c;--blue:#7cc8ff}
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 20% -10%,#183c32 0,#07100f 42%);color:var(--text);font:14px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace}
+    main{width:min(1500px,96vw);margin:auto;padding:28px 0 80px}.top{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:16px}
+    h1{font:600 clamp(34px,5vw,68px)/.95 Georgia,serif;letter-spacing:-.045em;margin:4px 0 8px} h2{font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:var(--gold);margin:0 0 10px} h3{margin:0 0 6px}
+    .muted,.fine{color:var(--muted)} .fine{font-size:11px}.panel{border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,#10201cdd,#0b1513ee);box-shadow:0 20px 60px #0007;padding:18px}
+    .loop{display:grid;grid-template-columns:repeat(8,1fr);gap:7px;margin:18px 0}.step{border:1px solid #315046;border-radius:999px;padding:8px 10px;text-align:center;color:#afc5bc;font-size:11px}.step.active{color:#08110f;background:var(--gold);border-color:var(--gold);font-weight:800}
+    .layout{display:grid;grid-template-columns:330px minmax(0,1fr);gap:16px}.stack{display:grid;gap:16px}.policy{display:block;width:100%;text-align:left;padding:13px;border:1px solid #2c473e;border-radius:12px;background:#091310;color:var(--text);cursor:pointer;margin:8px 0}.policy.active{border-color:var(--gold);box-shadow:0 0 0 1px #f0c76b55 inset}.policy strong{display:block}.policy small{color:var(--muted)}
+    button,select{font:inherit}.btn{border:1px solid #705e33;border-radius:999px;padding:10px 14px;background:#1d190f;color:#ffe4a3;cursor:pointer}.btn.primary{background:var(--gold);color:#151006;font-weight:800}.btn.secondary{border-color:#3b514a;background:#0a1412;color:#d7e6df}.btn:disabled{opacity:.45;cursor:not-allowed}
+    .buttons{display:flex;gap:8px;flex-wrap:wrap}.heroGrid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(330px,.75fr);gap:16px}.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:12px 0}.metric{border:1px solid #294139;border-radius:12px;background:#08120f;padding:12px;cursor:pointer;text-align:left;color:inherit}.metric:hover{border-color:#8a7440}.metric b{display:block;font-size:22px;color:var(--gold)}.metric small{color:var(--muted)}
+    canvas{width:100%;height:390px;border:1px solid #254038;border-radius:14px;background:#07100f;display:block}.toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:10px 0}.toolbar input[type=range]{width:min(440px,55vw)}
+    .bars{display:grid;gap:8px;margin:12px 0}.barrow{display:grid;grid-template-columns:90px 1fr 44px;gap:8px;align-items:center}.track{height:12px;background:#182621;border-radius:999px;overflow:hidden}.fill{height:100%}.fill.good{background:var(--good)}.fill.mixed{background:var(--mixed)}.fill.bad{background:var(--bad)}
+    .failures{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.failure{padding:10px;border:1px solid #36463f;border-radius:10px;background:#0a1412}.failure b{color:var(--bad)}
+    .why{min-height:220px}.why .tag,.provtag{display:inline-block;border:1px solid #3c564c;border-radius:999px;padding:3px 7px;margin:2px 3px 2px 0;font-size:10px}.why ul{padding-left:18px}.why li{margin:7px 0}
+    .assumptions{display:grid;gap:10px}.assumption{padding:10px;border:1px solid #294139;border-radius:10px;background:#08120f}.assumptionHead{display:flex;justify-content:space-between;gap:10px}.assumption input{width:100%}.assumption .meta{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+    .challenge{border-color:#69582f;background:linear-gradient(135deg,#17170e,#0e1915)}.score{font-size:46px;font-family:Georgia,serif;color:var(--gold)}.challengeControls{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.challengeControls label{display:grid;gap:5px;color:var(--muted)}.challengeControls input{width:100%}
+    .footerlinks a{color:var(--gold)}.notice{border-left:3px solid #8b733f;background:#201b0f;padding:10px 12px;color:#d5c49b;margin:10px 0}
+    @media(max-width:980px){.layout,.heroGrid{grid-template-columns:1fr}.loop{grid-template-columns:repeat(2,1fr)}.metrics{grid-template-columns:1fr}.failures,.challengeControls{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<main>
+  <div class="top"><div><h2>HappyBearLandia · Decision simulator</h2><h1>Change an idea. Enter 100 futures.</h1><div class="muted">A guided policy experiment built on the existing HBL simulation work.</div></div><div class="footerlinks"><a href="/world/experiment-lab.html">Expert lab ↗</a></div></div>
+  <div class="notice">This is a modeling interface, not a forecast. Outputs are simulated estimates and should be read with the assumptions and provenance shown beside them.</div>
+  <div class="loop" id="loop"></div>
+
+  <div class="layout">
+    <aside class="stack">
+      <section class="panel">
+        <h2>01 · Idea</h2>
+        <div id="policies"></div>
+        <div class="buttons"><button id="run" class="btn primary">Run 100 futures</button></div>
+      </section>
+      <section class="panel">
+        <h2>Assumptions</h2>
+        <div class="fine">Change one assumption and rerun the exact same 100 seeds.</div>
+        <div id="assumptions" class="assumptions"></div>
+      </section>
+    </aside>
+
+    <div class="stack">
+      <section class="panel">
+        <div class="heroGrid">
+          <div>
+            <h2>02–05 · Simulate → compare → enter future</h2>
+            <div id="metrics" class="metrics"></div>
+            <div class="toolbar"><span id="futureLabel" class="muted">Future #1 · year 10</span><div class="buttons"><button id="prevFuture" class="btn secondary">←</button><button id="nextFuture" class="btn secondary">→</button></div></div>
+            <canvas id="city" width="900" height="390"></canvas>
+            <div class="toolbar"><span>Year <b id="yearValue">10</b></span><input id="year" type="range" min="1" max="10" value="10"></div>
+          </div>
+          <div>
+            <h2>100 futures</h2>
+            <div id="distribution" class="bars"></div>
+            <h3>Why did the failures fail?</h3>
+            <div id="failures" class="failures"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel why">
+        <h2>06 · Why?</h2>
+        <div id="why"><p class="muted">Click any outcome number to inspect how it was produced.</p></div>
+      </section>
+
+      <section class="panel challenge">
+        <h2>Weekly question · Houston Challenge #7</h2>
+        <h3>Reduce median commute 15% without increasing modeled city capital spending by more than $500M.</h3>
+        <p class="muted">Tune the plan, then see how often it succeeds across the same 100 possible futures.</p>
+        <div class="challengeControls">
+          <label>Transit funding <output id="transitOut">$280M</output><input id="transit" type="range" min="0" max="600" step="20" value="280"></label>
+          <label>Zoning intensity <output id="zoningOut">55%</output><input id="zoning" type="range" min="0" max="100" value="55"></label>
+          <label>Bus priority <output id="busOut">60%</output><input id="bus" type="range" min="0" max="100" value="60"></label>
+          <label>Parking reform <output id="parkingOut">45%</output><input id="parking" type="range" min="0" max="100" value="45"></label>
+        </div>
+        <div class="toolbar"><div><div class="score"><span id="challengeScore">—</span>/100</div><div class="muted">futures succeed · community best demo target 91/100</div></div><button id="runChallenge" class="btn primary">Test my plan</button></div>
+      </section>
+    </div>
+  </div>
+</main>
+<script type="module" src="./policy-futures.js"></script>
+</body>
+</html>
