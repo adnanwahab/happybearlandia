@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HBL Civic Experiment Lab</title>
+  <style>
+    :root { color-scheme: dark; --bg:#080b0e; --panel:#10161b; --line:#26313a; --text:#e8edf1; --muted:#8f9ba6; --accent:#d9b66f; }
+    * { box-sizing:border-box; }
+    body { margin:0; font:14px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace; background:radial-gradient(circle at 20% 0,#15202a 0,#080b0e 42%); color:var(--text); }
+    main { width:min(1500px,96vw); margin:0 auto; padding:28px 0 80px; }
+    header { display:flex; gap:20px; justify-content:space-between; align-items:end; margin-bottom:22px; }
+    h1,h2,h3,p { margin-top:0; } h1 { font:500 clamp(28px,4vw,54px)/1.0 Georgia,serif; letter-spacing:-.03em; }
+    h2 { color:var(--accent); font-size:13px; letter-spacing:.13em; text-transform:uppercase; }
+    h3 { margin:20px 0 8px; color:#c9a968; text-transform:capitalize; font-size:12px; letter-spacing:.1em; }
+    .grid { display:grid; grid-template-columns:minmax(320px,.8fr) minmax(440px,1.2fr); gap:18px; align-items:start; }
+    .panel { border:1px solid var(--line); background:color-mix(in srgb,var(--panel) 94%,transparent); border-radius:14px; padding:18px; box-shadow:0 18px 55px #0008; }
+    textarea { width:100%; min-height:180px; resize:vertical; background:#090d11; color:var(--text); border:1px solid var(--line); border-radius:9px; padding:12px; font:12px/1.5 inherit; }
+    button { border:1px solid #6b5a36; border-radius:999px; padding:9px 14px; background:#18160f; color:#f2d9a2; cursor:pointer; font:inherit; }
+    button:hover { background:#262015; } button:disabled { opacity:.45; cursor:not-allowed; }
+    .button-row { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
+    .notice { color:var(--muted); font-size:12px; padding:10px 0; }
+    .warning { border-left:3px solid #a57c34; padding:9px 12px; background:#211b1080; color:#d9c89f; }
+    .assumption-group { border-top:1px solid #202a31; padding-top:2px; }
+    .assumption-row { border:1px solid #222c34; border-radius:10px; background:#0b1014; padding:10px 12px; margin:8px 0; }
+    .assumption-head,.assumption-meta { display:flex; gap:12px; justify-content:space-between; align-items:center; }
+    .assumption-head output { color:#e3c883; }
+    .assumption-row input[type=range] { width:100%; margin:11px 0 8px; accent-color:#c9a968; }
+    .assumption-meta { color:var(--muted); font-size:11px; align-items:start; }
+    .assumption-meta span { max-width:80%; }
+    .lock-toggle { white-space:nowrap; color:#b9c4cc; }
+    pre { overflow:auto; max-height:280px; background:#090d11; border:1px solid #202a31; border-radius:9px; padding:12px; font-size:11px; }
+    .status { min-height:22px; color:#aab6c0; }
+    @media (max-width:900px) { .grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div><h2>Pensieve · HappyBearLandia</h2><h1>Civic Experiment Lab</h1></div>
+    <div class="notice">journal → plan → assumptions → futures → critique → revision</div>
+  </header>
+
+  <div class="grid">
+    <section class="panel">
+      <h2>01 · Load plan</h2>
+      <p class="notice">Fetch the current Dear Congress synthesis through HBL, or paste a saved <code>civicExperiment</code> JSON object.</p>
+      <div class="button-row">
+        <button id="load-plan">Load from /api/plan</button>
+        <button id="load-json">Load pasted JSON</button>
+      </div>
+      <textarea id="json-input" spellcheck="false" placeholder='{"civicExperiment": {...}}'></textarea>
+      <div id="status" class="status"></div>
+      <div id="plan-summary"></div>
+      <h2 style="margin-top:22px">Overrides</h2>
+      <pre id="override-output">{}</pre>
+    </section>
+
+    <section class="panel">
+      <h2>02 · Assumption inspector</h2>
+      <div class="warning">These baselines and ranges are modeling assumptions, not forecasts. Review them before interpreting simulation output.</div>
+      <div id="assumptions"><p class="notice">Load a plan to inspect its inferred world variables.</p></div>
+    </section>
+  </div>
+</main>
+<script type="module" src="./experiment-lab.js"></script>
+</body>
+</html>
