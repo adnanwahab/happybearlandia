@@ -2,6 +2,9 @@ import { hashSeed, rng } from "./gen.js";
 import { createWorld } from "./sim.js";
 import { journalFor, WALK_COMPLAINT_MINUTES } from "./journal.js";
 import { computeEffectsForYear, NOT_SIMULATED, resolveRuleForProposal } from "./policy.js";
+import { SIMULATION_MODEL_VERSION, SIMULATION_PARAMETERS } from "./simulation-parameters.js";
+import { applyMonthlyVoucher, captureLongitudinalState, restoreLongitudinalState, scaleHouseholdCash } from "./simulation-state.js";
+import { observeWorld } from "./simulation-observations.js";
 
 function cloneTown(town) {
   return {
@@ -292,7 +295,7 @@ function collectDailyJournalCandidates(world, packageLabel, year, tileKey, build
   for (const p of world.people) {
     const sourceDay = p.yesterday || null;
     if (!sourceDay) continue;
-    const probe = { ...p, today: sourceDay, walkMinutesAvg3d: Number(p.walkMinutesAvg3d || 0) };
+    const probe = { ...p, today: sourceDay, walkMinutesAvg3d: Number(p.walkMinutesAvg3d || 0), travelMinutesAvg3d: Number(p.travelMinutesAvg3d ?? p.walkMinutesAvg3d ?? 0) };
     const text = journalFor(probe, {
       tileKey,
       buildingsById,
@@ -302,7 +305,7 @@ function collectDailyJournalCandidates(world, packageLabel, year, tileKey, build
     if (!text) continue;
 
     const floodSeverity = sourceDay.displaced ? 2 : (sourceDay.homeFlooded ? 1 : 0);
-    const transitSeverity = Number(probe.walkMinutesAvg3d || sourceDay.walkMinutes || 0);
+    const transitSeverity = Number(probe.travelMinutesAvg3d ?? probe.walkMinutesAvg3d ?? sourceDay.travelMinutes ?? sourceDay.walkMinutes ?? 0);
     const streetsSeverity = Number(sourceDay.dirtyParkVisits || 0);
     const soldOutCount = Array.isArray(sourceDay.soldOutAt) ? sourceDay.soldOutAt.length : 0;
     const groceriesSeverity = soldOutCount + (sourceDay.emptyFridge ? 1 : 0);
@@ -390,19 +393,15 @@ async function fetchReplayFloodSeverities(fetchOutcomes) {
 
 function weekOutcomes(world, soldOutEvents, displacedResidents, litterSamples) {
   const floodedParcels = world.buildings.filter((b) => b.state?.flooded).length;
-  const avgWalkMinutes = world.people.length
-    ? world.people.reduce((s, p) => s + Number(p.walkMinutesAvg3d || p.today?.walkMinutes || 0), 0) / world.people.length
-    : 0;
-  const avgMood = Number(world.summary().mood || 0);
+  const observed = observeWorld(world);
   const avgParkLitter = litterSamples.length
-    ? litterSamples.reduce((a, b) => a + b, 0) / litterSamples.length
+    ? litterSamples.reduce((a, b) => a + Number(b || 0), 0) / litterSamples.length
     : 0;
-  const overWalkComplaint = world.people.filter((p) => Number(p.walkMinutesAvg3d || p.today?.walkMinutes || 0) > WALK_COMPLAINT_MINUTES).length;
+  const overWalkComplaint = world.people.filter((p) => Number(p.travelMinutesAvg3d ?? p.walkMinutesAvg3d ?? 0) > WALK_COMPLAINT_MINUTES).length;
   return {
     floodedParcels,
     displacedResidents,
-    avgWalkMinutes,
-    avgMood,
+    ...observed,
     soldOutEvents,
     avgParkLitter,
     overWalkComplaint,
@@ -443,23 +442,24 @@ export function scalePolicyEffects(effects, scale = 1) {
  *  wageMult    pay per hour worked
  *  restockAdd  added to shop/kitchen restock rate (supply chains; negative = shortages)
  *  cleanupAdd  added to park cleanup (civic trust, city crews)
- *  mobilityMult multiplies walking/transit speed (street conditions)
+ *  mobilityMult multiplies generalized transit service (street/service conditions)
  *  stormMult   multiplies this year's storm severity (climate)
  *  planScale   how much of the plan's designed effect is delivered
  */
 export function applyConditions(world, simTown, conditions) {
   if (!conditions) return;
   const c = conditions;
-  if (Number.isFinite(c.moneyMult) && c.moneyMult !== 1) for (const p of world.people) p.money = Math.max(0, p.money * c.moneyMult);
+  if (Number.isFinite(c.moneyMult) && c.moneyMult !== 1) scaleHouseholdCash(world, c.moneyMult);
   if (Number.isFinite(c.wageMult)) world.wageMult = Math.max(0.1, c.wageMult);
   if (Number.isFinite(c.restockAdd)) world.restockBoost = Math.max(-0.9, world.restockBoost + c.restockAdd);
   if (Number.isFinite(c.cleanupAdd)) world.parkCleanupBoost = Math.max(-0.9, world.parkCleanupBoost + c.cleanupAdd);
   if (Number.isFinite(c.mobilityMult)) world.speedMult = Math.max(0.3, world.speedMult * c.mobilityMult);
 }
 
-export async function simulateYear({ town, proposalIds, year, packageLabel, seed, adoptedYearByProposal = null, yearStartMs, stormSeverityValue = null, runSeed = null, collectPeople = false, conditions = null }) {
+export async function simulateYear({ town, proposalIds, year, packageLabel, seed, adoptedYearByProposal = null, yearStartMs, stormSeverityValue = null, runSeed = null, collectPeople = false, conditions = null, initialState = null }) {
   const simTown = cloneTown(town);
   const world = createWorld(simTown, { startMinute: 0, runSeed });
+  restoreLongitudinalState(world, initialState);
   const buildingsById = {};
   for (const b of simTown.buildings) {
     buildingsById[b.index] = b;
@@ -476,6 +476,11 @@ export async function simulateYear({ town, proposalIds, year, packageLabel, seed
   }
   applyPolicyToWorld(world, staged);
   applyConditions(world, simTown, conditions);
+  // This annual point is a representative week, so recurring monthly support is
+  // sampled once at the start of the week instead of waiting for day 30.
+  if (world.voucherMonthly > 0) {
+    applyMonthlyVoucher(world, world.voucherMonthly, SIMULATION_PARAMETERS.economy.lowCashPerPerson);
+  }
 
   let soldOutEvents = 0;
   const baseLog = world.log;
@@ -484,7 +489,7 @@ export async function simulateYear({ town, proposalIds, year, packageLabel, seed
     return baseLog(text, kind, building);
   };
 
-  const days = 5;
+  const days = SIMULATION_PARAMETERS.experiment.sampleDaysPerYear;
   const stormDay = 2;
   // Optional per-resident week summary (for "why did this happen?"). Off by default.
   const perPerson = collectPeople ? world.people.map(() => ({ walk: 0, moodSum: 0, days: 0, displaced: false, emptyFridgeDays: 0, soldOut: 0, dirtyPark: 0 })) : null;
@@ -582,6 +587,13 @@ export async function simulateYear({ town, proposalIds, year, packageLabel, seed
     population: world.people.length,
     policyContributionByItem,
     stormDiagnostics,
+    state: captureLongitudinalState(world),
+    model: {
+      version: SIMULATION_MODEL_VERSION,
+      sampleDaysPerYear: days,
+      longitudinal: true,
+      note: "Representative annual sample; state carries forward between years.",
+    },
     stormSeverity: (Number.isFinite(stormSeverityValue) ? Number(stormSeverityValue) : stormSeverity(seed, year)) * (Number.isFinite(conditions?.stormMult) ? conditions.stormMult : 1),
   };
 }
@@ -655,8 +667,10 @@ export async function runExperiment({
     year: 0,
     packageLabel: "No package",
     seed,
+    runSeed: `${seed}:year:0`,
     yearStartMs: startMs - 365 * 24 * 60 * 60 * 1000,
   });
+  let longitudinalState = baseline.state;
   const rawSeverityHistory = { transit: [], flooding: [] };
   const impactHistory = { t_bus: [], t_brt: [], f_drainage: [], f_buyouts: [] };
   let previousOutcomes = deriveSynthesisOutcomes(baseline, rawSeverityHistory, impactHistory, [], {}, 0);
@@ -723,7 +737,10 @@ export async function runExperiment({
       adoptedYearByProposal: nextAdoptedYearByProposal,
       yearStartMs: yearNowMs,
       stormSeverityValue: replaySeverity,
+      runSeed: `${seed}:year:${year}`,
+      initialState: longitudinalState,
     });
+    longitudinalState = sim.state;
 
     const notSimulatedChanges = formatNotSimulatedChanges(pkg.changesFromPrevious, proposalCostById);
 

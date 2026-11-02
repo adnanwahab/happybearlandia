@@ -24,6 +24,7 @@ import { buildTown, projector } from "./gen.js";
 import { createWorld, clock, legacyNeedSnapshot } from "./sim.js";
 import { journalFor, WALK_COMPLAINT_MINUTES } from "./journal.js";
 import { computeEffectsForYear, derivePolicyProfile } from "./policy.js";
+import { SIMULATION_ASSUMPTIONS, SIMULATION_LIMITATIONS, SIMULATION_MODEL_VERSION } from "./simulation-parameters.js";
 import { wellbeing, wellbeingHex } from "./wellbeing.js";
 import { replayStormStrengthLabel } from "./replay-label.js";
 
@@ -398,6 +399,7 @@ const originalTrafficEnabled=cityRenderer.getPerformanceStats().features?.traffi
 let livingWorld=null,livingPlaybackUnsubscribe=null;
 const playback=createSimulationPlayback({initialSpeed:speed,onChange:state=>{speed=state.paused?0:state.speed;const runtime=livingWorld?.active?livingWorld.getRuntime():null;if(runtime){runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();}for(const button of $("speeds").children)button.classList.toggle("on",Number(button.dataset.s)===(state.paused?0:state.speed));if(selected?.type==="person")renderInspector();}});
 window.hblSimulationPlayback=playback;
+window.hblSimulationModel={version:SIMULATION_MODEL_VERSION,assumptions:SIMULATION_ASSUMPTIONS,limitations:SIMULATION_LIMITATIONS};
 livingWorld=!embedMode?mountLivingWorld({container:document.body,scene,camera,controls,THREE,town,renderer,onRuntimeReady:runtime=>{const state=playback.getState();runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();if(!livingPlaybackUnsubscribe)livingPlaybackUnsubscribe=runtime.subscribe(frame=>{if(!livingWorld?.active||!frame?.runtime)return;frame.runtime.paused?playback.pause():playback.resume();});return true;},onModeChange:active=>{people.visible=!active;follow=false;selected=null;document.documentElement.classList.remove("person-selected");$("inspect").removeAttribute("data-person-selected");$("inspect").style.display="none";cityRenderer.setFeature('traffic',active?false:originalTrafficEnabled);cityRenderer.updateCity({trafficDensity:active?0:1});document.body.classList.toggle('living-active',active);const fastest=$('speeds').lastElementChild;fastest.dataset.s=active?'32':'60';fastest.textContent=active?'32×':'60×';if(active&&playback.getState().speed>32)playback.setSpeed(32);if(active){livingWorld?.ready?.then(()=>{const state=playback.getState(),runtime=livingWorld.getRuntime();if(runtime){runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();}});}}}):null;
 window.hblLivingWorld=livingWorld;
 addEventListener('pagehide',()=>{livingPlaybackUnsubscribe?.();livingWorld?.destroy();playback.destroy();},{once:true});
@@ -944,6 +946,12 @@ function formatPlanChanges(changes) {
 
 function renderExperimentResults(results) {
   const panel = $("experimentPanel");
+  const assumptionsEl = $("experimentAssumptions");
+  if (assumptionsEl) {
+    const rows = SIMULATION_ASSUMPTIONS.map((row) => `<li><strong>${row.label}</strong>: ${row.baseline} ${row.unit || ""} — ${row.reason}</li>`).join("");
+    const limits = SIMULATION_LIMITATIONS.map((row) => `<li>${row}</li>`).join("");
+    assumptionsEl.innerHTML = `<p><strong>Model ${SIMULATION_MODEL_VERSION}</strong></p><p>Assumptions / parameters</p><ul>${rows}</ul><p>Known limitations</p><ul>${limits}</ul>`;
+  }
   const charts = $("experimentCharts");
   const tableWrap = $("experimentTableWrap");
   if (!panel || !charts || !tableWrap) return;
@@ -978,7 +986,8 @@ function renderExperimentResults(results) {
     replay ? `<div class="muted" style="margin:0 0 8px 0">${replayStormStrengthLabel(!EXP_PACKAGES.some((name) => (byPkg[name] || []).some((r) => r?.replayDataSource === "simulated")))}</div>` : "",
     lineChartSvg("Flooded parcels", byPkg, "floodedParcels", colors, { xLabels: labels, markYears }),
     lineChartSvg("Displaced residents", byPkg, "displacedResidents", colors, { xLabels: labels, markYears }),
-    lineChartSvg("Commute / walk minutes", byPkg, "avgWalkMinutes", colors, { xLabels: labels, markYears }),
+    lineChartSvg("Commute minutes", byPkg, "avgCommuteMinutes", colors, { xLabels: labels, markYears }),
+    lineChartSvg("Budget-stressed households (share)", byPkg, "budgetStressRate", colors, { xLabels: labels, markYears }),
     lineChartSvg("Mood", byPkg, "avgMood", colors, { xLabels: labels, markYears }),
   ].join("");
 
@@ -1002,7 +1011,8 @@ function renderExperimentResults(results) {
       <th>${name}</th>
       <td>${Number(y10Outcomes.outcomes.floodedParcels ?? 0).toFixed(0)}</td>
       <td>${Number(y10Outcomes.outcomes.displacedResidents ?? 0).toFixed(0)}</td>
-      <td>${Number(y10Outcomes.outcomes.avgWalkMinutes ?? 0).toFixed(1)}</td>
+      <td>${Number(y10Outcomes.outcomes.avgCommuteMinutes ?? y10Outcomes.outcomes.avgWalkMinutes ?? 0).toFixed(1)}</td>
+      <td>${(Number(y10Outcomes.outcomes.budgetStressRate ?? 0) * 100).toFixed(0)}%</td>
       <td>${Number(y10Outcomes.outcomes.avgMood ?? 0).toFixed(1)}</td>
       <td>${p2}</td>
       <td>${c2}</td>
@@ -1017,10 +1027,10 @@ function renderExperimentResults(results) {
   }).join("");
 
   tableWrap.innerHTML = `<table class="exp-table">
-    <thead><tr><th>Package</th><th>Flooded (Y10)</th><th>Displaced (Y10)</th><th>Walk min (Y10)</th><th>Mood (Y10)</th><th>Items Y2</th><th>Plan changes Y2</th><th>Items Y5</th><th>Plan changes Y5</th><th>Items Y10</th><th>Plan changes Y10</th><th>Not simulated Y2</th><th>Not simulated Y5</th><th>Not simulated Y10</th></tr></thead>
+    <thead><tr><th>Package</th><th>Flooded (Y10)</th><th>Displaced (Y10)</th><th>Commute min (Y10)</th><th>Budget stress (Y10)</th><th>Mood (Y10)</th><th>Items Y2</th><th>Plan changes Y2</th><th>Items Y5</th><th>Plan changes Y5</th><th>Items Y10</th><th>Plan changes Y10</th><th>Not simulated Y2</th><th>Not simulated Y5</th><th>Not simulated Y10</th></tr></thead>
     <tbody>${rows}</tbody>
   </table>
-  <div class="muted" style="margin-top:6px">Most popular ranks only by votes, so journals don't change it. Minimal change rarely adopts new programs.</div>`;
+  <div class="muted" style="margin-top:6px">Each year is a representative 5-day sample with household, resident, and persistent building state carried forward. Most popular ranks only by votes, so journals don\'t change it. Minimal change rarely adopts new programs.</div>`;
 
   panel.style.display = "block";
   const cyclePanel = $("cyclePanel");
@@ -1040,7 +1050,8 @@ function resultsFingerprint(results) {
     compact[name] = {
       floodedParcels: Number(y10.outcomes?.floodedParcels ?? 0),
       displacedResidents: Number(y10.outcomes?.displacedResidents ?? 0),
-      avgWalkMinutes: Number(y10.outcomes?.avgWalkMinutes ?? 0),
+      avgCommuteMinutes: Number(y10.outcomes?.avgCommuteMinutes ?? y10.outcomes?.avgWalkMinutes ?? 0),
+      budgetStressRate: Number(y10.outcomes?.budgetStressRate ?? 0),
       avgMood: Number(y10.outcomes?.avgMood ?? 0),
     };
   }

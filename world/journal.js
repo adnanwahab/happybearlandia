@@ -19,11 +19,16 @@ function floodedHome(person, ctx) {
   return !!home?.state?.flooded;
 }
 
-export const WALK_COMPLAINT_MINUTES = 60;
+export const COMMUTE_COMPLAINT_MINUTES = 60;
+// Backward-compatible export for older callers.
+export const WALK_COMPLAINT_MINUTES = COMMUTE_COMPLAINT_MINUTES;
+
+export function commuteMinutesFor(person) {
+  return Number(person?.travelMinutesAvg3d ?? person?.walkMinutesAvg3d ?? 0);
+}
 
 function transitBurdened(person) {
-  const avg = Number(person?.walkMinutesAvg3d || 0);
-  return avg > WALK_COMPLAINT_MINUTES;
+  return commuteMinutesFor(person) > COMMUTE_COMPLAINT_MINUTES;
 }
 
 function floodSentence(seed) {
@@ -82,7 +87,7 @@ export function journalFor(person, ctx) {
   const flood = !!person.today.displaced || !!person.today.homeFlooded || floodedHome(person, ctx);
   if (flood) problems.push({ id: "flood", score: 100 });
 
-  if (transitBurdened(person)) problems.push({ id: "transit", score: Math.max(60, Number(person.walkMinutesAvg3d || 0)) });
+  if (transitBurdened(person)) problems.push({ id: "transit", score: Math.max(COMMUTE_COMPLAINT_MINUTES, commuteMinutesFor(person)) });
 
   if (Number(person.today.dirtyParkVisits || 0) >= 2) {
     problems.push({ id: "streets", score: 70 + Number(person.today.dirtyParkVisits || 0) });
