@@ -98,7 +98,7 @@ function complaintCounts(w) {
   const c = { transit: 0, streets: 0, flood: 0, shelves: 0, fridge: 0 };
   for (const p of w.people) {
     const d = p.yesterday || {};
-    if (Number(p.walkMinutesAvg3d || 0) > WALK_COMPLAINT_MINUTES) c.transit++;
+    if (Number(p.travelMinutesAvg3d ?? p.walkMinutesAvg3d ?? 0) > WALK_COMPLAINT_MINUTES) c.transit++;
     if (Number(d.dirtyParkVisits || 0) >= 2) c.streets++;
     if (d.displaced || d.homeFlooded) c.flood++;
     if (Array.isArray(d.soldOutAt) && d.soldOutAt.length) c.shelves++;
