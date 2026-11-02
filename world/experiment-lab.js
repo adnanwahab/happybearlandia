@@ -25,6 +25,7 @@ const status = $("#status");
 const input = $("#json-input");
 const assumptions = $("#assumptions");
 const summary = $("#plan-summary");
+const metricRegistry = $("#metric-registry");
 const overrideOutput = $("#override-output");
 const generateWorldsButton = $("#generate-worlds");
 const worldSummary = $("#world-summary");
@@ -59,6 +60,10 @@ function renderExperiment(experiment, provenance = null) {
     <h3>${escapeHtml(experiment.plan?.title || "Civic plan")}</h3>
     <p class="notice">${variables.length} inferred variables · ${experiment.experiment?.runs ?? "?"} requested runs · ${experiment.experiment?.horizonYears ?? "?"} year horizon</p>
   `;
+  const metrics = experiment.outcomes?.metricRegistry || [];
+  metricRegistry.innerHTML = metrics.length
+    ? `<h3>Metric registry</h3><div class="notice">${metrics.slice(0, 10).map((metric) => `${escapeHtml(metric.label)} <small>(${escapeHtml(metric.direction)})</small>`).join(" · ")}${metrics.length > 10 ? ` · +${metrics.length - 10} more` : ""}</div>`
+    : `<div class="notice">No metric registry available.</div>`;
   state.inspector = renderAssumptionInspector(assumptions, variables, {
     onChange(_inspectorState, overrides) {
       state.overrides = overrides;

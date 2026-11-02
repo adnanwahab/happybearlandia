@@ -1,4 +1,5 @@
 import { extractSimulationParameters, summarizeParameterExtraction } from "./parameter-extractor.js";
+import { deriveMetricRegistry } from "./metric-registry.js";
 
 const isObject = (value) => Boolean(value) && typeof value === "object" && !Array.isArray(value);
 const asObject = (value) => isObject(value) ? value : {};
@@ -173,6 +174,7 @@ export function buildCivicExperiment(synthesis, request = {}, now = new Date()) 
     .map((value) => value.trim());
 
   const variables = extractSimulationParameters(plan, safeRequest.parameterOverrides ?? safeRequest.parameter_overrides);
+  const metricRegistry = deriveMetricRegistry(plan);
 
   const experimentCore = {
     schemaVersion: "civic-experiment.v1",
@@ -197,6 +199,7 @@ export function buildCivicExperiment(synthesis, request = {}, now = new Date()) 
     },
     outcomes: {
       metrics: plan.metrics,
+      metricRegistry,
       worlds: [],
       clusters: [],
     },
