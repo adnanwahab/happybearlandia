@@ -5,6 +5,7 @@ import { attachOutcomeAnalysis, summarizeOutcomes } from "./outcome-analysis.js"
 import { projectOutcomeLandscape, renderOutcomeLandscape } from "./outcome-landscape.js";
 import { renderRealityInspector } from "./reality-inspector.js";
 import { analyzeSensitivity } from "./sensitivity-analysis.js";
+import { applyPlanImprovement, generatePlanImprovements } from "./plan-improver.js";
 
 const state = {
   experiment: null,
@@ -14,6 +15,7 @@ const state = {
   simulationBatch: null,
   analyzedExperiment: null,
   sensitivity: null,
+  improvements: [],
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -34,6 +36,8 @@ const landscapeSvg = $("#outcome-landscape");
 const landscapeSelection = $("#landscape-selection");
 const realityInspector = $("#reality-inspector");
 const sensitivityOutput = $("#sensitivity-output");
+const improvementOutput = $("#improvement-output");
+const improvementResult = $("#improvement-result");
 
 function setStatus(message, error = false) {
   status.textContent = message;
@@ -77,6 +81,9 @@ function renderExperiment(experiment) {
   renderRealityInspector(realityInspector, null, experiment);
   state.sensitivity = null;
   sensitivityOutput.innerHTML = `<p class="notice">Run simulations first.</p>`;
+  state.improvements = [];
+  improvementOutput.innerHTML = `<p class="notice">Run sensitivity analysis first.</p>`;
+  improvementResult.textContent = "";
   setStatus(`Loaded ${experiment.id}`);
 }
 
@@ -175,9 +182,52 @@ runSimulationsButton.addEventListener("click", async () => {
       <h3>Failure-mode separation</h3>
       ${failureRows ? `<table class="analysis-table"><thead><tr><th>Variable</th><th>Pattern</th><th>Δ normalized</th></tr></thead><tbody>${failureRows}</tbody></table>` : `<p class="notice">Not enough positive and negative worlds to compare failure modes.</p>`}
     `;
+    state.improvements = generatePlanImprovements(state.experiment, state.sensitivity, { limit: 6 });
+    renderImprovements();
   } catch (error) {
     simulationSummary.textContent = error.message;
   } finally {
     runSimulationsButton.disabled = false;
   }
 });
+
+
+function renderImprovements() {
+  if (!state.improvements.length) {
+    improvementOutput.innerHTML = `<p class="notice">No strong improvement candidates were found in this batch.</p>`;
+    return;
+  }
+  improvementOutput.innerHTML = `<div class="improvement-list">${state.improvements.map((item, index) => `
+    <article class="improvement-card">
+      <strong>${escapeHtml(item.title)}</strong>
+      <p>${escapeHtml(item.description)}</p>
+      <small>${escapeHtml(item.targetVariableLabel)} · modeled ${item.simulationEffect.direction} ${(item.simulationEffect.strength * 100).toFixed(0)}%</small>
+      <button data-improvement-index="${index}">Test on same worlds</button>
+    </article>`).join("")}</div>`;
+  improvementOutput.querySelectorAll("[data-improvement-index]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const improvement = state.improvements[Number(button.dataset.improvementIndex)];
+      await testImprovement(improvement, button);
+    });
+  });
+}
+
+async function testImprovement(improvement, button) {
+  if (!state.worldBatch || !state.simulationBatch) return;
+  button.disabled = true;
+  improvementResult.textContent = `Testing “${improvement.title}” on the same ${state.worldBatch.runs} worlds…`;
+  try {
+    const revised = applyPlanImprovement(state.experiment, improvement);
+    const adapter = selectSimulationAdapter(window);
+    const rerun = await simulateExperiment(revised, state.worldBatch, adapter, { concurrency: 24 });
+    const before = summarizeOutcomes(state.simulationBatch);
+    const after = summarizeOutcomes(rerun);
+    const pct = (value) => value == null ? "—" : `${(value * 100).toFixed(1)}%`;
+    const scoreDelta = (after.expectedScore ?? 0) - (before.expectedScore ?? 0);
+    improvementResult.textContent = `Paired test: robustness ${pct(before.robustness)} → ${pct(after.robustness)} · expected score ${before.expectedScore} → ${after.expectedScore} (${scoreDelta >= 0 ? "+" : ""}${scoreDelta.toFixed(1)}). This is a modeled hypothesis, not causal evidence.`;
+  } catch (error) {
+    improvementResult.textContent = error.message;
+  } finally {
+    button.disabled = false;
+  }
+}

@@ -1,3 +1,5 @@
+import { applySimulationEffectsToWorld } from "./plan-improver.js";
+
 function finite(value, fallback = 0) {
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
@@ -110,13 +112,14 @@ export function selectSimulationAdapter(globalObject = globalThis) {
   return createGlobalSimulationAdapter(globalObject) || createImplementationStressAdapter();
 }
 
-function normalizeSimulationResult(world, adapter, result) {
+function normalizeSimulationResult(world, effectiveWorld, adapter, result) {
   const safe = result && typeof result === "object" ? result : {};
   const score = finite(safe.score ?? safe.metrics?.implementationViability, 0);
   return {
     id: `run_${world.id}`,
     worldId: world.id,
     world,
+    effectiveWorld,
     adapter: {
       id: adapter.id,
       label: adapter.label,
@@ -143,8 +146,9 @@ export async function simulateExperiment(experiment, worldBatch, adapter, option
   for (let start = 0; start < worlds.length; start += concurrency) {
     const chunk = worlds.slice(start, start + concurrency);
     const results = await Promise.all(chunk.map(async (world, offset) => {
-      const result = await adapter.simulateWorld({ experiment, world, options });
-      return [start + offset, normalizeSimulationResult(world, adapter, result)];
+      const effectiveWorld = applySimulationEffectsToWorld(experiment, world);
+      const result = await adapter.simulateWorld({ experiment, world: effectiveWorld, sourceWorld: world, options });
+      return [start + offset, normalizeSimulationResult(world, effectiveWorld, adapter, result)];
     }));
     for (const [index, simulation] of results) {
       simulations[index] = simulation;

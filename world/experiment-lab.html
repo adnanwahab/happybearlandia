@@ -44,6 +44,7 @@
     .driver-list { display:grid; gap:6px; } .driver-row { display:grid; grid-template-columns:minmax(160px,1fr) minmax(160px,1fr) auto; gap:10px; padding:9px 10px; border:1px solid #202a31; border-radius:8px; background:#090d11; }
     .driver-row span { color:var(--muted); font-size:11px; } .driver-row .driver-delta { color:#e0c77e; text-align:right; }
     .analysis-table { width:100%; border-collapse:collapse; font-size:12px; } .analysis-table th,.analysis-table td { padding:8px 7px; border-bottom:1px solid #202a31; text-align:left; } .analysis-table th { color:#8f9ba6; font-weight:500; } .analysis-table td:last-child { text-align:right; color:#e0c77e; }
+    .improvement-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:10px; } .improvement-card { border:1px solid #2b342f; background:#0a100d; border-radius:11px; padding:13px; } .improvement-card p { color:var(--muted); font-size:12px; min-height:48px; } .improvement-card small { display:block; color:#bda56e; margin:8px 0; }
     pre { overflow:auto; max-height:280px; background:#090d11; border:1px solid #202a31; border-radius:9px; padding:12px; font-size:11px; }
     .status { min-height:22px; color:#aab6c0; }
     @media (max-width:900px) { .grid { grid-template-columns:1fr; } }
@@ -120,6 +121,13 @@
     <h2>08 · Sensitivity & failure modes</h2>
     <p class="notice">Correlation is diagnostic, not causal proof. Use it to find assumptions worth inspecting and to compare successful vs failed sampled worlds.</p>
     <div id="sensitivity-output"><p class="notice">Run simulations first.</p></div>
+  </section>
+
+  <section class="panel" style="margin-top:18px">
+    <h2>09 · Improve plan → re-run same worlds</h2>
+    <p class="notice">Suggestions are stress-test hypotheses derived from sensitivity. Testing one keeps the sampled worlds fixed and changes only the modeled plan resilience, so the comparison is paired rather than random.</p>
+    <div id="improvement-output"><p class="notice">Run sensitivity analysis first.</p></div>
+    <div id="improvement-result" class="status"></div>
   </section>
 </main>
 <script type="module" src="./experiment-lab.js"></script>
