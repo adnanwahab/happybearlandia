@@ -38,6 +38,11 @@
     .landscape-point { stroke:#071016; stroke-width:1.2; cursor:pointer; opacity:.82; }
     .landscape-point.positive { fill:#7ed6a3; } .landscape-point.mixed { fill:#d8bd72; } .landscape-point.negative { fill:#e47f77; } .landscape-point.unknown { fill:#92a2ad; }
     .landscape-point:hover,.landscape-point:focus { stroke:#fff; stroke-width:2; opacity:1; outline:none; }
+    .reality-head { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:12px; }
+    .status-pill { border:1px solid #34414a; border-radius:999px; padding:5px 9px; font-size:11px; }
+    .status-pill.positive { color:#8bdfac; } .status-pill.mixed { color:#e0c77e; } .status-pill.negative { color:#ed9189; }
+    .driver-list { display:grid; gap:6px; } .driver-row { display:grid; grid-template-columns:minmax(160px,1fr) minmax(160px,1fr) auto; gap:10px; padding:9px 10px; border:1px solid #202a31; border-radius:8px; background:#090d11; }
+    .driver-row span { color:var(--muted); font-size:11px; } .driver-row .driver-delta { color:#e0c77e; text-align:right; }
     pre { overflow:auto; max-height:280px; background:#090d11; border:1px solid #202a31; border-radius:9px; padding:12px; font-size:11px; }
     .status { min-height:22px; color:#aab6c0; }
     @media (max-width:900px) { .grid { grid-template-columns:1fr; } }
@@ -102,6 +107,12 @@
     <p class="notice">Each point is one sampled reality. Nearby points have similar world conditions/outcomes under a lightweight deterministic PCA projection.</p>
     <svg id="outcome-landscape" class="landscape" aria-label="Outcome landscape"></svg>
     <div id="landscape-selection" class="status">Run simulations to populate the landscape.</div>
+  </section>
+
+  <section class="panel" style="margin-top:18px">
+    <h2>07 · Reality inspector</h2>
+    <p class="notice">Click any reality above to inspect the conditions that diverged furthest from the reviewed baseline.</p>
+    <div id="reality-inspector"><p class="notice">Select a reality in the landscape.</p></div>
   </section>
 </main>
 <script type="module" src="./experiment-lab.js"></script>

@@ -3,6 +3,7 @@ import { generateWorlds } from "./world-generator.js";
 import { selectSimulationAdapter, simulateExperiment } from "./simulation-adapter.js";
 import { attachOutcomeAnalysis, summarizeOutcomes } from "./outcome-analysis.js";
 import { projectOutcomeLandscape, renderOutcomeLandscape } from "./outcome-landscape.js";
+import { renderRealityInspector } from "./reality-inspector.js";
 
 const state = {
   experiment: null,
@@ -29,6 +30,7 @@ const outcomeSummary = $("#outcome-summary");
 const tailPreview = $("#tail-preview");
 const landscapeSvg = $("#outcome-landscape");
 const landscapeSelection = $("#landscape-selection");
+const realityInspector = $("#reality-inspector");
 
 function setStatus(message, error = false) {
   status.textContent = message;
@@ -69,6 +71,7 @@ function renderExperiment(experiment) {
   tailPreview.textContent = "[]";
   landscapeSvg.replaceChildren();
   landscapeSelection.textContent = "Run simulations to populate the landscape.";
+  renderRealityInspector(realityInspector, null, experiment);
   setStatus(`Loaded ${experiment.id}`);
 }
 
@@ -149,10 +152,13 @@ runSimulationsButton.addEventListener("click", async () => {
     renderOutcomeLandscape(landscapeSvg, projection, {
       onSelect(point) {
         landscapeSelection.textContent = `${point.id} · score ${point.score} · ${point.status}`;
+        renderRealityInspector(realityInspector, point.simulation, state.experiment);
         window.dispatchEvent(new CustomEvent("hbl:reality-selected", { detail: point }));
       },
     });
     landscapeSelection.textContent = `${projection.points.length} realities · ${projection.method}`;
+    const worst = [...state.simulationBatch.simulations].sort((a, b) => a.score - b.score)[0];
+    if (worst) renderRealityInspector(realityInspector, worst, state.experiment);
   } catch (error) {
     simulationSummary.textContent = error.message;
   } finally {
