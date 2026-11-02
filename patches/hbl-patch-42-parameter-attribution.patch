@@ -1,0 +1,179 @@
+diff --git a/world/parameter-attribution.js b/world/parameter-attribution.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-attribution.js
+@@ -0,0 +1,130 @@
++import { simulateExperiment } from "./simulation-adapter.js";
++import { rebaseWorldForParameterPatch } from "./parameter-paired.js";
++
++function clone(value) {
++  return value == null ? value : (typeof structuredClone === "function" ? structuredClone(value) : JSON.parse(JSON.stringify(value)));
++}
++
++function finite(value) {
++  const number = Number(value);
++  return Number.isFinite(number) ? number : null;
++}
++
++function mean(values) {
++  const rows = values.map(finite).filter((value) => value !== null);
++  return rows.length ? rows.reduce((sum, value) => sum + value, 0) / rows.length : null;
++}
++
++function quantile(values, q) {
++  const rows = values.map(finite).filter((value) => value !== null).sort((a, b) => a - b);
++  if (!rows.length) return null;
++  const position = Math.max(0, Math.min(1, q)) * (rows.length - 1);
++  const lo = Math.floor(position), hi = Math.ceil(position), w = position - lo;
++  return rows[lo] * (1 - w) + rows[hi] * w;
++}
++
++function round(value, digits = 4) {
++  const number = finite(value);
++  if (number === null) return null;
++  const factor = 10 ** digits;
++  return Math.round(number * factor) / factor;
++}
++
++function parameterRows(patch) {
++  return [
++    ...(patch?.edits || []).map((row) => ({ kind: "edit", parameterId: row.parameterId, label: row.label || row.parameterId, row })),
++    ...(patch?.additions || []).map((row) => ({ kind: "addition", parameterId: row.parameterId, label: row.variable?.label || row.parameterId, row })),
++  ];
++}
++
++function singleParameterPatch(patch, parameter) {
++  return {
++    id: `${patch?.id || "patch"}__${parameter.parameterId}`,
++    edits: parameter.kind === "edit" ? [parameter.row] : [],
++    additions: parameter.kind === "addition" ? [parameter.row] : [],
++  };
++}
++
++function revertedWorldBatch(experiment, worldBatch, patch, parameter) {
++  const single = singleParameterPatch(patch, parameter);
++  return {
++    ...clone(worldBatch),
++    branch: `revert-${parameter.parameterId}`,
++    worlds: (worldBatch?.worlds || []).map((world) => rebaseWorldForParameterPatch(world, experiment, single, "baseline")),
++  };
++}
++
++export async function attributeParameterEffects({
++  experiment,
++  worldBatch,
++  adapter,
++  patch,
++  planBatch = null,
++  options = {},
++} = {}) {
++  if (!experiment || !worldBatch || !adapter || !patch) throw new Error("attributeParameterEffects requires experiment, worldBatch, adapter, and patch");
++  const basePlanBatch = planBatch || await simulateExperiment(experiment, worldBatch, adapter, { ...options, parameterPatch: patch });
++  const planByWorld = new Map((basePlanBatch.simulations || []).map((row) => [row.worldId, row]));
++  const attribution = [];
++  const perWorld = new Map((basePlanBatch.simulations || []).map((row) => [row.worldId, []]));
++
++  for (const parameter of parameterRows(patch)) {
++    const counterfactualWorldBatch = revertedWorldBatch(experiment, worldBatch, patch, parameter);
++    const counterfactualBatch = await simulateExperiment(experiment, counterfactualWorldBatch, adapter, { ...options, parameterPatch: patch });
++    const counterByWorld = new Map((counterfactualBatch.simulations || []).map((row) => [row.worldId, row]));
++    const contributions = [];
++
++    for (const [worldId, plan] of planByWorld) {
++      const counter = counterByWorld.get(worldId);
++      const planScore = finite(plan?.score);
++      const counterScore = finite(counter?.score);
++      const scoreContribution = planScore !== null && counterScore !== null ? planScore - counterScore : null;
++      contributions.push({ worldId, planScore, counterfactualScore: counterScore, scoreContribution: round(scoreContribution) });
++      if (perWorld.has(worldId)) perWorld.get(worldId).push({
++        parameterId: parameter.parameterId,
++        label: parameter.label,
++        scoreContribution: round(scoreContribution),
++      });
++    }
++
++    const values = contributions.map((row) => row.scoreContribution);
++    const meanContribution = mean(values);
++    attribution.push({
++      parameterId: parameter.parameterId,
++      label: parameter.label,
++      kind: parameter.kind,
++      connection: basePlanBatch?.simulationConfig?.parameters?.[parameter.parameterId]?.connection || null,
++      meanScoreContribution: round(meanContribution),
++      p10ScoreContribution: round(quantile(values, 0.1)),
++      p90ScoreContribution: round(quantile(values, 0.9)),
++      absoluteMeanContribution: round(Math.abs(meanContribution ?? 0)),
++      affectedWorlds: values.filter((value) => finite(value) !== null && Math.abs(Number(value)) > 1e-9).length,
++      worldCount: contributions.length,
++      contributions,
++      method: "leave-one-parameter-out-replay",
++      warning: "Modeled contribution from a controlled replay, not real-world causal evidence.",
++    });
++  }
++
++  attribution.sort((a, b) => b.absoluteMeanContribution - a.absoluteMeanContribution || a.parameterId.localeCompare(b.parameterId));
++  const annotatedPlanBatch = {
++    ...clone(basePlanBatch),
++    simulations: (basePlanBatch.simulations || []).map((simulation) => ({
++      ...simulation,
++      parameterContributions: (perWorld.get(simulation.worldId) || []).sort((a, b) => Math.abs(b.scoreContribution || 0) - Math.abs(a.scoreContribution || 0)),
++    })),
++  };
++
++  return {
++    schemaVersion: "parameter-attribution.v1",
++    experimentId: experiment.id || null,
++    parameterPatchId: patch.id || null,
++    metric: "score",
++    method: "leave-one-parameter-out-replay",
++    parameters: attribution,
++    annotatedPlanBatch,
++    warning: "Attribution describes this HBL model under these sampled worlds; it is not proof of real-world causation.",
++  };
++}
++
++export const __test = { mean, quantile, parameterRows, singleParameterPatch };
+diff --git a/world/parameter-attribution.test.js b/world/parameter-attribution.test.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-attribution.test.js
+@@ -0,0 +1,39 @@
++import test from "node:test";
++import assert from "node:assert/strict";
++import { createSimulationAdapter, simulateExperiment } from "./simulation-adapter.js";
++import { attributeParameterEffects } from "./parameter-attribution.js";
++
++const experiment = {
++  id: "exp_attr",
++  plan: { id: "plan_attr", actions: [] },
++  worldModel: { variables: [
++    { id: "x", baseline: 0.8, range: { min: 0, max: 1 } },
++    { id: "unused", baseline: 0.7, range: { min: 0, max: 1 } },
++  ] },
++  outcomes: { metricRegistry: [] },
++};
++const worldBatch = {
++  seed: 9,
++  worlds: [
++    { id: "w1", conditions: { x: 0.8, unused: 0.7 }, normalized: { x: 0.8, unused: 0.7 }, deviations: { x: 0, unused: 0 } },
++    { id: "w2", conditions: { x: 0.9, unused: 0.8 }, normalized: { x: 0.9, unused: 0.8 }, deviations: { x: 0.1, unused: 0.1 } },
++  ],
++};
++const patch = { id: "p1", edits: [
++  { parameterId: "x", label: "X", from: 0.5, to: 0.8 },
++  { parameterId: "unused", label: "Unused", from: 0.4, to: 0.7 },
++], additions: [] };
++
++test("leave-one-out attribution finds modeled contribution and zero for unused variables", async () => {
++  const adapter = createSimulationAdapter({
++    id: "attr-test",
++    simulateWorld({ world }) { return { score: world.conditions.x * 100, metrics: {}, status: "mixed" }; },
++  });
++  const planBatch = await simulateExperiment(experiment, worldBatch, adapter);
++  const result = await attributeParameterEffects({ experiment, worldBatch, adapter, patch, planBatch });
++  const x = result.parameters.find((row) => row.parameterId === "x");
++  const unused = result.parameters.find((row) => row.parameterId === "unused");
++  assert.equal(x.meanScoreContribution, 30);
++  assert.equal(unused.meanScoreContribution, 0);
++  assert.equal(result.annotatedPlanBatch.simulations[0].parameterContributions[0].parameterId, "x");
++});
