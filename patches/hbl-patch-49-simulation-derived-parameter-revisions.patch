@@ -1,0 +1,201 @@
+diff --git a/world/dear-congress-feedback.js b/world/dear-congress-feedback.js
+--- a/world/dear-congress-feedback.js
++++ b/world/dear-congress-feedback.js
+@@ -23,6 +23,9 @@ export function buildRevisionNarrative({ experiment, improvement, comparison } =
+ 
+   if (improvement.description) lines.push(`Rationale: ${improvement.description}`);
+   if (improvement.targetVariableLabel) lines.push(`Stress-test variable: ${improvement.targetVariableLabel}`);
++  if (improvement.parameterEdit?.parameterId) {
++    lines.push(`Parameter edit: ${improvement.parameterEdit.parameterId} ${improvement.parameterEdit.operation || "set"} ${improvement.parameterEdit.value}`);
++  }
+ 
+   if (comparison) {
+     lines.push(
+@@ -55,6 +58,8 @@ export function buildDearCongressRevisionDraft({ experiment, improvement, compar
+       planId: experiment?.plan?.id || null,
+       recordId,
+       improvementId: improvement?.id || null,
++      parameterEdits: improvement?.parameterEdit ? [improvement.parameterEdit] : [],
++      evidence: improvement?.evidence || null,
+       pairedWorlds: comparison?.worldCount || comparison?.after?.worldCount || comparison?.before?.worldCount || null,
+       generatedFromSimulation: true,
+       warning: "Simulation-derived hypothesis; not causal evidence or a forecast.",
+diff --git a/world/parameter-revision.js b/world/parameter-revision.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-revision.js
+@@ -0,0 +1,127 @@
++function finite(value, fallback = null) {
++  const number = Number(value);
++  return Number.isFinite(number) ? number : fallback;
++}
++
++function hashString(value) {
++  let hash = 0x811c9dc5;
++  for (const char of String(value)) {
++    hash ^= char.charCodeAt(0);
++    hash = Math.imul(hash, 0x01000193);
++  }
++  return (hash >>> 0).toString(16).padStart(8, "0");
++}
++
++function currentValue(experiment, parameterId) {
++  const configValue = experiment?.lineage?.appliedParameterPatch?.edits?.find((row) => row.parameterId === parameterId)?.to;
++  if (Number.isFinite(Number(configValue))) return Number(configValue);
++  const variable = experiment?.worldModel?.variables?.find((row) => row.id === parameterId);
++  return finite(variable?.baseline);
++}
++
++export function generateParameterRevisionSuggestions({
++  experiment,
++  attribution = null,
++  sweeps = [],
++  constraintEvaluation = null,
++  paired = null,
++  limit = 6,
++} = {}) {
++  if (!experiment) throw new Error("generateParameterRevisionSuggestions requires experiment");
++  const suggestions = [];
++  const seen = new Set();
++
++  for (const sweep of sweeps || []) {
++    const parameterId = sweep?.parameterId;
++    const best = sweep?.best;
++    if (!parameterId || !Number.isFinite(Number(best?.value)) || seen.has(parameterId)) continue;
++    const current = finite(sweep.currentBaseline, currentValue(experiment, parameterId));
++    const target = Number(best.value);
++    if (current !== null && Math.abs(target - current) < 1e-9) continue;
++    seen.add(parameterId);
++    suggestions.push({
++      id: "parameter_revision_" + hashString(parameterId + ":sweep:" + target),
++      type: "parameter-revision",
++      title: "Move " + (sweep.label || parameterId) + " toward the best tested sweep value",
++      parameterEdit: { parameterId, operation: "set", value: target, reason: "Best expected score in fixed-world HBL parameter sweep." },
++      evidence: {
++        source: "parameter-sweep",
++        currentValue: current,
++        suggestedValue: target,
++        expectedScoreAtSuggestion: finite(best.expectedScore),
++        worldCount: sweep.worldCount || null,
++      },
++      warning: "Sweep optimum is model evidence, not real-world causal proof.",
++    });
++  }
++
++  for (const violation of constraintEvaluation?.violations || []) {
++    if (violation.policy !== "clamp") continue;
++    for (const requirement of violation.failedRequirements || []) {
++      const parameterId = requirement.parameterId;
++      if (!parameterId || seen.has(parameterId)) continue;
++      seen.add(parameterId);
++      suggestions.push({
++        id: "parameter_revision_" + hashString(parameterId + ":constraint:" + requirement.suggestedValue),
++        type: "parameter-revision",
++        title: "Satisfy feasibility constraint for " + parameterId,
++        parameterEdit: { parameterId, operation: "set", value: requirement.suggestedValue, reason: violation.message || ("Satisfy " + violation.constraintId) },
++        evidence: {
++          source: "parameter-constraint",
++          constraintId: violation.constraintId,
++          currentValue: requirement.actual,
++          suggestedValue: requirement.suggestedValue,
++        },
++        warning: "Constraint suggestions encode declared model assumptions and require human review.",
++      });
++    }
++  }
++
++  for (const row of attribution?.parameters || []) {
++    if (suggestions.length >= limit) break;
++    if (seen.has(row.parameterId) || !(Number(row.meanScoreContribution) < -0.01)) continue;
++    const applied = experiment?.lineage?.appliedParameterPatch?.edits?.find((edit) => edit.parameterId === row.parameterId);
++    if (!applied || !Number.isFinite(Number(applied.from))) continue;
++    seen.add(row.parameterId);
++    suggestions.push({
++      id: "parameter_revision_" + hashString(row.parameterId + ":revert:" + applied.from),
++      type: "parameter-revision",
++      title: "Reconsider " + (row.label || row.parameterId) + " change",
++      parameterEdit: { parameterId: row.parameterId, operation: "set", value: Number(applied.from), reason: "Leave-one-parameter-out replay improved model score when this change was reverted." },
++      evidence: {
++        source: "parameter-attribution",
++        meanScoreContribution: row.meanScoreContribution,
++        affectedWorlds: row.affectedWorlds,
++        worldCount: row.worldCount,
++        pairedMeanScoreDelta: paired?.paired?.meanScoreDelta ?? null,
++      },
++      warning: "Negative modeled contribution is not proof the real-world policy should be reversed.",
++    });
++  }
++
++  return suggestions.slice(0, Math.max(1, Math.min(20, Number(limit) || 6)));
++}
++
++export function applyParameterRevision(experiment, suggestion) {
++  if (!suggestion?.parameterEdit?.parameterId) throw new Error("Parameter revision requires parameterEdit");
++  const revision = Math.max(1, Number(experiment?.lineage?.revision || 1) + 1);
++  const edit = { ...suggestion.parameterEdit, revisionSuggestionId: suggestion.id };
++  return {
++    ...experiment,
++    id: "exp_" + hashString((experiment?.id || "experiment") + ":" + revision + ":" + suggestion.id),
++    plan: {
++      ...experiment.plan,
++      parameterEdits: [...(experiment?.plan?.parameterEdits || []), edit],
++    },
++    outcomes: { ...(experiment?.outcomes || {}), worlds: [], clusters: [] },
++    analysis: { ...(experiment?.analysis || {}), robustness: null, tailRisks: [], sensitivities: [], failureModes: [], suggestedChanges: [] },
++    lineage: {
++      ...(experiment?.lineage || {}),
++      parentExperimentId: experiment?.id || null,
++      revision,
++      appliedParameterRevisionId: suggestion.id,
++    },
++  };
++}
++
++export const __test = { hashString, currentValue };
+diff --git a/world/parameter-revision.test.js b/world/parameter-revision.test.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-revision.test.js
+@@ -0,0 +1,42 @@
++import test from "node:test";
++import assert from "node:assert/strict";
++import { applyParameterRevision, generateParameterRevisionSuggestions } from "./parameter-revision.js";
++import { buildDearCongressRevisionDraft } from "./dear-congress-feedback.js";
++
++const experiment = {
++  id: "e1",
++  plan: { id: "p1", title: "Housing plan", parameterEdits: [] },
++  worldModel: { variables: [{ id: "permit", label: "Permit delay", baseline: 3 }] },
++  lineage: { revision: 1, appliedParameterPatch: { edits: [{ parameterId: "permit", from: 8, to: 3 }] } },
++};
++
++test("sweep evidence becomes an explicit parameter edit suggestion", () => {
++  const suggestions = generateParameterRevisionSuggestions({
++    experiment,
++    sweeps: [{ parameterId: "permit", label: "Permit delay", currentBaseline: 3, worldCount: 100, best: { value: 2, expectedScore: 78 } }],
++  });
++  assert.equal(suggestions[0].parameterEdit.parameterId, "permit");
++  assert.equal(suggestions[0].parameterEdit.value, 2);
++  assert.equal(suggestions[0].evidence.source, "parameter-sweep");
++});
++
++test("negative attribution can recommend reverting the plan parameter change", () => {
++  const suggestions = generateParameterRevisionSuggestions({
++    experiment,
++    attribution: { parameters: [{ parameterId: "permit", label: "Permit delay", meanScoreContribution: -4, affectedWorlds: 8, worldCount: 10 }] },
++  });
++  assert.equal(suggestions[0].parameterEdit.value, 8);
++});
++
++test("applying a parameter revision increments lineage and Dear Congress draft carries the edit", () => {
++  const suggestion = generateParameterRevisionSuggestions({
++    experiment,
++    sweeps: [{ parameterId: "permit", currentBaseline: 3, best: { value: 2, expectedScore: 80 } }],
++  })[0];
++  const revised = applyParameterRevision(experiment, suggestion);
++  assert.equal(revised.lineage.revision, 2);
++  assert.equal(revised.plan.parameterEdits.at(-1).value, 2);
++  const draft = buildDearCongressRevisionDraft({ experiment, improvement: suggestion, comparison: null });
++  assert.equal(draft.metadata.parameterEdits[0].parameterId, "permit");
++  assert.equal(draft.metadata.evidence.source, "parameter-sweep");
++});
