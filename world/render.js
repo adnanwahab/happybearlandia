@@ -24,6 +24,7 @@ import { buildTown, projector } from "./gen.js";
 import { createWorld, clock, legacyNeedSnapshot } from "./sim.js";
 import { journalFor, WALK_COMPLAINT_MINUTES } from "./journal.js";
 import { computeEffectsForYear, derivePolicyProfile } from "./policy.js";
+import { SIMULATION_ASSUMPTIONS, SIMULATION_LIMITATIONS, SIMULATION_MODEL_VERSION } from "./simulation-parameters.js";
 import { wellbeing, wellbeingHex } from "./wellbeing.js";
 import { replayStormStrengthLabel } from "./replay-label.js";
 
@@ -398,6 +399,7 @@ const originalTrafficEnabled=cityRenderer.getPerformanceStats().features?.traffi
 let livingWorld=null,livingPlaybackUnsubscribe=null;
 const playback=createSimulationPlayback({initialSpeed:speed,onChange:state=>{speed=state.paused?0:state.speed;const runtime=livingWorld?.active?livingWorld.getRuntime():null;if(runtime){runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();}for(const button of $("speeds").children)button.classList.toggle("on",Number(button.dataset.s)===(state.paused?0:state.speed));if(selected?.type==="person")renderInspector();}});
 window.hblSimulationPlayback=playback;
+window.hblSimulationModel={version:SIMULATION_MODEL_VERSION,assumptions:SIMULATION_ASSUMPTIONS,limitations:SIMULATION_LIMITATIONS};
 livingWorld=!embedMode?mountLivingWorld({container:document.body,scene,camera,controls,THREE,town,renderer,onRuntimeReady:runtime=>{const state=playback.getState();runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();if(!livingPlaybackUnsubscribe)livingPlaybackUnsubscribe=runtime.subscribe(frame=>{if(!livingWorld?.active||!frame?.runtime)return;frame.runtime.paused?playback.pause():playback.resume();});return true;},onModeChange:active=>{people.visible=!active;follow=false;selected=null;document.documentElement.classList.remove("person-selected");$("inspect").removeAttribute("data-person-selected");$("inspect").style.display="none";cityRenderer.setFeature('traffic',active?false:originalTrafficEnabled);cityRenderer.updateCity({trafficDensity:active?0:1});document.body.classList.toggle('living-active',active);const fastest=$('speeds').lastElementChild;fastest.dataset.s=active?'32':'60';fastest.textContent=active?'32×':'60×';if(active&&playback.getState().speed>32)playback.setSpeed(32);if(active){livingWorld?.ready?.then(()=>{const state=playback.getState(),runtime=livingWorld.getRuntime();if(runtime){runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();}});}}}):null;
 window.hblLivingWorld=livingWorld;
 addEventListener('pagehide',()=>{livingPlaybackUnsubscribe?.();livingWorld?.destroy();playback.destroy();},{once:true});
@@ -944,6 +946,12 @@ function formatPlanChanges(changes) {
 
 function renderExperimentResults(results) {
   const panel = $("experimentPanel");
+  const assumptionsEl = $("experimentAssumptions");
+  if (assumptionsEl) {
+    const rows = SIMULATION_ASSUMPTIONS.map((row) => `<li><strong>${row.label}</strong>: ${row.baseline} ${row.unit || ""} — ${row.reason}</li>`).join("");
+    const limits = SIMULATION_LIMITATIONS.map((row) => `<li>${row}</li>`).join("");
+    assumptionsEl.innerHTML = `<p><strong>Model ${SIMULATION_MODEL_VERSION}</strong></p><p>Assumptions / parameters</p><ul>${rows}</ul><p>Known limitations</p><ul>${limits}</ul>`;
+  }
   const charts = $("experimentCharts");
   const tableWrap = $("experimentTableWrap");
   if (!panel || !charts || !tableWrap) return;
