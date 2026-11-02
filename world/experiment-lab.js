@@ -1,4 +1,4 @@
-import { renderAssumptionInspector } from "./assumption-inspector.js";
+import { createInspectorState, renderAssumptionInspector } from "./assumption-inspector.js";
 import { generateWorlds } from "./world-generator.js";
 import { resolveSimulationAdapter, simulateExperiment } from "./simulation-adapter.js";
 import { attachOutcomeAnalysis, summarizeOutcomes } from "./outcome-analysis.js";
@@ -8,6 +8,8 @@ import { analyzeSensitivity } from "./sensitivity-analysis.js";
 import { applyPlanImprovement, generatePlanImprovements } from "./plan-improver.js";
 import { resolveCivicExperimentPayload } from "./experiment-contract.js";
 import { formatVerificationReport, runExperimentVerification } from "./experiment-verification.js";
+import { createExperimentRecord, summarizeExperimentRecord, traceRecordLineage } from "./experiment-record.js";
+import { listExperimentRecords, loadExperimentRecord, saveExperimentRecord } from "./experiment-store.js";
 
 const state = {
   experiment: null,
@@ -18,6 +20,9 @@ const state = {
   analyzedExperiment: null,
   sensitivity: null,
   improvements: [],
+  recordId: null,
+  parentRecordId: null,
+  improvementComparison: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -43,6 +48,11 @@ const improvementOutput = $("#improvement-output");
 const improvementResult = $("#improvement-result");
 const runVerificationButton = $("#run-verification");
 const verificationOutput = $("#verification-output");
+const saveExperimentButton = $("#save-experiment");
+const loadLatestExperimentButton = $("#load-latest-experiment");
+const copyExperimentLinkButton = $("#copy-experiment-link");
+const recordStatus = $("#record-status");
+const lineageOutput = $("#lineage-output");
 
 function setStatus(message, error = false) {
   status.textContent = message;
@@ -53,7 +63,7 @@ function extractExperiment(payload, request = {}) {
   return resolveCivicExperimentPayload(payload, request);
 }
 
-function renderExperiment(experiment, provenance = null) {
+function renderExperiment(experiment, provenance = null, initialOverrides = {}) {
   state.experiment = experiment;
   const variables = experiment.worldModel?.variables || [];
   summary.innerHTML = `
@@ -64,7 +74,19 @@ function renderExperiment(experiment, provenance = null) {
   metricRegistry.innerHTML = metrics.length
     ? `<h3>Metric registry</h3><div class="notice">${metrics.slice(0, 10).map((metric) => `${escapeHtml(metric.label)} <small>(${escapeHtml(metric.direction)})</small>`).join(" · ")}${metrics.length > 10 ? ` · +${metrics.length - 10} more` : ""}</div>`
     : `<div class="notice">No metric registry available.</div>`;
+  const inspectorState = createInspectorState(variables);
+  for (const [id, override] of Object.entries(initialOverrides || {})) {
+    if (!inspectorState[id]) continue;
+    inspectorState[id] = {
+      baseline: Number.isFinite(Number(override.baseline)) ? Number(override.baseline) : inspectorState[id].baseline,
+      min: Number.isFinite(Number(override.min)) ? Number(override.min) : inspectorState[id].min,
+      max: Number.isFinite(Number(override.max)) ? Number(override.max) : inspectorState[id].max,
+      locked: typeof override.locked === "boolean" ? override.locked : inspectorState[id].locked,
+      dirty: true,
+    };
+  }
   state.inspector = renderAssumptionInspector(assumptions, variables, {
+    state: inspectorState,
     onChange(_inspectorState, overrides) {
       state.overrides = overrides;
       overrideOutput.textContent = JSON.stringify(overrides, null, 2);
@@ -73,6 +95,7 @@ function renderExperiment(experiment, provenance = null) {
   state.overrides = state.inspector.getOverrides();
   overrideOutput.textContent = JSON.stringify(state.overrides, null, 2);
   generateWorldsButton.disabled = false;
+  saveExperimentButton.disabled = false;
   runVerificationButton.disabled = false;
   verificationOutput.textContent = "Ready to verify this experiment.";
   state.worldBatch = null;
@@ -93,6 +116,7 @@ function renderExperiment(experiment, provenance = null) {
   state.improvements = [];
   improvementOutput.innerHTML = `<p class="notice">Run sensitivity analysis first.</p>`;
   improvementResult.textContent = "";
+  state.improvementComparison = null;
   const sourceLabel = provenance?.source ? ` · ${provenance.source}` : "";
   const warning = provenance?.warning ? ` · WARNING: ${provenance.warning}` : "";
   setStatus(`Loaded ${experiment.id}${sourceLabel}${warning}`, Boolean(provenance?.warning));
@@ -161,6 +185,48 @@ generateWorldsButton.addEventListener("click", () => {
 });
 
 
+function renderSimulationBatch(batch) {
+  state.simulationBatch = batch;
+  const predictive = batch.adapter.predictive ? "predictive adapter" : "NON-PREDICTIVE stress test";
+  simulationSummary.textContent = `${batch.simulations.length} runs · ${batch.adapter.label} · ${predictive}`;
+  simulationPreview.textContent = JSON.stringify(batch.simulations.slice(0, 3), null, 2);
+  const outcome = summarizeOutcomes(batch);
+  state.analyzedExperiment = attachOutcomeAnalysis(state.experiment, batch);
+  const percent = (value) => value == null ? "—" : `${(value * 100).toFixed(1)}%`;
+  outcomeSummary.innerHTML = `
+    <div class="metric-card"><strong>${outcome.expectedScore ?? "—"}</strong><span>expected score</span></div>
+    <div class="metric-card"><strong>${percent(outcome.robustness)}</strong><span>robust worlds</span></div>
+    <div class="metric-card"><strong>${percent(outcome.adverseRate)}</strong><span>negative worlds</span></div>
+    <div class="metric-card"><strong>${outcome.p10Score ?? "—"}</strong><span>10th percentile</span></div>
+    <div class="metric-card"><strong>${outcome.worstScore ?? "—"}</strong><span>worst sampled world</span></div>
+  `;
+  tailPreview.textContent = JSON.stringify(outcome.tailRisks, null, 2);
+  const projection = projectOutcomeLandscape(batch.simulations);
+  renderOutcomeLandscape(landscapeSvg, projection, {
+    onSelect(point) {
+      landscapeSelection.textContent = `${point.id} · score ${point.score} · ${point.status}`;
+      renderRealityInspector(realityInspector, point.simulation, state.experiment);
+      window.dispatchEvent(new CustomEvent("hbl:reality-selected", { detail: point }));
+    },
+  });
+  landscapeSelection.textContent = `${projection.points.length} realities · ${projection.method}`;
+  const worst = [...batch.simulations].sort((a, b) => a.score - b.score)[0];
+  if (worst) renderRealityInspector(realityInspector, worst, state.experiment);
+  state.sensitivity = analyzeSensitivity(batch, state.experiment);
+  const top = state.sensitivity.sensitivities.slice(0, 10);
+  const failures = state.sensitivity.failureModes.slice(0, 6);
+  const rows = top.map((row) => `<tr><td>${escapeHtml(row.label)}</td><td>${escapeHtml(row.category)}</td><td>${escapeHtml(row.direction)}</td><td>${row.correlation.toFixed(3)}</td></tr>`).join("");
+  const failureRows = failures.map((row) => `<tr><td>${escapeHtml(row.label)}</td><td>${escapeHtml(row.pattern)}</td><td>${row.delta.toFixed(3)}</td></tr>`).join("");
+  sensitivityOutput.innerHTML = `
+    <h3>Top sensitivities</h3>
+    <table class="analysis-table"><thead><tr><th>Variable</th><th>Category</th><th>Association</th><th>r</th></tr></thead><tbody>${rows}</tbody></table>
+    <h3>Failure-mode separation</h3>
+    ${failureRows ? `<table class="analysis-table"><thead><tr><th>Variable</th><th>Pattern</th><th>Δ normalized</th></tr></thead><tbody>${failureRows}</tbody></table>` : `<p class="notice">Not enough positive and negative worlds to compare failure modes.</p>`}
+  `;
+  state.improvements = generatePlanImprovements(state.experiment, state.sensitivity, { limit: 6 });
+  renderImprovements();
+}
+
 runSimulationsButton.addEventListener("click", async () => {
   if (!state.experiment || !state.worldBatch) return;
   runSimulationsButton.disabled = true;
@@ -173,44 +239,7 @@ runSimulationsButton.addEventListener("click", async () => {
         if (completed === total || completed % 100 === 0) simulationSummary.textContent = `Running ${completed}/${total}…`;
       },
     });
-    const predictive = state.simulationBatch.adapter.predictive ? "predictive adapter" : "NON-PREDICTIVE stress test";
-    simulationSummary.textContent = `${state.simulationBatch.simulations.length} runs · ${state.simulationBatch.adapter.label} · ${predictive}`;
-    simulationPreview.textContent = JSON.stringify(state.simulationBatch.simulations.slice(0, 3), null, 2);
-    const outcome = summarizeOutcomes(state.simulationBatch);
-    state.analyzedExperiment = attachOutcomeAnalysis(state.experiment, state.simulationBatch);
-    const percent = (value) => value == null ? "—" : `${(value * 100).toFixed(1)}%`;
-    outcomeSummary.innerHTML = `
-      <div class="metric-card"><strong>${outcome.expectedScore ?? "—"}</strong><span>expected score</span></div>
-      <div class="metric-card"><strong>${percent(outcome.robustness)}</strong><span>robust worlds</span></div>
-      <div class="metric-card"><strong>${percent(outcome.adverseRate)}</strong><span>negative worlds</span></div>
-      <div class="metric-card"><strong>${outcome.p10Score ?? "—"}</strong><span>10th percentile</span></div>
-      <div class="metric-card"><strong>${outcome.worstScore ?? "—"}</strong><span>worst sampled world</span></div>
-    `;
-    tailPreview.textContent = JSON.stringify(outcome.tailRisks, null, 2);
-    const projection = projectOutcomeLandscape(state.simulationBatch.simulations);
-    renderOutcomeLandscape(landscapeSvg, projection, {
-      onSelect(point) {
-        landscapeSelection.textContent = `${point.id} · score ${point.score} · ${point.status}`;
-        renderRealityInspector(realityInspector, point.simulation, state.experiment);
-        window.dispatchEvent(new CustomEvent("hbl:reality-selected", { detail: point }));
-      },
-    });
-    landscapeSelection.textContent = `${projection.points.length} realities · ${projection.method}`;
-    const worst = [...state.simulationBatch.simulations].sort((a, b) => a.score - b.score)[0];
-    if (worst) renderRealityInspector(realityInspector, worst, state.experiment);
-    state.sensitivity = analyzeSensitivity(state.simulationBatch, state.experiment);
-    const top = state.sensitivity.sensitivities.slice(0, 10);
-    const failures = state.sensitivity.failureModes.slice(0, 6);
-    const rows = top.map((row) => `<tr><td>${escapeHtml(row.label)}</td><td>${escapeHtml(row.category)}</td><td>${escapeHtml(row.direction)}</td><td>${row.correlation.toFixed(3)}</td></tr>`).join("");
-    const failureRows = failures.map((row) => `<tr><td>${escapeHtml(row.label)}</td><td>${escapeHtml(row.pattern)}</td><td>${row.delta.toFixed(3)}</td></tr>`).join("");
-    sensitivityOutput.innerHTML = `
-      <h3>Top sensitivities</h3>
-      <table class="analysis-table"><thead><tr><th>Variable</th><th>Category</th><th>Association</th><th>r</th></tr></thead><tbody>${rows}</tbody></table>
-      <h3>Failure-mode separation</h3>
-      ${failureRows ? `<table class="analysis-table"><thead><tr><th>Variable</th><th>Pattern</th><th>Δ normalized</th></tr></thead><tbody>${failureRows}</tbody></table>` : `<p class="notice">Not enough positive and negative worlds to compare failure modes.</p>`}
-    `;
-    state.improvements = generatePlanImprovements(state.experiment, state.sensitivity, { limit: 6 });
-    renderImprovements();
+    renderSimulationBatch(state.simulationBatch);
   } catch (error) {
     simulationSummary.textContent = error.message;
   } finally {
@@ -238,6 +267,104 @@ function renderImprovements() {
     });
   });
 }
+
+async function refreshLineageOutput(recordId = state.recordId) {
+  const records = await listExperimentRecords(100);
+  const chain = recordId ? traceRecordLineage(records, recordId) : [];
+  lineageOutput.textContent = JSON.stringify(chain.map(summarizeExperimentRecord), null, 2);
+}
+
+async function restoreRecord(record) {
+  if (!record?.experiment) throw new Error("Saved record does not contain an experiment");
+  state.recordId = record.id;
+  state.parentRecordId = record.lineage?.parentRecordId || null;
+  renderExperiment(record.experiment, { source: "saved-record", warning: null }, record.overrides || {});
+  state.recordId = record.id;
+  state.parentRecordId = record.lineage?.parentRecordId || null;
+  state.worldBatch = record.worldBatch || null;
+  if (state.worldBatch) {
+    worldSummary.textContent = `${state.worldBatch.runs} restored worlds · seed ${state.worldBatch.seed}`;
+    worldPreview.textContent = JSON.stringify(state.worldBatch.worlds?.slice(0, 3) || [], null, 2);
+    runSimulationsButton.disabled = false;
+  }
+  if (record.simulationBatch) renderSimulationBatch(record.simulationBatch);
+  state.sensitivity = record.sensitivity || state.sensitivity;
+  state.improvements = record.improvements?.length ? record.improvements : state.improvements;
+  state.improvementComparison = record.improvementComparison || null;
+  if (state.improvements.length) renderImprovements();
+  recordStatus.textContent = `Loaded ${record.id} · saved ${record.savedAt}`;
+  copyExperimentLinkButton.disabled = false;
+  const url = new URL(location.href);
+  url.searchParams.set("experiment", record.id);
+  history.replaceState(null, "", url);
+  await refreshLineageOutput(record.id);
+}
+
+saveExperimentButton.addEventListener("click", async () => {
+  if (!state.experiment) return;
+  saveExperimentButton.disabled = true;
+  try {
+    const record = createExperimentRecord({
+      experiment: state.experiment,
+      overrides: state.overrides,
+      worldBatch: state.worldBatch,
+      simulationBatch: state.simulationBatch,
+      analyzedExperiment: state.analyzedExperiment,
+      sensitivity: state.sensitivity,
+      improvements: state.improvements,
+      improvementComparison: state.improvementComparison,
+      parentRecordId: state.recordId || state.parentRecordId,
+      revision: state.experiment?.lineage?.revision || 1,
+    });
+    await saveExperimentRecord(record);
+    state.parentRecordId = state.recordId || state.parentRecordId;
+    state.recordId = record.id;
+    recordStatus.textContent = `Saved ${record.id} · ${record.worldBatch?.runs || 0} worlds · ${record.simulationBatch?.simulations?.length || 0} results`;
+    copyExperimentLinkButton.disabled = false;
+    const url = new URL(location.href);
+    url.searchParams.set("experiment", record.id);
+    history.replaceState(null, "", url);
+    await refreshLineageOutput(record.id);
+  } catch (error) {
+    recordStatus.textContent = `Save failed: ${error?.message || error}`;
+  } finally {
+    saveExperimentButton.disabled = false;
+  }
+});
+
+loadLatestExperimentButton.addEventListener("click", async () => {
+  try {
+    const [latest] = await listExperimentRecords(1);
+    if (!latest) throw new Error("No saved experiments in this browser");
+    await restoreRecord(latest);
+  } catch (error) {
+    recordStatus.textContent = `Load failed: ${error?.message || error}`;
+  }
+});
+
+copyExperimentLinkButton.addEventListener("click", async () => {
+  if (!state.recordId) return;
+  const url = new URL(location.href);
+  url.searchParams.set("experiment", state.recordId);
+  try {
+    await navigator.clipboard.writeText(url.href);
+    recordStatus.textContent = `Copied local replay link for ${state.recordId}`;
+  } catch {
+    recordStatus.textContent = url.href;
+  }
+});
+
+(async () => {
+  const recordId = new URL(location.href).searchParams.get("experiment");
+  if (!recordId) return;
+  try {
+    const record = await loadExperimentRecord(recordId);
+    if (record) await restoreRecord(record);
+    else recordStatus.textContent = `Saved record ${recordId} was not found in this browser.`;
+  } catch (error) {
+    recordStatus.textContent = `Could not restore ${recordId}: ${error?.message || error}`;
+  }
+})();
 
 async function testImprovement(improvement, button) {
   if (!state.worldBatch || !state.simulationBatch) return;

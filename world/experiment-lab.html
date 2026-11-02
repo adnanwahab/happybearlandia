@@ -137,6 +137,18 @@
     <div class="button-row"><button id="run-verification" disabled>Run self-check</button></div>
     <pre id="verification-output">Load a plan first.</pre>
   </section>
+
+  <section class="panel" style="margin-top:18px">
+    <h2>11 · Save, replay & lineage</h2>
+    <p class="notice">Save the complete local experiment snapshot (assumptions, sampled worlds, results, analysis) in IndexedDB. A record URL reopens the same snapshot in this browser.</p>
+    <div class="button-row">
+      <button id="save-experiment" disabled>Save snapshot</button>
+      <button id="load-latest-experiment">Load latest</button>
+      <button id="copy-experiment-link" disabled>Copy record link</button>
+    </div>
+    <div id="record-status" class="status">No saved snapshot loaded.</div>
+    <pre id="lineage-output">[]</pre>
+  </section>
 </main>
 <script type="module" src="./experiment-lab.js"></script>
 </body>
