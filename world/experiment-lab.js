@@ -1,6 +1,6 @@
 import { renderAssumptionInspector } from "./assumption-inspector.js";
 import { generateWorlds } from "./world-generator.js";
-import { selectSimulationAdapter, simulateExperiment } from "./simulation-adapter.js";
+import { resolveSimulationAdapter, simulateExperiment } from "./simulation-adapter.js";
 import { attachOutcomeAnalysis, summarizeOutcomes } from "./outcome-analysis.js";
 import { projectOutcomeLandscape, renderOutcomeLandscape } from "./outcome-landscape.js";
 import { renderRealityInspector } from "./reality-inspector.js";
@@ -165,7 +165,7 @@ runSimulationsButton.addEventListener("click", async () => {
   if (!state.experiment || !state.worldBatch) return;
   runSimulationsButton.disabled = true;
   try {
-    const adapter = selectSimulationAdapter(window);
+    const adapter = await resolveSimulationAdapter(window);
     simulationSummary.textContent = `Running ${state.worldBatch.runs} worlds with ${adapter.label}…`;
     state.simulationBatch = await simulateExperiment(state.experiment, state.worldBatch, adapter, {
       concurrency: 24,
@@ -245,7 +245,7 @@ async function testImprovement(improvement, button) {
   improvementResult.textContent = `Testing “${improvement.title}” on the same ${state.worldBatch.runs} worlds…`;
   try {
     const revised = applyPlanImprovement(state.experiment, improvement);
-    const adapter = selectSimulationAdapter(window);
+    const adapter = await resolveSimulationAdapter(window);
     const rerun = await simulateExperiment(revised, state.worldBatch, adapter, { concurrency: 24 });
     const before = summarizeOutcomes(state.simulationBatch);
     const after = summarizeOutcomes(rerun);

@@ -1,4 +1,5 @@
 import { applySimulationEffectsToWorld } from "./plan-improver.js";
+import { createHttpCivicSimulator, simulatorBridgeConfig, validateCivicSimulationResult } from "./hbl-simulator-bridge.js";
 
 function finite(value, fallback = 0) {
   const number = Number(value);
@@ -104,12 +105,41 @@ export function createGlobalSimulationAdapter(globalObject = globalThis) {
     predictive: Boolean(meta.predictive),
     modelClass: meta.modelClass || "hbl-domain",
     description: meta.description || "HBL simulator exposed through window.HBL_CIVIC_SIMULATOR.",
-    simulateWorld: ({ experiment, world, options }) => runner({ experiment, world, options }),
+    async simulateWorld({ experiment, world, options }) {
+      const result = await runner({ experiment, world, options });
+      const validation = validateCivicSimulationResult(result, experiment?.outcomes?.metricRegistry || []);
+      if (!validation.ok) throw new Error(`Invalid HBL civic simulation result: ${validation.errors.join("; ")}`);
+      return result;
+    },
+  });
+}
+
+export function createHttpSimulationAdapter(endpoint, options = {}) {
+  const runner = createHttpCivicSimulator(endpoint, options);
+  const meta = options.meta || {};
+  return createSimulationAdapter({
+    id: meta.id || "hbl-http-simulator",
+    label: meta.label || "HBL HTTP simulator",
+    predictive: Boolean(meta.predictive),
+    modelClass: meta.modelClass || "hbl-domain-http",
+    description: meta.description || `HBL civic simulator at ${endpoint}`,
+    simulateWorld: runner,
   });
 }
 
 export function selectSimulationAdapter(globalObject = globalThis) {
   return createGlobalSimulationAdapter(globalObject) || createImplementationStressAdapter();
+}
+
+export async function resolveSimulationAdapter(globalObject = globalThis, options = {}) {
+  const globalAdapter = createGlobalSimulationAdapter(globalObject);
+  if (globalAdapter) return globalAdapter;
+  const config = simulatorBridgeConfig(globalObject);
+  if (config.endpoint) return createHttpSimulationAdapter(config.endpoint, {
+    fetchImpl: options.fetchImpl,
+    meta: config.meta || options.meta,
+  });
+  return createImplementationStressAdapter();
 }
 
 function normalizeSimulationResult(world, effectiveWorld, adapter, result) {
