@@ -79,7 +79,7 @@ function labelify(value) {
 
 function inferDirection(id) {
   const value = id.toLowerCase();
-  if (/(cost|burden|mortality|wait|delay|risk|emission|homeless|displacement|exposed|pollution|crime)/.test(value)) return "lower-is-better";
+  if (/(cost|price|burden|mortality|wait|delay|risk|emission|homeless|displacement|exposed|pollution|crime)/.test(value)) return "lower-is-better";
   if (/(rate|access|reliability|income|retention|capacity|units|ridership|employment|resilience|graduation)/.test(value)) return "higher-is-better";
   return "context-dependent";
 }
