@@ -1,0 +1,182 @@
+diff --git a/world/experiment-lab.html b/world/experiment-lab.html
+--- a/world/experiment-lab.html
++++ b/world/experiment-lab.html
+@@ -43,6 +43,7 @@
+     .landscape-bg { fill:#070a0d; }
+     .landscape-point { stroke:#071016; stroke-width:1.2; cursor:pointer; opacity:.82; }
+     .landscape-point.positive { fill:#7ed6a3; } .landscape-point.mixed { fill:#d8bd72; } .landscape-point.negative { fill:#e47f77; } .landscape-point.unknown { fill:#92a2ad; }
++    .landscape-point.overlay-low { fill:#7ea5d6; } .landscape-point.overlay-mid { fill:#aab4bd; } .landscape-point.overlay-high { fill:#e0bd73; }
+     .landscape-point:hover,.landscape-point:focus { stroke:#fff; stroke-width:2; opacity:1; outline:none; }
+     .reality-head { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:12px; }
+     .status-pill { border:1px solid #34414a; border-radius:999px; padding:5px 9px; font-size:11px; }
+@@ -136,6 +137,7 @@ <h2>06 · Scenario-family outcome comparison</h2>
+   <section class="panel" style="margin-top:18px">
+     <h2>07 · Outcome landscape</h2>
+     <p class="notice">Each point is one sampled reality. Nearby points have similar world conditions/outcomes under a lightweight deterministic PCA projection.</p>
++    <div class="button-row"><label class="notice" for="landscape-color">Overlay</label><select id="landscape-color"><option value="outcome">Outcome status</option><option value="plan-benefit">Plan benefit</option></select></div>
+     <svg id="outcome-landscape" class="landscape" aria-label="Outcome landscape"></svg>
+     <div id="landscape-selection" class="status">Run simulations to populate the landscape.</div>
+   </section>
+diff --git a/world/experiment-lab.js b/world/experiment-lab.js
+--- a/world/experiment-lab.js
++++ b/world/experiment-lab.js
+@@ -29,6 +29,7 @@ const state = {
+   parentRecordId: null,
+   improvementComparison: null,
+   scenarioComparison: null,
++  landscapeBatch: null,
+   revisionDraft: null,
+ };
+ 
+@@ -59,6 +60,7 @@ const scenarioTargetStatus = $("#scenario-target-status");
+ const tailPreview = $("#tail-preview");
+ const landscapeSvg = $("#outcome-landscape");
+ const landscapeSelection = $("#landscape-selection");
++const landscapeColorSelect = $("#landscape-color");
+ const realityInspector = $("#reality-inspector");
+ const sensitivityOutput = $("#sensitivity-output");
+ const improvementOutput = $("#improvement-output");
+@@ -388,6 +390,27 @@ function renderScenarioComparison(comparison) {
+   scenarioTargetStatus.textContent = weak ? `Weakest sampled family: ${weak.label}. Targeting changes the improvement search, not the sampled worlds.` : "Select a scenario family to target.";
+ }
+ 
++function renderCurrentLandscape() {
++  const batch = state.landscapeBatch;
++  if (!batch) return;
++  const raw = landscapeColorSelect.value || "outcome";
++  const projectionOptions = raw.startsWith("parameter:")
++    ? { mode: "parameter", parameterId: raw.slice("parameter:".length) }
++    : raw === "plan-benefit" ? { mode: "plan-benefit" } : { mode: "outcome" };
++  const projection = projectOutcomeLandscape(batch.simulations, projectionOptions);
++  renderOutcomeLandscape(landscapeSvg, projection, {
++    overlayMode: projectionOptions.mode,
++    onSelect(point) {
++      landscapeSelection.textContent = `${point.id} · score ${point.score} · ${point.status}`;
++      renderRealityInspector(realityInspector, point.simulation, state.experiment);
++      window.dispatchEvent(new CustomEvent("hbl:reality-selected", { detail: point }));
++    },
++  });
++  landscapeSelection.textContent = `${projection.points.length} realities · ${projection.method} · ${raw.replace("parameter:", "")}`;
++}
++
++landscapeColorSelect.addEventListener("change", renderCurrentLandscape);
++
+ function renderSimulationBatch(batch) {
+   state.simulationBatch = batch;
+   const modelLabel = batch.adapter.predictive
+@@ -413,15 +436,16 @@ function renderSimulationBatch(batch) {
+     ...state.analyzedExperiment,
+     analysis: { ...(state.analyzedExperiment?.analysis || {}), scenarioFamilies: scenarioComparison },
+   };
+-  const projection = projectOutcomeLandscape(batch.simulations);
+-  renderOutcomeLandscape(landscapeSvg, projection, {
+-    onSelect(point) {
+-      landscapeSelection.textContent = `${point.id} · score ${point.score} · ${point.status}`;
+-      renderRealityInspector(realityInspector, point.simulation, state.experiment);
+-      window.dispatchEvent(new CustomEvent("hbl:reality-selected", { detail: point }));
+-    },
+-  });
+-  landscapeSelection.textContent = `${projection.points.length} realities · ${projection.method}`;
++  state.landscapeBatch = batch;
++  const currentOverlay = landscapeColorSelect.value;
++  const options = [
++    { value: "outcome", label: "Outcome status" },
++    { value: "plan-benefit", label: "Plan benefit" },
++    ...(state.experiment?.worldModel?.variables || []).map((variable) => ({ value: `parameter:${variable.id}`, label: variable.label || variable.id })),
++  ];
++  landscapeColorSelect.innerHTML = options.map((option) => `<option value="${escapeHtml(option.value)}">${escapeHtml(option.label)}</option>`).join("");
++  landscapeColorSelect.value = options.some((option) => option.value === currentOverlay) ? currentOverlay : "outcome";
++  renderCurrentLandscape();
+   const worst = [...batch.simulations].sort((a, b) => a.score - b.score)[0];
+   if (worst) renderRealityInspector(realityInspector, worst, state.experiment);
+   state.sensitivity = analyzeSensitivity(batch, state.experiment);
+diff --git a/world/outcome-landscape-parameter.test.js b/world/outcome-landscape-parameter.test.js
+new file mode 100644
+--- /dev/null
++++ b/world/outcome-landscape-parameter.test.js
+@@ -0,0 +1,22 @@
++import test from "node:test";
++import assert from "node:assert/strict";
++import { projectOutcomeLandscape } from "./outcome-landscape.js";
++
++const simulations = [
++  { worldId: "a", score: 40, status: "negative", world: { conditions: { x: 2 }, normalized: { x: 0.2 } }, parameterContributions: [{ scoreContribution: -3 }] },
++  { worldId: "b", score: 70, status: "positive", world: { conditions: { x: 8 }, normalized: { x: 0.8 } }, parameterContributions: [{ scoreContribution: 5 }] },
++];
++
++test("landscape projection preserves world identity while exposing parameter overlay values", () => {
++  const base = projectOutcomeLandscape(simulations);
++  const overlay = projectOutcomeLandscape(simulations, { mode: "parameter", parameterId: "x" });
++  assert.deepEqual(base.points.map((row) => row.id), overlay.points.map((row) => row.id));
++  assert.equal(overlay.points[0].overlayValue, 0.2);
++  assert.equal(overlay.points[1].overlayValue, 0.8);
++});
++
++test("plan benefit overlay sums per-world parameter contributions", () => {
++  const projection = projectOutcomeLandscape(simulations, { mode: "plan-benefit" });
++  assert.equal(projection.points[0].overlayValue, -3);
++  assert.equal(projection.points[1].overlayValue, 5);
++});
+diff --git a/world/outcome-landscape.js b/world/outcome-landscape.js
+--- a/world/outcome-landscape.js
++++ b/world/outcome-landscape.js
+@@ -84,7 +84,21 @@ function scaleAxis(values) {
+   return values.map((value) => (value - center) / half);
+ }
+ 
+-export function projectOutcomeLandscape(simulations = []) {
++function overlayValue(simulation, options = {}) {
++  if (options.mode === "parameter" && options.parameterId) {
++    const normalized = simulation?.world?.normalized?.[options.parameterId];
++    if (Number.isFinite(Number(normalized))) return Number(normalized);
++    const value = simulation?.world?.conditions?.[options.parameterId];
++    return Number.isFinite(Number(value)) ? Number(value) : null;
++  }
++  if (options.mode === "plan-benefit") {
++    const values = (simulation?.parameterContributions || []).map((row) => Number(row.scoreContribution)).filter(Number.isFinite);
++    return values.length ? values.reduce((sum, value) => sum + value, 0) : 0;
++  }
++  return null;
++}
++
++export function projectOutcomeLandscape(simulations = [], options = {}) {
+   if (!simulations.length) return { method: "pca-lite-v1", variableIds: [], points: [] };
+   const variableIds = [...new Set(simulations.flatMap((row) => Object.keys(row?.world?.conditions || {})))].sort();
+   const featureIds = [...variableIds, "__outcome_score"];
+@@ -119,6 +133,7 @@ export function projectOutcomeLandscape(simulations = []) {
+       y: sy[index],
+       score: simulation.score,
+       status: simulation.status,
++      overlayValue: overlayValue(simulation, options),
+       simulation,
+     })),
+   };
+@@ -146,13 +161,19 @@ export function renderOutcomeLandscape(svg, projection, options = {}) {
+     const y = padding + ((1 - (point.y + 1) / 2)) * (height - padding * 2);
+     circle.setAttribute("cx", String(x));
+     circle.setAttribute("cy", String(y));
+-    circle.setAttribute("r", point.status === "negative" ? "4.6" : "3.8");
+-    circle.setAttribute("class", `landscape-point ${point.status || "unknown"}`);
++    const overlayEnabled = options.overlayMode && options.overlayMode !== "outcome";
++    const overlay = Number(point.overlayValue);
++    const overlayMagnitude = Number.isFinite(overlay) ? Math.min(1, Math.abs(overlay)) : 0;
++    circle.setAttribute("r", overlayEnabled ? String(3.8 + overlayMagnitude * 3.2) : (point.status === "negative" ? "4.6" : "3.8"));
++    const overlayClass = overlayEnabled && Number.isFinite(overlay)
++      ? overlay > 0.1 ? "overlay-high" : overlay < -0.1 ? "overlay-low" : "overlay-mid"
++      : "";
++    circle.setAttribute("class", `landscape-point ${overlayClass || point.status || "unknown"}`);
+     circle.setAttribute("tabindex", "0");
+     circle.setAttribute("role", "button");
+     circle.setAttribute("aria-label", `${point.id}: score ${point.score}`);
+     const title = document.createElementNS(namespace, "title");
+-    title.textContent = `${point.id} · score ${point.score} · ${point.status}`;
++    title.textContent = `${point.id} · score ${point.score} · ${point.status}${overlayEnabled && Number.isFinite(overlay) ? ` · overlay ${overlay.toFixed(3)}` : ""}`;
+     circle.appendChild(title);
+     circle.addEventListener("click", () => onSelect(point));
+     circle.addEventListener("keydown", (event) => {
+@@ -163,4 +184,4 @@ export function renderOutcomeLandscape(svg, projection, options = {}) {
+   return svg;
+ }
+ 
+-export const __test = { dot, norm, covariance, standardize, powerIteration, scaleAxis };
++export const __test = { dot, norm, covariance, standardize, powerIteration, scaleAxis, overlayValue };
