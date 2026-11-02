@@ -19,6 +19,7 @@ export const AGE_BANDS = ["child", "adult", "senior"];
 const p = (id,label,unit,value,min,max,step=1) => ({id,label,unit,type:"number",default:value,min,max,step,source:{type:"synthetic-assumption",confidence:"low"}});
 export const populationParameters = [
   p("population","Synthetic people","people",10000,1,100000), p("seed","Population seed","integer",42,0,4294967295),
+  p("representedPopulation","Represented population (0=one per agent)","people",0,0,10000000),
   p("householdSize","Mean household size","people/household",2.5,1,6,0.1), p("medianIncome","Target household median income","USD/year",72000,6000,300000,1000),
   p("incomeSpread","Log income dispersion","index",0.55,0,1.5,0.05), p("employmentRate","Adult employment target","fraction",0.75,0,1,0.01),
   p("baseRent","Monthly district rent","USD/month",1800,100,15000,50), p("rentMultiplier","Rent policy multiplier","multiplier",1,0.25,4,0.05),
@@ -26,6 +27,7 @@ export const populationParameters = [
   p("transitService","Bus/rail service level","multiplier",1,0,4,0.1), p("roadCapacity","District vehicle capacity per step","vehicles",800,10,100000,10),
   p("transitCapacity","District transit capacity per step","riders",600,10,100000,10), p("carCostPerKm","Car trip cost","USD/km",0.35,0,3,0.05),
   p("transitFare","Transit fare","USD/trip",2.5,0,20,0.5), p("moveThreshold","Required move utility improvement","index",0.15,0,2,0.05),
+  p("walkingSpeedKmh","Walking speed assumption","km/hour",3.2,1,7,0.1),
   p("movingCost","Household moving cost","USD",1500,0,20000,100), p("burdenThreshold","Housing stress threshold","fraction",0.35,0.1,0.9,0.01),
   p("displacementThreshold","Severe housing burden threshold","fraction",0.6,0.3,1.5,0.05), p("initialBufferMonths","Initial savings buffer","months",3,0,24,0.5),
   p("layoffRate","Daily baseline layoff probability","probability/day",0.0005,0,0.1,0.0005), p("hiringRate","Daily job-search success probability","probability/day",0.01,0,0.5,0.005),
@@ -54,5 +56,5 @@ export function normalizePopulationConfig(input={}){const result=validatePopulat
 export function hash(value){let n=2166136261;for(const c of String(value))n=Math.imul(n^c.charCodeAt(0),16777619);return n>>>0;}
 export function draw(seed,index,tick,stream=0){let n=(seed^Math.imul(index+1,2654435761)^Math.imul(tick+1,2246822519)^Math.imul(stream+1,3266489917))>>>0;n=Math.imul(n^(n>>>16),2246822507);n=Math.imul(n^(n>>>13),3266489909);return((n^(n>>>16))>>>0)/4294967296;}
 export const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
-export function recordTrace(model,kind,index,trace){const key=`${kind}:${index}`;let rows=model.traces.get(key);if(!rows){rows=[];model.traces.set(key,rows);}rows.push(trace);if(rows.length>12)rows.shift();if(model.traces.size>1024)model.traces.delete(model.traces.keys().next().value);}
-export function recordEvent(model,type,detail={}){model.events.push({tick:model.tick,minute:model.minute,type,...detail});if(model.events.length>model.config.maxLogEntries)model.events.shift();model.eventCounts[type]=(model.eventCounts[type]||0)+1;}
+export function recordTrace(model,kind,index,trace){const key=`${kind}:${index}`;let rows=model.traces.get(key);if(!rows){rows=[];model.traces.set(key,rows);}rows.push({schemaVersion:"decision-event.v1",behaviorModelVersion:POPULATION_VERSION,id:`${model.prefix}-${kind}${index}-${trace.type}-${trace.minute}`,actorId:`${model.prefix}-${kind==="person"?"p":"h"}${index}`,reasonCodes:trace.reasonCodes||[],...trace});if(rows.length>12)rows.shift();if(model.traces.size>1024)model.traces.delete(model.traces.keys().next().value);}
+export function recordEvent(model,type,detail={}){model.events.push({schemaVersion:"event.v2",modelVersion:POPULATION_VERSION,id:`${model.prefix}-event-${Object.values(model.eventCounts).reduce((a,b)=>a+b,0)}`,tick:model.tick,minute:model.minute,type,synthetic:true,...detail});if(model.events.length>model.config.maxLogEntries)model.events.shift();model.eventCounts[type]=(model.eventCounts[type]||0)+1;}

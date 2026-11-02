@@ -71,3 +71,11 @@ describe("/api/world/experiments", () => {
     expect(job.result.final.avgWalkMinutes.delta.mean).toBeLessThan(0);
   }, 30000);
 });
+
+test('procedural comparison bypasses OSM and records the pinned input',async()=>{
+  let areaCalls=0;
+  const handle=createExperimentsHandler({getArea:async()=>{areaCalls++;return {source:'none'};},runner:fakeRunner});
+  const started=await(await handle(post({proposalIds:['f_drainage'],procedural:true}))).json();
+  const job=await waitDone(handle,started.experimentId);
+  expect(job.status).toBe('done');expect(areaCalls).toBe(0);expect(job.params.procedural).toBe(true);
+});

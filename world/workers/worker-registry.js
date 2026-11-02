@@ -8,7 +8,7 @@ export function createWorkerRegistry({clock=now}={}) {
     const row=workers.get(id);if(!row)return;
     const at=clock(),type=message.type;
     bounded(row.messages,{at,type:String(type||"message").slice(0,80),taskId:message.taskId||null},WORKER_LIMITS.messages);
-    if(type==="WORKER_HEARTBEAT"){row.lastHeartbeat=at;row.heartbeatSupported=true;}
+    if(type==="WORKER_HEARTBEAT"){row.lastHeartbeat=at;row.heartbeatSupported=true;if(message.ownership)row.ownership=structuredClone(message.ownership);}
     if(type==="WORKER_READY"||type==="WORKER_HELLO")row.status="idle";
     if(type==="TASK_START"){row.status="busy";row.currentTask=message.taskId||message.kind||"task";row.taskStartedAt=at;row.progress=0;row.queueLatencyMs=Math.max(0,message.queueLatencyMs||0);}
     if(type==="TASK_PROGRESS")row.progress=Number.isFinite(message.progress)?message.progress:null;
@@ -37,10 +37,12 @@ export function createWorkerRegistry({clock=now}={}) {
 }
 let singleton;
 export const getWorkerRegistry=()=>singleton ||= createWorkerRegistry();
+export function legacyWorkerAdapter(data){if(data.error||["error","failed"].includes(data.type))return{type:"TASK_ERROR",error:data.error||data.message};if(["done","complete","completed","result"].includes(data.type)||Object.hasOwn(data,"result"))return{type:"TASK_DONE"};if(data.type==="progress")return{type:"TASK_PROGRESS",progress:typeof data.progress==="number"?data.progress:data.progress?.completed/Math.max(1,data.progress?.total)||data.frac||null};return null;}
 export function createTrackedWorker(url,options={type:"module"},metadata={}) {
+  if(!metadata.protocol)metadata={...metadata,adapter:metadata.adapter||legacyWorkerAdapter};
   const worker=new Worker(url,options);const registration=getWorkerRegistry().registerWorker(worker,metadata);
   const terminate=worker.terminate.bind(worker);worker.terminate=()=>{registration.unregister();return terminate();};
-  const post=worker.postMessage.bind(worker);worker.postMessage=(message,...args)=>{if(metadata.adapter&&["run","start","explain","build"].includes(message?.type))registration.report({type:"TASK_START",taskId:message.id||message.type});return post(message,...args);};
+  const post=worker.postMessage.bind(worker);worker.postMessage=(message,...args)=>{if(metadata.adapter&&["run","next","start","explain","build","building","optimize"].includes(message?.type))registration.report({type:"TASK_START",taskId:message.id??message.type});return post(message,...args);};
   worker.registryId=registration.id;return worker;
 }
 export const registerWorker=(...args)=>getWorkerRegistry().registerWorker(...args);

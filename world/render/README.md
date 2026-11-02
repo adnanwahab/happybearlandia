@@ -4,6 +4,14 @@
 
 The Graphics button or F3 opens performance and graphics controls. Lighting defaults to a sunny daytime presentation; choose Simulation clock to follow the resident clock, or select golden hour/night. These are visual overrides only. The scene uses a procedural blue sky and cloud layer, muted masonry palettes, dark weathered roof materials, reflection-tinted windows, and instanced multi-lobe park/street trees. Double-click a building to focus it; its inspector provides Focus and Cutaway. Geometry detail is independent of render resolution. Photo mode temporarily chooses ULTRA and restores the previous preset.
 
+## Close-up vegetation and artist assets
+
+Grass is actual instanced blade geometry on park surfaces, with anchored GPU wind, root-to-tip shading, deterministic variation and a dithered distance fade. It stays clear of road/sidewalk corridors. Aerial cameras above 42m skip it completely. Presets cap density/radius; CPU patch generation is incremental, and the distribution cache is bounded. The `grass` checkbox is available for A/B profiling. `getGeometryStats().grass` reports blades, triangles, tile cache occupancy and draw calls.
+
+Static artist GLBs can be loaded through `loadDetailAsset({url, transforms, category, maxDistance, maxTriangles, maxParts})`. One GLB load shares its geometry/materials across all supplied transforms and returns an unload handle. Nearby instances are filtered by distance and adaptive density. Skinned/morphing models and over-budget assets are rejected. This importer does not yet add automatic asset LOD switching or custom grass wind to GLBs.
+
+See [the artist brief](assets/ARTIST_BRIEF.md) for dimensions, pivots, PBR/export conventions and the first useful assets. `assets/models/bench-preview.glb` is a generated 60-triangle integration sample, not a final art asset.
+
 ## Host API
 
 `window.hblCityRenderer` exposes `renderCity`, `updateCity`, `focusBuilding`, `focusDistrict`, `enterCity`, `leaveCity`, `setTimeOfDay`, `setWeather`, `setQuality`, `getPerformanceStats`, `getGeometryStats`, `setGeometryDetail`, `setCutaway`, `setPhotoMode`, `setFeature`, `setAdaptiveQuality`, and `startBenchmark`.

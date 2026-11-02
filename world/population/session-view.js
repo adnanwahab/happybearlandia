@@ -9,7 +9,7 @@ export function mountSessionView({container,session:provided,getViewpoint,onFoll
  function render(state=session.getState()){
   root.querySelector('[data-scope]').textContent=`${state.scope} · ${state.events.length} retained events${state.dropped?` · ${state.dropped} older events dropped`:''}`;
   root.querySelector('[data-follow]').checked=state.following;
-  root.querySelector('[data-participants]').innerHTML=`<strong>${state.presenter?`Presenter ${escape(state.presenter)}`:'No presenter selected'}</strong><ul>${state.participants.map(p=>`<li>${escape(p.actor)} · view target ${p.viewpoint.target.map(n=>n.toFixed(0)).join(', ')} · ${Math.max(0,Math.floor((Date.now()-p.at)/1000))}s ago</li>`).join('')}</ul>`;
+  root.querySelector('[data-participants]').innerHTML=`<h3>Last shared participant viewpoints</h3><strong>${state.presenter?`Presenter ${escape(state.presenter)}`:'No presenter selected'}</strong><ul>${state.participants.map(p=>`<li>${escape(p.actor)} · view target ${p.viewpoint.target.map(n=>n.toFixed(0)).join(', ')} · ${Math.max(0,Math.floor((Date.now()-p.at)/1000))}s ago</li>`).join('')}</ul>`;
   root.querySelector('[data-questions]').innerHTML=`<h3>Questions → proposed experiment tasks</h3>${state.questions.map(q=>`<p>${escape(q.payload.text)} <button data-task="${escape(q.id)}">Propose experiment task</button></p>`).join('')}<p>${state.tasks.length} proposed tasks · approval required before running</p>`;
   root.querySelector('[data-annotations]').innerHTML=`<h3>Pinned annotations</h3><ul>${state.annotations.map(a=>`<li>${escape(a.payload.target.kind)} ${escape(a.payload.target.id)}: ${escape(a.payload.text)}</li>`).join('')}</ul>`;
  }

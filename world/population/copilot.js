@@ -1,5 +1,5 @@
 /** Deterministic record-grounded templates, not AI roleplay. No provider calls. */
-const records=entity=>entity?.decisions||entity?.decisionHistory||entity?.trace||entity?.traces||entity?.events||[];
+const records=entity=>entity?.decisionTrace||entity?.decisions||entity?.decisionHistory||entity?.trace||entity?.traces||entity?.events||[];
 const list=value=>Array.isArray(value)?value:[];
 export function explainPopulationEntity(entity,{kind='person',question='Why did this happen?'}={}){
  if(!entity)return{available:false,label:'Structured template · no AI',text:'Select an actual synthetic person or household to inspect its recorded decisions.',records:[]};
@@ -18,5 +18,5 @@ export function explainPopulationAggregate(snapshot,{scope='workforce',districtI
   return district?{available:true,label:'Structured template · district snapshot, no AI',text:`District ${district.name||district.label||district.id}: current recorded aggregate values are shown below. Counts alone do not establish why households moved; inspect retained move events for reasons.`,records:[district,...list(snapshot.events).filter(event=>String(event.districtId??event.toDistrict??event.fromDistrict)===String(districtId)).slice(-6)]}:{available:false,label:'Structured template · no AI',text:'Select a district present in the current snapshot.',records:[]};
  }
  const metrics=snapshot.metrics||snapshot.aggregates||{};
- return{available:true,label:'Structured template · workforce snapshot, no AI',text:'These are actual synthetic workforce/mobility aggregates and retained decision events. A mode share is an outcome, not by itself a causal explanation. Inspect mode-choice utility traces for individual reasons.',records:[metrics,...list(snapshot.events).filter(event=>/mode|trip|work|job|layoff|employ/i.test(String(event.type))).slice(-6)]};
+ return{available:true,label:'Structured template · workforce snapshot, no AI',text:'These are actual synthetic workforce/mobility aggregates and retained decision events. A mode share is an outcome, not by itself a causal explanation. Inspect mode-choice utility traces for individual reasons.',records:[metrics,...list(snapshot.events).filter(event=>/mode|trip|work|job|layoff|employ/i.test(String(event.eventType??event.decisionType??event.type))).slice(-6)]};
 }

@@ -1,3 +1,4 @@
+import { handleConstitutionSummary } from './world/constitution-summary-api.js';
 import { serve } from "bun";
 import { readdir } from "node:fs/promises";
 import { extname, join, normalize, relative } from "node:path";
@@ -376,6 +377,9 @@ const server = serve({
 
     if (/^\/world\/bench\/(aerial-city|downtown|construction|rush-hour|night|rain)\/?$/.test(pathname)) return serveFile("./world/index.html");
 
+    // Population benchmark is an explicit worker workload, separate from renderer scenes.
+    if (pathname === "/world/bench/people" || pathname === "/world/bench/people/") return serveFile("./world/people-benchmark.html");
+
     // Public landing page
     if (pathname === "/" || pathname === "/index.html") {
       return serveFile("./index.html");
@@ -430,11 +434,13 @@ const server = serve({
     if (under(pathname, "/api/decision-experiments")) return handleDecisionExperiments(request);
     if (under(pathname, "/api/world-edits")) return handleWorldEdits(request);
     if (under(pathname, "/api/decision-optimizations")) return handleOptimizations(request);
-    if (under(pathname, "/api/experiments") || under(pathname, "/api/runs")) {
+    if (under(pathname, "/api/city-experiments") || under(pathname, "/api/experiments") || under(pathname, "/api/runs")) {
       return handleServerCivicApi(request);
     }
     if (under(pathname, "/api/world/experiments")) return handleExperiments(request);
     if (pathname === "/api/world/parameter-patch") return handlePlanParameterPatch(request);
+    if (pathname === "/api/constitution-summary") return handleConstitutionSummary(request);
+    if (["/world/visualize-consitution", "/world/visualize-constitution"].includes(pathname.replace(/\/$/, ""))) return serveFile("./world/visualize-consitution.html");
     if (pathname === "/api/plan") return handlePlan(request);
     if (pathname === "/api/outcomes") return handleOutcomes();
     if (pathname === "/api/publish_draft") return handlePublishDraft(request);

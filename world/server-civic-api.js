@@ -1,3 +1,4 @@
+import { createCityApi } from "./city/api.js";
 import { handleExperimentApi } from "./experiment-api.js";
 import { loadServerExperiment } from "./server-experiment-store.js";
 import { generateWorlds } from "./world-generator.js";
@@ -104,6 +105,7 @@ export async function resolveServerRunInput(body = {}, options = {}) {
  * status can be polled while a job is executing.
  */
 export function createServerCivicApiHandler(options = {}) {
+  const cityHandler = createCityApi({ root: options.cityRoot });
   const runManager = options.runManager || new RunJobManager({ cache: options.runCache });
   const runHandler = createRunApiHandler(
     runManager,
@@ -112,6 +114,11 @@ export function createServerCivicApiHandler(options = {}) {
 
   return async function handleServerCivicApi(request) {
     const { pathname } = new URL(request.url);
+    if (pathname.startsWith("/api/city-experiments") || /^\/api\/experiments\/city_[\w-]+\/(tables|query|export|replay|brief|lineage)/.test(pathname)) {
+      const response = await cityHandler(request);
+      if (response) return response;
+      return Response.json({ error: "City experiment endpoint not found" }, { status: 404 });
+    }
 
     if (pathname === "/api/experiments" || pathname.startsWith("/api/experiments/")) {
       return handleExperimentApi(request, { root: options.experimentRoot });

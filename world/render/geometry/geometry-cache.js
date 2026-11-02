@@ -1,3 +1,4 @@
+import {createTrackedWorker} from "../../workers/worker-registry.js";
 import * as THREE from 'three';
 import {generateBuildingGeometry} from './building-generator.js';
 export function toBufferGeometry(data) {
@@ -7,7 +8,7 @@ export function toBufferGeometry(data) {
 }
 export class GeometryCache {
  constructor({maxBytes=32*1024*1024,worker=true}={}) {this.maxBytes=maxBytes;this.bytes=0;this.cache=new Map();this.pending=new Map();this.nextId=0;this.worker=null;
-  if(worker&&typeof Worker!=='undefined')try{this.worker=new Worker(new URL('./workers/geometry.worker.js',import.meta.url),{type:'module'});this.worker.onmessage=({data})=>{const job=this.pending.get(data.id);if(!job)return;this.pending.delete(data.id);data.error?job.reject(new Error(data.error)):job.resolve(data.result);};this.worker.onerror=error=>{for(const job of this.pending.values())job.reject(new Error(error.message||'Geometry worker failed'));this.pending.clear();this.worker.terminate();this.worker=null;};}catch{}
+  if(worker&&typeof Worker!=='undefined')try{this.worker=createTrackedWorker(new URL('./workers/geometry.worker.js',import.meta.url),{type:'module'},{type:'Geometry',ownership:{system:'building-geometry'}});this.worker.onmessage=({data})=>{const job=this.pending.get(data.id);if(!job)return;this.pending.delete(data.id);data.error?job.reject(new Error(data.error)):job.resolve(data.result);};this.worker.onerror=error=>{for(const job of this.pending.values())job.reject(new Error(error.message||'Geometry worker failed'));this.pending.clear();this.worker.terminate();this.worker=null;};}catch{}
  }
  async building(input,quality='BALANCED') {
   const key=JSON.stringify([input,quality]);if(this.cache.has(key)){const data=this.cache.get(key);this.cache.delete(key);this.cache.set(key,data);return data;}

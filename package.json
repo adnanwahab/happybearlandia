@@ -15,7 +15,9 @@
     "test:build-world:e2e": "playwright test test/e2e/build-world.e2e.js",
     "test:advanced": "bun test test/robustness.test.js test/demo-fallback.test.js test/decision-exploration.test.js test/decision-intelligence.test.js test/housing-fork.test.js test/advanced-studio.test.js test/advanced-trace-integration.test.js",
     "test:advanced:e2e": "playwright test test/e2e/advanced-",
-    "record:demo": "HBL_RECORD_DEMO=1 playwright test test/e2e/advanced-loop.e2e.js"
+    "record:demo": "HBL_RECORD_DEMO=1 playwright test test/e2e/advanced-loop.e2e.js",
+    "test:city": "bun test test/city-systems.test.js test/server-civic-api.test.js",
+    "test:city:e2e": "playwright test test/e2e/city-systems.e2e.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1136.0",

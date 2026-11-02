@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { DetailAssetLibrary } from './assets/instanced-glb.js';
+import { createGrass } from './vegetation/grass.js';
 import { createCitySky } from './environment/sky.js';
 import { GeometryDebug } from './geometry/debug/geometry-debug.js';
 import { GeometryDetailManager } from './geometry/geometry-detail-manager.js';
@@ -17,11 +19,12 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
   const params=new URLSearchParams(location.search), quality=new QualityManager(params.get('quality')?.toUpperCase() in PRESETS?params.get('quality').toUpperCase():'BALANCED');
   const stats=new RenderStats(), gpu=new GPUProfiler(renderer), visibility=new CityVisibility(town.buildings), details=createCityDetails(scene,town);
   const geometryDebug=new GeometryDebug(town.buildings), geometryDetail=geometryCache?new GeometryDetailManager(town.buildings,geometryCache):null;
+  const grass=createGrass(scene,town),detailAssets=new DetailAssetLibrary(scene);
   const environment=createEnvironmentLight(renderer,scene);
   const skyDome=createCitySky(scene);
   const construction=new ConstructionRenderer(scene);
   const lod=new BuildingLOD(scene,visibility.chunks), cutaway=new BuildingCutaway(scene);
-  const features={sky:true,environment:true,construction:true,lod:true,props:true,roads:true,traffic:true,vegetation:true,roofs:true,rain:true,facades:true,interiors:true,atmosphere:true,shadows:!embed,culling:true};
+  const features={assets:true,grass:true,sky:true,environment:true,construction:true,lod:true,props:true,roads:true,traffic:true,vegetation:true,roofs:true,rain:true,facades:true,interiors:true,atmosphere:true,shadows:!embed,culling:true};
   const fog=new THREE.FogExp2(0x91afbf,.00023);
   let renderInstances=0,adaptiveEnabled=true;
   let state={timeOfDay:14},lastSettings='',lastOverlay=0,frameIndex=0,active=true,photoPreset=null,focus=null,visible={},cached={},disposed=false, benchmarkStart=null;
@@ -63,7 +66,8 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
     setFeature(name,value){if(!(name in features))throw new RangeError(`Unknown render feature: ${name}`);features[name]=Boolean(value);lastSettings='';},
     setAdaptiveQuality(value){adaptiveEnabled=Boolean(value);},
     setGeometryDetail(value){if(!['LOW','MEDIUM','HIGH','ULTRA'].includes(value))throw new RangeError('Unknown geometry detail');if(geometryDetail)geometryDetail.quality=value;},
-    getGeometryStats(){return geometryDebug.getGeometryStats();},
+    getGeometryStats(){return {...geometryDebug.getGeometryStats(),grass:grass.getStats(),assets:detailAssets.getStats()};},
+    loadDetailAsset(options){return detailAssets.load(options);},
     setCutaway(value){cutaway.enabled=Boolean(value);},
     setWeather(value){details.setWeather(value);state.weather=value;},
     setTimeOfDay(hour){if(!Number.isFinite(hour))throw new TypeError('Hour must be finite');state.timeOfDay=((hour%24)+24)%24;},
@@ -79,11 +83,11 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
     enterCity(){active=true;renderer.domElement.style.visibility='';},
     leaveCity(){active=false;renderer.domElement.style.visibility='hidden';},
     setPhotoMode(enabled){if(enabled&&!photoPreset){photoPreset=quality.preset;api.setQuality('ULTRA');}else if(!enabled&&photoPreset){const previous=photoPreset;photoPreset=null;api.setQuality(previous);}},
-    beforeFrame(now,dt,daylight,selected,visuals={}){
+    beforeFrame(now,dt,daylight,selected,visuals={},motion={now,dt}){
       if(disposed)return;applyQuality();
       if(focus){const alpha=1-Math.exp(-dt*5);camera.position.lerp(focus.position,alpha);controls.target.lerp(focus.target,alpha);camera.lookAt(controls.target);if(camera.position.distanceTo(focus.position)<.1)focus=null;}
       if(benchmarkStart!=null){const seconds=(now-benchmarkStart)/1000;scriptedCamera(camera,controls,seconds);camera.lookAt(controls.target);if(seconds>=24)api.setTimeOfDay(22);if(seconds>=30)benchmarkStart=null;}
-      construction.animate(now,features.construction);
+      construction.animate(motion.now,features.construction);
       environment.update(daylight,features.environment);
       skyDome.update(camera,daylight,state.weather,features.sky&&!visuals.skyColor);
       scene.fog=features.atmosphere?fog:null;fog.color.setHex(0x91afbf).multiplyScalar(.08+.92*daylight);
@@ -94,7 +98,9 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
       geometryDebug.update(camera,selectedId,innerHeight);
       cutaway.select(town.buildings.find(b=>b.index===selectedId||String(b.id)===String(selectedId)),state.occupancy);
       cutaway.update(now);
-      details.update(now,dt,camera,{...quality.settings,geometryRadius:({LOW:.6,MEDIUM:1,HIGH:1.3,ULTRA:1.6})[geometryDetail?.quality||'MEDIUM']},features,state);
+      grass.update(motion.now,camera,quality.settings,features.grass&&features.vegetation,quality.preset);
+      detailAssets.update(motion.now,camera,quality.settings,features);
+      details.update(motion.now,motion.dt,camera,{...quality.settings,geometryRadius:({LOW:.6,MEDIUM:1,HIGH:1.3,ULTRA:1.6})[geometryDetail?.quality||'MEDIUM']},features,state);
       for(const facade of facades){facade.setNight(1-daylight);facade.setEnabled(features.facades);facade.setInteriorEnabled(features.interiors);facade.setOccupancy(Number.isFinite(state.vacancy)?1-state.vacancy:.7);}
       return active;
     },
@@ -105,12 +111,12 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
       stats.push(sample,now);
       if(adaptiveEnabled&&!photoPreset&&!stats.recording&&quality.sample(frameMs,gpu.ms,cpuMs))applyQuality();
       if(now-lastOverlay>250){lastOverlay=now;renderInstances=0;scene.traverseVisible(object=>{if(object.isInstancedMesh)renderInstances+=object.count;});cached=stats.current;
-        if(!panel.hidden){const n=v=>v==null?'unavailable':v.toFixed(2);panel.querySelector('pre').textContent=`${mode.toUpperCase()} · ${quality.preset}\nFPS ${n(cached.fps)} · 1% low ${n(cached.onePercentLowFps)}\nCPU ${n(cpuMs)} ms · GPU ${n(gpu.ms)} ms\nFrame p95 ${n(cached.p95FrameMs)} ms\nDraws ${sample.drawCalls} · triangles ${sample.triangles}\nTextures ${sample.textures} · texture bytes unavailable\nInstances ${renderInstances} · HLOD ${visible.instances}\nChunks ${visible.visibleChunks} · buildings ${visible.visibleObjects}\nShadow casters ${visible.shadowCasters}\nGeometry ${(geometryDebug.stats.bytes/1048576).toFixed(1)} MiB · LOD ${geometryDebug.stats.lodCounts.join("/")}\nScale ${quality.settings.scale.toFixed(2)} · slow frames ${cached.slowFrames}`;
+        if(!panel.hidden){const n=v=>v==null?'unavailable':v.toFixed(2);panel.querySelector('pre').textContent=`${mode.toUpperCase()} · ${quality.preset}\nFPS ${n(cached.fps)} · 1% low ${n(cached.onePercentLowFps)}\nCPU ${n(cpuMs)} ms · GPU ${n(gpu.ms)} ms\nFrame p95 ${n(cached.p95FrameMs)} ms\nDraws ${sample.drawCalls} · triangles ${sample.triangles}\nTextures ${sample.textures} · texture bytes unavailable\nInstances ${renderInstances} · HLOD ${visible.instances}\nChunks ${visible.visibleChunks} · buildings ${visible.visibleObjects}\nShadow casters ${visible.shadowCasters}\nGeometry ${(geometryDebug.stats.bytes/1048576).toFixed(1)} MiB · LOD ${geometryDebug.stats.lodCounts.join("/")}\nGrass ${grass.getStats().blades} blades · ${grass.getStats().drawCalls} draw\nScale ${quality.settings.scale.toFixed(2)} · slow frames ${cached.slowFrames}`;
           panel.querySelector('[role=status]').textContent=stats.recording?'Recording… quality held fixed':stats.lastReport?'Recording complete. Export JSON to compare.':'';
         }
       }
     },
-    destroy(){disposed=true;removeEventListener('keydown',hotkey);panel.remove();graphicsButton.remove();details.dispose();lod.dispose();cutaway.dispose();construction.dispose();environment.dispose();skyDome.dispose();geometryDebug.dispose();geometryDetail?.dispose();geometryCache?.dispose();},
+    destroy(){disposed=true;removeEventListener('keydown',hotkey);panel.remove();graphicsButton.remove();details.dispose();lod.dispose();cutaway.dispose();construction.dispose();environment.dispose();grass.dispose();detailAssets.dispose();skyDome.dispose();geometryDebug.dispose();geometryDetail?.dispose();geometryCache?.dispose();},
   };
   applyQuality();return api;
 }

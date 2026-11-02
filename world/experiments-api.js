@@ -94,9 +94,9 @@ export function createExperimentsHandler({ fetchPlan, getArea, runner = runPaire
     throw new Error('Pass "plan", "proposalIds", or "package"');
   }
 
-  async function buildExperimentTown(location, maxPeople) {
+  async function buildExperimentTown(location, maxPeople, procedural = false) {
     let area = null;
-    if (getArea) {
+    if (getArea && !procedural) {
       try {
         area = await getArea(location.lat, location.lng);
       } catch {
@@ -137,6 +137,7 @@ export function createExperimentsHandler({ fetchPlan, getArea, runner = runPaire
       maxPeople: clampInt(body.maxPeople, LIMITS.maxPeople),
       baseSeed: String(body.baseSeed || "hbl").slice(0, 64),
       location,
+      procedural: body.procedural === true,
     };
 
     const id = `exp_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
@@ -147,7 +148,7 @@ export function createExperimentsHandler({ fetchPlan, getArea, runner = runPaire
     queue = queue.then(async () => {
       job.status = "running";
       try {
-        const town = await buildExperimentTown(location, params.maxPeople);
+        const town = await buildExperimentTown(location, params.maxPeople, params.procedural);
         job.result = await runner({
           town,
           plan,

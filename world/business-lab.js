@@ -1,3 +1,4 @@
+import {createTrackedWorker} from "./workers/worker-registry.js";
 import { ARCHETYPES, EXAMPLES, createDefinition } from './models/business-v1/content.js';
 import { FIELDS, copy, approveDefinition, validateDefinition, requireApproved } from './models/business-v1/schema.js';
 import { compileLocal } from './models/business-v1/compiler.js';
@@ -167,7 +168,7 @@ function launchFutures(alternatives=[]) {
   if(state.bankrupt){notice('Start a new company before running future operations.',true);return;}
   const initial=copy(state), current=copy(plan);
   if(worker) worker.terminate();
-  worker=new Worker('/world/models/business-v1/futures.worker.js',{type:'module'});
+  worker=createTrackedWorker('/world/models/business-v1/futures.worker.js',{type:'module'},{type:'Simulation',ownership:{system:'business-futures'}});
   renderChrome(); $('runFutures').disabled=true; $('cancelFutures').hidden=false; $('futureProgress').hidden=false;
   $('futureStatus').textContent='Starting seeded futures…'; notice('');
   $('futureResults').querySelectorAll('button').forEach(b=>b.disabled=true);

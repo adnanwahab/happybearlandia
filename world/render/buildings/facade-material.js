@@ -36,7 +36,10 @@ export function createFacadeMaterial(color, seed = 0, layout = {}) {
   const mortar=step(.96,fract(positionLocal.y.mul(3.5))).mul(.1);
   const floorBand=step(.95,v).mul(.12);
   const weathering=mix(.86,1,grain).sub(mortar).sub(floorBand);
-  const roof=mix(vec3(.095,.105,.10),materialColor,landscape).mul(mix(.94,1,grain));
+  const turf=sin(positionLocal.x.mul(.43).add(sin(positionLocal.z.mul(.24)))).mul(sin(positionLocal.z.mul(.37))).mul(.12).add(.9);
+  const groundGrain=fract(sin(dot(positionLocal.xz.mul(40).floor(),vec3(12.9898,78.233,37.719).xy)).mul(43758.5453));
+  const lawn=materialColor.mul(turf).mul(mix(.87,1,groundGrain));
+  const roof=mix(vec3(.095,.105,.10),lawn,landscape).mul(mix(.94,1,grain));
   const view=modelWorldMatrixInverse.mul(vec4(cameraPosition,1)).xyz.sub(positionLocal).normalize();
   const reflection=dot(view,normalLocal).abs().oneMinus().pow(3).mul(.55).add(.18);
   const reflectedRoom=mix(room,glass.mul(1.3),reflection);

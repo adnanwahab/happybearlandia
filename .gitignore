@@ -41,3 +41,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # Playwright artifacts
 /test-results/
 /playwright-report/
+
+# Private coupled-city SQLite storage
+.hbl-city/

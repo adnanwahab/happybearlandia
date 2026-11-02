@@ -5,7 +5,8 @@
 import { rng, hashSeed } from "./gen.js";
 
 const DECAY = { hunger: 0.09, energy: 0.045, fun: 0.05, social: 0.04 }; // per game minute
-const WALK_M_PER_MIN = 80;
+// Relaxed walking pace; policy speedMult still applies.
+export const WALK_M_PER_MIN = 55;
 const ROAD_CONNECT_MAX_M = 220;
 
 /**
@@ -89,6 +90,22 @@ export const ACTIONS = {
     },
   },
 };
+
+/** Net need change per simulated minute, shared by the model and person inspector. */
+export function needRateFor(person, need, world) {
+  if (!(need in DECAY)) return null;
+  const action = person.mode === "doing" && person.action ? ACTIONS[person.action] : null;
+  let rate = need === "hunger" && action && person.action === "sleep" ? -0.04 : -DECAY[need];
+  if (action?.rate?.[need] != null) {
+    let gain = action.rate[need];
+    if (action.littered && need === "fun") gain *= 1 - (world?.buildings?.[person.target]?.state?.litter || 0) / 140;
+    rate += gain;
+  }
+  return rate;
+}
+export function legacyNeedSnapshot(person, world) {
+  return { needs: { ...person.needs }, needRates: Object.fromEntries(Object.keys(DECAY).map(key => [key, needRateFor(person, key, world)])), needActivity: person.doing || (person.mode === "doing" ? ACTIONS[person.action]?.label : null) || person.mode };
+}
 
 const TRAIT_BONUS = {
   foodie: { eat_out: 1.6 }, homebody: { relax_home: 1.5, eat_home: 1.3, play_park: 0.7 },
@@ -433,14 +450,7 @@ export function createWorld(town, opts = {}) {
     for (const p of w.people) {
       const a = p.mode === "doing" && p.action ? ACTIONS[p.action] : null;
       for (const need of Object.keys(DECAY)) {
-        let d = -DECAY[need];
-        if (need === "hunger" && a && p.action === "sleep") d = -0.04;
-        if (a?.rate?.[need] != null) {
-          let rate = a.rate[need];
-          if (a.littered && need === "fun") rate *= 1 - w.buildings[p.target].state.litter / 140;
-          d += rate;
-        }
-        p.needs[need] = clamp(p.needs[need] + d);
+        p.needs[need] = clamp(p.needs[need] + needRateFor(p, need, w));
       }
       if (a?.pay) {
         const wageBoost = p.action === "work" ? 1 + w.hiringBoost * 0.5 : 1;

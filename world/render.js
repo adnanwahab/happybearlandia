@@ -1,4 +1,10 @@
+import { mountConstitutionComparison } from './constitution-visuals.js';
 import * as THREE from "three";
+import { createHumanInstances } from "./render/people/human-renderer.js";
+import { createSimulationPlayback } from "./simulation-playback.js";
+import { personNeedsMarkup } from "./person-needs.js";
+import { mountLivingWorld } from "./population/world-view.js";
+import { createTrackedWorker } from "./workers/worker-registry.js";
 import { mountMinimap } from "./minimap.js";
 import { mountVehicleInspector } from "./vehicle-inspector.js";
 import { mountMapControls } from "./map-controls.js";
@@ -15,7 +21,7 @@ import { createCityRenderer } from "./render/renderer/webgpu-renderer.js";
 import { mountCityRenderer } from "./render/city-renderer.js";
 import { createFacadeMaterial } from "./render/buildings/facade-material.js";
 import { buildTown, projector } from "./gen.js";
-import { createWorld, clock } from "./sim.js";
+import { createWorld, clock, legacyNeedSnapshot } from "./sim.js";
 import { journalFor, WALK_COMPLAINT_MINUTES } from "./journal.js";
 import { computeEffectsForYear, derivePolicyProfile } from "./policy.js";
 import { wellbeing, wellbeingHex } from "./wellbeing.js";
@@ -148,6 +154,7 @@ addEventListener("pagehide",()=>{startup.cancelled=true;startupAbort.abort();sta
 let area = await initialAreaRequest;
 startup.mapReadyMs=performance.now();
 const town = buildTown(origin, area, { maxPeople });
+mountConstitutionComparison({ THREE, scene, camera, controls, town, params });
 const world = createWorld(town, realityRunSeed ? { runSeed: realityRunSeed } : {});
 const isHarrisCountyTile = origin.lat >= 29.3 && origin.lat <= 30.25 && origin.lng >= -95.95 && origin.lng <= -94.9;
 let measuredOutcomesLatest = {};
@@ -306,7 +313,7 @@ startup.placeholdersReadyMs=performance.now();
 const progressiveGeometry=createProgressiveLoader({items:town.buildings,signal:startupAbort.signal,concurrency:3,frameBudgetMs:4,maxAttachmentsPerFrame:6,
   priority:b=>Math.hypot(b.center[0]-camera.position.x,b.center[1]-camera.position.z),
   load:b=>geometryCache.building({id:b.id,poly:b.poly,height:b.height,kind:b.kind}),
-  attach:(data,b)=>{const geo=toBufferGeometry(data),facade=createFacadeMaterial(b.baseColor,hash32(String(b.id))%1000,{...data.metadata.facade,park:b.kind==="park"}),mesh=b.mesh;const old=mesh.geometry;mesh.geometry=geo;mesh.material=facade.material;mesh.userData.loadingGeometry=false;mesh.userData.geometryTier=1;facades.push(facade);old.dispose();return()=>{geo.dispose();facade.material.dispose();};},
+  attach:(data,b)=>{const geo=toBufferGeometry(data),facade=createFacadeMaterial(b.baseColor,hash32(String(b.id))%1000,{...data.metadata.facade,park:b.kind==="park"}),mesh=b.mesh;const old=mesh.geometry;mesh.geometry=geo;mesh.material=facade.material;mesh.userData.loadingGeometry=false;mesh.userData.geometryTier=1;facades.push(facade);b.populationFacade=facade;old.dispose();return()=>{geo.dispose();facade.material.dispose();};},
   fallback:(error,b)=>{b.mesh.userData.geometryError=error.message;return()=>b.mesh.geometry.dispose();},
   disposeSource:()=>geometryCache.dispose(),
   onProgress:progress=>{startup.geometry=progress;const label=$("loading");if(label)label.textContent=`Detailed buildings ${progress.successful} / ${progress.total}${progress.fallbacks?` · ${progress.fallbacks} footprints retained`:''}`;}
@@ -361,12 +368,11 @@ const ACTION_COLOR = {
   work: 0x4a5a78, study: 0x7a5ec2, sleep: 0x555555, eat_home: 0xb36b3b, relax_home: 0x8d6e63, idle: 0x999999,
 };
 const OUTDOOR = new Set(["play_park", "clean_park"]);
-const capsule = new THREE.CapsuleGeometry(.24, 1.12, 3, 6);
-capsule.translate(0, .8, 0);
-const people = new THREE.InstancedMesh(capsule, new THREE.MeshLambertMaterial(), town.people.length);
-people.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-people.castShadow = true;
+const humanPeople=createHumanInstances({THREE,count:town.people.length});
+const people=humanPeople.root;
 scene.add(people);
+window.hblHumanPeople=humanPeople;
+addEventListener('pagehide',()=>humanPeople.destroy(),{once:true});
 const smooth = town.people.map((p) => ({ x: p.x, z: p.z }));
 const tmp = new THREE.Object3D();
 const color = new THREE.Color();
@@ -380,7 +386,7 @@ scene.add(ring);
 /* ---------------------------------------------------------------- */
 /* Interaction                                                       */
 /* ---------------------------------------------------------------- */
-let speed = Math.max(1, Math.min(600, Number(params.get("speed")) || 10)); // game minutes per real second
+let speed = Math.max(1, Math.min(100, Number(params.get("speed")) || 10)); // game minutes per real second
 let selected = null; // { type: "person"|"building"|"journal", id }
 let follow = false;
 let overlayMode = "none";
@@ -388,11 +394,20 @@ let cycleResult = null;     // last Run cycle result from cycle.worker.js
 let cycleView = "withPlan"; // which scores the "cycle" overlay shows: before | noPlan | withPlan
 let todayJournalPosts = [];
 let journalPins = [];
+const originalTrafficEnabled=cityRenderer.getPerformanceStats().features?.traffic!==false;
+let livingWorld=null,livingPlaybackUnsubscribe=null;
+const playback=createSimulationPlayback({initialSpeed:speed,onChange:state=>{speed=state.paused?0:state.speed;const runtime=livingWorld?.active?livingWorld.getRuntime():null;if(runtime){runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();}for(const button of $("speeds").children)button.classList.toggle("on",Number(button.dataset.s)===(state.paused?0:state.speed));if(selected?.type==="person")renderInspector();}});
+window.hblSimulationPlayback=playback;
+livingWorld=!embedMode?mountLivingWorld({container:document.body,scene,camera,controls,THREE,town,renderer,onRuntimeReady:runtime=>{const state=playback.getState();runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();if(!livingPlaybackUnsubscribe)livingPlaybackUnsubscribe=runtime.subscribe(frame=>{if(!livingWorld?.active||!frame?.runtime)return;frame.runtime.paused?playback.pause():playback.resume();});return true;},onModeChange:active=>{people.visible=!active;follow=false;selected=null;document.documentElement.classList.remove("person-selected");$("inspect").removeAttribute("data-person-selected");$("inspect").style.display="none";cityRenderer.setFeature('traffic',active?false:originalTrafficEnabled);cityRenderer.updateCity({trafficDensity:active?0:1});document.body.classList.toggle('living-active',active);const fastest=$('speeds').lastElementChild;fastest.dataset.s=active?'32':'60';fastest.textContent=active?'32×':'60×';if(active&&playback.getState().speed>32)playback.setSpeed(32);if(active){livingWorld?.ready?.then(()=>{const state=playback.getState(),runtime=livingWorld.getRuntime();if(runtime){runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();}});}}}):null;
+window.hblLivingWorld=livingWorld;
+addEventListener('pagehide',()=>{livingPlaybackUnsubscribe?.();livingWorld?.destroy();playback.destroy();},{once:true});
 const overlayEl = $("overlayMode");
 const overlayLegendEl = $("overlayLegend");
 if (overlayEl) overlayEl.onchange = (e) => { overlayMode = e.target.value || "none"; };
 for (const btn of $("speeds").children) btn.onclick = () => {
-  speed = Number(btn.dataset.s);
+  const requested=Number(btn.dataset.s);
+  if(requested===0)playback.pause();else{playback.setSpeed(requested);playback.resume();}
+  if(selected?.type === "person")renderInspector();
   for (const b of $("speeds").children) b.classList.toggle("on", b === btn);
 };
 
@@ -1075,7 +1090,7 @@ function runExperiment10Years() {
 
   const beforeStatePromise = readStateEntryCount();
 
-  experimentWorker = new Worker(new URL("./experiment.worker.js", import.meta.url), { type: "module" });
+  experimentWorker = createTrackedWorker(new URL("./experiment.worker.js", import.meta.url), { type: "module" }, { type: "Simulation", ownership: { system: "legacy-experiments" } });
   experimentWorker.onmessage = async (ev) => {
     const msg = ev?.data || {};
     if (msg.type === "progress") {
@@ -1176,7 +1191,7 @@ function setCycleBusy(busy) {
 
 function startCycleWorker() {
   cycleWorker?.terminate();
-  cycleWorker = new Worker(new URL("./cycle.worker.js", import.meta.url), { type: "module" });
+  cycleWorker = createTrackedWorker(new URL("./cycle.worker.js", import.meta.url), { type: "module" }, { type: "Cycle", ownership: { system: "legacy-cycle" } });
   cycleWorker.onmessage = (ev) => {
     const msg = ev?.data || {};
     const status = $("cycleStatus");
@@ -1820,20 +1835,22 @@ renderer.domElement.addEventListener("pointerup", (e) => {
   if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) return; // was a drag
   ptr.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
   ray.setFromCamera(ptr, camera);
-  const hp = ray.intersectObject(people)[0];
+  const hp = livingWorld?.active?null:humanPeople.pick(ray);
   const hb = ray.intersectObjects(meshes)[0];
   const hj = journalPins.length ? ray.intersectObjects(journalPins.map((x) => x.mesh))[0] : null;
   const vehicle=cityRenderer.pickVehicle?.(ray)||downVehicle;
+  const populationHit=livingWorld?.pick(ray);
+  if(populationHit&&(!hb||populationHit.distance<hb.distance)&&(!hp||populationHit.distance<hp.distance)&&(!hj||populationHit.distance<hj.distance)&&(!vehicle||populationHit.distance<vehicle.distance)){select(null);livingWorld.selectPerson(populationHit.personId);return;}
   if(vehicle&&(!hb||vehicle.distance<hb.distance)&&(!hp||vehicle.distance<hp.distance)&&(!hj||vehicle.distance<hj.distance)) {select(null);selectedVehicle=vehicle.id;vehicleInspector?.select(vehicle);return;}
   selectedVehicle=null;vehicleInspector?.select(null);
-  if (businessUI && hb) {
+  if (businessUI && hb && (!hp||hb.distance<hp.distance)) {
     businessUI.choose(hb.object.userData.b);
     return;
   }
   if (hj) {
     const ji = hj.object.userData.journalIndex;
     select({ type: "journal", id: ji });
-  } else if (hp && (!hb || hp.distance < hb.distance)) select({ type: "person", id: hp.instanceId });
+  } else if (hp && (!hb || hp.distance < hb.distance)) select({ type: "person", id: hp.index });
   else if (hb) select({ type: "building", id: hb.object.userData.b.index });
   else select(null);
 });
@@ -1841,15 +1858,16 @@ addEventListener("keydown", (e) => { if (e.key === "Escape") select(null); });
 
 function select(s) {
   selected = s;
+  document.documentElement.classList.toggle("person-selected",s?.type === "person");
   cityRenderer.updateCity({ selectedBuilding: s?.type === "building" ? town.buildings[s.id]?.id : null });
   follow = false;
+  $("inspect").toggleAttribute("data-person-selected",s?.type === "person");
   $("inspect").style.display = s ? "block" : "none";
   renderInspector();
 }
 
 function needBars(p) {
-  return Object.entries(p.needs).map(([k, v]) =>
-    `<div class="need"><span>${k}</span><div class="bar"><i style="width:${v.toFixed(0)}%;background:${v < 25 ? "#d2552d" : ""}"></i></div></div>`).join("");
+  return personNeedsMarkup(legacyNeedSnapshot(p,world),{paused:speed===0||Boolean(livingWorld?.active)});
 }
 
 function renderInspector() {
@@ -1922,21 +1940,24 @@ function frame(now) {
   last = now;
 
   // Advance the simulation in whole game minutes.
-  acc += dt * speed;
-  const steps = Math.floor(acc);
-  if (steps > 0) { world.step(Math.min(steps, 240)); acc -= steps; }
+  const simulationFrame=playback.update(now);
+  if(!livingWorld?.active)acc += simulationFrame.deltaMs/1000;
+  const steps = livingWorld?.active?0:Math.floor(acc);
+  if (steps > 0) { world.step(Math.min(steps, 240)); acc -= steps; if(selected?.type === "person")renderInspector(); }
 
   // Once per simulated day per tile: publish a few synthetic resident journals.
   // Trigger after 8:00 local sim time so demos show the loop quickly.
   // Possible realities are counterfactual worlds: their residents never post to Dear Congress.
-  if (!realityRunSeed && world.day() > lastJournalDay && world.minuteOfDay() >= 8 * 60) {
+  if (!livingWorld?.active && !realityRunSeed && world.day() > lastJournalDay && world.minuteOfDay() >= 8 * 60) {
     publishSyntheticJournalsForDay(world.day());
   }
 
-  businessUI?.update();
+  if(!livingWorld?.active)businessUI?.update();
+  livingWorld?.update(now);
 
   // Day / night
-  const m = cityRenderer.timeOfDay == null ? world.minuteOfDay() : cityRenderer.timeOfDay * 60;
+  const livingMinute=livingWorld?.active?livingWorld.getClockMinute():null;
+  const m = Number.isFinite(livingMinute)?livingMinute%1440:cityRenderer.timeOfDay == null ? world.minuteOfDay() : cityRenderer.timeOfDay * 60;
   const daylight = Math.max(0, Math.sin(((m - 6 * 60) / (14 * 60)) * Math.PI)); // 6am–8pm arc
   sky.copy(night).lerp(day, daylight);
   scene.background = buildingBridge?.worldVisuals.skyColor ? new THREE.Color(buildingBridge.worldVisuals.skyColor) : sky;
@@ -1951,28 +1972,20 @@ function frame(now) {
   // In the well-being and cycle overlays everyone is shown (indoors too), colored red→green.
   const wbOverlay = overlayMode === "wellbeing" || (overlayMode === "cycle" && cycleResult);
   const cycleScores = overlayMode === "cycle" && cycleResult ? cycleResult.scores[cycleView] : null;
-  for (let i = 0; i < town.people.length; i++) {
+  for (let i = 0; !livingWorld?.active && i < town.people.length; i++) {
     const p = town.people[i];
     const s = smooth[i];
-    const k = 1 - Math.exp(-dt * 10);
+    const k = playback.getState().paused?0:1 - Math.exp(-dt * 10);
     s.x += (p.x - s.x) * k;
     s.z += (p.z - s.z) * k;
     const selectedPerson = selected?.type === "person" && selected.id === i;
     const withinDetailBudget = (i * 0.61803398875) % 1 < cityRenderer.density;
     const visible = wbOverlay || selectedPerson || (withinDetailBudget && (p.mode === "moving" || OUTDOOR.has(p.action)));
     const scale = visible ? (p.age < 13 ? 0.7 : 1) * (wbOverlay ? 1.8 : 1) : 0;
-    tmp.position.set(s.x, 0, s.z);
-    tmp.scale.setScalar(scale);
-    tmp.updateMatrix();
-    people.setMatrixAt(i, tmp.matrix);
-    const hex = cycleScores ? wellbeingHex(cycleScores[i] ?? 0)
-      : wbOverlay ? wellbeingHex(wellbeing(p))
-      : ACTION_COLOR[p.mode === "moving" ? "walking" : p.action || "idle"];
-    people.setColorAt(i, color.setHex(hex));
+    const hex=cycleScores?wellbeingHex(cycleScores[i]??0):wbOverlay?wellbeingHex(wellbeing(p)):null;
+    humanPeople.setPerson(i,{id:p.id??i,x:s.x,z:s.z,scale,visible,selected:selectedPerson,heading:Math.atan2(p.x-s.x,p.z-s.z),...(hex==null?{}:{shirtColor:hex})});
   }
-  people.instanceMatrix.needsUpdate = true;
-  if (people.instanceColor) people.instanceColor.needsUpdate = true;
-  if (people.instanceColor) people.instanceColor.needsUpdate = true;
+  humanPeople.commit();
 
   // Selection + follow + name tag
   const tag = $("tag");
@@ -2002,7 +2015,7 @@ function frame(now) {
     updateBuildings(daylight);
     updateHud();
     updateOverlayLegend();
-    if (selected) renderInspector();
+    if (selected && selected.type !== "person") renderInspector();
     if (embedMode && window.parent !== window && world.t - lastEmbedPostT >= 60) {
       lastEmbedPostT = world.t;
       const s = world.summary();
@@ -2011,7 +2024,9 @@ function frame(now) {
   }
 
   controls.update();
-  if (cityRenderer.beforeFrame(now, dt, daylight, selected?.type === "building" ? selected.id : null, buildingBridge?.worldVisuals)) renderer.render(scene, camera);
+  const drawCity=cityRenderer.beforeFrame(now,dt,daylight,selected?.type==='building'?selected.id:null,buildingBridge?.worldVisuals,{now:simulationFrame.simulationNow/10,dt:simulationFrame.deltaMs/10000});
+  if(livingWorld?.active)livingWorld.applyBuildingOccupancy?.();
+  if(drawCity)renderer.render(scene,camera);
   cityRenderer.afterFrame(now, performance.now() - cpuStart, frameMs);
   requestAnimationFrame(frame);
 }
