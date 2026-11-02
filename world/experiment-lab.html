@@ -72,6 +72,14 @@
     <div id="world-summary" class="status">Load a plan first.</div>
     <pre id="world-preview">[]</pre>
   </section>
+
+  <section class="panel" style="margin-top:18px">
+    <h2>04 · Simulation adapter</h2>
+    <p class="notice">If the page exposes <code>window.HBL_CIVIC_SIMULATOR</code>, the lab uses it. Otherwise it runs a clearly labeled non-predictive implementation stress test.</p>
+    <div class="button-row"><button id="run-simulations" disabled>Run worlds</button></div>
+    <div id="simulation-summary" class="status">Generate worlds first.</div>
+    <pre id="simulation-preview">[]</pre>
+  </section>
 </main>
 <script type="module" src="./experiment-lab.js"></script>
 </body>

@@ -1,11 +1,13 @@
 import { renderAssumptionInspector } from "./assumption-inspector.js";
 import { generateWorlds } from "./world-generator.js";
+import { selectSimulationAdapter, simulateExperiment } from "./simulation-adapter.js";
 
 const state = {
   experiment: null,
   inspector: null,
   overrides: {},
   worldBatch: null,
+  simulationBatch: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -17,6 +19,9 @@ const overrideOutput = $("#override-output");
 const generateWorldsButton = $("#generate-worlds");
 const worldSummary = $("#world-summary");
 const worldPreview = $("#world-preview");
+const runSimulationsButton = $("#run-simulations");
+const simulationSummary = $("#simulation-summary");
+const simulationPreview = $("#simulation-preview");
 
 function setStatus(message, error = false) {
   status.textContent = message;
@@ -48,6 +53,10 @@ function renderExperiment(experiment) {
   state.worldBatch = null;
   worldSummary.textContent = "Ready to generate worlds.";
   worldPreview.textContent = "[]";
+  state.simulationBatch = null;
+  runSimulationsButton.disabled = true;
+  simulationSummary.textContent = "Generate worlds first.";
+  simulationPreview.textContent = "[]";
   setStatus(`Loaded ${experiment.id}`);
 }
 
@@ -91,4 +100,31 @@ generateWorldsButton.addEventListener("click", () => {
   const first = state.worldBatch.worlds.slice(0, 3);
   worldSummary.textContent = `${state.worldBatch.runs} deterministic worlds · seed ${state.worldBatch.seed} · ${state.worldBatch.variableIds.length} variables`;
   worldPreview.textContent = JSON.stringify(first, null, 2);
+  state.simulationBatch = null;
+  runSimulationsButton.disabled = false;
+  simulationSummary.textContent = "Ready to run simulations.";
+  simulationPreview.textContent = "[]";
+});
+
+
+runSimulationsButton.addEventListener("click", async () => {
+  if (!state.experiment || !state.worldBatch) return;
+  runSimulationsButton.disabled = true;
+  try {
+    const adapter = selectSimulationAdapter(window);
+    simulationSummary.textContent = `Running ${state.worldBatch.runs} worlds with ${adapter.label}…`;
+    state.simulationBatch = await simulateExperiment(state.experiment, state.worldBatch, adapter, {
+      concurrency: 24,
+      onProgress({ completed, total }) {
+        if (completed === total || completed % 100 === 0) simulationSummary.textContent = `Running ${completed}/${total}…`;
+      },
+    });
+    const predictive = state.simulationBatch.adapter.predictive ? "predictive adapter" : "NON-PREDICTIVE stress test";
+    simulationSummary.textContent = `${state.simulationBatch.simulations.length} runs · ${state.simulationBatch.adapter.label} · ${predictive}`;
+    simulationPreview.textContent = JSON.stringify(state.simulationBatch.simulations.slice(0, 3), null, 2);
+  } catch (error) {
+    simulationSummary.textContent = error.message;
+  } finally {
+    runSimulationsButton.disabled = false;
+  }
 });
