@@ -1,0 +1,137 @@
+diff --git a/world/parameter-sweep.js b/world/parameter-sweep.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-sweep.js
+@@ -0,0 +1,96 @@
++import { summarizeOutcomes } from "./outcome-analysis.js";
++import { simulateExperiment } from "./simulation-adapter.js";
++
++function clone(value) {
++  return value == null ? value : (typeof structuredClone === "function" ? structuredClone(value) : JSON.parse(JSON.stringify(value)));
++}
++
++function finite(value, fallback = 0) {
++  const number = Number(value);
++  return Number.isFinite(number) ? number : fallback;
++}
++
++function clamp(value, min, max) {
++  return Math.max(min, Math.min(max, value));
++}
++
++function definition(experiment, parameterId) {
++  return (experiment?.worldModel?.variables || []).find((variable) => variable.id === parameterId) || null;
++}
++
++export function sweepValuesForVariable(variable, options = {}) {
++  if (!variable) return [];
++  if (Array.isArray(options.values) && options.values.length) {
++    const min = finite(variable.range?.min, 0), max = finite(variable.range?.max, 1);
++    return [...new Set(options.values.map(Number).filter(Number.isFinite).map((value) => clamp(value, Math.min(min, max), Math.max(min, max))))].sort((a, b) => a - b);
++  }
++  const count = Math.max(3, Math.min(11, Math.round(finite(options.count, 7))));
++  const min = finite(variable.range?.min, 0);
++  const max = finite(variable.range?.max, 1);
++  if (max <= min) return [min];
++  return Array.from({ length: count }, (_row, index) => min + (index / (count - 1)) * (max - min));
++}
++
++export function shiftWorldParameterBaseline(world, variable, currentBaseline, targetBaseline) {
++  const next = clone(world);
++  const id = variable.id;
++  const min = finite(variable.range?.min, 0);
++  const max = finite(variable.range?.max, 1);
++  const low = Math.min(min, max), high = Math.max(min, max);
++  const delta = targetBaseline - currentBaseline;
++  next.conditions ||= {};
++  next.normalized ||= {};
++  next.deviations ||= {};
++  const before = finite(next.conditions[id], currentBaseline);
++  const after = clamp(before + delta, low, high);
++  const span = high - low;
++  next.conditions[id] = after;
++  next.normalized[id] = span > 0 ? (after - low) / span : 0.5;
++  next.deviations[id] = span > 0 ? (after - targetBaseline) / span : 0;
++  next.sweep = { parameterId: id, baseline: targetBaseline };
++  return next;
++}
++
++export async function runParameterSweep({ experiment, worldBatch, adapter, parameterId, options = {} } = {}) {
++  const variable = definition(experiment, parameterId);
++  if (!variable) throw new Error(`Unknown parameter ${parameterId}`);
++  const configBaseline = worldBatch?.simulationConfig?.parameters?.[parameterId]?.baseline;
++  const currentBaseline = finite(configBaseline, finite(variable.baseline, 0.5));
++  const values = sweepValuesForVariable(variable, options);
++  const points = [];
++
++  for (const value of values) {
++    const shiftedWorldBatch = {
++      ...clone(worldBatch),
++      branch: `sweep-${parameterId}-${value}`,
++      worlds: (worldBatch?.worlds || []).map((world) => shiftWorldParameterBaseline(world, variable, currentBaseline, value)),
++    };
++    const batch = await simulateExperiment(experiment, shiftedWorldBatch, adapter, options);
++    const summary = summarizeOutcomes(batch);
++    points.push({
++      value,
++      expectedScore: summary.expectedScore,
++      robustness: summary.robustness,
++      adverseRate: summary.adverseRate,
++      simulationBatch: options.includeBatches ? batch : undefined,
++    });
++  }
++
++  const best = [...points].sort((a, b) => (Number(b.expectedScore) - Number(a.expectedScore)) || (Number(b.robustness) - Number(a.robustness)))[0] || null;
++  return {
++    schemaVersion: "parameter-sweep.v1",
++    experimentId: experiment?.id || null,
++    parameterId,
++    label: variable.label || parameterId,
++    unit: variable.unit || "index",
++    currentBaseline,
++    worldBatchSeed: worldBatch?.seed ?? null,
++    worldCount: worldBatch?.worlds?.length || 0,
++    points,
++    best,
++    deterministic: true,
++    warning: "Sweep results are model responses on fixed sampled worlds, not real-world dose-response evidence.",
++  };
++}
++
++export const __test = { definition, clamp };
+diff --git a/world/parameter-sweep.test.js b/world/parameter-sweep.test.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-sweep.test.js
+@@ -0,0 +1,31 @@
++import test from "node:test";
++import assert from "node:assert/strict";
++import { createSimulationAdapter } from "./simulation-adapter.js";
++import { runParameterSweep, shiftWorldParameterBaseline, sweepValuesForVariable } from "./parameter-sweep.js";
++
++const variable = { id: "x", label: "X", baseline: 0.5, range: { min: 0, max: 1 } };
++const experiment = { id: "e", plan: { id: "p", actions: [] }, worldModel: { variables: [variable] }, outcomes: { metricRegistry: [] } };
++const worldBatch = {
++  seed: 1,
++  simulationConfig: { parameters: { x: { baseline: 0.5 } } },
++  worlds: [{ id: "w", seed: 2, factors: { f: 0.1 }, conditions: { x: 0.6 }, normalized: { x: 0.6 }, deviations: { x: 0.1 } }],
++};
++
++test("sweep values include deterministic endpoints", () => {
++  assert.deepEqual(sweepValuesForVariable(variable, { count: 3 }), [0, 0.5, 1]);
++});
++
++test("shifting baseline preserves the world's relative random deviation when not clamped", () => {
++  const shifted = shiftWorldParameterBaseline(worldBatch.worlds[0], variable, 0.5, 0.7);
++  assert.ok(Math.abs(shifted.conditions.x - 0.8) < 1e-12);
++  assert.equal(shifted.seed, 2);
++  assert.deepEqual(shifted.factors, { f: 0.1 });
++});
++
++test("parameter sweep runs every point on the same world identities", async () => {
++  const adapter = createSimulationAdapter({ id: "test", simulateWorld({ world }) { return { score: world.conditions.x * 100, metrics: {}, status: "mixed" }; } });
++  const result = await runParameterSweep({ experiment, worldBatch, adapter, parameterId: "x", options: { values: [0.25, 0.5, 0.75] } });
++  assert.deepEqual(result.points.map((row) => row.value), [0.25, 0.5, 0.75]);
++  assert.deepEqual(result.points.map((row) => row.expectedScore), [35, 60, 85]);
++  assert.equal(result.best.value, 0.75);
++});
