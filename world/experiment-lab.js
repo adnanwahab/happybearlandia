@@ -10,6 +10,7 @@ import { resolveCivicExperimentPayload } from "./experiment-contract.js";
 import { formatVerificationReport, runExperimentVerification } from "./experiment-verification.js";
 import { createExperimentRecord, summarizeExperimentRecord, traceRecordLineage } from "./experiment-record.js";
 import { listExperimentRecords, loadExperimentRecord, saveExperimentRecord } from "./experiment-store.js";
+import { buildDearCongressRevisionDraft, postDearCongressRevisionDraft } from "./dear-congress-feedback.js";
 
 const state = {
   experiment: null,
@@ -23,6 +24,7 @@ const state = {
   recordId: null,
   parentRecordId: null,
   improvementComparison: null,
+  revisionDraft: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -53,6 +55,10 @@ const loadLatestExperimentButton = $("#load-latest-experiment");
 const copyExperimentLinkButton = $("#copy-experiment-link");
 const recordStatus = $("#record-status");
 const lineageOutput = $("#lineage-output");
+const prepareRevisionButton = $("#prepare-revision");
+const sendRevisionButton = $("#send-revision");
+const revisionStatus = $("#revision-status");
+const revisionPreview = $("#revision-preview");
 
 function setStatus(message, error = false) {
   status.textContent = message;
@@ -117,6 +123,11 @@ function renderExperiment(experiment, provenance = null, initialOverrides = {}) 
   improvementOutput.innerHTML = `<p class="notice">Run sensitivity analysis first.</p>`;
   improvementResult.textContent = "";
   state.improvementComparison = null;
+  state.revisionDraft = null;
+  prepareRevisionButton.disabled = true;
+  sendRevisionButton.disabled = true;
+  revisionStatus.textContent = "Run a paired improvement test first.";
+  revisionPreview.textContent = "{}";
   const sourceLabel = provenance?.source ? ` · ${provenance.source}` : "";
   const warning = provenance?.warning ? ` · WARNING: ${provenance.warning}` : "";
   setStatus(`Loaded ${experiment.id}${sourceLabel}${warning}`, Boolean(provenance?.warning));
@@ -291,6 +302,7 @@ async function restoreRecord(record) {
   state.sensitivity = record.sensitivity || state.sensitivity;
   state.improvements = record.improvements?.length ? record.improvements : state.improvements;
   state.improvementComparison = record.improvementComparison || null;
+  prepareRevisionButton.disabled = !state.improvementComparison;
   if (state.improvements.length) renderImprovements();
   recordStatus.textContent = `Loaded ${record.id} · saved ${record.savedAt}`;
   copyExperimentLinkButton.disabled = false;
@@ -366,6 +378,33 @@ copyExperimentLinkButton.addEventListener("click", async () => {
   }
 })();
 
+prepareRevisionButton.addEventListener("click", () => {
+  if (!state.experiment || !state.improvementComparison) return;
+  state.revisionDraft = buildDearCongressRevisionDraft({
+    experiment: state.experiment,
+    improvement: state.improvementComparison.improvement,
+    comparison: state.improvementComparison,
+    recordId: state.recordId,
+  });
+  revisionPreview.textContent = JSON.stringify(state.revisionDraft, null, 2);
+  revisionStatus.textContent = "Draft prepared locally. Review it before sending.";
+  sendRevisionButton.disabled = false;
+});
+
+sendRevisionButton.addEventListener("click", async () => {
+  if (!state.revisionDraft) return;
+  sendRevisionButton.disabled = true;
+  revisionStatus.textContent = "Sending revision draft to Dear Congress…";
+  try {
+    const response = await postDearCongressRevisionDraft(state.revisionDraft, { globalObject: window });
+    revisionStatus.textContent = `Dear Congress accepted the draft${response?.id ? ` · ${response.id}` : ""}.`;
+  } catch (error) {
+    revisionStatus.textContent = `Send failed: ${error?.message || error}. If Dear Congress expects another body shape, configure window.HBL_DEAR_CONGRESS_REVISION_MAPPER.`;
+  } finally {
+    sendRevisionButton.disabled = false;
+  }
+});
+
 async function testImprovement(improvement, button) {
   if (!state.worldBatch || !state.simulationBatch) return;
   button.disabled = true;
@@ -378,6 +417,20 @@ async function testImprovement(improvement, button) {
     const after = summarizeOutcomes(rerun);
     const pct = (value) => value == null ? "—" : `${(value * 100).toFixed(1)}%`;
     const scoreDelta = (after.expectedScore ?? 0) - (before.expectedScore ?? 0);
+    state.improvementComparison = {
+      improvement,
+      revisedExperiment: revised,
+      before,
+      after,
+      scoreDelta,
+      worldCount: state.worldBatch.runs,
+      worldBatchId: state.worldBatch.id || null,
+    };
+    state.revisionDraft = null;
+    prepareRevisionButton.disabled = false;
+    sendRevisionButton.disabled = true;
+    revisionStatus.textContent = "Paired improvement test ready to turn into a Dear Congress revision draft.";
+    revisionPreview.textContent = "{}";
     improvementResult.textContent = `Paired test: robustness ${pct(before.robustness)} → ${pct(after.robustness)} · expected score ${before.expectedScore} → ${after.expectedScore} (${scoreDelta >= 0 ? "+" : ""}${scoreDelta.toFixed(1)}). This is a modeled hypothesis, not causal evidence.`;
   } catch (error) {
     improvementResult.textContent = error.message;

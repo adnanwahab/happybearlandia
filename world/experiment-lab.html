@@ -149,6 +149,18 @@
     <div id="record-status" class="status">No saved snapshot loaded.</div>
     <pre id="lineage-output">[]</pre>
   </section>
+
+  <section class="panel" style="margin-top:18px">
+    <h2>12 · Dear Congress feedback</h2>
+    <p class="notice">Turn a tested improvement into an explicit revision draft. Preparing is local; sending is a deliberate write to <code>/api/publish_draft</code>. Configure <code>window.HBL_DEAR_CONGRESS_REVISION_MAPPER</code> if your Dear Congress draft schema differs.</p>
+    <div class="button-row">
+      <button id="prepare-revision" disabled>Prepare revision draft</button>
+      <button id="send-revision" disabled>Send draft to Dear Congress</button>
+    </div>
+    <div id="revision-status" class="status">Run a paired improvement test first.</div>
+    <pre id="revision-preview">{}</pre>
+  </section>
+
 </main>
 <script type="module" src="./experiment-lab.js"></script>
 </body>
