@@ -89,6 +89,8 @@ function normalizeAction(item, index) {
     implementation: proposal.implementation ?? row.implementation,
     dependencies: stringList(proposal.dependencies ?? row.dependencies),
     metrics: asArray(proposal.metrics ?? row.metrics),
+    parameterEdits: asArray(proposal.parameterEdits ?? proposal.parameter_edits ?? row.parameterEdits ?? row.parameter_edits),
+    simulationParameters: asArray(proposal.simulationParameters ?? proposal.simulation_parameters ?? row.simulationParameters ?? row.simulation_parameters),
   });
 }
 
@@ -157,6 +159,8 @@ export function buildPlanManifest(synthesis, request = {}, now = new Date()) {
     metrics: asArray(primary.metrics ?? primary.outcomes),
     implementationSteps: asArray(primary.implementationSteps ?? primary.implementation_steps),
     failureConditions: asArray(primary.failureConditions ?? primary.failure_conditions ?? primary.risks),
+    parameterEdits: asArray(primary.parameterEdits ?? primary.parameter_edits),
+    simulationParameters: asArray(primary.simulationParameters ?? primary.simulation_parameters),
     alternatives: packages.slice(1).map((pkg, index) => compact({
       id: firstString(pkg.id, pkg.packageId, pkg.planId) || `alternative_${index + 1}`,
       title: firstString(pkg.title, pkg.name, pkg.label) || `Alternative ${index + 1}`,

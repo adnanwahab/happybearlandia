@@ -1,4 +1,4 @@
-import { createInspectorState, renderAssumptionInspector } from "./assumption-inspector.js";
+import { createInspectorState, formatVariableValue, renderAssumptionInspector } from "./assumption-inspector.js";
 import { generateWorlds } from "./world-generator.js";
 import { resolveSimulationAdapter, simulateExperiment } from "./simulation-adapter.js";
 import { attachOutcomeAnalysis, summarizeOutcomes } from "./outcome-analysis.js";
@@ -13,11 +13,13 @@ import { createExperimentRecord, summarizeExperimentRecord, traceRecordLineage }
 import { listExperimentRecords, loadExperimentRecord, saveExperimentRecord } from "./experiment-store.js";
 import { buildDearCongressRevisionDraft, postDearCongressRevisionDraft } from "./dear-congress-feedback.js";
 import { buildPensieveHandoff, buildPensieveLaunchUrl, downloadPensieveHandoff, serializePensieveHandoff } from "./pensieve-handoff.js";
+import { applyPlanParameterPatch, compilePlanParameterPatch } from "./plan-parameter-patch.js";
 
 const state = {
   experiment: null,
   inspector: null,
   overrides: {},
+  parameterPatch: null,
   worldBatch: null,
   simulationBatch: null,
   analyzedExperiment: null,
@@ -37,6 +39,10 @@ const assumptions = $("#assumptions");
 const summary = $("#plan-summary");
 const metricRegistry = $("#metric-registry");
 const overrideOutput = $("#override-output");
+const previewPlanParameterPatchButton = $("#preview-plan-parameter-patch");
+const applyPlanParameterPatchButton = $("#apply-plan-parameter-patch");
+const planParameterPatchSummary = $("#plan-parameter-patch-summary");
+const planParameterPatchPreview = $("#plan-parameter-patch-preview");
 const generateWorldsButton = $("#generate-worlds");
 const worldSummary = $("#world-summary");
 const worldPreview = $("#world-preview");
@@ -112,10 +118,13 @@ function renderExperiment(experiment, provenance = null, initialOverrides = {}) 
     onChange(_inspectorState, overrides) {
       state.overrides = overrides;
       overrideOutput.textContent = JSON.stringify(overrides, null, 2);
+      previewPlanParameterPatch();
     },
   });
   state.overrides = state.inspector.getOverrides();
   overrideOutput.textContent = JSON.stringify(state.overrides, null, 2);
+  previewPlanParameterPatchButton.disabled = false;
+  previewPlanParameterPatch();
   generateWorldsButton.disabled = false;
   saveExperimentButton.disabled = false;
   copyPensieveHandoffButton.disabled = false;
@@ -167,6 +176,81 @@ function escapeHtml(value) {
   })[character]);
 }
 
+function variableForPatch(parameterId, fallback = null) {
+  return state.experiment?.worldModel?.variables?.find((variable) => variable.id === parameterId) || fallback;
+}
+
+function renderParameterPatch(patch, options = {}) {
+  state.parameterPatch = patch;
+  if (!patch) {
+    planParameterPatchSummary.textContent = "Preview plan changes to see a parameter diff.";
+    planParameterPatchPreview.replaceChildren();
+    applyPlanParameterPatchButton.disabled = true;
+    return;
+  }
+
+  const edits = patch.edits || [];
+  const additions = patch.additions || [];
+  const total = edits.length + additions.length;
+  const applied = Boolean(options.applied || patch.alreadyApplied);
+  const warnings = patch.warnings || [];
+  const unconnected = additions.filter((row) => !row.connected).length;
+
+  planParameterPatchSummary.textContent = applied
+    ? `Already applied · ${edits.length} edits · ${additions.length} additions`
+    : total
+      ? `${edits.length} edits · ${additions.length} additions · ${patch.summary?.heuristicEditCount || 0} heuristic`
+      : "No parameter changes were inferred from this plan.";
+  applyPlanParameterPatchButton.disabled = applied || total === 0;
+
+  const editRows = edits.map((edit) => {
+    const variable = variableForPatch(edit.parameterId, edit);
+    const sourceLabel = edit.source === "explicit-plan-parameter" ? "explicit" : "heuristic";
+    return `<article class="parameter-patch-row">
+      <div><strong>${escapeHtml(edit.label || edit.parameterId)}</strong><small>${escapeHtml(edit.parameterId)} <span class="parameter-patch-badge">${sourceLabel}</span></small></div>
+      <div class="parameter-patch-change">${escapeHtml(formatVariableValue(variable, edit.from))} → ${escapeHtml(formatVariableValue(variable, edit.to))}</div>
+      <div class="parameter-patch-reason">${escapeHtml(edit.reason || "Plan-derived parameter change.")}${edit.evidence?.length ? ` · matched: ${escapeHtml(edit.evidence.join(", "))}` : ""}</div>
+    </article>`;
+  }).join("");
+
+  const additionRows = additions.map((addition) => {
+    const variable = addition.variable || {};
+    const binding = addition.connected ? "connected" : "unconnected";
+    return `<article class="parameter-patch-row">
+      <div><strong>${escapeHtml(variable.label || addition.parameterId)}</strong><small>${escapeHtml(addition.parameterId)} <span class="parameter-patch-badge">NEW</span> <span class="parameter-patch-badge">${binding}</span></small></div>
+      <div class="parameter-patch-change">${escapeHtml(formatVariableValue(variable, addition.proposedValue))}</div>
+      <div class="parameter-patch-reason">${escapeHtml(addition.reason || "Plan-defined simulation parameter.")}</div>
+    </article>`;
+  }).join("");
+
+  const notes = [
+    unconnected ? `<div class="warning" style="margin-top:10px">${unconnected} new parameter${unconnected === 1 ? "" : "s"} will appear as sliders and be sampled, but will not affect HBL outcomes until connected to model mechanics or a causal binding.</div>` : "",
+    warnings.length ? `<div class="warning" style="margin-top:10px">${escapeHtml(warnings.join(" "))}</div>` : "",
+  ].join("");
+
+  planParameterPatchPreview.innerHTML = total
+    ? `<div class="parameter-patch-list">${editRows}${additionRows}</div>${notes}`
+    : `<p class="notice">The plan can still be simulated with the current assumptions. Add explicit <code>parameterEdits</code> or <code>simulationParameters</code> to the plan when you want deterministic plan → slider changes.</p>`;
+}
+
+function previewPlanParameterPatch() {
+  if (!state.experiment) {
+    renderParameterPatch(null);
+    return null;
+  }
+  try {
+    const patch = compilePlanParameterPatch(state.experiment, state.overrides);
+    renderParameterPatch(patch);
+    return patch;
+  } catch (error) {
+    state.parameterPatch = null;
+    planParameterPatchSummary.textContent = `Could not compile parameter patch: ${error?.message || error}`;
+    planParameterPatchPreview.replaceChildren();
+    applyPlanParameterPatchButton.disabled = true;
+    return null;
+  }
+}
+
 async function loadFromApi() {
   setStatus("Loading Dear Congress plan through HBL…");
   const response = await fetch("/api/plan", {
@@ -191,6 +275,30 @@ $("#load-json").addEventListener("click", () => {
     renderExperiment(resolved.experiment, resolved);
   } catch (error) {
     setStatus(error.message, true);
+  }
+});
+
+previewPlanParameterPatchButton.addEventListener("click", () => {
+  previewPlanParameterPatch();
+});
+
+applyPlanParameterPatchButton.addEventListener("click", () => {
+  if (!state.experiment) return;
+  const patch = state.parameterPatch || previewPlanParameterPatch();
+  if (!patch) return;
+  try {
+    const result = applyPlanParameterPatch(state.experiment, patch, state.overrides);
+    if (!result.applied) {
+      renderParameterPatch({ ...patch, alreadyApplied: true }, { applied: true });
+      setStatus("This plan parameter patch was already applied.");
+      return;
+    }
+    renderExperiment(result.experiment, { source: "plan-parameter-patch", warning: null }, result.overrides);
+    state.parameterPatch = patch;
+    renderParameterPatch({ ...patch, alreadyApplied: true }, { applied: true });
+    setStatus(`Applied ${patch.summary?.editCount || 0} plan edits and ${patch.summary?.additionCount || 0} new parameters to the slider configuration.`);
+  } catch (error) {
+    planParameterPatchSummary.textContent = `Apply failed: ${error?.message || error}`;
   }
 });
 

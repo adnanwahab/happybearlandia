@@ -21,6 +21,12 @@
     .button-row { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
     .notice { color:var(--muted); font-size:12px; padding:10px 0; }
     .warning { border-left:3px solid #a57c34; padding:9px 12px; background:#211b1080; color:#d9c89f; }
+    .parameter-patch-list { display:grid; gap:8px; margin-top:10px; }
+    .parameter-patch-row { display:grid; grid-template-columns:minmax(150px,1fr) auto; gap:8px 14px; border:1px solid #222c34; border-radius:9px; background:#0b1014; padding:10px 12px; }
+    .parameter-patch-row small { display:block; color:var(--muted); margin-top:3px; }
+    .parameter-patch-change { color:#e3c883; white-space:nowrap; text-align:right; }
+    .parameter-patch-reason { grid-column:1/-1; color:var(--muted); font-size:11px; }
+    .parameter-patch-badge { display:inline-block; border:1px solid #3a4650; border-radius:999px; padding:2px 6px; margin-left:6px; font-size:10px; color:#b9c4cc; }
     .assumption-group { border-top:1px solid #202a31; padding-top:2px; }
     .assumption-row { border:1px solid #222c34; border-radius:10px; background:#0b1014; padding:10px 12px; margin:8px 0; }
     .assumption-head,.assumption-meta { display:flex; gap:12px; justify-content:space-between; align-items:center; }
@@ -78,6 +84,14 @@
       <h2>02 · Assumption inspector</h2>
       <div class="warning">These baselines and ranges are modeling assumptions, not forecasts. Review them before interpreting simulation output.</div>
       <div id="assumptions"><p class="notice">Load a plan to inspect its inferred world variables.</p></div>
+      <h2 style="margin-top:24px">Plan → parameters</h2>
+      <p class="notice">Preview how the loaded plan proposes to move the same slider baselines you can edit manually. Explicit plan parameter declarations win over conservative keyword mappings.</p>
+      <div class="button-row">
+        <button id="preview-plan-parameter-patch" disabled>Preview plan changes</button>
+        <button id="apply-plan-parameter-patch" disabled>Apply plan changes</button>
+      </div>
+      <div id="plan-parameter-patch-summary" class="status">Load a plan first.</div>
+      <div id="plan-parameter-patch-preview"></div>
     </section>
   </div>
 

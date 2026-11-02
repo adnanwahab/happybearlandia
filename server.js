@@ -4,11 +4,14 @@ import { extname, join, normalize, relative } from "node:path";
 import { getArea, handleArea, handleOverpassHealth, OVERPASS_ENDPOINTS, OVERPASS_TIMEOUT_MS } from "./world/api.js";
 import { createExperimentsHandler } from "./world/experiments-api.js";
 import { buildPlanApiPayload } from "./world/plan-response.js";
+import { handlePlanParameterPatch } from "./world/plan-parameter-api.js";
+import { createServerCivicApiHandler } from "./world/server-civic-api.js";
 
 const PORT = Number(process.env.PORT) || 3000;
 const DEAR_CONGRESS_URL = process.env.DEAR_CONGRESS_URL || "https://dear-congress.fly.dev/api";
 
 const notFound = () => new Response("Not found", { status: 404 });
+const handleServerCivicApi = createServerCivicApiHandler();
 
 function handleConfig() {
   return Response.json({
@@ -398,7 +401,11 @@ const server = serve({
     }
     if (pathname === "/api/overpass-health") return handleOverpassHealth();
     if (pathname === "/api/config") return handleConfig();
+    if (under(pathname, "/api/experiments") || under(pathname, "/api/runs")) {
+      return handleServerCivicApi(request);
+    }
     if (under(pathname, "/api/world/experiments")) return handleExperiments(request);
+    if (pathname === "/api/world/parameter-patch") return handlePlanParameterPatch(request);
     if (pathname === "/api/plan") return handlePlan(request);
     if (pathname === "/api/outcomes") return handleOutcomes();
     if (pathname === "/api/publish_draft") return handlePublishDraft(request);
