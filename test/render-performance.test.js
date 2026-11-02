@@ -44,3 +44,14 @@ test('benchmark routes are allowlisted and camera path is deterministic',()=>{
  expect(benchmarkScene('/world/bench/rain')).toBe('rain');expect(benchmarkScene('/world/bench/invalid')).toBe(null);
  const camera=new THREE.PerspectiveCamera(),controls={target:new THREE.Vector3()};scriptedCamera(camera,controls,18);expect(camera.position.toArray()).toEqual([20,10,100]);
 });
+
+test('park footprints stay visible and never become oversized rectangular distance proxies',()=>{
+ const scene=new THREE.Scene(),parkMesh=new THREE.Mesh(new THREE.BoxGeometry(40,.3,20));parkMesh.geometry.computeBoundingBox();
+ const park={id:'park',index:0,kind:'park',center:[0,0],mesh:parkMesh};
+ const towerMesh=new THREE.Mesh(new THREE.BoxGeometry(20,30,20),new THREE.MeshStandardMaterial());towerMesh.geometry.translate(100,15,0);towerMesh.geometry.computeBoundingBox();
+ const tower={id:'tower',index:1,kind:'home',center:[100,0],mesh:towerMesh};
+ const lod=new BuildingLOD(scene,new Map([['mixed',{buildings:[park,tower]}],['park-only',{buildings:[park]}]]));
+ expect(lod.chunks).toHaveLength(1);expect(lod.chunks[0].entries.map(e=>e.b.id)).toEqual(['tower']);
+ const camera=new THREE.PerspectiveCamera(45);for(const distance of [100,700,3000]){camera.position.set(0,80,distance);parkMesh.visible=true;towerMesh.visible=true;lod.update(camera,null);expect(parkMesh.visible).toBe(true);}
+ lod.dispose();parkMesh.geometry.dispose();towerMesh.geometry.dispose();towerMesh.material.dispose();
+});

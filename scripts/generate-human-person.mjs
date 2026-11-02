@@ -32,7 +32,7 @@ add('Pants',new THREE.BoxGeometry(.425,.16,.285),{y:.85});
 add('Skin',new THREE.CylinderGeometry(.065,.07,.10,8),{y:1.47});
 add('Skin',new THREE.SphereGeometry(.165,10,8),{y:1.635,sx:.9,sy:1.12,sz:.88});
 add('Skin',new THREE.SphereGeometry(.030,6,4),{y:1.618,z:.15,sz:1.35});
-add('Hair',new THREE.SphereGeometry(.169,10,6,0,Math.PI*2,0,Math.PI*.54),{y:1.648,sx:.92,sz:.90});
+add('Hair',new THREE.SphereGeometry(.169,10,6,0,Math.PI*2,0,Math.PI*.42),{y:1.648,sx:.92,sz:.90});
 const colors={TShirt:0x62b4cf,Pants:0x293b58,Skin:0xc89472,Hair:0x30251f,Shoes:0x262d32};
 for(const [name,geometries] of Object.entries(parts)) {
   const geometry=mergeGeometries(geometries,false);

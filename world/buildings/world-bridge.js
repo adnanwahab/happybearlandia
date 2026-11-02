@@ -24,7 +24,7 @@ export function mountWorldBuildingBridge({scene,camera,renderer,controls,town,TH
   const announce=message=>{$('.bw-bridge-status').textContent=message};
   const persist=()=>{try{localStorage.setItem(key,JSON.stringify(input))}catch{announce('Browser storage unavailable; export or run the experiment to preserve this revision.')}};
   const selectionWithContext=selection=>({...selection,placementContext});
-  const worldView=attachBuildingWorld({scene,camera,renderer,controls,town:{...town,...placementContext},THREE,panel:$('.bw-selection'),statusElement:$('.bw-bridge-status'),onPlace:proposal=>{root.open=true;tools?.setPlacement(proposal)},onCancel:()=>tools?.setPlacement(null),onSelect:selection=>{root.open=true;tools?.setSelection(selectionWithContext(selection))}});
+  const worldView=attachBuildingWorld({scene,camera,renderer,controls,town:{...town,...placementContext},THREE,panel:$('.bw-selection'),statusElement:$('.bw-bridge-status'),onPlace:proposal=>{tools?.setPlacement(proposal)},onCancel:()=>tools?.setPlacement(null),onSelect:selection=>{tools?.setSelection(selectionWithContext(selection))}});
   const placementHUD=doc.createElement('div');placementHUD.className='bw-placement-hud';placementHUD.setAttribute('role','status');placementHUD.hidden=true;container.append(placementHUD);
   const hudObserver=new MutationObserver(()=>{placementHUD.hidden=!worldView.isPlacing;placementHUD.textContent=$('.bw-bridge-status').textContent});hudObserver.observe($('.bw-bridge-status'),{childList:true,characterData:true,subtree:true});
   const stop=()=>{clearInterval(timer);timer=null;$('[data-bw-play]').textContent='Play construction'};
@@ -67,7 +67,7 @@ export function mountWorldBuildingBridge({scene,camera,renderer,controls,town,TH
     root.dataset.enteredFuture=run?.id||'';
     $('[data-bw-link]').textContent='Return to possible futures';
     $('[data-bw-link]').href=`/world/decision.html?experiment=${encodeURIComponent(requested)}&run=${encodeURIComponent(run?.id||'')}&month=${month}#futures`;
-    $('[data-bw-link]').removeAttribute('target');root.open=true;
+    $('[data-bw-link]').removeAttribute('target');
     announce(`Entered exact future ${run?.id||'none'}, seed ${run?.seed??'unknown'}, month ${month}. Construction uses stored states; the surrounding resident town is illustrative.`);
   }).catch(error=>announce(error.message))}
   return {get futureMapping(){return futureMapping},get worldVisuals(){return previewState?.worldVisuals||current().worldVisuals||{}},ready:worldView.ready,destroy(){destroyed=true;traceSelection++;traceCache.clear();stop();hudObserver.disconnect();placementHUD.remove();watcher?.destroy();tools.destroy();worldView.destroy();for(const off of handlers)off();root.remove()}};

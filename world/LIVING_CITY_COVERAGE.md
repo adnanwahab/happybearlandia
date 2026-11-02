@@ -4,9 +4,10 @@ This audit covers the Months 7–9 roadmap and the realistic synthetic human beh
 
 ## Try it
 
-- `/world?living=1` or **People · Living City** on the current map. Normal neighborhood mode remains available.
+- `/world?living=1` or **People · Living City** on the current map. **Simulate 10,000 people** activates the worker population; subsequent additions are bounded at 100,000. At most 500 are drawn in Living City. Normal neighborhood mode remains available.
 - Select a person to inspect actual modeled state, household, decisions and live need meters.
-- Change assumptions to reset/reseed; bounded paired previews show recorded trajectories. Policy packages require explicit approval.
+- **Activity dashboard** shows recorded activity time budgets, need trends, completed trips, event summaries and retained person routines, with filters and CSV/JSON exports. Lifetime aggregates survive detail eviction. Hour/day charts and individual detail have explicit retention boundaries; untracked Living people do not receive invented past routines.
+- **Parameters** opens the right-side panel with searchable, grouped sliders and synchronized numeric inputs for every registered model parameter. Change assumptions to reset/reseed; bounded paired previews show recorded trajectories. Policy packages require explicit approval.
 - **Workers · N** shows registered worker observations. `/world/bench/people` runs an explicit, cancellable benchmark.
 - Dear Congress offers a location/seed handoff; the civic snapshot is provenance only and is not silently compiled into behavioral policy.
 
@@ -14,7 +15,11 @@ This audit covers the Months 7–9 roadmap and the realistic synthetic human beh
 
 The live population has one authoritative worker. Independent seeded futures use a bounded pool; pool-count equality is not a claim of distributed live-agent sharding. Transport uses district/building straight-line approximations; housing uses district capacity rather than individual unit/bedroom matching. Demographics and coefficients are assumptions. Empirical calibration and historical validation require appropriate observed data and a separate fitting/holdout workflow. Collaboration is local to same-origin tabs. Optional GPU behavior compute, SharedArrayBuffer and animated vehicle/person systems remain deferred.
 
-Four daily need meters (food, energy, fun, connection) are distinct from civic policy outcomes. The supplied policy ideas are not treated as evidence that any law has been enacted or as automatic effects of an activity.
+The main pause control freezes modeled activity, needs, person interpolation and simulation-driven traffic while camera controls and geometry loading remain available. Resume reanchors time instead of catching up a paused wall-clock gap. The world Living clock explicitly uses modeled minutes per real second. Walking defaults to a relaxed 40 meters per modeled minute (2.4 km/h) in both neighborhood and Living City models. The world starts at 1×; faster simulation controls remain available.
+
+An original, self-contained CC0 `world/assets/human-person.glb` provides pants and a short-sleeved T-shirt. Five shared instanced parts and stable per-person shirt palettes are used in the world; far Living agents remain points. The model is unrigged: translating people are not claimed to have a skeletal walking animation. Preview/download: `/world/assets/human-preview.html`.
+
+Four daily need meters (food, energy, fun, connection) are distinct from civic policy outcomes. Population behavior 1.1.0 uses food, energy, fun and connection in seeded flexible activity choices, constrained by work, school, travel, resources and minimum activity commitments. Activities update needs over actual elapsed intervals; fractional travel arrivals preserve remaining destination time. The legacy neighborhood model also uses need urgency in action selection. The supplied policy ideas are not treated as evidence that any law has been enacted or as automatic effects of an activity.
 
 ## Roadmap entries
 
@@ -59,7 +64,7 @@ Four daily need meters (food, energy, fun, connection) are distinct from civic p
 | 35 | Behavior Timeline | Implemented (bounded) | Bounded decision traces and semantic events; selected details regenerate through deterministic replay. |
 | 36 | Follow Person | Implemented (bounded) | Implemented in the connected population model, runtime or inspector; see module/test references below. |
 | 37 | Follow Household | Partial | Household inspector and member IDs; simultaneous camera follow/routines for every member incomplete. |
-| 38 | Agent Rendering LOD | Partial | Bounded capsules/instances and far points with interpolation; animated close-up characters absent. |
+| 38 | Agent Rendering LOD | Partial | Shared clothed GLB instances nearby and far points with interpolation; skeletal close-up animation absent. |
 | 39 | Crowd Density Rendering | Partial | Actual district density layer; no separate procedural crowd-density renderer. |
 | 40 | Building Occupancy Animation | Partial | Authoritative building occupancy is computed; visible window/interior animation integration is incomplete. |
 | 41 | Commute Flows | Implemented (bounded) | Actual current-trip OD flows, with raw and represented counts; no invented transit service paths. |
@@ -155,7 +160,7 @@ Four daily need meters (food, energy, fun, connection) are distinct from civic p
 | 131 | Transit Schedule Import | Partial | Transit import/coverage supported; no full GTFS/timetable ingestion and runtime adapter. |
 | 132 | Data Coverage Map | Partial | Geography coverage report with observed/estimated/synthetic/missing labels; dedicated coverage map incomplete. |
 | 133 | Confidence by Geography | Partial | Source confidence retained by geography; dedicated confidence choropleth incomplete. |
-| 134 | Animated Person LOD | Deferred | No animated near-person rig; efficient capsules/points are the current representation. |
+| 134 | Animated Person LOD | Deferred | Clothed GLB instances and far points are implemented; skeletal walking animation is deferred. |
 | 135 | Interior Building Activity | Partial | Actual occupancy by modeled building IDs; interior elevators/entry animation incomplete. |
 | 136 | Rush Hour | Partial | Schedules and current trips change over time; no separate polished rush-hour crowd/vehicle presentation. |
 | 137 | Event Crowds | Partial | Events affect actual decisions/demand; event-specific crowd renderer absent. |
@@ -193,4 +198,6 @@ Four daily need meters (food, energy, fun, connection) are distinct from civic p
 - `world/population/MODEL_CARD.md`, `world/population/DATA_FORMATS.md`: methods, limitations and import formats.
 - `world/person-needs.js`, `world/person-needs.css`, `world/sim.js`: live need display and shared actual activity rates.
 
-**Final verification:** integration and the new need-meter checks are still in progress; update this line with the final result before delivery.
+**Final verification:** 73 focused tests passed across 12 component suites (1,504 assertions), including actual Worker execution, deterministic replay, pause/cadence, needs, target gates, slider result calculations and GLB loading. Dear Congress TypeScript and its handoff checks passed. Browser checks cover the connected 10k → 20k button, all registered sliders, actual rent/burden trajectory changes, invalid-value rejection/no-op restoration, pause of model/display/traffic with camera panning, and the real clothed GLB. Local ports 3000 and 3217 serve the updated world, benchmark and asset routes. Browser measurements use local headless software WebGL and do not establish hardware FPS or 100k interactive performance. See test/e2e/living-city-*.e2e.js for individual acceptance cases.
+
+**Activity dashboard and behavior 1.1 verification:** 89 focused tests across 12 files passed (633 assertions), plus eight connected browser acceptance cases for dashboard/filter/export/reset, actual need replay, playback/GLB and all 30 registered parameter controls. The history browser check used 10,000 synthetic agents over 600 modeled minutes, retained exact lifetime accounting within floating-point precision, disclosed dropped recent detail, and reset cleanly to 20,000. See `world/ACTIVITY_DASHBOARD.md` for scope and retention.

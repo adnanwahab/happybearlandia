@@ -39,3 +39,24 @@ test('chunk proxy is cheap and geometry cache is bounded',async()=>{
  const cache=new GeometryCache({worker:false,maxBytes:20000});const a=await cache.building(tower);expect(await cache.building(tower)).toBe(a);expect(cache.bytes).toBeLessThanOrEqual(20000);const geometry=toBufferGeometry(a);expect(geometry.boundingBox.max.y).toBeGreaterThan(76);geometry.dispose();cache.dispose();expect(cache.bytes).toBe(0);
 });
 test('screen size LOD has hysteresis and selected buildings always receive detail',()=>{expect(geometryLOD(290,1)).toBe(1);expect(geometryLOD(400,1)).toBe(0);expect(geometryLOD(6,1)).toBe(3);expect(geometryLOD(1,3,true)).toBe(0);});
+
+test('rotated and concave parks retain polygon area at every geometry quality and chunk proxy',()=>{
+ for(const poly of [[[-20,0],[0,-10],[20,0],[0,10]],[[0,0],[20,0],[20,8],[8,8],[8,20],[0,20]]]){
+  const expected=Math.abs(poly.reduce((a,p,i)=>{const q=poly[(i+1)%poly.length];return a+p[0]*q[1]-q[0]*p[1]},0))/2;
+  const park={id:'park',kind:'park',poly,height:.3};
+  for(const data of [...['LOW','BALANCED','HIGH','ULTRA'].map(q=>generateBuildingGeometry(park,q)),buildChunkHLOD({buildings:[park]})]){
+   let area=0;for(let i=0;i<data.positions.length;i+=9){if(data.normals[i+1]<.99)continue;const p=data.positions;area+=Math.abs((p[i+3]-p[i])*(p[i+8]-p[i+2])-(p[i+6]-p[i])*(p[i+5]-p[i+2]))/2;}
+   expect(area).toBeCloseTo(expected,4);
+  }
+ }
+});
+
+test('awnings and balconies anchor to rotated and concave wall segments instead of bounding-box edges',()=>{
+ for(const poly of [[[-20,0],[0,-10],[20,0],[0,10]],[[0,0],[30,0],[30,8],[8,8],[8,30],[0,30]]]){
+  const data=generateBuildingGeometry({id:'wall-details',poly,height:24,floors:6,roofType:'flat',archetype:'shopping'},'HIGH');
+  const distance=(x,z,a,b)=>{const dx=b[0]-a[0],dz=b[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(z-a[1])*dz)/(dx*dx+dz*dz)));return Math.hypot(x-a[0]-dx*t,z-a[1]-dz*t);};
+  let attachments=0;
+  for(let i=0;i<data.positions.length;i+=3){const [x,y,z]=data.positions.slice(i,i+3);if(Math.abs(y-2.59)>.001&&Math.abs(y-2.81)>.001&&Math.abs(y-3.91)>.001&&Math.abs(y-4.09)>.001)continue;attachments++;expect(Math.min(...poly.map((a,j)=>distance(x,z,a,poly[(j+1)%poly.length])))).toBeLessThan(1.21);}
+  expect(attachments).toBeGreaterThan(12);
+ }
+});

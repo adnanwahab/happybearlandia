@@ -18,10 +18,19 @@
   @media(max-width:900px) { .business-mode.person-selected #inspect { right:12px; left:auto; top:18vh; bottom:auto; width:min(340px,calc(100vw - 52px)); max-height:25vh; } }
   .business-mode #top { max-height: 30vh; overflow: auto; }
   @media (max-width: 700px) { .business-mode #top { max-height: 17vh; } #businessPanel { max-height: 49vh; } }
+  #activity-dashboard-button{position:fixed;top:12px;left:358px;z-index:86;padding:9px 14px;background:#193c35;color:#eff8e9;border:1px solid #94b799;font-weight:650}
+  @media(max-width:760px){#activity-dashboard-button{top:auto;bottom:54px;left:12px;max-width:calc(100vw - 24px);font-size:12px;padding:8px}}
+  html.embed #activity-dashboard-button{display:none}
   #view { position: fixed; inset: 0; }
   html.embed .panel, html.embed #tag { display: none !important; }
   .panel { position: fixed; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; backdrop-filter: blur(6px); }
   #top { top: 12px; left: 12px; width: 300px; max-width: calc(100vw - 48px); }
+
+  #top>summary{display:flex;align-items:center;gap:8px;cursor:pointer;list-style:none}
+  #top>summary::-webkit-details-marker{display:none}
+  #top>summary::before{content:"▸"}#top[open]>summary::before{content:"▾"}
+  #top>summary h1{margin:0}#top[open]>summary{margin-bottom:8px}
+  #top>summary:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:3px}
   #feed { bottom: 12px; left: 12px; width: 300px; max-width: calc(100vw - 48px); max-height: 32vh; overflow: auto; }
   #inspect { top: 12px; right: 12px; width: 260px; display: none; }
   #experimentPanel { right: 12px; bottom: 12px; width: min(520px, calc(100vw - 48px)); max-height: 40vh; overflow: auto; }
@@ -81,7 +90,7 @@
   #world-stream-status{position:fixed;bottom:52px;left:50%;transform:translateX(-50%);max-width:55vw;z-index:40;background:var(--panel);color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:5px 9px;font-size:10px;pointer-events:none}
   #retry-nearby-map{position:fixed;bottom:85px;left:50%;transform:translateX(-50%);z-index:42;background:var(--panel);color:var(--ink);font-size:11px;padding:6px 10px}#retry-nearby-map[hidden]{display:none}
   @media(min-width:800px){.world-fps-meter{right:calc(50% - 90px);top:12px}}
-  .living-active #businessPanel,.living-active #feed{display:none!important}.living-active #clock::after{content:" · legacy clock paused";font-size:10px;font-weight:400;display:block}
+  .living-active #businessPanel,.living-active #feed{display:none!important}.living-active #clock::after{content:" · Living City simulation";font-size:10px;font-weight:400;display:block}
 </style>
 <script>
   // Dear Congress "Simulate realities" links land on /world?simulation=…: show the outcome
@@ -104,11 +113,12 @@
 <body>
 <a class="constitution-link" href="/world/visualize-consitution" style="position:fixed;bottom:12px;right:12px;z-index:50;background:#152333;color:white;padding:10px;border-radius:8px">Visualize Constitution</a>
 <div id="view"></div>
+<button type="button" id="activity-dashboard-button" data-testid="activity-dashboard-button" aria-haspopup="dialog">Activity dashboard</button>
 <div id="loading">Generating your neighborhood…</div>
 <div id="tag"></div>
 
-<div class="panel" id="top">
-  <h1>HappyBearLandia · world</h1>
+<details class="panel" id="top" open>
+  <summary title="Minimize or expand world controls"><h1>HappyBearLandia · world</h1></summary>
   <a href="/world/city-lab.html" onclick="this.search=location.search" style="color:var(--accent);font-size:12px">City Systems Laboratory ↗</a>
   <div class="row"><a href="/business-simulator">Business Lab</a> · <a href="/world?business_mode=true">Place a business</a></div>
   <div class="row" id="living-city-toolbar" aria-label="Population mode"></div>
@@ -133,10 +143,10 @@
   <div class="row" style="justify-content: space-between">
     <div id="clock">—</div>
     <div class="row" id="speeds" style="margin:0">
-      <button data-s="0" aria-label="Pause">❚❚</button><button data-s="1">1×</button><button data-s="10" class="on">10×</button><button data-s="60">60×</button>
+      <button data-s="0" aria-label="Pause">❚❚</button><button data-s="1" class="on">1×</button><button data-s="10">10×</button><button data-s="60">60×</button>
     </div>
   </div>
-  <div class="need"><span>Mood</span><div class="bar"><i id="mood"></i></div><b id="moodN" style="font-size:12px;width:24px;text-align:right"></b></div>
+  <div class="need"><span id="moodLabel">Mood</span><div class="bar"><i id="mood"></i></div><b id="moodN" style="font-size:12px;width:24px;text-align:right"></b></div>
   <div class="row muted" id="counts"></div>
   <div class="row">
     <label class="muted" for="policy">Plan package</label>
@@ -202,7 +212,7 @@
     <summary>Overpass endpoint errors</summary>
     <div id="netdiagErrors"></div>
   </details>
-</div>
+</details>
 
 <div class="panel" id="feed" aria-live="polite"></div>
 <div class="panel" id="inspect"></div>

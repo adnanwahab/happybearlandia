@@ -36,3 +36,12 @@ test('pause freezes interpolation exactly and resume excludes paused wall time',
  expect(view.getPosition('p',1025)).toEqual({x:2.5,z:0});
  expect(view.getPosition('p',1050)).toEqual({x:5,z:0});view.destroy();
 });
+
+test('sample filters apply while paused without changing interpolation position',()=>{
+ const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(),view=createPopulationRenderer({scene,camera,THREE});
+ view.setActive(true);view.updateFrame({visibleAgents:[{id:'p',x:0,z:0,currentActivity:'TRANSIT'},{id:'q',x:20,z:0,currentActivity:'HOME'}]},100);
+ view.updateFrame({visibleAgents:[{id:'p',x:10,z:0,currentActivity:'TRANSIT'},{id:'q',x:30,z:0,currentActivity:'HOME'}]},200);
+ view.setPaused(true,225);view.setFilter('commuting');expect(view.getRows().map(row=>row.id)).toEqual(['p']);
+ expect(view.getPosition('p',900)).toEqual({x:2.5,z:0});view.setFilter('all');expect(view.getRows()).toHaveLength(2);
+ expect(view.getPosition('q',900)).toEqual({x:22.5,z:0});view.destroy();
+});

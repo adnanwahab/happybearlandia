@@ -1,6 +1,7 @@
 import { ACTIVITIES, MODES, draw, clamp, recordTrace, recordEvent } from "./contracts.js";
 import { seededChoice } from "../behavior/core/choice.js";
 import { getBehaviorCoefficients } from "../behavior/coefficients/registry.js";
+import { recordActivity, recordHistoryEvent } from "../activity-history.js";
 const modeCoefficients=getBehaviorCoefficients("mode-choice-v1");
 const housingCoefficients=getBehaviorCoefficients("housing-choice-v1");
 
@@ -8,7 +9,7 @@ const housingCoefficients=getBehaviorCoefficients("housing-choice-v1");
  * high means satisfied; hunger is fullness. Rates are NET points per simulated
  * minute, including background decay. No wall-clock timer or inspector mutation.
  */
-export function personNeedEffects(model,i){const p=model.people,minute=((model.minute%1440)+1440)%1440,activity=ACTIVITIES[p.activity[i]],sleeping=activity==="HOME"&&(minute<420||minute>=1320),meal=activity==="HOME"&&((minute>=420&&minute<480)||(minute>=720&&minute<780)||(minute>=1080&&minute<1140));const rates={hunger:-.055,energy:-.035,fun:-.025,social:-.02};
+export function personNeedEffects(model,i,options={}){const p=model.people,absolute=options.minute??model.minute,minute=((absolute%1440)+1440)%1440,activity=ACTIVITIES[options.activity??p.activity[i]],sleeping=activity==="HOME"&&(minute<420||minute>=1320||p.restingUntil?.[i]>absolute),meal=activity==="HOME"&&((minute>=420&&minute<480)||(minute>=720&&minute<780)||(minute>=1080&&minute<1140)||p.eatingUntil?.[i]>absolute);const rates={hunger:-.055,energy:-.035,fun:-.025,social:-.02};
  if(sleeping)rates.energy+=.24;
  if(meal)rates.hunger+=.45;
  if(activity==="HOME"&&!sleeping){rates.fun+=.015;if(model.households.size[p.household[i]]>1)rates.social+=.03;}
@@ -20,7 +21,7 @@ export function personNeedEffects(model,i){const p=model.people,minute=((model.m
  if(activity==="HEALTHCARE")rates.energy+=.04;
  for(const key of Object.keys(rates))if((p[key][i]>=100&&rates[key]>0)||(p[key][i]<=0&&rates[key]<0))rates[key]=0;
  return{needRates:rates,needActivity:sleeping?"HOME sleeping":meal?"HOME meal":activity,needsSource:"Illustrative activity model; not measured wellbeing"};}
-export function stepPersonNeeds(model,i,minutes){const effects=personNeedEffects(model,i);for(const key of["hunger","energy","fun","social"])model.people[key][i]=clamp(model.people[key][i]+effects.needRates[key]*minutes,0,100);}
+export function stepPersonNeeds(model,i,minutes,options){const effects=personNeedEffects(model,i,options);for(const key of["hunger","energy","fun","social"])model.people[key][i]=clamp(model.people[key][i]+effects.needRates[key]*minutes,0,100);}
 
 export function eventEffects(model,minute){const effects=model.districts.map(()=>({rent:1,jobs:1,roads:1,transit:1,services:1,demand:1}));for(const event of model.config.events){const elapsed=minute-event.startMinute;if(elapsed<0)continue;const tail=elapsed-event.durationMinutes;const strength=tail<=0?event.magnitude:event.recoveryMinutes>0?event.magnitude*Math.exp(-tail/event.recoveryMinutes):0;if(strength<1e-5)continue;for(let d=0;d<effects.length;d++){if(event.districtId&&model.districts[d].id!==event.districtId)continue;const e=effects[d];if(event.type==="rent-increase")e.rent*=1+strength;if(["recession","employer-closes"].includes(event.type))e.jobs*=1-strength;if(event.type==="employer-opens")e.jobs*=1+strength;if(["road-closure","storm"].includes(event.type))e.roads*=Math.max(0,1-strength);if(["transit-outage","storm"].includes(event.type))e.transit*=Math.max(0,1-strength);if(event.type==="transit-opening")e.transit*=1+strength;if(event.type==="festival")e.demand*=1+strength;if(event.type==="storm")e.services*=1-strength*.7;}}return effects;}
 
@@ -28,15 +29,129 @@ export function modeAlternatives(model,i,destination,effects,anchor){const p=mod
   const roadOpen=effects[p.current[i]].roads>0&&effects[destination].roads>0,carAccess=model.households.vehicles[hh]>0&&roadOpen,transitAccess=Math.min(from.transit,to.transit)*c.transitService*effects[destination].transit;
   return [{id:"walk",speed:c.walkingSpeedKmh,cost:0,available:km<=3},{id:"bike",speed:14,cost:.05*km,available:p.age[i]!==2&&km<=12},{id:"car",speed:30/Math.max(1,to.congestion),cost:km*c.carCostPerKm+1,available:carAccess},{id:"bus",speed:20/Math.max(1,to.congestion*.7),cost:c.transitFare,available:transitAccess>.05&&roadOpen},{id:"rail",speed:38,cost:c.transitFare*1.2,available:transitAccess>.3&&awareness>.25}].map(mode=>{const minutes=km/mode.speed*60+(mode.id==="bus"?8/Math.max(.1,transitAccess):mode.id==="rail"?5/Math.max(.1,transitAccess):0);const reliability=mode.id==="car"?.1:mode.id==="bus"?.15:mode.id==="rail"?.05:0;const components={time:minutes*modeCoefficients.coefficients.travelTime,cost:mode.cost*modeCoefficients.coefficients.monetaryCost,habit:p.habit?.[i]===MODES.indexOf(mode.id)?modeCoefficients.coefficients.habit:0,experiencedTime:p.habit?.[i]===MODES.indexOf(mode.id)?Math.max(0,p.experiencedTime[i]-minutes)*modeCoefficients.coefficients.travelTime*.2:0,reliability:-reliability,crowding:["bus","rail"].includes(mode.id)?-to.transitCrowding*.1:0};const affordable=mode.cost<=Math.max(0,model.households.income[hh]/365*.15-model.households.transport[hh]);return{id:mode.id,available:mode.available&&affordable,minutes,cost:mode.cost,score:mode.available?Object.values(components).reduce((s,v)=>s+v,0):-1e9,components,rejectedReason:!affordable?"PRICE_EXCEEDS_MAX_BUDGET":mode.available?null:"Access, vehicle, awareness, closure or distance constraint",route:{kind:"district-straight-line approximation",from:from.id,to:to.id,distanceKm:km}};});}
 
-function activityAt(model,i,minute){const p=model.people,day=Math.floor(minute/1440),weekend=day%7>=5,m=((minute%1440)+1440)%1440-p.offset[i];if(!weekend&&p.employed[i]&&m>=480&&m<1020)return 1;if(!weekend&&p.age[i]===0&&m>=510&&m<900)return 2;const choice=draw(model.seed,i,day,21);if(m>=1080&&m<1140&&choice<.3)return 3;if(m>=1140&&m<1200&&choice>.7)return 5;if(m>=600&&m<660&&weekend&&choice<.12)return 7;if(m>=840&&m<960&&weekend&&choice<.7)return 6;if(m>=1050&&m<1080&&choice>.85)return 4;return 0;}
-function activityDestination(model,i,activity,effects){const p=model.people,home=p.home[i];if(activity===0)return home;if(activity===1||activity===2)return p.work[i];let best=home,score=-Infinity;for(let d=0;d<model.districts.length;d++){const row=model.districts[d],distance=Math.hypot(row.x-model.districts[home].x,row.z-model.districts[home].z)/1000;const value=row.services*effects[d].services-distance*.15+(activity===6?row.environment:0);if(value>score){score=value;best=d;}}return best;}
-export function stepActivities(model,minutes,effects){const p=model.people;for(const d of model.districts){d.workers=0;d.visitors=0;d.roadDemand=0;d.transitDemand=0;}for(let i=0;i<p.age.length;i++){stepPersonNeeds(model,i,minutes);
-  if(p.remaining[i]>0&&[3,4].includes(p.mode[i])&&(!effects[p.from[i]].roads||!effects[p.to[i]].roads)){p.remaining[i]=0;model.totals.rerouted=(model.totals.rerouted||0)+1;}if(p.remaining[i]>0){p.remaining[i]=Math.max(0,p.remaining[i]-minutes);const progress=1-p.remaining[i]/Math.max(1,p.tripTotal[i]);p.x[i]=p.fromX[i]+(p.toX[i]-p.fromX[i])*progress;p.z[i]=p.fromZ[i]+(p.toZ[i]-p.fromZ[i])*progress;if(!p.remaining[i]){const experienced=model.minute-p.departureMinute[i];model.totals.completedTrips++;model.totals.completedTravelMinutes+=experienced;p.experiencedTime[i]=.8*p.experiencedTime[i]+.2*experienced;p.habit[i]=p.mode[i];p.current[i]=p.to[i];p.currentLocation[i]=p.toLocation[i];p.activity[i]=activityAt(model,i,model.minute);}else{const d=model.districts[p.to[i]];if(p.mode[i]===3)d.roadDemand++;else if(p.mode[i]>=4)d.transitDemand++;continue;}}
-  const activity=activityAt(model,i,model.minute),destination=activityDestination(model,i,activity,effects),anchor=activity===0?[p.homeX[i],p.homeZ[i]]:activity===1||activity===2?[p.workX[i],p.workZ[i]]:model.districts[destination].anchors[Math.floor(draw(model.seed,i,activity,55)*model.districts[destination].anchors.length)];
-  if(destination!==p.current[i]||Math.hypot(anchor[0]-p.x[i],anchor[1]-p.z[i])>5){const alternatives=modeAlternatives(model,i,destination,effects,anchor);for(const mode of alternatives)if(["bus","rail"].includes(mode.id)&&model.districts[destination].transitDemand>=model.config.transitCapacity*model.config.transitService*effects[destination].transit){mode.available=false;mode.rejectedReason="TRANSIT_DENIED_BOARDING";p.denied[i]++;model.totals.denied++;}const choice=seededChoice(alternatives,{draw:draw(model.seed,i,Math.floor(model.minute),56),temperature:.7}),best=alternatives.find(row=>row.id===choice.chosen);if(best){if(p.habit[i]&&p.habit[i]!==MODES.indexOf(best.id))p.modeSwitches[i]=Math.min(65535,p.modeSwitches[i]+1);model.decisionCounts.MODE_CHOICE=(model.decisionCounts.MODE_CHOICE||0)+1;p.mode[i]=MODES.indexOf(best.id);p.from[i]=p.current[i];p.to[i]=destination;p.fromX[i]=p.x[i];p.fromZ[i]=p.z[i];p.toX[i]=anchor[0];p.toZ[i]=anchor[1];p.toLocation[i]=activity===0?p.homeLocation[i]:activity===1||activity===2?p.workLocation[i]:model.districts[destination].anchorLocations[Math.floor(draw(model.seed,i,activity,55)*model.districts[destination].anchors.length)];p.remaining[i]=best.minutes;p.tripTotal[i]=best.minutes;p.commute[i]=best.minutes;p.activity[i]=8;model.households.transport[p.household[i]]+=best.cost;model.totals.trips++;model.totals.plannedTravelMinutes+=best.minutes;model.totals.tripCountsByMode[best.id]=(model.totals.tripCountsByMode[best.id]||0)+1;p.departureMinute[i]=model.minute;if(i%97===0||model.selectedIndex===i)recordTrace(model,"person",i,{tick:model.tick,minute:model.minute,type:"MODE_CHOICE",inputs:{from:model.districts[p.current[i]].id,to:model.districts[destination].id,congestion:model.districts[destination].congestion,transitService:model.config.transitService},alternatives:choice.alternatives,randomDraw:choice.randomDraw,chosen:best.id,reasonCodes:["SEEDED_UTILITY_CHOICE"],coefficientModel:modeCoefficients.id,reason:"Seeded softmax over hard-feasible time/cost/reliability utility"});if(p.mode[i]===3)model.districts[destination].roadDemand++;else if(p.mode[i]>=4)model.districts[destination].transitDemand++;}}
-  else {p.activity[i]=activity;p.mode[i]=0;const d=model.districts[p.current[i]];if(activity===1)d.workers++;if([3,4,5,6,7].includes(activity))d.visitors++;}
-  const hh=p.household[i],d=model.districts[p.home[i]],burden=model.households.rent[hh]*12/Math.max(1,model.households.income[hh]);p.utility[i]=clamp(1-burden*.7-p.commute[i]/180+d.services*.15+d.environment*.1,0,1);
- }for(let d=0;d<model.districts.length;d++){const row=model.districts[d];row.congestion=clamp(1+.15*(row.roadDemand/Math.max(1,model.config.roadCapacity*effects[d].roads*(1-model.config.constructionDisruption)))**2,1,5);row.transitCrowding=row.transitDemand/Math.max(1,model.config.transitCapacity*model.config.transitService*effects[d].transit);row.awareness=clamp(row.awareness+(1-row.awareness)*model.config.awarenessRate*minutes/1440,0,1);}}
+
+function scheduleAt(model, i, minute) {
+  const p=model.people,day=Math.floor(minute/1440),base=day*1440,offset=p.offset[i],weekend=day%7>=5;
+  const start=base+(p.age[i]===0?510:480)+offset,end=base+(p.age[i]===0?900:1020)+offset;
+  const obligated=!weekend&&(p.employed[i]||p.age[i]===0);
+  const lunchStart=base+720+offset,lunchEnd=base+750+offset;
+  if(obligated&&minute>=start&&minute<end){
+    // Critical needs permit a short onsite break instead of being driven to zero by a shift.
+    if(p.hunger[i]<12)return{activity:5,until:Math.min(end,minute+30),mandatory:true,onsite:true,reason:"Critical food need break"};
+    if(p.energy[i]<8)return{activity:0,until:Math.min(end,minute+30),mandatory:true,onsite:true,rest:true,reason:"Critical fatigue rest break"};
+    if(minute>=lunchStart&&minute<lunchEnd)return{activity:5,until:Math.min(end,lunchEnd),mandatory:true,onsite:true,reason:"Scheduled meal break"};
+    return{activity:p.age[i]===0?2:1,until:minute<lunchStart?Math.min(end,lunchStart):end,mandatory:true,reason:p.age[i]===0?"School schedule constraint":"Work schedule constraint"};
+  }
+  const night=minute<base+420||minute>=base+1320;
+  if(night)return{activity:0,until:minute<base+420?base+420:base+1440+420,mandatory:true,sleep:true,reason:"Night rest schedule"};
+  return{mandatory:false,until:obligated&&minute<start?start:Math.min(base+1320,base+1440)};
+}
+function activityDestination(model,i,activity,effects){
+ const p=model.people,home=p.home[i];if(activity===0)return home;if(activity===1||activity===2)return p.work[i];
+ let best=home,score=-Infinity;for(let d=0;d<model.districts.length;d++){const row=model.districts[d],distance=Math.hypot(row.x-p.x[i],row.z-p.z[i])/1000,value=row.services*effects[d].services-distance*.15+(activity===6?row.environment:0);if(value>score){score=value;best=d;}}return best;
+}
+function destinationFor(model,i,activity,effects,onsite=false){
+ const p=model.people;if(onsite)return{district:p.current[i],x:p.x[i],z:p.z[i],location:p.currentLocation[i]};
+ const district=activityDestination(model,i,activity,effects),d=model.districts[district];
+ if(activity===0)return{district,x:p.homeX[i],z:p.homeZ[i],location:p.homeLocation[i]};
+ if(activity===1||activity===2)return{district,x:p.workX[i],z:p.workZ[i],location:p.workLocation[i]};
+ const index=Math.floor(draw(model.seed,i,activity,55)*d.anchors.length),anchor=d.anchors[index];
+ return{district,x:anchor[0],z:anchor[1],location:d.anchorLocations[index]};
+}
+function chooseActivity(model,i,minute,effects){
+ const p=model.people,c=model.config,schedule=scheduleAt(model,i,minute);
+ if(schedule.mandatory)return{...schedule,destination:destinationFor(model,i,schedule.activity,effects,schedule.onsite)};
+ // A committed destination/activity survives substeps and tick endpoints.
+ if(p.planUntil[i]>minute&&p.activity[i]!==8)return{activity:p.activity[i],until:Math.min(p.planUntil[i],schedule.until),destination:{district:p.current[i],x:p.x[i],z:p.z[i],location:p.currentLocation[i]},committed:true};
+ const fatigue=(100-p.energy[i])/100,hunger=(100-p.hunger[i])/100,leisure=(200-p.fun[i]-p.social[i])/200;
+ const hh=p.household[i],resources=model.households.income[hh]/365*.2,threshold=c.needDecisionThreshold;
+ const alternatives=[
+  {id:"HOME",activity:0,available:true,score:.2+fatigue*.9,components:{rest:fatigue*.9,inertia:.2}},
+  {id:"DINING",activity:5,available:resources>=2,score:hunger*1.8-.15,components:{food:hunger*1.8,expense:-.15},rejectedReason:resources>=2?null:"Meal affordability constraint"},
+  {id:"RECREATION",activity:6,available:p.energy[i]>=15,score:leisure*1.6-fatigue*.5,components:{funAndSocial:leisure*1.6,fatigue:-fatigue*.5},rejectedReason:p.energy[i]>=15?null:"Too fatigued for an outing"},
+  {id:"SHOPPING",activity:3,available:resources>=5&&p.energy[i]>=25,score:.05+draw(model.seed,i,Math.floor(minute/1440),61)*.15,components:{routine:.05},rejectedReason:resources>=5?null:"Discretionary spending constraint"}
+ ];
+ // Strong unsatisfied needs make relevant utilities more urgent; still seeded,
+ // subject to hard constraints and schedule-limited available time.
+ if(p.hunger[i]<threshold)alternatives[1].score+=1;
+ if(p.energy[i]<threshold)alternatives[0].score+=1;
+ if(p.fun[i]<threshold||p.social[i]<threshold)alternatives[2].score+=.7;
+ for(const row of alternatives){row.destination=destinationFor(model,i,row.activity,effects);const distance=Math.hypot(row.destination.x-p.x[i],row.destination.z-p.z[i])/1000;
+   if(row.activity!==0&&distance/Math.max(1,c.walkingSpeedKmh)*60+15>schedule.until-minute){row.available=false;row.rejectedReason="Insufficient time before next mandatory schedule";}}
+ const decision=seededChoice(alternatives,{draw:draw(model.seed,i,Math.floor(minute*1000),62),temperature:.18});
+ const selected=alternatives.find(row=>row.id===decision.chosen)||alternatives[0];
+ model.decisionCounts.ACTIVITY_CHOICE=(model.decisionCounts.ACTIVITY_CHOICE||0)+1;
+ if(i%97===0||model.selectedIndex===i)recordTrace(model,"person",i,{tick:model.tick,minute,type:"ACTIVITY_CHOICE",inputs:{needs:{hunger:p.hunger[i],energy:p.energy[i],fun:p.fun[i],social:p.social[i]},availableMinutes:schedule.until-minute,resources},alternatives:decision.alternatives,chosen:selected.id,randomDraw:decision.randomDraw,reasonCodes:["SEEDED_UTILITY_CHOICE"],reason:"Need utilities, activity commitment, budget and next mandatory schedule"});
+ const until=Math.min(schedule.until,minute+c.flexibleActivityMinutes);
+ return{activity:selected.activity,until,destination:selected.destination,rest:selected.activity===0&&p.energy[i]<threshold,eat:selected.activity===0&&p.hunger[i]<threshold};
+}
+function semanticEvent(model,i,type,minute,detail){const personId=`${model.prefix}-p${i}`;model.eventCounts[type]=(model.eventCounts[type]||0)+1;if(model.activityHistory)recordHistoryEvent(model.activityHistory,{type,minute,personId,householdId:`${model.prefix}-h${model.people.household[i]}`,districtId:model.districts[model.people.current[i]].id,weight:model.weight,...detail});}
+function applyInterval(model,i,activity,start,duration){
+ if(!(duration>0))return;const p=model.people;
+ const rates=personNeedEffects(model,i,{minute:start,activity}).needRates,means={};
+ for(const key of["hunger","energy","fun","social"]){const before=p[key][i],rate=rates[key],after=clamp(before+rate*duration,0,100),active=rate===0?duration:Math.min(duration,Math.max(0,((rate>0?100:0)-before)/rate));means[key]=((before+(before+rate*active))/2*active+after*(duration-active))/duration;p[key][i]=after;}
+ model.activityMinutes[ACTIVITIES[activity]]=(model.activityMinutes[ACTIVITIES[activity]]||0)+duration;
+ if(model.activityHistory)recordActivity(model.activityHistory,{id:`${model.prefix}-p${i}`,householdId:`${model.prefix}-h${p.household[i]}`,activity:ACTIVITIES[activity],startMinute:start,endMinute:start+duration,weight:model.weight,districtId:model.districts[p.current[i]].id,needs:means});
+}
+export function stepActivities(model,minutes,effects){
+ const p=model.people,end=model.minute,start=end-minutes;
+ model.activityMinutes||={};
+ for(const d of model.districts){d.workers=0;d.visitors=0;d.roadDemand=0;d.transitDemand=0;}
+ for(let i=0;i<p.age.length;i++){
+  let time=start,iterations=0;
+  while(time<end-1e-9){
+   if(++iterations>32)throw new Error("Activity interval exceeded bounded transitions; no time was silently discarded.");
+   if(p.remaining[i]>1e-9){
+    if([3,4].includes(p.mode[i])&&(!effects[p.from[i]].roads||!effects[p.to[i]].roads)){
+      semanticEvent(model,i,"TRIP_CANCELLED",time,{mode:MODES[p.mode[i]],reason:"Road access closed",elapsedMinutes:time-p.departureMinute[i]});
+      p.remaining[i]=0;p.activity[i]=9;p.planUntil[i]=time;model.totals.cancelledTrips=(model.totals.cancelledTrips||0)+1;model.totals.rerouted=(model.totals.rerouted||0)+1;
+    }else{
+      const used=Math.min(end-time,p.remaining[i]);applyInterval(model,i,8,time,used);p.remaining[i]-=used;time+=used;
+      const progress=1-p.remaining[i]/p.tripTotal[i];p.x[i]=p.fromX[i]+(p.toX[i]-p.fromX[i])*progress;p.z[i]=p.fromZ[i]+(p.toZ[i]-p.fromZ[i])*progress;
+      if(p.remaining[i]<=1e-9){p.remaining[i]=0;p.x[i]=p.toX[i];p.z[i]=p.toZ[i];p.current[i]=p.to[i];p.currentLocation[i]=p.toLocation[i];
+        const experienced=time-p.departureMinute[i];model.totals.completedTrips++;model.totals.completedTravelMinutes+=experienced;p.experiencedTime[i]=.8*p.experiencedTime[i]+.2*experienced;p.habit[i]=p.mode[i];
+        const mode=MODES[p.mode[i]];p.activity[i]=p.plannedActivity[i];p.planUntil[i]=p.plannedUntil[i];p.mode[i]=0;
+        semanticEvent(model,i,"TRIP_COMPLETED",time,{mode,travelMinutes:experienced,durationMinutes:experienced,to:model.districts[p.current[i]].id,activity:ACTIVITIES[p.activity[i]]});
+      }else break;
+      continue;
+    }
+   }
+   const plan=chooseActivity(model,i,time,effects),destination=plan.destination;
+   if(destination.district!==p.current[i]||Math.hypot(destination.x-p.x[i],destination.z-p.z[i])>1e-4){
+     const alternatives=modeAlternatives(model,i,destination.district,effects,[destination.x,destination.z]);
+     for(const row of alternatives)if(["bus","rail"].includes(row.id)&&model.districts[destination.district].transitDemand>=model.config.transitCapacity*model.config.transitService*effects[destination.district].transit){row.available=false;row.rejectedReason="TRANSIT_DENIED_BOARDING";}
+     const choice=seededChoice(alternatives,{draw:draw(model.seed,i,Math.floor(time*1000),56),temperature:.7}),best=alternatives.find(row=>row.id===choice.chosen);
+     model.decisionCounts.MODE_CHOICE=(model.decisionCounts.MODE_CHOICE||0)+1;
+     if(i%97===0||model.selectedIndex===i)recordTrace(model,"person",i,{tick:model.tick,minute:time,type:"MODE_CHOICE",inputs:{from:model.districts[p.current[i]].id,to:model.districts[destination.district].id,transitService:model.config.transitService},alternatives:choice.alternatives,randomDraw:choice.randomDraw,chosen:choice.chosen,reasonCodes:best?["SEEDED_UTILITY_CHOICE"]:["NO_FEASIBLE_ALTERNATIVE"],reason:best?"Seeded feasible mode utility":"No accessible affordable route before reconsideration"});
+     if(best){if(p.habit[i]&&p.habit[i]!==MODES.indexOf(best.id))p.modeSwitches[i]=Math.min(65535,p.modeSwitches[i]+1);
+       p.mode[i]=MODES.indexOf(best.id);p.from[i]=p.current[i];p.to[i]=destination.district;p.fromX[i]=p.x[i];p.fromZ[i]=p.z[i];p.toX[i]=destination.x;p.toZ[i]=destination.z;p.toLocation[i]=destination.location;
+       p.remaining[i]=p.tripTotal[i]=best.minutes;p.departureMinute[i]=time;p.commute[i]=best.minutes;p.activity[i]=8;p.plannedActivity[i]=plan.activity;
+       p.plannedUntil[i]=plan.mandatory?plan.until:Math.max(plan.until,time+best.minutes+15);p.planUntil[i]=0;
+       model.households.transport[p.household[i]]+=best.cost;model.totals.trips++;model.totals.plannedTravelMinutes+=best.minutes;model.totals.tripCountsByMode[best.id]=(model.totals.tripCountsByMode[best.id]||0)+1;
+       semanticEvent(model,i,"TRIP_STARTED",time,{from:model.districts[p.from[i]].id,to:model.districts[p.to[i]].id,mode:best.id,plannedMinutes:best.minutes,activity:ACTIVITIES[plan.activity]});
+       continue;
+     }
+     // No teleport and no fictitious destination activity: wait locally, retry
+     // at the next substep rather than repeatedly consuming zero simulation time.
+     p.activity[i]=9;p.mode[i]=0;applyInterval(model,i,9,time,end-time);time=end;break;
+   }
+   if(p.activity[i]!==plan.activity)semanticEvent(model,i,"ACTIVITY_STARTED",time,{from:ACTIVITIES[p.activity[i]],activity:ACTIVITIES[plan.activity],...(plan.reason?{reason:plan.reason}:{})});
+   p.activity[i]=plan.activity;p.mode[i]=0;p.planUntil[i]=plan.until;
+   if(plan.sleep||plan.rest)p.restingUntil[i]=plan.until;else if(plan.activity!==0)p.restingUntil[i]=0;
+   if(plan.eat)p.eatingUntil[i]=plan.until;
+   // Split at schedule/meal/need-rate boundaries, not just tick endpoints.
+   const day=Math.floor(time/1440),boundaries=[420,480,720,780,1080,1140,1320,1440].map(m=>day*1440+m).filter(m=>m>time+1e-9);
+   const stop=Math.min(end,plan.until,...boundaries);
+   if(stop<=time+1e-9){p.planUntil[i]=time;applyInterval(model,i,p.activity[i],time,end-time);time=end;break;}
+   applyInterval(model,i,p.activity[i],time,stop-time);time=stop;
+  }
+  const d=model.districts[p.current[i]];
+  if(p.remaining[i]>0){const to=model.districts[p.to[i]];if(p.mode[i]===3)to.roadDemand++;else if(p.mode[i]>=4)to.transitDemand++;}
+  else {if(p.activity[i]===1)d.workers++;if([3,4,5,6,7].includes(p.activity[i]))d.visitors++;}
+  const hh=p.household[i],home=model.districts[p.home[i]],burden=model.households.rent[hh]*12/Math.max(1,model.households.income[hh]);p.utility[i]=clamp(1-burden*.7-p.commute[i]/180+home.services*.15+home.environment*.1,0,1);
+ }
+ for(let d=0;d<model.districts.length;d++){const row=model.districts[d];row.congestion=clamp(1+.15*(row.roadDemand/Math.max(1,model.config.roadCapacity*effects[d].roads*(1-model.config.constructionDisruption)))**2,1,5);row.transitCrowding=row.transitDemand/Math.max(1,model.config.transitCapacity*model.config.transitService*effects[d].transit);row.awareness=clamp(row.awareness+(1-row.awareness)*model.config.awarenessRate*minutes/1440,0,1);}
+}
 
 export function scoreHousing(model,h,d,effects){const hh=model.households,c=model.config,row=model.districts[d],home=hh.home[h],head=hh.start[h],work=model.districts[model.people.work[head]],income=hh.income[h];const rent=row.rent*c.rentMultiplier*effects[d].rent,burden=rent*12/Math.max(1,income),commute=(()=>{let total=0,count=0;for(let k=0;k<hh.size[h];k++){const i=hh.start[h]+k;if(!model.people.employed[i])continue;const job=model.districts[model.people.work[i]];total+=Math.hypot(row.x-job.x,row.z-job.z)/1000/25*60;count++;}return total/Math.max(1,count);})();const components={affordability:(1-burden)*housingCoefficients.coefficients.affordability,commute:commute*housingCoefficients.coefficients.commute,space:Math.min(1,row.housingUnits*c.housingCapacityMultiplier/Math.max(1,row.households))*.15,services:row.services*.2,transit:row.transit*c.transitService*.1,preference:draw(model.seed,h,d,32)*.08,movingCost:d===home?0:-c.movingCost/Math.max(1,income/12)*.1};return{id:row.id,districtIndex:d,rent,burden,commute,available:d===home||((row.households+1)*model.weight<=row.housingUnits*c.housingCapacityMultiplier&&burden<=Math.max(c.burdenThreshold,.5)&&row.services>0),score:Object.values(components).reduce((s,v)=>s+v,0),components,rejectedReason:d!==home&&((row.households+1)*model.weight>row.housingUnits*c.housingCapacityMultiplier||burden>Math.max(c.burdenThreshold,.5))?"CAPACITY_FULL or PRICE_EXCEEDS_MAX_BUDGET":null};}
 export function householdDecisions(model,effects){const hh=model.households,c=model.config,p=model.people;for(let h=0;h<hh.size.length;h++){

@@ -6,9 +6,13 @@ export class BuildingLOD {
     this.scene=scene;this.chunks=[];this.box=new THREE.BoxGeometry(1,1,1);this.matrix=new THREE.Matrix4();this.scale=new THREE.Vector3();this.position=new THREE.Vector3();this.rotation=new THREE.Quaternion();
     this.material=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.85});
     for(const chunk of chunks.values()) {
-      const batch=new THREE.BatchedMesh(chunk.buildings.length,24,36,this.material);
+      // Flat landscape polygons must retain their outline: an axis-aligned box
+      // covers streets around rotated/concave parks and always looks "far".
+      const buildings=chunk.buildings.filter(b=>b.kind!=='park');
+      if(!buildings.length)continue;
+      const batch=new THREE.BatchedMesh(buildings.length,24,36,this.material);
       const geometryId=batch.addGeometry(this.box);batch.frustumCulled=false;batch.castShadow=false;batch.receiveShadow=true;batch.name='district-hlod';
-      const entries=chunk.buildings.map(b=>({b,instance:batch.addInstance(geometryId),far:false}));
+      const entries=buildings.map(b=>({b,instance:batch.addInstance(geometryId),far:false}));
       scene.add(batch);this.chunks.push({batch,entries});
     }
   }

@@ -251,10 +251,12 @@ function makePeople(buildings, r, maxPeople) {
   const schools = buildings.filter((b) => b.kind === "school");
   const people = [];
 
-  // Households: bigger footprints hold more units (apartments).
+  // Illustrative household slots use mapped residential floor area, not just
+  // ground footprints. Floors supply capacity, not observed resident counts.
   const slots = [];
   for (const h of homes) {
-    const units = Math.max(1, Math.min(12, Math.round(h.area / 140)));
+    const floors = Number.isFinite(h.levels) ? Math.max(1, Math.min(200, Math.floor(h.levels))) : 1;
+    const units = Math.max(1, Math.min(60, Math.round(h.area * floors / 140)));
     for (let u = 0; u < units; u++) slots.push(h);
   }
   // Shuffle deterministically and fill up to maxPeople.

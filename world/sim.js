@@ -3,10 +3,11 @@
 // shared world state (stock, cash, fridges, litter). Pure module, deterministic per seed.
 
 import { rng, hashSeed } from "./gen.js";
+import { createActivityHistory, recordActivity, recordHistoryEvent, snapshotActivityHistory } from "./activity-history.js";
 
 const DECAY = { hunger: 0.09, energy: 0.045, fun: 0.05, social: 0.04 }; // per game minute
 // Relaxed walking pace; policy speedMult still applies.
-export const WALK_M_PER_MIN = 55;
+export const WALK_M_PER_MIN = 40; // 2.4 km/h: an unhurried stroll.
 const ROAD_CONNECT_MAX_M = 220;
 
 /**
@@ -41,13 +42,14 @@ export const ACTIONS = {
   },
   relax_home: { at: "home", label: "watching TV", minutes: () => 60, rate: { fun: 0.55, social: 0.15 } },
   work: {
-    at: "job", label: "working", minutes: (p, w) => Math.max(30, p.shiftStart + p.shiftLen - w.minuteOfDay()),
+    at: "job", label: "working", minutes: (p, w) => Math.max(1, p.shiftStart + p.shiftLen - w.minuteOfDay()),
     rate: { fun: -0.02, social: 0.06, energy: -0.01 }, pay: 0.3,
-    ok: (p, b, w) => w.isWorkday() && !p.workedToday && b.state.open,
+    ok: (p, b, w) => w.isWorkday() && !p.workedToday && b.state.open && w.minuteOfDay() >= p.shiftStart - 60 && w.minuteOfDay() < p.shiftStart + p.shiftLen,
   },
+  wait_shift: { at: "none", label: "waiting for shift", minutes: (p,w) => Math.max(1,p.shiftStart-w.minuteOfDay()), rate: { social: 0.02 } },
   study: {
     at: "school", label: "at school", minutes: (p, w) => Math.max(30, 15 * 60 - w.minuteOfDay()),
-    rate: { social: 0.12, fun: 0.05 }, ok: (p, b, w) => w.isWorkday() && !p.workedToday && w.minuteOfDay() < 14 * 60,
+    rate: { social: 0.12, fun: 0.05 }, ok: (p, b, w) => w.isWorkday() && !p.workedToday && w.minuteOfDay() >= 7 * 60 && w.minuteOfDay() < 14 * 60,
   },
   eat_out: {
     at: "food", label: "eating out", minutes: () => 35, rate: { hunger: 2.6, social: 0.6, fun: 0.3 }, cost: 12,
@@ -253,7 +255,7 @@ export function createWorld(town, opts = {}) {
   const byKind = {};
   for (const b of town.buildings) (byKind[b.kind] ||= []).push(b);
   const roadGraph = buildRoadGraph(town.roads || []);
-  const initialDay = Math.floor((opts.startMinute ?? 6 * 60 + 30) / 1440);
+  const initialDay = Math.floor((opts.startMinute ?? 6 * 60) / 1440);
 
   for (const p of town.people) {
     p.today = newToday(initialDay);
@@ -261,9 +263,14 @@ export function createWorld(town, opts = {}) {
     p.walkMinutesAvg3d = 0;
   }
 
+  const activityHistory = opts.recordHistory ? createActivityHistory(opts.historyOptions) : null;
+  const historyListeners = new Set();
+  const personRoutines = activityHistory ? new Map() : null;
   const w = {
     ...town,
-    t: opts.startMinute ?? 6 * 60 + 30, // absolute game minutes since day 0
+    modelVersion: "neighborhood-activity.v2",
+    activityHistory,
+    t: opts.startMinute ?? 6 * 60, // absolute game minutes since day 0
     speedMult: 1,
     parkCleanupBoost: 0,
     restockBoost: 0,
@@ -272,7 +279,7 @@ export function createWorld(town, opts = {}) {
     groceryDelivery: 0, // 0–1: share of nearly-empty home fridges refilled each afternoon
     wageMult: 1, // economy-wide pay level (possible-worlds conditions); 1 = unchanged
     events: [],
-    stats: { spent: 0, meals: 0, groceries: 0, cleanups: 0 },
+    stats: { spent: 0, earned: 0, meals: 0, groceries: 0, cleanups: 0 },
     byKind,
     rand: r,
     minuteOfDay: () => w.t % 1440,
@@ -283,8 +290,37 @@ export function createWorld(town, opts = {}) {
     log(text, kind = "info", building = null) {
       w.events.unshift({ t: w.t, text, kind, building: building?.index ?? null });
       if (w.events.length > 60) w.events.pop();
+      if(activityHistory) recordHistoryEvent(activityHistory,{minute:w.t,type:`WORLD_${String(kind).toUpperCase()}`,text,buildingId:building?.id??null,districtId:building?.kind??"world"});
     },
   };
+
+  const personId = p => String(p.id);
+  const activityOf = p => p.mode === "moving" ? "WALK" : p.mode === "doing" && p.action ? p.action.toUpperCase() : "IDLE";
+  const placeOf = p => p.mode === "moving" ? "travel" : w.buildings[p.target??p.home]?.kind || "unknown";
+  function recordRoutine(p,activity,districtId,startMinute,endMinute,needs) {
+    if(!personRoutines)return;
+    const id=personId(p); let routine=personRoutines.get(id);
+    if(!routine){routine={intervals:[],events:[],droppedIntervals:0,droppedEvents:0,totalEvents:0,fromMinute:startMinute,toMinute:endMinute};personRoutines.set(id,routine);}
+    routine.toMinute=endMinute;
+    const last=routine.intervals.at(-1),duration=endMinute-startMinute;
+    if(last&&last.activity===activity&&last.districtId===districtId&&last.endMinute===startMinute){
+      const previous=last.endMinute-last.startMinute;
+      for(const key of Object.keys(needs))last.needs[key]=(last.needs[key]*previous+needs[key]*duration)/(previous+duration);
+      last.endMinute=endMinute;
+    }else routine.intervals.push({id,householdId:p.householdId,districtId,activity,startMinute,endMinute,weight:1,needs:{...needs}});
+    if(routine.intervals.length>96){routine.intervals.shift();routine.droppedIntervals++;}
+  }
+  function historyEvent(p,type,detail={}) {
+    if(activityHistory) {
+      recordHistoryEvent(activityHistory,{minute:w.t,type,personId:personId(p),householdId:p.householdId,districtId:placeOf(p),...detail});
+      const routine=personRoutines.get(personId(p));if(routine)routine.totalEvents++;
+    }
+  }
+  function completeTrip(p) {
+    if(!Number.isFinite(p.tripStartedMinute))return;
+    historyEvent(p,"TRIP_COMPLETED",{mode:"walk",travelMinutes:Math.max(0,w.t-p.tripStartedMinute),distanceMeters:p.tripDistanceMeters||0,destinationId:w.buildings[p.target]?.id??null});
+    p.tripStartedMinute=null;
+  }
 
   // --------------------------------------------------------------------
   // Decide: score every reachable advertisement, pick the best (with a bit of noise).
@@ -344,12 +380,19 @@ export function createWorld(town, opts = {}) {
 
   function decide(p) {
     let best = null, bestS = -1;
+    const considered = activityHistory ? [] : null;
     for (const [id, a, b] of candidates(p)) {
       const s = score(p, id, a, b);
+      considered?.push({activity:id,buildingId:b.id,score:s});
       if (s > bestS) { bestS = s; best = [id, a, b]; }
     }
-    if (!best) { p.mode = "doing"; p.until = w.t + 15; p.doing = "idling"; p.path = null; p.pathI = 0; return; }
+    if (!best) { p.action = null; p.target = null; p.mode = "doing"; p.until = w.t + 15; p.doing = "idling"; p.path = null; p.pathI = 0; return; }
     const [id, a, b] = best;
+    if(activityHistory) {
+      const decision={minute:w.t,type:"ACTIVITY_SELECTED",chosen:id,score:bestS,needs:{...p.needs},alternatives:considered.sort((a,b)=>b.score-a.score).slice(0,6),reasonCodes:["NEED_URGENCY_AND_SCHEDULE_SCORE"]};
+      p.lastDecision=decision; (p.decisionHistory||=[]).push(decision); if(p.decisionHistory.length>16)p.decisionHistory.shift();
+      historyEvent(p,"ACTIVITY_SELECTED",{activity:id,score:bestS,buildingId:b.id,reasonCodes:decision.reasonCodes});
+    }
     p.action = id; p.target = b.index;
     const j = r.range(-0.3, 0.3);
     const tx = b.center[0] + j * Math.sqrt(b.area || 100) * 0.5;
@@ -358,17 +401,28 @@ export function createWorld(town, opts = {}) {
     p.pathI = 0;
     [p.tx, p.tz] = p.path[0] || [tx, tz];
     p.mode = "moving"; p.doing = `walking to ${b.name}`;
+    p.tripStartedMinute=w.t;
+    let previous=[p.x,p.z]; p.tripDistanceMeters=0;
+    for(const point of p.path){p.tripDistanceMeters+=Math.hypot(point[0]-previous[0],point[1]-previous[1]);previous=point;}
+    historyEvent(p,"TRIP_STARTED",{mode:"walk",activity:id,destinationId:b.id,distanceMeters:p.tripDistanceMeters});
   }
 
   function arrive(p) {
+    completeTrip(p);
     const a = ACTIONS[p.action];
     const b = w.buildings[p.target];
     if (a.ok && !a.ok(p, b, w)) {
       if ((p.action === "eat_out" || p.action === "groceries") && b?.name) {
         if (!p.today.soldOutAt.includes(b.name)) p.today.soldOutAt.push(b.name);
       }
-      p.mode = "idle"; p.path = null; p.pathI = 0; return;
+      historyEvent(p,"ACTIVITY_UNAVAILABLE",{activity:p.action,buildingId:b?.id??null,reason:"Availability changed during travel"});
+      p.mode = "idle"; p.action=null; p.path = null; p.pathI = 0; return;
     } // it changed while walking (sold out!)
+    if (p.action === "work" && w.minuteOfDay() < p.shiftStart) {
+      p.action = "wait_shift"; p.mode = "doing"; p.doing = ACTIONS.wait_shift.label;
+      p.until = w.t + p.shiftStart - w.minuteOfDay(); b.state.visitors++;
+      historyEvent(p,"ACTIVITY_STARTED",{activity:"WAIT_SHIFT",buildingId:b.id}); return;
+    }
     a.start?.(p, b, w);
     if (p.action === "eat_out") w.stats.meals++;
     if (p.action === "groceries") w.stats.groceries++;
@@ -377,12 +431,15 @@ export function createWorld(town, opts = {}) {
     b.state.visitors++;
     p.mode = "doing"; p.doing = a.label;
     p.until = w.t + Math.round(a.minutes(p, w));
+    historyEvent(p,"ACTIVITY_STARTED",{activity:p.action.toUpperCase(),buildingId:b.id,...(a.cost?{cost:a.cost}:{})});
     if ((p.action === "eat_out" || p.action === "groceries") && r() < 0.12) w.log(`${p.name} is ${a.label} at ${b.name}`, "routine", b);
   }
 
   function finish(p) {
+    historyEvent(p,"ACTIVITY_ENDED",{activity:activityOf(p)});
     const b = w.buildings[p.target];
     if (b) b.state.visitors = Math.max(0, b.state.visitors - 1);
+    if (p.action === "wait_shift") { p.action = "work"; arrive(p); return; }
     if (p.action === "work" || p.action === "study") p.workedToday = true;
     p.mode = "idle"; p.action = null; p.path = null; p.pathI = 0;
   }
@@ -448,31 +505,37 @@ export function createWorld(town, opts = {}) {
     }
 
     for (const p of w.people) {
+      const beforeNeeds=activityHistory?{...p.needs}:null;
+      const recordedActivity=activityOf(p),recordedPlace=placeOf(p);
       const a = p.mode === "doing" && p.action ? ACTIONS[p.action] : null;
       for (const need of Object.keys(DECAY)) {
         p.needs[need] = clamp(p.needs[need] + needRateFor(p, need, w));
       }
       if (a?.pay) {
         const wageBoost = p.action === "work" ? 1 + w.hiringBoost * 0.5 : 1;
-        p.money += a.pay * wageBoost * (w.wageMult ?? 1);
+        const earned=a.pay * wageBoost * (w.wageMult ?? 1);
+        p.money += earned; w.stats.earned+=earned;
       }
 
+      if(activityHistory) {
+        const observedNeeds=Object.fromEntries(Object.keys(DECAY).map(key=>[key,(beforeNeeds[key]+p.needs[key])/2]));
+        recordActivity(activityHistory,{id:personId(p),householdId:p.householdId,districtId:recordedPlace,activity:recordedActivity,startMinute:w.t-1,endMinute:w.t,weight:1,needs:observedNeeds});
+        recordRoutine(p,recordedActivity,recordedPlace,w.t-1,w.t,observedNeeds);
+      }
       if (p.mode === "idle") decide(p);
       else if (p.mode === "moving") {
         p.today.walkMinutes += 1;
-        const dx = p.tx - p.x, dz = p.tz - p.z;
-        const d = Math.hypot(dx, dz), step = WALK_M_PER_MIN * w.speedMult;
-        if (d <= step) {
-          p.x = p.tx; p.z = p.tz;
-          if (p.path && p.pathI < p.path.length - 1) {
-            p.pathI += 1;
-            [p.tx, p.tz] = p.path[p.pathI];
-          } else {
-            arrive(p);
-          }
-        } else {
-          p.x += (dx / d) * step;
-          p.z += (dz / d) * step;
+        // Spend one complete walking budget across short road segments; reaching
+        // an intermediate waypoint must not discard the rest of this minute.
+        let remaining = WALK_M_PER_MIN * w.speedMult;
+        while (remaining > 0 && p.mode === "moving") {
+          const dx = p.tx - p.x, dz = p.tz - p.z, distance = Math.hypot(dx,dz);
+          if (distance <= remaining) {
+            p.x = p.tx; p.z = p.tz; remaining -= distance;
+            if (p.path && p.pathI < p.path.length-1) {
+              p.pathI++; [p.tx,p.tz] = p.path[p.pathI];
+            } else arrive(p);
+          } else { p.x += dx / distance * remaining; p.z += dz / distance * remaining; remaining = 0; }
         }
       } else if (p.mode === "doing" && w.t >= p.until) finish(p);
     }
@@ -484,7 +547,20 @@ export function createWorld(town, opts = {}) {
     if (!quiet && was < 5 && to > was) w.log(`${b.name} got a delivery`, "restock", b);
   }
 
-  w.step = (gameMinutes) => { for (let i = 0; i < gameMinutes; i++) minute(); };
+  w.step = (gameMinutes) => {
+    if(!Number.isInteger(gameMinutes)||gameMinutes<0)throw new RangeError("Neighborhood steps require nonnegative whole modeled minutes");
+    for (let i = 0; i < gameMinutes; i++) minute();
+    if(gameMinutes&&activityHistory)for(const listener of historyListeners)try{listener({mode:"legacy",minute:w.t,peopleCount:w.people.length,modelVersion:w.modelVersion});}catch{/* A view cannot interrupt the authoritative simulation. */}
+  };
+  w.getActivityHistory = (query={}) => {
+    if(!activityHistory)return {schemaVersion:"activity-history.v1",available:false,coverage:{fromMinute:null,toMinute:null},totals:null,buckets:[],recentEvents:[],retention:{},notice:"Activity recording was not enabled for this world."};
+    const result=snapshotActivityHistory(activityHistory,query),id=query.actorId??query.filters?.personId;
+    if(id!==undefined){const routine=personRoutines.get(String(id));result.actorTimeline=routine?{...structuredClone(routine),events:result.recentEvents.filter(e=>e.personId===String(id)),droppedEvents:Math.max(0,routine.totalEvents-result.recentEvents.filter(e=>e.personId===String(id)).length),scope:"Actual compact legacy activity bouts; at most96 per person. Event detail shares the bounded global log."}:null;}
+    return result;
+  };
+  w.trackActivityPerson = id => {if(!w.people.some(p=>personId(p)===String(id)))throw new Error("Unknown legacy person");};
+  w.subscribeActivity = callback => {historyListeners.add(callback);return()=>historyListeners.delete(callback);};
+  w.getActivitySnapshot = () => ({mode:"legacy",minute:w.t,peopleCount:w.people.length,modelVersion:w.modelVersion,runId:`legacy:${town.seedKey}:${opts.runSeed??"default"}:${opts.startMinute??360}`,historyAvailable:!!activityHistory,stats:{...w.stats},metrics:{population:w.people.length,earned:w.stats.earned,spent:w.stats.spent,...w.summary().avg},people:w.people.map(p=>({id:personId(p),name:p.name,householdId:p.householdId,activity:activityOf(p),districtId:placeOf(p),needs:{...p.needs},doing:p.doing,decisionTrace:p.decisionHistory||[]})),districtLabel:"Place type",districts:[...new Set(w.buildings.map(b=>b.kind)),"travel"].map(id=>({id,label:id}))});
 
   w.summary = () => {
     const n = w.people.length || 1;

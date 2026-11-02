@@ -3,11 +3,11 @@ export const SHIRT_PALETTE=Object.freeze(['#e57373','#64b5f6','#81c784','#ffd54f
 export function shirtColorFor(id){let hash=2166136261;for(const char of String(id))hash=Math.imul(hash^char.charCodeAt(0),16777619);return SHIRT_PALETTE[(hash>>>0)%SHIRT_PALETTE.length];}
 const NAMES=['TShirt','Pants','Skin','Hair','Shoes'];
 const COLORS={TShirt:0xffffff,Pants:0x263449,Skin:0xc99068,Hair:0x30251f,Shoes:0x202126};
-export function createHumanInstances({THREE,count,assetUrl='/world/assets/human-person.glb',loadAsset}={}){
+export function createHumanInstances({THREE,count,assetUrl='/world/assets/human-person.glb',loadAsset,readable=false}={}){
  if(!THREE||!Number.isInteger(count)||count<1||count>100000)throw new TypeError('Human instances require THREE and count 1–100000');
  const root=new THREE.Group();root.name='ClothedHumanInstances';
  const parts=[],visible=new Uint8Array(count),states=new Array(count),dummy=new THREE.Object3D(),color=new THREE.Color();let destroyed=false,dirty=false;
- const materials=Object.fromEntries(NAMES.map(name=>[name,new THREE.MeshLambertMaterial({color:COLORS[name]})]));
+ const materials=Object.fromEntries(NAMES.map(name=>[name,new (readable?THREE.MeshBasicMaterial:THREE.MeshLambertMaterial)({color:COLORS[name]})]));
  const fallback=(name)=>{const size={TShirt:[.48,.55,.25],Pants:[.35,.65,.24],Skin:[.28,.32,.28],Hair:[.29,.1,.29],Shoes:[.4,.12,.35]}[name];const y={TShirt:1.15,Pants:.55,Skin:1.59,Hair:1.78,Shoes:.1}[name];return new THREE.BoxGeometry(...size).translate(0,y,0);};
  function addPart(name,geometry){const mesh=new THREE.InstancedMesh(geometry,materials[name],count);mesh.name=name;mesh.frustumCulled=false;mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);mesh.userData.humanPart=name;root.add(mesh);parts.push(mesh);return mesh;}
  for(const name of NAMES)addPart(name,fallback(name));

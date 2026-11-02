@@ -1,3 +1,6 @@
+import {createConstitutionSourceHandler} from './world/constitution-city/source-api.js';
+import {createEconomyRecordsHandler} from './world/economy-records-api.js';
+const handleEconomyRecords=createEconomyRecordsHandler();
 import { handleConstitutionSummary } from './world/constitution-summary-api.js';
 import { serve } from "bun";
 import { readdir } from "node:fs/promises";
@@ -362,12 +365,16 @@ async function fetchPlanFromDearCongress(body) {
 }
 
 const handleExperiments = createExperimentsHandler({ fetchPlan: fetchPlanFromDearCongress, getArea });
+const handleConstitutionSource = createConstitutionSourceHandler({fetchPlan:()=>fetchPlanFromDearCongress({includeSynthetic:false}),sourceUrl:new URL(DEAR_CONGRESS_URL).origin+'/'});
 
 const server = serve({
   port: PORT,
 
   async fetch(request, server) {
     const { pathname } = new URL(request.url);
+
+    if (pathname === "/api/economy-records") return handleEconomyRecords(request);
+    if (pathname === "/world/economy-records" || pathname === "/world/economy-records/") return serveFile("./world/economy-records.html");
 
     // Multiplayer WebSocket for /game
     if (pathname === "/ws") {
@@ -440,6 +447,7 @@ const server = serve({
     if (under(pathname, "/api/world/experiments")) return handleExperiments(request);
     if (pathname === "/api/world/parameter-patch") return handlePlanParameterPatch(request);
     if (pathname === "/api/constitution-summary") return handleConstitutionSummary(request);
+    if (pathname === "/api/constitution-city/plan") return handleConstitutionSource(request);
     if (["/world/visualize-consitution", "/world/visualize-constitution"].includes(pathname.replace(/\/$/, ""))) return serveFile("./world/visualize-consitution.html");
     if (pathname === "/api/plan") return handlePlan(request);
     if (pathname === "/api/outcomes") return handleOutcomes();
@@ -452,6 +460,7 @@ const server = serve({
       let decodedWorldPath;
       try { decodedWorldPath = normalize(decodeURIComponent(pathname)); } catch { return notFound(); }
       if (decodedWorldPath === "/world/models/business-v1/compiler-api.js") return notFound();
+      if (decodedWorldPath === "/world/constitution-city/source-api.js") return notFound();
       if (/^\/world\/decision\/(api|store|worker|optimization-api)\.js$/.test(decodedWorldPath)) return notFound();
       if (/^\/world\/ai\//.test(decodedWorldPath) && !/^\/world\/ai\/(edit-schema|edit-validator|revisions)\.js$/.test(decodedWorldPath)) return notFound();
       if (pathname.endsWith("/api.js") || pathname.endsWith("-api.js")) return notFound(); // server-only code

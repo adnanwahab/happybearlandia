@@ -1,0 +1,723 @@
+{
+  "schemaVersion": "dear-congress-plan-source.v1",
+  "sourceUrl": "https://dear-congress.fly.dev/",
+  "sourceEndpoint": "https://dear-congress.fly.dev/api/synthesize",
+  "retrievedAt": "2026-11-02T20:50:35.153493Z",
+  "sourceMode": "captured-public-plan",
+  "packageId": "A",
+  "packages": [
+    {
+      "id": "A",
+      "name": "Balanced",
+      "description": "Your weights and change penalty",
+      "totalCost": 40,
+      "budget": 40,
+      "items": [
+        {
+          "proposal": {
+            "id": "s_311",
+            "needId": "streets",
+            "title": "30-day service standard for 311 street repairs",
+            "mechanism": "Public Works service standard",
+            "authority": "Houston Public Works",
+            "jurisdiction": "Houston",
+            "costB": 0.05,
+            "changeLevel": 0,
+            "reversibility": 1,
+            "evidence": 0.6,
+            "effectiveness": 0.7,
+            "metrics": [
+              "median_days_to_resolve_311"
+            ],
+            "legalChange": "None (administrative)"
+          }
+        },
+        {
+          "proposal": {
+            "id": "h_lots",
+            "needId": "housing",
+            "title": "Reduce minimum lot sizes and parking mandates",
+            "mechanism": "City ordinance",
+            "authority": "Houston City Council",
+            "jurisdiction": "Houston",
+            "costB": 0,
+            "changeLevel": 1,
+            "reversibility": 0.8,
+            "evidence": 0.7,
+            "effectiveness": 0.45,
+            "metrics": [
+              "housing_units_permitted",
+              "median_new_home_price"
+            ],
+            "legalChange": "Municipal ordinance amendment"
+          }
+        },
+        {
+          "proposal": {
+            "id": "cc_licensing",
+            "needId": "childcare",
+            "title": "Streamline licensing for small home-based daycares",
+            "mechanism": "State licensing rule change",
+            "authority": "Texas HHSC",
+            "jurisdiction": "Texas",
+            "costB": 0.05,
+            "changeLevel": 1,
+            "reversibility": 0.9,
+            "evidence": 0.55,
+            "effectiveness": 0.45,
+            "metrics": [
+              "licensed_home_providers",
+              "childcare_waitlist_length"
+            ],
+            "legalChange": "Agency rule change"
+          }
+        },
+        {
+          "proposal": {
+            "id": "sb_filing",
+            "needId": "small_business",
+            "title": "Simplify small-business tax filing into one quarterly form",
+            "mechanism": "IRS administrative change",
+            "authority": "IRS",
+            "jurisdiction": "United States",
+            "costB": 0.2,
+            "changeLevel": 1,
+            "reversibility": 0.9,
+            "evidence": 0.6,
+            "effectiveness": 0.55,
+            "metrics": [
+              "compliance_hours_small_employer"
+            ],
+            "legalChange": "Agency rule / form change"
+          }
+        },
+        {
+          "proposal": {
+            "id": "fx_review",
+            "needId": "fiscal",
+            "title": "Annual spending review with automatic sunset of underperforming programs",
+            "mechanism": "Budget process rule",
+            "authority": "OMB / Congress",
+            "jurisdiction": "United States",
+            "costB": 0.1,
+            "changeLevel": 2,
+            "reversibility": 0.9,
+            "evidence": 0.6,
+            "effectiveness": 0.5,
+            "metrics": [
+              "programs_meeting_targets",
+              "deficit"
+            ],
+            "legalChange": "Budget process rule"
+          }
+        },
+        {
+          "proposal": {
+            "id": "h_vouchers",
+            "needId": "housing",
+            "title": "Expand housing vouchers in high-cost areas",
+            "mechanism": "Housing Choice Vouchers",
+            "authority": "HUD → local housing authorities",
+            "jurisdiction": "United States",
+            "costB": 12,
+            "changeLevel": 2,
+            "reversibility": 0.7,
+            "evidence": 0.8,
+            "effectiveness": 0.7,
+            "metrics": [
+              "median_rent_burden",
+              "eviction_filings"
+            ],
+            "legalChange": "Appropriations increase"
+          }
+        },
+        {
+          "proposal": {
+            "id": "cc_subsidy",
+            "needId": "childcare",
+            "title": "Direct childcare subsidies for families under 200% of median income, paid to existing providers",
+            "mechanism": "CCDBG block grants to states",
+            "authority": "HHS → state agencies",
+            "jurisdiction": "United States",
+            "costB": 24,
+            "changeLevel": 2,
+            "reversibility": 0.7,
+            "evidence": 0.75,
+            "effectiveness": 0.8,
+            "metrics": [
+              "median_childcare_cost",
+              "childcare_provider_capacity"
+            ],
+            "legalChange": "Appropriations increase"
+          }
+        },
+        {
+          "proposal": {
+            "id": "f_drainage",
+            "needId": "flooding",
+            "title": "Accelerate bayou drainage and detention projects",
+            "mechanism": "County flood bond program",
+            "authority": "Harris County Flood Control District",
+            "jurisdiction": "Harris County",
+            "costB": 2,
+            "changeLevel": 2,
+            "reversibility": 0.4,
+            "evidence": 0.75,
+            "effectiveness": 0.7,
+            "metrics": [
+              "structures_flooded_per_storm"
+            ],
+            "legalChange": "Commissioners Court budget action"
+          }
+        },
+        {
+          "proposal": {
+            "id": "t_brt",
+            "needId": "transit",
+            "title": "Bus rapid transit on the three busiest corridors",
+            "mechanism": "Transit authority capital plan",
+            "authority": "METRO (Houston)",
+            "jurisdiction": "Houston",
+            "costB": 0.6,
+            "changeLevel": 2,
+            "reversibility": 0.5,
+            "evidence": 0.65,
+            "effectiveness": 0.55,
+            "metrics": [
+              "corridor_travel_time",
+              "transit_ridership"
+            ],
+            "legalChange": "Board-approved capital plan"
+          }
+        },
+        {
+          "proposal": {
+            "id": "mh_988",
+            "needId": "mental_health",
+            "title": "Fund the 988 crisis line and mobile crisis teams",
+            "mechanism": "SAMHSA grants to states",
+            "authority": "SAMHSA",
+            "jurisdiction": "United States",
+            "costB": 1,
+            "changeLevel": 2,
+            "reversibility": 0.8,
+            "evidence": 0.65,
+            "effectiveness": 0.5,
+            "metrics": [
+              "crisis_response_time"
+            ],
+            "legalChange": "Appropriations increase"
+          }
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "name": "Minimal change",
+      "description": "Same weights, strong penalty on institutional disruption",
+      "totalCost": 36.4,
+      "budget": 40,
+      "items": [
+        {
+          "proposal": {
+            "id": "s_311",
+            "needId": "streets",
+            "title": "30-day service standard for 311 street repairs",
+            "mechanism": "Public Works service standard",
+            "authority": "Houston Public Works",
+            "jurisdiction": "Houston",
+            "costB": 0.05,
+            "changeLevel": 0,
+            "reversibility": 1,
+            "evidence": 0.6,
+            "effectiveness": 0.7,
+            "metrics": [
+              "median_days_to_resolve_311"
+            ],
+            "legalChange": "None (administrative)"
+          }
+        },
+        {
+          "proposal": {
+            "id": "h_lots",
+            "needId": "housing",
+            "title": "Reduce minimum lot sizes and parking mandates",
+            "mechanism": "City ordinance",
+            "authority": "Houston City Council",
+            "jurisdiction": "Houston",
+            "costB": 0,
+            "changeLevel": 1,
+            "reversibility": 0.8,
+            "evidence": 0.7,
+            "effectiveness": 0.45,
+            "metrics": [
+              "housing_units_permitted",
+              "median_new_home_price"
+            ],
+            "legalChange": "Municipal ordinance amendment"
+          }
+        },
+        {
+          "proposal": {
+            "id": "cc_licensing",
+            "needId": "childcare",
+            "title": "Streamline licensing for small home-based daycares",
+            "mechanism": "State licensing rule change",
+            "authority": "Texas HHSC",
+            "jurisdiction": "Texas",
+            "costB": 0.05,
+            "changeLevel": 1,
+            "reversibility": 0.9,
+            "evidence": 0.55,
+            "effectiveness": 0.45,
+            "metrics": [
+              "licensed_home_providers",
+              "childcare_waitlist_length"
+            ],
+            "legalChange": "Agency rule change"
+          }
+        },
+        {
+          "proposal": {
+            "id": "sb_filing",
+            "needId": "small_business",
+            "title": "Simplify small-business tax filing into one quarterly form",
+            "mechanism": "IRS administrative change",
+            "authority": "IRS",
+            "jurisdiction": "United States",
+            "costB": 0.2,
+            "changeLevel": 1,
+            "reversibility": 0.9,
+            "evidence": 0.6,
+            "effectiveness": 0.55,
+            "metrics": [
+              "compliance_hours_small_employer"
+            ],
+            "legalChange": "Agency rule / form change"
+          }
+        },
+        {
+          "proposal": {
+            "id": "fx_review",
+            "needId": "fiscal",
+            "title": "Annual spending review with automatic sunset of underperforming programs",
+            "mechanism": "Budget process rule",
+            "authority": "OMB / Congress",
+            "jurisdiction": "United States",
+            "costB": 0.1,
+            "changeLevel": 2,
+            "reversibility": 0.9,
+            "evidence": 0.6,
+            "effectiveness": 0.5,
+            "metrics": [
+              "programs_meeting_targets",
+              "deficit"
+            ],
+            "legalChange": "Budget process rule"
+          }
+        },
+        {
+          "proposal": {
+            "id": "h_vouchers",
+            "needId": "housing",
+            "title": "Expand housing vouchers in high-cost areas",
+            "mechanism": "Housing Choice Vouchers",
+            "authority": "HUD → local housing authorities",
+            "jurisdiction": "United States",
+            "costB": 12,
+            "changeLevel": 2,
+            "reversibility": 0.7,
+            "evidence": 0.8,
+            "effectiveness": 0.7,
+            "metrics": [
+              "median_rent_burden",
+              "eviction_filings"
+            ],
+            "legalChange": "Appropriations increase"
+          }
+        },
+        {
+          "proposal": {
+            "id": "cc_subsidy",
+            "needId": "childcare",
+            "title": "Direct childcare subsidies for families under 200% of median income, paid to existing providers",
+            "mechanism": "CCDBG block grants to states",
+            "authority": "HHS → state agencies",
+            "jurisdiction": "United States",
+            "costB": 24,
+            "changeLevel": 2,
+            "reversibility": 0.7,
+            "evidence": 0.75,
+            "effectiveness": 0.8,
+            "metrics": [
+              "median_childcare_cost",
+              "childcare_provider_capacity"
+            ],
+            "legalChange": "Appropriations increase"
+          }
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "name": "Most popular",
+      "description": "Ranks purely by citizen support (rights constraints still apply)",
+      "totalCost": 47.61,
+      "budget": 40,
+      "items": [
+        {
+          "proposal": {
+            "id": "fx_review",
+            "needId": "fiscal",
+            "title": "Annual spending review with automatic sunset of underperforming programs",
+            "mechanism": "Budget process rule",
+            "authority": "OMB / Congress",
+            "jurisdiction": "United States",
+            "costB": 0.1,
+            "changeLevel": 2,
+            "reversibility": 0.9,
+            "evidence": 0.6,
+            "effectiveness": 0.5,
+            "metrics": [
+              "programs_meeting_targets",
+              "deficit"
+            ],
+            "legalChange": "Budget process rule"
+          }
+        },
+        {
+          "proposal": {
+            "id": "h_lots",
+            "needId": "housing",
+            "title": "Reduce minimum lot sizes and parking mandates",
+            "mechanism": "City ordinance",
+            "authority": "Houston City Council",
+            "jurisdiction": "Houston",
+            "costB": 0,
+            "changeLevel": 1,
+            "reversibility": 0.8,
+            "evidence": 0.7,
+            "effectiveness": 0.45,
+            "metrics": [
+              "housing_units_permitted",
+              "median_new_home_price"
+            ],
+            "legalChange": "Municipal ordinance amendment"
+          }
+        },
+        {
+          "proposal": {
+            "id": "s_311",
+            "needId": "streets",
+            "title": "30-day service standard for 311 street repairs",
+            "mechanism": "Public Works service standard",
+            "authority": "Houston Public Works",
+            "jurisdiction": "Houston",
+            "costB": 0.05,
+            "changeLevel": 0,
+            "reversibility": 1,
+            "evidence": 0.6,
+            "effectiveness": 0.7,
+            "metrics": [
+              "median_days_to_resolve_311"
+            ],
+            "legalChange": "None (administrative)"
+          }
+        },
+        {
+          "proposal": {
+            "id": "h_transit",
+            "needId": "housing",
+            "title": "Grants for cities that permit multifamily housing near transit",
+            "mechanism": "HUD / DOT competitive grants",
+            "authority": "HUD, DOT",
+            "jurisdiction": "United States",
+            "costB": 1.8,
+            "changeLevel": 2,
+            "reversibility": 0.75,
+            "evidence": 0.6,
+            "effectiveness": 0.55,
+            "metrics": [
+              "housing_units_permitted",
+              "median_rent_burden"
+            ],
+            "legalChange": "Appropriations + grant criteria"
+          }
+        },
+        {
+          "proposal": {
+            "id": "sb_filing",
+            "needId": "small_business",
+            "title": "Simplify small-business tax filing into one quarterly form",
+            "mechanism": "IRS administrative change",
+            "authority": "IRS",
+            "jurisdiction": "United States",
+            "costB": 0.2,
+            "changeLevel": 1,
+            "reversibility": 0.9,
+            "evidence": 0.6,
+            "effectiveness": 0.55,
+            "metrics": [
+              "compliance_hours_small_employer"
+            ],
+            "legalChange": "Agency rule / form change"
+          }
+        },
+        {
+          "proposal": {
+            "id": "cc_licensing",
+            "needId": "childcare",
+            "title": "Streamline licensing for small home-based daycares",
+            "mechanism": "State licensing rule change",
+            "authority": "Texas HHSC",
+            "jurisdiction": "Texas",
+            "costB": 0.05,
+            "changeLevel": 1,
+            "reversibility": 0.9,
+            "evidence": 0.55,
+            "effectiveness": 0.45,
+            "metrics": [
+              "licensed_home_providers",
+              "childcare_waitlist_length"
+            ],
+            "legalChange": "Agency rule change"
+          }
+        },
+        {
+          "proposal": {
+            "id": "f_drainage",
+            "needId": "flooding",
+            "title": "Accelerate bayou drainage and detention projects",
+            "mechanism": "County flood bond program",
+            "authority": "Harris County Flood Control District",
+            "jurisdiction": "Harris County",
+            "costB": 2,
+            "changeLevel": 2,
+            "reversibility": 0.4,
+            "evidence": 0.75,
+            "effectiveness": 0.7,
+            "metrics": [
+              "structures_flooded_per_storm"
+            ],
+            "legalChange": "Commissioners Court budget action"
+          }
+        },
+        {
+          "proposal": {
+            "id": "hc_chc",
+            "needId": "healthcare",
+            "title": "Expand community health center funding",
+            "mechanism": "HRSA health center grants",
+            "authority": "HRSA",
+            "jurisdiction": "United States",
+            "costB": 6,
+            "changeLevel": 2,
+            "reversibility": 0.8,
+            "evidence": 0.8,
+            "effectiveness": 0.6,
+            "metrics": [
+              "adults_delaying_care",
+              "er_visits_for_primary_care"
+            ],
+            "legalChange": "Appropriations increase"
+          }
+        },
+        {
+          "proposal": {
+            "id": "t_brt",
+            "needId": "transit",
+            "title": "Bus rapid transit on the three busiest corridors",
+            "mechanism": "Transit authority capital plan",
+            "authority": "METRO (Houston)",
+            "jurisdiction": "Houston",
+            "costB": 0.6,
+            "changeLevel": 2,
+            "reversibility": 0.5,
+            "evidence": 0.65,
+            "effectiveness": 0.55,
+            "metrics": [
+              "corridor_travel_time",
+              "transit_ridership"
+            ],
+            "legalChange": "Board-approved capital plan"
+          }
+        },
+        {
+          "proposal": {
+            "id": "i_roofs",
+            "needId": "insurance",
+            "title": "Grants for storm-fortified roofs that lower premiums",
+            "mechanism": "State insurance department grant",
+            "authority": "Texas Department of Insurance",
+            "jurisdiction": "Texas",
+            "costB": 0.4,
+            "changeLevel": 2,
+            "reversibility": 0.8,
+            "evidence": 0.65,
+            "effectiveness": 0.5,
+            "metrics": [
+              "median_premium_growth_vs_cpi",
+              "fortified_homes"
+            ],
+            "legalChange": "Appropriations increase"
+          }
+        },
+        {
+          "proposal": {
+            "id": "mh_workforce",
+            "needId": "mental_health",
+            "title": "Mental-health workforce grants and loan repayment",
+            "mechanism": "HRSA / SAMHSA grants",
+            "authority": "HRSA, SAMHSA",
+            "jurisdiction": "United States",
+            "costB": 2.5,
+            "changeLevel": 2,
+            "reversibility": 0.8,
+            "evidence": 0.7,
+            "effectiveness": 0.6,
+            "metrics": [
+              "median_wait_first_appointment",
+              "providers_per_100k"
+            ],
+            "legalChange": "Appropriations increase"
+          }
+        },
+        {
+          "proposal": {
+            "id": "t_bus",
+            "needId": "transit",
+            "title": "Competitive federal grants for high-frequency urban bus service",
+            "mechanism": "DOT / FTA transit grants",
+            "authority": "DOT / FTA",
+            "jurisdiction": "United States",
+            "costB": 4.1,
+            "changeLevel": 2,
+            "reversibility": 0.8,
+            "evidence": 0.7,
+            "effectiveness": 0.65,
+            "metrics": [
+              "residents_near_frequent_service",
+              "transit_ridership"
+            ],
+            "legalChange": "Grant program criteria"
+          }
+        },
+        {
+          "proposal": {
+            "id": "f_buyouts",
+            "needId": "flooding",
+            "title": "Voluntary buyouts for repeatedly flooded homes",
+            "mechanism": "FEMA hazard mitigation grants",
+            "authority": "FEMA → county",
+            "jurisdiction": "United States",
+            "costB": 1.5,
+            "changeLevel": 2,
+            "reversibility": 0.5,
+            "evidence": 0.7,
+            "effectiveness": 0.55,
+            "metrics": [
+              "repetitive_loss_properties"
+            ],
+            "legalChange": "Grant application (existing program)"
+          }
+        },
+        {
+          "proposal": {
+            "id": "mh_988",
+            "needId": "mental_health",
+            "title": "Fund the 988 crisis line and mobile crisis teams",
+            "mechanism": "SAMHSA grants to states",
+            "authority": "SAMHSA",
+            "jurisdiction": "United States",
+            "costB": 1,
+            "changeLevel": 2,
+            "reversibility": 0.8,
+            "evidence": 0.65,
+            "effectiveness": 0.5,
+            "metrics": [
+              "crisis_response_time"
+            ],
+            "legalChange": "Appropriations increase"
+          }
+        },
+        {
+          "proposal": {
+            "id": "g_delivery",
+            "needId": "food_access",
+            "title": "Grocery delivery for households that are running out of food",
+            "mechanism": "City / county food-access program (delivery partnered with food banks and grocers)",
+            "authority": "Houston Health Department / Harris County Public Health",
+            "jurisdiction": "Houston",
+            "costB": 0.3,
+            "changeLevel": 2,
+            "reversibility": 0.8,
+            "evidence": 0.5,
+            "effectiveness": 0.6,
+            "metrics": [
+              "households_reporting_empty_fridge",
+              "days_without_groceries"
+            ],
+            "legalChange": "Appropriations increase"
+          }
+        },
+        {
+          "proposal": {
+            "id": "cc_subsidy",
+            "needId": "childcare",
+            "title": "Direct childcare subsidies for families under 200% of median income, paid to existing providers",
+            "mechanism": "CCDBG block grants to states",
+            "authority": "HHS → state agencies",
+            "jurisdiction": "United States",
+            "costB": 24,
+            "changeLevel": 2,
+            "reversibility": 0.7,
+            "evidence": 0.75,
+            "effectiveness": 0.8,
+            "metrics": [
+              "median_childcare_cost",
+              "childcare_provider_capacity"
+            ],
+            "legalChange": "Appropriations increase"
+          }
+        },
+        {
+          "proposal": {
+            "id": "i_reinsurance",
+            "needId": "insurance",
+            "title": "State catastrophe reinsurance pool",
+            "mechanism": "New state program",
+            "authority": "Texas Legislature",
+            "jurisdiction": "Texas",
+            "costB": 3,
+            "changeLevel": 4,
+            "reversibility": 0.4,
+            "evidence": 0.5,
+            "effectiveness": 0.65,
+            "metrics": [
+              "median_premium_growth_vs_cpi",
+              "insurer_market_exits"
+            ],
+            "legalChange": "New state statute"
+          }
+        },
+        {
+          "proposal": {
+            "id": "emergent_1",
+            "needId": "emergent_need_food_appreciation_1",
+            "title": "pizza",
+            "mechanism": "To be determined",
+            "authority": "123",
+            "jurisdiction": "Unassigned",
+            "costB": 0.012,
+            "changeLevel": 2,
+            "reversibility": 0.95,
+            "evidence": 0.3,
+            "effectiveness": 0.1,
+            "metrics": [],
+            "legalChange": "Needs legal analysis"
+          }
+        }
+      ]
+    }
+  ]
+}

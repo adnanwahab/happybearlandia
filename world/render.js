@@ -1,3 +1,4 @@
+import { mountConstitutionWorldHost } from './constitution-city/host.js';
 import { mountConstitutionComparison } from './constitution-visuals.js';
 import * as THREE from "three";
 import { createHumanInstances } from "./render/people/human-renderer.js";
@@ -12,6 +13,7 @@ import { mountFpsMeter } from "./fps-meter.js";
 import { createMapStreamer } from "./render/map-streamer.js";
 import { mountTileNavigation, adjacentNavigationQuery, geographicTileBounds } from "./tile-navigation.js";
 import { createProgressiveLoader } from "./render/progressive-loader.js";
+import { generateBuildingGeometry } from "./render/geometry/building-generator.js";
 import { GeometryCache, toBufferGeometry } from "./render/geometry/geometry-cache.js";
 import { benchmarkScene, configureBenchmark } from "./render/bench/scenes.js";
 import { mountWorldBuildingBridge } from "./buildings/world-bridge.js";
@@ -61,7 +63,8 @@ const origin = {
   lat: parseCoord(params.get("lat"), 29.7286),
   lng: parseCoord(params.get("lng"), -95.4746),
 };
-const maxPeople = Math.min(3000, Number(params.get("people") ?? 500));
+const requestedPeople = Number(params.get("people") ?? 2000);
+const maxPeople = Number.isFinite(requestedPeople) ? Math.max(1, Math.min(3000, Math.floor(requestedPeople))) : 2000;
 const $ = (id) => document.getElementById(id);
 $("latlng").value = `${origin.lat.toFixed(4)}, ${origin.lng.toFixed(4)}`;
 
@@ -155,7 +158,7 @@ let area = await initialAreaRequest;
 startup.mapReadyMs=performance.now();
 const town = buildTown(origin, area, { maxPeople });
 mountConstitutionComparison({ THREE, scene, camera, controls, town, params });
-const world = createWorld(town, realityRunSeed ? { runSeed: realityRunSeed } : {});
+const world = createWorld(town, { recordHistory:!embedMode, ...(realityRunSeed ? { runSeed:realityRunSeed } : {}) });
 const isHarrisCountyTile = origin.lat >= 29.3 && origin.lat <= 30.25 && origin.lng >= -95.95 && origin.lng <= -94.9;
 let measuredOutcomesLatest = {};
 const geoProj = projector(origin);
@@ -298,14 +301,17 @@ function baseColorFor(b) {
 const meshes = [];
 const facades = [];
 const geometryCache = new GeometryCache();
-// Complete, coherent town first; cheap footprint bounds make it visible while
+// Complete, coherent town first; exact park outlines and cheap building bounds make it visible while
 // the same full-quality worker geometry is generated and uploaded incrementally.
 const placeholderMaterials=new Map();
 for (const [index,b] of town.buildings.entries()) {
   b.baseColor=baseColorFor(b);
   if(!placeholderMaterials.has(b.kind))placeholderMaterials.set(b.kind,new THREE.MeshLambertMaterial({color:KIND_COLOR[b.kind]||0xc7b9a2}));
   const xs=b.poly.map(p=>p[0]),zs=b.poly.map(p=>p[1]),minX=Math.min(...xs),maxX=Math.max(...xs),minZ=Math.min(...zs),maxZ=Math.max(...zs);
-  const geo=new THREE.BoxGeometry(Math.max(1,maxX-minX),b.height,Math.max(1,maxZ-minZ));geo.translate((minX+maxX)/2,b.height/2,(minZ+maxZ)/2);
+  // Park outlines are already cheap. Preserve them from the first frame,
+  // including when asynchronous geometry fails or is still loading.
+  const geo=b.kind==="park"?toBufferGeometry(generateBuildingGeometry({id:b.id,poly:b.poly,height:b.height,kind:b.kind},'LOW')):new THREE.BoxGeometry(Math.max(1,maxX-minX),b.height,Math.max(1,maxZ-minZ));
+  if(b.kind!=="park")geo.translate((minX+maxX)/2,b.height/2,(minZ+maxZ)/2);
   const mesh=new THREE.Mesh(geo,placeholderMaterials.get(b.kind));mesh.castShadow=b.kind!=="park";mesh.receiveShadow=true;mesh.userData.b=b;mesh.userData.loadingGeometry=true;b.mesh=mesh;meshes.push(mesh);scene.add(mesh);
   if(index%40===39)await new Promise(requestAnimationFrame);
 }
@@ -361,6 +367,8 @@ addEventListener('pagehide',()=>{mapStreamer.dispose();streamStatus.remove();ret
 
 const buildingBridge = !embedMode ? mountWorldBuildingBridge({ scene, camera, renderer, controls, town, THREE }) : null;
 addEventListener("pagehide", () => buildingBridge?.destroy(), { once: true });
+const constitutionWorldHost = !embedMode ? mountConstitutionWorldHost({THREE,scene,town,camera,controls}) : null;
+addEventListener("pagehide",()=>constitutionWorldHost?.destroy(),{once:true});
 
 // People: one instanced capsule mesh, hidden while indoors
 const ACTION_COLOR = {
@@ -368,7 +376,7 @@ const ACTION_COLOR = {
   work: 0x4a5a78, study: 0x7a5ec2, sleep: 0x555555, eat_home: 0xb36b3b, relax_home: 0x8d6e63, idle: 0x999999,
 };
 const OUTDOOR = new Set(["play_park", "clean_park"]);
-const humanPeople=createHumanInstances({THREE,count:town.people.length});
+const humanPeople=createHumanInstances({THREE,count:town.people.length,readable:true});
 const people=humanPeople.root;
 scene.add(people);
 window.hblHumanPeople=humanPeople;
@@ -386,7 +394,7 @@ scene.add(ring);
 /* ---------------------------------------------------------------- */
 /* Interaction                                                       */
 /* ---------------------------------------------------------------- */
-let speed = Math.max(1, Math.min(100, Number(params.get("speed")) || 10)); // game minutes per real second
+let speed = Math.max(1, Math.min(100, Number(params.get("speed")) || 1)); // game minutes per real second
 let selected = null; // { type: "person"|"building"|"journal", id }
 let follow = false;
 let overlayMode = "none";
@@ -396,14 +404,39 @@ let todayJournalPosts = [];
 let journalPins = [];
 const originalTrafficEnabled=cityRenderer.getPerformanceStats().features?.traffic!==false;
 let livingWorld=null,livingPlaybackUnsubscribe=null;
+const activityListeners=new Set();let activityRuntimeUnsubscribe=null,activityDashboard=null,activityDashboardPromise=null,activityObserver=null,activityDisposed=false;
+function notifyActivity(){if(!activityListeners.size||!window.hblWorldActivity)return;const snapshot=window.hblWorldActivity.getSnapshot();for(const listener of activityListeners)listener(snapshot);}
+function bindActivityRuntime(runtime){if(activityRuntimeUnsubscribe)return;activityRuntimeUnsubscribe=runtime.subscribe(()=>{if(livingWorld?.active)notifyActivity();});}
+const legacyActivityUnsubscribe=world.subscribeActivity(()=>{if(!livingWorld?.active)notifyActivity();});
 const playback=createSimulationPlayback({initialSpeed:speed,onChange:state=>{speed=state.paused?0:state.speed;const runtime=livingWorld?.active?livingWorld.getRuntime():null;if(runtime){runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();}for(const button of $("speeds").children)button.classList.toggle("on",Number(button.dataset.s)===(state.paused?0:state.speed));if(selected?.type==="person")renderInspector();}});
 window.hblSimulationPlayback=playback;
-livingWorld=!embedMode?mountLivingWorld({container:document.body,scene,camera,controls,THREE,town,renderer,onRuntimeReady:runtime=>{const state=playback.getState();runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();if(!livingPlaybackUnsubscribe)livingPlaybackUnsubscribe=runtime.subscribe(frame=>{if(!livingWorld?.active||!frame?.runtime)return;frame.runtime.paused?playback.pause():playback.resume();});return true;},onModeChange:active=>{people.visible=!active;follow=false;selected=null;document.documentElement.classList.remove("person-selected");$("inspect").removeAttribute("data-person-selected");$("inspect").style.display="none";cityRenderer.setFeature('traffic',active?false:originalTrafficEnabled);cityRenderer.updateCity({trafficDensity:active?0:1});document.body.classList.toggle('living-active',active);const fastest=$('speeds').lastElementChild;fastest.dataset.s=active?'32':'60';fastest.textContent=active?'32×':'60×';if(active&&playback.getState().speed>32)playback.setSpeed(32);if(active){livingWorld?.ready?.then(()=>{const state=playback.getState(),runtime=livingWorld.getRuntime();if(runtime){runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();}});}}}):null;
+livingWorld=!embedMode?mountLivingWorld({container:document.body,scene,camera,controls,THREE,town,renderer,autoActivate:!businessMode&&!simulationId&&!demoMode&&!renderBenchmark,initialMinute:!businessMode&&!simulationId&&!demoMode&&!renderBenchmark&&!params.has("living")?Math.max(425,Math.floor(world.t)):0,onRuntimeReady:runtime=>{bindActivityRuntime(runtime);const state=playback.getState();runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();if(!livingPlaybackUnsubscribe)livingPlaybackUnsubscribe=runtime.subscribe(frame=>{if(!livingWorld?.active||!frame?.runtime)return;if(Number.isFinite(frame.runtime.speed)&&frame.runtime.speed!==playback.getState().speed)playback.setSpeed(frame.runtime.speed);frame.runtime.paused?playback.pause():playback.resume();});return true;},onModeChange:active=>{people.visible=!active;follow=false;selected=null;document.documentElement.classList.remove("person-selected");$("inspect").removeAttribute("data-person-selected");$("inspect").style.display="none";cityRenderer.setFeature('traffic',active?false:originalTrafficEnabled);cityRenderer.updateCity({trafficDensity:active?0:1});document.body.classList.toggle('living-active',active);notifyActivity();const fastest=$('speeds').lastElementChild;fastest.dataset.s=active?'32':'60';fastest.textContent=active?'32×':'60×';if(active&&playback.getState().speed>32)playback.setSpeed(32);}}):null;
 window.hblLivingWorld=livingWorld;
+window.hblWorldActivity={
+ getSnapshot(){const snapshot=livingWorld?.active?livingWorld.getSnapshot():null;return livingWorld?.active?(snapshot?{...snapshot,mode:'living',peopleCount:snapshot.metrics?.syntheticPopulation??snapshot.population,people:snapshot.visibleAgents,runId:`${snapshot.runtime?.id}:${snapshot.runtime?.revision}`}:{mode:'living',peopleCount:null,minute:null,historyAvailable:false,runId:'living:resetting'}):world.getActivitySnapshot();},
+ async getHistory(query={}){const source=window.hblWorldActivity.getSnapshot(),identity=source.runId;if(livingWorld?.active){const runtime=livingWorld.getRuntime();if(!runtime?.getActivityHistory)throw Error('Living history is not ready.');const history=await runtime.getActivityHistory(query);if(!livingWorld?.active||window.hblWorldActivity.getSnapshot().runId!==identity)throw Error('Activity source changed while history was loading; refresh the current run.');return {...history,runId:identity};}if(query.actorId)world.trackActivityPerson(query.actorId);const history=world.getActivityHistory(query);if(livingWorld?.active)throw Error('Activity source changed while history was loading.');return {...history,runId:identity};},
+ subscribe(listener){activityListeners.add(listener);return()=>activityListeners.delete(listener);},
+ selectPerson(id){if(livingWorld?.active)return livingWorld.selectPerson(String(id));const index=town.people.findIndex(person=>String(person.id)===String(id));if(index>=0)select({type:'person',id:index});}
+};
+const activityButton=$('activity-dashboard-button');
+async function openActivityDashboard(){try{
+ if(!activityDashboardPromise)activityDashboardPromise=import('./activity-dashboard.js').then(({mountActivityDashboard})=>{
+  if(activityDisposed)return;activityDashboard=mountActivityDashboard({container:document.body,...window.hblWorldActivity,onSelectPerson:id=>window.hblWorldActivity.selectPerson(id)});
+  const panel=document.querySelector('.activity-dashboard');panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.tabIndex=-1;
+  panel.addEventListener('keydown',event=>{event.stopPropagation();if(event.key==='Escape'){event.preventDefault();activityDashboard.close();activityButton.focus();}if(event.key==='Tab'){const items=[...panel.querySelectorAll('button,input,select,[tabindex="0"]')].filter(node=>!node.disabled&&node.getClientRects().length);const first=items[0],last=items.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}});
+  activityObserver=new MutationObserver(()=>{const opened=!panel.hidden;mapControls.setEnabled(!opened);activityButton.setAttribute('aria-expanded',String(opened));if(!opened)activityButton.focus();});activityObserver.observe(panel,{attributes:true,attributeFilter:['hidden']});
+  return activityDashboard;
+ });
+ const dashboard=await activityDashboardPromise;if(!dashboard||activityDisposed)return;dashboard.open();mapControls.setEnabled(false);document.querySelector('.activity-dashboard button')?.focus();
+ }catch(error){activityDashboardPromise=null;activityButton.title=error.message;console.error('Activity dashboard unavailable',error);}}
+activityButton.addEventListener('click',openActivityDashboard);
+addEventListener('pagehide',()=>{activityDisposed=true;legacyActivityUnsubscribe?.();activityRuntimeUnsubscribe?.();activityObserver?.disconnect();activityDashboard?.destroy();activityListeners.clear();activityButton.removeEventListener('click',openActivityDashboard);},{once:true});
+
 addEventListener('pagehide',()=>{livingPlaybackUnsubscribe?.();livingWorld?.destroy();playback.destroy();},{once:true});
 const overlayEl = $("overlayMode");
 const overlayLegendEl = $("overlayLegend");
 if (overlayEl) overlayEl.onchange = (e) => { overlayMode = e.target.value || "none"; };
+for (const btn of $("speeds").children) btn.classList.toggle("on", Number(btn.dataset.s) === speed);
 for (const btn of $("speeds").children) btn.onclick = () => {
   const requested=Number(btn.dataset.s);
   if(requested===0)playback.pause();else{playback.setSpeed(requested);playback.resume();}
@@ -1858,6 +1891,7 @@ addEventListener("keydown", (e) => { if (e.key === "Escape") select(null); });
 
 function select(s) {
   selected = s;
+  if(s?.type==="person")world.trackActivityPerson(String(town.people[s.id]?.id??s.id));
   document.documentElement.classList.toggle("person-selected",s?.type === "person");
   cityRenderer.updateCity({ selectedBuilding: s?.type === "building" ? town.buildings[s.id]?.id : null });
   follow = false;
@@ -2078,14 +2112,17 @@ function updateBuildings(daylight) {
 }
 
 function updateHud() {
-  $("clock").textContent = clock(world.t);
+  const livingSnapshot=livingWorld?.active?livingWorld.getSnapshot():null;
+  $("clock").textContent = livingSnapshot?clock(livingSnapshot.minute):clock(world.t);
+  $("moodLabel").textContent=livingSnapshot?"Modeled utility":"Mood";
+  $("source").textContent=$("source").textContent.replace(/[\d,]+ synthetic residents/,`${(livingSnapshot?.population??town.people.length).toLocaleString()} synthetic residents`);
   if (!journalInFlight) {
     if (world.day() <= lastJournalDay) journalDiag.status = "done for today";
     else if (world.minuteOfDay() < 8 * 60) journalDiag.status = "waiting for 08:00";
     else journalDiag.status = "pending";
     renderJournalDiagnostics();
   }
-  const s = world.summary();
+  const s = livingSnapshot?{mood:100*(livingSnapshot.metrics?.modeledUtility??0),doing:Object.fromEntries(Object.entries(livingSnapshot.activityCounts||{}).map(([key,value])=>[{HOME:"at home",WORK:"working",SCHOOL:"at school",TRANSIT:"traveling",DINING:"eating",RECREATION:"recreation",SHOPPING:"shopping"}[key]||key.toLowerCase(),value]))}:world.summary();
   $("mood").style.width = `${s.mood}%`;
   $("moodN").textContent = s.mood.toFixed(0);
   const top = Object.entries(s.doing).sort((a, b) => b[1] - a[1]).slice(0, 4);

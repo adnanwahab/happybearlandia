@@ -13,7 +13,11 @@ export function createCityDetails(scene, town) {
   const material = (color, roughness=.8) => track(new THREE.MeshStandardMaterial({color,roughness}));
   const box = track(new THREE.BoxGeometry(1,1,1)), dummy = new THREE.Object3D();
   function instances(name, geometry, mat, transforms) {
-    const mesh = new THREE.InstancedMesh(geometry,mat,transforms.length);
+    // Three's node renderer binds instanceMatrix.array as a uniform buffer,
+    // even when a batch has no draws. Keep its allocation nonempty; count is
+    // still zero for absent prop/vegetation/traffic families.
+    const mesh = new THREE.InstancedMesh(geometry,mat,Math.max(1,transforms.length));
+    mesh.count = transforms.length;
     transforms.forEach((t,i)=>{dummy.position.set(...t.p);dummy.scale.set(...t.s);dummy.rotation.set(0,t.r||0,0);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);if(t.c)mesh.setColorAt(i,new THREE.Color(t.c));});
     mesh.userData.transforms=transforms;
     mesh.computeBoundingSphere(); mesh.receiveShadow = true; root.add(mesh); (groups[name] ||= []).push(mesh); return mesh;
