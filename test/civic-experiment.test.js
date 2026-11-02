@@ -56,6 +56,7 @@ describe("civic experiment", () => {
     expect(experiment.schemaVersion).toBe("civic-experiment.v1");
     expect(experiment.plan.title).toBe("Affordable Housing Plan");
     expect(experiment.experiment).toEqual({ runs: 1000, horizonYears: 20, seed: 42 });
-    expect(experiment.worldModel.variables).toEqual([]);
+    expect(experiment.worldModel.variables.length).toBeGreaterThanOrEqual(7);
+    expect(experiment.worldModel.parameterExtraction.defaultsAreEmpirical).toBe(false);
   });
 });

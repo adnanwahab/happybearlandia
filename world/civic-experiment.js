@@ -1,3 +1,5 @@
+import { extractSimulationParameters, summarizeParameterExtraction } from "./parameter-extractor.js";
+
 const isObject = (value) => Boolean(value) && typeof value === "object" && !Array.isArray(value);
 const asObject = (value) => isObject(value) ? value : {};
 const asArray = (value) => Array.isArray(value) ? value : [];
@@ -170,6 +172,8 @@ export function buildCivicExperiment(synthesis, request = {}, now = new Date()) 
     .filter((value) => typeof value === "string" && value.trim())
     .map((value) => value.trim());
 
+  const variables = extractSimulationParameters(plan, safeRequest.parameterOverrides ?? safeRequest.parameter_overrides);
+
   const experimentCore = {
     schemaVersion: "civic-experiment.v1",
     source: compact({
@@ -181,7 +185,8 @@ export function buildCivicExperiment(synthesis, request = {}, now = new Date()) 
     plan,
     assumptions: plan.assumptions,
     worldModel: {
-      variables: [],
+      variables,
+      parameterExtraction: summarizeParameterExtraction(variables),
       causalEdges: [],
       scenarioFamilies: [],
     },
