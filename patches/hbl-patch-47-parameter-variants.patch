@@ -1,0 +1,107 @@
+diff --git a/world/multi-plan-comparison.js b/world/multi-plan-comparison.js
+--- a/world/multi-plan-comparison.js
++++ b/world/multi-plan-comparison.js
+@@ -1,5 +1,6 @@
+ import { summarizeOutcomes } from "./outcome-analysis.js";
+ import { simulateExperiment } from "./simulation-adapter.js";
++import { rebaseWorldForParameterPatch } from "./parameter-paired.js";
+ 
+ function clone(value) { return value == null ? value : JSON.parse(JSON.stringify(value)); }
+ function finite(value, fallback = null) { const n = Number(value); return Number.isFinite(n) ? n : fallback; }
+@@ -97,3 +98,59 @@ export function summarizePlanComparison(comparison) {
+   const ranked = [...rows].sort((a, b) => (Number(b.robustness) - Number(a.robustness)) || (Number(b.expectedScore) - Number(a.expectedScore)));
+   return { schemaVersion: "multi-plan-summary.v1", rows, bestByRobustness: ranked[0] || null };
+ }
++
++export function createParameterVariantWorldBatch(experiment, baselineWorldBatch, parameterPatch, variantId = "variant") {
++  const worlds = (baselineWorldBatch?.worlds || []).map((world) => rebaseWorldForParameterPatch(world, experiment, parameterPatch, "plan"));
++  return {
++    ...clone(baselineWorldBatch),
++    branch: `parameter-variant-${variantId}`,
++    parameterPatchId: parameterPatch?.id || null,
++    worlds,
++  };
++}
++
++export async function compareParameterPatchVariants({
++  experiment,
++  variants = [],
++  baselineWorldBatch,
++  adapter,
++  options = {},
++} = {}) {
++  if (!experiment || !baselineWorldBatch || !adapter) throw new Error("compareParameterPatchVariants requires experiment, baselineWorldBatch, and adapter");
++  if (!variants.length) throw new Error("compareParameterPatchVariants requires at least one variant");
++  const results = [];
++
++  for (let index = 0; index < variants.length; index += 1) {
++    const variant = variants[index] || {};
++    const parameterPatch = variant.parameterPatch || variant.patch;
++    if (!parameterPatch) throw new Error(`Variant ${variant.id || index + 1} is missing parameterPatch`);
++    const variantId = variant.id || parameterPatch.id || `variant_${index + 1}`;
++    const worldBatch = createParameterVariantWorldBatch(experiment, baselineWorldBatch, parameterPatch, variantId);
++    const simulationBatch = await simulateExperiment(experiment, worldBatch, adapter, { ...options, parameterPatch });
++    results.push({
++      variantId,
++      title: variant.title || variant.label || variantId,
++      parameterPatch,
++      simulationBatch,
++      summary: summarizeOutcomes(simulationBatch),
++    });
++  }
++
++  const pairedWorlds = (baselineWorldBatch.worlds || []).map((world) => ({
++    worldId: world.id,
++    results: Object.fromEntries(results.map((result) => {
++      const simulation = result.simulationBatch.simulations.find((row) => row.worldId === world.id);
++      return [result.variantId, { score: simulation?.score ?? null, status: simulation?.status ?? null, metrics: simulation?.metrics || {} }];
++    })),
++  }));
++
++  return {
++    schemaVersion: "parameter-variant-comparison.v1",
++    experimentId: experiment.id || null,
++    worldBatchSeed: baselineWorldBatch.seed ?? null,
++    worldCount: baselineWorldBatch.worlds?.length || 0,
++    variants: results,
++    pairedWorlds,
++    summary: summarizePlanComparison({ variants: results }),
++  };
++}
+diff --git a/world/parameter-variants.test.js b/world/parameter-variants.test.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-variants.test.js
+@@ -0,0 +1,32 @@
++import test from "node:test";
++import assert from "node:assert/strict";
++import { createSimulationAdapter } from "./simulation-adapter.js";
++import { compareParameterPatchVariants } from "./multi-plan-comparison.js";
++
++const experiment = {
++  id: "e",
++  plan: { id: "p", title: "Plan", actions: [] },
++  worldModel: { variables: [{ id: "x", baseline: 0.5, range: { min: 0, max: 1 } }] },
++  outcomes: { metricRegistry: [] },
++};
++const baselineWorldBatch = {
++  seed: 123,
++  worlds: [
++    { id: "w1", seed: 1, scenarioFamily: { id: "baseline" }, factors: { f: 0.2 }, conditions: { x: 0.5 }, normalized: { x: 0.5 }, deviations: { x: 0 } },
++    { id: "w2", seed: 2, scenarioFamily: { id: "recession" }, factors: { f: -0.2 }, conditions: { x: 0.6 }, normalized: { x: 0.6 }, deviations: { x: 0.1 } },
++  ],
++};
++
++test("parameter variants run against identical baseline world identities", async () => {
++  const adapter = createSimulationAdapter({ id: "variant-test", simulateWorld({ world }) { return { score: world.conditions.x * 100, metrics: {}, status: "mixed" }; } });
++  const variants = [
++    { id: "low", parameterPatch: { id: "low-p", edits: [{ parameterId: "x", from: 0.5, to: 0.6 }], additions: [] } },
++    { id: "high", parameterPatch: { id: "high-p", edits: [{ parameterId: "x", from: 0.5, to: 0.9 }], additions: [] } },
++  ];
++  const result = await compareParameterPatchVariants({ experiment, variants, baselineWorldBatch, adapter });
++  assert.equal(result.worldCount, 2);
++  assert.deepEqual(result.pairedWorlds.map((row) => row.worldId), ["w1", "w2"]);
++  assert.equal(result.variants[0].simulationBatch.simulations[0].world.seed, 1);
++  assert.equal(result.variants[1].simulationBatch.simulations[0].world.seed, 1);
++  assert.ok(result.variants[1].summary.expectedScore > result.variants[0].summary.expectedScore);
++});
