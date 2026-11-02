@@ -32,6 +32,26 @@ describe("seeded world generator", () => {
     }
   });
 
+  test("assigns deterministic scenario families and reports counts", () => {
+    const expanded = {
+      ...experiment,
+      experiment: { runs: 200, seed: 42 },
+      worldModel: {
+        ...experiment.worldModel,
+        variables: [
+          ...experiment.worldModel.variables,
+          { id: "economic_growth", baseline: 0.02, range: { min: -0.04, max: 0.06 }, distribution: { type: "triangular", min: -0.04, mode: 0.02, max: 0.06 }, locked: false },
+          { id: "credit_availability", baseline: 0.65, range: { min: 0.2, max: 1 }, distribution: { type: "triangular", min: 0.2, mode: 0.65, max: 1 }, locked: false },
+        ],
+      },
+    };
+    const batch = generateWorlds(expanded);
+    expect(batch.schemaVersion).toBe("world-batch.v2");
+    expect(batch.worlds.every((world) => world.scenarioFamily?.id)).toBe(true);
+    expect(Object.values(batch.scenarioFamilyCounts).reduce((sum, count) => sum + count, 0)).toBe(200);
+    expect(generateWorlds(expanded)).toEqual(batch);
+  });
+
   test("applies inspector overrides before sampling", () => {
     const batch = generateWorlds(experiment, {
       runs: 4,

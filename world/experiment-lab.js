@@ -197,7 +197,8 @@ generateWorldsButton.addEventListener("click", () => {
   if (!state.experiment) return;
   state.worldBatch = generateWorlds(state.experiment, { overrides: state.overrides });
   const first = state.worldBatch.worlds.slice(0, 3);
-  worldSummary.textContent = `${state.worldBatch.runs} deterministic worlds · seed ${state.worldBatch.seed} · ${state.worldBatch.variableIds.length} variables`;
+  const familyCount = Object.values(state.worldBatch.scenarioFamilyCounts || {}).filter((count) => count > 0).length;
+  worldSummary.textContent = `${state.worldBatch.runs} deterministic worlds · seed ${state.worldBatch.seed} · ${state.worldBatch.variableIds.length} variables · ${familyCount} scenario families`;
   worldPreview.textContent = JSON.stringify(first, null, 2);
   state.simulationBatch = null;
   runSimulationsButton.disabled = false;

@@ -1,5 +1,6 @@
 import { extractSimulationParameters, summarizeParameterExtraction } from "./parameter-extractor.js";
 import { deriveMetricRegistry } from "./metric-registry.js";
+import { deriveScenarioFamilies } from "./scenario-families.js";
 
 const isObject = (value) => Boolean(value) && typeof value === "object" && !Array.isArray(value);
 const asObject = (value) => isObject(value) ? value : {};
@@ -175,6 +176,7 @@ export function buildCivicExperiment(synthesis, request = {}, now = new Date()) 
 
   const variables = extractSimulationParameters(plan, safeRequest.parameterOverrides ?? safeRequest.parameter_overrides);
   const metricRegistry = deriveMetricRegistry(plan);
+  const scenarioFamilies = deriveScenarioFamilies(variables, safeRequest.scenarioFamilies ?? safeRequest.scenario_families);
 
   const experimentCore = {
     schemaVersion: "civic-experiment.v1",
@@ -190,7 +192,7 @@ export function buildCivicExperiment(synthesis, request = {}, now = new Date()) 
       variables,
       parameterExtraction: summarizeParameterExtraction(variables),
       causalEdges: [],
-      scenarioFamilies: [],
+      scenarioFamilies,
     },
     experiment: {
       runs: Math.round(requestNumber(safeRequest, ["runs", "numRuns", "num_runs"], 100, 1, 100000)),
