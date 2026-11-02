@@ -1,0 +1,161 @@
+diff --git a/world/civic-experiment.js b/world/civic-experiment.js
+--- a/world/civic-experiment.js
++++ b/world/civic-experiment.js
+@@ -91,6 +91,7 @@ function normalizeAction(item, index) {
+     metrics: asArray(proposal.metrics ?? row.metrics),
+     parameterEdits: asArray(proposal.parameterEdits ?? proposal.parameter_edits ?? row.parameterEdits ?? row.parameter_edits),
+     simulationParameters: asArray(proposal.simulationParameters ?? proposal.simulation_parameters ?? row.simulationParameters ?? row.simulation_parameters),
++    parameterConstraints: asArray(proposal.parameterConstraints ?? proposal.parameter_constraints ?? row.parameterConstraints ?? row.parameter_constraints),
+   });
+ }
+ 
+@@ -161,6 +162,7 @@ export function buildPlanManifest(synthesis, request = {}, now = new Date()) {
+     failureConditions: asArray(primary.failureConditions ?? primary.failure_conditions ?? primary.risks),
+     parameterEdits: asArray(primary.parameterEdits ?? primary.parameter_edits),
+     simulationParameters: asArray(primary.simulationParameters ?? primary.simulation_parameters),
++    parameterConstraints: asArray(primary.parameterConstraints ?? primary.parameter_constraints),
+     alternatives: packages.slice(1).map((pkg, index) => compact({
+       id: firstString(pkg.id, pkg.packageId, pkg.planId) || `alternative_${index + 1}`,
+       title: firstString(pkg.title, pkg.name, pkg.label) || `Alternative ${index + 1}`,
+diff --git a/world/parameter-constraints.js b/world/parameter-constraints.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-constraints.js
+@@ -0,0 +1,100 @@
++import { buildSimulationConfig } from "./simulation-config.js";
++
++function asArray(value) { return Array.isArray(value) ? value : []; }
++function finite(value) { const number = Number(value); return Number.isFinite(number) ? number : null; }
++
++function compare(actual, op, expected) {
++  if (actual === null || expected === null) return false;
++  if (op === ">") return actual > expected;
++  if (op === ">=") return actual >= expected;
++  if (op === "<") return actual < expected;
++  if (op === "<=") return actual <= expected;
++  if (op === "!=") return actual !== expected;
++  return actual === expected;
++}
++
++function normalizeCondition(raw) {
++  if (!raw || typeof raw !== "object") return null;
++  const parameterId = raw.parameterId ?? raw.parameter_id ?? raw.parameter ?? raw.id;
++  const value = finite(raw.value ?? raw.target ?? raw.threshold);
++  if (typeof parameterId !== "string" || !parameterId.trim() || value === null) return null;
++  return { parameterId: parameterId.trim(), op: String(raw.op || raw.operator || ">=").trim(), value };
++}
++
++export function collectParameterConstraints(experiment) {
++  const rows = [...asArray(experiment?.plan?.parameterConstraints), ...asArray(experiment?.plan?.parameter_constraints)];
++  for (const action of asArray(experiment?.plan?.actions)) {
++    rows.push(...asArray(action?.parameterConstraints), ...asArray(action?.parameter_constraints));
++  }
++  return rows.map((raw, index) => {
++    const when = normalizeCondition(raw?.if ?? raw?.when);
++    const requires = asArray(raw?.requires).map(normalizeCondition).filter(Boolean);
++    return {
++      id: raw?.id || "constraint_" + (index + 1),
++      when,
++      requires,
++      policy: ["warn", "clamp", "reject"].includes(raw?.policy) ? raw.policy : "warn",
++      message: raw?.message || null,
++    };
++  }).filter((row) => row.requires.length);
++}
++
++function valueFor(config, parameterId) { return finite(config?.parameters?.[parameterId]?.baseline); }
++function conditionMet(config, condition) {
++  if (!condition) return true;
++  return compare(valueFor(config, condition.parameterId), condition.op, condition.value);
++}
++function suggestedValue(requirement) { return requirement.value; }
++
++export function evaluateParameterConstraints(experiment, simulationConfig) {
++  const constraints = collectParameterConstraints(experiment);
++  const violations = [];
++  for (const constraint of constraints) {
++    if (!conditionMet(simulationConfig, constraint.when)) continue;
++    const failed = constraint.requires.filter((requirement) => !conditionMet(simulationConfig, requirement));
++    if (!failed.length) continue;
++    violations.push({
++      constraintId: constraint.id,
++      policy: constraint.policy,
++      message: constraint.message || ("Constraint " + constraint.id + " is not satisfied."),
++      when: constraint.when,
++      failedRequirements: failed.map((requirement) => ({
++        ...requirement,
++        actual: valueFor(simulationConfig, requirement.parameterId),
++        suggestedValue: suggestedValue(requirement),
++      })),
++    });
++  }
++  return {
++    schemaVersion: "parameter-constraint-evaluation.v1",
++    constraintCount: constraints.length,
++    violationCount: violations.length,
++    hasReject: violations.some((row) => row.policy === "reject"),
++    hasClampSuggestion: violations.some((row) => row.policy === "clamp"),
++    violations,
++    valid: !violations.some((row) => row.policy === "reject"),
++  };
++}
++
++export function validateParameterConfiguration(experiment, overrides = {}, options = {}) {
++  const simulationConfig = options.simulationConfig || buildSimulationConfig(experiment, overrides, { parameterPatch: options.parameterPatch });
++  return { simulationConfig, evaluation: evaluateParameterConstraints(experiment, simulationConfig) };
++}
++
++export function suggestedConstraintOverrides(evaluation, existingOverrides = {}) {
++  const overrides = typeof structuredClone === "function" ? structuredClone(existingOverrides || {}) : JSON.parse(JSON.stringify(existingOverrides || {}));
++  for (const violation of evaluation?.violations || []) {
++    if (violation.policy !== "clamp") continue;
++    for (const requirement of violation.failedRequirements || []) {
++      const current = overrides[requirement.parameterId] || {};
++      overrides[requirement.parameterId] = {
++        ...current,
++        baseline: requirement.suggestedValue,
++        reason: "Constraint suggestion from " + violation.constraintId + "; review before applying.",
++      };
++    }
++  }
++  return overrides;
++}
++
++export const __test = { compare, normalizeCondition, conditionMet, valueFor };
+diff --git a/world/parameter-constraints.test.js b/world/parameter-constraints.test.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-constraints.test.js
+@@ -0,0 +1,32 @@
++import test from "node:test";
++import assert from "node:assert/strict";
++import { evaluateParameterConstraints, suggestedConstraintOverrides } from "./parameter-constraints.js";
++
++const experiment = { plan: { parameterConstraints: [
++  { id: "fast-build-needs-labor", if: { parameterId: "construction_rate", op: ">", value: 2 }, requires: [{ parameterId: "labor_availability", op: ">=", value: 0.65 }], policy: "clamp", message: "High construction requires sufficient labor." },
++  { id: "hard-cap", if: { parameterId: "construction_rate", op: ">", value: 3 }, requires: [{ parameterId: "infrastructure_capacity", op: ">=", value: 0.7 }], policy: "reject" },
++] } };
++
++test("constraint evaluation reports failed requirements without mutating config", () => {
++  const config = { parameters: { construction_rate: { baseline: 2.5 }, labor_availability: { baseline: 0.5 }, infrastructure_capacity: { baseline: 0.8 } } };
++  const before = JSON.stringify(config);
++  const evaluation = evaluateParameterConstraints(experiment, config);
++  assert.equal(evaluation.violationCount, 1);
++  assert.equal(evaluation.violations[0].policy, "clamp");
++  assert.equal(evaluation.violations[0].failedRequirements[0].suggestedValue, 0.65);
++  assert.equal(JSON.stringify(config), before);
++});
++
++test("reject constraints make the configuration invalid", () => {
++  const config = { parameters: { construction_rate: { baseline: 3.5 }, labor_availability: { baseline: 0.8 }, infrastructure_capacity: { baseline: 0.5 } } };
++  const evaluation = evaluateParameterConstraints(experiment, config);
++  assert.equal(evaluation.hasReject, true);
++  assert.equal(evaluation.valid, false);
++});
++
++test("clamp policy returns a reviewable override suggestion rather than silently applying it", () => {
++  const evaluation = { violations: [{ constraintId: "c", policy: "clamp", failedRequirements: [{ parameterId: "labor", suggestedValue: 0.65 }] }] };
++  const overrides = suggestedConstraintOverrides(evaluation, { labor: { min: 0, max: 1 } });
++  assert.equal(overrides.labor.baseline, 0.65);
++  assert.match(overrides.labor.reason, /review before applying/);
++});
