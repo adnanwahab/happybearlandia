@@ -12,7 +12,7 @@ import { recordHistoryEvent } from "../activity-history.js";
  * worldContext.buildings coordinates provide locations ONLY; demographics and
  * district capacities/rents are assumptions unless explicitly supplied/provenanced.
  */
-export const POPULATION_VERSION = "1.2.0";
+export const POPULATION_VERSION = "1.3.0";
 export const POPULATION_CONFIG_VERSION = "population-config.v1";
 export const ACTIVITIES = ["HOME", "WORK", "SCHOOL", "SHOPPING", "ERRAND", "DINING", "RECREATION", "HEALTHCARE", "TRANSIT", "OTHER"];
 export const MODES = ["none", "walk", "bike", "car", "bus", "rail"];
@@ -52,6 +52,43 @@ export const populationParameters = [
   p('summerCampDailyCost','Summer camp cost','USD/child/day',30,0,500),
   p('summerStartDay','Summer starts','day of year',170,0,364),
   p('summerEndDay','Summer ends','day of year',235,1,365),
+  p('calendarStartEpochDay','Model calendar start','UTC days since1970-01-01',20759,0,73048),
+  p('workWeekDays','Contract workdays','days/week',5,4,5),
+  p('employerOpenDays','Employer operating days','days/week',5,5,7),
+  p('workShiftStartMinute','Base shift start','minute of day',480,300,720),
+  p('workShiftMinutes','Shift duration including meal','minutes',540,240,600),
+  p('workMealBreakMinutes','Unpaid work meal break','minutes',30,0,60),
+  p('workWeeklyPayRetention','Weekly contract pay retention','fraction',1,.5,1,.05),
+  p('workPaidSickDays','Paid sick leave','workdays/year',0,0,30),
+  p('workPaidFamilyDays','Paid family leave','workdays/year',0,0,120),
+  p('workPaidVacationDays','Paid vacation','workdays/year',0,0,40),
+  p('workLeavePayFraction','Leave wage replacement','fraction',1,0,1,.05),
+  p('workIllnessDailyProbability','Synthetic illness onset','probability/day',.01,0,.2,.005),
+  p('workIllnessDurationDays','Synthetic illness spell','calendar days',2,1,14),
+  p('workUnpaidSickAbsenceProbability','Unpaid illness absence','probability',.25,0,1,.05),
+  p('workIllProductivityFactor','Ill-at-work productivity','multiplier',.65,0,1,.05),
+  p('workFamilyLeaveDailyProbability','Eligible family leave request','probability/day',.001,0,1,.001),
+  p('workFamilyLeaveDurationDays','Family leave spell','calendar days',7,1,90),
+  p('workVacationRequestProbability','Vacation request','probability/day',.005,0,1,.005),
+  p('workVacationDurationDays','Vacation block','calendar days',3,1,30),
+  p('workPredictableSchedule','Predictable schedules','0 or1',0,0,1),
+  p('workScheduleNoticeDays','Predictable schedule notice','calendar days',14,0,28),
+  p('workShiftChangeProbability','Same-day shift change','probability/day',.15,0,1,.05),
+  p('workShiftVolatilityMinutes','Same-day shift variation','minutes',60,0,120),
+  p('workDisconnect','Right to disconnect','0 or1',0,0,1),
+  p('workAfterHoursMinutes','After-hours contact work','minutes',30,0,120),
+  p('workAfterHoursProbability','After-hours contact','probability/workday',.2,0,1,.05),
+  p('workOvertimePayMultiplier','Overtime pay rate','multiplier',1.5,1,3,.1),
+  p('workRemoteShare','Eligible remote work share','fraction',0,0,1,.05),
+  p('workRemoteEligibleShare','Office/service remote eligibility','fraction',.6,0,1,.05),
+  p('workRemoteProductivityFactor','Remote productivity input','multiplier',1,.25,1.5,.05),
+  p('workWeekendShare','Rotating-sector worker share','fraction',0,0,1,.05),
+  p('workRecruitmentCost','Employer recruitment charge','USD/hire',500,0,10000,50),
+  p('workTurnoverDailyProbability','Dissatisfaction turnover rate','probability/day',.001,0,.1,.001),
+  p('workSatisfactionOvertimeWeight','Overtime diagnostic weight','index',.3,0,1,.05),
+  p('workSatisfactionUnpredictabilityWeight','Schedule diagnostic weight','index',.2,0,1,.05),
+  p('workSatisfactionUnpaidLeaveWeight','Unpaid-leave diagnostic weight','index',.4,0,1,.05),
+  p('workSatisfactionCommuteWeight','Commute diagnostic weight','index',.1,0,1,.05),
 ];
 export const defaultPopulationConfig = Object.fromEntries(populationParameters.map(row=>[row.id,row.default]));
 export const DEFAULT_POPULATION_CONFIG = defaultPopulationConfig;
@@ -64,8 +101,10 @@ export function validatePopulationConfig(input={}) {
   if(!input||typeof input!=="object"||Array.isArray(input))return{valid:false,values,errors:["Config must be an object."]};
   for(const id of Object.keys(input))if(!populationParameters.some(row=>row.id===id)&&!["schemaVersion","snapshotId","provenance","events","targets","enabled"].includes(id))errors.push(`Unknown population parameter: ${id}`);
   const integers=new Set(['population','seed','maxLogEntries','schoolStartMinute','teenSchoolStartMinute','schoolDayMinutes','schoolRecessMinutes','childScreenMinutesPerDay','childSupervisionAge','childIndependentWalkAge','childIndependentTransitAge','childcareCapacity','summerCampEnabled','summerCampCapacity','summerStartDay','summerEndDay']);
+  for(const id of ['calendarStartEpochDay','workWeekDays','employerOpenDays','workShiftStartMinute','workShiftMinutes','workMealBreakMinutes','workPaidSickDays','workPaidFamilyDays','workPaidVacationDays','workIllnessDurationDays','workFamilyLeaveDurationDays','workVacationDurationDays','workPredictableSchedule','workScheduleNoticeDays','workShiftVolatilityMinutes','workDisconnect','workAfterHoursMinutes'])integers.add(id);
   for(const row of populationParameters)if(input[row.id]!==undefined){const v=input[row.id];if(typeof v!=="number"||!Number.isFinite(v)||v<row.min||v>row.max||(integers.has(row.id)&&!Number.isInteger(v)))errors.push(`${row.id} must be ${row.min}–${row.max} ${row.unit}.`);else values[row.id]=v;}
   if(values.summerEndDay<=values.summerStartDay)errors.push('Summer end must follow summer start within the modeled year.');
+  if(values.workShiftStartMinute+values.workShiftMinutes+values.workShiftVolatilityMinutes+30>1440)errors.push('Shift, individual offset and variation must finish within the model day.');
   if(input.schemaVersion&&input.schemaVersion!==POPULATION_CONFIG_VERSION)errors.push("Unsupported population config version.");
   const events=input.events||[];
   if(!Array.isArray(events)||events.length>64)errors.push("At most64 scheduled events are supported.");

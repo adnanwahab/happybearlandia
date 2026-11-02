@@ -1,3 +1,4 @@
+import {realityMechanismContract} from '../laws/lever-contract.js';
 /** Reviewed wiring to existing model code. Values are analyst assumptions,
  * never empirical elasticities or facts inferred from proposal prose. */
 export const REALITY_REGISTRY_VERSION='reality-registry.v1';
@@ -22,7 +23,7 @@ export const REALITY_ASSUMPTIONS=freeze([
  assumption('compliance','Implementation compliance',1,0,1,'fraction','Existing intervention effect scaling; not a probability that a legal proposal passes.'),
  assumption('delayMonths','Implementation delay',0,0,120,'months','Existing governance queue delay.',true),
 ]);
-const mechanism=(id,engine,label,assumptionIds,parameters,metrics,chain,limitations)=>({id,engine,label,status:'reviewed-model-mechanism',assumptionIds,parameters,metrics,chain,limitations});
+const mechanism=(id,engine,label,assumptionIds,parameters,metrics,chain,limitations)=>{const value={id,engine,label,status:'reviewed-model-mechanism',assumptionIds,parameters,metrics,chain,limitations};value.mechanismContract=realityMechanismContract(value);value.leverTypes=[...value.mechanismContract.leverTypes];return value;};
 const step=(id,label,file,symbol,condition)=>({id,label,implementation:{file,symbol},condition:condition??null});
 export const REALITY_MECHANISMS=freeze([
  mechanism('housing-entitlements','city','Parcel entitlement reform',['housingCapacityIncrease','compliance','delayMonths'],['interventions.upzone.amount'],['housingUnits','availableUnits','meanRent','completedProjects'],[

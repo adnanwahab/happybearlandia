@@ -1,3 +1,5 @@
+import {createTemporalCityHandler} from './world/temporal/api.js';
+const handleTemporalCity=createTemporalCityHandler();
 import {createCharacterJournalsHandler} from './world/journals/api.js';
 const handleCharacterJournals=createCharacterJournalsHandler({root:process.env.HBL_JOURNAL_ROOT||'.hbl-city'});
 import {createConstitutionSourceHandler} from './world/constitution-city/source-api.js';
@@ -441,6 +443,7 @@ const server = serve({
     if (pathname === "/api/area/enrichment") return handleAreaEnrichment(new URL(request.url));
     if (pathname === "/api/overpass-health") return handleOverpassHealth();
     if (pathname === "/api/config") return handleConfig();
+    if (under(pathname, "/api/world-history")) return handleTemporalCity(request);
     if (under(pathname, "/api/decision-experiments")) return handleDecisionExperiments(request);
     if (under(pathname, "/api/world-edits")) return handleWorldEdits(request);
     if (under(pathname, "/api/decision-optimizations")) return handleOptimizations(request);
@@ -466,6 +469,7 @@ const server = serve({
       try { decodedWorldPath = normalize(decodeURIComponent(pathname)); } catch { return notFound(); }
       if (decodedWorldPath === "/world/models/business-v1/compiler-api.js") return notFound();
       if (decodedWorldPath === "/world/constitution-city/source-api.js") return notFound();
+      if (/^\/world\/temporal\/(api|store)\.js$/.test(decodedWorldPath)) return notFound();
       if (/^\/world\/decision\/(api|store|worker|optimization-api)\.js$/.test(decodedWorldPath)) return notFound();
       if (/^\/world\/ai\//.test(decodedWorldPath) && !/^\/world\/ai\/(edit-schema|edit-validator|revisions)\.js$/.test(decodedWorldPath)) return notFound();
       if (pathname.endsWith("/api.js") || pathname.endsWith("-api.js")) return notFound(); // server-only code

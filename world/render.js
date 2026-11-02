@@ -511,6 +511,10 @@ addEventListener('pagehide',()=>{cityDiffRadarDisposed=true;cityDiffRadar?.destr
 
 
 
+let temporalCity=null,temporalCityDisposed=false;
+if(!embedMode)void import('./temporal/panel.js').then(({mountTemporalCity})=>{if(temporalCityDisposed)return;temporalCity=mountTemporalCity({container:document.body,origin:{lat:origin.lat,lng:origin.lng}});window.hblTemporalCity=temporalCity;}).catch(error=>console.error('City Time Machine unavailable',error));
+addEventListener('pagehide',()=>{temporalCityDisposed=true;temporalCity?.destroy();},{once:true});
+
 const overlayEl = $("overlayMode");
 const overlayLegendEl = $("overlayLegend");
 if (overlayEl) overlayEl.onchange = (e) => { overlayMode = e.target.value || "none"; };

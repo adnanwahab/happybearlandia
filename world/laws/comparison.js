@@ -8,6 +8,7 @@
  * must be CityState.v1. Unrepresentable horizons/workloads reject explicitly.
  */
 import {getLaw} from './catalog.js';
+import {observeLawMechanismTrace,LAW_MECHANISM_VERSION} from './lever-contract.js';
 import {createPopulationModel,stepPopulation,snapshotPopulation,serializePopulation,restorePopulation} from '../population/model.js';
 import {validatePopulationConfig} from '../population/contracts.js';
 import {createCity} from '../city/seed.js';
@@ -20,7 +21,7 @@ const checkCancel=signal=>{if(signal?.aborted)throw new DOMException('Law compar
 const yieldTurn=()=>new Promise(resolve=>setTimeout(resolve,0));
 function differences(a,b){return Object.fromEntries(Object.keys({...a,...b}).filter(key=>finite(a[key])&&finite(b[key])).map(key=>[key,b[key]-a[key]]));}
 function rowScorecard(a,b){return Object.keys({...a,...b}).map(id=>({id,status:finite(a[id])&&finite(b[id])?'available':'unavailable',baseline:finite(a[id])?a[id]:null,selected:finite(b[id])?b[id]:null,delta:finite(a[id])&&finite(b[id])?b[id]-a[id]:null}));}
-function unavailable(law,reason){return{schemaVersion:'law-comparison.v1',status:'mechanism-unavailable',supported:false,law,baseline:null,selected:null,deltas:null,scorecard:[],institutions:law?.institutions||[],reason,summary:reason,visual:{recordedBuildingIds:[],recordedRoadIds:[],recordedPersonIds:[],reason:'No supported model effect is recorded.'},manifest:null,limitations:law?.limitations||[reason]};}
+function unavailable(law,reason){return{schemaVersion:'law-comparison.v1',status:'mechanism-unavailable',supported:false,law,baseline:null,selected:null,deltas:null,scorecard:[],institutions:law?.institutions||[],reason,summary:reason,visual:{recordedBuildingIds:[],recordedRoadIds:[],recordedPersonIds:[],reason:'No supported model effect is recorded.'},mechanismTrace:{schemaVersion:LAW_MECHANISM_VERSION,contract:copy(law?.mechanismContract??null),execution:{status:'not-run'},parameterEvidence:[],measurements:[],visibleEvidence:{recordedBuildingIds:[],recordedRoadIds:[],recordedPersonIds:[],reason}},manifest:null,limitations:law?.limitations||[reason]};}
 function assertPopulation(population){if(!Number.isInteger(population)||population<1||population>LAW_COMPARISON_LIMITS.maxPopulation)throw Error(`Choose1–${LAW_COMPARISON_LIMITS.maxPopulation} synthetic people; requests are never silently truncated.`);}
 export function scenarioConfig(initial,mapping){const explicit=mapping.parameterPatch??{};if(!explicit||typeof explicit!=='object'||Array.isArray(explicit))throw Error('Reviewed parameterPatch must be an object.');const patch=copy(explicit);for(const [id,factor]of Object.entries(mapping.parameterFactors||{})){if(Object.hasOwn(patch,id))throw Error('A reviewed input cannot be both a patch and a factor.');if(!finite(initial[id])||!finite(factor))throw Error(`Initial ${id} or factor is unavailable for this reviewed mapping.`);patch[id]=initial[id]*factor;}for(const id of ['population','seed','householdSize','medianIncome','incomeSpread','employmentRate','representedPopulation','snapshotId'])if(Object.hasOwn(patch,id)&&patch[id]!==initial[id])throw Error('Reviewed policy inputs cannot regenerate paired initial demographics.');const checked=validatePopulationConfig({...initial,...patch});if(!checked.valid)throw Error(checked.errors.join(' '));return checked.values;}
 function exactCityPopulation(state,population){const n=state.households.length,base=Math.floor(population/n),remainder=population%n;if(base<1)throw Error('Initial household count cannot represent the requested population.');state.households.forEach((household,i)=>{household.size=base+(i<remainder?1:0);household.children=Math.min(household.children,Math.max(0,household.size-1));});return state;}
@@ -55,8 +56,8 @@ export async function compareLaw(options={}){
  const seed=options.seed??42,population=options.population??120;if(!Number.isInteger(seed)||seed<0||seed>4294967295)throw Error('Law comparison seed must be uint32.');assertPopulation(population);checkCancel(options.signal);
  if(options.initialState&&Object.keys(options.worldContext||{}).length)throw Error('Supply either a frozen initialState or worldContext; matching frozen geometry cannot be verified from a second independent context.');
  const context=copy(options.worldContext||{}),mapping={...law.mapping,lawId:law.id},limitations=[...law.limitations,'Same-seed synthetic model contrast, not empirical policy causality or a prediction for real residents.','One paired run; no confidence interval or robustness claim.','Source-supplied thresholds and illustrative proxy magnitudes are distinguished in the reviewed mapping. No empirical effect size is inferred.'];
- if(mapping.engine==='population')return populationComparison({...options,law,seed,population,context,mapping,limitations});
- return cityComparison({...options,law,seed,population,context,mapping,limitations});
+ const result=mapping.engine==='population'?await populationComparison({...options,law,seed,population,context,mapping,limitations}):await cityComparison({...options,law,seed,population,context,mapping,limitations});
+ result.mechanismTrace=observeLawMechanismTrace(law.mechanismContract,result);return result;
 }
 async function populationComparison(options){
  const {law,seed,population,context,mapping,limitations,signal,onProgress}=options;

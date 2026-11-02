@@ -42,6 +42,7 @@ export function mountLawPanel(container,options={}){
  const heading=el('h3','',detail),text=el('p','',detail),ideaLabel=el('label','Plan idea',detail),idea=el('textarea',undefined,ideaLabel),status=el('p','',detail);idea.rows=4;idea.readOnly=true;idea.setAttribute('aria-label','Plan idea');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
  const scope=el('p','',detail);scope.className='law-note';
  const actions=el('div',undefined,detail);const compareButton=button('Compare this law',()=>runComparison(),actions);button('Relevant institutions',()=>paint('potential'),actions);const recordedButton=button('Highlight modeled changes',()=>paint('recorded'),actions);recordedButton.disabled=true;button('Clear highlights',()=>worldLayer?.clear?.(),actions);
+ const traceBox=el('div',undefined,detail);traceBox.dataset.testid='law-mechanism-trace';
  const table=el('table',undefined,detail),notes=el('ul',undefined,detail);table.setAttribute('aria-label','Same-world with and without law comparison');
  function renderList(){
   list.replaceChildren();let matches=0;const query=search.value.trim().toLocaleLowerCase();
@@ -56,8 +57,18 @@ export function mountLawPanel(container,options={}){
   scope.textContent=report?.summary??(mode==='recorded'?'Recorded geography requires explicit affected entity IDs from the comparison.':'Potential institution scope is distinct from modeled effects.');
  }
  function format(value,unit){return typeof value==='number'&&Number.isFinite(value)?value.toLocaleString(undefined,{maximumFractionDigits:3})+(unit?' '+unit:''):typeof value==='string'?value:'Unavailable';}
+ function renderTrace(result){
+  traceBox.replaceChildren();const trace=result?.mechanismTrace,contract=trace?.contract??selected?.mechanismContract;
+  if(!contract)return;const box=el('details',undefined,traceBox);el('summary','Law → mechanism → behavior → measured outcome',box);
+  el('p',contract.status+' · '+(contract.leverTypes??[]).join(', '),box);
+  const chain=el('ol',undefined,box);for(const stage of contract.chain??[])el('li',stage.kind+' · '+stage.status+' · '+stage.description,chain);
+  for(const lever of contract.levers??[]){const item=el('details',undefined,box);el('summary',lever.parameter.key+' · '+lever.types.join(', '),item);const evidence=trace?.parameterEvidence?.find(row=>row.leverId===lever.id);el('p','Parameter: '+lever.parameter.operation+' '+JSON.stringify(lever.parameter.value)+' '+lever.parameter.unit,item);el('p','Consumed by: '+lever.consumers.map(row=>row.file+' · '+row.symbol).join('; '),item);el('p','State: '+lever.statePaths.join(', '),item);if(evidence)el('p','Recorded input: '+JSON.stringify(evidence.baseline)+' → '+JSON.stringify(evidence.selected)+' · '+evidence.status,item);}
+  if(trace?.measurements?.length){const measurements=el('table',undefined,box),head=el('tr',undefined,measurements);for(const label of ['Recorded outcome','Without','With','Change'])el('th',label,head);for(const m of trace.measurements){const row=el('tr',undefined,measurements);for(const value of [m.metricId+' · '+m.unit,format(m.baseline),format(m.selected),format(m.delta)])el('td',value,row);}}
+  el('p',trace?.execution?.status==='completed'?'Recorded outputs come from this paired run. The implementation chain does not prove that every intermediate stage activated.':'No completed execution evidence for this law.',box);
+  el('p','Missing outcomes remain unavailable. Changed inputs can produce unchanged outcomes; a modeled difference is not proof of real-world causality.',box);
+ }
  function renderResult(result){
-  table.replaceChildren();notes.replaceChildren();const rows=lawComparisonRows(result);recordedButton.disabled=!hasRecordedLawGeography(result);
+  renderTrace(result);table.replaceChildren();notes.replaceChildren();const rows=lawComparisonRows(result);recordedButton.disabled=!hasRecordedLawGeography(result);
   if(rows.length){const head=el('thead',undefined,table),tr=el('tr',undefined,head);for(const name of ['Metric','Without law','With law','Modeled change'])el('th',name,tr);const body=el('tbody',undefined,table);for(const row of rows){const tr=el('tr',undefined,body);for(const value of [row.label,format(row.baseline,row.unit),format(row.current,row.unit),format(row.delta,row.unit)])el('td',value,tr);if(typeof row.delta==='number'&&row.delta!==0)tr.classList.add('law-metric-changed');}}
   else el('caption','No recorded numerical comparison is available.',table);
   for(const note of [...(selected?.mapping?.assumptions??[]),...(result?.limitations??[])])el('li',String(note),notes);
@@ -72,7 +83,7 @@ export function mountLawPanel(container,options={}){
   if(!selected||destroyed)return;
   publishPlanIdea(selected);
   if(typeof compareLaw!=='function'){status.textContent='Comparison unavailable: no same-world comparison service is connected.';return;}
-  const serial=++request;abort?.abort();abort=new AbortController();const law=selected,context=getContext();status.textContent='Comparing the same frozen world with and without this law…';table.replaceChildren();notes.replaceChildren();recordedButton.disabled=true;compareButton.disabled=true;detail.setAttribute('aria-busy','true');
+  const serial=++request;abort?.abort();abort=new AbortController();const law=selected,context=getContext();status.textContent='Comparing the same frozen world with and without this law…';renderTrace(null);table.replaceChildren();notes.replaceChildren();recordedButton.disabled=true;compareButton.disabled=true;detail.setAttribute('aria-busy','true');
   try{if(law.supported&&!context.initialState&&(!context.worldContext||!Object.keys(context.worldContext).length))throw Error('Current-world comparison context is not connected.');const result=await compareLaw(law,{...context,signal:abort.signal});if(destroyed||serial!==request)return;if(!result||typeof result!=='object')throw Error('Unsupported comparison response');comparison=result;renderResult(result);paint(hasRecordedLawGeography(result)?'recorded':'potential');}
   catch(error){if(destroyed||serial!==request||error.name==='AbortError')return;status.textContent='Comparison unavailable: '+error.message;onError?.(error);}
   finally{if(!destroyed&&serial===request){compareButton.disabled=false;detail.setAttribute('aria-busy','false');}}

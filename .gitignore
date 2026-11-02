@@ -44,3 +44,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Private coupled-city SQLite storage
 .hbl-city/
+
+# Private local historical map database
+.data/
