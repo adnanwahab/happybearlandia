@@ -2,6 +2,7 @@ import { renderAssumptionInspector } from "./assumption-inspector.js";
 import { generateWorlds } from "./world-generator.js";
 import { selectSimulationAdapter, simulateExperiment } from "./simulation-adapter.js";
 import { attachOutcomeAnalysis, summarizeOutcomes } from "./outcome-analysis.js";
+import { projectOutcomeLandscape, renderOutcomeLandscape } from "./outcome-landscape.js";
 
 const state = {
   experiment: null,
@@ -26,6 +27,8 @@ const simulationSummary = $("#simulation-summary");
 const simulationPreview = $("#simulation-preview");
 const outcomeSummary = $("#outcome-summary");
 const tailPreview = $("#tail-preview");
+const landscapeSvg = $("#outcome-landscape");
+const landscapeSelection = $("#landscape-selection");
 
 function setStatus(message, error = false) {
   status.textContent = message;
@@ -64,6 +67,8 @@ function renderExperiment(experiment) {
   state.analyzedExperiment = null;
   outcomeSummary.innerHTML = `<div class="notice">Run simulations first.</div>`;
   tailPreview.textContent = "[]";
+  landscapeSvg.replaceChildren();
+  landscapeSelection.textContent = "Run simulations to populate the landscape.";
   setStatus(`Loaded ${experiment.id}`);
 }
 
@@ -140,6 +145,14 @@ runSimulationsButton.addEventListener("click", async () => {
       <div class="metric-card"><strong>${outcome.worstScore ?? "—"}</strong><span>worst sampled world</span></div>
     `;
     tailPreview.textContent = JSON.stringify(outcome.tailRisks, null, 2);
+    const projection = projectOutcomeLandscape(state.simulationBatch.simulations);
+    renderOutcomeLandscape(landscapeSvg, projection, {
+      onSelect(point) {
+        landscapeSelection.textContent = `${point.id} · score ${point.score} · ${point.status}`;
+        window.dispatchEvent(new CustomEvent("hbl:reality-selected", { detail: point }));
+      },
+    });
+    landscapeSelection.textContent = `${projection.points.length} realities · ${projection.method}`;
   } catch (error) {
     simulationSummary.textContent = error.message;
   } finally {
