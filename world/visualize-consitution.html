@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Visualize Constitution · HappyBearLandia</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #151b23;
+    --panel2: #10161e;
+    --ink: #eef3f8;
+    --muted: #9ca9b7;
+    --line: rgba(255,255,255,.12);
+    --accent: #79a8ff;
+    --good: #67d79a;
+    --warn: #f1bd68;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui,-apple-system,Segoe UI,sans-serif; }
+  a { color: var(--accent); }
+  button, input, textarea, select { font: inherit; }
+  button { color: var(--ink); background: #1b2531; border: 1px solid var(--line); border-radius: 9px; padding: 9px 13px; cursor: pointer; }
+  button.primary { background: #2d62b8; border-color: #4c85dd; font-weight: 700; }
+  button:disabled { opacity: .5; cursor: wait; }
+  .shell { max-width: 1600px; margin: 0 auto; padding: 18px; }
+  .hero { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 20px; align-items: end; margin-bottom: 14px; }
+  h1 { font-size: clamp(24px, 3vw, 42px); line-height: 1.05; margin: 0 0 6px; letter-spacing: -.03em; }
+  .sub { color: var(--muted); max-width: 780px; }
+  .control { border: 1px solid var(--line); border-radius: 14px; background: var(--panel); padding: 14px; margin-bottom: 14px; }
+  .plan-row { display: grid; grid-template-columns: minmax(220px,1fr) auto auto auto; gap: 9px; align-items: end; }
+  label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 5px; }
+  textarea, input { width: 100%; color: var(--ink); background: var(--panel2); border: 1px solid var(--line); border-radius: 9px; padding: 9px 10px; }
+  textarea { min-height: 64px; resize: vertical; }
+  input[type=number] { width: 92px; }
+  .status { color: var(--muted); margin-top: 8px; min-height: 20px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip { border: 1px solid var(--line); border-radius: 999px; padding: 4px 8px; color: var(--muted); background: var(--panel2); font-size: 12px; }
+  .views { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+  .view-card { min-width: 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--panel); }
+  .view-head { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  .view-head strong { font-size: 13px; }
+  .badge { color: var(--muted); font-size: 11px; border: 1px solid var(--line); border-radius: 999px; padding: 3px 7px; }
+  iframe { display: block; width: 100%; height: min(58vw, 680px); min-height: 430px; border: 0; background: #111; }
+  .analysis { margin-top: 14px; display: grid; gap: 12px; }
+  .log, .summary { border: 1px solid var(--line); border-radius: 14px; background: var(--panel); padding: 14px; }
+  .log h2, .summary h2 { margin: 0 0 8px; font-size: 15px; }
+  .metric-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(190px,1fr)); gap: 8px; }
+  .metric { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 9px; }
+  .metric span { display: block; color: var(--muted); font-size: 11px; }
+  .metric b { font-size: 16px; }
+  .summary p { margin: 0; font-size: 16px; line-height: 1.6; }
+  .fine { color: var(--muted); font-size: 11px; margin-top: 8px; }
+  .error { color: #ff9d9d; }
+  @media (max-width: 880px) {
+    .hero, .plan-row, .views { grid-template-columns: 1fr; }
+    iframe { height: 520px; min-height: 360px; }
+    input[type=number] { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<main class="shell">
+  <section class="hero">
+    <div>
+      <h1>Visualize Constitution</h1>
+      <div class="sub">Compare the current world against the same HappyBearLandia world with a Dear Congress plan applied. The cameras stay synchronized so physical changes are easy to inspect.</div>
+    </div>
+    <a href="https://dear-congress.fly.dev/" target="_blank" rel="noreferrer">Open Dear Congress ↗</a>
+  </section>
+
+  <section class="control">
+    <div class="plan-row">
+      <div>
+        <label for="planText">Plan idea</label>
+        <textarea id="planText">Accelerate bayou drainage and detention projects.</textarea>
+      </div>
+      <div>
+        <label for="year">Plan year</label>
+        <input id="year" type="number" min="1" max="10" value="10" />
+      </div>
+      <div>
+        <label for="seeds">Paired futures</label>
+        <input id="seeds" type="number" min="1" max="32" value="12" />
+      </div>
+      <button class="primary" id="run" type="button">Synthesize + simulate</button>
+    </div>
+    <div id="status" class="status" aria-live="polite">Ready.</div>
+    <div id="actions" class="chips"></div>
+  </section>
+
+  <section class="views" aria-label="Side-by-side world comparison">
+    <article class="view-card">
+      <div class="view-head"><strong>Current / baseline</strong><span class="badge">no plan</span></div>
+      <iframe id="baselineFrame" title="HappyBearLandia baseline world"></iframe>
+    </article>
+    <article class="view-card">
+      <div class="view-head"><strong>Plan applied</strong><span class="badge" id="planBadge">Dear Congress plan</span></div>
+      <iframe id="planFrame" title="HappyBearLandia world with plan applied"></iframe>
+    </article>
+  </section>
+
+  <section class="analysis">
+    <div class="log">
+      <h2>Paired simulation log</h2>
+      <div id="metrics" class="metric-grid"><div class="metric"><span>Status</span><b>Run the comparison</b></div></div>
+      <div class="fine">Both branches use the same town and paired seeds. Visible plan infrastructure is schematic visualization of the modeled intervention, not an engineering drawing or forecast.</div>
+    </div>
+    <div class="summary">
+      <h2>Simulation summary</h2>
+      <p id="summary">After the paired simulation completes, HappyBearLandia will summarize the structured simulation output here. If an OpenAI or Anthropic provider is configured server-side it may write the paragraph; otherwise a deterministic local summary is used.</p>
+      <div id="summaryProvider" class="fine"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const params = new URLSearchParams(location.search);
+  const baselineFrame = $("baselineFrame");
+  const planFrame = $("planFrame");
+  const runButton = $("run");
+  const status = $("status");
+  const lat = Number(params.get("lat") || 29.7520);
+  const lng = Number(params.get("lng") || -95.3580);
+  if (params.get("plan")) $("planText").value = params.get("plan");
+  if (params.get("year")) $("year").value = params.get("year");
+  if (params.get("seeds")) $("seeds").value = params.get("seeds");
+
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const clampInt = (value, min, max, fallback) => {
+    const n = Math.round(Number(value));
+    return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : fallback;
+  };
+  const hash = (text) => {
+    let h = 0x811c9dc5;
+    for (const ch of String(text)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 0x01000193); }
+    return (h >>> 0).toString(16);
+  };
+  const itemId = (item) => item?.proposal?.id || item?.proposalId || item?.proposal_id || item?.id || null;
+  const itemTitle = (item) => item?.proposal?.title || item?.proposal?.name || item?.title || item?.name || itemId(item) || "Plan action";
+  const rows = (synthesis) => Array.isArray(synthesis)
+    ? synthesis
+    : synthesis?.packages || synthesis?.plans || synthesis?.results || [];
+
+  function preferredIds(text) {
+    const t = text.toLowerCase();
+    const out = [];
+    if (/bayou|drain|detention|flood/.test(t)) out.push("f_drainage");
+    if (/brt|bus rapid|transit corridor/.test(t)) out.push("t_brt");
+    else if (/bus|transit/.test(t)) out.push("t_bus");
+    if (/housing|homes|lots|apartments/.test(t)) out.push("h_lots");
+    return out;
+  }
+
+  function selectPlan(payload, text) {
+    const preferred = preferredIds(text);
+    const packages = rows(payload?.synthesis);
+    let best = null, bestScore = -1;
+    for (const pkg of packages) {
+      const items = pkg?.items || pkg?.actions || pkg?.proposals || [];
+      const ids = [...new Set(items.map(itemId).filter(Boolean))];
+      const haystack = [pkg?.name, pkg?.label, pkg?.title, ...items.map(itemTitle)].filter(Boolean).join(" ").toLowerCase();
+      let score = preferred.filter((id) => ids.includes(id)).length * 100;
+      for (const word of text.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length > 4)) if (haystack.includes(word)) score++;
+      if (score > bestScore) { bestScore = score; best = { pkg, items, ids }; }
+    }
+
+    const manifestActions = payload?.civicExperiment?.plan?.actions || [];
+    let ids = best?.ids?.length ? best.ids : manifestActions.map((a) => a.id).filter(Boolean);
+    let actions = best?.items?.length
+      ? best.items.map((item) => ({ id: itemId(item), title: itemTitle(item), description: item?.proposal?.description || item?.description || "" }))
+      : manifestActions.map((a) => ({ id: a.id, title: a.title, description: a.description || "" }));
+    const inferred = [];
+    for (const id of preferred) if (!ids.includes(id)) { ids.push(id); inferred.push(id); }
+    ids = [...new Set(ids)].slice(0, 20);
+    if (!actions.length && inferred.length) actions = inferred.map((id) => ({ id, title: id === "f_drainage" ? "Accelerate bayou drainage and detention projects" : id }));
+    const label = best?.pkg?.name || best?.pkg?.label || best?.pkg?.title || payload?.civicExperiment?.plan?.title || "Selected plan";
+    return { ids, actions, label, inferred };
+  }
+
+  function focusFor(ids) {
+    if (ids.includes("f_drainage")) return "drainage";
+    if (ids.some((id) => id === "t_brt" || id === "t_bus")) return "transit";
+    if (ids.includes("h_lots")) return "housing";
+    return "center";
+  }
+
+  function worldUrl(side, proposalIds, label, year) {
+    const url = new URL("/world", location.origin);
+    url.searchParams.set("embed", "1");
+    url.searchParams.set("lat", String(lat));
+    url.searchParams.set("lng", String(lng));
+    url.searchParams.set("people", "140");
+    url.searchParams.set("speed", "0");
+    url.searchParams.set("year", String(year));
+    url.searchParams.set("constitutionCompare", "1");
+    url.searchParams.set("constitutionSide", side);
+    url.searchParams.set("constitutionFocus", focusFor(proposalIds));
+    url.searchParams.set("constitutionProposals", proposalIds.join(","));
+    url.searchParams.set("constitutionLabel", label);
+    return url.pathname + url.search;
+  }
+
+  function loadWorlds(plan) {
+    const year = clampInt($("year").value, 1, 10, 10);
+    baselineFrame.src = worldUrl("baseline", plan.ids, plan.label, year);
+    planFrame.src = worldUrl("plan", plan.ids, plan.label, year);
+    $("planBadge").textContent = plan.label;
+  }
+
+  window.addEventListener("message", (event) => {
+    if (event.origin !== location.origin || event.data?.type !== "hbl:constitution-camera") return;
+    const source = event.source;
+    const target = source === baselineFrame.contentWindow ? planFrame.contentWindow
+      : source === planFrame.contentWindow ? baselineFrame.contentWindow
+      : null;
+    if (target) target.postMessage({ type: "hbl:constitution-camera-set", camera: event.data.camera }, location.origin);
+  });
+
+  async function synthesize(text) {
+    const res = await fetch("/api/plan", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        includeSynthetic: false,
+        extraEntries: [{ text, author: "visualize-consitution" }],
+        runs: clampInt($("seeds").value, 1, 32, 12),
+        years: clampInt($("year").value, 1, 10, 10),
+      }),
+    });
+    if (!res.ok) throw new Error("Dear Congress synthesis failed (HTTP " + res.status + ")");
+    return res.json();
+  }
+
+  async function startExperiment(plan, text) {
+    const year = clampInt($("year").value, 1, 10, 10);
+    const seeds = clampInt($("seeds").value, 1, 32, 12);
+    const res = await fetch("/api/world/experiments", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        proposalIds: plan.ids,
+        label: plan.label,
+        location: { lat, lng, name: "Visualize Constitution comparison" },
+        seeds,
+        years: year,
+        checkpoints: [year],
+        maxPeople: 140,
+        baseSeed: "visualize-constitution:" + hash(text),
+      }),
+    });
+    const body = await res.json();
+    if (!res.ok) throw new Error(body?.error || "Could not start paired simulation.");
+    return body;
+  }
+
+  async function waitForExperiment(job) {
+    const started = Date.now();
+    for (;;) {
+      if (Date.now() - started > 90000) throw new Error("Simulation timed out.");
+      const res = await fetch(job.statusUrl, { cache: "no-store" });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body?.error || "Could not read simulation status.");
+      if (body.status === "done") return body.result;
+      if (body.status === "error") throw new Error(body.error || "Simulation failed.");
+      const p = body.progress || {};
+      status.textContent = "Simulating paired futures… " + (p.totalSteps ? Math.round((p.step / p.totalSteps) * 100) + "%" : body.status);
+      await sleep(450);
+    }
+  }
+
+  const fmt = (n, digits = 1) => {
+    const x = Number(n);
+    if (!Number.isFinite(x)) return "—";
+    return Math.abs(x) >= 1000 ? Math.round(x).toLocaleString() : x.toFixed(digits).replace(/\.0$/, "");
+  };
+
+  function showMetrics(result) {
+    const defs = result?.meta?.metrics || {};
+    const rows = Object.entries(result?.final || {}).sort((a, b) => Math.abs(Number(b[1]?.delta?.mean || 0)) - Math.abs(Number(a[1]?.delta?.mean || 0))).slice(0, 6);
+    const futures = result?.futures;
+    const cards = [];
+    if (futures) cards.push(`<div class="metric"><span>Primary future split</span><b>${futures.positive} better · ${futures.neutral} neutral · ${futures.negative} worse</b></div>`);
+    for (const [id, metric] of rows) {
+      const def = defs[id] || {};
+      cards.push(`<div class="metric"><span>${def.label || id}</span><b>${fmt(metric?.baseline?.mean)} → ${fmt(metric?.plan?.mean)} ${def.unit || ""}</b><span>Δ ${fmt(metric?.delta?.mean)} · p10–p90 ${fmt(metric?.delta?.p10)} to ${fmt(metric?.delta?.p90)}</span></div>`);
+    }
+    $("metrics").innerHTML = cards.join("") || '<div class="metric"><span>Simulation</span><b>No metric rows returned.</b></div>';
+  }
+
+  async function summarize(plan, text, result) {
+    const res = await fetch("/api/constitution-summary", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        planText: text,
+        proposalIds: plan.ids,
+        planActions: plan.actions,
+        result,
+      }),
+    });
+    const body = await res.json();
+    if (!res.ok) throw new Error(body?.error || "Summary failed.");
+    $("summary").textContent = body.summary;
+    $("summaryProvider").textContent = body.fallback ? "Deterministic local summary" : "AI-assisted summary · " + body.provider;
+  }
+
+  async function run() {
+    const text = $("planText").value.trim();
+    if (!text) { status.textContent = "Enter a plan idea."; return; }
+    runButton.disabled = true;
+    $("summaryProvider").textContent = "";
+    try {
+      status.textContent = "Asking Dear Congress to synthesize the plan…";
+      const payload = await synthesize(text);
+      const plan = selectPlan(payload, text);
+      if (!plan.ids.length) throw new Error("The synthesized plan did not include a proposal that HBL can simulate.");
+      $("actions").innerHTML = plan.actions.map((a) => `<span class="chip">${a.title || a.id}</span>`).join("")
+        + (plan.inferred.length ? `<span class="chip">visual mapping fallback: ${plan.inferred.join(", ")}</span>` : "");
+      loadWorlds(plan);
+      status.textContent = "Starting paired HBL simulation…";
+      const job = await startExperiment(plan, text);
+      const result = await waitForExperiment(job);
+      showMetrics(result);
+      status.textContent = "Simulation complete. Generating summary…";
+      await summarize(plan, text, result);
+      status.textContent = "Complete.";
+    } catch (error) {
+      status.innerHTML = '<span class="error">' + String(error?.message || error).replace(/[<>&]/g, "") + "</span>";
+      $("summary").textContent = "The comparison could not complete. The world views may still be explored.";
+    } finally {
+      runButton.disabled = false;
+    }
+  }
+
+  runButton.addEventListener("click", run);
+  if (params.get("autorun") !== "0") run();
+})();
+</script>
+</body>
+</html>
