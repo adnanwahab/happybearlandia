@@ -16,18 +16,19 @@ export function moodOf(p) {
 // Penalties from the most recently completed day (p.yesterday) plus the 3-day walk average.
 export function frictions(p) {
   const d = p?.yesterday || p?.today || {};
-  const walk = Number(p?.walkMinutesAvg3d || 0);
+  const commuteMinutes = Number(p?.travelMinutesAvg3d ?? p?.walkMinutesAvg3d ?? 0);
   return {
-    commute: Math.min(25, Math.max(0, walk - WALK_COMPLAINT_MINUTES * 0.5) * 0.4),
+    commute: Math.min(25, Math.max(0, commuteMinutes - WALK_COMPLAINT_MINUTES * 0.5) * 0.4),
     home: d.displaced ? 25 : d.homeFlooded ? 15 : 0,
     groceries: (Array.isArray(d.soldOutAt) && d.soldOutAt.length ? 8 : 0) + (d.emptyFridge ? 8 : 0),
     parks: Math.min(12, Number(d.dirtyParkVisits || 0) * 4),
+    budget: Math.min(12, Number(d.budgetShortfall || 0) * 0.75),
   };
 }
 
 export function wellbeing(p, dayMood = moodOf(p)) {
   const f = frictions(p);
-  const score = dayMood - f.commute - f.home - f.groceries - f.parks;
+  const score = dayMood - f.commute - f.home - f.groceries - f.parks - f.budget;
   return Math.max(0, Math.min(100, score));
 }
 
