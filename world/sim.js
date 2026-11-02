@@ -3,10 +3,12 @@
 // shared world state (stock, cash, fridges, litter). Pure module, deterministic per seed.
 
 import { rng, hashSeed } from "./gen.js";
+import { SIMULATION_MODEL_VERSION, SIMULATION_PARAMETERS } from "./simulation-parameters.js";
+import { applyDailyHouseholdCosts, applyMonthlyVoucher, earnHousehold, householdCanAfford, initializeHouseholds, spendHousehold, syncAllHouseholdMoney } from "./simulation-state.js";
 
-const DECAY = { hunger: 0.09, energy: 0.045, fun: 0.05, social: 0.04 }; // per game minute
-// Relaxed walking pace; policy speedMult still applies.
-export const WALK_M_PER_MIN = 55;
+const DECAY = SIMULATION_PARAMETERS.needs; // per game minute
+// Pedestrian speed is fixed. Transit policies change transit service, not walking speed.
+export const WALK_M_PER_MIN = SIMULATION_PARAMETERS.mobility.walkMetersPerMinute;
 const ROAD_CONNECT_MAX_M = 220;
 
 /**
@@ -17,11 +19,11 @@ export const ACTIONS = {
   visit_business: {
     at: "business", label: "visiting your business", minutes: () => 25,
     rate: { fun: 1.2, social: 0.5 },
-    ok: (p, b, w) => w.business?.building === b.index && w.business.open && w.isDaytime() && w.business.stock > 0 && p.money >= w.business.price,
+    ok: (p, b, w) => w.business?.building === b.index && w.business.open && w.isDaytime() && w.business.stock > 0 && householdCanAfford(w, p, w.business.price),
     start: (p, b, w) => {
       const business = w.business;
       business.stock--; business.visits++; business.revenue += business.price;
-      p.money -= business.price;
+      spendHousehold(w, p, business.price);
       w.stats.spent += business.price;
       w.log(`${p.name} visited your business (+$${business.price.toFixed(2)})`, "business", b);
     },
@@ -42,7 +44,7 @@ export const ACTIONS = {
   relax_home: { at: "home", label: "watching TV", minutes: () => 60, rate: { fun: 0.55, social: 0.15 } },
   work: {
     at: "job", label: "working", minutes: (p, w) => Math.max(30, p.shiftStart + p.shiftLen - w.minuteOfDay()),
-    rate: { fun: -0.02, social: 0.06, energy: -0.01 }, pay: 0.3,
+    rate: { fun: -0.02, social: 0.06, energy: -0.01 }, pay: SIMULATION_PARAMETERS.economy.workPayPerMinute,
     ok: (p, b, w) => w.isWorkday() && !p.workedToday && b.state.open,
   },
   study: {
@@ -50,21 +52,23 @@ export const ACTIONS = {
     rate: { social: 0.12, fun: 0.05 }, ok: (p, b, w) => w.isWorkday() && !p.workedToday && w.minuteOfDay() < 14 * 60,
   },
   eat_out: {
-    at: "food", label: "eating out", minutes: () => 35, rate: { hunger: 2.6, social: 0.6, fun: 0.3 }, cost: 12,
-    ok: (p, b, w) => w.isOpen(b) && b.state.stock > 0 && p.money >= 12,
+    at: "food", label: "eating out", minutes: () => 35, rate: { hunger: 2.6, social: 0.6, fun: 0.3 }, cost: SIMULATION_PARAMETERS.economy.eatOutCost,
+    ok: (p, b, w) => w.isOpen(b) && b.state.stock > 0 && householdCanAfford(w, p, SIMULATION_PARAMETERS.economy.eatOutCost),
     start: (p, b, w) => {
-      b.state.stock -= 1; b.state.cash += 12; p.money -= 12;
+      const cost = SIMULATION_PARAMETERS.economy.eatOutCost;
+      b.state.stock -= 1; b.state.cash += cost; spendHousehold(w, p, cost);
       if (b.state.stock === 0) w.log(`${b.name} sold out`, "soldout", b);
     },
   },
   groceries: {
-    at: "shop", label: "buying groceries", minutes: () => 25, rate: { social: 0.2 }, cost: 30,
-    ok: (p, b, w) => w.isOpen(b) && b.state.stock >= 5 && p.money >= 30 && p.age >= 16,
+    at: "shop", label: "buying groceries", minutes: () => 25, rate: { social: 0.2 }, cost: SIMULATION_PARAMETERS.economy.groceriesCost,
+    ok: (p, b, w) => w.isOpen(b) && b.state.stock >= 5 && householdCanAfford(w, p, SIMULATION_PARAMETERS.economy.groceriesCost) && p.age >= 16,
     // Groceries help hunger later (fridge), so they advertise hunger via the household fridge.
     advert: (p, w) => ({ hunger: w.buildings[p.home].state.fridge < 3 ? 40 : 5 }),
     start: (p, b, w) => {
-      b.state.stock -= 5; b.state.cash += 30; p.money -= 30;
-      w.buildings[p.home].state.fridge += 6;
+      const cost = SIMULATION_PARAMETERS.economy.groceriesCost;
+      b.state.stock -= 5; b.state.cash += cost; spendHousehold(w, p, cost);
+      w.buildings[p.home].state.fridge += SIMULATION_PARAMETERS.economy.groceriesMeals;
       if (b.state.stock < 5) w.log(`${b.name} shelves are empty`, "soldout", b);
     },
   },
@@ -238,6 +242,11 @@ function newToday(day) {
   return {
     day,
     walkMinutes: 0,
+    travelMinutes: 0,
+    transitMinutes: 0,
+    transitWaitMinutes: 0,
+    budgetStress: false,
+    budgetShortfall: 0,
     soldOutAt: [],
     emptyFridge: false,
     dirtyParkVisits: 0,
@@ -259,6 +268,10 @@ export function createWorld(town, opts = {}) {
     p.today = newToday(initialDay);
     p.walkHistory = [];
     p.walkMinutesAvg3d = 0;
+    p.travelHistory = [];
+    p.travelMinutesAvg3d = 0;
+    p.travelMode = null;
+    p.travelWaitRemaining = 0;
   }
 
   const w = {
@@ -272,6 +285,9 @@ export function createWorld(town, opts = {}) {
     groceryDelivery: 0, // 0–1: share of nearly-empty home fridges refilled each afternoon
     wageMult: 1, // economy-wide pay level (possible-worlds conditions); 1 = unchanged
     events: [],
+    modelVersion: SIMULATION_MODEL_VERSION,
+    runSeed: opts.runSeed ?? null,
+    households: initializeHouseholds(town.people),
     stats: { spent: 0, meals: 0, groceries: 0, cleanups: 0 },
     byKind,
     rand: r,
@@ -285,9 +301,43 @@ export function createWorld(town, opts = {}) {
       if (w.events.length > 60) w.events.pop();
     },
   };
+  syncAllHouseholdMoney(w);
+
+  function deterministicTransitWait(p, b) {
+    const mobility = SIMULATION_PARAMETERS.mobility;
+    const service = Math.max(1, Number(w.speedMult || 1));
+    const base = mobility.transitBaseWaitMinutes / service;
+    const h = hashSeed(`${w.seedKey}|transit|${String(w.runSeed ?? "default")}|${w.day()}|${p.id}|${b.index}`);
+    const unit = (h >>> 0) / 4294967296;
+    const jitter = (unit * 2 - 1) * mobility.transitWaitJitterMinutes;
+    return Math.max(1, Math.round(base + jitter));
+  }
+
+  function tripPlan(p, b, distanceMeters) {
+    const mobility = SIMULATION_PARAMETERS.mobility;
+    const distance = Math.max(0, Number(distanceMeters || 0));
+    const walkMinutes = distance / Math.max(1, mobility.walkMetersPerMinute);
+    const service = Math.max(1, Number(w.speedMult || 1));
+    const transitSpeed = mobility.transitMetersPerMinute * (1 + (service - 1) * mobility.transitServiceSpeedElasticity);
+    const wait = deterministicTransitWait(p, b);
+    const transitMinutes = wait + distance / Math.max(1, transitSpeed);
+    if (distance >= mobility.transitMinTripMeters && transitMinutes < walkMinutes) {
+      return { mode: "transit", wait, speed: transitSpeed, minutes: transitMinutes };
+    }
+    return { mode: "walk", wait: 0, speed: mobility.walkMetersPerMinute, minutes: walkMinutes };
+  }
+
+  function routeDistance(sx, sz, path) {
+    let total = 0, x = sx, z = sz;
+    for (const point of path || []) {
+      total += Math.hypot(point[0] - x, point[1] - z);
+      [x, z] = point;
+    }
+    return total;
+  }
 
   // --------------------------------------------------------------------
-  // Decide: score every reachable advertisement, pick the best (with a bit of noise).
+  // Decide: score every reachable advertisement, pick the best (with seeded noise).
   // --------------------------------------------------------------------
   function candidates(p) {
     const out = [];
@@ -335,9 +385,10 @@ export function createWorld(town, opts = {}) {
     if (id === "relax_home") s += 0.3; // the default "nothing better to do" activity
     if (id === "work" || id === "study") { if (p.needs.hunger < 12 || p.needs.energy < 8) s *= 0.2; }
     if (id === "visit_business") s *= (0.5 + w.business.quality / 100) * Math.min(2, 12 / Math.max(1, w.business.price));
-    // Distance, traits, noise
+    // Generalized travel time: transit policy can improve transit, but never walking speed.
     const dist = Math.hypot(b.center[0] - p.x, b.center[1] - p.z);
-    s /= 1 + dist / (250 * w.speedMult);
+    const trip = tripPlan(p, b, dist);
+    s /= 1 + trip.minutes / SIMULATION_PARAMETERS.mobility.distancePenaltyMinutes;
     s *= TRAIT_BONUS[p.trait]?.[id] ?? 1;
     return s * (0.85 + r() * 0.3);
   }
@@ -357,7 +408,11 @@ export function createWorld(town, opts = {}) {
     p.path = roadWaypoints(roadGraph, p.x, p.z, tx, tz);
     p.pathI = 0;
     [p.tx, p.tz] = p.path[0] || [tx, tz];
-    p.mode = "moving"; p.doing = `walking to ${b.name}`;
+    const trip = tripPlan(p, b, routeDistance(p.x, p.z, p.path));
+    p.travelMode = trip.mode;
+    p.travelWaitRemaining = trip.wait;
+    p.travelSpeed = trip.speed;
+    p.mode = "moving"; p.doing = `${trip.mode === "transit" ? "taking transit" : "walking"} to ${b.name}`;
   }
 
   function arrive(p) {
@@ -384,7 +439,7 @@ export function createWorld(town, opts = {}) {
     const b = w.buildings[p.target];
     if (b) b.state.visitors = Math.max(0, b.state.visitors - 1);
     if (p.action === "work" || p.action === "study") p.workedToday = true;
-    p.mode = "idle"; p.action = null; p.path = null; p.pathI = 0;
+    p.mode = "idle"; p.action = null; p.path = null; p.pathI = 0; p.travelMode = null; p.travelWaitRemaining = 0;
   }
 
   // --------------------------------------------------------------------
@@ -399,12 +454,18 @@ export function createWorld(town, opts = {}) {
         p.workedToday = false;
         p.yesterday = p.today;
         const prevWalk = Number(p.yesterday?.walkMinutes || 0);
+        const prevTravel = Number(p.yesterday?.travelMinutes ?? prevWalk);
         p.walkHistory = [...(p.walkHistory || []), prevWalk].slice(-3);
         p.walkMinutesAvg3d = p.walkHistory.length
           ? p.walkHistory.reduce((a, b) => a + b, 0) / p.walkHistory.length
           : 0;
+        p.travelHistory = [...(p.travelHistory || []), prevTravel].slice(-3);
+        p.travelMinutesAvg3d = p.travelHistory.length
+          ? p.travelHistory.reduce((a, b) => a + b, 0) / p.travelHistory.length
+          : 0;
         p.today = newToday(d);
       }
+      applyDailyHouseholdCosts(w, SIMULATION_PARAMETERS.economy);
     }
     // Deliveries: shops at 6:00 and 14:00 (+18:00 when small-biz support ramps in), kitchens prep every hour while open.
     const extraDelivery = w.restockBoost >= 0.18 && m === 18 * 60;
@@ -435,15 +496,9 @@ export function createWorld(town, opts = {}) {
       if (served) w.log(`Grocery delivery restocked ${served} home fridges`, "civic");
     }
 
-    // Once every 30 game days: voucher-style support to lower-cash households.
+    // Once every 30 game days: one voucher deposit per eligible household.
     if (m === 0 && w.day() > 0 && w.day() % 30 === 0 && w.voucherMonthly > 0) {
-      let supported = 0;
-      for (const p of w.people) {
-        if (p.money <= 90) {
-          p.money += w.voucherMonthly;
-          supported++;
-        }
-      }
+      const supported = applyMonthlyVoucher(w, w.voucherMonthly, SIMULATION_PARAMETERS.economy.lowCashPerPerson);
       if (supported) w.log(`Voucher support deposited to ${supported} households`, "civic");
     }
 
@@ -454,14 +509,24 @@ export function createWorld(town, opts = {}) {
       }
       if (a?.pay) {
         const wageBoost = p.action === "work" ? 1 + w.hiringBoost * 0.5 : 1;
-        p.money += a.pay * wageBoost * (w.wageMult ?? 1);
+        earnHousehold(w, p, a.pay * wageBoost * (w.wageMult ?? 1));
       }
 
       if (p.mode === "idle") decide(p);
       else if (p.mode === "moving") {
-        p.today.walkMinutes += 1;
+        p.today.travelMinutes += 1;
+        if (p.travelMode === "transit" && p.travelWaitRemaining > 0) {
+          p.today.transitWaitMinutes += 1;
+          p.travelWaitRemaining -= 1;
+          continue;
+        }
+        if (p.travelMode === "transit") p.today.transitMinutes += 1;
+        else p.today.walkMinutes += 1;
         const dx = p.tx - p.x, dz = p.tz - p.z;
-        const d = Math.hypot(dx, dz), step = WALK_M_PER_MIN * w.speedMult;
+        const d = Math.hypot(dx, dz);
+        const step = p.travelMode === "transit"
+          ? Math.max(WALK_M_PER_MIN, Number(p.travelSpeed || SIMULATION_PARAMETERS.mobility.transitMetersPerMinute))
+          : WALK_M_PER_MIN;
         if (d <= step) {
           p.x = p.tx; p.z = p.tz;
           if (p.path && p.pathI < p.path.length - 1) {
