@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://happybearlandia.fly.dev/schemas/civic-experiment.v1.json",
+  "title": "CivicExperiment v1",
+  "type": "object",
+  "required": ["schemaVersion", "id", "source", "plan", "worldModel", "experiment", "outcomes", "analysis", "lineage"],
+  "properties": {
+    "schemaVersion": { "const": "civic-experiment.v1" },
+    "id": { "type": "string" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "source": { "type": "object" },
+    "plan": {
+      "type": "object",
+      "required": ["schemaVersion", "id", "title", "goals", "actions"],
+      "properties": {
+        "schemaVersion": { "const": "plan-manifest.v1" },
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "summary": { "type": "string" },
+        "goals": { "type": "array" },
+        "actions": { "type": "array" },
+        "affectedPopulations": { "type": "array" },
+        "dependencies": { "type": "array" },
+        "assumptions": { "type": "array" },
+        "metrics": { "type": "array" },
+        "implementationSteps": { "type": "array" },
+        "failureConditions": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "assumptions": { "type": "array" },
+    "worldModel": {
+      "type": "object",
+      "required": ["variables", "causalEdges", "scenarioFamilies"],
+      "properties": {
+        "variables": { "type": "array" },
+        "causalEdges": { "type": "array" },
+        "scenarioFamilies": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "experiment": {
+      "type": "object",
+      "required": ["runs", "horizonYears", "seed"],
+      "properties": {
+        "runs": { "type": "integer", "minimum": 1 },
+        "horizonYears": { "type": "number", "exclusiveMinimum": 0 },
+        "seed": { "type": ["integer", "null"], "minimum": 0 }
+      }
+    },
+    "outcomes": { "type": "object" },
+    "analysis": { "type": "object" },
+    "lineage": { "type": "object" }
+  },
+  "additionalProperties": true
+}

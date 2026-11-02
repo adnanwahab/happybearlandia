@@ -3,6 +3,7 @@ import { readdir } from "node:fs/promises";
 import { extname, join, normalize, relative } from "node:path";
 import { getArea, handleArea, handleOverpassHealth, OVERPASS_ENDPOINTS, OVERPASS_TIMEOUT_MS } from "./world/api.js";
 import { createExperimentsHandler } from "./world/experiments-api.js";
+import { buildCivicExperiment } from "./world/civic-experiment.js";
 
 const PORT = Number(process.env.PORT) || 3000;
 const DEAR_CONGRESS_URL = process.env.DEAR_CONGRESS_URL || "https://dear-congress.fly.dev/api";
@@ -245,12 +246,45 @@ async function handlePlan(request) {
     });
 
     const text = await res.text();
-    return new Response(text, {
+    const contentType = res.headers.get("content-type") || "application/json; charset=utf-8";
+
+    // Preserve upstream errors exactly as Dear Congress returned them.
+    if (!res.ok) {
+      return new Response(text, {
+        status: res.status,
+        headers: { "content-type": contentType, "cache-control": "no-store" },
+      });
+    }
+
+    // Feature 1: turn the synthesized plan into the shared, versioned contract
+    // consumed by HBL now and Digital Pensieve later. If Dear Congress ever
+    // returns non-JSON, fall back to the old transparent proxy behavior.
+    let synthesis;
+    try {
+      synthesis = JSON.parse(text);
+    } catch {
+      return new Response(text, {
+        status: res.status,
+        headers: { "content-type": contentType, "cache-control": "no-store" },
+      });
+    }
+
+    let requestPayload = {};
+    try {
+      requestPayload = JSON.parse(body);
+    } catch {
+      // The upstream already accepted the body, so a local parse failure should
+      // not turn a successful synthesis into an error.
+    }
+
+    const civicExperiment = buildCivicExperiment(synthesis, requestPayload);
+    const payload = synthesis && typeof synthesis === "object" && !Array.isArray(synthesis)
+      ? { ...synthesis, civicExperiment }
+      : { synthesis, civicExperiment };
+
+    return Response.json(payload, {
       status: res.status,
-      headers: {
-        "content-type": res.headers.get("content-type") || "application/json; charset=utf-8",
-        "cache-control": "no-store",
-      },
+      headers: { "cache-control": "no-store" },
     });
   } catch (err) {
     return Response.json({ error: `plan synthesize failed: ${String(err?.message || err)}` }, { status: 502 });
