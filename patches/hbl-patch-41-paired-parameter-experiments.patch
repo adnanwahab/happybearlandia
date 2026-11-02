@@ -1,0 +1,175 @@
+diff --git a/world/parameter-paired.js b/world/parameter-paired.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-paired.js
+@@ -0,0 +1,125 @@
++import { summarizeOutcomes } from "./outcome-analysis.js";
++import { simulateExperiment } from "./simulation-adapter.js";
++
++function clone(value) {
++  return value == null ? value : (typeof structuredClone === "function" ? structuredClone(value) : JSON.parse(JSON.stringify(value)));
++}
++
++function finite(value, fallback = 0) {
++  const number = Number(value);
++  return Number.isFinite(number) ? number : fallback;
++}
++
++function variableMap(experiment) {
++  return new Map((experiment?.worldModel?.variables || []).map((variable) => [variable.id, variable]));
++}
++
++function recalc(world, variable, parameterId, baseline) {
++  const min = finite(variable?.range?.min, 0);
++  const max = finite(variable?.range?.max, 1);
++  const span = max - min;
++  const value = finite(world.conditions?.[parameterId], baseline);
++  world.normalized ||= {};
++  world.deviations ||= {};
++  world.normalized[parameterId] = span > 0 ? (value - min) / span : 0.5;
++  world.deviations[parameterId] = span > 0 ? (value - baseline) / span : 0;
++}
++
++export function rebaseWorldForParameterPatch(world, experiment, patch, direction = "baseline") {
++  const next = clone(world);
++  next.conditions ||= {};
++  next.normalized ||= {};
++  next.deviations ||= {};
++  const definitions = variableMap(experiment);
++  const toBaseline = direction === "baseline";
++
++  for (const edit of patch?.edits || []) {
++    const variable = definitions.get(edit.parameterId);
++    if (!variable || !Number.isFinite(Number(next.conditions[edit.parameterId]))) continue;
++    const from = finite(edit.from, finite(variable.baseline));
++    const to = finite(edit.to, from);
++    const delta = to - from;
++    next.conditions[edit.parameterId] = finite(next.conditions[edit.parameterId]) + (toBaseline ? -delta : delta);
++    const min = finite(variable.range?.min, 0);
++    const max = finite(variable.range?.max, 1);
++    next.conditions[edit.parameterId] = Math.max(Math.min(min, max), Math.min(Math.max(min, max), next.conditions[edit.parameterId]));
++    recalc(next, variable, edit.parameterId, toBaseline ? from : to);
++  }
++
++  for (const addition of patch?.additions || []) {
++    const id = addition?.parameterId;
++    if (!id) continue;
++    const variable = definitions.get(id) || addition.variable;
++    if (toBaseline) {
++      delete next.conditions[id];
++      delete next.normalized[id];
++      delete next.deviations[id];
++    } else if (!Number.isFinite(Number(next.conditions[id]))) {
++      next.conditions[id] = finite(addition.proposedValue, finite(variable?.baseline, 0.5));
++      recalc(next, variable, id, finite(addition.proposedValue, 0.5));
++    }
++  }
++
++  next.parameterBranch = toBaseline ? "baseline" : "plan";
++  next.parameterPatchId = patch?.id || null;
++  return next;
++}
++
++export function createBaselineWorldBatch(experiment, worldBatch, patch) {
++  const worlds = (worldBatch?.worlds || []).map((world) => rebaseWorldForParameterPatch(world, experiment, patch, "baseline"));
++  return {
++    ...clone(worldBatch),
++    schemaVersion: "world-batch.v2",
++    branch: "baseline-parameters",
++    parameterPatchId: patch?.id || null,
++    worlds,
++  };
++}
++
++export function summarizePairedParameterRuns(baselineBatch, planBatch) {
++  const baselineByWorld = new Map((baselineBatch?.simulations || []).map((row) => [row.worldId, row]));
++  const pairedWorlds = (planBatch?.simulations || []).map((plan) => {
++    const baseline = baselineByWorld.get(plan.worldId);
++    return {
++      worldId: plan.worldId,
++      baselineScore: baseline?.score ?? null,
++      planScore: plan?.score ?? null,
++      scoreDelta: Number.isFinite(Number(baseline?.score)) && Number.isFinite(Number(plan?.score))
++        ? Number(plan.score) - Number(baseline.score)
++        : null,
++      baselineStatus: baseline?.status || null,
++      planStatus: plan?.status || null,
++    };
++  });
++  const deltas = pairedWorlds.map((row) => row.scoreDelta).filter(Number.isFinite);
++  const meanDelta = deltas.length ? deltas.reduce((sum, value) => sum + value, 0) / deltas.length : null;
++  return {
++    schemaVersion: "paired-parameter-summary.v1",
++    worldCount: pairedWorlds.length,
++    meanScoreDelta: meanDelta,
++    improvedWorlds: pairedWorlds.filter((row) => Number(row.scoreDelta) > 0).length,
++    unchangedWorlds: pairedWorlds.filter((row) => Number(row.scoreDelta) === 0).length,
++    worsenedWorlds: pairedWorlds.filter((row) => Number(row.scoreDelta) < 0).length,
++    pairedWorlds,
++  };
++}
++
++export async function runPairedParameterExperiment({ experiment, worldBatch, adapter, patch, options = {} }) {
++  if (!experiment || !worldBatch || !adapter || !patch) throw new Error("runPairedParameterExperiment requires experiment, worldBatch, adapter, and patch");
++  const baselineWorldBatch = createBaselineWorldBatch(experiment, worldBatch, patch);
++  const baselineBatch = await simulateExperiment(experiment, baselineWorldBatch, adapter, { ...options, parameterPatch: null });
++  const planBatch = await simulateExperiment(experiment, worldBatch, adapter, { ...options, parameterPatch: patch });
++  const paired = summarizePairedParameterRuns(baselineBatch, planBatch);
++
++  return {
++    schemaVersion: "paired-parameter-experiment.v1",
++    experimentId: experiment.id || null,
++    parameterPatchId: patch.id || null,
++    worldBatchSeed: worldBatch.seed ?? null,
++    baseline: { simulationBatch: baselineBatch, summary: summarizeOutcomes(baselineBatch) },
++    plan: { simulationBatch: planBatch, summary: summarizeOutcomes(planBatch) },
++    paired,
++  };
++}
++
++export const __test = { variableMap, recalc };
+diff --git a/world/parameter-paired.test.js b/world/parameter-paired.test.js
+new file mode 100644
+--- /dev/null
++++ b/world/parameter-paired.test.js
+@@ -0,0 +1,40 @@
++import test from "node:test";
++import assert from "node:assert/strict";
++import { createSimulationAdapter } from "./simulation-adapter.js";
++import { createBaselineWorldBatch, runPairedParameterExperiment } from "./parameter-paired.js";
++
++const experiment = {
++  id: "exp_pair",
++  plan: { id: "plan_pair", actions: [] },
++  worldModel: { variables: [{ id: "x", baseline: 0.8, range: { min: 0, max: 1 } }] },
++  outcomes: { metricRegistry: [] },
++};
++
++const worldBatch = {
++  seed: 7,
++  worlds: [{ id: "world_1", seed: 11, scenarioFamily: { id: "baseline" }, factors: { economy: 0.2 }, conditions: { x: 0.8 }, normalized: { x: 0.8 }, deviations: { x: 0 } }],
++};
++
++const patch = { id: "ppatch_x", edits: [{ parameterId: "x", from: 0.5, to: 0.8 }], additions: [] };
++
++test("baseline branch preserves random world identity while reversing only the parameter shift", () => {
++  const baseline = createBaselineWorldBatch(experiment, worldBatch, patch);
++  assert.equal(baseline.worlds[0].seed, 11);
++  assert.deepEqual(baseline.worlds[0].factors, { economy: 0.2 });
++  assert.equal(baseline.worlds[0].conditions.x, 0.5);
++  assert.equal(worldBatch.worlds[0].conditions.x, 0.8);
++});
++
++test("paired parameter experiment reports within-world score deltas", async () => {
++  const adapter = createSimulationAdapter({
++    id: "test",
++    simulateWorld({ world }) {
++      return { score: world.conditions.x * 100, metrics: { x: world.conditions.x }, status: "mixed" };
++    },
++  });
++  const result = await runPairedParameterExperiment({ experiment, worldBatch, adapter, patch });
++  assert.equal(result.paired.worldCount, 1);
++  assert.equal(result.paired.pairedWorlds[0].baselineScore, 50);
++  assert.equal(result.paired.pairedWorlds[0].planScore, 80);
++  assert.equal(result.paired.pairedWorlds[0].scoreDelta, 30);
++});
