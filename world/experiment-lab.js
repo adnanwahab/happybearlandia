@@ -6,6 +6,7 @@ import { projectOutcomeLandscape, renderOutcomeLandscape } from "./outcome-lands
 import { renderRealityInspector } from "./reality-inspector.js";
 import { analyzeSensitivity } from "./sensitivity-analysis.js";
 import { applyPlanImprovement, generatePlanImprovements } from "./plan-improver.js";
+import { resolveCivicExperimentPayload } from "./experiment-contract.js";
 
 const state = {
   experiment: null,
@@ -44,13 +45,11 @@ function setStatus(message, error = false) {
   status.style.color = error ? "#e89a9a" : "#aab6c0";
 }
 
-function extractExperiment(payload) {
-  if (payload?.civicExperiment?.schemaVersion === "civic-experiment.v1") return payload.civicExperiment;
-  if (payload?.schemaVersion === "civic-experiment.v1") return payload;
-  throw new Error("JSON does not contain civicExperiment.v1");
+function extractExperiment(payload, request = {}) {
+  return resolveCivicExperimentPayload(payload, request);
 }
 
-function renderExperiment(experiment) {
+function renderExperiment(experiment, provenance = null) {
   state.experiment = experiment;
   const variables = experiment.worldModel?.variables || [];
   summary.innerHTML = `
@@ -84,7 +83,9 @@ function renderExperiment(experiment) {
   state.improvements = [];
   improvementOutput.innerHTML = `<p class="notice">Run sensitivity analysis first.</p>`;
   improvementResult.textContent = "";
-  setStatus(`Loaded ${experiment.id}`);
+  const sourceLabel = provenance?.source ? ` · ${provenance.source}` : "";
+  const warning = provenance?.warning ? ` · WARNING: ${provenance.warning}` : "";
+  setStatus(`Loaded ${experiment.id}${sourceLabel}${warning}`, Boolean(provenance?.warning));
 }
 
 function escapeHtml(value) {
@@ -103,7 +104,8 @@ async function loadFromApi() {
   const payload = await response.json();
   if (!response.ok) throw new Error(payload?.error || `HTTP ${response.status}`);
   input.value = JSON.stringify(payload, null, 2);
-  renderExperiment(extractExperiment(payload));
+  const resolved = extractExperiment(payload, { runs: 1000, years: 10, seed: 42 });
+  renderExperiment(resolved.experiment, resolved);
 }
 
 $("#load-plan").addEventListener("click", () => {
@@ -112,7 +114,8 @@ $("#load-plan").addEventListener("click", () => {
 
 $("#load-json").addEventListener("click", () => {
   try {
-    renderExperiment(extractExperiment(JSON.parse(input.value)));
+    const resolved = extractExperiment(JSON.parse(input.value), { runs: 1000, years: 10, seed: 42 });
+    renderExperiment(resolved.experiment, resolved);
   } catch (error) {
     setStatus(error.message, true);
   }

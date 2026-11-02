@@ -284,7 +284,10 @@ async function handlePlan(request) {
 
     return Response.json(payload, {
       status: res.status,
-      headers: { "cache-control": "no-store" },
+      headers: {
+        "cache-control": "no-store",
+        "x-hbl-civic-experiment": "civic-experiment.v1",
+      },
     });
   } catch (err) {
     return Response.json({ error: `plan synthesize failed: ${String(err?.message || err)}` }, { status: 502 });
