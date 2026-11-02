@@ -7,6 +7,7 @@ import { renderRealityInspector } from "./reality-inspector.js";
 import { analyzeSensitivity } from "./sensitivity-analysis.js";
 import { applyPlanImprovement, generatePlanImprovements } from "./plan-improver.js";
 import { resolveCivicExperimentPayload } from "./experiment-contract.js";
+import { formatVerificationReport, runExperimentVerification } from "./experiment-verification.js";
 
 const state = {
   experiment: null,
@@ -39,6 +40,8 @@ const realityInspector = $("#reality-inspector");
 const sensitivityOutput = $("#sensitivity-output");
 const improvementOutput = $("#improvement-output");
 const improvementResult = $("#improvement-result");
+const runVerificationButton = $("#run-verification");
+const verificationOutput = $("#verification-output");
 
 function setStatus(message, error = false) {
   status.textContent = message;
@@ -65,6 +68,8 @@ function renderExperiment(experiment, provenance = null) {
   state.overrides = state.inspector.getOverrides();
   overrideOutput.textContent = JSON.stringify(state.overrides, null, 2);
   generateWorldsButton.disabled = false;
+  runVerificationButton.disabled = false;
+  verificationOutput.textContent = "Ready to verify this experiment.";
   state.worldBatch = null;
   worldSummary.textContent = "Ready to generate worlds.";
   worldPreview.textContent = "[]";
@@ -118,6 +123,20 @@ $("#load-json").addEventListener("click", () => {
     renderExperiment(resolved.experiment, resolved);
   } catch (error) {
     setStatus(error.message, true);
+  }
+});
+
+runVerificationButton.addEventListener("click", async () => {
+  if (!state.experiment) return;
+  runVerificationButton.disabled = true;
+  verificationOutput.textContent = "Running invariant checks…";
+  try {
+    const report = await runExperimentVerification(state.experiment, { runs: 24 });
+    verificationOutput.textContent = `${report.ok ? "ALL CHECKS PASSED" : "CHECKS FAILED"}\n\n${formatVerificationReport(report)}`;
+  } catch (error) {
+    verificationOutput.textContent = `FAIL  verifier  ${error?.message || error}`;
+  } finally {
+    runVerificationButton.disabled = false;
   }
 });
 
