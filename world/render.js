@@ -20,6 +20,7 @@ import { journalFor, WALK_COMPLAINT_MINUTES } from "./journal.js";
 import { computeEffectsForYear, derivePolicyProfile } from "./policy.js";
 import { wellbeing, wellbeingHex } from "./wellbeing.js";
 import { replayStormStrengthLabel } from "./replay-label.js";
+import { mountConstitutionVisuals, normalizeProposalIds } from "./constitution-visuals.js";
 
 /* ---------------------------------------------------------------- */
 /* Where are we?  /world?lat=29.7286&lng=-95.4746&people=500         */
@@ -28,6 +29,11 @@ const params = new URLSearchParams(location.search);
 const renderBenchmark = benchmarkScene(location.pathname);
 const demoMode = params.get("demo") === "1" || !!renderBenchmark;
 const businessMode = params.get("business_mode") === "true" || params.get("business_mode") === "1";
+const constitutionCompareMode = params.get("constitutionCompare") === "1";
+const constitutionSide = params.get("constitutionSide") || "standalone";
+const constitutionProposalIds = normalizeProposalIds(params.get("constitutionProposals"));
+const constitutionFocusHint = params.get("constitutionFocus") || "";
+const constitutionLabel = params.get("constitutionLabel") || "Constitution plan";
 
 // /world?simulation=…&reality=N enters one reality from the realities page (index.html
 // sends a link without &reality to /world/realities.html before this module loads).
@@ -117,7 +123,41 @@ try {
   }
 } catch {}
 // In the grid, let the mouse wheel scroll the page instead of zooming each tiny world.
-if (embedMode) controls.enableZoom = false;
+if (embedMode && !constitutionCompareMode) controls.enableZoom = false;
+
+if (constitutionCompareMode && window.parent !== window) {
+  let applyingSyncedCamera = false;
+  let queuedCameraFrame = 0;
+  const sendCamera = () => {
+    if (applyingSyncedCamera || queuedCameraFrame) return;
+    queuedCameraFrame = requestAnimationFrame(() => {
+      queuedCameraFrame = 0;
+      window.parent.postMessage({
+        type: "hbl:constitution-camera",
+        side: constitutionSide,
+        camera: {
+          position: camera.position.toArray(),
+          target: controls.target.toArray(),
+        },
+      }, location.origin);
+    });
+  };
+  controls.addEventListener("change", sendCamera);
+  window.addEventListener("message", (event) => {
+    if (event.origin !== location.origin || event.source !== window.parent || event.data?.type !== "hbl:constitution-camera-set") return;
+    const next = event.data?.camera;
+    if (![next?.position, next?.target].every((v) => Array.isArray(v) && v.length === 3 && v.every(Number.isFinite))) return;
+    applyingSyncedCamera = true;
+    camera.position.fromArray(next.position);
+    controls.target.fromArray(next.target);
+    controls.update();
+    applyingSyncedCamera = false;
+  });
+  addEventListener("pagehide", () => {
+    controls.removeEventListener("change", sendCamera);
+    if (queuedCameraFrame) cancelAnimationFrame(queuedCameraFrame);
+  }, { once: true });
+}
 
 const hemi = new THREE.HemisphereLight(0xffffff, 0x8a8170, 1.1);
 scene.add(hemi);
@@ -316,6 +356,27 @@ addEventListener("pagehide",()=>{progressiveGeometry.dispose();for(const materia
 
 const cityRenderer = mountCityRenderer({ renderer, mode: rendererMode, scene, camera, controls, town, sun, facades, geometryCache, embed: embedMode });
 window.hblCityRenderer = cityRenderer;
+const constitutionVisuals = constitutionCompareMode
+  ? mountConstitutionVisuals({
+      THREE,
+      scene,
+      camera,
+      controls,
+      town,
+      proposalIds: constitutionProposalIds,
+      focusHint: constitutionFocusHint,
+      showChanges: constitutionSide !== "baseline",
+    })
+  : null;
+if (constitutionVisuals && window.parent !== window) {
+  window.parent.postMessage({
+    type: "hbl:constitution-ready",
+    side: constitutionSide,
+    changes: constitutionVisuals.changes,
+    focusKind: constitutionVisuals.layout?.focusKind || null,
+  }, location.origin);
+  addEventListener("pagehide", () => constitutionVisuals.dispose(), { once: true });
+}
 if (renderBenchmark) configureBenchmark(cityRenderer, renderBenchmark);
 addEventListener("pagehide", () => cityRenderer.destroy(), { once: true });
 renderer.domElement.addEventListener("dblclick", (event) => {
@@ -428,11 +489,20 @@ const BASE_POLICY_PACKAGES = {
     unsupported: [],
   },
 };
+if (constitutionProposalIds.length) {
+  BASE_POLICY_PACKAGES.constitution = {
+    ...derivePolicyProfile(constitutionLabel, "constitution", constitutionProposalIds, "dear-congress"),
+    id: "constitution",
+    label: constitutionLabel,
+    source: "dear-congress",
+    proposalIds: constitutionProposalIds,
+  };
+}
 
 let PLAN_PACKAGES = { ...BASE_POLICY_PACKAGES };
 let PLAN_COMPARE_DIFF = {};
 let BALANCED_SIM_NOTE = "";
-let activePolicyId = "none";
+let activePolicyId = constitutionProposalIds.length && constitutionSide !== "baseline" ? "constitution" : "none";
 let policyYear = Math.max(0, Math.min(10, Number(params.get("year") ?? 0) || 0));
 const planYearEl = $("planYear");
 const planYearNEl = $("planYearN");
@@ -737,8 +807,12 @@ if (planYearEl) {
 }
 
 $("stormBtn").onclick = () => triggerStorm();
-// A world embedded in the grid only needs its frozen plan, so it skips synthesizing packages.
-if (!(embedMode && realityRunSeed)) {
+// Constitution comparison frames already receive one frozen proposal list from the
+// parent screen. Do not replace that list with a fresh Dear Congress synthesis.
+if (constitutionCompareMode && constitutionProposalIds.length) {
+  refreshPolicySelect(activePolicyId);
+  startup.policyStatus = "constitution-comparison";
+} else if (!(embedMode && realityRunSeed)) {
   if(realityRunSeed)await loadPolicyPackages(); // Frozen reality ordering is unchanged.
   else {
     policyPending=true;startup.policyStatus='loading';refreshPolicySelect(activePolicyId);
@@ -746,7 +820,9 @@ if (!(embedMode && realityRunSeed)) {
     loadPolicyPackages().then(ok=>{if(startupAbort.signal.aborted)return;policyPending=false;startup.policyStatus=ok?'ready':'local-fallback';if($("policyNote"))$("policyNote").textContent=$("policyNote").textContent.replace(' · remote plan packages loading; current local policy unchanged','')+(ok?'':' · using local presets; remote packages unavailable');for(const id of ['policy','runExperimentBtn','runCycleBtn','demoBtn'])if($(id))$(id).disabled=startupDisabled.get($(id))||false;});
   }
 }
-activePolicyId = $("policy").value || "none";
+activePolicyId = constitutionCompareMode && constitutionProposalIds.length
+  ? (constitutionSide === "baseline" ? "none" : "constitution")
+  : ($("policy").value || "none");
 if (realityRunSeed) {
   // Entering one reality from the realities page: run its frozen plan with its seed.
   try {
