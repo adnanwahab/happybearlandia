@@ -3,7 +3,7 @@ import { createWorld } from "./sim.js";
 import { journalFor, WALK_COMPLAINT_MINUTES } from "./journal.js";
 import { computeEffectsForYear, NOT_SIMULATED, resolveRuleForProposal } from "./policy.js";
 import { SIMULATION_MODEL_VERSION, SIMULATION_PARAMETERS } from "./simulation-parameters.js";
-import { captureLongitudinalState, restoreLongitudinalState, scaleHouseholdCash } from "./simulation-state.js";
+import { applyMonthlyVoucher, captureLongitudinalState, restoreLongitudinalState, scaleHouseholdCash } from "./simulation-state.js";
 import { observeWorld } from "./simulation-observations.js";
 
 function cloneTown(town) {
@@ -476,6 +476,11 @@ export async function simulateYear({ town, proposalIds, year, packageLabel, seed
   }
   applyPolicyToWorld(world, staged);
   applyConditions(world, simTown, conditions);
+  // This annual point is a representative week, so recurring monthly support is
+  // sampled once at the start of the week instead of waiting for day 30.
+  if (world.voucherMonthly > 0) {
+    applyMonthlyVoucher(world, world.voucherMonthly, SIMULATION_PARAMETERS.economy.lowCashPerPerson);
+  }
 
   let soldOutEvents = 0;
   const baseLog = world.log;
