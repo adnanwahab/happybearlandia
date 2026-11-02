@@ -31,6 +31,15 @@ describe("civic experiment contract bridge", () => {
     expect(resolved.experiment.worldModel.variables.length).toBeGreaterThan(0);
   });
 
+  test("normalizes a raw Dear Congress candidate array", () => {
+    const arraySynthesis = synthesis.packages.map((pkg) => ({ ...pkg }));
+    const resolved = resolveCivicExperimentPayload(arraySynthesis, { runs: 5, years: 4, seed: 9 });
+    expect(resolved.source).toBe("browser-normalized");
+    expect(isCivicExperiment(resolved.experiment)).toBe(true);
+    expect(resolved.experiment.plan.title).toBe("Housing plan");
+    expect(resolved.experiment.experiment).toEqual({ runs: 5, horizonYears: 4, seed: 9 });
+  });
+
   test("validates the minimum v1 experiment contract", () => {
     const experiment = resolveCivicExperimentPayload(synthesis, { runs: 2, years: 1 }).experiment;
     expect(validateCivicExperiment(experiment)).toMatchObject({ ok: true });

@@ -3,7 +3,7 @@ import { readdir } from "node:fs/promises";
 import { extname, join, normalize, relative } from "node:path";
 import { getArea, handleArea, handleOverpassHealth, OVERPASS_ENDPOINTS, OVERPASS_TIMEOUT_MS } from "./world/api.js";
 import { createExperimentsHandler } from "./world/experiments-api.js";
-import { buildCivicExperiment } from "./world/civic-experiment.js";
+import { buildPlanApiPayload } from "./world/plan-response.js";
 
 const PORT = Number(process.env.PORT) || 3000;
 const DEAR_CONGRESS_URL = process.env.DEAR_CONGRESS_URL || "https://dear-congress.fly.dev/api";
@@ -277,16 +277,17 @@ async function handlePlan(request) {
       // not turn a successful synthesis into an error.
     }
 
-    const civicExperiment = buildCivicExperiment(synthesis, requestPayload);
-    const payload = synthesis && typeof synthesis === "object" && !Array.isArray(synthesis)
-      ? { ...synthesis, civicExperiment }
-      : { synthesis, civicExperiment };
+    // Dear Congress can return either a single object or an array of candidate
+    // plans. Always return one stable HBL object envelope so clients can rely on
+    // payload.civicExperiment regardless of the upstream response shape.
+    const payload = buildPlanApiPayload(synthesis, requestPayload);
 
     return Response.json(payload, {
       status: res.status,
       headers: {
         "cache-control": "no-store",
         "x-hbl-civic-experiment": "civic-experiment.v1",
+        "x-hbl-plan-response": "hbl-plan-response.v1",
       },
     });
   } catch (err) {

@@ -20,10 +20,18 @@ async function main() {
   }
   if (!response.ok) throw new Error(payload?.error || `/api/plan returned HTTP ${response.status}`);
 
-  const serverContract = payload?.civicExperiment?.schemaVersion === "civic-experiment.v1";
+  const responseShape = Array.isArray(payload) ? "array" : (payload === null ? "null" : typeof payload);
+  const serverContract = responseShape === "object" && payload?.civicExperiment?.schemaVersion === "civic-experiment.v1";
   const marker = response.headers.get("x-hbl-civic-experiment");
+  const responseMarker = response.headers.get("x-hbl-plan-response");
+  const upstreamShape = payload?.hblPlanResponse?.upstreamShape || "<unknown>";
+  const candidateCount = payload?.hblPlanResponse?.candidateCount;
+
+  console.log(`${responseShape === "object" ? "PASS" : "FAIL"}  api-shape           /api/plan returned ${responseShape}; expected object envelope`);
   console.log(`${serverContract ? "PASS" : "FAIL"}  api-contract        /api/plan ${serverContract ? "returned" : "did not return"} civicExperiment.v1`);
   console.log(`${marker === "civic-experiment.v1" ? "PASS" : "WARN"}  api-header          x-hbl-civic-experiment=${marker || "<missing>"}`);
+  console.log(`${responseMarker === "hbl-plan-response.v1" ? "PASS" : "WARN"}  response-header     x-hbl-plan-response=${responseMarker || "<missing>"}`);
+  console.log(`INFO  upstream-shape      Dear Congress payload=${upstreamShape}${Number.isFinite(candidateCount) ? ` candidates=${candidateCount}` : ""}`);
 
   const resolved = resolveCivicExperimentPayload(payload, requestBody);
   if (resolved.warning) console.log(`WARN  local-fallback      ${resolved.warning}`);
