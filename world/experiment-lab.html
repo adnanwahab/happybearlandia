@@ -161,6 +161,19 @@
     <pre id="revision-preview">{}</pre>
   </section>
 
+  <section class="panel" style="margin-top:18px">
+    <h2>13 · Digital Pensieve handoff</h2>
+    <p class="notice">Package this experiment as a museum-ready snapshot. Download/copy the full handoff JSON, or open a configured Pensieve URL with stable experiment identifiers.</p>
+    <label class="notice" for="pensieve-url">Pensieve URL</label>
+    <input id="pensieve-url" style="width:100%;box-sizing:border-box;margin:8px 0 12px;padding:10px;border:1px solid #2b342f;border-radius:8px;background:#080d11;color:#dfe7eb" placeholder="https://digital-pensieve.example/museum/">
+    <div class="button-row">
+      <button id="copy-pensieve-handoff" disabled>Copy handoff JSON</button>
+      <button id="download-pensieve-handoff" disabled>Download handoff JSON</button>
+      <button id="open-pensieve" disabled>Open Pensieve</button>
+    </div>
+    <div id="pensieve-status" class="status">Load an experiment first.</div>
+  </section>
+
 </main>
 <script type="module" src="./experiment-lab.js"></script>
 </body>

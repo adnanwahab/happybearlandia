@@ -11,6 +11,7 @@ import { formatVerificationReport, runExperimentVerification } from "./experimen
 import { createExperimentRecord, summarizeExperimentRecord, traceRecordLineage } from "./experiment-record.js";
 import { listExperimentRecords, loadExperimentRecord, saveExperimentRecord } from "./experiment-store.js";
 import { buildDearCongressRevisionDraft, postDearCongressRevisionDraft } from "./dear-congress-feedback.js";
+import { buildPensieveHandoff, buildPensieveLaunchUrl, downloadPensieveHandoff, serializePensieveHandoff } from "./pensieve-handoff.js";
 
 const state = {
   experiment: null,
@@ -59,6 +60,11 @@ const prepareRevisionButton = $("#prepare-revision");
 const sendRevisionButton = $("#send-revision");
 const revisionStatus = $("#revision-status");
 const revisionPreview = $("#revision-preview");
+const pensieveUrlInput = $("#pensieve-url");
+const copyPensieveHandoffButton = $("#copy-pensieve-handoff");
+const downloadPensieveHandoffButton = $("#download-pensieve-handoff");
+const openPensieveButton = $("#open-pensieve");
+const pensieveStatus = $("#pensieve-status");
 
 function setStatus(message, error = false) {
   status.textContent = message;
@@ -102,6 +108,10 @@ function renderExperiment(experiment, provenance = null, initialOverrides = {}) 
   overrideOutput.textContent = JSON.stringify(state.overrides, null, 2);
   generateWorldsButton.disabled = false;
   saveExperimentButton.disabled = false;
+  copyPensieveHandoffButton.disabled = false;
+  downloadPensieveHandoffButton.disabled = false;
+  openPensieveButton.disabled = !pensieveUrlInput.value.trim();
+  pensieveStatus.textContent = "Experiment ready to package for Pensieve.";
   runVerificationButton.disabled = false;
   verificationOutput.textContent = "Ready to verify this experiment.";
   state.worldBatch = null;
@@ -377,6 +387,68 @@ copyExperimentLinkButton.addEventListener("click", async () => {
     recordStatus.textContent = `Could not restore ${recordId}: ${error?.message || error}`;
   }
 })();
+
+function currentPensieveRecord() {
+  return createExperimentRecord({
+    experiment: state.experiment,
+    overrides: state.overrides,
+    worldBatch: state.worldBatch,
+    simulationBatch: state.simulationBatch,
+    analyzedExperiment: state.analyzedExperiment,
+    sensitivity: state.sensitivity,
+    improvements: state.improvements,
+    improvementComparison: state.improvementComparison,
+    parentRecordId: state.parentRecordId,
+    revision: state.experiment?.lineage?.revision || 1,
+  });
+}
+
+function currentPensieveHandoff() {
+  if (!state.experiment) throw new Error("Load an experiment first");
+  const record = currentPensieveRecord();
+  if (state.recordId) record.id = state.recordId;
+  return buildPensieveHandoff({ record, sourceUrl: location.href });
+}
+
+pensieveUrlInput.value = window.HBL_PENSIEVE_URL || localStorage.getItem("hbl:pensieve-url") || "";
+pensieveUrlInput.addEventListener("input", () => {
+  localStorage.setItem("hbl:pensieve-url", pensieveUrlInput.value.trim());
+  openPensieveButton.disabled = !state.experiment || !pensieveUrlInput.value.trim();
+});
+
+copyPensieveHandoffButton.addEventListener("click", async () => {
+  try {
+    const handoff = currentPensieveHandoff();
+    const json = serializePensieveHandoff(handoff);
+    await navigator.clipboard.writeText(json);
+    pensieveStatus.textContent = `Copied ${handoff.source.recordId || handoff.source.experimentId} handoff JSON.`;
+  } catch (error) {
+    pensieveStatus.textContent = `Copy failed: ${error?.message || error}`;
+  }
+});
+
+downloadPensieveHandoffButton.addEventListener("click", () => {
+  try {
+    const handoff = currentPensieveHandoff();
+    const filename = downloadPensieveHandoff(handoff);
+    pensieveStatus.textContent = `Downloaded ${filename}.`;
+  } catch (error) {
+    pensieveStatus.textContent = `Download failed: ${error?.message || error}`;
+  }
+});
+
+openPensieveButton.addEventListener("click", () => {
+  try {
+    const handoff = currentPensieveHandoff();
+    const url = buildPensieveLaunchUrl(pensieveUrlInput.value.trim(), handoff);
+    const target = window.open(url, "_blank", "noopener");
+    pensieveStatus.textContent = target === null
+      ? "Pensieve popup was blocked. The handoff JSON is still available to copy/download."
+      : `Opened Pensieve for ${handoff.source.experimentId}. Import the handoff JSON until the Pensieve receiver is wired.`;
+  } catch (error) {
+    pensieveStatus.textContent = `Open failed: ${error?.message || error}`;
+  }
+});
 
 prepareRevisionButton.addEventListener("click", () => {
   if (!state.experiment || !state.improvementComparison) return;
