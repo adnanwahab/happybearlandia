@@ -110,6 +110,11 @@ const badWorld = {
   },
 };
 
+experiment.worldModel = {
+  variables: [...new Set([...Object.keys(goodWorld.normalized), ...Object.keys(badWorld.normalized)])].map((id) => ({ id })),
+  causalEdges: [],
+};
+
 describe("HBL civic dynamics", () => {
   test("returns deterministic yearly domain metrics and causal events", () => {
     const a = simulateHblCivicDynamics({ experiment, world: goodWorld });
@@ -120,8 +125,12 @@ describe("HBL civic dynamics", () => {
     expect(Number.isFinite(a.metrics.housing_units_permitted)).toBe(true);
     expect(Number.isFinite(a.metrics.median_housing_cost)).toBe(true);
     expect(Array.isArray(a.events)).toBe(true);
-    expect(a.model.id).toBe("hbl-civic-dynamics.v1");
+    expect(a.model.id).toBe("hbl-civic-dynamics.v2");
     expect(a.model.predictive).toBe(false);
+    expect(a.model.causalGraph).toBe("hbl-causal-graph.v1");
+    expect(a.explanation.causalPathways.length).toBeGreaterThan(0);
+    expect(a.explanation.feedbackLoops.length).toBeGreaterThan(0);
+    expect(a.timeline[0].causalState).toBeTruthy();
   });
 
   test("strong implementation worlds outperform severe-friction worlds", () => {

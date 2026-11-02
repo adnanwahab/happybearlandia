@@ -159,7 +159,13 @@ export function renderAssumptionInspector(container, variables = [], options = {
       title.textContent = variable.label || variable.id;
       const value = document.createElement("output");
       value.textContent = formatVariableValue(variable, state[variable.id]?.baseline);
-      head.append(title, value);
+      const provenance = document.createElement("span");
+      provenance.className = "assumption-provenance";
+      const provenanceType = variable.provenance?.type || (variable.source === "user-override" ? "user-override" : "heuristic");
+      const provenanceGlyph = { observed: "●", estimated: "◐", heuristic: "○", "user-override": "✎", unknown: "?" }[provenanceType] || "?";
+      provenance.textContent = `${provenanceGlyph} ${provenanceType}`;
+      provenance.title = `${Math.round(Number(variable.provenance?.confidence ?? variable.confidence ?? 0) * 100)}% provenance confidence${variable.provenance?.geography ? ` · ${variable.provenance.geography}` : ""}`;
+      head.append(title, provenance, value);
 
       const input = document.createElement("input");
       input.type = "range";

@@ -17,8 +17,15 @@ const a = {
   metrics: { outcome: 4 },
   timeline: [{ year: 1, score: 35 }, { year: 2, score: 40 }],
   events: [{ year: 1, type: "implementation-delay" }],
-  explanation: { negativeDrivers: ["delay"] },
-  world: { conditions: { a: 0, b: 0.4 } },
+  explanation: {
+    negativeDrivers: ["delay"],
+    causalPathways: [{ target: "delivery_capacity", nodes: ["a", "delivery_capacity"], effect: -0.3, direction: "negative", description: "a → delivery_capacity" }],
+    feedbackLoops: [{ id: "loop", label: "Loop", type: "reinforcing", activity: 0.4 }],
+  },
+  world: {
+    scenarioFamily: { id: "bottleneck", label: "Bottleneck", description: "Supply constrained" },
+    conditions: { a: 0, b: 0.4 },
+  },
 };
 const b = { worldId: "w2", score: 80, status: "positive", metrics: { outcome: 8 }, world: { conditions: { a: 10, b: 0.45 } } };
 
@@ -30,6 +37,9 @@ describe("reality inspector", () => {
     expect(explanation.timeline).toHaveLength(2);
     expect(explanation.events[0].type).toBe("implementation-delay");
     expect(explanation.explanation.negativeDrivers).toEqual(["delay"]);
+    expect(explanation.scenarioFamily.id).toBe("bottleneck");
+    expect(explanation.causalPathways).toHaveLength(1);
+    expect(explanation.feedbackLoops[0].id).toBe("loop");
   });
 
   test("compares two realities by normalized condition changes", () => {

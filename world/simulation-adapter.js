@@ -1,6 +1,7 @@
 import { applySimulationEffectsToWorld } from "./plan-improver.js";
 import { createHttpCivicSimulator, simulatorBridgeConfig, validateCivicSimulationResult } from "./hbl-simulator-bridge.js";
 import { simulateHblCivicDynamics } from "./hbl-civic-dynamics.js";
+import { simulateAgentCivicDynamics } from "./agent-simulator.js";
 
 function finite(value, fallback = 0) {
   const number = Number(value);
@@ -45,12 +46,23 @@ export function createSimulationAdapter({
 
 export function createHblCivicDynamicsAdapter() {
   return createSimulationAdapter({
-    id: "hbl-civic-dynamics.v1",
+    id: "hbl-civic-dynamics.v2",
     label: "HBL civic dynamics",
     predictive: false,
     modelClass: "time-stepped-civic-dynamics",
-    description: "Built-in HappyBearLandia time-stepped civic systems model with domain metrics, yearly timelines, and causal events. It is a hypothesis generator, not an empirical forecast.",
+    description: "Built-in HappyBearLandia time-stepped civic systems model with domain metrics, yearly timelines, an explicit causal graph, feedback loops, and causal events. It is a hypothesis generator, not an empirical forecast.",
     simulateWorld: simulateHblCivicDynamics,
+  });
+}
+
+export function createAgentCivicAdapter(options = {}) {
+  return createSimulationAdapter({
+    id: "hbl-agent-civic.v1",
+    label: "HBL agent civic simulation",
+    predictive: false,
+    modelClass: "agent-based-exploratory",
+    description: "Optional synthetic-agent layer using households, developers, municipalities, lenders, and agencies. Exploratory, not a forecast.",
+    simulateWorld: ({ experiment, world }) => simulateAgentCivicDynamics({ experiment, world, options }),
   });
 }
 

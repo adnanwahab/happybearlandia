@@ -58,5 +58,8 @@ describe("civic experiment", () => {
     expect(experiment.experiment).toEqual({ runs: 1000, horizonYears: 20, seed: 42 });
     expect(experiment.worldModel.variables.length).toBeGreaterThanOrEqual(7);
     expect(experiment.worldModel.parameterExtraction.defaultsAreEmpirical).toBe(false);
+    expect(experiment.worldModel.causalEdges.length).toBeGreaterThan(0);
+    expect(experiment.worldModel.feedbackLoops.length).toBeGreaterThan(0);
+    expect(experiment.worldModel.causalGraph.schemaVersion).toBe("hbl-causal-graph.v1");
   });
 });

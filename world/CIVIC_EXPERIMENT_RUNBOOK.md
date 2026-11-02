@@ -205,7 +205,23 @@ window.HBL_PENSIEVE_URL = "https://your-pensieve.example/museum/";
 The receiving application contract is documented in
 `world/PENSIEVE_CIVIC_HANDOFF.md`.
 
-## 10. Go/no-go checklist
+## 10. Scenario-family comparison
+
+After simulations finish, the Lab groups results by the scenario families created
+by the seeded world generator. Use this view to answer **which kinds of futures
+are hardest for the plan**, rather than relying only on the overall average.
+
+The comparison reports each family's world count, expected score, robustness,
+adverse rate, distinguishing conditions, active causal pathways, and feedback-loop
+activity. The weakest family is selected by lowest robustness, then lowest expected
+score.
+
+Use **Improve against selected family** to generate mitigation hypotheses from the
+contrast between that family and the rest of the sampled worlds. These remain
+model-derived stress-test hypotheses. Testing a candidate still reuses the exact
+original world batch; it does not resample an easier set of futures.
+
+## 11. Go/no-go checklist
 
 Before treating the workflow as stable, confirm:
 
@@ -218,6 +234,8 @@ Before treating the workflow as stable, confirm:
 - the outcome landscape renders
 - reality inspection works
 - sensitivity analysis does not claim causality
+- scenario-family comparison identifies at least one sampled family and preserves family counts
+- targeted improvement search clearly labels the scenario family it is trying to harden against
 - improvement tests keep the sampled worlds fixed
 - save/replay restores the same snapshot
 - Dear Congress writes occur only after explicit user action

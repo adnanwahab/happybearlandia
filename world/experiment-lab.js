@@ -2,6 +2,7 @@ import { createInspectorState, renderAssumptionInspector } from "./assumption-in
 import { generateWorlds } from "./world-generator.js";
 import { resolveSimulationAdapter, simulateExperiment } from "./simulation-adapter.js";
 import { attachOutcomeAnalysis, summarizeOutcomes } from "./outcome-analysis.js";
+import { scenarioTargetingAnalysis, summarizeScenarioFamilies } from "./scenario-outcome-analysis.js";
 import { projectOutcomeLandscape, renderOutcomeLandscape } from "./outcome-landscape.js";
 import { renderRealityInspector } from "./reality-inspector.js";
 import { analyzeSensitivity } from "./sensitivity-analysis.js";
@@ -25,6 +26,7 @@ const state = {
   recordId: null,
   parentRecordId: null,
   improvementComparison: null,
+  scenarioComparison: null,
   revisionDraft: null,
 };
 
@@ -42,6 +44,12 @@ const runSimulationsButton = $("#run-simulations");
 const simulationSummary = $("#simulation-summary");
 const simulationPreview = $("#simulation-preview");
 const outcomeSummary = $("#outcome-summary");
+const scenarioFamilySummary = $("#scenario-family-summary");
+const scenarioFamilyComparison = $("#scenario-family-comparison");
+const scenarioFamilyDiagnosis = $("#scenario-family-diagnosis");
+const scenarioTargetSelect = $("#scenario-target");
+const targetScenarioImprovementsButton = $("#target-scenario-improvements");
+const scenarioTargetStatus = $("#scenario-target-status");
 const tailPreview = $("#tail-preview");
 const landscapeSvg = $("#outcome-landscape");
 const landscapeSelection = $("#landscape-selection");
@@ -78,9 +86,11 @@ function extractExperiment(payload, request = {}) {
 function renderExperiment(experiment, provenance = null, initialOverrides = {}) {
   state.experiment = experiment;
   const variables = experiment.worldModel?.variables || [];
+  const causalEdges = experiment.worldModel?.causalEdges || [];
+  const feedbackLoops = experiment.worldModel?.feedbackLoops || [];
   summary.innerHTML = `
     <h3>${escapeHtml(experiment.plan?.title || "Civic plan")}</h3>
-    <p class="notice">${variables.length} inferred variables · ${experiment.experiment?.runs ?? "?"} requested runs · ${experiment.experiment?.horizonYears ?? "?"} year horizon</p>
+    <p class="notice">${variables.length} inferred variables · ${causalEdges.length} causal edges · ${feedbackLoops.length} feedback loops · ${experiment.experiment?.runs ?? "?"} requested runs · ${experiment.experiment?.horizonYears ?? "?"} year horizon</p>
   `;
   const metrics = experiment.outcomes?.metricRegistry || [];
   metricRegistry.innerHTML = metrics.length
@@ -122,7 +132,15 @@ function renderExperiment(experiment, provenance = null, initialOverrides = {}) 
   simulationSummary.textContent = "Generate worlds first.";
   simulationPreview.textContent = "[]";
   state.analyzedExperiment = null;
+  state.scenarioComparison = null;
   outcomeSummary.innerHTML = `<div class="notice">Run simulations first.</div>`;
+  scenarioFamilySummary.innerHTML = `<p class="notice">Run simulations first.</p>`;
+  scenarioFamilyComparison.replaceChildren();
+  scenarioFamilyDiagnosis.replaceChildren();
+  scenarioTargetSelect.replaceChildren();
+  scenarioTargetSelect.disabled = true;
+  targetScenarioImprovementsButton.disabled = true;
+  scenarioTargetStatus.textContent = "Run simulations first.";
   tailPreview.textContent = "[]";
   landscapeSvg.replaceChildren();
   landscapeSelection.textContent = "Run simulations to populate the landscape.";
@@ -207,6 +225,61 @@ generateWorldsButton.addEventListener("click", () => {
 });
 
 
+function percent(value) {
+  return value == null ? "—" : `${(Number(value) * 100).toFixed(1)}%`;
+}
+
+function renderScenarioComparison(comparison) {
+  state.scenarioComparison = comparison;
+  if (!comparison?.families?.length) {
+    scenarioFamilySummary.innerHTML = `<p class="notice">No scenario-family metadata was found in these simulations.</p>`;
+    scenarioFamilyComparison.replaceChildren();
+    scenarioFamilyDiagnosis.replaceChildren();
+    scenarioTargetSelect.replaceChildren();
+    scenarioTargetSelect.disabled = true;
+    targetScenarioImprovementsButton.disabled = true;
+    scenarioTargetStatus.textContent = "Generate scenario-family worlds before targeting an improvement.";
+    return;
+  }
+
+  const weak = comparison.weakestFamily;
+  const strong = comparison.strongestFamily;
+  scenarioFamilySummary.innerHTML = `
+    <div class="metric-cards">
+      <div class="metric-card"><strong>${escapeHtml(weak?.label || "—")}</strong><span>weakest family</span></div>
+      <div class="metric-card"><strong>${percent(weak?.robustness)}</strong><span>weak-family robustness</span></div>
+      <div class="metric-card"><strong>${escapeHtml(strong?.label || "—")}</strong><span>strongest family</span></div>
+      <div class="metric-card"><strong>${comparison.familyCount}</strong><span>scenario families sampled</span></div>
+    </div>`;
+
+  scenarioFamilyComparison.innerHTML = comparison.families.map((family) => {
+    const robust = Math.max(0, Math.min(1, Number(family.robustness ?? 0)));
+    const classes = [family.id === comparison.weakestFamilyId ? "weakest" : "", family.id === comparison.strongestFamilyId ? "strongest" : ""].filter(Boolean).join(" ");
+    return `<div class="scenario-row ${classes}">
+      <div><strong>${escapeHtml(family.label)}</strong><div class="scenario-meta">${family.worlds} worlds · score ${family.expectedScore ?? "—"}</div></div>
+      <div class="scenario-bar" title="Robustness ${percent(family.robustness)}"><span style="width:${(robust * 100).toFixed(1)}%"></span></div>
+      <div>${percent(family.robustness)}</div>
+      <div class="scenario-meta">negative ${percent(family.adverseRate)}</div>
+    </div>`;
+  }).join("");
+
+  const drivers = (weak?.distinguishingConditions || []).slice(0, 6);
+  const paths = (weak?.causalPathways || []).slice(0, 4);
+  const driverRows = drivers.map((row) => `<tr><td>${escapeHtml(row.label)}</td><td>${escapeHtml(row.pattern)}</td><td>${row.delta == null ? "—" : `${row.delta >= 0 ? "+" : ""}${row.delta.toFixed(3)}`}</td></tr>`).join("");
+  const pathRows = paths.map((row) => `<tr><td>${escapeHtml(row.description)}</td><td>${escapeHtml(String(row.target).replaceAll("_", " "))}</td><td>${row.meanEffect == null ? "—" : `${row.meanEffect >= 0 ? "+" : ""}${row.meanEffect.toFixed(3)}`}</td></tr>`).join("");
+  scenarioFamilyDiagnosis.innerHTML = weak ? `
+    <h3>Why ${escapeHtml(weak.label)} is difficult</h3>
+    <p class="notice">This is a contrast inside the HBL model: conditions that distinguish this family from the other sampled families, not proof of real-world causation.</p>
+    ${driverRows ? `<table class="analysis-table"><thead><tr><th>Condition</th><th>Family contrast</th><th>Δ normalized</th></tr></thead><tbody>${driverRows}</tbody></table>` : ""}
+    ${pathRows ? `<h3>Active modeled pathways</h3><table class="analysis-table"><thead><tr><th>Pathway</th><th>Target</th><th>Mean effect</th></tr></thead><tbody>${pathRows}</tbody></table>` : ""}
+  ` : "";
+
+  scenarioTargetSelect.innerHTML = comparison.families.map((family) => `<option value="${escapeHtml(family.id)}"${family.id === comparison.weakestFamilyId ? " selected" : ""}>${escapeHtml(family.label)} · ${percent(family.robustness)} robust</option>`).join("");
+  scenarioTargetSelect.disabled = false;
+  targetScenarioImprovementsButton.disabled = false;
+  scenarioTargetStatus.textContent = weak ? `Weakest sampled family: ${weak.label}. Targeting changes the improvement search, not the sampled worlds.` : "Select a scenario family to target.";
+}
+
 function renderSimulationBatch(batch) {
   state.simulationBatch = batch;
   const modelLabel = batch.adapter.predictive
@@ -218,7 +291,6 @@ function renderSimulationBatch(batch) {
   simulationPreview.textContent = JSON.stringify(batch.simulations.slice(0, 3), null, 2);
   const outcome = summarizeOutcomes(batch);
   state.analyzedExperiment = attachOutcomeAnalysis(state.experiment, batch);
-  const percent = (value) => value == null ? "—" : `${(value * 100).toFixed(1)}%`;
   outcomeSummary.innerHTML = `
     <div class="metric-card"><strong>${outcome.expectedScore ?? "—"}</strong><span>expected score</span></div>
     <div class="metric-card"><strong>${percent(outcome.robustness)}</strong><span>robust worlds</span></div>
@@ -227,6 +299,12 @@ function renderSimulationBatch(batch) {
     <div class="metric-card"><strong>${outcome.worstScore ?? "—"}</strong><span>worst sampled world</span></div>
   `;
   tailPreview.textContent = JSON.stringify(outcome.tailRisks, null, 2);
+  const scenarioComparison = summarizeScenarioFamilies(batch, state.experiment);
+  renderScenarioComparison(scenarioComparison);
+  state.analyzedExperiment = {
+    ...state.analyzedExperiment,
+    analysis: { ...(state.analyzedExperiment?.analysis || {}), scenarioFamilies: scenarioComparison },
+  };
   const projection = projectOutcomeLandscape(batch.simulations);
   renderOutcomeLandscape(landscapeSvg, projection, {
     onSelect(point) {
@@ -274,6 +352,23 @@ runSimulationsButton.addEventListener("click", async () => {
 });
 
 
+targetScenarioImprovementsButton.addEventListener("click", () => {
+  if (!state.experiment || !state.scenarioComparison) return;
+  const familyId = scenarioTargetSelect.value;
+  const family = state.scenarioComparison.families.find((row) => row.id === familyId);
+  if (!family) return;
+  const targetedAnalysis = scenarioTargetingAnalysis(state.scenarioComparison, familyId);
+  state.improvements = generatePlanImprovements(state.experiment, targetedAnalysis, {
+    limit: 6,
+    minimumCorrelation: 0.03,
+    targetScenarioFamily: { id: family.id, label: family.label },
+  });
+  renderImprovements();
+  scenarioTargetStatus.textContent = state.improvements.length
+    ? `Improvement search now targets ${family.label}. Test a candidate below on the same complete world batch.`
+    : `No strong modeled mitigation candidate was found for ${family.label}.`;
+});
+
 function renderImprovements() {
   if (!state.improvements.length) {
     improvementOutput.innerHTML = `<p class="notice">No strong improvement candidates were found in this batch.</p>`;
@@ -283,7 +378,7 @@ function renderImprovements() {
     <article class="improvement-card">
       <strong>${escapeHtml(item.title)}</strong>
       <p>${escapeHtml(item.description)}</p>
-      <small>${escapeHtml(item.targetVariableLabel)} · modeled ${item.simulationEffect.direction} ${(item.simulationEffect.strength * 100).toFixed(0)}%</small>
+      <small>${escapeHtml(item.targetVariableLabel)} · modeled ${item.simulationEffect.direction} ${(item.simulationEffect.strength * 100).toFixed(0)}%${item.targetScenarioFamily?.label ? ` · target: ${escapeHtml(item.targetScenarioFamily.label)}` : ""}</small>
       <button data-improvement-index="${index}">Test on same worlds</button>
     </article>`).join("")}</div>`;
   improvementOutput.querySelectorAll("[data-improvement-index]").forEach((button) => {
@@ -315,6 +410,8 @@ async function restoreRecord(record) {
   }
   if (record.simulationBatch) renderSimulationBatch(record.simulationBatch);
   state.sensitivity = record.sensitivity || state.sensitivity;
+  state.scenarioComparison = record.scenarioComparison || state.scenarioComparison;
+  if (record.scenarioComparison && !record.simulationBatch) renderScenarioComparison(record.scenarioComparison);
   state.improvements = record.improvements?.length ? record.improvements : state.improvements;
   state.improvementComparison = record.improvementComparison || null;
   prepareRevisionButton.disabled = !state.improvementComparison;
@@ -338,6 +435,7 @@ saveExperimentButton.addEventListener("click", async () => {
       simulationBatch: state.simulationBatch,
       analyzedExperiment: state.analyzedExperiment,
       sensitivity: state.sensitivity,
+      scenarioComparison: state.scenarioComparison,
       improvements: state.improvements,
       improvementComparison: state.improvementComparison,
       parentRecordId: state.recordId || state.parentRecordId,
@@ -401,6 +499,7 @@ function currentPensieveRecord() {
     simulationBatch: state.simulationBatch,
     analyzedExperiment: state.analyzedExperiment,
     sensitivity: state.sensitivity,
+    scenarioComparison: state.scenarioComparison,
     improvements: state.improvements,
     improvementComparison: state.improvementComparison,
     parentRecordId: state.parentRecordId,

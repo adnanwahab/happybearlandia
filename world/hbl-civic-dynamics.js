@@ -1,3 +1,5 @@
+import { deriveCausalGraph, evaluateCausalGraph, traceCausalPathways } from "./causal-graph.js";
+
 function finite(value, fallback = 0) {
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
@@ -214,54 +216,66 @@ function driverRows(world) {
   ].map(([label, effect]) => ({ label, effect: round(effect, 4) }));
 }
 
-function staticContext(world) {
-  const deliveryCapacity = mean([
+function causalValue(causalState, id, fallback = 0.5) {
+  const value = causalState?.[id];
+  return Number.isFinite(value) ? clamp01(value) : fallback;
+}
+
+function staticContext(world, causalState = {}) {
+  const fallbackDelivery = mean([
     good(world, "agency_capacity", 0.65),
     good(world, "funding_delivery_rate", 0.75),
     good(world, "local_compliance", 0.6),
     good(world, "enforcement_rate", 0.65),
     good(world, "labor_availability", 0.6),
   ]);
-  const politicalDurability = mean([
+  const fallbackPolitical = mean([
     good(world, "public_support", 0.55),
     bad(world, "political_turnover_probability", 0.55),
     bad(world, "polarization", 0.55),
     good(world, "public_trust", 0.55),
   ]);
-  const financePressure = mean([
+  const fallbackFinancePressure = mean([
     normalized(world, "interest_rate", 0.4),
     normalized(world, "inflation_rate", 0.3),
     bad(world, "credit_availability", 0.4),
   ]);
-  const demandPressure = mean([
+  const fallbackDemand = mean([
     normalized(world, "population_growth", 0.5),
     normalized(world, "migration_rate", 0.5),
     normalized(world, "household_size", 0.45),
   ]);
+  const fallbackSupply = mean([
+    good(world, "land_availability", 0.55),
+    bad(world, "permitting_delay_months", 0.55),
+    good(world, "labor_availability", 0.6),
+  ]);
+  const financialCapacity = causalValue(causalState, "financial_capacity", 1 - fallbackFinancePressure);
+  const costPressure = causalValue(causalState, "cost_pressure", normalized(world, "construction_cost_change", 0.4));
+  const publicConfidence = causalValue(causalState, "public_confidence", good(world, "public_trust", 0.55));
   return {
-    deliveryCapacity,
-    politicalDurability,
-    financePressure,
-    demandPressure,
-    supply: mean([
-      good(world, "land_availability", 0.55),
-      bad(world, "permitting_delay_months", 0.55),
-      good(world, "labor_availability", 0.6),
-    ]),
+    deliveryCapacity: causalValue(causalState, "delivery_capacity", fallbackDelivery),
+    politicalDurability: causalValue(causalState, "political_durability", fallbackPolitical),
+    financePressure: mean([1 - financialCapacity, costPressure], fallbackFinancePressure),
+    demandPressure: causalValue(causalState, "demand_pressure", fallbackDemand),
+    supply: causalValue(causalState, "supply_capacity", fallbackSupply),
     infrastructure: good(world, "infrastructure_capacity", 0.6),
     technology: good(world, "technology_improvement", 0.5),
     behavior: good(world, "citizen_behavior_change", 0.5),
-    privateResponse: good(world, "private_sector_response", 0.5),
+    privateResponse: causalValue(causalState, "private_response", good(world, "private_sector_response", 0.5)),
     labor: good(world, "labor_availability", 0.6),
-    support: good(world, "public_support", 0.55),
+    support: mean([good(world, "public_support", 0.55), publicConfidence], 0.55),
     cohesion: good(world, "community_cohesion", 0.55),
     inequalityPenalty: normalized(world, "inequality", 0.45),
     climatePenalty: normalized(world, "climate_stress", 0.3),
-    costPenalty: normalized(world, "construction_cost_change", 0.4),
+    costPenalty: costPressure,
     unemploymentPenalty: normalized(world, "unemployment_rate", 0.3),
     inflationPenalty: normalized(world, "inflation_rate", 0.3),
     growth: good(world, "economic_growth", 0.55),
     credit: good(world, "credit_availability", 0.55),
+    resilienceBase: causalValue(causalState, "disruption_resilience", 1 - normalized(world, "external_shock_probability", 0.25)),
+    publicConfidence,
+    financialCapacity,
   };
 }
 
@@ -331,7 +345,7 @@ function domainSignals(domains, context) {
   return signals;
 }
 
-function finalExplanation(world, context, events, domainMomentum) {
+function finalExplanation(world, context, events, domainMomentum, causalEvaluation) {
   const drivers = driverRows(world).sort((a, b) => Math.abs(b.effect) - Math.abs(a.effect));
   const positiveDrivers = drivers.filter((row) => row.effect > 0.05).slice(0, 5);
   const negativeDrivers = drivers.filter((row) => row.effect < -0.05).slice(0, 5);
@@ -349,6 +363,17 @@ function finalExplanation(world, context, events, domainMomentum) {
       politicalDurability: round(context.political, 3),
       disruptionResilience: round(context.resilience, 3),
     },
+    causalPathways: traceCausalPathways(causalEvaluation),
+    feedbackLoops: (causalEvaluation?.feedbackLoops || [])
+      .slice()
+      .sort((a, b) => b.activity - a.activity)
+      .map((loop) => ({
+        id: loop.id,
+        label: loop.label,
+        type: loop.type,
+        activity: round(loop.activity, 3),
+        description: loop.description,
+      })),
   };
 }
 
@@ -358,7 +383,13 @@ export function simulateHblCivicDynamics({ experiment, world }) {
   const horizon = Math.max(1, Math.min(100, Math.round(finite(experiment?.experiment?.horizonYears, 10))));
   const intensity = planIntensity(experiment);
   const delayYears = Math.max(0, condition(world, "implementation_delay_months", 6) / 12);
-  const staticState = staticContext(world);
+  const derivedGraph = deriveCausalGraph(
+    experiment?.worldModel?.variables || [],
+    experiment?.worldModel?.causalEdges || [],
+  );
+  const causalEdges = Array.isArray(experiment?.worldModel?.causalEdges) && experiment.worldModel.causalEdges.length
+    ? experiment.worldModel.causalEdges
+    : derivedGraph.edges;
   const domains = [...new Set(registry.map(metricDomain).filter(Boolean))];
   if (!domains.length) domains.push("implementation");
   if (!domains.includes("implementation")) domains.push("implementation");
@@ -368,6 +399,8 @@ export function simulateHblCivicDynamics({ experiment, world }) {
   let disruptionCarry = 0;
   let turnoverCarry = 0;
   let rolloutStarted = false;
+  let causalState = {};
+  let finalCausalEvaluation = null;
   const domainMomentum = Object.fromEntries(domains.map((domain) => [domain, 0]));
 
   for (let year = 1; year <= horizon; year++) {
@@ -395,9 +428,25 @@ export function simulateHblCivicDynamics({ experiment, world }) {
     disruptionCarry = clamp(disruptionCarry * 0.42 + shockSeverity * 0.48, 0, 0.95);
     turnoverCarry = clamp(turnoverCarry * 0.55 + turnoverSeverity * 0.38, 0, 0.8);
 
-    const delivery = clamp(staticState.deliveryCapacity * (0.30 + rollout * 0.88) * (1 - disruptionCarry * 0.48) * (1 - turnoverCarry * 0.28), 0, 1);
-    const political = clamp(staticState.politicalDurability * (1 - turnoverCarry * 0.55) * (0.88 + rollout * 0.16), 0, 1);
-    const resilience = clamp(1 - disruptionCarry * 0.75 - normalized(world, "external_shock_probability", 0.25) * 0.12, 0, 1);
+    const causalEvaluation = evaluateCausalGraph({
+      world,
+      edges: causalEdges,
+      previousState: causalState,
+      modifiers: {
+        delivery_capacity: rollout * 0.04 - disruptionCarry * 0.18 - turnoverCarry * 0.16,
+        political_durability: rollout * 0.025 - turnoverCarry * 0.34,
+        public_confidence: rollout * 0.03 - disruptionCarry * 0.08 - turnoverCarry * 0.08,
+        disruption_resilience: -disruptionCarry * 0.36,
+        cost_pressure: disruptionCarry * 0.08,
+      },
+    });
+    causalState = causalEvaluation.state;
+    finalCausalEvaluation = causalEvaluation;
+    const staticState = staticContext(world, causalState);
+
+    const delivery = clamp(staticState.deliveryCapacity * (0.30 + rollout * 0.88) * (1 - disruptionCarry * 0.38) * (1 - turnoverCarry * 0.22), 0, 1);
+    const political = clamp(staticState.politicalDurability * (1 - turnoverCarry * 0.48) * (0.88 + rollout * 0.16), 0, 1);
+    const resilience = clamp(staticState.resilienceBase * (1 - disruptionCarry * 0.58) - normalized(world, "external_shock_probability", 0.25) * 0.06, 0, 1);
     const context = {
       ...staticState,
       delivery,
@@ -435,6 +484,18 @@ export function simulateHblCivicDynamics({ experiment, world }) {
       disruptionResilience: round(resilience, 3),
       domainEffects: Object.fromEntries(Object.entries(domainMomentum).map(([domain, value]) => [domain, round(value, 4)])),
       metrics,
+      causalState: {
+        deliveryCapacity: round(causalState.delivery_capacity, 3),
+        politicalDurability: round(causalState.political_durability, 3),
+        publicConfidence: round(causalState.public_confidence, 3),
+        financialCapacity: round(causalState.financial_capacity, 3),
+        demandPressure: round(causalState.demand_pressure, 3),
+        supplyCapacity: round(causalState.supply_capacity, 3),
+        privateResponse: round(causalState.private_response, 3),
+        costPressure: round(causalState.cost_pressure, 3),
+        disruptionResilience: round(causalState.disruption_resilience, 3),
+      },
+      feedbackLoops: (causalEvaluation.feedbackLoops || []).map((loop) => ({ id: loop.id, activity: round(loop.activity, 3) })),
       events: yearEvents.map((row) => row.type),
     });
   }
@@ -445,7 +506,7 @@ export function simulateHblCivicDynamics({ experiment, world }) {
     political: final?.politicalDurability ?? 0,
     resilience: final?.disruptionResilience ?? 0,
   };
-  const explanation = finalExplanation(world, finalContext, events, domainMomentum);
+  const explanation = finalExplanation(world, finalContext, events, domainMomentum, finalCausalEvaluation);
   const score = final?.score ?? 0;
 
   return {
@@ -463,12 +524,14 @@ export function simulateHblCivicDynamics({ experiment, world }) {
       { component: "domain-response", weight: 0.15, value: round((mean(Object.values(domainMomentum), 0) + 1) * 50, 2) },
     ],
     model: {
-      id: "hbl-civic-dynamics.v1",
-      version: 1,
+      id: "hbl-civic-dynamics.v2",
+      version: 2,
       predictive: false,
       modelClass: "time-stepped-civic-dynamics",
       horizonYears: horizon,
       domains,
+      causalGraph: "hbl-causal-graph.v1",
+      feedbackLoops: (finalCausalEvaluation?.feedbackLoops || []).map((loop) => loop.id),
     },
     disclaimer: "HBL civic dynamics is a deterministic systems-model hypothesis generator. It is not empirically calibrated and should not be interpreted as a real-world forecast.",
   };
@@ -480,6 +543,7 @@ export const __test = {
   deterministicUnit,
   planIntensity,
   staticContext,
+  causalValue,
   weightedSignal,
   applyImprovementToMetric,
 };

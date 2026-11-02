@@ -20,6 +20,15 @@ describe("experiment records and lineage", () => {
     expect(a.savedAt).not.toBe(b.savedAt);
   });
 
+  test("stores scenario-family comparison alongside the experiment snapshot", () => {
+    const record = createExperimentRecord({
+      experiment,
+      scenarioComparison: { schemaVersion: "scenario-family-outcomes.v1", weakestFamilyId: "recession" },
+    });
+    expect(record.scenarioComparison.weakestFamilyId).toBe("recession");
+    expect(record.codeVersion).toBe("hbl-civic-experiment-lab.v3");
+  });
+
   test("traces parent record lineage in chronological ancestry order", () => {
     const root = createExperimentRecord({ experiment }, new Date("2026-01-01T00:00:00Z"));
     const revisedExperiment = { ...experiment, id: "exp_2", lineage: { revision: 2, parentExperimentId: "exp_1" } };

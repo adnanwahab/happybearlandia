@@ -1,6 +1,10 @@
 import { extractSimulationParameters, summarizeParameterExtraction } from "./parameter-extractor.js";
 import { deriveMetricRegistry } from "./metric-registry.js";
 import { deriveScenarioFamilies } from "./scenario-families.js";
+import { deriveCausalGraph } from "./causal-graph.js";
+import { attachEvidenceLayer } from "./evidence-registry.js";
+import { decorateExperimentModel } from "./model-registry.js";
+import { attachUncertaintyMetadata } from "./uncertainty-analysis.js";
 
 const isObject = (value) => Boolean(value) && typeof value === "object" && !Array.isArray(value);
 const asObject = (value) => isObject(value) ? value : {};
@@ -177,6 +181,7 @@ export function buildCivicExperiment(synthesis, request = {}, now = new Date()) 
   const variables = extractSimulationParameters(plan, safeRequest.parameterOverrides ?? safeRequest.parameter_overrides);
   const metricRegistry = deriveMetricRegistry(plan);
   const scenarioFamilies = deriveScenarioFamilies(variables, safeRequest.scenarioFamilies ?? safeRequest.scenario_families);
+  const causalGraph = deriveCausalGraph(variables, safeRequest.causalEdges ?? safeRequest.causal_edges);
 
   const experimentCore = {
     schemaVersion: "civic-experiment.v1",
@@ -191,7 +196,12 @@ export function buildCivicExperiment(synthesis, request = {}, now = new Date()) 
     worldModel: {
       variables,
       parameterExtraction: summarizeParameterExtraction(variables),
-      causalEdges: [],
+      causalEdges: causalGraph.edges,
+      feedbackLoops: causalGraph.feedbackLoops,
+      causalGraph: {
+        schemaVersion: causalGraph.schemaVersion,
+        nodes: causalGraph.nodes,
+      },
       scenarioFamilies,
     },
     experiment: {
@@ -218,9 +228,15 @@ export function buildCivicExperiment(synthesis, request = {}, now = new Date()) 
     },
   };
 
+  const modeledExperimentCore = decorateExperimentModel(experimentCore, { gitCommit: safeRequest.gitCommit ?? safeRequest.git_commit });
+  const evidenceExperimentCore = attachEvidenceLayer(modeledExperimentCore, {
+    evidenceRegistry: safeRequest.evidenceRegistry ?? safeRequest.evidence_registry ?? safeRequest.evidence,
+  });
+  const uncertaintyExperimentCore = attachUncertaintyMetadata(evidenceExperimentCore);
+
   return {
-    ...experimentCore,
-    id: `exp_${hashString(stableStringify(experimentCore))}`,
+    ...uncertaintyExperimentCore,
+    id: `exp_${hashString(stableStringify(uncertaintyExperimentCore))}`,
     createdAt: now.toISOString(),
   };
 }

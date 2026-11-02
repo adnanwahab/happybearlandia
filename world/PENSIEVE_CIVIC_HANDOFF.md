@@ -36,3 +36,31 @@ Suggested museum rooms:
 The URL query parameters `hbl_record`, `hbl_experiment`, `hbl_plan`, and
 `hbl_handoff` are identifiers only. The full snapshot is transported as JSON or
 via `postMessage`; do not try to place it in the URL.
+
+## Receiver helper
+
+`pensieve-receiver.js` provides an origin-checked receiver that can be copied or
+imported by Digital Pensieve. Prefer an explicit allow-list such as
+`https://happybearlandia.fly.dev`; do not use `*` for production receivers.
+
+```js
+import { createPensieveCivicReceiver } from "./pensieve-receiver.js";
+
+const receiver = createPensieveCivicReceiver({
+  allowedOrigins: ["https://happybearlandia.fly.dev"],
+  onHandoff(handoff, summary) {
+    console.log(summary);
+    // render the museum from handoff.snapshot
+  },
+});
+receiver.attach(window);
+```
+
+## Automatic museum generation
+
+`museum-manifest.js` converts a civic experiment record into
+`pensieve-museum-manifest.v1`. The generated room sequence covers the journal
+and plan, assumptions/evidence, causal graph, future landscape, adverse-reality
+portals, diagnostics, and revision comparison. Digital Pensieve can map each
+room type onto its preferred CSS3D/Three.js presentation without changing the
+underlying civic data contract.

@@ -50,6 +50,9 @@ export function explainReality(simulation, experiment, options = {}) {
     explanation: simulation?.explanation || null,
     trace: simulation?.trace || [],
     adapter: simulation?.adapter || null,
+    scenarioFamily: simulation?.world?.scenarioFamily || null,
+    causalPathways: Array.isArray(simulation?.explanation?.causalPathways) ? simulation.explanation.causalPathways : [],
+    feedbackLoops: Array.isArray(simulation?.explanation?.feedbackLoops) ? simulation.explanation.feedbackLoops : [],
     topDrivers: drivers.slice(0, limit),
     allDrivers: drivers,
   };
@@ -108,6 +111,15 @@ export function renderRealityInspector(container, simulation, experiment) {
   );
   container.appendChild(head);
 
+  if (explanation.scenarioFamily) {
+    const scenario = element("p", "notice");
+    scenario.append(
+      element("strong", "", `${explanation.scenarioFamily.label || explanation.scenarioFamily.id}: `),
+      document.createTextNode(explanation.scenarioFamily.description || "Scenario family"),
+    );
+    container.appendChild(scenario);
+  }
+
   const metrics = element("div", "metric-cards");
   for (const [name, value] of Object.entries(explanation.metrics)) {
     const card = element("div", "metric-card");
@@ -143,6 +155,36 @@ export function renderRealityInspector(container, simulation, experiment) {
     }
     table.appendChild(tbody);
     container.appendChild(table);
+  }
+
+  if (explanation.causalPathways.length) {
+    container.appendChild(element("h3", "", "Strongest causal pathways"));
+    const pathList = element("div", "driver-list");
+    for (const path of explanation.causalPathways) {
+      const row = element("div", "driver-row");
+      row.append(
+        element("strong", "", path.description || (path.nodes || []).join(" → ")),
+        element("span", "", `target: ${String(path.target || "system").replaceAll("_", " ")}`),
+        element("span", "driver-delta", `${path.direction || "modeled"} · ${Number(path.effect || 0) >= 0 ? "+" : ""}${Number(path.effect || 0).toFixed(3)}`),
+      );
+      pathList.appendChild(row);
+    }
+    container.appendChild(pathList);
+  }
+
+  if (explanation.feedbackLoops.length) {
+    container.appendChild(element("h3", "", "Feedback loops"));
+    const loopList = element("div", "driver-list");
+    for (const loop of explanation.feedbackLoops) {
+      const row = element("div", "driver-row");
+      row.append(
+        element("strong", "", loop.label || loop.id),
+        element("span", "", loop.description || loop.type || "feedback loop"),
+        element("span", "driver-delta", `${loop.type || "loop"} · activity ${(Number(loop.activity || 0) * 100).toFixed(0)}%`),
+      );
+      loopList.appendChild(row);
+    }
+    container.appendChild(loopList);
   }
 
   if (explanation.events.length) {

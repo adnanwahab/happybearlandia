@@ -2,6 +2,7 @@ import { validateCivicExperiment } from "./experiment-contract.js";
 import { generateWorlds } from "./world-generator.js";
 import { createHblCivicDynamicsAdapter, simulateExperiment } from "./simulation-adapter.js";
 import { summarizeOutcomes } from "./outcome-analysis.js";
+import { summarizeScenarioFamilies } from "./scenario-outcome-analysis.js";
 
 function sameJson(a, b) {
   return JSON.stringify(a) === JSON.stringify(b);
@@ -27,6 +28,15 @@ export async function runExperimentVerification(experiment, options = {}) {
     : fail("contract", contract.errors.join("; "), contract.errors));
 
   if (!contract.ok) return { ok: false, checks };
+
+  const causalEdges = experiment?.worldModel?.causalEdges || [];
+  const feedbackLoops = experiment?.worldModel?.feedbackLoops || [];
+  checks.push(causalEdges.length > 0
+    ? pass("causal-graph", `${causalEdges.length} explicit causal edges are present`)
+    : fail("causal-graph", "worldModel.causalEdges is empty"));
+  checks.push(feedbackLoops.length > 0
+    ? pass("feedback-loops", `${feedbackLoops.length} named feedback loops are present`)
+    : fail("feedback-loops", "worldModel.feedbackLoops is empty"));
 
   const runs = Math.max(4, Math.min(64, Number(options.runs) || 16));
   const seed = Number.isFinite(Number(experiment?.experiment?.seed)) ? Number(experiment.experiment.seed) : 424242;
@@ -85,6 +95,23 @@ export async function runExperimentVerification(experiment, options = {}) {
   checks.push(timelineOk
     ? pass("simulation-timeline", `${batch.simulations.length}/${runs} simulations returned ${horizon}-year finite timelines`)
     : fail("simulation-timeline", `one or more simulations did not return a complete ${horizon}-year timeline`));
+
+  const causalTraceOk = batch.simulations.every((simulation) =>
+    simulation?.model?.causalGraph === "hbl-causal-graph.v1"
+    && Array.isArray(simulation?.explanation?.causalPathways)
+    && simulation.explanation.causalPathways.length > 0
+    && Array.isArray(simulation?.explanation?.feedbackLoops)
+    && simulation.explanation.feedbackLoops.length > 0);
+  checks.push(causalTraceOk
+    ? pass("causal-trace", `${batch.simulations.length}/${runs} simulations returned causal pathways and feedback-loop activity`)
+    : fail("causal-trace", "one or more simulations are missing causal pathways or feedback-loop activity"));
+
+  const scenarioComparison = summarizeScenarioFamilies(batch, experiment);
+  const scenarioOk = scenarioComparison.familyCount >= 1
+    && scenarioComparison.families.every((family) => family.worlds > 0 && Number.isFinite(family.expectedScore));
+  checks.push(scenarioOk
+    ? pass("scenario-families", `${scenarioComparison.familyCount} scenario families compared; weakest=${scenarioComparison.weakestFamily?.label || "unknown"}`)
+    : fail("scenario-families", "scenario-family outcome comparison is missing or incomplete", scenarioComparison));
 
   const summary = summarizeOutcomes(batch);
   const summaryOk = Number.isFinite(summary.expectedScore)

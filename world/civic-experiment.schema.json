@@ -35,6 +35,8 @@
       "properties": {
         "variables": { "type": "array" },
         "causalEdges": { "type": "array" },
+        "feedbackLoops": { "type": "array" },
+        "causalGraph": { "type": "object" },
         "scenarioFamilies": { "type": "array" }
       },
       "additionalProperties": true

@@ -1,3 +1,4 @@
+import { buildReproducibilityManifest } from "./reproducibility.js";
 function isObject(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
@@ -35,7 +36,7 @@ export function createExperimentRecord(input = {}, now = new Date()) {
     schemaVersion: "civic-experiment-record.v1",
     id: `record_${hashString(stableStringify(identity))}`,
     savedAt: now.toISOString(),
-    codeVersion: "hbl-civic-experiment-lab.v2",
+    codeVersion: "hbl-civic-experiment-lab.v3",
     lineage: {
       parentRecordId,
       parentExperimentId: input.experiment?.lineage?.parentExperimentId || null,
@@ -47,8 +48,14 @@ export function createExperimentRecord(input = {}, now = new Date()) {
     simulationBatch: input.simulationBatch || null,
     analyzedExperiment: input.analyzedExperiment || null,
     sensitivity: input.sensitivity || null,
+    scenarioComparison: input.scenarioComparison || null,
     improvements: input.improvements || [],
     improvementComparison: input.improvementComparison || null,
+    reproducibility: buildReproducibilityManifest({
+      experiment: input.experiment,
+      worldBatch: input.worldBatch,
+      simulationBatch: input.simulationBatch,
+    }),
   };
 }
 

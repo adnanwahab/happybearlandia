@@ -101,6 +101,9 @@ export function generatePlanImprovements(experiment, sensitivityAnalysis, option
   const sensitivities = sensitivityAnalysis?.sensitivities || [];
   const failureById = new Map((sensitivityAnalysis?.failureModes || []).map((row) => [row.id, row]));
   const improvements = [];
+  const targetScenarioFamily = options.targetScenarioFamily && typeof options.targetScenarioFamily === "object"
+    ? { id: options.targetScenarioFamily.id || null, label: options.targetScenarioFamily.label || options.targetScenarioFamily.id || null }
+    : null;
 
   for (const sensitivity of sensitivities) {
     if (improvements.length >= limit) break;
@@ -130,7 +133,10 @@ export function generatePlanImprovements(experiment, sensitivityAnalysis, option
         failurePattern: failure?.pattern || null,
         failureDelta: failure?.delta ?? null,
       },
-      warning: "This is a simulation hypothesis derived from sensitivity, not evidence that the policy change will cause the modeled improvement.",
+      targetScenarioFamily,
+      warning: targetScenarioFamily
+        ? `This is a simulation hypothesis targeted at ${targetScenarioFamily.label || targetScenarioFamily.id}; it is not evidence that the policy change will cause the modeled improvement.`
+        : "This is a simulation hypothesis derived from sensitivity, not evidence that the policy change will cause the modeled improvement.",
     });
   }
 

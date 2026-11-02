@@ -26,7 +26,7 @@ describe("simulation adapter", () => {
 
   test("uses HBL civic dynamics as the built-in adapter", () => {
     const adapter = selectSimulationAdapter({});
-    expect(adapter.id).toBe("hbl-civic-dynamics.v1");
+    expect(adapter.id).toBe("hbl-civic-dynamics.v2");
     expect(adapter.predictive).toBe(false);
     expect(createHblCivicDynamicsAdapter().modelClass).toBe("time-stepped-civic-dynamics");
   });

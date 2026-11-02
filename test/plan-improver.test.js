@@ -27,6 +27,14 @@ describe("plan improver", () => {
     expect(improvement.warning).toContain("not evidence");
   });
 
+  test("can mark an improvement as targeted at a scenario family", () => {
+    const [improvement] = generatePlanImprovements(experiment, sensitivity, {
+      targetScenarioFamily: { id: "political_reversal", label: "Political reversal" },
+    });
+    expect(improvement.targetScenarioFamily).toEqual({ id: "political_reversal", label: "Political reversal" });
+    expect(improvement.warning).toContain("Political reversal");
+  });
+
   test("creates a new experiment revision without replacing the parent", () => {
     const improvement = generatePlanImprovements(experiment, sensitivity)[0];
     const revised = applyPlanImprovement(experiment, improvement);

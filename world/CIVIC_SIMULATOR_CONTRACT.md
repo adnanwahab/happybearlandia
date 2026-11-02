@@ -61,7 +61,7 @@ Unknown metric ids are allowed so a simulator can evolve before the registry cat
 
 ## Built-in HBL civic dynamics model
 
-When neither an in-page simulator nor an HTTP endpoint is registered, Experiment Lab now uses the built-in `hbl-civic-dynamics.v1` adapter rather than the older implementation-only stress score.
+When neither an in-page simulator nor an HTTP endpoint is registered, Experiment Lab now uses the built-in `hbl-civic-dynamics.v2` adapter rather than the older implementation-only stress score.
 
 The built-in model:
 
@@ -81,7 +81,20 @@ window.HBL_CIVIC_SIMULATOR
         ↓
 window.HBL_CIVIC_SIMULATOR_ENDPOINT
         ↓
-hbl-civic-dynamics.v1
+hbl-civic-dynamics.v2
 ```
 
 The legacy implementation stress adapter remains available programmatically through `createImplementationStressAdapter()` or by resolving with `{ preferStressFallback: true }`.
+
+
+## Causal graph and feedback loops
+
+`hbl-civic-dynamics.v2` evaluates `experiment.worldModel.causalEdges` every simulated year. The graph maps reviewed world assumptions into derived system states such as delivery capacity, political durability, supply capacity, cost pressure, private response, public confidence, financial capacity, and disruption resilience.
+
+The built-in graph includes damped feedback loops so cycles remain bounded:
+
+- implementation → confidence → political durability → implementation (reinforcing)
+- private response → supply → cost pressure → private response (balancing)
+- resilience ↔ public confidence (reinforcing)
+
+These are modeling hypotheses, not claims of real-world causality. The Reality Inspector surfaces the strongest modeled pathways and active feedback loops so users can audit why the simulator produced an outcome.

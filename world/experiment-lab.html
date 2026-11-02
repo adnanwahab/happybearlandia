@@ -45,6 +45,7 @@
     .driver-row span { color:var(--muted); font-size:11px; } .driver-row .driver-delta { color:#e0c77e; text-align:right; }
     .analysis-table { width:100%; border-collapse:collapse; font-size:12px; } .analysis-table th,.analysis-table td { padding:8px 7px; border-bottom:1px solid #202a31; text-align:left; } .analysis-table th { color:#8f9ba6; font-weight:500; } .analysis-table td:last-child { text-align:right; color:#e0c77e; }
     .improvement-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:10px; } .improvement-card { border:1px solid #2b342f; background:#0a100d; border-radius:11px; padding:13px; } .improvement-card p { color:var(--muted); font-size:12px; min-height:48px; } .improvement-card small { display:block; color:#bda56e; margin:8px 0; }
+    .scenario-grid { display:grid; gap:8px; margin:12px 0; } .scenario-row { display:grid; grid-template-columns:minmax(170px,1fr) minmax(180px,2fr) 80px 90px; gap:10px; align-items:center; padding:9px 10px; border:1px solid #202a31; border-radius:9px; background:#090d11; } .scenario-row.weakest { border-color:#74433f; background:#160d0c; } .scenario-row.strongest { border-color:#365b49; } .scenario-bar { height:8px; background:#1c252b; border-radius:999px; overflow:hidden; } .scenario-bar > span { display:block; height:100%; background:#c9a968; } .scenario-row.weakest .scenario-bar > span { background:#e47f77; } .scenario-row.strongest .scenario-bar > span { background:#7ed6a3; } .scenario-meta { color:var(--muted); font-size:11px; } select { border:1px solid #3a4650; border-radius:999px; background:#090d11; color:var(--text); padding:8px 12px; font:inherit; }
     pre { overflow:auto; max-height:280px; background:#090d11; border:1px solid #202a31; border-radius:9px; padding:12px; font-size:11px; }
     .status { min-height:22px; color:#aab6c0; }
     @media (max-width:900px) { .grid { grid-template-columns:1fr; } }
@@ -106,40 +107,53 @@
   </section>
 
   <section class="panel" style="margin-top:18px">
-    <h2>06 · Outcome landscape</h2>
+    <h2>06 · Scenario-family outcome comparison</h2>
+    <p class="notice">Compare robustness across Baseline, Boom, Bottleneck, Recession, Political Reversal, Technology Surprise, Climate Disruption, and High Cooperation. This answers which kinds of futures are hardest for the current plan.</p>
+    <div id="scenario-family-summary"><p class="notice">Run simulations first.</p></div>
+    <div id="scenario-family-comparison" class="scenario-grid"></div>
+    <div id="scenario-family-diagnosis"></div>
+    <div class="button-row">
+      <select id="scenario-target" disabled aria-label="Scenario family to target"></select>
+      <button id="target-scenario-improvements" disabled>Improve against selected family</button>
+    </div>
+    <div id="scenario-target-status" class="status">Run simulations first.</div>
+  </section>
+
+  <section class="panel" style="margin-top:18px">
+    <h2>07 · Outcome landscape</h2>
     <p class="notice">Each point is one sampled reality. Nearby points have similar world conditions/outcomes under a lightweight deterministic PCA projection.</p>
     <svg id="outcome-landscape" class="landscape" aria-label="Outcome landscape"></svg>
     <div id="landscape-selection" class="status">Run simulations to populate the landscape.</div>
   </section>
 
   <section class="panel" style="margin-top:18px">
-    <h2>07 · Reality inspector</h2>
+    <h2>08 · Reality inspector</h2>
     <p class="notice">Click any reality above to inspect the conditions that diverged furthest from the reviewed baseline.</p>
     <div id="reality-inspector"><p class="notice">Select a reality in the landscape.</p></div>
   </section>
 
   <section class="panel" style="margin-top:18px">
-    <h2>08 · Sensitivity & failure modes</h2>
+    <h2>09 · Sensitivity & failure modes</h2>
     <p class="notice">Correlation is diagnostic, not causal proof. Use it to find assumptions worth inspecting and to compare successful vs failed sampled worlds.</p>
     <div id="sensitivity-output"><p class="notice">Run simulations first.</p></div>
   </section>
 
   <section class="panel" style="margin-top:18px">
-    <h2>09 · Improve plan → re-run same worlds</h2>
+    <h2>10 · Improve plan → re-run same worlds</h2>
     <p class="notice">Suggestions are stress-test hypotheses derived from sensitivity. Testing one keeps the sampled worlds fixed and changes only the modeled plan resilience, so the comparison is paired rather than random.</p>
     <div id="improvement-output"><p class="notice">Run sensitivity analysis first.</p></div>
     <div id="improvement-result" class="status"></div>
   </section>
 
   <section class="panel" style="margin-top:18px">
-    <h2>10 · Verification</h2>
+    <h2>11 · Verification</h2>
     <p class="notice">Run a local invariant check: contract validity, deterministic sampling, locked variables, seed sensitivity, finite simulations, and outcome summaries.</p>
     <div class="button-row"><button id="run-verification" disabled>Run self-check</button></div>
     <pre id="verification-output">Load a plan first.</pre>
   </section>
 
   <section class="panel" style="margin-top:18px">
-    <h2>11 · Save, replay & lineage</h2>
+    <h2>12 · Save, replay & lineage</h2>
     <p class="notice">Save the complete local experiment snapshot (assumptions, sampled worlds, results, analysis) in IndexedDB. A record URL reopens the same snapshot in this browser.</p>
     <div class="button-row">
       <button id="save-experiment" disabled>Save snapshot</button>
@@ -151,7 +165,7 @@
   </section>
 
   <section class="panel" style="margin-top:18px">
-    <h2>12 · Dear Congress feedback</h2>
+    <h2>13 · Dear Congress feedback</h2>
     <p class="notice">Turn a tested improvement into an explicit revision draft. Preparing is local; sending is a deliberate write to <code>/api/publish_draft</code>. Configure <code>window.HBL_DEAR_CONGRESS_REVISION_MAPPER</code> if your Dear Congress draft schema differs.</p>
     <div class="button-row">
       <button id="prepare-revision" disabled>Prepare revision draft</button>
@@ -162,7 +176,7 @@
   </section>
 
   <section class="panel" style="margin-top:18px">
-    <h2>13 · Digital Pensieve handoff</h2>
+    <h2>14 · Digital Pensieve handoff</h2>
     <p class="notice">Package this experiment as a museum-ready snapshot. Download/copy the full handoff JSON, or open a configured Pensieve URL with stable experiment identifiers.</p>
     <label class="notice" for="pensieve-url">Pensieve URL</label>
     <input id="pensieve-url" style="width:100%;box-sizing:border-box;margin:8px 0 12px;padding:10px;border:1px solid #2b342f;border-radius:8px;background:#080d11;color:#dfe7eb" placeholder="https://digital-pensieve.example/museum/">
