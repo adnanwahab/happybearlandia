@@ -159,7 +159,7 @@ async function handleGameConversation(pathname) {
 // Serve one file, or 404.
 async function serveFile(path) {
   const file = Bun.file(path);
-  return (await file.exists()) ? new Response(file) : notFound();
+  return (await file.exists()) ? new Response(file, { headers: path.startsWith("./world/") ? { "cache-control": "no-cache" } : {} }) : notFound();
 }
 
 // Serve a folder under a URL prefix:
@@ -181,7 +181,7 @@ async function serveStatic(prefix, root, pathname) {
   if (relative(root, filePath).startsWith("..")) return notFound();
 
   const file = Bun.file(filePath);
-  if (await file.exists()) return new Response(file);
+  if (await file.exists()) return new Response(file, { headers: prefix === "/world" ? { "cache-control": "no-cache" } : {} });
   if (!extname(filePath)) return serveFile(filePath + ".html");
   return notFound();
 }

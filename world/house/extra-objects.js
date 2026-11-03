@@ -1,5 +1,11 @@
 /** Purchasable game objects, with declared inventory footprints. */
 export const EXTRA_HOUSE_OBJECTS=Object.freeze({
+guitar:{label:'Acoustic guitar',category:'Work & hobbies',cost:140,roomId:'living',capacity:2,width:.8,depth:.7},
+boardGame:{label:'Board game table',category:'Entertainment',cost:110,roomId:'living',capacity:4,width:2.8,depth:2.8},
+bakingSet:{label:'Baking equipment',category:'Dining',cost:65,roomId:'kitchen',capacity:1,width:1,depth:.7},
+costumeChest:{label:'Costume chest',category:'Entertainment',cost:100,roomId:'living',capacity:2,width:1.2,depth:.8},
+camera:{label:'Household camera',category:'Work & hobbies',cost:95,roomId:'living',capacity:1,width:.7,depth:.7},
+microphone:{label:'Karaoke microphone',category:'Entertainment',cost:80,roomId:'living',capacity:1,width:.6,depth:.6},
 coffeeTable:{label:'Coffee table',category:'Tables',cost:95,roomId:'living',capacity:1,width:2,depth:1.1},
 rug:{label:'Woven rug',category:'Decor',cost:80,roomId:'living',capacity:1,width:4.7,depth:2.5},
 armchair:{label:'Armchair',category:'Seating',cost:220,roomId:'living',capacity:1,width:1.5,depth:1.6,restRecovery:.12},

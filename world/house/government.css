@@ -1,0 +1,122 @@
+/* The house is already cream and green. Trouble gets an amber accent. */
+.house-government-dialog {
+  --government-ink: #294b36;
+  --government-muted: #61715b;
+  --government-paper: #fffdf0;
+  --government-rule: #d3d9bd;
+  --government-orange: #a94f27;
+  box-sizing: border-box;
+  width: min(800px, calc(100vw - 36px));
+  max-height: min(88dvh, 1000px);
+  margin: auto;
+  padding: 26px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #aabc94;
+  border-radius: 24px;
+  background: var(--government-paper);
+  color: var(--government-ink);
+  box-shadow: 0 22px 90px #18372d55;
+  font: 15px/1.5 system-ui, sans-serif;
+  scrollbar-color: #adb990 transparent;
+}
+.house-government-dialog::backdrop { background: #24392c77; }
+.house-government-dialog * { box-sizing: border-box; }
+.house-government-dialog [hidden] { display: none !important; }
+.house-government-dialog h2 { margin: 3px 0 0; max-width: 540px; font-size: clamp(23px, 3vw, 31px); line-height: 1.14; letter-spacing: -.035em; }
+.house-government-dialog h3 { margin: 0; font-size: 17px; line-height: 1.3; }
+.house-government-dialog p { margin: 8px 0; }
+.house-government-dialog button, .house-government-dialog select {
+  min-height: 44px;
+  border: 1px solid #a6b893;
+  border-radius: 10px;
+  background: #edf3de;
+  color: var(--government-ink);
+  font: inherit;
+}
+.house-government-dialog button { padding: 10px 14px; cursor: pointer; }
+.house-government-dialog button:disabled { cursor: default; opacity: .56; }
+.house-government-dialog button:not(:disabled):hover { background: #e1eac9; border-color: #748f5d; }
+.house-government-dialog :is(button, select, summary):focus-visible,
+.house-government-episode:focus-visible { outline: 3px solid #bf6d39; outline-offset: 3px; }
+.house-government-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+.house-government-header .house-government-close { width: 44px; min-width: 44px; padding: 0; background: transparent; border-color: var(--government-rule); font-size: 25px; line-height: 1; }
+.house-government-eyebrow { display: block; margin: 0 !important; color: var(--government-muted); font-size: 10px; font-weight: 800; letter-spacing: .11em; }
+.house-government-intro { max-width: 640px; margin: 15px 0 22px !important; color: #53674f; }
+.house-government-casting { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; }
+.house-government-casting label { display: grid; gap: 5px; min-width: 200px; font-size: 12px; font-weight: 700; }
+.house-government-dialog select { width: 100%; max-width: 340px; padding: 9px 34px 9px 11px; background: #fffef7; font-size: 14px; }
+.house-government-counter { padding-bottom: 11px; color: var(--government-muted); font-size: 12px; text-align: right; }
+.house-government-person-note { min-height: 20px; color: var(--government-muted); font-size: 12px; }
+.house-government-objective { margin: 18px 0; padding: 13px 16px; border: 1px solid #e6cda7; border-radius: 12px; background: #fcf0d9; }
+.house-government-objective .house-government-eyebrow { color: #8d572f; }
+.house-government-objective p { margin: 4px 0 0; color: #704529; font-weight: 650; }
+.house-government-active { margin: 18px 0; padding: 18px; border: 1px solid #8fac79; border-radius: 15px; background: #edf3dc; }
+.house-government-active-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.house-government-active-heading > span { flex-shrink: 0; color: #597148; font-size: 12px; }
+.house-government-dialog progress { width: 100%; height: 8px; margin: 10px 0 12px; overflow: hidden; border: 0; border-radius: 10px; background: #d5dfbf; accent-color: #65864c; }
+.house-government-dialog progress::-webkit-progress-bar { background: #d5dfbf; border-radius: 10px; }
+.house-government-dialog progress::-webkit-progress-value { background: #65864c; border-radius: 10px; }
+.house-government-dialog progress::-moz-progress-bar { background: #65864c; border-radius: 10px; }
+.house-government-watch-controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.house-government-dialog .house-government-primary { border-color: #476f46; background: #527a4d; color: #fffef0; }
+.house-government-dialog .house-government-primary:not(:disabled):hover { background: #365c37; border-color: #365c37; }
+.house-government-episodes { display: grid; gap: 12px; }
+.house-government-episode { padding: 17px; border: 1px solid var(--government-rule); border-radius: 16px; background: #f8f8eb; scroll-margin: 12px; }
+.house-government-episode.is-available { border-color: #cba16d; background: #fffaf0; box-shadow: inset 3px 0 #b8763b; }
+.house-government-episode.is-active { border-color: #8fac79; }
+.house-government-episode.is-complete { background: #f0f4e4; }
+.house-government-chapter-head { display: flex; align-items: center; gap: 12px; }
+.house-government-chapter-number { display: grid; place-items: center; flex: 0 0 41px; height: 41px; border: 1px solid #d8dbc1; border-radius: 12px; background: #eeefdb; color: #69764e; font-size: 25px; }
+.is-available .house-government-chapter-number { border-color: #e5c493; background: #fbe3bc; color: #8f5c2b; }
+.house-government-chapter-head > div { flex: 1; min-width: 0; }
+.house-government-chapter-head h3 { margin-top: 2px; }
+.house-government-chapter-state { flex-shrink: 0; padding: 4px 8px; border-radius: 20px; background: #e8ecd9; color: #576a4b; font-size: 10px; font-weight: 750; }
+.is-available .house-government-chapter-state { background: #f4dcb6; color: #83542d; }
+.house-government-chapter-description { margin: 12px 0 !important; color: #56674f; font-size: 13px; }
+.house-government-choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.house-government-dialog .house-government-choice { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; min-height: 92px; padding: 12px; text-align: left; background: #fffef5; border-color: #c3cbae; }
+.house-government-choice strong { font-size: 13px; line-height: 1.35; }
+.house-government-choice span { color: #65725b; font-size: 11px; line-height: 1.45; }
+.house-government-choice:disabled span { color: #4d5b47; }
+.house-government-chapter-reason { margin: 10px 0 0 !important; color: #65725b; font-size: 12px; }
+.house-government-result { margin: 22px 0 14px; padding: 20px; border: 1px solid #d2bb8d; border-radius: 15px; background: #fcf2da; }
+.house-government-result > h3 { margin-top: 6px; }
+.house-government-result > p { color: #5c543d; }
+.house-government-dialog blockquote { margin: 12px 0; padding: 10px 14px; border-left: 3px solid #b99055; border-radius: 0 9px 9px 0; background: #fffdf0a6; color: #6b4a2c; font-size: 14px; }
+.house-government-dialog blockquote.house-government-witness { border-color: #98ac7c; color: #44603e; background: #f4f5e4; }
+.house-government-souvenirs { margin: 20px 0; }
+.house-government-souvenirs > h3 { font-size: 14px; }
+.house-government-souvenirs [data-government-achievements] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin-top: 10px; }
+.house-government-achievement { padding: 11px 13px; border: 1px dashed #b7bb91; border-radius: 10px; background: #f6f6e6; }
+.house-government-achievement strong { display: block; color: #6c613a; font-size: 12px; }
+.house-government-achievement small { display: block; margin-top: 4px; color: #6c7258; font-size: 11px; }
+.house-government-memories { margin-top: 16px; border-top: 1px solid var(--government-rule); color: #52634a; font-size: 12px; }
+.house-government-memories summary { min-height: 44px; padding: 13px 0; cursor: pointer; font-weight: 650; }
+.house-government-memories ol { padding-left: 22px; }
+.house-government-memories li { margin-bottom: 12px; padding-left: 2px; }
+.house-government-memories p { margin-top: 3px; }
+.house-government-message { font-size: 13px; font-weight: 650; }
+.house-government-message:empty { display: none; }
+.house-government-message.is-error { padding: 10px 12px; border: 1px solid #dbb69a; border-radius: 10px; color: #873d27; background: #fbe9d9; }
+.house-government-footer { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--government-rule); }
+.house-government-footer > span { color: #82906e; font-size: 10px; font-weight: 750; letter-spacing: .11em; }
+@media (max-width: 600px) {
+  .house-government-dialog { width: calc(100vw - 18px); max-height: 92dvh; padding: 18px; border-radius: 19px; }
+  .house-government-header { gap: 12px; }
+  .house-government-dialog h2 { font-size: 23px; }
+  .house-government-casting { align-items: stretch; flex-direction: column; gap: 2px; }
+  .house-government-casting label { width: 100%; }
+  .house-government-dialog select { max-width: none; }
+  .house-government-counter { padding: 5px 0 0; text-align: left; }
+  .house-government-episode { padding: 14px; }
+  .house-government-chapter-head { gap: 9px; }
+  .house-government-chapter-number { flex-basis: 34px; height: 36px; border-radius: 9px; font-size: 22px; }
+  .house-government-chapter-head h3 { font-size: 15px; }
+  .house-government-chapter-state { max-width: 74px; text-align: center; font-size: 9px; }
+  .house-government-choices { grid-template-columns: 1fr; }
+  .house-government-dialog .house-government-choice { min-height: 61px; gap: 3px; }
+  .house-government-active-heading { align-items: flex-start; }
+  .house-government-souvenirs [data-government-achievements] { grid-template-columns: 1fr; }
+  .house-government-watch-controls > button { flex: 1 1 150px; }
+}

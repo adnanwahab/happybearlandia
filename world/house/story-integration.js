@@ -2,7 +2,7 @@ import {mountStoryPanel} from './story-ui.js';
 import {mountStoryControls} from './story-controls.js';
 /** Keeps the essential play controls visible and opts diagnostics into Advanced. */
 export function mountHouseStories(container,options={}){
- const doc=container.ownerDocument,toolbar=doc.createElement('nav');toolbar.className='house-story-toolbar';toolbar.setAttribute('aria-label','Household stories and view');container.append(toolbar);
+ const doc=container.ownerDocument,toolbar=doc.createElement('nav');toolbar.className='house-story-toolbar';toolbar.setAttribute('aria-label','Household stories and view');(container.querySelector('.house-top-actions')??container).append(toolbar);
  const panelHost=doc.createElement('div');panelHost.className='house-story-dialog';panelHost.setAttribute('role','region');panelHost.setAttribute('aria-label','Household stories');container.append(panelHost);
  const wants=doc.createElement('section');wants.className='house-wants-strip';wants.setAttribute('aria-label','Selected resident wants');container.querySelector('.house-bottom-hud')?.append(wants);const wantButtons=new Map();const panel=mountStoryPanel(panelHost,options),open=doc.createElement('button');open.type='button';open.textContent='💭 Wants & stories';open.dataset.houseStories='';open.onclick=()=>panel.open();toolbar.append(open);
  const controls=mountStoryControls(toolbar,{...options,onAdvancedChange:advanced=>container.classList.toggle('house-simple',!advanced)});

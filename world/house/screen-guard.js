@@ -1,0 +1,15 @@
+/** A small independent shell remains usable if startup fails or the view is
+ * accidentally removed. It never replaces a healthy household or its worker. */
+export function guardHouseScreen(container,{window:win=container.ownerDocument.defaultView}={}){
+ const doc=container.ownerDocument;let disposed=false,recovery=null,lastError=null;
+ const diagnostics=[];function note(kind,message){diagnostics.push({kind,message:String(message??'').slice(0,400),at:Date.now()});if(diagnostics.length>20)diagnostics.shift();container.dataset.screenDiagnostic=JSON.stringify(diagnostics);}
+ function show(reason){if(disposed||recovery?.isConnected)return;recovery=doc.createElement('section');recovery.className='house-screen-recovery';recovery.dataset.houseScreenRecovery='';recovery.setAttribute('role','alert');recovery.style.cssText='position:fixed;z-index:10000;left:50%;top:50%;transform:translate(-50%,-50%);max-width:440px;width:calc(100% - 40px);padding:24px;border-radius:16px;background:#fffff5;color:#244438;box-shadow:0 10px 40px #203f3840;font:16px/1.5 system-ui';
+ const title=doc.createElement('h1');title.textContent='Let’s bring your household back';title.style.cssText='font-size:22px;margin:0 0 12px';const text=doc.createElement('p');text.textContent=reason;const retry=doc.createElement('button');retry.type='button';retry.textContent='Restore saved household';retry.style.cssText='padding:10px 16px;border-radius:8px;background:#3b8c60;color:white;margin-right:12px';retry.onclick=()=>win.location.reload();const homes=doc.createElement('a');homes.href='/world/house';homes.textContent='Saved homes';recovery.append(title,text,retry,homes);doc.body.append(recovery);note('recovery',reason);}
+ function check(){if(disposed)return;if(!container.isConnected||!container.firstElementChild)show('The view was interrupted. Restore the latest saved progress to continue.');else if(recovery?.isConnected&&container.querySelector('.house-home-label')){recovery.remove();recovery=null;}}
+ const observer=new win.MutationObserver(check);observer.observe(doc.body,{childList:true,subtree:true});
+ const error=event=>{lastError=String(event.message??event.reason?.message??event.reason??'Household error');note('error',lastError);check();};
+ const contextLost=event=>{if(event.target?.closest?.('#house-app'))note('graphics','WebGL context lost');};
+ win.addEventListener('error',error);win.addEventListener('unhandledrejection',error);doc.addEventListener('webglcontextlost',contextLost,true);
+ const pageshow=()=>{note('pageshow','Document visible');check();};win.addEventListener('pageshow',pageshow);
+ return{check,fail(error){lastError=error?.message??String(error);note('startup',lastError);show('The household could not finish loading. Your saved progress has not been replaced.');},destroy(){disposed=true;observer.disconnect();win.removeEventListener('error',error);win.removeEventListener('unhandledrejection',error);win.removeEventListener('pageshow',pageshow);doc.removeEventListener('webglcontextlost',contextLost,true);recovery?.remove();}};
+}

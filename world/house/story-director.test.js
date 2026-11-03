@@ -1,7 +1,11 @@
-import {careerRequirements} from './progression.js';
+import {careerRequirements,updateHouseholdGoals} from './progression.js';
 import {test,expect} from 'bun:test';
-import {createPopulationModel,serializePopulation,restorePopulation} from '../population/model.js';
-import {inspectHouse} from './model.js';
+import {createPopulationModel,stepPopulation,serializePopulation,restorePopulation} from '../population/model.js';
+import {inspectHouse,getHouseState,inspectHouseholdActionAvailability} from './model.js';
+import {applyHouseholdSystemCommand} from './system-command.js';
+import {queueHouseholdTask} from './task-queue.js';
+import {dateVenues} from './date-system.js';
+import {setHouseholdMembers} from '../population/household-members.js';
 import {createStorySystem,predictHouseStory,dailyStoryRecap,groundedStoryOpportunities,detectStorySeeds,storyDecisionPlan} from './story-director.js';
 import {advanceHouseSocialSystems,validateHouseSocialSystems} from './social-systems.js';
 import {personStoryPresentation} from './story-visuals.js';
@@ -42,3 +46,101 @@ test('configured weighted seeded decisions reproduce across serialization and in
 test('weighted decisions vary deterministic ordering, use stronger seed chance and never override player queues',()=>{const{m,h}=fixture();present(m,h);system.command(m,h,{type:'configure',chance:.2,cooldownMinutes:30});const candidates=[{request:{type:'read',personId:pidTest(m,0)}},{request:{type:'clean',personId:pidTest(m,1)}}],seeds=[{strength:.8,personIds:[pidTest(m,1)],suggestedAction:{type:'clean'}}];expect(storyDecisionPlan(m,h,candidates,seeds).chance).toBeGreaterThan(storyDecisionPlan(m,h,candidates,[]).chance);const first=new Set();for(let slot=0;slot<40;slot++){m.minute=360+slot*30;first.add(storyDecisionPlan(m,h,candidates,[]).ordered[0].request.type);}expect(first.size).toBe(2);system.command(m,h,{type:'configure',chance:1});h.life.enabled=true;h.life.autonomy=true;m.houseTasks={byPerson:Object.fromEntries([0,1,2,3].map(i=>[i,[{id:'actual-player-task'}]]))};system.advance(m,h,{startMinute:m.minute-1,endMinute:m.minute});expect(h.actions).toHaveLength(0);expect(h.systems.story.directorEncouragement.accepted).toBe(false);system.validate(m,h);});
 test('party chaos ownership suppresses duplicate director party action encouragement',()=>{const{m,h}=fixture();present(m,h);party(m,h,'Dance Party');h.systems.partyChaos={activePartyId:'theme-party'};h.systems.story.config={enabled:true,chance:1,cooldownMinutes:30};h.life.enabled=true;h.life.autonomy=true;system.advance(m,h,{startMinute:m.minute-1,endMinute:m.minute});expect(h.actions).toHaveLength(0);expect(h.systems.story.lastDecision).toBeUndefined();});
 test('managed parties keep their canonical theme authority and hide legacy Story theme settings via inspection',()=>{const{m,h}=fixture();party(m,h,'Dinner');h.systems.partyChaos={};expect(system.inspect(m,h).partyChaosManaged).toBe(true);expect(()=>system.command(m,h,{type:'partyType',value:'Birthday'})).toThrow('actual party controls');expect(h.systems.story.partyKinds['theme-party']).toBe('Dinner');});
+
+test('daily wants respect canonical ages without replacing goals for temporary resource or activity blockers',()=>{
+ const {m,h}=fixture(),child=m.prefix+'-p0',older=m.prefix+'-p1';
+ m.people.ageYears[0]=4;m.people.ageYears[1]=13;
+ h.systems.story.people[child].day=null;h.systems.story.people[older].day=null;
+ system.prepare(m,h);
+ const childWants=h.systems.story.people[child].wants;
+ expect(childWants).toHaveLength(3);
+ expect(childWants.map(w=>w.type).sort()).toEqual(['conversation','music','rest']);
+ const before=structuredClone(h.systems.story.people);
+ h.preparedServings=0;m.households.savings[0]=0;
+ h.actions=[{id:'busy',type:'cook',participants:[1],progress:{1:0}}];
+ m.houseTasks={byPerson:{1:[{id:'wait-for-workstation'}]}};
+ system.prepare(m,h);
+ expect(h.systems.story.people).toEqual(before);
+ system.validate(m,h);
+});
+
+test('same-day saved wants replace impossible unfinished goals without rewards or changing completed history',()=>{
+ const {m,h}=fixture(),id=m.prefix+'-p0',day=Math.floor(m.minute/1440),resident=h.systems.story.people[id];
+ m.people.ageYears[0]=4;
+ const complete={id:`${day}:read`,type:'read',label:'Read something',complete:true,createdMinute:330,completedMinute:350};
+ const allowed={id:`${day}:music`,type:'music',label:'Listen to music',complete:false,createdMinute:330};
+ resident.day=day;resident.lifePoints=15;
+ resident.wants=[complete,{id:`${day}:cook`,type:'cook',label:'Cook a meal',complete:false,createdMinute:330},allowed];
+ h.progression.rewardPoints=25;
+ const before=JSON.stringify(h),saved=serializePopulation(m),events=structuredClone(h.systems.story.events);
+ const inspection=system.inspect(m,h).members.find(p=>p.personId===id);
+ expect(inspection.wants).toHaveLength(3);
+ expect(inspection.wants).toContainEqual(complete);
+ expect(inspection.wants).toContainEqual(allowed);
+ expect(inspection.wants.some(w=>!w.complete&&['cook','read','clean'].includes(w.type))).toBe(false);
+ expect(JSON.stringify(h)).toBe(before);expect(serializePopulation(m)).toEqual(saved);
+ system.prepare(m,h);
+ expect(resident.wants).toEqual(inspection.wants);
+ expect(resident.wants.find(w=>w.id===complete.id)).toBe(complete);
+ expect(resident.wants.find(w=>w.id===allowed.id)).toBe(allowed);
+ expect(resident.lifePoints).toBe(15);expect(h.progression.rewardPoints).toBe(25);
+ expect(h.systems.story.events).toEqual(events);
+ const repaired=JSON.stringify(h);system.prepare(m,h);expect(JSON.stringify(h)).toBe(repaired);
+ expect(()=>system.command(m,h,{type:'want',personId:id,wantId:`${day}:cook`})).toThrow('Choose an unfinished want');
+ system.validate(m,h);
+});
+
+test('missing permanent affordances remove unfinished wants while completed wants and identities remain',()=>{
+ const {m,h}=fixture(),id=m.prefix+'-p0',resident=h.systems.story.people[id],day=Math.floor(m.minute/1440);
+ m.people.ageYears[0]=4;
+ resident.wants=[{id:`${day}:rest`,type:'rest',label:'Enjoy a quiet rest',complete:true,createdMinute:330,completedMinute:350},{id:`${day}:music`,type:'music',label:'Listen to music',complete:false,createdMinute:330}];
+ h.objects=h.objects.filter(o=>!['couch','music'].includes(o.type));
+ system.prepare(m,h);
+ expect(resident.wants.map(w=>w.type)).toEqual(['rest','conversation']);
+ expect(new Set(resident.wants.map(w=>w.id)).size).toBe(resident.wants.length);
+ expect(resident.wants.filter(w=>w.complete)).toHaveLength(1);
+ system.validate(m,h);
+});
+
+
+test('conversation wants try another actual household partner without interrupting dates or queued work or rewarding intent',()=>{
+ for(const blocker of ['date','queue']){
+  const m=createPopulationModel({population:8,householdSize:4,seed:42},{},{initialMinute:360,initialTick:360}),h=getHouseState(m,0);present(m,h);
+  for(const i of [0,3,4]){m.people.ageYears[i]=30;m.people.age[i]=1;m.people.parent1[i]=-1;m.people.parent2[i]=-1;}
+  m.people.ageYears[1]=4;m.people.age[1]=0;m.people.ageYears[2]=13;m.people.social[1]=90;m.people.employed.fill(0);
+  updateHouseholdGoals(m,h);system.prepare(m,h);h.systems.story.config={enabled:false,chance:0,cooldownMinutes:30};
+  const personId=pidTest(m,1),want=h.systems.story.people[personId].wants.find(w=>w.type==='conversation');
+  if(blocker==='date'){
+   const ids=[pidTest(m,0),pidTest(m,4)];
+   tieRecord(m,0,4,{kind:'Friends',dating:true,friendship:56,romance:35,familiarity:60,memories:[],lastMinute:null});
+   applyHouseholdSystemCommand(m,{householdId:h.householdId,system:'dates',type:'start',personIds:ids,consentingPersonIds:ids,venueId:dateVenues(m,h)[0].id,travelMode:'instant'});
+   expect(inspectHouseholdActionAvailability(m,{householdId:h.householdId,personId,type:'conversation',personIds:[personId,ids[0]],conversationChoice:'chat',topic:'day'}).available).toBe(false);
+  }else queueHouseholdTask(m,{householdId:h.householdId,personId:pidTest(m,0),type:'read'});
+  const before=structuredClone({minute:m.minute,date:m.houses.homes[0].systems.dates?.active,assignments:m.dateAssignments,queues:m.houseTasks,points:m.houses.homes[0].progression.rewardPoints,lifePoints:m.houses.homes[0].systems.story.people[personId].lifePoints});
+  const result=applyHouseholdSystemCommand(m,{householdId:h.householdId,system:'story',type:'want',personId,wantId:want.id});
+  const home=m.houses.homes[0],started=home.actions.find(a=>a.id===result.result.actionId);
+  expect(result.accepted).toBe(true);expect(started.type).toBe('conversation');expect(started.participants).toEqual([1,2]);
+  expect({minute:m.minute,date:home.systems.dates?.active,assignments:m.dateAssignments,queues:m.houseTasks,points:home.progression.rewardPoints,lifePoints:home.systems.story.people[personId].lifePoints}).toEqual(before);
+  expect(home.systems.story.people[personId].wants.find(w=>w.id===want.id).complete).toBe(false);
+  expect(home.completedActions).toHaveLength(0);
+  stepPopulation(m,{minutes:started.durationMinutes});
+  expect(m.houses.homes[0].systems.story.people[personId].wants.find(w=>w.id===want.id).complete).toBe(true);
+  expect(m.houses.homes[0].systems.story.people[personId].lifePoints).toBe(before.lifePoints+5);
+ }
+});
+
+test('an explicit want remains reachable after the bounded general opportunity list fills',()=>{
+ const m=createPopulationModel({population:32,householdSize:4,seed:42},{},{initialMinute:360,initialTick:360});
+ // A saved household enlarged by moves can contain more than the initial mean size.
+ const members=Array.from({length:32},(_,i)=>i);m.people.household.fill(0);
+ setHouseholdMembers(m,0,members);for(let h=1;h<m.households.size.length;h++)setHouseholdMembers(m,h,[]);
+ for(const i of members){m.people.ageYears[i]=30;m.people.age[i]=1;m.people.current[i]=m.people.home[i]=m.people.home[0];m.people.x[i]=m.people.homeX[i]=m.people.homeX[0];m.people.z[i]=m.people.homeZ[i]=m.people.homeZ[0];m.people.remaining[i]=0;m.people.hunger[i]=90;m.people.social[i]=90;}
+ const h=getHouseState(m,0);present(m,h);updateHouseholdGoals(m,h);system.prepare(m,h);
+ for(const i of members)h.systems.story.people[pidTest(m,i)].wants=['read','music','conversation'].map(type=>({id:'0:'+type,type,label:type,complete:false,createdMinute:m.minute}));
+ const personId=pidTest(m,31),points=h.progression.rewardPoints;
+ const result=applyHouseholdSystemCommand(m,{householdId:h.householdId,system:'story',type:'want',personId,wantId:'0:conversation'});
+ const home=m.houses.homes[0],started=home.actions.find(a=>a.id===result.result.actionId);
+ expect(result.accepted).toBe(true);expect(started.type).toBe('conversation');expect(started.participants).toEqual([31,0]);
+ expect(home.systems.story.people[personId].wants.find(w=>w.type==='conversation').complete).toBe(false);
+ expect(home.progression.rewardPoints).toBe(points);expect(m.minute).toBe(360);
+});

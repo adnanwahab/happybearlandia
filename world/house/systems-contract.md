@@ -1,6 +1,6 @@
 Shared 90-feature integration contract (Models)
 
-Canonical API: runtime.householdSystemCommand({householdId,system,type,...payload}). Worker records one kind:'house-system' entry in the existing bounded householdTimeline. Replay executes the same pure module rule against the original full model. Runtime and worker remain authoritative; modules do not create another resident, wallet, weather owner or clock.
+Canonical API: runtime.householdSystemCommand({householdId,system,type,...payload}). Worker records one kind:'house-system' entry in the existing retained householdTimeline. Replay executes the same pure module rule against the original full model. Runtime and worker remain authoritative; modules do not create another resident, wallet, weather owner or clock.
 
 STORAGE CORRECTION: use home.systems[systemId], matching Social and Economy. Earlier commentary mentioned systemState; home.systems is the agreed field. home.systems is raw authoritative state in model.houses.homes; house inspection returns projections from inspectHouseholdSystems. Persisted module state must be bounded plain data and at most 512 KiB per home's combined systems. No functions are serialized.
 
