@@ -42,3 +42,28 @@ test('map paints before slow nearby enrichment, which merges progressively and c
  const valid=normalizeDateWorldPlace({...place,id:'osm:node:123',kind:'cafe'});pending[1].resolve({ok:true,json:async()=>({places:[valid]})});expect((await first).places.some(p=>p.id===valid.id)).toBe(true);
  const old=loader.load(place),next=loader.load({...place,lat:35,lng:139});expect(pending[2].signal.aborted).toBe(true);expect(pending[3].signal.aborted).toBe(true);pending[4].resolve({ok:true,json:async()=>({source:'osm'})});pending[5].resolve({ok:false,status:503});await next;pending[2].resolve({ok:true,json:async()=>({source:'osm'})});pending[3].resolve({ok:true,json:async()=>({places:[valid]})});expect(await old).toBeNull();expect(loader.current.origin.lat).toBe(35);expect(loader.current.nearby.status).toBe('unavailable');loader.destroy();
 });
+
+test('indoor OSM venue dresses its containing mapped footprint without replacing geometry',()=>{
+ const venue={...place,name:'Tokyo Joe’s Shot Bar',kind:'bar',osmTags:{amenity:'bar'}};
+ const area={source:'osm',buildings:[{id:'w1',pts:[[29.6999,-95.4001],[29.6999,-95.3999],[29.7001,-95.3999],[29.7001,-95.4001]]}]};
+ const world=buildDateWorld(venue,area);
+ expect(world.buildings).toHaveLength(1);expect(world.buildings[0]).toMatchObject({id:'w1',source:'osm',selectedVenue:true,venueStyle:'bar',name:venue.name});
+ expect(world.buildings[0].polygon).toHaveLength(4);expect(world.provenance.modeledVenue).toBe(false);
+});
+test('indoor point with no footprint gets an explicitly illustrative bounded exterior, never an invented OSM building',()=>{
+ const world=buildDateWorld({...place,kind:'bar',osmTags:{amenity:'bar'}},{source:'none',error:'provider offline'});
+ expect(world.buildings).toHaveLength(1);expect(world.buildings[0]).toMatchObject({source:'modeled',height:4.2,selectedVenue:true});
+ expect(world.buildings[0].geometrySource).toContain('not a surveyed footprint');expect(world.provenance.modeledVenue).toBe(true);expect(world.source).toBe('unavailable');
+ expect(buildDateWorld({...place,kind:'park',osmTags:{leisure:'park'}},{}).buildings).toHaveLength(0);
+});
+
+test('terrain arrives progressively without delaying mapped buildings and stale terrain cannot overwrite a new place',async()=>{
+ let resolveTerrain;const terrain=new Promise(resolve=>resolveTerrain=resolve),published=[];
+ const loader=createDateWorldLoader({nearby:false,terrainLoader:()=>terrain,fetchImpl:async()=>Response.json({source:'osm',buildings:[]}),onUpdate:world=>published.push(world)});
+ const first=loader.load({...place,lat:41.312,lng:-74.006});
+ await new Promise(resolve=>setTimeout(resolve,0));
+ expect(published.at(-1).source).toBe('osm');expect(published.at(-1).terrain).toBeUndefined();
+ loader.cancel();resolveTerrain({schemaVersion:'date-terrain.v1',status:'ready',heights:[0]});
+ expect(await first).toBeNull();expect(loader.current.terrain).toBeUndefined();
+ loader.destroy();
+});

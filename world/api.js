@@ -268,7 +268,7 @@ export function createAreaService({ fetchImpl = fetch, now = Date.now, endpoints
       if (remaining < 1) { tries.push(`${radius}m: request time budget exhausted`); break; }
       const {s,w,n,e} = bounds(lat,lng,radius);
       const region = `${s},${w},${n},${e}`;
-      const query = `[out:json][timeout:25];(way["building"](${region});way["leisure"~"^(park|playground)$"](${region});way["highway"~"^(motorway|trunk|primary|secondary|tertiary|residential|unclassified|living_street|pedestrian)$"](${region});node["shop"](${region});node["amenity"~"^(restaurant|cafe|fast_food|bar|pub|school)$"](${region}););out tags geom;`;
+      const query = `[out:json][timeout:25];(way["building"](${region});way["leisure"~"^(park|playground)$"](${region});way["highway"~"^(motorway|trunk|primary|secondary|tertiary|residential|unclassified|living_street|pedestrian|footway|path|steps|track|cycleway)$"](${region});node["shop"](${region});node["amenity"~"^(restaurant|cafe|fast_food|bar|pub|school)$"](${region}););out tags geom;`;
       try { json = await queryOverpass(query, Math.max(1,Math.min(overpassTimeoutMs,remaining)), { fetchImpl,endpoints }); usedRadius = radius; break; }
       catch (error) { const message = errorText(error); tries.push(`${radius}m: ${message}`); if (isConnectivityFailure(message)) break; }
     }

@@ -1,3 +1,4 @@
+import {loadDateTerrain} from './date-terrain.js';
 import {createDatePlace,validateDatePlace} from './date-place.js';
 import {projector} from '../gen.js';
 
@@ -31,6 +32,8 @@ export function mergeDateWorldPlaces(world, result) {
   return {...world,places:[...byId.values()].slice(0,160),nearby:{status:'ready',verifiedCount:verified.length,attribution:result.attribution??null,warnings:(result.warnings??[]).slice(0,8)}};
 }
 
+function containsOrigin(polygon){let inside=false;for(let i=0,j=polygon.length-1;i<polygon.length;j=i++){const [x,z]=polygon[i],[u,v]=polygon[j];const cross=x*v-u*z;if(Math.abs(cross)<1e-7&&Math.min(x,u)<=0&&Math.max(x,u)>=0&&Math.min(z,v)<=0&&Math.max(z,v)>=0)return true;if((z>0)!==(v>0)&&0<(u-x)*(-z)/(v-z)+x)inside=!inside;}return inside;}
+const indoorVenues=new Set(['bar','pub','nightclub','cafe','restaurant','fast_food','ice_cream','museum','gallery','aquarium','amusement_arcade','bowling_alley','karaoke','cinema','theatre','books','mall']);
 const validRing = pts => Array.isArray(pts)&&pts.length>=3&&pts.every(p=>Array.isArray(p)&&p.length>=2&&p.every(finite));
 /** Environment only: never calls population generation or changes the home world.
  * Coordinates are east/south metres relative to the chosen place. */
@@ -50,14 +53,23 @@ export function buildDateWorld(place, area = {}, {participantIds=[]}={}) {
     const canonical=normalizeDateWorldPlace(p),[x,z]=proj.toXZ(p.lat,p.lng);
     return {...(canonical??p),id:canonical?.id??null,markerId:canonical?.id??`map-point:${i}`,name:p.name??p.kind??'Mapped place',x,z,source:'osm',interactive:!!canonical};
   }).filter(p=>Math.hypot(p.x,p.z)<=radiusM).slice(0,159);
-  const canonical=normalizeDateWorldPlace(place),selected={...(canonical??place),id:canonical?.id??place.id??null,markerId:'selected:'+key,x:0,z:0,interactive:!!canonical};
+  const venue=normalizeDateWorldPlace(place)??dateWorldVenuePlace(place),venueKind=venue?.kind??place.kind;
+  if(venue&&indoorVenues.has(venueKind)){
+    const containing=buildings.filter(b=>b.kind!=='park'&&containsOrigin(b.polygon)).sort((a,b)=>Math.hypot(...a.center)-Math.hypot(...b.center))[0];
+    if(containing)Object.assign(containing,{selectedVenue:true,name:venue.name,venueStyle:venueKind,geometrySource:'OSM building footprint'});
+    else if(!buildings.some(b=>b.kind!=='park'&&Math.hypot(...b.center)<25)){
+      buildings.unshift({id:'venue-model:'+venue.id,name:venue.name,kind:venueKind,venueStyle:venueKind,selectedVenue:true,polygon:[[-10,-7],[10,-7],[10,7],[-10,7]],center:[0,0],height:4.2,source:'modeled',geometrySource:'Illustrative venue exterior; OSM point only, not a surveyed footprint'});
+      if(buildings.length>350)buildings.pop();
+    }
+  }
+  const canonical=normalizeDateWorldPlace(place)??dateWorldVenuePlace(place),selected={...(canonical??place),id:canonical?.id??place.id??null,markerId:'selected:'+key,x:0,z:0,interactive:!!canonical};
   const duplicate=places.findIndex(p=>canonical&&p.id===canonical.id);if(duplicate>=0)places.splice(duplicate,1);places.unshift(selected);
   return {schemaVersion:'date-world.v1',key,origin,radiusM,participantIds:[...new Set(participantIds.map(String))].slice(0,2),selectedPlace:selected,buildings,roads,places,
-    limits:{buildings:350,roads:350,places:160,roadSegments:2000,buildingVertices:512},source:mapped?'osm':'unavailable',status:mapped?'ready':'fallback',provenance:{source:mapped?'osm':'unavailable',attribution:area.attribution??(mapped?'© OpenStreetMap contributors':null),cacheStatus:area.cacheStatus??null,stale:!!area.stale,fetchedAt:area.fetchedAt??null,error:area.error??(!mapped?'Neighborhood map unavailable; showing the chosen location only.':null)}};
+    limits:{buildings:350,roads:350,places:160,roadSegments:2000,buildingVertices:512},source:mapped?'osm':'unavailable',status:mapped?'ready':'fallback',provenance:{source:mapped?'osm':'unavailable',attribution:area.attribution??(mapped?'© OpenStreetMap contributors':null),cacheStatus:area.cacheStatus??null,stale:!!area.stale,fetchedAt:area.fetchedAt??null,modeledVenue:buildings.some(b=>b.source==='modeled'),error:area.error??(!mapped?'Neighborhood map unavailable; showing the chosen location only.':null)}};
 }
 /** One selected/active place at a time. Superseded results never publish, including
  * fetch implementations that ignore AbortSignal. UI owns load lifecycle. */
-export function createDateWorldLoader({fetchImpl=globalThis.fetch,onUpdate=()=>{},timeoutMs=15000,nearby=true}={}) {
+export function createDateWorldLoader({fetchImpl=globalThis.fetch,onUpdate=()=>{},timeoutMs=15000,nearby=true,terrainLoader=loadDateTerrain}={}) {
   let controller=null,generation=0,current=null,destroyed=false;
   function cancel(){generation++;controller?.abort();controller=null;}
   return {get current(){return current;},cancel,
@@ -75,7 +87,9 @@ export function createDateWorldLoader({fetchImpl=globalThis.fetch,onUpdate=()=>{
         const request=(async()=>{const response=await fetchImpl(url,{signal:requestController.signal});if(!response.ok)throw Error(`Neighborhood HTTP ${response.status}`);return response.json();})();
         return await Promise.race([request,deadline,aborted]);
       }finally{clearTimeout(timer);own.signal.removeEventListener('abort',abortRequest);if(abortWait)own.signal.removeEventListener('abort',abortWait);}}
-      let enrichment=null,enrichmentError=null;
+      let enrichment=null,enrichmentError=null,terrainResult=null;
+      const terrainTask=Promise.resolve().then(()=>terrainLoader(place,{fetchImpl,signal:own.signal})).then(terrain=>{if(!live()||terrain?.status==='not-applicable')return;terrainResult=terrain;publish({...current,terrain});}).catch(error=>{if(live()){terrainResult={schemaVersion:'date-terrain.v1',status:'unavailable',heights:[],reason:error.message};publish({...current,terrain:terrainResult});}});
+
       const query=new URLSearchParams({lat:String(place.lat),lng:String(place.lng),radiusM:'400'});
       // Independent progressive requests: map painting never waits for discovery.
       const mapRequest=json(`/api/area?${query}&core=1`);
@@ -84,8 +98,8 @@ export function createDateWorldLoader({fetchImpl=globalThis.fetch,onUpdate=()=>{
         let area;try{area=await mapRequest;}catch(error){area={source:'none',error:error.message};}
         if(!live())return null;
         let world={...buildDateWorld(place,area,{participantIds}),nearby:{status:nearby?'loading':'disabled'}};
-        if(enrichment)world=mergeDateWorldPlaces(world,enrichment);else if(enrichmentError)world.nearby={status:'unavailable',error:enrichmentError};
-        publish(world);await discovery;return live()?current:null;
+        if(terrainResult)world.terrain=terrainResult;if(enrichment)world=mergeDateWorldPlaces(world,enrichment);else if(enrichmentError)world.nearby={status:'unavailable',error:enrichmentError};
+        publish(world);await Promise.all([discovery,terrainTask]);return live()?current:null;
       }finally{signal?.removeEventListener('abort',abort);}
     },destroy(){destroyed=true;cancel();current=null;}};
 }

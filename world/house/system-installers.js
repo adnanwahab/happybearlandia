@@ -1,6 +1,10 @@
 import {createPartyChaosSystem} from './party-chaos.js';
 import {createStorySystem} from './story-director.js';
+import {createInfluenceSystem} from './influence-ledger.js';
 import {createDateSystem} from './date-system.js';
+import {createDateQuestSystem} from './date-quests.js';
+import {createDateCinematicSystem} from './date-cinematic-system.js';
+import {createDateMysterySystem} from './date-mystery-system.js';
 import {createFamilySystem} from './family-system.js';
 import {createEmotionSpatialSystem} from './spatial-adapter.js';
 import {registerHouseholdSystem} from './system-registry.js';
@@ -16,6 +20,10 @@ export function installHouseSystems(){if(installed)return;installed=true;
  registerHouseholdSystem(createEmotionSpatialSystem({catalog:HOUSE_FURNITURE}));
  registerHouseholdSystem(createFamilySystem());
  registerHouseholdSystem(createDateSystem());
+ registerHouseholdSystem(createDateQuestSystem());
+ registerHouseholdSystem(createDateCinematicSystem());
+ registerHouseholdSystem(createDateMysterySystem());
  registerHouseholdSystem(createPartyChaosSystem());
  registerHouseholdSystem(createStorySystem());
+ registerHouseholdSystem(createInfluenceSystem());
 }
