@@ -1,3 +1,5 @@
+import {createActNormalService} from './world/party/act-normal-server.js';
+const actNormalService=createActNormalService();
 import {loadLocalOpenAISettings} from './world/ai/local-settings.js';
 loadLocalOpenAISettings();
 import {createDateMysteryHandler} from './world/date/mystery-api.js';
@@ -389,6 +391,8 @@ const server = serve({
 
   async fetch(request, server) {
     const { pathname } = new URL(request.url);
+    if(pathname.startsWith('/api/act-normal/'))return actNormalService.fetch(request,server);
+    if(/^\/world\/party\/act-normal\/?$/.test(pathname))return serveFile('./world/party/act-normal.html');
 
     if (pathname === "/api/character-journals") return handleCharacterJournals(request);
     if (pathname === "/api/economy-records") return handleEconomyRecords(request);
@@ -510,13 +514,16 @@ const server = serve({
   },
 
   websocket: {
+    pong(ws){if(ws.data?.roomId)actNormalService.websocket.pong(ws);},
     open(ws) {
+      if(ws.data?.roomId)return actNormalService.websocket.open(ws);
       console.log("Player connected");
       ws.subscribe("game");
       server.publish("game", JSON.stringify({ type: "playerJoined" }));
     },
 
     message(ws, message) {
+      if(ws.data?.roomId)return actNormalService.websocket.message(ws,message);
       let msg;
       try {
         msg = JSON.parse(message.toString());
@@ -529,6 +536,7 @@ const server = serve({
     },
 
     close(ws) {
+      if(ws.data?.roomId)return actNormalService.websocket.close(ws);
       console.log("Player disconnected");
       ws.publish("game", JSON.stringify({ type: "playerLeft" }));
     },
