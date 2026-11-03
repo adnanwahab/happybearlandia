@@ -1,0 +1,6 @@
+Date-photo API contract (READY; 3 SQLite regressions passed)
+POST /api/world-experiments/:experimentId/date-media JSON:
+{householdId,personIds:[actualIdA,actualIdB],dateId,minute,place:{id,name,lat,lng},image:'data:image/png;base64,...'}
+Optional schemaVersion:'date-media-upload.v1'. PNG/JPEG/WebP only, <=256KiB encoded data URI, decoded magic checked, no remote URL fetch. Flush autosession first. Reads latest branch house-session checkpoint; fallback immutable save only when no autosession. Requires actual active date.id and exact two actual participants, photo minute in saved date interval. No image embedded in checkpoint.
+201 metadata: {schemaVersion:'date-media.v1',id,mediaId,experimentId,householdId,dateId,personIds,minute,place,createdAt,mimeType,bytes,imageUrl,url}. GET .../:mediaId returns metadata. GET .../:mediaId/image returns immutable bytes. Persist imageUrl unchanged across forks: original experiment ID scopes the immutable source, no image duplication.
+Errors JSON403origin,400invalid/mismatched date,404record/media,413image,429write budget,507quota. Max24photos/experiment,4MiB encoded bytes/experiment,30writes/min independent of saves/autosessions. Existing photos preserved on quota. Root attachment command retains metadata +imageUrl only after upload succeeds.

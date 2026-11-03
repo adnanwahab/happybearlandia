@@ -1,3 +1,5 @@
+import {createPartyChaosSystem} from './party-chaos.js';
+import {createStorySystem} from './story-director.js';
 import {createDateSystem} from './date-system.js';
 import {createFamilySystem} from './family-system.js';
 import {createEmotionSpatialSystem} from './spatial-adapter.js';
@@ -14,4 +16,6 @@ export function installHouseSystems(){if(installed)return;installed=true;
  registerHouseholdSystem(createEmotionSpatialSystem({catalog:HOUSE_FURNITURE}));
  registerHouseholdSystem(createFamilySystem());
  registerHouseholdSystem(createDateSystem());
+ registerHouseholdSystem(createPartyChaosSystem());
+ registerHouseholdSystem(createStorySystem());
 }

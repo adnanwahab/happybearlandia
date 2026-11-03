@@ -1,5 +1,7 @@
 import {loadLocalOpenAISettings} from './world/ai/local-settings.js';
 loadLocalOpenAISettings();
+import {createDatePlacesHandler} from './world/house/date-drive-search.js';
+const handleDatePlaces=createDatePlacesHandler();
 import {createWorldPersistenceHandler} from './world/experiments/persistence-api.js';
 const handleWorldPersistence=createWorldPersistenceHandler();
 import {createRealityShareHandler} from './world/reality/share-api.js';
@@ -440,6 +442,7 @@ const server = serve({
     if (pathname === "/world-business-simulator" || pathname === "/world-business-simulator/") return Response.redirect("/world?business_mode=true", 302);
 
     // Synthetic world: /world?lat=29.7286&lng=-95.4746
+    if (["/api/date-places", "/api/date-places/drive", "/api/date-places/nearby", "/api/date-drive-options"].includes(pathname)) return handleDatePlaces(request);
     if (pathname === "/api/area") {
       try {
         return await handleArea(new URL(request.url));

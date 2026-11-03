@@ -276,7 +276,16 @@ export function createAreaService({ fetchImpl = fetch, now = Date.now, endpoints
     for (const element of json?.elements || []) {
       if (element.type === "way" && element.tags?.highway && element.geometry?.length >= 2) roads.push({kind:element.tags.highway,pts:element.geometry.map((point)=>[point.lat,point.lon])});
       else if (element.type === "way" && element.geometry?.length >= 4) buildings.push({ id:`w${element.id}`,kind:classify(element.tags),address:osmBuildingAddress(element.tags),dateTags:buildingDateTags(element.tags),levels:Number(element.tags?.["building:levels"])||null,name:element.tags?.name||null,pts:element.geometry.map((point)=>[point.lat,point.lon]),park:["park","playground"].includes(element.tags?.leisure) });
-      else if (element.type === "node") pois.push({kind:classify(element.tags),name:element.tags?.name||null,lat:element.lat,lng:element.lon});
+      else if (element.type === "node") {
+        const poi={kind:classify(element.tags),name:element.tags?.name||null,lat:element.lat,lng:element.lon};
+        // Preserve provider identities only. Legacy snapshots without an OSM ID stay unverified.
+        const osmId=String(element.id??'');
+        if(/^[1-9]\d{0,19}$/.test(osmId)&&(typeof element.id!=='number'||Number.isSafeInteger(element.id))){
+          const osmTags=Object.fromEntries(Object.entries(element.tags??{}).filter(([key,value])=>/^[A-Za-z0-9_:.-]{1,60}$/.test(key)&&!['constructor','prototype','__proto__'].includes(key)&&typeof value==='string').slice(0,48).map(([key,value])=>[key,value.slice(0,300)]));
+          Object.assign(poi,{id:'osm:node:'+osmId,osmType:'node',osmId,osmTags,source:'osm',sourceUrl:'https://www.openstreetmap.org/node/'+osmId,provenance:{provider:'overpass',osmType:'node',osmId}});
+        }
+        pois.push(poi);
+      }
     }
     const key = keyFor(lat,lng,radiusM);
     let body = { source:json?"osm":"none",origin:{lat,lng},radiusM:usedRadius,buildings:buildings.slice(0,MAX_BUILDINGS),roads:roads.slice(0,3000),pois:pois.slice(0,3000),attribution:json?"© OpenStreetMap contributors":null,error:json?null:`Overpass failed (${tries.join(" | ")})`,cacheStatus:"miss",stale:false,fetchedAt:json?new Date(now()).toISOString():null };
