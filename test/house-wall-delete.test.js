@@ -27,3 +27,14 @@ test('worker wall deletion retains short segments, empty layouts and checkpoint 
  expect(runtime.getSnapshot().minute).toBe(360);
  }finally{runtime.destroy();}
 });
+
+test('dragged walls snap both endpoints to the quarter-meter grid in either direction',async()=>{
+ const {houseWallBetweenPoints,snapHouseWallPoint}=await import('../world/house/walls.js');
+ for(const [start,end] of [[{x:.12,z:-.38},{x:2.13,z:1.14}],[{x:2.13,z:1.14},{x:.12,z:-.38}],[{x:-1.13,z:2.12},{x:-1.13,z:-2.13}]]){
+  const w=houseWallBetweenPoints(start,end,'drawn'),dx=Math.cos(w.rotation)*w.length/2,dz=-Math.sin(w.rotation)*w.length/2;
+  const a=snapHouseWallPoint(start),b=snapHouseWallPoint(end);
+  expect(w.x-dx).toBeCloseTo(a.x);expect(w.z-dz).toBeCloseTo(a.z);expect(w.x+dx).toBeCloseTo(b.x);expect(w.z+dz).toBeCloseTo(b.z);
+  expect(normalizeHouseWalls([w])).toHaveLength(1);
+ }
+ expect(houseWallBetweenPoints({x:0,z:0},{x:.1,z:.1},'tiny')).toBe(null);
+});
