@@ -1,3 +1,4 @@
+import {clearHomeStay} from '../house/stay-home.js';
 import {returnResidentHomeImmediately} from '../house/visits.js';
 import {modeAlternatives,eventEffects} from './behavior.js';
 import {childModePermission,parentCareConstraint} from './children.js';
@@ -39,6 +40,7 @@ export function applyWalkCommand(model,id,input){
  if(Math.hypot(x-p.x[index],z-p.z[index])<1)reject('This resident is already at the destination');
  const walk=modeAlternatives(model,index,district,eventEffects(model,model.minute),[x,z]).find(row=>row.id==='walk');if(!walk?.available||!Number.isFinite(walk.minutes)||walk.minutes<=0)reject(walk?.rejectedReason??'Destination exceeds the modeled walking distance limit');
  const minute=model.minute,personId=`${prefix}${index}`,command={tick:model.tick,minute,id:personId,destination},arrivalMinute=minute+walk.minutes;
+ clearHomeStay(model,index);
  // Reuse the same fields and ledger increments as an ordinary committed trip.
  p.mode[index]=MODES.indexOf('walk');p.from[index]=p.current[index];p.to[index]=district;p.fromX[index]=p.x[index];p.fromZ[index]=p.z[index];p.toX[index]=x;p.toZ[index]=z;p.toLocation[index]=location;
  p.remaining[index]=p.tripTotal[index]=walk.minutes;p.departureMinute[index]=minute;p.commute[index]=walk.minutes;p.activity[index]=8;p.plannedActivity[index]=9;p.plannedUntil[index]=arrivalMinute+5;p.planUntil[index]=0;p.restingUntil[index]=0;p.eatingUntil[index]=0;

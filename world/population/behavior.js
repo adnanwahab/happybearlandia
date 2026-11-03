@@ -1,3 +1,4 @@
+import {homeStayPlan} from '../house/stay-home.js';
 import {dateActivityPlan,dateNeedRates,recordDateInterval,inspectPersonDate} from '../house/date-system.js';
 import {householdMembers} from './household-members.js';
 import {updateRoommateArrival} from '../house/roommates.js';
@@ -78,6 +79,7 @@ function chooseActivity(model,i,minute,effects){
  const date=dateActivityPlan(model,i,minute);if(date)return date;
  const visit=visitActivityPlan(model,i,minute,{careConstraint:parentCareConstraint,beforeReturn:()=>releaseHouseVisitParticipant(model,i,minute)});if(visit&&visit.visitPhase!=='visiting')return visit;
  const interior=houseActivityPlan(model,i,minute);if(interior)return interior;if(visit)return visit;
+ const homeStay=homeStayPlan(model,i,minute);if(homeStay)return homeStay;
  const manual=model.manualWalks?.[i];if(manual){if(minute<manual.until&&(manual.home||!parentCareConstraint(model,i,minute)))return{activity:manual.home?0:9,until:Math.min(manual.until,nextFamilyBoundary(model,i,minute)),mandatory:true,destination:manual.destination,reason:'Player requested walk; brief arrival pause'};delete model.manualWalks[i];}
  const schedule=scheduleAt(model,i,minute);
  if(schedule.mandatory)return{...schedule,until:Math.min(schedule.until,nextFamilyBoundary(model,i,minute)),destination:schedule.destination??destinationFor(model,i,schedule.activity,effects,schedule.onsite)};
