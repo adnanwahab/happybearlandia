@@ -1,4 +1,5 @@
-import {houseActivityPlan,houseNeedRates,recordHouseInterval,houseActivityLabel} from '../house/model.js';
+import {visitActivityPlan,visitArrival} from '../house/visits.js';
+import {releaseHouseVisitParticipant,houseActivityPlan,houseNeedRates,recordHouseInterval,houseActivityLabel} from '../house/model.js';
 import {employmentScheduleAt,recordEmploymentInterval,consumeEmploymentPay,employmentIncomeFraction,employmentCalendar} from './employment.js';
 import {recordJournalInterval,recordJournalMoment,populationJournalActivity} from '../journals/model.js';
 import { ACTIVITIES, MODES, draw, clamp, recordTrace, recordEvent } from "./contracts.js";
@@ -17,7 +18,7 @@ const weatherInput=model=>model.weatherEffects||model.weather?.effects||NEUTRAL_
  * high means satisfied; hunger is fullness. Rates are NET points per simulated
  * minute, including background decay. No wall-clock timer or inspector mutation.
  */
-export function personNeedEffects(model,i,options={}){const p=model.people,absolute=options.minute??model.minute,minute=((absolute%1440)+1440)%1440,activity=ACTIVITIES[options.activity??p.activity[i]],childPlan=childScheduleAt(model,i,absolute),sleeping=activity==="HOME"&&(childPlan?childPlan.sleep||p.restingUntil?.[i]>absolute:minute<420||minute>=1320||p.restingUntil?.[i]>absolute),meal=activity==="HOME"&&(childPlan?childPlan.eat||p.eatingUntil?.[i]>absolute:(minute>=420&&minute<480)||(minute>=720&&minute<780)||(minute>=1080&&minute<1140)||p.eatingUntil?.[i]>absolute);const rates={hunger:-.055,energy:-.035,fun:-.025,social:-.02};
+export function personNeedEffects(model,i,options={}){const p=model.people,absolute=options.minute??model.minute,minute=((absolute%1440)+1440)%1440,activity=ACTIVITIES[options.activity??p.activity[i]],houseLabel=houseActivityLabel(model,i,absolute),awakeHouseAction=houseLabel&&houseLabel!=='HOUSE rest',childPlan=childScheduleAt(model,i,absolute),sleeping=activity==="HOME"&&!awakeHouseAction&&(childPlan?childPlan.sleep||p.restingUntil?.[i]>absolute:minute<420||minute>=1320||p.restingUntil?.[i]>absolute),meal=activity==="HOME"&&!houseLabel&&(childPlan?childPlan.eat||p.eatingUntil?.[i]>absolute:(minute>=420&&minute<480)||(minute>=720&&minute<780)||(minute>=1080&&minute<1140)||p.eatingUntil?.[i]>absolute);const rates={hunger:-.055,energy:-.035,fun:-.025,social:-.02};
  if(sleeping)rates.energy+=.24;
  if(meal)rates.hunger+=.45;
  if(activity==="HOME"&&!sleeping){rates.fun+=.015;if(model.households.size[p.household[i]]>1)rates.social+=.03;}
@@ -70,8 +71,9 @@ function destinationFor(model,i,activity,effects,onsite=false){
 }
 function chooseActivity(model,i,minute,effects){
  const p=model.people,c=model.config;
- const interior=houseActivityPlan(model,i,minute);if(interior)return interior;
- const manual=model.manualWalks?.[i];if(manual){if(minute<manual.until&&!parentCareConstraint(model,i,minute))return{activity:9,until:Math.min(manual.until,nextFamilyBoundary(model,i,minute)),mandatory:true,destination:manual.destination,reason:'Player requested walk; brief arrival pause'};delete model.manualWalks[i];}
+ const visit=visitActivityPlan(model,i,minute,{careConstraint:parentCareConstraint,beforeReturn:()=>releaseHouseVisitParticipant(model,i,minute)});if(visit&&visit.visitPhase!=='visiting')return visit;
+ const interior=houseActivityPlan(model,i,minute);if(interior)return interior;if(visit)return visit;
+ const manual=model.manualWalks?.[i];if(manual){if(minute<manual.until&&(manual.home||!parentCareConstraint(model,i,minute)))return{activity:manual.home?0:9,until:Math.min(manual.until,nextFamilyBoundary(model,i,minute)),mandatory:true,destination:manual.destination,reason:'Player requested walk; brief arrival pause'};delete model.manualWalks[i];}
  const schedule=scheduleAt(model,i,minute);
  if(schedule.mandatory)return{...schedule,until:Math.min(schedule.until,nextFamilyBoundary(model,i,minute)),destination:schedule.destination??destinationFor(model,i,schedule.activity,effects,schedule.onsite)};
  // A committed destination/activity survives substeps and tick endpoints.
@@ -135,8 +137,8 @@ export function stepActivities(model,minutes,effects){
       const progress=1-p.remaining[i]/p.tripTotal[i];p.x[i]=p.fromX[i]+(p.toX[i]-p.fromX[i])*progress;p.z[i]=p.fromZ[i]+(p.toZ[i]-p.fromZ[i])*progress;
       if(p.remaining[i]<=1e-9){p.remaining[i]=0;p.x[i]=p.toX[i];p.z[i]=p.toZ[i];p.current[i]=p.to[i];p.currentLocation[i]=p.toLocation[i];
         const experienced=time-p.departureMinute[i];model.totals.completedTrips++;model.totals.completedTravelMinutes+=experienced;p.experiencedTime[i]=.8*p.experiencedTime[i]+.2*experienced;p.habit[i]=p.mode[i];
-        const mode=MODES[p.mode[i]];p.activity[i]=p.plannedActivity[i];p.planUntil[i]=p.plannedUntil[i];p.mode[i]=0;
-        if(model.manualWalks?.[i])semanticEvent(model,i,"PLAYER_WALK_ARRIVED",time,{commandMinute:model.manualWalks[i].commandMinute});
+        const mode=MODES[p.mode[i]];p.activity[i]=p.plannedActivity[i];p.planUntil[i]=p.plannedUntil[i];p.mode[i]=0;visitArrival(model,i,time);
+        if(model.manualWalks?.[i]){const manual=model.manualWalks[i],arrivedHome=p.current[i]===p.home[i]&&Math.hypot(p.x[i]-p.homeX[i],p.z[i]-p.homeZ[i])<1;if(manual.home&&arrivedHome){manual.until=time+60;p.plannedUntil[i]=p.planUntil[i]=time+60;}if(!manual.home||arrivedHome)semanticEvent(model,i,manual.home?"RETURN_HOME_ARRIVED":"PLAYER_WALK_ARRIVED",time,{commandMinute:manual.commandMinute});}
         semanticEvent(model,i,"TRIP_COMPLETED",time,{mode,travelMinutes:experienced,durationMinutes:experienced,to:model.districts[p.current[i]].id,activity:ACTIVITIES[p.activity[i]]});
       }else break;
       continue;
@@ -146,6 +148,7 @@ export function stepActivities(model,minutes,effects){
    if(destination.district!==p.current[i]||Math.hypot(destination.x-p.x[i],destination.z-p.z[i])>1e-4){
      const alternatives=modeAlternatives(model,i,destination.district,effects,[destination.x,destination.z]);
      for(const row of alternatives)if(["bus","rail"].includes(row.id)&&model.districts[destination.district].transitDemand>=model.config.transitCapacity*model.config.transitService*effects[destination.district].transit){row.available=false;row.rejectedReason="TRANSIT_DENIED_BOARDING";}
+     if(plan.forcedMode)for(const row of alternatives)if(row.id!==plan.forcedMode){row.available=false;row.rejectedReason='Invitation requires walking';}
      const choice=seededChoice(alternatives,{draw:draw(model.seed,i,Math.floor(time*1000),56),temperature:.7}),best=alternatives.find(row=>row.id===choice.chosen);
      model.decisionCounts.MODE_CHOICE=(model.decisionCounts.MODE_CHOICE||0)+1;
      if(i%97===0||model.selectedIndex===i)recordTrace(model,"person",i,{tick:model.tick,minute:time,type:"MODE_CHOICE",inputs:{from:model.districts[p.current[i]].id,to:model.districts[destination.district].id,transitService:model.config.transitService,weather:structuredClone(weatherInput(model))},alternatives:choice.alternatives,randomDraw:choice.randomDraw,chosen:choice.chosen,reasonCodes:best?["SEEDED_UTILITY_CHOICE"]:["NO_FEASIBLE_ALTERNATIVE"],reason:best?"Seeded feasible mode utility":"No accessible affordable route before reconsideration"});
@@ -163,8 +166,8 @@ export function stepActivities(model,minutes,effects){
    }
    if(p.activity[i]!==plan.activity)semanticEvent(model,i,"ACTIVITY_STARTED",time,{from:ACTIVITIES[p.activity[i]],activity:ACTIVITIES[plan.activity],...(plan.reason?{reason:plan.reason}:{})});
    p.activity[i]=plan.activity;p.mode[i]=0;p.planUntil[i]=plan.until;if(destination.location!==undefined)p.currentLocation[i]=destination.location;
-   if(plan.sleep||plan.rest)p.restingUntil[i]=plan.until;else if(plan.activity!==0)p.restingUntil[i]=0;
-   if(plan.eat)p.eatingUntil[i]=plan.until;
+   if(plan.sleep||plan.rest)p.restingUntil[i]=plan.until;else if(plan.activity!==0||plan.houseAction)p.restingUntil[i]=0;
+   if(plan.eat)p.eatingUntil[i]=plan.until;else if(plan.houseAction)p.eatingUntil[i]=0;
    // Split at schedule/meal/need-rate boundaries, not just tick endpoints.
    const day=Math.floor(time/1440),boundaries=[420,480,720,780,1080,1140,1320,1440].map(m=>day*1440+m).filter(m=>m>time+1e-9);
    const stop=Math.min(end,plan.until,nextFamilyBoundary(model,i,time),...boundaries);

@@ -1,3 +1,4 @@
+import {mountAPIGeometryDetails} from './geometry-inspector.js';
 import {journalCity} from './journals/presets.js';
 import {createJournalRecorder,mountCharacterJournal} from './journals/client.js';
 import {ensureJournal,journalPage,journalText,pruneSavedJournals} from './journals/model.js';
@@ -2069,6 +2070,7 @@ function renderInspector() {
         ${s.maxStock ? `<button id="restock">Deliver stock</button>` : ""}
         ${b.kind === "park" ? `<button id="litterBtn">Dump litter</button>` : ""}
       </div>`;
+    mountAPIGeometryDetails(el,{area:originalAreaGeometry,buildingId:b.id});el.style.maxHeight='calc(100vh - 112px)';el.style.overflowY='auto';
     $("cityFocus")?.addEventListener("click", () => cityRenderer.focusBuilding(b.id));
     $("cityCutaway")?.addEventListener("click", () => { cityRenderer.focusBuilding(b.id); cityRenderer.setCutaway(!cityRenderer.cutawayEnabled); });
     $("toggleOpen")?.addEventListener("click", () => { s.open = !s.open; world.log(`${b.name} ${s.open ? "reopened" : "closed"} (by you)`, "civic", b); renderInspector(); });
@@ -2322,7 +2324,7 @@ if(!embedMode)void import('./people/person-command-menu.js').then(({mountPersonC
 addEventListener('pagehide',()=>{personCommandDisposed=true;personCommandUI?.destroy();},{once:true});
 
 let houseEntryControls=null,houseEntryDisposed=false;
-if(!embedMode)void import('./house/bridge.js').then(({mountHouseEntryControls})=>{if(houseEntryDisposed)return;houseEntryControls=mountHouseEntryControls({container:document.body,getSelection:()=>selected?.type==='building'?null:livingWorld?.active?livingWorld.getSelection()?{...livingWorld.getSelection(),mode:'living'}:null:selected?.type==='person'?{...town.people[selected.id],mode:'legacy'}:null,getBuilding:()=>selected?.type==='building'?town.buildings[selected.id]:null,getRuntime:()=>livingWorld?.active?livingWorld.getRuntime():null,capture:captureWorldExperiment,getParentId:()=>persistencePanel?.getState().id??loadedExperiment?.id,restorePlayback:state=>{state.paused?playback.pause():playback.resume();}});window.hblHouseEntry=houseEntryControls;});
+if(!embedMode)void import('./house/bridge.js').then(({mountHouseEntryControls})=>{if(houseEntryDisposed)return;houseEntryControls=mountHouseEntryControls({container:document.body,getSelection:()=>selected?.type==='building'?null:livingWorld?.active?livingWorld.getSelection()?{...livingWorld.getSelection(),mode:'living'}:null:selected?.type==='person'?{...town.people[selected.id],mode:'legacy'}:null,getBuilding:()=>selected?.type==='building'?town.buildings[selected.id]:null,getRuntime:()=>livingWorld?.active?livingWorld.getRuntime():null,capture:captureWorldExperiment,getPreferredHousehold:()=>livingWorld?.getSelection()?.householdId??loadedExperiment?.save.view.houseMode?.householdId??null,getParentId:()=>persistencePanel?.getState().id??loadedExperiment?.id,restorePlayback:state=>{state.paused?playback.pause():playback.resume();}});window.hblHouseEntry=houseEntryControls;});
 addEventListener('pagehide',()=>{houseEntryDisposed=true;houseEntryControls?.destroy();},{once:true});
 addEventListener('pagehide',()=>{persistenceDisposed=true;persistencePanel?.destroy();},{once:true});
 

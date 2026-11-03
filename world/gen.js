@@ -163,7 +163,7 @@ export function buildTown(origin, area, opts = {}) {
   if (area?.source === "osm" && area.buildings?.length >= 15) {
     source = "osm";
     raw = area.buildings.map((b) => ({
-      id: b.id, kind: b.kind, levels: b.levels, name: b.name, dateTags: buildingDateTags(b.dateTags ?? b.tags),
+      id: b.id, kind: b.kind, levels: b.levels, name: b.name, address:b.address??null, dateTags: buildingDateTags(b.dateTags ?? b.tags),
       poly: b.pts.slice(0, -1).map(([la, ln]) => proj.toXZ(la, ln)),
     }));
   } else {

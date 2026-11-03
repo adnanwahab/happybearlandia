@@ -454,6 +454,7 @@ const server = serve({
     if (pathname === "/api/config") return handleConfig();
     if (under(pathname, "/api/world-history")) return handleTemporalCity(request);
     if (under(pathname, "/api/reality-shares")) return handleRealityShares(request);
+    if (under(pathname, "/api/world-homes")) return handleWorldPersistence(request);
     if (under(pathname, "/api/world-experiments")) return handleWorldPersistence(request);
     if (pathname === "/api/world-questions") return handleOpenQuestions(request);
     if (under(pathname, "/api/decision-experiments")) return handleDecisionExperiments(request);

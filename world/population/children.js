@@ -1,3 +1,4 @@
+import {houseActivityLabel,houseScreenActivity} from '../house/model.js';
 import {employmentCalendar,employmentWorkWindow} from './employment.js';
 /** Child agents v1: synthetic ages/guardians/peers, bounded routines and care.
  * Integration contract (behavior/economy own all money and job writes):
@@ -121,12 +122,12 @@ export function recordFamilyActivityInterval(model,i,activity,start,duration){
   const school=atSite(model,i,k.schoolLocation[i],k.schoolDistrict[i]),home=atSite(model,i,p.homeLocation[i],p.home[i]),inClass=plan.childKind==='school'&&minute>=t.start;
   if(t.schoolDay&&minute>=t.start&&minute<t.end){k.expectedSchoolMinutes[i]+=dt;if(inClass)k.expectedInstructionMinutes[i]+=dt;if(school&&[2,5,6].includes(activity)){k.attendanceMinutes[i]+=dt;if(inClass&&activity===2){k.instructionMinutes[i]+=dt;k.engagedInstructionMinutes[i]+=dt*Math.max(.25,1-k.fatigue[i]/125);}}}
   if(plan.childKind==='recess'&&activity===6&&school)k.recessMinutes[i]+=dt;
-  if(plan.childKind==='screens'&&activity===0&&home){k.screenMinutes[i]+=dt;k.dailyScreenMinutes[i]+=dt;}
-  const sleeping=plan.sleep&&activity===0&&home;if(sleeping)k.sleepMinutes[i]+=dt;
+  const houseLabel=houseActivityLabel(model,i,minute),screen=houseScreenActivity(model,i,minute)||!houseLabel&&plan.childKind==='screens';if(screen&&activity===0&&home){k.screenMinutes[i]+=dt;k.dailyScreenMinutes[i]+=dt;}
+  const sleeping=plan.sleep&&activity===0&&home&&(!houseLabel||houseLabel==='HOUSE rest');if(sleeping)k.sleepMinutes[i]+=dt;
   const care=plan.childKind==='care'&&activity===2&&atSite(model,i,k.careLocation[i],k.careDistrict[i]),camp=plan.childKind==='camp'&&activity===6&&atSite(model,i,k.campLocation[i],k.campDistrict[i]);
   if(care||camp){const h=p.household[i],gross=dt*(camp?model.config.summerCampDailyCost/480:model.config.childcareHourlyCost/60),subsidy=gross*model.config.childcareSubsidyFraction;model.households.childcareAccrued[h]+=gross-subsidy;model.households.childcareSubsidyAccrued[h]+=subsidy;k.familyCareCost[i]+=gross-subsidy;k.subsidyExposure[i]+=subsidy;k.totals.familyCareCost+=gross-subsidy;k.totals.subsidyExposure+=subsidy;k.totals.paidCareMinutes+=dt;k[camp?'campMinutes':'careMinutes'][i]+=dt;}
   if(needsSupervision(model,i,minute)){const parent=k.guardianByHousehold[p.household[i]];if(parent<0||!atSite(model,parent,p.homeLocation[i],p.home[i]))k.unsupervisedMinutes[i]+=dt;}
-  const before=k.fatigue[i],rate=sleeping?-.12:activity===8?.045:plan.childKind==='screens'?.025:activity===2?.03:.015,after=clamp(before+dt*rate,0,100),active=Math.min(dt,Math.max(0,((rate>0?100:0)-before)/rate));
+  const before=k.fatigue[i],rate=sleeping?-.12:activity===8?.045:screen?.025:activity===2?.03:.015,after=clamp(before+dt*rate,0,100),active=Math.min(dt,Math.max(0,((rate>0?100:0)-before)/rate));
   k.fatiguePointMinutes[i]+=(before+(before+rate*active))/2*active+after*(dt-active);k.observedMinutes[i]+=dt;k.fatigue[i]=after;
   k.academicProxy[i]=k.expectedInstructionMinutes[i]?clamp(k.engagedInstructionMinutes[i]/k.expectedInstructionMinutes[i],0,1):0;minute=stop;
  }

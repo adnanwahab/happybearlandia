@@ -4,6 +4,7 @@ import {recordEvent,recordTrace,MODES} from './contracts.js';
 export const MAX_WALK_COMMANDS=256;
 const reject=message=>{throw new Error(message);};
 export function validateWalkDestination(destination){
+ if(destination?.home===true&&Object.keys(destination).length===1)return{home:true};
  if(!destination||typeof destination!=='object'||Array.isArray(destination)||Object.keys(destination).some(k=>!['x','z','locationId','districtId'].includes(k)))reject('Walk destination must specify bounded x/z or an actual locationId');
  if(destination.locationId!==undefined){if(typeof destination.locationId!=='string'||!destination.locationId||destination.locationId.length>160||destination.x!==undefined||destination.z!==undefined)reject('Use an actual locationId without coordinates');}
  else if(![destination.x,destination.z].every(v=>Number.isFinite(v)&&Math.abs(v)<=1000000))reject('Walk coordinates must be finite and within the world bounds');
@@ -15,6 +16,14 @@ export function validateWalkDestination(destination){
 export function applyWalkCommand(model,id,input){
  const destination=validateWalkDestination(input),p=model.people,prefix=`${model.prefix}-p`,index=typeof id==='number'?id:typeof id==='string'&&id.startsWith(prefix)?Number(id.slice(prefix.length)):NaN;
  if(!Number.isInteger(index)||index<0||index>=p.age.length||typeof id==='string'&&id!==`${prefix}${index}`)reject('Unknown population person for walk command');
+ if(model.visits?.active?.[index])reject('Use Send home for a resident with an active visit');
+ if(destination.home){
+  if(Object.keys(model.manualWalks??{}).length>=32&&!model.manualWalks?.[index])reject('At most 32 resident movement requests may be active');
+  if(p.remaining[index]<=1e-9&&p.current[index]===p.home[index]&&Math.hypot(p.x[index]-p.homeX[index],p.z[index]-p.homeZ[index])<1)reject('This resident is already home');
+  const minute=model.minute,personId=`${prefix}${index}`,command={tick:model.tick,minute,id:personId,destination};
+  model.manualWalks??={};model.manualWalks[index]={home:true,commandMinute:minute,until:minute+1440,personId,destination:{district:p.home[index],x:p.homeX[index],z:p.homeZ[index],location:p.homeLocation[index]}};p.planUntil[index]=0;
+  recordEvent(model,'RETURN_HOME_REQUESTED',{personId,reason:'Return to actual home using ordinary feasible travel; current trips finish first'});return{accepted:true,command,personId,minute,queued:p.remaining[index]>1e-9,pausedClockUnchanged:true};
+ }
  if(model.houses?.active?.[index])reject('This resident has an active household action');
  if(p.remaining[index]>1e-9)reject('This resident is already traveling; wait for the current trip to finish');
  const permission=childModePermission(model,index,'walk');if(!permission.available)reject(permission.reason);
