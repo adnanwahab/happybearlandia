@@ -35,3 +35,9 @@ inference/
 # Finder (MacOS) folder config
 **/.DS_Store
 fly.toml
+
+# Local SQLite state must never be baked into the deployment image.
+.data/
+**/*.sqlite
+**/*.sqlite-wal
+**/*.sqlite-shm

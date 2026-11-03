@@ -1,0 +1,7 @@
+import {test,expect} from '@playwright/test';
+import {openEditableHouse,houseState} from './house-edit-fixture.js';
+test('Return home immediately removes transit without advancing a paused household clock',async({page})=>{
+ const errors=[];page.on('pageerror',error=>errors.push(error.message));const f=await openEditableHouse(page);await page.locator('[data-roster] [data-person-id="'+f.personId+'"]').click();
+ await page.evaluate(async f=>{const s=hblHouseSession,r=s.getRuntime(),person=r.getSnapshot().visibleAgents.find(p=>p.id===f.personId);r.pause();await r.walkPerson(f.personId,{x:person.x+400,z:person.z});await r.step();await s.refresh();},f);
+ const button=page.getByRole('button',{name:'Return home',exact:true});await expect(button).toBeVisible();const before=await houseState(page);expect(before.snapshot.runtime.paused).toBe(true);await button.click();await expect(page.locator('[data-status]')).toHaveText('Returned home instantly.');await expect(button).toHaveCount(0);const after=await houseState(page),person=after.household.house.members.find(p=>p.id===f.personId);expect(person.atHome).toBe(true);expect(after.snapshot.minute).toBe(before.snapshot.minute);expect(after.snapshot.runtime.paused).toBe(true);expect(after.household.savings).toBe(before.household.savings);await expect(page.locator('[data-house-person="'+f.personId+'"]').first()).toBeVisible();expect(errors).toEqual([]);
+});

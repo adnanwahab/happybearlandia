@@ -1,21 +1,23 @@
+import {returnResidentHomeImmediately} from '../house/visits.js';
 import {modeAlternatives,eventEffects} from './behavior.js';
 import {childModePermission,parentCareConstraint} from './children.js';
 import {recordEvent,recordTrace,MODES} from './contracts.js';
 export const MAX_WALK_COMMANDS=256;
 const reject=message=>{throw new Error(message);};
 export function validateWalkDestination(destination){
- if(destination?.home===true&&Object.keys(destination).length===1)return{home:true};
+ if(destination?.home===true&&Object.keys(destination).every(k=>['home','instant'].includes(k))&&(destination.instant===undefined||destination.instant===true))return{home:true,...(destination.instant?{instant:true}:{})};
  if(!destination||typeof destination!=='object'||Array.isArray(destination)||Object.keys(destination).some(k=>!['x','z','locationId','districtId'].includes(k)))reject('Walk destination must specify bounded x/z or an actual locationId');
  if(destination.locationId!==undefined){if(typeof destination.locationId!=='string'||!destination.locationId||destination.locationId.length>160||destination.x!==undefined||destination.z!==undefined)reject('Use an actual locationId without coordinates');}
  else if(![destination.x,destination.z].every(v=>Number.isFinite(v)&&Math.abs(v)<=1000000))reject('Walk coordinates must be finite and within the world bounds');
  if(destination.districtId!==undefined&&(typeof destination.districtId!=='string'||!destination.districtId||destination.districtId.length>160))reject('Walk districtId must be an actual bounded district ID');
  return structuredClone(destination);
 }
-/** The command admits a normal walking trip at this committed minute; it never
- * steps residents or writes position/needs/money to simulate a trip's outcome. */
+/** Coordinate commands admit ordinary walking trips. An explicit instant home
+ * command performs player transport at the committed minute without a trip. */
 export function applyWalkCommand(model,id,input){
  const destination=validateWalkDestination(input),p=model.people,prefix=`${model.prefix}-p`,index=typeof id==='number'?id:typeof id==='string'&&id.startsWith(prefix)?Number(id.slice(prefix.length)):NaN;
  if(!Number.isInteger(index)||index<0||index>=p.age.length||typeof id==='string'&&id!==`${prefix}${index}`)reject('Unknown population person for walk command');
+ if(destination.home&&destination.instant){const result=returnResidentHomeImmediately(model,index);return{...result,command:{tick:model.tick,minute:model.minute,id:`${prefix}${index}`,destination}};}
  if(model.visits?.active?.[index])reject('Use Send home for a resident with an active visit');
  if(destination.home){
   if(Object.keys(model.manualWalks??{}).length>=32&&!model.manualWalks?.[index])reject('At most 32 resident movement requests may be active');

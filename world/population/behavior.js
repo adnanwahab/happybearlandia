@@ -1,3 +1,4 @@
+import {dateActivityPlan,dateNeedRates,recordDateInterval,inspectPersonDate} from '../house/date-system.js';
 import {householdMembers} from './household-members.js';
 import {updateRoommateArrival} from '../house/roommates.js';
 import {BASIC_NEEDS,initializeBasicNeeds} from '../house/basic-needs.js';
@@ -32,7 +33,7 @@ export function personNeedEffects(model,i,options={}){const p=model.people,absol
  if(activity==="SHOPPING"){rates.fun+=.025;rates.energy-=.015;}
  if(activity==="HEALTHCARE")rates.energy+=.04;
  for(const key of Object.keys(rates))if((p[key]?.[i]>=100&&rates[key]>0)||(p[key]?.[i]<=0&&rates[key]<0))rates[key]=0;
- return{needRates:houseNeedRates(model,i,absolute,options.activity??p.activity[i],rates),needActivity:houseActivityLabel(model,i,absolute)??(sleeping?"HOME sleeping":meal?"HOME meal":activity),needsSource:"Illustrative activity model; not measured wellbeing"};}
+ return{needRates:dateNeedRates(model,i,absolute,houseNeedRates(model,i,absolute,options.activity??p.activity[i],rates)),needActivity:inspectPersonDate(model,i)?.label??houseActivityLabel(model,i,absolute)??(sleeping?"HOME sleeping":meal?"HOME meal":activity),needsSource:"Illustrative activity model; not measured wellbeing"};}
 export function stepPersonNeeds(model,i,minutes,options){const effects=personNeedEffects(model,i,options);for(const key of["hunger","energy","fun","social",...Object.keys(BASIC_NEEDS)])model.people[key][i]=clamp(model.people[key][i]+effects.needRates[key]*minutes,0,100);}
 
 export function eventEffects(model,minute){const weather=weatherInput(model),effects=model.districts.map(()=>({rent:1,jobs:1,roads:weather.roadAvailability??1,transit:weather.transitAvailability??1,services:weather.serviceAvailability??1,demand:1}));for(const event of model.config.events){const elapsed=minute-event.startMinute;if(elapsed<0)continue;const tail=elapsed-event.durationMinutes;const strength=tail<=0?event.magnitude:event.recoveryMinutes>0?event.magnitude*Math.exp(-tail/event.recoveryMinutes):0;if(strength<1e-5)continue;for(let d=0;d<effects.length;d++){if(event.districtId&&model.districts[d].id!==event.districtId)continue;const e=effects[d];if(event.type==="rent-increase")e.rent*=1+strength;if(["recession","employer-closes"].includes(event.type))e.jobs*=1-strength;if(event.type==="employer-opens")e.jobs*=1+strength;if(["road-closure","storm"].includes(event.type))e.roads*=Math.max(0,1-strength);if(["transit-outage","storm"].includes(event.type))e.transit*=Math.max(0,1-strength);if(event.type==="transit-opening")e.transit*=1+strength;if(event.type==="festival")e.demand*=1+strength;if(event.type==="storm")e.services*=1-strength*.7;}}return effects;}
@@ -74,6 +75,7 @@ function destinationFor(model,i,activity,effects,onsite=false){
 }
 function chooseActivity(model,i,minute,effects){
  const p=model.people,c=model.config;
+ const date=dateActivityPlan(model,i,minute);if(date)return date;
  const visit=visitActivityPlan(model,i,minute,{careConstraint:parentCareConstraint,beforeReturn:()=>releaseHouseVisitParticipant(model,i,minute)});if(visit&&visit.visitPhase!=='visiting')return visit;
  const interior=houseActivityPlan(model,i,minute);if(interior)return interior;if(visit)return visit;
  const manual=model.manualWalks?.[i];if(manual){if(minute<manual.until&&(manual.home||!parentCareConstraint(model,i,minute)))return{activity:manual.home?0:9,until:Math.min(manual.until,nextFamilyBoundary(model,i,minute)),mandatory:true,destination:manual.destination,reason:'Player requested walk; brief arrival pause'};delete model.manualWalks[i];}
@@ -121,7 +123,7 @@ function applyInterval(model,i,activity,start,duration){
  for(const key of["hunger","energy","fun","social",...Object.keys(BASIC_NEEDS)]){const before=p[key][i],rate=rates[key],after=clamp(before+rate*duration,0,100),active=rate===0?duration:Math.min(duration,Math.max(0,((rate>0?100:0)-before)/rate));means[key]=((before+(before+rate*active))/2*active+after*(duration-active))/duration;p[key][i]=after;}
  model.activityMinutes[ACTIVITIES[activity]]=(model.activityMinutes[ACTIVITIES[activity]]||0)+duration;
  if(model.activityHistory)recordActivity(model.activityHistory,{id:`${model.prefix}-p${i}`,householdId:`${model.prefix}-h${p.household[i]}`,activity:ACTIVITIES[activity],startMinute:start,endMinute:start+duration,weight:model.weight,districtId:model.districts[p.current[i]].id,needs:means});
- recordHouseInterval(model,i,activity,start,duration);
+ recordHouseInterval(model,i,activity,start,duration);recordDateInterval(model,i,activity,start,duration);
 }
 export function stepActivities(model,minutes,effects){
  const p=model.people,end=model.minute,start=end-minutes;

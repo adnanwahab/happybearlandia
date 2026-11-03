@@ -1,7 +1,7 @@
 /** Presentation of actual population children and canonical family actions.
  * There is no child registry or second people array in this renderer. */
 export function residentAgePresentation(ageYears){const age=Number.isFinite(ageYears)?Math.max(0,ageYears):30;return{ageYears:age,stage:age<2?'baby':age<5?'toddler':age<13?'child':age<18?'teen':'adult',scale:age<2?.28:age<5?.42:age<6?.52:age<13?.7:.97,headScale:age<2?1.2:age<5?1.1:1};}
-export const FAMILY_CARE_POSES=Object.freeze({feedChild:'care-feed',changeChild:'care-change',rockChild:'care-rock',readToChild:'care-read',playWithChild:'care-play'});
+export const FAMILY_CARE_POSES=Object.freeze({feedChild:'care-feed',changeChild:'care-change',rockChild:'care-rock',sootheChild:'care-rock',readToChild:'care-read',playWithChild:'care-play'});
 export function familyActionPose(person,home){const raw=(home.actions??[]).find(a=>a.id===person.activeActionId),action=person.activeAction??raw;if(!action)return null;const type=action.type,decision=action.relationshipDecision??raw?.relationshipDecision;if(FAMILY_CARE_POSES[type])return FAMILY_CARE_POSES[type];if(type==='propose'||type==='proposeMarriage'||decision==='propose')return(action.participantIds??[]).indexOf(person.id)===1?'proposal-partner':'propose';if(type==='marry'||type==='weddingCeremony'||type==='wedding'||decision==='marry')return'marry';return null;}
 export function familyPresentationBindings(data,objects,rooms){const members=data.members??[],home=data.home??{},bindings=new Map(),used=new Set(),usedCareFixtures=new Set(),bedInfants=new Map();
  // Deterministic visible nursery anchors use installed records, without claiming
