@@ -5,7 +5,7 @@ import {join} from 'node:path';
 import {Database} from 'bun:sqlite';
 import {createWorldPersistenceHandler} from '../world/experiments/persistence-api.js';
 import {createDateMediaStore,decodeDatePhoto} from '../world/experiments/date-media-store.js';
-import {createPopulationModel,serializePopulation,inspectHousehold} from '../world/population/model.js';
+import {createPopulationModel,serializePopulation,inspectHousehold,stepPopulation} from '../world/population/model.js';
 import {createPopulationCheckpoint} from '../world/population/checkpoint.js';
 import {createPopulationWeatherInput} from '../world/population/weather-input.js';
 import {applyHouseholdSystemCommand} from '../world/house/system-command.js';
@@ -17,3 +17,28 @@ function api(options={}){let count=0;return createWorldPersistenceHandler({dbPat
 test('actual saved active-date photos survive SQLite reopen separately from the immutable checkpoint',async()=>{const dir=mkdtempSync(join(tmpdir(),'date-media-')),dbPath=join(dir,'photos.sqlite'),f=fixture();let handler=api({dbPath});try{const original=await(await handler(req('',f.save()))).json();f.start();const endpoint='/'+original.id+'/date-media';expect((await handler(req(endpoint,f.upload()))).status).toBe(400);const session=await handler(req('/'+original.id+'/house-session/'+f.h,{schemaVersion:'house-session-save.v1',checkpoint:f.checkpoint(),expectedRevision:0},'PUT'));expect(session.status).toBe(201);const created=await handler(req(endpoint,f.upload()));expect(created.status).toBe(201);const photo=await created.json();expect(photo).toMatchObject({schemaVersion:'date-media.v1',experimentId:original.id,personIds:f.ids,mimeType:'image/png',width:1,height:1});expect(photo.image).toBeUndefined();expect(JSON.stringify(original)).not.toContain('data:image');handler.close();handler=api({dbPath});expect(await(await handler(req(endpoint+'/'+photo.id))).json()).toEqual(photo);const bytes=await handler(new Request('http://local'+photo.imageUrl));expect(bytes.status).toBe(200);expect(bytes.headers.get('content-type')).toBe('image/png');expect(Buffer.from(await bytes.arrayBuffer())).toEqual(decodeDatePhoto(image).data);const fork=await(await handler(req('/'+original.id+'/fork',{}))).json();expect((await handler(req('/'+fork.id+'/date-media/'+photo.id))).status).toBe(404);expect((await handler(req(endpoint+'/'+photo.id))).status).toBe(200);}finally{handler.close();rmSync(dir,{recursive:true,force:true});}});
 test('media writes reject foreign origins, wrong participants/date/time, non-images and oversize uploads',async()=>{const handler=api(),f=fixture();try{f.start();const record=await(await handler(req('',f.save()))).json(),endpoint='/'+record.id+'/date-media',body=f.upload();expect((await handler(req(endpoint,body,'POST',{origin:'https://evil.example'}))).status).toBe(403);for(const patch of [{dateId:'fake-date'},{personIds:[f.ids[0],f.model.prefix+'-p999']},{minute:f.model.minute+1},{place:{...body.place,lat:999}},{image:'https://evil.example/photo.png'},{image:'data:image/svg+xml;base64,PHN2Zy8+'},{image:'data:image/png;base64,ZmFrZQ=='}])expect((await handler(req(endpoint,{...body,...patch}))).status).toBe(400);expect((await handler(req(endpoint,{...body,image:'data:image/png;base64,'+'A'.repeat(256*1024)}))).status).toBe(413);expect((await handler(req(endpoint,body))).status).toBe(201);}finally{handler.close();}});
 test('photo count, byte, identity and independent rate quotas preserve all existing media',()=>{const f=fixture();f.start();const record={save:f.save()},now='2026-11-03T12:00:00Z';for(const options of [{maxPhotos:1},{maxBytes:Buffer.byteLength(image)+1},{maxWritesPerMinute:1}]){const db=new Database(':memory:');try{const store=createDateMediaStore(db,{getExperiment:()=>record,getHouseSession:()=>null,...options}),first=store.put('MediaSave001',f.upload(),now);expect(()=>store.put('MediaSave001',f.upload(),now)).toThrow();expect(store.get('MediaSave001',first.id)).toEqual(first);expect(store.usage('MediaSave001').photos).toBe(1);}finally{db.close();}}const db=new Database(':memory:');try{const store=createDateMediaStore(db,{getExperiment:()=>record,getHouseSession:()=>null,idFactory:()=> 'photo_'+'a'.repeat(20)}),first=store.put('MediaSave001',f.upload(),now);expect(()=>store.put('MediaSave001',f.upload(),now)).toThrow('immutable');expect(store.get('MediaSave001',first.id)).toEqual(first);}finally{db.close();}});
+test('SQLite photos honor open-ended dates beyond the suggested duration while keeping saved-clock and finite bounds',async()=>{
+ const dir=mkdtempSync(join(tmpdir(),'date-photo-clock-')),dbPath=join(dir,'photos.sqlite'),f=fixture();let handler=api({dbPath});
+ try{
+  f.start();const active=f.model.houses.homes[0].systems.dates.active;
+  active.openEnded=true;active.durationMinutes=30;const suggestedEnd=active.startedMinute+30;for(let n=0;n<31;n++)stepPopulation(f.model,{minutes:1});expect(f.model.minute).toBeGreaterThan(suggestedEnd);
+  const record=await(await handler(req('',f.save()))).json(),endpoint='/'+record.id+'/date-media',body=f.upload();
+  const created=await handler(req(endpoint,body));if(created.status!==201)throw Error(await created.text());expect(created.status).toBe(201);const photo=await created.json();
+  expect((await handler(req(endpoint,{...body,minute:f.model.minute+1}))).status).toBe(400);
+  expect((await handler(req(endpoint,{...body,minute:active.startedMinute-1}))).status).toBe(400);
+  handler.close();handler=api({dbPath});expect((await handler(req(endpoint+'/'+photo.id))).status).toBe(200);
+  active.activity=null;active.openEnded=false;active.untilMinute=f.model.minute-1;
+  // The store reads the exact checkpoint rather than upgrading the date lifecycle.
+  const db=new Database(':memory:');try{
+   const store=createDateMediaStore(db,{getExperiment:()=>({save:f.save()}),getHouseSession:()=>null});
+   expect(()=>store.put(record.id,body,'2026-11-03T12:00:00Z')).toThrow('Photo minute');
+   active.openEnded=true;active.untilMinute=f.model.minute+30;active.endedMinute=f.model.minute-1;
+   expect(()=>store.put(record.id,body,'2026-11-03T12:00:01Z')).toThrow('Photo minute');
+   delete active.endedMinute;applyHouseholdSystemCommand(f.model,{householdId:f.h,system:'dates',type:'end',dateId:active.id,travelMode:'instant'});
+   expect(()=>store.put(record.id,body,'2026-11-03T12:00:02Z')).toThrow('current active date');
+   expect((await handler(req('/'+record.id+'/house-session/'+f.h,{schemaVersion:'house-session-save.v1',checkpoint:f.checkpoint(),expectedRevision:0},'PUT'))).status).toBe(201);
+   expect((await handler(req(endpoint,{...body,minute:f.model.minute+1}))).status).toBe(400);
+   expect((await handler(req(endpoint,body))).status).toBe(400);
+  }finally{db.close();}
+ }finally{handler.close();rmSync(dir,{recursive:true,force:true});}
+});

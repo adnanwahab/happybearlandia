@@ -44,7 +44,7 @@ export function createDateMediaStore(db,{getExperiment,getHouseSession,maxPhotos
   const active=model.houses?.homes?.[h]?.systems?.dates?.active;
   if(!active||active.id!==input.dateId||active.personIds?.length!==2||!active.personIds.every(id=>input.personIds.includes(id)))fail('Save the current active date and its exact participants before attaching a photo.');
   for(const id of input.personIds){const index=Number(id.slice((model.prefix+'-p').length));if(!Number.isInteger(index)||index<0||index>=model.people.age.length||id!==model.prefix+'-p'+index)fail('Photo participants must be actual saved population IDs.');}
-  if(input.minute>model.minute||input.minute<active.startedMinute||Number.isFinite(active.untilMinute)&&input.minute>active.untilMinute)fail('Photo minute must belong to the actual saved date.');
+  if(input.minute>model.minute||input.minute<active.startedMinute||Number.isFinite(active.endedMinute)&&input.minute>active.endedMinute||active.openEnded!==true&&Number.isFinite(active.untilMinute)&&input.minute>active.untilMinute)fail('Photo minute must belong to the actual saved date.');
   if(!plain(input.place)||typeof input.place.id!=='string'||!input.place.id.trim()||input.place.id.length>180||typeof input.place.name!=='string'||!input.place.name.trim()||input.place.name.length>160||!validDateCoordinates(input.place))fail('Photo requires a bounded actual geographic place.');
   const activePlace=active.globalPlace??active.place??active.destination??active.venue?.place??active.venue;
   if(activePlace?.id?.startsWith('osm:')&&activePlace.id!==input.place.id)fail('Photo place must match the active date destination.');

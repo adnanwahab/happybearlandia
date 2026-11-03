@@ -9,3 +9,20 @@ test('an off-anchor participant on the first restored tick cannot complete the d
 test('the normal instant outing stays active through its first tick with truthful attendance',()=>{const f=fixture(),id=date(f).id;stepPopulation(f.m,{minutes:1});const inspected=inspectDateSystem(f.m,home(f));expect(inspected.active.id).toBe(id);expect(inspected.active.phase).toBe('date');expect(inspected.active.attendance.available).toBe(true);expect(inspected.history).toHaveLength(0);expect(inspected.active.activity.progress).toEqual({0:1,4:1});});
 test('accepting a generated partner leave suggestion is advisory and cannot implicitly finish or begin return travel',()=>{const f=fixture(),id=date(f).id;f.m.people.energy[4]=1;stepPopulation(f.m,{minutes:5});const suggestion=date(f).experience.opportunity;expect(suggestion.suggestedAction).toBe('end');const result=command(f,{type:'experience',dateId:id,input:{type:'opportunity',commandId:'leave-advice',opportunityId:suggestion.id,response:'accept'}});expect(result.requiresExplicitCompletion).toBe(true);expect(date(f).id).toBe(id);expect(date(f).phase).toBe('date');expect(date(f).travel).toBeNull();expect(date(f).leaveRequest.requiresExplicitCompletion).toBe(true);expect(home(f).systems.dates.history).toHaveLength(0);expect(home(f).systems.dates.memories.records[0].endedMinute).toBeNull();stepPopulation(f.m,{minutes:60});expect(date(f).id).toBe(id);command(f,{type:'end',dateId:id,travelMode:'instant'});expect(date(f)).toBeNull();expect(home(f).systems.dates.history).toHaveLength(1);});
 test('a legacy arrived outing with unavailable attendance remains open rather than throwing or ending in prepare',()=>{const f=fixture();date(f).phase='arrived';date(f).activity=null;f.m.people.x[4]+=50;expect(()=>createDateSystem().prepare(f.m,home(f))).not.toThrow();expect(date(f).phase).toBe('arrived');expect(date(f).attendance.available).toBe(false);expect(home(f).systems.dates.history).toHaveLength(0);});
+
+test('fractional home anchors remain exactly representable at remote dates and never cause phantom travel',()=>{
+ const f=fixture();command(f,{type:'end',dateId:date(f).id});f.m.people.homeX[0]=35.286373138427734;f.m.people.homeZ[0]=162.3496551513672;
+ const place=createDatePlace({id:'osm:node:11523335242',name:'Tokyo Joes supplied date',kind:'bar',lat:29.8040375,lng:-95.4181897,osmTags:{amenity:'bar'}});
+ command(f,{type:'start',personIds:f.ids,consentingPersonIds:f.ids,place,travelMode:'instant'});
+ const id=date(f).id, trips=f.m.totals.trips;
+ for(let n=0;n<4;n++)stepPopulation(f.m,{minutes:1});
+ expect(date(f).attendance.available).toBe(true);expect(f.m.totals.trips).toBe(trips);expect(f.m.people.x[0]).toBe(date(f).venue.x);expect(f.m.people.z[0]).toBe(date(f).venue.z);
+ command(f,{type:'move',dateId:id,personId:f.ids[0],x:6,z:4});stepPopulation(f.m,{minutes:1});
+ expect(date(f).localMovement).toBeNull();expect(date(f).worldPositions[f.ids[0]].x).toBeCloseTo(6,8);expect(date(f).worldPositions[f.ids[0]].z).toBeCloseTo(4,8);expect(date(f).id).toBe(id);
+});
+test('explicit walking recovers an old frozen walk and re-admits the actual pair without replacing the date',()=>{
+ const f=fixture(),id=date(f).id;command(f,{type:'move',dateId:id,personId:f.ids[0],x:3,z:0});f.m.people.x[0]=f.m.people.homeX[0];f.m.people.z[0]=f.m.people.homeZ[0];f.m.people.x[4]=f.m.people.homeX[4];f.m.people.z[4]=f.m.people.homeZ[4];
+ stepPopulation(f.m,{minutes:5});expect(date(f).attendance.available).toBe(false);expect(date(f).localMovement.progressMinutes[f.ids[0]]).toBe(0);
+ const m=restorePopulation(serializePopulation(f.m)),copy={...f,m};command(copy,{type:'move',dateId:id,personId:f.ids[0],x:9,z:4});stepPopulation(m,{minutes:1});
+ expect(date(copy).attendance.available).toBe(true);expect(date(copy).localMovement).toBeNull();expect(date(copy).worldPositions[f.ids[0]]).toEqual({x:9,z:4});expect(date(copy).id).toBe(id);expect(home(copy).systems.dates.history).toHaveLength(0);expect(m.people.age.length).toBe(12);
+});

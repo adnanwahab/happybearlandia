@@ -21,6 +21,14 @@ test('procedural mystery retries frozen requests, commits actual choices and per
  await page.keyboard.press('w');
  await expect.poll(async()=>(await read()).date.movementSequence).toBeGreaterThan(beforeMove);
  await expect.poll(()=>page.evaluate(()=>hblDateSession.getRuntime().getSnapshot().runtime.paused)).toBe(false);
- expect((await read()).date.id).toBe(fixture.dateId);expect(errors).toEqual([]);
+ expect((await read()).date.id).toBe(fixture.dateId);
+ // Holding a movement key and releasing it must not restore the mystery's table seats.
+ await page.keyboard.down('d');await page.waitForTimeout(250);await page.keyboard.up('d');
+ await page.evaluate(async()=>{const s=hblDateSession,r=s.getRuntime();r.pause();await r.observeHousehold({householdId:s.getHouseholdId(),minutes:2});await s.refresh();});
+ await expect.poll(async()=>(await read()).date.localMovement).toBeNull();
+ for(let i=0;i<4;i++)await page.evaluate(()=>hblDateSession.refresh());
+ const afterWalking=await page.evaluate(async()=>{const s=hblDateSession,h=await s.getRuntime().inspectHousehold(s.getHouseholdId()),view=s.getDatePanel().getExtension('renderer').getDebugState();return{date:h.house.systems.dates.active,mystery:h.house.systems['date-mystery'],view};});
+ expect(afterWalking.view.staging).toBeNull();expect(afterWalking.view.stagingGuard.released).toBe(true);expect(afterWalking.view.positions[0].pose).not.toBe('sit');expect(afterWalking.date.movementSequence).toBeGreaterThan(0);for(const p of afterWalking.view.positions){const actual=afterWalking.date.localPositions?.[p.id]??afterWalking.date.worldPositions?.[p.id]??afterWalking.date.world?.positions?.[p.id];if(actual){expect(p.x).toBeCloseTo(actual.x,4);expect(p.z).toBeCloseTo(actual.z,4);}}
+ expect(errors).toEqual([]);
  }finally{await rm(dir,{recursive:true,force:true});}
 });
