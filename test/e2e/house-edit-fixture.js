@@ -1,0 +1,13 @@
+/** Isolated saved-city fixture: persistence HTTP is mocked; simulation and native 3D are real. */
+export async function openEditableHouse(page,{population=4,withTV=false}={}){
+ await page.goto('/world/government/index.html');
+ const fixture=await page.evaluate(async({population,withTV})=>{
+  const {createPopulationRuntime}=await import('/world/population/runtime.js'),{readPopulationCheckpoint}=await import('/world/population/checkpoint.js'),{projector}=await import('/world/gen.js');
+  const origin={lat:29.7286,lng:-95.4746},buildings=[{id:'edit-home',kind:'home',center:[0,0]}],runtime=createPopulationRuntime({config:{population,householdSize:4,seed:42},worldContext:{buildings},initialMinute:360,stepMinutes:1,clockMode:'minutes-per-second'});
+  try{await runtime.ready;const person=runtime.getSnapshot().visibleAgents.find(p=>p.ageYears>=18);if(withTV)await runtime.householdAction({householdId:person.householdId,type:'furniture',object:'tv',roomId:'living',placement:{x:0,z:-2.1,rotation:0}});const checkpoint=await runtime.exportCheckpoint(),model=readPopulationCheckpoint(checkpoint).model,index=Number(person.id.split('-p').at(-1)),buildingId=model.locations[model.people.homeLocation[index]].id,geo=projector(origin);return{householdId:person.householdId,personId:person.id,buildingId,save:{schemaVersion:'world-experiment-save.v1',label:'House edit QA',mode:'living',checkpoint,view:{origin,playback:{paused:true,speed:1},houseMode:{householdId:person.householdId,buildingId}},geometry:{area:{source:'osm',origin,buildings:[{id:buildingId,kind:'home',pts:[[-13,-11],[13,-11],[13,11],[-13,11],[-13,-11]].map(p=>geo.toLatLng(...p))}],roads:[]}}}};}finally{runtime.destroy();}
+ },{population,withTV});
+ let record={schemaVersion:'world-experiment-record.v1',id:'editqa01',url:'/world?experiment=editqa01',save:fixture.save};
+ await page.route('**/api/world-experiments**',route=>{if(route.request().method()==='POST'){record={schemaVersion:'world-experiment-record.v1',id:'editqa02',url:'/world?experiment=editqa02',save:route.request().postDataJSON()};return route.fulfill({status:201,json:record});}return route.fulfill({json:record});});
+ await page.goto('/world/house/'+fixture.householdId+'?experiment=editqa01');try{await page.waitForFunction(()=>window.hblHouseSession?.getSceneDebug()?.frameCount>0,{},{timeout:15000});}catch(error){throw Error('House fixture did not render: '+(await page.locator('body').innerText()).slice(0,3000));}return fixture;
+}
+export async function houseState(page){return page.evaluate(async()=>{const s=hblHouseSession;return{household:await s.getRuntime().inspectHousehold(s.getHouseholdId()),snapshot:s.getRuntime().getSnapshot(),scene:s.getSceneDebug()};});}

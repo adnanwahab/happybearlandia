@@ -1,8 +1,11 @@
+import {PROGRESSION_ACTIONS} from './progression-catalog.js';
 /** Declared game activities: elapsed time and existing needs, no invented health,
  * wages, biographies, causal wellbeing scores or unrecorded resource balances. */
 const all=['*'],seats=['bed','couch','armchair','ottoman','gardenBench'],storage=['desk','books','dresser','wardrobe','displayCabinet','shoeRack','coatRack','coffeeTable','sideTable','nightstand','consoleTable','diningTable','stove'],plants=['plant','flowers','herbs','tree','roseBush','raisedBed','flowerArch'];
 const action=(label,types,minutes,pose,needRates,extra={})=>({label,objectTypes:types,durationMinutes:minutes,minAge:6,roomId:'living',pose,needRates,requires:['selected installed object','available home resident'],mechanism:'Player-directed '+label.toLowerCase()+' uses actual elapsed minutes, existing need meters and a retained object-use record.',...extra});
-export const ITEM_ACTIONS=Object.freeze({
+export const ITEM_ACTIONS=Object.freeze({...PROGRESSION_ACTIONS,
+ sitAtSeat:action('Sit here',seats,30,'sit',{energy:.025,fun:-.025},{minAge:0}),
+ watchTVFromSeat:action('Watch television here',seats,30,'watch-tv',{energy:-.025,fun:.115},{minAge:2}),
  cleanObject:action('Clean this item',all,15,'clean',{energy:-.05}),
  maintainObject:action('Care for this item',all,15,'clean',{energy:-.045}),
  organizeObject:action('Tidy & organize',storage,20,'clean',{energy:-.045,fun:.015}),

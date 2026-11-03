@@ -7,7 +7,7 @@ const fixture=()=>createPopulationModel({population:8,householdSize:4,seed:42},{
 const hid=m=>`${m.prefix}-h0`;
 
 test('house inspection derives deterministic rooms and actual resident needs without creating state, spending, selecting or advancing',()=>{
- const m=fixture(),before=serializePopulation(m),a=inspectHousehold(m,0),b=inspectHousehold(m,0);expect(a).toEqual(b);expect(serializePopulation(m)).toEqual(before);expect(a.house.persisted).toBe(false);expect(a.house.rooms).toHaveLength(5);expect(a.members).toHaveLength(4);expect(a.memberDetails.map(p=>p.id)).toEqual(a.members);expect(a.memberDetails[0].needs.energy).toBe(m.people.energy[0]);expect(a.house.unavailable.join(' ')).toContain('happiness');expect(m.houses).toBeUndefined();
+ const m=fixture(),before=serializePopulation(m),a=inspectHousehold(m,0),b=inspectHousehold(m,0);expect(a).toEqual(b);expect(serializePopulation(m)).toEqual(before);expect(a.house.persisted).toBe(false);expect(a.house.rooms.map(room=>room.id).sort()).toEqual(['bathroom','bedroom','garden','kitchen','living','study']);expect(a.house.rooms.find(room=>room.id==='bathroom').capacity).toBe(1);expect(a.house.objects.filter(o=>['shower','toilet'].includes(o.type)).map(o=>o.type).sort()).toEqual(['shower','toilet']);expect(a.members).toHaveLength(4);expect(a.memberDetails.map(p=>p.id)).toEqual(a.members);expect(a.memberDetails[0].needs.energy).toBe(m.people.energy[0]);expect(a.house.unavailable.join(' ')).toContain('happiness');expect(m.houses).toBeUndefined();
 });
 
 test('cooking, shared dining and conversations consume actual time/resources through the existing ledger and activity history',()=>{

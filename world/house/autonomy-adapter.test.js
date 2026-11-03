@@ -1,0 +1,7 @@
+import {test,expect} from 'bun:test';
+import {createPopulationModel,stepPopulation,inspectHousehold} from '../population/model.js';
+import {applyAutonomousHouseAction,autonomousAvailability} from './autonomy-adapter.js';
+import {queueHouseholdTask} from './task-queue.js';
+const make=()=>createPopulationModel({population:8,householdSize:4},{},{initialMinute:360,initialTick:360});
+test('player queue preempts endogenous autonomous activity on the next committed step',()=>{const m=make(),request={householdId:m.prefix+'-h0',personId:m.prefix+'-p0',type:'read'};expect(applyAutonomousHouseAction(m,request,'Low fun').accepted).toBe(true);expect(m.houses.homes[0].actions[0].origin).toBe('autonomy');queueHouseholdTask(m,{...request,type:'toilet'});const energy=m.people.energy[0];expect(m.minute).toBe(360);expect(m.people.energy[0]).toBe(energy);stepPopulation(m,{minutes:1});expect(inspectHousehold(m,0).memberDetails[0].activeAction.type).toBe('toilet');expect(m.houses.homes[0].interruptedActions.at(-1).type).toBe('read');});
+test('autonomy cannot bypass a child sleep routine, traveling resident or existing player queue',()=>{const m=make(),child=Array.from(m.people.age).findIndex(age=>age===0),request={householdId:m.prefix+'-h0',personId:m.prefix+'-p0',type:'read'};if(child>=0)expect(autonomousAvailability(m,child).available).toBe(false);queueHouseholdTask(m,request);expect(autonomousAvailability(m,0,request).available).toBe(false);m.people.remaining[1]=5;expect(autonomousAvailability(m,1).available).toBe(false);});

@@ -18,7 +18,7 @@ test('floor edits preserve room finishes through worker checkpoints and can rese
  const result=await runtime.householdAction({householdId,type:'editFlooring',roomId:'kitchen',flooring:'checkerTile'});expect(result.accepted).toBe(true);expect(result.cost).toBe(0);
  await runtime.householdAction({householdId,type:'editFlooring',roomId:'bedroom',flooring:'walnut'});await runtime.restoreCheckpoint(await runtime.exportCheckpoint());
  let after=await runtime.inspectHousehold(householdId);expect(after.house.flooring).toEqual({kitchen:'checkerTile',bedroom:'walnut'});expect(after.house.objects).toEqual(before.house.objects);expect(after.savings).toBe(before.savings);expect(runtime.getSnapshot().minute).toBe(360);
- await runtime.householdAction({householdId,type:'editFlooring',roomId:'kitchen',flooring:null});expect((await runtime.inspectHousehold(householdId)).house.flooring).toEqual({bedroom:'walnut'});
+ await runtime.householdAction({householdId,type:'editFlooring',roomId:'kitchen',flooring:'default'});expect((await runtime.inspectHousehold(householdId)).house.flooring).toEqual({bedroom:'walnut'});
  await expect(runtime.householdAction({householdId,type:'editFlooring',roomId:'garden',flooring:'oak'})).rejects.toThrow();
  }finally{runtime.destroy();}
 });
@@ -33,7 +33,7 @@ test('painting, replacing and erasing a single saved square preserves other cell
  const paint=(x,z,flooring)=>runtime.householdAction({householdId,type:'editFlooring',roomId:'kitchen',flooring,tile:{x,z}});
  await paint(1,-3,'terracotta');await paint(2,-3,'creamTile');await paint(1,-3,'slateTile');await runtime.restoreCheckpoint(await runtime.exportCheckpoint());let home=(await runtime.inspectHousehold(householdId)).house;
  expect(home.floorTiles['kitchen:1:-3'].style).toBe('slateTile');expect(home.floorTiles['kitchen:2:-3'].style).toBe('creamTile');expect(home.flooring).toBeUndefined();
- await paint(1,-3,null);home=(await runtime.inspectHousehold(householdId)).house;expect(Object.keys(home.floorTiles)).toEqual(['kitchen:2:-3']);expect(runtime.getSnapshot().minute).toBe(360);
+ await paint(1,-3,null);await runtime.restoreCheckpoint(await runtime.exportCheckpoint());home=(await runtime.inspectHousehold(householdId)).house;expect(home.floorTiles['kitchen:1:-3'].style).toBeNull();expect(home.floorTiles['kitchen:2:-3'].style).toBe('creamTile');await paint(1,-3,'default');home=(await runtime.inspectHousehold(householdId)).house;expect(Object.keys(home.floorTiles)).toEqual(['kitchen:2:-3']);expect(runtime.getSnapshot().minute).toBe(360);
  await expect(paint(.5,-3,'oak')).rejects.toThrow();
  }finally{runtime.destroy();}
 });

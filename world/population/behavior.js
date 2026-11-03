@@ -1,3 +1,5 @@
+import {updateRoommateArrival} from '../house/roommates.js';
+import {BASIC_NEEDS,initializeBasicNeeds} from '../house/basic-needs.js';
 import {visitActivityPlan,visitArrival} from '../house/visits.js';
 import {releaseHouseVisitParticipant,houseActivityPlan,houseNeedRates,recordHouseInterval,houseActivityLabel} from '../house/model.js';
 import {employmentScheduleAt,recordEmploymentInterval,consumeEmploymentPay,employmentIncomeFraction,employmentCalendar} from './employment.js';
@@ -18,8 +20,8 @@ const weatherInput=model=>model.weatherEffects||model.weather?.effects||NEUTRAL_
  * high means satisfied; hunger is fullness. Rates are NET points per simulated
  * minute, including background decay. No wall-clock timer or inspector mutation.
  */
-export function personNeedEffects(model,i,options={}){const p=model.people,absolute=options.minute??model.minute,minute=((absolute%1440)+1440)%1440,activity=ACTIVITIES[options.activity??p.activity[i]],houseLabel=houseActivityLabel(model,i,absolute),awakeHouseAction=houseLabel&&houseLabel!=='HOUSE rest',childPlan=childScheduleAt(model,i,absolute),sleeping=activity==="HOME"&&!awakeHouseAction&&(childPlan?childPlan.sleep||p.restingUntil?.[i]>absolute:minute<420||minute>=1320||p.restingUntil?.[i]>absolute),meal=activity==="HOME"&&!houseLabel&&(childPlan?childPlan.eat||p.eatingUntil?.[i]>absolute:(minute>=420&&minute<480)||(minute>=720&&minute<780)||(minute>=1080&&minute<1140)||p.eatingUntil?.[i]>absolute);const rates={hunger:-.055,energy:-.035,fun:-.025,social:-.02};
- if(sleeping)rates.energy+=.24;
+export function personNeedEffects(model,i,options={}){const p=model.people,absolute=options.minute??model.minute,minute=((absolute%1440)+1440)%1440,activity=ACTIVITIES[options.activity??p.activity[i]],houseLabel=houseActivityLabel(model,i,absolute),awakeHouseAction=houseLabel&&!['HOUSE rest','HOUSE sleep'].includes(houseLabel),childPlan=childScheduleAt(model,i,absolute),sleeping=activity==="HOME"&&!awakeHouseAction&&(childPlan?childPlan.sleep||p.restingUntil?.[i]>absolute:minute<420||minute>=1320||p.restingUntil?.[i]>absolute),meal=activity==="HOME"&&!houseLabel&&(childPlan?childPlan.eat||p.eatingUntil?.[i]>absolute:(minute>=420&&minute<480)||(minute>=720&&minute<780)||(minute>=1080&&minute<1140)||p.eatingUntil?.[i]>absolute);const rates={hunger:-.055,energy:-.035,fun:-.025,social:-.02,...Object.fromEntries(Object.entries(BASIC_NEEDS).map(([k,v])=>[k,v.rate]))};
+ if(sleeping){rates.energy+=.24;rates.comfort=.08;}
  if(meal)rates.hunger+=.45;
  if(activity==="HOME"&&!sleeping){rates.fun+=.015;if(model.households.size[p.household[i]]>1)rates.social+=.03;}
  if(activity==="DINING"){rates.hunger+=.5;rates.social+=.08;}
@@ -28,9 +30,9 @@ export function personNeedEffects(model,i,options={}){const p=model.people,absol
  if(activity==="TRANSIT")rates.energy-=.015;
  if(activity==="SHOPPING"){rates.fun+=.025;rates.energy-=.015;}
  if(activity==="HEALTHCARE")rates.energy+=.04;
- for(const key of Object.keys(rates))if((p[key][i]>=100&&rates[key]>0)||(p[key][i]<=0&&rates[key]<0))rates[key]=0;
+ for(const key of Object.keys(rates))if((p[key]?.[i]>=100&&rates[key]>0)||(p[key]?.[i]<=0&&rates[key]<0))rates[key]=0;
  return{needRates:houseNeedRates(model,i,absolute,options.activity??p.activity[i],rates),needActivity:houseActivityLabel(model,i,absolute)??(sleeping?"HOME sleeping":meal?"HOME meal":activity),needsSource:"Illustrative activity model; not measured wellbeing"};}
-export function stepPersonNeeds(model,i,minutes,options){const effects=personNeedEffects(model,i,options);for(const key of["hunger","energy","fun","social"])model.people[key][i]=clamp(model.people[key][i]+effects.needRates[key]*minutes,0,100);}
+export function stepPersonNeeds(model,i,minutes,options){const effects=personNeedEffects(model,i,options);for(const key of["hunger","energy","fun","social",...Object.keys(BASIC_NEEDS)])model.people[key][i]=clamp(model.people[key][i]+effects.needRates[key]*minutes,0,100);}
 
 export function eventEffects(model,minute){const weather=weatherInput(model),effects=model.districts.map(()=>({rent:1,jobs:1,roads:weather.roadAvailability??1,transit:weather.transitAvailability??1,services:weather.serviceAvailability??1,demand:1}));for(const event of model.config.events){const elapsed=minute-event.startMinute;if(elapsed<0)continue;const tail=elapsed-event.durationMinutes;const strength=tail<=0?event.magnitude:event.recoveryMinutes>0?event.magnitude*Math.exp(-tail/event.recoveryMinutes):0;if(strength<1e-5)continue;for(let d=0;d<effects.length;d++){if(event.districtId&&model.districts[d].id!==event.districtId)continue;const e=effects[d];if(event.type==="rent-increase")e.rent*=1+strength;if(["recession","employer-closes"].includes(event.type))e.jobs*=1-strength;if(event.type==="employer-opens")e.jobs*=1+strength;if(["road-closure","storm"].includes(event.type))e.roads*=Math.max(0,1-strength);if(["transit-outage","storm"].includes(event.type))e.transit*=Math.max(0,1-strength);if(event.type==="transit-opening")e.transit*=1+strength;if(event.type==="festival")e.demand*=1+strength;if(event.type==="storm")e.services*=1-strength*.7;}}return effects;}
 
@@ -115,7 +117,7 @@ function applyInterval(model,i,activity,start,duration){
  if(model.journals)recordJournalInterval(model.journals,`${model.prefix}-p${i}`,`Resident ${i+1}`,houseActivityLabel(model,i,start)??populationJournalActivity(model,i,ACTIVITIES[activity],start),start,start+duration);
  recordFamilyActivityInterval(model,i,activity,start,duration);recordEmploymentInterval(model,i,activity,start,duration);
  const rates=personNeedEffects(model,i,{minute:start,activity}).needRates,means={};
- for(const key of["hunger","energy","fun","social"]){const before=p[key][i],rate=rates[key],after=clamp(before+rate*duration,0,100),active=rate===0?duration:Math.min(duration,Math.max(0,((rate>0?100:0)-before)/rate));means[key]=((before+(before+rate*active))/2*active+after*(duration-active))/duration;p[key][i]=after;}
+ for(const key of["hunger","energy","fun","social",...Object.keys(BASIC_NEEDS)]){const before=p[key][i],rate=rates[key],after=clamp(before+rate*duration,0,100),active=rate===0?duration:Math.min(duration,Math.max(0,((rate>0?100:0)-before)/rate));means[key]=((before+(before+rate*active))/2*active+after*(duration-active))/duration;p[key][i]=after;}
  model.activityMinutes[ACTIVITIES[activity]]=(model.activityMinutes[ACTIVITIES[activity]]||0)+duration;
  if(model.activityHistory)recordActivity(model.activityHistory,{id:`${model.prefix}-p${i}`,householdId:`${model.prefix}-h${p.household[i]}`,activity:ACTIVITIES[activity],startMinute:start,endMinute:start+duration,weight:model.weight,districtId:model.districts[p.current[i]].id,needs:means});
  recordHouseInterval(model,i,activity,start,duration);
@@ -137,7 +139,7 @@ export function stepActivities(model,minutes,effects){
       const progress=1-p.remaining[i]/p.tripTotal[i];p.x[i]=p.fromX[i]+(p.toX[i]-p.fromX[i])*progress;p.z[i]=p.fromZ[i]+(p.toZ[i]-p.fromZ[i])*progress;
       if(p.remaining[i]<=1e-9){p.remaining[i]=0;p.x[i]=p.toX[i];p.z[i]=p.toZ[i];p.current[i]=p.to[i];p.currentLocation[i]=p.toLocation[i];
         const experienced=time-p.departureMinute[i];model.totals.completedTrips++;model.totals.completedTravelMinutes+=experienced;p.experiencedTime[i]=.8*p.experiencedTime[i]+.2*experienced;p.habit[i]=p.mode[i];
-        const mode=MODES[p.mode[i]];p.activity[i]=p.plannedActivity[i];p.planUntil[i]=p.plannedUntil[i];p.mode[i]=0;visitArrival(model,i,time);
+        const mode=MODES[p.mode[i]];p.activity[i]=p.plannedActivity[i];p.planUntil[i]=p.plannedUntil[i];p.mode[i]=0;visitArrival(model,i,time);updateRoommateArrival(model,i,time);
         if(model.manualWalks?.[i]){const manual=model.manualWalks[i],arrivedHome=p.current[i]===p.home[i]&&Math.hypot(p.x[i]-p.homeX[i],p.z[i]-p.homeZ[i])<1;if(manual.home&&arrivedHome){manual.until=time+60;p.plannedUntil[i]=p.planUntil[i]=time+60;}if(!manual.home||arrivedHome)semanticEvent(model,i,manual.home?"RETURN_HOME_ARRIVED":"PLAYER_WALK_ARRIVED",time,{commandMinute:manual.commandMinute});}
         semanticEvent(model,i,"TRIP_COMPLETED",time,{mode,travelMinutes:experienced,durationMinutes:experienced,to:model.districts[p.current[i]].id,activity:ACTIVITIES[p.activity[i]]});
       }else break;

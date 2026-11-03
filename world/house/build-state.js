@@ -1,0 +1,58 @@
+/** Pure, atomic house edits. Geometry is frozen site-local metres, never screen coordinates. */
+export const BUILD_RULES=Object.freeze({schemaVersion:'house-build.v1',maxRooms:24,maxOpenings:64,maxHistory:64,minRoomArea:2,roomCostPerM2:12,doorCost:90,windowCost:70,paintCost:25,saleRatio:.5});
+const fail=message=>{throw Object.assign(new Error(message),{name:'HouseBuildError'});};
+const check=(ok,message)=>{if(!ok)fail(message);};
+const copy=value=>structuredClone(value),near=(a,b)=>Math.abs(a-b)<1e-7;
+const point=p=>{check(p&&Number.isFinite(p.x)&&Number.isFinite(p.z)&&Math.abs(p.x)<10000&&Math.abs(p.z)<10000,'Build points require finite site-local coordinates');return{x:Math.round(p.x*1000)/1000,z:Math.round(p.z*1000)/1000};};
+const cross=(a,b,c)=>(b.x-a.x)*(c.z-a.z)-(b.z-a.z)*(c.x-a.x);
+function onSegment(p,a,b){return Math.abs(cross(a,b,p))<1e-7&&p.x>=Math.min(a.x,b.x)-1e-7&&p.x<=Math.max(a.x,b.x)+1e-7&&p.z>=Math.min(a.z,b.z)-1e-7&&p.z<=Math.max(a.z,b.z)+1e-7;}
+function inside(p,poly,boundary=true){let hit=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[j],b=poly[i];if(onSegment(p,a,b))return boundary;if((a.z>p.z)!==(b.z>p.z)&&p.x<(b.x-a.x)*(p.z-a.z)/(b.z-a.z)+a.x)hit=!hit;}return hit;}
+function intersects(a,b,c,d){const x=cross(a,b,c),y=cross(a,b,d),z=cross(c,d,a),w=cross(c,d,b);return x*y< -1e-12&&z*w< -1e-12;}
+export function polygonArea(poly){return Math.abs(poly.reduce((sum,a,i)=>{const b=poly[(i+1)%poly.length];return sum+a.x*b.z-b.x*a.z;},0))/2;}
+function polygon(value){check(Array.isArray(value)&&value.length>=3&&value.length<=32,'Draw a room with 3–32 corners');const p=value.map(point);if(near(p[0].x,p.at(-1).x)&&near(p[0].z,p.at(-1).z))p.pop();check(p.length>=3&&polygonArea(p)>=BUILD_RULES.minRoomArea,'A room must have at least 2 m² of floor');for(let i=0;i<p.length;i++){check(Math.hypot(p[i].x-p[(i+1)%p.length].x,p[i].z-p[(i+1)%p.length].z)>.1,'Room walls must be longer than 10 cm');for(let j=i+1;j<p.length;j++){if(j===i+1||(i===0&&j===p.length-1))continue;check(!intersects(p[i],p[(i+1)%p.length],p[j],p[(j+1)%p.length]),'Room walls cannot cross');check(!onSegment(p[j],p[i],p[(i+1)%p.length]),'Room corners cannot overlap another wall');}}return p;}
+function within(p,bounds){check(bounds?.outer?.length>=3,'Frozen house footprint is required for building');const outer=bounds.outer.map(point),holes=(bounds.holes??[]).map(h=>h.map(point));for(let i=0;i<p.length;i++){const a=p[i],b=p[(i+1)%p.length];check(inside(a,outer)&&inside({x:(a.x+b.x)/2,z:(a.z+b.z)/2},outer),'Room crosses the actual house footprint');for(let k=0;k<outer.length;k++)check(!intersects(a,b,outer[k],outer[(k+1)%outer.length]),'Room crosses a concave footprint boundary');for(const hole of holes){check(!inside(a,hole)&&!inside({x:(a.x+b.x)/2,z:(a.z+b.z)/2},hole),'Room crosses a footprint courtyard or hole');for(let k=0;k<hole.length;k++)check(!intersects(a,b,hole[k],hole[(k+1)%hole.length]),'Room crosses a footprint courtyard or hole');}}for(const hole of holes)check(!hole.some(q=>inside(q,p)),'Room encloses a footprint courtyard or hole');}
+const design=s=>({rooms:copy(s.rooms),openings:copy(s.openings),paints:copy(s.paints),nextId:s.nextId});
+export function createBuildState(){return{schemaVersion:BUILD_RULES.schemaVersion,rooms:[],openings:[],paints:{},nextId:1,undo:[],redo:[],receipts:[]};}
+export function buildWalls(state,geometry){return[...(geometry?.walls??[]),...(state?.rooms??[]).flatMap(room=>room.polygon.map((a,i)=>({id:room.id+'-wall-'+i,a,b:room.polygon[(i+1)%room.polygon.length]})))];}
+function wallFor(id,state,geometry){const w=buildWalls(state,geometry).find(w=>w.id===id);check(w,'Select an actual house wall');const a=point(w.a),b=point(w.b),length=Math.hypot(b.x-a.x,b.z-a.z);check(length>.1,'Wall is too short');return{...w,a,b,length};}
+function validateDesignGeometry(state,geometry){for(const room of state.rooms)within(room.polygon,geometry?.bounds);for(const opening of state.openings){const wall=wallFor(opening.wallId,state,geometry),center=opening.offset*wall.length;check(center-opening.width/2>=.1&&center+opening.width/2<=wall.length-.1,'Saved opening no longer fits the current wall');}for(const id of Object.keys(state.paints))wallFor(id,state,geometry);}
+function availableObject(id,objects,reserved){const obj=objects.find(o=>o.id===id);check(obj,'Selected furniture no longer exists');check(!reserved.includes(id)&&!obj.reservedBy&&!obj.occupiedBy,'Furniture is occupied or reserved; finish its activity before selling');return obj;}
+/** Caller must supply authoritative savings, inventory, reservation IDs and catalog salePrices. No side effects on rejection. */
+export function applyBuildCommand({state=createBuildState(),savings,command,geometry,objects=[],reservedObjectIds=[],salePrices={}}){
+ validateBuildState(state);check(Number.isFinite(savings)&&savings>=0,'Invalid household savings');check(command&&typeof command.type==='string','Choose a build command');check(!command.commandId||(typeof command.commandId==='string'&&command.commandId.length<=120),'Invalid build command ID');
+ if(command.commandId&&state.receipts?.some(r=>r.id===command.commandId)){const receipt=state.receipts.find(r=>r.id===command.commandId);check(receipt.command===JSON.stringify(command),'Build command ID was already used for another edit');return{state:copy(state),savings,objects:copy(objects),result:{...receipt.result,savings,replayed:true}};}
+ check(!command.commandId||(state.receipts?.length??0)<4096,'Build transaction limit reached for this saved home');
+ const next=copy(state),inventory=copy(objects);next.receipts??=[];const before=design(next);let cost=0,sale=null,result={type:command.type};
+ if(command.type==='undo'||command.type==='redo'){
+  const undo=command.type==='undo',from=undo?next.undo:next.redo,to=undo?next.redo:next.undo,entry=from.at(-1);check(entry,'Nothing to '+command.type);cost=undo?-entry.cost:entry.cost;
+  check(savings>=cost,'Insufficient savings to '+command.type+' this edit');if(entry.sale){if(undo){check(!inventory.some(o=>o.id===entry.sale.id),'Cannot restore furniture: its ID is already present');inventory.push(copy(entry.sale));}else{const obj=availableObject(entry.sale.id,inventory,reservedObjectIds);check(JSON.stringify(obj)===JSON.stringify(entry.sale),'Furniture changed since undo; sell it again as a new edit');inventory.splice(inventory.findIndex(o=>o.id===obj.id),1);}}
+  Object.assign(next,copy(undo?entry.before:entry.after));from.pop();to.push(entry);result={type:command.type,edit:entry.type,cost};
+ }else{
+  if(command.type==='room'){
+   check(next.rooms.length<BUILD_RULES.maxRooms,'Room limit reached');const p=polygon(command.polygon);within(p,geometry?.bounds);for(const room of next.rooms){check(!(near(polygonArea(p),polygonArea(room.polygon))&&p.every(q=>room.polygon.some((a,i)=>onSegment(q,a,room.polygon[(i+1)%room.polygon.length])))),'Drawn rooms cannot overlap');check(!p.some(q=>inside(q,room.polygon,false))&&!room.polygon.some(q=>inside(q,p,false)),'Drawn rooms cannot overlap');for(let i=0;i<p.length;i++)for(let j=0;j<room.polygon.length;j++)check(!intersects(p[i],p[(i+1)%p.length],room.polygon[j],room.polygon[(j+1)%room.polygon.length]),'Drawn rooms cannot overlap');check(!inside({x:p.reduce((a,q)=>a+q.x,0)/p.length,z:p.reduce((a,q)=>a+q.z,0)/p.length},room.polygon,false),'Drawn rooms cannot overlap');}
+   const room={id:'build-room-'+next.nextId++,name:String(command.name??'New room').trim().slice(0,60)||'New room',polygon:p};next.rooms.push(room);cost=Math.ceil(polygonArea(p)*BUILD_RULES.roomCostPerM2);result.roomId=room.id;
+  }else if(command.type==='door'||command.type==='window'){
+   check(next.openings.length<BUILD_RULES.maxOpenings,'Door/window limit reached');const w=wallFor(command.wallId,next,geometry),width=command.width??(command.type==='door'?.9:1.2),offset=command.offset;check(Number.isFinite(width)&&width>=.5&&width<=3,'Opening width must be 0.5–3 metres');check(Number.isFinite(offset)&&offset>=0&&offset<=1,'Choose a position on the wall');const center=offset*w.length;check(center-width/2>=.1&&center+width/2<=w.length-.1,'Opening must fit the wall with 10 cm at each end');for(const o of next.openings.filter(o=>o.wallId===w.id))check(Math.abs(o.offset-offset)*w.length>=(o.width+width)/2+.1,'Door/window overlaps an existing opening');const opening={id:'build-opening-'+next.nextId++,type:command.type,wallId:w.id,offset,width};next.openings.push(opening);cost=command.type==='door'?BUILD_RULES.doorCost:BUILD_RULES.windowCost;result.openingId=opening.id;
+  }else if(command.type==='paint'){
+   const w=wallFor(command.wallId,next,geometry);check(/^#[0-9a-fA-F]{6}$/.test(command.color),'Choose a six-digit wall color');check(next.paints[w.id]!==command.color.toLowerCase(),'Wall already has this paint');next.paints[w.id]=command.color.toLowerCase();cost=BUILD_RULES.paintCost;
+  }else if(command.type==='sell'){
+   const obj=availableObject(command.objectId,inventory,reservedObjectIds),price=salePrices[obj.type];check(Number.isFinite(price)&&price>=0,'This object has no authoritative sale price');sale=copy(obj);inventory.splice(inventory.findIndex(o=>o.id===obj.id),1);cost=-Math.floor(price*BUILD_RULES.saleRatio);result.objectId=obj.id;
+  }else fail('Unknown house build command');
+  check(savings>=cost,'Insufficient household savings');const entry={type:command.type,before,after:design(next),cost,...(sale?{sale}:{})};next.undo.push(entry);next.undo=next.undo.slice(-BUILD_RULES.maxHistory);next.redo=[];result.cost=cost;
+ }
+ validateDesignGeometry(next,geometry);result.savings=savings-cost;if(command.commandId){next.receipts.push({id:command.commandId,command:JSON.stringify(command),result:copy(result)});}return{state:next,savings:savings-cost,objects:inventory,result};
+}
+
+/** Checkpoint structure validation; admission still rechecks current geometry and reservations. */
+export function validateBuildState(state){
+ check(state&&state.schemaVersion===BUILD_RULES.schemaVersion,'Unsupported saved build state');
+ check(Array.isArray(state.rooms)&&state.rooms.length<=BUILD_RULES.maxRooms&&Array.isArray(state.openings)&&state.openings.length<=BUILD_RULES.maxOpenings,'Invalid saved build inventory');
+ check(state.paints&&typeof state.paints==='object'&&!Array.isArray(state.paints)&&Object.values(state.paints).every(c=>/^#[0-9a-f]{6}$/.test(c)),'Invalid saved wall paint');
+ check(Number.isInteger(state.nextId)&&state.nextId>=1&&state.nextId<=100000,'Invalid saved build ID counter');
+ check(Array.isArray(state.undo)&&Array.isArray(state.redo)&&state.undo.length+state.redo.length<=BUILD_RULES.maxHistory,'Invalid saved build history');
+ check(Array.isArray(state.receipts)&&state.receipts.length<=4096&&new Set(state.receipts.map(r=>r.id)).size===state.receipts.length,'Invalid saved build receipts');
+ const ids=new Set();for(const room of state.rooms){check(typeof room.id==='string'&&!ids.has(room.id),'Duplicate saved build room');ids.add(room.id);polygon(room.polygon);}
+ for(const opening of state.openings){check(typeof opening.id==='string'&&!ids.has(opening.id)&&['door','window'].includes(opening.type)&&typeof opening.wallId==='string'&&Number.isFinite(opening.offset)&&opening.offset>=0&&opening.offset<=1&&Number.isFinite(opening.width)&&opening.width>=.5&&opening.width<=3,'Invalid saved wall opening');ids.add(opening.id);}
+ for(const entry of [...state.undo,...state.redo])check(entry&&Number.isFinite(entry.cost)&&Math.abs(entry.cost)<1e9&&entry.before&&entry.after&&['room','door','window','paint','sell'].includes(entry.type),'Invalid saved build transaction');
+ return true;
+}

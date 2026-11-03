@@ -8,7 +8,7 @@ export const HOUSE_FLOORING=Object.freeze({
  checkerTile:{label:'Checkerboard tiles',color:'#ece8da',accent:'#55615d',pattern:'checker'},
  carpet:{label:'Sage carpet',color:'#8d9c7b',accent:'#7d8b6b',pattern:'carpet'}
 });
-export function validateFlooring(roomId,style){if(!['bedroom','kitchen','living','study'].includes(roomId))throw Error('Choose an indoor room');if(style!==null&&!Object.hasOwn(HOUSE_FLOORING,style))throw Error('Choose a supported floor style');return style;}
+export function validateFlooring(roomId,style){if(!['bedroom','kitchen','living','study','bathroom'].includes(roomId))throw Error('Choose an indoor room');if(style!==null&&style!=='default'&&!Object.hasOwn(HOUSE_FLOORING,style))throw Error('Choose a supported floor style');return style;}
 
 export function validateFloorTile(tile){if(!tile||Array.isArray(tile)||Object.keys(tile).length!==2||!Number.isInteger(tile.x)||!Number.isInteger(tile.z)||Math.abs(tile.x)>1000||Math.abs(tile.z)>1000)throw Error('Choose a valid 1 × 1 floor square');return{x:tile.x,z:tile.z};}
 export const floorTileKey=(roomId,tile)=>`${roomId}:${tile.x}:${tile.z}`;
