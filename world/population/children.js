@@ -1,3 +1,4 @@
+import {householdMembers} from './household-members.js';
 import {houseActivityLabel,houseScreenActivity} from '../house/model.js';
 import {employmentCalendar,employmentWorkWindow} from './employment.js';
 /** Child agents v1: synthetic ages/guardians/peers, bounded routines and care.
@@ -34,7 +35,7 @@ export function initializeChildren(model,context={}){
  for(const field of ['childcareAccrued','childcareSubsidyAccrued'])hh[field]=new Float64Array(hh.size.length);
  for(let i=0;i<n;i++)p.ageYears[i]=p.age[i]===0?Math.floor(draw(model.seed,i,0,101)*18):p.age[i]===2?65+Math.floor(draw(model.seed,i,0,102)*26):20+Math.floor(draw(model.seed,i,0,103)*45);
  for(let h=0;h<hh.size.length;h++){
-  const members=Array.from({length:hh.size[h]},(_,k)=>hh.start[h]+k),adults=members.filter(i=>p.age[i]!==0),kids=members.filter(i=>p.age[i]===0);
+  const members=householdMembers(model,h),adults=members.filter(i=>p.age[i]!==0),kids=members.filter(i=>p.age[i]===0);
   for(const i of kids){children.indices.push(i);children.hasChildrenHousehold[h]=1;for(const [slot,parent]of adults.slice(0,2).entries()){p.ageYears[parent]=Math.max(p.ageYears[parent],p.ageYears[i]+18);p[slot?'parent2':'parent1'][i]=parent;}}
  }
  const supplied=context.buildings??context.town?.buildings??model.locations,locations=new Map(model.locations.map((row,i)=>[row.id,i]));
@@ -64,6 +65,7 @@ export function childScheduleAt(model,i,absolute=model.minute){
  const result=(childKind,activity,until,extra={})=>({childKind,activity,until,mandatory:true,reason:`Child ${childKind} routine`,destination:homeDestination,...extra});
  const wake=t.weekend||t.summerBreak?(t.age>=13?540:480):t.age>=5?(t.age>=13?c.teenSchoolStartMinute:c.schoolStartMinute)-60:420,bed=t.age>=13?1320:t.age>=6?1260:1230;
  if(m<wake||m>=bed)return result('sleep',0,m<wake?t.base+wake:t.base+1440+wake,{sleep:true});
+ if(t.age<2&&model.populationLineage?.records.some(r=>r.index===i))return result('home',0,t.base+bed,{reason:'Infant remains at home with a real guardian; care is provided by elapsed caregiver actions'});
  if(t.schoolDay&&schoolOpen&&absolute>=t.start-30&&absolute<t.end){
   const destination={district:k.schoolDistrict[i],x:k.schoolX[i],z:k.schoolZ[i],location:k.schoolLocation[i],source:k.schoolLocation[i]===NONE?'explicit synthetic district school proxy':'supplied school access point'};
   const recessStart=t.start+150,recessEnd=recessStart+c.schoolRecessMinutes,lunchEnd=recessEnd+30;
@@ -77,12 +79,13 @@ export function childScheduleAt(model,i,absolute=model.minute){
  if(!t.weekend&&k.careEnrollment[i]&&absolute>=careStart&&m<1080)return result('care',2,t.base+1080,{destination:{district:k.careDistrict[i],x:k.careX[i],z:k.careZ[i],location:k.careLocation[i],source:k.careLocation[i]===NONE?'explicit district care proxy':'supplied care access point'}});
  const used=k.dailyDay[i]===t.day?k.dailyScreenMinutes[i]:0,screenLimit=t.age<2?0:c.childScreenMinutesPerDay;
  if(m>=1110&&m<Math.min(bed,1110+screenLimit)&&used<screenLimit)return result('screens',0,Math.min(t.base+1110+screenLimit,absolute+screenLimit-used,t.base+bed));
+ if(t.age<5&&model.populationLineage?.records.some(r=>r.index===i))return result('home',0,t.base+bed,{reason:'Infant home care; feeding requires an actual caregiver action'});
  if((m>=wake&&m<wake+30)||(m>=1080&&m<1110))return result('meal',0,t.base+(m<1080?wake+30:1110),{eat:true});
  const next=[wake+30,t.schoolDay&&schoolOpen?(t.start-t.base-30):null,!t.weekend&&k.campEnrollment[i]?540:null,!t.weekend&&k.careEnrollment[i]?(careStart-t.base):null,1080,1110,Math.min(bed,1110+screenLimit),bed].filter(value=>Number.isFinite(value)&&value>m+1e-8);
  return result('after-school',0,t.base+Math.min(...next,bed));
 }
 function needsSupervision(model,i,minute){if(model.people.age[i]!==0||model.people.ageYears[i]>=model.config.childSupervisionAge)return false;const k=model.children,p=model.people,plan=childScheduleAt(model,i,minute),t=calendar(model,i,minute);if(plan.sleep)return false;if(t.schoolDay&&minute>=t.start&&minute<t.end&&['school','recess','meal'].includes(plan.childKind)&&atSite(model,i,k.schoolLocation[i],k.schoolDistrict[i]))return false;if(plan.childKind==='care'&&atSite(model,i,k.careLocation[i],k.careDistrict[i]))return false;if(plan.childKind==='camp'&&atSite(model,i,k.campLocation[i],k.campDistrict[i]))return false;return true;}
-function guardianFor(model,h){const p=model.people,hh=model.households;let best=-1;for(let k=0;k<hh.size[h];k++){const i=hh.start[h]+k;if(p.age[i]===0)continue;const rank=index=>!p.employed[index]||[2,3].includes(model.employment?.leaveKind[index])?0:1;if(best<0||rank(i)<rank(best)||rank(i)===rank(best)&&p.income[i]<p.income[best])best=i;}return best;}
+function guardianFor(model,h){const p=model.people,hh=model.households;let best=-1;for(const i of householdMembers(model,h)){if(p.age[i]===0)continue;const rank=index=>!p.employed[index]||[2,3].includes(model.employment?.leaveKind[index])?0:1;if(best<0||rank(i)<rank(best)||rank(i)===rank(best)&&p.income[i]<p.income[best])best=i;}return best;}
 export function prepareChildrenInterval(model,start,minutes,effects){
  const k=model.children;if(!k)return;const p=model.people,c=model.config,hh=model.households,day=dayAt(start);k.effects=effects??null;
  const key=JSON.stringify([day,c.childcareCapacity,c.childcareHourlyCost,c.childcareSubsidyFraction,c.summerCampEnabled,c.summerCampCapacity,c.summerCampDailyCost,c.schoolStartMinute,c.teenSchoolStartMinute,c.schoolDayMinutes,c.summerStartDay,c.summerEndDay,(effects??[]).map(e=>e.services)]);
@@ -90,7 +93,7 @@ export function prepareChildrenInterval(model,start,minutes,effects){
   k.enrollmentKey=key;k.careEnrollment.fill(0);k.campEnrollment.fill(0);
   const budgets=Float64Array.from(hh.savings,(s,h)=>Math.max(0,Math.max(0,s)+Math.max(0,hh.income[h]/365-hh.rent[h]/30-(330+hh.size[h]*140)/30)-(hh.childcareAccrued[h]||0)));
   const ordered=[...k.indices].sort((a,b)=>draw(model.seed,a,day,106)-draw(model.seed,b,day,106)||a-b);let care=0,camp=0;
-  for(const i of ordered){if(p.age[i]!==0)continue;const t=calendar(model,i,start),h=p.household[i],guard=guardianFor(model,h);if(t.weekend||guard<0)continue;
+  for(const i of ordered){if(p.age[i]!==0||p.ageYears[i]<2&&model.populationLineage?.records.some(r=>r.index===i))continue;const t=calendar(model,i,start),h=p.household[i],guard=guardianFor(model,h);if(t.weekend||guard<0)continue;
    const weight=model.weight??1,available=service(model,p.home[i]);
    const campWanted=t.summerBreak&&t.age>=5&&c.summerCampEnabled&&(p.employed[guard]||draw(model.seed,i,day,107)<.5),campCost=c.summerCampDailyCost*(1-c.childcareSubsidyFraction);
    if(campWanted&&camp+weight<=c.summerCampCapacity*available&&budgets[h]>=campCost){k.campEnrollment[i]=1;camp+=weight;budgets[h]-=campCost;continue;}
@@ -104,11 +107,11 @@ export function prepareChildrenInterval(model,start,minutes,effects){
 }
 export function parentCareConstraint(model,i,minute=model.minute){
  if(!model.children||model.people.age[i]===0||!model.children.hasChildrenHousehold[model.people.household[i]])return null;const p=model.people,h=p.household[i],hh=model.households;if(model.children.guardianByHousehold[h]!==i)return null;
- let until=Infinity;const children=[];for(let offset=0;offset<hh.size[h];offset++){const child=hh.start[h]+offset;if(p.age[child]!==0||!needsSupervision(model,child,minute))continue;children.push(personId(model,child));until=Math.min(until,childScheduleAt(model,child,minute).until);}
+ let until=Infinity;const children=[];for(const child of householdMembers(model,h)){if(p.age[child]!==0||!needsSupervision(model,child,minute))continue;children.push(personId(model,child));until=Math.min(until,childScheduleAt(model,child,minute).until);}
  if(!children.length)return null;
  return{activity:0,mandatory:true,until,childKind:'parent-care',reason:'Household child supervision constraint',reasonCodes:['CHILDCARE_UNAVAILABLE'],children,destination:{district:p.home[i],x:p.homeX[i],z:p.homeZ[i],location:p.homeLocation[i],source:'actual household home access point'}};
 }
-export function nextFamilyBoundary(model,i,minute=model.minute){const p=model.people,hh=model.households;if(!model.children||!model.children.hasChildrenHousehold[p.household[i]])return Infinity;const h=p.household[i];let until=(dayAt(minute)+1)*1440;for(let offset=0;offset<hh.size[h];offset++){const child=hh.start[h]+offset;if(p.age[child]!==0)continue;const plan=childScheduleAt(model,child,minute),t=calendar(model,child,minute);until=Math.min(until,plan.until,t.start>minute?t.start:Infinity,t.end>minute?t.end:Infinity);}return until;}
+export function nextFamilyBoundary(model,i,minute=model.minute){const p=model.people,hh=model.households;if(!model.children||!model.children.hasChildrenHousehold[p.household[i]])return Infinity;const h=p.household[i];let until=(dayAt(minute)+1)*1440;for(const child of householdMembers(model,h)){if(p.age[child]!==0)continue;const plan=childScheduleAt(model,child,minute),t=calendar(model,child,minute);until=Math.min(until,plan.until,t.start>minute?t.start:Infinity,t.end>minute?t.end:Infinity);}return until;}
 export function childModePermission(model,i,mode){
  const p=model.people;if(p.age[i]!==0)return{available:true,reason:null};const age=p.ageYears[i],c=model.config;
  const available=mode==='walk'?age>=c.childIndependentWalkAge:mode==='bike'?age>=Math.max(10,c.childIndependentWalkAge):['bus','rail'].includes(mode)?age>=c.childIndependentTransitAge:false;
@@ -140,7 +143,7 @@ export function recordChildTripDeparture(model,i,minute,mode,plan){const k=model
 export function parentHiringAvailability(model,i,day=dayAt(model.minute)){
  if(!model.children||model.people.age[i]===0)return 1;const p=model.people,h=p.household[i],hh=model.households;
  if(guardianFor(model,h)!==i)return 1;
- const work=employmentWorkWindow(model,i,day*1440);let available=0,total=0;for(let minute=work.start;minute<work.end;minute+=15){if(minute>=work.mealStart&&minute<work.mealEnd)continue;let needed=false;for(let k=0;k<hh.size[h];k++){const child=hh.start[h]+k;if(p.age[child]!==0||p.ageYears[child]>=model.config.childSupervisionAge)continue;const plan=childScheduleAt(model,child,minute);if(!plan.sleep&&!['school','recess','care','camp'].includes(plan.childKind)&&!(plan.childKind==='meal'&&plan.activity===5)){needed=true;break;}}total+=15;if(!needed)available+=15;}return total?available/total:1;
+ const work=employmentWorkWindow(model,i,day*1440);let available=0,total=0;for(let minute=work.start;minute<work.end;minute+=15){if(minute>=work.mealStart&&minute<work.mealEnd)continue;let needed=false;for(const child of householdMembers(model,h)){if(p.age[child]!==0||p.ageYears[child]>=model.config.childSupervisionAge)continue;const plan=childScheduleAt(model,child,minute);if(!plan.sleep&&!['school','recess','care','camp'].includes(plan.childKind)&&!(plan.childKind==='meal'&&plan.activity===5)){needed=true;break;}}total+=15;if(!needed)available+=15;}return total?available/total:1;
 }
 export function consumeChildcareCosts(model,h){const hh=model.households,result={householdCost:hh.childcareAccrued?.[h]??0,subsidyExposure:hh.childcareSubsidyAccrued?.[h]??0};if(hh.childcareAccrued)hh.childcareAccrued[h]=0;if(hh.childcareSubsidyAccrued)hh.childcareSubsidyAccrued[h]=0;return result;}
 export function inspectChild(model,i){if(model.people.age[i]!==0||!model.children)return null;const p=model.people,k=model.children;return{schemaVersion:CHILDREN_VERSION,ageYears:p.ageYears[i],parentIds:[p.parent1[i],p.parent2[i]].filter(index=>index>=0).map(index=>personId(model,index)),friendIds:k.friends[i].map(index=>personId(model,index)),schoolDistrictId:model.districts[k.schoolDistrict[i]].id,schoolLocationId:k.schoolLocation[i]===NONE?null:model.locations[k.schoolLocation[i]].id,schoolLocationSource:k.schoolLocation[i]===NONE?'synthetic district school proxy':'supplied school access point',careEnrolled:!!k.careEnrollment[i],campEnrolled:!!k.campEnrollment[i],permissions:Object.fromEntries(['walk','bike','car','bus','rail'].map(mode=>[mode,childModePermission(model,i,mode)])),counters:Object.fromEntries(CHILD_COUNTERS.map(field=>[field,k[field][i]])),fatigueProxy:k.fatigue[i],academicExposureProxy:k.academicProxy[i],currentSchedule:childScheduleAt(model,i,model.minute),assumptions:CHILDREN_ASSUMPTIONS};}

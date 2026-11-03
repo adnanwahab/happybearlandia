@@ -1,3 +1,4 @@
+import {householdMembers} from '../population/household-members.js';
 /** Explicit simulation inputs and evidence views for the household lab. */
 import {PROFILE_VERSION,PROFILE_TRAITS} from './profiles.js';
 import {romanceAvailability} from './relationships.js';
@@ -8,7 +9,7 @@ export const LAB_VERSION='house-lab.v1';
 const needs=['hunger','energy','hygiene','bladder','fun','social','comfort'];
 function person(model,id){const i=Number(String(id).slice((model.prefix+'-p').length));check(id===model.prefix+'-p'+i&&Number.isInteger(i)&&i>=0&&i<model.people.age.length,'Choose an actual city resident');return i;}
 function household(model,home){const h=Number(home.householdId.slice((model.prefix+'-h').length));check(home.householdId===model.prefix+'-h'+h&&h>=0&&h<model.households.size.length,'Choose an actual household');return h;}
-const members=(m,h)=>Array.from({length:m.households.size[h]},(_,k)=>m.households.start[h]+k);
+const members=(m,h)=>householdMembers(m,h);
 function state(home){return home.systems?.lab??{schemaVersion:LAB_VERSION,godMode:false,changes:[],notes:[]};}
 function commit(home,next){home.systems??={};home.systems.lab=next;}
 export function applyLabCommand(model,home,input){const h=household(model,home),current=state(home),next=copy(current);check(input&&typeof input.type==='string','Choose a lab command');let result={type:input.type};if(input.type==='godMode'){check(typeof input.enabled==='boolean','Choose whether God mode is enabled');next.godMode=input.enabled;commit(home,next);return{accepted:true,godMode:next.godMode,minute:model.minute};}

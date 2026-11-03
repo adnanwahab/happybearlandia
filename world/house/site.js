@@ -1,9 +1,10 @@
+import {householdMembers} from '../population/household-members.js';
 import {readPopulationCheckpoint} from '../population/checkpoint.js';
 import {projector} from '../gen.js';
 const finite=Number.isFinite;
 const ringOK=ring=>Array.isArray(ring)&&ring.length>=3&&ring.length<=20000&&ring.every(p=>Array.isArray(p)&&p.length>=2&&finite(p[0])&&finite(p[1]));
 const signedArea=ring=>ring.reduce((sum,p,i)=>{const q=ring[(i+1)%ring.length];return sum+p[0]*q[1]-q[0]*p[1];},0)/2;
-export function householdHomeBuildingIds(checkpoint,householdId,{checkpointState}={}){const {model}=checkpointState??readPopulationCheckpoint(checkpoint),prefix=model.prefix+'-h',index=typeof householdId==='string'&&householdId.startsWith(prefix)?Number(householdId.slice(prefix.length)):NaN;if(!Number.isInteger(index)||index<0||index>=model.households.size.length||householdId!==prefix+index)throw Error('Unknown household in this saved city');return[...new Set(Array.from({length:model.households.size[index]},(_,k)=>model.locations[model.people.homeLocation[model.households.start[index]+k]]?.id).filter(id=>id!=null).map(String))].sort();}
+export function householdHomeBuildingIds(checkpoint,householdId,{checkpointState}={}){const {model}=checkpointState??readPopulationCheckpoint(checkpoint),prefix=model.prefix+'-h',index=typeof householdId==='string'&&householdId.startsWith(prefix)?Number(householdId.slice(prefix.length)):NaN;if(!Number.isInteger(index)||index<0||index>=model.households.size.length||householdId!==prefix+index)throw Error('Unknown household in this saved city');return[...new Set(householdMembers(model,index).map(i=>model.locations[model.people.homeLocation[i]]?.id).filter(id=>id!=null).map(String))].sort();}
 /** No network or inferred exterior. Source pts/holes are latitude,longitude pairs;
  * GeoJSON Polygon coordinates are longitude,latitude. Concavity is untouched. */
 export function deriveHouseSite(save,householdOrOptions={},extraOptions={}){
