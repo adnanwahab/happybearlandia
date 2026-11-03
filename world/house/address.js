@@ -1,2 +1,0 @@
-/** Public address fields only; never retain complete OSM contributor tags. */
-export function osmBuildingAddress(tags={}){const clean=value=>typeof value==='string'?value.trim().slice(0,200):null,full=clean(tags['addr:full']??tags.full),houseNumber=clean(tags['addr:housenumber']??tags.houseNumber??tags.housenumber),street=clean(tags['addr:street']??tags.street),city=clean(tags['addr:city']??tags.city),postcode=clean(tags['addr:postcode']??tags.postcode);const label=full||[houseNumber,street].filter(Boolean).join(' ')||null;return{label,houseNumber,street,city,postcode};}

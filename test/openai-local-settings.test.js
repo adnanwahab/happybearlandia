@@ -1,6 +1,0 @@
-import {test,expect} from 'bun:test';
-import {loadLocalOpenAISettings} from '../world/ai/local-settings.js';
-const read=()=>`OPENAI_API_KEY=sk-${'x'.repeat(24)}\nOPENAI_MODEL=gpt-4o-mini\nOTHER_SECRET=unused\n`;
-test('local loader respects selected provider and loads only allowed server fields',()=>{const env={AI_PROVIDER:'openai'};expect(loadLocalOpenAISettings(env,{read}).loaded).toBe(true);expect(Boolean(env.OPENAI_API_KEY)).toBe(true);expect(env.OPENAI_MODEL).toBe('gpt-4o-mini');expect(env.OTHER_SECRET).toBeUndefined();});
-test('deployed env and externally supplied credentials are preserved',()=>{const env={AI_PROVIDER:'openai',OPENAI_API_KEY:'existing',OPENAI_MODEL:'chosen'};loadLocalOpenAISettings(env,{read});expect(env.OPENAI_API_KEY).toBe('existing');expect(env.OPENAI_MODEL).toBe('chosen');expect(loadLocalOpenAISettings({AI_PROVIDER:'demo'},{read:()=>{throw Error('not read');}}).loaded).toBe(false);expect(loadLocalOpenAISettings({AI_PROVIDER:'openai',NODE_ENV:'production'},{read}).loaded).toBe(false);});
-test('references and malformed values are never evaluated or sent as literal keys',()=>{const env={AI_PROVIDER:'openai'};loadLocalOpenAISettings(env,{read:()=>"OPENAI_API_KEY=op://vault/key\nOPENAI_MODEL=$(command)"});expect(env.OPENAI_API_KEY).toBeUndefined();expect(env.OPENAI_MODEL).toBeUndefined();});

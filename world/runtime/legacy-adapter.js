@@ -1,7 +1,0 @@
-/** Read-only render compatibility. District IDs are never building indices;
- * monthly disposable income is never mislabeled as a cash balance. */
-export function legacyPersonFromPopulation(person,households=[]){
- const household=households.find(row=>row.id===person.householdId);
- return{id:String(person.id??person.personId),x:person.x,z:person.z,householdId:person.householdId,homeDistrictId:person.homeDistrictId,workDistrictId:person.workDistrictId,needs:structuredClone(person.needs??{}),doing:person.currentActivity??person.activity,activity:person.currentActivity??person.activity,mode:person.mode,travelMode:person.mode,money:Number.isFinite(household?.savings)?household.savings:null,moneySource:Number.isFinite(household?.savings)?'shared household savings stock':'unavailable',source:'canonical snapshot; detached render-only adapter'};
-}
-export function legacyFrameFromWorldSnapshot(snapshot){const population=snapshot.population;return{schemaVersion:'world-render-frame.v1',clock:structuredClone(snapshot.clock),people:(population.visibleAgents??[]).map(person=>legacyPersonFromPopulation(person,population.households)),businesses:structuredClone(snapshot.economy.businesses??[]),districts:structuredClone(population.districts??[]),metrics:structuredClone(snapshot.metrics),ownership:structuredClone(snapshot.ownership),culture:structuredClone(snapshot.culture),limitations:['District IDs are not legacy building indices. Missing home/job premises remain unavailable.','money is shared household savings where recorded; never monthly budget flow.']};}

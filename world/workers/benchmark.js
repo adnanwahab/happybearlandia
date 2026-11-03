@@ -1,8 +1,0 @@
-/** Actual independent-future scaling benchmark, not live-population sharding.
- * Defaults deliberately small; reports wall time/throughput, not invented CPU or
- * per-worker memory. Browser/OS/hardware differences must accompany results. */
-import {createPopulationRuntime} from '../population/runtime.js';
-export async function benchmarkPopulationScaling({counts=[1,2,4,8,12],population=1000,runs=12,horizonDays=1}={}){
- const results=[];for(const workerCount of counts){const runtime=createPopulationRuntime({config:{population,seed:42},workerCount});try{await runtime.ready;const start=performance.now();const result=await runtime.runExperiments({runs,horizonDays}).ready;const wallMs=performance.now()-start;results.push({workerCount,liveWorkerCount:1,population,runs,horizonDays,status:result.status,wallMs:Number(wallMs.toFixed(2)),tasksPerSecond:Number((result.completed/(wallMs/1000)).toFixed(2)),agentSteps:population*runs*horizonDays*48,livePopulationSharding:false,portableMemory:null,errors:result.rows.filter(row=>row.status==='failed').length});}finally{runtime.destroy();}}
- return{schemaVersion:'worker-scaling-benchmark.v1',measuredAt:new Date().toISOString(),environment:typeof navigator!=='undefined'?{userAgent:navigator.userAgent,hardwareConcurrency:navigator.hardwareConcurrency}: {runtime:'Bun/worker API; see command environment'},results,limitations:['Independent seeded futures only; one authoritative live model.','Startup/module-load overhead is included after live model ready.','Portable per-worker CPU/memory unavailable.','100000 active people are a schema cap, not a measured interactive-performance claim.']};
-}
