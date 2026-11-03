@@ -1,3 +1,4 @@
+import {COMPLETE_SAVE_MAX_BYTES} from '../save-limits.js';
 import {validateFamilyHeritage} from '../house/family-heritage.js';
 import {validatePopulationGrowth} from './population-growth.js';
 import {installHouseSystems} from '../house/system-installers.js';
@@ -14,7 +15,7 @@ import {validateVisitState} from '../house/visits.js';
 import {validateHouseState} from '../house/model.js';
 import {POPULATION_VERSION,validatePopulationConfig} from './contracts.js';
 export const CHECKPOINT_VERSION='population-checkpoint.v1';
-export const MAX_CHECKPOINT_BYTES=32*1024*1024;
+export const MAX_CHECKPOINT_BYTES=COMPLETE_SAVE_MAX_BYTES;
 const constructors={Int8Array,Uint8Array,Uint8ClampedArray,Int16Array,Uint16Array,Int32Array,Uint32Array,Float32Array,Float64Array};
 const fail=()=>{throw new Error('Invalid or oversized population checkpoint');};
 function size(value){let json;try{json=JSON.stringify(value);}catch{fail();}if(new TextEncoder().encode(json).length>MAX_CHECKPOINT_BYTES)fail();return json;}

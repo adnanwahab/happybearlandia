@@ -1,8 +1,10 @@
 import {loadLocalOpenAISettings} from './world/ai/local-settings.js';
 loadLocalOpenAISettings();
+import {createDateMysteryHandler} from './world/date/mystery-api.js';
+const handleDateMystery=createDateMysteryHandler();
 import {createDatePlacesHandler} from './world/house/date-drive-search.js';
 const handleDatePlaces=createDatePlacesHandler();
-import {createWorldPersistenceHandler} from './world/experiments/persistence-api.js';
+import {createWorldPersistenceHandler,EXPERIMENT_MAX_BYTES} from './world/experiments/persistence-api.js';
 const handleWorldPersistence=createWorldPersistenceHandler();
 import {createRealityShareHandler} from './world/reality/share-api.js';
 import {createOpenQuestionsHandler} from './world/questions/api.js';
@@ -382,6 +384,7 @@ const handleExperiments = createExperimentsHandler({ fetchPlan: fetchPlanFromDea
 const handleConstitutionSource = createConstitutionSourceHandler({fetchPlan:()=>fetchPlanFromDearCongress({includeSynthetic:false}),sourceUrl:new URL(DEAR_CONGRESS_URL).origin+'/'});
 
 const server = serve({
+  maxRequestBodySize:EXPERIMENT_MAX_BYTES,
   port: PORT,
 
   async fetch(request, server) {
@@ -459,6 +462,7 @@ const server = serve({
     if (under(pathname, "/api/reality-shares")) return handleRealityShares(request);
     if (under(pathname, "/api/world-homes")) return handleWorldPersistence(request);
     if (under(pathname, "/api/world-experiments")) return handleWorldPersistence(request);
+    if (["/api/date-mystery/status","/api/date-mystery/generate"].includes(pathname)) return handleDateMystery(request);
     if (pathname === "/api/world-questions") return handleOpenQuestions(request);
     if (under(pathname, "/api/decision-experiments")) return handleDecisionExperiments(request);
     if (under(pathname, "/api/world-edits")) return handleWorldEdits(request);

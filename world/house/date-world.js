@@ -9,9 +9,10 @@ export function dateWorldKey(place) {
     ? `${place.lat.toFixed(6)},${place.lng.toFixed(6)}` : null;
 }
 
-/** Accept only provider-preserved OSM identities. Missing IDs remain map points,
+/** Accept provider-preserved OSM identities and fixed allowlisted curated presets. Missing IDs remain map points,
  * never latitude/longitude-derived OSM identities. */
 export function normalizeDateWorldPlace(input) {
+  if(String(input?.id??'').startsWith('curated:')){try{validateDatePlace(input);const place=createDatePlace(input);return place.source==='curated'?place:null;}catch{return null;}}
   let id=input?.id;
   if(typeof id==='string'&&/^(node|way|relation)[/:][1-9]\d*$/.test(id))id='osm:'+id.replace('/',':');
   if(!/^osm:(node|way|relation):[1-9]\d{0,19}$/.test(String(id))){
