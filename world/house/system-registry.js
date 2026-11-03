@@ -1,0 +1,16 @@
+/** Shared household extension contracts. Registry functions are never persisted. */
+const systems=new Map();
+export function registerHouseholdSystem(definition){if(!definition||typeof definition.id!=='string'||!/^[a-z][a-z0-9-]{0,39}$/.test(definition.id)||typeof definition.command!=='function'||typeof definition.inspect!=='function'||typeof definition.validate!=='function')throw Error('A household system needs id, command, inspect and validate');const existing=systems.get(definition.id);if(existing&&existing!==definition)throw Error('Household system already registered: '+definition.id);systems.set(definition.id,definition);return definition;}
+export function householdSystems(){return[...systems.values()];}
+export function householdSystem(id){const system=systems.get(id);if(!system)throw Error('Household system is unavailable: '+id);return system;}
+export function systemActionDefinitions(){return Object.assign({},...householdSystems().map(s=>s.actions??{}));}
+export function systemActionDefinition(type){for(const s of systems.values())if(Object.hasOwn(s.actions??{},type))return s.actions[type];return null;}
+export function inspectHouseholdSystems(model,home){return Object.fromEntries(householdSystems().map(s=>[s.id,s.inspect(model,home)]));}
+export function validateHouseholdSystems(model){for(const home of Object.values(model.houses?.homes??{})){for(const s of systems.values())s.validate(model,home);if(home.systems!==undefined){const text=JSON.stringify(home.systems);if(text.length>524288)throw Error('Household extension state exceeds 512 KiB');}}}
+export function planSystemAction(model,home,request,participants){let cost=0;const data={};for(const s of systems.values()){const result=s.actionPlan?.(model,home,request,participants);if(!result)continue;if(result.available===false)return{available:false,reason:result.reason??'Household system prerequisite is unavailable'};if(result.cost!==undefined){if(!Number.isFinite(result.cost)||result.cost<0)throw Error('Invalid system action cost');cost+=result.cost;}if(result.data!==undefined)data[s.id]=structuredClone(result.data);}return{available:true,cost,data};}
+export function commitSystemAction(model,home,action,request){for(const s of systems.values())s.admitAction?.(model,home,action,request);}
+export function recordSystemInterval(model,home,action,i,start,duration){for(const s of systems.values())s.recordInterval?.(model,home,action,i,start,duration);}
+export function completeSystemAction(model,home,action,minute){for(const s of systems.values())s.completeAction?.(model,home,action,minute);}
+export function systemNeedRates(model,home,action,i,minute,activity,rates){let result=rates;for(const s of systems.values()){const next=s.needRates?.(model,home,action,i,minute,activity,result);if(next)result=next;}return result;}
+export function prepareHouseholdSystems(model){for(const home of Object.values(model.houses?.homes??{}))for(const s of systems.values())s.prepare?.(model,home,{minute:model.minute});}
+export function advanceHouseholdSystems(model,startMinute,endMinute){for(const home of Object.values(model.houses?.homes??{}))for(const s of systems.values())s.advance?.(model,home,{startMinute,endMinute});}

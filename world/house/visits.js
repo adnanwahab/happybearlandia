@@ -1,4 +1,4 @@
-import {roommateHome} from './roommates.js';
+import {roommateHome} from './roommate-roster.js';
 import {recordEvent} from '../population/contracts.js';
 export const VISIT_VERSION='house-visits.v1';
 export const VISIT_LIMITS=Object.freeze({active:16,perHome:8,retained:64,candidates:30,maxMinutes:240,maxDistanceM:3000});

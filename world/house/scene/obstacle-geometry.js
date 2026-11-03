@@ -1,0 +1,4 @@
+import {FURNITURE_FOOTPRINTS} from '../furniture-geometry.js';
+/** Footprints include the solid associated parts emitted by interior.js. A
+ * kitchen's drawn fridge/cabinets must not become pass-through scenery. */
+export function objectObstacleRects(type,{x,z,rotation=0,scale=1}={}){const size=FURNITURE_FOOTPRINTS[type]??{width:.8,depth:.8},parts=[{x:0,z:0,width:size.width,depth:size.depth}];if(type==='stove')parts.push({x:-1.6,z:0,width:1.4,depth:1.2},{x:1.5,z:0,width:1.4,depth:1.2},{x:-3.3,z:0,width:1.12,depth:1.05});if(type==='bed')parts.push({x:1.9,z:-1.1,width:.6,depth:.65});if(type==='desk')parts.push({x:0,z:.95,width:.75,depth:.7});const c=Math.cos(rotation),s=Math.sin(rotation);return parts.map(p=>({x:x+(p.x*c+p.z*s)*scale,z:z+(-p.x*s+p.z*c)*scale,width:p.width*scale,depth:p.depth*scale,rotation}));}

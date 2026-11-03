@@ -8,7 +8,7 @@ export function advertisedObjectActions({object,home={},person,partner,consentin
  for(const [type,definition]of Object.entries(definitions))if(Array.isArray(definition.objectTypes)&&(definition.objectTypes.includes('*')||definition.objectTypes.includes(actual.type)))types.add(type);
  if(actual.type==='couch'&&definitions.cuddle)types.add('cuddle');
  if(actual.garden&&definitions.garden)types.add('garden');if(home.life?.conditions?.[actual.id]?.broken){if(definitions.repair)types.add('repair');if(definitions.callRepair)types.add('callRepair');}
- const result=[];for(const type of types){const definition=definitions[type];if(!definition||!Number.isFinite(definition.durationMinutes)||definition.durationMinutes<=0)continue;let supported=true,reason=null;const deny=message=>{supported=false;reason??=message;};
+ const result=[];for(const type of types){const definition=definitions[type];if(!definition||definition.requiresSystemOptions===true||!Number.isFinite(definition.durationMinutes)||definition.durationMinutes<=0)continue;let supported=true,reason=null;const deny=message=>{supported=false;reason??=message;};
   if(!person?.id)deny('Choose an actual resident first');else if(person.atHome===false)deny('This resident is away from home');else if(Number.isFinite(definition.minAge)&&(!Number.isFinite(person.ageYears)||person.ageYears<definition.minAge))deny('Requires age '+definition.minAge+' or older');
   if(type==='readAtSeat'&&!home.objects.some(row=>row.type==='books'))deny('Place a bookshelf before reading here');
   if(type==='watchTVFromSeat'&&!home.objects.some(row=>row.type==='tv'&&row.roomId===actual.roomId))deny('Place a television in this room');

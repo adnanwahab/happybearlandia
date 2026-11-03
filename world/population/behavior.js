@@ -139,7 +139,7 @@ export function stepActivities(model,minutes,effects){
       const progress=1-p.remaining[i]/p.tripTotal[i];p.x[i]=p.fromX[i]+(p.toX[i]-p.fromX[i])*progress;p.z[i]=p.fromZ[i]+(p.toZ[i]-p.fromZ[i])*progress;
       if(p.remaining[i]<=1e-9){p.remaining[i]=0;p.x[i]=p.toX[i];p.z[i]=p.toZ[i];p.current[i]=p.to[i];p.currentLocation[i]=p.toLocation[i];
         const experienced=time-p.departureMinute[i];model.totals.completedTrips++;model.totals.completedTravelMinutes+=experienced;p.experiencedTime[i]=.8*p.experiencedTime[i]+.2*experienced;p.habit[i]=p.mode[i];
-        const mode=MODES[p.mode[i]];p.activity[i]=p.plannedActivity[i];p.planUntil[i]=p.plannedUntil[i];p.mode[i]=0;visitArrival(model,i,time);updateRoommateArrival(model,i,time);
+        const mode=MODES[p.mode[i]];p.activity[i]=p.plannedActivity[i];p.planUntil[i]=p.plannedUntil[i];p.mode[i]=0;visitArrival(model,i,time);if(model.roommates?.active?.[i]?.phase==='moving-out')updateRoommateArrival(model,i,time);
         if(model.manualWalks?.[i]){const manual=model.manualWalks[i],arrivedHome=p.current[i]===p.home[i]&&Math.hypot(p.x[i]-p.homeX[i],p.z[i]-p.homeZ[i])<1;if(manual.home&&arrivedHome){manual.until=time+60;p.plannedUntil[i]=p.planUntil[i]=time+60;}if(!manual.home||arrivedHome)semanticEvent(model,i,manual.home?"RETURN_HOME_ARRIVED":"PLAYER_WALK_ARRIVED",time,{commandMinute:manual.commandMinute});}
         semanticEvent(model,i,"TRIP_COMPLETED",time,{mode,travelMinutes:experienced,durationMinutes:experienced,to:model.districts[p.current[i]].id,activity:ACTIVITIES[p.activity[i]]});
       }else break;

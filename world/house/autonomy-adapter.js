@@ -1,4 +1,4 @@
-import {roommateAtHouse} from './roommates.js';
+import {roommateAtHouse} from './roommate-roster.js';
 import {isRecordedGuestAtHouse} from './visits.js';
 import {employmentScheduleAt,employmentWorkWindow} from '../population/employment.js';
 import {childScheduleAt,parentCareConstraint} from '../population/children.js';

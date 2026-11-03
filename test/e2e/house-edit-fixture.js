@@ -8,6 +8,6 @@ export async function openEditableHouse(page,{population=4,withTV=false}={}){
  },{population,withTV});
  let record={schemaVersion:'world-experiment-record.v1',id:'editqa01',url:'/world?experiment=editqa01',save:fixture.save};
  await page.route('**/api/world-experiments**',route=>{if(route.request().method()==='POST'){record={schemaVersion:'world-experiment-record.v1',id:'editqa02',url:'/world?experiment=editqa02',save:route.request().postDataJSON()};return route.fulfill({status:201,json:record});}return route.fulfill({json:record});});
- await page.goto('/world/house/'+fixture.householdId+'?experiment=editqa01');try{await page.waitForFunction(()=>window.hblHouseSession?.getSceneDebug()?.frameCount>0,{},{timeout:15000});}catch(error){throw Error('House fixture did not render: '+(await page.locator('body').innerText()).slice(0,3000));}return fixture;
+ await page.goto('/world/house/'+fixture.householdId+'?experiment=editqa01');try{await page.waitForFunction(()=>{const s=window.hblHouseSession,stats=s?.getScene()?.getStats();return s?.getSceneDebug()?.frameCount>0&&stats?.rooms>=4&&stats?.objects>=6;},{},{timeout:15000});}catch(error){throw Error('House fixture did not render: '+(await page.locator('body').innerText()).slice(0,3000));}return fixture;
 }
 export async function houseState(page){return page.evaluate(async()=>{const s=hblHouseSession;return{household:await s.getRuntime().inspectHousehold(s.getHouseholdId()),snapshot:s.getRuntime().getSnapshot(),scene:s.getSceneDebug()};});}
