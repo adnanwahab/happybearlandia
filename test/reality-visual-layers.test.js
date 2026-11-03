@@ -11,3 +11,9 @@ test('metric filtering recalculates magnitude and direction from retained select
  const report=computeRealityHotspots({baseline:{units:[{id:'u',buildingId:'b',rent:100,quality:.5}]},current:{units:[{id:'u',buildingId:'b',rent:150,quality:.7}]},worldContext:{buildings:[{id:'b',center:[1,2]}]}}),original=structuredClone(report),filtered=filterVisualHotspots(report,['units.rent']);
  expect(filtered.hotspots[0]).toMatchObject({strength:.5,direction:'negative'});expect(filtered.hotspots[0].changes).toHaveLength(1);expect(report).toEqual(original);expect(filterVisualHotspots(report,[]).hotspots).toHaveLength(0);
 });
+test('aggregate records stay explicit and absent permit pairs never become invented latency',()=>{
+ const state={activityMinutes:{HOME:120,WORK:30},activityCounts:{HOME:4},finance:{balance:200,capitalExpense:0},projects:[{id:'p',stage:'permit',duration:12}]};
+ const time=visualLayerAvailability(REALITY_VISUAL_LAYERS[37],state,state);expect(time.available).toBe(true);expect(time.records[0]).toMatchObject({field:'activityMinutes',baseline:{HOME:120,WORK:30}});
+ expect(visualLayerAvailability(REALITY_VISUAL_LAYERS[44],state,state).available).toBe(false);
+ const budget=visualLayerAvailability(REALITY_VISUAL_LAYERS[41],state,state);expect(budget.records.map(row=>row.field)).toEqual(['finance.balance']);
+});

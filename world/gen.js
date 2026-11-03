@@ -1,3 +1,4 @@
+import {buildingDateTags} from './temporal/building-dates.js';
 // Turns a lat/lng (+ optional real OSM buildings) into a deterministic synthetic town:
 // buildings with roles, and households of made-up people. Same lat/lng → same town.
 // Pure module: runs in the browser and in Node/Bun for tests.
@@ -17,6 +18,8 @@ export function rng(seed) {
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+  next.getState = () => a >>> 0;
+  next.setState = state => { if(!Number.isInteger(state)||state<0||state>4294967295)throw new Error('RNG state must be uint32');a=state>>>0; };
   next.int = (n) => Math.floor(next() * n);
   next.pick = (arr) => arr[Math.floor(next() * arr.length)];
   next.range = (lo, hi) => lo + next() * (hi - lo);
@@ -160,7 +163,7 @@ export function buildTown(origin, area, opts = {}) {
   if (area?.source === "osm" && area.buildings?.length >= 15) {
     source = "osm";
     raw = area.buildings.map((b) => ({
-      id: b.id, kind: b.kind, levels: b.levels, name: b.name,
+      id: b.id, kind: b.kind, levels: b.levels, name: b.name, dateTags: buildingDateTags(b.dateTags ?? b.tags),
       poly: b.pts.slice(0, -1).map(([la, ln]) => proj.toXZ(la, ln)),
     }));
   } else {

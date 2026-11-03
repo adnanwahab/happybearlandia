@@ -2,10 +2,29 @@
 // shared tools' explicit approval callback replaces input. Previews are detached
 // ghost objects; results always come from the Decision API, never a local model.
 import {attachBuildingWorld,previewBuildingWorld,findBuildableLocation,illustrativeWorldMapping} from './renderer.js';
-import {createBuildingProposal} from './proposal.js';
+import {createBuildingProposal,validateBuildingProposal} from './proposal.js';
 import {mountWorldTools} from '../decision/world-tools.js';
-import {housingModel,createHousingScenarios} from '../models/housing/index.js';
+import {housingModel,createHousingScenarios,validateHousingParameters} from '../models/housing/index.js';
 import {createDecisionClient,createRunTraceCache,mergeRunTrace} from '../decision/client.js';
+
+export const BUILDING_CHECKPOINT_VERSION='building-workspace-checkpoint.v1';
+export const BUILDING_CHECKPOINT_MAX_BYTES=8*1024*1024;
+const canonicalTopology=value=>JSON.stringify(value,(_,entry)=>entry&&typeof entry==='object'&&!Array.isArray(entry)?Object.fromEntries(Object.entries(entry).sort(([a],[b])=>a.localeCompare(b))):entry);
+/** Detached JSON only: full selected run trace is retained, not regenerated. */
+export function validateBuildingWorkspaceCheckpoint(data,{placementContext}={}){
+ const encoded=JSON.stringify(data,(_,value)=>{if(typeof value==='number'&&!Number.isFinite(value)||typeof value==='function'||typeof value==='bigint')throw new Error('Construction checkpoint must contain finite JSON data');return value;});
+ if(typeof encoded!=='string'||new TextEncoder().encode(encoded).length>BUILDING_CHECKPOINT_MAX_BYTES)throw new Error('Construction checkpoint exceeds8MB JSON limit');
+ const saved=JSON.parse(encoded),input=saved?.input;
+ if(saved?.schemaVersion!==BUILDING_CHECKPOINT_VERSION||saved.modelId!==housingModel.id||saved.modelVersion!==housingModel.version||input?.schemaVersion!=='decision-experiment.v1'||input.modelId!==housingModel.id||input.modelVersion!==housingModel.version)throw new Error('Construction checkpoint schema/model version mismatch');
+ if(!Number.isInteger(input.years)||input.years<1||input.years>50||!Array.isArray(input.scenarios)||!input.scenarios.length||input.scenarios.length>32||new Set(input.scenarios.map(row=>row.id)).size!==input.scenarios.length)throw new Error('Invalid construction scenario topology');
+ for(const scenario of input.scenarios){if(typeof scenario.id!=='string'||!validateHousingParameters(scenario.parameters).valid||scenario.projects!==undefined&&!Array.isArray(scenario.projects))throw new Error('Invalid approved construction scenario');for(const project of scenario.projects??[])if(!validateBuildingProposal(project).valid)throw new Error('Invalid saved building proposal');}
+ if(!input.scenarios.some(row=>row.id===saved.scenarioId)||!Number.isInteger(saved.month)||saved.month<0||saved.month>input.years*12||typeof saved.playing!=='boolean'||typeof saved.open!=='boolean')throw new Error('Invalid construction selection or playback clock');
+ if(!saved.placementContext||canonicalTopology(saved.placementContext)!==canonicalTopology(input.metadata?.placementContext)||placementContext&&canonicalTopology(saved.placementContext)!==canonicalTopology(placementContext))throw new Error('Construction checkpoint belongs to different source geometry/topology');
+ if(saved.results!==null&&(!saved.results||!Array.isArray(saved.results.runs)||saved.results.experiment?.modelVersion&&saved.results.experiment.modelVersion!==housingModel.version))throw new Error('Invalid stored construction results');
+ if(saved.run!==null){const run=saved.run;if(typeof run.id!=='string'||run.scenarioId!==saved.scenarioId||!saved.results?.runs.some(row=>row.id===run.id&&row.scenarioId===saved.scenarioId)||run.traceDelivery==='on-demand'||!Array.isArray(run.monthlyTimeline??run.timeline)||!Array.isArray(run.projects??[]))throw new Error('Selected construction future requires its actual full saved trace');const projectIds=new Set(input.scenarios.find(row=>row.id===saved.scenarioId).projects?.map(project=>project.id)??[]);for(const project of run.projects??[])if(!projectIds.has(project.projectId)||!Array.isArray(project.states)||project.states.some(state=>!Number.isInteger(state.month)||state.month<0||state.month>input.years*12))throw new Error('Invalid saved project pipeline');}
+ return saved;
+}
+export function createBuildingWorkspaceCheckpoint(state){return validateBuildingWorkspaceCheckpoint({schemaVersion:BUILDING_CHECKPOINT_VERSION,modelId:housingModel.id,modelVersion:housingModel.version,...state});}
 
 export function mountWorldBuildingBridge({scene,camera,renderer,controls,town,THREE,container=document.body}={}) {
   const doc=container.ownerDocument,root=doc.createElement('details');root.className='bw-world-tools';root.dataset.testid='world-building-tools';
@@ -18,7 +37,7 @@ export function mountWorldBuildingBridge({scene,camera,renderer,controls,town,TH
   const placementContext={buildings:polygons,districts:clone(town?.districts||[]),bounds:town?.bounds||{minX:-1500,maxX:1500,minZ:-1500,maxZ:1500}};
   let input={schemaVersion:'decision-experiment.v1',name:'Neighborhood building experiment',decision:'Test a specific housing development in the neighborhood.',modelId:housingModel.id,modelVersion:housingModel.version,seed:42,runs:10,years:10,scenarios:createHousingScenarios(),metadata:{placementContext}};
   try{const saved=JSON.parse(localStorage.getItem(key)||'null');if(saved?.modelVersion===housingModel.version&&Array.isArray(saved.scenarios))input={...saved,metadata:{...saved.metadata,placementContext}}}catch{}
-  let scenarioId=input.scenarios.find(s=>s.kind==='plan-a')?.id||input.scenarios[0].id,results=null,run=null,month=0,previewState=null,timer=null,watcher=null,busy=false,destroyed=false,tools=null;
+  let scenarioId=input.scenarios.find(s=>s.kind==='plan-a')?.id||input.scenarios[0].id,results=null,run=null,month=0,previewState=null,timer=null,watcher=null,busy=false,destroyed=false,tools=null,checkpointRestored=false;
   let futureMapping=illustrativeWorldMapping(null);
   const current=()=>input.scenarios.find(s=>s.id===scenarioId)||input.scenarios[0];
   const announce=message=>{$('.bw-bridge-status').textContent=message};
@@ -45,20 +64,21 @@ export function mountWorldBuildingBridge({scene,camera,renderer,controls,town,TH
       announce(`Loaded stored future ${runId}, seed ${run.seed}, month ${month}. Construction uses the selected trace.`);
     }).catch(error=>{if(!destroyed&&token===traceSelection)announce(`Could not load recorded construction: ${error.message}`)}).finally(()=>{if(token===traceSelection)pendingTrace=null});
   }
-  function runOptions(){const select=$('[data-bw-run]'),rows=(results?.runs||[]).filter(r=>r.status==='completed'&&r.scenarioId===scenarioId);select.replaceChildren(...rows.map(r=>{const option=doc.createElement('option');option.value=r.id;option.textContent=`Seed ${r.seed} · ${r.id}`;return option}));const summary=rows.find(r=>r.id===run?.id)||rows[0]||null;const experimentId=results?.experiment?.id;traceCache.setExperiment(experimentId||null);run=summary?mergeRunTrace(summary,traceCache.peek(experimentId,summary.id)):null;if(run)select.value=run.id;$('[data-bw-runs]').hidden=!run;if(experimentId)$('[data-bw-link]').href=`/world/decision.html?experiment=${encodeURIComponent(experimentId)}`;hydrateSelectedRun()}
-  async function simulate(){if(busy)return;stop();busy=true;render();watcher?.destroy();announce('Creating reproducible construction experiment…');try{const created=await client.create(clone(input));if(destroyed)return;await client.start(created.experiment.id);watcher=client.watch(created.experiment.id,{onUpdate:next=>{if(destroyed)return;results=next;runOptions();render();const p=next.experiment.progress||{};announce(`${p.completed||0} / ${p.total||0} futures complete. Construction replay uses the selected future’s stored monthly states.`);if(['completed','cancelled','failed'].includes(next.experiment.status)){busy=false;render()}},onError:error=>{busy=false;announce(error.message);render()}})}catch(error){busy=false;announce(error.message);render()}}
+  function runOptions({hydrate=true,preserveEmpty=false}={}){const select=$('[data-bw-run]'),rows=(results?.runs||[]).filter(r=>r.status==='completed'&&r.scenarioId===scenarioId);select.replaceChildren(...rows.map(r=>{const option=doc.createElement('option');option.value=r.id;option.textContent=`Seed ${r.seed} · ${r.id}`;return option}));const summary=preserveEmpty?null:rows.find(r=>r.id===run?.id)||rows[0]||null;const experimentId=results?.experiment?.id;traceCache.setExperiment(experimentId||null);run=summary?mergeRunTrace(summary,traceCache.peek(experimentId,summary.id)):null;if(run)select.value=run.id;$('[data-bw-runs]').hidden=!run;if(experimentId)$('[data-bw-link]').href=`/world/decision.html?experiment=${encodeURIComponent(experimentId)}`;if(hydrate)hydrateSelectedRun()}
+  async function simulate(){if(busy)return;checkpointRestored=false;stop();busy=true;render();watcher?.destroy();announce('Creating reproducible construction experiment…');try{const created=await client.create(clone(input));if(destroyed)return;await client.start(created.experiment.id);watcher=client.watch(created.experiment.id,{onUpdate:next=>{if(destroyed||checkpointRestored)return;results=next;runOptions();render();const p=next.experiment.progress||{};announce(`${p.completed||0} / ${p.total||0} futures complete. Construction replay uses the selected future’s stored monthly states.`);if(['completed','cancelled','failed'].includes(next.experiment.status)){busy=false;render()}},onError:error=>{busy=false;announce(error.message);render()}})}catch(error){busy=false;announce(error.message);render()}}
   tools=mountWorldTools($('[data-bw-tools]'),{getInput:()=>clone(input),getScenarioId:()=>scenarioId,onInputChange:async(next,{rerun=false}={})=>{stop();const math=value=>JSON.stringify({scenarios:value.scenarios.map(({worldVisuals,...scenario})=>scenario),seed:value.seed,years:value.years,modelVersion:value.modelVersion});const mathChanged=math(input)!==math(next);if(mathChanged){watcher?.destroy();busy=false;traceSelection++;pendingTrace=null;traceCache.clear()}input=clone(next);input.metadata={...input.metadata,placementContext};previewState=null;if(mathChanged){run=null;results=null}persist();scenarioOptions();render();if(mathChanged)focusProject(current().projects?.at(-1));announce('Approved revision saved. Prior experiments remain unchanged. Simulate to update construction.');if(rerun)await simulate()},onPreview:value=>{previewState=value?previewBuildingWorld(current(),value):null;render()},onPlaceRequest:proposal=>{root.open=false;focusPlacement(proposal.location);worldView.beginPlacement(proposal)},onCancelPreview:()=>{previewState=null;worldView.cancelPlacement();render()}});
   $('.world-tools').classList.add('wt-compact');
   tools.setSelection(selectionWithContext({kind:'district',id:'neighborhood',label:'Current neighborhood',location:findBuildableLocation(createBuildingProposal(),placementContext)||{x:142,z:100}}));
   const handlers=[];const listen=(selector,event,fn)=>{const node=$(selector);node.addEventListener(event,fn);handlers.push(()=>node.removeEventListener(event,fn))};
   listen('[data-bw-scenario]','change',()=>{stop();scenarioId=$('[data-bw-scenario]').value;previewState=null;worldView.cancelPlacement();runOptions();tools.update();render()});
   listen('[data-bw-month]','input',()=>{stop();month=Number($('[data-bw-month]').value);render()});listen('[data-bw-simulate]','click',simulate);
-  listen('[data-bw-play]','click',()=>{if(timer)return stop();if(!run){announce('Simulate approved projects before playing construction.');return}if(month>=input.years*12)month=0;$('[data-bw-play]').textContent='Pause construction';timer=setInterval(()=>{month++;render();if(month>=input.years*12)stop()},180)});
+  function startPlayback(){if(!run)return;if(month>=input.years*12)month=0;$('[data-bw-play]').textContent='Pause construction';timer=setInterval(()=>{month++;render();if(month>=input.years*12)stop()},180)}
+  listen('[data-bw-play]','click',()=>{if(timer)return stop();if(!run){announce('Simulate approved projects before playing construction.');return}startPlayback()});
   listen('[data-bw-run]','change',()=>{stop();traceSelection++;pendingTrace=null;run=(results?.runs||[]).find(r=>r.id===$('[data-bw-run]').value)||null;hydrateSelectedRun();render()});
   scenarioOptions();render();
   const query=new URLSearchParams(location.search),requested=query.get('decisionExperiment');
   if(requested){client.results(requested).then(next=>{
-    if(destroyed)return;results=next;input={...clone(next.experiment),metadata:{...next.experiment.metadata,placementContext}};
+    if(destroyed||checkpointRestored)return;results=next;input={...clone(next.experiment),metadata:{...next.experiment.metadata,placementContext}};
     const requestedId=query.get('decisionRun')||query.get('run'),requestedRun=requestedId?(next.runs||[]).find(r=>r.id===requestedId&&r.status==='completed'):null;
     if(requestedId&&!requestedRun){announce('The requested future is unavailable in this experiment. No substitute future was loaded.');return}
     scenarioId=requestedRun?.scenarioId||input.scenarios.find(s=>s.kind==='plan-a')?.id||input.scenarios[0].id;run=requestedRun;
@@ -70,5 +90,18 @@ export function mountWorldBuildingBridge({scene,camera,renderer,controls,town,TH
     $('[data-bw-link]').removeAttribute('target');
     announce(`Entered exact future ${run?.id||'none'}, seed ${run?.seed??'unknown'}, month ${month}. Construction uses stored states; the surrounding resident town is illustrative.`);
   }).catch(error=>announce(error.message))}
-  return {get futureMapping(){return futureMapping},get worldVisuals(){return previewState?.worldVisuals||current().worldVisuals||{}},ready:worldView.ready,destroy(){destroyed=true;traceSelection++;traceCache.clear();stop();hudObserver.disconnect();placementHUD.remove();watcher?.destroy();tools.destroy();worldView.destroy();for(const off of handlers)off();root.remove()}};
+  async function captureCheckpoint(){
+    // Hydrate only an already selected recorded run; never creates/starts a run.
+    if(run?.traceDelivery==='on-demand'){const selectedId=run.id,experimentId=results?.experiment?.id;if(!experimentId)throw new Error('Selected construction trace has no experiment ID');const full=await traceCache.get(experimentId,selectedId);if(run?.id!==selectedId||results?.experiment?.id!==experimentId)throw new Error('Construction selection changed while saving; retry');run=mergeRunTrace(run,full);if(run.traceDelivery==='on-demand')throw new Error('Full selected construction trace is unavailable');}
+    return createBuildingWorkspaceCheckpoint({input:clone(input),placementContext:clone(placementContext),scenarioId,results:clone(results),run:clone(run),month,previewState:clone(previewState),playing:!!timer,open:root.open,executionWasBusy:busy,draftCoverage:'Visible detached project preview is retained. Internal unsubmitted text fields and approval dialogs are not exposed by world-tools.'});
+  }
+  function restoreCheckpoint(data){
+    const saved=validateBuildingWorkspaceCheckpoint(data,{placementContext});
+    // Validate the complete detached payload before cancelling current activity.
+    checkpointRestored=true;stop();watcher?.destroy();watcher=null;busy=false;traceSelection++;pendingTrace=null;traceCache.clear();worldView.cancelPlacement();
+    input=clone(saved.input);scenarioId=saved.scenarioId;results=clone(saved.results);run=clone(saved.run);month=saved.month;previewState=clone(saved.previewState);root.open=saved.open;
+    if(run&&results){const index=results.runs.findIndex(row=>row.id===run.id);results.runs[index]=clone(run);}
+    scenarioOptions();runOptions({hydrate:false,preserveEmpty:saved.run===null});tools.update();render();persist();if(saved.playing&&run&&month<input.years*12)startPlayback();announce(`Restored saved construction future ${run?.id||'none'} at month ${month}. Stored project states are replayed; no simulation was rerun.`);return{scenarioId,runId:run?.id??null,month,playing:!!timer};
+  }
+  return {captureCheckpoint,restoreCheckpoint,get futureMapping(){return futureMapping},get worldVisuals(){return previewState?.worldVisuals||current().worldVisuals||{}},ready:worldView.ready,destroy(){destroyed=true;traceSelection++;traceCache.clear();stop();hudObserver.disconnect();placementHUD.remove();watcher?.destroy();tools.destroy();worldView.destroy();for(const off of handlers)off();root.remove()}};
 }

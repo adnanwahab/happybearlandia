@@ -1,8 +1,9 @@
+import {houseActivityPlan,houseNeedRates,recordHouseInterval,houseActivityLabel} from '../house/model.js';
 import {employmentScheduleAt,recordEmploymentInterval,consumeEmploymentPay,employmentIncomeFraction,employmentCalendar} from './employment.js';
 import {recordJournalInterval,recordJournalMoment,populationJournalActivity} from '../journals/model.js';
 import { ACTIVITIES, MODES, draw, clamp, recordTrace, recordEvent } from "./contracts.js";
 import { seededChoice } from "../behavior/core/choice.js";
-import {childScheduleAt,parentCareConstraint,nextFamilyBoundary,childModePermission,recordFamilyActivityInterval,recordChildTripDeparture,parentWorkFraction,consumeChildcareCosts} from './children.js';
+import {childScheduleAt,parentCareConstraint,nextFamilyBoundary,childModePermission,recordFamilyActivityInterval,recordChildTripDeparture,consumeChildcareCosts} from './children.js';
 import { getBehaviorCoefficients } from "../behavior/coefficients/registry.js";
 import { recordActivity, recordHistoryEvent } from "../activity-history.js";
 const modeCoefficients=getBehaviorCoefficients("mode-choice-v1");
@@ -27,7 +28,7 @@ export function personNeedEffects(model,i,options={}){const p=model.people,absol
  if(activity==="SHOPPING"){rates.fun+=.025;rates.energy-=.015;}
  if(activity==="HEALTHCARE")rates.energy+=.04;
  for(const key of Object.keys(rates))if((p[key][i]>=100&&rates[key]>0)||(p[key][i]<=0&&rates[key]<0))rates[key]=0;
- return{needRates:rates,needActivity:sleeping?"HOME sleeping":meal?"HOME meal":activity,needsSource:"Illustrative activity model; not measured wellbeing"};}
+ return{needRates:houseNeedRates(model,i,absolute,options.activity??p.activity[i],rates),needActivity:houseActivityLabel(model,i,absolute)??(sleeping?"HOME sleeping":meal?"HOME meal":activity),needsSource:"Illustrative activity model; not measured wellbeing"};}
 export function stepPersonNeeds(model,i,minutes,options){const effects=personNeedEffects(model,i,options);for(const key of["hunger","energy","fun","social"])model.people[key][i]=clamp(model.people[key][i]+effects.needRates[key]*minutes,0,100);}
 
 export function eventEffects(model,minute){const weather=weatherInput(model),effects=model.districts.map(()=>({rent:1,jobs:1,roads:weather.roadAvailability??1,transit:weather.transitAvailability??1,services:weather.serviceAvailability??1,demand:1}));for(const event of model.config.events){const elapsed=minute-event.startMinute;if(elapsed<0)continue;const tail=elapsed-event.durationMinutes;const strength=tail<=0?event.magnitude:event.recoveryMinutes>0?event.magnitude*Math.exp(-tail/event.recoveryMinutes):0;if(strength<1e-5)continue;for(let d=0;d<effects.length;d++){if(event.districtId&&model.districts[d].id!==event.districtId)continue;const e=effects[d];if(event.type==="rent-increase")e.rent*=1+strength;if(["recession","employer-closes"].includes(event.type))e.jobs*=1-strength;if(event.type==="employer-opens")e.jobs*=1+strength;if(["road-closure","storm"].includes(event.type))e.roads*=Math.max(0,1-strength);if(["transit-outage","storm"].includes(event.type))e.transit*=Math.max(0,1-strength);if(event.type==="transit-opening")e.transit*=1+strength;if(event.type==="festival")e.demand*=1+strength;if(event.type==="storm")e.services*=1-strength*.7;}}return effects;}
@@ -68,7 +69,10 @@ function destinationFor(model,i,activity,effects,onsite=false){
  return{district,x:anchor[0],z:anchor[1],location:d.anchorLocations[index]};
 }
 function chooseActivity(model,i,minute,effects){
- const p=model.people,c=model.config,schedule=scheduleAt(model,i,minute);
+ const p=model.people,c=model.config;
+ const interior=houseActivityPlan(model,i,minute);if(interior)return interior;
+ const manual=model.manualWalks?.[i];if(manual){if(minute<manual.until&&!parentCareConstraint(model,i,minute))return{activity:9,until:Math.min(manual.until,nextFamilyBoundary(model,i,minute)),mandatory:true,destination:manual.destination,reason:'Player requested walk; brief arrival pause'};delete model.manualWalks[i];}
+ const schedule=scheduleAt(model,i,minute);
  if(schedule.mandatory)return{...schedule,until:Math.min(schedule.until,nextFamilyBoundary(model,i,minute)),destination:schedule.destination??destinationFor(model,i,schedule.activity,effects,schedule.onsite)};
  // A committed destination/activity survives substeps and tick endpoints.
  if(p.planUntil[i]>minute&&p.activity[i]!==8&&!(p.activity[i]===6&&(weatherInput(model).parkComfort??1)<=.1))return{activity:p.activity[i],until:Math.min(p.planUntil[i],schedule.until),destination:{district:p.current[i],x:p.x[i],z:p.z[i],location:p.currentLocation[i]},committed:true};
@@ -106,12 +110,13 @@ function chooseActivity(model,i,minute,effects){
 function semanticEvent(model,i,type,minute,detail){const personId=`${model.prefix}-p${i}`;model.eventCounts[type]=(model.eventCounts[type]||0)+1;if(model.activityHistory)recordHistoryEvent(model.activityHistory,{type,minute,personId,householdId:`${model.prefix}-h${model.people.household[i]}`,districtId:model.districts[model.people.current[i]].id,weight:model.weight,...detail});}
 function applyInterval(model,i,activity,start,duration){
  if(!(duration>0))return;const p=model.people;
- if(model.journals)recordJournalInterval(model.journals,`${model.prefix}-p${i}`,`Resident ${i+1}`,populationJournalActivity(model,i,ACTIVITIES[activity],start),start,start+duration);
+ if(model.journals)recordJournalInterval(model.journals,`${model.prefix}-p${i}`,`Resident ${i+1}`,houseActivityLabel(model,i,start)??populationJournalActivity(model,i,ACTIVITIES[activity],start),start,start+duration);
  recordFamilyActivityInterval(model,i,activity,start,duration);recordEmploymentInterval(model,i,activity,start,duration);
  const rates=personNeedEffects(model,i,{minute:start,activity}).needRates,means={};
  for(const key of["hunger","energy","fun","social"]){const before=p[key][i],rate=rates[key],after=clamp(before+rate*duration,0,100),active=rate===0?duration:Math.min(duration,Math.max(0,((rate>0?100:0)-before)/rate));means[key]=((before+(before+rate*active))/2*active+after*(duration-active))/duration;p[key][i]=after;}
  model.activityMinutes[ACTIVITIES[activity]]=(model.activityMinutes[ACTIVITIES[activity]]||0)+duration;
  if(model.activityHistory)recordActivity(model.activityHistory,{id:`${model.prefix}-p${i}`,householdId:`${model.prefix}-h${p.household[i]}`,activity:ACTIVITIES[activity],startMinute:start,endMinute:start+duration,weight:model.weight,districtId:model.districts[p.current[i]].id,needs:means});
+ recordHouseInterval(model,i,activity,start,duration);
 }
 export function stepActivities(model,minutes,effects){
  const p=model.people,end=model.minute,start=end-minutes;
@@ -131,6 +136,7 @@ export function stepActivities(model,minutes,effects){
       if(p.remaining[i]<=1e-9){p.remaining[i]=0;p.x[i]=p.toX[i];p.z[i]=p.toZ[i];p.current[i]=p.to[i];p.currentLocation[i]=p.toLocation[i];
         const experienced=time-p.departureMinute[i];model.totals.completedTrips++;model.totals.completedTravelMinutes+=experienced;p.experiencedTime[i]=.8*p.experiencedTime[i]+.2*experienced;p.habit[i]=p.mode[i];
         const mode=MODES[p.mode[i]];p.activity[i]=p.plannedActivity[i];p.planUntil[i]=p.plannedUntil[i];p.mode[i]=0;
+        if(model.manualWalks?.[i])semanticEvent(model,i,"PLAYER_WALK_ARRIVED",time,{commandMinute:model.manualWalks[i].commandMinute});
         semanticEvent(model,i,"TRIP_COMPLETED",time,{mode,travelMinutes:experienced,durationMinutes:experienced,to:model.districts[p.current[i]].id,activity:ACTIVITIES[p.activity[i]]});
       }else break;
       continue;
@@ -175,7 +181,7 @@ export function stepActivities(model,minutes,effects){
 
 export function scoreHousing(model,h,d,effects){const hh=model.households,c=model.config,row=model.districts[d],home=hh.home[h],head=hh.start[h],work=model.districts[model.people.work[head]],income=hh.income[h];const rent=row.rent*c.rentMultiplier*effects[d].rent,burden=rent*12/Math.max(1,income),commute=(()=>{let total=0,count=0;for(let k=0;k<hh.size[h];k++){const i=hh.start[h]+k;if(!model.people.employed[i])continue;const job=model.districts[model.people.work[i]];total+=Math.hypot(row.x-job.x,row.z-job.z)/1000/25*60;count++;}return total/Math.max(1,count);})();const components={affordability:(1-burden)*housingCoefficients.coefficients.affordability,commute:commute*housingCoefficients.coefficients.commute,space:Math.min(1,row.housingUnits*c.housingCapacityMultiplier/Math.max(1,row.households))*.15,services:row.services*.2,transit:row.transit*c.transitService*.1,preference:draw(model.seed,h,d,32)*.08,movingCost:d===home?0:-c.movingCost/Math.max(1,income/12)*.1};return{id:row.id,districtIndex:d,rent,burden,commute,available:d===home||((row.households+1)*model.weight<=row.housingUnits*c.housingCapacityMultiplier&&burden<=Math.max(c.burdenThreshold,.5)&&row.services>0),score:Object.values(components).reduce((s,v)=>s+v,0),components,rejectedReason:d!==home&&((row.households+1)*model.weight>row.housingUnits*c.housingCapacityMultiplier||burden>Math.max(c.burdenThreshold,.5))?"CAPACITY_FULL or PRICE_EXCEEDS_MAX_BUDGET":null};}
 export function householdDecisions(model,effects){const hh=model.households,c=model.config,p=model.people;for(let h=0;h<hh.size.length;h++){
-  const home=hh.home[h],row=model.districts[home];hh.rent[h]=row.rent*c.rentMultiplier*effects[home].rent;let wages=0;for(let k=0;k<hh.size[h];k++)wages+=p.income[hh.start[h]+k]*(p.employed[hh.start[h]+k]?employmentIncomeFraction(model,hh.start[h]+k):.35);hh.income[h]=Math.max(0,hh.nonWage[h]+wages)*c.wageMultiplier;
+  const home=hh.home[h],row=model.districts[home];hh.rent[h]=row.rent*c.rentMultiplier*effects[home].rent;let wages=0;for(let k=0;k<hh.size[h];k++)wages+=p.income[hh.start[h]+k]*(p.employed[hh.start[h]+k]?c.workWeeklyPayRetention*employmentIncomeFraction(model,hh.start[h]+k):.35);hh.income[h]=Math.max(0,hh.nonWage[h]+wages)*c.wageMultiplier;
   const monthlyIncome=hh.income[h]/12,food=180+hh.size[h]*140,utilities=150,other=monthlyIncome*.12,transport=hh.transport[h];const care=consumeChildcareCosts(model,h),outflow=(hh.rent[h]+food+utilities+other)/30+transport+care.householdCost;hh.lastChildcareCost??=new Float64Array(hh.size.length);hh.childcarePaidTotal??=new Float64Array(hh.size.length);hh.lastChildcareCost[h]=care.householdCost;hh.childcarePaidTotal[h]+=care.householdCost;
   const earned=consumeEmploymentPay(model,h),dailyIncome=hh.nonWage[h]*c.wageMultiplier/employmentCalendar(model,model.minute-1).daysInYear+earned.wages+earned.benefits;hh.savings[h]+=dailyIncome-outflow;hh.spending[h]+=outflow;hh.transport[h]=0;model.totals.spending+=outflow;
   const burden=hh.rent[h]/Math.max(1,monthlyIncome);hh.stress[h]=clamp(hh.stress[h]+Math.max(0,burden-c.burdenThreshold)*.1-(burden<c.burdenThreshold?.01:0),0,1);

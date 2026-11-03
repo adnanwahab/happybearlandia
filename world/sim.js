@@ -1,3 +1,5 @@
+import {installLegacyPersonCommands} from './person-commands.js';
+import {captureLegacyCheckpoint,restoreLegacyCheckpoint} from './legacy-checkpoint.js';
 import {ensureJournal,recordJournalInterval,recordJournalMoment} from './journals/model.js';
 // Sims-style needs + utility AI. Buildings advertise actions; each person scores every
 // nearby advertisement against their needs, walks there, does it, and the action changes
@@ -259,7 +261,7 @@ function newToday(day) {
 }
 
 export function createWorld(town, opts = {}) {
-  const parameters = resolveSimulationParameters(opts.parameters);
+  let parameters = resolveSimulationParameters(opts.parameters);
   // opts.runSeed varies the sim's dice for paired multi-seed experiments. Without it the
   // world draws exactly the same numbers as before (seeded by location only).
   const r = rng(hashSeed(town.seedKey + ":sim" + (opts.runSeed != null ? `:${opts.runSeed}` : "")));
@@ -267,6 +269,7 @@ export function createWorld(town, opts = {}) {
   for (const b of town.buildings) (byKind[b.kind] ||= []).push(b);
   const roadGraph = buildRoadGraph(town.roads || []);
   const initialDay = Math.floor((opts.startMinute ?? 6 * 60) / 1440);
+  let transitCounterContext={runSeed:String(opts.runSeed??'default'),year:String(opts.year??initialDay)};
 
   for (const p of town.people) {
     p.today = newToday(initialDay);
@@ -279,6 +282,7 @@ export function createWorld(town, opts = {}) {
   }
 
   const activityHistory = opts.recordHistory ? createActivityHistory(opts.historyOptions) : null;
+  let activityRunId=`legacy:${town.seedKey}:${opts.runSeed??"default"}:${opts.startMinute??360}`;
   const historyListeners = new Set();
   const personRoutines = activityHistory ? new Map() : null;
   const w = {
@@ -404,7 +408,7 @@ export function createWorld(town, opts = {}) {
     const service=Math.max(.1,Math.min(5,w.transitServiceMult));
     // Counter-style keyed draw does not consume the behavior RNG. Same year,
     // person and destination share the same exogenous wait across policy runs.
-    const draw=hashSeed(`${town.seedKey}:${opts.runSeed??'default'}:${opts.year??initialDay}:${p.id}:${b.id}:transit-wait`)/4294967296;
+    const draw=hashSeed(`${town.seedKey}:${transitCounterContext.runSeed}:${transitCounterContext.year}:${p.id}:${b.id}:transit-wait`)/4294967296;
     const wait=draw*parameters.transitHeadwayMinutes/service;
     const rideSpeed=parameters.transitMetersPerMinute*service;
     const walk=distance/WALK_M_PER_MIN/w.weatherEffects.walkComfort,transit=wait*parameters.transitWaitWeight+distance/rideSpeed;
@@ -413,6 +417,8 @@ export function createWorld(town, opts = {}) {
     const mode=roadAccessible&&accessDraw<w.weatherEffects.transitAvailability&&distance>=parameters.minimumTransitDistanceMeters&&p.money>=parameters.transitFare+cost&&transit<walk?'transit':'walk';
     return{path,distance,mode,wait:mode==='transit'?wait:0,rideSpeed,minutes:roadAccessible?(mode==='transit'?transit:walk):Infinity};
   }
+
+  const personCommands=installLegacyPersonCommands(w,{actions:ACTIONS,historyEvent,planWalk:(p,destination,building)=>tripPlan(p,building??{id:'user-point',kind:'command',center:[destination.x,destination.z],area:0})});
 
   // --------------------------------------------------------------------
   // Decide: score every reachable advertisement, pick the best (with a bit of noise).
@@ -505,6 +511,7 @@ export function createWorld(town, opts = {}) {
 
   function arrive(p) {
     completeTrip(p);
+    if(personCommands.arrive(p))return;
     const a = ACTIONS[p.action];
     const b = w.buildings[p.target];
     if ((a.ok && !a.ok(p, b, w)) || !w.isServiceAvailable(b)) {
@@ -512,6 +519,7 @@ export function createWorld(town, opts = {}) {
         if (!p.today.soldOutAt.includes(b.name)) p.today.soldOutAt.push(b.name);
       }
       historyEvent(p,"ACTIVITY_UNAVAILABLE",{activity:p.action,buildingId:b?.id??null,reason:"Availability changed during travel"});
+      personCommands.unavailable(p);
       p.mode = "idle"; p.action=null; p.path = null; p.pathI = 0; return;
     } // it changed while walking (sold out!)
     if (p.action === "work" && w.minuteOfDay() < p.shiftStart) {
@@ -520,6 +528,7 @@ export function createWorld(town, opts = {}) {
       historyEvent(p,"ACTIVITY_STARTED",{activity:"WAIT_SHIFT",buildingId:b.id}); return;
     }
     a.start?.(p, b, w);
+    personCommands.activityStarted(p);
     if(w.journals&&p.action==='clean_park')recordJournalMoment(w.journals,String(p.id),p.name,w.t,`I stopped to help clean up ${b.name}. It was a change from my usual day.`);
     if (p.action === "eat_out") w.stats.meals++;
     if (p.action === "groceries") w.stats.groceries++;
@@ -539,6 +548,7 @@ export function createWorld(town, opts = {}) {
     if (p.action === "wait_shift") { p.action = "work"; arrive(p); return; }
     if (p.action === "work" || p.action === "study") p.workedToday = true;
     p.mode = "idle"; p.action = null; p.path = null; p.pathI = 0;
+    personCommands.activityFinished(p);
   }
 
   // --------------------------------------------------------------------
@@ -675,7 +685,7 @@ export function createWorld(town, opts = {}) {
   };
   w.trackActivityPerson = id => {if(!w.people.some(p=>personId(p)===String(id)))throw new Error("Unknown legacy person");};
   w.subscribeActivity = callback => {historyListeners.add(callback);return()=>historyListeners.delete(callback);};
-  w.getActivitySnapshot = () => ({mode:"legacy",minute:w.t,peopleCount:w.people.length,modelVersion:w.modelVersion,runId:`legacy:${town.seedKey}:${opts.runSeed??"default"}:${opts.startMinute??360}`,historyAvailable:!!activityHistory,stats:{...w.stats},metrics:{population:w.people.length,earned:w.stats.earned,spent:w.stats.spent,...w.summary().avg},people:w.people.map(p=>({id:personId(p),name:p.name,householdId:p.householdId,activity:activityOf(p),districtId:placeOf(p),needs:{...p.needs},doing:p.doing,decisionTrace:p.decisionHistory||[]})),districtLabel:"Place type",districts:[...new Set(w.buildings.map(b=>b.kind)),"travel"].map(id=>({id,label:id}))});
+  w.getActivitySnapshot = () => ({mode:"legacy",minute:w.t,peopleCount:w.people.length,modelVersion:w.modelVersion,runId:activityRunId,historyAvailable:!!activityHistory,stats:{...w.stats},metrics:{population:w.people.length,earned:w.stats.earned,spent:w.stats.spent,...w.summary().avg},people:w.people.map(p=>({id:personId(p),name:p.name,householdId:p.householdId,activity:activityOf(p),districtId:placeOf(p),needs:{...p.needs},doing:p.doing,decisionTrace:p.decisionHistory||[]})),districtLabel:"Place type",districts:[...new Set(w.buildings.map(b=>b.kind)),"travel"].map(id=>({id,label:id}))});
 
   w.summary = () => {
     const n = w.people.length || 1;
@@ -689,6 +699,18 @@ export function createWorld(town, opts = {}) {
     return { avg, mood: (avg.hunger + avg.energy + avg.fun + avg.social) / 4, doing };
   };
 
+  w.restoreCheckpointParameters=value=>{parameters=resolveSimulationParameters(value);w.parameters=parameters;};
+  w.captureCheckpointRetention=()=>({runId:activityRunId,transitCounterContext:{...transitCounterContext},enabled:!!activityHistory,activityHistory:activityHistory?structuredClone(activityHistory):null,personRoutines:personRoutines?[...personRoutines.entries()].map(([id,value])=>[id,structuredClone(value)]):[]});
+  w.restoreCheckpointRetention=(saved,{validateOnly=false}={})=>{
+    if(!saved||typeof saved.runId!=='string'||saved.runId.length>256||!['runSeed','year'].every(key=>typeof saved.transitCounterContext?.[key]==='string'&&saved.transitCounterContext[key].length<=256)||saved.enabled!==!!activityHistory||!Array.isArray(saved.personRoutines)||saved.personRoutines.length>w.people.length)throw new Error('Legacy checkpoint history authority mismatch');
+    if(activityHistory){const h=saved.activityHistory;if(h?.schemaVersion!=='activity-history-state.v1'||Object.keys(createActivityHistory()).some(key=>!Object.hasOwn(h,key))||!['maxEvents','maxBuckets','bucketMinutes','actorCount'].every(key=>Number.isInteger(h[key])&&h[key]>=0)||!['dimensions','eventTypes','activityTypes'].every(key=>Array.isArray(h[key]))||!h.actors||!h.selected||!h.totals||!h.coverage||!h.retention||!Array.isArray(h.recentEvents)||!h.buckets||h.maxEvents>2000||h.maxBuckets>744||h.bucketMinutes<1||h.bucketMinutes>1440||h.recentEvents.length>h.maxEvents||Object.keys(h.buckets).length>h.maxBuckets||saved.personRoutines.some(row=>!Array.isArray(row)||row.length!==2||!w.people.some(p=>String(p.id)===row[0])||!Array.isArray(row[1]?.intervals)||row[1].intervals.length>96)||new Set(saved.personRoutines.map(row=>row[0])).size!==saved.personRoutines.length)throw new Error('Invalid legacy checkpoint retained history');}
+    else if(saved.activityHistory!==null||saved.personRoutines.length)throw new Error('Unexpected legacy checkpoint history');
+    if(validateOnly)return;
+    activityRunId=saved.runId;transitCounterContext={...saved.transitCounterContext};
+    if(activityHistory){for(const key of Object.keys(activityHistory))delete activityHistory[key];Object.assign(activityHistory,structuredClone(saved.activityHistory));personRoutines.clear();for(const [id,value]of saved.personRoutines)personRoutines.set(id,structuredClone(value));}
+  };
+  w.captureCheckpoint=()=>captureLegacyCheckpoint(w);
+  w.restoreCheckpoint=saved=>restoreLegacyCheckpoint(w,saved);
   w.captureState=()=>captureSimulationState(w);
   w.restoreState=(state,options)=>restoreSimulationState(w,state,options);
   if(opts.state||opts.longitudinalState)w.restoreState(opts.state??opts.longitudinalState,{preserveClock:true});

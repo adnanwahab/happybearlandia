@@ -4,7 +4,7 @@ import {normalizePopulationConfig,POPULATION_VERSION} from './contracts.js';
 import {personNeedEffects} from './behavior.js';
 import {childScheduleAt,prepareChildrenInterval,parentCareConstraint,childModePermission,recordFamilyActivityInterval,finalizeChildrenDay,parentWorkFraction,consumeChildcareCosts,inspectChild} from './children.js';
 const context={districts:[{id:'home',x:0,z:0}],buildings:[{id:'house',kind:'home',center:[0,0]},{id:'school',kind:'school',center:[0,0]}]};
-function family(config={}){const model=createPopulationModel({population:80,householdSize:4,seed:42,...config},context),i=model.children.indices[0],p=model.people,h=p.household[i];for(let k=0;k<model.households.size[h];k++){const adult=model.households.start[h]+k;if(p.age[adult]!==0){p.employed[adult]=1;p.income[adult]=60000;p.offset[adult]=0;}}model.households.savings[h]=100000;return{model,i,h,p};}
+function family(config={}){const model=createPopulationModel({population:80,householdSize:4,seed:42,calendarStartEpochDay:20458,...config},context),i=model.children.indices[0],p=model.people,h=p.household[i];for(let k=0;k<model.households.size[h];k++){const adult=model.households.start[h]+k;if(p.age[adult]!==0){p.employed[adult]=1;p.income[adult]=60000;p.offset[adult]=0;}}model.households.savings[h]=100000;return{model,i,h,p};}
 
 test('actual generated children have bounded ages, same-household guardians and reciprocal bounded peers',()=>{
  const {model}=family(),p=model.people;expect(model.children.indices.length).toBeGreaterThan(0);
@@ -33,7 +33,7 @@ test('unavailable care constrains an actual guardian and records a care-related 
  expect(parentCareConstraint(model,guardian,600)).toMatchObject({activity:0,mandatory:true,childKind:'parent-care'});
  expect(p.laborAvailability[guardian]).toBe(0);
  const before=model.households.savings[h];recordFamilyActivityInterval(model,guardian,0,600,60);finalizeChildrenDay(model,0);
- expect(parentWorkFraction(model,guardian)).toBeCloseTo(1-60/540);expect(model.households.savings[h]).toBe(before);
+ expect(parentWorkFraction(model,guardian)).toBeCloseTo(1-60/510);expect(model.households.savings[h]).toBe(before);
 });
 
 test('attended paid care queues one existing-ledger charge, with subsidy separately disclosed',()=>{

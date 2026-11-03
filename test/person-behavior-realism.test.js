@@ -38,7 +38,8 @@ test('city and business events are not multiplied by synthetic cohort weights',(
 });
 
 test('critical food and fatigue needs permit actual onsite breaks during a weekday shift',()=>{
- const m=model(1),p=m.people;m.minute=600;p.age[0]=1;p.employed[0]=1;p.offset[0]=0;
+ const m=createPopulationModel({population:1,householdSize:1,employmentRate:1,seed:42,workIllnessDailyProbability:0,workShiftChangeProbability:0},{districts:[{id:'district',x:0,z:0,transit:1,services:1,jobs:1}],buildings:[{id:'home',kind:'home',center:[0,0]},{id:'food',kind:'food',center:[100,0]}]}),p=m.people;m.minute=600;p.offset[0]=0;
+ expect(m.employment.employer[0]).toBeGreaterThanOrEqual(0);
  p.hunger[0]=2;p.energy[0]=2;p.current[0]=p.work[0];p.x[0]=p.workX[0];p.z[0]=p.workZ[0];p.currentLocation[0]=p.workLocation[0];p.activity[0]=1;
  stepPopulation(m,{tick:1,minutes:45});
  expect(p.hunger[0]).toBeGreaterThan(2);expect(p.energy[0]).toBeGreaterThan(2);

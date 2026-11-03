@@ -34,7 +34,7 @@ test('walking consumes a full distance budget across short intermediate road seg
  w.step(1);expect(p.x).toBe(WALK_M_PER_MIN);expect(p.mode).toBe('moving');
  w.step(Math.ceil(100/WALK_M_PER_MIN)-1);expect(p.x).toBe(100);expect(p.mode).toBe('doing');
  const h=w.getActivityHistory();expect(h.totals.completedTrips).toBeGreaterThan(0);
- expect(h.recentEvents.find(e=>e.type==='TRIP_COMPLETED'&&e.personId==='0').travelMinutes).toBe(Math.ceil(100/WALK_M_PER_MIN));
+ expect(h.recentEvents.find(e=>e.type==='TRIP_COMPLETED'&&e.personId==='0').travelMinutes).toBe(100/WALK_M_PER_MIN);
 });
 test('all legacy people retain real routines before selection without a sixteen-person inspection limit',()=>{
  const w=fixture();w.step(180);

@@ -1,5 +1,5 @@
 import { recordHistoryEvent } from "../activity-history.js";
-/** Living City population1.2.0: synthetic persons, no identifiable people.
+/** Living City population1.3.0: synthetic persons, no identifiable people.
  * Worker contract: createPopulationModel(config,worldContext) -> mutable model;
  * stepPopulation(model,{tick,minutes,config?}) advances one monotone tick;
  * snapshotPopulation(model,{visibleLimit=500,selectedPersonId?}) returns bounded
@@ -58,6 +58,7 @@ export const populationParameters = [
   p('workShiftStartMinute','Base shift start','minute of day',480,300,720),
   p('workShiftMinutes','Shift duration including meal','minutes',540,240,600),
   p('workMealBreakMinutes','Unpaid work meal break','minutes',30,0,60),
+  p('workCommuteBufferMinutes','Planned onsite commute lead','minutes',30,0,180),
   p('workWeeklyPayRetention','Weekly contract pay retention','fraction',1,.5,1,.05),
   p('workPaidSickDays','Paid sick leave','workdays/year',0,0,30),
   p('workPaidFamilyDays','Paid family leave','workdays/year',0,0,120),
@@ -100,8 +101,9 @@ export function validatePopulationConfig(input={}) {
   const values={...defaultPopulationConfig},errors=[];
   if(!input||typeof input!=="object"||Array.isArray(input))return{valid:false,values,errors:["Config must be an object."]};
   for(const id of Object.keys(input))if(!populationParameters.some(row=>row.id===id)&&!["schemaVersion","snapshotId","provenance","events","targets","enabled"].includes(id))errors.push(`Unknown population parameter: ${id}`);
-  const integers=new Set(['population','seed','maxLogEntries','schoolStartMinute','teenSchoolStartMinute','schoolDayMinutes','schoolRecessMinutes','childScreenMinutesPerDay','childSupervisionAge','childIndependentWalkAge','childIndependentTransitAge','childcareCapacity','summerCampEnabled','summerCampCapacity','summerStartDay','summerEndDay']);
+  const integers=new Set(['population','representedPopulation','seed','maxLogEntries','schoolStartMinute','teenSchoolStartMinute','schoolDayMinutes','schoolRecessMinutes','childScreenMinutesPerDay','childSupervisionAge','childIndependentWalkAge','childIndependentTransitAge','childcareCapacity','summerCampEnabled','summerCampCapacity','summerStartDay','summerEndDay']);
   for(const id of ['calendarStartEpochDay','workWeekDays','employerOpenDays','workShiftStartMinute','workShiftMinutes','workMealBreakMinutes','workPaidSickDays','workPaidFamilyDays','workPaidVacationDays','workIllnessDurationDays','workFamilyLeaveDurationDays','workVacationDurationDays','workPredictableSchedule','workScheduleNoticeDays','workShiftVolatilityMinutes','workDisconnect','workAfterHoursMinutes'])integers.add(id);
+  integers.add('workCommuteBufferMinutes');
   for(const row of populationParameters)if(input[row.id]!==undefined){const v=input[row.id];if(typeof v!=="number"||!Number.isFinite(v)||v<row.min||v>row.max||(integers.has(row.id)&&!Number.isInteger(v)))errors.push(`${row.id} must be ${row.min}–${row.max} ${row.unit}.`);else values[row.id]=v;}
   if(values.summerEndDay<=values.summerStartDay)errors.push('Summer end must follow summer start within the modeled year.');
   if(values.workShiftStartMinute+values.workShiftMinutes+values.workShiftVolatilityMinutes+30>1440)errors.push('Shift, individual offset and variation must finish within the model day.');

@@ -23,7 +23,7 @@ export function mountConstitutionWorldLayer({THREE,scene,town}={}){
   if(destroyed)return null;clear();last=constitutionWorldScope({town,...input});
   const chosen=new Set(last.buildingIds),color=last.mode==='scope'?0xe6b65d:0x62d9b0;
   for(const b of town.buildings||[]){if(!chosen.has(String(b.id))||!Array.isArray(b.poly)||b.poly.length<3)continue;const y=Math.max(.4,b.height||.3)+.3;
-   const points=b.poly.map(([x,z])=>new THREE.Vector3(x,y,z));const geometry=new THREE.BufferGeometry().setFromPoints(points);const line=new THREE.LineLoop(geometry,new THREE.LineBasicMaterial({color,transparent:true,opacity:.95,depthTest:false}));line.renderOrder=200;line.userData.sourceBuildingId=String(b.id);root.add(line);
+   const points=[...b.poly,b.poly[0]].map(([x,z])=>new THREE.Vector3(x,y,z));const geometry=new THREE.BufferGeometry().setFromPoints(points);const line=new THREE.Line(geometry,new THREE.LineBasicMaterial({color,transparent:true,opacity:.95,depthTest:false}));line.renderOrder=200;line.userData.sourceBuildingId=String(b.id);root.add(line);
   }
   for(const index of last.roadIndices){const road=town.roads[index],points=(road.pts||[]).filter(p=>p.length>=2&&p.every(Number.isFinite)).map(([x,z])=>new THREE.Vector3(x,.5,z));if(points.length<2)continue;const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),new THREE.LineBasicMaterial({color,transparent:true,opacity:.85,depthTest:false}));line.renderOrder=200;root.add(line);}
   return last;

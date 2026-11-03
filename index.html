@@ -148,6 +148,7 @@
       margin: 0;
     }
     .hero .lead strong { color: var(--ink); font-weight: 700; }
+    .policy-entry { margin-top:24px;max-width:620px }.policy-entry label{display:block;font-weight:600;margin-bottom:8px}.policy-entry textarea{display:block;width:100%;padding:14px;border:1px solid var(--line-strong);border-radius:12px;background:var(--panel-strong);color:var(--ink);font:inherit;resize:vertical}.policy-entry button{margin-top:10px;cursor:pointer}.policy-entry p{color:var(--muted);font-size:12px;line-height:1.6}
     .hero-actions { display: flex; flex-wrap: wrap; gap: 11px; margin-top: 30px; }
     .btn {
       display: inline-flex;
@@ -667,6 +668,7 @@
         <span>HappyBearLandia</span>
       </a>
       <div class="nav-links">
+        <a href="/routes">All routes</a>
         <a href="#how">How it works</a>
         <a href="#helios">Helios</a>
         <a href="#simulation">Simulation</a>
@@ -682,12 +684,18 @@
       <div class="wrap hero-grid">
         <div>
           <div class="eyebrow">A civic simulation laboratory</div>
-          <h1>Visualize the rules.<br />Simulate the future.</h1>
+          <h1>What should we change?</h1>
           <p class="lead">
             HappyBearLandia turns a constitution, law, or public proposal into an <strong>inspectable system model</strong>—then stress-tests new ideas across many possible futures before anyone treats one forecast as truth.
           </p>
+          <form class="policy-entry" action="/reality-compiler" method="get">
+            <label for="home-proposal">Describe a change to your city</label>
+            <textarea id="home-proposal" name="proposal" rows="3" maxlength="2000" required placeholder="Give every worker 12 weeks paid family leave."></textarea>
+            <button class="btn primary" type="submit">Review my idea →</button>
+            <p>Review the meaning → run futures → enter a world → debug → compare human impact → fork and share.</p>
+          </form>
           <div class="hero-actions">
-            <a class="btn primary" href="/world/experiment-lab.html">Run a civic experiment <span aria-hidden="true">→</span></a>
+            <a class="btn secondary" href="/reality-compiler">Open experiment workflow <span aria-hidden="true">→</span></a>
             <a class="btn secondary" href="#helios">See Helios</a>
             <a class="btn secondary" href="/world/worlds.html">Explore possible worlds</a>
           </div>
@@ -1066,7 +1074,7 @@
             <p>Start with a civic proposal, inspect the model, run possible realities, then revise the idea until its benefits are robust enough to deserve a real-world test.</p>
           </div>
           <div class="cta-actions">
-            <a class="btn primary" href="/world/experiment-lab.html">Open Civic Experiment Lab →</a>
+            <a class="btn primary" href="/reality-compiler">Start an experiment →</a>
             <a class="btn secondary" href="/world/lab.html">Open Possible Worlds Lab</a>
             <a class="btn secondary" href="/world">Enter synthetic world</a>
           </div>

@@ -1,3 +1,11 @@
+import {loadLocalOpenAISettings} from './world/ai/local-settings.js';
+loadLocalOpenAISettings();
+import {createWorldPersistenceHandler} from './world/experiments/persistence-api.js';
+const handleWorldPersistence=createWorldPersistenceHandler();
+import {createRealityShareHandler} from './world/reality/share-api.js';
+import {createOpenQuestionsHandler} from './world/questions/api.js';
+const handleRealityShares=createRealityShareHandler();
+const handleOpenQuestions=createOpenQuestionsHandler();
 import {createTemporalCityHandler} from './world/temporal/api.js';
 const handleTemporalCity=createTemporalCityHandler();
 import {createCharacterJournalsHandler} from './world/journals/api.js';
@@ -392,6 +400,7 @@ const server = serve({
     // Population benchmark is an explicit worker workload, separate from renderer scenes.
     if (pathname === "/world/bench/people" || pathname === "/world/bench/people/") return serveFile("./world/people-benchmark.html");
 
+    if (pathname.replace(/\/$/, "") === "/routes") return serveFile("./routes.html");
     // Public landing page
     if (pathname === "/" || pathname === "/index.html") {
       return serveFile("./index.html");
@@ -444,6 +453,9 @@ const server = serve({
     if (pathname === "/api/overpass-health") return handleOverpassHealth();
     if (pathname === "/api/config") return handleConfig();
     if (under(pathname, "/api/world-history")) return handleTemporalCity(request);
+    if (under(pathname, "/api/reality-shares")) return handleRealityShares(request);
+    if (under(pathname, "/api/world-experiments")) return handleWorldPersistence(request);
+    if (pathname === "/api/world-questions") return handleOpenQuestions(request);
     if (under(pathname, "/api/decision-experiments")) return handleDecisionExperiments(request);
     if (under(pathname, "/api/world-edits")) return handleWorldEdits(request);
     if (under(pathname, "/api/decision-optimizations")) return handleOptimizations(request);
@@ -454,7 +466,11 @@ const server = serve({
     if (pathname === "/api/world/parameter-patch") return handlePlanParameterPatch(request);
     if (pathname === "/api/constitution-summary") return handleConstitutionSummary(request);
     if (pathname === "/api/constitution-city/plan") return handleConstitutionSource(request);
-    if (["/reality-compiler", "/city-speaks"].includes(pathname.replace(/\/$/, ""))) return serveFile("./world/reality-compiler.html");
+    if (/^\/r\/[A-Za-z0-9_-]{8,16}\/?$/.test(pathname)) return serveFile("./world/reality-compiler.html");
+    if (["/change", "/reality-compiler", "/city-speaks"].includes(pathname.replace(/\/$/, ""))) return serveFile("./world/reality-compiler.html");
+    // House mode observes/restores the same saved population authority as /world.
+    // Asset URLs in this entry point are absolute so household IDs are not directories.
+    if (/^\/world\/house(?:\/[A-Za-z0-9_-]{1,80})?\/?$/.test(pathname)) return serveFile("./world/house/index.html");
     if (pathname.replace(/\/$/, "") === "/visualize-constitution") return serveFile("./world/constitution-city.html");
     if (["/world/visualize-consitution", "/world/visualize-constitution"].includes(pathname.replace(/\/$/, ""))) return serveFile("./world/constitution-city.html");
     if (pathname === "/api/plan") return handlePlan(request);
@@ -470,6 +486,8 @@ const server = serve({
       if (decodedWorldPath === "/world/models/business-v1/compiler-api.js") return notFound();
       if (decodedWorldPath === "/world/constitution-city/source-api.js") return notFound();
       if (/^\/world\/temporal\/(api|store)\.js$/.test(decodedWorldPath)) return notFound();
+      if (decodedWorldPath === "/world/reality/share-store.js") return notFound();
+      if (decodedWorldPath === "/world/experiments/persistence-store.js") return notFound();
       if (/^\/world\/decision\/(api|store|worker|optimization-api)\.js$/.test(decodedWorldPath)) return notFound();
       if (/^\/world\/ai\//.test(decodedWorldPath) && !/^\/world\/ai\/(edit-schema|edit-validator|revisions)\.js$/.test(decodedWorldPath)) return notFound();
       if (pathname.endsWith("/api.js") || pathname.endsWith("-api.js")) return notFound(); // server-only code

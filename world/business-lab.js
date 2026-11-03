@@ -220,7 +220,7 @@ function renderEditor() {
   $('exportProduct').onclick=()=>{try{const def=JSON.parse($('productJson').value);const checked=validateDefinition(def);if(!checked.valid)throw new Error(checked.errors.join(' '));delete def.approved;delete def.version;exportJson('business-content-pack.json',def);}catch(e){notice(e.message,true);}};
   $('reviewProduct').onclick=()=>{try{const def=JSON.parse($('productJson').value);const checked=validateDefinition(def);if(!checked.valid)throw new Error(checked.errors.join(' '));setDraft({def,source:'Imported / manual pack',warnings:['All content-pack assumptions require review.']});screen=0;render();$('assumptions').scrollIntoView({behavior:'smooth'});}catch(e){notice(e.message,true);}};
 }
-function render() {window.scrollTo(0,0);renderChrome();[renderDescribe,renderPlan,renderRun,renderReview,renderHub,renderFutures,renderEdit,renderEditor][screen]();}
+function render() {window.scrollTo(0,0);renderChrome();[renderDescribe,renderPlan,renderRun,renderReview,renderHub,renderFutures,renderEdit,renderEditor][screen]();const query=new URLSearchParams(location.search);for(const anchor of document.querySelectorAll('a[href^="/world?business_mode"]')){const url=new URL(anchor.href);for(const key of ['lat','lng']){const value=query.get(key);if(value!==null&&Number.isFinite(Number(value)))url.searchParams.set(key,value);}anchor.href=url.pathname+url.search;}}
 $('newCompany').onclick=()=>{if(state){try{localStorage.setItem(`${STORAGE}.previous`,JSON.stringify({state,plan}));localStorage.removeItem(STORAGE);}catch{}}state=null;plan=null;draft=null;futures=null;screen=0;editing=false;render();notice('Ready for a new idea. Your previous company is saved as a recovery snapshot.');};
 $('restorePrevious').onclick = () => {
   try {
@@ -232,5 +232,6 @@ $('restorePrevious').onclick = () => {
     state = previous.state; plan = previous.plan; draft = null; futures = null; screen = 1; save(); render(); notice('Previous company restored.');
   } catch(e) { notice(e.message,true); }
 };
+const incomingIdea=new URLSearchParams(location.search).get('idea');if(incomingIdea&&incomingIdea.length<=4000){setDraft(compileLocal(incomingIdea));screen=0;notice('Founder draft loaded. Review and approve its assumptions; existing saved company remains unchanged until approval.');}
 render();
 fetch('/api/business/providers').then(r=>r.json()).then(result=>{if(Array.isArray(result.providers)){providers=result.providers;const select=$('compilerProvider')||$('editProvider');if(select)select.innerHTML=providerOptions();}}).catch(()=>{});

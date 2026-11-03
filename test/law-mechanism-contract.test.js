@@ -10,11 +10,11 @@ test('reviewed laws declare exact levers, legal-model facets, actual consumers/s
   for(const lever of contract.levers){expect(lever.types.every(type=>LAW_LEVER_TYPES.includes(type))).toBe(true);expect(lever.facets.length).toBeGreaterThan(0);expect(lever.parameter.value).not.toBeNull();expect(lever.consumer.file.startsWith('world/')).toBe(true);expect(lever.consumer.symbol.length).toBeGreaterThan(0);expect(lever.statePaths.length).toBeGreaterThan(0);expect(lever.outcomes.every(row=>row.value===null&&row.metricId&&row.unit)).toBe(true);expect(lever.visibility.recordedIdentityRequired).toBe(true);}
  }
 });
-test('unsupported and staged employment laws remain unavailable; parameter existence alone is not an execution gate',async()=>{
- for(const number of[11,12,13,14,15,16,17,18,19,20,41,42,43,48,49]){const law=getLaw(number);expect(law.supported).toBe(false);expect(law.mechanismContract.levers).toEqual([]);expect(law.mechanismContract.status).toBe('mechanism-unavailable');expect(law.mechanismContract.unsupported.length).toBeGreaterThan(0);}
- const staged=lawMechanismContract({id:'law-11',number:11,text:'Paid sick leave',mapping:{engine:'population',parameterPatch:{transitService:2}},limitations:[]});expect(staged.verification.status).toBe('requires-execution-check');
+test('unsupported employment laws remain unavailable; parameter existence alone is not an execution gate',async()=>{
+ for(const number of[17,19,20,41,42,43,48,49]){const law=getLaw(number);expect(law.supported).toBe(false);expect(law.mechanismContract.levers).toEqual([]);expect(law.mechanismContract.status).toBe('mechanism-unavailable');expect(law.mechanismContract.unsupported.length).toBeGreaterThan(0);}
+ const staged=lawMechanismContract({id:'law-17',number:17,text:'Automatic tax filing',mapping:{engine:'population',parameterPatch:{transitService:2}},limitations:[]});expect(staged.verification.status).toBe('requires-execution-check');
  const unknown=lawMechanismContract({id:'test',number:999,text:'Happiness +10',mapping:{engine:'population',parameterPatch:{happinessOffset:10}},limitations:[]});expect(unknown.status).toBe('mechanism-unavailable');expect(unknown.levers).toEqual([]);
- const result=await compareLaw({lawId:11});expect(result.mechanismTrace.execution.status).toBe('not-run');expect(result.mechanismTrace.measurements).toEqual([]);
+ const result=await compareLaw({lawId:17});expect(result.mechanismTrace.execution.status).toBe('not-run');expect(result.mechanismTrace.measurements).toEqual([]);
 });
 test('law comparisons separate actual input application, queued authorization, numerical observations and source-ID visuals',async()=>{
  const population=await compareLaw({lawId:50,population:40,minutes:1440,worldContext:{districts:[{id:'local',x:0,z:0}]}}),trace=population.mechanismTrace;

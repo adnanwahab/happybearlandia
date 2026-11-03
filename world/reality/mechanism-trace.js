@@ -16,8 +16,8 @@ export function buildMechanismTrace(program,replay=null,{metricUnits={}}={}){
  const paired=!!before&&!!after&&replay.status!=='error'&&replay.engine===program.engine;
  return{schemaVersion:'mechanism-trace.v1',programId:program.id,runId:paired?replay.runId:null,measured:paired,
  limitations:['Implementation references describe model wiring, not independently observed real-world causality.','Aggregate changes do not establish that an individual link caused them; intermediate activation requires its own recorded evidence.','Zero change is a valid result. Missing outputs are unavailable, never replaced with zero.'],
- chains:program.mechanisms.map(m=>({id:m.id,label:m.label,levers:classifications[m.id]??m.levers?.filter(v=>LAW_LEVERS.includes(v))??[],parameters:[...(m.parameters??[])],
- assumptions:(program.assumptions??[]).filter(a=>(m.assumptionIds??[]).includes(a.id)).map(a=>({id:a.id,value:replay?.assumptions?.[a.id]??a.value,unit:a.unit,source:a.source})),
+ chains:program.mechanisms.map(m=>({id:m.id,label:m.label,levers:(m.leverTypes??classifications[m.id]??m.levers??[]).filter(v=>LAW_LEVERS.includes(v)),parameters:[...(m.parameters??[])],
+ assumptions:(program.assumptions??[]).filter(a=>(m.assumptionIds??[]).includes(a.id)).map(a=>({id:a.id,value:replay?.assumptions?.[a.id]??program.reviewedScenarioOverrides?.[a.id]??a.value,unit:a.unit,source:a.source})),
  stages:(m.chain??[]).map(s=>({id:s.id,label:s.label,implementation:s.implementation,condition:s.condition,status:'declared-implementation'})),
  outcomes:(m.metrics??[]).map(id=>{const a=read(before,id),b=read(after,id),available=paired&&Number.isFinite(a)&&Number.isFinite(b);return{id,unit:metricUnits[id]??null,status:available?(b===a?'unchanged':'changed'):'unavailable',baseline:available?a:null,treatment:available?b:null,delta:available?b-a:null};}),limitations:[...(m.limitations??[])]}))};
 }

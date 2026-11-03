@@ -1,3 +1,4 @@
+import {ensembleRealityFutures} from './ensemble-core.js';
 import {verifyRealityManifest,executeRealityExperiment,replayRealityFuture,challengeRealityResult,breakRealityPolicy,proposeRealityFix} from './runtime-core.js';
 import {WORKER_PROTOCOL} from '../workers/protocol.js';
 let cancelled=false;
@@ -6,7 +7,7 @@ telemetry('WORKER_READY');
 setInterval(()=>telemetry('WORKER_HEARTBEAT',{ownership:{state:'isolated actual baseline/treatment pairs',retention:'bounded catalogs; details regenerated on selection'}}),2000);
 self.onmessage=async({data})=>{
  if(data.type==='CANCEL'){cancelled=true;return;}
- if(!['RUN','REPLAY','CHALLENGE','BREAK','FIX'].includes(data.type))return;
+ if(!['RUN','REPLAY','CHALLENGE','BREAK','FIX','ENSEMBLE'].includes(data.type))return;
  cancelled=false;const started=performance.now(),requestId=data.requestId;telemetry('TASK_START',{taskId:requestId,kind:data.type});
  const options={shouldCancel:()=>cancelled,onProgress:progress=>{postMessage({type:'PROGRESS',requestId,progress});telemetry('TASK_PROGRESS',{taskId:requestId,progress:progress.completed/Math.max(1,progress.total)});}};
  try{
@@ -16,6 +17,7 @@ self.onmessage=async({data})=>{
    const manifest=verifyRealityManifest(data.result?.manifest);
    const catalog={...data.result,manifest};
    if(data.type==='REPLAY')result=await replayRealityFuture(catalog,data.selection,options);
+   if(data.type==='ENSEMBLE')result=await ensembleRealityFutures(catalog,{...data.selection,...options});
    if(data.type==='CHALLENGE')result=await challengeRealityResult(catalog,{...data.selection,...options});
    if(data.type==='BREAK')result=await breakRealityPolicy(catalog,{...data.selection,...options});
    if(data.type==='FIX')result=proposeRealityFix(await replayRealityFuture(catalog,data.selection,options),manifest);

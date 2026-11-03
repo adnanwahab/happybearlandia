@@ -1,0 +1,5 @@
+import {test,expect} from 'bun:test';
+import {readTemporalResponse} from '../world/temporal/response.js';
+test('missing historical API reports actionable route error without JSON SyntaxError',async()=>{await expect(readTemporalResponse(new Response('Not found',{status:404}))).rejects.toThrow('City Time Machine API is unavailable');});
+test('HTML source failures and malformed JSON do not leak parser exceptions',async()=>{await expect(readTemporalResponse(new Response('<html>Bad gateway</html>',{status:502,headers:{'content-type':'text/html'}}))).rejects.toThrow('non-JSON response (HTTP 502)');await expect(readTemporalResponse(new Response('Not found',{headers:{'content-type':'application/json'}}))).rejects.toThrow('invalid JSON');});
+test('actual API errors and snapshot data retain their original meaning',async()=>{await expect(readTemporalResponse(Response.json({error:'Historical source unavailable'},{status:502}))).rejects.toThrow('Historical source unavailable');expect(await readTemporalResponse(Response.json({id:'snapshot-1',features:[]}))).toEqual({id:'snapshot-1',features:[]});});

@@ -1,3 +1,4 @@
+export {REALITY_CLOCK_ANCHOR,REALITY_ENSEMBLE_LIMITS} from './ensemble-core.js';
 import {normalizeRealityRequest,verifyRealityManifest} from './runtime-core.js';
 import {createTrackedWorker} from '../workers/worker-registry.js';
 export {REALITY_LIMITS,REALITY_RUNTIME_VERSION,REALITY_METRICS} from './runtime-core.js';
@@ -25,6 +26,7 @@ export function createRealityRuntime({initial,populationConfig,worldContext={},w
  return{
   async run(options={}){const {signal,onProgress,stressSearch,...input}=options;if(stressSearch!==undefined&&(!stressSearch||typeof stressSearch!=='object'||Array.isArray(stressSearch)))throw new Error('stressSearch must declare grid/runs options');const manifest=normalizeRealityRequest({...defaults,...input});lastResult=null;lastAnalysis=null;const result=await request('RUN',{manifest,stressSearch},{signal,onProgress});lastResult=clone(result);lastAnalysis=result.stressSearch?clone(result.stressSearch):null;return result;},
   async enterFuture({runId,result,signal,...selection}={}){const catalog=selected(runId,result);const row=catalog.runs.find(row=>row.runId===runId);return request('REPLAY',{result:{...catalog,runs:[row]},selection:{runId,...selection}},{signal});},
+  async ensemble({result=lastResult,signal,onProgress,...selection}={}){if(!result)throw new Error('Run or restore a completed experiment first');return request('ENSEMBLE',{result,selection},{signal,onProgress});},
   async challengeResult(options={}){const {result=lastResult,signal,onProgress,...selection}=options;if(!result)throw new Error('Run a paired experiment first');const output=await request('CHALLENGE',{result,selection},{signal,onProgress});lastAnalysis=clone(output);return output;},
   async breakPolicy(options={}){const {result=lastResult,signal,onProgress,...selection}=options;if(!result)throw new Error('Run a paired experiment first');const output=await request('BREAK',{result,selection},{signal,onProgress});lastAnalysis=clone(output);return output;},
   async fixFailure({runId,result,signal}={}){const catalog=selected(runId,result);return request('FIX',{result:catalog,selection:{runId}},{signal});},

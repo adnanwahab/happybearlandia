@@ -1,3 +1,4 @@
+import {buildingDateTags} from './temporal/building-dates.js';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -273,7 +274,7 @@ export function createAreaService({ fetchImpl = fetch, now = Date.now, endpoints
     const buildings = [], roads = [], pois = [];
     for (const element of json?.elements || []) {
       if (element.type === "way" && element.tags?.highway && element.geometry?.length >= 2) roads.push({kind:element.tags.highway,pts:element.geometry.map((point)=>[point.lat,point.lon])});
-      else if (element.type === "way" && element.geometry?.length >= 4) buildings.push({ id:`w${element.id}`,kind:classify(element.tags),levels:Number(element.tags?.["building:levels"])||null,name:element.tags?.name||null,pts:element.geometry.map((point)=>[point.lat,point.lon]),park:["park","playground"].includes(element.tags?.leisure) });
+      else if (element.type === "way" && element.geometry?.length >= 4) buildings.push({ id:`w${element.id}`,kind:classify(element.tags),dateTags:buildingDateTags(element.tags),levels:Number(element.tags?.["building:levels"])||null,name:element.tags?.name||null,pts:element.geometry.map((point)=>[point.lat,point.lon]),park:["park","playground"].includes(element.tags?.leisure) });
       else if (element.type === "node") pois.push({kind:classify(element.tags),name:element.tags?.name||null,lat:element.lat,lng:element.lon});
     }
     const key = keyFor(lat,lng,radiusM);

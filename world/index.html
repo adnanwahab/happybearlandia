@@ -91,6 +91,11 @@
   #retry-nearby-map{position:fixed;bottom:85px;left:50%;transform:translateX(-50%);z-index:42;background:var(--panel);color:var(--ink);font-size:11px;padding:6px 10px}#retry-nearby-map[hidden]{display:none}
   @media(min-width:800px){.world-fps-meter{right:calc(50% - 90px);top:12px}}
   .living-active #businessPanel,.living-active #feed{display:none!important}.living-active #clock::after{content:" · Living City simulation";font-size:10px;font-weight:400;display:block}
+
+  /* Focused entity inspectors sit below the top toolbar and above optional overlays. */
+  :root #inspect[data-inspector-focused]{top:76px;z-index:120;max-height:calc(100vh - 92px);overflow:auto}
+  section.living-person{overflow-anchor:none;position:fixed;right:14px;top:76px;z-index:120;width:min(390px,calc(100vw - 28px));max-height:calc(100vh - 92px);overflow:auto;box-sizing:border-box}
+  @media(max-width:640px){:root #inspect[data-inspector-focused],section.living-person{top:auto;bottom:12px;max-height:65vh}}
 </style>
 <script>
   // Dear Congress "Simulate realities" links land on /world?simulation=…: show the outcome

@@ -1,0 +1,10 @@
+import {buildingDateCounts,normalizeBuildingDateFilter} from './building-dates.js';
+/** Caller inserts this after proposal shortcuts and before the Reality brush.
+ * onChange must update the actual renderer's building-date filter bridge. */
+export function mountBuildingDateFilter(container,{buildings=[],onChange=()=>{}}={}){
+ const section=document.createElement('section');section.className='building-date-filter';section.setAttribute('aria-label','Building date filter');
+ section.innerHTML='<h3>Building dates</h3><label><input type="checkbox" data-date="enabled"> Filter tagged building dates</label><div><label>From year <input type="number" data-date="minYear" min="1" max="9999" value="1800"></label> <label>Through year <input type="number" data-date="maxYear" min="1" max="9999" value="2026"></label></div><label><input type="checkbox" data-date="fadeUnknown"> Also fade unknown dates</label><p data-date-counts aria-live="polite"></p><p>Dates are contributor-supplied construction, start or opening tags. Untagged buildings stay visible by default. Map edit dates do not establish building age.</p>';
+ const fields=Object.fromEntries([...section.querySelectorAll('[data-date]')].map(field=>[field.dataset.date,field])),status=section.querySelector('[data-date-counts]');let filter=normalizeBuildingDateFilter({minYear:1800,maxYear:2026});
+ function update(){try{filter=normalizeBuildingDateFilter({enabled:fields.enabled.checked,minYear:Number(fields.minYear.value),maxYear:Number(fields.maxYear.value),fadeUnknown:fields.fadeUnknown.checked});const counts=buildingDateCounts(buildings,filter);status.textContent=`${counts.known} tagged · ${counts.unknown} unknown · ${counts.faded} faded`;onChange(filter,counts);}catch(error){status.textContent=error.message;}}
+ section.addEventListener('change',update);container.append(section);update();return{element:section,refresh(nextBuildings=buildings){buildings=nextBuildings;update();},destroy(){section.removeEventListener('change',update);section.remove();},get(){return{...filter};}};
+}

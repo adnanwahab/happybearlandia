@@ -49,6 +49,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
     if(!stats.lastReport){panel.querySelector('[role=status]').textContent='Finish a recording first.';return;}
     const url=URL.createObjectURL(new Blob([JSON.stringify(stats.lastReport,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='city-benchmark.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   };
+  const targetLabel=document.createElement('label');targetLabel.textContent='Frame-rate target ';const targetSelect=document.createElement('select');targetSelect.setAttribute('aria-label','Frame-rate target');for(const fps of [30,60,120,144]){const option=document.createElement('option');option.value=String(fps);option.textContent=fps+' FPS target';targetSelect.append(option);}targetSelect.value=String(quality.targetFPS);targetSelect.onchange=()=>api.setTargetFPS(Number(targetSelect.value));targetLabel.append(targetSelect);panel.append(targetLabel);const targetNote=document.createElement('small');targetNote.textContent='Quality target only. Actual FPS depends on hardware, display and city load.';panel.append(targetNote);
   const graphicsButton=document.createElement('button');graphicsButton.textContent='Graphics';graphicsButton.setAttribute('aria-label','Open graphics settings');graphicsButton.style.cssText='position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:80;background:#18242e;color:#e1edf4';graphicsButton.onclick=()=>{panel.hidden=!panel.hidden;};
   if(!embed)document.body.append(panel,graphicsButton);
   function hotkey(event){if(event.code==='F3'){event.preventDefault();panel.hidden=!panel.hidden;}}
@@ -64,6 +65,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
     updateCity(next={}){state={...state,...next};if(next.constructionProjects)construction.update(next.constructionProjects);if(next.weather)api.setWeather(next.weather);if(next.timeOfDay!=null)api.setTimeOfDay(next.timeOfDay);},
     setQuality(name){quality.setPreset(name.toUpperCase());select.value=quality.preset;applyQuality();},
     setFeature(name,value){if(!(name in features))throw new RangeError(`Unknown render feature: ${name}`);features[name]=Boolean(value);lastSettings='';},
+    setTargetFPS(value){quality.setTargetFPS(value);targetSelect.value=String(value);lastSettings='';applyQuality();},
     setAdaptiveQuality(value){adaptiveEnabled=Boolean(value);},
     setGeometryDetail(value){if(!['LOW','MEDIUM','HIGH','ULTRA'].includes(value))throw new RangeError('Unknown geometry detail');if(geometryDetail)geometryDetail.quality=value;},
     getGeometryStats(){return {...geometryDebug.getGeometryStats(),grass:grass.getStats(),assets:detailAssets.getStats()};},
@@ -101,7 +103,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
       grass.update(motion.now,camera,quality.settings,features.grass&&features.vegetation,quality.preset);
       detailAssets.update(motion.now,camera,quality.settings,features);
       details.update(motion.now,motion.dt,camera,{...quality.settings,geometryRadius:({LOW:.6,MEDIUM:1,HIGH:1.3,ULTRA:1.6})[geometryDetail?.quality||'MEDIUM']},features,state);
-      for(const facade of facades){facade.setNight(1-daylight);facade.setEnabled(features.facades);facade.setInteriorEnabled(features.interiors);facade.setOccupancy(Number.isFinite(state.vacancy)?1-state.vacancy:.7);}
+      for(const facade of facades){facade.setNight(1-daylight);facade.setEnabled(features.facades);facade.setInteriorEnabled(features.interiors&&quality.settings.interiors);facade.setOccupancy(Number.isFinite(state.vacancy)?1-state.vacancy:.7);}
       return active;
     },
     afterFrame(now,cpuMs,frameMs){
@@ -109,7 +111,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
       const info=renderer.info;
       const sample={frameMs,cpuMs,gpuMs:gpu.ms,drawCalls:info.render.drawCalls,triangles:info.render.triangles,textures:info.memory.textures,textureBytes:null,renderInstances,...visible};
       stats.push(sample,now);
-      if(adaptiveEnabled&&!photoPreset&&!stats.recording&&quality.sample(frameMs,gpu.ms,cpuMs))applyQuality();
+      if(document.visibilityState!=='hidden'&&adaptiveEnabled&&!photoPreset&&!stats.recording&&quality.sample(frameMs,gpu.ms,cpuMs))applyQuality();
       if(now-lastOverlay>250){lastOverlay=now;renderInstances=0;scene.traverseVisible(object=>{if(object.isInstancedMesh)renderInstances+=object.count;});cached=stats.current;
         if(!panel.hidden){const n=v=>v==null?'unavailable':v.toFixed(2);panel.querySelector('pre').textContent=`${mode.toUpperCase()} · ${quality.preset}\nFPS ${n(cached.fps)} · 1% low ${n(cached.onePercentLowFps)}\nCPU ${n(cpuMs)} ms · GPU ${n(gpu.ms)} ms\nFrame p95 ${n(cached.p95FrameMs)} ms\nDraws ${sample.drawCalls} · triangles ${sample.triangles}\nTextures ${sample.textures} · texture bytes unavailable\nInstances ${renderInstances} · HLOD ${visible.instances}\nChunks ${visible.visibleChunks} · buildings ${visible.visibleObjects}\nShadow casters ${visible.shadowCasters}\nGeometry ${(geometryDebug.stats.bytes/1048576).toFixed(1)} MiB · LOD ${geometryDebug.stats.lodCounts.join("/")}\nGrass ${grass.getStats().blades} blades · ${grass.getStats().drawCalls} draw\nScale ${quality.settings.scale.toFixed(2)} · slow frames ${cached.slowFrames}`;
           panel.querySelector('[role=status]').textContent=stats.recording?'Recording… quality held fixed':stats.lastReport?'Recording complete. Export JSON to compare.':'';

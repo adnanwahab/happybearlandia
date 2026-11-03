@@ -55,3 +55,6 @@ test('park footprints stay visible and never become oversized rectangular distan
  const camera=new THREE.PerspectiveCamera(45);for(const distance of [100,700,3000]){camera.position.set(0,80,distance);parkMesh.visible=true;towerMesh.visible=true;lod.update(camera,null);expect(parkMesh.visible).toBe(true);}
  lod.dispose();parkMesh.geometry.dispose();towerMesh.geometry.dispose();towerMesh.material.dispose();
 });
+
+test('severe half-second frames trigger adaptation instead of being discarded',()=>{const q=new QualityManager();expect(q.sample(500,null,20)).toBe(false);q.sample(500,null,20);expect(q.sample(500,null,20)).toBe(true);expect(q.level).toBe(2);for(let i=0;i<3;i++)q.sample(500,null,20);expect(q.level).toBe(4);expect(q.settings.shadows).toBe(false);expect(q.settings.distance).toBeLessThan(1100);expect(q.settings.interiors).toBe(false);});
+test('120 FPS is an explicit quality budget rather than a promised or artificial frame cap',()=>{const q=new QualityManager('LOW',{targetFPS:120});expect(q.settings.targetFPS).toBe(120);for(let i=0;i<60;i++)q.sample(12,null,2);expect(q.level).toBe(1);expect(()=>q.setTargetFPS(0)).toThrow();expect(q.sample(NaN,null,2)).toBe(false);});
