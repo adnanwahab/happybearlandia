@@ -1,0 +1,144 @@
+diff --git a/world/house/app.js b/world/house/app.js
+--- a/world/house/app.js
++++ b/world/house/app.js
+@@ -20,6 +20,7 @@ export async function getCurrentHouseCheckpoint(){if(!session)throw Error('No sa
+ export function householdCommandCatalog(house,runtime,selected,household){
+  const actions=[],definitions=house?.actionCatalog??{},mapping={hug:['share-a-hug','Share a hug'],cuddle:['cuddle-together','Cuddle together'],repair:['repair-object','Repair object'],callRepair:['call-repair','Pay for a repair'],extinguish:['extinguish-fire','Extinguish kitchen fire'],callEmergency:['call-simulated-emergency','Call simulated emergency service'],eat:['eat-a-meal','Eat a prepared meal'],shower:['take-a-shower','Take a shower'],toilet:['use-the-toilet','Use the toilet'],sleep:['sleep-task','Sleep'],watchTV:['watch-tv','Watch TV'],watchMovie:['watch-a-movie','Watch a movie'],computerPlay:['play-computer-games','Play computer games'],computerBrowse:['browse-the-web','Browse the web'],computerStudy:['study-on-computer','Study on computer'],garden:['tend-garden','Tend garden'],conversation:['have-a-conversation','Have a conversation'],sit:['sit','Sit here'],cook:['cook-dinner','Cook dinner'],sharedDinner:['eat-dinner-together','Eat dinner together'],rest:['sleep','Rest / sleep'],read:['read','Read'],music:['turn-on-music','Turn on music'],clean:['clean-a-room','Clean a room'],quietWorkspace:['create-a-quiet-workspace','Create a quiet workspace']};
+  Object.assign(mapping,{propose:['propose','Propose'],wedding:['get-married','Get married']});
++ Object.assign(mapping,{startFamily:['start-a-family','Start a family']});
+  function availability(definition,type,cost){if(typeof runtime?.householdAction!=='function')return{supported:false,reason:'The saved worker has no household action interface.'};if(type!=='furniture'&&selected?.atHome===false)return{supported:false,reason:'The selected resident is away from home.'};if(type==='sharedDinner'){if(list(house.members).filter(p=>p.atHome).length<2)return{supported:false,reason:'At least two available residents must be at home.'};const diners=list(house.members).filter(p=>p.atHome).slice(0,8).length;if(house.preparedServings<diners)return{supported:false,reason:'Cook first: '+diners+' prepared servings are needed.'};if(!(list(house.objects).find(o=>o.type==='diningTable'&&o.roomId==='kitchen')?.capacity>=diners))return{supported:false,reason:'The dining table needs enough seats for '+diners+' home residents.'};}else if(type!=='furniture'&&selected){if(selected.atHome===false)return{supported:false,reason:'The selected resident is away from home.'};if(selected.ageYears<definition.minAge)return{supported:false,reason:'This action requires age '+definition.minAge+' or older.'};}const required={eat:['diningTable'],shower:['shower'],toilet:['toilet'],sleep:['bed'],watchTV:['tv'],watchMovie:['tv'],computerPlay:['computer'],computerBrowse:['computer'],computerStudy:['computer'],cook:['stove'],read:['books'],music:['music'],quietWorkspace:['desk'],sit:['diningTable'],rest:['bed','couch']}[type];if(required&&!list(house.objects).some(object=>required.includes(object.type)&&object.roomId===definition.roomId))return{supported:false,reason:'Requires an installed '+required.join(' or ')+' in '+definition.roomId+'.'};if(cost&&Number.isFinite(household?.savings)&&household.savings<cost)return{supported:false,reason:'Requires '+cost+' in the household savings ledger.'};return{supported:true};}
+  for(const [type,[id,label]]of Object.entries(mapping)){const def=definitions[type];if(def)actions.push({id,label,command:{type},durationMinutes:def.durationMinutes,mechanism:def.mechanism,requires:def.requires,requiresPartner:!!def.requiresPartner,requiresConsent:!!def.requiresConsent,...availability(def,type,def.cost)});}
+  for(const [type,definition]of Object.entries(ITEM_ACTIONS))if(definitions[type])actions.push({id:type,label:definition.label,command:{type},durationMinutes:definition.durationMinutes,mechanism:definition.mechanism,supported:true,requires:definition.requires});
+diff --git a/world/house/family-system.js b/world/house/family-system.js
+new file mode 100644
+--- /dev/null
++++ b/world/house/family-system.js
+@@ -0,0 +1,81 @@
++import {relationshipCommitment} from './relationships.js';
++import {recordEvent} from '../population/contracts.js';
++
++export const FAMILY_VERSION='house-family.v1';
++export const FAMILY_RULES=Object.freeze({defaultArrivalDays:3,maxArrivalDays:280,maxPlans:16,maxChildren:16,maxEvents:64,source:'Compressed household game-time family lifecycle; newborns are household dependents until dynamic population capacity exists.'});
++export const FAMILY_ACTIONS=Object.freeze({
++ startFamily:{label:'Start a family',durationMinutes:60,minAge:18,minParticipants:2,maxParticipants:2,roomId:'living',requiresPartner:true,requiresConsent:true,needRates:{social:.08,fun:.03},requires:['two married adult partners','explicit agreement from both Sims'],mechanism:'Both married partners spend actual time together. Completion creates a bounded family plan; a newborn household dependent arrives after the configured game-time interval.'}
++});
++const copy=value=>structuredClone(value),idOf=(model,index)=>model.prefix+'-p'+index;
++const pairKey=ids=>JSON.stringify([...ids].sort());
++const check=(ok,message)=>{if(!ok)throw Error(message);};
++const consented=(ids,values)=>Array.isArray(values)&&values.length===2&&new Set(values).size===2&&ids.every(id=>values.includes(id));
++const nameOf=(model,id)=>model.houseProfiles?.people?.[id]?.name??'Resident '+(Number(id.slice((model.prefix+'-p').length))+1);
++function state(home,create=false){
++ if(home.systems?.family?.schemaVersion===FAMILY_VERSION)return home.systems.family;
++ if(!create)return null;
++ home.systems??={};return home.systems.family={schemaVersion:FAMILY_VERSION,nextId:0,plans:[],children:{},events:[]};
++}
++function event(home,row){const family=state(home,true);family.events.push(row);if(family.events.length>FAMILY_RULES.maxEvents)family.events.shift();return row;}
++function activePlanFor(family,ids){const key=pairKey(ids);return family?.plans?.find(plan=>plan.status==='expecting'&&pairKey(plan.parentIds)===key)??null;}
++function childName(family){return'Baby '+(Object.keys(family.children).length+1);}
++
++export function planFamilyAction(model,home,request,participants){
++ if(request.type!=='startFamily')return null;
++ const ids=participants.map(i=>idOf(model,i));if(ids.length!==2||new Set(ids).size!==2)return{available:false,reason:'Choose two distinct adults'};
++ if(!consented(ids,request.systemOptions?.consentingPersonIds))return{available:false,reason:'Both married partners must explicitly agree to start a family'};
++ if(relationshipCommitment(model,ids[0],ids[1]).status!=='married')return{available:false,reason:'Start a family requires a married relationship'};
++ const family=state(home,false);if(activePlanFor(family,ids))return{available:false,reason:'This couple already has an active family plan'};
++ if((family?.plans.length??0)>=FAMILY_RULES.maxPlans||Object.keys(family?.children??{}).length>=FAMILY_RULES.maxChildren)return{available:false,reason:'This household reached the bounded family-record limit'};
++ const days=request.systemOptions?.arrivalDays??FAMILY_RULES.defaultArrivalDays;
++ if(!Number.isInteger(days)||days<1||days>FAMILY_RULES.maxArrivalDays)return{available:false,reason:'Child arrival must be 1–280 modeled days'};
++ return{available:true,data:{parentIds:ids,arrivalDays:days}};
++}
++
++export function completeFamilyAction(model,home,action,minute){
++ if(action.type!=='startFamily')return null;const family=state(home,true),data=action.systemData?.family,ids=data?.parentIds??action.participants.map(i=>idOf(model,i)),days=data?.arrivalDays??FAMILY_RULES.defaultArrivalDays;
++ if(activePlanFor(family,ids))return{status:'already-planned'};
++ const plan={id:home.householdId+'-family-plan-'+(++family.nextId),parentIds:[...ids],status:'expecting',method:'family-plan',startedMinute:minute,dueMinute:minute+days*1440,arrivalDays:days,source:'Completed start-family household action'};
++ family.plans.push(plan);if(family.plans.length>FAMILY_RULES.maxPlans)family.plans.shift();
++ const text=nameOf(model,ids[0])+' and '+nameOf(model,ids[1])+' started a family plan.';
++ event(home,{type:'family-plan-started',minute,planId:plan.id,parentIds:[...ids],text});
++ recordEvent(model,'HOUSE_FAMILY_PLAN_STARTED',{householdId:home.householdId,personIds:ids,actionId:action.id,planId:plan.id,dueMinute:plan.dueMinute,arrivalDays:days,text});
++ return{status:'expecting',plan:copy(plan)};
++}
++
++function arriveChild(model,home,family,plan,minute){
++ if(Object.keys(family.children).length>=FAMILY_RULES.maxChildren){plan.status='capacity-blocked';return null;}
++ const childId=home.householdId+'-child-'+(++family.nextId),name=childName(family),child={id:childId,name,parentIds:[...plan.parentIds],bornMinute:minute,stage:'baby',needs:{hunger:80,energy:75,comfort:85,attention:80,hygiene:90},sleeping:false,lastCareMinute:minute,source:'Household dependent; not yet a city population agent'};
++ family.children[childId]=child;plan.status='arrived';plan.arrivedMinute=minute;plan.childId=childId;
++ const text=name+' arrived in the household.';event(home,{type:'child-arrived',minute,planId:plan.id,childId,parentIds:[...plan.parentIds],text});
++ recordEvent(model,'HOUSE_CHILD_ARRIVED',{householdId:home.householdId,personIds:plan.parentIds,childId,planId:plan.id,bornMinute:minute,text});
++ return child;
++}
++
++export function advanceFamilySystem(model,home,startMinute,endMinute){
++ const family=state(home,false);if(!family||endMinute<=startMinute)return[];
++ const arrived=[];for(const plan of family.plans)if(plan.status==='expecting'&&plan.dueMinute>startMinute&&plan.dueMinute<=endMinute){const child=arriveChild(model,home,family,plan,plan.dueMinute);if(child)arrived.push(copy(child));}
++ return arrived;
++}
++
++export function inspectHouseFamilySystem(model,home){
++ const family=state(home,false);if(!family)return{schemaVersion:FAMILY_VERSION,plans:[],children:{},events:[],source:FAMILY_RULES.source};
++ const children=Object.fromEntries(Object.entries(family.children).map(([id,child])=>[id,{...copy(child),ageDays:Math.max(0,(model.minute-child.bornMinute)/1440)}]));
++ return{schemaVersion:FAMILY_VERSION,plans:copy(family.plans),children,events:copy(family.events),source:FAMILY_RULES.source};
++}
++
++export function applyHouseFamilyCommand(model,home,input){
++ check(input&&input.type==='nameChild'&&Object.keys(input).every(key=>['type','childId','name'].includes(key)),'Unsupported family command');
++ const family=state(home,false),child=family?.children?.[input.childId];check(child,'Choose an existing household child');
++ const name=String(input.name??'').trim();check(name.length>=1&&name.length<=40,'Child name must be 1–40 characters');
++ child.name=name;event(home,{type:'child-named',minute:model.minute,childId:child.id,name,text:'The household named their child '+name+'.'});
++ recordEvent(model,'HOUSE_CHILD_NAMED',{householdId:home.householdId,childId:child.id,name});
++ return{updated:true,childId:child.id,name,minute:model.minute};
++}
++
++export function validateHouseFamilySystem(model,home){
++ const family=state(home,false);if(!family)return true;check(family.schemaVersion===FAMILY_VERSION&&Number.isSafeInteger(family.nextId)&&family.nextId>=0,'Invalid family state');check(Array.isArray(family.plans)&&family.plans.length<=FAMILY_RULES.maxPlans&&family.children&&typeof family.children==='object'&&Object.keys(family.children).length<=FAMILY_RULES.maxChildren&&Array.isArray(family.events)&&family.events.length<=FAMILY_RULES.maxEvents,'Family retention exceeded');
++ for(const plan of family.plans){check(typeof plan.id==='string'&&Array.isArray(plan.parentIds)&&plan.parentIds.length===2&&new Set(plan.parentIds).size===2&&['expecting','arrived','capacity-blocked'].includes(plan.status)&&Number.isFinite(plan.startedMinute)&&Number.isFinite(plan.dueMinute)&&plan.dueMinute>=plan.startedMinute,'Invalid family plan');for(const id of plan.parentIds){const i=Number(id.slice((model.prefix+'-p').length));check(Number.isInteger(i)&&i>=0&&i<model.people.age.length,'Invalid family parent');}}
++ for(const [id,child] of Object.entries(family.children)){check(child.id===id&&typeof child.name==='string'&&child.name.length>0&&child.name.length<=40&&Array.isArray(child.parentIds)&&child.parentIds.length===2&&Number.isFinite(child.bornMinute)&&child.bornMinute<=model.minute&&child.stage==='baby'&&child.needs&&Object.values(child.needs).every(value=>Number.isFinite(value)&&value>=0&&value<=100),'Invalid household child');}
++ return true;
++}
+diff --git a/world/house/family-system.test.js b/world/house/family-system.test.js
+new file mode 100644
+--- /dev/null
++++ b/world/house/family-system.test.js
+@@ -0,0 +1,11 @@
++import {describe,expect,test} from 'bun:test';
++import {advanceFamilySystem,completeFamilyAction,inspectHouseFamilySystem,planFamilyAction,validateHouseFamilySystem} from './family-system.js';
++
++function model(){
++ const m={prefix:'test',minute:10000,config:{seed:1,maxLogEntries:1000},people:{age:new Uint8Array([1,1]),ageYears:new Uint8Array([30,30]),household:new Uint16Array([0,0]),employed:new Uint8Array(2),work:new Uint16Array(2),x:new Float32Array(2),z:new Float32Array(2),remaining:new Float32Array(2)},social:{ties:{}},events:[],eventCounts:{},weight:1};
++ m.social.ties['["test-p0","test-p1"]']={a:'test-p0',b:'test-p1',kind:'Acquaintances',friendship:80,romance:80,tension:0,familiarity:90,dating:true,commitment:{status:'married',datingSinceMinute:1,engagedSinceMinute:2,marriedSinceMinute:3,endedMinute:null},directed:{'test-p0':{trust:90,attraction:80,resentment:0},'test-p1':{trust:90,attraction:80,resentment:0}},memories:[]};return m;
++}
++describe('house family lifecycle',()=>{
++ test('start family requires marriage and consent',()=>{const m=model(),home={householdId:'test-h0',systems:{}};expect(planFamilyAction(m,home,{type:'startFamily',systemOptions:{consentingPersonIds:['test-p0','test-p1'],arrivalDays:1}},[0,1]).available).toBe(true);});
++ test('completed plan creates a household dependent only when due',()=>{const m=model(),home={householdId:'test-h0',systems:{}},action={id:'family-1',type:'startFamily',participants:[0,1],systemData:{family:{parentIds:['test-p0','test-p1'],arrivalDays:1}}};const result=completeFamilyAction(m,home,action,1000);expect(result.status).toBe('expecting');expect(Object.keys(inspectHouseFamilySystem(m,home).children)).toHaveLength(0);m.minute=2440;advanceFamilySystem(m,home,1000,2440);const snapshot=inspectHouseFamilySystem(m,home);expect(Object.keys(snapshot.children)).toHaveLength(1);expect(Object.values(snapshot.children)[0].parentIds).toEqual(['test-p0','test-p1']);expect(validateHouseFamilySystem(m,home)).toBe(true);});
++});
+diff --git a/world/house/house-ui.js b/world/house/house-ui.js
+--- a/world/house/house-ui.js
++++ b/world/house/house-ui.js
+@@ -64,7 +64,7 @@ export function mountHouseUI(container,{householdId,experimentId,onSelectPerson,
+  if(current.command?.type==='conversation'||current.kind==='social'){const pending=topicPicker.open({partners:request.relationshipIntent==='romantic'?conversationPartners().filter(person=>idOf(person)===request.targetId):conversationPartners(),preferredTargetId:request.targetId});choiceSelect.value=request.conversationChoice??'chat';decisionSelect.value=request.relationshipDecision??'';updateConversationGates();const choice=await pending;if(!choice||destroyed)return;request.topic=choice.topic;request.targetId=choice.targetId;request.conversationChoice=choiceSelect.value;if(decisionSelect.value)request.relationshipDecision=decisionSelect.value;const romantic=request.relationshipIntent==='romantic'||request.conversationChoice==='flirt'||request.relationshipDecision==='askOnDate';if(romantic){const actor=selectedPerson(),target=conversationPartners().find(person=>person.id===request.targetId),ids=[request.personId,request.targetId],already=ids.every(id=>rows(request.consentingPersonIds).includes(id));if(!target)return;if(!already&&!await askConsent(actor,target))return;request.relationshipIntent='romantic';request.consentingPersonIds=ids;}}
+  if(shouldQueue)onQueueAction?.(current,request);else onAction?.(current,request);}
+ 
+- function relevantEntries(){if(!context)return[];if(context.kind==='object'){const object=context.record,actions=advertisedObjectActions({object,home:data.home,person:selectedPerson(),partner:conversationPartners().find(person=>idOf(person)===partner),consentFlow:true}).map(entry=>({...entry,label:catalog.find(row=>row.command?.type===entry.command?.type)?.label??entry.label}));return[...actions,...catalog.filter(entry=>entry.command?.type==='furniture'&&entry.command.object===object.type)];}let allowed=context.kind==='visitor'?['conversation','hug','cuddle']:context.kind==='room'?['clean']:['hug','cuddle','propose','wedding','eat','shower','toilet','sleep','watchTV','watchMovie','computerPlay','computerBrowse','computerStudy','conversation','sit','rest','read','cook','music','clean','quietWorkspace'];if(data.home?.life?.fire&&context.kind==='person')allowed.push('extinguish','callEmergency');if(context.kind==='room'&&data.home?.life?.fire?.roomId===context.record.id)allowed.push('extinguish','callEmergency');return catalog.filter(entry=>allowed.includes(entry.command?.type)||context.kind==='person'&&entry.kind==='social');}
++ function relevantEntries(){if(!context)return[];if(context.kind==='object'){const object=context.record,actions=advertisedObjectActions({object,home:data.home,person:selectedPerson(),partner:conversationPartners().find(person=>idOf(person)===partner),consentFlow:true}).map(entry=>({...entry,label:catalog.find(row=>row.command?.type===entry.command?.type)?.label??entry.label}));return[...actions,...catalog.filter(entry=>entry.command?.type==='furniture'&&entry.command.object===object.type)];}let allowed=context.kind==='visitor'?['conversation','hug','cuddle']:context.kind==='room'?['clean']:['hug','cuddle','propose','wedding','startFamily','eat','shower','toilet','sleep','watchTV','watchMovie','computerPlay','computerBrowse','computerStudy','conversation','sit','rest','read','cook','music','clean','quietWorkspace'];if(data.home?.life?.fire&&context.kind==='person')allowed.push('extinguish','callEmergency');if(context.kind==='room'&&data.home?.life?.fire?.roomId===context.record.id)allowed.push('extinguish','callEmergency');return catalog.filter(entry=>allowed.includes(entry.command?.type)||context.kind==='person'&&entry.kind==='social');}
+ 
+  function checkContextAvailability(entries){if(!context||typeof getAvailability!=='function')return;const key=JSON.stringify([selected,partner,requestMode,context.page??0,rows(data.home?.objects).map(object=>[object.id,object.roomId]),context.kind,context.record.id,context.record.roomId,context.meta?.seatIndex,data.snapshot?.minute,rows(data.home?.actions).map(action=>action.id)]);if(context.availabilityKey===key)return;context.availabilityKey=key;context.availability=new Map();const current=context;for(const entry of entries){current.availability.set(entry.id,{pending:true});const request={execution:requestMode==='queue'&&data.queueSupported===true?'queue':'now',personId:selected,targetId:partner||undefined,...(current.kind==='object'?{roomId:current.record.roomId,objectId:idOf(current.record),...(entry.command?.type==='sit'&&Number.isInteger(current.meta?.seatIndex)?{seatIndex:current.meta.seatIndex}:{})}:{}),...(current.kind==='room'?{roomId:current.record.id}:{})};Promise.resolve().then(()=>getAvailability(entry,request)).then(result=>{if(destroyed||context!==current||current.availabilityKey!==key)return;current.availability.set(entry.id,result??{available:false,reason:'Not available right now.'});renderContext();},error=>{if(destroyed||context!==current||current.availabilityKey!==key)return;current.availability.set(entry.id,{available:false,reason:error.message});renderContext();});}}
+  function renderContext(){if(!context)return;$('[data-menu-info]').hidden=true;$('[data-menu-info]').replaceChildren();$('[data-menu-details]').textContent=context.kind==='person'?'Why this activity?':'About this '+(context.kind==='room'?'room':'object');const menu=$('[data-context-menu]'),record=context.record;menu.hidden=false;$('[data-menu-kind]').textContent=context.kind==='visitor'?(record.guest?'VISITOR':'PERSON'):context.kind==='person'?'PERSON':context.kind==='room'?'ROOM':'OBJECT';$('[data-menu-title]').textContent=['person','visitor'].includes(context.kind)?personName(record):context.meta?.part==='chair'?'Dining chair':record.label??record.name??String(record.type??record.id).replace(/([A-Z])/g,' $1');$('[data-menu-activity]').textContent=context.kind==='person'?(Number.isFinite(record.ageYears)?'Age '+record.ageYears+' · ':'')+currentActivity(record)+(record.atHome===false?' · away from home':''):selectedPerson()?'Request for '+personName(selectedPerson())+(Number.isFinite(selectedPerson().ageYears)?' · Age '+selectedPerson().ageYears:''):'Choose a resident first';const ownerControls=$('[data-owner-controls]'),inventoryObject=context.kind==='object'&&houseViewRecords(data).objects.find(object=>idOf(object)===idOf(record));ownerControls.hidden=!inventoryObject||!data.lifeSupported;const ownerId=data.home?.life?.ownership?.[idOf(record)],owner=houseViewRecords(data).members.find(person=>idOf(person)===ownerId);$('[data-object-owner]').textContent=ownerId?'Owned by '+(owner?personName(owner):ownerId):'Shared household item';$('[data-owner-claim]').disabled=busy||!houseViewRecords(data).members.some(person=>idOf(person)===selected)||ownerId===selected;$('[data-owner-clear]').disabled=busy||!ownerId;const actions=$('[data-menu-actions]');actions.replaceChildren();$('[data-request-execution-label]').hidden=data.queueSupported!==true;$('[data-request-execution]').value=requestMode;const allEntries=relevantEntries(),ordered=[...allEntries].sort((a,b)=>{if(requestMode==='queue'){const order=['cook','eat','shower','sleep','toilet','read','music','rest'],rank=entry=>{const i=order.indexOf(entry.command?.type);return i<0?100:i;};return rank(a)-rank(b);}return Number(b.kind==='social'||b.command?.type==='conversation')-Number(a.kind==='social'||a.command?.type==='conversation')||Number(b.supported===true||b.available===true)-Number(a.supported===true||a.available===true);});const pageCount=Math.max(1,Math.ceil(ordered.length/8));context.page=(context.page??0)%pageCount;const entries=ordered.slice(context.page*8,context.page*8+8);const partnerSelect=$('[data-context-partner]');partnerSelect.replaceChildren();for(const person of conversationPartners())el('option',personName(person)+(person.atHome===false?' · away':''),partnerSelect).value=idOf(person);partnerSelect.value=partner;$('[data-context-partner-label]').hidden=!entries.some(entry=>entry.kind==='social'||['conversation','hug','cuddle'].includes(entry.command?.type)||entry.requiresPartner);$('[data-menu-more]').hidden=pageCount<=1;$('[data-menu-more]').textContent='More options · '+(context.page+1)+'/'+pageCount;checkContextAvailability(entries);for(const [entryIndex,entry] of entries.entries()){const result=context.availability?.get(entry.id),reason=result?.pending?'Checking…':result?.reason??entry.reason;const wrap=el('div',null,actions),button=el('button',(context?.kind==='visitor'&&entry.command?.type==='conversation'?'Talk to '+personName(context.record):entry.label??entry.id),wrap),available=(result?result.available===true:entry.supported===true||entry.available===true)&&(data.selectedPersonId??selected)===selected;button.type='button';button.disabled=busy||!available;button.title=available?entry.mechanism??'':reason??'';const meta=el('small',!available?String(reason??'Not available right now.').replace(/^[A-Z_]+:\s*/,''):Number.isFinite(entry.durationMinutes)?entry.durationMinutes+' min':entry.kind==='social'?'Talk with '+(houseViewRecords(data).members.find(p=>idOf(p)===partner)?personName(houseViewRecords(data).members.find(p=>idOf(p)===partner)):'a household member'):'',wrap);wrap.className='house-radial-action';const angle=-Math.PI/2+entryIndex*Math.PI*2/Math.max(1,entries.length);wrap.style.setProperty('--orbit-x',Math.cos(angle));wrap.style.setProperty('--orbit-y',Math.sin(angle));const activeAction=rows(data.home?.actions).find(action=>action.id===selectedPerson()?.activeActionId);if(available&&activeAction&&entry.command?.type!=='furniture')el('small','Will interrupt '+actionName(activeAction.type).toLowerCase(),wrap);if(available)on(button,'click',()=>giveRequest(entry,{...(context?.kind==='person'?{personId:idOf(context.record)}:{}),...(context?.kind==='object'?{roomId:context.record.roomId,objectId:idOf(context.record),...(entry.command?.type==='sit'&&Number.isInteger(context.meta?.seatIndex)?{seatIndex:context.meta.seatIndex}:{})}:{}),...(context?.kind==='room'?{roomId:context.record.id}:{})}));}if(!entries.length)el('p','No available request for this object.',actions);const hudTop=$('.house-bottom-hud').getBoundingClientRect().top;menu.style.maxHeight=Math.max(130,hudTop-92)+'px';const bounds=menu.getBoundingClientRect(),x=context.meta?.clientX??context.meta?.x??win.innerWidth*.61,y=context.meta?.clientY??context.meta?.y??win.innerHeight*.38;menu.style.left=Math.max(12,Math.min(win.innerWidth-bounds.width-12,x-bounds.width/2))+'px';menu.style.top=Math.max(76,Math.min(hudTop-bounds.height-12,y-20))+'px';}
+diff --git a/world/house/system-installers.js b/world/house/system-installers.js
+--- a/world/house/system-installers.js
++++ b/world/house/system-installers.js
+@@ -2,6 +2,7 @@ import {createEmotionSpatialSystem} from './spatial-adapter.js';
+ import {registerHouseholdSystem} from './system-registry.js';
+ import * as social from './social-systems.js';
+ import * as commitment from './commitment-system.js';
++import * as family from './family-system.js';
+ import * as lab from './lab-system.js';
+ import * as spatial from './spatial-system.js';
+ import {houseBuildGeometry} from './build-adapter.js';
+@@ -10,6 +11,7 @@ let installed=false;
+ export function installHouseSystems(){if(installed)return;installed=true;
+  registerHouseholdSystem({id:'lab',command:lab.applyLabCommand,inspect:lab.inspectLabSystem,validate:lab.validateLabSystem,advance:(model,home,{startMinute,endMinute})=>lab.advanceLabSystem(model,home,endMinute-startMinute)});
+  registerHouseholdSystem({id:'commitment',command:commitment.applyHouseCommitmentCommand,actions:commitment.COMMITMENT_ACTIONS,actionPlan:commitment.planCommitmentAction,completeAction:commitment.completeCommitmentAction,inspect:commitment.inspectHouseCommitmentSystem,validate:commitment.validateHouseCommitmentSystem});
++ registerHouseholdSystem({id:'family',command:family.applyHouseFamilyCommand,actions:family.FAMILY_ACTIONS,actionPlan:family.planFamilyAction,completeAction:family.completeFamilyAction,advance:(model,home,{startMinute,endMinute})=>family.advanceFamilySystem(model,home,startMinute,endMinute),inspect:family.inspectHouseFamilySystem,validate:family.validateHouseFamilySystem});
+  registerHouseholdSystem({id:'social',command:social.applyHouseSocialCommand,inspect:social.inspectHouseSocialSystems,validate:social.validateHouseSocialSystems,actions:{...social.SOCIAL_SYSTEM_ACTIONS,groupConversation:{...social.SOCIAL_SYSTEM_ACTIONS.groupConversation,objectTypes:undefined,minParticipants:3,maxParticipants:4,requiresPartner:true},holidayMeal:{...social.SOCIAL_SYSTEM_ACTIONS.holidayMeal,minParticipants:2,maxParticipants:4},chatOnline:{...social.SOCIAL_SYSTEM_ACTIONS.chatOnline,screen:true},writeStory:{...social.SOCIAL_SYSTEM_ACTIONS.writeStory,screen:'computer'},doHomework:{...social.SOCIAL_SYSTEM_ACTIONS.doHomework,screen:'computer'}},actionPlan:(model,home,request,participants)=>{for(const i of participants){const check=social.socialActionAvailability(model,home,i,request);if(!check.available)return check;}if(request.type==='groupConversation')social.planGroupConversation(model,home,participants.map(i=>model.prefix+'-p'+i));if(request.type==='holidayMeal'&&home.preparedServings<participants.length)return{available:false,reason:'Prepare enough real servings for the celebration'};return{available:true};},admitAction:(model,home,action)=>{if(action.type==='holidayMeal')home.preparedServings-=action.participants.length;},advance:(model,home,{startMinute,endMinute})=>social.advanceHouseSocialSystems(model,home,startMinute,endMinute),completeAction:(model,home,action,minute)=>{if(action.participants.length<=4)social.recordHouseSocialCompletion(model,home,action,minute);}});
+  registerHouseholdSystem(createEmotionSpatialSystem({catalog:HOUSE_FURNITURE}));
+ }
