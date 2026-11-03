@@ -480,6 +480,8 @@ const server = serve({
     if (pathname === "/api/constitution-city/plan") return handleConstitutionSource(request);
     if (/^\/r\/[A-Za-z0-9_-]{8,16}\/?$/.test(pathname)) return serveFile("./world/reality-compiler.html");
     if (["/change", "/reality-compiler", "/city-speaks"].includes(pathname.replace(/\/$/, ""))) return serveFile("./world/reality-compiler.html");
+    // Bar night is an independent social scene with its own local progress.
+    if (/^\/world\/bar\/?$/.test(pathname)) return serveFile("./world/bar/index.html");
     // House mode observes/restores the same saved population authority as /world.
     // Asset URLs in this entry point are absolute so household IDs are not directories.
     if (/^\/world\/date\/[^/]{1,540}\/?$/.test(pathname)&&!pathname.endsWith('.js')&&!pathname.endsWith('.css')&&!pathname.endsWith('.html')) return serveFile("./world/date/index.html");
