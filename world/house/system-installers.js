@@ -1,3 +1,4 @@
+import {createComedySystem} from './comedy-system.js';
 import {createHouseDramaSystem} from './house-drama-system.js';
 import {createDateRecipeSystem} from './date-recipe-system.js';
 import {createDateConversationSystem} from './date-conversation-system.js';
@@ -37,5 +38,6 @@ export function installHouseSystems(){if(installed)return;installed=true;
  registerHouseholdSystem(createPartyChaosSystem());
  registerHouseholdSystem(createStorySystem());
  registerHouseholdSystem(createHouseDramaSystem());
+ registerHouseholdSystem(createComedySystem());
  registerHouseholdSystem(createInfluenceSystem());
 }
