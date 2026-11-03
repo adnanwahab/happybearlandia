@@ -1,0 +1,122 @@
+/* The house is already cream and green. Trouble gets an amber accent. */
+.house-comedy-dialog {
+  --comedy-ink: #294b36;
+  --comedy-muted: #61715b;
+  --comedy-paper: #fffdf0;
+  --comedy-rule: #d3d9bd;
+  --comedy-orange: #a94f27;
+  box-sizing: border-box;
+  width: min(800px, calc(100vw - 36px));
+  max-height: min(88dvh, 1000px);
+  margin: auto;
+  padding: 26px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #aabc94;
+  border-radius: 24px;
+  background: var(--comedy-paper);
+  color: var(--comedy-ink);
+  box-shadow: 0 22px 90px #18372d55;
+  font: 15px/1.5 system-ui, sans-serif;
+  scrollbar-color: #adb990 transparent;
+}
+.house-comedy-dialog::backdrop { background: #24392c77; }
+.house-comedy-dialog * { box-sizing: border-box; }
+.house-comedy-dialog [hidden] { display: none !important; }
+.house-comedy-dialog h2 { margin: 3px 0 0; max-width: 540px; font-size: clamp(23px, 3vw, 31px); line-height: 1.14; letter-spacing: -.035em; }
+.house-comedy-dialog h3 { margin: 0; font-size: 17px; line-height: 1.3; }
+.house-comedy-dialog p { margin: 8px 0; }
+.house-comedy-dialog button, .house-comedy-dialog select {
+  min-height: 44px;
+  border: 1px solid #a6b893;
+  border-radius: 10px;
+  background: #edf3de;
+  color: var(--comedy-ink);
+  font: inherit;
+}
+.house-comedy-dialog button { padding: 10px 14px; cursor: pointer; }
+.house-comedy-dialog button:disabled { cursor: default; opacity: .56; }
+.house-comedy-dialog button:not(:disabled):hover { background: #e1eac9; border-color: #748f5d; }
+.house-comedy-dialog :is(button, select, summary):focus-visible,
+.house-comedy-episode:focus-visible { outline: 3px solid #bf6d39; outline-offset: 3px; }
+.house-comedy-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+.house-comedy-header .house-comedy-close { width: 44px; min-width: 44px; padding: 0; background: transparent; border-color: var(--comedy-rule); font-size: 25px; line-height: 1; }
+.house-comedy-eyebrow { display: block; margin: 0 !important; color: var(--comedy-muted); font-size: 10px; font-weight: 800; letter-spacing: .11em; }
+.house-comedy-intro { max-width: 640px; margin: 15px 0 22px !important; color: #53674f; }
+.house-comedy-casting { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; }
+.house-comedy-casting label { display: grid; gap: 5px; min-width: 200px; font-size: 12px; font-weight: 700; }
+.house-comedy-dialog select { width: 100%; max-width: 340px; padding: 9px 34px 9px 11px; background: #fffef7; font-size: 14px; }
+.house-comedy-counter { padding-bottom: 11px; color: var(--comedy-muted); font-size: 12px; text-align: right; }
+.house-comedy-person-note { min-height: 20px; color: var(--comedy-muted); font-size: 12px; }
+.house-comedy-objective { margin: 18px 0; padding: 13px 16px; border: 1px solid #e6cda7; border-radius: 12px; background: #fcf0d9; }
+.house-comedy-objective .house-comedy-eyebrow { color: #8d572f; }
+.house-comedy-objective p { margin: 4px 0 0; color: #704529; font-weight: 650; }
+.house-comedy-active { margin: 18px 0; padding: 18px; border: 1px solid #8fac79; border-radius: 15px; background: #edf3dc; }
+.house-comedy-active-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.house-comedy-active-heading > span { flex-shrink: 0; color: #597148; font-size: 12px; }
+.house-comedy-dialog progress { width: 100%; height: 8px; margin: 10px 0 12px; overflow: hidden; border: 0; border-radius: 10px; background: #d5dfbf; accent-color: #65864c; }
+.house-comedy-dialog progress::-webkit-progress-bar { background: #d5dfbf; border-radius: 10px; }
+.house-comedy-dialog progress::-webkit-progress-value { background: #65864c; border-radius: 10px; }
+.house-comedy-dialog progress::-moz-progress-bar { background: #65864c; border-radius: 10px; }
+.house-comedy-watch-controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.house-comedy-dialog .house-comedy-primary { border-color: #476f46; background: #527a4d; color: #fffef0; }
+.house-comedy-dialog .house-comedy-primary:not(:disabled):hover { background: #365c37; border-color: #365c37; }
+.house-comedy-episodes { display: grid; gap: 12px; }
+.house-comedy-episode { padding: 17px; border: 1px solid var(--comedy-rule); border-radius: 16px; background: #f8f8eb; scroll-margin: 12px; }
+.house-comedy-episode.is-available { border-color: #cba16d; background: #fffaf0; box-shadow: inset 3px 0 #b8763b; }
+.house-comedy-episode.is-active { border-color: #8fac79; }
+.house-comedy-episode.is-complete { background: #f0f4e4; }
+.house-comedy-chapter-head { display: flex; align-items: center; gap: 12px; }
+.house-comedy-chapter-number { display: grid; place-items: center; flex: 0 0 41px; height: 41px; border: 1px solid #d8dbc1; border-radius: 12px; background: #eeefdb; color: #69764e; font-size: 25px; }
+.is-available .house-comedy-chapter-number { border-color: #e5c493; background: #fbe3bc; color: #8f5c2b; }
+.house-comedy-chapter-head > div { flex: 1; min-width: 0; }
+.house-comedy-chapter-head h3 { margin-top: 2px; }
+.house-comedy-chapter-state { flex-shrink: 0; padding: 4px 8px; border-radius: 20px; background: #e8ecd9; color: #576a4b; font-size: 10px; font-weight: 750; }
+.is-available .house-comedy-chapter-state { background: #f4dcb6; color: #83542d; }
+.house-comedy-chapter-description { margin: 12px 0 !important; color: #56674f; font-size: 13px; }
+.house-comedy-choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.house-comedy-dialog .house-comedy-choice { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; min-height: 92px; padding: 12px; text-align: left; background: #fffef5; border-color: #c3cbae; }
+.house-comedy-choice strong { font-size: 13px; line-height: 1.35; }
+.house-comedy-choice span { color: #65725b; font-size: 11px; line-height: 1.45; }
+.house-comedy-choice:disabled span { color: #4d5b47; }
+.house-comedy-chapter-reason { margin: 10px 0 0 !important; color: #65725b; font-size: 12px; }
+.house-comedy-result { margin: 22px 0 14px; padding: 20px; border: 1px solid #d2bb8d; border-radius: 15px; background: #fcf2da; }
+.house-comedy-result > h3 { margin-top: 6px; }
+.house-comedy-result > p { color: #5c543d; }
+.house-comedy-dialog blockquote { margin: 12px 0; padding: 10px 14px; border-left: 3px solid #b99055; border-radius: 0 9px 9px 0; background: #fffdf0a6; color: #6b4a2c; font-size: 14px; }
+.house-comedy-dialog blockquote.house-comedy-witness { border-color: #98ac7c; color: #44603e; background: #f4f5e4; }
+.house-comedy-souvenirs { margin: 20px 0; }
+.house-comedy-souvenirs > h3 { font-size: 14px; }
+.house-comedy-souvenirs [data-comedy-achievements] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin-top: 10px; }
+.house-comedy-achievement { padding: 11px 13px; border: 1px dashed #b7bb91; border-radius: 10px; background: #f6f6e6; }
+.house-comedy-achievement strong { display: block; color: #6c613a; font-size: 12px; }
+.house-comedy-achievement small { display: block; margin-top: 4px; color: #6c7258; font-size: 11px; }
+.house-comedy-memories { margin-top: 16px; border-top: 1px solid var(--comedy-rule); color: #52634a; font-size: 12px; }
+.house-comedy-memories summary { min-height: 44px; padding: 13px 0; cursor: pointer; font-weight: 650; }
+.house-comedy-memories ol { padding-left: 22px; }
+.house-comedy-memories li { margin-bottom: 12px; padding-left: 2px; }
+.house-comedy-memories p { margin-top: 3px; }
+.house-comedy-message { font-size: 13px; font-weight: 650; }
+.house-comedy-message:empty { display: none; }
+.house-comedy-message.is-error { padding: 10px 12px; border: 1px solid #dbb69a; border-radius: 10px; color: #873d27; background: #fbe9d9; }
+.house-comedy-footer { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--comedy-rule); }
+.house-comedy-footer > span { color: #82906e; font-size: 10px; font-weight: 750; letter-spacing: .11em; }
+@media (max-width: 600px) {
+  .house-comedy-dialog { width: calc(100vw - 18px); max-height: 92dvh; padding: 18px; border-radius: 19px; }
+  .house-comedy-header { gap: 12px; }
+  .house-comedy-dialog h2 { font-size: 23px; }
+  .house-comedy-casting { align-items: stretch; flex-direction: column; gap: 2px; }
+  .house-comedy-casting label { width: 100%; }
+  .house-comedy-dialog select { max-width: none; }
+  .house-comedy-counter { padding: 5px 0 0; text-align: left; }
+  .house-comedy-episode { padding: 14px; }
+  .house-comedy-chapter-head { gap: 9px; }
+  .house-comedy-chapter-number { flex-basis: 34px; height: 36px; border-radius: 9px; font-size: 22px; }
+  .house-comedy-chapter-head h3 { font-size: 15px; }
+  .house-comedy-chapter-state { max-width: 74px; text-align: center; font-size: 9px; }
+  .house-comedy-choices { grid-template-columns: 1fr; }
+  .house-comedy-dialog .house-comedy-choice { min-height: 61px; gap: 3px; }
+  .house-comedy-active-heading { align-items: flex-start; }
+  .house-comedy-souvenirs [data-comedy-achievements] { grid-template-columns: 1fr; }
+  .house-comedy-watch-controls > button { flex: 1 1 150px; }
+}
