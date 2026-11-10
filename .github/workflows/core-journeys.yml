@@ -1,0 +1,41 @@
+name: HappyBearLandia core journeys
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Verify simulation, causal storage, and navigation contracts
+        run: >
+          bun test
+          test/universe-shell.test.js
+          test/html-navigation.test.js
+          test/local-journeys.test.js
+          test/causality-contracts.test.js
+          test/causal-storage.test.js
+          test/causality-read.test.js
+          test/time-machine-checkpoints.test.js
+          test/bakery-journey.test.js
+          test/bakery-scenario.test.js
+          test/living-city-recipe.test.js
+          test/decision-storage.test.js
+      - name: Install Chromium for browser journeys
+        run: bunx playwright install --with-deps chromium
+      - name: Universe shell and discoverability
+        run: bunx playwright test --config test/e2e/universe-shell.config.js
+      - name: Time Machine, Bakery, and Living City
+        run: bunx playwright test --config test/time-machine.browser.config.js
+      - name: Causal inspector component
+        run: bunx playwright test --config test/causality.browser.config.js
