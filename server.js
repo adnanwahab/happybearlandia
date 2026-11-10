@@ -42,6 +42,23 @@ const PORT = Number(process.env.PORT) || 3000;
 const DEAR_CONGRESS_URL = process.env.DEAR_CONGRESS_URL || "https://dear-congress.fly.dev/api";
 
 const notFound = () => new Response("Not found", { status: 404 });
+
+// Compile JSX and bundle React from the installed lockfile on request so local
+// edits take effect on reload. Keep the game engine as native browser modules.
+async function serveGameBundle() {
+  const result = await Bun.build({
+    entrypoints: ["./game/main.jsx"],
+    target: "browser",
+    external: ["/game/index.js"],
+  });
+  if (!result.success) {
+    console.error("Game bundle failed", ...result.logs);
+    return new Response("Unable to build game", { status: 500 });
+  }
+  return new Response(result.outputs[0], {
+    headers: { "content-type": "text/javascript; charset=utf-8", "cache-control": "no-store" },
+  });
+}
 const handleServerCivicApi = createServerCivicApiHandler();
 const handleDecisionExperiments = createDecisionExperimentsHandler();
 const handleWorldEdits = createWorldEditApiHandler();
@@ -418,6 +435,8 @@ const server = serve({
       return serveFile("./index.html");
     }
     if (pathname === "/favicon.ico") return new Response(null, { status: 204 });
+    // This Jolt distribution embeds its WASM; no CDN or separate WASM fetch is needed.
+    if (pathname === "/vendor/jolt/jolt-physics.wasm-compat.js") return serveFile("./node_modules/jolt-physics/dist/jolt-physics.wasm-compat.js");
     // Curated local Three modules for the building workspace. No general
     // node_modules serving. Addons are ESM and use the page's `three` import map.
     if (under(pathname, "/vendor/three")) {
@@ -443,6 +462,7 @@ const server = serve({
     if (under(pathname, "/data")) return serveStatic("/data", "./data", pathname);
 
     // Jolt physics music game (SPA-style routes like /game/1 should fall back to game/index.html)
+    if (pathname === "/game/main.js") return serveGameBundle();
     if (pathname.startsWith("/game/conversations/")) return handleGameConversation(pathname);
     if (under(pathname, "/game")) {
       const res = await serveStatic("/game", "./game", pathname);

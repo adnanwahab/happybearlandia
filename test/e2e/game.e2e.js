@@ -3,8 +3,18 @@ import { test, expect } from '@playwright/test';
 for (const path of ['/game/1']) {
   test(`${path} initializes the scene without browser errors`, async ({ page }) => {
     const errors = [];
-    let welcomed = false;
+    let joined = false;
     let sceneLoaded = false;
+
+    // Startup must work with installed dependencies alone, even without CDN access.
+    await page.route('**/*', route => {
+      const url = new URL(route.request().url());
+      if (['http:', 'https:'].includes(url.protocol) && url.origin !== new URL(test.info().project.use.baseURL).origin) {
+        errors.push(`Unexpected external dependency: ${url.href}`);
+        return route.abort();
+      }
+      return route.continue();
+    });
 
     // Register before navigating so module/WASM and early startup failures count.
     page.on('pageerror', error => errors.push(error.message));
@@ -16,13 +26,13 @@ for (const path of ['/game/1']) {
     });
     page.on('response', response => {
       if (response.status() >= 400) errors.push(`${response.status()} ${response.url()}`);
-      if (new URL(response.url()).pathname === '/game/scene/1.json' && response.ok()) {
+      if (new URL(response.url()).pathname === '/api/scenes/1' && response.ok()) {
         sceneLoaded = true;
       }
     });
     page.on('websocket', socket => {
       socket.on('framereceived', ({ payload }) => {
-        if (JSON.parse(payload.toString()).type === 'welcome') welcomed = true;
+        if (JSON.parse(payload.toString()).type === 'playerJoined') joined = true;
       });
       socket.on('socketerror', error => errors.push(String(error)));
     });
@@ -33,8 +43,8 @@ for (const path of ['/game/1']) {
       // Multiplayer connects only after Jolt, scene geometry and character exist.
       await expect.poll(() => {
         expect(errors, 'Browser startup errors').toEqual([]);
-        return { welcomed, sceneLoaded };
-      }).toEqual({ welcomed: true, sceneLoaded: true });
+        return { joined, sceneLoaded };
+      }).toEqual({ joined: true, sceneLoaded: true });
       await expect(page.locator('#container canvas')).toBeVisible();
       await expect(page.locator('#container')).not.toContainText('Unable to start game');
 

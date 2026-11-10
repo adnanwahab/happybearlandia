@@ -10,6 +10,9 @@ export default defineConfig({
     browserName: 'chromium',
     baseURL: 'http://127.0.0.1:3100',
     trace: 'retain-on-failure',
+    launchOptions: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+      ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH }
+      : {},
   },
   webServer: {
     command: 'bun run server.js',
