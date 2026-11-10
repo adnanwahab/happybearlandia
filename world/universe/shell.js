@@ -17,6 +17,18 @@ if (root) {
     <h2>Follow a world. Explore its futures.</h2>
     <p>World is the stage. Worldline explores possible futures. The causal inspector explains recorded model dependencies.</p>
     <nav aria-label="Universe navigation"><a data-app="world">Enter World</a><a data-app="worldline">Explore Worldline</a><a data-app="experiments">Experiments</a><a id="universe-model">Recorded World model</a></nav>
+    <section id="universe-demos" aria-label="Try the new connected demos">
+      <h3>Try the new demos</h3>
+      <p>These are reproducible, synthetic demonstration journeys. They do not yet share one authoritative city and household model.</p>
+      <nav aria-label="Demo shortcuts">
+        <a data-demo-route="/world/causal.html">Time Machine</a>
+        <a data-demo-route="/world/living-city/">Living City challenge</a>
+        <a data-demo-route="/world/journeys/bakery.html">Riverside Bakery mystery</a>
+        <a data-demo-route="/world/newspaper/index.html">Living Newspaper</a>
+        <a data-demo-route="/world/discoveries/index.html">Surprising Discoveries</a>
+        <a data-demo-route="/world/causality/inspect.html">Causal inspector</a>
+      </nav>
+    </section>
     <div class="universe-context" aria-label="Current universe context"></div>
     <p id="universe-context-error" role="alert"></p>
     <div class="universe-actions" aria-label="Selected entity actions"></div>
@@ -42,6 +54,8 @@ if (root) {
     if (!bar.childNodes.length) bar.textContent = 'Choose a world to begin. Context travels with you.';
     for (const a of root.querySelectorAll('[data-app]')) a.href = shellURL(a.dataset.app,context);
     root.querySelector('#universe-model').href = contextURL('/world/causal.html',context);
+    for (const a of root.querySelectorAll('#universe-demos [data-demo-route]'))
+      a.href = contextURL(a.dataset.demoRoute,context);
     if (!root.querySelector('#universe-research')) { const research=link('Research institutions',contextURL('/world/research/index.html',context));research.id='universe-research';root.querySelector('nav').append(research); }
     root.querySelector('#universe-research').href=contextURL('/world/research/index.html',context);
     const actions = root.querySelector('.universe-actions'); actions.replaceChildren();
