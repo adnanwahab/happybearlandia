@@ -1,0 +1,88 @@
+.living-council {
+  --council-line: color-mix(in srgb, currentColor 23%, transparent);
+  --council-panel: color-mix(in srgb, currentColor 5%, transparent);
+}
+
+.living-council h2,
+.living-council h3,
+.living-council h4,
+.living-council p {
+  margin: 0 0 .45rem;
+}
+
+.living-council__content {
+  margin-top: 1rem;
+}
+
+.living-council__tally {
+  font-weight: 650;
+}
+
+.living-council__positions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  align-items: start;
+  gap: .55rem;
+  margin-block: .75rem;
+}
+
+.living-council__position {
+  border: 1px solid var(--council-line);
+  border-radius: .55rem;
+  background: var(--council-panel);
+}
+
+.living-council__position summary {
+  padding: .7rem;
+  cursor: pointer;
+}
+
+.living-council__position summary strong {
+  margin-inline-start: .2em;
+}
+
+.living-council__vote {
+  display: inline-block;
+  margin-inline-start: .45rem;
+  padding: .12rem .4rem;
+  border: 1px solid currentColor;
+  border-radius: 99px;
+  font-size: .75em;
+}
+
+.living-council__vote[data-vote="support"] {
+  background: #cdebd5;
+  color: #1d5339;
+}
+
+.living-council__vote[data-vote="oppose"] {
+  background: #f5d2c2;
+  color: #722e29;
+}
+
+.living-council__motivation {
+  padding: .1rem .7rem .45rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.living-council__evidence {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .5rem;
+  margin: 0 0 .65rem;
+}
+
+.living-council__evidence dt {
+  font-size: .8em;
+}
+
+.living-council__evidence dd {
+  margin: .2rem 0 0;
+  font-weight: 650;
+}
+
+.living-council__coalitions ul {
+  padding-inline-start: 1.1rem;
+  margin: 0;
+}
