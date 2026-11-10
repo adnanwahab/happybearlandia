@@ -43,8 +43,12 @@
     <div id="app"></div>
     <div id="hud" class="hud">Starting…</div>
 
-    <script type="module">
-      import * as THREE from "https://unpkg.com/three@0.168.0/build/three.module.js";
+    <script type="importmap">{"imports":{"three":"/vendor/three/three.webgpu.js","three/webgpu":"/vendor/three/three.webgpu.js","three/tsl":"/vendor/three/three.tsl.js","three/addons/":"/vendor/three/addons/"}}</script>
+<script type="module">
+      import * as THREE from 'three';
+import { createWebGPUDemoRenderer, showWebGPUError, manageWebGPUDemo } from "/tools/webgpu-demo-runtime.js";
+try {
+
 
       const DATA_URL =
         "https://happybearlandia.s3.us-east-2.amazonaws.com/data/mediapipe/hand_rotation.json";
@@ -71,7 +75,7 @@
       );
       camera.position.set(0, 0, 3.8);
 
-      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      const renderer = await createWebGPUDemoRenderer(THREE, { antialias: true });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(window.innerWidth, window.innerHeight);
       app.appendChild(renderer.domElement);
@@ -219,7 +223,6 @@
 
       // Smooth interpolation
       function animate() {
-        requestAnimationFrame(animate);
 
         plane.rotation.x += (target.x - plane.rotation.x) * 0.18;
         plane.rotation.y += (target.y - plane.rotation.y) * 0.18;
@@ -231,15 +234,20 @@
         renderer.render(scene, camera);
       }
 
-      animate();
+      manageWebGPUDemo(renderer, scene, null);
+
+      await renderer.setAnimationLoop(animate);
       poll();
-      setInterval(poll, POLL_MS);
+      const pollTimer = setInterval(poll, POLL_MS);
+      window.addEventListener("pagehide", () => clearInterval(pollTimer), { once: true });
 
       window.addEventListener("resize", () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
       });
-    </script>
+
+} catch (error) { showWebGPUError(error); }
+</script>
   </body>
 </html>

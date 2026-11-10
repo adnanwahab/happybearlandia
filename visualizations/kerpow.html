@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <title>Kerpow — paths & possibilities</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
@@ -94,21 +95,31 @@
 </div>
 
 
+<aside id="intro"><small>SPATIAL SKETCH / 01</small><h1>Paths & possibilities</h1><p>Follow the red route. Reveal the blue dimension.<br>Drag to orbit · scroll to zoom.</p></aside>
+<footer><span style="color:#db443b">● Red / ground route</span><span style="color:#1757e8">▲ Blue / lifted possibility</span><button id="reset">Reset view</button></footer>
+<div id="status" role="status">Preparing WebGPU diagram…</div>
+<style>
+#intro{position:absolute;left:32px;top:110px;pointer-events:none;color:#24334c;max-width:330px}
+small{letter-spacing:.18em;font-size:10px;font-weight:bold}h1{font-size:28px;letter-spacing:-1px;margin:12px 0}p{font-size:13px;line-height:1.7;color:#627087}
+#pow{font-size:36px;letter-spacing:-2px;top:30px}
+#controls{border:1px solid #d9e0ec;box-shadow:0 8px 30px #24334c10}
+button:focus-visible{outline:3px solid #759eff;outline-offset:3px}
+footer{position:absolute;bottom:24px;left:32px;right:32px;display:flex;align-items:center;gap:24px;font-size:12px;background:#ffffffeb;border:1px solid #dde3ed;border-radius:12px;padding:12px 18px}
+footer button{margin-left:auto}#status{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:24px;background:white;border:1px solid #dde3ed;border-radius:12px;max-width:360px;text-align:center}
+@media(max-width:600px){#intro{top:105px;left:20px}h1{font-size:23px}#pow{left:20px;font-size:27px}#controls{right:12px;top:20px}footer{left:12px;right:12px;bottom:12px;gap:10px;flex-wrap:wrap;font-size:10px}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.webgpu.js","three/webgpu":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.webgpu.js","three/tsl":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.tsl.js"}}</script>
 <script type="module">
 
-import * as THREE from
-  "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js";
-
-
-/* ---------------------------------------------------------
-   Renderer
---------------------------------------------------------- */
-
-const renderer = new THREE.WebGLRenderer({
-  antialias: true,
-  alpha: true
-});
-
+const status = document.getElementById('status');
+try {
+if (!navigator.gpu) throw new Error('WebGPU is unavailable. Open this page in a WebGPU-enabled browser on HTTPS or localhost.');
+const THREE = await import('three');
+const { OrbitControls } = await import('https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js');
+const renderer = new THREE.WebGPURenderer({ antialias: true, alpha: true });
+await renderer.init();
+if (!renderer.backend.isWebGPUBackend) { renderer.dispose(); throw new Error('A WebGPU adapter could not be started. Check your browser GPU settings.'); }
+status.hidden = true;
 renderer.setPixelRatio(
   Math.min(window.devicePixelRatio, 2)
 );
@@ -134,7 +145,7 @@ const scene =
   new THREE.Scene();
 
 scene.background =
-  new THREE.Color(0xffffff);
+  new THREE.Color(0xf5f7fc);
 
 
 /* ---------------------------------------------------------
@@ -778,7 +789,7 @@ const particles =
   new THREE.Points(
     particleGeometry,
 
-    new THREE.PointsMaterial({
+    new THREE.PointsNodeMaterial({
       size: 0.065,
       vertexColors: true,
       transparent: true,
@@ -904,7 +915,7 @@ function resize() {
     width / height;
 
   const viewHeight =
-    8.8;
+    Math.max(10.8, 14 / aspect);
 
   camera.left =
     -(viewHeight * aspect) / 2;
@@ -948,7 +959,29 @@ function render() {
 }
 
 
+const orbit = new OrbitControls(camera, renderer.domElement);
+orbit.target.set(0, 1.2, 0);
+orbit.enablePan = false;
+orbit.minZoom = 0.65;
+orbit.maxZoom = 2.5;
+orbit.maxPolarAngle = Math.PI * 0.48;
+orbit.update();
+orbit.saveState();
+orbit.addEventListener('change', render);
+document.getElementById('reset').onclick = () => orbit.reset();
+function updatePressed() {
+baseButton.setAttribute('aria-pressed', String(!fullDiagram.visible));
+fullButton.setAttribute('aria-pressed', String(fullDiagram.visible));
+}
+baseButton.addEventListener('click', updatePressed);
+fullButton.addEventListener('click', updatePressed);
+updatePressed();
 resize();
+} catch (error) {
+status.hidden = false;
+status.textContent = error.message || 'Unable to initialize WebGPU.';
+document.querySelectorAll('button').forEach(button => button.disabled = true);
+}
 
 </script>
 

@@ -106,7 +106,7 @@
   </header>
   <div class="intro">
     <h1>Every voice <span>has a frequency.</span></h1>
-    <p>Hover a thought. Watch the conversation take shape.</p>
+    <p>Three thoughts. One shared future. Choose a voice to see its rhythm.</p>
   </div>
   <section id="bubbles" aria-label="Choose a voice and particle pattern"></section>
   <div id="readout">
@@ -114,7 +114,7 @@
     <div id="mode-name">Loading the conversation</div>
   </div>
   <footer>
-    <span>Hover to explore · Tap to hold · Tab to navigate</span>
+    <span>1–3 select · Space pauses · R replays</span>
     <span id="detail">Simulated speech rhythm · No audio</span>
   </footer>
   <div id="error" role="alert" hidden></div>
@@ -122,147 +122,83 @@
 <script type="module">
 const errorBox = document.querySelector('#error');
 try {
-  // Pinned, self-contained ES module. No npm, bundler, textures or fonts needed.
-  const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
-  start(THREE);
+  await start();
 } catch (error) {
   console.error(error);
   errorBox.hidden = false;
-  errorBox.textContent = 'The visualization could not start. Check your internet connection (Three.js loads from a CDN) and enable WebGL in your browser.';
+  errorBox.textContent = 'WebGPU could not start. Use a WebGPU-capable browser on HTTPS or localhost. ' + error.message;
 }
 
-function start(THREE) {
-  // EDIT THESE THREE MESSAGES AND LABELS.
+async function start() {
+  if (!navigator.gpu) throw new Error('WebGPU is unavailable in this browser.');
+  const adapter = await navigator.gpu.requestAdapter();
+  if (!adapter) throw new Error('No compatible GPU was found.');
+  const device = await adapter.requestDevice();
+  const canvas = document.querySelector('#canvas');
+  const context = canvas.getContext('webgpu');
+  const format = navigator.gpu.getPreferredCanvasFormat();
+  context.configure({device, format, alphaMode:'premultiplied'});
+  device.lost.then(info => {
+    errorBox.hidden = false;
+    errorBox.textContent = 'GPU interrupted. Reload to restart. ' + info.message;
+  });
   const VOICES = [
-    { text: 'Let’s hear every voice.', label: '01 · Listen',
-      pattern: 'Blue · expanding ripples', tint: '103, 170, 255' },
-    { text: 'I vote yes!', label: '02 · Decide',
-      pattern: 'Green · rising spirals', tint: '100, 241, 163' },
-    { text: 'Our votes shape tomorrow.', label: '03 · Imagine',
-      pattern: 'Rainbow · flowing waves', tint: '225, 166, 255' }
+    {text:'Let’s hear every voice.',label:'01 · Listen',pattern:'Blue · expanding ripples',tint:'103, 170, 255'},
+    {text:'I vote yes!',label:'02 · Decide',pattern:'Green · rising spirals',tint:'100, 241, 163'},
+    {text:'Our votes shape tomorrow.',label:'03 · Imagine',pattern:'Rainbow · flowing waves',tint:'225, 166, 255'}
   ];
   const app = document.querySelector('#app');
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const COUNT = innerWidth < 620 ? 10000 : 22000;
-  const MAX_BEATS = 24;
-  const SPEED = 1; // 0.7 = slower speech, 1.5 = faster speech.
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
-  camera.position.z = 12;
-  const renderer = new THREE.WebGLRenderer({
-    canvas: document.querySelector('#canvas'), antialias: false, alpha: true
-  });
-  renderer.setClearColor(0x000000, 0);
-
-  // Reproducible particle seeds; all motion is calculated in the vertex shader.
-  let seed = 123456;
-  function random() {
-    seed = (1664525 * seed + 1013904223) >>> 0;
-    return seed / 4294967296;
+  const MAX_BEATS = 24, SPEED = 1;
+  class Vector {
+    constructor(x=0,y=0,z=0){this.set(x,y,z);}
+    set(x,y,z=0){this.x=x;this.y=y;this.z=z;return this;}
+    lerp(v,a){this.x+=(v.x-this.x)*a;this.y+=(v.y-this.y)*a;this.z+=(v.z-this.z)*a;}
   }
-  const positions = new Float32Array(COUNT * 3);
-  const seeds = new Float32Array(COUNT * 4);
-  for (let i = 0; i < COUNT; i++) {
-    const u = random(), v = random(), w = random();
-    const theta = u * Math.PI * 2;
-    const z = 2 * v - 1;
-    const radius = 1.85 * (0.55 + 0.45 * Math.cbrt(w));
-    const ring = Math.sqrt(1 - z * z);
-    positions.set([Math.cos(theta) * ring * radius,
-      z * radius, Math.sin(theta) * ring * radius], i * 3);
-    seeds.set([u, v, w, random()], i * 4);
-  }
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute('aSeed', new THREE.BufferAttribute(seeds, 4));
+  const THREE = {Vector3:Vector,Vector2:Vector};
   const uniforms = {
-    uTime: { value: 0 }, uSpeechTime: { value: 0 },
-    uWeights: { value: new THREE.Vector3(1, 0, 0) },
-    uBeats: { value: new Float32Array(MAX_BEATS).fill(-100) },
-    uStrengths: { value: new Float32Array(MAX_BEATS) },
-    uPixelRatio: { value: 1 }, uMotion: { value: reducedMotion ? 0 : 1 }
+    uTime:{value:0},uSpeechTime:{value:0},uWeights:{value:new Vector(1,0,0)},
+    uBeats:{value:new Float32Array(MAX_BEATS)},uStrengths:{value:new Float32Array(MAX_BEATS)}
   };
-  const material = new THREE.ShaderMaterial({
-    uniforms, transparent: true, depthWrite: false,
-    blending: THREE.AdditiveBlending,
-    vertexShader: `
-      attribute vec4 aSeed;
-      uniform float uTime, uSpeechTime, uPixelRatio, uMotion;
-      uniform vec3 uWeights;
-      uniform float uBeats[${MAX_BEATS}], uStrengths[${MAX_BEATS}];
-      varying vec3 vColor;
-      varying float vAlpha;
-      const float TAU = 6.28318530718;
-      vec3 rainbow(float h) {
-        vec3 p = abs(fract(vec3(h) + vec3(0., 2./3., 1./3.)) * 6. - 3.);
-        return clamp(p - 1., 0., 1.);
-      }
-      void main() {
-        float t = uTime * uMotion;
-        float u = aSeed.x, v = aSeed.y, w = aSeed.z;
-
-        // 1. Blue: a spherical voice with ripples moving across its surface.
-        vec3 sphere = position;
-        sphere *= 1. + .045 * sin(position.y * 9. - t * 2.8);
-        float angle = t * .10;
-        sphere.xz = mat2(cos(angle), -sin(angle), sin(angle), cos(angle)) * sphere.xz;
-
-        // 2. Green: three intertwined, upward-moving spiral strands.
-        float strand = floor(w * 3.);
-        float a = u * TAU * 2.5 + strand * TAU / 3. - t * .6;
-        float r = .78 + .30 * sin(u * 3.14159) + (v - .5) * .25;
-        vec3 spiral = vec3(cos(a) * r, (u - .5) * 4.3, sin(a) * r);
-        spiral.xy = mat2(.94, -.342, .342, .94) * spiral.xy;
-        spiral += (aSeed.yzw - .5) * .12;
-
-        // 3. Rainbow: five broad, layered ribbons, like a speaking waveform.
-        float lane = floor(w * 5.);
-        float phase = u * TAU * 1.25 + lane * .6 - t * .7;
-        vec3 wave = vec3((u - .5) * 6.3,
-          sin(phase) * .63 + (lane - 2.) * .24,
-          cos(phase * .8 + lane) * .65);
-        wave.yz += (aSeed.yw - .5) * .27;
-        vec3 p = sphere * uWeights.x + spiral * uWeights.y + wave * uWeights.z;
-
-        // Each word/syllable sends an outward-traveling pulse.
-        float pulse = 0.;
-        for (int i = 0; i < ${MAX_BEATS}; i++) {
-          float d = (uSpeechTime - uBeats[i] - length(p) * .13) * 8.;
-          pulse += uStrengths[i] * exp(-d * d);
-        }
-        pulse = min(pulse, 1.5) * uMotion;
-        p += normalize(p + vec3(.0001)) * pulse * .19;
-        p.y += sin(t * 1.6 + u * TAU) * .035 * uMotion;
-
-        vec3 blue = vec3(.065, .32, 1.);
-        vec3 green = vec3(.085, .95, .23);
-        vec3 spectrum = rainbow(u * .85 + lane * .06 - t * .045);
-        vec3 palette = blue * uWeights.x + green * uWeights.y + spectrum * uWeights.z;
-        // Brief blue undertones between speech beats; colors bloom on emphasis.
-        vColor = mix(blue, palette, .82 + .18 * min(pulse, 1.));
-        vColor *= .85 + pulse * .50;
-        vAlpha = (.28 + .52 * aSeed.w) * (.68 + pulse * .35);
-        vec4 view = modelViewMatrix * vec4(p, 1.);
-        gl_Position = projectionMatrix * view;
-        gl_PointSize = clamp((1.9 + aSeed.w * 2.2 + pulse * 1.8)
-          * uPixelRatio * (9. / -view.z), 1., 15.);
-      }
-    `,
-    fragmentShader: `
-      varying vec3 vColor;
-      varying float vAlpha;
-      void main() {
-        float d = length(gl_PointCoord - .5) * 2.;
-        if (d > 1.) discard;
-        float glow = exp(-d * d * 4.5) * (1. - smoothstep(.65, 1., d));
-        gl_FragColor = vec4(vColor, glow * vAlpha);
-      }
-    `
-  });
-  const particles = new THREE.Points(geometry, material);
-  particles.frustumCulled = false; // Shader-displaced positions exceed the base sphere.
-  scene.add(particles);
-
+  const params = new Float32Array(12);
+  const buffer = device.createBuffer({size:48,usage:GPUBufferUsage.UNIFORM|GPUBufferUsage.COPY_DST});
+  const shader = device.createShaderModule({code:`
+    struct Params { shape:vec4f, view:vec4f, motion:vec4f }
+    @group(0) @binding(0) var<uniform> p:Params;
+    struct Out { @builtin(position) position:vec4f, @location(0) uv:vec2f, @location(1) color:vec3f }
+    fn hash(n:f32)->f32{return fract(sin(n*127.1)*43758.5453);}
+    @vertex fn vs(@builtin(vertex_index) v:u32,@builtin(instance_index) i:u32)->Out{
+      let n=f32(i); let u=hash(n+1.0); let w=hash(n+9.0); let q=hash(n+31.0);
+      let t=p.shape.x; let a=u*6.283185; let z=w*2.0-1.0;
+      let r=sqrt(1.0-z*z)*1.7;
+      let sphere=vec3f(cos(a)*r,z*1.7,sin(a)*r)*(1.0+0.05*sin(z*15.0-t*2.8));
+      let angle=a*2.5+floor(q*3.0)*2.094-t*0.6;
+      let spiral=vec3f(cos(angle), (u-0.5)*4.3,sin(angle));
+      let lane=floor(q*5.0); let phase=a*1.25+lane*0.6-t*0.7;
+      let wave=vec3f((u-0.5)*6.3,sin(phase)*0.63+(lane-2.0)*0.24,cos(phase*0.8+lane)*0.65);
+      var pos=sphere*p.shape.y+spiral*p.shape.z+wave*p.shape.w;
+      pos*=1.0+p.motion.x*0.07;
+      pos.x+=pos.z*p.motion.y; pos.y+=pos.z*p.motion.z;
+      let corners=array<vec2f,6>(vec2f(-1,-1),vec2f(1,-1),vec2f(-1,1),vec2f(-1,1),vec2f(1,-1),vec2f(1,1));
+      let uv=corners[v]; let size=(1.2+q*1.4+p.motion.x)*p.view.w;
+      var o:Out;
+      o.position=vec4f(pos.x*p.view.z/p.view.x+uv.x*size/p.view.x,
+        pos.y*p.view.z/p.view.y+p.motion.w+uv.y*size/p.view.y,0,1);
+      o.uv=uv;
+      let rainbow=0.5+0.5*cos(vec3f(0,2,4)+u*6.0-t*0.15);
+      o.color=(vec3f(0.15,0.48,1)*p.shape.y+vec3f(0.2,1,0.5)*p.shape.z+rainbow*p.shape.w)*(0.45+q*0.5);
+      return o;
+    }
+    @fragment fn fs(o:Out)->@location(0) vec4f{
+      let d=dot(o.uv,o.uv); if(d>1.0){discard;}
+      let alpha=exp(-d*4.0)*0.65;
+      return vec4f(o.color*alpha,alpha);
+    }`});
+  const pipeline = device.createRenderPipeline({layout:'auto',vertex:{module:shader,entryPoint:'vs'},
+    fragment:{module:shader,entryPoint:'fs',targets:[{format,blend:{color:{srcFactor:'one',dstFactor:'one'},alpha:{srcFactor:'one',dstFactor:'one-minus-src-alpha'}}}]},
+    primitive:{topology:'triangle-list'}});
+  const group=device.createBindGroup({layout:pipeline.getBindGroupLayout(0),entries:[{binding:0,resource:{buffer}}]});
   // One timeline drives BOTH word reveals and the particle speech pulses.
   function makeTimeline(text) {
     let cursor = .35;
@@ -367,6 +303,12 @@ function start(THREE) {
     pauseButton.textContent = paused ? 'Resume' : 'Pause';
     pauseButton.setAttribute('aria-pressed', String(paused));
   });
+  document.addEventListener('keydown', event => {
+    if (event.target.closest('button') && event.code === 'Space') return;
+    if (['Digit1','Digit2','Digit3'].includes(event.code)) { setAutoplay(false); select(Number(event.code.slice(-1))-1); }
+    if (event.code === 'Space') { event.preventDefault(); pauseButton.click(); }
+    if (event.code === 'KeyR') select(mode);
+  });
   const pointer = new THREE.Vector2();
   app.addEventListener('pointermove', event => {
     const rect = app.getBoundingClientRect();
@@ -376,19 +318,12 @@ function start(THREE) {
   app.addEventListener('pointerleave', () => pointer.set(0, 0));
 
   function resize() {
-    const width = app.clientWidth, height = app.clientHeight;
-    const dpr = Math.min(devicePixelRatio || 1, 2);
-    renderer.setPixelRatio(dpr);
-    renderer.setSize(width, height, false);
-    uniforms.uPixelRatio.value = dpr;
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
-    // Position the particles below the bubbles, including on narrow screens.
-    const viewHeight = 2 * camera.position.z * Math.tan(THREE.MathUtils.degToRad(21));
-    const center = width < 620 ? .725 : .645;
-    particles.position.y = (.5 - center) * viewHeight;
-    const size = Math.min(width * .82 / 6.8, height * (width < 620 ? .26 : .38) / 4.7);
-    particles.scale.setScalar(size * viewHeight / height);
+    const dpr=Math.min(devicePixelRatio||1,2);
+    canvas.width=Math.round(app.clientWidth*dpr); canvas.height=Math.round(app.clientHeight*dpr);
+    params[4]=canvas.width; params[5]=canvas.height;
+    params[6]=Math.min(canvas.width*.82/6.8,canvas.height*(app.clientWidth<620?.26:.38)/4.7)*2;
+    params[7]=dpr;
+    params[11]=app.clientWidth<620?-.45:-.29;
   }
   const observer = new ResizeObserver(resize);
   observer.observe(app);
@@ -398,10 +333,10 @@ function start(THREE) {
   document.querySelector('#detail').textContent = `${COUNT.toLocaleString()} particles · Simulated speech · No audio`;
 
   let previous = performance.now();
-  renderer.setAnimationLoop(now => {
+  requestAnimationFrame(function frame(now) {
     const dt = Math.min(Math.max((now - previous) / 1000, 0), .05);
     previous = now;
-    if (document.hidden) return;
+    if (document.hidden) { requestAnimationFrame(frame); return; }
     if (!paused) {
       elapsed += dt;
       let local = elapsed - speechStart;
@@ -426,19 +361,19 @@ function start(THREE) {
         const flicker = .4 + .6 * Math.abs(Math.sin(i * 1.8 + elapsed * 12));
         bar.style.transform = `scaleY(${reducedMotion ? .15 : .12 + Math.min(energy, 1.3) * shape * flicker})`;
       });
-      if (!reducedMotion) {
-        particles.rotation.y += (pointer.x * .16 - particles.rotation.y) * (1 - Math.exp(-dt * 3));
-        particles.rotation.x += (pointer.y * .10 - particles.rotation.x) * (1 - Math.exp(-dt * 3));
-      }
     }
-    renderer.render(scene, camera);
+    params[0]=reducedMotion?0:elapsed;
+    params[1]=uniforms.uWeights.value.x; params[2]=uniforms.uWeights.value.y; params[3]=uniforms.uWeights.value.z;
+    params[8]=reducedMotion?0:bars.reduce((sum,bar)=>sum+Number(bar.style.transform.match(/[\d.]+/)?.[0]||0),0)/8;
+    params[9]=reducedMotion?0:pointer.x*.25; params[10]=reducedMotion?0:pointer.y*.15;
+    device.queue.writeBuffer(buffer,0,params);
+    const encoder=device.createCommandEncoder();
+    const pass=encoder.beginRenderPass({colorAttachments:[{view:context.getCurrentTexture().createView(),clearValue:{r:0,g:0,b:0,a:0},loadOp:'clear',storeOp:'store'}]});
+    pass.setPipeline(pipeline); pass.setBindGroup(0,group); pass.draw(6,COUNT); pass.end();
+    device.queue.submit([encoder.finish()]);
+    requestAnimationFrame(frame);
   });
-  renderer.domElement.addEventListener('webglcontextlost', event => {
-    event.preventDefault();
-    paused = true;
-    errorBox.hidden = false;
-    errorBox.textContent = 'The graphics context was interrupted. Reload this page to restart the visualization.';
-  });
+
 }
 </script>
 </body>

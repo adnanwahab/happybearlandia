@@ -1,3 +1,4 @@
+import {accrueMoneySource} from './money-history.js';
 import {householdMembers} from './household-members.js';
 import {houseWorkProductivity} from '../house/model.js';
 /** Employment calendar/payroll v1. This subsystem accrues earned cash only.
@@ -71,14 +72,14 @@ function paidLeaveRemaining(model,i){const e=model.employment,c=model.config,kin
 export function recordEmploymentInterval(model,i,activity,start,duration){
  const e=model.employment,p=model.people,c=model.config;if(!e||p.age[i]!==1||duration<=0)return;
  const h=p.household[i];if(e.rateIncome[i]!==p.income[i]){const calendar=employmentCalendar(model,start);e.payRate[i]=p.income[i]*c.workWeeklyPayRetention*c.wageMultiplier/Math.max(1,annualWorkdays(model,i,calendar.year)*(c.workShiftMinutes-c.workMealBreakMinutes));e.benefitMinuteRate[i]=p.income[i]*.35/calendar.daysInYear/DAY*c.wageMultiplier;e.rateIncome[i]=p.income[i];}
- if(!p.employed[i]){const benefit=e.benefitMinuteRate[i]*duration;e.householdBenefitsDue[h]+=benefit;e.workerBenefitsAccrued[i]+=benefit;e.totals.benefitsAccrued+=benefit;return;}
+ if(!p.employed[i]){const benefit=e.benefitMinuteRate[i]*duration;accrueMoneySource(model,h,i,null,'benefits',benefit);e.householdBenefitsDue[h]+=benefit;e.workerBenefitsAccrued[i]+=benefit;e.totals.benefitsAccrued+=benefit;return;}
  if(e.employer[i]<0||!model.economy.businesses[e.employer[i]].open)return;
  const w=employmentWorkWindow(model,i,start),end=start+duration,paidShift=Math.max(0,Math.min(end,w.end)-Math.max(start,w.start))-Math.max(0,Math.min(end,w.mealEnd)-Math.max(start,w.mealStart)),regular=w.scheduled?Math.max(0,paidShift):0;
  const contactStart=Math.max(Math.floor(start/DAY)*DAY+1140,w.end+60),overtime=e.contact[i]&&activity===1?Math.max(0,Math.min(end,contactStart+c.workAfterHoursMinutes)-Math.max(start,contactStart)):0;
  const commute=activity===8&&((p.plannedActivity[i]===1&&!e.remote[i])||(p.plannedActivity[i]===0&&p.currentLocation[i]===p.workLocation[i]&&e.dayWorked[i]>0));if(!regular&&!overtime&&!commute)return;if(activity!==1&&!e.leaveKind[i]&&!commute)return;const worked=activity===1?regular:0;let leave=0;
  if(e.leaveKind[i]&&activity!==1&&regular>0){const balance=paidLeaveRemaining(model,i);leave=Math.min(regular,balance.minutes);balance.used[i]+=leave/Math.max(1,c.workShiftMinutes-c.workMealBreakMinutes);const field=['','paidSickMinutes','paidFamilyMinutes','paidVacationMinutes'][e.leaveKind[i]];e[field][i]+=leave*c.workLeavePayFraction;e.totals[field]+=leave*c.workLeavePayFraction;const unpaid=regular-leave*c.workLeavePayFraction;e.unpaidLeaveMinutes[i]+=unpaid;e.dayUnpaidLeave[i]+=unpaid;e.totals.unpaidLeaveMinutes+=unpaid;}
  const rate=e.payRate[i],pay=rate*(worked+leave*c.workLeavePayFraction+overtime*c.workOvertimePayMultiplier),b=e.employer[i];
- e.householdWagesDue[h]+=pay;e.workerWagesAccrued[i]+=pay;e.totals.wagesAccrued+=pay;e.workedMinutes[i]+=worked+overtime;e.dayWorked[i]+=worked;e.dayRegularPaid[i]+=worked+leave*c.workLeavePayFraction;e.dayOvertime[i]+=overtime;e.totals.workedMinutes+=worked+overtime;e.totals.overtimeMinutes+=overtime;
+ accrueMoneySource(model,h,i,b>=0?model.economy.businesses[b].id:null,'wages',pay);e.householdWagesDue[h]+=pay;e.workerWagesAccrued[i]+=pay;e.totals.wagesAccrued+=pay;e.workedMinutes[i]+=worked+overtime;e.dayWorked[i]+=worked;e.dayRegularPaid[i]+=worked+leave*c.workLeavePayFraction;e.dayOvertime[i]+=overtime;e.totals.workedMinutes+=worked+overtime;e.totals.overtimeMinutes+=overtime;
  if(b>=0){e.employerPayrollDue[b]+=pay*(model.weight??1);const productivity=(e.health[i]<1?c.workIllProductivityFactor:1)*(e.remote[i]?c.workRemoteProductivityFactor*houseWorkProductivity(model,i):1);e.employerProductiveMinutes[b]+=(worked+overtime)*productivity;}
  if(e.remote[i])e.totals.remoteMinutes+=worked;
  if(e.health[i]<1&&worked>0)e.totals.sickAtWorkMinutes+=worked;

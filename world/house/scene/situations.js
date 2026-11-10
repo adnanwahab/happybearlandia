@@ -10,6 +10,6 @@ export function applySituationReaction(actor,event,time){if(!event||!['idle','ta
  else{if(head)head.rotation.x-=.08*strength;if(right)right.rotation.x-=.35*strength;}return true;
 }
 export function situationTarget(person,{room,objects}){const action=person.activeAction;if(!action?.type.startsWith('house'))return null;const anchor=action.anchorObjectId&&objects.get(action.anchorObjectId),index=action.participantIds?.indexOf(person.id)??0;
- if(action.type==='houseBoardGame'&&anchor?.seats?.length){const seat=anchor.seats[index];return seat?{...seat,seat}:null;}
+ if(['houseBoardGame','houseProjectGame'].includes(action.type)&&anchor?.seats?.length){const seat=anchor.seats[index];return seat?{...seat,seat}:null;}
  if(['housePerformance','houseRehearse','housePortrait'].includes(action.type)){const performer=action.performanceRole==='performer'||action.type==='houseRehearse';return{x:(anchor?.x??room.x)+(performer?-.7:.8)+(index%2)*.8,z:(anchor?.z??room.z)+(performer?-.6:1),heading:performer?0:Math.PI,seat:null};}
  if(anchor)return{x:anchor.x+.7,z:anchor.z+.7,heading:-Math.PI*.75,seat:null};return null;}

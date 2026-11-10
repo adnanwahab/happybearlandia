@@ -1,3 +1,5 @@
+import {inspectPersonDate} from './date-system.js';
+import {isResidentVisibleAtHome} from './resident-location.js';
 import {PROFILE_VERSION,validateHouseProfiles,generatedResidentName} from './profiles.js';
 import {shirtColorFor} from '../render/people/human-renderer.js';
 import {ASPIRATIONS,applyHouseSocialCommand} from './social-systems.js';
@@ -13,7 +15,7 @@ const relevant=new Set(['cook','cookRecipe','eat','sharedDinner','rest','nap','r
 function initial(){return{schemaVersion:EVENING_VERSION,nextEpisode:0,active:null,keepsakes:[],receipts:[],events:[],lastMinute:null,recalledKeepsakeId:null};}
 function state(h){h.systems??={};return h.systems.evening??=initial();}
 function roster(m,h){return physicalHouseMembers(m,hh(m,h)).slice(0,16);}
-function present(m,h,i){return personAtHome(m,i)&&m.people.household[i]===hh(m,h)||roommateAtHouse(m,i,hh(m,h));}
+function present(m,h,i){return (personAtHome(m,i)&&m.people.household[i]===hh(m,h)||roommateAtHouse(m,i,hh(m,h)))&&isResidentVisibleAtHome({id:pid(m,i),atHome:true,date:inspectPersonDate(m,i)},{home:h});}
 function label(m,id){return m.houseProfiles?.people?.[id]?.name??generatedResidentName(m,Number(id.slice((m.prefix+'-p').length)));}
 function idle(m,id){const i=Number(id.slice((m.prefix+'-p').length));return !m.houses?.active?.[i]&&!m.houseTasks?.byPerson?.[i]?.length&&!m.manualWalks?.[i];}
 export function inspectEveningSituation(m,h){const indices=roster(m,h),home=indices.filter(i=>present(m,h,i)),away=indices.filter(i=>!home.includes(i)),arrivals=away.flatMap(i=>{const r=m.roommates?.active?.[i],a=r?.phase==='resident'&&r.hostHH===hh(m,h)?r.hostHome:{home:m.people.home[i],homeX:m.people.homeX[i],homeZ:m.people.homeZ[i]};return m.people.remaining[i]>0&&m.people.to[i]===a.home&&Math.hypot(m.people.toX[i]-a.homeX,m.people.toZ[i]-a.homeZ)<1?[{personId:pid(m,i),name:label(m,pid(m,i)),etaMinute:m.minute+m.people.remaining[i],remainingMinutes:m.people.remaining[i]}]:[];}).sort((a,b)=>a.etaMinute-b.etaMinute);const tired=home.filter(i=>m.people.energy[i]<35).map(i=>({personId:pid(m,i),name:label(m,pid(m,i)),energy:m.people.energy[i]})),lonely=home.filter(i=>m.people.social[i]<45).map(i=>({personId:pid(m,i),name:label(m,pid(m,i)),connection:m.people.social[i]})),hungry=home.filter(i=>m.people.hunger[i]<60).map(i=>({personId:pid(m,i),name:label(m,pid(m,i)),hunger:m.people.hunger[i]}));return{minute:m.minute,atHome:home.map(i=>pid(m,i)),away:away.map(i=>pid(m,i)),arrivals,tired,lonely,hungry,preparedServings:h.preparedServings??0,summary:(away.length?`${home.length} residents are home and ${away.length} are away.`:'Everyone in this household is home.')+(tired.length?` ${tired[0].name} could use a quieter evening.`:'')+((h.preparedServings??0)>0?' There are prepared portions to share.':' Dinner still needs preparing if you choose a meal.'),recommendedApproach:tired.length?'quiet':hungry.length?'cook':lonely.length&&h.objects.some(o=>o.type==='music')?'music':'watch'};}

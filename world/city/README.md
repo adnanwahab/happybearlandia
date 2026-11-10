@@ -89,3 +89,13 @@ Example intervention: `{type:'utility', districtId:'d1', utility:'sewer', amount
 ## Verification snapshot
 
 The engine-only synthetic benchmark `bun scripts/benchmark-city.js 1000 12 30` completed 1,000 twelve-month futures with 30 initial households in 12,728 ms on the development machine. This excludes worker startup, SQLite writes, browser rendering and large-city scaling; it is not a 1,000-future end-to-end latency claim.
+
+## What would unblock this?
+
+In **Enter future**, regenerate a saved run and select a month. The project inspector lists unfinished projects, checks the actual next simulated month for delay events, and shows utility headroom plus shared monthly resources. Choose a project, inspect it, then test added sewer/water/electric/stormwater capacity or added labor, permits, contractors, materials or equipment.
+
+Each test runs two bounded continuations in a disposable browser worker from exactly the same state, month, seed and shocks. The proposed capacity is added only to the tested continuation. Utility changes affect the selected project's district; construction and permit changes affect city-wide capacity. A successful fix can still leave another bottleneck binding. The results show completion months, city public/capital spending, ending cash, remaining delay events and a downloadable JSON evidence record linked to the original experiment/scenario/run/month. Tests never modify the saved experiment. Changing the saved month or experiment cancels work and clears the comparison.
+
+Enter the assumed one-time public cost explicitly. The test requires sufficient saved city cash, subtracts that amount once and records it in the first comparison month's capital ledger. Capacity becomes available next month: this is an immediate-procurement diagnostic, not a simulated construction pipeline for an upgrade. Recurring staffing or procurement costs are not inferred. Spending differences include city-wide feedback during the selected horizon and are not project invoices. Comparisons are capped at 60 months, 120,000 household-months and a 30-second worker timeout; cancellation is available. A project not completed during the horizon is reported as unfinished within that horizon, never as permanently impossible.
+
+Run `bun test test/project-unblock.test.js` for the paired-future and budget checks and `bunx playwright test test/e2e/project-unblock.e2e.js` for the saved-experiment UI flow.

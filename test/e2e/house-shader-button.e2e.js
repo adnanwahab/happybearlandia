@@ -1,0 +1,9 @@
+import {test,expect} from '@playwright/test';
+test('Shaders stays in the top-right on desktop and mobile and changes the scene style',async({page})=>{
+ await page.route('**/shader-button-fixture',r=>r.fulfill({contentType:'text/html',body:'<!doctype html><link rel="stylesheet" href="/world/house/house.css"><main class="house-game"><header class="house-topbar"><div class="house-home-label">Household</div><nav class="house-top-actions"></nav></header></main>'}));
+ await page.goto('/shader-button-fixture');
+ await page.evaluate(async()=>{const {mountVisualStyles}=await import('/world/house/visual-styles-ui.js');const {houseLookPreset}=await import('/world/house/visual-styles.js');window.style=houseLookPreset('original');window.shaderUI=mountVisualStyles(document.querySelector('main'),{getScene:()=>({getVisualStyle:()=>window.style,setVisualStyle:s=>{window.style=s;}})});});
+ const button=page.getByRole('button',{name:'Shaders · Visual Styles',exact:true});
+ for(const width of [1440,390]){await page.setViewportSize({width,height:900});await expect(button).toBeVisible();const box=await button.boundingBox();expect(box.y).toBeLessThan(20);expect(width-box.x-box.width).toBeLessThan(20);await button.click();const dialog=page.getByRole('dialog',{name:'Visual Styles',exact:true});await expect(dialog).toBeVisible();await dialog.getByRole('button',{name:'Cartoon visual style',exact:true}).click();await expect(dialog.getByRole('button',{name:'Cartoon visual style',exact:true})).toHaveAttribute('aria-pressed','true');await page.keyboard.press('Escape');}
+ await page.evaluate(()=>document.querySelector('main').classList.add('house-focus-view'));await expect(button).toBeVisible();await button.click();await expect(page.getByRole('dialog',{name:'Visual Styles',exact:true})).toBeVisible();
+});

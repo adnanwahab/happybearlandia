@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>World Line Talk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* One visual world: night-lab VN. Dialogue box bottom, character centre, divergence meter top-right, mission panel left. */
+:root{
+  --void:#06090a;
+  --panel:rgba(7,12,13,.86);
+  --ink:#e8efe9;
+  --dim:#8fa39a;
+  --nixie:#ff9a3c;
+  --signal:#8ff0c0;
+  --good:#7ee2a8; --bad:#ff6b6b;
+  --line:rgba(143,240,192,.28);
+  --f-ui:'Share Tech Mono',ui-monospace,Menlo,monospace;
+  --f-text:'Zen Kaku Gothic New','Hiragino Sans',system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--void);color:var(--ink);font-family:var(--f-text);overflow:hidden}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+
+#stage{position:fixed;inset:0;overflow:hidden}
+#bg{position:absolute;inset:-10px;filter:blur(1.5px) saturate(.9);transition:opacity .8s}
+.bg-lab{background:repeating-linear-gradient(90deg,rgba(143,240,192,.07) 0 2px,transparent 2px 64px),radial-gradient(circle at 18% 40%,rgba(143,240,192,.5) 0 2px,transparent 3px),radial-gradient(circle at 82% 35%,rgba(255,154,60,.5) 0 2px,transparent 3px),radial-gradient(ellipse at 50% 30%,#14382d,#050b09 72%)}
+.bg-office{background:repeating-linear-gradient(90deg,transparent 0 118px,rgba(5,8,14,.55) 118px 126px),linear-gradient(180deg,#e2a77a 0%,#a8708f 26%,#4b5a80 50%,#1b2333 52%,#0e131c 100%)}
+.bg-rooftop{background:linear-gradient(180deg,transparent 64%,rgba(20,10,22,.9) 64% 66%,transparent 66%),repeating-linear-gradient(90deg,transparent 0 40px,rgba(20,10,25,.85) 40px 43px),linear-gradient(180deg,#2b1d4a 0%,#8a3b5c 42%,#f08a4b 64%,#3a1e2e 65%,#170d15 100%)}
+.bg-mixer{background:radial-gradient(circle at 18% 28%,rgba(255,180,90,.4) 0 34px,transparent 36px),radial-gradient(circle at 72% 18%,rgba(255,120,200,.32) 0 24px,transparent 26px),radial-gradient(circle at 88% 46%,rgba(120,180,255,.3) 0 44px,transparent 46px),radial-gradient(circle at 40% 12%,rgba(255,255,200,.28) 0 16px,transparent 18px),radial-gradient(circle at 60% 40%,rgba(255,200,120,.2) 0 28px,transparent 30px),linear-gradient(180deg,#1a1030,#3a1f4f 60%,#120a1c)}
+.bg-cafe{background:radial-gradient(ellipse at 30% 20%,rgba(255,200,120,.45),transparent 40%),radial-gradient(ellipse at 75% 18%,rgba(255,200,120,.35),transparent 35%),linear-gradient(180deg,#3a2418,#6b4126 56%,#2a1810 57%,#140b07)}
+.bg-street{background:radial-gradient(circle at 25% 30%,rgba(120,200,255,.35) 0 6px,transparent 60px),radial-gradient(circle at 70% 25%,rgba(255,90,140,.35) 0 6px,transparent 70px),repeating-linear-gradient(90deg,#0d1220 0 70px,#141b2e 70px 72px),linear-gradient(180deg,#0a0e1a,#1c2238)}
+.scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px);mix-blend-mode:multiply}
+.vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,transparent 50%,rgba(0,0,0,.7))}
+
+#char{position:absolute;left:50%;bottom:150px;transform:translateX(-50%);height:min(68vh,620px);aspect-ratio:3/4;transition:filter .3s}
+#char svg{width:100%;height:100%;animation:breathe 4.5s ease-in-out infinite;transform-origin:50% 100%;filter:drop-shadow(0 10px 30px rgba(0,0,0,.6))}
+@keyframes breathe{50%{transform:scaleY(1.008) translateY(-2px)}}
+#char.talk svg{animation:breathe 4.5s ease-in-out infinite,bob .35s ease-in-out 2}
+@keyframes bob{50%{translate:0 -6px}}
+#char.thinking{filter:brightness(.75)}
+
+#hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:14px 16px;pointer-events:none}
+#hud>*{pointer-events:auto}
+#scene-tag{font-family:var(--f-ui);font-size:13px;letter-spacing:.12em;color:var(--signal);text-transform:uppercase;background:var(--panel);border:1px solid var(--line);padding:8px 12px;max-width:46vw}
+#scene-tag b{display:block;color:var(--ink);font-size:16px;letter-spacing:.06em;font-family:var(--f-text);text-transform:none;margin-top:2px}
+#meter{background:#0b0605;border:1px solid #3a2414;padding:8px 10px 6px;box-shadow:0 0 30px rgba(255,154,60,.15),inset 0 0 20px rgba(0,0,0,.8)}
+#meter .ml{font-family:var(--f-ui);font-size:10px;letter-spacing:.3em;color:#a8693a;text-align:center;margin-bottom:4px}
+#nixie{display:flex;gap:3px}
+#nixie span{display:inline-grid;place-items:center;width:24px;height:40px;font-family:var(--f-ui);font-size:30px;color:var(--nixie);text-shadow:0 0 6px var(--nixie),0 0 16px rgba(255,120,30,.8);background:radial-gradient(ellipse at 50% 40%,rgba(255,154,60,.12),rgba(0,0,0,.6));border:1px solid rgba(255,154,60,.18);border-radius:10px 10px 4px 4px}
+#nixie span.dot{width:10px;border:none;background:none}
+
+#mission{position:absolute;left:16px;top:96px;width:min(280px,40vw);background:var(--panel);border:1px solid var(--line);padding:12px 14px;font-size:14px;line-height:1.45}
+#mission .k{font-family:var(--f-ui);font-size:11px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase}
+#objective{margin:4px 0 10px;font-weight:700}
+#pips{display:flex;gap:6px;margin-bottom:10px}
+#pips i{flex:1;height:6px;background:rgba(255,255,255,.1)}
+#pips i.on{background:var(--signal);box-shadow:0 0 8px var(--signal)}
+#pips i.cur{background:rgba(143,240,192,.35);animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.4}}
+#rap{height:8px;background:rgba(255,255,255,.08);position:relative;margin-top:4px}
+#rap>div{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--bad),var(--nixie) 40%,var(--good));transition:width .6s}
+#rapv{font-family:var(--f-ui);font-size:12px;color:var(--dim);float:right}
+#goal{color:var(--dim);font-size:13px;margin-top:10px}
+
+#coach{position:absolute;right:16px;top:96px;width:min(320px,44vw);background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--signal);padding:12px 14px;font-size:14px;line-height:1.45;transform:translateX(120%);transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+#coach.show{transform:none}
+#coach.neg{border-left-color:var(--bad)}
+#coach .top{display:flex;justify-content:space-between;font-family:var(--f-ui);font-size:12px;letter-spacing:.12em;color:var(--signal);text-transform:uppercase}
+#coach.neg .top{color:var(--bad)}
+#coach .fb{margin:6px 0}
+#coach .try{color:var(--dim);font-size:13px;border-top:1px dashed var(--line);padding-top:6px}
+#coach .try b{color:var(--ink);font-weight:500}
+
+#bottom{position:absolute;left:0;right:0;bottom:0;padding:0 16px 14px;display:flex;flex-direction:column;gap:8px;align-items:center}
+#dialog{position:relative;width:min(980px,100%);min-height:128px;background:linear-gradient(180deg,rgba(6,12,12,.9),rgba(3,7,8,.95));border:1px solid var(--line);box-shadow:0 0 0 1px rgba(0,0,0,.6),0 -6px 40px rgba(0,0,0,.4);padding:26px 22px 16px;cursor:pointer;user-select:none}
+#name{position:absolute;top:-15px;left:18px;background:var(--void);border:1px solid var(--line);padding:3px 14px;font-weight:700;font-size:15px;letter-spacing:.05em;color:var(--signal)}
+#name:empty{display:none}
+#name.you{color:var(--nixie);border-color:rgba(255,154,60,.4)}
+#text{font-size:clamp(16px,2.1vw,20px);line-height:1.6;min-height:2em;white-space:pre-wrap}
+#text.narr{color:#c9d6cf;font-style:italic}
+#next{position:absolute;right:16px;bottom:8px;color:var(--signal);font-size:12px;animation:pulse 1s infinite;display:none}
+#dialog.wait #next{display:block}
+.dots::after{content:'';animation:dots 1.2s steps(4) infinite}
+@keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
+
+#controls{width:min(980px,100%);display:flex;flex-direction:column;gap:8px}
+#timer{height:3px;background:rgba(255,255,255,.08)}
+#timer>div{height:100%;width:100%;background:var(--signal);transform-origin:left;transition:background .3s}
+#timer.low>div{background:var(--bad)}
+#row{display:flex;gap:8px}
+#say{flex:1;min-width:0;background:rgba(5,10,10,.92);border:1px solid var(--line);padding:12px 14px;font-size:16px;outline:none}
+#say:focus{border-color:var(--signal)}
+#say:disabled{opacity:.5}
+.btn{background:rgba(5,10,10,.92);border:1px solid var(--line);padding:10px 14px;font-family:var(--f-ui);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--signal);white-space:nowrap}
+.btn:hover:not(:disabled){background:rgba(143,240,192,.1)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.primary{background:var(--signal);color:#04110b;border-color:var(--signal)}
+.btn.primary:hover:not(:disabled){background:#b5ffd9}
+#mic.on{color:var(--bad);border-color:var(--bad);animation:pulse 1s infinite}
+#choices{display:flex;flex-direction:column;gap:6px}
+#choices button{text-align:left;background:rgba(5,10,10,.92);border:1px solid var(--line);padding:10px 14px;font-size:15px;line-height:1.4}
+#choices button:hover{border-color:var(--signal);background:rgba(143,240,192,.08)}
+#choices button span{font-family:var(--f-ui);color:var(--signal);margin-right:8px}
+#hintline{font-size:13px;color:var(--dim);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+#hintline button{background:none;border:none;color:var(--dim);font-family:var(--f-ui);font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:0}
+#hintline button:hover{color:var(--signal)}
+
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(3,6,6,.94);display:none;overflow:auto}
+.overlay.show{display:block}
+.wrap{max-width:980px;margin:0 auto;padding:40px 20px 60px}
+.eyebrow{font-family:var(--f-ui);color:var(--signal);letter-spacing:.3em;font-size:12px;text-transform:uppercase}
+h1{font-family:var(--f-ui);font-weight:400;font-size:clamp(34px,6vw,64px);letter-spacing:.06em;margin:8px 0 6px;color:var(--nixie);text-shadow:0 0 18px rgba(255,120,30,.55);text-wrap:balance}
+.lede{color:#c3d1ca;max-width:62ch;line-height:1.6;font-size:16px}
+#modebadge{display:inline-block;font-family:var(--f-ui);font-size:12px;letter-spacing:.12em;padding:5px 10px;border:1px solid var(--line);color:var(--dim);margin:12px 0 0}
+#modebadge.live{color:#04110b;background:var(--signal);border-color:var(--signal)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:26px}
+.card{position:relative;text-align:left;background:rgba(10,18,17,.9);border:1px solid var(--line);padding:0;overflow:hidden;display:flex;flex-direction:column}
+.card:hover{border-color:var(--signal);transform:translateY(-2px)}
+.card .thumb{height:110px;position:relative;overflow:hidden}
+.card .thumb svg{position:absolute;left:50%;bottom:-46px;height:170px;transform:translateX(-50%)}
+.card .body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:4px}
+.card .no{font-family:var(--f-ui);font-size:11px;letter-spacing:.2em;color:var(--dim)}
+.card .t{font-weight:700;font-size:17px}
+.card .s{font-size:13px;color:var(--dim);line-height:1.45}
+.card .best{position:absolute;top:8px;right:8px;font-family:var(--f-ui);font-size:12px;background:var(--void);border:1px solid var(--nixie);color:var(--nixie);padding:2px 8px}
+#custom{margin-top:26px;border:1px dashed var(--line);padding:16px;display:flex;flex-direction:column;gap:10px}
+#custom textarea{background:rgba(5,10,10,.92);border:1px solid var(--line);padding:12px;min-height:72px;resize:vertical;font-size:15px}
+#custom .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#custom .note{font-size:13px;color:var(--dim)}
+.opts{display:flex;gap:18px;flex-wrap:wrap;margin-top:22px;font-size:14px;color:#c3d1ca}
+.opts label{display:flex;gap:8px;align-items:center;cursor:pointer}
+.opts input{accent-color:var(--signal)}
+
+#end .grade{font-family:var(--f-ui);font-size:96px;color:var(--nixie);text-shadow:0 0 24px rgba(255,120,30,.6);line-height:1}
+#end .sum{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-end;margin:16px 0 26px}
+#end .stat{font-family:var(--f-ui);font-size:13px;color:var(--dim);letter-spacing:.1em}
+#end .stat b{display:block;font-size:28px;color:var(--ink);font-variant-numeric:tabular-nums}
+.turn{border-left:3px solid var(--line);padding:10px 14px;margin-bottom:10px;background:rgba(10,18,17,.7);line-height:1.5;font-size:14px}
+.turn.pos{border-left-color:var(--good)} .turn.neg{border-left-color:var(--bad)}
+.turn .you{font-size:15px;color:var(--ink)}
+.turn .meta{font-family:var(--f-ui);font-size:12px;color:var(--dim);letter-spacing:.08em;margin:4px 0}
+.turn .meta .d{color:var(--good)} .turn.neg .meta .d{color:var(--bad)}
+.turn .alt{color:var(--dim)} .turn .alt b{color:var(--signal);font-weight:500}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+
+#log .entry{margin-bottom:12px;line-height:1.55}
+#log .entry b{color:var(--signal);margin-right:8px}
+#log .entry.you b{color:var(--nixie)}
+#log .entry.narr{color:var(--dim);font-style:italic}
+
+#shift{position:fixed;inset:0;z-index:15;pointer-events:none;display:grid;place-items:center;opacity:0}
+#shift.go{animation:shift 1.4s ease-out}
+#shift div{font-family:var(--f-ui);font-size:clamp(18px,3vw,28px);letter-spacing:.3em;color:var(--signal);text-shadow:0 0 14px var(--signal);background:rgba(0,0,0,.6);padding:14px 24px;border-top:1px solid var(--signal);border-bottom:1px solid var(--signal)}
+@keyframes shift{0%{opacity:0;filter:hue-rotate(0)}10%{opacity:1;transform:skewX(-8deg)}20%{transform:skewX(6deg)}30%{transform:none}80%{opacity:1}100%{opacity:0}}
+#stage.shake{animation:shake .4s}
+@keyframes shake{20%{transform:translate(-8px,2px)}40%{transform:translate(7px,-3px)}60%{transform:translate(-5px,1px)}80%{transform:translate(3px,0)}}
+#stage.flash::after{content:'';position:absolute;inset:0;background:rgba(143,240,192,.12);animation:fade .6s forwards;pointer-events:none}
+@keyframes fade{to{opacity:0}}
+#err{position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:30;background:#2a0d0d;border:1px solid var(--bad);color:#ffd6d6;padding:10px 16px;font-size:14px;display:none;max-width:90vw}
+
+@media (max-width:720px){
+  #mission{top:auto;bottom:auto;position:absolute;left:12px;right:12px;width:auto;top:78px;padding:8px 10px;font-size:13px}
+  #goal{display:none}
+  #coach{top:auto;bottom:250px;left:12px;right:12px;width:auto}
+  #char{bottom:200px;height:52vh}
+  #nixie span{width:16px;height:28px;font-size:20px}
+  #scene-tag{font-size:11px} #scene-tag b{font-size:14px}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="bg" class="bg-lab"></div>
+  <div class="scan"></div><div class="vignette"></div>
+  <div id="char"></div>
+  <div id="hud">
+    <div id="scene-tag">World line 00<b>Select a scenario</b></div>
+    <div id="meter" aria-label="Divergence meter"><div class="ml">DIVERGENCE</div><div id="nixie"></div></div>
+  </div>
+  <div id="mission" aria-live="polite">
+    <div class="k">Objective <span id="stagen"></span></div>
+    <div id="objective">—</div>
+    <div id="pips"></div>
+    <div class="k">Rapport <span id="rapv">45</span></div>
+    <div id="rap"><div style="width:45%"></div></div>
+    <div id="goal"></div>
+  </div>
+  <div id="coach" role="status"></div>
+  <div id="bottom">
+    <div id="dialog" class="wait"><div id="name"></div><div id="text"></div><div id="next">▼ click</div></div>
+    <div id="controls">
+      <div id="timer"><div></div></div>
+      <div id="choices"></div>
+      <form id="row">
+        <input id="say" autocomplete="off" placeholder="Say something…" aria-label="Your line">
+        <button type="button" class="btn" id="mic" hidden>Mic</button>
+        <button type="submit" class="btn primary" id="send">Say it</button>
+      </form>
+      <div id="hintline"><span id="hinttext"></span><span><button id="hintbtn" type="button">Hint</button> · <button id="logbtn" type="button">Log</button> · <button id="quitbtn" type="button">Quit</button></span></div>
+    </div>
+  </div>
+</div>
+
+<div id="shift"><div>WORLD LINE SHIFT</div></div>
+<div id="err"></div>
+
+<section id="title" class="overlay show" aria-label="Scenario select">
+  <div class="wrap">
+    <div class="eyebrow">Conversation training · visual novel</div>
+    <h1>WORLD LINE TALK</h1>
+    <p class="lede">Every conversation branches. Say the right thing and the divergence meter climbs toward 1.000000 and the scene moves forward. Say the wrong thing and rapport drains away. You type (or speak) your own lines, and the character answers in real time.</p>
+    <div id="modebadge">Connecting to Claude…</div>
+    <div class="opts">
+      <label><input type="checkbox" id="opt-pressure" checked> Pressure mode: 40 s per reply, silence counts</label>
+      <label><input type="checkbox" id="opt-choices"> Show suggested lines</label>
+    </div>
+    <div class="grid" id="cards"></div>
+    <div id="custom">
+      <div class="eyebrow">Custom world line</div>
+      <div class="note">Describe a conversation you're dreading. Claude builds the scene, the character and three objectives.</div>
+      <textarea id="custom-in" placeholder="e.g. Telling my co-founder I want to step back to part-time. She's intense and will take it personally."></textarea>
+      <div class="row"><button class="btn primary" id="custom-go" type="button">Build scenario</button><span class="note" id="custom-msg"></span></div>
+    </div>
+  </div>
+</section>
+
+<section id="end" class="overlay" aria-label="Debrief"><div class="wrap" id="endwrap"></div></section>
+<section id="log" class="overlay" aria-label="Backlog"><div class="wrap"><div class="eyebrow">Backlog</div><div id="logbody" style="margin-top:18px"></div><div class="actions"><button class="btn primary" id="logclose" type="button">Close</button></div></div></section>
+
+<script>
+/* ---------- scenarios ---------- */
+const SCENARIOS = [
+{ id:'raise', title:'The Raise', sub:'Ask your manager for more money without burning the relationship.', bg:'bg-office',
+  char:{name:'Dana Kessler', role:'Director of Engineering', hair:'bob', hairColor:'#2b2420', color:'#33405e',
+    persona:'Pragmatic, busy, fair. Respects data and specific impact. Dislikes ultimatums, comparisons to coworkers\' pay, and vague "I work hard". Budget really is frozen until Q2, but she can push for an off-cycle review if given a strong written case and a clear ask.'},
+  setup:['Friday, 4:47 PM. The office is half empty.','You booked fifteen minutes with Dana. She doesn\'t know why.','Your goal: walk out with a real path to a raise.'],
+  opening:'Hey. I\'ve got a hard stop at five. What\'s up?', openEmo:'neutral',
+  goal:'Leave with a concrete next step toward a raise.',
+  stages:[
+   {objective:'Say why you\'re here, clearly and calmly.', hint:'Name the topic in your first sentence and respect her time.', choices:[
+     {t:'Thanks for making time. I want to talk about my compensation. My role has grown and I\'d like to make the case.', d:12, m:1, e:'thinking', r:'Okay. Fair. I\'m glad you brought it to me directly. Make the case.', f:'Direct, calm, and framed as a conversation.', tech:'Clear opener'},
+     {t:'So… I\'ve been thinking about a lot of things lately. Career stuff. Stuff in general.', d:-6, m:0, e:'annoyed', r:'Okay? I\'ve got about twelve minutes. What specifically?', f:'Vague openers burn time and trust. Name the topic up front.', tech:'Vague opener', b:'I want to talk about my compensation.'},
+     {t:'I found out Priya makes more than me and honestly it\'s insulting.', d:-15, m:0, e:'annoyed', r:'I\'m not going to discuss other people\'s pay. If you want to talk about yours, let\'s talk about yours.', f:'Comparing yourself to coworkers puts a manager on the defensive.', tech:'Comparison', b:'I\'d like to talk about whether my pay reflects my current scope.'}]},
+   {objective:'Make the case with specific impact.', hint:'Outcomes and numbers, and how your scope grew.', choices:[
+     {t:'Since March I\'ve owned the ingestion pipeline. I cut processing cost 30% and I\'m mentoring two new hires. That\'s senior-level scope.', d:15, m:1, e:'thinking', r:'That\'s a strong list, honestly. I\'d love to do something now, but budget\'s frozen until Q2.', f:'Concrete outcomes give her something she can repeat to her own boss.', tech:'Evidence'},
+     {t:'I work really hard. I\'m always online late, everyone knows that.', d:-5, m:0, e:'neutral', r:'Hours aren\'t really something I can take to finance. What\'s changed in what you deliver?', f:'Effort is not impact. Translate hours into outcomes.', tech:'Effort framing', b:'I cut pipeline cost 30% and took on mentoring.'},
+     {t:'Look, I have another offer. Match it or I\'m gone.', d:-18, m:0, e:'annoyed', r:'Wow. Okay. If that\'s where we are, you should probably take it seriously.', f:'Ultimatums force a yes or no and damage trust.', tech:'Ultimatum', b:'I\'d rather grow here. Here\'s what I\'ve delivered this year.'}]},
+   {objective:'Handle the budget pushback and secure a next step.', hint:'Acknowledge the constraint, then ask for something concrete and dated.', choices:[
+     {t:'I understand budgets are tight. Could I put a written case together for an off-cycle review, and we revisit at the end of next month?', d:15, m:1, e:'happy', r:'Yes. Send me a one-pager by Wednesday and I\'ll take it to the comp committee. Good conversation.', f:'You respected the constraint and still left with a dated commitment.', tech:'Concrete ask'},
+     {t:'Okay, no worries, I get it. Forget I asked.', d:-8, m:0, e:'sad', r:'Hey, don\'t drop it entirely. What would you want to happen next?', f:'Folding at the first "no" leaves you with nothing.', tech:'Folding', b:'Understood. What would it take to revisit this before Q2?'},
+     {t:'Budget is always tight. That\'s not my problem.', d:-12, m:0, e:'annoyed', r:'It kind of is everyone\'s problem. Let\'s not make this adversarial.', f:'Dismissing her constraint makes you an opponent, not a partner.', tech:'Dismissive', b:'I hear you. Can we set a date to revisit with a written case?'}]}
+  ]},
+{ id:'cold', title:'Cold Front', sub:'Your merge broke a teammate\'s module and he was paged at 3 AM.', bg:'bg-lab',
+  char:{name:'Riku Tanaka', role:'Senior engineer, your teammate', hair:'spiky', hairColor:'#15171c', color:'#223a32',
+    persona:'Proud of his code and stressed about Thursday\'s release. Your merge broke his module in prod overnight and he got paged at 3 AM. Wants acknowledgment, not excuses. Softens when someone asks about his concerns and offers real help. Escalates if blamed or brushed off.'},
+  setup:['Monday, 9:12 AM. Fourteen unread messages from Riku.','Your merge broke his module overnight. He got paged at 3 AM.','He\'s walking straight toward your desk.'],
+  opening:'Did you even run the integration tests before you merged? I was up until five fixing your mess.', openEmo:'annoyed',
+  goal:'Repair the working relationship and agree on a fix.',
+  stages:[
+   {objective:'Acknowledge the impact without getting defensive.', hint:'Own it. Name what it cost him. No "but".', choices:[
+     {t:'You\'re right. I merged without the full suite, and it cost you your night. I\'m sorry.', d:14, m:1, e:'surprised', r:'…Okay. I wasn\'t expecting that. I\'m still annoyed, though.', f:'Clean ownership with no "but" defuses anger fast.', tech:'Ownership'},
+     {t:'The tests passed on my machine, so CI must be flaky.', d:-12, m:0, e:'annoyed', r:'Unbelievable. So it\'s CI\'s fault now.', f:'Explaining before acknowledging sounds like shifting blame.', tech:'Deflection', b:'You\'re right, I skipped the full suite. I\'m sorry it cost you your night.'},
+     {t:'Sorry if you were inconvenienced.', d:-8, m:0, e:'annoyed', r:'"If"? I was paged at three in the morning.', f:'"Sorry if" is a non-apology and reads as dismissive.', tech:'Non-apology', b:'I\'m sorry. That was a rough night because of me.'}]},
+   {objective:'Find out what he actually needs. Ask, don\'t assume.', hint:'One open question about his concern.', choices:[
+     {t:'What worries you most right now: the deadline, or this happening again?', d:12, m:1, e:'thinking', r:'Both, honestly. Release is Thursday and I can\'t babysit the pipeline every night.', f:'An open question shows you care about his problem, not just your guilt.', tech:'Open question'},
+     {t:'Anyway, it\'s fixed now, so we\'re good, right?', d:-10, m:0, e:'annoyed', r:'We\'re not "good". It\'s fixed because I fixed it.', f:'Rushing to closure skips his actual concern.', tech:'Premature closure', b:'What would help you most before Thursday?'},
+     {t:'I\'ll just never touch your module again.', d:-4, m:0, e:'sad', r:'That\'s not really the point either. We share this codebase.', f:'Withdrawing isn\'t repairing. Ask what he needs.', tech:'Withdrawal', b:'What would make you comfortable with changes to it?'}]},
+   {objective:'Propose a concrete fix you\'ll own together.', hint:'Specific action, owner, and timeline.', choices:[
+     {t:'Let me add a required integration check on that module today, and I\'ll take the pager for it through Thursday. Want to review the PR?', d:15, m:1, e:'happy', r:'…Yeah. That would actually help a lot. Send it over, I\'ll review before lunch.', f:'Specific, owned, time-bound, and you invited him in.', tech:'Concrete commitment'},
+     {t:'We should probably have better processes in general.', d:-5, m:0, e:'neutral', r:'Sure. "In general." Who\'s doing that?', f:'Vague proposals sound like deflection. Name the action and the owner.', tech:'Vague fix', b:'I\'ll add a required check today and take the pager till Thursday.'},
+     {t:'I\'ll be more careful next time, promise.', d:-2, m:0, e:'thinking', r:'Careful is nice. I\'d rather have a check that doesn\'t rely on anyone being careful.', f:'Promises are weaker than systems.', tech:'Promise', b:'I\'ll add a CI gate so this can\'t merge without the suite.'}]}
+  ]},
+{ id:'roof', title:'Rooftop at Dusk', sub:'Reconnect with a friend you ghosted two years ago.', bg:'bg-rooftop',
+  char:{name:'Mio Arisawa', role:'Old friend from college', hair:'long', hairColor:'#3a1d2b', color:'#5a3550',
+    persona:'Warm but guarded. Felt dropped when you stopped replying after you moved away. Teaches a ceramics class now. Wants to know she mattered to you. Responds to honesty and genuine curiosity about her life. Withdraws if you make excuses or only talk about yourself.'},
+  setup:['Sunset. The roof of the old campus building.','You haven\'t talked to Mio in two years. You stopped replying after the move.','She agreed to meet. She\'s leaning on the railing, not looking at you.'],
+  opening:'So. You texted. After two years.', openEmo:'sad',
+  goal:'Reconnect honestly and leave with a plan to see each other again.',
+  stages:[
+   {objective:'Break the ice warmly. Show real interest in her.', hint:'Something specific and curious about her life.', choices:[
+     {t:'I did. I\'ve missed you. Are you still doing ceramics? I saw that blue vase you posted. It was beautiful.', d:12, m:1, e:'surprised', r:'You… saw that? Yeah. I\'m teaching a class now, actually.', f:'Specific curiosity tells her she\'s been on your mind.', tech:'Specific interest'},
+     {t:'Yeah, things have been crazy for me. New job, new city, you know how it is.', d:-8, m:0, e:'neutral', r:'Right. I figured you were busy.', f:'Leading with your busyness sounds like an excuse before she\'s raised it.', tech:'Self-focus', b:'I\'ve missed you. What have you been making lately?'},
+     {t:'So anyway, nice weather.', d:-5, m:0, e:'thinking', r:'…Sure. Weather.', f:'Small talk dodges the elephant. Warmth needs specifics.', tech:'Small talk', b:'I\'ve missed you. How are you, really?'}]},
+   {objective:'Own your part in the silence.', hint:'No excuses. Name what you did.', choices:[
+     {t:'I owe you an honest answer. I went quiet after I moved, and that wasn\'t fair to you. I\'m sorry.', d:15, m:1, e:'sad', r:'…Thank you. I kept wondering if I\'d done something wrong.', f:'Naming the specific behavior is what makes an apology land.', tech:'Accountability'},
+     {t:'Phones work both ways, you know.', d:-15, m:0, e:'annoyed', r:'Wow. Okay. Maybe this was a mistake.', f:'Counter-blame turns repair into a fight.', tech:'Counter-blame', b:'I went quiet, and that\'s on me. I\'m sorry.'},
+     {t:'I\'ve just been really bad with texting. I\'m like that with everyone.', d:-6, m:0, e:'neutral', r:'So I\'m just "everyone".', f:'Generalizing makes her feel interchangeable.', tech:'Generalizing', b:'I stopped replying to you, specifically, and I regret it.'}]},
+   {objective:'Make a concrete plan to see her again.', hint:'A specific day and activity, low pressure.', choices:[
+     {t:'Could I come to your ceramics class next Saturday? Then dinner after, my treat.', d:14, m:1, e:'happy', r:'Ha. You\'ll be terrible at it. …Yes. Saturday.', f:'A specific plan tied to her life turns intention into action.', tech:'Concrete plan'},
+     {t:'We should hang out sometime!', d:-5, m:0, e:'thinking', r:'Sure. "Sometime."', f:'"Sometime" sounds like a polite exit.', tech:'Vague plan', b:'Are you free Saturday? I\'d love to see your studio.'},
+     {t:'Let\'s not make promises. I\'ll probably flake again.', d:-8, m:0, e:'sad', r:'…Then why did you text me?', f:'Lowering expectations in advance reads as not caring.', tech:'Self-sabotage', b:'I want to do better. Can we pick a day now?'}]}
+  ]},
+{ id:'pitch', title:'Sixty Seconds', sub:'Pitch an impatient investor at a loud mixer.', bg:'bg-mixer',
+  char:{name:'Victor Hale', role:'Angel investor', hair:'slick', hairColor:'#1a1a1d', color:'#26262c',
+    persona:'Has heard 400 pitches this year. Bored by jargon and market-size slides. Perks up at a crisp problem, real traction, and founder self-awareness. Respects people who meet skepticism with evidence and don\'t oversell. Walks away if you ramble. The player\'s startup is whatever they say it is; judge it on clarity and evidence.'},
+  setup:['A rooftop bar. Too loud. Too many lanyards.','Victor Hale, angel investor and famously impatient, is alone at the bar for once.','You have about sixty seconds before someone else grabs him.'],
+  opening:'Let me guess. You\'re building something. Go.', openEmo:'neutral',
+  goal:'Earn a follow-up meeting.',
+  stages:[
+   {objective:'Hook him in one or two crisp sentences.', hint:'Who has the problem, how bad it is, what you do, and proof.', choices:[
+     {t:'Clinics lose 18% of appointments to no-shows. We text patients in their own language and cut no-shows in half at 40 clinics.', d:14, m:1, e:'thinking', r:'Huh. Forty clinics isn\'t nothing. But everybody does reminder texts.', f:'Problem, number, traction, in two sentences.', tech:'Crisp hook'},
+     {t:'We\'re an AI-native, blockchain-enabled platform synergizing healthcare paradigms.', d:-12, m:0, e:'annoyed', r:'…I genuinely don\'t know what that means.', f:'Buzzwords signal you can\'t say it plainly.', tech:'Jargon', b:'Clinics lose 18% of appointments to no-shows. We cut that in half.'},
+     {t:'So it started in 2019 when my grandmother…', d:-6, m:0, e:'neutral', r:'I\'m going to stop you. What does it do?', f:'Origin stories come later. Lead with the problem.', tech:'Rambling', b:'We cut clinic no-shows in half. Here\'s how.'}]},
+   {objective:'Answer his skepticism with evidence, not hype.', hint:'Concede what\'s true, then show what\'s different.', choices:[
+     {t:'True, reminders are a commodity. Our edge is two-way rescheduling: 60% of would-be no-shows rebook instead of vanishing. That\'s revenue clinics keep.', d:14, m:1, e:'surprised', r:'Okay, that\'s a real distinction. Who\'s paying you?', f:'You conceded the fair point, then differentiated with data.', tech:'Concede and differentiate'},
+     {t:'No, we\'re totally different. Nobody does what we do.', d:-10, m:0, e:'annoyed', r:'Everyone says that. That\'s how I know it isn\'t true.', f:'Denying competition reads as naive.', tech:'Overclaiming', b:'Fair. What\'s different is two-way rescheduling. 60% rebook.'},
+     {t:'Well, um, we\'re better? Our UI is nicer.', d:-6, m:0, e:'thinking', r:'A nicer UI isn\'t a moat.', f:'Answer skepticism with your strongest evidence, not adjectives.', tech:'Weak evidence', b:'Our rescheduling recovers 60% of would-be no-shows.'}]},
+   {objective:'Answer him, then ask for a specific next step.', hint:'Make the ask small and easy to say yes to.', choices:[
+     {t:'Clinics pay $400 a month; we\'re at $16K MRR. Could I send you a one-page update tonight and grab 20 minutes next week?', d:14, m:1, e:'happy', r:'Send it tonight. If the retention numbers hold, we\'ll talk Tuesday.', f:'Answered the question, then made a small, specific ask.', tech:'Small ask'},
+     {t:'So… are you going to invest?', d:-10, m:0, e:'annoyed', r:'At a bar, after ninety seconds? No.', f:'Asking for money this early forces a no. Ask for the next step.', tech:'Premature ask', b:'Could I send a one-pager and get 20 minutes next week?'},
+     {t:'Anyway, nice talking to you!', d:-4, m:0, e:'neutral', r:'Sure. Good luck.', f:'No ask, no follow-up. Always close with a next step.', tech:'No close', b:'Can I send you our numbers tonight?'}]}
+  ]}
+];
+const BGS=['bg-lab','bg-office','bg-rooftop','bg-mixer','bg-cafe','bg-street'];
+const HAIRS=['bob','spiky','long','slick'];
+const EMOS=['neutral','happy','annoyed','surprised','sad','thinking'];
+const START=0.337187, TARGET=1.000000, MAX_TURNS=12, TURN_SECS=40;
+
+/* ---------- portrait ---------- */
+function portrait(c, emo){
+  const skin='#f1d6c3', sh='#d9b7a2', H=c.hairColor||'#222', C=c.color||'#333';
+  const back={long:`<path d="M68 160 Q64 58 150 52 Q236 58 232 160 L250 345 Q150 365 50 345Z" fill="${H}"/>`,
+    bob:`<path d="M70 165 Q66 62 150 58 Q234 62 230 165 L236 238 Q150 256 64 238Z" fill="${H}"/>`,spiky:'',slick:''}[c.hair]||'';
+  const front={long:`<path d="M80 160 Q82 66 150 64 Q218 66 222 160 Q205 108 168 100 Q140 122 100 124 Q88 136 80 160Z" fill="${H}"/>`,
+    bob:`<path d="M78 170 Q78 68 150 66 Q222 68 222 170 Q214 118 206 128 L204 122 Q150 116 96 124 L94 128 Q86 118 78 170Z" fill="${H}"/>`,
+    spiky:`<path d="M80 158 L66 100 L100 112 L92 58 L128 88 L140 40 L162 84 L188 46 L188 94 L228 70 L214 116 L234 132 L220 158 Q206 104 150 106 Q96 104 80 158Z" fill="${H}"/>`,
+    slick:`<path d="M80 150 Q76 66 150 64 Q224 66 220 150 Q216 104 178 94 Q124 88 80 150Z" fill="${H}"/>`}[c.hair]||'';
+  let eyes='',brows='',mouth='',extra='';
+  const eye=(x,ry,dx=0)=>`<ellipse cx="${x}" cy="172" rx="8" ry="${ry}" fill="#1b1d22"/><circle cx="${x+dx-2}" cy="${168}" r="2.4" fill="#fff"/>`;
+  switch(emo){
+    case 'happy': eyes=`<path d="M112 174 Q122 162 132 174" stroke="#1b1d22" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M168 174 Q178 162 188 174" stroke="#1b1d22" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+      brows=`<path d="M110 146 Q122 140 134 145M166 145 Q178 140 190 146" stroke="${H}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+      mouth=`<path d="M134 212 Q150 228 166 212" stroke="#8a3b3b" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+      extra=`<ellipse cx="110" cy="196" rx="12" ry="6" fill="#ec8f8f" opacity=".45"/><ellipse cx="190" cy="196" rx="12" ry="6" fill="#ec8f8f" opacity=".45"/>`;break;
+    case 'annoyed': eyes=eye(122,6)+eye(178,6);
+      brows=`<path d="M108 144 L136 153M192 144 L164 153" stroke="${H}" stroke-width="5" stroke-linecap="round"/>`;
+      mouth=`<path d="M138 220 Q150 211 162 220" stroke="#8a3b3b" stroke-width="4" fill="none" stroke-linecap="round"/>`;break;
+    case 'surprised': eyes=`<ellipse cx="122" cy="172" rx="9" ry="12" fill="#1b1d22"/><circle cx="119" cy="167" r="3" fill="#fff"/><ellipse cx="178" cy="172" rx="9" ry="12" fill="#1b1d22"/><circle cx="175" cy="167" r="3" fill="#fff"/>`;
+      brows=`<path d="M110 140 Q122 132 134 138M166 138 Q178 132 190 140" stroke="${H}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+      mouth=`<ellipse cx="150" cy="217" rx="7" ry="9" fill="#6e2c2c"/>`;break;
+    case 'sad': eyes=eye(122,8)+eye(178,8);
+      brows=`<path d="M108 150 L134 142M192 150 L166 142" stroke="${H}" stroke-width="4" stroke-linecap="round"/>`;
+      mouth=`<path d="M140 220 Q150 214 160 220" stroke="#8a3b3b" stroke-width="3.5" fill="none" stroke-linecap="round"/>`;break;
+    case 'thinking': eyes=`<ellipse cx="122" cy="172" rx="8" ry="9" fill="#1b1d22"/><circle cx="126" cy="168" r="2.4" fill="#fff"/><ellipse cx="178" cy="172" rx="8" ry="9" fill="#1b1d22"/><circle cx="182" cy="168" r="2.4" fill="#fff"/>`;
+      brows=`<path d="M110 147 L134 147M166 140 Q178 134 190 141" stroke="${H}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+      mouth=`<path d="M140 218 L164 214" stroke="#8a3b3b" stroke-width="3.5" stroke-linecap="round"/>`;break;
+    default: eyes=eye(122,9)+eye(178,9);
+      brows=`<path d="M110 146 L134 145M166 145 L190 146" stroke="${H}" stroke-width="4" stroke-linecap="round"/>`;
+      mouth=`<path d="M141 217 Q150 220 159 217" stroke="#8a3b3b" stroke-width="3.5" fill="none" stroke-linecap="round"/>`;
+  }
+  return `<svg viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(c.name)}, ${emo}">
+  ${back}
+  <path d="M30 400 Q40 298 150 288 Q260 298 270 400Z" fill="${C}"/>
+  <path d="M118 290 L150 345 L182 290Z" fill="#e7e9ea"/>
+  <path d="M30 400 Q40 298 118 290 L132 400Z" fill="rgba(255,255,255,.05)"/>
+  <rect x="132" y="232" width="36" height="66" rx="8" fill="${sh}"/>
+  <ellipse cx="150" cy="166" rx="68" ry="82" fill="${skin}"/>
+  <ellipse cx="82" cy="172" rx="9" ry="15" fill="${sh}"/><ellipse cx="218" cy="172" rx="9" ry="15" fill="${sh}"/>
+  ${front}${brows}${eyes}
+  <path d="M150 182 L146 198 L153 199" stroke="${sh}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  ${mouth}${extra}
+  </svg>`;
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+/* ---------- state ---------- */
+const $=id=>document.getElementById(id);
+const S={sc:null,stage:0,rapport:45,turns:[],log:[],busy:false,live:false,ended:false,emo:'neutral',div:START,timer:null,tLeft:0,intro:null};
+let sample=null, dict=null;
+const best=(()=>{try{return JSON.parse(localStorage.getItem('wlt-best')||'{}')}catch{return{}}})();
+
+/* ---------- capabilities ---------- */
+function cap(n){try{return (window.claude&&window.claude.use)?window.claude.use(n):Promise.resolve(null)}catch{return Promise.resolve(null)}}
+(async()=>{
+  for(let i=0;i<20&&!(window.claude&&window.claude.use);i++) await new Promise(r=>setTimeout(r,100));
+  const [s,d]=await Promise.all([cap('sample').catch(()=>null),cap('dictation').catch(()=>null)]);
+  sample=s; dict=d;
+  const b=$('modebadge');
+  if(sample){b.textContent='LIVE: Claude plays the character. Say anything.';b.classList.add('live');}
+  else{b.textContent='SCRIPT MODE: pick from three lines per beat. Open this page on claude.ai for free-text live mode.';
+    $('custom-go').disabled=true;$('custom-msg').textContent='Custom scenarios need live mode.';}
+  if(dict) setupMic();
+})();
+
+/* ---------- meter ---------- */
+function renderMeter(v){
+  const s=v.toFixed(6); $('nixie').innerHTML=[...s].map(ch=>ch==='.'?'<span class="dot">.</span>':`<span>${ch}</span>`).join('');
+}
+function animateMeter(to){
+  const from=S.div; S.div=to; const spans=()=>$('nixie').querySelectorAll('span:not(.dot)');
+  let n=0; const iv=setInterval(()=>{n++; spans().forEach(sp=>sp.textContent=Math.floor(Math.random()*10));
+    if(n>12){clearInterval(iv);renderMeter(to)}},45);
+}
+function targetDiv(){
+  const n=S.sc.stages.length, prog=S.stage/n;
+  const r=(S.rapport-45)/100*0.06;
+  return Math.max(0,Math.min(TARGET, START+(TARGET-START)*prog + (prog<1?r:0) + (prog<1?Math.random()*0.004:0)));
+}
+renderMeter(START);
+
+/* ---------- typewriter ---------- */
+let typing=null;
+function say(name, text, opts={}){
+  return new Promise(res=>{
+    const t=$('text'), nm=$('name');
+    nm.textContent=name||''; nm.className=opts.you?'you':'';
+    t.className=opts.narr?'narr':''; t.textContent='';
+    $('dialog').classList.remove('wait');
+    if(!opts.you && name) { $('char').classList.add('talk'); setTimeout(()=>$('char').classList.remove('talk'),800); }
+    S.log.push({name,text,you:!!opts.you,narr:!!opts.narr});
+    let i=0; const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+    if(typing) clearInterval(typing.iv);
+    const done=()=>{clearInterval(typing&&typing.iv);typing=null;t.textContent=text;res()};
+    if(reduce||opts.instant){t.textContent=text;return res()}
+    typing={done,iv:setInterval(()=>{i+=2;t.textContent=text.slice(0,i);if(i>=text.length)done()},22)};
+  });
+}
+function waitClick(){
+  return new Promise(res=>{
+    $('dialog').classList.add('wait');
+    const go=e=>{ if(e.type==='keydown'&&!['Enter',' '].includes(e.key))return; if(e.type==='keydown')e.preventDefault();
+      cleanup();$('dialog').classList.remove('wait');res()};
+    const cleanup=()=>{$('dialog').removeEventListener('click',go);document.removeEventListener('keydown',go)};
+    setTimeout(()=>{$('dialog').addEventListener('click',go);document.addEventListener('keydown',go)},60);
+  });
+}
+$('dialog').addEventListener('click',()=>{if(typing)typing.done()});
+
+/* ---------- UI helpers ---------- */
+function setEmo(e){S.emo=EMOS.includes(e)?e:'neutral';$('char').innerHTML=portrait(S.sc.char,S.emo)}
+function updateMission(){
+  const sc=S.sc,n=sc.stages.length, st=sc.stages[Math.min(S.stage,n-1)];
+  $('stagen').textContent=`${Math.min(S.stage+1,n)}/${n}`;
+  $('objective').textContent=S.stage>=n?'Complete':st.objective;
+  $('pips').innerHTML=sc.stages.map((_,i)=>`<i class="${i<S.stage?'on':i===S.stage?'cur':''}"></i>`).join('');
+  $('rapv').textContent=S.rapport; $('rap').firstElementChild.style.width=S.rapport+'%';
+  $('goal').textContent='Goal: '+sc.goal;
+  $('hinttext').textContent='';
+}
+function setInput(on){
+  const showChoices = on && (!S.live || $('opt-choices').checked);
+  $('say').disabled=!on||!S.live; $('send').disabled=!on||!S.live; $('mic').disabled=!on;
+  $('row').style.display=S.live?'flex':'none';
+  $('choices').innerHTML='';
+  if(showChoices){
+    const st=S.sc.stages[S.stage]; if(st&&st.choices){
+      const cs=[...st.choices].sort(()=>Math.random()-.5);
+      cs.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.innerHTML=`<span>${i+1}</span>`;b.append(c.t);
+        b.onclick=()=>{ if(S.live){$('say').value=c.t;$('say').focus()} else pickChoice(c)};$('choices').append(b)});
+    }
+  }
+  if(on&&S.live) $('say').focus();
+}
+function coach(r){
+  const c=$('coach'), d=r.delta;
+  c.className=d<0?'neg':'';
+  c.innerHTML=`<div class="top"><span>${esc(r.technique||'Feedback')}</span><span>${d>0?'+':''}${d} rapport</span></div><div class="fb">${esc(r.feedback||'')}</div>${r.better?`<div class="try">Try: <b>“${esc(r.better)}”</b></div>`:''}`;
+  requestAnimationFrame(()=>c.classList.add('show'));
+}
+function fx(cls){const s=$('stage');s.classList.remove(cls);void s.offsetWidth;s.classList.add(cls)}
+function showErr(m){const e=$('err');e.textContent=m;e.style.display='block';clearTimeout(showErr.t);showErr.t=setTimeout(()=>e.style.display='none',6000)}
+
+/* ---------- timer ---------- */
+function startTimer(){
+  stopTimer(); if(!$('opt-pressure').checked){$('timer').style.visibility='hidden';return}
+  $('timer').style.visibility='visible'; S.tLeft=TURN_SECS; const bar=$('timer').firstElementChild;
+  const tick=()=>{bar.style.transform=`scaleX(${S.tLeft/TURN_SECS})`;$('timer').classList.toggle('low',S.tLeft<=10)};
+  tick(); S.timer=setInterval(()=>{S.tLeft-=.25;tick();
+    if(S.tLeft<=0){stopTimer(); if(S.live) submit('[silence]'); else pickChoice({t:'[silence]',d:-6,m:0,e:'thinking',r:'…Hello? Are you going to say something?',f:'Long silences read as avoidance. A short, honest line beats a perfect one that never arrives.',tech:'Silence'})}},250);
+}
+function stopTimer(){clearInterval(S.timer);S.timer=null}
+
+/* ---------- Claude engine ---------- */
+async function askJSON(prompt){
+  const opts={modelTier:'default',cache:false};
+  if(typeof sample.json==='function') return await sample.json(prompt,opts);
+  const r=await sample(prompt,opts); const m=(r.text||'').match(/\{[\s\S]*\}/); return JSON.parse(m?m[0]:r.text);
+}
+function transcript(){
+  return S.log.filter(l=>!l.narr).map(l=>`${l.you?'PLAYER':S.sc.char.name.toUpperCase()}: ${l.text}`).join('\n');
+}
+async function evaluate(line){
+  const sc=S.sc, n=sc.stages.length, st=sc.stages[S.stage], nx=sc.stages[S.stage+1];
+  const prompt=`You run a conversation-skills training game styled as a visual novel. You voice one character and also coach the player.
+
+SCENARIO: ${sc.title}. ${sc.sub}
+SETTING: ${sc.setup.join(' ')}
+CHARACTER: ${sc.char.name}, ${sc.char.role}. ${sc.char.persona}
+PLAYER'S OVERALL GOAL: ${sc.goal}
+CURRENT OBJECTIVE (beat ${S.stage+1} of ${n}): ${st.objective}
+${nx?`NEXT OBJECTIVE (if this one is met, steer your reply so it naturally sets this up): ${nx.objective}`:'This is the final beat. If met, the reply should close the scene warmly or with a clear commitment.'}
+RAPPORT NOW: ${S.rapport}/100
+
+CONVERSATION SO FAR:
+${transcript()}
+
+THE PLAYER JUST SAID: "${line}"
+
+Rules:
+- Stay in character. React the way this real person would: reward empathy, specificity, good questions, ownership and clear asks; penalize defensiveness, vagueness, rambling, manipulation, rudeness, and ignoring what was just said.
+- "[silence]" means the player froze; react to the awkward pause.
+- objective_met is true only if this line genuinely accomplishes the CURRENT objective. Be fair but not soft.
+- If the player says something off-topic, absurd or hostile, react in character and don't advance.
+- reply: 1 to 3 short spoken sentences, no stage directions, no quotation marks around it.
+- feedback: one plain sentence of coaching on the player's line, addressed to "you".
+- better: if delta < 8, one short example line the player could have said instead; otherwise "".
+- technique: 1 to 3 word label for what the player did (e.g. "Open question", "Deflection").
+
+Return ONLY JSON:
+{"reply":string,"emotion":one of ${JSON.stringify(EMOS)},"delta":integer -20..20,"objective_met":boolean,"technique":string,"feedback":string,"better":string}`;
+  const j=await askJSON(prompt);
+  return {reply:String(j.reply||'…'),emotion:j.emotion,delta:Math.max(-20,Math.min(20,parseInt(j.delta)||0)),met:!!j.objective_met,technique:j.technique,feedback:j.feedback,better:j.better||''};
+}
+
+/* ---------- turn flow ---------- */
+async function submit(text){
+  text=(text||'').trim(); if(!text||S.busy||S.ended) return;
+  S.busy=true; stopTimer(); setInput(false); $('say').value=''; $('coach').classList.remove('show');
+  await say('You', text==='[silence]'?'……':text, {you:true});
+  $('name').textContent=S.sc.char.name; $('name').className=''; $('text').className='dots'; $('text').textContent='';
+  $('char').classList.add('thinking');
+  let r;
+  try{ r=await evaluate(text); }
+  catch(e){
+    $('char').classList.remove('thinking'); S.busy=false;
+    if(e&&e.code==='not_granted'){ S.live=false; showErr('Claude access was declined, so the scene switched to script mode.'); }
+    else if(e&&e.code==='rate_limited'){ showErr('Claude is rate-limited right now. Wait a moment, then try your line again.'); }
+    else showErr('The reply didn\'t come through. Try saying it again.');
+    S.log.pop(); $('text').className=''; $('text').textContent=''; setInput(true); startTimer(); return;
+  }
+  $('text').className='';
+  $('char').classList.remove('thinking');
+  await resolveTurn(text,r);
+}
+async function pickChoice(c){
+  if(S.busy||S.ended) return; S.busy=true; stopTimer(); setInput(false); $('coach').classList.remove('show');
+  await say('You', c.t==='[silence]'?'……':c.t, {you:true});
+  await new Promise(r=>setTimeout(r,450));
+  await resolveTurn(c.t,{reply:c.r,emotion:c.e,delta:c.d,met:!!c.m,technique:c.tech,feedback:c.f,better:c.b||''});
+}
+async function resolveTurn(text,r){
+  S.rapport=Math.max(0,Math.min(100,S.rapport+r.delta));
+  S.turns.push({you:text,...r,stage:S.stage});
+  setEmo(r.emotion);
+  if(r.delta<=-8) fx('shake'); else if(r.delta>=10) fx('flash');
+  coach(r);
+  const advanced=r.met;
+  if(advanced){ S.stage++; }
+  updateMission(); animateMeter(targetDiv());
+  await say(S.sc.char.name, r.reply);
+  if(advanced && S.stage<S.sc.stages.length){ const sh=$('shift');sh.classList.remove('go');void sh.offsetWidth;sh.classList.add('go'); }
+  S.busy=false;
+  if(S.stage>=S.sc.stages.length){ await waitClick(); return finish('win'); }
+  if(S.rapport<=0){ await waitClick(); return finish('lost'); }
+  if(S.turns.length>=MAX_TURNS){ await waitClick(); return finish('time'); }
+  setInput(true); startTimer();
+}
+
+/* ---------- scene start ---------- */
+async function start(sc){
+  Object.assign(S,{sc,stage:0,rapport:45,turns:[],log:[],busy:true,ended:false,div:START,live:!!sample});
+  $('title').classList.remove('show'); $('end').classList.remove('show'); $('coach').classList.remove('show');
+  $('bg').className=sc.bg; $('scene-tag').innerHTML=`World line ${String(SCENARIOS.indexOf(sc)+1).padStart(2,'0')}<b>${esc(sc.title)}</b>`;
+  renderMeter(START); setEmo('neutral'); $('char').style.opacity=0; updateMission(); setInput(false); stopTimer(); $('timer').style.visibility='hidden';
+  const tok=S.tok=(S.tok||0)+1;
+  for(const line of sc.setup){ await say('',line,{narr:true}); await waitClick(); if(S.tok!==tok)return; }
+  $('char').style.transition='opacity .6s'; $('char').style.opacity=1;
+  setEmo(sc.openEmo||'neutral');
+  await say(sc.char.name, sc.opening);
+  if(S.tok!==tok)return;
+  S.busy=false; setInput(true); startTimer();
+}
+
+/* ---------- end ---------- */
+function grade(){
+  const won=S.stage>=S.sc.stages.length, pos=S.turns.filter(t=>t.delta>0).length/Math.max(1,S.turns.length);
+  if(!won) return S.stage>0?'C':'D';
+  const sc=S.rapport+pos*30-(S.turns.length-S.sc.stages.length)*4;
+  return sc>=110?'S':sc>=90?'A':'B';
+}
+function finish(kind){
+  S.ended=true; stopTimer(); setInput(false);
+  if(kind==='win'){animateMeter(TARGET)}
+  const g=grade(), sc=S.sc;
+  const rank='SABCD'; if(!best[sc.id]||rank.indexOf(g)<rank.indexOf(best[sc.id])){best[sc.id]=g;try{localStorage.setItem('wlt-best',JSON.stringify(best))}catch{}}
+  const head={win:['Target world line reached','You hit every objective. The divergence meter reads 1.000000.'],
+    lost:['World line collapsed','Rapport hit zero and the conversation is over. Read the beats below and try a different branch.'],
+    time:['Conversation stalled','Twelve exchanges and the objectives still aren\'t met. Look at where the beats slipped.']}[kind];
+  const turns=S.turns.map(t=>`<div class="turn ${t.delta>0?'pos':t.delta<0?'neg':''}">
+    <div class="you">“${esc(t.you==='[silence]'?'(silence)':t.you)}”</div>
+    <div class="meta">Beat ${t.stage+1} · ${esc(t.technique||'')} · <span class="d">${t.delta>0?'+':''}${t.delta}</span>${t.met?' · objective met':''}</div>
+    <div>${esc(t.feedback||'')}</div>${t.better?`<div class="alt">Try: <b>“${esc(t.better)}”</b></div>`:''}</div>`).join('');
+  $('endwrap').innerHTML=`<div class="eyebrow">${esc(sc.title)} · debrief</div><h1>${head[0]}</h1><p class="lede">${head[1]}</p>
+   <div class="sum"><div class="grade">${g}</div><div class="stat">Objectives<b>${S.stage}/${sc.stages.length}</b></div><div class="stat">Rapport<b>${S.rapport}</b></div><div class="stat">Exchanges<b>${S.turns.length}</b></div></div>
+   ${turns||'<p class="lede">No lines recorded.</p>'}
+   <div class="actions"><button class="btn primary" id="again" type="button">Replay this scene</button><button class="btn" id="menu" type="button">Choose another</button></div>`;
+  $('again').onclick=()=>start(sc); $('menu').onclick=toTitle;
+  setTimeout(()=>$('end').classList.add('show'), kind==='win'?900:200);
+}
+function toTitle(){S.ended=true;S.tok=(S.tok||0)+1;stopTimer();$('end').classList.remove('show');renderCards();$('title').classList.add('show')}
+
+/* ---------- title ---------- */
+function renderCards(){
+  $('cards').innerHTML='';
+  SCENARIOS.forEach((sc,i)=>{
+    const b=document.createElement('button');b.className='card';b.type='button';
+    b.innerHTML=`<div class="thumb ${sc.bg}">${portrait(sc.char,sc.openEmo||'neutral')}</div>
+     <div class="body"><span class="no">WORLD LINE ${String(i+1).padStart(2,'0')} · ${esc(sc.char.name.toUpperCase())}</span><span class="t">${esc(sc.title)}</span><span class="s">${esc(sc.sub)}</span></div>
+     ${best[sc.id]?`<span class="best">BEST ${best[sc.id]}</span>`:''}`;
+    b.onclick=()=>start(sc); $('cards').append(b);
+  });
+}
+renderCards();
+
+$('custom-go').onclick=async()=>{
+  const d=$('custom-in').value.trim(); if(!d){$('custom-msg').textContent='Describe the conversation first.';return}
+  if(!sample)return;
+  $('custom-go').disabled=true; $('custom-msg').textContent='Building the scene…';
+  try{
+    const j=await askJSON(`Design one scenario for a conversation-skills training visual novel from this description by the player:
+"${d}"
+The player is "you". Create the other person as a realistic, specific character with clear motives, what wins them over, and what sets them off. Three beats that a skilled communicator would move through, each a short imperative objective.
+Return ONLY JSON:
+{"title":"2-4 words","sub":"one sentence premise","bg":one of ${JSON.stringify(BGS)},"char":{"name":"full name","role":"relationship to player","persona":"3-4 sentences","hair":one of ${JSON.stringify(HAIRS)},"hairColor":"dark hex color","color":"muted hex clothing color"},"setup":["3 short narration lines, present tense, second person"],"opening":"the character's first line","openEmo":one of ${JSON.stringify(EMOS)},"goal":"one sentence","stages":[{"objective":"...","hint":"..."},{"objective":"...","hint":"..."},{"objective":"...","hint":"..."}]}`);
+    if(!j||!j.char||!Array.isArray(j.stages)||!j.stages.length) throw new Error('shape');
+    const sc={id:'custom-'+Date.now(),title:j.title||'Custom',sub:j.sub||d,bg:BGS.includes(j.bg)?j.bg:'bg-cafe',
+      char:{name:j.char.name||'Stranger',role:j.char.role||'',persona:j.char.persona||'',hair:HAIRS.includes(j.char.hair)?j.char.hair:'bob',
+        hairColor:/^#[0-9a-f]{3,6}$/i.test(j.char.hairColor)?j.char.hairColor:'#2a2226',color:/^#[0-9a-f]{3,6}$/i.test(j.char.color)?j.char.color:'#3a3f4a'},
+      setup:(j.setup||[]).slice(0,4).map(String),opening:String(j.opening||'…'),openEmo:j.openEmo,goal:j.goal||'',
+      stages:j.stages.slice(0,4).map(s=>({objective:String(s.objective||''),hint:String(s.hint||'')}))};
+    $('custom-msg').textContent=''; start(sc);
+  }catch(e){
+    $('custom-msg').textContent=e&&e.code==='not_granted'?'Claude access was declined.':e&&e.code==='rate_limited'?'Rate-limited. Try again in a minute.':'Couldn\'t build that one. Try rephrasing.';
+  }finally{$('custom-go').disabled=false}
+};
+
+/* ---------- controls ---------- */
+$('row').addEventListener('submit',e=>{e.preventDefault();submit($('say').value)});
+$('hintbtn').onclick=()=>{const st=S.sc&&S.sc.stages[S.stage]; if(st)$('hinttext').textContent='Hint: '+st.hint};
+$('logbtn').onclick=()=>{$('logbody').innerHTML=S.log.map(l=>`<div class="entry ${l.you?'you':''} ${l.narr?'narr':''}">${l.name?`<b>${esc(l.name)}</b>`:''}${esc(l.text)}</div>`).join('');$('log').classList.add('show')};
+$('logclose').onclick=()=>$('log').classList.remove('show');
+$('quitbtn').onclick=toTitle;
+$('opt-choices').onchange=()=>{if(S.sc&&!S.busy&&!S.ended)setInput(true)};
+document.addEventListener('keydown',e=>{
+  if(!S.live&&!S.busy&&!S.ended&&/^[1-3]$/.test(e.key)&&!$('title').classList.contains('show')){const b=$('choices').children[+e.key-1];if(b)b.click()}
+  if(e.key==='Escape')$('log').classList.remove('show');
+});
+
+/* ---------- dictation ---------- */
+function setupMic(){
+  const m=$('mic'); m.hidden=false; let base='', on=false, denied=false;
+  dict.onPartial(({text})=>{$('say').value=(base+' '+text).trim()});
+  dict.onFinal(({text})=>{base=(base+' '+text).trim();$('say').value=base});
+  dict.onState(({state})=>{on=state==='listening';m.classList.toggle('on',on);m.textContent=on?'Stop':'Mic'});
+  m.onclick=()=>{
+    if(denied)return;
+    if(on){dict.stop().catch(()=>{});return}
+    base=$('say').value.trim();
+    dict.start().catch(e=>{if(e&&e.code==='not_granted'){denied=true;m.hidden=true}});
+  };
+}
+</script>
+</body>
+</html>

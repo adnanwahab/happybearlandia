@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1,000 Inner Lives</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,300;1,9..144,400&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#08090f; --panel:#0e1019; --panel2:#141724; --ink:#ece8df; --mute:#8b90a3; --faint:#5a5f72;
+  --line:rgba(255,255,255,.07); --serif:'Fraunces',Georgia,serif; --sans:'Instrument Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);overflow:hidden}
+body{display:flex}
+#stage{position:relative;flex:1;min-width:0;background:radial-gradient(ellipse 80% 70% at 50% 45%,#141a2c 0%,#0b0d16 55%,#07080d 100%)}
+#cv{position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:none}
+#cv.dragging{cursor:grabbing}
+#cv.pointing{cursor:pointer}
+#panel{width:410px;flex:none;background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#2a2e3d transparent}
+#pc{padding:22px 26px 60px;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (max-width:780px){
+  body{flex-direction:column}
+  #panel{width:auto;height:46%;border-left:0;border-top:1px solid var(--line)}
+}
+
+/* HUD */
+.hud{position:absolute;z-index:3}
+#top{top:16px;left:18px;display:flex;align-items:center;gap:14px}
+#brand{font-family:var(--serif);font-weight:500;font-size:19px;letter-spacing:.01em;white-space:nowrap}
+#brand em{font-style:italic;font-weight:300;color:var(--mute)}
+#searchwrap{position:relative}
+#search{width:210px;background:rgba(20,23,36,.8);border:1px solid var(--line);color:var(--ink);padding:8px 12px;border-radius:999px;font:14px var(--sans);outline:none;backdrop-filter:blur(6px)}
+#search:focus{border-color:rgba(255,255,255,.25)}
+#results{position:absolute;top:40px;left:0;width:260px;background:#121522;border:1px solid var(--line);border-radius:12px;overflow:hidden;display:none;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+#results button{display:flex;width:100%;gap:10px;align-items:center;background:none;border:0;color:var(--ink);padding:9px 12px;font:14px var(--sans);text-align:left;cursor:pointer}
+#results button:hover,#results button.on{background:rgba(255,255,255,.06)}
+#results small{color:var(--mute);margin-left:auto;font-size:12px}
+#legend{left:18px;bottom:16px;background:rgba(14,16,25,.78);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-size:12px;max-width:min(520px,calc(100% - 140px))}
+#legend .modes{display:flex;gap:4px;margin-bottom:8px}
+#legend .modes button{background:none;border:1px solid transparent;color:var(--mute);font:12px var(--sans);padding:3px 9px;border-radius:999px;cursor:pointer}
+#legend .modes button.on{border-color:rgba(255,255,255,.18);color:var(--ink)}
+#legend .keys{display:flex;flex-wrap:wrap;gap:6px 12px;color:var(--mute)}
+#legend .keys span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+#legend .keys i{width:9px;height:9px;border-radius:50%;display:inline-block}
+#zoom{right:16px;bottom:16px;display:flex;flex-direction:column;gap:6px}
+#zoom button{width:36px;height:36px;border-radius:10px;background:rgba(14,16,25,.8);border:1px solid var(--line);color:var(--ink);font:16px var(--sans);cursor:pointer}
+#zoom button:hover{border-color:rgba(255,255,255,.25)}
+#hint{top:18px;right:16px;font-size:12.5px;color:var(--mute);background:rgba(14,16,25,.7);border:1px solid var(--line);padding:7px 14px;border-radius:999px;transition:opacity .8s;pointer-events:none;white-space:nowrap}
+#tip{position:absolute;z-index:4;pointer-events:none;background:rgba(10,12,20,.92);border:1px solid var(--line);border-radius:10px;padding:7px 10px;font-size:12.5px;max-width:260px;display:none;line-height:1.35}
+#tip b{font-weight:600}
+#tip span{color:var(--mute)}
+@media (max-width:780px){#hint{display:none}#search{width:150px}#brand em{display:none}}
+
+/* Panel content */
+.crumbs{display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:12px;color:var(--faint);margin-bottom:18px}
+.crumbs button{background:none;border:0;color:var(--mute);font:12px var(--sans);padding:0;cursor:pointer}
+.crumbs button:hover{color:var(--ink)}
+.crumbs .sep{opacity:.5}
+h1{font-family:var(--serif);font-weight:500;font-size:34px;line-height:1.08;margin:0 0 8px;letter-spacing:-.01em}
+h1.big{font-size:38px}
+h2{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);font-weight:600;margin:28px 0 12px}
+.lede{font-family:var(--serif);font-weight:300;font-size:18px;line-height:1.5;color:#cfcbc2;margin:0 0 6px}
+.mute{color:var(--mute)}
+.small{font-size:13px}
+.btn{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:9px 16px;font:14px var(--sans);cursor:pointer}
+.btn:hover{border-color:rgba(255,255,255,.22)}
+.row{display:flex;align-items:center;gap:10px}
+.list{display:flex;flex-direction:column;gap:2px}
+.li{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;color:var(--ink);text-align:left;padding:8px 10px;margin:0 -10px;border-radius:10px;font:14px var(--sans);cursor:pointer;width:calc(100% + 20px)}
+.li:hover{background:rgba(255,255,255,.05)}
+.li .r{margin-left:auto;color:var(--mute);font-size:12.5px;white-space:nowrap}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}
+.phead{display:flex;gap:16px;align-items:center;margin-bottom:14px}
+.avatar{width:62px;height:62px;border-radius:50%;flex:none;display:grid;place-items:center;font:600 20px var(--sans);color:#10121a;background:radial-gradient(circle at 35% 30%,#fff8 0,transparent 55%),rgb(var(--c));box-shadow:0 0 30px rgba(var(--c),.45)}
+.sub{color:var(--mute);font-size:14px}
+.bio{font-size:15px;line-height:1.6;color:#cfcbc2;margin:6px 0 0}
+.weather{display:flex;height:10px;border-radius:999px;overflow:hidden;gap:2px;margin-top:4px}
+.weather i{display:block;height:100%}
+.wkeys{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:8px;font-size:12px;color:var(--mute)}
+.wkeys span{display:inline-flex;gap:5px;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font:13px var(--sans);color:#d8d4cb}
+button.chip{cursor:pointer}
+button.chip:hover{border-color:rgba(255,255,255,.25)}
+.chip b{font-weight:500;color:var(--mute)}
+.cathead{display:flex;align-items:center;gap:8px;margin:22px 0 6px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:600}
+.cathead .n{color:var(--faint);letter-spacing:0}
+.tag{display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;margin-bottom:10px}
+.tag .g{font-size:15px;letter-spacing:0}
+#art{width:100%;height:210px;border-radius:14px;display:block;margin:18px 0 20px;border:1px solid var(--line)}
+.quote{font-family:var(--serif);font-style:italic;font-weight:300;font-size:21px;line-height:1.5;margin:0;color:#efe9dd;border-left:2px solid var(--cc);padding-left:18px}
+.meta{display:grid;grid-template-columns:auto 1fr;gap:12px 18px;align-items:center;font-size:14px}
+.meta .k{color:var(--mute);font-size:13px;white-space:nowrap}
+.bar{height:6px;background:rgba(255,255,255,.07);border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:999px}
+.stat{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
+.stat div{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px}
+.stat b{display:block;font-family:var(--serif);font-weight:500;font-size:24px}
+.stat span{font-size:12px;color:var(--mute)}
+.how{font-size:14px;line-height:1.6;color:#bdb9b0;padding-left:18px;margin:8px 0 0}
+.how li{margin-bottom:4px}
+
+/* Observatory workspace */
+#stage{min-height:300px}#panel{width:430px;background:linear-gradient(155deg,#171b29,#0e1019 65%)}
+#top{right:18px;flex-wrap:wrap;padding:12px 14px;border:1px solid var(--line);border-radius:16px;background:#0c101cdd;backdrop-filter:blur(16px)}
+#brand{font-size:21px}#searchwrap{margin-left:auto}#search{width:235px}
+#hint{top:93px;left:22px;right:auto;background:none;border:0;padding:0;white-space:normal;max-width:75%}
+#journey{top:125px;left:22px;display:flex;gap:7px;flex-wrap:wrap}
+#journey button{border:1px solid #ffffff22;background:#151b2b;color:var(--ink);padding:8px 12px;border-radius:9px;cursor:pointer;font:12px var(--sans)}
+#journey button:hover{background:#293249}#journey #saved-count{color:#edc687}
+#pc{padding:28px 28px 60px}.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.2em;color:#e3bc80;margin:0 0 16px}
+#pc h1.big{font-size:43px}.stat div{background:#ffffff04}.stat b{color:#edc687}
+#pc .btn{background:#e7ce9f;color:#171a23;font-weight:600}.lede{color:#d0c9ba}
+button:focus-visible,input:focus-visible,canvas:focus-visible{outline:2px solid #edc687;outline-offset:4px}
+.save-row{display:flex;gap:8px;margin:16px 0}.save-row .btn{font-size:12px;padding:8px 12px}
+#location{pointer-events:none;position:absolute;right:18px;bottom:155px;font:11px var(--sans);color:var(--mute);writing-mode:vertical-rl;letter-spacing:.12em}
+@media(max-width:1100px){#panel{width:365px}#top{gap:8px}#brand{font-size:17px}#search{width:165px}#pc{padding:23px}#pc h1.big{font-size:36px}}
+@media(max-width:780px){#stage{flex:1;min-height:320px}#panel{width:100%;height:43%;min-height:220px}#top{top:10px;left:10px;right:10px;padding:10px}#search{width:160px}#brand em{display:inline}#hint{display:none}#journey{top:76px;left:12px}#journey button{padding:7px 9px}#legend{left:10px;bottom:10px;padding:8px;max-width:calc(100% - 65px)}#legend .keys{gap:4px 8px;font-size:10px}#legend .modes{flex-wrap:wrap}#legend .modes button{padding:3px 6px;font-size:11px}#pc h1.big{font-size:32px}#pc{padding:20px}#zoom{right:10px;bottom:10px}#location{display:none}}
+@media(prefers-reduced-motion:reduce){#pc{animation:none!important}*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="cv" tabindex="0" aria-label="Interactive map of 1,000 fictional people. Use search or Meet someone to explore; plus and minus to zoom, arrow keys to pan."></canvas>
+  <div id="top" class="hud">
+    <div id="brand">1,000 <em>Inner Lives</em></div>
+    <div id="searchwrap">
+      <input id="search" aria-label="Search people, towns or occupations" placeholder="Name, town, occupation…" autocomplete="off" spellcheck="false">
+      <div id="results"></div>
+    </div>
+  </div>
+  <nav id="journey" class="hud" aria-label="Explore lives"><button id="overview">↖ Everyone</button><button id="meet">✦ Meet someone</button><button id="saved">♡ Saved <span id="saved-count">0</span></button></nav><div id="location">A FICTIONAL ATLAS OF HUMAN EXPERIENCE</div><div id="hint" class="hud">Scroll to zoom · drag to pan · zoom all the way into anyone</div>
+  <div id="legend" class="hud"></div>
+  <div id="zoom" class="hud">
+    <button id="zin" title="Zoom in">+</button>
+    <button id="zout" title="Zoom out">−</button>
+    <button id="zfit" title="See everyone">⤢</button>
+  </div>
+  <div id="tip"></div>
+</div>
+<aside id="panel" aria-label="Life details"><div id="pc"></div></aside>
+
+<script>
+/* ============================================================
+   Seeded randomness — the same 1,000 people every visit
+   ============================================================ */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const R = mulberry32(20261109);
+const pick=(a,r=R)=>a[Math.floor(r()*a.length)];
+const rint=(lo,hi,r=R)=>lo+Math.floor(r()*(hi-lo+1));
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function sample(arr,n,r=R){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a.slice(0,Math.min(n,a.length))}
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+
+/* ============================================================
+   Categories
+   ============================================================ */
+const CATS=[
+  {id:'memory', label:'Memories', one:'Memory',  hex:'#f2b65e', hue:36,  sat:70, glyph:'◷'},
+  {id:'hope',   label:'Hopes',    one:'Hope',    hex:'#7fd9a2', hue:145, sat:55, glyph:'✦'},
+  {id:'dream',  label:'Dreams',   one:'Dream',   hex:'#ad8ff2', hue:262, sat:65, glyph:'☾'},
+  {id:'fear',   label:'Fears',    one:'Fear',    hex:'#ef6f6c', hue:2,   sat:65, glyph:'▲'},
+  {id:'thought',label:'Thoughts', one:'Thought', hex:'#6cbcf0', hue:205, sat:70, glyph:'◌'},
+  {id:'love',   label:'Loves',    one:'Love',    hex:'#f590c6', hue:328, sat:70, glyph:'♥'},
+  {id:'regret', label:'Regrets',  one:'Regret',  hex:'#a4afc2', hue:218, sat:18, glyph:'↺'},
+];
+const hexRgb=h=>{const n=parseInt(h.slice(1),16);return `${n>>16&255},${n>>8&255},${n&255}`};
+CATS.forEach((c,i)=>{c.rgb=hexRgb(c.hex);c.i=i});
+const CAT=Object.fromEntries(CATS.map(c=>[c.id,c]));
+
+/* ============================================================
+   The stuff of inner lives.  [title, body, {min,max,at:[lo,hi]}]
+   {placeholders} are filled per person; an item is only given to
+   someone whose life contains every name it mentions.
+   ============================================================ */
+const POOLS={
+memory:[
+ ["The summer the creek flooded","Water came right up to the porch steps in {hometown}. {father} carried me on his shoulders to see the drowned fence posts, and I thought the whole world might float away.",{at:[5,14]}],
+ ["Learning to ride without training wheels","{mother} let go of the seat and didn't tell me. I was halfway down the street before I realized I was doing it alone.",{at:[4,8]}],
+ ["{gname}'s kitchen","Flour on every surface, the radio murmuring, a pot that was always going. I got the burnt edges and was told they were the best part.",{at:[3,12]}],
+ ["The night the power went out","We played cards by candlelight on the living-room floor. {sibling} cheated and nobody minded.",{at:[5,16]}],
+ ["Breaking my arm at the playground","I fell off the top of the climbing frame trying to prove something to {friend}. The cast had forty signatures by Friday.",{at:[5,11]}],
+ ["First day at a new school","I didn't know anyone. I ate lunch in the library and pretended to read until {friend} sat down and asked if the book was any good.",{at:[5,15]}],
+ ["Seeing the ocean for the first time","It was louder than I expected. I stood there with my shoes in my hand and couldn't think of a single thing to say.",{at:[4,25]}],
+ ["Getting lost at the county fair","Twenty minutes felt like a year. A woman selling lemonade held my hand until {mother} found me, crying harder than I was.",{at:[4,9]}],
+ ["The day we brought {pet} home","A tiny thing shivering in a cardboard box. We argued about the name the whole drive back.",{at:[5,60]}],
+ ["Saying goodbye to {oldpet}","The vet's office was too bright. I kept my hand on {oldpet}'s side until the breathing stopped, and I didn't wash that sweater for a week.",{at:[8,60]}],
+ ["My first paycheck","It was barely anything. I spent half of it taking {mother} to dinner and kept the stub in my wallet for years.",{at:[14,24]}],
+ ["Graduation day","Mostly I remember the heat, the gown sticking to my back, and {father} trying to whistle through his fingers and failing.",{at:[17,26]}],
+ ["Leaving {oldtown}","Everything I owned fit in the back of a borrowed car. I didn't look back until the town was gone, and then I couldn't stop.",{at:[17,40]}],
+ ["The first time I met {partner}","It was raining and we were both trying to fit under the same awning. Neither of us said much. Somehow that was enough.",{at:[16,60]}],
+ ["The day {child} was born","I held {child} and felt the floor of my life drop away and rebuild itself, bigger, in an instant.",{at:[20,45]}],
+ ["A road trip with {friend}","Three days, a broken air conditioner, one tape on repeat. We slept in the car at a rest stop and watched the sun come up over wheat fields.",{at:[16,40]}],
+ ["Being told I wasn't good enough","A coach, or a teacher, the face blurs now. They said it plainly in front of everyone. I've spent a long time proving them wrong, and I'm not sure who for.",{at:[8,40]}],
+ ["Dancing at {sibling}'s wedding","My shoes hurt and the band only knew six songs. We danced to all of them twice.",{at:[14,60]}],
+ ["The hospital waiting room","The vending machine hummed all night. I learned the exact pattern of the ceiling tiles while we waited for news about {father}.",{at:[10,80]}],
+ ["Winning the spelling bee","The word was 'chrysanthemum.' I still spell it in my head when I can't sleep.",{at:[7,13]}],
+ ["The snow day fort","School was cancelled and {sibling} and I built a fort so big it lasted until March.",{at:[4,14]}],
+ ["Climbing the water tower","It was not allowed. {friend} dared me. From the top, {hometown} looked like a toy someone had forgotten to put away.",{at:[12,19]}],
+ ["Fishing with {father}","He was patient in a way he never was at home. We didn't catch anything. I didn't care.",{at:[5,14]}],
+ ["My first apartment","One window, a radiator that knocked all night, and a view of a brick wall. I loved it completely.",{at:[18,30]}],
+ ["Getting the call","I was in the grocery store holding a bag of oranges when the phone rang. I still can't buy oranges without thinking about it.",{at:[20,85]}],
+ ["Learning to swim in the lake","The water was brown and cold and full of weeds. {sibling} swore there were no fish. There were fish.",{at:[4,10]}],
+ ["Fireworks from the roof","We climbed out of the bathroom window with a blanket and a bag of chips. The whole town went quiet between bursts.",{at:[6,30]}],
+ ["A stranger's kindness on a bus","I was crying and trying not to. An old man handed me a peppermint without a word and got off at the next stop.",{at:[10,70]}],
+ ["Burning the first dinner I cooked for {partner}","Smoke alarm, open windows, takeout on the floor. {partner} still brings it up as the best date we ever had.",{at:[18,55]}],
+ ["{mother} singing in the car","Always off-key, always the same three songs, windows down. I used to be embarrassed. Now I'd give anything to hear it.",{at:[4,14]}],
+ ["The tree house","{father} built it crooked and swore it was on purpose. I slept up there every night one summer.",{at:[6,12]}],
+ ["Teaching {child} to tie their shoes","Bunny ears, around the tree, through the hole. Four hundred tries. Then one morning, done, like it had always been easy.",{at:[25,50]}],
+],
+hope:[
+ ["To get a dog of my own","A big one, scruffy, who sleeps on the end of my bed. I've already made a list of names.",{max:14}],
+ ["To be tall enough for the big rollercoaster","Two more inches. I measure myself against the kitchen door every Sunday.",{max:11}],
+ ["To be an astronaut","I want to see the whole Earth at once, so small I could cover it with my thumb.",{max:13}],
+ ["To be a vet when I grow up","So I can make sure every animal gets better. Especially the old ones.",{max:15}],
+ ["To open a small bakery","Early mornings, the smell of bread, people from {town} stopping in before work. I've already picked the paint color.",{min:16}],
+ ["To see the northern lights","I want to stand somewhere freezing and watch the sky move like a curtain. I want to bring {friend}.",{}],
+ ["To finally write the book","It's half in a drawer and half in my head. Every year I tell myself this is the year.",{min:15}],
+ ["That {child} will be happier than I was","Not richer, not more successful. Just lighter. Less afraid.",{min:22}],
+ ["To make peace with {father}","Before it's too late for either of us. I keep drafting the first sentence.",{min:15}],
+ ["To retire somewhere near water","A porch, a chair, a view that changes every hour. That's all.",{min:35}],
+ ["To learn the cello","I heard one played in an empty church once and it went straight through me.",{min:10}],
+ ["To be someone people can count on","The one who shows up. The one with jumper cables and a casserole.",{}],
+ ["To get out of {town}","There's a whole world past the county line and I've barely seen any of it.",{min:13,max:40}],
+ ["To fall in love properly, just once","The kind where you stop keeping score.",{min:15}],
+ ["To grow old next to {partner}","Two chairs, two cups of coffee, decades of arguing about the thermostat.",{min:20}],
+ ["To speak {gname}'s language fluently","I understand more than I can say. I want to be able to answer back.",{min:10}],
+ ["That the test results come back clear","I've stopped googling. I'm just waiting, and hoping.",{min:30}],
+ ["To pay off the house","Imagine owning the roof over your own head. Free and clear.",{min:28}],
+ ["To build something that outlasts me","A business, a garden, a bench with my name on it. Something.",{min:20}],
+ ["To be brave enough to quit","The job is fine. Fine is the problem.",{min:22,max:62}],
+ ["To visit every national park","I have a map on the fridge with pins in it. Eleven down.",{min:12}],
+ ["That {sibling} and I talk again","It's been too long and neither of us remembers exactly why.",{min:16}],
+ ["To plant an orchard","Apple, pear, plum. Trees I'll probably never see at full height. That's the point.",{min:30}],
+ ["To see {child} graduate","Front row. I'll be the one crying.",{min:30}],
+ ["To sleep through the night again","Just once, eight hours, no waking at 3 a.m. with my thoughts running.",{min:25}],
+ ["To be forgiven","I've said sorry. I just want to believe it landed.",{min:14}],
+ ["To make the team this year","I've practiced every day after school. My hands are covered in blisters.",{max:17}],
+ ["To have a garden full of tomatoes","Real ones, warm from the sun, eaten standing up with salt.",{}],
+ ["To learn to dance properly","Not just swaying at weddings. Real steps.",{}],
+],
+dream:[
+ ["Flying over {town}","I run, then lift, then the rooftops are below me. The trick is not to look down or think about how."],
+ ["My teeth crumbling","They come loose one by one like chalk, and I'm trying to hide it while someone keeps talking to me."],
+ ["Late for an exam I never studied for","I can't find the room. When I do, the test is in a language I've never seen."],
+ ["A house with extra rooms","I find a door I never noticed, and behind it there are rooms, dozens of them, dusty and beautiful, and they've been mine all along."],
+ ["Driving a car with no brakes","The road keeps tilting downhill and I'm pressing the pedal through the floor."],
+ ["Talking with {gname} again","We're in the old kitchen. Nothing is said that matters. I wake up feeling like I've been visited."],
+ ["The ocean rising over the town","It's calm, not violent. The water just keeps coming up the streets and nobody seems worried but me."],
+ ["Chased through a mall at night","The escalators only go up. Every store is closed but the lights are on."],
+ ["A train that never stops","Station after station blurs past. I have a ticket but I don't know where to."],
+ ["Swimming with whales","Enormous shapes below me, slow and gentle. I can breathe underwater and it doesn't surprise me at all."],
+ ["Back in my childhood bedroom","Everything is exactly where I left it, but smaller, and the window looks out onto a place I've never been."],
+ ["Forgetting my lines on stage","The lights are blinding, the audience is silent, and I'm wearing the wrong costume."],
+ ["A forest that whispers my name","The trees lean in when I pass. I can't tell whether they're warning me or welcoming me."],
+ ["A phone that won't dial","The numbers keep sliding around. Someone important is waiting for my call."],
+ ["{pet} can talk","Just for one dream, and all they want to discuss is the weather and the mail carrier."],
+ ["The stairs that keep going down","Every landing looks the same. I can hear music somewhere below."],
+ ["An airport that never ends","My gate keeps moving. The departure board flips through cities that don't exist."],
+ ["Meeting myself as a child","The little version of me looks up and asks if we turned out okay. I never get to answer."],
+ ["A city made of glass","Every wall is see-through. Everyone can see everything, and nobody minds."],
+ ["Falling, but softly","Like a leaf. I keep waiting to hit the ground and it never comes."],
+ ["A wedding where I'm the only guest","Rows of empty chairs, flowers everywhere, and the music plays for me alone."],
+ ["Finding money everywhere","In pockets, under cushions, between book pages. It keeps coming and it never feels like enough."],
+],
+fear:[
+ ["The dark under the bed","Something lives there. I keep my feet tucked in, just in case.",{max:12}],
+ ["Being forgotten","Not dying. Being gone and then, slowly, not even being missed."],
+ ["Deep water","Not the surface. What's under it, where I can't see.",{}],
+ ["That I'm becoming {father}","I hear his voice come out of my mouth sometimes, and it stops me cold.",{min:16}],
+ ["Losing {partner}","I watch them sleep some nights and do the math on how much time we have.",{}],
+ ["Something happening to {child}","Every siren, every late text. My heart lives outside my body now.",{}],
+ ["Hospitals","The smell gets into my clothes. I start counting exits.",{}],
+ ["Not having enough money","The numbers never quite add up at the end of the month.",{min:16}],
+ ["Heights","My knees go loose on balconies. Even ladders.",{}],
+ ["Being found out as a fraud","One day someone will notice I've been making it up as I go.",{min:18}],
+ ["Growing old alone","An empty apartment, a radio for company, nobody to tell about my day.",{min:25}],
+ ["Spiders","I know they're harmless. My body doesn't.",{}],
+ ["Public speaking","My voice shakes and then I can hear it shaking and then it gets worse.",{min:9}],
+ ["That it's too late to change","That this is just who I am now, set like concrete.",{min:30}],
+ ["Thunderstorms","The sky cracks open and I feel about five years old again.",{}],
+ ["Being a burden","Needing help and watching someone's face as they decide whether to give it.",{min:50}],
+ ["Losing my memory","Forgetting the faces. Forgetting myself. Watching it happen and not being able to stop it.",{min:40}],
+ ["The phone ringing at night","Nothing good calls after midnight.",{min:16}],
+ ["Disappointing {mother}","The quiet way she says 'okay' when it isn't.",{}],
+ ["That nobody really knows me","People like the version I show them. I'm not sure they'd like the rest.",{min:13}],
+ ["Driving on highways","Merging is the worst part. Everyone so fast and so sure.",{min:16}],
+ ["Getting picked last","Standing on the wall while the captains choose.",{max:15}],
+ ["The future of the world","The weather, the news, all of it. What we're leaving behind.",{min:12}],
+],
+thought:[
+ ["Did I lock the back door?","I'm almost sure I did. Almost."],
+ ["Do fish get thirsty?","They live in water but do they ever want a drink?"],
+ ["What to make for dinner","There's half an onion, some rice, and a lot of optimism.",{min:16}],
+ ["That song from the grocery store","I don't even like it. It's been in my head for three days."],
+ ["Should I call {mother}?","It's been a week. Maybe ten days. She won't say anything, which is worse.",{min:16}],
+ ["Why the sky is that color tonight","Orange, then pink, then a purple I don't have a name for."],
+ ["The email I haven't answered","It's been sitting there so long now that answering it feels like a whole event.",{min:18}],
+ ["How {friend} is doing","Their last text was short. Probably nothing. Probably."],
+ ["Is it rude to leave early?","I've been here an hour. That counts, right?",{min:13}],
+ ["That cloud looks like a dragon","Now it looks like a dog. Now it's just a cloud.",{max:13}],
+ ["What happens after we die","It comes and goes. Usually at red lights."],
+ ["I should drink more water","I think this every day and then have coffee."],
+ ["The way {partner} laughed this morning","Over nothing. Over burnt toast. It's been in my head all day."],
+ ["If I had taken that other job","A different city, a different life. Would I be the same person?",{min:25}],
+ ["My knee aches when it's about to rain","Better than the weather report.",{min:40}],
+ ["Remember to buy batteries","For the smoke alarm. It's been chirping since Tuesday.",{min:18}],
+ ["What {child} said at breakfast","Out of nowhere: 'Do trees know they're trees?' I didn't have an answer."],
+ ["Do dogs dream?","Their paws twitch. They must be running somewhere."],
+ ["How many stars are there?","More than grains of sand, someone said. I can't stop picturing it."],
+ ["Saturday can't come soon enough","Two more days. One and a half if you count tonight."],
+ ["I think I'm happy, actually","It snuck up on me while I was doing the dishes."],
+ ["The rent is due Thursday","And the car needs tires. And.",{min:18}],
+ ["That stranger's coat was beautiful","Dark green, long, with brass buttons. I keep thinking about it."],
+ ["Is recess going to be inside again?","If it rains we have to play board games and someone always loses pieces.",{max:12}],
+],
+love:[
+ ["The smell of rain on hot pavement","The whole street sighs. I always stop and breathe it in."],
+ ["{partner}","The way they hum when they think no one's listening. The way they make two cups without asking."],
+ ["{child}","Sticky hands, impossible questions, a whole new person who somehow came from me."],
+ ["{pet}","Waiting by the door every evening as if I've been gone for years."],
+ ["Sunday mornings with nowhere to be","Coffee going cold, the paper spread out, nobody needing anything."],
+ ["Old bookshops","The dust, the creaking floors, the notes people left in the margins."],
+ ["{mother}'s cooking","Nobody else's tastes right. I've tried the recipe forty times."],
+ ["The first warm day of spring","Everyone in {town} comes outside blinking like they've just woken up."],
+ ["Long drives at night","Empty roads, dashboard glow, the radio fading between stations.",{min:16}],
+ ["Swimming in cold lakes","The shock, then the stillness. Like being rebooted."],
+ ["Saturday cartoons","In pajamas, with cereal, before anyone else is awake.",{max:14}],
+ ["Making things with my hands","Wood, clay, bread dough. Something real at the end of it."],
+ ["Thunderstorms from inside","Blanket, window, a cup of something hot. Let it rage."],
+ ["Bread straight from the oven","Tearing it while it's still too hot to hold."],
+ ["{friend}, who never gives up on me","Even when I give up on myself. Especially then."],
+ ["The quiet after snowfall","The whole world muffled, like someone pressed pause."],
+ ["Crossword puzzles","In pen. Mostly to show off to no one."],
+ ["Dancing badly in the kitchen","No audience, terrible moves, the best part of the day."],
+ ["Dogs that lean on you","All their weight, all their trust."],
+ ["Watching the town lights come on","From the hill above {town}, one by one, like someone switching on a constellation."],
+ ["{sibling}","We fight like cats and would fight anyone else for each other."],
+],
+regret:[
+ ["Not saying goodbye to {gname}","I thought there'd be another visit. There's always another visit, until there isn't.",{min:10}],
+ ["Quitting piano","My hands remember a few chords. I wish they remembered more."],
+ ["The fight with {sibling}","Something stupid, said too loudly. It echoes longer than it should."],
+ ["Not taking the job overseas","I said no out of fear and called it practicality.",{min:25}],
+ ["Being mean to the new kid","I laughed along when everyone else did. I still remember the look on their face."],
+ ["Staying too long in {oldtown}","Years, really. I knew it was time and I stayed anyway.",{min:25}],
+ ["Not telling {friend} the truth","It would have been one hard conversation. Instead it's been a hundred small ones.",{min:12}],
+ ["Missing {child}'s recital","Work ran late. They said it was fine. It wasn't fine.",{}],
+ ["Selling the old house","The new owners painted the door. I drive past sometimes anyway.",{min:35}],
+ ["Breaking the vase and blaming {sibling}","They got grounded for a week. I've never told anyone.",{}],
+ ["Letting {friend} drift away","No fight, no falling out. Just fewer calls, then none.",{min:18}],
+ ["Not asking {father} more questions","About the war, about his childhood, about anything. Now there's no one to ask.",{min:25}],
+ ["Saying yes when I meant no","So many times. It adds up to a life that isn't quite mine.",{min:16}],
+ ["Not being braver","When it mattered, I stayed quiet."],
+ ["Wasting years being angry","At people who never even knew. All that energy, gone.",{min:30}],
+ ["Never learning to swim","I sit on the edge and watch everyone else.",{min:20}],
+ ["Not saying sorry to {mother}","I meant to. Then dinner was served and the moment passed.",{}],
+],
+};
+
+const EXT={
+ memory:["I can still see it if I close my eyes.","Funny which things stay with you.","Nobody else in the family remembers it the same way.","I was {ageAt}. It felt like the center of the world.","Some days it feels like it happened to someone else.","I've told it so many times I'm not sure which parts are true anymore.","The details get sharper every year, not softer."],
+ hope:["I don't say it out loud much.","Some days it feels close enough to touch.","I think about it on long drives.","Even if it never happens, wanting it keeps me going.","{friend} is the only one who knows.","I've been carrying it since I was {ageAt}."],
+ dream:["I wake up with my heart going fast.","It always ends right before the important part.","In the dream, it all makes perfect sense.","I've had it on and off since I was {ageAt}.","The colors are always too bright.","I lie there afterward trying to hold onto it."],
+ fear:["I know it's not rational. Knowing doesn't help.","It gets worse at three in the morning.","I've never told {friend} about this.","Most days I keep it in a box. Some days the box opens.","It started around the time I was {ageAt}."],
+ thought:["It keeps coming back like a song.","I'll forget about it in an hour.","Small, but it's taking up a lot of room today.","I almost said it out loud on the bus.","It's been circling all afternoon."],
+ love:["It holds an ordinary day together.","I don't think I could explain it to anyone.","It's been there so long I sometimes forget to notice it.","When everything else is loud, this is quiet.","If I lost it, I'd lose a piece of myself."],
+ regret:["I can't change it. I still rearrange it in my head.","I was younger then. That's an explanation, not an excuse.","Some nights it's the only thing I can think about.","I've mostly made peace with it. Mostly.","If I could go back, I'd only need about ten seconds."],
+};
+const TEX={
+ memory:["a yellow raincoat","cut grass","radio static","a humming refrigerator","sunburned shoulders","wet wool mittens","cinnamon","chlorine","a screen door slamming","moths at the porch light","cheap birthday cake","gravel underfoot","a ticking clock","pine needles","diesel and salt air","a warbling cassette"],
+ hope:["morning light","a clean notebook","keys in a new door","open water","a full table","fresh paint","a signed letter","the first step","green shoots","a ticket stub"],
+ dream:["water that isn't wet","doors in the wrong places","a hallway that breathes","silver light","weightlessness","a voice from another room","endless staircases","impossible colors","static snow","slow-motion running"],
+ fear:["a cold sweat","a phone screen lighting up","a long hallway","the drop in your stomach","a closed door","silence that's too quiet","flickering lights","a held breath","dark water","an empty chair"],
+ thought:["half-formed words","a tune on loop","the corner of the eye","a to-do list","a passing car","a window's reflection","the kettle clicking off","an unread message"],
+ love:["warm hands","laughter in the next room","the smell of coffee","a familiar step on the stairs","sunlight on a blanket","an inside joke","a worn sweater","a dog's sigh"],
+ regret:["an unsent letter","rain on a window","a dial tone","an old photograph","a door closing softly","the wrong word","a long drive home","a coat left behind"],
+};
+const FEELS={
+ memory:["nostalgia","tenderness","wonder","ache","warmth","embarrassment","pride","bittersweetness"],
+ hope:["longing","resolve","quiet optimism","nerve","impatience","faith"],
+ dream:["unease","awe","confusion","delight","déjà vu","vertigo"],
+ fear:["dread","tightness","vigilance","shame","panic","heaviness"],
+ thought:["curiosity","restlessness","mild worry","amusement","distraction"],
+ love:["devotion","ease","gratitude","delight","safety","fondness"],
+ regret:["guilt","sorrow","wistfulness","acceptance","sting","what-if"],
+};
+const FREQ=["Daily","Most days","Every week or so","A few times a year","Rarely, but it hits hard"];
+const HORIZON=["Someday","Within five years","This year","Any day now","Probably never — but still"];
+const WAKES=["shaken","oddly rested","homesick","giddy","confused","sad for no reason","relieved"];
+const TRIGGER=["late-night news","hospital smells","an unexpected call","being alone in the house","certain songs","driving after dark","crowds","long silences","Sunday evenings"];
+const SHOWS=["cooking for them","just staying","remembering small things","fixing what's broken","terrible puns","showing up early","writing it down"];
+
+const FIRST=["Ada","Abel","Amara","Anton","Beatriz","Bo","Carmen","Cyrus","Dana","Dmitri","Elena","Emeka","Farah","Felix","Grace","Gus","Hana","Hector","Ines","Isaac","June","Jamal","Kiri","Kofi","Lena","Luis","Mabel","Mateo","Nadia","Nils","Odette","Omar","Priya","Pavel","Quinn","Rosa","Rafael","Sana","Silas","Tamsin","Theo","Uma","Viktor","Vera","Wren","Walter","Ximena","Yusuf","Yara","Zoe","Zane","Iris","Hugo","Mira","Otis","Leila","Arlo","Noor","Ezra","Celia","Dev","Ruth","Malik","Greta","Tomas","Asha","Bruno","Clara","Desmond","Esther","Ravi","Mei","Jonah","Lucia","Sol","Ingrid","Kenji","Maya","Ned","Opal","Paz","Rhea","Simone","Tobias","Lin","Ama","Cole","Eli","Fern","Hal"];
+const LAST=["Abara","Albright","Baptiste","Bell","Castillo","Chen","Dahl","Delacroix","Esposito","Farouk","Fitzgerald","Garza","Haddad","Holm","Ibarra","Ito","Jansen","Kaur","Kowalski","Lindqvist","Lowe","Mbeki","Moreau","Nakamura","Novak","Okafor","Ortega","Park","Petrov","Quintero","Reyes","Rossi","Sato","Sandoval","Tanaka","Thorne","Underwood","Varga","Vance","Whitlock","Wu","Yilmaz","Zielinski","Adeyemi","Byrne","Costa","Duarte","Engel","Flores","Gallagher","Hart","Iyer","Kim","Larsen","Mendez","Nguyen","Oyelaran","Pryce","Ramos","Shah","Tran","Volkov","Ward","Achebe","Brandt","Cruz","Dunn","Ferraro","Greer","Hollis"];
+const GRAND=["Nana","Grandpa","Abuela","Oma","Granddad","Lola","Nonno","Baba","Bibi","Gran"];
+const PETS=["Biscuit","Pepper","Moose","Juniper","Waffles","Scout","Olive","Bean","Captain","Pickles","Mochi","Ziggy","Clementine","Bear","Pip","Rufus","Tofu","Marble"];
+const PETKIND=["dog","dog","cat","cat","rabbit","parakeet","tortoise","goldfish"];
+const JOBS=["nurse","bus driver","carpenter","schoolteacher","software developer","line cook","librarian","electrician","florist","accountant","mail carrier","physical therapist","farmer","barista","architect","plumber","pharmacist","bookkeeper","welder","graphic designer","veterinarian","paramedic","hairdresser","machinist","social worker","baker","truck driver","night-shift janitor","piano tuner","beekeeper","dental hygienist","museum guard","translator","fisherman","radio DJ","tailor","landscaper","forklift operator","city clerk","potter","pastor","nursing assistant","firefighter","cashier","sign painter"];
+const TOWNS=["Marrow Creek","Saltbridge","Old Linden","Port Ainsley","Kestrel Hill","Duna Flats","Velmont","Harrowgate","Sundry","Lowell's Ferry","Ciranda","North Ember"];
+const GENERIC={partner:'my partner',child:'my child',pet:'my pet',oldpet:'an old pet',mother:'my mother',father:'my father',sibling:'my sibling',friend:'an old friend',gname:'a grandparent',town:'home',hometown:'my hometown',oldtown:'my old town'};
+const genericTitle=t=>cap(t.replace(/\{(\w+)\}/g,(m,k)=>GENERIC[k]||k).replace(/^my (\w+)'s/,"my $1's"));
+
+const fill=(s,v)=>s.replace(/\{(\w+)\}/g,(m,k)=>v[k]!==undefined?v[k]:m);
+const needs=s=>[...s.matchAll(/\{(\w+)\}/g)].map(m=>m[1]);
+
+/* ============================================================
+   Generate 1,000 people
+   ============================================================ */
+const N=1000;
+const townW=TOWNS.map(()=>0.45+R()*1.6), townWsum=townW.reduce((a,b)=>a+b,0);
+function pickTown(){let x=R()*townWsum;for(let i=0;i<TOWNS.length;i++){x-=townW[i];if(x<=0)return i}return 0}
+function job(age){
+  if(age<=13) return `student, grade ${Math.max(1,age-5)}`;
+  if(age<=17) return R()<0.4?'high-school student, part-time at the hardware store':'high-school student';
+  if(age<=22 && R()<0.55) return 'college student';
+  if(age>=67) return 'retired '+pick(JOBS);
+  return pick(JOBS);
+}
+function nameOther(not){let n;do{n=pick(FIRST)}while(n===not);return n}
+
+const people=[]; const shared={};
+let nodeSerial=0;
+for(let i=0;i<N;i++){
+  const age=rint(6,93);
+  const first=pick(FIRST), last=pick(LAST);
+  const t=pickTown();
+  const rel={mother:nameOther(first),father:nameOther(first),friend:nameOther(first),gname:pick(GRAND)+' '+nameOther(first),town:TOWNS[t]};
+  if(age>=18 && R()<0.45){let o;do{o=pickTown()}while(o===t);rel.oldtown=TOWNS[o]}
+  rel.hometown=rel.oldtown||rel.town;
+  if(R()<0.75) rel.sibling=nameOther(first);
+  if(age>=20 && R()<0.62) rel.partner=nameOther(first);
+  if(age>=22 && R()<0.55) rel.child=nameOther(first);
+  let petKind=null;
+  if(R()<0.62){rel.pet=pick(PETS);petKind=pick(PETKIND)}
+  if(R()<0.5){let n;do{n=pick(PETS)}while(n===rel.pet);rel.oldpet=n}
+  const p={id:i,first,last,name:first+' '+last,age,town:t,occ:job(age),rel,petKind,nodes:[],links:[]};
+  const kid=age<13;
+  const counts={memory:kid?rint(3,4):rint(4,6),hope:rint(3,5),dream:rint(2,4),fear:rint(2,4),thought:rint(3,5),love:rint(3,5),regret:kid?rint(1,2):rint(2,4)};
+  for(const c of CATS){
+    const pool=POOLS[c.id];
+    const ok=pool.map((e,idx)=>({e,idx})).filter(({e})=>{
+      const o=e[2]||{};
+      if(o.min&&age<o.min) return false;
+      if(o.max&&age>o.max) return false;
+      if(o.at&&o.at[0]>Math.min(o.at[1],age-1)) return false;
+      return needs(e[0]+e[1]).every(k=>rel[k]!==undefined);
+    });
+    for(const {e,idx} of sample(ok,counts[c.id])){
+      const o=e[2]||{};
+      const ageAt=o.at?rint(o.at[0],Math.min(o.at[1],age-1)):rint(Math.min(4,age-1),age-1);
+      const vars={...rel,ageAt};
+      let ext=pick(EXT[c.id]);
+      if(needs(ext).some(k=>vars[k]===undefined)) ext='';
+      const n={id:p.nodes.length,uid:nodeSerial++,cat:c.id,key:c.id+':'+idx,pid:i,
+        title:cap(fill(e[0],vars)),
+        body:fill(e[1],vars)+(ext&&R()<0.7?' '+fill(ext,vars):''),
+        weight:0.25+R()*0.75,seed:rint(1,2e9),
+        textures:sample(TEX[c.id],3),feels:sample(FEELS[c.id],2),ageAt,meta:[]};
+      const M=n.meta, yrs=age-ageAt;
+      if(c.id==='memory'){M.push({k:'When',v:`Age ${ageAt} · ${yrs} year${yrs===1?'':'s'} ago`},{k:'Vividness',bar:0.3+R()*0.7},{k:'Revisited',v:pick(FREQ)})}
+      if(c.id==='hope'){const told=["No one","Only "+rel.friend,rel.mother,"Everyone, constantly"];if(rel.partner)told.push(rel.partner);M.push({k:'Horizon',v:pick(HORIZON)},{k:'Belief it will happen',bar:R()},{k:'Told',v:pick(told)},{k:'Held since',v:`Age ${ageAt}`})}
+      if(c.id==='dream'){const rec=R()<0.6;M.push({k:'Recurring',v:rec?`Yes — since age ${ageAt}`:'Only once'},{k:'Last dreamt',v:(d=>`${d} night${d===1?"":"s"} ago`)(rint(1,40))},{k:'Wakes up feeling',v:pick(WAKES)},{k:'Clarity',bar:0.2+R()*0.8})}
+      if(c.id==='fear'){M.push({k:'Intensity',bar:0.25+R()*0.75},{k:'Since',v:`Age ${ageAt}`},{k:'Triggered by',v:pick(TRIGGER)},{k:'Told anyone',v:R()<0.5?'No':'Once, '+rel.friend})}
+      if(c.id==='thought'){const m=rint(1,180);M.push({k:'Last crossed mind',v:m<60?`${m} min ago`:`${Math.round(m/60)} hr ago`},{k:'Times today',v:String(rint(1,14))},{k:'Urgency',bar:R()})}
+      if(c.id==='love'){M.push({k:'Since',v:`Age ${ageAt}`},{k:'Depth',bar:0.4+R()*0.6},{k:'Shows it by',v:pick(SHOWS)})}
+      if(c.id==='regret'){M.push({k:'Since',v:`Age ${ageAt}`},{k:'Weight',bar:0.25+R()*0.75},{k:'Made peace',bar:R()},{k:'Revisited',v:pick(FREQ)})}
+      M.push({k:'Emotional weight',bar:n.weight});
+      p.nodes.push(n);
+      (shared[n.key]=shared[n.key]||[]).push({pid:i,nid:n.id});
+    }
+  }
+  // threads that tie one part of a life to another
+  const L=rint(4,8), seen=new Set();
+  for(let k=0;k<L*3&&p.links.length<L;k++){
+    const a=pick(p.nodes),b=pick(p.nodes);
+    if(a===b||a.cat===b.cat) continue;
+    const s=Math.min(a.id,b.id)+'-'+Math.max(a.id,b.id);
+    if(seen.has(s)) continue; seen.add(s); p.links.push([a.id,b.id]);
+  }
+  // inner weather
+  p.wx=Object.fromEntries(CATS.map(c=>[c.id,0]));
+  p.nodes.forEach(n=>p.wx[n.cat]+=n.weight);
+  p.dominant=CATS.reduce((a,c)=>p.wx[c.id]>p.wx[a.id]?c:a,CATS[0]).id;
+  people.push(p);
+}
+
+/* Orbit layout: seven sectors around each person, three rings */
+const RINGS=[17,27,37], LABEL_R=46, PR=2.6;
+for(const p of people){
+  CATS.forEach((c,ci)=>{
+    const ns=p.nodes.filter(n=>n.cat===c.id).sort((a,b)=>a.cat==='memory'?b.ageAt-a.ageAt:b.weight-a.weight);
+    const span=Math.PI*2/7, start=-Math.PI/2+ci*span-span/2, pad=span*0.14;
+    const rings=[[],[],[]]; ns.forEach((n,k)=>rings[k%3].push(n));
+    const r2=mulberry32(p.id*31+ci);
+    rings.forEach((rn,ri)=>rn.forEach((n,j)=>{
+      const a=start+pad+(j+0.5)/rn.length*(span-2*pad)+(ri-1)*span*0.09+(r2()-0.5)*span*0.06;
+      const rad=RINGS[ri]+(r2()-0.5)*3;
+      n.ox=Math.cos(a)*rad; n.oy=Math.sin(a)*rad; n.ang=a;
+      n.r=1.55+n.weight*1.65;
+    }));
+    c.mid=-Math.PI/2+ci*span;
+  });
+  p.nodes.sort((a,b)=>Math.hypot(a.ox,a.oy)-Math.hypot(b.ox,b.oy)); // appear inside-out
+  p.byId=[];p.nodes.forEach(n=>p.byId[n.id]=n);
+}
+
+/* World layout: towns as clusters, residents spiral out youngest→oldest */
+const towns=TOWNS.map((name,i)=>({name,i,members:[],x:0,y:0,r:0}));
+people.forEach(p=>towns[p.town].members.push(p));
+towns.forEach(t=>{
+  t.members.sort((a,b)=>a.age-b.age);
+  t.r=7.4*Math.sqrt(t.members.length)+6;
+  const ang=t.i*2.39996, rad=120*Math.sqrt(t.i+0.4);
+  t.x=Math.cos(ang)*rad; t.y=Math.sin(ang)*rad;
+  t.avgAge=Math.round(t.members.reduce((s,p)=>s+p.age,0)/t.members.length);
+});
+for(let it=0;it<400;it++){
+  for(let a=0;a<towns.length;a++)for(let b=a+1;b<towns.length;b++){
+    const A=towns[a],B=towns[b];let dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy)||1;const m=A.r+B.r+34;
+    if(d<m){const f=(m-d)/2;dx/=d;dy/=d;A.x-=dx*f;A.y-=dy*f;B.x+=dx*f;B.y+=dy*f}
+  }
+  towns.forEach(t=>{t.x*=0.993;t.y*=0.993});
+}
+towns.forEach(t=>t.members.forEach((p,k)=>{
+  const jr=mulberry32(p.id+7);
+  const rr=7.4*Math.sqrt(k+0.6), th=k*2.39996;
+  p.x=t.x+Math.cos(th)*rr+(jr()-0.5)*2.4; p.y=t.y+Math.sin(th)*rr+(jr()-0.5)*2.4;
+}));
+const bounds=people.reduce((b,p)=>({x0:Math.min(b.x0,p.x),y0:Math.min(b.y0,p.y),x1:Math.max(b.x1,p.x),y1:Math.max(b.y1,p.y)}),{x0:1e9,y0:1e9,x1:-1e9,y1:-1e9});
+
+/* ============================================================
+   Coloring
+   ============================================================ */
+const AGE_STOPS=[[6,[255,214,110]],[22,[255,158,92]],[40,[242,112,138]],[60,[196,128,220]],[93,[125,158,245]]];
+function ageRgb(age){
+  for(let i=0;i<AGE_STOPS.length-1;i++){const [a0,c0]=AGE_STOPS[i],[a1,c1]=AGE_STOPS[i+1];
+    if(age<=a1){const t=(age-a0)/(a1-a0);return c0.map((v,j)=>Math.round(v+(c1[j]-v)*t)).join(',')}}
+  return AGE_STOPS.at(-1)[1].join(',');
+}
+const TOWN_RGB=TOWNS.map((_,i)=>{const h=(i*137.5)%360;const s=.62,l=.66;const k=n=>(n+h/30)%12,a=s*Math.min(l,1-l),f=n=>l-a*Math.max(-1,Math.min(k(n)-3,9-k(n),1));return [f(0),f(8),f(4)].map(v=>Math.round(v*255)).join(',')});
+let colorMode='age';
+function recolor(){people.forEach(p=>{
+  p.col=colorMode==='age'?ageRgb(Math.round(p.age/6)*6):colorMode==='weather'?CAT[p.dominant].rgb:TOWN_RGB[p.town];
+  p.ownCol=ageRgb(p.age);
+})}
+recolor();
+
+/* ============================================================
+   Canvas + camera
+   ============================================================ */
+const stage=document.getElementById('stage'), cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+let vw=0,vh=0,dpr=1,FOCUS=6,MINS=0.3,MAXS=30;
+const cam={x:0,y:0,s:1}; let tween=null;
+function fitScale(){return Math.min(vw/(bounds.x1-bounds.x0+90),vh/(bounds.y1-bounds.y0+170))}
+function resize(){
+  dpr=Math.min(window.devicePixelRatio||1,2);vw=stage.clientWidth;vh=stage.clientHeight;
+  cv.width=vw*dpr;cv.height=vh*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+  FOCUS=Math.min(vw,vh)*0.30/LABEL_R; MINS=fitScale()*0.5; MAXS=FOCUS*2.2;
+}
+const toS=(x,y)=>[(x-cam.x)*cam.s+vw/2,(y-cam.y)*cam.s+vh/2];
+const toW=(x,y)=>[(x-vw/2)/cam.s+cam.x,(y-vh/2)/cam.s+cam.y];
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+function flyTo(x,y,s,dur=1100){tween={x0:cam.x,y0:cam.y,s0:cam.s,x1:x,y1:y,s1:clamp(s,MINS,MAXS),t0:performance.now(),dur}}
+function flyFit(){flyTo((bounds.x0+bounds.x1)/2,(bounds.y0+bounds.y1)/2,fitScale())}
+function zoomAt(mx,my,f){
+  const [wx,wy]=toW(mx,my); cam.s=clamp(cam.s*f,MINS,MAXS);
+  cam.x=wx-(mx-vw/2)/cam.s; cam.y=wy-(my-vh/2)/cam.s;
+}
+
+/* Glow sprites */
+const sprites={};
+function sprite(rgb){
+  if(sprites[rgb]) return sprites[rgb];
+  const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');
+  const gr=g.createRadialGradient(32,32,0,32,32,32);
+  gr.addColorStop(0,`rgba(${rgb},.85)`);gr.addColorStop(.22,`rgba(${rgb},.35)`);gr.addColorStop(.55,`rgba(${rgb},.08)`);gr.addColorStop(1,`rgba(${rgb},0)`);
+  g.fillStyle=gr;g.fillRect(0,0,64,64);return sprites[rgb]=c;
+}
+
+/* ============================================================
+   State
+   ============================================================ */
+let focused=null, focusT0=0, fa=0, selNode=null, hoverP=null, hoverN=null, touched=false;
+let panelView={type:'home'};
+let savedIds=[];
+try{const stored=JSON.parse(localStorage.getItem('inner-lives-saved')||'[]');if(Array.isArray(stored))savedIds=[...new Set(stored.filter(id=>Number.isInteger(id)&&id>=0&&id<N))]}catch{}
+function updateSaved(){document.getElementById('saved-count').textContent=savedIds.length}
+function toggleSaved(id){savedIds=savedIds.includes(id)?savedIds.filter(x=>x!==id):[...savedIds,id];try{localStorage.setItem('inner-lives-saved',JSON.stringify(savedIds))}catch{}updateSaved();renderPanel()}
+updateSaved();
+document.getElementById('overview').onclick=()=>{focused=null;selNode=null;flyFit();setPanel({type:'home'})};
+document.getElementById('meet').onclick=()=>focusPerson(people[Math.floor(Math.random()*N)],{fly:true});
+document.getElementById('saved').onclick=()=>setPanel({type:'saved'});
+
+
+function focusPerson(p,o={}){
+  if(focused!==p){focused=p;focusT0=performance.now();selNode=null}
+  if(o.fly) flyTo(p.x,p.y,Math.max(FOCUS,Math.min(cam.s,FOCUS*1.4)));
+  if(!o.keepPanel) setPanel({type:'person',pid:p.id});
+}
+function unfocus(){focused=null;selNode=null;if(panelView.type==='person'||panelView.type==='node')setPanel({type:'home'})}
+function selectNode(p,n){
+  if(focused!==p) focusPerson(p,{fly:true,keepPanel:true});
+  else { const [sx,sy]=toS(p.x,p.y); if(cam.s<FOCUS*0.8||Math.abs(sx-vw/2)>vw*0.3||Math.abs(sy-vh/2)>vh*0.3) flyTo(p.x,p.y,Math.max(FOCUS,cam.s)); }
+  selNode=n; setPanel({type:'node',pid:p.id,nid:n.id});
+}
+
+/* ============================================================
+   Render
+   ============================================================ */
+const easeBack=t=>{const c1=1.5,c3=c1+1;return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2)};
+let nodeScreen=[]; // for hit tests
+function frame(now){
+  // camera tween
+  if(tween){
+    const t=window.matchMedia('(prefers-reduced-motion: reduce)').matches?1:clamp((now-tween.t0)/tween.dur,0,1),e=ease(t);
+    cam.x=tween.x0+(tween.x1-tween.x0)*e; cam.y=tween.y0+(tween.y1-tween.y0)*e;
+    cam.s=Math.exp(Math.log(tween.s0)+(Math.log(tween.s1)-Math.log(tween.s0))*e);
+    if(t>=1) tween=null;
+  }
+  // zooming in auto-focuses whoever is nearest the center
+  if(!tween){
+    if(cam.s>FOCUS*0.6){
+      let best=null,bd=1e9;
+      for(const p of people){const d=Math.hypot(p.x-cam.x,p.y-cam.y);if(d<bd){bd=d;best=p}}
+      const lim=Math.min(vw,vh)*0.22/cam.s;
+      if(!focused&&bd<lim) focusPerson(best);
+      else if(focused&&best!==focused){
+        const df=Math.hypot(focused.x-cam.x,focused.y-cam.y);
+        if(df>Math.min(vw,vh)*0.33/cam.s&&bd<lim) focusPerson(best);
+      }
+    } else if(focused&&cam.s<FOCUS*0.38) unfocus();
+  }
+  // gently draw a newly-opened person toward the center
+  if(focused&&!tween&&!ptrs.size&&now-focusT0<1100){cam.x+=(focused.x-cam.x)*0.07;cam.y+=(focused.y-cam.y)*0.07}
+  fa+=((focused?1:0)-fa)*0.12;
+
+  ctx.clearRect(0,0,vw,vh);
+  const s=cam.s;
+
+  // town names (far away)
+  const townA=clamp((2.4-s)/1.4,0,1)*(1-fa);
+  if(townA>0.01){
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    for(const t of towns){
+      const [x,y]=toS(t.x,t.y-t.r-9);
+      ctx.font=`500 ${clamp(13*Math.sqrt(s),11,18)}px Fraunces, Georgia, serif`;
+      ctx.fillStyle=`rgba(236,232,223,${0.55*townA})`;ctx.fillText(t.name,x,y);
+    }
+  }
+
+  // people
+  const r=clamp(PR*s,1.4,9), nameA=clamp((s-2.1)/1.2,0,1);
+  ctx.textAlign='center';ctx.textBaseline='top';ctx.font='500 11px Instrument Sans, sans-serif';
+  for(const p of people){
+    if(p===focused) continue;
+    const [x,y]=toS(p.x,p.y);
+    if(x<-30||y<-30||x>vw+30||y>vh+30) continue;
+    const a=focused?1-0.86*fa:1;
+    ctx.globalAlpha=a*0.9;
+    const g=r*3.2; ctx.drawImage(sprite(p.col),x-g,y-g,g*2,g*2);
+    ctx.globalAlpha=a;
+    ctx.fillStyle=`rgb(${p.col})`;ctx.beginPath();ctx.arc(x,y,r*0.62,0,7);ctx.fill();
+    if(p===hoverP){ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(x,y,r+3,0,7);ctx.stroke()}
+    if(nameA>0&&!focused||(focused&&nameA>0&&fa<0.5)){
+      ctx.globalAlpha=a*nameA*0.75;ctx.fillStyle='#e9e5dc';ctx.fillText(p.first,x,y+r+3);
+    }
+  }
+  ctx.globalAlpha=1;
+
+  // the focused person's inner world
+  nodeScreen=[];
+  if(focused) drawOrbit(focused,now);
+
+  requestAnimationFrame(frame);
+}
+
+function drawOrbit(p,now){
+  const s=cam.s,[cx,cy]=toS(p.x,p.y),el=now-focusT0;
+  const ringA=clamp(el/600,0,1);
+  // faint rings + sector labels
+  ctx.lineWidth=1;
+  RINGS.forEach(R0=>{ctx.strokeStyle=`rgba(255,255,255,${0.045*ringA})`;ctx.beginPath();ctx.arc(cx,cy,R0*s*easeBack(ringA),0,7);ctx.stroke()});
+  if(s>FOCUS*0.45){
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.font=`600 ${clamp(s*1.55,9,12)}px Instrument Sans, sans-serif`;
+    CATS.forEach(c=>{
+      const x=cx+Math.cos(c.mid)*LABEL_R*s*easeBack(ringA), y=cy+Math.sin(c.mid)*LABEL_R*s*easeBack(ringA);
+      ctx.fillStyle=`rgba(${c.rgb},${0.8*ringA})`;
+      ctx.fillText(c.label.toUpperCase().split('').join(' '),x,y);
+    });
+  }
+  // node positions
+  const pos={};
+  p.nodes.forEach((n,i)=>{
+    const t=clamp((el-120-i*20)/520,0,1),a=easeBack(t);
+    const x=cx+n.ox*s*a, y=cy+n.oy*s*a;
+    let rr=Math.max(3,n.r*s*(0.35+0.65*Math.min(1,a)));
+    if(n===hoverN) rr*=1.18;
+    pos[n.id]={x,y,rr,t};
+    nodeScreen.push({n,x,y,rr});
+  });
+  const active=hoverN||selNode;
+  // spokes
+  p.nodes.forEach(n=>{const q=pos[n.id];ctx.strokeStyle=`rgba(${CAT[n.cat].rgb},${0.09*q.t})`;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(q.x,q.y);ctx.stroke()});
+  // threads between parts of a life
+  p.links.forEach(([a,b])=>{
+    const A=pos[a],B=pos[b],na=p.byId[a];if(!A||!B) return;
+    const hot=active&&(active.id===a||active.id===b);
+    const mx=(A.x+B.x)/2,my=(A.y+B.y)/2;const kx=mx+(cx-mx)*0.55,ky=my+(cy-my)*0.55;
+    ctx.strokeStyle=hot?'rgba(255,255,255,.75)':`rgba(${CAT[na.cat].rgb},${0.22*Math.min(A.t,B.t)})`;
+    ctx.lineWidth=hot?1.6:1;ctx.setLineDash(hot?[]:[3,4]);
+    ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.quadraticCurveTo(kx,ky,B.x,B.y);ctx.stroke();
+  });
+  ctx.setLineDash([]);
+  // nodes
+  p.nodes.forEach(n=>{
+    const q=pos[n.id],c=CAT[n.cat];if(q.t<=0) return;
+    ctx.globalAlpha=q.t;
+    const g=q.rr*2.6;ctx.drawImage(sprite(c.rgb),q.x-g,q.y-g,g*2,g*2);
+    ctx.fillStyle=`rgba(14,16,25,.92)`;ctx.beginPath();ctx.arc(q.x,q.y,q.rr,0,7);ctx.fill();
+    ctx.fillStyle=`rgba(${c.rgb},${n===hoverN||n===selNode?.45:.22})`;ctx.fill();
+    ctx.strokeStyle=c.hex;ctx.lineWidth=1.5;ctx.stroke();
+    if(n===selNode){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(q.x,q.y,q.rr+4,0,7);ctx.stroke()}
+    if(q.rr>7){ctx.fillStyle=c.hex;ctx.font=`${Math.round(q.rr*0.95)}px Instrument Sans, sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(c.glyph,q.x,q.y+0.5)}
+  });
+  ctx.globalAlpha=1;
+  // labels with simple collision avoidance: selected, hovered, then heaviest first
+  if(s>FOCUS*0.55){
+    const placed=[];
+    const order=p.nodes.slice().sort((a,b)=>(b===selNode)-(a===selNode)||(b===hoverN)-(a===hoverN)||b.weight-a.weight);
+    const fs=clamp(s*1.7,11,14);
+    ctx.font=`500 ${fs}px Instrument Sans, sans-serif`;ctx.textBaseline='middle';
+    for(const n of order){
+      const q=pos[n.id];if(q.t<0.6) continue;
+      const strong=n===selNode||n===hoverN;
+      let txt=n.title; const maxc=strong?60:24; if(txt.length>maxc) txt=txt.slice(0,maxc-1)+'…';
+      const w=ctx.measureText(txt).width, cs=Math.cos(n.ang);
+      const side=cs>=0?1:-1, lx=q.x+side*(q.rr+6), ly=q.y;
+      const box={x0:side>0?lx:lx-w,x1:side>0?lx+w:lx,y0:ly-fs*0.65,y1:ly+fs*0.65};
+      if(!strong&&placed.some(b=>b.x0<box.x1+4&&b.x1>box.x0-4&&b.y0<box.y1&&b.y1>box.y0)) continue;
+      if(!strong&&nodeScreen.some(o=>o.n!==n&&o.x+o.rr>box.x0&&o.x-o.rr<box.x1&&o.y+o.rr>box.y0&&o.y-o.rr<box.y1)) continue;
+      placed.push(box);
+      ctx.textAlign=side>0?'left':'right';
+      ctx.lineWidth=4;ctx.strokeStyle='rgba(9,11,18,.85)';ctx.strokeText(txt,lx,ly);
+      ctx.fillStyle=strong?'#fff':`rgba(236,232,223,${0.82*q.t})`;ctx.fillText(txt,lx,ly);
+    }
+  }
+  // the person at the center
+  const pulse=1+Math.sin(now/700)*0.04, cr=Math.max(6,PR*1.7*s)*pulse;
+  const g=cr*3.4;ctx.drawImage(sprite(p.ownCol),cx-g,cy-g,g*2,g*2);
+  ctx.fillStyle=`rgb(${p.ownCol})`;ctx.beginPath();ctx.arc(cx,cy,cr,0,7);ctx.fill();
+  if(cr>12){ctx.fillStyle='#10121a';ctx.font=`600 ${Math.round(cr*0.62)}px Instrument Sans, sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.first[0]+p.last[0],cx,cy+1)}
+  ctx.font=`500 ${clamp(s*2.2,13,18)}px Fraunces, Georgia, serif`;ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.lineWidth=4;ctx.strokeStyle='rgba(9,11,18,.85)';const nm=`${p.first}, ${p.age}`;ctx.strokeText(nm,cx,cy+cr+7);
+  ctx.fillStyle='#f3efe6';ctx.fillText(nm,cx,cy+cr+7);
+}
+
+/* ============================================================
+   Input
+   ============================================================ */
+const tip=document.getElementById('tip'), hint=document.getElementById('hint');
+function dismissHint(){if(!touched){touched=true;hint.style.opacity=0}}
+function hitNode(x,y){for(let i=nodeScreen.length-1;i>=0;i--){const o=nodeScreen[i];if(Math.hypot(o.x-x,o.y-y)<=Math.max(o.rr+3,9))return o.n}return null}
+function hitPerson(x,y){
+  const rad=Math.max(7,PR*cam.s+3);let best=null,bd=rad;
+  for(const p of people){const [sx,sy]=toS(p.x,p.y);const d=Math.hypot(sx-x,sy-y);if(d<bd){bd=d;best=p}}
+  return best;
+}
+function hover(x,y){
+  hoverN=focused&&fa>0.5?hitNode(x,y):null;
+  hoverP=hoverN?null:hitPerson(x,y);
+  if(hoverP===focused) hoverP=null;
+  cv.className=(hoverN||hoverP)?'pointing':'';
+  if(hoverN){tip.innerHTML=`<b style="color:${CAT[hoverN.cat].hex}">${CAT[hoverN.cat].glyph} ${CAT[hoverN.cat].one}</b><br>${hoverN.title}`;showTip(x,y)}
+  else if(hoverP&&!(focused&&fa>0.5)){tip.innerHTML=`<b>${hoverP.name}</b>, ${hoverP.age}<br><span>${cap(hoverP.occ)} · ${TOWNS[hoverP.town]}</span>`;showTip(x,y)}
+  else if(hoverP){tip.innerHTML=`<b>${hoverP.name}</b>, ${hoverP.age}<br><span>Click to step into their world</span>`;showTip(x,y)}
+  else tip.style.display='none';
+}
+function showTip(x,y){tip.style.display='block';const w=tip.offsetWidth;tip.style.left=Math.min(x+14,vw-w-8)+'px';tip.style.top=(y+16)+'px'}
+function click(x,y){
+  dismissHint();
+  if(focused&&fa>0.3){const n=hitNode(x,y);if(n){selectNode(focused,n);return}}
+  const p=hitPerson(x,y);
+  if(p&&p!==focused){focusPerson(p,{fly:true});return}
+  if(p===focused&&focused){selNode=null;setPanel({type:'person',pid:p.id});return}
+  if(selNode){selNode=null;setPanel({type:'person',pid:focused.id});return}
+  if(!focused&&cam.s<2.4){ // click a town
+    const [wx,wy]=toW(x,y);const t=towns.find(t=>Math.hypot(t.x-wx,t.y-wy)<t.r+6);
+    if(t) goTown(t.i);
+  }
+}
+const ptrs=new Map(); let drag=null;
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.offsetX,y:e.offsetY});
+  if(ptrs.size===1) drag={x:e.offsetX,y:e.offsetY,moved:0}; else drag&&(drag.moved=99);
+  tween=null;
+});
+cv.addEventListener('pointermove',e=>{
+  const x=e.offsetX,y=e.offsetY;
+  if(ptrs.has(e.pointerId)){
+    const prev=ptrs.get(e.pointerId);
+    if(ptrs.size===2){
+      const [a,b]=[...ptrs.values()];const d0=Math.hypot(a.x-b.x,a.y-b.y);
+      ptrs.set(e.pointerId,{x,y});const [c,d]=[...ptrs.values()];const d1=Math.hypot(c.x-d.x,c.y-d.y);
+      if(d0>0) zoomAt((c.x+d.x)/2,(c.y+d.y)/2,d1/d0);
+    } else {
+      ptrs.set(e.pointerId,{x,y});
+      cam.x-=(x-prev.x)/cam.s;cam.y-=(y-prev.y)/cam.s;
+      if(drag){drag.moved+=Math.abs(x-prev.x)+Math.abs(y-prev.y);if(drag.moved>4){cv.classList.add('dragging');dismissHint();tip.style.display='none'}}
+    }
+  } else hover(x,y);
+});
+const endPtr=e=>{
+  if(!ptrs.has(e.pointerId)) return;
+  ptrs.delete(e.pointerId);cv.classList.remove('dragging');
+  if(ptrs.size===0&&drag&&drag.moved<=4&&e.type==='pointerup') click(e.offsetX,e.offsetY);
+  if(ptrs.size===0) drag=null;
+};
+cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',endPtr);
+cv.addEventListener('pointerleave',()=>{if(!ptrs.size){tip.style.display='none';hoverP=hoverN=null}});
+cv.addEventListener('wheel',e=>{e.preventDefault();tween=null;dismissHint();
+  const d=e.deltaMode===1?e.deltaY*16:e.deltaY;zoomAt(e.offsetX,e.offsetY,Math.exp(-d*0.0016));hover(e.offsetX,e.offsetY)},{passive:false});
+document.getElementById('zin').onclick=()=>flyTo(cam.x,cam.y,cam.s*1.8,500);
+document.getElementById('zout').onclick=()=>flyTo(cam.x,cam.y,cam.s/1.8,500);
+document.getElementById('zfit').onclick=()=>{focused=null;selNode=null;flyFit();setPanel({type:'home'})};
+window.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'){if(e.key==='Escape')e.target.blur();return}
+  if(e.target===cv&&['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','-','='].includes(e.key)){e.preventDefault();tween=null;const step=55/cam.s;if(e.key==='ArrowLeft')cam.x-=step;if(e.key==='ArrowRight')cam.x+=step;if(e.key==='ArrowUp')cam.y-=step;if(e.key==='ArrowDown')cam.y+=step;if(e.key==='+'||e.key==='=')zoomAt(vw/2,vh/2,1.3);if(e.key==='-')zoomAt(vw/2,vh/2,1/1.3)}
+  if(e.key==='/'){e.preventDefault();search.focus()}
+  if(e.key==='Escape'){
+    if(selNode){selNode=null;setPanel({type:'person',pid:focused.id})}
+    else if(focused){const t=towns[focused.town];flyTo(t.x,t.y,Math.min(vw,vh)*0.42/t.r)}
+    else flyFit();
+  }
+});
+window.addEventListener('resize',resize);
+
+/* Search */
+const search=document.getElementById('search'),results=document.getElementById('results');
+let rsel=0,rlist=[];
+function renderResults(){
+  const q=search.value.trim().toLowerCase();
+  if(!q){rlist=[];results.style.display='none';return}
+  rlist=people.filter(p=>p.first.toLowerCase().startsWith(q)||p.last.toLowerCase().startsWith(q)||p.name.toLowerCase().includes(q)||TOWNS[p.town].toLowerCase().includes(q)||p.occ.toLowerCase().includes(q)).slice(0,8);
+  if(!rlist.length){results.innerHTML='<button disabled class="mute">No matches. Try a town or occupation.</button>';results.style.display='block';return}
+  rsel=clamp(rsel,0,rlist.length-1);
+  results.innerHTML=rlist.map((p,i)=>`<button data-pid="${p.id}" class="${i===rsel?'on':''}"><i class="dot" style="background:rgb(${p.ownCol})"></i>${p.name}<small>${p.age} · ${TOWNS[p.town]}</small></button>`).join('');
+  results.style.display='block';
+}
+function chooseResult(p){search.value='';results.style.display='none';search.blur();dismissHint();focusPerson(p,{fly:true})}
+search.addEventListener('input',()=>{rsel=0;renderResults()});
+search.addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'){rsel++;renderResults();e.preventDefault()}
+  if(e.key==='ArrowUp'){rsel--;renderResults();e.preventDefault()}
+  if(e.key==='Escape'){results.style.display='none';search.blur()}
+  if(e.key==='Enter'&&rlist[rsel]) chooseResult(rlist[rsel]);
+});
+search.addEventListener('blur',()=>setTimeout(()=>results.style.display='none',150));
+results.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-pid]');if(b){e.preventDefault();chooseResult(people[+b.dataset.pid])}});
+
+/* Legend */
+const legend=document.getElementById('legend');
+function renderLegend(){
+  let keys='';
+  if(colorMode==='age') keys=[[6,'6'],[22,'22'],[40,'40'],[60,'60'],[85,'85+']].map(([a,l])=>`<span><i style="background:rgb(${ageRgb(a)})"></i>${l}</span>`).join('')+'<span>years old</span>';
+  if(colorMode==='weather') keys=CATS.map(c=>`<span><i style="background:${c.hex}"></i>${c.label}</span>`).join('');
+  if(colorMode==='town') keys=TOWNS.map((t,i)=>`<span><i style="background:rgb(${TOWN_RGB[i]})"></i>${t}</span>`).join('');
+  legend.innerHTML=`<div class="modes"><span class="mute" style="padding:3px 4px 0 0">Color by</span>${[['age','Age'],['weather','Loudest inner voice'],['town','Town']].map(([k,l])=>`<button data-mode="${k}" class="${colorMode===k?'on':''}">${l}</button>`).join('')}</div><div class="keys">${keys}</div>`;
+}
+legend.addEventListener('click',e=>{const b=e.target.closest('[data-mode]');if(b){colorMode=b.dataset.mode;recolor();renderLegend()}});
+
+/* ============================================================
+   Generative "magnified" image for each inner thing
+   ============================================================ */
+function drawArt(c,n){
+  const w=c.clientWidth||352,h=c.clientHeight||210;c.width=w*dpr;c.height=h*dpr;
+  const g=c.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);
+  const r=mulberry32(n.seed),C=CAT[n.cat],H=C.hue+(r()-0.5)*24,S=C.sat;
+  const hsl=(h,s,l,a=1)=>`hsla(${h},${s}%,${l}%,${a})`;
+  const sky=g.createLinearGradient(0,0,0,h);
+  const night=n.cat==='dream'||n.cat==='fear'||n.cat==='regret';
+  sky.addColorStop(0,hsl(H+20,S*0.6,night?7:14));sky.addColorStop(0.65,hsl(H,S*0.8,night?22:38));sky.addColorStop(1,hsl(H-15,S,night?30:55));
+  g.fillStyle=sky;g.fillRect(0,0,w,h);
+  if(night||n.cat==='thought'){for(let i=0;i<90;i++){g.fillStyle=`rgba(255,255,255,${r()*0.7})`;g.fillRect(r()*w,r()*h*0.65,r()<0.1?1.6:1,r()<0.1?1.6:1)}}
+  // celestial body
+  const sx=w*(0.2+r()*0.6),sy=h*(0.18+r()*0.25),sr=12+r()*22;
+  const halo=g.createRadialGradient(sx,sy,0,sx,sy,sr*4.5);halo.addColorStop(0,hsl(H+40,90,85,.55));halo.addColorStop(1,hsl(H+40,90,85,0));
+  g.fillStyle=halo;g.fillRect(0,0,w,h);
+  if(n.cat==='thought'){g.strokeStyle=hsl(H+20,80,85,.5);for(let i=1;i<9;i++){g.lineWidth=1;g.beginPath();g.arc(sx,sy,sr*i*0.75,0,7);g.stroke()}}
+  else {g.fillStyle=hsl(H+40,90,night?88:92);g.beginPath();g.arc(sx,sy,sr,0,7);g.fill();
+    if(night){g.fillStyle=hsl(H+20,S*0.6,10);g.beginPath();g.arc(sx+sr*0.45,sy-sr*0.2,sr*0.9,0,7);g.fill()}}
+  if(n.cat==='hope'){g.save();g.globalCompositeOperation='lighter';for(let i=0;i<14;i++){const a=r()*Math.PI*2;g.strokeStyle=hsl(H+40,90,80,.08);g.lineWidth=6+r()*14;g.beginPath();g.moveTo(sx,sy);g.lineTo(sx+Math.cos(a)*w,sy+Math.sin(a)*w);g.stroke()}g.restore()}
+  if(n.cat==='love'){g.save();g.globalCompositeOperation='lighter';for(let i=0;i<9;i++){const x=r()*w,y=h*0.3+r()*h*0.5,rr=20+r()*50;const gr=g.createRadialGradient(x,y,0,x,y,rr);gr.addColorStop(0,hsl(H+r()*40,85,70,.22));gr.addColorStop(1,hsl(H,85,70,0));g.fillStyle=gr;g.fillRect(x-rr,y-rr,rr*2,rr*2)}g.restore()}
+  if(n.cat==='dream'){for(let i=0;i<7;i++){g.strokeStyle=hsl(H+60*r(),70,80,.35);g.lineWidth=1.2;g.beginPath();g.ellipse(r()*w,r()*h*0.6,6+r()*18,4+r()*12,r()*3,0,7);g.stroke()}}
+  // layered land
+  const layers=3+Math.floor(r()*2);
+  for(let L=0;L<layers;L++){
+    const base=h*(0.5+L*0.13+r()*0.05),amp=10+r()*26,f1=0.005+r()*0.02,f2=0.02+r()*0.04,p1=r()*9,p2=r()*9;
+    g.fillStyle=hsl(H-10+L*4,S*0.5,(night?16:30)-L*(night?3.5:6));g.beginPath();g.moveTo(0,h);
+    for(let x=0;x<=w;x+=3){let y=base-Math.sin(x*f1+p1)*amp-Math.sin(x*f2+p2)*amp*0.35;
+      if(n.cat==='fear') y-=Math.abs(Math.sin(x*0.09+p1))*amp*0.9*(L===0?1:0.5);
+      g.lineTo(x,y)}
+    g.lineTo(w,h);g.closePath();g.fill();
+    if(n.cat==='love'||n.cat==='memory'){ // tiny lit windows
+      if(L===layers-1)for(let i=0;i<8;i++){g.fillStyle=hsl(42,95,72,.85);g.fillRect(r()*w,base+6+r()*20,2,2)}
+    }
+  }
+  if(n.cat==='regret'){g.strokeStyle='rgba(220,230,255,.18)';g.lineWidth=1;for(let i=0;i<120;i++){const x=r()*w*1.2,y=r()*h;g.beginPath();g.moveTo(x,y);g.lineTo(x-6,y+16);g.stroke()}}
+  if(n.cat==='memory'){g.fillStyle='rgba(240,190,110,.10)';g.fillRect(0,0,w,h)}
+  // grain + vignette
+  for(let i=0;i<1400;i++){g.fillStyle=`rgba(255,255,255,${r()*0.05})`;g.fillRect(r()*w,r()*h,1,1)}
+  const v=g.createRadialGradient(w/2,h/2,h*0.3,w/2,h/2,w*0.75);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.55)');g.fillStyle=v;g.fillRect(0,0,w,h);
+}
+
+/* ============================================================
+   Right-hand panel
+   ============================================================ */
+const pc=document.getElementById('pc'), panel=document.getElementById('panel');
+function setPanel(v){panelView=v;renderPanel()}
+const crumbs=items=>`<div class="crumbs">${items.map((it,i)=>(i?'<span class="sep">›</span>':'')+(it.act?`<button ${it.act}>${it.l}</button>`:`<span>${it.l}</span>`)).join('')}</div>`;
+const bar=(v,col)=>`<div class="bar"><i style="width:${Math.round(v*100)}%;background:${col}"></i></div>`;
+function personRow(p,right){return `<button class="li" data-act="person" data-pid="${p.id}"><i class="dot" style="background:rgb(${p.ownCol})"></i>${p.name}<span class="r">${right??`${p.age} · ${TOWNS[p.town]}`}</span></button>`}
+function topShared(cat,k=3){
+  return Object.entries(shared).filter(([key])=>key.startsWith(cat+':')).sort((a,b)=>b[1].length-a[1].length).slice(0,k)
+    .map(([key,arr])=>{const [c,idx]=key.split(':');return {key,count:arr.length,title:genericTitle(POOLS[c][+idx][0])}});
+}
+
+function renderPanel(){
+  const v=panelView;let h='';
+  if(v.type==='saved'){
+    h+=crumbs([{l:'All 1,000',act:'data-act="home"'},{l:'Saved people'}]);
+    h+='<p class="eyebrow">Your quiet collection</p><h1>Lives to return to.</h1><p class="lede">Keep the people whose stories stay with you.</p>';
+    h+=savedIds.length?'<div class="list" style="margin-top:24px">'+savedIds.map(id=>personRow(people[id])).join('')+'</div>':'<p class="bio">Open a person and choose Save person. Your collection is kept in this browser.</p><button class="btn" style="margin-top:18px" data-act="random">Meet someone</button>';
+  }
+
+  if(v.type==='home'){
+    const avg=Math.round(people.reduce((s,p)=>s+p.age,0)/N), totalNodes=people.reduce((s,p)=>s+p.nodes.length,0);
+    h+=`<p class="eyebrow">An atlas of being human</p><h1 class="big">A thousand people,<br><em style="font-weight:300">each a whole world.</em></h1>
+    <p class="lede">A fictional world, with familiar feelings. Every light is someone. Zoom all the way into anyone and their memories, hopes, dreams, fears, passing thoughts, loves and regrets open up around them.</p>
+    <ol class="how"><li>Scroll or pinch to zoom, drag to pan.</li><li>Keep zooming and whoever is nearest the center opens up.</li><li>Click anything orbiting them to magnify it here.</li></ol>
+    <div style="margin-top:18px" class="row"><button class="btn" data-act="random">Meet someone at random</button></div>
+    <div class="stat" style="margin-top:22px"><div><b>1,000</b><span>people</span></div><div><b>${totalNodes.toLocaleString()}</b><span>inner things</span></div><div><b>${avg}</b><span>average age</span></div></div>`;
+    for(const c of ['hope','fear','dream','love']){
+      h+=`<h2>Most-carried ${CAT[c].label.toLowerCase()}</h2><div class="list">`+topShared(c).map(t=>`<button class="li" data-act="shared" data-key="${t.key}"><i class="dot" style="background:${CAT[c].hex}"></i>${t.title}<span class="r">${t.count} people</span></button>`).join('')+'</div>';
+    }
+    h+=`<h2>Towns</h2><div class="list">`+towns.slice().sort((a,b)=>b.members.length-a.members.length).map(t=>`<button class="li" data-act="town" data-t="${t.i}"><i class="dot" style="background:rgb(${TOWN_RGB[t.i]})"></i>${t.name}<span class="r">${t.members.length} people · avg ${t.avgAge}</span></button>`).join('')+'</div>';
+  }
+  if(v.type==='town'){
+    const t=towns[v.t];
+    h+=crumbs([{l:'All 1,000',act:'data-act="home"'},{l:t.name}]);
+    h+=`<h1>${t.name}</h1><p class="sub">${t.members.length} residents · average age ${t.avgAge}</p>`;
+    const dom={};t.members.forEach(p=>dom[p.dominant]=(dom[p.dominant]||0)+1);
+    h+=`<h2>Loudest inner voice in town</h2><div class="weather">${CATS.filter(c=>dom[c.id]).map(c=>`<i style="flex:${dom[c.id]};background:${c.hex}" title="${c.label}"></i>`).join('')}</div><div class="wkeys">${CATS.filter(c=>dom[c.id]).map(c=>`<span><i class="dot" style="background:${c.hex}"></i>${c.label} ${dom[c.id]}</span>`).join('')}</div>`;
+    h+=`<h2>Residents, youngest first</h2><div class="list">${t.members.map(p=>personRow(p,`${p.age} · ${p.occ.split(',')[0]}`)).join('')}</div>`;
+  }
+  if(v.type==='shared'){
+    const arr=shared[v.key],[c,idx]=v.key.split(':');
+    h+=crumbs([{l:'All 1,000',act:'data-act="home"'},{l:CAT[c].label}]);
+    h+=`<div class="tag" style="color:${CAT[c].hex}"><span class="g">${CAT[c].glyph}</span>${CAT[c].one}</div><h1>${genericTitle(POOLS[c][+idx][0])}</h1><p class="sub">Carried by ${arr.length} of the 1,000. Each version is their own.</p><div class="list" style="margin-top:16px">`;
+    h+=arr.map(({pid,nid})=>{const p=people[pid],n=p.byId[nid];return `<button class="li" data-act="node" data-pid="${pid}" data-nid="${nid}"><i class="dot" style="background:rgb(${p.ownCol})"></i>${p.name}<span class="r">${p.age} · ${TOWNS[p.town]}</span></button>`}).join('')+'</div>';
+  }
+  if(v.type==='person'){
+    const p=people[v.pid],R0=p.rel;
+    h+=crumbs([{l:'All 1,000',act:'data-act="home"'},{l:TOWNS[p.town],act:`data-act="town" data-t="${p.town}"`},{l:p.name}]);
+    h+=`<div class="phead"><div class="avatar" style="--c:${p.ownCol}">${p.first[0]}${p.last[0]}</div><div><h1>${p.name}</h1><div class="sub">${p.age} · ${cap(p.occ)} · ${TOWNS[p.town]}</div></div></div>`;
+    const bio=[];
+    bio.push(R0.oldtown?`Grew up in ${R0.oldtown}; lives in ${R0.town} now.`:`Has lived in ${R0.town} all ${p.age<18?'their':'of their'} life.`);
+    if(p.age<18) bio.push(`Lives with ${R0.mother} and ${R0.father}${R0.sibling?`, and ${R0.sibling}`:''}.`);
+    else if(R0.partner) bio.push(`Shares a home with ${R0.partner}${R0.child?` and ${R0.child}`:''}.`);
+    else if(R0.child) bio.push(`Raising ${R0.child}.`);
+    else bio.push('Lives alone.');
+    if(R0.pet) bio.push(`There's a ${p.petKind} named ${R0.pet}.`);
+    bio.push(`Closest friend: ${R0.friend}.`);
+    h+=`<p class="bio">${bio.join(' ')}</p><div class="save-row"><button class="btn" data-act="save" data-pid="${p.id}" aria-pressed="${savedIds.includes(p.id)}">${savedIds.includes(p.id)?'♥ Saved person':'♡ Save person'}</button><button class="btn" data-act="random">Meet another →</button></div>`;
+    h+=`<h2>Inner weather</h2><div class="weather">${CATS.map(c=>`<i style="flex:${p.wx[c.id].toFixed(2)};background:${c.hex}" title="${c.label}"></i>`).join('')}</div>
+      <div class="wkeys">${CATS.map(c=>`<span><i class="dot" style="background:${c.hex}"></i>${c.label}</span>`).join('')}</div>`;
+    const ppl=[['Mother',R0.mother],['Father',R0.father],['Sibling',R0.sibling],['Partner',R0.partner],['Child',R0.child],['Best friend',R0.friend],['Grandparent',R0.gname],[p.petKind?cap(p.petKind):'',R0.pet]].filter(x=>x[1]&&x[0]);
+    h+=`<h2>People in their life</h2><div class="chips">${ppl.map(([k,n])=>`<span class="chip"><b>${k}</b>${n}</span>`).join('')}</div>`;
+    h+=`<p class="mute small" style="margin:22px 0 0">Click anything orbiting ${p.first}, or anything below, to magnify it.</p>`;
+    for(const c of CATS){
+      const ns=p.nodes.filter(n=>n.cat===c.id).sort((a,b)=>c.id==='memory'?a.ageAt-b.ageAt:b.weight-a.weight);
+      h+=`<div class="cathead" style="color:${c.hex}"><span>${c.glyph}</span>${c.label}<span class="n">${ns.length}</span></div><div class="list">`;
+      h+=ns.map(n=>`<button class="li" data-act="node" data-pid="${p.id}" data-nid="${n.id}">${n.title}<span class="r">${c.id==='memory'?'age '+n.ageAt:''}</span></button>`).join('')+'</div>';
+    }
+  }
+  if(v.type==='node'){
+    const p=people[v.pid],n=p.byId[v.nid],c=CAT[n.cat];
+    h+=crumbs([{l:'All 1,000',act:'data-act="home"'},{l:p.name,act:`data-act="person" data-pid="${p.id}"`},{l:c.label}]);
+    h+=`<div class="tag" style="color:${c.hex}"><span class="g">${c.glyph}</span>${p.first}'s ${c.one.toLowerCase()}</div><h1>${n.title}</h1>`;
+    h+=`<canvas id="art"></canvas><p class="quote" style="--cc:${c.hex}">“${n.body}”</p>`;
+    h+=`<h2>Details</h2><div class="meta">${n.meta.map(m=>`<span class="k">${m.k}</span>${m.bar!==undefined?bar(m.bar,c.hex):`<span>${m.v}</span>`}`).join('')}</div>`;
+    h+=`<h2>Textures</h2><div class="chips">${n.textures.map(t=>`<span class="chip">${t}</span>`).join('')}</div>`;
+    h+=`<h2>Feels like</h2><div class="chips">${n.feels.map(t=>`<span class="chip" style="border-color:rgba(${c.rgb},.4)">${t}</span>`).join('')}</div>`;
+    const linked=p.links.filter(l=>l.includes(n.id)).map(l=>p.byId[l[0]===n.id?l[1]:l[0]]);
+    if(linked.length) h+=`<h2>Tangled up with</h2><div class="list">${linked.map(m=>`<button class="li" data-act="node" data-pid="${p.id}" data-nid="${m.id}"><i class="dot" style="background:${CAT[m.cat].hex}"></i>${m.title}<span class="r">${CAT[m.cat].one}</span></button>`).join('')}</div>`;
+    const others=shared[n.key].filter(x=>x.pid!==p.id);
+    if(others.length){
+      h+=`<h2>${others.length} other${others.length>1?'s':''} carry this too</h2><div class="list">`+others.slice(0,8).map(({pid,nid})=>{const q=people[pid];return `<button class="li" data-act="node" data-pid="${pid}" data-nid="${nid}"><i class="dot" style="background:rgb(${q.ownCol})"></i>${q.name}<span class="r">${q.age} · ${TOWNS[q.town]}</span></button>`}).join('')+'</div>';
+      if(others.length>8) h+=`<button class="btn" style="margin-top:10px" data-act="shared" data-key="${n.key}">See all ${others.length+1}</button>`;
+    } else h+=`<h2>Shared by</h2><p class="mute small">No one else among the 1,000 carries this one.</p>`;
+  }
+  pc.innerHTML=h;
+  pc.style.animation='none';void pc.offsetWidth;pc.style.animation='';
+  panel.scrollTop=0;
+  if(v.type==='node') requestAnimationFrame(()=>{const a=document.getElementById('art');if(a)drawArt(a,people[v.pid].byId[v.nid])});
+}
+function goTown(i){const t=towns[i];focused=null;selNode=null;flyTo(t.x,t.y,Math.min(vw,vh)*0.42/t.r);setPanel({type:'town',t:i})}
+pc.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b) return;dismissHint();
+  const a=b.dataset.act;
+  if(a==='save') toggleSaved(+b.dataset.pid);
+  if(a==='home'){focused=null;selNode=null;flyFit();setPanel({type:'home'})}
+  if(a==='town') goTown(+b.dataset.t);
+  if(a==='person'){const p=people[+b.dataset.pid];selNode=null;focusPerson(p,{fly:true})}
+  if(a==='node'){const p=people[+b.dataset.pid];selectNode(p,p.byId[+b.dataset.nid])}
+  if(a==='shared') setPanel({type:'shared',key:b.dataset.key});
+  if(a==='random') focusPerson(people[Math.floor(Math.random()*N)],{fly:true});
+});
+
+/* Go */
+resize();
+cam.x=(bounds.x0+bounds.x1)/2;cam.y=(bounds.y0+bounds.y1)/2;cam.s=fitScale();
+renderLegend();renderPanel();
+requestAnimationFrame(frame);
+setTimeout(()=>{if(!touched)hint.style.opacity=.55},9000);
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+import {test,expect} from 'bun:test';
+import {HOUSE_LOOKS,houseLookPreset,normalizeHouseLook,houseLookPointer} from '../world/house/visual-styles.js';
+test('saved visual settings are bounded and reset without inheriting stale effects',()=>{expect(HOUSE_LOOKS).toHaveLength(21);expect(normalizeHouseLook(null).preset).toBe('original');const s=normalizeHouseLook({preset:'pixel',glow:Infinity,intensity:-1,edges:10,pixelSize:999,quality:'invalid',palette:'invalid'});expect(s.intensity).toBe(0);expect(s.edges).toBe(1);expect(s.pixelSize).toBe(4);expect(s.quality).toBe('high');expect(s.palette).toBe('retro');expect(houseLookPreset('original').scanlines).toBe(0);expect(houseLookPreset('original').pixelate).toBe(false);});
+test('curved looks preserve center picking and return to exact original coordinates at zero intensity',()=>{const s=houseLookPreset('crt');expect(houseLookPointer(.5,.5,s)).toEqual({x:.5,y:.5});const edge=houseLookPointer(.9,.9,s);expect(edge.x).toBeGreaterThan(.9);expect(houseLookPointer(.9,.9,{...s,intensity:0})).toEqual({x:.9,y:.9});});
+
+test('every look has a distinct stable ID and survives preference normalization',()=>{expect(new Set(HOUSE_LOOKS.map(s=>s.id)).size).toBe(HOUSE_LOOKS.length);for(const look of HOUSE_LOOKS){const preset=houseLookPreset(look.id);expect(normalizeHouseLook(JSON.parse(JSON.stringify(preset)))).toEqual(preset);}});

@@ -425,6 +425,8 @@ const server = serve({
       return notFound();
     }
 
+    if (under(pathname, "/visualizations")) return serveStatic("/visualizations", "./visualizations", pathname);
+
     // Twitch plays robot (short URL kept for old links)
     if (pathname === "/twitch-plays-robot") return serveFile("./tools/twitch-plays-robot.html");
 

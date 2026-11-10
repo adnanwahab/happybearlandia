@@ -1,3 +1,4 @@
+import {mountLawImpact} from './impact.js';
 import {LAW_CATALOG} from './catalog.js';
 import {compareLawInWorker as compareLawDefault} from './comparison-client.js';
 /** mountLawPanel(container,{laws,compareLaw,getContext,onSelect,onPlanIdeaChange,
@@ -42,6 +43,10 @@ export function mountLawPanel(container,options={}){
  const heading=el('h3','',detail),text=el('p','',detail),ideaLabel=el('label','Plan idea',detail),idea=el('textarea',undefined,ideaLabel),status=el('p','',detail);idea.rows=4;idea.readOnly=true;idea.setAttribute('aria-label','Plan idea');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
  const scope=el('p','',detail);scope.className='law-note';
  const actions=el('div',undefined,detail);const compareButton=button('Compare this law',()=>runComparison(),actions);button('Relevant institutions',()=>paint('potential'),actions);const recordedButton=button('Highlight modeled changes',()=>paint('recorded'),actions);recordedButton.disabled=true;button('Clear highlights',()=>worldLayer?.clear?.(),actions);
+ const impact=mountLawImpact(detail,{showMetrics:false});
+ const updateImpact=()=>impact.update({law:selected,result:comparison,buildings:getContext().worldContext?.buildings||[]});
+ const onBuilding=event=>{if(impact.selectPlace(event.detail?.id)){root.hidden=false;toggle.setAttribute('aria-expanded','true');}};
+ win.addEventListener('world:building-selected',onBuilding);
  const traceBox=el('div',undefined,detail);traceBox.dataset.testid='law-mechanism-trace';
  const table=el('table',undefined,detail),notes=el('ul',undefined,detail);table.setAttribute('aria-label','Same-world with and without law comparison');
  function renderList(){
@@ -68,7 +73,7 @@ export function mountLawPanel(container,options={}){
   el('p','Missing outcomes remain unavailable. Changed inputs can produce unchanged outcomes; a modeled difference is not proof of real-world causality.',box);
  }
  function renderResult(result){
-  renderTrace(result);table.replaceChildren();notes.replaceChildren();const rows=lawComparisonRows(result);recordedButton.disabled=!hasRecordedLawGeography(result);
+  updateImpact();renderTrace(result);table.replaceChildren();notes.replaceChildren();const rows=lawComparisonRows(result);recordedButton.disabled=!hasRecordedLawGeography(result);
   if(rows.length){const head=el('thead',undefined,table),tr=el('tr',undefined,head);for(const name of ['Metric','Without law','With law','Modeled change'])el('th',name,tr);const body=el('tbody',undefined,table);for(const row of rows){const tr=el('tr',undefined,body);for(const value of [row.label,format(row.baseline,row.unit),format(row.current,row.unit),format(row.delta,row.unit)])el('td',value,tr);if(typeof row.delta==='number'&&row.delta!==0)tr.classList.add('law-metric-changed');}}
   else el('caption','No recorded numerical comparison is available.',table);
   for(const note of [...(selected?.mapping?.assumptions??[]),...(result?.limitations??[])])el('li',String(note),notes);
@@ -83,19 +88,19 @@ export function mountLawPanel(container,options={}){
   if(!selected||destroyed)return;
   publishPlanIdea(selected);
   if(typeof compareLaw!=='function'){status.textContent='Comparison unavailable: no same-world comparison service is connected.';return;}
-  const serial=++request;abort?.abort();abort=new AbortController();const law=selected,context=getContext();status.textContent='Comparing the same frozen world with and without this law…';renderTrace(null);table.replaceChildren();notes.replaceChildren();recordedButton.disabled=true;compareButton.disabled=true;detail.setAttribute('aria-busy','true');
+  const serial=++request;abort?.abort();abort=new AbortController();const law=selected,context=getContext();comparison=null;updateImpact();paint('potential');status.textContent='Comparing the same frozen world with and without this law…';renderTrace(null);table.replaceChildren();notes.replaceChildren();recordedButton.disabled=true;compareButton.disabled=true;detail.setAttribute('aria-busy','true');
   try{if(law.supported&&!context.initialState&&(!context.worldContext||!Object.keys(context.worldContext).length))throw Error('Current-world comparison context is not connected.');const result=await compareLaw(law,{...context,signal:abort.signal});if(destroyed||serial!==request)return;if(!result||typeof result!=='object')throw Error('Unsupported comparison response');comparison=result;renderResult(result);paint(hasRecordedLawGeography(result)?'recorded':'potential');}
   catch(error){if(destroyed||serial!==request||error.name==='AbortError')return;status.textContent='Comparison unavailable: '+error.message;onError?.(error);}
   finally{if(!destroyed&&serial===request){compareButton.disabled=false;detail.setAttribute('aria-busy','false');}}
  }
  function selectLaw(law){
   selected=law;comparison=null;detail.hidden=false;heading.textContent='Law '+law.number+' · '+(law.category??'Proposal');idea.value=law.text??law.title??'';text.textContent=law.supported?'Reviewed model mapping: '+(law.mapping?.mechanism??'partial proxy'):'Effects unavailable: no reviewed model mechanism.';
-  publishPlanIdea(law);onSelect?.(law);renderList();paint('potential');detail.scrollIntoView?.({block:'start'});void runComparison();
+  updateImpact();publishPlanIdea(law);onSelect?.(law);renderList();paint('potential');detail.scrollIntoView?.({block:'start'});void runComparison();
  }
  root.insertBefore(detail,list);
  function open(){if(destroyed)return;root.hidden=false;toggle.setAttribute('aria-expanded','true');search.focus();}
  function close(){root.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.focus();}
  const click=()=>root.hidden?open():close(),keys=event=>{event.stopPropagation();if(event.key==='Escape'){event.preventDefault();close();}};
  toggle.addEventListener('click',click);search.addEventListener('input',renderList);root.addEventListener('keydown',keys);renderList();
- return{open,close,selectLaw,compareSelected:runComparison,getSelection:()=>selected,setLaws(next){laws=next;renderList();},destroy(){if(destroyed)return;destroyed=true;request++;abort?.abort();toggle.removeEventListener('click',click);search.removeEventListener('input',renderList);root.removeEventListener('keydown',keys);root.remove();toggle.remove();sheet.remove();worldLayer?.clear?.();}};
+ return{open,close,selectLaw,compareSelected:runComparison,getSelection:()=>selected,setLaws(next){laws=next;renderList();},destroy(){if(destroyed)return;destroyed=true;request++;abort?.abort();toggle.removeEventListener('click',click);search.removeEventListener('input',renderList);root.removeEventListener('keydown',keys);win.removeEventListener('world:building-selected',onBuilding);impact.destroy();root.remove();toggle.remove();sheet.remove();worldLayer?.clear?.();}};
 }

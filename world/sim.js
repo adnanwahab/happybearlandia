@@ -1,3 +1,6 @@
+import {driveLegacyTraditionRoutines} from './relationships/city-traditions.js';
+import {legacySocial} from './relationships/model.js';
+import {driveLegacyPromiseRoutines} from './relationships/promises.js';
 import {installLegacyPersonCommands} from './person-commands.js';
 import {captureLegacyCheckpoint,restoreLegacyCheckpoint} from './legacy-checkpoint.js';
 import {ensureJournal,recordJournalInterval,recordJournalMoment} from './journals/model.js';
@@ -671,7 +674,11 @@ export function createWorld(town, opts = {}) {
   w.step = (gameMinutes) => {
     if(!Number.isInteger(gameMinutes)||gameMinutes<0)throw new RangeError("Neighborhood steps require nonnegative whole modeled minutes");
     for (let i = 0; i < gameMinutes; i++) {
+      if(w.social?.cityTraditions?.some(t=>t.enabled)){legacySocial(w).prepareTraditions();driveLegacyTraditionRoutines(w);}
+      if(w.social?.promises?.some(p=>p.status==='scheduled'))driveLegacyPromiseRoutines(w);
       minute();
+      if(w.social?.cityTraditions?.some(t=>t.current))legacySocial(w).stepTraditions();
+      if(w.social?.promises?.some(p=>p.status==='scheduled'))legacySocial(w).stepPromises();
       w.cultureSnapshot=w.culture?.stepTo(w.t)??null;
       w.refreshWeatherEffects(w.weather?.stepTo(w.t)??null);
     }

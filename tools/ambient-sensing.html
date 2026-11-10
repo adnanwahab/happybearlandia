@@ -78,14 +78,12 @@ button:hover {
 }
 </style>
 
-<script>(async function () {
-  const THREE = await import(
-    "https://cdn.jsdelivr.net/npm/three@0.180.0/+esm"
-  );
-
-  const { OrbitControls } = await import(
-    "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js/+esm"
-  );
+<script type="importmap">{"imports":{"three":"/vendor/three/three.webgpu.js","three/webgpu":"/vendor/three/three.webgpu.js","three/tsl":"/vendor/three/three.tsl.js","three/addons/":"/vendor/three/addons/"}}</script>
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { createWebGPUDemoRenderer, showWebGPUError, manageWebGPUDemo } from "/tools/webgpu-demo-runtime.js";
+try {
 
   const container = document.getElementById("scene");
 
@@ -119,7 +117,7 @@ button:hover {
   // RENDERER
   // --------------------------------------------------
 
-  const renderer = new THREE.WebGLRenderer({
+  const renderer = await createWebGPUDemoRenderer(THREE, {
     antialias: true
   });
 
@@ -133,7 +131,7 @@ button:hover {
   );
 
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
 
   container.appendChild(renderer.domElement);
 
@@ -1094,10 +1092,9 @@ button:hover {
   // ANIMATION
   // --------------------------------------------------
 
+  manageWebGPUDemo(renderer, scene, controls);
+  await renderer.setAnimationLoop(animate);
   function animate(now) {
-    requestAnimationFrame(
-      animate
-    );
 
     if (running) {
       const seconds =
@@ -1111,11 +1108,7 @@ button:hover {
 
       soundPaths.forEach(
         (sound, index) => {
-          const progress =
-            (
-              seconds * 0.16 +
-              sound.offset
-            ) % 1;
+          const progress = ((seconds * 0.16 + sound.offset) % 1 + 1) % 1;
 
           const position =
             sound.curve.getPointAt(
@@ -1185,7 +1178,5 @@ button:hover {
     );
   }
 
-  requestAnimationFrame(
-    animate
-  );
-})();</script>
+} catch (error) { showWebGPUError(error); }
+</script>

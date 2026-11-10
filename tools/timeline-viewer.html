@@ -5,14 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Timeline Viewer</title>
 
-    <script type="importmap">
-            {
-                "imports": {
-                    "three": "https://unpkg.com/three@0.173.0/build/three.module.js",
-                    "three/addons/": "https://unpkg.com/three@0.173.0/examples/jsm/"
-                }
-            }
-        </script>
+    <script type="importmap">{"imports":{"three":"/vendor/three/three.webgpu.js","three/webgpu":"/vendor/three/three.webgpu.js","three/tsl":"/vendor/three/three.tsl.js","three/addons/":"/vendor/three/addons/"}}</script>
     <style>
       :root {
         color-scheme: light dark;
@@ -254,8 +247,11 @@
     </div>
 
     <script type="module">
-      import * as THREE from 'https://unpkg.com/three@0.173.0/build/three.module.js';
-      import { OrbitControls } from 'https://unpkg.com/three@0.173.0/examples/jsm/controls/OrbitControls.js';
+      import * as THREE from 'three';
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { createWebGPUDemoRenderer, showWebGPUError, manageWebGPUDemo } from "/tools/webgpu-demo-runtime.js";
+try {
+
 
       const urlInput = document.getElementById('events-url');
       const typeFilter = document.getElementById('type-filter');
@@ -285,7 +281,7 @@
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 2000);
       camera.position.set(8, 8, 12);
-      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      const renderer = await createWebGPUDemoRenderer(THREE, { antialias: true });
       renderer.setPixelRatio(window.devicePixelRatio);
       renderer.setSize(viewerEl.clientWidth || 600, viewerEl.clientHeight || 420);
       viewerEl.appendChild(renderer.domElement);
@@ -577,7 +573,6 @@
       });
 
       const animate = (nowMs) => {
-        requestAnimationFrame(animate);
 
         if (isPlaying) {
           if (lastFrameAt === null) lastFrameAt = nowMs;
@@ -609,8 +604,11 @@
       window.addEventListener('resize', onResize, false);
 
       onResize();
-      animate(performance.now());
+      manageWebGPUDemo(renderer, scene, controls);
+      await renderer.setAnimationLoop(animate);
       loadEvents();
-    </script>
+
+} catch (error) { showWebGPUError(error); }
+</script>
   </body>
 </html>

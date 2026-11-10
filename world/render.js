@@ -25,6 +25,7 @@ import { generateBuildingGeometry } from "./render/geometry/building-generator.j
 import { GeometryCache, toBufferGeometry } from "./render/geometry/geometry-cache.js";
 import { benchmarkScene, configureBenchmark } from "./render/bench/scenes.js";
 import { mountWorldBuildingBridge } from "./buildings/world-bridge.js";
+import { mountNeighborhoodWhatIf } from "./what-if/panel.js";
 import { mountBusinessMode } from "./business-mode.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { createCityRenderer } from "./render/renderer/webgpu-renderer.js";
@@ -117,7 +118,10 @@ const initialAreaRequest=(async()=>{
   }catch(error){return {source:"none",error:`area request failed: ${error.message}`};}
 })();
 
-const { renderer, mode: rendererMode } = await createCityRenderer({ forceWebGL: params.get("renderer") === "webgl", antialias: !embedMode });
+const useMainWorldGPU = !params.has("living") && !businessMode && !embedMode;
+const { renderer, mode: rendererMode } = useMainWorldGPU
+  ? await (await import("./world-gpu.js")).createWorldGPU({ antialias: !embedMode })
+  : await createCityRenderer({ forceWebGL: params.get("renderer") === "webgl", antialias: !embedMode });
 renderer.setSize(innerWidth, innerHeight);
 $("view").appendChild(renderer.domElement);
 
@@ -456,6 +460,8 @@ const playback=createSimulationPlayback({initialSpeed:speed,onChange:state=>{spe
 window.hblSimulationPlayback=playback;
 livingWorld=!embedMode?mountLivingWorld({container:document.body,scene,camera,controls,THREE,town,renderer,autoActivate:loadedExperiment?false:!businessMode&&!simulationId&&!demoMode&&!renderBenchmark,initialMinute:loadedExperiment?0:6*60,onRuntimeReady:runtime=>{bindActivityRuntime(runtime);const state=playback.getState();runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();if(!livingPlaybackUnsubscribe)livingPlaybackUnsubscribe=runtime.subscribe(frame=>{if(!livingWorld?.active||!frame?.runtime)return;if(Number.isFinite(frame.runtime.speed)&&frame.runtime.speed!==playback.getState().speed)playback.setSpeed(frame.runtime.speed);frame.runtime.paused?playback.pause():playback.resume();});return true;},onModeChange:active=>{people.visible=!active;follow=false;selected=null;document.documentElement.classList.remove("person-selected");$("inspect").removeAttribute("data-person-selected");$("inspect").style.display="none";cityRenderer.setFeature('traffic',active?false:originalTrafficEnabled);cityRenderer.updateCity({trafficDensity:active?0:1});document.body.classList.toggle('living-active',active);notifyActivity();const fastest=$('speeds').lastElementChild;fastest.dataset.s=active?'32':'60';fastest.textContent=active?'32×':'60×';if(active&&playback.getState().speed>32)playback.setSpeed(32);}}):null;
 window.hblLivingWorld=livingWorld;
+const neighborhoodWhatIf = !embedMode ? mountNeighborhoodWhatIf({scene,camera,controls,renderer,THREE,getContext:()=>livingWorld.getContext()}) : null;
+addEventListener('pagehide',()=>neighborhoodWhatIf?.destroy(),{once:true});
 window.hblWorldActivity={
  getSnapshot(){const snapshot=livingWorld?.active?livingWorld.getSnapshot():null;return livingWorld?.active?(snapshot?{...snapshot,mode:'living',peopleCount:snapshot.metrics?.syntheticPopulation??snapshot.population,people:snapshot.visibleAgents,runId:`${snapshot.runtime?.id}:${snapshot.runtime?.revision}`}:{mode:'living',peopleCount:null,minute:null,historyAvailable:false,runId:'living:resetting'}):world.getActivitySnapshot();},
  async getHistory(query={}){const source=window.hblWorldActivity.getSnapshot(),identity=source.runId;if(livingWorld?.active){const runtime=livingWorld.getRuntime();if(!runtime?.getActivityHistory)throw Error('Living history is not ready.');const history=await runtime.getActivityHistory(query);if(!livingWorld?.active||window.hblWorldActivity.getSnapshot().runId!==identity)throw Error('Activity source changed while history was loading; refresh the current run.');return {...history,runId:identity};}if(query.actorId)world.trackActivityPerson(query.actorId);const history=world.getActivityHistory(query);if(livingWorld?.active)throw Error('Activity source changed while history was loading.');return {...history,runId:identity};},
@@ -2010,6 +2016,7 @@ function emitLegacyPersonContext(event,index){const person=town.people[index];re
 renderer.domElement.addEventListener('contextmenu',event=>{if(livingWorld?.active||event.defaultPrevented)return;const bounds=renderer.domElement.getBoundingClientRect();ptr.set((event.clientX-bounds.left)/bounds.width*2-1,-(event.clientY-bounds.top)/bounds.height*2+1);ray.setFromCamera(ptr,camera);const hit=humanPeople.pick(ray),building=ray.intersectObjects(meshes)[0];if(hit&&(!building||hit.distance<building.distance)){event.preventDefault();emitLegacyPersonContext(event,hit.index);}});
 function select(s) {
   selected = s;
+  if(s?.type==='building'){const building=town.buildings[s.id];if(building)window.dispatchEvent(new CustomEvent('world:building-selected',{detail:{id:String(building.id)}}));}
   $('inspect').toggleAttribute('data-inspector-focused',Boolean(s));
   if(s?.type==="person")world.trackActivityPerson(String(town.people[s.id]?.id??s.id));
   document.documentElement.classList.toggle("person-selected",s?.type === "person");

@@ -1,0 +1,24 @@
+const money=value=>new Intl.NumberFormat(undefined,{style:'currency',currency:'USD'}).format(value);
+const labels={wages:'Wages received',benefits:'Unemployment benefits',other_income:'Other income',rent:'Rent',food:'Food budget',utilities:'Utilities',other_spending:'Other spending',transport:'Transport',childcare:'Childcare',moving:'Moving costs'};
+export function summarizeMoney(records){const totals={};for(const record of records)for(const entry of record.entries)totals[entry.category]=(totals[entry.category]||0)+entry.amount;const net=Object.values(totals).reduce((a,b)=>a+b,0);let gaps=0;for(let i=1;i<records.length;i++)if(records[i].minute-records[i-1].minute>1440||Math.abs(records[i].openingSavings-records[i-1].closingSavings)>.01)gaps++;return{totals,net,gaps};}
+export function renderMoneyHistory(root,{householdId,records,onEntity=()=>{}}){
+ const doc=root.ownerDocument;root.replaceChildren();const add=(tag,text)=>{const node=doc.createElement(tag);node.textContent=text;root.append(node);return node};
+ add('h3',`Follow the money · ${householdId}`);
+ if(!records.length){add('p','No payment history collected for this household yet. Run the simulation through a day and save or collect a snapshot. Older snapshots do not contain payment history.');return}
+ const {totals,net,gaps}=summarizeMoney(records),first=records[0],last=records.at(-1);
+ add('p',`Recorded payments ${net<0?'reduced':'increased'} savings by ${money(Math.abs(net))} across ${records.length} daily settlements. Opening balance ${money(first.openingSavings)}; latest closing balance ${money(last.closingSavings)}.`);
+ const expenses=Object.entries(totals).filter(([,v])=>v<0).sort((a,b)=>a[1]-b[1]);if(expenses.length)add('p',`Largest recorded costs: ${expenses.slice(0,3).map(([key,v])=>`${labels[key]||key} ${money(-v)}`).join(', ')}.`);
+ add('p',`${gaps?`${gaps} gaps between collected settlements; payments during those gaps are unknown. `:''}Showing up to 366 collected daily settlements. Amounts are per synthetic household. Household taxes are not modeled. Budget charges have no assigned merchant or landlord.`);
+ const ns='http://www.w3.org/2000/svg',svg=doc.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 640 160');svg.setAttribute('role','img');svg.setAttribute('aria-label','Savings over collected simulation days');svg.style.width='100%';
+ const points=[{minute:first.minute-1440,value:first.openingSavings},...records.map(r=>({minute:r.minute,value:r.closingSavings}))],min=Math.min(...points.map(p=>p.value)),max=Math.max(...points.map(p=>p.value)),range=Math.max(1,max-min),span=Math.max(1,last.minute-points[0].minute);
+ const poly=doc.createElementNS(ns,'polyline');poly.setAttribute('points',points.map(p=>`${20+(p.minute-points[0].minute)/span*600},${140-(p.value-min)/range*120}`).join(' '));poly.setAttribute('fill','none');poly.setAttribute('stroke','#83dfbd');poly.setAttribute('stroke-width','3');svg.append(poly);root.append(svg);add('p',`Savings range ${money(min)}–${money(max)} · Day ${Math.floor(points[0].minute/1440)}–${Math.floor(last.minute/1440)}. Lines connect collected balances.`);
+ const totalsList=add('ul','');for(const [key,value]of Object.entries(totals)){const li=doc.createElement('li');li.textContent=`${labels[key]||key}: ${money(value)}`;totalsList.append(li)}
+ for(const record of [...records].reverse()){
+  const detail=add('details',''),summary=doc.createElement('summary');summary.textContent=`Day ${Math.floor(record.minute/1440)} · ${money(record.closingSavings-record.openingSavings)} · Savings ${money(record.closingSavings)}`;detail.append(summary);
+  const entries=doc.createElement('ul');for(const entry of record.entries){const li=doc.createElement('li');li.textContent=`${labels[entry.category]||entry.category}: ${money(entry.amount)}`;entries.append(li)}detail.append(entries);
+  const link=(parent,kind,id)=>{if(!id)return;const button=doc.createElement('button');button.type='button';button.textContent=id;button.onclick=()=>onEntity(kind,id);parent.append(button)};
+  for(const source of record.sources||[]){const p=doc.createElement('p');p.append(`${labels[source.category]||source.category} ${money(source.amount)} · `);link(p,'people',source.personId);if(source.businessId){p.append(' from ');link(p,'businesses',source.businessId)}detail.append(p)}
+  for(const event of record.events||[]){const p=doc.createElement('p');p.append(`Day ${Math.floor(event.minute/1440)} · ${event.type}: ${event.reason||'Recorded model event'} `);link(p,'people',event.personId);link(p,'businesses',event.businessId);detail.append(p)}
+  const residual=record.closingSavings-record.openingSavings-record.entries.reduce((sum,e)=>sum+e.amount,0);if(Math.abs(residual)>.01){const p=doc.createElement('p');p.textContent=`Unexplained balance difference: ${money(residual)}`;detail.append(p)}
+ }
+}

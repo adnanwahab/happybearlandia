@@ -1,3 +1,4 @@
+import { advanceBusinessChallenge } from './challenges.js';
 import { ARCHETYPES, EVENTS } from './content.js';
 import { copy, clamp, requireApproved } from './schema.js';
 import { deriveSeed } from '../../world-generator.js';
@@ -170,7 +171,7 @@ export function simulatePeriod(input, plan, options = {}) {
   const report = { period, defVersion: d.version, seed: s.seed, weather: actual, rivals, arrivals: totalArrivals, outcomes, traceCount: trace.length, segmentSales, revenue, cogs, spoilageCost, spoiled, rent, wages, marketingCost, interest, equipmentPurchase, tierCost, inputCash, profit, cashBefore, cash: s.cash, cashChange: revenue - cashOut, availableCredit, inventory: s.inventory, reputation: s.reputation, satisfaction, channelCards, share: outcomes.bought / Math.max(1,totalArrivals), capacity, used: serviceUsed, backlog, churned, mrr: recurringRevenue, arr: recurringRevenue * 12, utilization: serviceUsed / Math.max(1,capacity), supplierDelivered: delivered, forecast: predicted, bankrupt: s.bankrupt };
   s.logs = [...s.logs, report].slice(-48);
   s.history = [...s.history, { period, cash: s.cash, revenue, profit }].slice(-120);
-  return { state: s, report, trace };
+  return { state: advanceBusinessChallenge(s), report, trace };
 }
 
 export function metricsFor(s) { return { cash: s.cash, profit: s.totalProfit, revenue: s.totalRevenue, reputation: s.reputation, survival: s.bankrupt ? 0 : 1, customers: s.totalSales }; }

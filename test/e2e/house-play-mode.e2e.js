@@ -15,7 +15,7 @@ test('house play mode renders real residents, accepts requests, and preserves pa
  await expect(page.locator('canvas[data-house-canvas]')).toBeVisible();
  await page.waitForFunction(()=>{const scene=document.querySelector('.house-stage-3d')?.houseScene;return scene?.getDebugState().frameCount>0;});
  const original=await page.evaluate(async()=>{const session=window.hblHouseSession,runtime=session.getRuntime(),household=await runtime.inspectHousehold(session.getHouseholdId());return{minute:runtime.getSnapshot().minute,household,scene:document.querySelector('.house-stage-3d').houseScene.getDebugState()};});
- expect(original.scene.renderer).toBe('three-webgl');expect(original.scene.visiblePersonIds.sort()).toEqual([...fixture.members].sort());expect(original.scene.paused).toBe(true);await expect(page.locator('[data-open-drawer="details"]')).toHaveCount(0);await expect(page.locator('[data-drawer-section="details"]')).toHaveCount(0);
+ expect(original.scene.renderer).toBe('three-webgpu');expect(original.scene.visiblePersonIds.sort()).toEqual([...fixture.members].sort());expect(original.scene.paused).toBe(true);await expect(page.locator('[data-open-drawer="details"]')).toHaveCount(0);await expect(page.locator('[data-drawer-section="details"]')).toHaveCount(0);
  expect(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+1)).toBe(true);
  const second=original.scene.personScreenPositions.find(row=>row.id!==fixture.members[0]);expect(second).toBeTruthy();await page.mouse.click(second.x,second.y);
  await expect(page.locator('[data-context-menu]')).toBeVisible();await expect(page.locator('[data-inspector]')).toContainText('Energy');

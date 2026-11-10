@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "npm:react";
-import * as THREE from "npm:three";
+import * as THREE from "npm:three/webgpu";
 
 export default function GameTableDashboard() {
   const mountRef = useRef(null);
@@ -16,10 +16,10 @@ export default function GameTableDashboard() {
     camera.lookAt(0, 0, 0);
 
     // 2. Renderer
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGPURenderer({ antialias: true });
     renderer.setSize(width, height);
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
     currentMount.appendChild(renderer.domElement);
 
     // 3. Lighting
@@ -100,13 +100,30 @@ export default function GameTableDashboard() {
     scene.add(dice);
 
     // 7. Animation Loop
-    let animationFrameId;
+    let disposed = false;
+    renderer._getFallback = null;
     const animate = () => {
-      animationFrameId = requestAnimationFrame(animate);
+
       dice.rotation.y += 0.005; // Slow rotation
       renderer.render(scene, camera);
     };
-    animate();
+    const reportError = error => {
+      if (disposed) return;
+      renderer.setAnimationLoop(null);
+      const notice = document.createElement('p');
+      notice.setAttribute('role', 'alert');
+      notice.style.cssText = 'color:white;padding:20px;font:16px/1.5 system-ui';
+      notice.textContent = `This 3D demo requires WebGPU. Use a WebGPU-enabled browser with hardware acceleration over HTTPS or localhost, then reload. ${error.message}`;
+      currentMount.appendChild(notice);
+    };
+    (async () => {
+      if (!navigator.gpu) throw new Error('WebGPU is unavailable.');
+      await renderer.init();
+      if (disposed) { renderer.dispose(); return; }
+      if (!renderer.backend.isWebGPUBackend) throw new Error('WebGPU initialization failed.');
+      await renderer.setAnimationLoop(animate);
+      renderer.backend.device.lost.then(info => reportError(new Error(info.message || 'GPU device lost.')));
+    })().catch(reportError);
 
     // 8. Resize Handler
     const handleResize = () => {
@@ -123,7 +140,8 @@ export default function GameTableDashboard() {
     // 9. Cleanup on Unmount
     return () => {
       window.removeEventListener('resize', handleResize);
-      cancelAnimationFrame(animationFrameId);
+      disposed = true;
+      renderer.setAnimationLoop(null);
 
       // Traverses scene to dispose geometries, materials, and renderer DOM node
       scene.traverse((child) => {
@@ -138,6 +156,7 @@ export default function GameTableDashboard() {
       });
 
       renderer.dispose();
+      currentMount.querySelectorAll('[role="alert"]').forEach(notice => notice.remove());
       if (currentMount.contains(renderer.domElement)) {
         currentMount.removeChild(renderer.domElement);
       }

@@ -67,7 +67,7 @@ No credentials, world records or repository context reach the client/provider.
 This implements the core v1 loop and simplified adapters, not every roadmap item:
 
 - One active product/site, one archetype; no hybrid weights, SKU cannibalization,
-  multi-site chain operations, research tree, scenario/career scoring or specialist
+  multi-site chain operations, research tree, career scoring or specialist
   staff assignments. Location tiers are abstract traffic/rent multipliers.
 - Per-period stock decay rather than per-input hourly batch aging. Recipe ideals
   use a shared default; weather is synthetic and no real economic benchmarks exist.
@@ -94,3 +94,37 @@ stock and cash reconciliation, lead times, finite archetype results, subscriptio
 renewals, credit/financing, cash failure, 500 completed futures, paired seeds, replay,
 and server-side compiler validation/repair. Browser QA exercises describe → approve
 → plan → run → review → futures, strategy comparison, versioned edits and save/reload.
+
+
+## Scenario challenges
+
+Open **Challenges** in either Entrepreneur Mode or classic Business Lab, or visit
+`/world/business.html?view=challenges`. Four seeded starting scenarios cover a
+$100 profit sprint, $1,000 in 30 days, 500 active subscribers in six months, and a
+profitable full trading year. Every goal requires positive cash; bankruptcy ends
+an active attempt. The annual scenario settles at the deadline, while growth
+challenges can finish early. Trading can continue after a result is settled.
+
+Challenge definitions are reviewed and approved before a fresh company is
+created. The existing company moves to the recovery snapshot. Progress and the
+terminal result live in the business state; `simulatePeriod` advances them from
+actual totals without adding money or changing the simulation's random draws.
+Save/reload, exports and recovery preserve the result. Completion summaries keep
+the metrics recorded at the finish even if the company trades further.
+
+Economic assumption edits or a different future seed permanently mark that
+attempt as practice. Normal price, staffing, production, financing and marketing
+decisions remain available; loans and equity are not net profit. Futures only
+project copied practice states and cannot award a result to the active company.
+
+Personal bests are local browser records (`hbl-business-challenges.v1`): fastest
+completion, then highest profit at that finish. They are not a public leaderboard.
+Reviewing/rejecting a challenge proposal does not replace the current company.
+The Challenges screen exposes recovery on mobile as well as desktop.
+
+`bun test test/business-challenges.test.js test/business-lab.test.js test/entrepreneur-mode.test.js`
+covers exact deadlines, failure, approval/pristine starts, subscription capacity,
+financing, immutable results, practice eligibility, replay isolation, best-record
+ordering and unchanged sandbox accounting. Browser QA completes the profit sprint
+through six real trading periods, reloads its personal best, and checks practice
+edits and recovery.

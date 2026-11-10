@@ -65,14 +65,7 @@
   </p>
 </div>
 
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
-  }
-}
-</script>
+<script type="importmap">{"imports":{"three":"/vendor/three/three.webgpu.js","three/webgpu":"/vendor/three/three.webgpu.js","three/tsl":"/vendor/three/three.tsl.js","three/addons/":"/vendor/three/addons/"}}</script>
 
 <script type="module">
 
@@ -80,6 +73,9 @@ import * as THREE from "three";
 
 import { OrbitControls }
 from "three/addons/controls/OrbitControls.js";
+import { createWebGPUDemoRenderer, showWebGPUError, manageWebGPUDemo } from "/tools/webgpu-demo-runtime.js";
+try {
+
 
 
 // -----------------------------------------------------
@@ -109,7 +105,7 @@ camera.position.set(0, 15, 16);
 // Renderer
 // -----------------------------------------------------
 
-const renderer = new THREE.WebGLRenderer({
+const renderer = await createWebGPUDemoRenderer(THREE, {
   antialias: true
 });
 
@@ -125,7 +121,7 @@ renderer.setPixelRatio(
 renderer.shadowMap.enabled = true;
 
 renderer.shadowMap.type =
-  THREE.PCFSoftShadowMap;
+  THREE.PCFShadowMap;
 
 document.body.appendChild(
   renderer.domElement
@@ -973,10 +969,6 @@ window.addEventListener(
 
 function animate() {
 
-  requestAnimationFrame(
-    animate
-  );
-
 
   controls.update();
 
@@ -989,8 +981,13 @@ function animate() {
 }
 
 
-animate();
+manageWebGPUDemo(renderer, scene, controls);
 
+
+await renderer.setAnimationLoop(animate);
+
+
+} catch (error) { showWebGPUError(error); }
 </script>
 
 </body>

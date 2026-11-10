@@ -1,0 +1,22 @@
+import {test,expect} from '@playwright/test';
+test('goals UI schedules a worker-owned promise, real meetup builds trust, and checkpoint replay preserves the outcome',async({page})=>{
+ await page.route('**/__goals-test',r=>r.fulfill({contentType:'text/html',body:'<!doctype html><main style="max-width:520px;font:15px system-ui;margin:24px"></main>'}));await page.goto('/__goals-test');
+ await page.evaluate(async()=>{
+  const {createPopulationRuntime}=await import('/world/population/runtime.js');const {renderRelationships}=await import('/world/relationships/panel.js');
+  const runtime=createPopulationRuntime({config:{population:40,seed:42},stepMinutes:15,worldContext:{journalsEnabled:true,buildings:[{id:'home',kind:'home',center:[0,0]},{id:'park',kind:'park',center:[30,30]}]}});await runtime.ready;window.promiseRuntime=runtime;
+  let person;for(const row of runtime.getSnapshot().visibleAgents){const p=await runtime.inspectPerson(row.id);if(p.ageBand!=='child'&&p.social.goals.some(g=>g.id.startsWith('promise:'))){person=p;break;}}
+  if(!person)throw new Error('No adult social circle in fixture');window.promisePerson=person.id;window.refreshPromisePanel=async()=>{const p=await runtime.inspectPerson(person.id);renderRelationships(document.querySelector('main'),p.social,{onInteract:(target,action)=>runtime.socialAction(p.id,target,action)});};await window.refreshPromisePanel();
+ });
+ await expect(page.getByRole('heading',{name:'Personal goals',exact:true})).toBeVisible();await page.getByRole('button',{name:'Arrange park meetup',exact:true}).first().click();await expect(page.getByRole('status')).toContainText('promised to meet');await expect(page.getByRole('button',{name:'Cancel promise',exact:true})).toBeVisible();
+ const result=await page.evaluate(async()=>{const r=window.promiseRuntime,before=await r.inspectPerson(window.promisePerson),p=before.social.promises[0],checkpoint=await r.exportCheckpoint();await r.stepToTime(1260);const after=await r.inspectPerson(window.promisePerson);await r.restoreCheckpoint(checkpoint);await r.stepToTime(1260);const replay=await r.inspectPerson(window.promisePerson);await window.refreshPromisePanel();return{promise:after.social.promises[0],social:after.social,replay:replay.social,journal:after.journal};});
+ expect(result.promise.status).toBe('kept');expect(result.replay).toEqual(result.social);expect(result.journal.moments.some(m=>m.text.includes('kept their promise'))).toBe(true);
+ await expect(page.getByText(/^✓ Completed:/).first()).toBeVisible();await page.screenshot({path:'/private/tmp/hbl-personal-goals.png',fullPage:true});await page.evaluate(()=>window.promiseRuntime.destroy());
+});
+
+test('city character inspector lets the player arrange a promise and watch it resolve',async({page})=>{
+ test.setTimeout(120000);await page.route('**/api/outcomes',r=>r.fulfill({json:{outcomes:[]}}));await page.route('**/api/overpass-health',r=>r.fulfill({json:{ok:true}}));
+ await page.route('**/world/render.js',async route=>{const response=await route.fetch();await route.fulfill({response,body:await response.text()+`\nplayback.pause();window.openPromisePerson=()=>{const index=world.people.findIndex(p=>p.age>=18);const a=world.people[index],goal=legacySocial(world).inspect(String(a.id)).goals.find(g=>g.id.startsWith('promise:')),b=world.people.find(p=>String(p.id)===String(goal.targetId));for(const p of[a,b]){p.shiftStart=480;p.shiftLen=540;}a.x=b.x;a.z=b.z;select({type:'person',id:index});};window.finishPromise=()=>{const p=world.social.promises[0];world.step(p.endMinute-world.t+1);renderInspector();return p.status;};`});});
+ await page.goto('/world?demo=1&people=20&renderer=webgl&quality=LOW&business_mode=true');await page.waitForFunction(()=>Boolean(window.openPromisePerson),null,{timeout:60000});await page.evaluate(()=>window.openPromisePerson());
+ const panel=page.locator('#inspect');await expect(panel.getByRole('heading',{name:'Personal goals',exact:true})).toBeVisible();await panel.getByRole('button',{name:'Arrange park meetup',exact:true}).first().click();await expect(panel.locator('section').filter({has:page.getByRole('heading',{name:'Personal goals',exact:true})}).getByRole('status')).toContainText('promised to meet');
+ expect(await page.evaluate(()=>window.finishPromise())).toBe('kept');await expect(panel.getByText(/^✓ Completed:/).first()).toBeVisible();await page.screenshot({path:'/private/tmp/hbl-city-personal-goals.png'});
+});
