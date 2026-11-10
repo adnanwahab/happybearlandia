@@ -1,3 +1,4 @@
+import { continuityLink, recordContext, readContinuity } from './continuity.js';
 /** Fork and bounded optimization UI. No mutation happens here: promotion and
  * candidate application invoke onProposeEdit and the host approval preview.
  * Fork route POST /api/decision-experiments/:id/forks {runId,month,operations}.
@@ -119,7 +120,7 @@ export function mountExploration(container, { getInput, getResults, getSelectedR
       scenario.timelineFork = { ...forkResult.lineage, mode: "scenario" };
       onProposeEdit?.({ schemaVersion: "world-edit.v1", summary: "Promote the post-branch intervention into a new paired scenario", scenarioId: source.id, operations: [{ op: "add_scenario", target: "scenarios", value: scenario }], warnings: ["The saved fork replays one selected future. This scenario applies that month-specific intervention across new paired futures, retaining the source scenario uncertainty."], requiresSimulationRerun: true, provider: "user", model: "housing-timeline-fork.v1", baseRevision: getWorldRevisionId(currentInput), baseInputFingerprint: fingerprintWorldInput(currentInput) });
     }; box.append(promote);
-    const link = node("a", "Open immutable fork results"); link.href = forkResult.experiment.shareUrl; link.target = "_blank"; link.rel = "noopener"; box.append(link);
+    const link = node("a", "Open immutable fork results"); try { const context = recordContext(readContinuity(location.href), { namespace: 'decision', experimentId: forkResult.experiment.id, runId: forkResult.run.id, branchId: forkResult.run.id, tick: forkResult.lineage.month }); link.href = continuityLink(forkResult.experiment.shareUrl, context, location.origin); } catch { link.href = forkResult.experiment.shareUrl; } link.target = "_blank"; link.rel = "noopener"; box.append(link);
   }
   find("[data-optimize]").addEventListener("click", () => safe(async () => {
     const objectives = [{ metricId: find("[data-objective]").value, direction: find("[data-direction]").value }]; if (find("[data-second]").value) objectives.push({ metricId: find("[data-second]").value, direction: find("[data-second-direction]").value });
@@ -131,6 +132,7 @@ export function mountExploration(container, { getInput, getResults, getSelectedR
   find("[data-cancel]").addEventListener("click", () => safe(async () => { ({ job } = await request(`/api/decision-optimizations/${job.id}/cancel`, {})); renderJob(); }, find("[data-job-status]")));
   async function pollJob() { clearTimeout(timer); if (destroyed || !job || !["created", "running"].includes(job.status)) return; try { ({ job } = await request(`/api/decision-optimizations/${job.id}/results`)); if (destroyed) return; renderJob(); state(); timer = setTimeout(pollJob, 350); } catch (error) { find("[data-job-status]").textContent = error.message; } }
   function renderJob() {
+    window.dispatchEvent(new CustomEvent("decision:optimization", { detail: job }));
     find("[data-job-status]").textContent = `${job.status} · ${job.progress.phase} · ${job.progress.completed}/${job.progress.total} evaluations · ${job.progress.failed || 0} failed${job.error ? ` · ${job.error}` : ""}`;
     find("[data-progress]").max = Math.max(1, job.progress.total); find("[data-progress]").value = job.progress.completed;
     const box = find("[data-job-output]"); box.replaceChildren();

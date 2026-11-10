@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Surprising discoveries · HappyBearLandia</title>
+  <link rel="stylesheet" href="./view.css">
+  <script type="module" src="./view.js"></script>
+</head>
+<body>
+  <main>
+    <nav aria-label="World navigation"><a href="/world/">World</a><a href="/world/causal.html">Monthly World scenario</a></nav>
+    <h1>Surprising discoveries</h1>
+    <p>Find unusual patterns in recorded monthly World simulations. Findings describe model output. They do not establish causes or predict real-world outcomes.</p>
+    <form method="get">
+      <label for="run">Recorded run ID</label>
+      <div class="controls">
+        <input id="run" name="runId" required maxlength="1024" spellcheck="false" autocomplete="off">
+        <button type="submit">Analyze run</button>
+      </div>
+    </form>
+    <details>
+      <summary>How findings are selected</summary>
+      <p>Rules apply within the same entity, metric and unit. Missing months, duplicate records for a month and unit changes break the sequence. A month can match more than one rule.</p>
+      <dl id="rules"></dl>
+    </details>
+    <p id="status" role="status"></p>
+    <section id="results" aria-label="Discovery results" hidden>
+      <label for="filter">Finding type</label>
+      <select id="filter"><option value="">All findings</option></select>
+      <p id="count" aria-live="polite"></p>
+      <ol id="findings"></ol>
+      <button id="more" type="button" hidden>Show more findings</button>
+    </section>
+  </main>
+</body>
+</html>

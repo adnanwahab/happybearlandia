@@ -1,7 +1,7 @@
 import {CapacityRegistry, CONTRACTS, VERSION, clamp, draw, sum, validateState} from './contracts.js';
 import {createSystemPacks} from './systems.js';
 function freeze(value) { if(value && typeof value==='object') {Object.freeze(value); for(const v of Object.values(value))freeze(v);} return value; }
-export function createEngine(packs = createSystemPacks()) {
+export function createEngine(packs = createSystemPacks(), {trace = false} = {}) {
   const ids = new Set(packs.map(p=>p.id));
   if(ids.size!==packs.length)throw new Error('Duplicate system pack');
   const ordered=[],pending=[...packs];
@@ -18,9 +18,10 @@ export function createEngine(packs = createSystemPacks()) {
       validateState(state);
       const snapshot=freeze(structuredClone(state)),next=structuredClone(state),time=state.month+1;
       next.month=time; next.flows=[];
-      const registry=new CapacityRegistry(),events=[],decisions=[],moves=[],trips=[];
+      const registry=new CapacityRegistry(),events=[],decisions=[],moves=[],trips=[],causalRecords=[];
       for(const resource of ['contractors','labor','materials','equipment','permits','administration'])registry.register({resource,time,capacity:state.parameters[resource]});
       const context={time,registry,events,decisions,moves,trips,
+        record:trace?(record)=>causalRecords.push(structuredClone(record)):undefined,
         random:(...keys)=>draw(state.seed,time,...keys),
         event(system,type,geographyId,payload={},severity=1) {const event={schemaVersion:CONTRACTS.SystemEvent,id:`${time}-${events.length}`,simulationTime:time,system,eventType:type,geographyId,severity,payload,modelId:system,modelVersion:VERSION};events.push(event);return event;},
         flow(resource,from,to,amount,system) {if(!Number.isFinite(amount)||amount<0)throw new Error('Invalid resource flow');next.flows.push({schemaVersion:CONTRACTS.ResourceFlow,time,resource,from,to,amount,system});},
@@ -30,7 +31,12 @@ export function createEngine(packs = createSystemPacks()) {
       // All proposals see exactly STATE(t); no proposal observes a sibling's mutation.
       const proposals=active.map(p=>({schemaVersion:CONTRACTS.MarketProposal,system:p.id,time,value:p.proposeStep(snapshot,{time,random:context.random})}));
       // Explicit dependency graph controls constraint resolution on a private draft.
-      const resolutions=active.map((p,i)=>({schemaVersion:CONTRACTS.MarketResolution,system:p.id,time,value:p.resolve(snapshot,proposals[i].value,next,context)}));
+      const resolutions=active.map((p,i)=>{
+        const policies=trace&&p.id==='governance'?structuredClone(next.policies):[];
+        const value=p.resolve(snapshot,proposals[i].value,next,context);
+        for(const before of policies){const after=next.policies.find(row=>row.id===before.id);if(after.stage!==before.stage)context.record({system:p.id,type:'POLICY_STAGE_CHANGED',entity:['policies',before.id],inputs:{stage:before.stage,delay:before.delay,cost:before.cost,balance:snapshot.finance.balance,administration:snapshot.parameters.administration},outputs:{stage:after.stage}});}
+        return {schemaVersion:CONTRACTS.MarketResolution,system:p.id,time,value};
+      });
       for(const [i,p] of active.entries())p.commit(next,resolutions[i].value,context);
       const observations=active.flatMap(p=>p.observe(next,context).map(o=>({schemaVersion:CONTRACTS.CityObservation,simulationTime:time,geographyType:'city',geographyId:'city',system:p.id,modelVersion:p.version,...o})));
       validateState(next);
@@ -40,7 +46,7 @@ export function createEngine(packs = createSystemPacks()) {
         if(!vacant)diagnostics.push({system:'housing',districtId:d.id,message:'Housing market has no available inventory'});
       }
       if(next.links.some(l=>l.flow>l.capacity*2))diagnostics.push({system:'transport',message:'Transport assignment capacity stress; single-pass assignment, not equilibrium'});
-      return {state:next,proposals,resolutions,observations,events,decisions,moves,trips,flows:next.flows,capacities:registry.rows.map(row=>registry.query(row)),diagnostics};
+      return {...(trace?{causalRecords}:{}),state:next,proposals,resolutions,observations,events,decisions,moves,trips,flows:next.flows,capacities:registry.rows.map(row=>registry.query(row)),diagnostics};
     },
     run(initial,months=12) {if(!Number.isInteger(months)||months<1||months>1200)throw new Error('Invalid horizon');let state=this.initialize(initial);const steps=[];for(let i=0;i<months;i++){const result=this.step(state);steps.push(result);state=result.state;}return {state,steps,manifest:this.manifest};}
   };

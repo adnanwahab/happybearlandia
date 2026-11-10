@@ -1,0 +1,38 @@
+:root { color-scheme: light; color: #173830; background: #f4f7f1; font: 1rem/1.55 system-ui, sans-serif; }
+body { margin: 0; }
+main { max-width: 72rem; margin: auto; padding: clamp(1rem, 4vw, 3rem); }
+header { padding: clamp(1.25rem, 4vw, 2.5rem); background: #e0ede2; border-radius: 1rem; }
+header p { max-width: 65ch; }
+.brand { color: #41665a; font-weight: 700; }
+h1 { font-size: clamp(2.3rem, 6vw, 4rem); letter-spacing: -.05em; line-height: 1.05; margin: .25em 0; }
+h2 { font-size: 1.15rem; margin: 0 0 .7rem; }
+button, select { font: inherit; color: inherit; background: #fff; border: 1px solid #78988b; border-radius: .4rem; padding: .5rem .75rem; }
+button { cursor: pointer; }
+button:disabled { opacity: .65; cursor: default; }
+#run { background: #235547; color: white; }
+:focus-visible { outline: 3px solid #a04920; outline-offset: 2px; }
+.controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 1.5rem; align-items: start; padding: 1.5rem 0 .5rem; }
+.controls label { font-weight: 700; }
+.controls select, .timeline input { display: block; width: 100%; margin: .4rem 0; }
+.timeline input { accent-color: #235547; }
+.timeline output { float: right; }
+.month-range { display: flex; justify-content: space-between; }
+.inventory { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: .8rem; margin: 1rem 0; }
+.inventory section { background: #fff; border: 1px solid #c4d8ca; border-radius: .65rem; padding: 1rem; min-width: 0; }
+.inventory ul { list-style: none; padding: 0; margin: 0; }
+.inventory li + li { margin-top: .5rem; }
+.inventory button { width: 100%; text-align: left; overflow-wrap: anywhere; }
+.inventory button[aria-pressed="true"] { outline: 2px solid #235547; }
+.inventory strong, .inventory small { display: block; }
+.inventory .changed { background: #fff2d1; border-color: #ae8549; }
+a { color: #235547; }
+
+header nav { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; }
+
+#saved-run { max-width: 100%; }
+@media (prefers-reduced-motion: no-preference) {
+  .inventory .changed { animation: highlight-change .32s ease-out; }
+  @keyframes highlight-change {
+    from { background: #fff; transform: translateY(.2rem); }
+  }
+}

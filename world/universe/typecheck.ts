@@ -1,0 +1,10 @@
+import type { NavigationContext } from '../../shared/causality/contracts';
+import { DEFAULT_CONTEXT, contextFromURL, contextURL, shellURL, createFrameBridge } from './navigation.js';
+import { mountUniverseNavigation } from './connected-navigation.js';
+const context:NavigationContext=contextFromURL(contextURL('/world',DEFAULT_CONTEXT));
+const path:string=shellURL('worldline',context);
+const frame=document.createElement('iframe');
+const dispose:()=>void=createFrameBridge({frame,context:()=>context,onContext(value){value.entityId;},onNavigate(id){id.toUpperCase();}});
+const mounted=mountUniverseNavigation(document.body,{experienceId:'world'});
+const retained:NavigationContext=mounted.getContext();
+void [path,dispose,retained];

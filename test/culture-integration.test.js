@@ -1,0 +1,5 @@
+import {test,expect} from 'bun:test';
+import {FACILITIES,destination,annotationKey} from '../world/culture/facilities.js';
+test('four stable cultural facilities retain standalone routes',()=>{expect(new Set(FACILITIES.map(f=>f.id)).size).toBe(4);expect(FACILITIES.map(f=>f.experienceId)).toEqual(['flower','ai-seinfeld','quote-carousel','lumen']);});
+test('navigation retains full context and encodes hostile values',()=>{const search='worldId=world%3Acity%3A1&runId=run%3Atest%3A2&branchId=b&entityId=%3Cscript%3E&tick=0';const url=new URL(destination('/world',search),'https://test');expect(url.searchParams.get('entityId')).toBe('<script>');expect(url.searchParams.get('tick')).toBe('0');expect(url.searchParams.get('branchId')).toBe('b');});
+test('notes isolate facilities, branches and runs',()=>{expect(annotationKey('a','runId=1')).not.toBe(annotationKey('a','runId=2'));expect(annotationKey('a','branchId=1')).not.toBe(annotationKey('a','branchId=2'));expect(annotationKey('a','')).not.toBe(annotationKey('b',''));});

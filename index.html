@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Explore HappyBearLandia's apps and tools in embedded previews.">
-  <title>HappyBearLandia — All routes</title>
+  <title>HappyBearLandia — One living world</title>
   <style>
     :root { color-scheme: dark; font: 15px/1.5 system-ui, sans-serif; background: #08111f; color: #edf3fa; }
     * { box-sizing: border-box; }
@@ -28,7 +28,7 @@
     .carousel > header p { font-size: 12px; }
     .gallery-toolbar { padding: 0 22px 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 12px; color: #9caec4; }
     .gallery-toolbar select { color: #edf3fa; background: #15263d; border: 1px solid #49627f; border-radius: 7px; padding: 9px; max-width: 100%; }
-    .carousel-rail { display: flex; gap: 30px; overflow-x: auto; overflow-y: hidden; padding: 32px max(18px, calc((100% - clamp(290px, 32vw, 460px)) / 2)) 42px; scroll-snap-type: x mandatory; perspective: 1600px; perspective-origin: 50% 50%; scrollbar-color: #5a82ac #101d2f; scrollbar-width: thin; overscroll-behavior-x: contain; }
+    .carousel-rail { position: relative; display: flex; gap: 30px; overflow-x: auto; overflow-y: hidden; padding: 32px max(18px, calc((100% - clamp(290px, 32vw, 460px)) / 2)) 42px; scroll-snap-type: x mandatory; perspective: 1600px; perspective-origin: 50% 50%; scrollbar-color: #5a82ac #101d2f; scrollbar-width: thin; overscroll-behavior-x: contain; }
     .gallery-card { flex: 0 0 clamp(290px, 32vw, 460px); min-width: 0; scroll-snap-align: center; border: 1px solid #3c5779; border-radius: 14px; background: #101e31; box-shadow: 0 20px 40px #0006; transform-style: preserve-3d; transform: rotateY(var(--angle, 0deg)) translateZ(var(--depth, 0px)); transition: transform 180ms ease, border-color 180ms; }
     .gallery-card.is-current { border-color: #94dbe9; }
     .gallery-card header { padding: 14px; display: block; height: 84px; }
@@ -37,6 +37,13 @@
     .gallery-viewport { position: relative; width: 100%; aspect-ratio: 1100 / 740; overflow: hidden; background: #08111f; }
     .gallery-viewport iframe { width: 1100px; height: 740px; min-height: 0; border: 0; transform: scale(var(--preview-scale, .35)); transform-origin: top left; pointer-events: none; }
     .gallery-card.is-interactive iframe { pointer-events: auto; }
+    .gallery-card[hidden] { display: none; }
+    .gallery-card .preview-description { font-size: 12px; line-height: 1.5; padding: 0 14px; min-height: 36px; }
+    .preview-loading { position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; color: #a5b5c8; pointer-events: none; }
+    .gallery-card.is-loaded .preview-loading { display: none; }
+    .gallery-card:not(.is-loaded) .gallery-viewport iframe { opacity: 0; }
+    .gallery-card.is-interactive { border-color: #f1d37c; }
+    .gallery-card.is-interactive footer button { color: #101d2f; background: #f1d37c; }
     .gallery-card footer { padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 11px; color: #9caec4; }
     .gallery-card footer button { font-size: 11px; min-height: 34px; padding: 5px 10px; }
     @media (prefers-reduced-motion: reduce) { .gallery-card { transition: none; } }
@@ -46,170 +53,159 @@
     button:focus-visible { outline: 3px solid #f1d37c; outline-offset: 3px; }
     .path { padding: 10px 22px; color: #9caec4; font: 12px ui-monospace, monospace; overflow-wrap: anywhere; }
     @media (max-width: 600px) { .intro, main { width: calc(100% - 20px); } section header { align-items: flex-start; flex-direction: column; padding: 16px; } }
+    @media (max-width: 600px) {
+      .intro { padding: 24px 0 18px; }
+      .gallery-toolbar { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; padding-inline: 16px; }
+      .gallery-toolbar select { width: 100%; min-width: 0; }
+      .gallery-toolbar label { font-size: 11px; }
+      .carousel-rail { padding-top: 18px; }
+    }
   </style>
+  <link rel="stylesheet" href="/world/universe/shell.css">
 </head>
 <body>
   <header class="intro">
     <h1>HappyBearLandia</h1>
-    <p>Worldline, Lumen, and WebGPU worlds. Explore the highlights, then browse every preview below.</p>
-    <nav aria-label="Preview groups"><a href="#favorites">Featured</a> · <a href="#compute-demos">Compute demos</a> · <a href="#webgpu">WebGPU worlds</a> · <a href="#visualizations">Visualizations</a> · <a href="#apps">Other apps</a> · <a href="/routes">Route directory →</a></nav>
+    <p>Explore living cities, animated worlds, unusual games, and experiments in possible futures.</p>
+    <nav aria-label="Explore"><a href="#explore">Explore the worlds</a> · <a href="/routes">Route directory →</a></nav>
   </header>
+  <section id="universe-shell" aria-label="Connected universe"></section>
   <main aria-label="Route previews">
-<section class="carousel" aria-roledescription="carousel" aria-label="WebGPU visualizations, other visualizations, and content pages">
-  <header><div><h2>Explore HappyBearLandia</h2><p>WebGPU visualizations first, then other visualizations, then content pages.</p></div><div class="carousel-controls"><button type="button" id="carousel-prev" aria-label="Previous preview">←</button><span id="carousel-status" aria-live="polite"></span><button type="button" id="carousel-next" aria-label="Next preview">→</button></div></header>
-  <div class="gallery-toolbar"><label for="carousel-jump">Jump to a preview</label><select id="carousel-jump"></select><span>Enable a preview to interact with its app.</span></div>
+<section class="carousel" id="explore" aria-roledescription="carousel" aria-label="Interactive worlds and experiments">
+  <header><div><h2>29 Interactive Worlds &amp; Experiments</h2><p>Start with a world. Follow your curiosity. Each preview opens a different possibility.</p></div><div class="carousel-controls"><button type="button" id="carousel-prev" aria-label="Previous preview">←</button><span id="carousel-status" aria-live="polite"></span><button type="button" id="carousel-next" aria-label="Next preview">→</button></div></header>
+  <div class="gallery-toolbar"><label for="carousel-category">Category</label><select id="carousel-category"><option value="all">All experiences</option><option value="worlds">3D Worlds</option><option value="living">Living Simulations</option><option value="science">GPU Science</option><option value="games">Games</option><option value="tools">Tools</option></select><label for="carousel-jump">Jump to a preview</label><select id="carousel-jump"></select><span>Choose Interact to take control of a live preview.</span></div>
   <div class="carousel-rail" id="carousel-rail" tabindex="0" aria-label="App previews. Use left and right arrow keys to browse."></div>
 </section>
 
-<div class="group-heading" id="visual-featured"><h2>Visualization previews</h2><p>Worldline, Lumen, and the visual demos featured in the carousel.</p></div>
-    <section data-carousel="visualization" aria-labelledby="route-12">
-      <header><div><h2 id="route-12">Worldline</h2><p>Run possible futures and explore outcomes under different assumptions.</p></div><a href="/tools/worldline" target="_blank" rel="noopener">Open Worldline ↗</a></header>
-      <iframe src="/tools/worldline" title="Worldline preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
-      <div class="path">/tools/worldline</div>
+<template id="preview-catalog">
+<section data-carousel="worlds" aria-labelledby="route-0">
+      <header><div><h2 id="route-0">World</h2><p>Explore the streamed city, its residents, policy tools and saved experiments.</p></div><a href="/world" target="_blank" rel="noopener">Open World ↗</a></header>
+      <iframe data-preview-src="/world?embed=1&amp;demo=1&amp;quality=LOW" src="/world" title="World preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
+      <div class="path">/world</div>
     </section>
-    <section data-carousel="visualization" aria-labelledby="route-11">
-      <header><div><h2 id="route-11">Lumen</h2><p>Inspect 3D models with a zero-install GPU model viewer.</p></div><a href="/tools/lumen/" target="_blank" rel="noopener">Open Lumen ↗</a></header>
-      <iframe src="/tools/lumen/" title="Lumen preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
-      <div class="path">/tools/lumen/</div>
-    </section>
-<div class="group-heading" id="compute-demos"><h2>WebGPU compute playground</h2><p>Seven interactive experiments, each on its own page. <a href="/tools/webgpu/">Open the demo collection →</a></p></div>
-<section data-carousel="webgpu" aria-labelledby="riskuniverse-heading"><header><div><h2 id="riskuniverse-heading">RiskUniverse · 100,000 financial futures</h2><p>Reproducible WebGPU portfolio Monte Carlo with tail-risk attribution, sensitivity, and numerical reference checks.</p></div><a href="/tools/riskuniverse/" target="_blank" rel="noopener">Open RiskUniverse ↗</a></header><iframe src="/tools/riskuniverse/" title="RiskUniverse portfolio risk dashboard" loading="lazy" allow="fullscreen" allowfullscreen></iframe><div class="path">/tools/riskuniverse/</div></section>
-
-    <section data-carousel="webgpu" aria-labelledby="compute-monte-carlo">
-      <header><div><h2 id="compute-monte-carlo">Monte Carlo simulations</h2><p>Independent seeded experiments estimate π and reveal convergence.</p></div><a href="/tools/webgpu/monte-carlo.html" target="_blank" rel="noopener">Open Monte Carlo simulations ↗</a></header>
-      <iframe src="/tools/webgpu/monte-carlo.html" title="Monte Carlo simulations WebGPU demo" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
-      <div class="path">/tools/webgpu/monte-carlo.html</div>
-    </section>
-    <section data-carousel="webgpu" aria-labelledby="compute-evolutionary-algorithms">
-      <header><div><h2 id="compute-evolutionary-algorithms">Evolutionary algorithms</h2><p>Evaluate a population of candidate solutions and evolve toward better fitness.</p></div><a href="/tools/webgpu/evolutionary-algorithms.html" target="_blank" rel="noopener">Open Evolutionary algorithms ↗</a></header>
-      <iframe src="/tools/webgpu/evolutionary-algorithms.html" title="Evolutionary algorithms WebGPU demo" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
-      <div class="path">/tools/webgpu/evolutionary-algorithms.html</div>
-    </section>
-    <section data-carousel="webgpu" aria-labelledby="compute-epidemic-ensembles">
-      <header><div><h2 id="compute-epidemic-ensembles">Epidemic ensembles</h2><p>Compare many independent outbreak simulations under different assumptions.</p></div><a href="/tools/webgpu/epidemic-ensembles.html" target="_blank" rel="noopener">Open Epidemic ensembles ↗</a></header>
-      <iframe src="/tools/webgpu/epidemic-ensembles.html" title="Epidemic ensembles WebGPU demo" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
-      <div class="path">/tools/webgpu/epidemic-ensembles.html</div>
-    </section>
-    <section data-carousel="webgpu" aria-labelledby="compute-particle-simulations">
-      <header><div><h2 id="compute-particle-simulations">Particle simulations</h2><p>Explore parallel particle motion and interactions.</p></div><a href="/tools/webgpu/particle-simulations.html" target="_blank" rel="noopener">Open Particle simulations ↗</a></header>
-      <iframe src="/tools/webgpu/particle-simulations.html" title="Particle simulations WebGPU demo" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
-      <div class="path">/tools/webgpu/particle-simulations.html</div>
-    </section>
-    <section data-carousel="webgpu" aria-labelledby="compute-molecular-docking">
-      <header><div><h2 id="compute-molecular-docking">Molecular docking</h2><p>Score synthetic ligand poses against an illustrative receptor.</p></div><a href="/tools/webgpu/molecular-docking.html" target="_blank" rel="noopener">Open Molecular docking ↗</a></header>
-      <iframe src="/tools/webgpu/molecular-docking.html" title="Molecular docking WebGPU demo" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
-      <div class="path">/tools/webgpu/molecular-docking.html</div>
-    </section>
-    <section data-carousel="webgpu" aria-labelledby="compute-astronomy-signal-search">
-      <header><div><h2 id="compute-astronomy-signal-search">Astronomy / signal search</h2><p>Find a synthetic periodic signal hidden in noise.</p></div><a href="/tools/webgpu/astronomy-signal-search.html" target="_blank" rel="noopener">Open Astronomy / signal search ↗</a></header>
-      <iframe src="/tools/webgpu/astronomy-signal-search.html" title="Astronomy / signal search WebGPU demo" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
-      <div class="path">/tools/webgpu/astronomy-signal-search.html</div>
-    </section>
-    <section data-carousel="webgpu" aria-labelledby="compute-climate-ensembles">
-      <header><div><h2 id="compute-climate-ensembles">Climate ensembles</h2><p>Compare independently parameterized energy-balance model futures.</p></div><a href="/tools/webgpu/climate-ensembles.html" target="_blank" rel="noopener">Open Climate ensembles ↗</a></header>
-      <iframe src="/tools/webgpu/climate-ensembles.html" title="Climate ensembles WebGPU demo" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
-      <div class="path">/tools/webgpu/climate-ensembles.html</div>
-    </section>
-    <section data-carousel="webgpu" aria-labelledby="security-viz-lab-heading">
+<section data-carousel="worlds" aria-labelledby="flower-heading"><header><div><h2 id="flower-heading">Flower: Breeze &amp; Petals 3D</h2><p>Explore a 3D world of breeze and petals.</p></div><a href="/tools/flower" target="_blank" rel="noopener">Open Flower ↗</a></header><iframe src="/tools/flower" title="Flower: Breeze and Petals 3D preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe><div class="path">/tools/flower</div></section>
+<section data-carousel="living" aria-labelledby="inner-lives-heading"><header><div><h2 id="inner-lives-heading">1,000 Inner Lives</h2></div><a href="/tools/inner-lives" target="_blank" rel="noopener">Open 1,000 Inner Lives ↗</a></header><iframe src="/tools/inner-lives" title="1,000 Inner Lives preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe><div class="path">/tools/inner-lives</div></section>
+<section data-carousel="games" aria-labelledby="ai-seinfeld-heading"><header><div><h2 id="ai-seinfeld-heading">AI Seinfeld 3D Simulator</h2><p>Explore an interactive 3D sitcom simulator.</p></div><a href="/tools/ai-seinfeld" target="_blank" rel="noopener">Open AI Seinfeld ↗</a></header><iframe src="/tools/ai-seinfeld" title="AI Seinfeld 3D Simulator preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe><div class="path">/tools/ai-seinfeld</div></section>
+<section data-carousel="science" aria-labelledby="security-viz-lab-heading">
       <header><div><h2 id="security-viz-lab-heading">Security Viz Lab</h2><p>Explore six WebGPU security visualization prototypes.</p></div><a href="/tools/security-viz-lab" target="_blank" rel="noopener">Open Security Viz Lab ↗</a></header>
       <iframe src="/tools/security-viz-lab" title="Security Viz Lab — six WebGPU prototypes" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
       <div class="path">/tools/security-viz-lab</div>
     </section>
-<div class="group-heading" id="webgpu"><h2>WebGPU worlds & visualizations</h2><p>Explore the GPU-rendered worlds first. These apps use WebGPU with a WebGL fallback.</p></div>
-    <section data-carousel="webgpu" aria-labelledby="route-0">
-      <header><div><h2 id="route-0">World</h2><p>Explore the streamed city, its residents, policy tools and saved experiments.</p></div><a href="/world" target="_blank" rel="noopener">Open World ↗</a></header>
-      <iframe src="/world" title="World preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
-      <div class="path">/world</div>
+<section data-carousel="living" aria-labelledby="route-12">
+      <header><div><h2 id="route-12">Worldline</h2><p>Run possible futures and explore outcomes under different assumptions.</p></div><a href="/tools/worldline" target="_blank" rel="noopener">Open Worldline ↗</a></header>
+      <iframe src="/tools/worldline" title="Worldline preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
+      <div class="path">/tools/worldline</div>
     </section>
-    <section data-carousel="webgpu" aria-labelledby="route-6">
-      <header><div><h2 id="route-6">House Simulator</h2><p>Enter a saved city household, inspect its needs and change its home.</p></div><a href="/world/house" target="_blank" rel="noopener">Open House Simulator ↗</a></header>
-      <iframe src="/world/house" title="House Simulator preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
-      <div class="path">/world/house</div>
-    </section>
-    <section data-carousel="webgpu" aria-labelledby="route-3">
-      <header><div><h2 id="route-3">Constitution City</h2><p>Compile clauses and compare synchronized baseline and amended worlds.</p></div><a href="/visualize-constitution" target="_blank" rel="noopener">Open Constitution City ↗</a></header>
-      <iframe src="/visualize-constitution" title="Constitution City preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
-      <div class="path">/visualize-constitution</div>
-    </section>
-    <section data-carousel="webgpu" aria-labelledby="route-4">
+<section data-carousel="living" aria-labelledby="route-4">
       <header><div><h2 id="route-4">Living City</h2><p>Inspect people, households, work calendars, needs and simulated behavior.</p></div><a href="/world?living=1" target="_blank" rel="noopener">Open Living City ↗</a></header>
       <iframe src="/world?living=1" title="Living City preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
       <div class="path">/world?living=1</div>
     </section>
-    <section data-carousel="webgpu" aria-labelledby="route-9">
-      <header><div><h2 id="route-9">Experiments</h2><p>Follow the idea → futures → human impact → fork → share workflow.</p></div><a href="/reality-compiler" target="_blank" rel="noopener">Open Experiments ↗</a></header>
-      <iframe src="/reality-compiler" title="Experiments preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
-      <div class="path">/reality-compiler</div>
+<section data-carousel="science" aria-labelledby="compute-particle-simulations">
+      <header><div><h2 id="compute-particle-simulations">Particle simulations</h2><p>Explore parallel particle motion and interactions.</p></div><a href="/tools/webgpu/particle-simulations.html" target="_blank" rel="noopener">Open Particle simulations ↗</a></header>
+      <iframe src="/tools/webgpu/particle-simulations.html" title="Particle simulations WebGPU demo" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
+      <div class="path">/tools/webgpu/particle-simulations.html</div>
     </section>
-    <section data-carousel="webgpu" aria-labelledby="route-8">
-      <header><div><h2 id="route-8">Dear Congress bridge</h2><p>Load the source plan into HBL and inspect its supported city mechanisms.</p></div><a href="/world/constitution-city.html" target="_blank" rel="noopener">Open Dear Congress bridge ↗</a></header>
-      <iframe src="/world/constitution-city.html" title="Dear Congress bridge preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
-      <div class="path">/world/constitution-city.html</div>
-    </section>
-<div class="group-heading" id="visualizations"><h2>Visualizations & interactive graphics</h2><p>3D viewers, animated artwork, maps, and simulation previews.</p></div>
-    <section data-carousel="visualization" aria-labelledby="inner-lives-heading"><header><div><h2 id="inner-lives-heading">1,000 Inner Lives</h2></div><a href="/tools/inner-lives" target="_blank" rel="noopener">Open 1,000 Inner Lives ↗</a></header><iframe src="/tools/inner-lives" title="1,000 Inner Lives preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe><div class="path">/tools/inner-lives</div></section>
-
-    <section data-carousel="content" aria-labelledby="world-line-talk-heading"><header><div><h2 id="world-line-talk-heading">World Line Talk</h2></div><a href="/tools/world-line-talk" target="_blank" rel="noopener">Open World Line Talk ↗</a></header><iframe src="/tools/world-line-talk" title="World Line Talk preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe><div class="path">/tools/world-line-talk</div></section>
-
-    <section data-carousel="visualization" aria-labelledby="flower-heading"><header><div><h2 id="flower-heading">Flower: Breeze &amp; Petals 3D</h2><p>Explore a 3D world of breeze and petals.</p></div><a href="/tools/flower" target="_blank" rel="noopener">Open Flower ↗</a></header><iframe src="/tools/flower" title="Flower: Breeze and Petals 3D preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe><div class="path">/tools/flower</div></section>
-
-    <section data-carousel="visualization" aria-labelledby="ai-seinfeld-heading"><header><div><h2 id="ai-seinfeld-heading">AI Seinfeld 3D Simulator</h2><p>Explore an interactive 3D sitcom simulator.</p></div><a href="/tools/ai-seinfeld" target="_blank" rel="noopener">Open AI Seinfeld ↗</a></header><iframe src="/tools/ai-seinfeld" title="AI Seinfeld 3D Simulator preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe><div class="path">/tools/ai-seinfeld</div></section>
-
-    <section data-carousel="visualization" aria-labelledby="quote-carousel-heading"><header><div><h2 id="quote-carousel-heading">3D Quote Carousel</h2><p>Explore quotes in an interactive spiral and cylinder.</p></div><a href="/tools/quote-carousel" target="_blank" rel="noopener">Open 3D Quote Carousel ↗</a></header><iframe src="/tools/quote-carousel" title="3D Quote Carousel preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe><div class="path">/tools/quote-carousel</div></section>
-
-    <section data-carousel="visualization" aria-labelledby="route-13">
-      <header><div><h2 id="route-13">FlowMap</h2><p>Explore Gulf Coast supply-chain disruptions and rerouting.</p></div><a href="/tools/flowmap" target="_blank" rel="noopener">Open FlowMap ↗</a></header>
-      <iframe src="/tools/flowmap" title="FlowMap preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
-      <div class="path">/tools/flowmap</div>
-    </section>
-    <section data-carousel="visualization" aria-labelledby="route-7">
-      <header><div><h2 id="route-7">Game</h2><p>Enter the existing interactive physics playground.</p></div><a href="/game" target="_blank" rel="noopener">Open Game ↗</a></header>
-      <iframe src="/game" title="Game preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
-      <div class="path">/game</div>
-    </section>
-<div class="group-heading" id="apps"><h2 id="favorites">Featured previews</h2><p>Decision workspaces, studios, utilities, and other apps.</p></div>
-    <section data-carousel="visualization" aria-labelledby="agentgraph-heading">
-      <header><div><h2 id="agentgraph-heading">AgentGraph</h2><p>Observe and debug AI agent organizations.</p></div><a href="/tools/agentgraph" target="_blank" rel="noopener">Open AgentGraph ↗</a></header>
-      <iframe src="/tools/agentgraph" title="AgentGraph preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
-      <div class="path">/tools/agentgraph</div>
-    </section>
-
-    <section data-carousel="content" aria-labelledby="route-1">
-      <header><div><h2 id="route-1">Decision Studio</h2><p>Frame a decision, compare alternatives and enter recorded construction futures.</p></div><a href="/world/decision.html" target="_blank" rel="noopener">Open Decision Studio ↗</a></header>
-      <iframe src="/world/decision.html" title="Decision Studio preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
-      <div class="path">/world/decision.html</div>
-    </section>
-    <section data-carousel="content" aria-labelledby="route-2">
-      <header><div><h2 id="route-2">Business simulator</h2><p>Launch a business and follow its actual operating ledger over time.</p></div><a href="/business-simulator" target="_blank" rel="noopener">Open Business simulator ↗</a></header>
-      <iframe src="/business-simulator" title="Business simulator preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
-      <div class="path">/business-simulator</div>
-    </section>
-    <section data-carousel="content" aria-labelledby="route-5">
+<section data-carousel="games" aria-labelledby="route-5">
       <header><div><h2 id="route-5">Everybody Act Normal</h2><p>A multiplayer house party: blend in, complete secret missions, and spot your friends.</p></div><a href="/world/party/act-normal" target="_blank" rel="noopener">Open Everybody Act Normal ↗</a></header>
       <iframe src="/world/party/act-normal" title="Everybody Act Normal preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
       <div class="path">/world/party/act-normal</div>
     </section>
-    <section data-carousel="content" aria-labelledby="route-10">
+<section data-carousel="worlds" aria-labelledby="route-3">
+      <header><div><h2 id="route-3">Constitution City</h2><p>Compile clauses and compare synchronized baseline and amended worlds.</p></div><a href="/visualize-constitution" target="_blank" rel="noopener">Open Constitution City ↗</a></header>
+      <iframe src="/visualize-constitution" title="Constitution City preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
+      <div class="path">/visualize-constitution</div>
+    </section>
+<section data-carousel="games" aria-labelledby="route-7">
+      <header><div><h2 id="route-7">Game</h2><p>Enter the existing interactive physics playground.</p></div><a href="/game" target="_blank" rel="noopener">Open Game ↗</a></header>
+      <iframe src="/game" title="Game preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
+      <div class="path">/game</div>
+    </section>
+<section data-carousel="worlds" aria-labelledby="quote-carousel-heading"><header><div><h2 id="quote-carousel-heading">3D Quote Carousel</h2><p>Explore quotes in an interactive spiral and cylinder.</p></div><a href="/tools/quote-carousel" target="_blank" rel="noopener">Open 3D Quote Carousel ↗</a></header><iframe src="/tools/quote-carousel" title="3D Quote Carousel preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe><div class="path">/tools/quote-carousel</div></section>
+<section data-carousel="living" aria-labelledby="route-13">
+      <header><div><h2 id="route-13">FlowMap</h2><p>Explore Gulf Coast supply-chain disruptions and rerouting.</p></div><a href="/tools/flowmap" target="_blank" rel="noopener">Open FlowMap ↗</a></header>
+      <iframe src="/tools/flowmap" title="FlowMap preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
+      <div class="path">/tools/flowmap</div>
+    </section>
+<section data-carousel="living" aria-labelledby="route-6">
+      <header><div><h2 id="route-6">House Simulator</h2><p>Enter a saved city household, inspect its needs and change its home.</p></div><a href="/world/house" target="_blank" rel="noopener">Open House Simulator ↗</a></header>
+      <iframe src="/world/house" title="House Simulator preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
+      <div class="path">/world/house</div>
+    </section>
+<section data-carousel="living" aria-labelledby="agentgraph-heading">
+      <header><div><h2 id="agentgraph-heading">AgentGraph</h2><p>Observe and debug AI agent organizations.</p></div><a href="/tools/agentgraph" target="_blank" rel="noopener">Open AgentGraph ↗</a></header>
+      <iframe src="/tools/agentgraph" title="AgentGraph preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
+      <div class="path">/tools/agentgraph</div>
+    </section>
+<section data-carousel="worlds" aria-labelledby="route-11">
+      <header><div><h2 id="route-11">Lumen</h2><p>Inspect 3D models with a zero-install GPU model viewer.</p></div><a href="/tools/lumen/" target="_blank" rel="noopener">Open Lumen ↗</a></header>
+      <iframe src="/tools/lumen/" title="Lumen preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
+      <div class="path">/tools/lumen/</div>
+    </section>
+<section data-carousel="science" aria-labelledby="compute-molecular-docking">
+      <header><div><h2 id="compute-molecular-docking">Molecular docking</h2><p>Score synthetic ligand poses against an illustrative receptor.</p></div><a href="/tools/webgpu/molecular-docking.html" target="_blank" rel="noopener">Open Molecular docking ↗</a></header>
+      <iframe src="/tools/webgpu/molecular-docking.html" title="Molecular docking WebGPU demo" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
+      <div class="path">/tools/webgpu/molecular-docking.html</div>
+    </section>
+<section data-carousel="science" aria-labelledby="compute-astronomy-signal-search">
+      <header><div><h2 id="compute-astronomy-signal-search">Astronomy / signal search</h2><p>Find a synthetic periodic signal hidden in noise.</p></div><a href="/tools/webgpu/astronomy-signal-search.html" target="_blank" rel="noopener">Open Astronomy / signal search ↗</a></header>
+      <iframe src="/tools/webgpu/astronomy-signal-search.html" title="Astronomy / signal search WebGPU demo" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
+      <div class="path">/tools/webgpu/astronomy-signal-search.html</div>
+    </section>
+<section data-carousel="science" aria-labelledby="riskuniverse-heading"><header><div><h2 id="riskuniverse-heading">RiskUniverse · 100,000 financial futures</h2><p>Reproducible WebGPU portfolio Monte Carlo with tail-risk attribution, sensitivity, and numerical reference checks.</p></div><a href="/tools/riskuniverse/" target="_blank" rel="noopener">Open RiskUniverse ↗</a></header><iframe src="/tools/riskuniverse/" title="RiskUniverse portfolio risk dashboard" loading="lazy" allow="fullscreen" allowfullscreen></iframe><div class="path">/tools/riskuniverse/</div></section>
+<section data-carousel="science" aria-labelledby="compute-epidemic-ensembles">
+      <header><div><h2 id="compute-epidemic-ensembles">Epidemic ensembles</h2><p>Compare many independent outbreak simulations under different assumptions.</p></div><a href="/tools/webgpu/epidemic-ensembles.html" target="_blank" rel="noopener">Open Epidemic ensembles ↗</a></header>
+      <iframe src="/tools/webgpu/epidemic-ensembles.html" title="Epidemic ensembles WebGPU demo" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
+      <div class="path">/tools/webgpu/epidemic-ensembles.html</div>
+    </section>
+<section data-carousel="science" aria-labelledby="compute-evolutionary-algorithms">
+      <header><div><h2 id="compute-evolutionary-algorithms">Evolutionary algorithms</h2><p>Evaluate a population of candidate solutions and evolve toward better fitness.</p></div><a href="/tools/webgpu/evolutionary-algorithms.html" target="_blank" rel="noopener">Open Evolutionary algorithms ↗</a></header>
+      <iframe src="/tools/webgpu/evolutionary-algorithms.html" title="Evolutionary algorithms WebGPU demo" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
+      <div class="path">/tools/webgpu/evolutionary-algorithms.html</div>
+    </section>
+<section data-carousel="science" aria-labelledby="compute-climate-ensembles">
+      <header><div><h2 id="compute-climate-ensembles">Climate ensembles</h2><p>Compare independently parameterized energy-balance model futures.</p></div><a href="/tools/webgpu/climate-ensembles.html" target="_blank" rel="noopener">Open Climate ensembles ↗</a></header>
+      <iframe src="/tools/webgpu/climate-ensembles.html" title="Climate ensembles WebGPU demo" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
+      <div class="path">/tools/webgpu/climate-ensembles.html</div>
+    </section>
+<section data-carousel="science" aria-labelledby="compute-monte-carlo">
+      <header><div><h2 id="compute-monte-carlo">Monte Carlo simulations</h2><p>Independent seeded experiments estimate π and reveal convergence.</p></div><a href="/tools/webgpu/monte-carlo.html" target="_blank" rel="noopener">Open Monte Carlo simulations ↗</a></header>
+      <iframe src="/tools/webgpu/monte-carlo.html" title="Monte Carlo simulations WebGPU demo" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
+      <div class="path">/tools/webgpu/monte-carlo.html</div>
+    </section>
+<section data-carousel="tools" aria-labelledby="route-9">
+      <header><div><h2 id="route-9">Experiments</h2><p>Follow the idea → futures → human impact → fork → share workflow.</p></div><a href="/reality-compiler" target="_blank" rel="noopener">Open Experiments ↗</a></header>
+      <iframe src="/reality-compiler" title="Experiments preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
+      <div class="path">/reality-compiler</div>
+    </section>
+<section data-carousel="tools" aria-labelledby="route-8">
+      <header><div><h2 id="route-8">Dear Congress bridge</h2><p>Load the source plan into HBL and inspect its supported city mechanisms.</p></div><a href="/world/constitution-city.html" target="_blank" rel="noopener">Open Dear Congress bridge ↗</a></header>
+      <iframe src="/world/constitution-city.html" title="Dear Congress bridge preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
+      <div class="path">/world/constitution-city.html</div>
+    </section>
+<section data-carousel="tools" aria-labelledby="world-line-talk-heading"><header><div><h2 id="world-line-talk-heading">World Line Talk</h2></div><a href="/tools/world-line-talk" target="_blank" rel="noopener">Open World Line Talk ↗</a></header><iframe src="/tools/world-line-talk" title="World Line Talk preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe><div class="path">/tools/world-line-talk</div></section>
+<section data-carousel="tools" aria-labelledby="route-1">
+      <header><div><h2 id="route-1">Decision Studio</h2><p>Frame a decision, compare alternatives and enter recorded construction futures.</p></div><a href="/world/decision.html" target="_blank" rel="noopener">Open Decision Studio ↗</a></header>
+      <iframe src="/world/decision.html" title="Decision Studio preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
+      <div class="path">/world/decision.html</div>
+    </section>
+<section data-carousel="tools" aria-labelledby="route-2">
+      <header><div><h2 id="route-2">Business simulator</h2><p>Launch a business and follow its actual operating ledger over time.</p></div><a href="/business-simulator" target="_blank" rel="noopener">Open Business simulator ↗</a></header>
+      <iframe src="/business-simulator" title="Business simulator preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
+      <div class="path">/business-simulator</div>
+    </section>
+<section data-carousel="tools" aria-labelledby="route-10">
       <header><div><h2 id="route-10">Optimization</h2><p>Open Decision Studio’s “Explain, fork &amp; optimize” tools for bounded searches.</p></div><a href="/world/decision.html?demo=1#advanced" target="_blank" rel="noopener">Open Optimization ↗</a></header>
       <iframe src="/world/decision.html?demo=1#advanced" title="Optimization preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
       <div class="path">/world/decision.html?demo=1#advanced</div>
     </section>
-    <section data-carousel="content" aria-labelledby="route-14">
-      <header><div><h2 id="route-14">Tools</h2><p>Browse the collection of interactive tools.</p></div><a href="/tools/" target="_blank" rel="noopener">Open Tools ↗</a></header>
-      <iframe src="/tools/" title="Tools preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
-      <div class="path">/tools/</div>
-    </section>
-    <section data-carousel="content" aria-labelledby="route-15">
-      <header><div><h2 id="route-15">Blog</h2><p>Read the HappyBearLandia blog.</p></div><a href="/blog/" target="_blank" rel="noopener">Open Blog ↗</a></header>
-      <iframe src="/blog/" title="Blog preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
-      <div class="path">/blog/</div>
-    </section>
-    <section data-carousel="content" aria-labelledby="route-16">
-      <header><div><h2 id="route-16">Twitch plays robot</h2><p>Open the multiplayer robot tool.</p></div><a href="/twitch-plays-robot" target="_blank" rel="noopener">Open Twitch plays robot ↗</a></header>
-      <iframe src="/twitch-plays-robot" title="Twitch plays robot preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
-      <div class="path">/twitch-plays-robot</div>
-    </section>
+
+
+
+</template>
+<noscript><p>Enable JavaScript for interactive previews, or <a href="/routes">browse all routes</a>.</p></noscript>
   </main>
 <script src="/tools/iframe-gallery.js" defer></script>
+<script type="module" src="/world/universe/shell.js"></script>
 </body>
 </html>

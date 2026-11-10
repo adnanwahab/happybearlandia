@@ -1,3 +1,6 @@
+import { withUniverseNavigation } from './world/universe/html-navigation.js';
+import {createCausalityHandler} from './world/causality/api.js';
+const handleCausality=createCausalityHandler();
 import {createActNormalService} from './world/party/act-normal-server.js';
 const actNormalService=createActNormalService();
 import {loadLocalOpenAISettings} from './world/ai/local-settings.js';
@@ -159,7 +162,7 @@ async function handleGameConversation(pathname) {
 // Serve one file, or 404.
 async function serveFile(path) {
   const file = Bun.file(path);
-  return (await file.exists()) ? new Response(file, { headers: path.startsWith("./world/") ? { "cache-control": "no-cache" } : {} }) : notFound();
+  return (await file.exists()) ? withUniverseNavigation(new Response(file, { headers: path.startsWith("./world/") ? { "cache-control": "no-cache" } : {} }), path) : notFound();
 }
 
 // Serve a folder under a URL prefix:
@@ -181,7 +184,7 @@ async function serveStatic(prefix, root, pathname) {
   if (relative(root, filePath).startsWith("..")) return notFound();
 
   const file = Bun.file(filePath);
-  if (await file.exists()) return new Response(file, { headers: prefix === "/world" ? { "cache-control": "no-cache" } : {} });
+  if (await file.exists()) return withUniverseNavigation(new Response(file, { headers: prefix === "/world" ? { "cache-control": "no-cache" } : {} }), filePath);
   if (!extname(filePath)) return serveFile(filePath + ".html");
   return notFound();
 }
@@ -425,6 +428,8 @@ const server = serve({
       return notFound();
     }
 
+    // Browser-safe universe wire contracts; keep server-only shared modules private.
+    if (pathname === "/shared/causality/index.js") return serveFile("./shared/causality/index.js");
     if (under(pathname, "/visualizations")) return serveStatic("/visualizations", "./visualizations", pathname);
 
     // Twitch plays robot (short URL kept for old links)
@@ -464,6 +469,7 @@ const server = serve({
     if (pathname === "/api/area/enrichment") return handleAreaEnrichment(new URL(request.url));
     if (pathname === "/api/overpass-health") return handleOverpassHealth();
     if (pathname === "/api/config") return handleConfig();
+    if (under(pathname, "/api/causality")) return handleCausality(request);
     if (under(pathname, "/api/world-history")) return handleTemporalCity(request);
     if (under(pathname, "/api/reality-shares")) return handleRealityShares(request);
     if (under(pathname, "/api/world-homes")) return handleWorldPersistence(request);

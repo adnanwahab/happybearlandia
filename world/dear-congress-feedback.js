@@ -43,7 +43,7 @@ export function buildRevisionNarrative({ experiment, improvement, comparison } =
   return lines.join("\n");
 }
 
-export function buildDearCongressRevisionDraft({ experiment, improvement, comparison, recordId = null } = {}) {
+export function buildDearCongressRevisionDraft({ experiment, improvement, comparison, recordId = null, context = null } = {}) {
   const text = buildRevisionNarrative({ experiment, improvement, comparison });
   return {
     kind: "journal",
@@ -54,6 +54,7 @@ export function buildDearCongressRevisionDraft({ experiment, improvement, compar
       experimentId: experiment?.id || null,
       planId: experiment?.plan?.id || null,
       recordId,
+      ...(context ? { continuity: structuredClone(context) } : {}),
       improvementId: improvement?.id || null,
       pairedWorlds: comparison?.worldCount || comparison?.after?.worldCount || comparison?.before?.worldCount || null,
       generatedFromSimulation: true,

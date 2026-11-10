@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>The Riverside Bakery · HappyBearLandia</title>
+  <link rel="stylesheet" href="./bakery.css">
+</head>
+<body>
+  <header class="masthead">
+    <a href="/world/causal.html">HappyBearLandia <span>/</span> Time Machine</a>
+    <span class="model-label">Synthetic city scenario</span>
+  </header>
+  <main>
+    <header class="intro">
+      <div>
+        <p class="eyebrow">The Riverside Bakery</p>
+        <h1>Why did the ovens go cold?</h1>
+        <p>Find out what happened to Luis’s shift, then try a single change that keeps the bakery open.</p>
+      </div>
+      <a class="headline-link" href="#newspaper">Read the front page ↓</a>
+    </header>
+    <p id="initial-status" role="status">Opening the recorded timeline…</p>
+    <div id="journey" hidden>
+      <section class="timeline" aria-labelledby="timeline-title">
+        <div class="timeline-top">
+          <h2 id="timeline-title"><label for="month">Simulation timeline</label></h2>
+          <output id="date" for="month"></output>
+        </div>
+        <input type="range" id="month" min="0" value="0" step="1">
+        <div class="timeline-ends"><span id="start-year"></span><span id="end-year"></span></div>
+        <div class="clues" id="clues" aria-label="Recorded clues"></div>
+      </section>
+      <div class="workspace">
+        <section class="scene-panel" aria-labelledby="scene-title">
+          <div class="panel-heading">
+            <h2 id="scene-title">Riverside district</h2>
+            <span id="scene-status" class="scene-status"></span>
+          </div>
+          <div class="comparison" id="comparison">
+            <div class="scene" id="baseline-scene" aria-hidden="true"></div>
+            <div class="scene alternative" id="future-scene" aria-hidden="true" hidden></div>
+            <div id="divider" hidden aria-hidden="true"></div>
+          </div>
+          <div class="swipe" id="swipe" hidden>
+            <label for="reveal">Baseline</label>
+            <input type="range" id="reveal" aria-label="Percentage of baseline visible" value="50">
+            <span>With reopening</span>
+          </div>
+          <div id="metrics" class="metrics"></div>
+        </section>
+        <aside class="side" aria-label="What-if and evidence">
+          <section class="intervention">
+            <p class="eyebrow">What if?</p>
+            <h2>Reopen the flour route</h2>
+            <p id="lever-help">Choose a month after the closure and test the effect of reopening the direct route.</p>
+            <button id="branch" type="button" aria-describedby="lever-help">Try this change</button>
+            <p id="experiment-status" role="status"></p>
+            <div id="share" class="share" hidden>
+              <label for="recipe-link">Share this future</label>
+              <div>
+                <input id="recipe-link" type="url" readonly>
+                <button id="copy" type="button">Copy</button>
+              </div>
+              <button id="reset" type="button" class="quiet">Clear comparison</button>
+            </div>
+          </section>
+          <section class="evidence" aria-labelledby="why-title">
+            <div class="panel-heading"><h2 id="why-title">Why?</h2><span class="eyebrow">Luis’s shift</span></div>
+            <div id="why"></div>
+          </section>
+        </aside>
+      </div>
+      <section id="newspaper" class="newspaper" aria-labelledby="newspaper-title">
+        <div class="paper-heading">
+          <h2 id="newspaper-title">The Riverside Gazette</h2>
+          <span id="edition"></span>
+        </div>
+        <div id="headlines" class="headlines"></div>
+      </section>
+    </div>
+  </main>
+  <template id="scene-template">
+    <div class="river"></div>
+    <div class="detour"></div>
+    <div class="road"></div>
+    <div class="road-barrier" hidden></div>
+    <div class="supplier">Flour mill</div>
+    <div class="bakery">Bakery</div>
+    <span class="route-label">Direct route</span>
+    <span class="detour-label">Detour</span>
+  </template>
+  <script type="module" src="./bakery-page.js"></script>
+</body>
+</html>

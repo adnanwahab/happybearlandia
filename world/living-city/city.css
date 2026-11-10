@@ -1,0 +1,42 @@
+:root {
+  color: #202b26;
+  background: #f2f1e8;
+  font: 1rem/1.5 "Instrument Sans", system-ui, sans-serif;
+  --line: #c9cec0;
+  --surface: #fcfbf4;
+  --accent: #245743;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 78rem; margin: auto; padding: 1rem clamp(1rem, 5vw, 3.5rem) 4rem; }
+h1, h2 { margin: 0; line-height: 1.12; }
+a { color: var(--accent); }
+p { margin: .6rem 0; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 3px solid #9d4d19; outline-offset: 3px; }
+.masthead { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; border-bottom: 1px solid var(--line); padding: .65rem 0 1rem; font-size: .9rem; }
+.intro { padding: 2rem 0 1.5rem; }
+.intro h1 { font: 600 clamp(3rem, 9vw, 6rem)/1 Georgia, serif; letter-spacing: -.065em; }
+.intro p { font-size: 1.1rem; }
+.workspace { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.panel { margin-bottom: 1rem; padding: clamp(1rem, 3vw, 1.5rem); border: 1px solid var(--line); border-radius: .75rem; background: var(--surface); min-width: 0; }
+.quest h2 { margin-top: 1rem; }
+.quest p { font-size: 1.08rem; }
+.quest label, .experiment label { display: block; font-weight: 650; }
+.quest select, .experiment select, .experiment input { width: 100%; max-width: 100%; }
+select, button, input { font: inherit; color: inherit; border: 1px solid #76877b; border-radius: .38rem; padding: .45rem .65rem; background: #fff; }
+.quest button, .experiment button { background: var(--accent); color: #fff; border-color: var(--accent); cursor: pointer; margin-top: .6rem; }
+button:disabled { opacity: .55; cursor: default; }
+dl { margin: .8rem 0; }
+dt { color: #475c4f; font-size: .85rem; }
+dd { margin: 0 0 .45rem; font-weight: 650; overflow-wrap: anywhere; }
+.measurements { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(8rem, 100%), 1fr)); gap: .55rem; }
+.measurements div { background: #edf0e5; border-radius: .4rem; padding: .5rem .65rem; }
+.measurements dd { margin: 0; }
+#home, #interview, .share { margin-top: 1rem; padding-top: .75rem; border-top: 1px solid var(--line); }
+#progress:empty, #pair-status:empty { display: none; }
+.note { color: #475c4f; font-size: .85rem; }
+@media (max-width: 720px) {
+  .workspace { grid-template-columns: minmax(0, 1fr); gap: 0; }
+}

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>World Time Machine · HappyBearLandia</title>
+  <link rel="stylesheet" href="/world/causal/history.css">
+  <link rel="stylesheet" href="/world/causal/heatmap.css">
+</head>
+<body>
+<main>
+  <header>
+    <p class="brand">HappyBearLandia / World</p>
+    <h1>World Time Machine</h1>
+    <p>Explore a saved city simulation month by month. The seeded demo covers twenty months. Each stored checkpoint shows the city at that month.</p>
+    <button id="run" type="button" disabled>Record deterministic scenario</button>
+    <p id="run-selection" hidden>
+      <label for="saved-run">Saved city run</label>
+      <select id="saved-run"></select>
+    </p>
+    <p id="status" role="status">Checking for the saved scenario…</p>
+    <button id="retry" type="button" hidden>Retry</button>
+    <nav aria-label="Explore recorded results">
+      <a href="/world/journeys/bakery.html">Solve the Riverside Bakery mystery</a>
+      <a href="/world/newspaper/index.html">Living Newspaper</a>
+      <a href="/world/discoveries/index.html">Surprising discoveries</a>
+    </nav>
+  </header>
+  <section id="history" aria-label="Recorded World history" hidden>
+    <div class="controls">
+      <div class="timeline">
+        <label for="month">Simulation month</label>
+        <output id="month-label" for="month"></output>
+        <input id="month" type="range" min="0" value="0" step="1">
+        <div class="month-range"><span id="first-month"></span><span id="last-month"></span></div>
+      </div>
+      <label for="event">Jump to an event
+        <select id="event"><option value="">Choose a recorded event</option></select>
+      </label>
+    </div>
+    <p id="checkpoint" role="status"></p>
+    <div id="heatmap" hidden></div>
+    <section id="inventory" class="inventory" aria-label="Modeled entities"></section>
+    <div id="inspector"></div>
+  </section>
+</main>
+<script type="module" src="/world/causal/page.js"></script>
+</body>
+</html>

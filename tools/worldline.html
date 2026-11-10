@@ -129,6 +129,11 @@ button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,s
 </style>
 </head>
 <body>
+<style>body:not(.worldline-demo) > .wrap {display:none} body:not(.worldline-demo) > #connected-worldline {display:block} #connected-worldline a {margin-right:16px} #connected-worldline select {max-width:100%;padding:8px}</style>
+<script>if(new URLSearchParams(location.search).get("demo")==="1")document.body.classList.add("worldline-demo")</script>
+<section id="connected-worldline" class="wrap"></section>
+<script type="module" src="/tools/paired-comparison.js"></script>
+<script type="module" src="/tools/worldline-connected.js"></script>
 <div class="wrap">
   <header>
     <a class="home-link" href="/">← Happybearlandia</a><div class="brand">World<span>line</span></div>

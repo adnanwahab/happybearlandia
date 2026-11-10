@@ -598,6 +598,7 @@ document.getElementById('saved').onclick=()=>setPanel({type:'saved'});
 
 
 function focusPerson(p,o={}){
+  window.dispatchEvent(new CustomEvent('hbl:social-person',{detail:{source:'inner-lives',person:p}}));
   if(focused!==p){focused=p;focusT0=performance.now();selNode=null}
   if(o.fly) flyTo(p.x,p.y,Math.max(FOCUS,Math.min(cam.s,FOCUS*1.4)));
   if(!o.keepPanel) setPanel({type:'person',pid:p.id});
@@ -1028,5 +1029,6 @@ renderLegend();renderPanel();
 requestAnimationFrame(frame);
 setTimeout(()=>{if(!touched)hint.style.opacity=.55},9000);
 </script>
+<script type="module" src="/world/social/journey.js" data-social-experience="inner-lives"></script>
 </body>
 </html>

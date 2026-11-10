@@ -135,7 +135,7 @@ function renderPlan() {
   $('planForm').onsubmit = e => { e.preventDefault(); try { plan = readPlan(); startPeriod(); } catch(e) { notice(e.message,true); } };
 }
 function startPeriod() {
-  const result = simulatePeriod(state, plan);
+  const result = simulatePeriod(state, plan, { externalInputs: state.externalInputs || {} });
   run = { ...result, progress:0 }; paused = false; speed = 1; futures = null; screen = 2; notice(''); render();
   timer = setInterval(() => { if (!paused && run) { run.progress = Math.min(1,run.progress+.0125*speed); updateRun(); if (run.progress >= 1) finishPeriod(); } },80);
 }

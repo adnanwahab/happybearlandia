@@ -548,6 +548,7 @@ async function pickChoice(c){
 async function resolveTurn(text,r){
   S.rapport=Math.max(0,Math.min(100,S.rapport+r.delta));
   S.turns.push({you:text,...r,stage:S.stage});
+  window.dispatchEvent(new CustomEvent('hbl:social-narrative',{detail:{text:`Conversation choice: ${text}. Reply: ${r.reply||''}`}}));
   setEmo(r.emotion);
   if(r.delta<=-8) fx('shake'); else if(r.delta>=10) fx('flash');
   coach(r);
@@ -667,5 +668,6 @@ function setupMic(){
   };
 }
 </script>
+<script type="module" src="/world/social/journey.js" data-social-experience="world-line-talk"></script>
 </body>
 </html>

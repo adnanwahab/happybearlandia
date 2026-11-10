@@ -1,3 +1,5 @@
+import { mountContinuity } from '../decision/continuity-view.js';
+import { continuityLink, pairedSnapshot } from '../decision/continuity.js';
 import {loadConstitutionSource,constitutionLocationQuery} from './source.js';
 import {createCity,createCityFromArea} from '../city/seed.js';
 import {createConstitutionRuntime} from './runtime.js';
@@ -9,8 +11,11 @@ import {LAW_CATALOG} from '../laws/catalog.js';
 import {mountLawPanel} from '../laws/law-panel.js';
 import {compareLawInWorker} from '../laws/comparison-client.js';
 import {mountLawLibrary} from '../laws/library.js';
+const continuity=mountContinuity();
+function syncContinuity(value,plan){const m=value.result?.manifest;continuity.update(pairedSnapshot({...value,plan}),m?{namespace:'constitution',runId:value.runId,scenarioId:value.scenarioId,tick:value.month}:undefined);}
 const query=constitutionLocationQuery(),status=document.querySelector('#cc-load-status'),container=document.querySelector('#cc-app'),refresh=document.querySelector('#cc-refresh-plan');
-document.querySelector('#cc-return-world').href='/world'+(query.size?'?'+query:'');
+document.querySelector('#cc-return-world').href=continuity.getContext()?continuityLink('/world?'+query,continuity.getContext(),window.location.origin):'/world?'+query;
+
 const seed=Number(query.get('seed')??42),location=query.has('lat')&&query.has('lng')?{lat:Number(query.get('lat')),lng:Number(query.get('lng'))}:{lat:29.7286,lng:-95.4746};
 let generation=0,studio=null,runtime=null,disposed=false,initial=null,editor=null,lawLibrary=null,lawPanel=null;
 const abort=new AbortController();
@@ -37,15 +42,16 @@ async function load(refreshSource=false){
   const [{plan,source},state]=await Promise.all([loadConstitutionSource({refresh:refreshSource,signal:abort.signal,packageId:new URLSearchParams(window.location.search).get('package')||undefined}),initialCity()]);
   if(disposed||token!==generation)return;
   if(refreshSource&&source.sourceMode!=='frozen-snapshot'){const url=new URL(window.location.href);if(url.searchParams.has('planId')){url.searchParams.set('planId',plan.id);history.replaceState(null,'',url);}}
+  syncContinuity({},plan);
   studio?.destroy();runtime?.destroy();container.replaceChildren();runtime=createConstitutionRuntime({initial:state,plan});
   const views=[];
-  studio=mountConstitutionStudio(container,{plan,runtime,initial:state,createWorldView:(element,options)=>{const view=mountConstitutionCityView(element,options);views.push(view);return view;},analyzeDiff:analyzeConstitutionDiff,onError:error=>{status.textContent=`World Diff: ${error.message}`;}});
+  studio=mountConstitutionStudio(container,{plan,runtime,initial:state,onStateChange:value=>syncContinuity(value,plan),createWorldView:(element,options)=>{const view=mountConstitutionCityView(element,options);views.push(view);return view;},analyzeDiff:analyzeConstitutionDiff,onError:error=>{status.textContent=`World Diff: ${error.message}`;}});
   window.hblConstitutionCity={plan,source,initial:state,runtime,studio,views};
   editor?.destroy();lawLibrary?.destroy();lawPanel?.destroy();
   editor=mountConstitutionEditor(document.querySelector('#cc-compiler'),{sourcePlan:plan,onCompile:async compiled=>{
    if(disposed)return;studio?.destroy();runtime?.destroy();container.replaceChildren();
    runtime=createConstitutionRuntime({initial:state,plan:compiled.plan});const amendedViews=[];
-   studio=mountConstitutionStudio(container,{plan:compiled.plan,runtime,initial:state,createWorldView:(element,options)=>{const view=mountConstitutionCityView(element,options);amendedViews.push(view);return view;},analyzeDiff:analyzeConstitutionDiff,onError:error=>{status.textContent=`World Diff: ${error.message}`;}});
+   studio=mountConstitutionStudio(container,{plan:compiled.plan,runtime,initial:state,onStateChange:value=>syncContinuity(value,compiled.plan),createWorldView:(element,options)=>{const view=mountConstitutionCityView(element,options);amendedViews.push(view);return view;},analyzeDiff:analyzeConstitutionDiff,onError:error=>{status.textContent=`World Diff: ${error.message}`;}});
    window.hblConstitutionCity={plan:compiled.plan,source,compilation:compiled,initial:state,runtime,studio,views:amendedViews,editor,lawLibrary,lawPanel};
    await studio.run();
   }});window.hblConstitutionCity.editor=editor;

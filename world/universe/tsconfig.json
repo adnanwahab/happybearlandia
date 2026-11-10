@@ -1,0 +1,1 @@
+{"compilerOptions":{"target":"ES2022","module":"ESNext","moduleResolution":"Bundler","strict":true,"noEmit":true,"types":[],"lib":["ES2022","DOM"]},"files":["typecheck.ts","navigation.d.ts","connected-navigation.d.ts"]}

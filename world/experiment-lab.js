@@ -1,3 +1,5 @@
+import { recordContext } from './decision/continuity.js';
+import { mountContinuity } from './decision/continuity-view.js';
 import { createInspectorState, formatVariableValue, renderAssumptionInspector } from "./assumption-inspector.js";
 import { generateWorlds } from "./world-generator.js";
 import { resolveSimulationAdapter, simulateExperiment } from "./simulation-adapter.js";
@@ -19,6 +21,7 @@ import { runLiveSimulation } from "./live-simulation.js";
 import { mountLiveParameterControls } from "./live-parameter-controls.js";
 import { mountLiveTimelineView } from "./live-timeline-view.js";
 
+const continuity = mountContinuity();
 const state = {
   experiment: null,
   liveResult: null,
@@ -187,6 +190,7 @@ function extractExperiment(payload, request = {}) {
 
 function renderExperiment(experiment, provenance = null, initialOverrides = {}) {
   state.experiment = experiment;
+  updateContinuity();
   const variables = experiment.worldModel?.variables || [];
   const causalEdges = experiment.worldModel?.causalEdges || [];
   const feedbackLoops = experiment.worldModel?.feedbackLoops || [];
@@ -504,6 +508,7 @@ function renderScenarioComparison(comparison) {
 
 function renderSimulationBatch(batch) {
   state.simulationBatch = batch;
+  updateContinuity();
   const modelLabel = batch.adapter.predictive
     ? "predictive adapter"
     : batch.adapter.modelClass === "stress-test"
@@ -527,6 +532,7 @@ function renderSimulationBatch(batch) {
     ...state.analyzedExperiment,
     analysis: { ...(state.analyzedExperiment?.analysis || {}), scenarioFamilies: scenarioComparison },
   };
+  updateContinuity();
   const projection = projectOutcomeLandscape(batch.simulations);
   renderOutcomeLandscape(landscapeSvg, projection, {
     onSelect(point) {
@@ -611,7 +617,11 @@ function renderImprovements() {
   });
 }
 
+function updateContinuity() {
+  continuity.update({ evidence: 'synthetic', worldMutation: false, assumptions: state.experiment?.worldModel?.variables || [], objectives: state.experiment?.outcomes?.metricRegistry || [], constraints: state.experiment?.plan?.constraints || [], model: state.simulationBatch?.adapter || null, results: state.analyzedExperiment?.outcomes || state.scenarioComparison || null, lineage: { parentRecordId: state.parentRecordId } }, state.recordId ? { namespace: 'civic', experimentId: state.recordId } : undefined);
+}
 async function refreshLineageOutput(recordId = state.recordId) {
+  updateContinuity();
   const records = await listExperimentRecords(100);
   const chain = recordId ? traceRecordLineage(records, recordId) : [];
   lineageOutput.textContent = JSON.stringify(chain.map(summarizeExperimentRecord), null, 2);
@@ -619,6 +629,7 @@ async function refreshLineageOutput(recordId = state.recordId) {
 
 async function restoreRecord(record) {
   if (!record?.experiment) throw new Error("Saved record does not contain an experiment");
+  if (record.continuity) { try { continuity.restoreContext(record.continuity); } catch (error) { recordStatus.textContent = `Saved context unavailable: ${error.message}`; } }
   state.recordId = record.id;
   state.parentRecordId = record.lineage?.parentRecordId || null;
   renderExperiment(record.experiment, { source: "saved-record", warning: null }, record.overrides || {});
@@ -663,6 +674,7 @@ saveExperimentButton.addEventListener("click", async () => {
       parentRecordId: state.recordId || state.parentRecordId,
       revision: state.experiment?.lineage?.revision || 1,
     });
+    if (continuity.getContext()) record.continuity = recordContext(continuity.getContext(), { namespace: 'civic', experimentId: record.id });
     await saveExperimentRecord(record);
     state.parentRecordId = state.recordId || state.parentRecordId;
     state.recordId = record.id;
@@ -793,6 +805,7 @@ prepareRevisionButton.addEventListener("click", () => {
     improvement: state.improvementComparison.improvement,
     comparison: state.improvementComparison,
     recordId: state.recordId,
+    context: continuity.getContext(),
   });
   revisionPreview.textContent = JSON.stringify(state.revisionDraft, null, 2);
   revisionStatus.textContent = "Draft prepared locally. Review it before sending.";

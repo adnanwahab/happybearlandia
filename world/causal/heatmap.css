@@ -1,0 +1,84 @@
+.city-heatmap {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid #c4d8ca;
+  border-radius: .65rem;
+}
+
+.city-heatmap__control {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: .5rem;
+  font-weight: 700;
+}
+
+.city-heatmap__picker { max-width: 100%; }
+
+.city-heatmap__unit {
+  margin: .55rem 0;
+  color: #41665a;
+}
+
+.city-heatmap__districts,
+.city-heatmap__legend {
+  list-style: none;
+  padding: 0;
+}
+
+.city-heatmap__districts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: .5rem;
+}
+
+.city-heatmap__district {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  column-gap: .65rem;
+  padding: .65rem;
+  border: 1px solid #c4d8ca;
+  border-radius: .4rem;
+  overflow-wrap: anywhere;
+}
+
+.city-heatmap__district .city-heatmap__swatch {
+  grid-row: span 2;
+  width: 1.5rem;
+  height: 100%;
+  min-height: 2rem;
+}
+
+.city-heatmap__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem 1rem;
+  margin: 0;
+  font-size: .875rem;
+}
+
+.city-heatmap__key {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+.city-heatmap__swatch {
+  flex: none;
+  box-sizing: border-box;
+  width: .85rem;
+  height: .85rem;
+  border: 1px solid #4b665e;
+  border-radius: .2rem;
+}
+
+.city-heatmap__swatch[data-bin="0"] { background-color: #e7f5f0; }
+.city-heatmap__swatch[data-bin="1"] { background-color: #b9e2d5; }
+.city-heatmap__swatch[data-bin="2"] { background-color: #74bfaa; }
+.city-heatmap__swatch[data-bin="3"] { background-color: #398c7c; }
+.city-heatmap__swatch[data-bin="4"] { background-color: #185347; }
+.city-heatmap__swatch[data-bin="missing"] {
+  background: repeating-linear-gradient(135deg, #fff 0 3px, #b7c7c1 3px 5px);
+}
