@@ -27,9 +27,14 @@ jobs:
           test/causal-storage.test.js
           test/causality-read.test.js
           test/time-machine-checkpoints.test.js
+          test/checkpoint-replay.test.js
+          test/world-causal-adapter.test.js
           test/bakery-journey.test.js
           test/bakery-scenario.test.js
           test/living-city-recipe.test.js
+          test/living-city-network.test.js
+          test/living-city-quests.test.js
+          test/living-city-council.test.js
           test/decision-storage.test.js
       - name: Install Chromium for browser journeys
         run: bunx playwright install --with-deps chromium
