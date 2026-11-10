@@ -57,12 +57,26 @@ bunx playwright install chromium
 bun run test:e2e
 ```
 
-Playwright starts and stops a separate Bun server on port 3100. The tests open
-both `/game` and `/game/` in Chromium, check that the scene JSON loads, wait for
-the multiplayer welcome and a visible canvas, and run several animation frames.
+To use an already installed Chromium instead of downloading Playwright's browser:
+
+```sh
+PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium bun run test:e2e game.e2e.js
+```
+
+Playwright starts and stops a separate Bun server on port 3100. The game smoke
+test opens `/game/1`, checks the scene API response, waits for the multiplayer
+join broadcast and a visible canvas, and runs several animation frames.
 JavaScript exceptions, console errors, failed requests, and HTTP errors fail
-the test. Internet access is required for the game's Three.js and Jolt CDN
-imports. Failed runs retain a trace and browser error attachment under
-`test-results/`.
+the test. It also blocks external HTTP requests to catch new CDN dependencies.
+Failed runs retain a trace and browser error attachment under `test-results/`.
+
+After `bun install --frozen-lockfile` (Bun 1.4 or newer for the current lockfile),
+game startup requires no CDN access. The server builds `/game/main.js` from JSX
+and the installed React dependencies on request, so edits take effect on reload.
+Three.js uses the existing `/vendor/three/` routes. The narrowly scoped Jolt
+route serves the installed `wasm-compat` distribution, which embeds its WASM.
+No generated bundles or additional build step are required. The optional globe
+view still uses external deck.gl and GeoJSON resources; it is outside this smoke
+test's startup workflow.
 
 The `*.e2e.js` filenames keep these tests separate from Bun's unit test discovery.
