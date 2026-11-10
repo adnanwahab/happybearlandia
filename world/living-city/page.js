@@ -1,6 +1,6 @@
 import { VERSION } from '../city/contracts.js';
 import { cityMetrics } from '../city/engine.js';
-import { COMMUTE_OPTIONS } from './quests.js';
+import { COMMUTE_OPTIONS, QUEST_SCENARIO_VERSION } from './quests.js';
 import { decodeChallenge, encodeChallenge } from './recipe.js';
 import { mountLivingNetwork } from './network.js';
 import { mountLivingCouncil } from './council.js';
@@ -10,7 +10,7 @@ const sampleCount = 100;
 const months = 12;
 const defaultSeed = 2911;
 const defaultAmount = 8;
-const recipeVersion = `living-commute-v1+${VERSION}`;
+const recipeVersion = `${QUEST_SCENARIO_VERSION}+${VERSION}`;
 const number = new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 });
 const currency = new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 const worker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
@@ -160,6 +160,8 @@ async function openPair(index) {
   const experiment = activeExperiment;
   const { seed, amount } = experiment;
   find('sample').value = index;
+  find('share').value = '';
+  find('copy').disabled = true;
   find('pair-status').textContent = `Replaying pair ${index + 1}…`;
   try {
     const pair = await simulate('replay', { seed, amount, index, months });
@@ -173,6 +175,9 @@ async function openPair(index) {
       ['Proposal stage', intervention.policyStage ?? 'Unavailable'],
     ]);
     find('pair-status').textContent = `Pair ${index + 1} · Seed ${pair.seed} · ${months} months after the decision`;
+    find('pair-shock').textContent = pair.shock
+      ? `Both arms include a modeled Riverside flood beginning in month ${pair.shock.start}, lasting ${pair.shock.duration} month(s).`
+      : 'This pair has no scheduled flood.';
     find('answer').textContent =
       `${baseline.participant.personId} ${describeCommute(baseline)} in the baseline and ${describeCommute(intervention)} with the transit proposal.`;
     const proposal = COMMUTE_OPTIONS.find(option => option.amount === amount);
@@ -182,6 +187,7 @@ async function openPair(index) {
     url.searchParams.set('challenge', encodeChallenge({ version: recipeVersion, seed, amount, index }));
     find('share').value = url.href;
     find('copy').textContent = 'Copy';
+    find('copy').disabled = false;
     history.replaceState(history.state, '', url);
   } catch (error) {
     if (revision !== replayRevision) return;
@@ -204,7 +210,9 @@ async function compare({ amount, index, seed }) {
   try {
     const ensemble = await simulate('compare', { seed, amount, samples: sampleCount, months });
     showSummary(ensemble);
-    find('progress').textContent = `Compared ${ensemble.samples.length} pairs over ${months} months.`;
+    const cost = COMMUTE_OPTIONS.find(option => option.amount === amount).cost;
+    find('progress').textContent =
+      `Compared ${ensemble.samples.length} pairs over ${months} months · +${amount} capacity · ${currency.format(cost)} modeled cost.`;
     find('results').hidden = false;
     await openPair(index ?? 0);
   } catch (error) {

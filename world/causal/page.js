@@ -2,6 +2,7 @@ import '../causality/inspector.js';
 import { VERSION } from '../city/contracts.js';
 import { demoRunId } from './demo.js';
 import { mountCityHeatmap } from './heatmap.js';
+import { mountLivingNetwork } from '../living-city/network.js';
 import { cityInventory, compareInventory, indexConstructionEvidence } from './history.js';
 
 const find = id => document.getElementById(id);
@@ -15,6 +16,12 @@ const inventory = find('inventory');
 const inspectorHost = find('inspector');
 const runPicker = find('saved-run');
 const updateHeatmap = mountCityHeatmap(find('heatmap'));
+const networkDetails = find('network-details');
+const updateHistoricalNetwork = mountLivingNetwork(find('historical-network'));
+let networkSnapshot;
+networkDetails.addEventListener('toggle', () => {
+  updateHistoricalNetwork(networkDetails.open ? networkSnapshot : null);
+});
 const checkpointCacheSize = 12;
 const labels = {
   buildings: 'Buildings',
@@ -236,6 +243,8 @@ async function showMonth(month, { eventId, entityId } = {}) {
   inventory.replaceChildren();
   inspectorHost.replaceChildren();
   updateHeatmap(null);
+  networkSnapshot = null;
+  updateHistoricalNetwork(null);
   checkpointStatus.textContent = `Loading stored month ${month}…`;
   updateURL(month, eventId, entityId);
   try {
@@ -245,6 +254,11 @@ async function showMonth(month, { eventId, entityId } = {}) {
     if (request !== requestNumber) return;
     renderInventory(compareInventory(current.rows, previous?.rows), month);
     updateHeatmap(current.state);
+    networkSnapshot = {
+      state: current.state,
+      events: [...run.events.values()].filter(event => event.context.tick === month),
+    };
+    if (networkDetails.open) updateHistoricalNetwork(networkSnapshot);
     checkpointStatus.textContent = previous
       ? `Stored month ${month} · changes since month ${month - 1}`
       : month === run.firstMonth ? `Stored month ${month} · starting state` : `Stored month ${month}`;

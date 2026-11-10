@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import { decodeChallenge, encodeChallenge } from '../world/living-city/recipe.js';
 
-const config = { version: 'living-commute-v1+city-systems.1.0.0', samples: 100, options: [{ amount: 8 }] };
+const config = { version: 'living-city-commute.v1+city-systems.1.0.0', samples: 100, options: [{ amount: 8 }] };
 
 test('a challenge link pins the rules version, seed, investment and selected pair', () => {
   const recipe = { version: config.version, seed: 4294967295, amount: 8, index: 99 };
