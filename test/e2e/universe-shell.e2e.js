@@ -44,3 +44,27 @@ test('invalid scope is visible, reduced motion and narrow screens remain usable'
  await expect(page.locator('.universe-card')).toHaveCount(1);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
+
+test('new demo shortcuts preserve canonical scope and open the real Time Machine UI',async({page})=>{
+ await page.goto('/?'+query);
+ const demoNav=page.getByRole('navigation',{name:'Demo shortcuts'});
+ const destinations=[
+   ['Time Machine','/world/causal.html'],
+   ['Living City challenge','/world/living-city/'],
+   ['Riverside Bakery mystery','/world/journeys/bakery.html'],
+   ['Living Newspaper','/world/newspaper/index.html'],
+   ['Surprising Discoveries','/world/discoveries/index.html'],
+   ['Causal inspector','/world/causality/inspect.html']
+ ];
+ await expect(demoNav.getByRole('link')).toHaveCount(destinations.length);
+ const original=new URLSearchParams(query);
+ for(const [name,path] of destinations){
+   const href=await demoNav.getByRole('link',{name,exact:true}).getAttribute('href');
+   const target=new URL(href,page.url());
+   expect(target.pathname).toBe(path);
+   for(const [key,value] of original)expect(target.searchParams.get(key),name+' '+key).toBe(value);
+ }
+ await demoNav.getByRole('link',{name:'Time Machine',exact:true}).click();
+ await expect(page).toHaveURL(/\/world\/causal\.html/);
+ await expect(page.getByRole('heading',{name:'World Time Machine'})).toBeVisible();
+});

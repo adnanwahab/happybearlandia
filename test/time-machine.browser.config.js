@@ -7,7 +7,7 @@ export default defineConfig({
   use: { baseURL },
   webServer: {
     command: 'bun run server.js',
-    cwd: new URL('..', import.meta.url).pathname,
+    cwd: process.cwd(),
     env: { PORT: '39876', HBL_WORLD_DB_PATH: ':memory:' },
     url: baseURL + '/world/causal.html',
   },

@@ -30,5 +30,6 @@ test('help a resident, inspect real flows, compare 100 paired futures, and repla
   const link = await page.getByLabel('Share this challenge').inputValue();
   await page.goto(link);
   await expect(page.locator('#pair-status')).toContainText('Pair 7 · Seed');
-  await expect(page.locator('#pair')).toHaveText(pair.replace(/\s+/g, ' ').trim());
+  const reopenedPair = await page.locator('#pair').innerText();
+  expect(reopenedPair.replace(/\s+/g, ' ').trim()).toBe(pair.replace(/\s+/g, ' ').trim());
 });
