@@ -25,17 +25,13 @@ hooks:
 
 agent:
   max_concurrent_agents: __MAX_WORKERS__
-  max_turns: 12
+  max_turns: 20
   max_retry_backoff_ms: 300000
 
 codex:
   command: codex app-server
   thread_sandbox: workspace-write
-  approval_policy:
-    reject:
-      sandbox_approval: true
-      rules: true
-      mcp_elicitations: true
+  approval_policy: never
   turn_sandbox_policy:
     type: workspaceWrite
     writableRoots: []
