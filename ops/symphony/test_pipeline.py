@@ -1,7 +1,9 @@
 """Offline checks for the opt-in Symphony dispatch pipeline."""
 import contextlib
 import io
+import os
 import subprocess
+from unittest import mock
 import sys
 import unittest
 from pathlib import Path
@@ -31,6 +33,9 @@ class SymphonyConfigTests(unittest.TestCase):
         self.assertIn("max_concurrent_agents: 20", workflow)
         self.assertIn("project_slug: \"happybearlandia-b9c5a0b0c5d0\"", workflow)
         self.assertIn("hbl-agent-ready", workflow)
+        self.assertIn("hbl-coordinator-approved", workflow)
+        self.assertIn("approval_policy: never", workflow)
+        self.assertIn("max_turns: 20", workflow)
         self.assertIn("- Todo", workflow)
         self.assertNotIn("- Backlog", workflow)
         self.assertNotIn("REPLACE_LINEAR_PROJECT_SLUG", workflow)
@@ -70,6 +75,43 @@ class SymphonyConfigTests(unittest.TestCase):
         with contextlib.redirect_stdout(out):
             self.assertEqual(0, run_25h.main(["--workers", "50", "--ack-scale"]))
         self.assertIn("max_concurrent_agents: 50", out.getvalue())
+
+
+    @staticmethod
+    def _fake_run(command, **kwargs):
+        output = "true\\n" if command[:2] == ["gh", "api"] else ""
+        return subprocess.CompletedProcess(command, 0, stdout=output)
+
+    def test_preflight_accepts_configured_host(self):
+        with mock.patch.dict(os.environ, {"LINEAR_API_KEY": "test"}, clear=True), \
+                mock.patch.object(run_25h.shutil, "which", return_value="/usr/bin/placeholder"), \
+                mock.patch.object(run_25h.subprocess, "run", side_effect=self._fake_run), \
+                mock.patch.object(run_25h.socket, "socket") as socket_ctor:
+            socket_ctor.return_value.__enter__.return_value.connect_ex.return_value = 111
+            self.assertEqual([], run_25h.preflight_errors("linear", 43110))
+
+    def test_preflight_rejects_no_push_permission(self):
+        def no_push(command, **kwargs):
+            if command[:2] == ["gh", "api"]:
+                return subprocess.CompletedProcess(command, 0, stdout="false\\n")
+            return subprocess.CompletedProcess(command, 0, stdout="")
+        with mock.patch.dict(os.environ, {"LINEAR_API_KEY": "test"}, clear=True), \
+                mock.patch.object(run_25h.shutil, "which", return_value="/usr/bin/placeholder"), \
+                mock.patch.object(run_25h.subprocess, "run", side_effect=no_push), \
+                mock.patch.object(run_25h.socket, "socket") as socket_ctor:
+            socket_ctor.return_value.__enter__.return_value.connect_ex.return_value = 111
+            self.assertTrue(any("push access" in e for e in run_25h.preflight_errors("linear", 43110)))
+
+    def test_preflight_rejects_missing_token_and_occupied_port(self):
+        with mock.patch.dict(os.environ, {}, clear=True), \
+                mock.patch.object(run_25h.shutil, "which", return_value=None), \
+                mock.patch.object(run_25h.socket, "socket") as socket_ctor:
+            socket_ctor.return_value.__enter__.return_value.connect_ex.return_value = 0
+            errors = run_25h.preflight_errors("linear", 43110)
+            self.assertTrue(any("LINEAR_API_KEY" in e for e in errors))
+            self.assertTrue(any("Port 43110" in e for e in errors))
+            self.assertTrue(any("gh" in e for e in errors))
+
 
 
 class IntakeTests(unittest.TestCase):
