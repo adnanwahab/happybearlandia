@@ -22,3 +22,5 @@ bun scripts/pipeline-coordinator.mjs report
 A failed check records REPAIR, retains the candidate and reserves ownership. It does not retry indefinitely, reset work or claim completion. The coordinator assigns a bounded repair after reviewing logs; integrated failures require explicit reconciliation before more dispatch. Crash/VERIFYING state remains reserved for inspection; no automatic lease stealing.
 
 Tests: `bun test test/pipeline-coordinator.test.js test/demo-pipeline.test.js`. Real-process race tests establish exclusive claims. Temporary Git fixtures establish scope/capacity/backpressure and candidate→integration checks. U10 is the separately delivered real approved task used for the actual internal-worker demonstration.
+
+Existing delivered branches can be recorded with `intake CANDIDATE_ID OWNER FULL_SHA`; they enter the unverified queue and count toward backpressure. Intake does not grant execution approval or accept model/UI claims. A live demonstration with U16 plus two NB candidates refused another claim with “Backpressure: integrate pending contributions first”.
