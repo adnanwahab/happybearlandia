@@ -104,10 +104,16 @@ def preflight_errors(tracker: str, port: int) -> list[str]:
     if shutil.which("gh"):
         if not succeeds(["gh", "auth", "status"]):
             errors.append("GitHub CLI is not authenticated: run gh auth login")
-        elif not succeeds([
-                "gh", "api", "repos/adnanwahab/happybearlandia",
-                "--jq", ".permissions.push | select(. == true)"]):
-            errors.append("GitHub CLI cannot verify push access to adnanwahab/happybearlandia")
+        else:
+            try:
+                access = subprocess.run(
+                    ["gh", "api", "repos/adnanwahab/happybearlandia",
+                     "--jq", ".permissions.push"],
+                    capture_output=True, text=True, timeout=20, check=False)
+                if access.returncode != 0 or access.stdout.strip() != "true":
+                    errors.append("GitHub CLI cannot verify push access to adnanwahab/happybearlandia")
+            except (OSError, subprocess.TimeoutExpired):
+                errors.append("GitHub permission check failed; verify gh authentication")
 
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -178,7 +184,7 @@ def main(argv: list[str] | None = None) -> int:
 
     errors = preflight_errors(args.tracker, args.port)
     if errors:
-        parser.error("Preflight failed:\\n- " + "\\n- ".join(errors))
+        parser.error("Preflight failed:\n- " + "\n- ".join(errors))
     print("Preflight passed: Git/Codex/Bun/gh, GitHub push access, Git identity, port", flush=True)
     if args.preflight:
         return 0
