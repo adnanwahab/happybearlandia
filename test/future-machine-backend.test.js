@@ -76,6 +76,9 @@ test('invalid dependencies and unbounded deadlines fail explicitly',async()=>{
 
 // Opt-in real renderer proof; ordinary unit runs do not require a browser.
 // HBL_BACKEND_BROWSER=1 bun test test/future-machine-backend.test.js
+// On this macOS host bundled Chromium 153's SwiftShader swapchain is invalid;
+// HBL_BACKEND_ANGLE=metal selects the actual Metal adapter for native proof.
+// No browser errors are filtered, and the default software path can still fail.
 const browserTest=process.env.HBL_BACKEND_BROWSER==='1'?test:test.skip;
 browserTest('real Chromium renderer, scissor/resize and before/after-init failure smoke',async()=>{
   const {chromium}=await import('playwright');
@@ -96,15 +99,17 @@ browserTest('real Chromium renderer, scissor/resize and before/after-init failur
   }});
   let browser;
   try {
-    browser=await chromium.launch({headless:true,...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH}:{}),args:['--enable-unsafe-webgpu','--enable-unsafe-swiftshader']});
-    const page=await browser.newPage({viewport:{width:800,height:420}}),errors=[];
-    page.on('pageerror',error=>errors.push(error.message));
-    page.on('console',message=>{if(message.type()==='error')errors.push(message.text());});
-    await page.goto(`http://127.0.0.1:${server.port}/`);
-    const diagnostics=await page.evaluate(async()=>{
-      const THREE=await import('three'),{createRendererBackend}=await import('/backend.js');
-      const output=[];
-      for(const mode of ['preferred','forced','failure-before-init','failure-after-init']){
+    browser=await chromium.launch({headless:true,...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH}:{}),args:['--enable-unsafe-webgpu','--enable-unsafe-swiftshader',...(process.env.HBL_BACKEND_ANGLE?[`--use-angle=${process.env.HBL_BACKEND_ANGLE}`]:[])]});
+    const diagnostics=[],errors=[];
+    // A renderer is fully drained and disposed before the next case starts.
+    // Separate pages also isolate each GPU device/canvas lifecycle.
+    for(const mode of ['preferred','forced','failure-before-init','failure-after-init']){
+      const page=await browser.newPage({viewport:{width:820,height:420}});
+      page.on('pageerror',error=>errors.push({mode,message:error.message}));
+      page.on('console',message=>{if(message.type()==='error')errors.push({mode,message:message.text()});});
+      await page.goto(`http://127.0.0.1:${server.port}/`);
+      const result=await page.evaluate(async mode=>{
+        const THREE=await import('three'),{createRendererBackend}=await import('/backend.js');
         let failedRenderer=null,disposals=0;
         const options={THREE};
         if(mode==='forced')options.forceWebGL=true;
@@ -118,38 +123,59 @@ browserTest('real Chromium renderer, scissor/resize and before/after-init failur
         };
         const {renderer,backend,reason}=await createRendererBackend(options);
         document.body.append(renderer.domElement);
-        const scene=new THREE.Scene();scene.background=new THREE.Color(0x10232d);
+        const scene=new THREE.Scene();
         scene.add(new THREE.HemisphereLight(0xffffff,0x222222,3));
         const material=new THREE.MeshStandardMaterial({color:0x40d9c4}),geometry=new THREE.BoxGeometry(2,3,2);
         scene.add(new THREE.Mesh(geometry,material));
         const camera=new THREE.PerspectiveCamera(45,1,.1,100);camera.position.set(5,5,5);camera.lookAt(0,0,0);
-        renderer.setSize(800,400);
+        renderer.setSize(800,400);renderer.setClearColor(0x10232d,1);renderer.autoClear=false;
         if(renderer.compileAsync)await renderer.compileAsync(scene,camera);
-        const sizes=[];
-        for(const width of [800,390]){
-          renderer.setSize(width,400);renderer.setScissorTest(true);camera.aspect=width/2/400;camera.updateProjectionMatrix();
-          for(let side=0;side<2;side++){renderer.setViewport(side*width/2,0,width/2,400);renderer.setScissor(side*width/2,0,width/2,400);renderer.render(scene,camera);}
-          sizes.push([renderer.domElement.width,renderer.domElement.height]);
-        }
-        await new Promise(resolve=>setTimeout(resolve,100));
-        output.push({mode,backend,reason,nativeFlag:renderer.backend?.isWebGPUBackend===true,sizes,disposals,failedConstructed:!!failedRenderer,gpuAPI:!!navigator.gpu});
-        if(mode==='preferred'){
-          const draw=()=>{for(let side=0;side<2;side++){renderer.setViewport(side*195,0,195,400);renderer.setScissor(side*195,0,195,400);renderer.render(scene,camera);}globalThis.rendererSmoke.raf=requestAnimationFrame(draw);};
-          globalThis.rendererSmoke={renderer,geometry,material,raf:requestAnimationFrame(draw)}; // keep drawing during screenshot
-        }else{geometry.dispose();material.dispose();await renderer.dispose();renderer.domElement.remove();}
+        globalThis.rendererSmoke={renderer,geometry,material,scene,camera};
+        return {mode,backend,reason,nativeFlag:renderer.backend?.isWebGPUBackend===true,disposals,failedConstructed:!!failedRenderer,gpuAPI:!!navigator.gpu,adapterInfo:renderer.backend?.device?.adapterInfo?Object.fromEntries(['vendor','architecture','device','description'].map(key=>[key,renderer.backend.device.adapterInfo[key]])):null};
+      },mode);
+      console.log('Isolated renderer initialized',browser.version(),JSON.stringify(result));
+      result.sizes=[];result.pixels=[];
+      for(const width of [800,390]){
+        const frame=await page.evaluate(async width=>{
+          const {renderer,scene,camera}=globalThis.rendererSmoke;
+          // Present the previous frame before reconfiguring its canvas, then
+          // draw each viewport in the next animation frame with one full clear.
+          await renderer.backend?.device?.queue.onSubmittedWorkDone();
+          renderer.setSize(width,400);camera.aspect=width/2/400;camera.updateProjectionMatrix();
+          const draw=()=>{
+            renderer.setScissorTest(false);renderer.clear();renderer.setScissorTest(true);
+            for(let side=0;side<2;side++){renderer.setViewport(side*width/2,0,width/2,400);renderer.setScissor(side*width/2,0,width/2,400);renderer.render(scene,camera);}
+            globalThis.rendererSmoke.raf=requestAnimationFrame(draw);
+          };
+          await new Promise(resolve=>requestAnimationFrame(()=>{draw();resolve();}));
+          await renderer.backend?.device?.queue.onSubmittedWorkDone();
+          return [renderer.domElement.width,renderer.domElement.height];
+        },width);
+        result.sizes.push(frame);
+        const screenshot=await page.screenshot({path:join(artifactDir,`${mode}-${width}px.png`)});
+        // Decode the captured presentation, not the discarded canvas backbuffer.
+        const pixels=await page.evaluate(async png=>{
+          const image=new Image();image.src=`data:image/png;base64,${png}`;await image.decode();
+          const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;
+          const context=canvas.getContext('2d');context.drawImage(image,0,0);
+          const box=globalThis.rendererSmoke.renderer.domElement.getBoundingClientRect();
+          return [context.getImageData(box.x+box.width/4,box.y+200,1,1).data.slice(0,3),context.getImageData(box.x+box.width*3/4,box.y+200,1,1).data.slice(0,3)].map(value=>Array.from(value));
+        },screenshot.toString('base64'));
+        result.pixels.push(pixels);
+        await page.evaluate(async()=>{cancelAnimationFrame(globalThis.rendererSmoke.raf);await globalThis.rendererSmoke.renderer.backend?.device?.queue.onSubmittedWorkDone();});
       }
-      return output;
-    });
+      await page.evaluate(async()=>{const {renderer,geometry,material}=globalThis.rendererSmoke;geometry.dispose();material.dispose();await renderer.dispose();renderer.domElement.remove();});
+      await page.close();diagnostics.push(result);
+    }
+    writeFileSync(join(artifactDir,'diagnostics.json'),JSON.stringify({browser:browser.version(),executable:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH??chromium.executablePath(),angle:process.env.HBL_BACKEND_ANGLE??null,diagnostics,errors},null,2));
+    console.log('Real renderer browser evidence:',artifactDir,JSON.stringify(diagnostics),JSON.stringify(errors));
     for(const result of diagnostics){
       expect(result.backend==='webgpu').toBe(result.nativeFlag);
       expect(result.sizes).toEqual([[800,400],[390,400]]);
       if(result.mode!=='preferred')expect(result.backend).toBe('webgl');
       if(result.failedConstructed){expect(result.disposals).toBe(result.mode==='failure-before-init'?0:1);expect(result.reason).toBe(result.mode);}
+      for(const pair of result.pixels)for(const [red,green,blue] of pair){expect(green).toBeGreaterThan(red+20);expect(blue).toBeGreaterThan(red+20);}
     }
     expect(errors).toEqual([]);
-    await page.screenshot({path:join(artifactDir,'renderer-390px.png')});
-    await page.evaluate(async()=>{const {renderer,geometry,material,raf}=globalThis.rendererSmoke;cancelAnimationFrame(raf);geometry.dispose();material.dispose();await renderer.dispose();});
-    writeFileSync(join(artifactDir,'diagnostics.json'),JSON.stringify({diagnostics,errors},null,2));
-    console.log('Real renderer browser evidence:',artifactDir,JSON.stringify(diagnostics));
   }finally{await browser?.close();await server.stop(true);}
 },30000);
