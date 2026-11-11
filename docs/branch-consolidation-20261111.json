@@ -1,0 +1,193 @@
+{
+  "date": "2026-11-11",
+  "cutoff": "2026-11-08",
+  "integrationHead": "b7c391922ca3ef05b2d2ef7684101a7b1b073f06",
+  "branchSnapshot": [
+    {
+      "branch": "codex/backlog-integration",
+      "sha": "ca65c80e3043e79c9893361ccd7b77b9c2b5b22d",
+      "includedLocally": true
+    },
+    {
+      "branch": "codex/backlog-proposal-triage",
+      "sha": "3656b4f7fe813598c0706718c1527734fc2ad0b6",
+      "includedLocally": true
+    },
+    {
+      "branch": "codex/future-machine-data",
+      "sha": "f6fdaed541c4a98cd14e3292866dc21522d9f8a8",
+      "includedLocally": true
+    },
+    {
+      "branch": "codex/future-machine-diff",
+      "sha": "b861c61771c2ebe0f9e0a58ee8e71766ddb43852",
+      "includedLocally": true
+    },
+    {
+      "branch": "codex/future-machine-integration",
+      "sha": "9d715e6d79c9cce521f338127342aeabdded4d29",
+      "includedLocally": true
+    },
+    {
+      "branch": "codex/future-machine-scene",
+      "sha": "fc9acc0764ad8694a971f7feb4a82b54258b4fc2",
+      "includedLocally": true
+    },
+    {
+      "branch": "codex/future-machine-share",
+      "sha": "ffc41b0e0cfe9ecc79d6024ceadeee66047488af",
+      "includedLocally": true
+    },
+    {
+      "branch": "codex/future-machine-story",
+      "sha": "d18f4d086ed830b388ceac6c9ddbf4787f3ed957",
+      "includedLocally": true
+    },
+    {
+      "branch": "codex/future-machine-ui",
+      "sha": "4436e5857ec44b5a4d2a6edbb22c2c2a1edb99aa",
+      "includedLocally": true
+    },
+    {
+      "branch": "codex/future-split-evidence",
+      "sha": "225dcf650d10ec32bce2a1a2432778e50fe31864",
+      "includedLocally": true
+    },
+    {
+      "branch": "codex/future-split-model",
+      "sha": "4be9516ce4249cb18c9806640365903eabad980d",
+      "includedLocally": true
+    },
+    {
+      "branch": "codex/future-split-scene",
+      "sha": "99a25e1ee896329058cb0631eca5c7859c65cef3",
+      "includedLocally": true
+    },
+    {
+      "branch": "codex/future-split-theater",
+      "sha": "0b59085704fe64e3dee06e075b50be2918669133",
+      "includedLocally": true
+    },
+    {
+      "branch": "codex/nov10-release-integration",
+      "sha": "9e6a008ed0e469704966959da66eb8322c54ca31",
+      "includedLocally": true
+    },
+    {
+      "branch": "codex/nov11-local-consolidation",
+      "sha": "b7c391922ca3ef05b2d2ef7684101a7b1b073f06",
+      "includedLocally": true
+    },
+    {
+      "branch": "codex/pipeline-u10-receipts",
+      "sha": "641c6dd86d5a4495f9294b1867f5a307b98c2f64",
+      "includedLocally": true
+    },
+    {
+      "branch": "codex/pipeline-u16-evidence",
+      "sha": "9cb053bfd47fd561829f937ca952276e38e06f29",
+      "includedLocally": true
+    },
+    {
+      "branch": "codex/research-coordinator-20261111",
+      "sha": "ca48e99069836c54039cac1170efc997c0829a92",
+      "includedLocally": true
+    },
+    {
+      "branch": "codex/sprint-2-integration",
+      "sha": "4768132a1275d0bad2898cbb2e5add449f5b1575",
+      "includedLocally": true
+    },
+    {
+      "branch": "codex/sprint-causal-inspector",
+      "sha": "f0d3c8dd6cc7ae0b42f2f4e88bdf2b90db3dbfee",
+      "includedLocally": true
+    },
+    {
+      "branch": "main",
+      "sha": "78c3c5145a23a1300c1919fd70effc843052a3af",
+      "includedLocally": true
+    },
+    {
+      "branch": "sprint-60m/time-machine",
+      "sha": "d15c9dc5ef743633badd59a18d881eb55626dc25",
+      "includedLocally": true
+    },
+    {
+      "branch": "sprint/one-city-two-futures-20261111",
+      "sha": "9d07bae751fab9bd522cce9774e464a3c2f60e26",
+      "includedLocally": true
+    },
+    {
+      "branch": "origin/feature/player-voted-patch-pipeline-20261111",
+      "sha": "a62f7eaa289ba53cdcb739eafa7399879c4b6e09",
+      "includedLocally": true
+    },
+    {
+      "branch": "origin/main",
+      "sha": "78c3c5145a23a1300c1919fd70effc843052a3af",
+      "includedLocally": true
+    },
+    {
+      "branch": "origin/ops/symphony-codex-pipeline-20261111",
+      "sha": "49ea8ee8f17bf61d7b6485cd33c9289ae2bdda05",
+      "includedLocally": true
+    },
+    {
+      "branch": "origin/sprint/one-city-two-futures-20261111",
+      "sha": "42a821b03839bcfed127a727b01ea6158a687e45",
+      "includedLocally": true
+    }
+  ],
+  "deletedGitHubBranches": [
+    [
+      "audit/nov10-demo-verification",
+      "1af91da2cb8790675502b0bdcc58f3763ab7425f"
+    ],
+    [
+      "codex/future-machine-integration",
+      "ac3f503987eb9b9c6474b7f2ccc535ad9dd38806"
+    ],
+    [
+      "codex/nov10-release-integration",
+      "9e6a008ed0e469704966959da66eb8322c54ca31"
+    ],
+    [
+      "feature/world-first-run-feedback-guidance",
+      "4f30f846d78c9b8e47a0ef23967061c65412166b"
+    ],
+    [
+      "fix/first-run-routes-bars-lite-renderer",
+      "4390e43b71ecf152cac81ad25020d57d0d43889e"
+    ],
+    [
+      "fix/local-game-browser-dependencies",
+      "9f1385c9374a3968eb2eb753c34b049cf60f98a0"
+    ],
+    [
+      "sprint/oc2f-browser-qa",
+      "ac3f503987eb9b9c6474b7f2ccc535ad9dd38806"
+    ],
+    [
+      "sprint/oc2f-canvas2d",
+      "ac3f503987eb9b9c6474b7f2ccc535ad9dd38806"
+    ],
+    [
+      "sprint/oc2f-diff",
+      "ac3f503987eb9b9c6474b7f2ccc535ad9dd38806"
+    ],
+    [
+      "sprint/oc2f-effects",
+      "ac3f503987eb9b9c6474b7f2ccc535ad9dd38806"
+    ],
+    [
+      "sprint/oc2f-first-run",
+      "ac3f503987eb9b9c6474b7f2ccc535ad9dd38806"
+    ],
+    [
+      "sprint/oc2f-sim",
+      "ac3f503987eb9b9c6474b7f2ccc535ad9dd38806"
+    ]
+  ],
+  "remotePolicy": "Delete only recent heads already ancestors of origin/main; preserve open PRs and unique remote work. No main push or deployment."
+}

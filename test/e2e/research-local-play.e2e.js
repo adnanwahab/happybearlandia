@@ -1,14 +1,14 @@
 import {test,expect} from '@playwright/test';
 import {writeFile} from 'node:fs/promises';
 
-test('local World cycle completes while optional plans load and late plans preserve current selection',async({page},info)=>{
+test('local World cycle starts while optional plans load and late plans preserve current selection',async({page},info)=>{
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
  let release;const delayed=new Promise(resolve=>release=resolve);
  await page.route(/\/api\/(plan$|dear-congress\/(packages|package-results)\?)/,async route=>{
   await delayed;try{await route.fulfill({json:{packages:[{id:'balanced',name:'Remote Balanced',items:[{id:'t_bus'}]}]}});}catch{}
  });
  try{
-  await page.goto('/world/?demo=1&synthetic=1&people=80&renderer=canvas2d');
+  await page.goto('/world/?demo=1&synthetic=1&people=80&renderer=canvas');
   await expect.poll(()=>page.evaluate(()=>Boolean(window.hblWorldStartup?.readyMs))).toBe(true);
   expect(await page.evaluate(()=>window.hblWorldStartup.policyStatus)).toBe('loading');
   await expect(page.locator('#policy')).toBeEnabled({timeout:2000});
@@ -16,9 +16,10 @@ test('local World cycle completes while optional plans load and late plans prese
   await page.locator('#policy').selectOption('balanced');
   await page.locator('#runCycleBtn').click();
   await expect(page.locator('#runCycleBtn')).toBeDisabled();
-  await expect(page.locator('#cycleStatus')).toContainText('Cycle 1:',{timeout:30000});
   expect(await page.locator('#policy').inputValue()).toBe('balanced');
+  // Deliver while the real job runs, within the bounded optional-fetch deadline.
   release();
+  await expect(page.locator('#cycleStatus')).toContainText('Cycle 1:',{timeout:30000});
   await expect.poll(()=>page.evaluate(()=>window.hblWorldStartup.policyStatus)).toBe('ready');
   expect(await page.locator('#policy').inputValue()).toBe('balanced');
   expect(await page.locator('#policy option:checked').textContent()).toBe('Balanced');
@@ -40,7 +41,7 @@ test('late optional packages cannot enable controls owned by an active local job
  // exercise readiness ownership while the real worker is starting.
  await page.route('**/world/cycle.worker.js',async route=>{await workerGate;try{await route.continue();}catch{}});
  try{
-  await page.goto('/world/?demo=1&synthetic=1&people=80&renderer=canvas2d');
+  await page.goto('/world/?demo=1&synthetic=1&people=80&renderer=canvas');
   await expect.poll(()=>page.evaluate(()=>Boolean(window.hblWorldStartup?.readyMs))).toBe(true);
   await page.locator('#top>summary').click();await page.locator('#policy').selectOption('balanced');
   await page.locator('#runCycleBtn').click();await expect(page.locator('#runCycleBtn')).toBeDisabled();
@@ -55,7 +56,7 @@ test('late optional packages cannot enable controls owned by an active local job
 
 test('failed optional requests retain working local presets and report fallback',async({page})=>{
  await page.route(/\/api\/(plan$|dear-congress\/(packages|package-results)\?)/,route=>route.fulfill({status:503,json:{error:'Injected optional service failure'}}));
- await page.goto('/world/?demo=1&synthetic=1&people=40&renderer=canvas2d');
+ await page.goto('/world/?demo=1&synthetic=1&people=40&renderer=canvas');
  await expect.poll(()=>page.evaluate(()=>Boolean(window.hblWorldStartup?.readyMs))).toBe(true);
  await expect.poll(()=>page.evaluate(()=>window.hblWorldStartup.policyStatus)).toBe('local-fallback');
  await expect(page.locator('#policy')).toBeEnabled();await expect(page.locator('#runCycleBtn')).toBeEnabled();
@@ -67,7 +68,7 @@ test('remote amendments stay scoped to the selected remote plan and labels remai
  const label='<img src=x onerror=window.badPlan=true>Balanced';
  const rows=[{id:'balanced',name:label,items:[{id:'t_bus'}]}];
  await page.route('**/api/plan',route=>route.fulfill({json:{real:rows,blended:rows,diff:{balanced:{addedBySimulated:['t_bus'],removedBySimulated:[],pending:[]}}}}));
- await page.goto('/world/?demo=1&synthetic=1&people=40&renderer=canvas2d');
+ await page.goto('/world/?demo=1&synthetic=1&people=40&renderer=canvas');
  await expect.poll(()=>page.evaluate(()=>Boolean(window.hblWorldStartup?.readyMs))).toBe(true);
  await expect.poll(()=>page.evaluate(()=>window.hblWorldStartup.policyStatus)).toBe('ready');
  await page.locator('#top>summary').click();await page.locator('#policy').selectOption('balanced');
@@ -85,7 +86,7 @@ test('frozen reality still waits for its packages and applies its recorded snaps
  await page.route('**/api/plan',async route=>{order.push('packages-requested');seen();await delayed;try{await route.fulfill({json:{packages:[{id:'a',name:'Frozen remote package',items:[{id:'t_bus'}]}]}});}catch{}});
  await page.route('**/api/dear-congress/simulation-snapshots/**',route=>{order.push('snapshot-requested');return route.fulfill({json:{snapshot:{plan:{label:'Frozen fixture',proposalIds:['t_brt']}}}});});
  try{
-  await page.goto('/world/?demo=1&synthetic=1&people=40&renderer=canvas2d&simulation=fixture&reality=0&seed=42',{waitUntil:'domcontentloaded'});
+  await page.goto('/world/?demo=1&synthetic=1&people=40&renderer=canvas&simulation=fixture&reality=0&seed=42',{waitUntil:'domcontentloaded'});
   await requested;
   expect(await page.evaluate(()=>window.hblWorldStartup?.readyMs??null)).toBeNull();await expect(page.locator('#policy')).toBeDisabled();
   release();await expect.poll(()=>page.evaluate(()=>Boolean(window.hblWorldStartup?.readyMs))).toBe(true);
@@ -100,7 +101,7 @@ test('frozen reality still waits for its packages and applies its recorded snaps
 test('saved remote policy restores its exact selector without reloading optional packages',async({page})=>{
  let requests=0;
  await page.route('**/api/plan',route=>{requests++;return route.fulfill({json:{packages:[{id:'balanced',name:'Saved remote plan',items:[{id:'t_bus'}]}]}});});
- await page.goto('/world/?demo=1&synthetic=1&people=40&renderer=canvas2d');
+ await page.goto('/world/?demo=1&synthetic=1&people=40&renderer=canvas');
  await expect.poll(()=>page.evaluate(()=>Boolean(window.hblWorldStartup?.readyMs))).toBe(true);
  await expect.poll(()=>page.evaluate(()=>window.hblWorldStartup.policyStatus)).toBe('ready');
  await page.locator('#top>summary').click();await page.locator('#policy').selectOption('remote-balanced');
@@ -113,7 +114,7 @@ test('saved remote policy restores its exact selector without reloading optional
   return {id:record.id,policy:save.view.policy,checkpoint:save.checkpoint};
  });
  const before=requests;
- await page.goto(`/world/?experiment=${saved.id}&renderer=canvas2d`);
+ await page.goto(`/world/?experiment=${saved.id}&renderer=canvas`);
  await expect.poll(()=>page.evaluate(()=>Boolean(window.hblWorldStartup?.readyMs))).toBe(true);
  expect(await page.evaluate(()=>window.hblWorldStartup.restoreError??null)).toBeNull();
  expect(requests).toBe(before);expect(await page.locator('#policy').inputValue()).toBe(saved.policy);
