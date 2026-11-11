@@ -118,10 +118,10 @@ export function mountFutureMachineUI(root, options = {}) {
 /** Frozen interface v1 adapter. The coordinator owns simulation, playback, and scene rendering. */
 export function createUI(container, callbacks = {}) {
   let current={status:'idle',month:0,playing:false,mode:'split',ghosts:true};
-  let recipe=structuredClone(DEFAULT_RECIPE);
+  let recipe=structuredClone(DEFAULT_RECIPE), configurationDirty=false;
   const view=mountFutureMachineUI(container,{
     externalPlayback:true,
-    onFork:()=>callbacks.onRun?.(recipe),
+    onFork:()=>{if(!configureSeed())throw new Error(seedError.textContent);return callbacks.onRun?.(structuredClone(recipe));},
     onMonthChange:month=>callbacks.onMonth?.(month),
     onPlay:value=>callbacks.onPlay?.(value),
     onBlink:value=>callbacks.onMode?.(value?'plan':'baseline'),
@@ -130,11 +130,27 @@ export function createUI(container, callbacks = {}) {
     onExport:callbacks.onExport,
     onCancel:callbacks.onCancel,
     onMetric:callbacks.onMetric ? key=>callbacks.onMetric({homes:'housingUnits',commute:'meanTravelMinutes',rent:'meanRent',spending:'capitalSpending'}[key]) : undefined,
-    onPolicyChange:id=>{if(recipe)recipe={...recipe,intervention:id==='baseline'?null:structuredClone(defaultIntervention)};},
+    onPolicyChange:id=>{recipe={...recipe,intervention:id==='baseline'?null:structuredClone(defaultIntervention)};configurationDirty=true;callbacks.onConfigure?.(structuredClone(recipe));},
   });
   let defaultIntervention=structuredClone(DEFAULT_RECIPE.intervention);
   const doc=container.ownerDocument;
   const shell=view.stage.closest('.fm-ui');
+  const seedLabel=doc.createElement('label');seedLabel.textContent='Seed for next run';seedLabel.className='fm-seed-label';
+  const seedInput=doc.createElement('input');seedInput.type='text';seedInput.setAttribute('aria-label','Seed for next run');seedInput.inputMode='numeric';seedInput.pattern='[0-9]+';seedInput.required=true;seedInput.value=String(recipe.seed);seedInput.dataset.testid='future-machine-seed';
+  const seedError=doc.createElement('p');seedError.className='fm-error fm-seed-error';seedError.setAttribute('role','alert');seedError.hidden=true;
+  const seedHelp=doc.createElement('small');seedHelp.textContent='Unsigned integer 0–4294967295. Applies when you Fork City; displayed run stays unchanged.';
+  seedLabel.append(seedInput,seedHelp);shell.querySelector('.fm-setup').insertBefore(seedLabel,shell.querySelector('.fm-setup button'));shell.querySelector('.fm-setup').append(seedError);
+  function configureSeed(){
+    const text=seedInput.value;
+    const valid=/^[0-9]+$/.test(text) && Number.isSafeInteger(Number(text)) && Number(text)<=4294967295;
+    seedError.hidden=valid;seedError.textContent=valid?'':'Seed must be a whole number from 0 through 4294967295.';seedInput.setAttribute('aria-invalid',String(!valid));seedInput.setCustomValidity(valid?'':seedError.textContent);
+    if(!valid){configurationDirty=true;return false;}
+    const nextSeed=Number(text);
+    if(nextSeed!==recipe.seed){recipe={...recipe,seed:nextSeed};configurationDirty=true;callbacks.onConfigure?.(structuredClone(recipe));}
+    return true;
+  }
+  seedInput.oninput=configureSeed;
+
   const storyElement=doc.createElement('section');storyElement.className='fm-story';storyElement.dataset.testid='future-machine-why';storyElement.setAttribute('aria-label','Recorded change story');shell.querySelector('.fm-inspectors').after(storyElement);
   const actions=shell.querySelector('.fm-timeline .fm-actions');
   const demoPanel=doc.createElement('section');demoPanel.className='fm-demo';demoPanel.setAttribute('aria-label','Guided demo');
@@ -149,9 +165,17 @@ export function createUI(container, callbacks = {}) {
   const shareLink=doc.createElement('a');shareLink.textContent='Open comparison link';shareLink.hidden=true;shareLink.className='fm-share-link';shell.append(shareLink);
   const noPhysical=doc.createElement('p');noPhysical.className='fm-detail';shell.querySelector('.fm-metrics').after(noPhysical);
   function update(patch={}) {
+    const previousExperiment=current.experimentId ?? current.provenance?.experimentId;
     current={...current,...patch,...(patch.demo?{demo:{...current.demo,...patch.demo}}:{}),...(patch.provenance?{provenance:{...current.provenance,...patch.provenance}}:{})};
-    if(patch.recipe){recipe=structuredClone(patch.recipe);if(recipe.intervention)defaultIntervention=structuredClone(recipe.intervention);}
-    const busy=['loading','running','queued'].includes(current.status);
+    if(patch.recipe){
+      const incomingExperiment=current.experimentId ?? current.provenance?.experimentId;
+      const accepted=seedInput.getAttribute('aria-invalid')!=='true' && JSON.stringify(patch.recipe)===JSON.stringify(recipe);
+      if(!configurationDirty || accepted || (previousExperiment && incomingExperiment && previousExperiment!==incomingExperiment)){
+        recipe=structuredClone(patch.recipe);configurationDirty=false;seedInput.value=String(recipe.seed);seedError.hidden=true;seedInput.setCustomValidity('');seedInput.setAttribute('aria-invalid','false');
+        if(recipe.intervention)defaultIntervention=structuredClone(recipe.intervention);
+      }
+    }
+    const busy=['loading','running','queued'].includes(current.status);seedInput.disabled=busy;
     const demoState=current.demo || {};
     const demoActive=['playing','running','paused','preparing','loading'].includes(demoState.status);
     demo.disabled=busy || !callbacks.onDemo;demo.textContent=demoActive?'Restart Demo':'Play Demo';
@@ -159,7 +183,7 @@ export function createUI(container, callbacks = {}) {
     demoCaption.textContent=demoState.caption || (demoState.status==='complete'?'Demo complete. Scrub the timeline or select a result to explore.':'A guided 45–60 second comparison. Pause anytime to explore.');
     if(Number.isFinite(demoState.elapsedMs))demoCaption.textContent+=` · ${Math.floor(Math.max(0,demoState.elapsedMs)/1000)}s`;
     const provenance=current.provenance || {};
-    runProvenance.textContent=`MONTH ${current.month} / 120 · SEED ${provenance.seed ?? recipe?.seed ?? 'Unavailable'} · MODEL ${provenance.modelVersion ?? recipe?.modelVersion ?? 'Unavailable'} · RUN ${provenance.experimentId ?? current.experimentId ?? 'Not run yet'}`;
+    runProvenance.textContent=`MONTH ${current.month} / 120 · SEED ${provenance.seed ?? current.recipe?.seed ?? 'Unavailable'} · MODEL ${provenance.modelVersion ?? current.recipe?.modelVersion ?? 'Unavailable'} · RUN ${provenance.experimentId ?? current.experimentId ?? 'Not run yet'}`;
     const ready=!!current.frame && !busy;
     const metrics={};
     for(const [key,source] of [['homes','housingUnits'],['rent','meanRent'],['spending','capitalSpending']]){
@@ -180,5 +204,5 @@ export function createUI(container, callbacks = {}) {
     shareLink.hidden=!current.shareURL;
     if(current.shareURL){try{const url=new URL(current.shareURL,doc.baseURI);if(['http:','https:'].includes(url.protocol))shareLink.href=url.href;else{shareLink.removeAttribute('href');shareLink.hidden=true;}}catch{shareLink.removeAttribute('href');shareLink.hidden=true;}}
   }
-  return {stageElement:view.stage,storyElement,update,dispose(){demo.onclick=null;demoPause.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
+  return {stageElement:view.stage,storyElement,update,dispose(){seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
 }

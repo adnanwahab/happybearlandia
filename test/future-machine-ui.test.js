@@ -43,7 +43,7 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('Chromium controls, loading, failure, k
     await page.goto(`http://127.0.0.1:${server.port}`);
     await page.evaluate(async()=>{
       const {createUI}=await import('/world/future-machine/ui/index.js');window.calls=[];
-      window.ui=createUI(document.body,{onDemo:()=>calls.push(['demo']),onDemoPause:()=>calls.push(['demoPause']),onMetric:key=>calls.push(['metric',key]),onRun:recipe=>calls.push(['run',recipe]),onMonth:month=>calls.push(['month',month]),onPlay:value=>calls.push(['play',value]),onMode:mode=>calls.push(['mode',mode]),onDirector:()=>calls.push(['director']),onShare:()=>calls.push(['share']),onExport:()=>calls.push(['export']),onCancel:()=>calls.push(['cancel'])});
+      window.ui=createUI(document.body,{onConfigure:recipe=>calls.push(['configure',recipe]),onDemo:()=>calls.push(['demo']),onDemoPause:()=>calls.push(['demoPause']),onMetric:key=>calls.push(['metric',key]),onRun:recipe=>calls.push(['run',recipe]),onMonth:month=>calls.push(['month',month]),onPlay:value=>calls.push(['play',value]),onMode:mode=>calls.push(['mode',mode]),onDirector:()=>calls.push(['director']),onShare:()=>calls.push(['share']),onExport:()=>calls.push(['export']),onCancel:()=>calls.push(['cancel'])});
       ui.update({status:'idle'});
       document.querySelector('.fm-demo-play').click();
       window.idleDemoEnabled=!document.querySelector('.fm-demo-play').disabled;
@@ -65,8 +65,35 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('Chromium controls, loading, failure, k
     expect(await page.evaluate(()=>calls.some(call=>call[0]==='month'&&call[1]===120))).toBe(true);
     for(const name of ['Play timelapse','Blink: Future A','Show Me What Changed','Share comparison','Export evidence'])await page.getByRole('button',{name,exact:true}).click();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
+    const seed=page.getByLabel('Seed for next run',{exact:false});
+    await seed.fill('0');
+    expect(await page.evaluate(()=>calls.filter(call=>call[0]==='configure').at(-1)[1].seed)).toBe(0);
+    await page.evaluate(()=>ui.update({month:16,recipe:{seed:42,months:120,intervention:{type:'housing',amount:24,cost:1000000,districtId:'d1'}}}));
+    expect(await seed.inputValue()).toBe('0');
+    expect(await page.locator('.fm-run-provenance').textContent()).toContain('SEED 42');
+    for(const invalid of ['', 'NaN','1.5','-1','4294967296']){
+      await seed.fill(invalid);
+      expect(await seed.getAttribute('aria-invalid')).toBe('true');
+      expect(await page.locator('.fm-seed-error').isVisible()).toBe(true);
+      expect(await page.evaluate(()=>calls.filter(call=>call[0]==='configure').at(-1)[1].seed)).toBe(0);
+    }
     await page.getByRole('button',{name:'Fork City',exact:true}).click();
-    expect(await page.evaluate(()=>calls.find(call=>call[0]==='run')[1].intervention.amount)).toBe(24);
+    expect(await page.evaluate(()=>calls.filter(call=>call[0]==='run').length)).toBe(0);
+    await page.evaluate(()=>ui.update({month:17,recipe:{seed:42,months:120,intervention:{type:'housing',amount:24,cost:1000000,districtId:'d1'}}}));
+    expect(await seed.inputValue()).toBe('4294967296');
+    await seed.fill('0');
+    await page.getByRole('button',{name:'Fork City',exact:true}).click();
+    expect(await page.evaluate(()=>calls.filter(call=>call[0]==='run').at(-1)[1].seed)).toBe(0);
+    await seed.fill('4294967295');
+    expect(await page.evaluate(()=>calls.filter(call=>call[0]==='configure').at(-1)[1].seed)).toBe(4294967295);
+    await page.locator('.fm-setup select').nth(1).selectOption('baseline');
+    expect(await page.evaluate(()=>calls.filter(call=>call[0]==='configure').at(-1)[1].intervention)).toBeNull();
+    await page.evaluate(()=>ui.update({month:18}));
+    expect(await page.locator('.fm-setup select').nth(1).inputValue()).toBe('baseline');
+    await page.locator('.fm-setup select').nth(1).selectOption('housing');
+    await page.getByRole('button',{name:'Fork City',exact:true}).click();
+    expect(await page.evaluate(()=>calls.filter(call=>call[0]==='run').at(-1)[1].intervention.amount)).toBe(24);
+    expect(await page.evaluate(()=>calls.filter(call=>call[0]==='run').at(-1)[1].seed)).toBe(4294967295);
     await page.evaluate(()=>ui.update({status:'loading',message:'Bounded run in progress'}));
     expect(await page.getByRole('button',{name:'Fork City',exact:true}).isDisabled()).toBe(true);
     await page.getByRole('button',{name:'Cancel run',exact:true}).click();
