@@ -95,7 +95,7 @@ export function mountAdvancedStudio(container, { getInput, getResults, getSelect
   const explanations = mountBacklogExplanations(find('[data-as-pane="intelligence"]'), {onSelectRun:run=>onSelectRun?.(run),onEvent:({run,month})=>onEnterFuture?.(run,{month})});
   const exploration = mountExploration(find('[data-as-pane="exploration"]'), { getInput: currentInput, getResults: currentResults, getSelectedRun: currentRun, onApplyInput: apply, onProposeEdit: propose, onSelectRun, onEnterFuture });
   const robustness = mountRobustness(find('[data-as-pane="robustness"]'), { getInput: currentInput, onApplyInput: apply, onProposeEdit: propose });
-  const housingComparison = mountHousingComparison(find('[data-as-housing-comparison]'));
+  const housingComparison = mountHousingComparison(find('[data-as-housing-comparison]'),{onInspect:detail=>{let receipt=find('[data-comparison-receipt]');if(!receipt){receipt=doc.createElement('pre');receipt.dataset.comparisonReceipt='';receipt.setAttribute('role','status');find('[data-as-housing-comparison]').append(receipt);}receipt.textContent=JSON.stringify(detail,null,2);}});
   const format = value => new Intl.NumberFormat(undefined, { maximumFractionDigits: 3 }).format(value);
   function renderShortcuts() {
     const results = currentResults(), input = currentInput(), selected = currentRun();

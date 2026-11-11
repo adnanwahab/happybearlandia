@@ -1,3 +1,4 @@
+import { mountProductWorkflows } from './backlog-product-workflows/ui.js';
 import { mountPresentationShare } from './backlog-sharing/qr.js';
 import { constructionFrame } from './backlog-presentation-effects/index.js';
 import { createRecordedPlayback, mountStressCue, createSubtleSound } from './backlog-presentation-effects/playback.js';
@@ -12,6 +13,7 @@ import { mountWorldTools } from './world-tools.js';
 import { mountDecisionVisualizations } from './visualizations.js';
 import { mountDecisionTrust } from './trust-view.js';
 import { DECISION_LIMITS, normalizeDecisionInput } from './contracts.js';
+import { hydrateComparisonBaseline } from './backlog-comparison/hydration.js';
 import { createDecisionClient, createRunTraceCache, mergeRunTrace, parseParameterUpload, experimentInputFromManifest } from './client.js';
 import { mountDiagnostics } from './diagnostics.js';
 import { mountPilotRequest } from './onboarding.js';
@@ -49,6 +51,9 @@ const trust = mountDecisionTrust($('#decision-trust'));
 const diagnosticsContainer = el('div'); $('#trust').append(diagnosticsContainer);
 const diagnostics = mountDiagnostics(diagnosticsContainer);
 const pilotContainer = el('div'); $('#trust').append(pilotContainer);
+const workflowHost=el('div');$('#trust').append(workflowHost);
+const workflowUI=mountProductWorkflows(workflowHost,{fetch:async(url,options)=>{const capability=await fetch('/api/local-capability',{method:'POST'});if(!capability.ok)throw Error('Local capability unavailable');return fetch(url,options);},onExport:body=>download(body,'local-workflows.json')});
+addEventListener('pagehide',()=>workflowUI.dispose(),{once:true});
 mountPilotRequest(pilotContainer, { getContext: () => ({ decision: $('#decision-text').value, modelId: housingModel.id, modelVersion: housingModel.version }) });
 const sound = createSubtleSound(), cueHost = el('div'); $('#building-world').before(cueHost);
 const stressCues = mountStressCue(cueHost,{sound});
@@ -459,7 +464,7 @@ function syncConstructionWorld() {
   projects = preview.projects;
   const maxMonth = Math.max(1, (state.results?.experiment?.years || Number($('#run-years').value) || 10) * 12);
   constructionMonth = Math.max(0, Math.min(maxMonth, constructionMonth));
-  $('#building-month').max = String(maxMonth); $('#building-month').value = String(constructionMonth); $('#building-month-label').textContent = String(constructionMonth);
+  $('#building-month').step = '0.1'; $('#building-month').max = String(maxMonth); $('#building-month').value = String(constructionMonth); $('#building-month-label').textContent = String(constructionMonth);
   $('#building-month').setAttribute('aria-valuetext', `Month ${constructionMonth}`);
   const unloadedTrace = constructionRun?.traceDelivery === 'on-demand';
   $('#building-play').disabled = !constructionRun || unloadedTrace;
@@ -473,8 +478,9 @@ function syncConstructionWorld() {
     card.append(el('p', unloadedTrace ? 'Full monthly trace is stored, not missing. Loading this selected future before replay.' : `${stored.status} · ${Math.round((stored.progress || 0) * 100)}% · floor ${stored.floorsBuilt || 0}/${project.geometry.floors} · ${stored.completedUnits || 0} completed homes · ${stored.occupiedUnits || 0} occupied`)); summary.append(card);
   }
   if(unloadedTrace && state.experiment?.id) {const key=`${state.experiment.id}/${constructionRun.id}`;if(automaticTraceKey!==key){automaticTraceKey=key;void hydrateVisibleRun(constructionRun);}}
+  updateAdvancedStudio();
 }
-function stopConstructionPlayback() { recordedPlayer?.dispose(); recordedPlayer=null; stressCues.clear(); constructionTimer = null; $('#building-play').textContent = 'Play'; $('#building-play').setAttribute('aria-label', 'Play construction'); }
+function stopConstructionPlayback() { presentationLabel.textContent='Visual interpolation between recorded months; outcomes retain the preceding recorded state.'; recordedPlayer?.dispose(); recordedPlayer=null; stressCues.clear(); constructionTimer = null; $('#building-play').textContent = 'Play'; $('#building-play').setAttribute('aria-label', 'Play construction'); }
 $('#building-scenario').addEventListener('change', () => { state.selected = $('#building-scenario').value; constructionRun = null; constructionMonth = 0; stopConstructionPlayback(); renderScenarios(); });
 $('#building-run').addEventListener('change', () => {const run=state.results?.runs.find(row=>row.id===$('#building-run').value);if(run)void selectRun(run);});
 $('#building-month').addEventListener('input', () => { stopConstructionPlayback(); futureTransitions.cancel('scrub'); constructionMonth = Number($('#building-month').value); syncConstructionWorld(); });
@@ -485,7 +491,7 @@ $('#building-play').addEventListener('click', () => {
   if (constructionMonth >= Number($('#building-month').max)) constructionMonth = 0;
   $('#building-play').textContent = 'Pause'; $('#building-play').setAttribute('aria-label', 'Pause construction');
   futureTransitions.cancel('playback'); let lastPaint=-1;
-  recordedPlayer=createRecordedPlayback({run:constructionRun,projectId:constructionRun.projects?.[0]?.projectId,endMonth:Number($('#building-month').max),onCue:cue=>stressCues.show(cue),onFrame:frame=>{const tick=Math.floor(frame.month*10);if(tick===lastPaint&&frame.playing)return;lastPaint=tick;constructionMonth=frame.month;if(frame.reducedMotion)stressCues.clear();syncConstructionWorld();presentationLabel.textContent=`Visual interpolation only · recorded stress events: ${frame.events.map(e=>e.message||e.presetId).join(', ')||'none through this month'}`;if(!frame.playing){$('#building-play').textContent='Play';constructionTimer=null;}}});
+  recordedPlayer=createRecordedPlayback({run:constructionRun,projectId:constructionRun.projects?.[0]?.projectId,endMonth:Number($('#building-month').max),onCue:cue=>stressCues.show(cue),onFrame:frame=>{const tick=String(Math.floor(frame.month*10))+':'+frame.reducedMotion;if(tick===lastPaint&&frame.playing)return;lastPaint=tick;constructionMonth=frame.month;if(frame.reducedMotion)stressCues.clear();syncConstructionWorld();presentationLabel.textContent=`Visual interpolation only · recorded stress events: ${frame.events.map(e=>e.message||e.presetId).join(', ')||'none through this month'}`;if(!frame.playing){$('#building-play').textContent='Play';constructionTimer=null;}}});
   recordedPlayer.scrub(constructionMonth); recordedPlayer.play(Number($('#building-speed').value)*5); constructionTimer=true;
 });
 
@@ -573,6 +579,10 @@ async function hydrateVisibleRun(run) {
   try {
     const full=await runTraces.get(experimentId,run.id);
     if(!full||token!==traceSelectionToken||state.results?.experiment?.id!==experimentId||constructionRun?.id!==run.id)return null;
+    await hydrateComparisonBaseline({ results: state.results, selectedRun: run,
+      loadRun: (id, runId) => runTraces.get(id, runId),
+      isCurrent: () => token === traceSelectionToken && state.results?.experiment?.id === experimentId && constructionRun?.id === run.id });
+    if(token!==traceSelectionToken||state.results?.experiment?.id!==experimentId||constructionRun?.id!==run.id)return null;
     const latest=state.summaryResults;
     if(!latest||latest.experiment?.id!==experimentId)return null;
     // Merge into the most recent progressive envelope, never the snapshot that
