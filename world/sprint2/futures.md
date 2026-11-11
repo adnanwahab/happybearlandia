@@ -6,16 +6,14 @@ picker shows only saved checkpoints within the selected range.
 
 ## Server integration
 
-Import `createSavedFuturesHandler` from `world/sprint2/futures-api.js`.
-Create it with `{ store }`, where `store` is the same causal store passed to
-`createCausalityHandler` (the `.causality` property of the existing World
-persistence store). Pass the handler in `createCausalityHandler({ store,
-extensions: [savedFuturesHandler] })`. It serves GET
-`/api/causality/saved-futures` and returns `null` for other routes.
+The causality dispatcher mounts `createSavedFuturesHandler({ store })` with
+the same causal store used for replay. It serves GET
+`/api/causality/saved-futures`.
 
 The default public allowlist contains the deterministic demo run. Record it
 through the Time Machine to populate an empty library. Hosts may supply
 `publicRunIds` after reviewing the complete history of each run for public
-access. The catalog reads only approved IDs and returns run identity, seed,
+access by mounting a custom handler in the dispatcher's `extensions` array.
+The catalog reads only approved IDs and returns run identity, seed,
 model, kind and recorded months. The currently supported model and adapter
 match the Time Machine. Existing causal API access rules are unchanged.
