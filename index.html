@@ -22,6 +22,9 @@
     section header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 22px; }
     h2 { font-size: 20px; margin: 0; }
     section header a { flex-shrink: 0; }
+    .evidence-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 16px 24px; padding: 0 22px 20px; }
+    .evidence-links li { margin-inline-start: 1.2em; }
+    .evidence-links p { margin-block-end: 0; }
     iframe { display: block; width: 100%; height: 760px; height: clamp(480px, 82vh, 960px); border: 0; border-block: 1px solid #2b3b51; background: #08111f; }
     .carousel { background: radial-gradient(ellipse at 50% 95%, #203754 0, #0b1525 65%); }
     .carousel > header { flex-wrap: wrap; }
@@ -69,10 +72,21 @@
     <h1>HappyBearLandia</h1>
     <p>Explore living cities, animated worlds, unusual games, and experiments in possible futures.</p>
     <p><a class="flagship-demo" href="/world/future-machine.html?demo=1">Play Demo</a> · One City, Two Futures · a reproducible housing comparison</p>
-    <nav aria-label="Explore"><a href="/world/future-machine.html">Future Machine · 10 Years, 2 Futures</a> · <a href="/tools/future-journey.html">Try Today’s Features</a> · <a href="/vote-on-patch">Vote on the next patch</a> · <a href="#explore">Explore the worlds</a> · <a href="/world/civilization/">Emergent Civilizations</a> · <a href="/world/laboratory/">Civilization Laboratory</a> · <a href="/world/invention/">City Invention Studio</a> · <a href="/world/hidden-systems/">Hidden Systems</a> · <a href="/world/learning/">Learning Civilization</a> · <a href="/world/storm/">Sculpt a Storm</a> · <a href="/world/storm/response.html">Crisis Control Room</a> · <a href="/world/connected-lives/">Connected Lives</a> · <a href="/tools/simulation-health">Simulation Health</a> · <a href="/routes">Route directory →</a></nav>
+    <nav aria-label="Explore"><a href="/world/future-machine.html">Future Machine · 10 Years, 2 Futures</a> · <a href="/tools/future-journey.html">Try Today’s Features</a> · <a href="/vote-on-patch">Vote on the next patch</a> · <a href="#evidence-and-futures">Evidence &amp; Futures</a> · <a href="#explore">Explore the worlds</a> · <a href="/world/civilization/">Emergent Civilizations</a> · <a href="/world/laboratory/">Civilization Laboratory</a> · <a href="/world/invention/">City Invention Studio</a> · <a href="/world/hidden-systems/">Hidden Systems</a> · <a href="/world/learning/">Learning Civilization</a> · <a href="/world/storm/">Sculpt a Storm</a> · <a href="/world/storm/response.html">Crisis Control Room</a> · <a href="/world/connected-lives/">Connected Lives</a> · <a href="/tools/simulation-health">Simulation Health</a> · <a href="/routes">Route directory →</a></nav>
   </header>
   <section id="universe-shell" aria-label="Connected universe"></section>
-  <main aria-label="Route previews">
+  <main>
+    <section id="evidence-and-futures" aria-labelledby="evidence-heading">
+      <header><div><h2 id="evidence-heading">Evidence &amp; Futures</h2><p>Revisit simulation runs, compare outcomes, and inspect the evidence behind them.</p></div></header>
+      <ul class="evidence-links">
+        <li><a href="/world/sprint2/futures.html">Saved Futures Library</a><p>Find saved city runs and open their recorded months in the Time Machine.</p></li>
+        <li><a href="/world/sprint2/delta.html">Two-Month Delta Explorer</a><p>Compare buildings, businesses, and households across two months of a saved City Lab run.</p></li>
+        <li><a href="/world/sprint2/histogram.html">100-Future Outcome Histogram</a><p>Compare a worker’s commute across seed-matched simulated futures.</p></li>
+        <li><a href="/world/sprint2/bakery-export.html">Bakery Evidence Export</a><p>Download the Riverside Bakery comparison and the records needed to replay it.</p></li>
+        <li><a href="/world/sprint2/coverage.html">Causal Evidence Coverage</a><p>See which recorded events and observations have causal links and supporting evidence.</p></li>
+        <li><a href="/world/sprint2/newswire.html">Neighborhood Newswire</a><p>Read simulated news by neighborhood and date, with links to source events.</p></li>
+      </ul>
+    </section>
 <section class="carousel" id="explore" aria-roledescription="carousel" aria-label="Interactive worlds and experiments">
   <header><div><h2 id="experience-count"><span id="gallery-count">31</span> Interactive Worlds &amp; Experiments</h2><p>Start with a world. Follow your curiosity. Each preview opens a different possibility.</p></div><div class="carousel-controls"><button type="button" id="carousel-prev" aria-label="Previous preview">←</button><span id="carousel-status" aria-live="polite"></span><button type="button" id="carousel-next" aria-label="Next preview">→</button></div></header>
   <div class="gallery-toolbar"><label for="carousel-category">Category</label><select id="carousel-category"><option value="all">All experiences</option><option value="worlds">3D Worlds</option><option value="living">Living Simulations</option><option value="science">GPU Science</option><option value="games">Games</option><option value="tools">Tools</option></select><label for="carousel-jump">Jump to a preview</label><select id="carousel-jump"></select><span>Choose Interact to take control of a live preview.</span></div>

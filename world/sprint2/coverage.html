@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Causal Evidence Coverage · HappyBearLandia</title>
+  <link rel="stylesheet" href="./coverage.css">
+  <script type="module" src="./coverage.js"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <a href="/world/causal.html">Causal history</a>
+      <h1>Causal Evidence Coverage</h1>
+      <p>Check which stored events and observations have direct incoming model dependencies and supporting records.</p>
+    </header>
+    <form>
+      <label for="run">Recorded run</label>
+      <div class="controls">
+        <select id="run" name="runId" required><option value="">Choose a run</option></select>
+        <button type="submit">Load coverage</button>
+      </div>
+    </form>
+    <p id="catalog" role="status" hidden></p>
+    <p id="status" role="status"></p>
+    <section id="results" aria-labelledby="summary" hidden>
+      <h2 id="summary">Coverage by domain and record type</h2>
+      <p id="model"></p>
+      <p>Each denominator counts the eligible events or observations in that row. An incoming <code>causes</code>, <code>contributes</code>, or <code>constrains</code> edge with a resolvable source counts as linked. Statistical associations are excluded. These links describe the recorded model.</p>
+      <p>Supporting evidence requires a linked edge with recorded provenance and at least one evidence reference, with every reference on that edge resolved. Record provenance counts provenance on the event or observation itself.</p>
+      <p>Missing link means the check found no qualifying dependency. Unknown means a failed or bounded check or an unresolved reference left that result undetermined. Coverage for an incomplete run reflects only its stored records at the displayed revision.</p>
+      <p id="excluded"></p>
+      <div class="table-wrap" tabindex="0" role="region" aria-label="Coverage breakdown">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Domain</th><th scope="col">Record</th><th scope="col">Event type or metric ID</th>
+              <th scope="col">Records</th><th scope="col">Linked</th><th scope="col">Missing link</th>
+              <th scope="col">Link unknown</th><th scope="col">Supporting evidence</th>
+              <th scope="col">Evidence unknown</th><th scope="col">Record provenance</th>
+            </tr>
+          </thead>
+          <tbody id="breakdown"></tbody>
+          <tfoot id="total"></tfoot>
+        </table>
+      </div>
+      <h2>Incoming edge provenance</h2>
+      <p id="no-sources" hidden>No edge provenance was returned for the eligible records.</p>
+      <div id="source-table" class="table-wrap" tabindex="0" role="region" aria-label="Edge provenance">
+        <table>
+          <thead><tr><th scope="col">Source</th><th scope="col">Kind</th><th scope="col">Model version</th><th scope="col">Edges returned</th></tr></thead>
+          <tbody id="sources"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

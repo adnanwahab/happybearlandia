@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Two-Month Delta Explorer · HappyBearLandia</title>
+  <link rel="stylesheet" href="./delta.css">
+  <script type="module" src="./delta.js"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <a href="/world/city-lab.html">City Lab</a>
+      <h1>Two-Month Delta Explorer</h1>
+      <p>Compare buildings, businesses, and households at two months in the same saved city run.</p>
+    </header>
+    <form id="run-form">
+      <label>Saved experiment <select id="experiment" required disabled></select></label>
+      <label>Scenario <select id="scenario" required disabled></select></label>
+      <label>Run index <input id="run-index" type="number" min="0" value="0" required disabled></label>
+      <button id="load-run" disabled>Load run</button>
+    </form>
+    <p id="status" role="status">Loading saved experiments…</p>
+    <p id="error" role="alert" hidden></p>
+    <button id="refresh" type="button">Refresh experiments</button>
+    <section id="comparison" aria-label="Month comparison" hidden>
+      <p id="source"></p>
+      <div class="controls">
+        <label>Before <select id="before"></select></label>
+        <label>After <select id="after"></select></label>
+      </div>
+      <div id="summary" aria-live="polite"></div>
+      <div class="controls">
+        <label>Show records <select id="domain">
+          <option value="buildings">Buildings</option>
+          <option value="businesses">Businesses</option>
+          <option value="households">Households</option>
+        </select></label>
+      </div>
+      <div id="results"></div>
+      <div class="controls" id="pagination" hidden>
+        <button type="button" id="previous">Previous</button>
+        <span id="range" role="status"></span>
+        <button type="button" id="next">Next</button>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
