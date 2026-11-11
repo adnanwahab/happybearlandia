@@ -1,4 +1,4 @@
-# Transitions — INTEGRATION-READY
+# Transitions — DONE
 
 Baseline `1b19358`; initial owned commit `2293689e451ea22dc58fd53413cead2f0255accd`. Worktree `/Users/wahabma/.codex/worktrees/backlog-transitions/happybearlandia`. Only owned adapter/metadata modules, uniquely prefixed tests and this handoff are edited. Original checkout and coordinator sources were inspected read-only.
 
@@ -21,33 +21,11 @@ The SVG outcome plot and construction renderer do not share a geographic camera 
 - `test/backlog-transitions.browser.js`, `test/backlog-transitions-production.browser.js`, `test/backlog-transitions.browser.config.js`, `test/backlog-transitions-browser-hooks.js`
 - `docs/backlog-expansion/transitions.md`
 
-## Current shared integration and exact remaining hook
+## Completed shared integration
 
 Coordinator source HEAD observed during verification: `dd2781333256755d5f99185cb686105129d61244` (working integration source, including current mounts). Coordinator mounts now exist in `/Users/wahabma/.codex/worktrees/backlog-integration/happybearlandia/world/decision/studio.js`: real Enter/Return invoke the adapter; scrub/playback/reset/entry cancel; pagehide detaches. `visuals.comparisonSelection()` supplies actual axes, filters, selected run and seed-matched baseline IDs.
 
-Its reader currently omits **rotation, unfavorable, page, gridSize, lassoMode and replayIndex**. These controls remain unchanged through navigation (browser checks include the actual DOM controls), but programmatic changes to omitted fields cannot invalidate an in-flight selection. Minimal coordinator-only fix: append these exact native fields to `comparisonSelection()`:
-
-```js
-rotation: Number(control('rotation').value),
-unfavorable, page, gridSize, lassoMode, replayIndex,
-```
-
-Or import the owned `snapshotComparisonMetadata` from `./backlog-transitions/metadata.js` and replace that method with:
-
-```js
-comparisonSelection() {
-  return snapshotComparisonMetadata({
-    selectedRunId: selected?.id ?? null,
-    baselineRunId: baselineSeeds.get(selected?.seed)?.id ?? null,
-    axes: {x:xKey,y:yKey,z:zKey},
-    projection: threeD ? '3d' : '2d',
-    rotation: Number(control('rotation').value),
-    metricKey,scenarioFilter,unfavorable,outcomeFilter,colorMode,
-    searchQuery,gridSize,page,showGhost,showDensity,lassoMode,
-    lassoIds:[...lassoIds],replayIndex,
-  });
-}
-```
+The completed reader now uses `snapshotComparisonMetadata` with every native field: axes, projection, rotation, metric/scenario/unfavorable/outcome/color/search filters, ghost/density, page/grid size, lasso mode/IDs, selected/baseline IDs and replay index. The previously missing six-field host gap is closed; no mount dependency remains. Verified callsite: `world/decision/visualizations.js:237` in coordinator source HEAD `62dad57413dc4c8029f6b7f546faac2f7e8f7a62`.
 
 Optional diagnostics: include `futureTransitions` in existing `window.hblDecisionStudio`. Optional selected-dot reveal origin: pass the selected actual `[data-run-id]` element as `source` to `flyTo('city',{source})`. Neither is required for navigation correctness. Retain existing stored-run validation, URL updates, banners, playback stop and selected-month assignment. Do not call a model or reset a comparison from the animation.
 
@@ -75,15 +53,15 @@ The separate diagnostic suite (omit `HBL_TRANSITIONS_PRODUCTION_ONLY`) routes on
 
 Browser evidence preserves experiment input seed **0**, actual derived stored run seed **110210400**, `plan-a_0001`, housing model **1.2.0**, Month **24**, metrics and URL, plot projection/rotation and all rendered comparison control values through city→multiverse. No manufactured saved run seed 0 is inserted. Exact run seed 0 and uint32 maximum are separately tested in deterministic fixtures. Other browser checks cover manual wheel interruption, supersession, live/initial reduced motion, 390px screenshot, double detach and no queued scroll after disposal.
 
-## Ready-to-apply status
+## Final ticket status
 
 | Ticket | Implemented and verified | Remaining |
 | --- | --- | --- |
-| 111 | Exact stored future entry via actual integrated Enter handler and viewport flight; seed/time/model retained; deterministic stale/manual cancellation. | Coordinator adds omitted metadata keys above, then reruns harness. Continuous geographic 3D flight unsupported. |
-| 112 | Actual Return button retains stored run/month, metrics, URL and plot controls; native manual controls preserved. | Same metadata reader completion for full programmatic-state invalidation. |
-| 184 | Eased scroll/reveal, bounded duration, reduced motion, replacement cancellation and disposable resources tested. | Same small shared reader hook; keep viewport/3D distinction explicit. |
+| 111 | Exact stored future entry via actual integrated Enter handler and viewport flight; seed/time/model retained; deterministic stale/manual cancellation. | DONE for viewport transitions. Continuous geographic 3D flight remains outside this supported contract. |
+| 112 | Actual Return button retains stored run/month, metrics, URL and plot controls; native manual controls preserved. | DONE; completed native metadata reader included in final production verification. |
+| 184 | Eased scroll/reveal, bounded duration, reduced motion, replacement cancellation and disposable resources tested. | DONE for viewport motion; no geographic 3D camera mapping claimed. |
 
-No release merge, push, deployment, production writes, outbound messages or paid provider actions. No new agents/chats. Next action: integrate owned follow-up commit and the exact reader fields, then repeat the production-hook harness.
+No release merge, push, deployment, production writes, outbound messages or paid provider actions. No new agents/chats. No further track task remains; retain this evidence for integration review.
 
 ## Final acceptance evidence
 
@@ -92,4 +70,21 @@ No release merge, push, deployment, production writes, outbound messages or paid
 - Final Bun suite: **42 passed / 0 failed / 172 assertions**. `git diff --check` passed. No repository lint/typecheck scripts exist.
 - Final production artifacts: `/tmp/hbl-backlog-transitions-production-final/backlog-transitions-produc-7e38e-reduced-motion-and-teardown/` contains `production-evidence.json`, `production-saved-month24-city.png`, `production-saved-month24-multiverse.png`, `production-saved-month24-reduced-mobile.png`. Corrected 390px city screenshot visually inspected; selected future/model/seed and Month 24 are visible. Resizing alone intentionally preserves manual scroll; the screenshot harness explicitly re-enters the city after resize.
 - The earlier failed harness run used annual index 2 on monthly replay (selected Month 2); corrected to the actual monthly index 24. A later scheduling assertion required more than two animation frames; removed because host scheduling may deliver only two. Deterministic tests verify interpolation; browser gates verify navigation/state rather than minimum frame rate. Final runs above include these corrections.
-- Remaining architectural limitation: viewport flight only, no geographic camera mapping or cross-model handoff. Remaining shared integration task is precisely the six metadata fields listed above. Owned code includes a tested guard for a destination removed just before a live reduced-motion change, plus immutable receipt diagnostics and the complete native metadata contract. Integrate these owned files with the reader completion, then rerun the same command.
+- Remaining architectural limitation: viewport flight only, no geographic camera mapping or cross-model handoff. The previously outstanding shared metadata fields are now complete, as verified in the completion run below. Owned code includes a tested guard for a destination removed just before a live reduced-motion change, plus immutable receipt diagnostics and the complete native metadata contract. The final completion run below verifies the integrated files and completed reader.
+
+
+## Completed reader: final unmodified-production verification
+
+**DONE — tickets 111 / 112 / 184 for the bounded viewport-transition contract.** Coordinator source HEAD observed `62dad57413dc4c8029f6b7f546faac2f7e8f7a62`. Its `comparisonSelection()` calls the owned snapshot contract with all required native fields. The remaining host gap is closed.
+
+Final command is the production-only command above, with `HBL_TRANSITIONS_OUTPUT=/tmp/hbl-backlog-transitions-completed-reader`. Result: **1 passed in 18.2s** (journey 17.6s), **zero page errors, zero console errors**, no source replacement/interception. The actual Enter/Return controls, stored seeded run, nonzero month, complete comparison control preservation, real mouse-wheel interruption, rapid-handler supersession, reduced motion, 390px view and pagehide disposal all passed. No implementation change was needed in this final turn.
+
+Exact evidence: experiment `decision_64974972-b368-4c9a-8c21-d85c4c30c6c6`, experiment seed **0**, stored run **plan-a_0001**, actual derived run seed **110210400**, housing model **1.2.0**, native Month **24**; before/after snapshots equal. No fake run seed 0 or geographic mapping was introduced.
+
+Final artifact directory: `/tmp/hbl-backlog-transitions-completed-reader/backlog-transitions-produc-7e38e-reduced-motion-and-teardown/`:
+- `production-evidence.json`: exact run inputs/state, before/after snapshots, `sourceReplacement:false`, empty page/console error arrays.
+- `production-saved-month24-city.png`.
+- `production-saved-month24-multiverse.png`.
+- `production-saved-month24-reduced-mobile.png`: visually inspected, selected stored run/seed/model and Month 24 visible.
+
+The earlier Bun result remains **42 passed / 172 assertions**; the coordinator independently reported **25 transition tests / 75 assertions** after completing the host reader. Final whitespace check passed. Only this owned handoff changed for the final verification record. No release/deployment or new feature work was performed. No further track action remains unless an actual regression is reported.
