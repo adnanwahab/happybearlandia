@@ -1,6 +1,8 @@
 # Universe shell and contextual navigation
 
-Homepage entry is `/?app=worldline&...`; no selected app means directory only. `registry.js` lists the 29 original experiences; the Tools directory app, Blog, and Twitch robot remain standalone and are excluded. Individual experiences hosted under `/tools/` are included. Causal World, inspector, and research hub are contextual links outside the 29-entry catalog.
+Homepage entry is `/?app=worldline&...`; no selected app means directory only. `registry.js` preserves the 29 original experiences and adds the verified Houston Map and Future Machine. Derive current counts from the registry. The Tools directory app, Blog, and Twitch robot remain standalone and are excluded. Individual experiences hosted under `/tools/` are included. Causal World, inspector, and research hub are contextual links outside the catalog.
+
+`/routes` retains a basic static directory, including the flagship, when JavaScript or catalog loading is unavailable. `directory.js` imports the registry and creates exactly one card per registered experience using DOM text. After a three-second loading deadline, basic filters/favorites become usable; late catalog loading cannot replace that active fallback. The existing WebGPU overview remains separately labeled as a directory shortcut; it is not an additional registered experience. Existing secondary links, search, category filters and route-keyed favorites remain available. The legacy demo-optimization favorite migrates to its canonical route, with its demo link retained. Storage errors fall back to in-memory favorites. Verify with `bunx playwright test --config test/research-directory.browser.config.js`; that suite also opens an actual City run through the directory.
 
 `navigation.js` exports:
 

@@ -6,6 +6,8 @@ Active 25-hour goal: November 11 09:24:50 through November 12 10:24:50 America/C
 
 Research follow-up accepted: [matched delay sensitivity](research-sensitivity.md), four seeds × three delays with independent zero controls and intervention repeats; all12cases/3840steps verified with exact inventory/ledger/event reconciliation and source hashes. Added full120-month boundary-seed trace invariance without model changes. Combined research/world-causal tests9passed/1023assertions. Actual City graphics-loss preservation is now included in4passing focused browser checks. Fresh named guided recording passed (54.20s playable); artifact audit2records/1video. Source and evidence references remain in the coordinator ledger; the25-hour goal is still active.
 
+RC06 focused resize/resource preservation verified: two actual browser journeys, 32 scrub/focus updates and three stage lifecycles per WebGL/Canvas backend, stable per-month geometry counters and zero canvases after disposal. RC07 directory repair verified: all31current registry experiences plus the existing overview shortcut; static24-entry fallback, bounded catalog loading, preserved favorites/secondary routes, and a working flagship entry. Six browser checks,15adjacent unit checks and browser bundle pass. These counts are scoped evidence, not a claim of main-only atlas preservation. Ordinary World optional-package readiness is the next investigated slice.
+
 [Product design](design.md) defines the target experience. [Engineering instructions](../AGENTS.md) describe how to plan, implement, and verify changes. Keep this plan current with task status, dependencies, acceptance evidence, and commit or PR references when available.
 
 ## Playable Life vertical slice

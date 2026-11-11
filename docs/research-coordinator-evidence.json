@@ -1,0 +1,143 @@
+{
+  "schemaVersion": "hbl-research-coordinator-evidence.v1",
+  "sourceCommit": "e66b7b0a584639cef9bcc5cf0f07a50b9acd5bd9",
+  "branch": "codex/research-coordinator-20261111",
+  "route": "/world/future-machine.html?demo=1",
+  "sourceFiles": [
+    {
+      "path": "world/future-machine/scene/index.js",
+      "sha256": "add372a5a411c00d1bcb1274184b90efcb26129a9a35ab2783e4808d82c06447"
+    },
+    {
+      "path": "world/future-machine/scene/canvas-stage.js",
+      "sha256": "a4de52088da76ef4ae5ef9b1c1d0ca8e719d0dd0e80c1ba77c4a018d2116c7a7"
+    },
+    {
+      "path": "scripts/research-future-sensitivity.mjs",
+      "sha256": "02325940b9573ad00f2a337fda32d0eb564d4dd2e504155abb105fdffa44be28"
+    },
+    {
+      "path": "test/e2e/research-scene.e2e.js",
+      "sha256": "ad4020b71079df52b4175c48adfcc182a936e304d05d63a7058bd87e96a4be11"
+    },
+    {
+      "path": "test/research-future-sensitivity.test.js",
+      "sha256": "0a4a73499c0e1102471e764c7c723e8165d7f211de59c655b2c5e95ef6f0e119"
+    },
+    {
+      "path": "test/research-trace-invariance.test.js",
+      "sha256": "9de3aa72664ab1658dc4500aa88256115bbc72f719a8012f653cea111f6a96e0"
+    },
+    {
+      "path": "docs/research/future-sensitivity-20261111.json",
+      "sha256": "b1e631f56d257ed6a3d7f3d9fd12ae4e2506366852909bd76bef1ec570903e0a"
+    }
+  ],
+  "checks": {
+    "focusedSceneBrowser": {
+      "passed": 4
+    },
+    "flagshipPreservationBrowser": {
+      "passed": 5
+    },
+    "sceneBackendUnits": {
+      "passed": 32,
+      "browserGatedSkips": 1
+    },
+    "researchAndWorldCausalUnits": {
+      "passed": 9,
+      "assertions": 1023
+    },
+    "guidedDemoRecording": {
+      "passed": 1,
+      "videoDurationSeconds": 54.2,
+      "interactionElapsedMs": 51521
+    },
+    "sensitivity": {
+      "controls": 4,
+      "cases": 12,
+      "monthlySteps": 3840,
+      "status": "passed",
+      "deterministicHash": "0b13121de75f7745777c7a84b4aa973887b4695a8b65823cb02850d2c0b742bb"
+    }
+  },
+  "artifacts": [
+    {
+      "path": "/private/tmp/hbl-research-recording/.last-run.json",
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    {
+      "path": "/private/tmp/hbl-research-recording/artifact-audit.json",
+      "bytes": 7743,
+      "sha256": "404df6e2067bf8a544769f95d8b2307e5ed19d8ec1b6f80d57b3b8c2032aff36"
+    },
+    {
+      "path": "/private/tmp/hbl-research-recording/two-futures-sprint.e2e.js--d6b33--second-one-click-Play-Demo/demo-complete.json",
+      "bytes": 497973,
+      "sha256": "23c071c036f8efd179d642bb1b01aa0b10f365747bc0fefeb0059556f95d10a9"
+    },
+    {
+      "path": "/private/tmp/hbl-research-recording/two-futures-sprint.e2e.js--d6b33--second-one-click-Play-Demo/demo-complete.png",
+      "bytes": 1129212,
+      "sha256": "9ca62af503d69edec6aaddf6f28fa60fdfa1032d7a0a729b857fca5372a176d2"
+    },
+    {
+      "path": "/private/tmp/hbl-research-recording/two-futures-sprint.e2e.js--d6b33--second-one-click-Play-Demo/demo-start.json",
+      "bytes": 163503,
+      "sha256": "78e0cccbfe67a9f608544eec0d23d453c1d914014e3309edbbfd2dae75695bde"
+    },
+    {
+      "path": "/private/tmp/hbl-research-recording/two-futures-sprint.e2e.js--d6b33--second-one-click-Play-Demo/demo-start.png",
+      "bytes": 1037211,
+      "sha256": "6216b7540cb0a36d281a51bf7ebc60b4a5e543e46e0f1f61fce5edd4745fe2da"
+    },
+    {
+      "path": "/private/tmp/hbl-research-recording/two-futures-sprint.e2e.js--d6b33--second-one-click-Play-Demo/demo-timing.json",
+      "bytes": 386,
+      "sha256": "56a2881c3484273adaa12f58547234a223e4cf6a415bbfcc8bed1eda5228d14b"
+    },
+    {
+      "path": "/private/tmp/hbl-research-recording/two-futures-sprint.e2e.js--d6b33--second-one-click-Play-Demo/demo-why-completion-event.png",
+      "bytes": 198223,
+      "sha256": "c17d3431cad0d308d6181114bd446d3ec0af2c9ce487e39976673022ea288f0a"
+    },
+    {
+      "path": "/private/tmp/hbl-research-recording/two-futures-sprint.e2e.js--d6b33--second-one-click-Play-Demo/video.webm",
+      "bytes": 3410450,
+      "sha256": "7c6bea7c26769eaa477992fcd5b77b9dbacfaf707e0976f9c007387003e23305"
+    },
+    {
+      "path": "/private/tmp/hbl-research-scene/.last-run.json",
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    {
+      "path": "/private/tmp/hbl-research-scene/research-scene.e2e.js-actu-bee22-ction-through-graphics-loss/attachments/recorded-context-loss-evidence-160df4f8328de1f39ef7ae81f0714e5b42463f8c.json",
+      "bytes": 6071,
+      "sha256": "cf039ffa0bff215a75096791844c3d725f52e1f4f0289412e0b48b8da40774e4"
+    },
+    {
+      "path": "/private/tmp/hbl-research-scene/research-scene.e2e.js-actu-bee22-ction-through-graphics-loss/recorded-context-loss-evidence.json",
+      "bytes": 6071,
+      "sha256": "cf039ffa0bff215a75096791844c3d725f52e1f4f0289412e0b48b8da40774e4"
+    },
+    {
+      "path": "/private/tmp/hbl-research-scene/research-scene.e2e.js-actu-bee22-ction-through-graphics-loss/recorded-month-16-canvas.png",
+      "bytes": 61911,
+      "sha256": "a9167112cf794ac39d8fc64d169eb9001f5dbdbb7ad8696e92e14a19c829a1ab"
+    },
+    {
+      "path": "/private/tmp/hbl-research-scene/research-scene.e2e.js-actu-bee22-ction-through-graphics-loss/recorded-month-16-webgl.png",
+      "bytes": 72895,
+      "sha256": "a416ad07b28d3bf96a048e9f4ea24cb045403acc17246f934206d51f91119100"
+    }
+  ],
+  "limitations": [
+    "Temporary browser artifacts may be removed by local cleanup; source and sensitivity JSON are retained in the repository.",
+    "Counts describe separate scoped runs; overlapping tests must not be summed as unique coverage.",
+    "Synthetic uncalibrated monthly City outcomes are not real-world forecasts.",
+    "No release merge, push, deployment or production mutation performed.",
+    "Recorded WebGL loss does not establish WebGPU device-loss or hardware-wide compatibility."
+  ]
+}
