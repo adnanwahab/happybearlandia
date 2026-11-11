@@ -1,3 +1,5 @@
+import { constructionFrame } from './backlog-presentation-effects/index.js';
+import { createRecordedPlayback, mountStressCue, createSubtleSound } from './backlog-presentation-effects/playback.js';
 import { attachFutureTransitions } from './backlog-transitions/index.js';
 import { mountContinuity } from './continuity-view.js';
 import { decisionSnapshot, localContextId } from './continuity.js';
@@ -34,6 +36,7 @@ state.selected = state.scenarios.find(s => s.kind === 'plan-a')?.id || state.sce
 let previewTimer;
 let traceSelectionToken = 0, automaticTraceKey = null;
 let worldPreview = null, worldVisualPreview = null, constructionRun = null, constructionTimer = null, constructionMonth = 0;
+let recordedPlayer = null;
 let constructionView = null, worldTools = null, advancedStudio = null;
 const scenario = () => state.scenarios.find(s => s.id === state.selected);
 const el = (tag, text, className) => { const node = document.createElement(tag); if (text !== undefined) node.textContent = text; if (className) node.className = className; return node; };
@@ -46,6 +49,12 @@ const diagnosticsContainer = el('div'); $('#trust').append(diagnosticsContainer)
 const diagnostics = mountDiagnostics(diagnosticsContainer);
 const pilotContainer = el('div'); $('#trust').append(pilotContainer);
 mountPilotRequest(pilotContainer, { getContext: () => ({ decision: $('#decision-text').value, modelId: housingModel.id, modelVersion: housingModel.version }) });
+const sound = createSubtleSound(), cueHost = el('div'); $('#building-world').before(cueHost);
+const stressCues = mountStressCue(cueHost,{sound});
+const soundButton=el('button','Enable subtle sound');soundButton.type='button';soundButton.setAttribute('aria-pressed','false');cueHost.append(soundButton);
+soundButton.addEventListener('click',async()=>{if(soundButton.getAttribute('aria-pressed')==='true'){sound.mute();soundButton.setAttribute('aria-pressed','false');soundButton.textContent='Enable subtle sound';}else{const enabled=await sound.enable();soundButton.setAttribute('aria-pressed',String(enabled));soundButton.textContent=enabled?'Mute subtle sound':'Audio unavailable';}});
+const presentationLabel=el('p','Visual interpolation between recorded months; outcomes retain the preceding recorded state.');cueHost.append(presentationLabel);
+addEventListener('pagehide',()=>{recordedPlayer?.dispose();stressCues.dispose();void sound.dispose();},{once:true});
 constructionView = mountBuildingWorld($('#building-world'), {
   projects: [], month: 0, controls: false,
   onPlace(proposal) { worldTools?.setPlacement(proposal || null); },
@@ -453,7 +462,7 @@ function syncConstructionWorld() {
   $('#building-month').setAttribute('aria-valuetext', `Month ${constructionMonth}`);
   const unloadedTrace = constructionRun?.traceDelivery === 'on-demand';
   $('#building-play').disabled = !constructionRun || unloadedTrace;
-  constructionView.update({ projects, run: unloadedTrace ? null : constructionRun, month: constructionMonth, worldVisuals: preview.worldVisuals });
+  constructionView.update({ projects, run: unloadedTrace ? null : constructionRun, month: constructionMonth, presentation: Object.fromEntries(projects.map(project=>[project.id,constructionFrame(constructionRun,project.id,constructionMonth).visual])), worldVisuals: preview.worldVisuals });
   if (state.experiment?.id) { const target = new URL('/world',location.origin);target.searchParams.set('decisionExperiment',state.experiment.id); if(constructionRun)target.searchParams.set('decisionRun',constructionRun.id);target.searchParams.set('month',String(constructionMonth));$('#open-neighborhood-world').href=target.pathname+target.search; }
   $('#building-context').textContent = unloadedTrace ? `${current.name} · ${constructionRun.id}: complete monthly/project states are stored and available on demand. ${state.traceError || 'Loading the selected future’s full replay trace…'}` : constructionRun ? `${current.name} · stored future ${constructionRun.id} · model ${constructionRun.modelVersion} · month ${constructionMonth}. ${state.dirty ? 'Input revisions are newer than these stored results.' : 'Phases, completed homes, occupancy, and spending come from stored monthly states.'}` : 'Unapproved / unrun world. Approve a project and simulate to replay its actual construction.';
   const summary = $('#building-project-summary'); summary.replaceChildren();
@@ -464,17 +473,19 @@ function syncConstructionWorld() {
   }
   if(unloadedTrace && state.experiment?.id) {const key=`${state.experiment.id}/${constructionRun.id}`;if(automaticTraceKey!==key){automaticTraceKey=key;void hydrateVisibleRun(constructionRun);}}
 }
-function stopConstructionPlayback() { clearInterval(constructionTimer); constructionTimer = null; $('#building-play').textContent = 'Play'; $('#building-play').setAttribute('aria-label', 'Play construction'); }
+function stopConstructionPlayback() { recordedPlayer?.dispose(); recordedPlayer=null; stressCues.clear(); constructionTimer = null; $('#building-play').textContent = 'Play'; $('#building-play').setAttribute('aria-label', 'Play construction'); }
 $('#building-scenario').addEventListener('change', () => { state.selected = $('#building-scenario').value; constructionRun = null; constructionMonth = 0; stopConstructionPlayback(); renderScenarios(); });
 $('#building-run').addEventListener('change', () => {const run=state.results?.runs.find(row=>row.id===$('#building-run').value);if(run)void selectRun(run);});
-$('#building-month').addEventListener('input', () => { futureTransitions.cancel('scrub'); constructionMonth = Number($('#building-month').value); syncConstructionWorld(); });
+$('#building-month').addEventListener('input', () => { stopConstructionPlayback(); futureTransitions.cancel('scrub'); constructionMonth = Number($('#building-month').value); syncConstructionWorld(); });
 $('#building-reset').addEventListener('click', () => { stopConstructionPlayback(); constructionMonth = 0; syncConstructionWorld(); });
 $('#building-play').addEventListener('click', () => {
   if (constructionTimer) { stopConstructionPlayback(); return; }
   if (!constructionRun) return;
   if (constructionMonth >= Number($('#building-month').max)) constructionMonth = 0;
   $('#building-play').textContent = 'Pause'; $('#building-play').setAttribute('aria-label', 'Pause construction');
-  constructionTimer = setInterval(() => { constructionMonth += Number($('#building-speed').value); if (constructionMonth >= Number($('#building-month').max)) stopConstructionPlayback(); syncConstructionWorld(); }, 200);
+  futureTransitions.cancel('playback'); let lastPaint=-1;
+  recordedPlayer=createRecordedPlayback({run:constructionRun,projectId:constructionRun.projects?.[0]?.projectId,endMonth:Number($('#building-month').max),onCue:cue=>stressCues.show(cue),onFrame:frame=>{const tick=Math.floor(frame.month*10);if(tick===lastPaint&&frame.playing)return;lastPaint=tick;constructionMonth=frame.month;if(frame.reducedMotion)stressCues.clear();syncConstructionWorld();presentationLabel.textContent=`Visual interpolation only · recorded stress events: ${frame.events.map(e=>e.message||e.presetId).join(', ')||'none through this month'}`;if(!frame.playing){$('#building-play').textContent='Play';constructionTimer=null;}}});
+  recordedPlayer.scrub(constructionMonth); recordedPlayer.play(Number($('#building-speed').value)*5); constructionTimer=true;
 });
 
 function updateAdvancedStudio() {
