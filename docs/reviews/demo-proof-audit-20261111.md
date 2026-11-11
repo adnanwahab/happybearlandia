@@ -64,3 +64,7 @@ Visual inspection was limited to these seven images; other supplied PNGs were en
 - Responsive `320-reverse-0.png`: zero city/KPIs and stale Month-16 WHY/trail visible together, supporting the P1 finding.
 
 Full-page mobile images were inspected as long-page overviews; this is not a claim of physical-phone typography/readability testing. Compact-UI changes arriving after these artifacts require fresh captures. Synthetic layout, private capacity 0, utility capacity 200 and annual growth 0 remain disclosed assumptions. No empirical forecast, real-parcel identity or independent stored-checkpoint replay equivalence is established by this audit.
+
+## Coordinator resolution after audit
+
+The stale-inspector finding was fixed: setMonth refreshes the exact selected entity and trail; `a2db60a` tests reverse0 before any reselection. Independent actual browser1passed3.4s under `/tmp/hbl-evidence-trail-final/`. D02 direct121pointdelta proof1passed3s, D03 native/Canvas2passed6.9s. Named recording passed59.5s, playable56.84s at `/tmp/hbl-approved-final-recording/one-city-two-futures.mp4`. Artifact/source manifest `docs/demo-evidence-manifest.json` retains progressive-capture qualification and hashes. Original findings above remain an audit of the earlier evidence, not unresolved current bugs.
