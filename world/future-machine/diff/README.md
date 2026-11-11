@@ -1,0 +1,17 @@
+# Future Machine comparison
+
+`index.js` implements the frozen `compareFrame(frame)` and `compareHistory(history)` interfaces published in the integration owner's `INTERFACES.md` on November 11, 2026. The pure module has no DOM, server, geometry, or other worker dependencies. Its metric registry matches the published v1 units. No shared files are changed by this worker.
+
+Comparisons join exact City collection and entity IDs, with deterministic collection/ID/field ordering. Added and removed records describe differences in the two inventories; they do not assert birth, death, migration, demolition, or a causal mechanism. Entity rows retain copied `before`/`after` evidence and do not mutate the histories. Object property and entity array order do not imply changes.
+
+`physicalCount` includes only buildings and links: explicit presence differences, or changes to supplied physical attributes (building floors/height/geometry/bbox/parcel relationship, link geometry). Missing attributes do not count as observed physical changes. Rent, savings, occupancy, zoning, policy/project stages, and scalar network capacity changes cannot produce ghost buildings. Units can differ without proving that a building footprint differs. Building references for households resolve only through an exact City unit ID and an existing City building ID; unknown references remain null. No spatial coordinates or native House/Population identities are created.
+
+Snapshot metrics are authoritative, including cumulative `capitalSpending`. Missing/nonfinite measurements yield null deltas; empty or missing snapshots cannot become mass additions/removals. Missing collections produce explicit coverage records and `available:false`. Sparse histories produce all 121 results with unavailable months retained. Duplicate/out-of-range months and mismatched seeds/model versions fail explicitly. When both Month 0 records exist, their complete initial state must match, including finance, parameters, shocks and provenance; entity ordering is ignored.
+
+## Integration evidence and limits
+
+Run `bun test test/future-machine-diff.test.js test/city-systems.test.js`. The tests cover immutable comparisons, zero/nonzero differences, addition/removal in both directions, exact household IDs, unavailable data, units and cumulative spending, Month 0/120, shuffled histories, deterministic reruns, and invalid inputs. The real 120-step construction fixture explicitly grants both arms identical synthetic utility headroom before their fork; this is a test assumption, not a change to the demo recipe.
+
+**Spending normalization:** City finance clears `state.finance.capitalExpense` to zero at the end of each step. The completed step's actual capital ledger is `state.systems.finance.capitalExpense` (also the finance resolution/observation). The data adapter must sum that recorded monthly ledger for `snapshot.metrics.capitalSpending`. Summing the reset finance state would incorrectly report zero. This module deliberately reads the provided cumulative snapshot metric and never invents a replacement.
+
+A six-household fixture with ordinary default utilities and a four-home housing intervention produced nonphysical differences but no completed building over 120 months: utility headroom can block completion. An empty `physicalCount` is a valid modeled outcome and must be presented honestly. Browser presentation, saved experiment normalization, sharing and full integration remain the integration owner's checks; this worker changes no browser behavior and does not require Playwright.
