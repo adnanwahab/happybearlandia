@@ -1,0 +1,38 @@
+{
+  "coordinator": {
+    "threadId": "01a1caac-51cf-7f03-a5cd-4a751dd070c8",
+    "hostId": "local"
+  },
+  "workers": [
+    {
+      "role": "data",
+      "threadId": "01a1caac-a5d6-7111-b9e4-eabf5a4be567",
+      "hostId": "local"
+    },
+    {
+      "role": "diff",
+      "threadId": "01a1caac-ace3-7033-8a0a-6d84b8bf15c3",
+      "hostId": "local"
+    },
+    {
+      "role": "scene",
+      "threadId": "01a1caac-b682-7371-8062-f0f98019e360",
+      "hostId": "local"
+    },
+    {
+      "role": "ui",
+      "threadId": "01a1caac-c221-7cc2-a50b-e2ac39291eb5",
+      "hostId": "local"
+    },
+    {
+      "role": "story",
+      "threadId": "01a1caac-c8cb-7012-b50a-e85155dd9f31",
+      "hostId": "local"
+    },
+    {
+      "role": "share",
+      "threadId": "01a1caac-d4f3-77c1-ba13-f17b25bffed2",
+      "hostId": "local"
+    }
+  ]
+}

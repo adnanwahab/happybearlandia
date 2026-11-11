@@ -10,6 +10,8 @@ primary_region = 'dfw'
   NODE_ENV = 'production'
   HBL_WORLD_DB_PATH = '/data/world-experiments.sqlite'
   DECISION_STORE_DIR = '/data/decision-experiments'
+  HBL_CITY_DATA_DIR = '/data/city-experiments'
+  HBL_REALITY_SHARE_DB_PATH = '/data/reality-shares.sqlite'
 
 [build]
 
