@@ -20,9 +20,11 @@ async function savedPair(request) {
   expect(completion).toBeGreaterThan(0);
   return { recipe, results, selected, baseline, completion };
 }
-for (const width of [390, 320]) test(`saved housing comparison ${width}px hydrates paired traces and reverses`, async ({ page, request }, testInfo) => {
+const widths = (process.env.HBL_COMPARISON_WIDTHS || '390,320').split(',').map(Number);
+for (const width of widths) test(`saved housing comparison ${width}px hydrates paired traces and reverses`, async ({ page, request }, testInfo) => {
   const evidence = await savedPair(request), { results, selected, baseline, completion } = evidence;
   const errors = []; page.on('pageerror', error => errors.push(error.message)); page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  const observations = [];
   const traces = []; page.on('response', response => { if (/\/runs\//.test(response.url()) && response.ok()) traces.push(response.url()); });
   await page.addInitScript(() => document.addEventListener('housing-comparison:inspect', event => { window.__housingInspection = event.detail; }));
   await page.setViewportSize({ width, height: 900 });
@@ -50,14 +52,17 @@ for (const width of [390, 320]) test(`saved housing comparison ${width}px hydrat
     const project = view.locator('[data-project-id="browser-comparison-tower"]');
     await expect(project).toHaveCount(1); await project.focus(); await expect(project).toBeFocused(); await page.keyboard.press('Enter');
     const state = selected.projects[0].states.find(row => row.month === month);
-    expect.soft(await page.evaluate(() => window.__housingInspection)).toEqual({ runId: selected.id, projectId: 'browser-comparison-tower', month, state });
+    const receipt = await page.evaluate(() => window.__housingInspection);
+    expect.soft(receipt).toEqual({ runId: selected.id, projectId: 'browser-comparison-tower', month, state });
+    observations.push({ month, receipt, baselineMetrics: a.metrics, selectedMetrics: b.metrics });
     await expect(project).toHaveAttribute('aria-label', new RegExp(`${state.completedUnits} completed homes`));
     await view.screenshot({ path: testInfo.outputPath(`housing-${width}-month-${month}.png`) });
     expect(await view.locator('svg').evaluate(el => el.getBoundingClientRect().width <= innerWidth)).toBe(true);
   }
   expect(traces.some(url => url.includes(encodeURIComponent(selected.id)))).toBe(true);
   expect(traces.some(url => url.includes(encodeURIComponent(baseline.id)))).toBe(true);
-  await testInfo.attach('actual-housing-records', { body: JSON.stringify({ ...evidence, traces }, null, 2), contentType: 'application/json' });
+  writeFileSync(testInfo.outputPath('acceptance-receipts.json'), JSON.stringify({ experimentId: results.experiment.id, seed: selected.seed, modelVersion: selected.modelVersion, observations, traces, errors }, null, 2));
+  await testInfo.attach('acceptance-receipts', { path: testInfo.outputPath('acceptance-receipts.json'), contentType: 'application/json' });
   await page.evaluate(() => window.hblDecisionStudio.advancedStudio.destroy()); await expect(view).toHaveCount(0); expect(errors).toEqual([]);
 });
 
@@ -71,6 +76,7 @@ test('missing baseline trace remains missing in the production comparison', asyn
   const view = page.getByRole('region', { name: 'Paired stored housing scenes' }); await expect(view).toBeVisible();
   const slider = view.getByRole('slider', { name: 'Paired housing month' }); await slider.fill(String(completion)); await slider.dispatchEvent('input');
   await expect(view).toContainText('Missing'); await expect(view).toContainText('No exact recorded snapshot');
+  writeFileSync(testInfo.outputPath('missing-trace-records.json'), JSON.stringify({ experimentId: results.experiment.id, selectedId: selected.id, baselineId: baseline.id, seed: selected.seed, modelVersion: selected.modelVersion, month: completion, abortedRequests: aborted }, null, 2));
   await expect(view.getByRole('status')).toContainText('supply difference Missing');
   await view.screenshot({ path: testInfo.outputPath('missing-baseline-trace.png') }); expect(aborted, 'The production loader must actually request the matched baseline').toBeGreaterThan(0); expect(errors).toEqual([]);
 });

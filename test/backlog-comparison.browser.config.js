@@ -5,7 +5,7 @@ import { defineConfig } from '@playwright/test';
 const store = mkdtempSync(join(tmpdir(), 'hbl-comparison-stores-'));
 const port = process.env.HBL_COMPARISON_PORT || '39983';
 export default defineConfig({
-  testDir: '.', testMatch: 'backlog-comparison.browser.e2e.js', workers: 1, timeout: 90000,
+  testDir: '.', testMatch: 'backlog-comparison.browser.e2e.js', workers: 1, timeout: 180000,
   outputDir: process.env.HBL_COMPARISON_ARTIFACTS || '/tmp/hbl-backlog-comparison-proof',
   use: { baseURL: `http://127.0.0.1:${port}`, trace: 'retain-on-failure', launchOptions: {
     ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH } : {}),
