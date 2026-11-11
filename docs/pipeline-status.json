@@ -1,0 +1,454 @@
+{
+  "version": 1,
+  "root": "/Users/wahabma/.codex/worktrees/c710/happybearlandia",
+  "digest": "81a405314620e6ea6654eee4f6bf643efdf5609e8cf2a4b747867952d2d7db84",
+  "mode": "dry-run",
+  "startedAt": 1794410311747,
+  "deadline": 1794417511747,
+  "tasks": [
+    {
+      "id": "R01",
+      "priority": "P0",
+      "sourceStatus": "VERIFIED",
+      "acceptance": "Add an actual native WebGPU renderer factory with bounded WebGL fallback; return the measured backend, preserve same scene/camera and disposal. No fake “WebGPU” badge.",
+      "sourceDependencies": "Existing stage API",
+      "status": "BASELINE",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "R02",
+      "priority": "P1",
+      "sourceStatus": "VERIFIED",
+      "acceptance": "Make KPI styling semantic: zero/missing neutral, costs disclosed, negative rent not a universal welfare claim. Keep exact recorded values and units.",
+      "sourceDependencies": "Existing UI metrics",
+      "status": "BASELINE",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "R03",
+      "priority": "P1",
+      "sourceStatus": "VERIFIED",
+      "acceptance": "Audit paired replay at seed 0 and uint32 maximum; detect stale/mismatched inputs and prove no mutation or hidden horizon reduction. Fix demonstrated adapter issues only.",
+      "sourceDependencies": "Existing actual City API",
+      "status": "BASELINE",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "R04",
+      "priority": "P0",
+      "sourceStatus": "VERIFIED",
+      "acceptance": "Repair observed 390px expanded World-controls/shortcut overlap; clear stale owned disabled-control explanations after re-enable. Preserve keyboard focus and one-sheet behavior.",
+      "sourceDependencies": "Reproduced `stalled GPU` test",
+      "status": "BASELINE",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "R05",
+      "priority": "P1",
+      "sourceStatus": "VERIFIED",
+      "acceptance": "Harden Canvas camera/selection for empty data, pointer cancellation and invalid dimensions; inspect context failures and report wrapper requirements. Never invent substitute entities.",
+      "sourceDependencies": "Existing Canvas stage",
+      "status": "BASELINE",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "R06",
+      "priority": "P0",
+      "sourceStatus": "VERIFIED",
+      "acceptance": "Extend real browser proof to native backend, Month 16 screenshot, exact schema and console errors; retain uncut recording and deterministic replay tests.",
+      "sourceDependencies": "Existing nine passing journeys; integrate R01/R04 before final run",
+      "status": "BASELINE",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "R07",
+      "priority": "P1",
+      "sourceStatus": "VERIFIED",
+      "acceptance": "Gracefully retain accessible recorded inventory if both GPU and Canvas contexts fail; no unhandled promise or false backend claim.",
+      "sourceDependencies": "Existing fallback contract",
+      "status": "BASELINE",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "R08",
+      "priority": "P1",
+      "sourceStatus": "VERIFIED",
+      "acceptance": "Verify same stable schematic IDs and camera across reverse scrub, split/difference and renderer choice; no future inventory appears at Month 0.",
+      "sourceDependencies": "Recorded history and existing mapping",
+      "status": "BASELINE",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "R09",
+      "priority": "P1",
+      "sourceStatus": "VERIFIED",
+      "acceptance": "Exercise bounded provenance asset failure and independent definitions before slow graphics; expose a useful error and preserve simulation controls.",
+      "sourceDependencies": "Early metadata initialization already implemented",
+      "status": "BASELINE",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "R10",
+      "priority": "P1",
+      "sourceStatus": "VERIFIED",
+      "acceptance": "Verify keyboard-only split/timeline/WHY and Canvas focus without trapping hidden controls at 320px/landscape.",
+      "sourceDependencies": "Existing UI semantics",
+      "status": "BASELINE",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "R11",
+      "priority": "P0",
+      "sourceStatus": "VERIFIED",
+      "acceptance": "Consolidate actual Month 0 / first divergence / Month 120 / WHY / Canvas images and per-run evidence into one delivery manifest. Never label fixture images as acceptance.",
+      "sourceDependencies": "Completed real runs",
+      "status": "BASELINE",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "R12",
+      "priority": "P1",
+      "sourceStatus": "VERIFIED",
+      "acceptance": "Execute named recording command and audit final candidate diff/commands/resource disposal; publish exact pass/fail and next work.",
+      "sourceDependencies": "Final working slice, R01–R11 as applicable",
+      "status": "BASELINE",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "U01",
+      "priority": "P1",
+      "sourceStatus": "UPCOMING",
+      "acceptance": "Native backend failure before/after init selects truthful fallback without leaked half-renderer. Factory rejection/disposal tests plus browser context failure.",
+      "sourceDependencies": "R01 / Worker 3",
+      "status": "BLOCKED",
+      "reason": "Needs explicit ownership and checks",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "U02",
+      "priority": "P1",
+      "sourceStatus": "UPCOMING",
+      "acceptance": "Native renderer resize preserves both viewport scales and camera; no clipped changed building. Desktop→390px browser screenshot.",
+      "sourceDependencies": "R01 / Worker 3",
+      "status": "BLOCKED",
+      "reason": "Needs explicit ownership and checks",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "U03",
+      "priority": "P1",
+      "sourceStatus": "READY",
+      "acceptance": "Compare repeated scrub/focus/dispose memory and object counts after native integration; report measured values, not target FPS.",
+      "sourceDependencies": "R01 / Worker 6",
+      "status": "BLOCKED",
+      "reason": "Needs explicit ownership and checks",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "U04",
+      "priority": "P1",
+      "sourceStatus": "VERIFIED",
+      "acceptance": "Stop/restart default guided demo while a changed recipe is loading; stale response cannot resume another recipe. Real API cancellation browser check.",
+      "sourceDependencies": "R03 / Coordinator",
+      "status": "BASELINE",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "U05",
+      "priority": "P1",
+      "sourceStatus": "UPCOMING",
+      "acceptance": "Neutral KPI styles agree with zero-control, missing metric and negative delta semantics. Renderer-independent UI behavior test plus browser assertion.",
+      "sourceDependencies": "R02 / Worker 2",
+      "status": "BLOCKED",
+      "reason": "Needs explicit ownership and checks",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "U06",
+      "priority": "P1",
+      "sourceStatus": "UPCOMING",
+      "acceptance": "Make household before/after rent/savings units and new-inventory caveat readable without expanding raw JSON; exact identity only.",
+      "sourceDependencies": "R02 / Worker 2",
+      "status": "BLOCKED",
+      "reason": "Needs explicit ownership and checks",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "U07",
+      "priority": "P1",
+      "sourceStatus": "READY",
+      "acceptance": "Show selected recorded construction stage/progress, never animate an uncompleted building as finished. Inspect actual project months and tests.",
+      "sourceDependencies": "R01 / Worker 3",
+      "status": "BLOCKED",
+      "reason": "Needs explicit ownership and checks",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "U08",
+      "priority": "P1",
+      "sourceStatus": "READY",
+      "acceptance": "Ensure reduced-motion disables animated pulses but keeps selected entity and measured change visible. Real media preference toggle test.",
+      "sourceDependencies": "R01/R05 / Worker 5",
+      "status": "BLOCKED",
+      "reason": "Needs explicit ownership and checks",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "U09",
+      "priority": "P1",
+      "sourceStatus": "VERIFIED",
+      "acceptance": "Validate share reopen after saved record missing, model mismatch and recipe corruption after latest UI/backend integration. Existing browser regression suite.",
+      "sourceDependencies": "R01/R03 / Worker 1",
+      "status": "BASELINE",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "U10",
+      "priority": "P2",
+      "sourceStatus": "READY",
+      "acceptance": "Audit narrative receipt deduplication and historical-month labels after repeated selection; preserve exact arm-scoped IDs.",
+      "sourceDependencies": "R11 / Coordinator",
+      "kind": "verification",
+      "dependencies": [
+        "R11"
+      ],
+      "files": [
+        "test/pipeline-receipts.test.js"
+      ],
+      "interfaces": [
+        "story-receipt-contract"
+      ],
+      "userFacing": false,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/pipeline-receipts.test.js",
+          "test/future-machine-story.test.js"
+        ]
+      ],
+      "browserTests": [],
+      "status": "READY",
+      "attempts": 0,
+      "claimedOwner": null
+    },
+    {
+      "id": "U11",
+      "priority": "P1",
+      "sourceStatus": "RUNNING",
+      "acceptance": "Ordinary World Canvas current resident selection and Activity filter/export retain the daily authority and seed; actual runtime only.",
+      "sourceDependencies": "R04/R05 / Worker 4",
+      "status": "BLOCKED",
+      "reason": "Needs explicit ownership and checks",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "U12",
+      "priority": "P1",
+      "sourceStatus": "RUNNING",
+      "acceptance": "Check no-GPU default Living mode separately from legacy demo; explicitly report unsupported paths, never silently substitute a model.",
+      "sourceDependencies": "R05 / Worker 5",
+      "status": "BLOCKED",
+      "reason": "Needs explicit ownership and checks",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "U13",
+      "priority": "P2",
+      "sourceStatus": "VERIFIED",
+      "acceptance": "Audit browser engines installed locally; run only available engines, report missing Safari/Firefox without claiming support.",
+      "sourceDependencies": "R06 / Worker 6",
+      "status": "BASELINE",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "U14",
+      "priority": "P2",
+      "sourceStatus": "READY",
+      "acceptance": "Compare gallery/registry unique routes and navigation safety after every added verified entry; preserve the original catalog. Registry + actual homepage tests.",
+      "sourceDependencies": "R04 / Worker 4",
+      "status": "BLOCKED",
+      "reason": "Needs explicit ownership and checks",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "U15",
+      "priority": "P1",
+      "sourceStatus": "UPCOMING",
+      "acceptance": "Review external suggestions from `docs/reviews/` only for architecture-compatible, testable approved objectives. Record accepted/rejected/deferred reasons; do not wait for reviews.",
+      "sourceDependencies": "Any review arrives / Coordinator",
+      "status": "BLOCKED",
+      "reason": "Needs explicit ownership and checks",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "U16",
+      "priority": "P0",
+      "sourceStatus": "UPCOMING",
+      "acceptance": "Final frozen-scope pass: all accepted changes, screenshots, video, commands, commit/worktree references and remaining release blockers agree.",
+      "sourceDependencies": "Final candidate / Coordinator",
+      "status": "BLOCKED",
+      "reason": "Needs explicit ownership and checks",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "D01",
+      "priority": "P0",
+      "sourceStatus": "VERIFIED",
+      "acceptance": "Coordinator: demo-controller.js, scene/index.js, main.js; optional stage.focus(entity,{animate})",
+      "sourceDependencies": "Actual first physical stop held six seconds; shared camera eases1200ms, reduced motion immediate. Clock2passed/13assertions; actual timed browser2passed32s, seed42 Month16 +24. Mobile pixel fit remains in review.",
+      "status": "BASELINE",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "D02",
+      "priority": "P1",
+      "sourceStatus": "VERIFIED",
+      "acceptance": "Worker2: new ui/outcome-timeline.js + dedicated tests. createOutcomeTimeline(container,{history,onMonth})→update(month),dispose(). Coordinator existingUI wiring.",
+      "sourceDependencies": "Exact121 matched snapshots; metric selector, baseline/plan/delta, units/missing; click synchronizes both scenes/KPIs. Focused units + real320/390 browser.",
+      "status": "BASELINE",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "D03",
+      "priority": "P1",
+      "sourceStatus": "VERIFIED",
+      "acceptance": "Worker3: new scene/construction-progress.js, mapping.js if required, dedicated tests; coordinator stage integration.",
+      "sourceDependencies": "Only recorded stage/progress, exact model-owned building mapping, completion16, reverse0/15/16 correct; no fabricated floors.",
+      "status": "BASELINE",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "D04",
+      "priority": "P1",
+      "sourceStatus": "VERIFIED",
+      "acceptance": "Worker1: new story/evidence-trail.js + dedicated tests. buildEvidenceTrail(history,{collection,id,month}); coordinator rendering/wiring.",
+      "sourceDependencies": "Actual policy/project/completion/housing chain; missing links unavailable, no future leakage; event16-0 jumps16.",
+      "status": "BASELINE",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "D05",
+      "priority": "P0",
+      "sourceStatus": "VERIFIED",
+      "acceptance": "R04/R10 VERIFIED prerequisites. Worker6 new approved-demo-responsive browser files; coordinator camera polish. Existing Canvas worker U12 continues.",
+      "sourceDependencies": "Desktop390/320 actual Canvas journeys, controls/timeline/KPIs/WHY usable. Native390 pixel clipping must be resolved separately.",
+      "status": "BASELINE",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "U17",
+      "priority": "P2",
+      "sourceStatus": "UNSTRUCTURED",
+      "acceptance": "Narrative/compound backlog reference; normalize ownership, status and acceptance before dispatch",
+      "sourceDependencies": "",
+      "status": "BLOCKED",
+      "reason": "Needs explicit ownership and checks",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "R13",
+      "priority": "P2",
+      "sourceStatus": "UNSTRUCTURED",
+      "acceptance": "Narrative/compound backlog reference; normalize ownership, status and acceptance before dispatch",
+      "sourceDependencies": "",
+      "status": "BLOCKED",
+      "reason": "Needs explicit ownership and checks",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    },
+    {
+      "id": "R14",
+      "priority": "P2",
+      "sourceStatus": "UNSTRUCTURED",
+      "acceptance": "Narrative/compound backlog reference; normalize ownership, status and acceptance before dispatch",
+      "sourceDependencies": "",
+      "status": "BLOCKED",
+      "reason": "Needs explicit ownership and checks",
+      "files": [],
+      "dependencies": [],
+      "attempts": 0
+    }
+  ],
+  "runId": "1794410311747",
+  "selected": [
+    "U10"
+  ],
+  "selectionDecisions": [
+    {
+      "id": "U10",
+      "selected": true,
+      "reason": "Eligible; exclusive file/interface claim available"
+    }
+  ],
+  "nextAction": "Would dispatch: U10; conflicts/dependencies remain queued",
+  "updatedAt": "2026-11-11T15:18:31.749Z",
+  "elapsedSeconds": 0
+}

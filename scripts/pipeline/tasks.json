@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "workerTimeoutMinutes": 15,
+  "tasks": {
+    "U10": {
+      "kind": "verification",
+      "dependencies": ["R11"],
+      "files": ["test/pipeline-receipts.test.js"],
+      "interfaces": ["story-receipt-contract"],
+      "userFacing": false,
+      "tests": [["bun", "test", "test/pipeline-receipts.test.js", "test/future-machine-story.test.js"]],
+      "browserTests": []
+    }
+  },
+  "regressionTests": [["bun", "test", "test/future-machine-story.test.js", "test/future-machine-data.test.js"]]
+}
