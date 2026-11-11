@@ -1,3 +1,9 @@
+# Current accepted increment — application source2c9d973
+
+U18 stale native labels and U02 Canvas390/320 focused-label/footer clipping repaired and independently integrated. R15 bounded repair delivered; real U02 failed→repair→verified path exercised with original failure retained. Final139unitpass/3skip/0fail/1199assertions; canonical13browserpass/1recordingskip; responsive3pass; actualMetal/WebGL loss2pass; separate namedrecording1pass with52.868s actualPlay→completion. Artifactvalidator2records/1video. No release/deploy.
+
+Current:U03 actualRUNNING after final gate release; U05/U08 READY; twoNB REVIEW; R13/R14 retainedREPAIR with known unintegrated failures. Full delivery, exact commits/checks, latency/resource evidence and release blockers: [current coordinator status](coordinator-final-status.md), [hashed evidence](coordinator-final-evidence.json). Historical records below retain their original source/check qualifications.
+
 # One City, Two Futures sprint status
 
 Branch `sprint/one-city-two-futures-20261111`; code checkpoint `ad3902c`. All seven existing Codex chats retained. No deployment or release merge.

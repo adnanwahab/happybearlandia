@@ -1,0 +1,1530 @@
+{
+  "schemaVersion": "hbl-coordinator-final-evidence.v1",
+  "acceptedApplicationSource": "2c9d973234ea73546d5597b068cda538a5136a2f",
+  "branch": "sprint/one-city-two-futures-20261111",
+  "checks": [
+    {
+      "name": "combined units",
+      "source": "2c9d973",
+      "command": "bun test test/future-machine*.test.js test/two-futures*.test.js test/world-readiness-regression.test.js test/pipeline*.test.js test/demo-pipeline.test.js",
+      "passed": 139,
+      "skipped": 3,
+      "failed": 0,
+      "assertions": 1199,
+      "seconds": 20.47,
+      "log": "/tmp/hbl-combined-accepted-source.log"
+    },
+    {
+      "name": "canonical browsers",
+      "source": "2c9d973",
+      "config": "test/two-futures-sprint.browser.config.js",
+      "passed": 13,
+      "skipped": 1,
+      "failed": 0,
+      "log": "/tmp/hbl-release-candidate-canonical.log"
+    },
+    {
+      "name": "responsive1440/390/320",
+      "source": "2c9d973",
+      "config": "test/approved-demo-responsive.browser.config.js",
+      "passed": 3,
+      "failed": 0,
+      "seconds": 14.3
+    },
+    {
+      "name": "actual native/WebGL device loss",
+      "source": "2c9d973",
+      "config": "test/pipeline-device-loss.browser.config.js",
+      "passed": 2,
+      "failed": 0,
+      "seconds": 5.2
+    },
+    {
+      "name": "native final recording",
+      "source": "2c9d973",
+      "command": "HBL_NATIVE_WEBGPU=1 HBL_BACKEND_ANGLE=metal bun scripts/record-one-city-two-futures.mjs --output /tmp/hbl-release-candidate-recording --port 41893",
+      "passed": 1,
+      "failed": 0,
+      "playToCompletionMs": 52868,
+      "suiteSeconds": 57.2
+    },
+    {
+      "name": "share missing/corrupt/boundary browsers",
+      "source": "1d0a488",
+      "config": "test/future-machine-share-reliability.browser.config.js",
+      "passed": 5,
+      "failed": 0,
+      "seconds": 30.1,
+      "qualification": "Before Canvas-only ID placement repair; share/simulation implementation unchanged."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "U01",
+      "priority": "P1",
+      "sourceStatus": "READY",
+      "acceptance": "Native backend failure before/after init selects truthful fallback without leaked half-renderer. Factory rejection/disposal tests plus browser context failure.",
+      "sourceDependencies": "R01 / Worker 3",
+      "kind": "verification",
+      "dependencies": [
+        "R01"
+      ],
+      "files": [
+        "test/e2e/pipeline-device-loss.e2e.js",
+        "test/pipeline-device-loss.browser.config.js"
+      ],
+      "interfaces": [],
+      "userFacing": false,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/future-machine-backend.test.js"
+        ]
+      ],
+      "browserTests": [
+        [
+          "bunx",
+          "playwright",
+          "test",
+          "--config",
+          "test/pipeline-device-loss.browser.config.js"
+        ]
+      ],
+      "status": "VERIFIED",
+      "attempts": 1,
+      "claimedOwner": null,
+      "owner": "native-reliability-worker",
+      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-device-loss/happybearlandia",
+      "base": "d548153489964c776fef34d28e2b39739c6a4bbd",
+      "commit": "fe0f08d3b2717f5f6758b68ed8c9c1a0d99cb572",
+      "changed": [
+        "test/e2e/pipeline-device-loss.e2e.js",
+        "test/pipeline-device-loss.browser.config.js"
+      ],
+      "checks": [
+        {
+          "attempt": 1,
+          "phase": "candidate",
+          "argv": [
+            "bun",
+            "test",
+            "test/future-machine-backend.test.js"
+          ],
+          "exitCode": 0,
+          "stdout": "bun test v1.4.2 (744846f84)\n",
+          "stderr": "\ntest/future-machine-backend.test.js:\n(pass) actual initialized native flag required; renderer type alone is insufficient [0.61ms]\n(pass) force GL, disabled preference and missing API never load GPU module [0.13ms]\n(pass) load and construction failures select truthful fallback [0.10ms]\n(pass) failed init cleans backend without resurrecting partial renderer [1.24ms]\n(pass) initialized failed candidates cannot block fallback with throwing async disposal [1.21ms]\n(pass) deadline bounds stalled init; late initialized resources are released again [6.86ms]\n(pass) late init rejection is consumed and cleaned; late module never constructs renderer [13.65ms]\n(pass) fallback failure propagates so host can retain Canvas/inventory fallback [0.09ms]\n(pass) invalid dependencies and unbounded deadlines fail explicitly [0.07ms]\n(skip) real Chromium renderer, scissor/resize and before/after-init failure smoke\n\n 9 pass\n 1 skip\n 0 fail\n 56 expect() calls\nRan 10 tests across 1 file. [30.00ms]\n"
+        },
+        {
+          "attempt": 1,
+          "phase": "candidate",
+          "argv": [
+            "bunx",
+            "playwright",
+            "test",
+            "--config",
+            "test/pipeline-device-loss.browser.config.js"
+          ],
+          "exitCode": 0,
+          "stdout": "\nRunning 2 tests using 1 worker\n\n  \u2713  1 test/e2e/pipeline-device-loss.e2e.js:8:40 \u203a webgpu: actual initialized loss retains recorded month, run and fallback (2.5s)\n  \u2713  2 test/e2e/pipeline-device-loss.e2e.js:8:40 \u203a webgl: actual initialized loss retains recorded month, run and fallback (2.8s)\n\n  2 passed (6.0s)\n",
+          "stderr": ""
+        },
+        {
+          "attempt": 1,
+          "phase": "integrated",
+          "argv": [
+            "bun",
+            "test",
+            "test/future-machine-backend.test.js"
+          ],
+          "exitCode": 0,
+          "stdout": "bun test v1.4.2 (744846f84)\n",
+          "stderr": "\ntest/future-machine-backend.test.js:\n(pass) actual initialized native flag required; renderer type alone is insufficient [0.60ms]\n(pass) force GL, disabled preference and missing API never load GPU module [0.12ms]\n(pass) load and construction failures select truthful fallback [0.09ms]\n(pass) failed init cleans backend without resurrecting partial renderer [1.27ms]\n(pass) initialized failed candidates cannot block fallback with throwing async disposal [1.27ms]\n(pass) deadline bounds stalled init; late initialized resources are released again [6.96ms]\n(pass) late init rejection is consumed and cleaned; late module never constructs renderer [13.73ms]\n(pass) fallback failure propagates so host can retain Canvas/inventory fallback [0.11ms]\n(pass) invalid dependencies and unbounded deadlines fail explicitly [0.06ms]\n(skip) real Chromium renderer, scissor/resize and before/after-init failure smoke\n\n 9 pass\n 1 skip\n 0 fail\n 56 expect() calls\nRan 10 tests across 1 file. [43.00ms]\n"
+        },
+        {
+          "attempt": 1,
+          "phase": "integrated",
+          "argv": [
+            "bunx",
+            "playwright",
+            "test",
+            "--config",
+            "test/pipeline-device-loss.browser.config.js"
+          ],
+          "exitCode": 0,
+          "stdout": "\nRunning 2 tests using 1 worker\n\n  \u2713  1 test/e2e/pipeline-device-loss.e2e.js:8:40 \u203a webgpu: actual initialized loss retains recorded month, run and fallback (3.0s)\n  \u2713  2 test/e2e/pipeline-device-loss.e2e.js:8:40 \u203a webgl: actual initialized loss retains recorded month, run and fallback (1.7s)\n\n  2 passed (5.1s)\n",
+          "stderr": ""
+        }
+      ],
+      "integratedCommit": "345d4c730ba5926fd526b48eda6790914e3f25cf",
+      "evidence": {
+        "reviewedBy": "continuous-coordinator",
+        "notes": "Reviewed exact U01 two-file test/config diff fe0f08d. Native capture wraps GPUCanvasContext.configure without replacing its native result and destroys actual displayed GPUDevice; WebGL loss extension yields trusted event. Source-pinned evidence inspected: Apple metal-3 destroyed/native lost promise, WebGL contextLost true, both fallbackcanvas2d/month16/+24, no page/console errors. Inspected actual fallback PNG; one real Canvas remains, old GPU canvas disconnected. No runtime change.",
+        "modelChecks": "Before/after full selected snapshots, seed42, model, initial hash, experiment identity and recorded metrics identical.121frames unchanged, WHY and15/16scrub verified. Controlled device loss, not spontaneous driver reliability claim.",
+        "screenshots": [
+          "/private/var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/hbl-pipeline-device-loss/pipeline-device-loss.e2e.j-a28ec-rded-month-run-and-fallback/after-real-loss-canvas.png"
+        ]
+      }
+    },
+    {
+      "id": "U02",
+      "priority": "P1",
+      "sourceStatus": "READY",
+      "acceptance": "Native renderer resize preserves both viewport scales and camera; no clipped changed building. Desktop\u2192390px browser screenshot.",
+      "sourceDependencies": "R01 / Worker 3",
+      "kind": "verification",
+      "dependencies": [
+        "R01"
+      ],
+      "files": [
+        "test/e2e/pipeline-resize.e2e.js",
+        "test/pipeline-resize.browser.config.js",
+        "world/future-machine/scene/canvas-stage.js"
+      ],
+      "interfaces": [
+        "canvas-label-layout"
+      ],
+      "userFacing": false,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/future-machine-scene.test.js",
+          "test/future-machine-canvas.test.js"
+        ]
+      ],
+      "browserTests": [
+        [
+          "bunx",
+          "playwright",
+          "test",
+          "--config",
+          "test/pipeline-resize.browser.config.js"
+        ]
+      ],
+      "status": "VERIFIED",
+      "attempts": 2,
+      "claimedOwner": null,
+      "owner": "native-reliability-worker",
+      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-resize-proof/happybearlandia",
+      "base": "1d0a488a0ddd8936ce53294594723d2f04317bab",
+      "commit": "a6c84fa89493549a5ed90bcfae359adcdff09966",
+      "changed": [
+        "test/e2e/pipeline-resize.e2e.js",
+        "test/pipeline-resize.browser.config.js",
+        "world/future-machine/scene/canvas-stage.js"
+      ],
+      "checks": [
+        {
+          "attempt": 1,
+          "phase": "candidate",
+          "argv": [
+            "bun",
+            "test",
+            "test/future-machine-scene.test.js"
+          ],
+          "exitCode": 0,
+          "stdout": "bun test v1.4.2 (744846f84)\n",
+          "stderr": "\ntest/future-machine-scene.test.js:\n(pass) Future Machine City scene projection > module imports without DOM or Three initialization [0.02ms]\n(pass) Future Machine City scene projection > zero difference and immutable source records [0.88ms]\n(pass) Future Machine City scene projection > additions and removals have stable slots across arms and scrubs [0.13ms]\n(pass) Future Machine City scene projection > source geometry requires explicit identity and unique source mapping [0.37ms]\n(pass) Future Machine City scene projection > unverified geometry and inferred parcels never become locations [0.04ms]\n(pass) Future Machine City scene projection > unlocated inventory stays outside sourced footprint extent [0.08ms]\n(pass) Future Machine City scene projection > only housing projects with recorded bounded progress render [0.25ms]\n(pass) Future Machine City scene projection > missing collections, duplicate IDs and mismatched months fail explicitly [0.16ms]\n(pass) Future Machine City scene projection > unsupported holes are schematic rather than misrendered sourced footprints [0.08ms]\n\n 9 pass\n 0 fail\n 22 expect() calls\nRan 9 tests across 1 file. [24.00ms]\n"
+        },
+        {
+          "attempt": 1,
+          "phase": "candidate",
+          "argv": [
+            "bunx",
+            "playwright",
+            "test",
+            "--config",
+            "test/pipeline-resize.browser.config.js"
+          ],
+          "exitCode": 1,
+          "stdout": "\nRunning 2 tests using 1 worker\n\n  \u2713  1 test/e2e/pipeline-resize.e2e.js:24:44 \u203a webgpu: focused changed building fits desktop,390,320,desktop (7.5s)\n  \u2718  2 test/e2e/pipeline-resize.e2e.js:24:44 \u203a canvas2d: focused changed building fits desktop,390,320,desktop (5.9s)\n\n\n  1) test/e2e/pipeline-resize.e2e.js:24:44 \u203a canvas2d: focused changed building fits desktop,390,320,desktop \n\n    Error: Selected label must fit plan viewport\n\n    expect(received).toBeLessThanOrEqual(expected)\n\n    Expected: <= 354\n    Received:    390.9111328125\n\n      36 |    expect.soft(data.overflow,'Page must not overflow horizontally').toBe(false);\n      37 |    for(const point of data.points){expect.soft(point.x,'Changed structure left edge inside plan viewport').toBeGreaterThanOrEqual(data.width/2);expect.soft(point.x,'Changed structure right edge inside plan viewport').toBeLessThanOrEqual(data.width);expect.soft(point.y).toBeGreaterThanOrEqual(0);expect.soft(point.y).toBeLessThanOrEqual(data.height);}\n    > 38 |    expect.soft(data.label,'Selected changed-building label must be rendered').not.toBeNull();expect.soft(data.label.x).toBeGreaterThanOrEqual(data.width/2);expect.soft(data.label.right,'Selected label must fit plan viewport').toBeLessThanOrEqual(data.width);expect.soft(data.label.y).toBeGreaterThanOrEqual(0);expect.soft(data.label.bottom,'Selected label must stay above Canvas footer').toBeLessThanOrEqual(data.labelAvailableBottom);\n         |                                                                                                                                                                                                                                  ^\n      39 |    await slider.scrollIntoViewIfNeeded();await expect.soft(slider).toBeVisible();await expect.soft(slider).toBeEnabled();await slider.focus();await expect.soft(slider).toBeFocused();\n      40 |    const why=page.getByRole('button',{name:'WHY \u00b7 Homes',exact:true});await why.scrollIntoViewIfNeeded();await expect.soft(why).toBeVisible();await expect.soft(why).toBeEnabled();\n      41 |   }\n        at /Users/wahabma/.codex/worktrees/pipeline-resize-proof/happybearlandia/test/e2e/pipeline-resize.e2e.js:38:226\n\n    Error: Selected label must stay above Canvas footer\n\n    expect(received).toBeLessThanOrEqual(expected)\n\n    Expected: <= 236\n    Received:    282.25663154069764\n\n      36 |    expect.soft(data.overflow,'Page must not overflow horizontally').toBe(false);\n      37 |    for(const point of data.points){expect.soft(point.x,'Changed structure left edge inside plan viewport').toBeGreaterThanOrEqual(data.width/2);expect.soft(point.x,'Changed structure right edge inside plan viewport').toBeLessThanOrEqual(data.width);expect.soft(point.y).toBeGreaterThanOrEqual(0);expect.soft(point.y).toBeLessThanOrEqual(data.height);}\n    > 38 |    expect.soft(data.label,'Selected changed-building label must be rendered').not.toBeNull();expect.soft(data.label.x).toBeGreaterThanOrEqual(data.width/2);expect.soft(data.label.right,'Selected label must fit plan viewport').toBeLessThanOrEqual(data.width);expect.soft(data.label.y).toBeGreaterThanOrEqual(0);expect.soft(data.label.bottom,'Selected label must stay above Canvas footer').toBeLessThanOrEqual(data.labelAvailableBottom);\n         |                                                                                                                                                                                                                                                                                                                                                                                                    ^\n      39 |    await slider.scrollIntoViewIfNeeded();await expect.soft(slider).toBeVisible();await expect.soft(slider).toBeEnabled();await slider.focus();await expect.soft(slider).toBeFocused();\n      40 |    const why=page.getByRole('button',{name:'WHY \u00b7 Homes',exact:true});await why.scrollIntoViewIfNeeded();await expect.soft(why).toBeVisible();await expect.soft(why).toBeEnabled();\n      41 |   }\n        at /Users/wahabma/.codex/worktrees/pipeline-resize-proof/happybearlandia/test/e2e/pipeline-resize.e2e.js:38:388\n\n    Error: Selected label must fit plan viewport\n\n    expect(received).toBeLessThanOrEqual(expected)\n\n    Expected: <= 284\n    Received:    338.4111328125\n\n      36 |    expect.soft(data.overflow,'Page must not overflow horizontally').toBe(false);\n      37 |    for(const point of data.points){expect.soft(point.x,'Changed structure left edge inside plan viewport').toBeGreaterThanOrEqual(data.width/2);expect.soft(point.x,'Changed structure right edge inside plan viewport').toBeLessThanOrEqual(data.width);expect.soft(point.y).toBeGreaterThanOrEqual(0);expect.soft(point.y).toBeLessThanOrEqual(data.height);}\n    > 38 |    expect.soft(data.label,'Selected changed-building label must be rendered').not.toBeNull();expect.soft(data.label.x).toBeGreaterThanOrEqual(data.width/2);expect.soft(data.label.right,'Selected label must fit plan viewport').toBeLessThanOrEqual(data.width);expect.soft(data.label.y).toBeGreaterThanOrEqual(0);expect.soft(data.label.bottom,'Selected label must stay above Canvas footer').toBeLessThanOrEqual(data.labelAvailableBottom);\n         |                                                                                                                                                                                                                                  ^\n      39 |    await slider.scrollIntoViewIfNeeded();await expect.soft(slider).toBeVisible();await expect.soft(slider).toBeEnabled();await slider.focus();await expect.soft(slider).toBeFocused();\n      40 |    const why=page.getByRole('button',{name:'WHY \u00b7 Homes',exact:true});await why.scrollIntoViewIfNeeded();await expect.soft(why).toBeVisible();await expect.soft(why).toBeEnabled();\n      41 |   }\n        at /Users/wahabma/.codex/worktrees/pipeline-resize-proof/happybearlandia/test/e2e/pipeline-resize.e2e.js:38:226\n\n    Error: Selected label must stay above Canvas footer\n\n    expect(received).toBeLessThanOrEqual(expected)\n\n    Expected: <= 236\n    Received:    282.25663154069764\n\n      36 |    expect.soft(data.overflow,'Page must not overflow horizontally').toBe(false);\n      37 |    for(const point of data.points){expect.soft(point.x,'Changed structure left edge inside plan viewport').toBeGreaterThanOrEqual(data.width/2);expect.soft(point.x,'Changed structure right edge inside plan viewport').toBeLessThanOrEqual(data.width);expect.soft(point.y).toBeGreaterThanOrEqual(0);expect.soft(point.y).toBeLessThanOrEqual(data.height);}\n    > 38 |    expect.soft(data.label,'Selected changed-building label must be rendered').not.toBeNull();expect.soft(data.label.x).toBeGreaterThanOrEqual(data.width/2);expect.soft(data.label.right,'Selected label must fit plan viewport').toBeLessThanOrEqual(data.width);expect.soft(data.label.y).toBeGreaterThanOrEqual(0);expect.soft(data.label.bottom,'Selected label must stay above Canvas footer').toBeLessThanOrEqual(data.labelAvailableBottom);\n         |                                                                                                                                                                                                                                                                                                                                                                                                    ^\n      39 |    await slider.scrollIntoViewIfNeeded();await expect.soft(slider).toBeVisible();await expect.soft(slider).toBeEnabled();await slider.focus();await expect.soft(slider).toBeFocused();\n      40 |    const why=page.getByRole('button',{name:'WHY \u00b7 Homes',exact:true});await why.scrollIntoViewIfNeeded();await expect.soft(why).toBeVisible();await expect.soft(why).toBeEnabled();\n      41 |   }\n        at /Users/wahabma/.codex/worktrees/pipeline-resize-proof/happybearlandia/test/e2e/pipeline-resize.e2e.js:38:388\n\n    attachment #1: screenshot (image/png) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    ../../../../../../var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/hbl-pipeline-resize/pipeline-resize.e2e.js-can-81268-its-desktop-390-320-desktop/test-failed-1.png\n    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n    attachment #2: video (video/webm) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    ../../../../../../var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/hbl-pipeline-resize/pipeline-resize.e2e.js-can-81268-its-desktop-390-320-desktop/video.webm\n    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n    Error Context: ../../../../../../var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/hbl-pipeline-resize/pipeline-resize.e2e.js-can-81268-its-desktop-390-320-desktop/error-context.md\n\n    attachment #4: trace (application/zip) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    ../../../../../../var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/hbl-pipeline-resize/pipeline-resize.e2e.js-can-81268-its-desktop-390-320-desktop/trace.zip\n    Usage:\n\n        npx playwright show-trace ../../../../../../var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/hbl-pipeline-resize/pipeline-resize.e2e.js-can-81268-its-desktop-390-320-desktop/trace.zip\n\n    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n  1 failed\n    test/e2e/pipeline-resize.e2e.js:24:44 \u203a canvas2d: focused changed building fits desktop,390,320,desktop \n  1 passed (14.7s)\n",
+          "stderr": ""
+        },
+        {
+          "attempt": 2,
+          "phase": "candidate",
+          "argv": [
+            "bun",
+            "test",
+            "test/future-machine-scene.test.js",
+            "test/future-machine-canvas.test.js"
+          ],
+          "exitCode": 0,
+          "stdout": "bun test v1.4.2 (744846f84)\n",
+          "stderr": "\ntest/future-machine-canvas.test.js:\n(pass) pure projection helpers preserve exact identities and recorded month [0.61ms]\n(pass) hit testing uses the same shared camera in both halves and ignores ghosts [0.24ms]\n(pass) fit handles empty data and sourced footprints, mode is bounded [0.13ms]\n(pass) stage preserves camera across time/mode and synchronously draws with no motion loop [0.77ms]\n(pass) click reports exact IDs and arm, dragging and pinch update one camera, disposal removes resources [0.55ms]\n(pass) cancel, lost capture, right click and distant release never select or poison camera [0.24ms]\n(pass) missing projections and invalid layout dimensions remain finite with bounded keyboard zoom [1.84ms]\n(pass) context and initial draw exceptions release every owned node and listener [0.16ms]\n\ntest/future-machine-scene.test.js:\n(pass) Future Machine City scene projection > module imports without DOM or Three initialization\n(pass) Future Machine City scene projection > zero difference and immutable source records [0.10ms]\n(pass) Future Machine City scene projection > additions and removals have stable slots across arms and scrubs [0.06ms]\n(pass) Future Machine City scene projection > source geometry requires explicit identity and unique source mapping [0.17ms]\n(pass) Future Machine City scene projection > unverified geometry and inferred parcels never become locations [0.02ms]\n(pass) Future Machine City scene projection > unlocated inventory stays outside sourced footprint extent [0.05ms]\n(pass) Future Machine City scene projection > only housing projects with recorded bounded progress render [0.12ms]\n(pass) Future Machine City scene projection > missing collections, duplicate IDs and mismatched months fail explicitly [0.04ms]\n(pass) Future Machine City scene projection > unsupported holes are schematic rather than misrendered sourced footprints [0.04ms]\n\n 17 pass\n 0 fail\n 75 expect() calls\nRan 17 tests across 2 files. [16.00ms]\n"
+        },
+        {
+          "attempt": 2,
+          "phase": "candidate",
+          "argv": [
+            "bunx",
+            "playwright",
+            "test",
+            "--config",
+            "test/pipeline-resize.browser.config.js"
+          ],
+          "exitCode": 0,
+          "stdout": "\nRunning 2 tests using 1 worker\n\n  \u2713  1 test/e2e/pipeline-resize.e2e.js:24:44 \u203a webgpu: focused changed building fits desktop,390,320,desktop (3.4s)\n  \u2713  2 test/e2e/pipeline-resize.e2e.js:24:44 \u203a canvas2d: focused changed building fits desktop,390,320,desktop (3.1s)\n\n  2 passed (7.1s)\n",
+          "stderr": ""
+        },
+        {
+          "attempt": 2,
+          "phase": "integrated",
+          "argv": [
+            "bun",
+            "test",
+            "test/future-machine-scene.test.js",
+            "test/future-machine-canvas.test.js"
+          ],
+          "exitCode": 0,
+          "stdout": "bun test v1.4.2 (744846f84)\n",
+          "stderr": "\ntest/future-machine-canvas.test.js:\n(pass) pure projection helpers preserve exact identities and recorded month [0.53ms]\n(pass) hit testing uses the same shared camera in both halves and ignores ghosts [0.23ms]\n(pass) fit handles empty data and sourced footprints, mode is bounded [0.13ms]\n(pass) stage preserves camera across time/mode and synchronously draws with no motion loop [0.73ms]\n(pass) click reports exact IDs and arm, dragging and pinch update one camera, disposal removes resources [0.54ms]\n(pass) cancel, lost capture, right click and distant release never select or poison camera [0.15ms]\n(pass) missing projections and invalid layout dimensions remain finite with bounded keyboard zoom [1.20ms]\n(pass) context and initial draw exceptions release every owned node and listener [0.10ms]\n\ntest/future-machine-scene.test.js:\n(pass) Future Machine City scene projection > module imports without DOM or Three initialization\n(pass) Future Machine City scene projection > zero difference and immutable source records [0.07ms]\n(pass) Future Machine City scene projection > additions and removals have stable slots across arms and scrubs [0.04ms]\n(pass) Future Machine City scene projection > source geometry requires explicit identity and unique source mapping [0.14ms]\n(pass) Future Machine City scene projection > unverified geometry and inferred parcels never become locations [0.02ms]\n(pass) Future Machine City scene projection > unlocated inventory stays outside sourced footprint extent [0.04ms]\n(pass) Future Machine City scene projection > only housing projects with recorded bounded progress render [0.10ms]\n(pass) Future Machine City scene projection > missing collections, duplicate IDs and mismatched months fail explicitly [0.04ms]\n(pass) Future Machine City scene projection > unsupported holes are schematic rather than misrendered sourced footprints [0.03ms]\n\n 17 pass\n 0 fail\n 75 expect() calls\nRan 17 tests across 2 files. [21.00ms]\n"
+        },
+        {
+          "attempt": 2,
+          "phase": "integrated",
+          "argv": [
+            "bunx",
+            "playwright",
+            "test",
+            "--config",
+            "test/pipeline-resize.browser.config.js"
+          ],
+          "exitCode": 0,
+          "stdout": "\nRunning 2 tests using 1 worker\n\n  \u2713  1 test/e2e/pipeline-resize.e2e.js:24:44 \u203a webgpu: focused changed building fits desktop,390,320,desktop (3.1s)\n  \u2713  2 test/e2e/pipeline-resize.e2e.js:24:44 \u203a canvas2d: focused changed building fits desktop,390,320,desktop (3.1s)\n\n  2 passed (6.5s)\n",
+          "stderr": ""
+        }
+      ],
+      "failure": "candidate check failed: bunx playwright test --config test/pipeline-resize.browser.config.js",
+      "failures": [
+        {
+          "attempt": 1,
+          "commit": "e30a1c0f6bd8a2092a750e49704e343d7bb99fb7",
+          "integratedCommit": null,
+          "reason": "candidate check failed: bunx playwright test --config test/pipeline-resize.browser.config.js",
+          "reviewedBy": "continuous-coordinator",
+          "evidence": {
+            "reviewedBy": "continuous-coordinator",
+            "notes": "Reviewed U02 e30a1c0 test/config diff and real recorded resize measurements. Native passes; Canvas focused ID text crosses right edge at390/320 and footer. Independent candidate gate retains exact failed geometry before bounded repair. No runtime changes in original candidate.",
+            "modelChecks": "Same actual month16/seed42/snapshots/metrics/camera across viewport changes; no fabricated labels or outcomes."
+          },
+          "checks": [
+            {
+              "attempt": 1,
+              "phase": "candidate",
+              "argv": [
+                "bun",
+                "test",
+                "test/future-machine-scene.test.js"
+              ],
+              "exitCode": 0,
+              "stdout": "bun test v1.4.2 (744846f84)\n",
+              "stderr": "\ntest/future-machine-scene.test.js:\n(pass) Future Machine City scene projection > module imports without DOM or Three initialization [0.02ms]\n(pass) Future Machine City scene projection > zero difference and immutable source records [0.88ms]\n(pass) Future Machine City scene projection > additions and removals have stable slots across arms and scrubs [0.13ms]\n(pass) Future Machine City scene projection > source geometry requires explicit identity and unique source mapping [0.37ms]\n(pass) Future Machine City scene projection > unverified geometry and inferred parcels never become locations [0.04ms]\n(pass) Future Machine City scene projection > unlocated inventory stays outside sourced footprint extent [0.08ms]\n(pass) Future Machine City scene projection > only housing projects with recorded bounded progress render [0.25ms]\n(pass) Future Machine City scene projection > missing collections, duplicate IDs and mismatched months fail explicitly [0.16ms]\n(pass) Future Machine City scene projection > unsupported holes are schematic rather than misrendered sourced footprints [0.08ms]\n\n 9 pass\n 0 fail\n 22 expect() calls\nRan 9 tests across 1 file. [24.00ms]\n"
+            },
+            {
+              "attempt": 1,
+              "phase": "candidate",
+              "argv": [
+                "bunx",
+                "playwright",
+                "test",
+                "--config",
+                "test/pipeline-resize.browser.config.js"
+              ],
+              "exitCode": 1,
+              "stdout": "\nRunning 2 tests using 1 worker\n\n  \u2713  1 test/e2e/pipeline-resize.e2e.js:24:44 \u203a webgpu: focused changed building fits desktop,390,320,desktop (7.5s)\n  \u2718  2 test/e2e/pipeline-resize.e2e.js:24:44 \u203a canvas2d: focused changed building fits desktop,390,320,desktop (5.9s)\n\n\n  1) test/e2e/pipeline-resize.e2e.js:24:44 \u203a canvas2d: focused changed building fits desktop,390,320,desktop \n\n    Error: Selected label must fit plan viewport\n\n    expect(received).toBeLessThanOrEqual(expected)\n\n    Expected: <= 354\n    Received:    390.9111328125\n\n      36 |    expect.soft(data.overflow,'Page must not overflow horizontally').toBe(false);\n      37 |    for(const point of data.points){expect.soft(point.x,'Changed structure left edge inside plan viewport').toBeGreaterThanOrEqual(data.width/2);expect.soft(point.x,'Changed structure right edge inside plan viewport').toBeLessThanOrEqual(data.width);expect.soft(point.y).toBeGreaterThanOrEqual(0);expect.soft(point.y).toBeLessThanOrEqual(data.height);}\n    > 38 |    expect.soft(data.label,'Selected changed-building label must be rendered').not.toBeNull();expect.soft(data.label.x).toBeGreaterThanOrEqual(data.width/2);expect.soft(data.label.right,'Selected label must fit plan viewport').toBeLessThanOrEqual(data.width);expect.soft(data.label.y).toBeGreaterThanOrEqual(0);expect.soft(data.label.bottom,'Selected label must stay above Canvas footer').toBeLessThanOrEqual(data.labelAvailableBottom);\n         |                                                                                                                                                                                                                                  ^\n      39 |    await slider.scrollIntoViewIfNeeded();await expect.soft(slider).toBeVisible();await expect.soft(slider).toBeEnabled();await slider.focus();await expect.soft(slider).toBeFocused();\n      40 |    const why=page.getByRole('button',{name:'WHY \u00b7 Homes',exact:true});await why.scrollIntoViewIfNeeded();await expect.soft(why).toBeVisible();await expect.soft(why).toBeEnabled();\n      41 |   }\n        at /Users/wahabma/.codex/worktrees/pipeline-resize-proof/happybearlandia/test/e2e/pipeline-resize.e2e.js:38:226\n\n    Error: Selected label must stay above Canvas footer\n\n    expect(received).toBeLessThanOrEqual(expected)\n\n    Expected: <= 236\n    Received:    282.25663154069764\n\n      36 |    expect.soft(data.overflow,'Page must not overflow horizontally').toBe(false);\n      37 |    for(const point of data.points){expect.soft(point.x,'Changed structure left edge inside plan viewport').toBeGreaterThanOrEqual(data.width/2);expect.soft(point.x,'Changed structure right edge inside plan viewport').toBeLessThanOrEqual(data.width);expect.soft(point.y).toBeGreaterThanOrEqual(0);expect.soft(point.y).toBeLessThanOrEqual(data.height);}\n    > 38 |    expect.soft(data.label,'Selected changed-building label must be rendered').not.toBeNull();expect.soft(data.label.x).toBeGreaterThanOrEqual(data.width/2);expect.soft(data.label.right,'Selected label must fit plan viewport').toBeLessThanOrEqual(data.width);expect.soft(data.label.y).toBeGreaterThanOrEqual(0);expect.soft(data.label.bottom,'Selected label must stay above Canvas footer').toBeLessThanOrEqual(data.labelAvailableBottom);\n         |                                                                                                                                                                                                                                                                                                                                                                                                    ^\n      39 |    await slider.scrollIntoViewIfNeeded();await expect.soft(slider).toBeVisible();await expect.soft(slider).toBeEnabled();await slider.focus();await expect.soft(slider).toBeFocused();\n      40 |    const why=page.getByRole('button',{name:'WHY \u00b7 Homes',exact:true});await why.scrollIntoViewIfNeeded();await expect.soft(why).toBeVisible();await expect.soft(why).toBeEnabled();\n      41 |   }\n        at /Users/wahabma/.codex/worktrees/pipeline-resize-proof/happybearlandia/test/e2e/pipeline-resize.e2e.js:38:388\n\n    Error: Selected label must fit plan viewport\n\n    expect(received).toBeLessThanOrEqual(expected)\n\n    Expected: <= 284\n    Received:    338.4111328125\n\n      36 |    expect.soft(data.overflow,'Page must not overflow horizontally').toBe(false);\n      37 |    for(const point of data.points){expect.soft(point.x,'Changed structure left edge inside plan viewport').toBeGreaterThanOrEqual(data.width/2);expect.soft(point.x,'Changed structure right edge inside plan viewport').toBeLessThanOrEqual(data.width);expect.soft(point.y).toBeGreaterThanOrEqual(0);expect.soft(point.y).toBeLessThanOrEqual(data.height);}\n    > 38 |    expect.soft(data.label,'Selected changed-building label must be rendered').not.toBeNull();expect.soft(data.label.x).toBeGreaterThanOrEqual(data.width/2);expect.soft(data.label.right,'Selected label must fit plan viewport').toBeLessThanOrEqual(data.width);expect.soft(data.label.y).toBeGreaterThanOrEqual(0);expect.soft(data.label.bottom,'Selected label must stay above Canvas footer').toBeLessThanOrEqual(data.labelAvailableBottom);\n         |                                                                                                                                                                                                                                  ^\n      39 |    await slider.scrollIntoViewIfNeeded();await expect.soft(slider).toBeVisible();await expect.soft(slider).toBeEnabled();await slider.focus();await expect.soft(slider).toBeFocused();\n      40 |    const why=page.getByRole('button',{name:'WHY \u00b7 Homes',exact:true});await why.scrollIntoViewIfNeeded();await expect.soft(why).toBeVisible();await expect.soft(why).toBeEnabled();\n      41 |   }\n        at /Users/wahabma/.codex/worktrees/pipeline-resize-proof/happybearlandia/test/e2e/pipeline-resize.e2e.js:38:226\n\n    Error: Selected label must stay above Canvas footer\n\n    expect(received).toBeLessThanOrEqual(expected)\n\n    Expected: <= 236\n    Received:    282.25663154069764\n\n      36 |    expect.soft(data.overflow,'Page must not overflow horizontally').toBe(false);\n      37 |    for(const point of data.points){expect.soft(point.x,'Changed structure left edge inside plan viewport').toBeGreaterThanOrEqual(data.width/2);expect.soft(point.x,'Changed structure right edge inside plan viewport').toBeLessThanOrEqual(data.width);expect.soft(point.y).toBeGreaterThanOrEqual(0);expect.soft(point.y).toBeLessThanOrEqual(data.height);}\n    > 38 |    expect.soft(data.label,'Selected changed-building label must be rendered').not.toBeNull();expect.soft(data.label.x).toBeGreaterThanOrEqual(data.width/2);expect.soft(data.label.right,'Selected label must fit plan viewport').toBeLessThanOrEqual(data.width);expect.soft(data.label.y).toBeGreaterThanOrEqual(0);expect.soft(data.label.bottom,'Selected label must stay above Canvas footer').toBeLessThanOrEqual(data.labelAvailableBottom);\n         |                                                                                                                                                                                                                                                                                                                                                                                                    ^\n      39 |    await slider.scrollIntoViewIfNeeded();await expect.soft(slider).toBeVisible();await expect.soft(slider).toBeEnabled();await slider.focus();await expect.soft(slider).toBeFocused();\n      40 |    const why=page.getByRole('button',{name:'WHY \u00b7 Homes',exact:true});await why.scrollIntoViewIfNeeded();await expect.soft(why).toBeVisible();await expect.soft(why).toBeEnabled();\n      41 |   }\n        at /Users/wahabma/.codex/worktrees/pipeline-resize-proof/happybearlandia/test/e2e/pipeline-resize.e2e.js:38:388\n\n    attachment #1: screenshot (image/png) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    ../../../../../../var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/hbl-pipeline-resize/pipeline-resize.e2e.js-can-81268-its-desktop-390-320-desktop/test-failed-1.png\n    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n    attachment #2: video (video/webm) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    ../../../../../../var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/hbl-pipeline-resize/pipeline-resize.e2e.js-can-81268-its-desktop-390-320-desktop/video.webm\n    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n    Error Context: ../../../../../../var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/hbl-pipeline-resize/pipeline-resize.e2e.js-can-81268-its-desktop-390-320-desktop/error-context.md\n\n    attachment #4: trace (application/zip) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    ../../../../../../var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/hbl-pipeline-resize/pipeline-resize.e2e.js-can-81268-its-desktop-390-320-desktop/trace.zip\n    Usage:\n\n        npx playwright show-trace ../../../../../../var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/hbl-pipeline-resize/pipeline-resize.e2e.js-can-81268-its-desktop-390-320-desktop/trace.zip\n\n    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n  1 failed\n    test/e2e/pipeline-resize.e2e.js:24:44 \u203a canvas2d: focused changed building fits desktop,390,320,desktop \n  1 passed (14.7s)\n",
+              "stderr": ""
+            }
+          ]
+        }
+      ],
+      "integratedCommit": "2c9d973234ea73546d5597b068cda538a5136a2f",
+      "evidence": {
+        "reviewedBy": "continuous-coordinator",
+        "notes": "Reviewed bounded second U02 candidate a6c84fa against original base and authorized scope. First failure e30a1c0 and its command logs retained; scope reconciled explicitly under shared lock before worker edits. Canvas labels measured with actual ctx font metrics, fit within each arm and above44px footer. Visibility guard avoids pulling offscreen structures labels onto edges. Existing actual draw-call browser checks preserve frame/seed/metrics/camera and verify normal pan; native unchanged. Coordinator visually inspected320pxCanvas PNG: selected exact ID fits abovefooter. This is the single permitted retry.",
+        "modelChecks": "OnlyCanvas text placement and real resize regression tests/config changed. No City, recipe, units, cost, simulated timing or evidence provenance mutation. Native and Canvas consume same recorded frame.",
+        "screenshots": [
+          "/private/tmp/hbl-pipeline-resize-repair-final/pipeline-resize.e2e.js-can-81268-its-desktop-390-320-desktop/2-320px.png"
+        ]
+      }
+    },
+    {
+      "id": "U03",
+      "priority": "P1",
+      "sourceStatus": "READY",
+      "acceptance": "Compare repeated scrub/focus/dispose memory and object counts after native integration; report measured values, not target FPS.",
+      "sourceDependencies": "R01 / Worker 6",
+      "kind": "verification",
+      "dependencies": [
+        "R01"
+      ],
+      "files": [
+        "test/e2e/pipeline-resources.e2e.js",
+        "test/pipeline-resources.browser.config.js"
+      ],
+      "interfaces": [],
+      "userFacing": false,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/future-machine-canvas.test.js"
+        ]
+      ],
+      "browserTests": [
+        [
+          "bunx",
+          "playwright",
+          "test",
+          "--config",
+          "test/pipeline-resources.browser.config.js"
+        ]
+      ],
+      "status": "RUNNING",
+      "attempts": 0,
+      "claimedOwner": null,
+      "owner": "browser-resources-u03",
+      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-resources-u03/happybearlandia",
+      "base": "2c9d973234ea73546d5597b068cda538a5136a2f"
+    },
+    {
+      "id": "R13",
+      "priority": "P1",
+      "sourceStatus": "READY",
+      "acceptance": "Preserve main-only catalog/route behavior in a local reconciliation candidate: compare actual catalogs, name missing routes, prove current flagship retained; report concrete failing preservation test before any repair. No main merge.",
+      "sourceDependencies": "R11",
+      "kind": "verification",
+      "dependencies": [
+        "R11"
+      ],
+      "files": [
+        "test/pipeline-catalog-preservation.test.js"
+      ],
+      "interfaces": [],
+      "userFacing": false,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/pipeline-catalog-preservation.test.js"
+        ]
+      ],
+      "browserTests": [],
+      "status": "REPAIR",
+      "attempts": 1,
+      "claimedOwner": null,
+      "owner": "catalog-worker",
+      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-catalog-r13/happybearlandia",
+      "base": "1de9fd877631f4e094f9ab42606f79d85c6287ef",
+      "commit": "67aed30c5382739f39fadf54e6faf328478a8fcd",
+      "changed": [
+        "test/pipeline-catalog-preservation.test.js"
+      ],
+      "checks": [
+        {
+          "attempt": 1,
+          "phase": "candidate",
+          "argv": [
+            "bun",
+            "test",
+            "test/pipeline-catalog-preservation.test.js"
+          ],
+          "exitCode": 1,
+          "stdout": "bun test v1.4.2 (744846f84)\nCATALOG_PRESERVATION {\"main\":\"78c3c5145a23a1300c1919fd70effc843052a3af\",\"sprint\":\"1de9fd877631f4e094f9ab42606f79d85c6287ef\",\"mainCount\":31,\"sprintCount\":31,\"requiredUnion\":32,\"missingCatalog\":[{\"id\":\"houston-bars\",\"route\":\"/world/bars/\"}],\"canonicalDirectory\":false,\"missingDirectory\":[{\"id\":\"houston-map\",\"route\":\"/tools/houston-map\"},{\"id\":\"particles\",\"route\":\"/tools/webgpu/particle-simulations.html\"},{\"id\":\"molecular-docking\",\"route\":\"/tools/webgpu/molecular-docking.html\"},{\"id\":\"astronomy\",\"route\":\"/tools/webgpu/astronomy-signal-search.html\"},{\"id\":\"epidemics\",\"route\":\"/tools/webgpu/epidemic-ensembles.html\"},{\"id\":\"evolution\",\"route\":\"/tools/webgpu/evolutionary-algorithms.html\"},{\"id\":\"climate\",\"route\":\"/tools/webgpu/climate-ensembles.html\"},{\"id\":\"monte-carlo\",\"route\":\"/tools/webgpu/monte-carlo.html\"},{\"id\":\"houston-bars\",\"route\":\"/world/bars/\"},{\"id\":\"future-machine\",\"route\":\"/world/future-machine.html\"}]}\n",
+          "stderr": "\ntest/pipeline-catalog-preservation.test.js:\n(pass) pinned local catalogs establish the actual 32-entry union without duplicating IDs or replacing the flagship [42.69ms]\n(pass) candidate retains the actual Future Machine catalog identity, entry point and homepage action [0.58ms]\n56 |  expect(source('index.html')).toContain('/world/future-machine.html');\n57 |  expect(existsSync(new URL('../world/future-machine/main.js',import.meta.url))).toBe(true);\n58 | });\n59 | \n60 | test('candidate catalog preserves every pinned-main route as well as the sprint flagship',()=>{\n61 |  expect(missing,'Main catalog entries lost by the candidate; do not keep count 31 by deleting an experience').toEqual([]);\n                                                                                                                   ^\nerror: Main catalog entries lost by the candidate; do not keep count 31 by deleting an experience\n\n- []\n+ [\n+   {\n+     \"id\": \"houston-bars\",\n+     \"route\": \"/world/bars/\",\n+   },\n+ ]\n\n- Expected  - 1\n+ Received  + 6\n\n      at <anonymous> (/Users/wahabma/.codex/worktrees/pipeline-catalog-r13/happybearlandia/test/pipeline-catalog-preservation.test.js:61:111)\n(fail) candidate catalog preserves every pinned-main route as well as the sprint flagship [0.32ms]\n63 |  for(const row of required)expect(actual.get(row.id)?.route,`Preserve ${row.id} \u2192 ${row.route}`).toBe(row.route);\n64 |  expect(actual.size).toBe(EXPERIENCES.length);\n65 | });\n66 | \n67 | test('candidate /routes exposes the canonical union instead of the stale hardcoded directory',()=>{\n68 |  expect(absentDirectory,'Missing /routes entries compared with pinned main plus Future Machine').toEqual([]);\n                                                                                                      ^\nerror: Missing /routes entries compared with pinned main plus Future Machine\n\n- []\n+ [\n+   {\n+     \"id\": \"houston-map\",\n+     \"route\": \"/tools/houston-map\",\n+   },\n+   {\n+     \"id\": \"particles\",\n+     \"route\": \"/tools/webgpu/particle-simulations.html\",\n+   },\n+   {\n+     \"id\": \"molecular-docking\",\n+     \"route\": \"/tools/webgpu/molecular-docking.html\",\n+   },\n+   {\n+     \"id\": \"astronomy\",\n+     \"route\": \"/tools/webgpu/astronomy-signal-search.html\",\n+   },\n+   {\n+     \"id\": \"epidemics\",\n+     \"route\": \"/tools/webgpu/epidemic-ensembles.html\",\n+   },\n+   {\n+     \"id\": \"evolution\",\n+     \"route\": \"/tools/webgpu/evolutionary-algorithms.html\",\n+   },\n+   {\n+     \"id\": \"climate\",\n+     \"route\": \"/tools/webgpu/climate-ensembles.html\",\n+   },\n+   {\n+     \"id\": \"monte-carlo\",\n+     \"route\": \"/tools/webgpu/monte-carlo.html\",\n+   },\n+   {\n+     \"id\": \"houston-bars\",\n+     \"route\": \"/world/bars/\",\n+   },\n+   {\n+     \"id\": \"future-machine\",\n+     \"route\": \"/world/future-machine.html\",\n+   },\n+ ]\n\n- Expected  - 1\n+ Received  + 42\n\n      at <anonymous> (/Users/wahabma/.codex/worktrees/pipeline-catalog-r13/happybearlandia/test/pipeline-catalog-preservation.test.js:68:98)\n(fail) candidate /routes exposes the canonical union instead of the stale hardcoded directory [0.06ms]\n77 |   ...(!server.includes('/api/houston-bars')?['GET /api/houston-bars']:[]),\n78 |   ...(!server.includes('/world/bars/')?['/world/bars/']:[]),\n79 |   ...(!server.includes('createHoustonBarCatalogHandler')?['createHoustonBarCatalogHandler import/handler']:[]),\n80 |   ...(!/export\\s+async\\s+function\\s+queryOverpass\\b/.test(source('world/api.js'))?['exported queryOverpass dependency']:[]),\n81 |  ];\n82 |  expect({absentFiles,absentWiring},'Main atlas preservation gaps; source wiring only, no live Overpass or HTTP claim').toEqual({absentFiles:[],absentWiring:[]});\n                                                                                                                            ^\nerror: Main atlas preservation gaps; source wiring only, no live Overpass or HTTP claim\n\n  {\n-   \"absentFiles\": [],\n-   \"absentWiring\": [],\n+   \"absentFiles\": [\n+     \"world/bar/houston-catalog.js\",\n+     \"world/bars/index.html\",\n+     \"world/bars/app.js\",\n+     \"world/bars/scene.js\",\n+   ],\n+   \"absentWiring\": [\n+     \"GET /api/houston-bars\",\n+     \"/world/bars/\",\n+     \"createHoustonBarCatalogHandler import/handler\",\n+     \"exported queryOverpass dependency\",\n+   ],\n  }\n\n- Expected  - 2\n+ Received  + 12\n\n      at <anonymous> (/Users/wahabma/.codex/worktrees/pipeline-catalog-r13/happybearlandia/test/pipeline-catalog-preservation.test.js:82:120)\n(fail) candidate preserves the main-only atlas route/API source wiring, not just a catalog label [0.47ms]\n\n 2 pass\n 3 fail\n 18 expect() calls\nRan 5 tests across 1 file. [107.00ms]\n"
+        }
+      ],
+      "failure": "candidate check failed: bun test test/pipeline-catalog-preservation.test.js",
+      "failures": [
+        {
+          "attempt": 1,
+          "commit": "67aed30c5382739f39fadf54e6faf328478a8fcd",
+          "integratedCommit": null,
+          "reason": "candidate check failed: bun test test/pipeline-catalog-preservation.test.js",
+          "reviewedBy": "continuous-coordinator",
+          "evidence": {
+            "reviewedBy": "continuous-coordinator",
+            "notes": "Reviewed test-only R13 commit67aed30. Actual pinned registry modules, normalized route coverage, explicit absent atlas wiring. Independently reproduced two pass/three failures. Run verification to retain precise release-blocking evidence; do not cherry-pick failing candidate.",
+            "modelChecks": "No model/runtime mutation; Future Machine identity retained. Static preservation evidence only, no browser/provider claim."
+          },
+          "checks": [
+            {
+              "attempt": 1,
+              "phase": "candidate",
+              "argv": [
+                "bun",
+                "test",
+                "test/pipeline-catalog-preservation.test.js"
+              ],
+              "exitCode": 1,
+              "stdout": "bun test v1.4.2 (744846f84)\nCATALOG_PRESERVATION {\"main\":\"78c3c5145a23a1300c1919fd70effc843052a3af\",\"sprint\":\"1de9fd877631f4e094f9ab42606f79d85c6287ef\",\"mainCount\":31,\"sprintCount\":31,\"requiredUnion\":32,\"missingCatalog\":[{\"id\":\"houston-bars\",\"route\":\"/world/bars/\"}],\"canonicalDirectory\":false,\"missingDirectory\":[{\"id\":\"houston-map\",\"route\":\"/tools/houston-map\"},{\"id\":\"particles\",\"route\":\"/tools/webgpu/particle-simulations.html\"},{\"id\":\"molecular-docking\",\"route\":\"/tools/webgpu/molecular-docking.html\"},{\"id\":\"astronomy\",\"route\":\"/tools/webgpu/astronomy-signal-search.html\"},{\"id\":\"epidemics\",\"route\":\"/tools/webgpu/epidemic-ensembles.html\"},{\"id\":\"evolution\",\"route\":\"/tools/webgpu/evolutionary-algorithms.html\"},{\"id\":\"climate\",\"route\":\"/tools/webgpu/climate-ensembles.html\"},{\"id\":\"monte-carlo\",\"route\":\"/tools/webgpu/monte-carlo.html\"},{\"id\":\"houston-bars\",\"route\":\"/world/bars/\"},{\"id\":\"future-machine\",\"route\":\"/world/future-machine.html\"}]}\n",
+              "stderr": "\ntest/pipeline-catalog-preservation.test.js:\n(pass) pinned local catalogs establish the actual 32-entry union without duplicating IDs or replacing the flagship [42.69ms]\n(pass) candidate retains the actual Future Machine catalog identity, entry point and homepage action [0.58ms]\n56 |  expect(source('index.html')).toContain('/world/future-machine.html');\n57 |  expect(existsSync(new URL('../world/future-machine/main.js',import.meta.url))).toBe(true);\n58 | });\n59 | \n60 | test('candidate catalog preserves every pinned-main route as well as the sprint flagship',()=>{\n61 |  expect(missing,'Main catalog entries lost by the candidate; do not keep count 31 by deleting an experience').toEqual([]);\n                                                                                                                   ^\nerror: Main catalog entries lost by the candidate; do not keep count 31 by deleting an experience\n\n- []\n+ [\n+   {\n+     \"id\": \"houston-bars\",\n+     \"route\": \"/world/bars/\",\n+   },\n+ ]\n\n- Expected  - 1\n+ Received  + 6\n\n      at <anonymous> (/Users/wahabma/.codex/worktrees/pipeline-catalog-r13/happybearlandia/test/pipeline-catalog-preservation.test.js:61:111)\n(fail) candidate catalog preserves every pinned-main route as well as the sprint flagship [0.32ms]\n63 |  for(const row of required)expect(actual.get(row.id)?.route,`Preserve ${row.id} \u2192 ${row.route}`).toBe(row.route);\n64 |  expect(actual.size).toBe(EXPERIENCES.length);\n65 | });\n66 | \n67 | test('candidate /routes exposes the canonical union instead of the stale hardcoded directory',()=>{\n68 |  expect(absentDirectory,'Missing /routes entries compared with pinned main plus Future Machine').toEqual([]);\n                                                                                                      ^\nerror: Missing /routes entries compared with pinned main plus Future Machine\n\n- []\n+ [\n+   {\n+     \"id\": \"houston-map\",\n+     \"route\": \"/tools/houston-map\",\n+   },\n+   {\n+     \"id\": \"particles\",\n+     \"route\": \"/tools/webgpu/particle-simulations.html\",\n+   },\n+   {\n+     \"id\": \"molecular-docking\",\n+     \"route\": \"/tools/webgpu/molecular-docking.html\",\n+   },\n+   {\n+     \"id\": \"astronomy\",\n+     \"route\": \"/tools/webgpu/astronomy-signal-search.html\",\n+   },\n+   {\n+     \"id\": \"epidemics\",\n+     \"route\": \"/tools/webgpu/epidemic-ensembles.html\",\n+   },\n+   {\n+     \"id\": \"evolution\",\n+     \"route\": \"/tools/webgpu/evolutionary-algorithms.html\",\n+   },\n+   {\n+     \"id\": \"climate\",\n+     \"route\": \"/tools/webgpu/climate-ensembles.html\",\n+   },\n+   {\n+     \"id\": \"monte-carlo\",\n+     \"route\": \"/tools/webgpu/monte-carlo.html\",\n+   },\n+   {\n+     \"id\": \"houston-bars\",\n+     \"route\": \"/world/bars/\",\n+   },\n+   {\n+     \"id\": \"future-machine\",\n+     \"route\": \"/world/future-machine.html\",\n+   },\n+ ]\n\n- Expected  - 1\n+ Received  + 42\n\n      at <anonymous> (/Users/wahabma/.codex/worktrees/pipeline-catalog-r13/happybearlandia/test/pipeline-catalog-preservation.test.js:68:98)\n(fail) candidate /routes exposes the canonical union instead of the stale hardcoded directory [0.06ms]\n77 |   ...(!server.includes('/api/houston-bars')?['GET /api/houston-bars']:[]),\n78 |   ...(!server.includes('/world/bars/')?['/world/bars/']:[]),\n79 |   ...(!server.includes('createHoustonBarCatalogHandler')?['createHoustonBarCatalogHandler import/handler']:[]),\n80 |   ...(!/export\\s+async\\s+function\\s+queryOverpass\\b/.test(source('world/api.js'))?['exported queryOverpass dependency']:[]),\n81 |  ];\n82 |  expect({absentFiles,absentWiring},'Main atlas preservation gaps; source wiring only, no live Overpass or HTTP claim').toEqual({absentFiles:[],absentWiring:[]});\n                                                                                                                            ^\nerror: Main atlas preservation gaps; source wiring only, no live Overpass or HTTP claim\n\n  {\n-   \"absentFiles\": [],\n-   \"absentWiring\": [],\n+   \"absentFiles\": [\n+     \"world/bar/houston-catalog.js\",\n+     \"world/bars/index.html\",\n+     \"world/bars/app.js\",\n+     \"world/bars/scene.js\",\n+   ],\n+   \"absentWiring\": [\n+     \"GET /api/houston-bars\",\n+     \"/world/bars/\",\n+     \"createHoustonBarCatalogHandler import/handler\",\n+     \"exported queryOverpass dependency\",\n+   ],\n  }\n\n- Expected  - 2\n+ Received  + 12\n\n      at <anonymous> (/Users/wahabma/.codex/worktrees/pipeline-catalog-r13/happybearlandia/test/pipeline-catalog-preservation.test.js:82:120)\n(fail) candidate preserves the main-only atlas route/API source wiring, not just a catalog label [0.47ms]\n\n 2 pass\n 3 fail\n 18 expect() calls\nRan 5 tests across 1 file. [107.00ms]\n"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "R14",
+      "priority": "P1",
+      "sourceStatus": "READY",
+      "acceptance": "Prove local Play remains usable during optional plan/provenance failure. Exercise actual loading failure and report precise bounded repair if broken.",
+      "sourceDependencies": "R04, R09",
+      "kind": "verification",
+      "dependencies": [
+        "R04",
+        "R09"
+      ],
+      "files": [
+        "test/e2e/pipeline-local-play.e2e.js",
+        "test/pipeline-local-play.browser.config.js"
+      ],
+      "interfaces": [],
+      "userFacing": false,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/future-machine-canvas.test.js"
+        ]
+      ],
+      "browserTests": [
+        [
+          "bunx",
+          "playwright",
+          "test",
+          "--config",
+          "test/pipeline-local-play.browser.config.js"
+        ]
+      ],
+      "status": "REPAIR",
+      "attempts": 1,
+      "claimedOwner": null,
+      "owner": "browser-proof-r14",
+      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-local-play-r14/happybearlandia",
+      "base": "1de9fd877631f4e094f9ab42606f79d85c6287ef",
+      "commit": "a1aa70d543929f2b0441671d798738a8b625dbfa",
+      "changed": [
+        "test/e2e/pipeline-local-play.e2e.js",
+        "test/pipeline-local-play.browser.config.js"
+      ],
+      "checks": [
+        {
+          "attempt": 1,
+          "phase": "candidate",
+          "argv": [
+            "bun",
+            "test",
+            "test/future-machine-canvas.test.js"
+          ],
+          "exitCode": 0,
+          "stdout": "bun test v1.4.2 (744846f84)\n",
+          "stderr": "\ntest/future-machine-canvas.test.js:\n(pass) pure projection helpers preserve exact identities and recorded month [0.74ms]\n(pass) hit testing uses the same shared camera in both halves and ignores ghosts [0.28ms]\n(pass) fit handles empty data and sourced footprints, mode is bounded [0.13ms]\n(pass) stage preserves camera across time/mode and synchronously draws with no motion loop [0.71ms]\n(pass) click reports exact IDs and arm, dragging and pinch update one camera, disposal removes resources [0.60ms]\n(pass) cancel, lost capture, right click and distant release never select or poison camera [0.25ms]\n(pass) missing projections and invalid layout dimensions remain finite with bounded keyboard zoom [3.13ms]\n(pass) context and initial draw exceptions release every owned node and listener [0.88ms]\n\n 8 pass\n 0 fail\n 53 expect() calls\nRan 8 tests across 1 file. [26.00ms]\n"
+        },
+        {
+          "attempt": 1,
+          "phase": "candidate",
+          "argv": [
+            "bunx",
+            "playwright",
+            "test",
+            "--config",
+            "test/pipeline-local-play.browser.config.js"
+          ],
+          "exitCode": 1,
+          "stdout": "\nRunning 3 tests using 1 worker\n\n  \u2713  1 test/e2e/pipeline-local-play.e2e.js:27:0 \u203a local Play completes real worker comparison while optional plan requests are still pending (4.2s)\n  \u2713  2 test/e2e/pipeline-local-play.e2e.js:42:0 \u203a local Play and playback remain usable after all optional plan sources return errors (4.1s)\n  \u2718  3 test/e2e/pipeline-local-play.e2e.js:56:0 \u203a provenance import failure leaves a useful unavailable disclosure and local Play usable (14.6s)\n\n\n  1) test/e2e/pipeline-local-play.e2e.js:56:0 \u203a provenance import failure leaves a useful unavailable disclosure and local Play usable \n\n    Error: expect(received).toBe(expected) // Object.is equality\n\n    Expected: \"unavailable\"\n    Received: undefined\n\n    Call Log:\n    - Timeout 15000ms exceeded while waiting on the predicate\n\n      62 |  await page.goto(route);\n      63 |  try{\n    > 64 |   await expect.poll(()=>page.evaluate(()=>window.hblSimulationModel?.status),{timeout:15000}).toBe('unavailable');\n         |                                                                                              ^\n      65 |   await expect(page.locator('#simulationModelMetadata')).toContainText(/unavailable|did not load/i);\n      66 |   await quickPlay(page);\n      67 |  }finally{await capture(page,info,'provenance-import-failure',evidence);}\n        at /Users/wahabma/.codex/worktrees/pipeline-local-play-r14/happybearlandia/test/e2e/pipeline-local-play.e2e.js:64:94\n\n    attachment #1: screenshot (image/png) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    test-results/pipeline-local-play/pipeline-local-play.e2e.js-aa07e-osure-and-local-Play-usable/test-failed-1.png\n    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n    Error Context: test-results/pipeline-local-play/pipeline-local-play.e2e.js-aa07e-osure-and-local-Play-usable/error-context.md\n\n    attachment #3: trace (application/zip) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    test-results/pipeline-local-play/pipeline-local-play.e2e.js-aa07e-osure-and-local-Play-usable/trace.zip\n    Usage:\n\n        npx playwright show-trace test-results/pipeline-local-play/pipeline-local-play.e2e.js-aa07e-osure-and-local-Play-usable/trace.zip\n\n    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n  1 failed\n    test/e2e/pipeline-local-play.e2e.js:56:0 \u203a provenance import failure leaves a useful unavailable disclosure and local Play usable \n  2 passed (23.2s)\n",
+          "stderr": ""
+        }
+      ],
+      "failure": "candidate check failed: bunx playwright test --config test/pipeline-local-play.browser.config.js",
+      "failures": [
+        {
+          "attempt": 1,
+          "commit": "a1aa70d543929f2b0441671d798738a8b625dbfa",
+          "integratedCommit": null,
+          "reason": "candidate check failed: bunx playwright test --config test/pipeline-local-play.browser.config.js",
+          "reviewedBy": "continuous-coordinator",
+          "evidence": {
+            "reviewedBy": "continuous-coordinator",
+            "notes": "Reviewed exact two-file R14 browser/config diff a1aa70d. Real optional plan503/pending injection; real worker completion and playback checks; separate simulation-observations module abort exposes required render dependency. No fabricated model responses. Candidate expected to retain required-import failure, so do not cherry-pick on failing gate.",
+            "modelChecks": "Legacy World authority/seed retained and explicitly distinct from monthly City; no production or simulation edits."
+          },
+          "checks": [
+            {
+              "attempt": 1,
+              "phase": "candidate",
+              "argv": [
+                "bun",
+                "test",
+                "test/future-machine-canvas.test.js"
+              ],
+              "exitCode": 0,
+              "stdout": "bun test v1.4.2 (744846f84)\n",
+              "stderr": "\ntest/future-machine-canvas.test.js:\n(pass) pure projection helpers preserve exact identities and recorded month [0.74ms]\n(pass) hit testing uses the same shared camera in both halves and ignores ghosts [0.28ms]\n(pass) fit handles empty data and sourced footprints, mode is bounded [0.13ms]\n(pass) stage preserves camera across time/mode and synchronously draws with no motion loop [0.71ms]\n(pass) click reports exact IDs and arm, dragging and pinch update one camera, disposal removes resources [0.60ms]\n(pass) cancel, lost capture, right click and distant release never select or poison camera [0.25ms]\n(pass) missing projections and invalid layout dimensions remain finite with bounded keyboard zoom [3.13ms]\n(pass) context and initial draw exceptions release every owned node and listener [0.88ms]\n\n 8 pass\n 0 fail\n 53 expect() calls\nRan 8 tests across 1 file. [26.00ms]\n"
+            },
+            {
+              "attempt": 1,
+              "phase": "candidate",
+              "argv": [
+                "bunx",
+                "playwright",
+                "test",
+                "--config",
+                "test/pipeline-local-play.browser.config.js"
+              ],
+              "exitCode": 1,
+              "stdout": "\nRunning 3 tests using 1 worker\n\n  \u2713  1 test/e2e/pipeline-local-play.e2e.js:27:0 \u203a local Play completes real worker comparison while optional plan requests are still pending (4.2s)\n  \u2713  2 test/e2e/pipeline-local-play.e2e.js:42:0 \u203a local Play and playback remain usable after all optional plan sources return errors (4.1s)\n  \u2718  3 test/e2e/pipeline-local-play.e2e.js:56:0 \u203a provenance import failure leaves a useful unavailable disclosure and local Play usable (14.6s)\n\n\n  1) test/e2e/pipeline-local-play.e2e.js:56:0 \u203a provenance import failure leaves a useful unavailable disclosure and local Play usable \n\n    Error: expect(received).toBe(expected) // Object.is equality\n\n    Expected: \"unavailable\"\n    Received: undefined\n\n    Call Log:\n    - Timeout 15000ms exceeded while waiting on the predicate\n\n      62 |  await page.goto(route);\n      63 |  try{\n    > 64 |   await expect.poll(()=>page.evaluate(()=>window.hblSimulationModel?.status),{timeout:15000}).toBe('unavailable');\n         |                                                                                              ^\n      65 |   await expect(page.locator('#simulationModelMetadata')).toContainText(/unavailable|did not load/i);\n      66 |   await quickPlay(page);\n      67 |  }finally{await capture(page,info,'provenance-import-failure',evidence);}\n        at /Users/wahabma/.codex/worktrees/pipeline-local-play-r14/happybearlandia/test/e2e/pipeline-local-play.e2e.js:64:94\n\n    attachment #1: screenshot (image/png) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    test-results/pipeline-local-play/pipeline-local-play.e2e.js-aa07e-osure-and-local-Play-usable/test-failed-1.png\n    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n    Error Context: test-results/pipeline-local-play/pipeline-local-play.e2e.js-aa07e-osure-and-local-Play-usable/error-context.md\n\n    attachment #3: trace (application/zip) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    test-results/pipeline-local-play/pipeline-local-play.e2e.js-aa07e-osure-and-local-Play-usable/trace.zip\n    Usage:\n\n        npx playwright show-trace test-results/pipeline-local-play/pipeline-local-play.e2e.js-aa07e-osure-and-local-Play-usable/trace.zip\n\n    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n  1 failed\n    test/e2e/pipeline-local-play.e2e.js:56:0 \u203a provenance import failure leaves a useful unavailable disclosure and local Play usable \n  2 passed (23.2s)\n",
+              "stderr": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "R15",
+      "priority": "P1",
+      "sourceStatus": "READY",
+      "acceptance": "Resume a bounded repair through the interactive pipeline after a failed check, retaining failed candidate and logs. Maximum two total attempts; no reset or silent retry. Atomic transition and ownership tests must prove third attempt rejected.",
+      "sourceDependencies": "U10",
+      "kind": "verification",
+      "dependencies": [
+        "U10"
+      ],
+      "files": [
+        "scripts/pipeline-coordinator.mjs",
+        "test/pipeline-repair.test.js"
+      ],
+      "interfaces": [
+        "interactive-claims"
+      ],
+      "userFacing": false,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/pipeline-repair.test.js",
+          "test/pipeline-coordinator.test.js"
+        ]
+      ],
+      "browserTests": [],
+      "status": "VERIFIED",
+      "attempts": 0,
+      "claimedOwner": null,
+      "owner": "continuous-coordinator",
+      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-bounded-repair/happybearlandia",
+      "base": "1de9fd877631f4e094f9ab42606f79d85c6287ef",
+      "commit": "8f20c6a53e12ff0337a33eb77c407a2af54b1d08",
+      "changed": [
+        "scripts/pipeline-coordinator.mjs",
+        "test/pipeline-repair.test.js"
+      ],
+      "checks": [
+        {
+          "phase": "candidate",
+          "argv": [
+            "bun",
+            "test",
+            "test/pipeline-repair.test.js",
+            "test/pipeline-coordinator.test.js"
+          ],
+          "exitCode": 0,
+          "stdout": "bun test v1.4.2 (744846f84)\n",
+          "stderr": "\ntest/pipeline-repair.test.js:\n(pass) explicit owner repair succeeds on second attempt and retains failed candidate and logs [987.55ms]\n(pass) third attempt is rejected durably, including after refresh, without resetting failed evidence [964.50ms]\n(pass) racing real repair processes authorize exactly one resume and preserve reservations [680.79ms]\n(pass) post-integration failure refuses replay and new dispatch until explicit reconciliation [662.66ms]\n(pass) legacy full capacity cannot resume a fourth worker [397.57ms]\n\ntest/pipeline-coordinator.test.js:\n(pass) two real processes racing one task produce exactly one durable claim [381.50ms]\n(pass) capacity three, approval revocation, reservations and verification backpressure fail closed [514.78ms]\n(pass) submission requires owner, clean single commit and exclusive changed paths [433.17ms]\n(pass) candidate and integrated checks are independently recorded before VERIFIED [542.40ms]\n(pass) failed verification retains contribution and records bounded repair, never DONE [560.68ms]\n(pass) CLI and interactive dispatch refuse each others durable active assignments [369.92ms]\n(pass) external deliveries enter verification and count toward backpressure without becoming DONE [341.09ms]\n\n 12 pass\n 0 fail\n 66 expect() calls\nRan 12 tests across 2 files. [6.85s]\n"
+        },
+        {
+          "phase": "integrated",
+          "argv": [
+            "bun",
+            "test",
+            "test/pipeline-repair.test.js",
+            "test/pipeline-coordinator.test.js"
+          ],
+          "exitCode": 0,
+          "stdout": "bun test v1.4.2 (744846f84)\n",
+          "stderr": "\ntest/pipeline-repair.test.js:\n(pass) explicit owner repair succeeds on second attempt and retains failed candidate and logs [813.05ms]\n(pass) third attempt is rejected durably, including after refresh, without resetting failed evidence [857.18ms]\n(pass) racing real repair processes authorize exactly one resume and preserve reservations [536.77ms]\n(pass) post-integration failure refuses replay and new dispatch until explicit reconciliation [422.39ms]\n(pass) legacy full capacity cannot resume a fourth worker [744.81ms]\n\ntest/pipeline-coordinator.test.js:\n(pass) two real processes racing one task produce exactly one durable claim [783.01ms]\n(pass) capacity three, approval revocation, reservations and verification backpressure fail closed [550.66ms]\n(pass) submission requires owner, clean single commit and exclusive changed paths [418.80ms]\n(pass) candidate and integrated checks are independently recorded before VERIFIED [581.72ms]\n(pass) failed verification retains contribution and records bounded repair, never DONE [501.87ms]\n(pass) CLI and interactive dispatch refuse each others durable active assignments [284.32ms]\n(pass) external deliveries enter verification and count toward backpressure without becoming DONE [270.82ms]\n\n 12 pass\n 0 fail\n 66 expect() calls\nRan 12 tests across 2 files. [6.79s]\n"
+        }
+      ],
+      "integratedCommit": "d548153489964c776fef34d28e2b39739c6a4bbd",
+      "evidence": {
+        "reviewedBy": "continuous-coordinator",
+        "notes": "Reviewed exact two-file R15 diff. Owner-only explicit repair, two total attempts, immutable failed candidate/check/evidence history, race and capacity tests, REVIEW/REPAIR reservations. Candidate failure repair is bounded; integrated failure blocks replay and dispatch until manual reconciliation. Coordinator independent focused run passed12tests/66assertions before final next-message consistency refinement; final manifest checks rerun both phases. No product behavior changed.",
+        "modelChecks": "No City simulation, recipe, seed, metric, renderer or UI changes. Existing model contracts retained."
+      }
+    },
+    {
+      "id": "U18",
+      "priority": "P0",
+      "sourceStatus": "READY",
+      "acceptance": "Clear native overlay labels on actual GPU/WebGL failure before creating Canvas. Preserve recorded state, inventory, Canvas labels and controls. Extend existing actual-loss tests to require native labels before loss and no stale native labels after loss/scrub. No renderer/City redesign.",
+      "sourceDependencies": "R01",
+      "kind": "feature",
+      "dependencies": [
+        "R01"
+      ],
+      "files": [
+        "world/future-machine/scene/index.js",
+        "test/e2e/pipeline-device-loss.e2e.js"
+      ],
+      "interfaces": [
+        "scene-fallback-lifecycle"
+      ],
+      "userFacing": true,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/future-machine-backend.test.js",
+          "test/future-machine-canvas.test.js",
+          "test/future-machine-scene.test.js"
+        ]
+      ],
+      "browserTests": [
+        [
+          "bunx",
+          "playwright",
+          "test",
+          "--config",
+          "test/pipeline-device-loss.browser.config.js"
+        ]
+      ],
+      "status": "VERIFIED",
+      "attempts": 1,
+      "claimedOwner": null,
+      "owner": "continuous-coordinator",
+      "worktree": "/Users/wahabma/.codex/worktrees/device-loss-label-cleanup/happybearlandia",
+      "base": "9d07bae751fab9bd522cce9774e464a3c2f60e26",
+      "commit": "3ebc17b45641c4e50c4805a233adbfe627ec1dc5",
+      "changed": [
+        "test/e2e/pipeline-device-loss.e2e.js",
+        "world/future-machine/scene/index.js"
+      ],
+      "checks": [
+        {
+          "attempt": 1,
+          "phase": "candidate",
+          "argv": [
+            "bun",
+            "test",
+            "test/future-machine-backend.test.js",
+            "test/future-machine-canvas.test.js",
+            "test/future-machine-scene.test.js"
+          ],
+          "exitCode": 0,
+          "stdout": "bun test v1.4.2 (744846f84)\n",
+          "stderr": "\ntest/future-machine-canvas.test.js:\n(pass) pure projection helpers preserve exact identities and recorded month [0.61ms]\n(pass) hit testing uses the same shared camera in both halves and ignores ghosts [0.24ms]\n(pass) fit handles empty data and sourced footprints, mode is bounded [0.13ms]\n(pass) stage preserves camera across time/mode and synchronously draws with no motion loop [0.76ms]\n(pass) click reports exact IDs and arm, dragging and pinch update one camera, disposal removes resources [0.61ms]\n(pass) cancel, lost capture, right click and distant release never select or poison camera [0.38ms]\n(pass) missing projections and invalid layout dimensions remain finite with bounded keyboard zoom [1.84ms]\n(pass) context and initial draw exceptions release every owned node and listener [0.12ms]\n\ntest/future-machine-scene.test.js:\n(pass) Future Machine City scene projection > module imports without DOM or Three initialization [0.01ms]\n(pass) Future Machine City scene projection > zero difference and immutable source records [0.23ms]\n(pass) Future Machine City scene projection > additions and removals have stable slots across arms and scrubs [0.11ms]\n(pass) Future Machine City scene projection > source geometry requires explicit identity and unique source mapping [0.19ms]\n(pass) Future Machine City scene projection > unverified geometry and inferred parcels never become locations [0.03ms]\n(pass) Future Machine City scene projection > unlocated inventory stays outside sourced footprint extent [0.06ms]\n(pass) Future Machine City scene projection > only housing projects with recorded bounded progress render [0.14ms]\n(pass) Future Machine City scene projection > missing collections, duplicate IDs and mismatched months fail explicitly [0.05ms]\n(pass) Future Machine City scene projection > unsupported holes are schematic rather than misrendered sourced footprints [0.04ms]\n\ntest/future-machine-backend.test.js:\n(pass) actual initialized native flag required; renderer type alone is insufficient [0.50ms]\n(pass) force GL, disabled preference and missing API never load GPU module [0.11ms]\n(pass) load and construction failures select truthful fallback [0.10ms]\n(pass) failed init cleans backend without resurrecting partial renderer [1.24ms]\n(pass) initialized failed candidates cannot block fallback with throwing async disposal [1.22ms]\n(pass) deadline bounds stalled init; late initialized resources are released again [6.89ms]\n(pass) late init rejection is consumed and cleaned; late module never constructs renderer [13.75ms]\n(pass) fallback failure propagates so host can retain Canvas/inventory fallback [0.09ms]\n(pass) invalid dependencies and unbounded deadlines fail explicitly [0.08ms]\n(skip) real Chromium renderer, scissor/resize and before/after-init failure smoke\n\n1 tests skipped:\n(skip) real Chromium renderer, scissor/resize and before/after-init failure smoke\n\n 26 pass\n 1 skip\n 0 fail\n 131 expect() calls\nRan 27 tests across 3 files. [43.00ms]\n"
+        },
+        {
+          "attempt": 1,
+          "phase": "candidate",
+          "argv": [
+            "bunx",
+            "playwright",
+            "test",
+            "--config",
+            "test/pipeline-device-loss.browser.config.js"
+          ],
+          "exitCode": 0,
+          "stdout": "\nRunning 2 tests using 1 worker\n\n  \u2713  1 test/e2e/pipeline-device-loss.e2e.js:8:40 \u203a webgpu: actual initialized loss retains recorded month, run and fallback (3.5s)\n  \u2713  2 test/e2e/pipeline-device-loss.e2e.js:8:40 \u203a webgl: actual initialized loss retains recorded month, run and fallback (3.1s)\n\n  2 passed (7.3s)\n",
+          "stderr": ""
+        },
+        {
+          "attempt": 1,
+          "phase": "integrated",
+          "argv": [
+            "bun",
+            "test",
+            "test/future-machine-backend.test.js",
+            "test/future-machine-canvas.test.js",
+            "test/future-machine-scene.test.js"
+          ],
+          "exitCode": 0,
+          "stdout": "bun test v1.4.2 (744846f84)\n",
+          "stderr": "\ntest/future-machine-canvas.test.js:\n(pass) pure projection helpers preserve exact identities and recorded month [0.65ms]\n(pass) hit testing uses the same shared camera in both halves and ignores ghosts [0.27ms]\n(pass) fit handles empty data and sourced footprints, mode is bounded [0.13ms]\n(pass) stage preserves camera across time/mode and synchronously draws with no motion loop [0.84ms]\n(pass) click reports exact IDs and arm, dragging and pinch update one camera, disposal removes resources [0.91ms]\n(pass) cancel, lost capture, right click and distant release never select or poison camera [0.23ms]\n(pass) missing projections and invalid layout dimensions remain finite with bounded keyboard zoom [1.72ms]\n(pass) context and initial draw exceptions release every owned node and listener [0.11ms]\n\ntest/future-machine-scene.test.js:\n(pass) Future Machine City scene projection > module imports without DOM or Three initialization\n(pass) Future Machine City scene projection > zero difference and immutable source records [0.09ms]\n(pass) Future Machine City scene projection > additions and removals have stable slots across arms and scrubs [0.05ms]\n(pass) Future Machine City scene projection > source geometry requires explicit identity and unique source mapping [0.18ms]\n(pass) Future Machine City scene projection > unverified geometry and inferred parcels never become locations [0.03ms]\n(pass) Future Machine City scene projection > unlocated inventory stays outside sourced footprint extent [0.06ms]\n(pass) Future Machine City scene projection > only housing projects with recorded bounded progress render [0.12ms]\n(pass) Future Machine City scene projection > missing collections, duplicate IDs and mismatched months fail explicitly [0.05ms]\n(pass) Future Machine City scene projection > unsupported holes are schematic rather than misrendered sourced footprints [0.02ms]\n\ntest/future-machine-backend.test.js:\n(pass) actual initialized native flag required; renderer type alone is insufficient [0.60ms]\n(pass) force GL, disabled preference and missing API never load GPU module [0.12ms]\n(pass) load and construction failures select truthful fallback [0.12ms]\n(pass) failed init cleans backend without resurrecting partial renderer [1.47ms]\n(pass) initialized failed candidates cannot block fallback with throwing async disposal [2.92ms]\n(pass) deadline bounds stalled init; late initialized resources are released again [7.79ms]\n(pass) late init rejection is consumed and cleaned; late module never constructs renderer [14.11ms]\n(pass) fallback failure propagates so host can retain Canvas/inventory fallback [0.14ms]\n(pass) invalid dependencies and unbounded deadlines fail explicitly [0.10ms]\n(skip) real Chromium renderer, scissor/resize and before/after-init failure smoke\n\n1 tests skipped:\n(skip) real Chromium renderer, scissor/resize and before/after-init failure smoke\n\n 26 pass\n 1 skip\n 0 fail\n 131 expect() calls\nRan 27 tests across 3 files. [58.00ms]\n"
+        },
+        {
+          "attempt": 1,
+          "phase": "integrated",
+          "argv": [
+            "bunx",
+            "playwright",
+            "test",
+            "--config",
+            "test/pipeline-device-loss.browser.config.js"
+          ],
+          "exitCode": 0,
+          "stdout": "\nRunning 2 tests using 1 worker\n\n  \u2713  1 test/e2e/pipeline-device-loss.e2e.js:8:40 \u203a webgpu: actual initialized loss retains recorded month, run and fallback (3.4s)\n  \u2713  2 test/e2e/pipeline-device-loss.e2e.js:8:40 \u203a webgl: actual initialized loss retains recorded month, run and fallback (3.2s)\n\n  2 passed (7.0s)\n",
+          "stderr": ""
+        }
+      ],
+      "integratedCommit": "1d0a488a0ddd8936ce53294594723d2f04317bab",
+      "evidence": {
+        "reviewedBy": "continuous-coordinator",
+        "notes": "Reviewed exact two-file U18 diff. Dedicated native-overlay marker and labels.replaceChildren during failure transition only; Canvas-owned labels untouched. Strengthened real-loss regression proved both backends fail before fix with7retainedspans and pass after. Coordinator inspected actual after-fix native-loss screenshot: stale spans gone, Canvas24home delta and inventory intact. Candidate browser2pass/units26pass1skip; independently rerun via manifest.",
+        "modelChecks": "No simulation/model/recipe changes. Full selected before/after snapshots and metrics equal, seed42/month16/121frames retained; WHY/reverse15/return16 remain. Controlled native GPUDevice.destroy and trusted WebGL extension only.",
+        "screenshots": [
+          "/tmp/hbl-u18-after-fix/pipeline-device-loss.e2e.j-f28e4-rded-month-run-and-fallback/after-real-loss-canvas.png"
+        ]
+      }
+    }
+  ],
+  "events": [
+    {
+      "type": "CLAIM",
+      "id": "R15",
+      "at": "2026-11-11T15:48:49.561Z",
+      "owner": "continuous-coordinator",
+      "base": "1de9fd877631f4e094f9ab42606f79d85c6287ef",
+      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-bounded-repair/happybearlandia"
+    },
+    {
+      "type": "CLAIM",
+      "id": "R13",
+      "at": "2026-11-11T15:48:56.121Z",
+      "owner": "catalog-worker",
+      "base": "1de9fd877631f4e094f9ab42606f79d85c6287ef",
+      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-catalog-r13/happybearlandia"
+    },
+    {
+      "type": "CLAIM",
+      "id": "R14",
+      "at": "2026-11-11T15:49:11.715Z",
+      "owner": "browser-proof-r14",
+      "base": "1de9fd877631f4e094f9ab42606f79d85c6287ef",
+      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-local-play-r14/happybearlandia"
+    },
+    {
+      "type": "SUBMIT",
+      "id": "R13",
+      "at": "2026-11-11T15:50:13.148Z",
+      "commit": "67aed30c5382739f39fadf54e6faf328478a8fcd"
+    },
+    {
+      "type": "SUBMIT",
+      "id": "R15",
+      "at": "2026-11-11T15:51:12.180Z",
+      "commit": "8f20c6a53e12ff0337a33eb77c407a2af54b1d08"
+    },
+    {
+      "type": "VERIFIED",
+      "id": "R15",
+      "at": "2026-11-11T15:51:35.900Z",
+      "integratedCommit": "d548153489964c776fef34d28e2b39739c6a4bbd",
+      "reviewer": "continuous-coordinator"
+    },
+    {
+      "type": "SUBMIT",
+      "id": "R14",
+      "at": "2026-11-11T15:51:43.464Z",
+      "commit": "a1aa70d543929f2b0441671d798738a8b625dbfa"
+    },
+    {
+      "type": "REPAIR",
+      "id": "R13",
+      "at": "2026-11-11T15:51:54.867Z",
+      "reason": "candidate check failed: bun test test/pipeline-catalog-preservation.test.js",
+      "attempt": 1,
+      "commit": "67aed30c5382739f39fadf54e6faf328478a8fcd"
+    },
+    {
+      "type": "REPAIR",
+      "id": "R14",
+      "at": "2026-11-11T15:52:52.539Z",
+      "reason": "candidate check failed: bunx playwright test --config test/pipeline-local-play.browser.config.js",
+      "attempt": 1,
+      "commit": "a1aa70d543929f2b0441671d798738a8b625dbfa"
+    },
+    {
+      "type": "CLAIM",
+      "id": "U01",
+      "at": "2026-11-11T15:53:17.538Z",
+      "owner": "native-reliability-worker",
+      "base": "d548153489964c776fef34d28e2b39739c6a4bbd",
+      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-device-loss/happybearlandia"
+    },
+    {
+      "type": "SUBMIT",
+      "id": "U01",
+      "at": "2026-11-11T15:54:49.424Z",
+      "commit": "fe0f08d3b2717f5f6758b68ed8c9c1a0d99cb572"
+    },
+    {
+      "type": "VERIFIED",
+      "id": "U01",
+      "at": "2026-11-11T15:55:21.221Z",
+      "integratedCommit": "345d4c730ba5926fd526b48eda6790914e3f25cf",
+      "reviewer": "continuous-coordinator"
+    },
+    {
+      "type": "CLAIM",
+      "id": "U18",
+      "at": "2026-11-11T15:56:13.144Z",
+      "owner": "continuous-coordinator",
+      "base": "9d07bae751fab9bd522cce9774e464a3c2f60e26",
+      "worktree": "/Users/wahabma/.codex/worktrees/device-loss-label-cleanup/happybearlandia"
+    },
+    {
+      "type": "SUBMIT",
+      "id": "U18",
+      "at": "2026-11-11T15:58:27.299Z",
+      "commit": "3ebc17b45641c4e50c4805a233adbfe627ec1dc5"
+    },
+    {
+      "type": "VERIFIED",
+      "id": "U18",
+      "at": "2026-11-11T15:58:44.746Z",
+      "integratedCommit": "1d0a488a0ddd8936ce53294594723d2f04317bab",
+      "reviewer": "continuous-coordinator"
+    },
+    {
+      "type": "CLAIM",
+      "id": "U02",
+      "at": "2026-11-11T15:59:40.033Z",
+      "owner": "native-reliability-worker",
+      "base": "1d0a488a0ddd8936ce53294594723d2f04317bab",
+      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-resize-proof/happybearlandia"
+    },
+    {
+      "type": "SUBMIT",
+      "id": "U02",
+      "at": "2026-11-11T16:02:01.441Z",
+      "commit": "e30a1c0f6bd8a2092a750e49704e343d7bb99fb7"
+    },
+    {
+      "type": "REPAIR",
+      "id": "U02",
+      "at": "2026-11-11T16:03:07.879Z",
+      "reason": "candidate check failed: bunx playwright test --config test/pipeline-resize.browser.config.js",
+      "attempt": 1,
+      "commit": "e30a1c0f6bd8a2092a750e49704e343d7bb99fb7"
+    },
+    {
+      "type": "RESUME_REPAIR",
+      "id": "U02",
+      "at": "2026-11-11T16:03:36.018Z",
+      "owner": "native-reliability-worker",
+      "reason": "Fit focused Canvas labels within each viewport and above footer; preserve failed resize evidence",
+      "failedCommit": "e30a1c0f6bd8a2092a750e49704e343d7bb99fb7",
+      "attempts": 1
+    },
+    {
+      "type": "RECONCILE_REPAIR_SCOPE",
+      "id": "U02",
+      "at": "2026-11-11T16:03:57.784Z",
+      "reviewedBy": "continuous-coordinator",
+      "reason": "Committed bounded Canvas label repair authorization; before any worker repair writes. Same owner/base/failed SHA and attempt1 retained. Repair resume was already recorded; no additional retry authorized.",
+      "previousFiles": [
+        "test/e2e/pipeline-resize.e2e.js",
+        "test/pipeline-resize.browser.config.js"
+      ],
+      "files": [
+        "test/e2e/pipeline-resize.e2e.js",
+        "test/pipeline-resize.browser.config.js",
+        "world/future-machine/scene/canvas-stage.js"
+      ]
+    },
+    {
+      "type": "SUBMIT",
+      "id": "U02",
+      "at": "2026-11-11T16:06:06.318Z",
+      "commit": "a6c84fa89493549a5ed90bcfae359adcdff09966"
+    },
+    {
+      "type": "VERIFIED",
+      "id": "U02",
+      "at": "2026-11-11T16:06:37.355Z",
+      "integratedCommit": "2c9d973234ea73546d5597b068cda538a5136a2f",
+      "reviewer": "continuous-coordinator"
+    },
+    {
+      "type": "CLAIM",
+      "id": "U03",
+      "at": "2026-11-11T16:07:48.347Z",
+      "owner": "browser-resources-u03",
+      "base": "2c9d973234ea73546d5597b068cda538a5136a2f",
+      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-resources-u03/happybearlandia"
+    }
+  ],
+  "latencies": {
+    "R15": {
+      "firstSubmitToVerifiedSeconds": 23.72,
+      "latestSubmitToVerifiedSeconds": 23.72
+    },
+    "U01": {
+      "firstSubmitToVerifiedSeconds": 31.797,
+      "latestSubmitToVerifiedSeconds": 31.797
+    },
+    "U18": {
+      "firstSubmitToVerifiedSeconds": 17.447,
+      "latestSubmitToVerifiedSeconds": 17.447
+    },
+    "U02": {
+      "firstSubmitToVerifiedSeconds": 275.914,
+      "latestSubmitToVerifiedSeconds": 31.037
+    }
+  },
+  "artifacts": [
+    {
+      "path": "/tmp/hbl-release-candidate-canonical/.last-run.json",
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-canonical/two-futures-compatibility.-02733-xplicit-in-actual-worker-UI/reality-nonpassing-explained.png",
+      "bytes": 813184,
+      "sha256": "f3245574f449f23ac6e2c13278d64f207148a8cc00578043148c395482e4a71c",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-canonical/two-futures-compatibility.-85822-acts-and-provenance-resolve/world-canvas-activity.png",
+      "bytes": 225950,
+      "sha256": "ecb587d9a6fd86301aaaf0d55934fa88ad0110b6d52f5985ededb1719e1dcc0f",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-canonical/two-futures-compatibility.-85822-acts-and-provenance-resolve/world-canvas-real-week.png",
+      "bytes": 180664,
+      "sha256": "5c4346f6d2fbbc1e4fdb47314cc23971624e0faec4a1836b88ca5ae70ce76359",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-canonical/two-futures-compatibility.-de69e-cs-and-WHY-without-overflow/mobile-320-canvas-why.png",
+      "bytes": 792666,
+      "sha256": "32279a761bbec4a52263b3c5d260bfd200b8320699aedbbc8f6ac3b3c11ab2c1",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-canonical/two-futures-sprint.e2e.js--0b5a2-rgence-hold-respects-reduce/cinematic-month-16.json",
+      "bytes": 352641,
+      "sha256": "dadb8b343a7e0bc77202ad5387fcfa384c40ecca1b67eb4b8b53452dd79b8972",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-canonical/two-futures-sprint.e2e.js--0b5a2-rgence-hold-respects-reduce/cinematic-month-16.png",
+      "bytes": 1027928,
+      "sha256": "e051c53e11e3a1321f6821507903b55fceccf451536412dd9bf3a533d0fc6cfd",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-canonical/two-futures-sprint.e2e.js--16be4-ired-evidence-and-selection/webgl-unavailable.json",
+      "bytes": 496543,
+      "sha256": "66d3f70a0a9c47fbf5c77fd967b926acc606480f2019c240fdf63fa7d121662a",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-canonical/two-futures-sprint.e2e.js--16be4-ired-evidence-and-selection/webgl-unavailable.png",
+      "bytes": 1015579,
+      "sha256": "94afe1adcbe0308b8ebc7dcdf57e21837aba3fdf52b400b27fadf357f622d376",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-canonical/two-futures-sprint.e2e.js--2e7e6-hold-respects-no-preference/cinematic-month-16.json",
+      "bytes": 352641,
+      "sha256": "90aebfab95d3800ae118b25c29e051f2668e4a670e86ea38d790f0e6d45d74fd",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-canonical/two-futures-sprint.e2e.js--2e7e6-hold-respects-no-preference/cinematic-month-16.png",
+      "bytes": 1028142,
+      "sha256": "4fe81b8d71cbd94bc1a5208f67fd0786a038598d2789e57cd109bb5b56148a38",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-canonical/two-futures-sprint.e2e.js--3acb9-ference-only-and-metric-WHY/interactive-why-month-120.json",
+      "bytes": 497973,
+      "sha256": "d5e807c1c74efd02f469246c61becb49308eccf357eff4ebad2e6475e3109729",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-canonical/two-futures-sprint.e2e.js--3acb9-ference-only-and-metric-WHY/interactive-why-month-120.png",
+      "bytes": 1129834,
+      "sha256": "4fdfc556e137b896294b5a0b0e832c42363093a274d907d228ccd2840c76349f",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-canonical/two-futures-sprint.e2e.js--f2369-e-and-deterministic-refresh/after-month-120.json",
+      "bytes": 498019,
+      "sha256": "5b643f46ac8cc105abb02f9315c43f1f4cffdac37a96abfc5debb58fec01ab69",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-canonical/two-futures-sprint.e2e.js--f2369-e-and-deterministic-refresh/after-month-120.png",
+      "bytes": 1071366,
+      "sha256": "125983b4c26906651616101161b7e7d19fc5492ffbf3eb284ff0af23d4d38e13",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-canonical/two-futures-sprint.e2e.js--f2369-e-and-deterministic-refresh/before-month-0.json",
+      "bytes": 163503,
+      "sha256": "5e6fbbf332764dadafdcc556f5ec4ed3b8453e4bdc102c988ed828b6433e0782",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-canonical/two-futures-sprint.e2e.js--f2369-e-and-deterministic-refresh/before-month-0.png",
+      "bytes": 1035043,
+      "sha256": "3617f03b25dadce54f43317882cf3b8b65e589754f666f1fbf0ff07ee8bab2c8",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-responsive/.last-run.json",
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-responsive/approved-demo-responsive.e-6c630-ced-motion-journey-at-390px/390-matched-0.json",
+      "bytes": 4247,
+      "sha256": "0eaef2778c7bad170504c15ad85be3a24fa5b49cde2d0b9c3a867cc28476be08",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-responsive/approved-demo-responsive.e-6c630-ced-motion-journey-at-390px/390-matched-0.png",
+      "bytes": 815249,
+      "sha256": "089a5a716ed01df6fa37b85c9cb9251107f4bbdc4e5871aca3d93e1d530a92aa",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-responsive/approved-demo-responsive.e-6c630-ced-motion-journey-at-390px/390-month-16-why.json",
+      "bytes": 146120,
+      "sha256": "55eaa228a943378e19148f91213b5ff87dd071ab81abb993bfbfdc5652ba5421",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-responsive/approved-demo-responsive.e-6c630-ced-motion-journey-at-390px/390-month-16-why.png",
+      "bytes": 840676,
+      "sha256": "c37216ca215de7fd4a6ef2db308a3dcb796e2434b83e93583e5691006a58d983",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-responsive/approved-demo-responsive.e-6c630-ced-motion-journey-at-390px/390-reverse-0.json",
+      "bytes": 4247,
+      "sha256": "0eaef2778c7bad170504c15ad85be3a24fa5b49cde2d0b9c3a867cc28476be08",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-responsive/approved-demo-responsive.e-6c630-ced-motion-journey-at-390px/390-reverse-0.png",
+      "bytes": 725199,
+      "sha256": "6ce6ca42818b5365af7423128443307382afc976cd9a0e0a38b7b9e9096e1791",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-responsive/approved-demo-responsive.e-94179-ced-motion-journey-at-320px/320-matched-0.json",
+      "bytes": 4262,
+      "sha256": "c989beec68cbd06e27a870831c00a2b3b36149223aafe50ab793bc01112ca931",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-responsive/approved-demo-responsive.e-94179-ced-motion-journey-at-320px/320-matched-0.png",
+      "bytes": 830640,
+      "sha256": "567ffa0db9bce95779d066f1af2389d00dec7024559d8f22f6f7ed360cc7f244",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-responsive/approved-demo-responsive.e-94179-ced-motion-journey-at-320px/320-month-16-why.json",
+      "bytes": 146135,
+      "sha256": "944e783abddcef70ad085c894e6292a494892ae6ebdfee5083f150a42da32028",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-responsive/approved-demo-responsive.e-94179-ced-motion-journey-at-320px/320-month-16-why.png",
+      "bytes": 828121,
+      "sha256": "bf5aae058e45af26b3f21ca7db02fcc83c63a9ac72b230289471a435e72f1e76",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-responsive/approved-demo-responsive.e-94179-ced-motion-journey-at-320px/320-reverse-0.json",
+      "bytes": 4262,
+      "sha256": "c989beec68cbd06e27a870831c00a2b3b36149223aafe50ab793bc01112ca931",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-responsive/approved-demo-responsive.e-94179-ced-motion-journey-at-320px/320-reverse-0.png",
+      "bytes": 685295,
+      "sha256": "acfa7353553f135956381de92e9b407ab6fd8aebcec42dfe97b9f417650b6df3",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-responsive/approved-demo-responsive.e-fc771-ed-motion-journey-at-1440px/1440-matched-0.json",
+      "bytes": 4262,
+      "sha256": "7f76892bf62486ee16a162d9a34da7281a3070166bfbe607de21316974ec34ea",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-responsive/approved-demo-responsive.e-fc771-ed-motion-journey-at-1440px/1440-matched-0.png",
+      "bytes": 1044317,
+      "sha256": "83b8b76394a48c43df6bd55fe1a4767dbfd6aae02adb26ebf1ef27b2ea04516c",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-responsive/approved-demo-responsive.e-fc771-ed-motion-journey-at-1440px/1440-month-16-why.json",
+      "bytes": 146135,
+      "sha256": "7cd2e0baad610d8faf6e3bd5c0918051201a899d4979c5348eae49d635a74e74",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-responsive/approved-demo-responsive.e-fc771-ed-motion-journey-at-1440px/1440-month-16-why.png",
+      "bytes": 1116465,
+      "sha256": "42229dd57881d74d8735c528769d656078804ca0180bf134f4f2c622797ea01c",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-responsive/approved-demo-responsive.e-fc771-ed-motion-journey-at-1440px/1440-reverse-0.json",
+      "bytes": 4262,
+      "sha256": "7f76892bf62486ee16a162d9a34da7281a3070166bfbe607de21316974ec34ea",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-responsive/approved-demo-responsive.e-fc771-ed-motion-journey-at-1440px/1440-reverse-0.png",
+      "bytes": 928806,
+      "sha256": "88b7adffb3b86ceffd3f77f2f3b161cd5afcf1308d4fd9fed3fb097a962bc027",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-recording/.last-run.json",
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-recording/artifact-audit.json",
+      "bytes": 7750,
+      "sha256": "b6c6536c58c859d7e0c286d9bf1bec4da5dcc20a3248e60882f013bacac152ba",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-recording/two-futures-sprint.e2e.js--d6b33--second-one-click-Play-Demo/demo-complete.json",
+      "bytes": 497931,
+      "sha256": "4e05bb82ee4cb69e1fca66b5bcaea0b1d42137de4f680a28f1d5baa5fe668c40",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-recording/two-futures-sprint.e2e.js--d6b33--second-one-click-Play-Demo/demo-complete.png",
+      "bytes": 1083444,
+      "sha256": "b544fddd2a3323dc79edc84699881bf8a54f6c8317008943944a378ced29fc9e",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-recording/two-futures-sprint.e2e.js--d6b33--second-one-click-Play-Demo/demo-start.json",
+      "bytes": 163461,
+      "sha256": "a150218c8ef4fd0e2716dbf39cdfed4341829e16cafe9dd92afa099afa470990",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-recording/two-futures-sprint.e2e.js--d6b33--second-one-click-Play-Demo/demo-start.png",
+      "bytes": 1015877,
+      "sha256": "5edac462a75cbf088bfc118781d7bc0a08520b522e90a216013ce659afd45b25",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-recording/two-futures-sprint.e2e.js--d6b33--second-one-click-Play-Demo/demo-timing.json",
+      "bytes": 386,
+      "sha256": "2c4fbeef997fdea55c2a514b7a9d38ed8334f71c795b1d30f74cc392783e824b",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-recording/two-futures-sprint.e2e.js--d6b33--second-one-click-Play-Demo/demo-why-completion-event.png",
+      "bytes": 187034,
+      "sha256": "6dfe450bec9f0139af0d74e354076387a57975393b616964662639cc9b879c11",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-recording/two-futures-sprint.e2e.js--d6b33--second-one-click-Play-Demo/video.webm",
+      "bytes": 4188046,
+      "sha256": "92a5a5a45ca5adab6ed1d762deb07e2107c505783317edb395269a3bb19836e4",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-loss/.last-run.json",
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-loss/pipeline-device-loss.e2e.j-a28ec-rded-month-run-and-fallback/actual-device-loss-evidence.json",
+      "bytes": 540710,
+      "sha256": "5d6146c24d6e064356dc52283831e14744733738abe6aa7a2603be35dab86cbb",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-loss/pipeline-device-loss.e2e.j-a28ec-rded-month-run-and-fallback/after-real-loss-canvas.png",
+      "bytes": 62951,
+      "sha256": "9f9ef0e7f3f5b1d3d44e957b26a612596ff55bc347105b318f81967001bc18e4",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-loss/pipeline-device-loss.e2e.j-a28ec-rded-month-run-and-fallback/before-loss.png",
+      "bytes": 117049,
+      "sha256": "e3e4107da7bf4a2e1f4f596106b3b503f3d40ea342a5d679b5f43f38f0483da3",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-loss/pipeline-device-loss.e2e.j-f28e4-rded-month-run-and-fallback/actual-device-loss-evidence.json",
+      "bytes": 540691,
+      "sha256": "0e60296a3a87116e9e0be3b479009908ac611cc619cc910e377572aed016e573",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-loss/pipeline-device-loss.e2e.j-f28e4-rded-month-run-and-fallback/after-real-loss-canvas.png",
+      "bytes": 62951,
+      "sha256": "9f9ef0e7f3f5b1d3d44e957b26a612596ff55bc347105b318f81967001bc18e4",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-release-candidate-loss/pipeline-device-loss.e2e.j-f28e4-rded-month-run-and-fallback/before-loss.png",
+      "bytes": 114563,
+      "sha256": "e0f95f3f58d81d1941d528c8cf6f9d0b127ccea0eb1bc78dd54e1414709a09fa",
+      "class": "accepted application-source evidence"
+    },
+    {
+      "path": "/tmp/hbl-u18-before-fix/.last-run.json",
+      "bytes": 145,
+      "sha256": "581403cab9d2f974b6786d85c4c61e83f83e3a2266fd61aff59454828b18fc94",
+      "class": "retained pre-fix negative evidence"
+    },
+    {
+      "path": "/tmp/hbl-u18-before-fix/pipeline-device-loss.e2e.j-a28ec-rded-month-run-and-fallback/actual-device-loss-evidence.json",
+      "bytes": 540664,
+      "sha256": "3bb6a8c98dff17b073fae7ac0be2e27b5ceea8e2b1d81057040cc4af57c710c1",
+      "class": "retained pre-fix negative evidence"
+    },
+    {
+      "path": "/tmp/hbl-u18-before-fix/pipeline-device-loss.e2e.j-a28ec-rded-month-run-and-fallback/before-loss.png",
+      "bytes": 117049,
+      "sha256": "e3e4107da7bf4a2e1f4f596106b3b503f3d40ea342a5d679b5f43f38f0483da3",
+      "class": "retained pre-fix negative evidence"
+    },
+    {
+      "path": "/tmp/hbl-u18-before-fix/pipeline-device-loss.e2e.j-a28ec-rded-month-run-and-fallback/test-failed-1.png",
+      "bytes": 206046,
+      "sha256": "3d29552c5be1a6ae557a2bb676e856892f8e48bc0f15b16939c24e7b4b15f150",
+      "class": "retained pre-fix negative evidence"
+    },
+    {
+      "path": "/tmp/hbl-u18-before-fix/pipeline-device-loss.e2e.j-a28ec-rded-month-run-and-fallback/video.webm",
+      "bytes": 781298,
+      "sha256": "91a542808ad03d2817e78df3c796fc6e19db36a381bc35efaceaf5996cbb9714",
+      "class": "retained pre-fix negative evidence"
+    },
+    {
+      "path": "/tmp/hbl-u18-before-fix/pipeline-device-loss.e2e.j-f28e4-rded-month-run-and-fallback/actual-device-loss-evidence.json",
+      "bytes": 540645,
+      "sha256": "bb68d7d1c515242971ffb69a11502a30b847703e769148a92822751a27a1768c",
+      "class": "retained pre-fix negative evidence"
+    },
+    {
+      "path": "/tmp/hbl-u18-before-fix/pipeline-device-loss.e2e.j-f28e4-rded-month-run-and-fallback/before-loss.png",
+      "bytes": 114563,
+      "sha256": "e0f95f3f58d81d1941d528c8cf6f9d0b127ccea0eb1bc78dd54e1414709a09fa",
+      "class": "retained pre-fix negative evidence"
+    },
+    {
+      "path": "/tmp/hbl-u18-before-fix/pipeline-device-loss.e2e.j-f28e4-rded-month-run-and-fallback/test-failed-1.png",
+      "bytes": 205194,
+      "sha256": "fa9d9835912120b32535f5d1685a36a103aaa666de9b6ba5234c89ea7ceb751f",
+      "class": "retained pre-fix negative evidence"
+    },
+    {
+      "path": "/tmp/hbl-u18-before-fix/pipeline-device-loss.e2e.j-f28e4-rded-month-run-and-fallback/video.webm",
+      "bytes": 761023,
+      "sha256": "9fe75877c7a4c5294956477c834d5e77c333e2567dec2c2fae6e5b27ba508204",
+      "class": "retained pre-fix negative evidence"
+    },
+    {
+      "path": "/private/tmp/hbl-pipeline-resize-repair-final/.last-run.json",
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "class": "candidate repair evidence"
+    },
+    {
+      "path": "/private/tmp/hbl-pipeline-resize-repair-final/pipeline-resize.e2e.js-can-81268-its-desktop-390-320-desktop/0-1440px.json",
+      "bytes": 251178,
+      "sha256": "112275a23811d33723b9e24c99c9e545d1222bfd4e7aeffddf2dcb8406a73015",
+      "class": "candidate repair evidence"
+    },
+    {
+      "path": "/private/tmp/hbl-pipeline-resize-repair-final/pipeline-resize.e2e.js-can-81268-its-desktop-390-320-desktop/0-1440px.png",
+      "bytes": 59810,
+      "sha256": "a63d2b2df7aa2d85949e652d692ec1e7c193a42ad0650b9aabafbf62e3980556",
+      "class": "candidate repair evidence"
+    },
+    {
+      "path": "/private/tmp/hbl-pipeline-resize-repair-final/pipeline-resize.e2e.js-can-81268-its-desktop-390-320-desktop/1-390px.json",
+      "bytes": 251144,
+      "sha256": "242c669acf67fa6b216c5c9d014fc42cfa8adf7a02a194130040e0da9bbba4cd",
+      "class": "candidate repair evidence"
+    },
+    {
+      "path": "/private/tmp/hbl-pipeline-resize-repair-final/pipeline-resize.e2e.js-can-81268-its-desktop-390-320-desktop/1-390px.png",
+      "bytes": 39164,
+      "sha256": "abfec8d4c6ae6cee25210ea14360669afa2f5da155fe5fef542f8f88d282dd2a",
+      "class": "candidate repair evidence"
+    },
+    {
+      "path": "/private/tmp/hbl-pipeline-resize-repair-final/pipeline-resize.e2e.js-can-81268-its-desktop-390-320-desktop/2-320px.json",
+      "bytes": 251133,
+      "sha256": "7f9628b5b6f490334753ff1ddcc75fa2e696ea63dccfa8fbc6dfd0ee1942c6b7",
+      "class": "candidate repair evidence"
+    },
+    {
+      "path": "/private/tmp/hbl-pipeline-resize-repair-final/pipeline-resize.e2e.js-can-81268-its-desktop-390-320-desktop/2-320px.png",
+      "bytes": 37807,
+      "sha256": "ab93f7ea0f7b9a17a7738c52cdcc655b51f592989f20b1092c49e48bc2b89af5",
+      "class": "candidate repair evidence"
+    },
+    {
+      "path": "/private/tmp/hbl-pipeline-resize-repair-final/pipeline-resize.e2e.js-can-81268-its-desktop-390-320-desktop/3-1440px.json",
+      "bytes": 251178,
+      "sha256": "112275a23811d33723b9e24c99c9e545d1222bfd4e7aeffddf2dcb8406a73015",
+      "class": "candidate repair evidence"
+    },
+    {
+      "path": "/private/tmp/hbl-pipeline-resize-repair-final/pipeline-resize.e2e.js-can-81268-its-desktop-390-320-desktop/3-1440px.png",
+      "bytes": 59285,
+      "sha256": "953754bab0f5a329f8166a79bc85a2bd28a1eb79ae7a6b04933e6996d12f35a1",
+      "class": "candidate repair evidence"
+    },
+    {
+      "path": "/private/tmp/hbl-pipeline-resize-repair-final/pipeline-resize.e2e.js-can-81268-its-desktop-390-320-desktop/offscreen-pan-no-edge-label.png",
+      "bytes": 51575,
+      "sha256": "16a371334d1b81a405ab17111cf326429860997854dcdc54665058adfd3c2f19",
+      "class": "candidate repair evidence"
+    },
+    {
+      "path": "/private/tmp/hbl-pipeline-resize-repair-final/pipeline-resize.e2e.js-can-81268-its-desktop-390-320-desktop/resize-evidence.json",
+      "bytes": 1419003,
+      "sha256": "81c70d6b730f80150b4e267f4378e90c99f41355cbacccf1128644941fa98afd",
+      "class": "candidate repair evidence"
+    },
+    {
+      "path": "/private/tmp/hbl-pipeline-resize-repair-final/pipeline-resize.e2e.js-web-3553b-its-desktop-390-320-desktop/0-1440px.json",
+      "bytes": 252923,
+      "sha256": "820af045449e1c777fc1934d57b484804b08187c68535d8520f69fc29c949afc",
+      "class": "candidate repair evidence"
+    },
+    {
+      "path": "/private/tmp/hbl-pipeline-resize-repair-final/pipeline-resize.e2e.js-web-3553b-its-desktop-390-320-desktop/0-1440px.png",
+      "bytes": 116722,
+      "sha256": "8e694d925d4e77c601b9ed1e25f5d2cfba942ab031fa25a4b52765073a7fb43f",
+      "class": "candidate repair evidence"
+    },
+    {
+      "path": "/private/tmp/hbl-pipeline-resize-repair-final/pipeline-resize.e2e.js-web-3553b-its-desktop-390-320-desktop/1-390px.json",
+      "bytes": 252914,
+      "sha256": "fc24fb7056aab35cdcc8d5a092a710da81223f7127320d8ef64e6918625c2468",
+      "class": "candidate repair evidence"
+    },
+    {
+      "path": "/private/tmp/hbl-pipeline-resize-repair-final/pipeline-resize.e2e.js-web-3553b-its-desktop-390-320-desktop/1-390px.png",
+      "bytes": 42735,
+      "sha256": "065baac78a63c9a62046719edb213a350ac47ee5611a20007f42f68b6d427a5f",
+      "class": "candidate repair evidence"
+    },
+    {
+      "path": "/private/tmp/hbl-pipeline-resize-repair-final/pipeline-resize.e2e.js-web-3553b-its-desktop-390-320-desktop/2-320px.json",
+      "bytes": 252895,
+      "sha256": "5b9e4c616040a1818b12b3b09a21dcd24621f5de281fe9721a53dc5c940cedbb",
+      "class": "candidate repair evidence"
+    },
+    {
+      "path": "/private/tmp/hbl-pipeline-resize-repair-final/pipeline-resize.e2e.js-web-3553b-its-desktop-390-320-desktop/2-320px.png",
+      "bytes": 39368,
+      "sha256": "1ce07f10561e2f3c2fa596c9f1236b7d4707629506c13cca1df0c12a439c00c9",
+      "class": "candidate repair evidence"
+    },
+    {
+      "path": "/private/tmp/hbl-pipeline-resize-repair-final/pipeline-resize.e2e.js-web-3553b-its-desktop-390-320-desktop/3-1440px.json",
+      "bytes": 252923,
+      "sha256": "820af045449e1c777fc1934d57b484804b08187c68535d8520f69fc29c949afc",
+      "class": "candidate repair evidence"
+    },
+    {
+      "path": "/private/tmp/hbl-pipeline-resize-repair-final/pipeline-resize.e2e.js-web-3553b-its-desktop-390-320-desktop/3-1440px.png",
+      "bytes": 116280,
+      "sha256": "64d3b4e4128486306d2a19da09099de05176d904efc4f1ab1c5924e109b4b91c",
+      "class": "candidate repair evidence"
+    },
+    {
+      "path": "/private/tmp/hbl-pipeline-resize-repair-final/pipeline-resize.e2e.js-web-3553b-its-desktop-390-320-desktop/resize-evidence.json",
+      "bytes": 1429298,
+      "sha256": "7e958e095964052991bffd033b31e85b546393a4d83111765b11a6f65fe61eef",
+      "class": "candidate repair evidence"
+    }
+  ],
+  "workerUtilization": {
+    "confirmedRunning": [
+      "U03"
+    ],
+    "capacity": 3,
+    "peakConfirmedConcurrent": 3,
+    "ready": [
+      "U05",
+      "U08"
+    ],
+    "retainedRepairs": [
+      "R13",
+      "R14"
+    ],
+    "externalReview": [
+      {
+        "id": "NB-district-candidate",
+        "owner": "backlog-triage",
+        "commit": "c4cbfa22dfb1d034d3eee072d42058552e89a8cc",
+        "status": "REVIEW",
+        "external": true
+      },
+      {
+        "id": "NB-grid-fixture",
+        "owner": "backlog-triage",
+        "commit": "c789517f12fc4ab8177b0d4865fbc3ea53f49857",
+        "status": "REVIEW",
+        "external": true
+      }
+    ]
+  },
+  "limitations": [
+    "Local artifacts are not bundled; hash checks do not replace visual review.",
+    "R13 and R14 failures remain unresolved and were not integrated.",
+    "Safari/Firefox/physical phones and empirical calibration remain unverified.",
+    "Current pipeline is on-demand coordination, not an autonomous daemon.",
+    "Final documentation commits may follow; application source is pinned above."
+  ],
+  "retainedFailedChecks": [
+    "R13:2pass3fail, existing main preservation omissions",
+    "R14:8unitpass,2browserpass1fail; required core module abort prevents startup/disclosure",
+    "U18 strengthened negative regression:both real-loss backends retain7labels before fix, resolved",
+    "U02 attempt1Canvas390/320 clipping, resolved on attempt2",
+    "Stale dispatcher batch expectation, corrected; clean combined rerun139pass",
+    "Unpaused full-history/screenshot IO consumed cinematic hold before Pause, corrected ordering; final canonical13pass"
+  ],
+  "sourceFiles": [
+    {
+      "path": "world/future-machine/scene/index.js",
+      "sha256": "2a54ccab3010d755d3fd43d8353e3cd91b7d1d0ee5768f52ccbffc0b9ec83a09"
+    },
+    {
+      "path": "world/future-machine/scene/canvas-stage.js",
+      "sha256": "8e8d1bbf1ee4188c8f035e3a8706ba89db11386f7400ee882b5044b71a1a4c97"
+    },
+    {
+      "path": "world/future-machine/scene/renderer-backend.js",
+      "sha256": "06701ff79293bc7fdfcc11af8fac132e388d1acf9dda512b5637208cfc8c9ee4"
+    },
+    {
+      "path": "world/future-machine/contracts.js",
+      "sha256": "e59a52be8e3152c10c7b49f238bf5bebd41bac653431c7d9d6195fb696726a40"
+    },
+    {
+      "path": "world/future-machine/data/index.js",
+      "sha256": "1122cf98a79decdf889595db0c73ebbab3dcefe69f6c3c49b620f2d34789ada7"
+    },
+    {
+      "path": "world/future-machine/diff/index.js",
+      "sha256": "7e87a2a2417bec7a55f71d5c20969dc7c2c06d647cfdc88515596ddd76773031"
+    },
+    {
+      "path": "world/city/systems.js",
+      "sha256": "0ef444f19f3f3303482c97099f7e1e3f3f0b525a16d75b511c17b0947f10909c"
+    }
+  ]
+}

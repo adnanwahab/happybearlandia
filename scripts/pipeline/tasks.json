@@ -53,7 +53,7 @@
       ]
     },
     "U02": {
-      "kind": "verification",
+      "kind": "feature",
       "dependencies": [
         "R01"
       ],
@@ -65,7 +65,7 @@
       "interfaces": [
         "canvas-label-layout"
       ],
-      "userFacing": false,
+      "userFacing": true,
       "tests": [
         [
           "bun",

@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "auditedBaseline": "1de9fd8",
   "workingBranch": "sprint/one-city-two-futures-20261111",
-  "status": "R15_VERIFIED_R13_R14_REPAIR_U01_RUNNING",
+  "status": "INTEGRATED_SLICE_U03_RUNNING_R13_R14_RETAINED",
   "maxConcurrentWorkers": 3,
-  "integrationDecision": "Retain flagship reliability freeze; NB candidates remain REVIEW with separate triage ownership. No release merge.",
+  "integrationDecision": "Accept R15, U01, U18 and bounded U02 repair; retain failed R13/R14; NB candidates remain REVIEW outside frozen flagship scope.",
   "prerequisites": [
     "Use the clean sprint integration checkout for durable claims; retain audit documentation in the detached audit worktree.",
     "Re-read live claims and candidate queue under the shared pipeline lock; do not overwrite assignments.",
@@ -41,7 +41,8 @@
         "Coordinator reviews diff, tests candidate, integrates locally, retests combined tree."
       ],
       "owner": "catalog-worker",
-      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-catalog-r13/happybearlandia"
+      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-catalog-r13/happybearlandia",
+      "integratedCommit": null
     },
     {
       "id": "R14",
@@ -82,7 +83,8 @@
         "Coordinator reviews diff, tests candidate, integrates locally, retests combined tree."
       ],
       "owner": "browser-proof-r14",
-      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-local-play-r14/happybearlandia"
+      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-local-play-r14/happybearlandia",
+      "integratedCommit": null
     },
     {
       "id": "R15",
@@ -118,12 +120,11 @@
       ],
       "owner": "continuous-coordinator",
       "worktree": "/Users/wahabma/.codex/worktrees/pipeline-bounded-repair/happybearlandia",
-      "execution": "Internal bounded_repair agent launched after durable claim"
+      "execution": "Internal bounded_repair agent launched after durable claim",
+      "integratedCommit": "d548153489964c776fef34d28e2b39739c6a4bbd"
     }
   ],
   "remainingReady": [
-    "U02",
-    "U03",
     "U05",
     "U08"
   ],
@@ -139,14 +140,59 @@
       "status": "REVIEW"
     }
   ],
-  "acceptedBaseline": "d548153489964c776fef34d28e2b39739c6a4bbd",
+  "acceptedBaseline": "2c9d973234ea73546d5597b068cda538a5136a2f",
   "nextActive": {
-    "id": "U01",
+    "id": "U03",
     "status": "RUNNING",
-    "worktree": "/Users/wahabma/.codex/worktrees/pipeline-device-loss/happybearlandia",
+    "owner": "browser-resources-u03",
+    "worktree": "/Users/wahabma/.codex/worktrees/pipeline-resources-u03/happybearlandia",
+    "base": "2c9d973234ea73546d5597b068cda538a5136a2f",
     "files": [
-      "test/e2e/pipeline-device-loss.e2e.js",
-      "test/pipeline-device-loss.browser.config.js"
-    ]
-  }
+      "test/e2e/pipeline-resources.e2e.js",
+      "test/pipeline-resources.browser.config.js"
+    ],
+    "tests": [
+      [
+        "bun",
+        "test",
+        "test/future-machine-canvas.test.js"
+      ]
+    ],
+    "browserTests": [
+      [
+        "bunx",
+        "playwright",
+        "test",
+        "--config",
+        "test/pipeline-resources.browser.config.js"
+      ]
+    ],
+    "browserMeasurementGate": "Wait FINAL_GATE_RELEASED until accepted-source canonical/recording checks complete, then run measurements without competing proof jobs."
+  },
+  "acceptedInThisResume": [
+    {
+      "id": "U01",
+      "status": "VERIFIED",
+      "commit": "fe0f08d3b2717f5f6758b68ed8c9c1a0d99cb572",
+      "integratedCommit": "345d4c730ba5926fd526b48eda6790914e3f25cf"
+    },
+    {
+      "id": "U02",
+      "status": "VERIFIED",
+      "commit": "a6c84fa89493549a5ed90bcfae359adcdff09966",
+      "integratedCommit": "2c9d973234ea73546d5597b068cda538a5136a2f"
+    },
+    {
+      "id": "R15",
+      "status": "VERIFIED",
+      "commit": "8f20c6a53e12ff0337a33eb77c407a2af54b1d08",
+      "integratedCommit": "d548153489964c776fef34d28e2b39739c6a4bbd"
+    },
+    {
+      "id": "U18",
+      "status": "VERIFIED",
+      "commit": "3ebc17b45641c4e50c4805a233adbfe627ec1dc5",
+      "integratedCommit": "1d0a488a0ddd8936ce53294594723d2f04317bab"
+    }
+  ]
 }
