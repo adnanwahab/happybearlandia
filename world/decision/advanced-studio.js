@@ -115,7 +115,7 @@ export function mountAdvancedStudio(container, { getInput, getResults, getSelect
     for (const row of comparisons) { const tr = doc.createElement('tr'); for (const value of [`${row.label} (${row.unit})`, format(row.value), format(row.median), `${row.delta > 0 ? '+' : ''}${format(row.delta)}`]) { const td = doc.createElement('td'); td.textContent = value; tr.append(td); } table.append(tr); } box.append(table);
   }
   function update(next = {}) {
-    if (destroyed) return; context = next;
+    if (destroyed) return; context = next; find('[data-comparison-receipt]')?.remove();
     announce(next.stale ? 'Inputs changed. Analysis below describes the stored experiment; approve and run a revision to update results.' : next.busy ? 'Experiment running. Partial results are provisional; analysis updates as actual futures arrive.' : next.readOnly ? 'Read-only results. Explore and enter futures; copy the project to propose edits.' : next.results?.runs?.length ? 'Select a failure pattern, review a proposed fix, and compare the rerun with the previous cloud.' : 'Run an experiment to begin the failure → fix → compare loop.');
     intelligence.update(next); explanations.update(next); exploration.update(next); robustness.update(next); renderShortcuts(); housingComparison.update({results:currentResults(),selectedRun:currentRun()});
   }
