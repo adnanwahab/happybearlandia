@@ -24,6 +24,35 @@ class SymphonyConfigTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 run_25h.render_workflow(count)
 
+    def test_linear_render_and_state_gate(self):
+        workflow = run_25h.render_workflow(
+            20, tracker="linear", linear_project_slug="happybearlandia-b9c5a0b0c5d0")
+        self.assertIn("kind: linear", workflow)
+        self.assertIn("max_concurrent_agents: 20", workflow)
+        self.assertIn("project_slug: \"happybearlandia-b9c5a0b0c5d0\"", workflow)
+        self.assertIn("hbl-agent-ready", workflow)
+        self.assertIn("- Backlog", workflow)
+        self.assertNotIn("REPLACE_LINEAR_PROJECT_SLUG", workflow)
+        self.assertNotIn("__MAX_WORKERS__", workflow)
+
+    def test_linear_slug_required(self):
+        with self.assertRaises(ValueError):
+            run_25h.render_workflow(20, tracker="linear")
+        with self.assertRaises(ValueError):
+            run_25h.render_workflow(20, tracker="linear",
+                                    linear_project_slug="../escape")
+
+    def test_linear_dry_run_only(self):
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            self.assertEqual(0, run_25h.main([
+                "--tracker", "linear",
+                "--linear-project-slug", "happybearlandia-b9c5a0b0c5d0",
+                "--workers", "20", "--ack-scale"]))
+        self.assertIn("Tracker: linear", out.getvalue())
+        self.assertIn("max_concurrent_agents: 20", out.getvalue())
+        self.assertIn("Dry run only", out.getvalue())
+
     def test_dry_run_never_launches_agent(self):
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
