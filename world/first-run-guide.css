@@ -1,0 +1,49 @@
+/* Loaded after legacy World styles. The scene always retains visible space. */
+:root { --world-edge: 12px; --world-top: max(12px, env(safe-area-inset-top)); --world-bottom: max(12px, env(safe-area-inset-bottom)); }
+[hidden], [data-world-panel-suppressed] { display: none !important; }
+#world-quick-toolbar { position: fixed; top: var(--world-top); right: max(12px, env(safe-area-inset-right)); display: flex; gap: 6px; z-index: 88; }
+#world-quick-toolbar button, #top > summary { min-height: 44px; box-sizing: border-box; }
+#world-quick-toolbar button { background: var(--panel); padding: 8px 10px; color: var(--ink); }
+#world-quick-toolbar #activity-dashboard-button { position: static; max-width: none; font-size: 12px; border-color: var(--line); }
+#world-guide-button { font-weight: 650; }
+#top { top: var(--world-top); left: max(12px, env(safe-area-inset-left)); z-index: 87; padding: 0 10px; width: auto; min-width: 126px; max-width: calc(100vw - 24px); box-sizing: border-box; }
+#top > summary h1 { font-size: 13px; }
+#top[open] { width: min(370px, calc(100vw - 24px)); max-height: min(68dvh, calc(100dvh - 80px)); overflow: auto; padding-bottom: 12px; }
+#top[open] > summary { position: sticky; top: 0; z-index: 1; background: var(--panel); margin: 0 0 8px; }
+#top button, #top select, #top input, [data-world-panel] button, [data-world-panel] select, [data-world-panel] input { min-height: 44px; box-sizing: border-box; }
+button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+#firstRunGuide, [data-world-panel] { box-sizing: border-box; position: fixed; z-index: 125; top: auto; bottom: var(--world-bottom); right: max(12px, env(safe-area-inset-right)); left: auto; width: min(440px, calc(100vw - 24px)); max-width: calc(100vw - 24px); max-height: 52dvh; overflow: auto; overscroll-behavior: contain; scroll-padding: 12px; padding: 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); color: var(--ink); backdrop-filter: blur(8px); box-shadow: 0 8px 36px #0002; overflow-wrap: anywhere; }
+/* Strong enough to override existing focused-inspector and feature styles. */
+:root #inspect[data-world-panel], :root #inspect[data-inspector-focused][data-world-panel], :root section.living-person[data-world-panel], :root .activity-dashboard[data-world-panel], :root #cyclePanel[data-world-panel], :root #experimentPanel[data-world-panel] { top: auto; bottom: var(--world-bottom); left: auto; right: max(12px, env(safe-area-inset-right)); width: min(520px, calc(100vw - 24px)); max-height: 52dvh; transform: none; }
+.world-sheet-close { float: right; margin: 0 0 8px 10px; position: sticky; top: 0; z-index: 2; background: var(--panel); min-height: 44px; }
+#firstRunGuide h1, #firstRunGuide h2 { margin: 4px 0 8px; font-size: 21px; line-height: 1.2; }
+#firstRunGuide p { margin: 8px 0; }
+#firstRunGuide button { min-height: 44px; padding: 8px 12px; margin: 3px; max-width: 100%; white-space: normal; }
+#firstRunGuide [data-testid="quick-demo"] { background: var(--accent); color: var(--bg); font-weight: 700; }
+#firstRunGuide [role="status"] { font-size: 13px; }
+#firstRunGuide table, [data-world-panel] table { max-width: 100%; }
+#firstRunGuide code, [data-world-panel] code { overflow-wrap: anywhere; white-space: normal; }
+#demoBar { top: calc(var(--world-top) + 56px); left: 50%; right: auto; width: min(540px, calc(100vw - 24px)); min-width: 0; box-sizing: border-box; max-height: 27dvh; overflow: auto; z-index: 90; }
+#demoBar button { min-height: 44px; }
+#feed { max-height: 24dvh; }
+body[data-world-active-panel]:not([data-world-active-panel="none"]) #feed, body[data-world-active-panel]:not([data-world-active-panel="none"]) .constitution-link { display: none; }
+#loading { max-width: calc(100vw - 48px); box-sizing: border-box; }
+html.embed #world-quick-toolbar, html.embed #firstRunGuide { display: none !important; }
+@media (max-width: 640px) {
+  #top { min-width: 0; max-width: 140px; }
+  #top[open] { max-width: calc(100vw - 24px); }
+  #world-quick-toolbar { gap: 4px; }
+  #world-quick-toolbar button { font-size: 12px; padding: 7px 8px; }
+  #firstRunGuide, [data-world-panel], :root #inspect[data-world-panel], :root #inspect[data-inspector-focused][data-world-panel], :root section.living-person[data-world-panel], :root .activity-dashboard[data-world-panel], :root #cyclePanel[data-world-panel], :root #experimentPanel[data-world-panel] { left: max(8px, env(safe-area-inset-left)); right: max(8px, env(safe-area-inset-right)); bottom: max(8px, env(safe-area-inset-bottom)); width: auto; max-width: none; max-height: 52dvh; padding: 12px; }
+  #feed, .constitution-link { display: none; }
+  #world-stream-status { bottom: auto; top: calc(var(--world-top) + 52px); max-width: calc(100vw - 48px); }
+  #retry-nearby-map { bottom: auto; top: calc(var(--world-top) + 85px); }
+  .cy-big { grid-template-columns: 1fr; }
+  .cy-big b { display: inline; margin-right: 8px; }
+  .exp-seed input { min-width: 0; width: 100%; }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  #firstRunGuide, [data-world-panel], :root #inspect[data-world-panel], :root #inspect[data-inspector-focused][data-world-panel], :root section.living-person[data-world-panel], :root .activity-dashboard[data-world-panel], :root #cyclePanel[data-world-panel], :root #experimentPanel[data-world-panel] { max-height: calc(100dvh - 80px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); width: min(390px, 53vw); left: auto; }
+  #demoBar { left: 12px; transform: none; width: 40vw; max-height: calc(100dvh - 92px); }
+}
+@media (prefers-reduced-motion: reduce) { #firstRunGuide, [data-world-panel] { scroll-behavior: auto; animation: none; transition: none; } }

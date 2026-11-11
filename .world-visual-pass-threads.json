@@ -1,0 +1,37 @@
+[
+  {
+    "role": "integration",
+    "threadId": "01a1cac9-946f-7883-a03c-f2bc8ca4f124",
+    "hostId": "local"
+  },
+  {
+    "role": "layout",
+    "threadId": "01a1cac9-eff3-7061-9343-cd5137d94904",
+    "hostId": "local"
+  },
+  {
+    "role": "controller",
+    "threadId": "01a1cac9-fa50-76a3-920a-1572f29a65ca",
+    "hostId": "local"
+  },
+  {
+    "role": "feedback",
+    "threadId": "01a1caca-0979-7eb1-972d-510d2a755368",
+    "hostId": "local"
+  },
+  {
+    "role": "camera",
+    "threadId": "01a1caca-171f-76d3-94ad-1856d84a6d27",
+    "hostId": "local"
+  },
+  {
+    "role": "performance",
+    "threadId": "01a1caca-2235-7fd3-8023-de1d0054ef81",
+    "hostId": "local"
+  },
+  {
+    "role": "accessibility",
+    "threadId": "01a1caca-2e90-7f22-8aba-4a0e303c4879",
+    "hostId": "local"
+  }
+]
