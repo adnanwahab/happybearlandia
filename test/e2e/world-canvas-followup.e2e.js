@@ -18,7 +18,8 @@ for(const {gpuAbsent,renderer} of [{gpuAbsent:false,renderer:'canvas2d'},{gpuAbs
   await expect.poll(()=>page.evaluate(()=>window.hblLivingWorld?.active===true),{timeout:30000}).toBe(true);
   await expect.poll(()=>page.evaluate(()=>window.hblWorldActivity?.getSnapshot()?.mode)).toBe('living');
   await expect.poll(()=>page.evaluate(()=>window.hblWorldActivity?.getSnapshot()?.peopleCount??0),{timeout:30000}).toBeGreaterThan(0);
-  await page.locator('#top > summary').click();await page.locator('#speeds [data-s="0"]').click();await page.locator('#top > summary').click();
+  if(viewport.width===390)await assertFpsSpacing(page,testInfo,'collapsed');
+  await page.locator('#top > summary').click();if(viewport.width===390)await assertFpsSpacing(page,testInfo,'expanded');await page.locator('#speeds [data-s="0"]').click();await page.locator('#top > summary').click();
   const snapshot=await page.evaluate(()=>({activity:window.hblWorldActivity.getSnapshot(),living:window.hblLivingWorld.getSnapshot(),startup:window.hblWorldStartup}));
   expect(snapshot.living.runtime.paused).toBe(true);expect(snapshot.activity.peopleCount).toBe(snapshot.living.config.population);expect(snapshot.activity.peopleCount).toBeGreaterThan(0);expect(snapshot.activity.people.length).toBeGreaterThan(0);expect(snapshot.activity.runId).toBe(`${snapshot.living.runtime.id}:${snapshot.living.runtime.revision}`);
   const id=String(snapshot.activity.people[0].id??snapshot.activity.people[0].personId);
@@ -34,3 +35,11 @@ for(const {gpuAbsent,renderer} of [{gpuAbsent:false,renderer:'canvas2d'},{gpuAbs
   const evidencePath=testInfo.outputPath('runtime-evidence.json');await writeFile(evidencePath,JSON.stringify({gpuAbsent,renderer,viewport,evidence,errors,consoleErrors},null,2));await testInfo.attach('runtime-evidence',{path:evidencePath,contentType:'application/json'});console.log('WORLD_CANVAS_LIVING',JSON.stringify({gpuAbsent,viewport,active:evidence.active,mode:evidence.activity?.mode,population:evidence.activity?.peopleCount,seed:evidence.activity?.config?.seed,modelAuthority:evidence.model?.authority,loading:evidence.loading,errors,consoleErrors}));
  }
 });
+
+async function assertFpsSpacing(page,testInfo,state){
+ const boxes=await page.evaluate(()=>{const box=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};};return {fps:box('.world-fps-meter'),shortcuts:box('#world-quick-toolbar'),facts:box('#world-playback-facts'),stream:box('#world-stream-status'),controls:box('#top')};});
+ const a=boxes.fps;
+ for(const key of ['shortcuts','facts','stream','controls']){const b=boxes[key],overlap=Math.max(0,Math.min(a.x+a.width,b.x+b.width)-Math.max(a.x,b.x))*Math.max(0,Math.min(a.y+a.height,b.y+b.height)-Math.max(a.y,b.y));expect(overlap,`FPS overlaps ${key} with ${state} controls`).toBe(0);}
+ expect(a.y).toBeGreaterThanOrEqual(0);expect(a.x+a.width).toBeLessThanOrEqual(390);
+ await testInfo.attach(`fps-${state}-boxes`,{body:JSON.stringify(boxes,null,2),contentType:'application/json'});await page.screenshot({path:testInfo.outputPath(`fps-${state}-390.png`)});
+}
