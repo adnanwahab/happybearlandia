@@ -25,7 +25,10 @@ test('closed, sold-out and unaffordable businesses cannot make sales', () => {
     const world = setup();
     if (mode === 'closed') world.business.open = false;
     if (mode === 'sold-out') world.business.stock = 0;
-    if (mode === 'unaffordable') { world.business.price = 100; world.people.forEach(p => p.money = -10000); }
+    if (mode === 'unaffordable') {
+      world.business.price = 100;
+      for (const person of world.people) person.money = 0;
+    }
     world.step(720);
     expect(world.business.visits).toBe(0);
   }
