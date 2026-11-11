@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>HappyBearLandia world</title>
 <link rel="stylesheet" href="/world/person-needs.css" />
+<link rel="stylesheet" href="/world/first-run-guide.css" />
 <style>
   :root { --bg: #f4f1ea; --panel: rgba(255,255,255,.92); --ink: #1d1d1b; --muted: #6b6a64; --line: rgba(0,0,0,.12); --accent: #2f6fd6; }
   @media (prefers-color-scheme: dark) { :root { --bg: #15161a; --panel: rgba(24,25,30,.92); --ink: #ecebe6; --muted: #9a9993; --line: rgba(255,255,255,.14); --accent: #79a8ff; } }
@@ -168,6 +169,21 @@
     <button id="stormBtn" type="button">Storm</button>
   </div>
   <div class="row" style="margin-top:2px">
+    <button id="runCycleBtn" type="button" title="Apply the selected plan for a simulated week and compare against no plan">Run cycle</button>
+    <button id="cycleShowBtn" type="button" hidden title="Reopen the cycle results panel">Show results</button>
+    <button id="demoBtn" type="button" title="Play the full guided civic cycle tour; for the short demo use Start Here">▶ Full demo</button>
+    <span class="muted" id="cycleStatus">One week, plan vs no plan</span>
+  </div>
+  <div class="row" style="margin-top:2px">
+    <button id="runExperimentBtn" type="button">10-year longitudinal experiment</button>
+    <span class="muted" id="experimentStatus">Idle</span>
+  </div>
+  <div class="row" style="margin-top:2px">
+    <span class="exp-compare" id="experimentCompare">No completed run yet.</span>
+  </div>
+  <details id="worldAdvanced" class="world-advanced-controls">
+    <summary>Advanced settings · plan year, overlays, seeds &amp; diagnostics</summary>
+  <div class="row" style="margin-top:2px">
     <label class="muted" for="planYear">Year of plan</label>
     <input id="planYear" type="range" min="0" max="10" step="1" value="0" style="flex:1" />
     <span id="planYearN" class="muted" style="min-width:52px;text-align:right">Year 0</span>
@@ -183,19 +199,6 @@
       <option value="cycle" disabled>cycle result</option>
     </select>
     <span class="muted" id="overlayLegend"></span>
-  </div>
-  <div class="row" style="margin-top:2px">
-    <button id="runCycleBtn" type="button" title="Apply the selected plan for a simulated week and compare against no plan">Run cycle</button>
-    <button id="cycleShowBtn" type="button" hidden title="Reopen the cycle results panel">Show results</button>
-    <button id="demoBtn" type="button" title="Play three cycles hands-free on a pinned town">▶ Play demo</button>
-    <span class="muted" id="cycleStatus">One week, plan vs no plan</span>
-  </div>
-  <div class="row" style="margin-top:2px">
-    <button id="runExperimentBtn" type="button">10-year longitudinal experiment</button>
-    <span class="muted" id="experimentStatus">Idle</span>
-  </div>
-  <div class="row" style="margin-top:2px">
-    <span class="exp-compare" id="experimentCompare">No completed run yet.</span>
   </div>
   <div class="exp-seed" id="experimentSeedRow">
     <span>Seed:</span>
@@ -222,6 +225,7 @@
     <summary>Overpass endpoint errors</summary>
     <div id="netdiagErrors"></div>
   </details>
+  </details>
 </details>
 
 <div class="panel" id="feed" aria-live="polite"></div>
@@ -246,6 +250,7 @@
   </div>
 </div>
 
+<script type="module" src="/world/first-run-guide.js"></script>
 <script type="module" src="/world/render.js"></script>
 <script type="module" src="/world/explorer-dock.js"></script>
 <script type="module" src="/world/social/journey.js" data-social-experience="living-city"></script>
