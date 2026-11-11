@@ -1,6 +1,18 @@
 export const VERSION = 'balanced-statistics.v1';
 const finite = x => typeof x === 'number' && Number.isFinite(x);
-const mean = xs => xs.reduce((a,b) => a+b,0)/xs.length;
+// Neumaier summation, with an offset to preserve small design effects on
+// large absolute outcomes. Overflow is detected below, never reported as data.
+function sum(xs) {
+  let total = 0, correction = 0;
+  for (const value of xs) {
+    const next = total + value;
+    correction += Math.abs(total) >= Math.abs(value) ? (total - next) + value : (value - next) + total;
+    total = next;
+  }
+  return total + correction;
+}
+const mean = xs => xs[0] + sum(xs.map(x => (x - xs[0]) / xs.length));
+export const VARIANCE_TOLERANCE = { relative: 1e-10, absolute: 1e-12 };
 export function createFactorialDesign({factors,seeds,budget=128,distribution='independent-discrete-uniform'}={}) {
   if(distribution!=='independent-discrete-uniform') throw Error('Only independent equal-weight discrete levels supported');
   if(!Number.isInteger(budget)||budget<1||budget>128) throw Error('Budget must be 1–128');
@@ -22,14 +34,36 @@ export async function evaluateFactorial(options,evaluate,{signal,onProgress}={})
     await new Promise(resolve=>setTimeout(resolve,0));
   }
   if(evaluations.some(r=>r.status!=='completed')) return {design,evaluations,available:false,status:'incomplete',components:null};
-  const ys=design.cells.map((_,cell)=>mean(evaluations.filter(r=>r.cell===cell).map(r=>r.value)));
-  const grandMean=mean(ys),totalVariance=mean(ys.map(y=>(y-grandMean)**2)),components=[];
-  for(let mask=1;mask<2**design.factors.length;mask++) {
-    const ids=design.factors.filter((_,i)=>mask&(1<<i)).map(f=>f.id),groups=new Map();
-    design.cells.forEach((cell,i)=>{const key=JSON.stringify(ids.map(id=>cell[id])); if(!groups.has(key)) groups.set(key,[]);groups.get(key).push(ys[i]);});
-    const closed=mean([...groups.values()].map(v=>(mean(v)-grandMean)**2));
-    const variance=Math.max(0,closed-components.filter(c=>(c.mask&mask)===c.mask).reduce((s,c)=>s+c.variance,0));
-    components.push({mask,factors:ids,variance,share:totalVariance>0?variance/totalVariance:null});
+  if (signal?.aborted) return {design,evaluations,available:false,status:'cancelled',components:null};
+  const ys = design.cells.map((_,cell) => mean(evaluations.filter(r => r.cell === cell).map(r => r.value)));
+  const offset = ys[0], centered = ys.map(y => y - offset);
+  const centerMean = mean(centered), grandMean = offset + centerMean;
+  const totalVariance = mean(centered.map(y => (y - centerMean) ** 2));
+  const components = [], effects = new Map();
+  for (let mask = 1; mask < 2 ** design.factors.length; mask++) {
+    const ids = design.factors.filter((_,i) => mask & (1 << i)).map(f => f.id);
+    const keyFor = cell => JSON.stringify(ids.map(id => cell[id]));
+    const groups = new Map();
+    design.cells.forEach((cell,i) => {
+      const key = keyFor(cell);
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(centered[i]);
+    });
+    const conditional = new Map([...groups].map(([key,values]) => [key, mean(values)]));
+    // Compute orthogonal effects directly instead of subtracting nearly equal
+    // variances, which can erase small genuine interaction components.
+    const effect = design.cells.map((cell,i) => conditional.get(keyFor(cell)) - centerMean -
+      sum([...effects].filter(([subset]) => (subset & mask) === subset).map(([,values]) => values[i])));
+    effects.set(mask, effect);
+    const variance = mean(effect.map(value => value ** 2));
+    components.push({mask,factors:ids,variance,share:totalVariance > 0 ? variance / totalVariance : null});
   }
-  return {design,evaluations,available:true,status:'completed',grandMean,totalVariance,components,method:'Exact finite-product ANOVA of matched-seed mean responses, population denominator N. Equal-weight independent chosen levels.',limitations:'Design variance conditional on chosen levels, fixed other inputs and declared seeds. Not empirical calibration, predictive certainty, or a stochastic shock variance partition.'};
+  const componentTotal = sum(components.map(c => c.variance));
+  const tolerance = Math.max(VARIANCE_TOLERANCE.absolute, VARIANCE_TOLERANCE.relative * totalVariance);
+  const residual = totalVariance - componentTotal;
+  const reconstruction = {componentTotal,residual,tolerance,...VARIANCE_TOLERANCE};
+  if (![grandMean,totalVariance,componentTotal,residual].every(finite) || Math.abs(residual) > tolerance || components.some(c => !finite(c.variance))) {
+    return {design,evaluations,available:false,status:'numerical-failure',components:null,reconstruction};
+  }
+  return {design,evaluations,available:true,status:'completed',grandMean,totalVariance,components,reconstruction,method:'Exact finite-product ANOVA of matched-seed mean responses, population denominator N. Equal-weight independent chosen levels.',limitations:'Design variance conditional on chosen levels, fixed other inputs and declared seeds. Not empirical calibration, predictive certainty, or a stochastic shock variance partition.'};
 }

@@ -50,3 +50,61 @@ test('adapter retains historical version, schedule, approved projects and fork',
   for(const e of r.evaluations) expect(e.value).toBe(resolved.simulateRun({...input,parameters:{...parameters,...r.design.cells[e.cell]}}).metrics.median_rent);
  }
 });
+test('offset-stable orthogonal effects reconstruct total within declared tolerance',async()=>{
+ const r=await evaluateFactorial(options,({parameters:{x,y}})=>1e12+2*x+3*y+0.125*x*y);
+ expect(r.available).toBe(true);expect(r.components.map(c=>c.variance)).toEqual([4,9,0.015625]);
+ expect(Math.abs(r.reconstruction.residual)).toBeLessThanOrEqual(r.reconstruction.tolerance);
+ const overflow=await evaluateFactorial(options,({parameters:{x}})=>x*1e308);
+ expect(overflow.available).toBe(false);expect(overflow.status).toBe('numerical-failure');
+});
+test('cancellation during the final evaluation cannot publish completed decomposition',async()=>{
+ const controller=new AbortController();
+ const r=await evaluateFactorial(options,()=>7,{signal:controller.signal,onProgress:({completed,total})=>{if(completed===total)controller.abort();}});
+ expect(r.status).toBe('cancelled');expect(r.available).toBe(false);
+ for(const seeds of [[-1],[4294967296],[1.5],[NaN]]) expect(()=>createFactorialDesign({...options,seeds})).toThrow();
+});
+test('Housing refuses retained timed/fork overrides rather than mislabeling effective levels',async()=>{
+ const parameters=createHousingScenarios()[1].parameters,years=2,seed=4294967295;
+ for(const extra of [
+  {scheduledStress:[{presetId:'recession',startMonth:6}]},
+  {fork:{month:6,operations:[{op:'set_parameter',target:'scenario.parameters.interest_rate',value:0.1}]}},
+  {fork:{month:6,operations:[{op:'apply_stress_preset',target:'stressPresets',value:'recession'}]}}
+ ]) {
+  const input={parameters,years,seed,...extra};
+  const run={...simulateHousingRun(input),seed,sampledParameters:parameters,inputProjects:[],scheduledStress:extra.scheduledStress||[]};
+  const factor=extra.scheduledStress||extra.fork.operations[0].op==='apply_stress_preset'?'economic_growth':'interest_rate';
+  await expect(runHousingFactorial({run,years,metricId:'median_rent',factors:[{id:factor,levels:[0.02,0.03]}]})).rejects.toThrow('overridden');
+ }
+});
+test('unequal factor level counts retain equal product weights and report exact manifest',async()=>{
+ const r=await evaluateFactorial({factors:[{id:'x',levels:[-1,0,1]},{id:'y',levels:[-1,1]}],seeds:[0]},({parameters:{x,y}})=>x+2*y);
+ expect(r.totalVariance).toBeCloseTo(2/3+4,12);
+ expect(r.components[0].variance).toBeCloseTo(2/3,12);expect(r.components[1].variance).toBe(4);
+ expect(r.components[2].variance).toBeLessThan(1e-28);
+ expect(Math.abs(r.reconstruction.residual)).toBeLessThanOrEqual(r.reconstruction.tolerance);
+ const html=factorialReport(r);expect(html).toContain('data-statistics-manifest');expect(html).toContain('data-statistics-variance');expect(html).not.toContain('NaN');
+});
+test('cross-engine audit discloses accepted arithmetic differences and blocks material/missing metrics',async()=>{
+ const {auditRecordedMetrics}=await import('../world/decision/backlog-statistics/reconstruction.js');
+ const audit=auditRecordedMetrics({rent:1800,housing:1000000,missing:3},{rent:1800+2e-12,housing:1000000.01});
+ expect(audit.roundoff.map(c=>c.metricId)).toEqual(['rent']);expect(audit.mismatches).toEqual(['housing','missing']);
+ expect(audit.roundoff[0].delta).not.toBe(0);
+ const {runHousingDiagnosticCounterfactual}=await import('../world/decision/backlog-statistics/reconstruction.js');
+ const parameters=createHousingScenarios()[1].parameters,seed=42,years=2;
+ const run={...simulateHousingRun({parameters,seed,years}),seed,sampledParameters:parameters,inputProjects:[]};
+ const actual=run.metrics.median_rent;run.metrics.median_rent+=2e-12;
+ const r=runHousingDiagnosticCounterfactual({run,years,parameterId:'interest_rate',value:0.1,metricId:'median_rent'});
+ expect(r.recordedMismatch).toEqual([]);expect(r.baseline.metrics.median_rent).toBe(actual);expect(r.reconstructionAudit.roundoff).toHaveLength(1);
+ run.metrics.median_rent+=0.001;expect(runHousingDiagnosticCounterfactual({run,years,parameterId:'interest_rate',value:0.1}).recordedMismatch).toContain('median_rent');
+});
+test('audited Housing PDP executes real reruns and retains every source audit without changing stored values',async()=>{
+ const {runHousingPartialDependence}=await import('../world/decision/backlog-statistics/reconstruction.js');
+ const parameters=createHousingScenarios()[1].parameters,seed=42,years=2;
+ const run={...simulateHousingRun({parameters,seed,years}),id:'audited-source',status:'completed',seed,sampledParameters:parameters,inputProjects:[]};
+ run.metrics.median_rent+=2e-12;const before=JSON.stringify(run);
+ const r=await runHousingPartialDependence({runs:[run],years,parameterId:'interest_rate',metricId:'median_rent',values:[0.02,0.1]});
+ expect(r.executions).toBe(2);expect(r.reconstructionAudits[0].roundoff).toHaveLength(1);expect(JSON.stringify(run)).toBe(before);
+ expect(partialDependenceChart(r)).toContain('Source reconstruction arithmetic audit');
+ run.metrics.median_rent+=0.01;
+ await expect(runHousingPartialDependence({runs:[run],years,parameterId:'interest_rate',metricId:'median_rent',values:[0.02,0.1]})).rejects.toThrow('mismatch');
+});
