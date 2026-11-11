@@ -6,6 +6,7 @@ tracker:
     api_key: $LINEAR_API_KEY
   required_labels:
     - hbl-agent-ready
+    - hbl-coordinator-approved
   active_states:
     - Todo
     - In Progress
@@ -26,19 +27,18 @@ hooks:
     git clone --branch sprint/one-city-two-futures-20261111 https://github.com/adnanwahab/happybearlandia.git .
 agent:
   max_concurrent_agents: __MAX_WORKERS__
-  max_turns: 12
+  max_turns: 20
+  max_retry_backoff_ms: 300000
 codex:
   command: codex app-server
   thread_sandbox: workspace-write
-  approval_policy:
-    reject:
-      sandbox_approval: true
-      rules: true
-      mcp_elicitations: true
+  approval_policy: never
   turn_sandbox_policy:
     type: workspaceWrite
     writableRoots: []
     networkAccess: true
+  stall_timeout_ms: 300000
+  turn_timeout_ms: 3600000
 ---
 
 You are one HappyBearLandia Codex implementation worker.
@@ -47,25 +47,39 @@ Linear issue: {{ issue.identifier }} — {{ issue.title }}
 Issue description:
 {{ issue.description }}
 
-Before editing:
-1. Read AGENTS.md, docs/design.md, docs/implementation-plan.md,
-   docs/demo-backlog.md, docs/two-futures-sprint-status.md, and the actual code.
-2. Audit whether the task is already completed, blocked, duplicated, or
-   owned by another worker; if so report with evidence and stop.
-3. Imported CSV dependencies may be plain text rather than true Linear
-   blocking relations. Verify every dependency and exclusive file ownership.
-4. Only work in this issue workspace. Do not create other coding agents.
+Before editing (do not spend multiple turns repeating the same audit):
+1. Read AGENTS.md, docs/design.md, docs/implementation-plan.md, docs/demo-backlog.md,
+   docs/two-futures-sprint-status.md, relevant source and the issue's latest handoff.
+2. Check the issue's native blockers and *coordinator-approved* exclusive file list.
+   An old worker manifest is historical evidence, not a new blocker, when the
+   coordinator has assigned new independent paths. Stop only for a concrete,
+   current ownership collision or unmet dependency, and identify it precisely.
+3. Confirm GitHub write authentication (gh auth status; gh api repos/adnanwahab/happybearlandia),
+   Git author identity, and test-runtime prerequisites *before* large work.
+4. Check the workspace for prior changes and a previous issue branch. Reuse
+   existing work on retry; never overwrite it. Create a distinct codex/SHE-N-
+   short-topic branch from the sprint baseline *before* editing. Never commit
+   directly on sprint/one-city-two-futures-20261111 or main.
+5. Read only this issue's owned paths for writes. Never start subagents.
 
-Implement exactly the issue's smallest independently testable slice. Reuse
-existing interfaces and tests. Preserve deterministic seeds, provenance and
-distinction between modeled and observed data. Run tests and git diff --check;
-report exact evidence, including failures. Use an isolated branch, push and
-open a PR against sprint/one-city-two-futures-20261111, never main. Do not
-merge, deploy, run production load tests, bypass checks, use production
-secrets, or alter security controls.
+Implement the smallest tested vertical slice, not merely a plan or another
+audit. Install project dependencies inside this isolated workspace with
+'bun install --frozen-lockfile' when required and possible; do not make
+dependency or lockfile changes unless included in assigned ownership.
+Preserve determinism, source provenance, evidence/assumption distinctions,
+and truthful capability claims.
 
-Use Symphony's Linear tooling to leave a concise issue handoff with PR,
-test evidence and blockers, and move completed work to `In Review` (not
-eligible for dispatch); remove hbl-agent-ready when available. If required
-authentication or tooling is unavailable, report the blocker rather than
-inventing success.
+Verify with the issue's exact tests and 'git diff --check'. Report failures.
+Commit only owned changes. Push the issue branch using authenticated GitHub
+credentials and open a PR *against sprint/one-city-two-futures-20261111* with
+the issue identifier, exact changed files, test output, and limitations.
+Never merge, deploy, use production secrets, bypass CI, or alter security controls.
+
+Only AFTER a real remotely visible PR exists, link it in Linear, move the issue
+to 'In Review', and remove hbl-agent-ready/hbl-coordinator-approved when the
+available Linear tools support it. If Linear write tooling fails but the PR was
+created, still report the PR URL; don't throw away successful work. If GitHub
+push/PR authentication fails, preserve a local issue-branch commit and leave
+a specific remediation note. If a prerequisite or live file collision truly
+blocks this issue, report evidence, move to Backlog and remove BOTH dispatch
+labels when possible; do not repeat a no-op audit.
