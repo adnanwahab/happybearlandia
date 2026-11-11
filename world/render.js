@@ -463,6 +463,14 @@ scene.add(ring);
 /* ---------------------------------------------------------------- */
 /* Interaction                                                       */
 /* ---------------------------------------------------------------- */
+// First-run feedback only describes actual recorded or currently observed model values.
+function worldFeedback(type, detail = {}) {
+  window.dispatchEvent(new CustomEvent('hbl:world-feedback', {detail:{type,...detail}}));
+}
+async function withClassicWorld(action) {
+  if (livingWorld?.active) await livingWorld.setActive(false);
+  return action();
+}
 let speed = Math.max(1, Math.min(100, Number(params.get("speed")) || 1)); // game minutes per real second
 let selected = null; // { type: "person"|"building"|"journal", id }
 let follow = false;
@@ -477,7 +485,7 @@ const activityListeners=new Set();let activityRuntimeUnsubscribe=null,activityDa
 function notifyActivity(){if(!activityListeners.size||!window.hblWorldActivity)return;const snapshot=window.hblWorldActivity.getSnapshot();for(const listener of activityListeners)listener(snapshot);}
 function bindActivityRuntime(runtime){if(activityRuntimeUnsubscribe)return;activityRuntimeUnsubscribe=runtime.subscribe(frame=>{physicalPolicySnapshot=frame;if(livingWorld?.active)notifyActivity();});}
 const legacyActivityUnsubscribe=world.subscribeActivity(()=>{if(!livingWorld?.active)notifyActivity();});
-const playback=createSimulationPlayback({initialSpeed:speed,onChange:state=>{speed=state.paused?0:state.speed;const runtime=livingWorld?.active?livingWorld.getRuntime():null;if(runtime){runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();}for(const button of $("speeds").children)button.classList.toggle("on",Number(button.dataset.s)===(state.paused?0:state.speed));if(selected?.type==="person")renderInspector();}});
+const playback=createSimulationPlayback({initialSpeed:speed,onChange:state=>{speed=state.paused?0:state.speed;const runtime=livingWorld?.active?livingWorld.getRuntime():null;if(runtime){runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();}for(const button of $("speeds").children)button.classList.toggle("on",Number(button.dataset.s)===(state.paused?0:state.speed));if(selected?.type==="person")renderInspector();if(window.hblGuidedActions)worldFeedback("playback",{paused:state.paused,speed:state.speed});}});
 window.hblSimulationPlayback=playback;
 livingWorld=!embedMode?mountLivingWorld({container:document.body,scene,camera,controls,THREE,town,renderer,autoActivate:loadedExperiment?false:!businessMode&&!simulationId&&!demoMode&&!renderBenchmark,initialMinute:loadedExperiment?0:6*60,onRuntimeReady:runtime=>{bindActivityRuntime(runtime);const state=playback.getState();runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();if(!livingPlaybackUnsubscribe)livingPlaybackUnsubscribe=runtime.subscribe(frame=>{if(!livingWorld?.active||!frame?.runtime)return;if(Number.isFinite(frame.runtime.speed)&&frame.runtime.speed!==playback.getState().speed)playback.setSpeed(frame.runtime.speed);frame.runtime.paused?playback.pause():playback.resume();});return true;},onModeChange:active=>{people.visible=!active;follow=false;selected=null;document.documentElement.classList.remove("person-selected");$("inspect").removeAttribute("data-person-selected");$("inspect").style.display="none";cityRenderer.setFeature('traffic',active?false:originalTrafficEnabled);cityRenderer.updateCity({trafficDensity:active?0:1});document.body.classList.toggle('living-active',active);notifyActivity();const fastest=$('speeds').lastElementChild;fastest.dataset.s=active?'32':'60';fastest.textContent=active?'32×':'60×';if(active&&playback.getState().speed>32)playback.setSpeed(32);}}):null;
 window.hblLivingWorld=livingWorld;
@@ -695,7 +703,16 @@ function applyPolicy(id, year = policyYear) {
     : "";
 
   const simNote = BALANCED_SIM_NOTE ? ` · ${BALANCED_SIM_NOTE}` : "";
-  $("policyNote").textContent = `${p.label} · year ${year} · transit ×${staged.effects.speedMult.toFixed(2)} · flood mitigation ${Math.round(staged.effects.floodMitigation * 100)}% · housing growth ${Math.round(staged.effects.housingGrowth * 100)}% · vouchers $${staged.effects.voucherMonthly.toFixed(0)}/mo${staged.effects.groceryDelivery > 0 ? ` · grocery delivery ${Math.round(staged.effects.groceryDelivery * 100)}%` : ""} · source: ${src}${pendingTxt}${simNote}`;
+  $("policyNote").textContent = `${p.label} · year ${year} · transit ×${staged.effects.speedMult.toFixed(2)} · flood mitigation ${Math.round(staged.effects.floodMitigation * 100)}% · housing growth ${Math.round(staged.effects.housingGrowth * 100)}% · vouchers ${staged.effects.voucherMonthly.toFixed(0)}/mo${staged.effects.groceryDelivery > 0 ? ` · grocery delivery ${Math.round(staged.effects.groceryDelivery * 100)}%` : ""} · source: ${src}${pendingTxt}${simNote}`;
+  if (window.hblGuidedActions) worldFeedback('policy', {
+    label: 'Plan configured',
+    message: p.label + ' at plan year ' + year + '. These are configured mechanisms; run a paired experiment to measure outcomes.',
+    metrics: [
+      {label:'Transit time multiplier',value:staged.effects.speedMult.toFixed(2) + '×'},
+      {label:'Flood mitigation',value:Math.round(staged.effects.floodMitigation * 100) + '%'},
+      {label:'Housing growth',value:Math.round(staged.effects.housingGrowth * 100) + '%'},
+    ],
+  });
 }
 
 async function loadPolicyPackages() {
@@ -901,6 +918,18 @@ function triggerStorm() {
   world.policy.floodedNow = floodedNow;
   world.policy.displaced = displaced;
   world.log(`Storm hit: ${floodedNow} parcels flooded, ${displaced} residents displaced`, "storm");
+  overlayMode = 'flood';
+  if (overlayEl) overlayEl.value = 'flood';
+  updateOverlayLegend();
+  worldFeedback('storm', {
+    label:'Storm result',
+    message:'A synthetic storm has affected the classic town. The highlighted flooded parcels and relocated residents come from the simulation.',
+    metrics:[
+      {label:'Flooded parcels',value:String(floodedNow)},
+      {label:'Residents displaced',value:String(displaced)},
+      {label:'Selected plan',value:String(world.policy?.label || 'No plan')},
+    ],
+  });
 }
 
 $("policy").onchange = (e) => {
@@ -917,7 +946,7 @@ if (planYearEl) {
   };
 }
 
-$("stormBtn").onclick = () => triggerStorm();
+$("stormBtn").onclick = () => withClassicWorld(triggerStorm).catch(error => worldFeedback("error",{label:"Storm unavailable",message:error.message}));
 // A world embedded in the grid only needs its frozen plan, so it skips synthesizing packages.
 if (!loadedExperiment && !(embedMode && realityRunSeed)) {
   if(realityRunSeed)await loadPolicyPackages(); // Frozen reality ordering is unchanged.
@@ -2374,5 +2403,20 @@ addEventListener('pagehide',()=>{houseEntryDisposed=true;houseEntryControls?.des
 addEventListener('pagehide',()=>{persistenceDisposed=true;persistencePanel?.destroy();},{once:true});
 
 if(!loadedExperiment)world.log(`Welcome to ${origin.lat.toFixed(3)}, ${origin.lng.toFixed(3)}. Click a person or building.`, "info");
+// The guide becomes actionable only after the actual World scene is ready.
+if (!embedMode && !businessMode && !simulationId && !loadedExperiment) {
+  window.hblGuidedActions = {
+    week: () => withClassicWorld(runCycle),
+    storm: () => withClassicWorld(triggerStorm),
+    tenYear: () => withClassicWorld(runExperiment10Years),
+    resident: () => withClassicWorld(() => {
+      if (!town.people.length) throw new Error("No simulated residents are available.");
+      followResident(0);
+      worldFeedback('resident',{label:'Resident selected',message:'The camera is following a synthetic resident. Their current needs and activities are shown in the inspector.'});
+    }),
+  };
+  window.dispatchEvent(new CustomEvent('hbl:world-ready'));
+  addEventListener('pagehide',()=>{delete window.hblGuidedActions;},{once:true});
+}
 startup.readyMs=performance.now();for(const [node,disabled] of startupDisabled)node.disabled=policyPending&&['policy','runExperimentBtn','runCycleBtn','demoBtn'].includes(node.id)?true:disabled;startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);
 requestAnimationFrame(frame);
