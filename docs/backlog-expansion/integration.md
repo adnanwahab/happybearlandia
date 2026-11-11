@@ -39,3 +39,7 @@ Independent capability audit integrated; fixed missing-Origin mutation acceptanc
 Actual server restart continuity: `bun test/local-workflow-restart.mjs` **PASS** using fresh isolated Decision/workflow/checkpoint/key/World stores and loopback42683. Bootstrap signed capability, persist reviewed pilot, stop/restart actual server process, old cookie exports identical receipt, DELETE succeeds. This is actual process continuity, not only helper recreation. Cookie expiry/key loss recovery remains unimplemented and explicitly limited.
 
 Broad preliminary backlog check:84pass; replay test fixture attempted to reapply already-integrated hooks and failed setup; product HTTP test failed sandbox local binding. Worker assigned already-patched fixture handling; final rerun requires local server escalation. These setup failures are not recorded as passing tests.
+
+Combined backlog/shared integration suite after applied-hook fixture repair:105pass/707assertions across18files, local HTTP allowed. Bare-engine unavailable test now explicitly strips internal replay argument so it still tests a real unsupported engine boundary after production hooks exist.
+
+Sharing final actual normal-route proof integrated3b16ec8: executive local QR, read-only recipient, print appendix, standalone manifest download and analyst download pass. Persisted input structures match; server-generated per-request exportedAt timestamps legitimately differ. This is structural saved-payload equality, not byte equality to a fresh later export.

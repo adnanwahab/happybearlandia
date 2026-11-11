@@ -134,7 +134,7 @@ try {
     await expect(adapter.resume(a.serialized, 11)).rejects.toThrow();
     await expect(adapter.fork(a.serialized, [{ op: 'set_parameter', target: 'initial_housing', value: 1 }], 24)).rejects.toThrow();
     await expect(adapter.start({ ...input(42), seed: undefined })).rejects.toThrow();
-    const bare = createHousingCheckpointAdapter({ simulateRun: simulateHousingRun });
+    const bare = createHousingCheckpointAdapter({ simulateRun: ({replay, ...input}) => simulateHousingRun(input) });
     await expect(bare.start(input(42), 12)).rejects.toThrow('hooks unavailable');
   });
 } finally { /* imports are cached; test callbacks no longer need temporary source files */ rmSync(temp, { recursive: true, force: true }); }

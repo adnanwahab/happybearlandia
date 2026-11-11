@@ -1,3 +1,4 @@
+import { createRecordedParentResolver } from './backlog-presentation-effects/parent.js';
 import { mountProductWorkflows } from './backlog-product-workflows/ui.js';
 import { mountPresentationShare } from './backlog-sharing/qr.js';
 import { constructionFrame } from './backlog-presentation-effects/index.js';
@@ -39,7 +40,7 @@ state.selected = state.scenarios.find(s => s.kind === 'plan-a')?.id || state.sce
 let previewTimer;
 let traceSelectionToken = 0, automaticTraceKey = null;
 let worldPreview = null, worldVisualPreview = null, constructionRun = null, constructionTimer = null, constructionMonth = 0;
-let recordedPlayer = null;
+let recordedPlayer = null, pairedPresentation = null, playbackGeneration=0;
 let constructionView = null, worldTools = null, advancedStudio = null;
 const scenario = () => state.scenarios.find(s => s.id === state.selected);
 const el = (tag, text, className) => { const node = document.createElement(tag); if (text !== undefined) node.textContent = text; if (className) node.className = className; return node; };
@@ -55,12 +56,15 @@ const workflowHost=el('div');$('#trust').append(workflowHost);
 const workflowUI=mountProductWorkflows(workflowHost,{fetch:async(url,options)=>{const capability=await fetch('/api/local-capability',{method:'POST'});if(!capability.ok)throw Error('Local capability unavailable');return fetch(url,options);},onExport:body=>download(body,'local-workflows.json')});
 addEventListener('pagehide',()=>workflowUI.dispose(),{once:true});
 mountPilotRequest(pilotContainer, { getContext: () => ({ decision: $('#decision-text').value, modelId: housingModel.id, modelVersion: housingModel.version }) });
+const parentResolver=createRecordedParentResolver({fetchTrace:async(experimentId,runId,{signal})=>{const base=`/api/decision-experiments/${encodeURIComponent(experimentId)}`;const [a,b]=await Promise.all([fetch(base,{signal}),fetch(`${base}/runs/${encodeURIComponent(runId)}`,{signal})]);if(!a.ok||!b.ok)throw Error('Parent unavailable');const {experiment}=await a.json(),{run}=await b.json();if(experiment.id!==experimentId||experiment.modelVersion!==run.modelVersion)throw Error('Parent provenance mismatch');return {...run,modelId:experiment.modelId};}});
+const forkPanel=el('section');forkPanel.setAttribute('aria-label','Recorded fork timeline');$('#building-world').after(forkPanel);
+function renderForkPresentation(frame){if(!pairedPresentation)return;const parent=pairedPresentation.parent,projectId=pairedPresentation.projectId,month=constructionMonth;const original=constructionFrame(parent,projectId,month),branch=constructionFrame(constructionRun,projectId,month);const project=constructionRun.projects?.find(p=>p.projectId===projectId)?.proposal;const max=Math.max(1,project?.geometry?.floors||1);forkPanel.replaceChildren(el('h3','Recorded original and fork timeline'),el('p',`Month ${month.toFixed(1)} · branch month ${pairedPresentation.forkMonth} · ${month<=pairedPresentation.forkMonth?'fixed original prefix':'recorded branch suffix'}. Visual interpolation only; recorded units remain authoritative.`));const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 420 140');svg.setAttribute('role','img');svg.setAttribute('aria-label','Original and fork recorded construction');for(const [index,value]of [original,branch].entries()){const rect=document.createElementNS(svg.namespaceURI,'rect');const floors=value.visual?.floorsBuilt;const h=Number.isFinite(floors)?Math.max(0,Math.min(1,floors/max))*100:0;for(const [key,v]of Object.entries({x:40+index*200,y:110-h,width:80,height:h,fill:index?'#147d79':'#536878'}))rect.setAttribute(key,String(v));svg.append(rect);}forkPanel.append(svg,el('pre',JSON.stringify({original:{runId:parent.id,recorded:original.recorded},fork:{runId:constructionRun.id,recorded:branch.recorded}},null,2)));}
 const sound = createSubtleSound(), cueHost = el('div'); $('#building-world').before(cueHost);
 const stressCues = mountStressCue(cueHost,{sound});
 const soundButton=el('button','Enable subtle sound');soundButton.type='button';soundButton.setAttribute('aria-pressed','false');cueHost.append(soundButton);
 soundButton.addEventListener('click',async()=>{if(soundButton.getAttribute('aria-pressed')==='true'){sound.mute();soundButton.setAttribute('aria-pressed','false');soundButton.textContent='Enable subtle sound';}else{const enabled=await sound.enable();soundButton.setAttribute('aria-pressed',String(enabled));soundButton.textContent=enabled?'Mute subtle sound':'Audio unavailable';}});
 const presentationLabel=el('p','Visual interpolation between recorded months; outcomes retain the preceding recorded state.');cueHost.append(presentationLabel);
-addEventListener('pagehide',()=>{recordedPlayer?.dispose();stressCues.dispose();void sound.dispose();},{once:true});
+addEventListener('pagehide',()=>{playbackGeneration++;parentResolver.dispose();recordedPlayer?.dispose();stressCues.dispose();void sound.dispose();},{once:true});
 constructionView = mountBuildingWorld($('#building-world'), {
   projects: [], month: 0, controls: false,
   onPlace(proposal) { worldTools?.setPlacement(proposal || null); },
@@ -480,18 +484,19 @@ function syncConstructionWorld() {
   if(unloadedTrace && state.experiment?.id) {const key=`${state.experiment.id}/${constructionRun.id}`;if(automaticTraceKey!==key){automaticTraceKey=key;void hydrateVisibleRun(constructionRun);}}
   updateAdvancedStudio();
 }
-function stopConstructionPlayback() { presentationLabel.textContent='Visual interpolation between recorded months; outcomes retain the preceding recorded state.'; recordedPlayer?.dispose(); recordedPlayer=null; stressCues.clear(); constructionTimer = null; $('#building-play').textContent = 'Play'; $('#building-play').setAttribute('aria-label', 'Play construction'); }
+function stopConstructionPlayback() { playbackGeneration++; parentResolver.cancel(); pairedPresentation=null; forkPanel.replaceChildren(); presentationLabel.textContent='Visual interpolation between recorded months; outcomes retain the preceding recorded state.'; recordedPlayer?.dispose(); recordedPlayer=null; stressCues.clear(); constructionTimer = null; $('#building-play').textContent = 'Play'; $('#building-play').setAttribute('aria-label', 'Play construction'); }
 $('#building-scenario').addEventListener('change', () => { state.selected = $('#building-scenario').value; constructionRun = null; constructionMonth = 0; stopConstructionPlayback(); renderScenarios(); });
 $('#building-run').addEventListener('change', () => {const run=state.results?.runs.find(row=>row.id===$('#building-run').value);if(run)void selectRun(run);});
 $('#building-month').addEventListener('input', () => { stopConstructionPlayback(); futureTransitions.cancel('scrub'); constructionMonth = Number($('#building-month').value); syncConstructionWorld(); });
 $('#building-reset').addEventListener('click', () => { stopConstructionPlayback(); constructionMonth = 0; syncConstructionWorld(); });
-$('#building-play').addEventListener('click', () => {
+$('#building-play').addEventListener('click', async () => {
   if (constructionTimer) { stopConstructionPlayback(); return; }
   if (!constructionRun) return;
+  const playbackToken=++playbackGeneration;
   if (constructionMonth >= Number($('#building-month').max)) constructionMonth = 0;
   $('#building-play').textContent = 'Pause'; $('#building-play').setAttribute('aria-label', 'Pause construction');
-  futureTransitions.cancel('playback'); let lastPaint=-1;
-  recordedPlayer=createRecordedPlayback({run:constructionRun,projectId:constructionRun.projects?.[0]?.projectId,endMonth:Number($('#building-month').max),onCue:cue=>stressCues.show(cue),onFrame:frame=>{const tick=String(Math.floor(frame.month*10))+':'+frame.reducedMotion;if(tick===lastPaint&&frame.playing)return;lastPaint=tick;constructionMonth=frame.month;if(frame.reducedMotion)stressCues.clear();syncConstructionWorld();presentationLabel.textContent=`Visual interpolation only · recorded stress events: ${frame.events.map(e=>e.message||e.presetId).join(', ')||'none through this month'}`;if(!frame.playing){$('#building-play').textContent='Play';constructionTimer=null;}}});
+  futureTransitions.cancel('playback'); let lastPaint=-1; const selectedPlayback=constructionRun; const projectId=constructionRun.projects?.[0]?.projectId; if(constructionRun.fork){const result=await parentResolver.resolve({run:{...constructionRun,modelId:state.results?.experiment?.modelId},scenario:state.results?.experiment?.scenarios?.find(s=>s.id===constructionRun.scenarioId),projectId});if(constructionRun!==selectedPlayback||playbackToken!==playbackGeneration)return;if(result.status==='ready')pairedPresentation=result;else forkPanel.textContent=`Paired fork presentation unavailable: ${result.reason}`;}
+  recordedPlayer=createRecordedPlayback({run:constructionRun,...(pairedPresentation?{parent:pairedPresentation.parent,forkMonth:pairedPresentation.forkMonth}:{}),projectId:constructionRun.projects?.[0]?.projectId,endMonth:Number($('#building-month').max),onCue:cue=>stressCues.show(cue),onFrame:frame=>{const tick=String(Math.floor(frame.month*10))+':'+frame.reducedMotion;if(tick===lastPaint&&frame.playing)return;lastPaint=tick;constructionMonth=frame.month;if(frame.reducedMotion)stressCues.clear();syncConstructionWorld();renderForkPresentation(frame);presentationLabel.textContent=`Visual interpolation only · recorded stress events: ${frame.events.map(e=>e.message||e.presetId).join(', ')||'none through this month'}`;if(!frame.playing){$('#building-play').textContent='Play';constructionTimer=null;}}});
   recordedPlayer.scrub(constructionMonth); recordedPlayer.play(Number($('#building-speed').value)*5); constructionTimer=true;
 });
 
