@@ -74,7 +74,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--workers", type=int, default=6, help="Max concurrent Codex workers (1-50; default 6)")
     parser.add_argument("--tracker", choices=("github", "linear"), default="github",
                         help="Issue tracker to dispatch from (default github)")
-    parser.add_argument("--linear-project-slug", default=os.getenv("HBL_LINEAR_PROJECT_SLUG", ""),
+    parser.add_argument("--linear-project-slug", default=os.getenv("HBL_LINEAR_PROJECT_SLUG", "hbl-1m-player-launch-week-1-da57f913e8aa"),
                         help="Required for Linear: the final slug segment of the Linear project URL")
     parser.add_argument("--hours", type=float, default=25, help="Dispatcher runtime in hours (default 25)")
     parser.add_argument("--symphony-bin", default=os.getenv("SYMPHONY_BIN", ""),
