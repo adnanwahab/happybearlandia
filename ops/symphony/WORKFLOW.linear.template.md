@@ -7,9 +7,9 @@ tracker:
   required_labels:
     - hbl-agent-ready
   active_states:
+    - Backlog
     - Todo
     - In Progress
-    - Rework
   terminal_states:
     - Done
     - Closed
@@ -26,7 +26,7 @@ hooks:
     set -eu
     git clone --branch sprint/one-city-two-futures-20261111 https://github.com/adnanwahab/happybearlandia.git .
 agent:
-  max_concurrent_agents: 1
+  max_concurrent_agents: __MAX_WORKERS__
   max_turns: 12
 codex:
   command: codex app-server
@@ -66,7 +66,7 @@ merge, deploy, run production load tests, bypass checks, use production
 secrets, or alter security controls.
 
 Use Symphony's Linear tooling to leave a concise issue handoff with PR,
-test evidence and blockers, and move completed work to a review state not
-eligible for dispatch; remove hbl-agent-ready when available. If required
+test evidence and blockers, and move completed work to `In Review` (not
+eligible for dispatch); remove hbl-agent-ready when available. If required
 authentication or tooling is unavailable, report the blocker rather than
 inventing success.
