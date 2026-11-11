@@ -15,8 +15,8 @@ export function mountUniverseNavigation(container,{experienceId,onContext=()=>{}
   toggle.type='button';toggle.textContent='HBL ↗';toggle.setAttribute('aria-label','Open universe navigation');
   toggle.setAttribute('aria-expanded','false');
   toggle.style.cssText='background:none;border:0;color:#94dbe9;font:inherit;font-weight:700;cursor:pointer;padding:4px';
-  links.hidden=true;links.style.cssText='display:flex;flex-wrap:wrap;gap:12px;padding:6px 3px;max-width:260px';
-  const setExpanded=value=>{links.hidden=!value;toggle.setAttribute('aria-expanded',String(value));toggle.textContent=value?'Close ↑':'HBL ↗';toggle.setAttribute('aria-label',value?'Close universe navigation':'Open universe navigation');};
+  links.hidden=true;links.style.cssText='display:none;flex-wrap:wrap;gap:12px;padding:6px 3px;max-width:260px';
+  const setExpanded=value=>{links.hidden=!value;links.style.display=value?'flex':'none';toggle.setAttribute('aria-expanded',String(value));toggle.textContent=value?'Close ↑':'HBL ↗';toggle.setAttribute('aria-label',value?'Close universe navigation':'Open universe navigation');};
   toggle.addEventListener('click',()=>setExpanded(links.hidden));
 
   const home=doc.createElement('a'),world=doc.createElement('a'),futures=doc.createElement('a');
@@ -45,6 +45,6 @@ export function mountUniverseNavigation(container,{experienceId,onContext=()=>{}
     getContext:()=>structuredClone(context),
     select(entityId){const message=navigationMessage('select',context,{entityId});context={...context,entityId};win.history.replaceState(null,'',contextURL(win.location.href,context));render();publish(message);},
     navigate,
-    dispose(){win.removeEventListener('message',receive);win.removeEventListener('popstate',restore);nav.removeEventListener('click',click);toggle.replaceWith(toggle.cloneNode(true));nav.remove();}
+    dispose(){win.removeEventListener('message',receive);win.removeEventListener('popstate',restore);nav.removeEventListener('click',click);nav.remove();}
   });
 }
