@@ -8,7 +8,7 @@ const server = Bun.serve({ hostname: '127.0.0.1', port: Number(process.env.HBL_E
 import {mountBacklogExplanations} from '/world/decision/backlog-explanations/view.js';
 import {housingModel,simulateHousingRun,createHousingScenarios} from '/world/models/housing/index.js';
 const scenarios=createHousingScenarios().slice(0,2); scenarios[1].successCriterion={metricId:'affordability',operator:'gte',value:100};
-const runs=scenarios.flatMap(s=>[0,1,2].map(seed=>({...simulateHousingRun({parameters:s.parameters,seed,years:2}),id:s.id+'-'+seed,scenarioId:s.id,status:'completed',modelVersion:housingModel.version,seed,sampledParameters:s.parameters})));
+const runs=scenarios.flatMap(s=>[0,1,2].map(seed=>({...simulateHousingRun({parameters:s.parameters,seed,years:2}),id:s.id+'-'+seed,scenarioId:s.id,experimentId:'component',engineVersion:'component-test',status:'completed',modelVersion:housingModel.version,seed,sampledParameters:s.parameters})));
 const view=mountBacklogExplanations(document.querySelector('main'),{onEvent:e=>window.source=e,onSelectRun:r=>window.selected=r.id});
 window.view=view; window.context={results:{experiment:{scenarios},runs,model:housingModel},selectedRun:runs[3]};view.update(window.context);
 </script>`, { headers: { 'content-type': 'text/html' } });
@@ -21,6 +21,18 @@ try {
   await page.goto(`http://127.0.0.1:${server.port}`); await page.getByRole('heading',{name:'Failure clusters and recorded explanations'}).waitFor();
   await page.getByRole('textbox').fill('Why did median rent change?'); await page.getByRole('button',{name:'Inspect evidence',exact:true}).click();
   if (!(await page.locator('[aria-live]').innerText()).includes('version-matched programmed rules')) throw Error('Missing grounded answer');
+  const baseline = await page.evaluate(()=>window.context.results.runs[0]);
+  await page.route('**/api/decision-experiments/component/runs/**', route=>route.fulfill({json:{run:baseline}}));
+  await page.evaluate(()=>window.view.update({...window.context,referenceRun:{...window.context.results.runs[0],monthlyTimeline:[],timeline:[]}}));
+  await page.getByRole('textbox').fill('Compare median rent'); await page.getByRole('button',{name:'Inspect evidence',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelector('[aria-live]').textContent.includes('Same-seed modeled comparison'));
+  await page.unroute('**/api/decision-experiments/component/runs/**');
+  let pending; const received = new Promise(resolve=>pending=resolve);
+  let finish; const release = new Promise(resolve=>finish=resolve);
+  await page.route('**/api/decision-experiments/component/runs/**', async route=>{pending();await release;await route.fulfill({json:{run:baseline}})});
+  await page.getByRole('button',{name:'Inspect evidence',exact:true}).click(); await received;
+  await page.evaluate(()=>window.view.update(window.context)); finish(); await page.waitForTimeout(100);
+  if (await page.locator('[aria-live]').innerText()) throw Error('Stale reference response overwrote updated selection');
   await page.getByRole('button',{name:'Inspect source event'}).click(); if (!(await page.evaluate(()=>window.source?.runId))) throw Error('Source callback missing');
   await page.getByRole('button',{name:'Play recorded events'}).click(); await page.waitForTimeout(1350); await page.getByRole('button',{name:'Pause',exact:true}).click();
   if (await page.evaluate(()=>document.documentElement.scrollWidth > innerWidth)) throw Error('Horizontal overflow');

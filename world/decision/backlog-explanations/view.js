@@ -1,10 +1,11 @@
+import { createDecisionClient } from '../client.js';
 import { clusterFailures } from './clusters.js';
 import { recordedRipple, answerEvidence } from './evidence.js';
 import { housingCausalRegistry } from '../../models/housing/causal-registry.js';
 import { housingModel } from '../../models/housing/index.js';
 
 /** Companion to mountIntelligence. Host supplies the same immutable results and selection. */
-export function mountBacklogExplanations(container, { onSelectRun, onEvent } = {}) {
+export function mountBacklogExplanations(container, { onSelectRun, onEvent, loadRunTrace } = {}) {
   const doc = container.ownerDocument;
   const root = doc.createElement('section'); root.className = 'backlog-explanations';
   root.style.cssText = 'display:grid;gap:12px;max-width:100%;overflow-wrap:anywhere';
@@ -13,7 +14,9 @@ export function mountBacklogExplanations(container, { onSelectRun, onEvent } = {
   const summary = make('p'), clusters = make('div'), query = make('form'), label = make('label', 'Ask why or compare a named metric '), input = make('input'), submit = make('button', 'Inspect evidence'), answer = make('div'), ripple = make('div');
   query.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;align-items:end'; input.maxLength = 1000; input.placeholder = 'Why did median rent change?'; input.style.maxWidth = '100%'; label.append(input); submit.type = 'submit'; query.append(label, submit);
   answer.setAttribute('aria-live', 'polite'); root.append(summary, clusters, query, answer, ripple); container.append(root);
-  let context = {}, data, run, reference, frames = [], index = 0, timer;
+  let context = {}, data, run, reference, frames = [], index = 0, timer, generation = 0;
+  const client = createDecisionClient();
+  const load = loadRunTrace || (async row => (await client.run(row.experimentId, row.id)).run);
   const stop = () => { clearInterval(timer); timer = null; };
   const showFrame = () => {
     const frame = frames[index]; ripple.replaceChildren();
@@ -32,18 +35,28 @@ export function mountBacklogExplanations(container, { onSelectRun, onEvent } = {
     }); ripple.append(svg);
     const list = make('ul'); for (const edge of frame.edges) list.append(make('li', `${edge.from} → ${edge.to} · rule ${edge.equationId} · registered association`)); ripple.append(list);
     if (!frame.edges.length) ripple.append(make('p', 'No registered rule association for this event.'));
-    const inspect = make('button', 'Inspect source event'); inspect.type = 'button'; inspect.onclick = () => onEvent?.({ run, ...frame.reference, month: frame.month }); ripple.append(inspect, make('small', data.limitation));
+    const inspect = make('button', 'Inspect source event'); inspect.type = 'button'; inspect.dataset.month = String(frame.month); inspect.onclick = () => onEvent?.({ run, ...frame.reference, month: frame.month }); ripple.append(inspect, make('small', data.limitation));
   };
-  query.onsubmit = event => {
+  query.onsubmit = async event => {
     event.preventDefault();
-    const result = answerEvidence({ query: input.value, run, referenceRun: reference, registry: context.registry || housingCausalRegistry, model: context.model || context.results?.model || housingModel, month: context.month ?? Infinity });
+    const token = ++generation; submit.disabled = true;
+    try {
+    let compared = reference;
+    if (/what.*chang|compar|differ|between/i.test(input.value) && compared?.experimentId && !(compared.monthlyTimeline?.length || compared.timeline?.length)) {
+      const loaded = await load(compared);
+      if (token !== generation) return;
+      if (!loaded || loaded.id !== compared.id || loaded.experimentId !== compared.experimentId || loaded.seed !== compared.seed || loaded.modelVersion !== compared.modelVersion) throw new Error('Reference trace identity mismatch.');
+      compared = loaded;
+    }
+    const result = answerEvidence({ query: input.value, run, referenceRun: compared, registry: context.registry || housingCausalRegistry, model: context.model || context.results?.model || housingModel, month: context.month ?? Infinity });
     answer.replaceChildren(make('p', result.text));
     if (result.equations) for (const equation of result.equations) answer.append(make('pre', `${equation.label}: ${equation.expression}\n${equation.source}`));
     if (result.events) answer.append(make('p', `Event references: ${result.events.map(e => `${e.reference.runId}[${e.reference.eventIndex}] @ month ${e.month}`).join(', ') || 'unavailable'}`));
+    } catch (error) { if (token === generation) answer.replaceChildren(make('p', `Evidence unavailable: ${error.message}`)); } finally { if (token === generation) submit.disabled = !run; }
   };
   return {
     update(next = {}) {
-      stop(); context = next; answer.replaceChildren(); index = 0;
+      stop(); generation++; context = next; answer.replaceChildren(); index = 0;
       const results = next.results || {}, experiment = results.experiment || next.input, runs = results.runs || [], model = next.model || results.model || housingModel;
       run = next.selectedRun || runs.find(r => r.id === next.selectedRunId);
       const scenarioId = experiment?.scenarios?.find(s => s.kind === 'baseline')?.id;
@@ -53,7 +66,7 @@ export function mountBacklogExplanations(container, { onSelectRun, onEvent } = {
       try {
         const output = clusterFailures({ experiment, runs, model, features }); summary.textContent = `${output.failureCount} evaluated failures / ${output.inputCount} records. ${output.method}`;
         for (const group of output.groups) {
-          clusters.append(make('h4', `${group.scenarioId} · ${group.modelVersion}`), make('p', `${group.excludedRunIds.length} failures excluded for missing selected inputs. Scaling: ${JSON.stringify(group.normalization)}`));
+          clusters.append(make('h4', `${group.scenarioId} · ${group.modelVersion}`), make('p', `${group.excludedRunIds.length} failures excluded for missing selected inputs. Iterations ${group.iterations}/${group.iterationLimit}; ${group.converged ? 'assignment converged' : 'iteration limit reached; grouping provisional'}. Scaling: ${JSON.stringify(group.normalization)}`));
           for (const cluster of group.clusters) {
             const details = make('details'), heading = make('summary', `${cluster.id}: ${cluster.runIds.length} failures`); details.append(heading, make('p', `Effective-input centroid: ${JSON.stringify(cluster.centroid)}`));
             for (const id of cluster.runIds) { const button = make('button', `Inspect ${id}`); button.type = 'button'; button.onclick = () => onSelectRun?.(runs.find(r => r.id === id)); details.append(button); } clusters.append(details);
@@ -62,6 +75,6 @@ export function mountBacklogExplanations(container, { onSelectRun, onEvent } = {
       } catch (error) { summary.textContent = error.message; }
       data = recordedRipple({ run, registry: next.registry || housingCausalRegistry, month: next.month ?? Infinity, nodeId: next.nodeId }); frames = data.frames; showFrame(); submit.disabled = !run;
     },
-    destroy() { stop(); root.remove(); },
+    destroy() { generation++; stop(); root.remove(); },
   };
 }

@@ -1,7 +1,12 @@
 import { queryFuture } from '../intelligence.js';
 const finite = Number.isFinite;
-const clock = row => finite(row?.month) ? row.month : finite(row?.year) ? row.year * 12 : null;
+const clock = row => finite(row?.month) && row.month >= 0 ? row.month : row?.month === undefined && finite(row?.year) && row.year >= 0 ? row.year * 12 : null;
+const validMonth = month => month === Infinity || (Number.isInteger(month) && month >= 0);
+const snapshots = run => run?.monthlyTimeline?.length ? run.monthlyTimeline : run?.timeline || [];
+const checkpoint = (run, month) => { const rows = snapshots(run).filter(row => clock(row) === month); return rows.length === 1 ? rows[0].metrics : null; };
+const horizon = run => { const dates = snapshots(run).map(clock); return dates.length && dates.every(v => v !== null) && new Set(dates).size === dates.length ? Math.max(...dates) : null; };
 export function recordedRipple({ run, registry, month = Infinity, nodeId } = {}) {
+  if (!validMonth(month)) return { available: false, reason: 'Select a nonnegative integer month.', frames: [], edges: [] };
   if (!run || run.status !== 'completed' || !run.modelVersion || registry?.modelVersion !== run.modelVersion) return { available: false, reason: 'A completed run and version-matched registry are required.', frames: [], edges: [] };
   const equations = new Map((registry.equations || []).map(e => [e.id, e]));
   const edges = (registry.edges || []).filter(e => equations.has(e.equationId));
@@ -16,6 +21,7 @@ export function recordedRipple({ run, registry, month = Infinity, nodeId } = {})
 
 /** Bounded natural-language intent/metric resolver. All numeric answers use stored rows. */
 export function answerEvidence({ query = '', run, referenceRun, registry, model, month = Infinity } = {}) {
+  if (!validMonth(month)) return { kind: 'unavailable', text: 'Select a nonnegative integer month.' };
   if (query.length > 1000) return { kind: 'unsupported', text: 'Use a question of at most 1000 characters.' };
   const compare = /what.*chang|compar|differ|between/i.test(query);
   const why = /why|reason|explain|happen/i.test(query);
@@ -26,15 +32,12 @@ export function answerEvidence({ query = '', run, referenceRun, registry, model,
   if (metrics.length > 1) return { kind: 'ambiguous', text: 'Ask about one metric at a time.', metricIds: metrics.map(m => m.id) };
   const metric = metrics[0];
   if (!metric) return { kind: 'clarify', text: 'Name a supported metric, such as median rent or housing supply.', metricIds: (model?.metrics || []).map(m => m.id) };
-  const timeline = run.monthlyTimeline || run.timeline || [];
-  const selected = month === Infinity ? run.metrics : timeline.find(r => clock(r) === month)?.metrics;
+  const selected = month === Infinity ? run.metrics : checkpoint(run, month);
   if (!finite(selected?.[metric.id])) return { kind: 'unavailable', text: 'The selected metric/checkpoint is missing; no interpolation was made.' };
   const provenance = { runId: run.id, seed: run.seed, modelVersion: run.modelVersion, month: month === Infinity ? null : month, metricId: metric.id, unit: metric.unit };
   if (compare) {
-    const a = (run.monthlyTimeline || run.timeline || []).map(clock).filter(v => v !== null).sort((a,b) => a-b);
-    const b = (referenceRun?.monthlyTimeline || referenceRun?.timeline || []).map(clock).filter(v => v !== null).sort((a,b) => a-b);
-    if (!referenceRun || referenceRun.status !== 'completed' || !run.modelVersion || run.modelVersion !== referenceRun.modelVersion || !finite(run.seed) || run.seed !== referenceRun.seed || !a.length || a.at(-1) !== b.at(-1)) return { kind: 'unavailable', text: 'Comparison requires completed same-seed, same-version futures with equal recorded horizons.' };
-    const reference = month === Infinity ? referenceRun.metrics : (referenceRun.monthlyTimeline || referenceRun.timeline || []).find(r => clock(r) === month)?.metrics;
+    if (!referenceRun || referenceRun.status !== 'completed' || !run.experimentId || run.experimentId !== referenceRun.experimentId || !run.engineVersion || run.engineVersion !== referenceRun.engineVersion || !run.modelVersion || run.modelVersion !== referenceRun.modelVersion || (model?.version && model.version !== run.modelVersion) || !finite(run.seed) || run.seed !== referenceRun.seed || horizon(run) === null || horizon(run) !== horizon(referenceRun)) return { kind: 'unavailable', text: 'Comparison requires completed futures from the same recorded experiment/engine authority, seed, model version and horizon.' };
+    const reference = month === Infinity ? referenceRun.metrics : checkpoint(referenceRun, month);
     if (!finite(reference?.[metric.id])) return { kind: 'unavailable', text: 'Reference metric/checkpoint is missing.' };
     const value = selected[metric.id], previous = reference[metric.id];
     return { kind: 'compare', provenance, referenceRunId: referenceRun.id, value, referenceValue: previous, delta: value - previous, text: `${metric.label}: ${value} vs ${previous} ${metric.unit}; change ${value - previous}. Same-seed modeled comparison; numerical difference is not causal attribution.` };
