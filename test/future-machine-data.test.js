@@ -92,3 +92,19 @@ test('real City API persists and reopens the exact 120-month pair', async () => 
     expect(history.baseline[0].causalRecords).toEqual([]);
   } finally { globalThis.fetch = realFetch; store.close(); rmSync(root,{recursive:true,force:true}); }
 },15000);
+
+
+test('normalization preserves completion provenance and rejects a missing capital ledger', () => {
+  const initial = initialForRecipe(), run = replay(initial, DEFAULT_RECIPE.intervention);
+  const normalized = normalizeReplay(initial, run);
+  const completion = normalized[16].events.find(event => event.eventType === 'PROJECT_COMPLETE');
+  expect(completion).toEqual(run.steps[15].events.find(event => event.eventType === 'PROJECT_COMPLETE'));
+  expect(completion).toMatchObject({id:'16-0', simulationTime:16, system:'construction',
+    geographyId:'d1', modelVersion:DEFAULT_RECIPE.modelVersion,
+    payload:{projectId:'project-policy-1-0',type:'housing',units:24}});
+  expect(normalized[16].state.projects.find(project => project.id === completion.payload.projectId))
+    .toMatchObject({policyId:'policy-1-0',stage:'completion',units:24});
+  expect(normalized.every(snapshot => snapshot.causalRecords.length === 0)).toBe(true);
+  delete run.steps[0].state.systems.finance.capitalExpense;
+  expect(() => normalizeReplay(initial,run)).toThrow('Missing monthly finance capital ledger');
+});

@@ -1,6 +1,8 @@
 import {describe, expect, test} from 'bun:test';
 import {createCity} from '../world/city/seed.js';
 import {addIntervention, cityMetrics, createEngine} from '../world/city/engine.js';
+import {DEFAULT_RECIPE, METRIC_UNITS} from '../world/future-machine/contracts.js';
+import {initialForRecipe, normalizeReplay} from '../world/future-machine/data/index.js';
 import {compareFrame, compareHistory, metricDelta} from '../world/future-machine/diff/index.js';
 
 function snapshot(state, capitalSpending = 0) {
@@ -145,4 +147,35 @@ describe('Future Machine stable-ID diff', () => {
     expect(() => compareHistory({...sparse,seed:123})).toThrow('seed/model');
     expect(() => compareHistory({...sparse,baseline:[...sparse.baseline,...sparse.baseline]})).toThrow('Duplicate history');
   });
+});
+
+
+test('flagship seed 42 first physical difference is Month 16 with 24 homes, not 24 buildings', () => {
+  const initial = initialForRecipe();
+  function run(intervention) {
+    let state = intervention ? addIntervention(initial, intervention) : structuredClone(initial);
+    const engine = createEngine(), steps = [];
+    for (let month = 1; month <= 120; month++) { const step = engine.step(state); steps.push(step); state = step.state; }
+    return normalizeReplay(initial, {steps});
+  }
+  const pair = {seed:42,modelVersion:initial.version,baseline:run(null),plan:run(DEFAULT_RECIPE.intervention)};
+  const diffs = compareHistory(pair);
+  expect(diffs.slice(0,16).every(diff => diff.physicalCount === 0)).toBe(true);
+  expect(diffs[16].physicalCount).toBe(1);
+  const building = diffs[16].entities.find(entity => entity.physical);
+  expect(building).toMatchObject({collection:'buildings',id:'building-project-policy-1-0',kind:'added',
+    before:null,after:{floors:3,parcelId:null,districtId:'d1'}});
+  const newUnits = diffs[16].entities.filter(entity => entity.collection === 'units' && entity.kind === 'added');
+  expect(newUnits).toHaveLength(24);
+  expect(newUnits.every(unit => unit.after.buildingId === building.id)).toBe(true);
+  for (const month of [16,120]) {
+    expect(diffs[month].metrics.housingUnits).toMatchObject({baseline:36,plan:60,delta:24,unit:'homes'});
+    expect(diffs[month].metrics.capitalSpending).toMatchObject({baseline:0,plan:1000000,delta:1000000});
+  }
+  expect(diffs[16].metrics.meanTravelMinutes.delta).toBe(0);
+  expect(diffs[120].metrics.meanTravelMinutes.delta).toBeCloseTo(-0.00025240888888866664,12);
+  expect(diffs[120].metrics.meanRent.delta).toBeCloseTo(-740.7690092390735,9);
+  expect(Object.fromEntries(Object.entries(diffs[120].metrics).map(([key,value]) => [key,value.unit]))).toEqual(METRIC_UNITS);
+  const replayed = compareHistory({...pair,baseline:run(null),plan:run(DEFAULT_RECIPE.intervention)});
+  expect(replayed).toEqual(diffs);
 });
