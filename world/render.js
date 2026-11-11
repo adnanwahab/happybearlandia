@@ -1302,6 +1302,7 @@ function runExperiment10Years() {
     }
     if (msg.type === "error") {
       setExperimentStatus(`Experiment failed: ${msg.error}`);
+      worldFeedback('error',{label:'10-year experiment failed',message:String(msg.error)});
       if (btn) btn.disabled = false;
       setExperimentControlsDisabled(false);
       experimentWorker?.terminate();
@@ -1312,6 +1313,17 @@ function runExperiment10Years() {
       const results = msg.results || {};
       renderExperimentResults(results);
       renderExperimentComparison(experimentSeed, results);
+      const chosen = results['Balanced']?.history?.find(row=>row.year===10) || results['Balanced']?.history?.at(-1);
+      const comparison = results['Minimal change']?.history?.find(row=>row.year===10) || results['Minimal change']?.history?.at(-1);
+      const comparisonMetrics = [];
+      for(const [label,key] of [['Average mood','avgMood'],['Flooded parcels','floodedParcels'],['Displaced residents','displacedResidents']]) {
+        const a = comparison?.outcomes?.[key], b = chosen?.outcomes?.[key];
+        if(Number.isFinite(a) && Number.isFinite(b)) comparisonMetrics.push({label:label+' (Balanced − Minimal)',value:(b>=a?'+':'')+(b-a).toFixed(1)});
+      }
+      worldFeedback('longitudinal',{label:'10-year results',
+        message:'Three plan packages have been simulated. These deltas compare Balanced with Minimal change, not with a no-plan branch.',
+        metrics:comparisonMetrics,resultId:'experimentPanel',
+      });
       const before = await beforeStatePromise;
       const after = await readStateEntryCount();
       const stateMsg = before != null && after != null
@@ -1338,7 +1350,7 @@ function runExperiment10Years() {
   });
 }
 
-$("runExperimentBtn")?.addEventListener("click", runExperiment10Years);
+$("runExperimentBtn")?.addEventListener("click", () => withClassicWorld(runExperiment10Years).catch(error=>worldFeedback("error",{label:"Experiment unavailable",message:error.message})));
 
 /* ---------------------------------------------------------------- */
 /* Run cycle: one week of the selected plan vs. no plan, same seed.  */
@@ -1397,6 +1409,7 @@ function startCycleWorker() {
     if (msg.type === "progress") { status.textContent = `${msg.stage}…`; return; }
     if (msg.type === "error") {
       status.textContent = `Cycle failed: ${msg.error}`;
+      worldFeedback('error',{label:'Weekly comparison failed',message:String(msg.error)});
       setCycleBusy(false);
       cycleWaiter?.reject(new Error(msg.error));
       cycleWaiter = null;
@@ -1485,6 +1498,18 @@ function onCycleDone(result) {
   setCycleBusy(false);
   renderCyclePanel();
   $("cyclePanel").scrollTop = 0;
+  worldFeedback('cycle',{
+    label:n===1?'Paired weekly result':'Civic cycle '+n,
+    message:n===1 ? 'Same starting town and seed: '+label+' versus no plan. These are synthetic matched-model results.' : 'Same-seed comparison with keeping plan '+(n-1)+'. Synthetic model results.',
+    metrics:[
+      {label:n===1?'No plan':'Keeping previous plan',value:fmt(r.avg.noPlan)},
+      {label:'With selected plan',value:fmt(r.avg.withPlan)},
+      {label:'Well-being difference',value:signed(d)},
+      {label:'Residents better off',value:String(r.improved)},
+      {label:'Residents worse off',value:String(r.worse)},
+    ],
+    resultId:'cyclePanel',
+  });
   followResident(n > 1 && r.followUp ? r.followUp.index : r.best.index);
   cycleWaiter?.resolve(r);
   cycleWaiter = null;
@@ -1633,7 +1658,7 @@ function renderCyclePanel() {
   };
 }
 
-$("runCycleBtn")?.addEventListener("click", runCycle);
+$("runCycleBtn")?.addEventListener("click", () => withClassicWorld(runCycle).catch(error=>worldFeedback("error",{label:"Weekly comparison unavailable",message:error.message})));
 /* ---------------------------------------------------------------- */
 /* Demo mode: three cycles hands-free, with captions and follow-cam.  */
 /* ---------------------------------------------------------------- */
@@ -2304,6 +2329,7 @@ function updateBuildings(daylight) {
   }
 }
 
+let lastFirstRunSampleMs = -Infinity;
 function updateHud() {
   const livingSnapshot=livingWorld?.active?livingWorld.getSnapshot():null;
   $("clock").textContent = livingSnapshot?clock(livingSnapshot.minute):clock(world.t);
@@ -2321,6 +2347,15 @@ function updateHud() {
   const top = Object.entries(s.doing).sort((a, b) => b[1] - a[1]).slice(0, 4);
   const status = world.policy.floodedNow ? ` · ${world.policy.floodedNow} flooded parcels · ${world.policy.displaced} displaced` : "";
   $("counts").textContent = top.map(([k, v]) => `${v} ${k}`).join(" · ") + status;
+  const firstRunNow = performance.now();
+  if(window.hblGuidedActions && firstRunNow-lastFirstRunSampleMs>=1100) {
+    lastFirstRunSampleMs=firstRunNow;
+    worldFeedback('snapshot',{
+      mode:livingSnapshot?'living':'legacy',mood:s.mood,minute:livingSnapshot?.minute ?? world.t,
+      clock:$("clock").textContent,
+      activity:top.slice(0,2).map(([kind,count])=>count+' '+kind).join(' · '),
+    });
+  }
   const rc = $("realConditions");
   if (rc) {
     if (!isHarrisCountyTile) {
@@ -2406,7 +2441,7 @@ if(!loadedExperiment)world.log(`Welcome to ${origin.lat.toFixed(3)}, ${origin.ln
 // The guide becomes actionable only after the actual World scene is ready.
 if (!embedMode && !businessMode && !simulationId && !loadedExperiment) {
   window.hblGuidedActions = {
-    week: () => withClassicWorld(runCycle),
+    week: () => withClassicWorld(async()=>{if(cycleBusy)throw new Error("A cycle is already running.");const completed=nextCycleResult();runCycle();return completed;}),
     storm: () => withClassicWorld(triggerStorm),
     tenYear: () => withClassicWorld(runExperiment10Years),
     resident: () => withClassicWorld(() => {
