@@ -272,7 +272,7 @@ export function mountScene(container, { onSelect = () => {} } = {}) {
     const metricsDiffer = Object.keys(frame.baseline.metrics).some(key =>
       frame.baseline.metrics[key] !== frame.intervention.metrics[key]);
     status.textContent = count ? `${count} changed ${count === 1 ? 'entity' : 'entities'} at this month`
-      : metricsDiffer ? 'Metrics differ at this month. No mapped entities differ.' : 'Identical at this month';
+      : metricsDiffer ? 'No entity differences at this month' : 'Identical at this month';
     const scene = layout(frame);
     if (mode === 'wipe') {
       const { canvas, svg } = mapPanel('Future A · Baseline / Future B · Intervention', 'split-map-wipe');
