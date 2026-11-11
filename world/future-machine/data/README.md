@@ -27,3 +27,20 @@ Month 16 is the first physical inventory divergence. One added three-floor build
 At Month 120 mean unit rent is 971.504282807192 versus 230.73527356811846 USD/month (delta -740.7690092390735). This average includes added inventory and synthetic vacancy equations; it is not a matched incumbent rent reduction or an empirical forecast. Travel is a mean across links, not residents' commute time. The tiny terminal travel delta is not a material mobility benefit. Capital expenditure is not the same as the city cash-balance delta.
 
 Audit validation: `bun test test/future-machine-data.test.js test/future-machine-diff.test.js test/city-systems.test.js`: 28 passed, 0 failed, 202 assertions. New regression checks lock the first physical month, exact building/unit join, homes/spending/rent/travel measurements, all metric units, deterministic replay, retained completion event/project/policy evidence and missing-ledger rejection. No production code or shared interface change was needed. Browser acceptance remains coordinator-owned.
+
+## Boundary and reverse-scrub audit (R03/R08)
+
+Follow-up base `c64ce56`, November 11, 2026. Both uint32 boundary seeds were created through the actual SQLite-backed City API, reopened, and independently recomputed. Each arm retained all 120 steps plus immutable common Month 0. Both first completed one 24-home building at Month 16 and ended with 36 baseline / 60 plan homes and 0 baseline / 1,000,000 plan cumulative capital USD. Terminal mean-link travel deltas are positive but negligible: seed 0 `+0.00001464888889302074` minutes/link; seed 4294967295 `+0.000297116444444967` minutes/link. Neither supports a material commute improvement claim.
+
+Canonical SHA-256 evidence (unchanged after pair processing and equal on independent baseline recomputation):
+
+| Seed | Original state | Full normalized baseline history |
+| --- | --- | --- |
+| 0 | `f49da5e5da9b2f7cc668435b725a6e266bb2dbb3aff52d1b71dce6fd249aa850` | `c8dbfeef6bbd045eb32a119ec470eb4f6bcd7d505718b8f4be052c961a335b6d` |
+| 4294967295 | `643d4b0396befbef4e24a09ec3fd061739ff5d591a4e45072ae657b7b13451b9` | `acc26d52682a6f489ba566c67e52a60b1e6faa4a552f2925e49036f9704de5e9` |
+
+A failing regression demonstrated that the adapter previously ignored a wrong experiment ID and did not compare a returned creation recipe with the submitted recipe. It now checks both before requesting replays. No public API signature or persistence format changed. Tests also reject altered generator state, model packs, short/long histories, wrong replay seeds/versions/months, and verify polling abort plus delayed stale replay rejection while a fresh retry completes.
+
+Reverse-scrub tests use real seed-42 City states and the current shared mapping, prewarmed across history as the stage does. They preserve exact IDs/coordinates, omit future inventory at Month 0 even with ghosts enabled, and confirm one shared Canvas camera/scale across split/difference/baseline/plan modes. Pure mapping identity is independent of renderer; native GPU camera behavior still requires coordinator browser verification. No scene/diff files changed.
+
+Verification: `bun test test/future-machine-data.test.js test/future-machine-diff.test.js test/future-machine-boundaries.test.js test/future-machine-scrub-identity.test.js` — 23 passed, 0 failed, 341 assertions. Browser tests were not run for this adapter/pure-regression increment.

@@ -95,17 +95,19 @@ async function operation(options, work) {
   try { return await work(request, pause); }
   finally { clearTimeout(timer); options.signal?.removeEventListener('abort', abort); }
 }
-async function load(id, request, pause, onProgress) {
+async function load(id, request, pause, onProgress, expectedRecipe) {
   if (!/^city_[\w-]{1,100}$/.test(id)) throw new Error('Invalid experiment ID');
   let record;
   while (true) {
     record = await request(`/api/city-experiments/${id}`);
+    if (record.id !== id) throw new Error('Saved experiment identity does not match request');
     onProgress?.({ status: record.status, message: `City pair: ${record.completed ?? 0}/2 runs` });
     if (record.status === 'complete') break;
     if (!['queued','running'].includes(record.status)) throw new Error(record.error || `City experiment ${record.status}`);
     await pause();
   }
-  recipeFromManifest(record.manifest);
+  const savedRecipe = recipeFromManifest(record.manifest);
+  if (expectedRecipe && await stateHash(savedRecipe) !== await stateHash(expectedRecipe)) throw new Error('Saved experiment does not match requested recipe');
   // Sequential replays respect the existing server's two-job limit.
   const baseline = await request(`/api/city-experiments/${id}/replay`, { scenarioId: 'baseline', runIndex: 0 });
   const plan = await request(`/api/city-experiments/${id}/replay`, { scenarioId: 'plan', runIndex: 0 });
@@ -116,7 +118,7 @@ export function createExperiment(input = DEFAULT_RECIPE, options = {}) {
   return operation(options, async (request, pause) => {
     options.onProgress?.({ status: 'creating', message: 'Forking matched monthly City futures' });
     const { id } = await request('/api/city-experiments', { title: 'Future Machine — synthetic housing pair', initial: initialForRecipe(recipe), runs: 1, months: MONTHS, retention: 'summary', scenarios: [{ id: 'baseline', interventions: [] }, { id: 'plan', interventions: recipe.intervention ? [recipe.intervention] : [] }] });
-    return load(id, request, pause, options.onProgress);
+    return load(id, request, pause, options.onProgress, recipe);
   });
 }
 export function loadExperiment(id, options = {}) {
