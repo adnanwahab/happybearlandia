@@ -7,7 +7,6 @@ tracker:
   required_labels:
     - hbl-agent-ready
   active_states:
-    - Backlog
     - Todo
     - In Progress
   terminal_states:
