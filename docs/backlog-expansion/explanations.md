@@ -76,3 +76,41 @@ Uses a fresh temporary Decision store and overridable port `HBL_EXPLANATIONS_ROU
 Actual baseline run created `decision_122d2f9d-e583-47ce-946f-8d3fdbfe064f`, selected evidence failure `plan-a_0001`, saved **200 actual completed runs**, opened the normal studio with **zero page errors**, and exited **2 / INTEGRATION-BLOCKED** because `.backlog-explanations` is absent in coordinator-owned `advanced-studio.js`. It made no injected mount or production-route acceptance claim. Artifacts: `/var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/hbl-explanations-route-Z5au8I/normal-route-mount-pending.png` and adjacent server log/store. The explicit threshold 100 is a synthetic test assumption, not an empirical failure definition.
 
 Status for all four assigned tickets: **INTEGRATION-READY**, normal-route completion pending shared mount and rerun. No external service or authorization blocker. Initial listener attempts in the sandbox reported EADDRINUSE; local-server permission allowed the bounded browser checks. Original checkout untouched; no shared production modules or global plans modified.
+
+## Coordinator-source correction and observed shared context defect
+
+The previous mount-absent result was against this track's own source root and is **not evidence that the coordinator checkout lacks the mount**. Coordinator `world/decision/advanced-studio.js` already imports the module and mounts it at line 95, forwards update at line 119 and disposes it. The harness now accepts `HBL_EXPLANATIONS_SOURCE_ROOT` explicitly, reports it at every stage, bounds actions/navigation and captures failure evidence. It never injects a component.
+
+Actual coordinator-source command:
+
+```sh
+NODE_PATH=/Users/wahabma/happybearlandia/node_modules \
+HBL_EXPLANATIONS_SOURCE_ROOT=/Users/wahabma/.codex/worktrees/backlog-integration/happybearlandia \
+HBL_EXPLANATIONS_ROUTE_PORT=39949 \
+HBL_PLAYWRIGHT_MODULE=/Users/wahabma/happybearlandia/node_modules/@playwright/test/index.mjs \
+bun test/backlog-explanations-route.mjs
+```
+
+Result: real mounted component found; 200 actual saved runs completed; failure cluster button selected `plan-a_0001` through its normal callback; stored monthly trace hydrated. The existing scrubber was moved to Month 12. **FAILED** exact checkpoint assertion: expected `recorded as 1830.5124249767582`, received `recorded as 1800` with zero dated events. This is Month-0 context retained after the UI scrub, not missing data in the saved run. First coordinator-source attempt also reached queries but timed out waiting for a source-event button because stale Month 0 had no dated event.
+
+Source evidence: coordinator `studio.js` line 479 calls `syncConstructionWorld()` on `#building-month` input without `updateAdvancedStudio()`. The latter (line 491) is where `month: constructionMonth` is forwarded to explanations. Coordinator production modules remain untouched by this track.
+
+Minimal shared patch for coordinator (replace the existing month input handler, preserving its transition cancellation):
+
+```js
+$('#building-month').addEventListener('input', () => {
+  stopConstructionPlayback();
+  futureTransitions.cancel('scrub');
+  constructionMonth = Number($('#building-month').value);
+  syncConstructionWorld();
+  updateAdvancedStudio();
+});
+```
+
+Also keep explanation context synchronized at discrete selected-month changes in construction playback and scenario/run reset paths; do not continuously rerun clustering for fractional visual interpolation. A separate authoritative integer selected-month context is preferable if playback remains fractional. The current explanations contract intentionally rejects fractional query checkpoints rather than interpolate evidence.
+
+The inspected coordinator explanations `evidence.js` still had the initial `clock` implementation, so it had not yet integrated follow-up `cf0237d` (authority/horizon hardening, reference summary hydration, stale-response protection). Cherry-pick that owned commit before completing the remainder of this harness. The normal-route harness now asserts the exact Month-12 stored metric before comparing or jumping, so an accidental equal delta cannot conceal stale month context.
+
+Latest focused check: `bun test test/backlog-explanations.test.js test/decision-intelligence.test.js test/decision-client-traces.test.js`: **22 passed, 141 assertions**. Prior full focused four-file run remains **29 passed, 206 assertions**. Status: **INTEGRATION-READY with reproduced shared wiring defect**, not absent-mount blocked and not end-to-end DONE. Next coordinator action: integrate cf0237d, apply the above month-context patch, rerun the absolute/source-root harness. Remaining assertions cover actual reference comparison, source jump, no-overflow and playback navigation disposal.
+
+Repeated coordinator-source run on unique port 39950 reproduced the identical wrong value with **zero page or console errors**. Artifacts `/var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/hbl-explanations-route-JWlYlw/`. Inspected `failure.png` shows the actual mounted mobile component and 100 evaluated failures / 200 saved records, split into 34/32/34 clusters. This is normal-route evidence for mounted clustering/selection, not passing evidence for WHY/source/month acceptance. Both comparison and source-jump acceptance remain gated by the shared month refresh and follow-up module integration.
