@@ -1666,7 +1666,8 @@ $("runCycleBtn")?.addEventListener("click", () => withClassicWorld(runCycle).cat
 // cycles use. The blended view counts synthetic journals the world has published
 // over time (including grocery complaints), which would make cycle 1 unpredictable.
 const DEMO_URL = "/world/?lat=29.7286&lng=-95.4746&people=500&demo=1&synthetic=0";
-const DEMO_HOLD_MS = 8000; // how long each caption stays up
+const QUICK_DEMO = params.get('quick') === '1';
+const DEMO_HOLD_MS = QUICK_DEMO ? 1700 : 8000; // short highlight or original full tour
 const demo = { running: false, paused: false, skip: false, stopped: false };
 
 class DemoStopped extends Error {}
@@ -1721,7 +1722,7 @@ async function playDemo() {
     overlayMode = "wellbeing";
     if (overlayEl) overlayEl.value = "wellbeing";
     demoCaption("The town", `${town.people.length} simulated residents. Each one journals about their day. Red means struggling, green means doing well.`);
-    await demoHold(7000);
+    await demoHold(QUICK_DEMO ? 750 : 7000);
 
     // Cycle 1: the Balanced plan vs. an identical town with no plan.
     activePolicyId = balancedPackageId();
@@ -1733,7 +1734,7 @@ async function playDemo() {
     deltas.push({ n: 1, text: signed(r1.avg.withPlan - r1.avg.noPlan) });
     demoShow("noPlan");
     demoCaption("Cycle 1", `A week with no plan: average well-being ${fmt(r1.avg.noPlan)}.`);
-    await demoHold(5000);
+    await demoHold(QUICK_DEMO ? 1300 : 5000);
     demoShow("withPlan");
     followResident(r1.best.index);
     demoCaption("Cycle 1", `With the ${plan1Label} plan: ${fmt(r1.avg.withPlan)} (${deltas[0].text}). ${r1.improved} residents are better off, mostly from shorter commutes.`);
@@ -1745,6 +1746,7 @@ async function playDemo() {
       await demoHold();
     }
 
+    if (!QUICK_DEMO) {
     // Then let residents' journals drive the plan until two more changes land.
     // With dear-congress live, a change can take two cycles: it leans first, then adopts.
     let changes = 0;
@@ -1780,7 +1782,8 @@ async function playDemo() {
       }
     }
 
-    demoCaption("Recap", `${deltas.map((x) => `Cycle ${x.n}: ${x.text}`).join(" · ")}. Each number compares against an identical town on the same seed, so it's the plan's effect, not luck.`);
+    }
+    demoCaption("Recap", `${deltas.map((x) => `Cycle ${x.n}: ${x.text}`).join(" · ")}. Both futures share the same starting town and seed. Differences are synthetic model results.`);
   } catch (err) {
     if (!(err instanceof DemoStopped)) demoCaption("Demo stopped", `Something went wrong: ${err?.message || err}`);
   } finally {
