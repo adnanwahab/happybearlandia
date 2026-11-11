@@ -22,12 +22,15 @@ test('real housing trail jumps to exact recorded policy, project and completion 
  await selectAdded(page);await trail.getByRole('button',{name:'project · Month 3',exact:true}).click();await synchronized(page,3);
  await selectAdded(page);await seek(page,0);
  expect(await page.evaluate(()=>window.futureMachine.state.frame.plan.state.buildings.some(b=>b.id==='building-project-policy-1-0'))).toBe(false);
- const staleTrailAfterScrub=await trail.innerText();
- await page.screenshot({path:testInfo.outputPath('evidence-trail-scrub-zero-before-reselection.png'),fullPage:true});
+ await expect(trail.getByRole('button',{name:/completion.*16-0/})).toHaveCount(0);
+ await expect(trail.getByRole('button',{name:/housing-units/})).toHaveCount(0);
+ await expect(trail).toContainText('Building is absent at the selected recorded month.');
+ const inspectorAfterReverseScrub=await trail.innerText();
+ await page.screenshot({path:testInfo.outputPath('evidence-trail-scrub-zero-refreshed.png'),fullPage:true});
  // A fresh initial-state selection must not expose the future completion.
  await page.getByRole('button',{name:/building-d1 · schematic/}).last().click();await expect(trail.getByRole('button',{name:/completion.*16-0/})).toHaveCount(0);
  const noFuture=await page.evaluate(async()=>{const {buildEvidenceTrail}=await import('/world/future-machine/story/evidence-trail.js');return buildEvidenceTrail(window.futureMachine.history,{collection:'buildings',id:'building-project-policy-1-0',month:0});});
  expect(noFuture.edges).toEqual([]);expect(noFuture.nodes.every(n=>n.status==='unavailable'&&n.type==='building')).toBe(true);
  const after=await page.evaluate(async()=>{const {stateHash}=await import('/world/future-machine/data/core.js');return stateHash(window.futureMachine.history.baseline);});expect(after).toBe(evidence.baselineHash);
- const path=testInfo.outputPath('evidence-trail-real.json');await writeFile(path,JSON.stringify({...evidence,noFuture,staleTrailAfterScrub},null,2));await testInfo.attach('exact-evidence-trail',{path,contentType:'application/json'});console.log('TRAIL_EVIDENCE',path);expect(errors).toEqual([]);
+ const path=testInfo.outputPath('evidence-trail-real.json');await writeFile(path,JSON.stringify({...evidence,noFuture,inspectorAfterReverseScrub},null,2));await testInfo.attach('exact-evidence-trail',{path,contentType:'application/json'});console.log('TRAIL_EVIDENCE',path);expect(errors).toEqual([]);
 });
