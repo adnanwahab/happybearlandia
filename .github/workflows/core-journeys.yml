@@ -34,6 +34,8 @@ jobs:
           test/living-city-recipe.test.js
           test/living-city-network.test.js
           test/living-city-quests.test.js
+          test/future-split.test.js
+          test/future-split-evidence.test.js
           test/living-city-council.test.js
           test/decision-storage.test.js
           test/release-health.test.js

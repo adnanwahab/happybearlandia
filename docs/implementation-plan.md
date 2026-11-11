@@ -2,6 +2,34 @@
 
 [Product design](design.md) defines the target experience. [Engineering instructions](../AGENTS.md) describe how to plan, implement, and verify changes. Keep this plan current with task status, dependencies, acceptance evidence, and commit or PR references when available.
 
+## Future Split Theater
+
+Sprint 3 compares two histories from the same synthetic Riverside City checkpoint.
+Both branches share the City model, scenario version, seed, starting month and horizon.
+Future B receives one catalog policy. A no-policy run provides an identical control.
+The City clock and model entity IDs drive every view.
+
+| Status | Slice | Acceptance |
+| --- | --- | --- |
+| Verified | Paired run and normalized entity differences | Deterministically replay a versioned recipe. Verify identical starting states, actual route and project differences, stable identity, missing measurements, and no-policy equality. |
+| Verified | Synchronized schematic and evidence | Render one matched month in side-by-side, wipe and A/B views. Highlight actual added, modified and removed entities and let a visitor inspect the compared state and history. Show first observed divergence and metric denominators. |
+| Verified | Homepage entry and browser verification | Open the theater through the normal server, change comparison modes, inspect an entity, reload the selected month and verify the narrow viewport. |
+
+The schematic maps district and City entity IDs to fixed screen positions. Geographic geometry,
+World and House identities, and causal links require separate verified mappings. The first
+divergence refers to the first difference observed in the compared fields and metrics.
+
+The default seed 2911 compares 12 months from City month 2. Capital spending first
+differs at month 4, the transit project enters the modeled inventory at month 5,
+and Riverside-to-Center transit capacity rises from 1 to 9 in Future B at month 12.
+A bundled recipe stores the model, scenario, settings and selected month in the URL.
+The tested public-housing run shows its stalled project and does not create a building.
+
+Local acceptance passed with 21 Bun tests across six suites and three Chrome journeys.
+The browser checks covered the homepage entry, playback, month synchronization, pointer
+wipe, A/B switch, exact route values and history, refresh, an invalid link, the
+390-pixel no-policy view, and added/removed markers using an explicit schematic fixture.
+
 ## Playable Life vertical slice
 
 Source is the “15 new features I'd add next” emerging civilization proposal. Start with “Live a Day as Anyone” on the shared Living World and House Simulator Population authority. Use the selected resident's existing identity and keep the current clock. The available work and travel activities are a household chore and the trip home. The follow-up uses 30 modeled days.
