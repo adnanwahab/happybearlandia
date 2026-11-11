@@ -130,6 +130,7 @@
   <summary title="Minimize or expand world controls"><h1>HappyBearLandia · world</h1></summary>
   <div class="row"><a href="/reality-compiler" onclick="this.search=location.search">Reality Compiler</a> · <a href="/city-speaks" onclick="this.search=location.search">Who does this hurt?</a></div>
   <a href="/world/city-lab.html" onclick="this.search=location.search" style="color:var(--accent);font-size:12px">City Systems Laboratory ↗</a>
+  <div class="row"><a id="world-lite-link" href="/world?renderer=canvas2d">Use 2D low-fidelity mode</a></div>
   <div class="row"><a href="/business-simulator">Business Lab</a> · <a href="/world?business_mode=true">Place a business</a></div>
   <div class="row" id="living-city-toolbar" aria-label="Population mode"></div>
   <form class="row" id="goto">
@@ -253,7 +254,7 @@
 
 <script type="module" src="/world/model-provenance-loader.js"></script>
 <script type="module" src="/world/first-run-guide.js"></script>
-<script type="module" src="/world/render.js"></script>
+<script type="module" src="/world/renderer-entry.js"></script>
 <script type="module" src="/world/explorer-dock.js"></script>
 <script type="module" src="/world/social/journey.js" data-social-experience="living-city"></script>
 </body>
