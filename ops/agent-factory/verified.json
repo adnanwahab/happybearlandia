@@ -1,0 +1,12 @@
+{
+  "verifiedTaskIds": [],
+  "activeTaskIds": [
+    "R01",
+    "R02",
+    "R03",
+    "R04",
+    "R05",
+    "R06"
+  ],
+  "notes": "Conservative initial state. Only the integration coordinator changes VERIFIED after actual integrated tests. Never mark a task verified because a worker claims it is done."
+}
