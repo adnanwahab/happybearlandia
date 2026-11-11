@@ -2,7 +2,7 @@
 // Votes can rank already-curated tasks; suggestions cannot execute as prompts.
 import { Database } from 'bun:sqlite';
 import { mkdirSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { dirname, resolve, relative, isAbsolute, sep } from 'node:path';
 import { createHmac, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 import { approvedPatchCandidates } from './candidates.js';
 
@@ -65,6 +65,16 @@ function sameOrigin(request) {
 
 export function createPatchVotingStore(options = {}) {
   const dbPath = options.dbPath || process.env.HBL_PATCH_VOTE_DB_PATH || resolve('.hbl-private/patch-votes.sqlite');
+  // Prevent accidental exposure through the server's public static roots.
+  if (dbPath !== ':memory:') {
+    const absolute = resolve(dbPath);
+    for (const publicRoot of ['data', 'world', 'game', 'tools', 'blog', 'visualizations']) {
+      const rel = relative(resolve(publicRoot), absolute);
+      if (!isAbsolute(rel) && rel !== '..' && !rel.startsWith('..' + sep)) {
+        throw new Error('Patch vote database must be outside public static directories.');
+      }
+    }
+  }
   if (dbPath !== ':memory:') mkdirSync(dirname(resolve(dbPath)), { recursive: true });
   const db = new Database(dbPath, { create: true });
   db.exec('PRAGMA busy_timeout=2500');
