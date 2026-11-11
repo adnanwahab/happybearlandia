@@ -15,3 +15,17 @@ Changed files: `world/future-machine/demo-controller.js`, `main.js`, `scene/inde
 Reproduce: `bun test test/future-machine*.test.js test/two-futures*.test.js test/world-readiness-regression.test.js`; browser configs `test/outcome-delta.browser.config.js`, `test/construction-recorded-real.browser.config.js`, `test/evidence-trail-real.browser.config.js`, `test/approved-demo-responsive.browser.config.js`, `test/future-machine-share-reliability.browser.config.js`. Native: `HBL_NATIVE_WEBGPU=1 HBL_BACKEND_ANGLE=metal bunx playwright test --config test/native-presentation-proof.browser.config.js`. Recording: `HBL_NATIVE_WEBGPU=1 HBL_BACKEND_ANGLE=metal bun scripts/record-one-city-two-futures.mjs --output /tmp/hbl-approved-final-recording --port 39979`. Local route `/world/future-machine.html?demo=1`.
 
 Inventory-only WHY follow-up `71ffeb7`: coordinator actual browser1passed4.2s with every graphics context unavailable, exactcompletion16-0 jump to16/+24homes and reverse0 clearsfutureevidence. Artifacts `/tmp/hbl-inventory-why-final/`. No productioncodechange.
+
+
+## Continuous coordinator re-audit at 1de9fd8
+
+Fresh current-source checks:120unitpass/3skip/0fail/1042assertions; canonical13browserpass/1recordingskip; responsive1440/390/3203pass; nativeMetaldesktop/3902pass; separate namedrecording1pass55.3s; artifactverifier2records/1playablevideo. No application changes or new integrations. [Audit and pipeline metrics](coordinator-audit-20261111.md), [fresh hashes](coordinator-audit-evidence.json), [prepared next dispatch](coordinator-next-dispatch.json). EightREADY, zero confirmed active original sprintjobs, two externalNB REVIEW. R13→R14/R15 reliability batch prepared, not launched. Main preservation remains release blocker; no merge/deploy.
+
+
+## Reliability execution resumed
+
+Sprint accepted R15 at `d548153489964c776fef34d28e2b39739c6a4bbd`: explicit owner repair, maximum two verification attempts, retained failure evidence and occupied review/repair reservations. Candidate12pass/66assertions and integrated12pass/66assertions; combined pipeline/City/story37pass/202assertions10.78s. R15 review→verified23.72s. No product source changed; prior real native/mobile/demo proof remains applicable.
+
+R13 candidate `67aed30` independently2pass/3fail: HoustonBars catalog omitted, ten directory routes omitted, atlas API/source wiring absent. R14 candidate `a1aa70d` independently8unitpass and2browserpass/1fail23.2s: optional-plan pending/failure localPlay succeeds; aborting required simulation-observations module prevents renderer and disclosure startup. This is not an isolated optional metadata failure. Both candidates retained in REPAIR, never cherry-picked; release not ready.
+
+All three original assignments ran with actual durable claims and isolated managed worktrees. R15 completed; R13/R14 now retain reservations awaiting scoped reconciliation. U01 continuation sent to original native-renderer worker; actual claim status belongs to runtime ledger. Two NB candidates remain REVIEW. Full command output, commits, failure evidence and event timing: [resume evidence](coordinator-resume-evidence.json). No main/release merge or deployment.

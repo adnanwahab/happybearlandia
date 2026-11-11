@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "auditedBaseline": "1de9fd8",
+  "workingBranch": "sprint/one-city-two-futures-20261111",
+  "status": "R15_VERIFIED_R13_R14_REPAIR_U01_RUNNING",
+  "maxConcurrentWorkers": 3,
+  "integrationDecision": "Retain flagship reliability freeze; NB candidates remain REVIEW with separate triage ownership. No release merge.",
+  "prerequisites": [
+    "Use the clean sprint integration checkout for durable claims; retain audit documentation in the detached audit worktree.",
+    "Re-read live claims and candidate queue under the shared pipeline lock; do not overwrite assignments.",
+    "Provision isolated worktrees at the current accepted integration HEAD using the managed worktree tool.",
+    "Claim each task before launching a worker; more than two review contributions stops dispatch."
+  ],
+  "dispatch": [
+    {
+      "id": "R13",
+      "status": "REPAIR",
+      "preferredExistingRole": "first-run repairs",
+      "branch": "codex/coordinator-r13-20261111",
+      "acceptance": "Prove preservation against pinned local main: name missing catalog IDs and routes, retain Future Machine. Deliver concrete failures as review evidence; do not merge main or repair production code.",
+      "kind": "verification",
+      "dependencies": [
+        "R11"
+      ],
+      "files": [
+        "test/pipeline-catalog-preservation.test.js"
+      ],
+      "interfaces": [],
+      "userFacing": false,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/pipeline-catalog-preservation.test.js"
+        ]
+      ],
+      "browserTests": [],
+      "handoff": [
+        "Exactly one scoped commit from claimed base; full SHA and changed paths.",
+        "Exact verification argv, exits and logs; browser artifacts and pinned served source for browser tasks.",
+        "Coordinator reviews diff, tests candidate, integrates locally, retests combined tree."
+      ],
+      "owner": "catalog-worker",
+      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-catalog-r13/happybearlandia"
+    },
+    {
+      "id": "R14",
+      "status": "REPAIR",
+      "preferredExistingRole": "browser proof and recording",
+      "branch": "codex/coordinator-r14-20261111",
+      "acceptance": "Inject actual optional plan/provenance loading failures; prove local Play usability on the normal route. If broken, report exact bounded production repair; do not edit runtime.",
+      "kind": "verification",
+      "dependencies": [
+        "R04",
+        "R09"
+      ],
+      "files": [
+        "test/e2e/pipeline-local-play.e2e.js",
+        "test/pipeline-local-play.browser.config.js"
+      ],
+      "interfaces": [],
+      "userFacing": false,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/future-machine-canvas.test.js"
+        ]
+      ],
+      "browserTests": [
+        [
+          "bunx",
+          "playwright",
+          "test",
+          "--config",
+          "test/pipeline-local-play.browser.config.js"
+        ]
+      ],
+      "handoff": [
+        "Exactly one scoped commit from claimed base; full SHA and changed paths.",
+        "Exact verification argv, exits and logs; browser artifacts and pinned served source for browser tasks.",
+        "Coordinator reviews diff, tests candidate, integrates locally, retests combined tree."
+      ],
+      "owner": "browser-proof-r14",
+      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-local-play-r14/happybearlandia"
+    },
+    {
+      "id": "R15",
+      "status": "VERIFIED",
+      "preferredExistingRole": "pipeline coordinator",
+      "branch": "codex/coordinator-r15-20261111",
+      "acceptance": "Implement an explicit owner-authorized repair transition retaining failed commit/check logs. Maximum two total attempts, reject third; preserve scope reservations and reject racing claims. Test candidate and post-integration failure paths; no reset or silent retry.",
+      "kind": "verification",
+      "dependencies": [
+        "U10"
+      ],
+      "files": [
+        "scripts/pipeline-coordinator.mjs",
+        "test/pipeline-repair.test.js"
+      ],
+      "interfaces": [
+        "interactive-claims"
+      ],
+      "userFacing": false,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/pipeline-repair.test.js",
+          "test/pipeline-coordinator.test.js"
+        ]
+      ],
+      "browserTests": [],
+      "handoff": [
+        "Exactly one scoped commit from claimed base; full SHA and changed paths.",
+        "Exact verification argv, exits and logs; browser artifacts and pinned served source for browser tasks.",
+        "Coordinator reviews diff, tests candidate, integrates locally, retests combined tree."
+      ],
+      "owner": "continuous-coordinator",
+      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-bounded-repair/happybearlandia",
+      "execution": "Internal bounded_repair agent launched after durable claim"
+    }
+  ],
+  "remainingReady": [
+    "U02",
+    "U03",
+    "U05",
+    "U08"
+  ],
+  "externalReview": [
+    {
+      "id": "NB-district-candidate",
+      "commit": "c4cbfa22dfb1d034d3eee072d42058552e89a8cc",
+      "status": "REVIEW"
+    },
+    {
+      "id": "NB-grid-fixture",
+      "commit": "c789517f12fc4ab8177b0d4865fbc3ea53f49857",
+      "status": "REVIEW"
+    }
+  ],
+  "acceptedBaseline": "d548153489964c776fef34d28e2b39739c6a4bbd",
+  "nextActive": {
+    "id": "U01",
+    "status": "RUNNING",
+    "worktree": "/Users/wahabma/.codex/worktrees/pipeline-device-loss/happybearlandia",
+    "files": [
+      "test/e2e/pipeline-device-loss.e2e.js",
+      "test/pipeline-device-loss.browser.config.js"
+    ]
+  }
+}
