@@ -11,11 +11,12 @@ configuration is also supported; do not run both against overlapping work.
 ## Linear project setup
 
 Create/select a Linear project and copy its URL. The final URL component is
-its `project_slug`. Create a **team** label `hbl-agent-ready`.
+its `project_slug`. Create **team** labels `hbl-agent-ready` and `hbl-coordinator-approved`.
+The second is a stricter explicit coordinator sign-off; it is not automatically applied.
 
 The versioned Linear workflow uses:
 - `tracker.kind: linear` with host-supplied `LINEAR_API_KEY`.
-- `tracker.required_labels: [hbl-agent-ready]`.
+- `tracker.required_labels: [hbl-agent-ready, hbl-coordinator-approved]` (both required).
 - `tracker.active_states: [Todo, In Progress]` (NOT `Backlog`).
 - `agent.max_concurrent_agents` rendered from `--workers`.
 - Workspaces isolated under a separate `workspaces-linear` directory.
@@ -26,8 +27,14 @@ The versioned Linear workflow uses:
 checks nonterminal native blockers for `Todo` issues. CSV dependency text
 does not automatically become native Linear blocker relations. Audit every
 candidate, link `blocked by` dependencies, verify a unique file owner and
-acceptance tests, move eligible tasks from Backlog to Todo, and apply the
-`hbl-agent-ready` label. Do **not** bulk-label unreviewed tickets.
+acceptance tests, move eligible tasks from Backlog to Todo, and apply **both**
+`hbl-agent-ready` and `hbl-coordinator-approved`. Do **not** bulk-label unreviewed tickets.
+
+This second label prevents previously mass-labeled, unreviewed Todo issues
+from exhausting tokens on repeated pre-edit audits. Review historical
+SHE-7/SHE-11 coordinator notes as examples of exact exclusive ownership;
+check live worktrees and open PRs before approval. Already-running workers
+may finish under the previous workflow until the operator restarts Symphony.
 
 ## One-worker pilot and 20-worker operation
 
@@ -44,6 +51,7 @@ read -s LINEAR_API_KEY
 export LINEAR_API_KEY
 unset GITHUB_TOKEN
 
+python3 ops/symphony/run_25h.py --tracker linear --workers 1 --preflight
 python3 ops/symphony/run_25h.py --tracker linear --workers 1 --hours 1 --run
 ```
 
@@ -57,6 +65,18 @@ are verified, launch up to 20 concurrent worker sessions:
 ```bash
 python3 ops/symphony/run_25h.py --tracker linear --workers 20 --ack-scale --hours 25 --run
 ```
+
+The launcher preflight refuses a second dispatcher on the occupied dashboard port,
+missing Bun/git/gh/Codex, missing Git author identity, absent Linear credentials,
+or GitHub CLI authentication without repository push permission. Run `gh auth login`
+and `gh auth setup-git` when appropriate. Preflight does not prove credentials
+work inside the Codex workspace sandbox; verify one real PR before scaling.
+
+The workflow uses `approval_policy: never` because the installed Codex
+app-server rejected the older YAML object. This avoids unattended permission
+prompts **within the configured workspace-write sandbox**; it is not permission
+to bypass the sandbox or grant full host access. Keep credentials scoped and
+review the security trade-off before unattended execution.
 
 The 20-worker option sets **maximum concurrency**, not a target number of
 occupied sessions. Only genuinely ready issues are dispatched. The same
@@ -73,10 +93,10 @@ loop that:
 1. Audits actual source, open worktrees, overlapping issues and merged PRs.
 2. Converts free-text dependencies into native `blocked by` relations.
 3. Approves a bounded, conflict-free batch by moving to `Todo` and adding
-   `hbl-agent-ready`.
+   **both** dispatch labels.
 4. Checks new PRs in `In Review`, requires real CI evidence, and integrates
    only after explicit approval into the sprint branch.
-5. Marks verified issues Done, removes their dispatch labels, and promotes
+5. Marks verified issues Done, removes **both** dispatch labels, and promotes
    newly unblocked tasks. Never mark a historical GitHub mirror Done solely
    because a local status note says VERIFIED; check the actual branch/PR.
 
