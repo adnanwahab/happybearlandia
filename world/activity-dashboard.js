@@ -74,5 +74,5 @@ export function mountActivityDashboard({container,getSnapshot,getHistory,subscri
   try{const snapshot=await Promise.resolve(getSnapshot?.()||latestSnapshot||{});if(destroyed||!visible||generation!==lifecycle)return;update(snapshot);clearTimeout(timer);timer=null;unsubscribe=subscribe?.(update)||null;clearTimeout(timer);timer=null;await refresh();}catch(error){if(!destroyed&&visible&&generation===lifecycle)fail(error);}
  }
  function close(){visible=false;root.hidden=true;lifecycle++;serial++;queryDirty=false;clearTimeout(timer);timer=null;unsubscribe?.();unsubscribe=null;}
- return{open,close,update,destroy(){destroyed=true;close();root.remove();style.remove();}};
+ return{open,close,update,isOpen:()=>visible&&!destroyed,destroy(){destroyed=true;close();root.remove();style.remove();}};
 }
