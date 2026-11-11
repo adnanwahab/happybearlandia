@@ -1,3 +1,11 @@
+import {createCheckpointHandler} from './world/decision/checkpoint-api.js';
+import { createLocalCapabilityBoundary, loadLocalCapabilitySecret } from './world/decision/local-capability.js';
+import {createProductWorkflowStore,createProductWorkflowHandler} from './world/decision/backlog-product-workflows/index.js';
+const localPeers=new WeakSet();
+const localCapabilities=createLocalCapabilityBoundary({secret:loadLocalCapabilitySecret(process.env.HBL_LOCAL_CAPABILITY_KEY_PATH),isLocalPeer:request=>localPeers.has(request)});
+const workflowStore=createProductWorkflowStore({directory:process.env.HBL_WORKFLOW_STORE_DIR||'.data/product-workflows'});
+const handleCheckpoints=createCheckpointHandler({authorize:request=>localCapabilities.owner(request),directory:process.env.HBL_CHECKPOINT_STORE_DIR||'.data/housing-checkpoints'});
+const handleProductWorkflows=createProductWorkflowHandler({store:workflowStore,authorize:request=>localCapabilities.owner(request)});
 import { withUniverseNavigation } from './world/universe/html-navigation.js';
 import {createCausalityHandler} from './world/causality/api.js';
 import {createReleaseHealthHandler,initializeReleaseStorage} from './ops/release-health.js';
@@ -427,6 +435,10 @@ const server = serve({
 
   async fetch(request, server) {
     const { pathname } = new URL(request.url);
+    const peer=server.requestIP(request)?.address;if(['127.0.0.1','::1','::ffff:127.0.0.1'].includes(peer))localPeers.add(request);
+    const capabilityResponse=localCapabilities.handle(request);if(capabilityResponse)return capabilityResponse;
+    const checkpointResponse=await handleCheckpoints(request);if(checkpointResponse)return checkpointResponse;
+    const workflowResponse=await handleProductWorkflows(request);if(workflowResponse)return workflowResponse;
     if (pathname === "/api/health" || pathname === "/api/ready") return handleReleaseHealth(request);
     if(pathname.startsWith('/api/act-normal/'))return actNormalService.fetch(request,server);
     if(/^\/world\/party\/act-normal\/?$/.test(pathname))return serveFile('./world/party/act-normal.html');

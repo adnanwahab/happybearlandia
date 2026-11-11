@@ -1,0 +1,21 @@
+--- a/world/decision/studio.js
++++ b/world/decision/studio.js
+@@ -11,6 +11,7 @@
+ import { mountDecisionVisualizations } from './visualizations.js';
+ import { mountDecisionTrust } from './trust-view.js';
+ import { DECISION_LIMITS, normalizeDecisionInput } from './contracts.js';
++import { hydrateComparisonBaseline } from './backlog-comparison/hydration.js';
+ import { createDecisionClient, createRunTraceCache, mergeRunTrace, parseParameterUpload, experimentInputFromManifest } from './client.js';
+ import { mountDiagnostics } from './diagnostics.js';
+ import { mountPilotRequest } from './onboarding.js';
+@@ -572,6 +573,10 @@
+   try {
+     const full=await runTraces.get(experimentId,run.id);
+     if(!full||token!==traceSelectionToken||state.results?.experiment?.id!==experimentId||constructionRun?.id!==run.id)return null;
++    await hydrateComparisonBaseline({ results: state.results, selectedRun: run,
++      loadRun: (id, runId) => runTraces.get(id, runId),
++      isCurrent: () => token === traceSelectionToken && state.results?.experiment?.id === experimentId && constructionRun?.id === run.id });
++    if(token!==traceSelectionToken||state.results?.experiment?.id!==experimentId||constructionRun?.id!==run.id)return null;
+     const latest=state.summaryResults;
+     if(!latest||latest.experiment?.id!==experimentId)return null;
+     // Merge into the most recent progressive envelope, never the snapshot that

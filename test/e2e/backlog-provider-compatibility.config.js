@@ -1,0 +1,2 @@
+const {defineConfig} = require(process.env.HBL_COMPAT_PLAYWRIGHT || '@playwright/test');
+export default defineConfig({testDir:'.',testMatch:'backlog-provider-compatibility.e2e.js',workers:1,use:{baseURL:'http://127.0.0.1:3193',browserName:process.env.HBL_COMPAT_BROWSER||'chromium',launchOptions:{args:['--enable-unsafe-swiftshader']}},webServer:{command:'bun run server.js',cwd:new URL('../..',import.meta.url).pathname,env:{PORT:'3193',DECISION_STORE_DIR:'/private/tmp/hbl-compatibility-store'},url:'http://127.0.0.1:3193/game',reuseExistingServer:false}});

@@ -1,0 +1,63 @@
+$ bun test test/robustness.test.js test/demo-fallback.test.js test/decision-exploration.test.js test/decision-intelligence.test.js test/housing-fork.test.js test/advanced-studio.test.js test/advanced-trace-integration.test.js
+bun test v1.4.2 (744846f84)
+
+test/decision-exploration.test.js:
+(pass) scenario inheritance and recorded outcomes > explicit overrides inherit parent changes and approved edits reach effective model inputs [8.51ms]
+(pass) scenario inheritance and recorded outcomes > mixed is defined only by explicit success/failure rules; failure precedence is recorded [0.12ms]
+(pass) bounded optimization > approved candidate audit retains immutable job and search provenance [1.87ms]
+(pass) bounded optimization > deterministic candidate generation, exact100/500 stages, paired deltas and Pareto [940.67ms]
+(pass) bounded optimization > isolates failures, cancels promptly and rejects unbounded search counts [17.01ms]
+(pass) bounded optimization > saved API job manifest reproduces candidate summaries and cancel persists [555.88ms]
+(pass) immutable timeline fork API > preview/reject pure, approve binds seed/hash, protects placement/prefix and manifest lineage [87.18ms]
+
+test/decision-intelligence.test.js:
+(pass) within-scenario failure and success rules > support, base rate, confidence and lift use actual denominators [1.48ms]
+(pass) within-scenario failure and success rules > without explicit criteria recorded outcomes stay unclassified until diagnostic mode is selected [0.33ms]
+(pass) within-scenario failure and success rules > rules stay within scenario and omit numerical failures / missing outcomes [0.32ms]
+(pass) within-scenario failure and success rules > shared multi-outcome classifier retains mixed outcomes and failure precedence [0.14ms]
+(pass) test-a-fix and trust boundaries > fix is bounded, validated, scenario-scoped and leaves input and results byte-identical [5.20ms]
+(pass) test-a-fix and trust boundaries > sensitivity and descriptive bins do not masquerade as variance / partial dependence [1.03ms]
+(pass) test-a-fix and trust boundaries > before/after pairs scenario and seed, rejecting version/horizon mismatch [1.19ms]
+(pass) numeric explanations and queries > partial dependence executes interventions and rejects mismatched reconstruction [7.28ms]
+(pass) numeric explanations and queries > top-five numerical reasons come from versioned model reversions; queries quote actual values [5.09ms]
+(pass) numeric explanations and queries > causal graph emits keyboard-selectable registered nodes and escaped text [0.96ms]
+(pass) brief source provenance > approved search prompt retains actual job/candidate provenance without invented IDs [6.94ms]
+(pass) brief source provenance > brief includes measured rules, verify priorities and exact robustness denominators, rejecting unrelated snapshots [4.64ms]
+
+test/advanced-trace-integration.test.js:
+(pass) summary projection hydrates exact actual monthly/project states without changing immutable full results [47.17ms]
+
+test/housing-fork.test.js:
+(pass) true monthly housing forks > no-op forks reproduce complete original numerical/history output [7.40ms]
+(pass) true monthly housing forks > parameter changes retain every prefix and existing projects' exact progress and risk draws [3.04ms]
+(pass) true monthly housing forks > adding a project after the branch reserves capacity and pays only forward costs [3.02ms]
+(pass) true monthly housing forks > cancelling in-progress work preserves sunk cost and does not erase history [1.82ms]
+(pass) true monthly housing forks > fork stress starts after branch and leaves scheduled stress once in place [1.53ms]
+(pass) true monthly housing forks > rejects state rewrites, geometry history changes, unapproved additions and completed-stock deletion [0.74ms]
+(pass) true monthly housing forks > retained1.1 is unchanged; latest no-op preserves old metric and project prefix [7.31ms]
+(pass) equation-backed numerical explanations > OAT uses actual paired reruns with retained inputs, seed and version [2.27ms]
+(pass) equation-backed numerical explanations > old recorded versions are resolved rather than reinterpreted [3.12ms]
+(pass) equation-backed numerical explanations > top five and residual are numerical and explicitly nonadditive [16.69ms]
+
+test/robustness.test.js:
+(pass) actual plan × stress robustness > builds immutable paired runner inputs and labels preview retention [0.99ms]
+(pass) actual plan × stress robustness > denominators exclude failed and absent/nonfinite metrics, preserving ties [0.26ms]
+(pass) actual plan × stress robustness > real model outcomes and identical per-index seeds flow into every matrix cell [31.44ms]
+(pass) actual plan × stress robustness > rejects missing criteria, too many plans, unknown stresses and oversized cells [0.62ms]
+
+test/advanced-studio.test.js:
+(pass) future shortcuts rank real successful rows in the metric direction and median comparison excludes missing values [0.42ms]
+(pass) scenario deletion protects baseline and reset preserves named projects/history without mutating stored input [0.54ms]
+(pass) uncertainty sketches represent configured densities, including a boundary triangular mode [0.37ms]
+(pass) inherited slider and uncertainty edits survive normalization while parent-only edits still propagate [0.74ms]
+(pass) inherited slider override reaches actual sampled parameters in the common runner [11.39ms]
+
+test/demo-fallback.test.js:
+(pass) saved fallback is labeled actual model output and exactly reproducible at its pinned version [34.53ms]
+(pass) guided tour is exactly 90 seconds and keeps the signature loop visible [0.26ms]
+(pass) local activity never retains customer or pilot contact fields and is bounded [7.30ms]
+
+ 42 pass
+ 0 fail
+ 565 expect() calls
+Ran 42 tests across 7 files. [2.00s]
