@@ -54,3 +54,39 @@ Actual browser command: `bunx playwright test --config test/backlog-product-work
 Screenshots (local artifacts, not committed): `/tmp/hbl-product-workflow-proof/backlog-product-workflows.-60059-export-deletion-and-failure/consented-local-receipt.png` and `storage-error-retained-draft.png`. Both reflect the reusable mount; receipt and final error layout visually inspected. Browser config allows `HBL_PRODUCT_TEST_PORT` and `HBL_PRODUCT_ARTIFACTS` overrides and allocates a fresh isolated test store. Dependencies reused via uncommitted node_modules symlink to installed source dependencies; no package/lock changes.
 
 The harness's `x-local-review` synthetic owner is **not authentication**. Its loopback-only Origin check establishes local mechanics, not hosted security. Hosted owner resolution/CSRF, Studio route mounting and browser acceptance through that normal route remain coordinator integration prerequisites. Tickets197/198 stay Partial until those checks pass. This follow-up is INTEGRATION-READY, not a production or external CRM completion claim.
+
+## Normal Studio API acceptance and capability bootstrap
+
+Follow-up normal-source inspection: `/Users/wahabma/.codex/worktrees/backlog-integration/happybearlandia/server.js` mounts the actual workflow handler using `localCapabilities.owner(request)`. Its `world/decision/local-capability.js` issues an HttpOnly `/api` cookie after a same-origin loopback POST. No client-supplied owner is used by this adapter.
+
+New `bootstrap.js` exports `openLocalProductWorkflows(container,options)`. Exact minimal Studio hook after importing it:
+
+```js
+// Run from an explicit user action opening the optional local-workflow panel.
+let workflowPanel;
+async function openWorkflowPanel() {
+  try {
+    workflowPanel?.dispose();
+    workflowPanel = await openLocalProductWorkflows(workflowContainer);
+  } catch (error) {
+    workflowErrorElement.textContent = error.message;
+  }
+}
+// On Studio/panel teardown: workflowPanel?.dispose().
+```
+
+Coordinator must create the real panel container, accessible open button and error status in existing Studio UI. `workflowContainer` and `workflowErrorElement` above are required DOM references, not existing exports. Import `/world/decision/backlog-product-workflows/bootstrap.js`; bootstrap performs `fetch('/api/local-capability',{method:'POST',credentials:'same-origin'})`, verifies200/localOnly, then mounts the UI with `/api/product-workflows`. Do not synthesize an owner or read the HttpOnly cookie. Capability acquisition is not analytics consent and does not create a product event.
+
+Command `bunx playwright test --config test/backlog-product-workflows.normal.browser.config.js`: **1 passed (3.6s)** using coordinator source, real normal `/world/decision.html`, separate ephemeral private stores and port39982. Actual same-origin browser requests obtained HttpOnlycookie, stored/retried a pilot as one record, exported it, reloaded the page and exported the persisted record, deleted it and verified empty export; **zero console/page errors**. No coordinator files changed. Config supports `HBL_PRODUCT_SOURCE_ROOT` and `HBL_PRODUCT_NORMAL_PORT` overrides.
+
+**Observed missing integration hook:** the normal Studio document has no `[aria-label="Local product workflows"]` mount. The passing normal-route test therefore proves API/cookie mechanics from that page, NOT interactive normal-page consent/review acceptance. It logs this blocker explicitly. Full consent/pilot/event interaction remains proven only in the isolated component harness until coordinator installs the hook above. Normal-route screenshot/evidence: `/tmp/hbl-product-normal-proof/` (`normal-studio-mounted-status.png`, `normal-route-evidence.json`). Evidence JSON excludes cookie value. This check does not restart the server, expire the capability or prove durable owner continuity across server/session restart. Security review of those boundaries remains separate. Status remains INTEGRATION-READY/Partial.
+
+## Mounted normal Studio UI acceptance (supersedes missing-mount finding)
+
+Coordinator has now mounted the reusable UI in actual `#trust` and wraps each explicit transport operation with same-origin POST `/api/local-capability`. There is no page-load product event. Inspected integration source HEAD at completion: `ef67f1165107793c7225e03fc941b291d08a2e3f` (active checkout may include concurrent uncommitted coordinator changes; this is not a frozen release-candidate claim).
+
+Final command `bunx playwright test --config test/backlog-product-workflows.normal.browser.config.js`: **1 passed (39.6s)**. Uses actual `/world/decision.html#trust`, mounted UI labels, real server router/capability/store and isolated test directories. No component injection or synthetic review header. Verified initially disabled Save and no automatic workflow writes; consent alone insufficient; review exact pilot then check confirmation; real local receipt; retry same key; event opt-in; HttpOnly cookie; actual reload; export/download of exactly two records (one pilot despite retry, one event); deletion and empty export. No client owner was sent. Deliberately aborted final workflow request proves error wording/draft retention on the mounted page. **Zero page exceptions and zero unexpected console errors**; one expected Chromium `net::ERR_FAILED` console resource error belongs to the injected network failure, not a clean-console claim for that injection.
+
+Screenshots visually inspected: `/tmp/hbl-product-normal-proof/backlog-product-workflows.-fc6ad-en-export-delete-and-errors/normal-studio-local-receipt.png`; error screenshot adjacent `normal-studio-storage-error.png`. Normal-theme receipt is readable; persistent universe navigation overlaps the lower-left edge of the cropped panel receipt. Full receipt text and all buttons remain asserted; broader floating-navigation polish is coordinator-owned. JSON evidence and actual downloaded `local-workflows-export.json` are adjacent. Artifacts contain only synthetic test briefs/receipts and omit cookie values.
+
+The earlier missing UI hook is closed by this normal-route evidence. Tickets197/198 now have local-only normal-route acceptance for the delivered consent/review event/pilot workflow; external analytics/CRM remain excluded by design. Coordinator may record this bounded local behavior as implemented only after integrating this test/handoff and confirming final source revision. Persistent capability key fix is outside this worker's owned code. This browser run proves reload continuity, not process restart/expiry/key rotation/hosted authorization. Keep those limitations explicit even if independent security tests pass.
