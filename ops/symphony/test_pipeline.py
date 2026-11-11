@@ -4,6 +4,7 @@ import io
 import subprocess
 import sys
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -46,14 +47,17 @@ class IntakeTests(unittest.TestCase):
     def test_parses_real_curated_queue(self):
         queue = seed_ready_issues.parse_ready_table(
             seed_ready_issues.BACKLOG.read_text(encoding="utf-8"))
-        self.assertTrue(seed_ready_issues.FIRST_WAVE.issubset(queue.keys()))
-        self.assertIn("verification", queue["R01"])
-        self.assertIn("ownership", queue["R01"])
-        self.assertIn("READY", queue["R01"]["priority"])
+        # Completed bootstrap tasks must never become dispatchable again.
+        self.assertNotIn("R01", queue)
+        for row in queue.values():
+            self.assertIn("READY", row["priority"])
+            self.assertIn("verification", row)
+            self.assertIn("ownership", row)
 
     def test_preview_no_token_or_network(self):
         out = io.StringIO()
-        with contextlib.redirect_stdout(out):
+        fixture = "## READY bootstrap\n| R01 | READY | task | none | owner | test |\n| R02 | READY | task | none | owner | test |\n## Prioritized upcoming work"
+        with patch.object(Path, "read_text", return_value=fixture), contextlib.redirect_stdout(out):
             self.assertEqual(0, seed_ready_issues.main(["--ids", "R01", "R02"]))
         self.assertIn("PREVIEW ONLY", out.getvalue())
 
