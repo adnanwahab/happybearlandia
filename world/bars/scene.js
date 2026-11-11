@@ -95,9 +95,9 @@ export function mountBarScene(canvas,{venue,geometry,patrons=[],onPatronSelect=(
   const click=event=>{
     const r=canvas.getBoundingClientRect(),x=(event.clientX-r.left)*canvas.width/r.width,y=(event.clientY-r.top)*canvas.height/r.height;
     const closest=spots.map((p,i)=>{const phase=paused?0:Math.sin(clock*.015+i*4)*1.8,pt=project(p.x+phase,p.z,3);return {...p,d:Math.hypot(pt[0]-x,pt[1]-y)}}).sort((a,b)=>a.d-b.d)[0];
-    if(closest&&closest.d<24*Math.min(2,window.devicePixelRatio||1)){selectedId=closest.id;onPatronSelect(selectedId);draw();}
+    if(closest&&closest.d<24*Math.min(2,window.devicePixelRatio||1)){selectedId=closest.id;onPatronSelect(selectedId);if(paused)draw();}
   };
   canvas.addEventListener('click',click);
   draw();
-  return{select(id){selectedId=id;draw();},rotate(delta){angle+=delta;draw();},setPaused(value){paused=Boolean(value);if(!paused)draw();},destroy(){destroyed=true;cancelAnimationFrame(frame);canvas.removeEventListener('click',click);}};
+  return{select(id){selectedId=id;if(paused)draw();},rotate(delta){angle+=delta;if(paused)draw();},setPaused(value){const wasPaused=paused;paused=Boolean(value);if(wasPaused&&!paused)draw();},destroy(){destroyed=true;cancelAnimationFrame(frame);canvas.removeEventListener('click',click);}};
 }
