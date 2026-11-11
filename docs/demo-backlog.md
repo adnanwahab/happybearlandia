@@ -38,7 +38,7 @@ These are decompositions of the approved demo/compatibility goals, not newly pro
 | U07 | P1 / S / VERIFIED | Show selected recorded construction stage/progress, never animate an uncompleted building as finished. Inspect actual project months and tests. | R01 / Worker 3 |
 | U08 | P1 / S / READY | Ensure reduced-motion disables animated pulses but keeps selected entity and measured change visible. Real media preference toggle test. | R01/R05 / Worker 5 |
 | U09 | P1 / S / VERIFIED | Validate share reopen after saved record missing, model mismatch and recipe corruption after latest UI/backend integration. Existing browser regression suite. | R01/R03 / Worker 1 |
-| U10 | P2 / S / READY | Audit narrative receipt deduplication and historical-month labels after repeated selection; preserve exact arm-scoped IDs. | R11 / Coordinator |
+| U10 | P2 / S / VERIFIED | Audit narrative receipt deduplication and historical-month labels after repeated selection; preserve exact arm-scoped IDs. | R11 / Coordinator |
 | U11 | P1 / S / VERIFIED | Ordinary World Canvas current resident selection and Activity filter/export retain the daily authority and seed; actual runtime only. | R04/R05 / Worker 4 |
 | U12 | P1 / S / VERIFIED | Check no-GPU default Living mode separately from legacy demo; explicitly report unsupported paths, never silently substitute a model. | R05 / Worker 5 |
 | U13 | P2 / S / VERIFIED | Audit browser engines installed locally; run only available engines, report missing Safari/Firefox without claiming support. | R06 / Worker 6 |
@@ -119,3 +119,11 @@ Execution refinements for existing IDs (same approved outcomes; status overrides
 - U16 READY: reconcile final accepted source/PNG/JSON/video identity and report unavailable artifacts, without inventing screenshots; R12 verified; own new `test/pipeline-evidence-manifest.test.js`; run named test and artifact verifier on retained recording.
 
 These reservations are dispatch metadata, not a claim workers are launched. Capacity is three; pending verification above two stops dispatch. Actual completion requires independent candidate and integrated checks, review evidence, and an integration SHA. Existing externally active NB assignments remain untouched.
+
+### Pipeline acceptance and next repair automation
+
+U10 independently VERIFIED through the interactive pipeline at `779c360`: actualinternalCodexworker, candidate12tests/89assertions pass, localcherry-pick, integrated12tests/89assertions pass. Reviewedactualseed42/+24homes/event16-0/month16/121frames invariants; no visual or simulation changes. Evidence and exactcommandexits retained in Gitcommon `demo-pipeline/interactive.json` and exported pipeline-status evidence. Only one codingworker was launched for this demonstration; no claim of three workers running.
+
+| ID | Priority / complexity / status | User-visible outcome and acceptance | Dependencies | Exclusive ownership | Verification |
+| --- | --- | --- | --- | --- | --- |
+| R15 | P1 / S / READY | Resume a bounded repair through the interactive pipeline after a failed check, retaining failed candidate and logs. Maximum two total attempts; no reset or silent retry. Atomic transition and ownership tests must prove third attempt rejected. | U10 | pipeline coordinator: scripts/pipeline-coordinator.mjs and new test/pipeline-repair.test.js; interface interactive-claims | bun test test/pipeline-repair.test.js test/pipeline-coordinator.test.js |

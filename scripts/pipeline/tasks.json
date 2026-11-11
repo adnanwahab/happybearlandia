@@ -222,6 +222,29 @@
         ]
       ],
       "browserTests": []
+    },
+    "R15": {
+      "kind": "verification",
+      "dependencies": [
+        "U10"
+      ],
+      "files": [
+        "scripts/pipeline-coordinator.mjs",
+        "test/pipeline-repair.test.js"
+      ],
+      "interfaces": [
+        "interactive-claims"
+      ],
+      "userFacing": false,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/pipeline-repair.test.js",
+          "test/pipeline-coordinator.test.js"
+        ]
+      ],
+      "browserTests": []
     }
   },
   "regressionTests": [
