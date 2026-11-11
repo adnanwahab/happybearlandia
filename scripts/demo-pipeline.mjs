@@ -118,6 +118,8 @@ export async function run(opts) {
   const signal=()=>{stop=true; for(const pid of jobs.values())try{process.kill(-pid,'SIGKILL');}catch{}};
   process.on('SIGINT',signal);process.on('SIGTERM',signal);
   try {
+    const interactive=path.join(common,'demo-pipeline/interactive.json');
+    if(!opts.dryRun&&fs.existsSync(interactive)&&read(interactive).tasks.some(t=>['RUNNING','REVIEW','VERIFYING','REPAIR'].includes(t.status)))throw Error('Interactive assignments pending; integrate or reconcile them before CLI dispatch');
     const backlog=fs.readFileSync(path.join(root,'docs/demo-backlog.md'),'utf8'), manifest=read(path.join(root,opts.manifest||'scripts/pipeline/tasks.json'));
     if(!Number.isFinite(manifest.workerTimeoutMinutes)||manifest.workerTimeoutMinutes<=0||manifest.workerTimeoutMinutes>30) throw Error('workerTimeoutMinutes must be >0 and <=30');
     const digest=hash(backlog+JSON.stringify(manifest));

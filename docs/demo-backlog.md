@@ -29,22 +29,22 @@ These are decompositions of the approved demo/compatibility goals, not newly pro
 
 | ID | Priority / complexity / status | Task, acceptance and verification | Dependencies / intended owner |
 | --- | --- | --- | --- |
-| U01 | P1 / S / UPCOMING | Native backend failure before/after init selects truthful fallback without leaked half-renderer. Factory rejection/disposal tests plus browser context failure. | R01 / Worker 3 |
-| U02 | P1 / S / UPCOMING | Native renderer resize preserves both viewport scales and camera; no clipped changed building. Desktop→390px browser screenshot. | R01 / Worker 3 |
+| U01 | P1 / S / READY | Native backend failure before/after init selects truthful fallback without leaked half-renderer. Factory rejection/disposal tests plus browser context failure. | R01 / Worker 3 |
+| U02 | P1 / S / READY | Native renderer resize preserves both viewport scales and camera; no clipped changed building. Desktop→390px browser screenshot. | R01 / Worker 3 |
 | U03 | P1 / S / READY | Compare repeated scrub/focus/dispose memory and object counts after native integration; report measured values, not target FPS. | R01 / Worker 6 |
 | U04 | P1 / S / VERIFIED | Stop/restart default guided demo while a changed recipe is loading; stale response cannot resume another recipe. Real API cancellation browser check. | R03 / Coordinator |
-| U05 | P1 / S / UPCOMING | Neutral KPI styles agree with zero-control, missing metric and negative delta semantics. Renderer-independent UI behavior test plus browser assertion. | R02 / Worker 2 |
+| U05 | P1 / S / READY | Neutral KPI styles agree with zero-control, missing metric and negative delta semantics. Renderer-independent UI behavior test plus browser assertion. | R02 / Worker 2 |
 | U06 | P1 / S / UPCOMING | Make household before/after rent/savings units and new-inventory caveat readable without expanding raw JSON; exact identity only. | R02 / Worker 2 |
-| U07 | P1 / S / READY | Show selected recorded construction stage/progress, never animate an uncompleted building as finished. Inspect actual project months and tests. | R01 / Worker 3 |
+| U07 | P1 / S / VERIFIED | Show selected recorded construction stage/progress, never animate an uncompleted building as finished. Inspect actual project months and tests. | R01 / Worker 3 |
 | U08 | P1 / S / READY | Ensure reduced-motion disables animated pulses but keeps selected entity and measured change visible. Real media preference toggle test. | R01/R05 / Worker 5 |
 | U09 | P1 / S / VERIFIED | Validate share reopen after saved record missing, model mismatch and recipe corruption after latest UI/backend integration. Existing browser regression suite. | R01/R03 / Worker 1 |
 | U10 | P2 / S / READY | Audit narrative receipt deduplication and historical-month labels after repeated selection; preserve exact arm-scoped IDs. | R11 / Coordinator |
-| U11 | P1 / S / RUNNING | Ordinary World Canvas current resident selection and Activity filter/export retain the daily authority and seed; actual runtime only. | R04/R05 / Worker 4 |
-| U12 | P1 / S / RUNNING | Check no-GPU default Living mode separately from legacy demo; explicitly report unsupported paths, never silently substitute a model. | R05 / Worker 5 |
+| U11 | P1 / S / VERIFIED | Ordinary World Canvas current resident selection and Activity filter/export retain the daily authority and seed; actual runtime only. | R04/R05 / Worker 4 |
+| U12 | P1 / S / VERIFIED | Check no-GPU default Living mode separately from legacy demo; explicitly report unsupported paths, never silently substitute a model. | R05 / Worker 5 |
 | U13 | P2 / S / VERIFIED | Audit browser engines installed locally; run only available engines, report missing Safari/Firefox without claiming support. | R06 / Worker 6 |
 | U14 | P2 / S / READY | Compare gallery/registry unique routes and navigation safety after every added verified entry; preserve the original catalog. Registry + actual homepage tests. | R04 / Worker 4 |
 | U15 | P1 / S / UPCOMING | Review external suggestions from `docs/reviews/` only for architecture-compatible, testable approved objectives. Record accepted/rejected/deferred reasons; do not wait for reviews. | Any review arrives / Coordinator |
-| U16 | P0 / S / UPCOMING | Final frozen-scope pass: all accepted changes, screenshots, video, commands, commit/worktree references and remaining release blockers agree. | Final candidate / Coordinator |
+| U16 | P0 / S / READY | Final frozen-scope pass: all accepted changes, screenshots, video, commands, commit/worktree references and remaining release blockers agree. | Final candidate / Coordinator |
 
 ## Additional approved decompositions
 
@@ -97,3 +97,25 @@ U09 follow-up `3fbb894` plus coordinator `ad3902c`: visible missing-record recom
 U09 coordinator independent3browserpassed8.9s; accepted. Additional test-only boundaryshares seed0/4294967295 worker2passed6.6s, no newmodelbehavior. All approved D01–D05 delivery gates have actual evidence. Release reconciliation stays READY, not deployed or merged.
 
 Inventory-only WHY follow-up `71ffeb7`: coordinator actual browser1passed4.2s with every graphics context unavailable, exactcompletion16-0 jump to16/+24homes and reverse0 clearsfutureevidence. Artifacts `/tmp/hbl-inventory-why-final/`. No productioncodechange.
+
+## Pipeline execution overlay (authoritative current scheduling, 2026-11-11)
+
+Historical evidence above is retained. This overlay corrects stale scheduling prose; it does not rebuild delivered features. U07/D03, U11, U12 and U17 are already verified by the recorded construction, Activity, Living Canvas and seed journeys. U10 is claimed by `receipts-worker`, exclusively `test/pipeline-receipts.test.js`, for the actual pipeline demonstration. No NB intake scope is claimed here; its independent candidate awaits integration review.
+
+The following eight approved reliability/preservation tasks become READY after the verified prerequisites below. They are focused regression/evidence increments; a discovered production defect requires a separately bounded repair assignment. All file scopes are exclusive new files; existing shared APIs remain coordinator-owned. Execution commands and reservations are in `scripts/pipeline/tasks.json`.
+
+| ID | Priority / complexity / status | User-visible outcome and acceptance | Dependencies | Exclusive ownership | Verification |
+| --- | --- | --- | --- | --- | --- |
+| R13 | P1 / S / READY | Preserve main-only catalog/route behavior in a local reconciliation candidate: compare actual catalogs, name missing routes, prove current flagship retained; report concrete failing preservation test before any repair. No main merge. | R11 | catalog worker: new test/pipeline-catalog-preservation.test.js only | bun test test/pipeline-catalog-preservation.test.js |
+| R14 | P1 / S / READY | Prove local Play remains usable during optional plan/provenance failure. Exercise actual loading failure and report precise bounded repair if broken. | R04, R09 | compatibility worker: new test/e2e/pipeline-local-play.e2e.js + test/pipeline-local-play.browser.config.js only | bunx playwright test --config test/pipeline-local-play.browser.config.js |
+
+Execution refinements for existing IDs (same approved outcomes; status overrides historical UPCOMING only when dependencies verified):
+
+- U01 READY: actual post-initialization GPU loss selects truthful fallback, no stale graphics or lost seed/month; R01 verified; own new `test/e2e/pipeline-device-loss.e2e.js`, `test/pipeline-device-loss.browser.config.js`; run named config plus backend unit suite.
+- U02 READY: focus changed structure, desktop→390→320→desktop with same recorded frame and shared camera; no clipped selected label; R01 verified; own new `test/e2e/pipeline-resize.e2e.js`, `test/pipeline-resize.browser.config.js`; run named config plus scene unit suite.
+- U03 READY: repeated real scrub/focus/dispose has stable measured object counts and no retained canvas; report measured counters, no guessed FPS; R01 verified; own new `test/e2e/pipeline-resources.e2e.js`, `test/pipeline-resources.browser.config.js`; run named config plus Canvas unit suite.
+- U05 READY: zero-control, missing KPI and negative rent styling remain semantically explicit; R02 verified; own new `test/pipeline-kpi-semantics.test.js`; run that test and existing UI suite.
+- U08 READY: switch reduced-motion preference live; stop pulses while retaining selected entity and actual delta; R01/R05 verified; own new `test/e2e/pipeline-reduced-motion.e2e.js`, `test/pipeline-reduced-motion.browser.config.js`; run named config plus effects unit suite.
+- U16 READY: reconcile final accepted source/PNG/JSON/video identity and report unavailable artifacts, without inventing screenshots; R12 verified; own new `test/pipeline-evidence-manifest.test.js`; run named test and artifact verifier on retained recording.
+
+These reservations are dispatch metadata, not a claim workers are launched. Capacity is three; pending verification above two stops dispatch. Actual completion requires independent candidate and integrated checks, review evidence, and an integration SHA. Existing externally active NB assignments remain untouched.
