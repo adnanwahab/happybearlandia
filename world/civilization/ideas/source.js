@@ -72,4 +72,3 @@ export function projectContacts(record) {
     contacts: window,
   };
 }
-

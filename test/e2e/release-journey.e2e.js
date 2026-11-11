@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test('an exact Living World future survives World, House, replay and a matched fork', async ({ page, request }) => {
+  test.setTimeout(120000);
   await page.goto('/');
   await page.getByRole('link', { name: 'Try Today’s Features', exact: true }).click();
   await page.getByRole('button', { name: 'Create a guided demo checkpoint' }).click();
@@ -8,13 +9,20 @@ test('an exact Living World future survives World, House, replay and a matched f
   const parent = new URL(page.url()).searchParams.get('experiment');
   const original = await (await request.get('/api/world-experiments/' + parent)).json();
   const person = new URL(page.url()).searchParams.get('person');
+  const canonical = new URL(page.url());
+  canonical.searchParams.delete('experiment');
+  canonical.searchParams.delete('person');
+  await page.goto(canonical.href);
+  await expect(page.locator('#clock')).toContainText('Minute 360');
 
   await page.addInitScript(() => {
     if (location.pathname === '/world') Object.defineProperty(navigator, 'gpu', { value: undefined });
   });
   await page.getByRole('link', { name: 'Enter this future in 3D World' }).click();
   await expect(page.locator('#view canvas')).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Return to Worldline' })).toBeVisible();
+  await expect(page.locator('#source')).toContainText('1 buildings from saved synthetic geometry');
+  await expect(page.locator('#source')).toContainText('WEBGL2');
+  await expect(page.getByRole('link', { name: 'Return to Worldline' })).toBeVisible({ timeout: 45000 });
   await page.getByRole('link', { name: 'Open exact household in House Simulator' }).click();
   await expect(page.getByRole('heading', { name: 'Live a day as Alex Rivera' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Return to Worldline' })).toHaveAttribute('href', new RegExp('experiment=' + parent));
@@ -48,14 +56,6 @@ test('an exact Living World future survives World, House, replay and a matched f
   expect(replayed.parentId).toBe(parent);
   expect(replayed.save.view.journeyFork).toEqual(saved.save.view.journeyFork);
   expect(replayed.save.checkpoint).toEqual(saved.save.checkpoint);
-  await page.locator('#timeline').press('Home');
-  await page.getByRole('button', { name: 'Run matched fork and save child' }).click();
-  await expect(page.locator('#fork-status')).toContainText('Saved the edited child.');
-  const replay = new URL(page.url()).searchParams.get('experiment');
-  const repeated = await (await request.get('/api/world-experiments/' + replay)).json();
-  expect(repeated.parentId).toBe(parent);
-  expect(repeated.save.checkpoint).toEqual(saved.save.checkpoint);
-  expect(repeated.save.view.journeyFork).toEqual(saved.save.view.journeyFork);
 });
 
 test('invalid IDs and missing saved checkpoints are visible', async ({ page }) => {

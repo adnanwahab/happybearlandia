@@ -1,7 +1,22 @@
-import { canonicalId } from '../../shared/causality/index.js';
+import { canonicalId, parseCanonicalId } from '../../shared/causality/index.js';
 
 const SAVE_ID = /^[A-Za-z0-9_-]{8,16}$/;
 const retained = ['universeId', 'worldId', 'scenarioId', 'runId', 'branchId'];
+
+function localId(value, kind, namespace) {
+  if (!value) return '';
+  const parsed = parseCanonicalId(value);
+  if (parsed.kind !== kind || parsed.namespace !== namespace) {
+    throw new Error('This selection belongs to a different simulation model.');
+  }
+  return parsed.localId;
+}
+
+export function journeySelection(query) {
+  const experiment = query.get('experiment') || localId(query.get('experimentId'), 'experiment', 'world-save');
+  const person = query.get('person') || (experiment ? localId(query.get('entityId'), 'person', 'population') : '');
+  return { experiment, person, future: query.get('future') || experiment };
+}
 
 export function journeyURL(surface, selection, source = '') {
   const { experiment, person, household, tick } = selection;

@@ -78,7 +78,8 @@ const origin = {
   lat: loadedExperiment?.save.view.origin.lat??parseCoord(params.get("lat"), 29.7286),
   lng: loadedExperiment?.save.view.origin.lng??parseCoord(params.get("lng"), -95.4746),
 };
-const requestedPeople = Number(loadedExperiment?.save.view.maxPeople??loadedExperiment?.save.checkpoint.people?.length??params.get("people") ?? 2000);
+const savedSyntheticHome = loadedExperiment?.save.mode === "living" && loadedExperiment.save.geometry.area.source === "synthetic";
+const requestedPeople = Number(loadedExperiment?.save.view.maxPeople??loadedExperiment?.save.checkpoint.people?.length??params.get("people") ?? (savedSyntheticHome ? 1 : 2000));
 const maxPeople = Number.isFinite(requestedPeople) ? Math.max(1, Math.min(3000, Math.floor(requestedPeople))) : 2000;
 const $ = (id) => document.getElementById(id);
 if(!embedMode){const routesLink=document.createElement('a');routesLink.href='/routes';routesLink.textContent='All routes';routesLink.style.cssText='display:inline-block;margin:4px 8px';$('top').append(routesLink);}
@@ -118,10 +119,11 @@ const initialAreaRequest=(async()=>{
   }catch(error){return {source:"none",error:`area request failed: ${error.message}`};}
 })();
 
-const useMainWorldGPU = loadedExperiment?.save.mode !== "living" && !params.has("living") && !businessMode && !embedMode;
+const forceWebGL = params.get("renderer") === "webgl";
+const useMainWorldGPU = loadedExperiment?.save.mode !== "living" && !forceWebGL && !params.has("living") && !businessMode && !embedMode;
 const { renderer, mode: rendererMode } = useMainWorldGPU
   ? await (await import("./world-gpu.js")).createWorldGPU({ antialias: !embedMode })
-  : await createCityRenderer({ forceWebGL: params.get("renderer") === "webgl", antialias: !embedMode });
+  : await createCityRenderer({ forceWebGL, antialias: !embedMode });
 renderer.setSize(innerWidth, innerHeight);
 $("view").appendChild(renderer.domElement);
 
@@ -179,7 +181,7 @@ addEventListener("pagehide",()=>{startup.cancelled=true;startupAbort.abort();sta
 let area = await initialAreaRequest;
 const originalAreaGeometry=structuredClone(area);
 startup.mapReadyMs=performance.now();
-const town = buildTown(origin, area, { maxPeople });
+const town = buildTown(origin, area, { maxPeople, savedGeometry: savedSyntheticHome });
 mountConstitutionComparison({ THREE, scene, camera, controls, town, params });
 const world = createWorld(town, { journalsEnabled:!embedMode&&!realityRunSeed&&Boolean(journalCity(origin)),recordHistory:!embedMode, ...(realityRunSeed ? { runSeed:realityRunSeed } : {}) });
 const legacyJournalCity=journalCity(origin),legacyJournalRun=`legacy:${crypto.randomUUID()}`;
@@ -209,7 +211,9 @@ const floodSourceTxt = area.floodZonesStatus === "pending" ? "FEMA flood zones l
   ? `FEMA NFHL flood zones loaded (${(area.floodZones || []).length} polygons)`
   : `FEMA flood zones unavailable (${area.floodZonesError || "request failed"}); using local lowland fallback.`;
 
-$("source").textContent = town.source === "osm"
+$("source").textContent = town.source === "synthetic"
+  ? `${town.buildings.length} buildings from saved synthetic geometry`
+  : town.source === "osm"
   ? `${town.buildings.length} real buildings (${town.attribution}) · ${town.people.length} synthetic residents · ${floodSourceTxt}`
   : area.error
     ? `Couldn't load map data (${area.error}), so this is a procedural town · ${town.people.length} synthetic residents · ${floodSourceTxt}`

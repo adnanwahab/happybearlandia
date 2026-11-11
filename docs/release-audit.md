@@ -63,3 +63,28 @@ GitHub listed five open PRs. Their check rollups were empty at the audit. No PR 
 | Workspace state can enter the Docker build context | Release gate | Excluded private local paths and a verified clean tracked build context. |
 | Auxiliary persistence on the Machine root filesystem | Operations follow-up or release gate if data needs preservation | An explicit retention decision per store, with backups and durable paths for records that must survive. |
 | Main does not require the core check | Process follow-up | Record the green candidate run manually or enforce the check through branch protection. |
+
+## Candidate verification
+
+| Check | Baseline or first attempt | Candidate evidence |
+| --- | --- | --- |
+| Entire Bun selection | The original working-tree attempt was interrupted after 2,225 passes and 18 failures, including economy assertions, blocked local WebSocket binding and House timeouts. It did not produce final totals. | The isolated candidate's first full attempt logged 130 passes and three failures before Bun 1.4.2 crashed with a main-thread segmentation fault. Neither full run cleared the release gate. |
+| Core and storage | The merged PR #8 CI passed at `fd43cc7`. Two local default-budget core attempts each passed 72 and exceeded Bun's five-second limit in the existing 100-pair test. | 73 passed, zero failed with a 60-second test budget. The suite checked causal storage, checkpoint replay, Decision files and build/readiness. |
+| Entire Playwright selection | The eight-minute candidate sweep discovered 348 tests. 91 passed, 12 failed, 245 were unrun. It ended at the overall limit and reported teardown timeouts. | The bounded sweep preceded the final party and release refinements. Failing or unverified areas include Build World, City renderer, City Speaks, dates, Decision journey and Living10k. The complete browser suite remains a release gate. |
+| Sprint browser paths | The first combined pass exposed state leakage between the Discoveries and Time Machine recording tests. | Isolated Time Machine 3/3 and Causal Inspector 3/3. The recording test now starts on a fresh isolated store in CI. |
+| Post-deployment smoke rehearsal | Production release 67 lacks the candidate routes. | 1/1 on a fresh local production-mode candidate mirror using file-backed storage. Both checks were healthy. First ready response arrived in 794 ms. |
+| Restore | Production backups and staging data were not accessed. | A local WAL-aware backup restored a saved causal World run and Decision records, verified by HTTP against a fresh server. |
+
+### Local workload sample
+
+On the developer Mac with concurrent tests, `bun ops/measure-simulation.js` measured 100 matched 12-month commute futures at 21.70 s wall and 5.58 s combined user and system CPU time. RSS rose from 27.36 MB to 79.33 MB. The serialized comparison was 132,412 bytes. Creating the guided household checkpoint took 1.07 s wall and 0.25 s CPU, with a 35,381-byte checkpoint and a 36,103-byte save. These measurements characterize local runs. Fly CPU, memory and load headroom remain unmeasured. Sequential warm local HTTP p50/p95 latency was 0.07/0.19 ms for health, 0.08/0.15 ms for ready, 0.10/0.43 ms for the dashboard, and 0.09/0.27 ms for home, using 20 requests per route.
+
+### Remaining issues
+
+| Priority | Issue and next verification |
+| --- | --- |
+| P0 release gate | Obtain an independent production backup and rehearse the exact candidate and rollback image on isolated copies. Decide retention for the auxiliary stores before replacing the volume-owning Machine. |
+| P0 release gate | Close or disposition the complete-suite failures, confirm CI on the draft's exact head and verify the intended image artifact. Inspect the previously pushed branch's Flower and cache changes separately before promotion. |
+| P1 | Decision Studio and Population use separate models. An authoritative cross-model future requires a versioned entity/time mapping and checkpoint contract. |
+| P1 | Verify the production CPU and memory budget and staging cold starts. The recorded local workloads do not establish Fly capacity. |
+| P2 | Causal graph preview caps records and links. Open the expandable raw response for the full returned page. |

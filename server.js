@@ -29,7 +29,7 @@ import { handleConstitutionSummary } from './world/constitution-summary-api.js';
 import { serve } from "bun";
 import { readdir } from "node:fs/promises";
 import { extname, join, normalize, relative } from "node:path";
-import { getArea, handleArea, handleAreaEnrichment, handleOverpassHealth, OVERPASS_ENDPOINTS, OVERPASS_TIMEOUT_MS } from "./world/api.js";
+import { getArea, handleArea, handleAreaEnrichment, handleOverpassHealth, OVERPASS_ENDPOINTS, OVERPASS_TIMEOUT_MS, publicProviderOrigin } from "./world/api.js";
 import { createExperimentsHandler } from "./world/experiments-api.js";
 import { buildPlanApiPayload } from "./world/plan-response.js";
 import { handlePlanParameterPatch } from "./world/plan-parameter-api.js";
@@ -43,6 +43,7 @@ const handleBusinessCompiler = createBusinessCompilerHandler();
 
 const PORT = Number(process.env.PORT) || 3000;
 const DEAR_CONGRESS_URL = process.env.DEAR_CONGRESS_URL || "https://dear-congress.fly.dev/api";
+const DEAR_CONGRESS_ORIGIN = publicProviderOrigin(DEAR_CONGRESS_URL);
 
 const notFound = () => new Response("Not found", { status: 404 });
 
@@ -74,11 +75,11 @@ function handleConfig() {
     config: {
       port: PORT,
       overpass: {
-        endpoints: OVERPASS_ENDPOINTS,
+        endpoints: OVERPASS_ENDPOINTS.map(publicProviderOrigin),
         timeoutMs: OVERPASS_TIMEOUT_MS,
       },
       dearCongress: {
-        baseUrl: DEAR_CONGRESS_URL,
+        baseUrl: DEAR_CONGRESS_ORIGIN,
       },
     },
   }, {
@@ -217,8 +218,8 @@ async function proxyDearCongress(request) {
   const raw = url.pathname.replace(/^\/api\/dear-congress/, "");
   const remainder = raw.replace(/^\/+/, "") || "packages";
   const base = DEAR_CONGRESS_URL.endsWith("/") ? DEAR_CONGRESS_URL : DEAR_CONGRESS_URL + "/";
-  const upstream = new URL(remainder + url.search, base);
   try {
+    const upstream = new URL(remainder + url.search, base);
     const res = await fetch(upstream, {
       method: "GET",
       headers: {
@@ -230,7 +231,7 @@ async function proxyDearCongress(request) {
 
     // Dear-congress may not expose all guessed paths; return empty package list instead of browser 404 noise.
     if (res.status === 404) {
-      return Response.json({ packages: [], error: `dear-congress route not found: ${upstream.pathname}` }, {
+      return Response.json({ packages: [], error: "dear-congress route not found" }, {
         status: 200,
         headers: { "cache-control": "no-store" },
       });
@@ -244,8 +245,8 @@ async function proxyDearCongress(request) {
         "cache-control": "no-store",
       },
     });
-  } catch (err) {
-    return Response.json({ error: `dear-congress proxy failed: ${String(err?.message || err)}` }, { status: 502 });
+  } catch {
+    return Response.json({ error: "dear-congress proxy request failed" }, { status: 502 });
   }
 }
 
@@ -269,8 +270,8 @@ async function handleOutcomes() {
         "cache-control": "no-store",
       },
     });
-  } catch (err) {
-    return Response.json({ error: `outcomes proxy failed: ${String(err?.message || err)}` }, { status: 502 });
+  } catch {
+    return Response.json({ error: "outcomes proxy request failed" }, { status: 502 });
   }
 }
 
@@ -347,8 +348,8 @@ async function handlePlan(request) {
         "x-hbl-plan-response": "hbl-plan-response.v1",
       },
     });
-  } catch (err) {
-    return Response.json({ error: `plan synthesize failed: ${String(err?.message || err)}` }, { status: 502 });
+  } catch {
+    return Response.json({ error: "plan synthesize request failed" }, { status: 502 });
   }
 }
 
@@ -384,29 +385,39 @@ async function handlePublishDraft(request) {
         "cache-control": "no-store",
       },
     });
-  } catch (err) {
-    return Response.json({ error: `publish_draft failed: ${String(err?.message || err)}` }, { status: 502 });
+  } catch {
+    return Response.json({ error: "publish_draft request failed" }, { status: 502 });
   }
 }
 
 async function fetchPlanFromDearCongress(body) {
   const base = DEAR_CONGRESS_URL.endsWith("/") ? DEAR_CONGRESS_URL : DEAR_CONGRESS_URL + "/";
-  const res = await fetch(new URL("synthesize", base), {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      accept: "application/json",
-      "user-agent": "HappyBearLandia/0.1 (+https://happybearlandia.fly.dev)",
-    },
-    body: JSON.stringify(body || {}),
-    signal: AbortSignal.timeout(12000),
-  });
+  let res;
+  try {
+    res = await fetch(new URL("synthesize", base), {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json",
+        "user-agent": "HappyBearLandia/0.1 (+https://happybearlandia.fly.dev)",
+      },
+      body: JSON.stringify(body || {}),
+      signal: AbortSignal.timeout(12000),
+    });
+  } catch {
+    throw new Error("dear-congress synthesize request failed");
+  }
   if (!res.ok) throw new Error(`dear-congress synthesize HTTP ${res.status}`);
-  return await res.json();
+  try {
+    return await res.json();
+  } catch {
+    throw new Error("dear-congress synthesize returned invalid JSON");
+  }
 }
 
 const handleExperiments = createExperimentsHandler({ fetchPlan: fetchPlanFromDearCongress, getArea });
-const handleConstitutionSource = createConstitutionSourceHandler({fetchPlan:()=>fetchPlanFromDearCongress({includeSynthetic:false}),sourceUrl:new URL(DEAR_CONGRESS_URL).origin+'/'});
+if (!DEAR_CONGRESS_ORIGIN) throw new Error("Invalid Dear Congress endpoint configuration.");
+const handleConstitutionSource = createConstitutionSourceHandler({fetchPlan:()=>fetchPlanFromDearCongress({includeSynthetic:false}),sourceUrl:DEAR_CONGRESS_ORIGIN+'/'});
 
 const server = serve({
   maxRequestBodySize:EXPERIMENT_MAX_BYTES,
@@ -485,10 +496,9 @@ const server = serve({
     if (pathname === "/api/area") {
       try {
         return await handleArea(new URL(request.url));
-      } catch (err) {
-        const msg = String(err?.message || err);
-        console.error(`[world] /api/area unhandled error: ${msg}`);
-        return Response.json({ source: "none", error: `area handler crashed: ${msg}` }, { status: 200 });
+      } catch {
+        console.error("[world] /api/area unhandled error");
+        return Response.json({ source: "none", error: "area handler failed" }, { status: 200 });
       }
     }
     if (pathname === "/api/area/enrichment") return handleAreaEnrichment(new URL(request.url));
@@ -582,5 +592,5 @@ console.log(`  /world  http://localhost:${server.port}/world?lat=29.7286&lng=-95
 console.log(`  /tools  http://localhost:${server.port}/tools/scene-reconstruction`);
 console.log(`  /blog   http://localhost:${server.port}/blog (after building blog/)`);
 console.log(`  ws      ws://localhost:${server.port}/ws`);
-console.log(`  overpass ${OVERPASS_ENDPOINTS.join(" | ")} (timeout ${OVERPASS_TIMEOUT_MS}ms)`);
-console.log(`  dear-congress proxy base ${DEAR_CONGRESS_URL}`);
+console.log(`  overpass ${OVERPASS_ENDPOINTS.map(endpoint => publicProviderOrigin(endpoint) ?? "invalid provider endpoint").join(" | ")} (timeout ${OVERPASS_TIMEOUT_MS}ms)`);
+console.log(`  dear-congress proxy origin ${DEAR_CONGRESS_ORIGIN}`);

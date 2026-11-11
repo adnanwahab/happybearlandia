@@ -160,8 +160,9 @@ export function buildTown(origin, area, opts = {}) {
 
   let raw;
   let source = "procedural";
-  if (area?.source === "osm" && area.buildings?.length >= 15) {
-    source = "osm";
+  const savedSynthetic = opts.savedGeometry && area?.source === "synthetic" && area.buildings?.length;
+  if (savedSynthetic || area?.source === "osm" && area.buildings?.length >= 15) {
+    source = area.source;
     raw = area.buildings.map((b) => ({
       id: b.id, kind: b.kind, levels: b.levels, name: b.name, address:b.address??null, dateTags: buildingDateTags(b.dateTags ?? b.tags),
       poly: b.pts.slice(0, -1).map(([la, ln]) => proj.toXZ(la, ln)),
@@ -208,8 +209,10 @@ export function buildTown(origin, area, opts = {}) {
       have++;
     }
   };
-  ensure("food", 3); ensure("shop", 2); ensure("work", 4); ensure("school", 1);
-  if (!buildings.some((b) => b.kind === "park")) {
+  if (!savedSynthetic) {
+    ensure("food", 3); ensure("shop", 2); ensure("work", 4); ensure("school", 1);
+  }
+  if (!savedSynthetic && !buildings.some((b) => b.kind === "park")) {
     const [cx, cz] = [r.range(-150, 150), r.range(-150, 150)];
     buildings.push({ id: "park0", kind: "park", poly: [[cx, cz], [cx + 60, cz], [cx + 60, cz + 45], [cx, cz + 45]], area: 2700, center: [cx + 30, cz + 22] });
   }
@@ -232,7 +235,7 @@ export function buildTown(origin, area, opts = {}) {
   });
 
   const people = makePeople(buildings, r, maxPeople);
-  const roads = source === "osm"
+  const roads = source === "osm" || savedSynthetic
     ? (area.roads || []).map((rd) => ({ kind: rd.kind, pts: rd.pts.map(([la, ln]) => proj.toXZ(la, ln)) }))
     : proceduralRoads();
   return { origin, source, seedKey, buildings, people, roads, attribution: source === "osm" ? area.attribution : null };

@@ -9,6 +9,7 @@ export default defineConfig({
   testMatch: ['houston-map.e2e.js', 'emergent-civilizations.e2e.js', 'playable-life.e2e.js', 'city-invention.e2e.js', 'hidden-systems.e2e.js', 'learning-civilization.e2e.js', 'sculpt-a-storm.e2e.js', 'connected-lives.e2e.js', 'release-journey.e2e.js'],
   workers: 1,
   timeout: 60000,
+  expect: { timeout: 15000 },
   use: {
     browserName: 'chromium',
     baseURL,

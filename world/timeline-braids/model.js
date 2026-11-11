@@ -72,4 +72,3 @@ export async function loadBraids({ rootId, personId, fetcher = fetch }) {
   await visit(root, [point(root, selected)]);
   return { rootId, personId: selected, branches, notices, truncated };
 }
-

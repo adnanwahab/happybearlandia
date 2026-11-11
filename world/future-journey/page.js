@@ -1,6 +1,6 @@
 import { listLivingSaves } from '../timeline-braids/comparison.js';
 import { checkpointLineage, compareRainFork, inspectFuture, readFuture, saveRainFork } from './model.js';
-import { journeyURL } from './navigation.js';
+import { journeySelection, journeyURL } from './navigation.js';
 
 const find = id => document.getElementById(id);
 const open = find('open');
@@ -117,9 +117,13 @@ fork.onsubmit = async event => {
 
 open.querySelector('button').disabled = false;
 find('demo').disabled = false;
-const query = new URLSearchParams(location.search);
-if (query.has('experiment')) void load(query.get('future') || query.get('experiment'), query.get('experiment'), query.get('person') ?? '');
-else status.textContent = 'Open a saved Living World experiment or create the guided demo.';
+try {
+  const { experiment, person: selected, future } = journeySelection(new URLSearchParams(location.search));
+  if (experiment) void load(future, experiment, selected);
+  else status.textContent = 'Open a saved Living World experiment or create the guided demo.';
+} catch (error) {
+  status.textContent = error.message;
+}
 listLivingSaves().then(rows => {
   find('experiments').replaceChildren(...rows.map(row => new Option(row.label, row.id)));
 }).catch(() => {});

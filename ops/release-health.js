@@ -1,12 +1,25 @@
 import { Database } from 'bun:sqlite';
-import { accessSync, constants, existsSync, mkdirSync, realpathSync, statSync } from 'node:fs';
+import { accessSync, constants, existsSync, lstatSync, mkdirSync, realpathSync, statSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
-import { DEFAULT_DECISION_STORE_DIR } from '../world/decision/store.js';
+import { DECISION_OPTIMIZATION_DIRECTORY, DEFAULT_DECISION_STORE_DIR } from '../world/decision/store.js';
 import { resolveWorldDatabasePath } from '../world/experiments/database-path.js';
 
 const probeTTL = 2000;
 const worldColumns = {
   world_experiment_saves: ['id', 'parent_id', 'created_at', 'bytes', 'metadata', 'data'],
+  world_experiment_write_attempts: ['at'],
+  world_saved_homes: ['id', 'home_key', 'latest_save_id', 'created_at', 'updated_at', 'data'],
+  world_home_revisions: ['save_id', 'home_id'],
+  world_home_indexed: ['save_id'],
+  world_home_migrations: ['key'],
+  world_home_residents: ['id', 'home_id', 'person_id', 'data'],
+  world_house_sessions: ['experiment_id', 'household_id', 'revision', 'minute', 'updated_at', 'bytes', 'data'],
+  world_house_session_write_attempts: ['at'],
+  world_date_media: ['id', 'experiment_id', 'created_at', 'bytes', 'mime_type', 'metadata', 'image'],
+  world_date_media_write_attempts: ['at'],
+};
+const causalColumns = {
+  causal_storage_migrations: ['version'],
   causal_runs: ['id', 'status', 'revision', 'data', 'content_hash'],
   causal_nodes: ['run_id', 'id', 'kind', 'sequence', 'time', 'data', 'content_hash'],
   causal_checkpoints: ['run_id', 'id', 'sequence', 'data', 'content_hash'],
@@ -30,34 +43,44 @@ function readOnly(path, inspect) {
   }
 }
 
-// This check runs before the World store applies its additive migrations.
-export function assertWorldDatabaseCompatible(path) {
-  if (path === ':memory:' || !existsSync(path)) return;
-  if (!statSync(path).isFile()) throw new Error('World storage must be a SQLite file.');
-  readOnly(path, db => {
-    const { user_version: version } = db.query('PRAGMA user_version').get();
-    if (version !== 0) throw new Error('World SQLite format version is unsupported by this release.');
+function assertColumns(db, objects, schema, required, label) {
+  for (const [table, columns] of Object.entries(schema)) {
+    if (!required && !objects.has(table)) continue;
+    if (objects.get(table) !== 'table') throw new Error(`${label} SQLite schema is incompatible: expected table ${table}.`);
+    const fields = new Set(db.query(`PRAGMA table_info(${table})`).all().map(row => row.name.toLowerCase()));
+    if (columns.some(column => !fields.has(column))) {
+      throw new Error(`${label} SQLite schema is incompatible: missing columns in ${table}.`);
+    }
+  }
+}
 
-    const rows = db.query("SELECT name FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%'").all();
-    const tables = new Set(rows.map(row => row.name));
-    if (tables.size && !tables.has('world_experiment_saves') && !tables.has('causal_storage_migrations')) {
-      throw new Error('SQLite file does not contain a recognized World or causal schema.');
+function inspectWorldSchema(db, initialized) {
+  const { user_version: version } = db.query('PRAGMA user_version').get();
+  if (version !== 0) throw new Error('World SQLite format version is unsupported by this release.');
+
+  const rows = db.query("SELECT name, type FROM sqlite_schema WHERE type IN ('table', 'view') AND name NOT GLOB 'sqlite_*'").all();
+  const objects = new Map(rows.map(({ name, type }) => [name.toLowerCase(), type]));
+  const hasCausalMigration = objects.has('causal_storage_migrations');
+  if (rows.some(row => row.type === 'table') && !objects.has('world_experiment_saves') && !hasCausalMigration) {
+    throw new Error('SQLite file does not contain a recognized World or causal schema.');
+  }
+  assertColumns(db, objects, worldColumns, initialized, 'World');
+  assertColumns(db, objects, causalColumns, initialized || hasCausalMigration, 'Causal');
+  if (hasCausalMigration) {
+    const versions = db.query('SELECT version FROM causal_storage_migrations').all();
+    if (!versions.length || versions.some(row => !knownMigrations.has(row.version))) {
+      throw new Error('Causal SQLite schema is incompatible with this release.');
     }
-    for (const [table, required] of Object.entries(worldColumns)) {
-      if (!tables.has(table)) continue;
-      const fields = new Set(db.query(`PRAGMA table_info(${table})`).all().map(row => row.name));
-      if (required.some(field => !fields.has(field))) throw new Error('World SQLite schema is incompatible with this release.');
-    }
-    if (tables.has('causal_storage_migrations')) {
-      const versions = db.query('SELECT version FROM causal_storage_migrations').all();
-      if (!versions.length || versions.some(row => !knownMigrations.has(row.version)) ||
-          Object.keys(worldColumns).filter(key => key.startsWith('causal_')).some(key => !tables.has(key))) {
-        throw new Error('Causal SQLite schema is incompatible with this release.');
-      }
-    } else if ([...tables].some(table => table.startsWith('causal_'))) {
-      throw new Error('Causal SQLite tables have no supported migration record.');
-    }
-  });
+  } else if ([...objects.keys()].some(name => name.startsWith('causal_'))) {
+    throw new Error('Causal SQLite tables have no supported migration record.');
+  }
+}
+
+// Before migrations, absent World tables can be initialized by the store.
+export function assertWorldDatabaseCompatible(path) {
+  if (path === ':memory:' || !lstatSync(path, { throwIfNoEntry: false })) return;
+  if (!statSync(path).isFile()) throw new Error('World storage must be a SQLite file.');
+  readOnly(path, db => inspectWorldSchema(db, false));
 }
 
 function canonical(path) {
@@ -89,9 +112,18 @@ export function releasePaths(env = process.env) {
   return { worldDbPath, decisionDirectory };
 }
 
-export function initializeReleaseStorage(env = process.env) {
+function preflightReleaseStorage(env) {
   const paths = releasePaths(env);
   assertWorldDatabaseCompatible(paths.worldDbPath);
+  let ancestor = paths.decisionDirectory;
+  while (!lstatSync(ancestor, { throwIfNoEntry: false })) ancestor = dirname(ancestor);
+  if (ancestor === paths.decisionDirectory) probeDecision(paths.decisionDirectory);
+  else directoryAvailable(ancestor);
+  return paths;
+}
+
+export function initializeReleaseStorage(env = process.env) {
+  const paths = preflightReleaseStorage(env);
   mkdirSync(paths.decisionDirectory, { recursive: true, mode: 0o700 });
   return paths;
 }
@@ -101,11 +133,18 @@ function directoryAvailable(path) {
   accessSync(path, constants.R_OK | constants.W_OK | constants.X_OK);
 }
 
+function probeDecision(path) {
+  directoryAvailable(path);
+  const optimizationDirectory = join(path, DECISION_OPTIMIZATION_DIRECTORY);
+  if (lstatSync(optimizationDirectory, { throwIfNoEntry: false })) directoryAvailable(optimizationDirectory);
+}
+
 function probeWorld(path) {
   if (path === ':memory:') return;
   directoryAvailable(dirname(path));
   accessSync(path, constants.R_OK | constants.W_OK);
   readOnly(path, db => {
+    inspectWorldSchema(db, true);
     db.query('SELECT id FROM world_experiment_saves LIMIT 1').get();
     db.query('SELECT id FROM causal_runs LIMIT 1').get();
   });
@@ -137,7 +176,7 @@ export function createReleaseHealthHandler({
           at,
           checks: {
             worldStorage: canProbe(() => probeWorld(worldDbPath)),
-            decisionStorage: canProbe(() => directoryAvailable(decisionDirectory)),
+            decisionStorage: canProbe(() => probeDecision(decisionDirectory)),
           },
         };
       }
@@ -154,8 +193,7 @@ export function createReleaseHealthHandler({
 
 if (import.meta.main) {
   try {
-    const { worldDbPath } = releasePaths();
-    assertWorldDatabaseCompatible(worldDbPath);
+    preflightReleaseStorage(process.env);
     console.log('Release storage preflight passed.');
   } catch (error) {
     console.error('Release storage preflight failed:', error.message);
