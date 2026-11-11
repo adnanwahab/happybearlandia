@@ -130,6 +130,7 @@
   <summary title="Minimize or expand world controls"><h1>HappyBearLandia · world</h1></summary>
   <div class="row"><a href="/reality-compiler" onclick="this.search=location.search">Reality Compiler</a> · <a href="/city-speaks" onclick="this.search=location.search">Who does this hurt?</a></div>
   <a href="/world/city-lab.html" onclick="this.search=location.search" style="color:var(--accent);font-size:12px">City Systems Laboratory ↗</a>
+  <div class="row"><a id="world-lite-link" href="/world?renderer=canvas2d">Use 2D low-fidelity mode</a></div>
   <div class="row"><a href="/business-simulator">Business Lab</a> · <a href="/world?business_mode=true">Place a business</a></div>
   <div class="row" id="living-city-toolbar" aria-label="Population mode"></div>
   <form class="row" id="goto">
@@ -156,7 +157,7 @@
       <button data-s="0" aria-label="Pause">❚❚</button><button data-s="1" class="on">1×</button><button data-s="10">10×</button><button data-s="60">60×</button>
     </div>
   </div>
-  <div class="need"><span id="moodLabel">Mood</span><div class="bar"><i id="mood"></i></div><b id="moodN" style="font-size:12px;width:24px;text-align:right"></b></div>
+  <div class="need"><span id="moodLabel">Mood</span><div class="bar" role="meter" aria-label="Simulated mood or utility" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="moodMeter"><i id="mood"></i></div><output id="moodN" for="moodMeter" style="font-size:12px;min-width:54px;text-align:right">— / 100</output></div>
   <div class="row muted" id="counts"></div>
   <div class="row">
     <label class="muted" for="policy">Plan package</label>
@@ -167,6 +168,7 @@
       <option value="most-popular">Most popular</option>
     </select>
     <button id="stormBtn" type="button">Storm</button>
+    <span class="muted" id="planLoadingStatus" role="status">Local plans available once the scene is ready; optional plan updates are loading.</span>
   </div>
   <div class="row" style="margin-top:2px">
     <button id="runCycleBtn" type="button" title="Apply the selected plan for a simulated week and compare against no plan">Run cycle</button>
@@ -202,14 +204,14 @@
   </div>
   <div class="exp-seed" id="experimentSeedRow">
     <span>Seed:</span>
-    <code id="experimentSeed" title="Experiment seed"></code>
+    <code id="experimentSeed" title="Experiment seed">Preparing seed…</code>
     <button id="copyExperimentSeed" type="button" aria-label="Copy experiment seed">Copy</button>
-    <input id="experimentSeedInput" type="text" aria-label="Experiment seed input" placeholder="enter seed" />
+    <input id="experimentSeedInput" type="text" aria-label="Experiment seed input" placeholder="Seed available after World loads" />
     <button id="resetExperimentSeed" class="icon" type="button" aria-label="Reset to default seed" title="Reset to default seed">↺</button>
     <button id="rerunExperimentSeed" type="button" aria-label="Rerun with this seed">Rerun</button>
   </div>
 
-  <details id="simulationModelDisclosure" class="muted"><summary>Model assumptions &amp; limitations</summary><div id="simulationModelMetadata">Legacy daily residents, living population and monthly Constitution forecasts are separate models. No empirical calibration claim. Parameter provenance is loading.</div></details>
+  <details id="simulationModelDisclosure" class="muted"><summary>Model assumptions &amp; limitations</summary><div id="simulationModelMetadata">Legacy daily residents, living population and monthly Constitution forecasts are separate models. No empirical calibration claim. Parameter provenance is loading. If it stays unavailable, the model information can be inspected independently of the 3D scene.</div></details>
   <div class="muted" id="policyNote"></div>
   <div class="legend">
     <span><i style="background:#d9cbb4"></i>home</span><span><i style="background:#8fa6c4"></i>work</span>
@@ -250,8 +252,9 @@
   </div>
 </div>
 
+<script type="module" src="/world/model-provenance-loader.js"></script>
 <script type="module" src="/world/first-run-guide.js"></script>
-<script type="module" src="/world/render.js"></script>
+<script type="module" src="/world/renderer-entry.js"></script>
 <script type="module" src="/world/explorer-dock.js"></script>
 <script type="module" src="/world/social/journey.js" data-social-experience="living-city"></script>
 </body>

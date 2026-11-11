@@ -506,8 +506,12 @@ async function openActivityDashboard(){try{
   activityObserver=new MutationObserver(()=>{const opened=!panel.hidden;mapControls.setEnabled(!opened);activityButton.setAttribute('aria-expanded',String(opened));if(!opened)activityButton.focus();});activityObserver.observe(panel,{attributes:true,attributeFilter:['hidden']});
   return activityDashboard;
  });
- const dashboard=await activityDashboardPromise;if(!dashboard||activityDisposed)return;dashboard.open();mapControls.setEnabled(false);document.querySelector('.activity-dashboard button')?.focus();
+ const dashboard=await activityDashboardPromise;if(!dashboard||activityDisposed)return;
+ if(dashboard.isOpen()){dashboard.close();activityButton.setAttribute('aria-expanded','false');return;}
+ await dashboard.open();mapControls.setEnabled(false);activityButton.setAttribute('aria-expanded','true');document.querySelector('.activity-dashboard button')?.focus();
  }catch(error){activityDashboardPromise=null;activityButton.title=error.message;console.error('Activity dashboard unavailable',error);}}
+activityButton.setAttribute('aria-expanded','false');
+activityButton.setAttribute('aria-controls','world-activity-dashboard');
 activityButton.addEventListener('click',openActivityDashboard);
 addEventListener('pagehide',()=>{activityDisposed=true;legacyActivityUnsubscribe?.();activityRuntimeUnsubscribe?.();activityObserver?.disconnect();activityDashboard?.destroy();activityListeners.clear();activityButton.removeEventListener('click',openActivityDashboard);},{once:true});
 
@@ -758,7 +762,7 @@ async function loadPolicyPackages() {
       }
       if (!n) continue;
 
-      PLAN_PACKAGES = next;
+      PLAN_PACKAGES = {...BASE_POLICY_PACKAGES,...next};
       PLAN_COMPARE_DIFF = compareDiffById;
       const balancedId = Object.keys(next).find((k) => /balanced/i.test(next[k]?.label || ""));
       const d = balancedId ? PLAN_COMPARE_DIFF[balancedId] : null;
@@ -952,8 +956,20 @@ if (!loadedExperiment && !(embedMode && realityRunSeed)) {
   if(realityRunSeed)await loadPolicyPackages(); // Frozen reality ordering is unchanged.
   else {
     policyPending=true;startup.policyStatus='loading';refreshPolicySelect(activePolicyId);
-    for(const id of ['policy','runExperimentBtn','runCycleBtn','demoBtn'])if($(id))$(id).disabled=true;
-    loadPolicyPackages().then(ok=>{if(startupAbort.signal.aborted)return;policyPending=false;startup.policyStatus=ok?'ready':'local-fallback';if($("policyNote"))$("policyNote").textContent=$("policyNote").textContent.replace(' · remote plan packages loading; current local policy unchanged','')+(ok?'':' · using local presets; remote packages unavailable');for(const id of ['policy','runExperimentBtn','runCycleBtn','demoBtn'])if($(id))$(id).disabled=startupDisabled.get($(id))||false;});
+    // Local presets are immediately usable after scene startup. The remote
+    // plan catalog is optional; slow Overpass/plan endpoints never gate play.
+    const planStatus=$("planLoadingStatus");
+    if(planStatus)planStatus.textContent='Local presets ready · checking optional plan updates…';
+    loadPolicyPackages().then(ok=>{
+      if(startupAbort.signal.aborted)return;
+      policyPending=false;startup.policyStatus=ok?'ready':'local-fallback';
+      if(planStatus)planStatus.textContent=ok?'Plan catalog updated. Local presets remain available.':'Using local plan presets. Remote plans are unavailable.';
+      if($("policyNote"))$("policyNote").textContent=$("policyNote").textContent.replace(' · remote plan packages loading; current local policy unchanged','')+(ok?'':' · using local presets; remote packages unavailable');
+    }).catch(error=>{
+      policyPending=false;startup.policyStatus='local-fallback';
+      if(planStatus)planStatus.textContent='Using local presets. Optional plan updates could not be loaded.';
+      console.warn('[world] Optional plan fetch failed; local presets remain playable:',error);
+    });
   }
 }
 activePolicyId = $("policy").value || "none";
@@ -975,7 +991,7 @@ if (realityRunSeed) {
   }
 }
 applyPolicy(activePolicyId, policyYear);
-if(policyPending)$("policyNote").textContent += " · remote plan packages loading; current local policy unchanged";
+if(policyPending)$("policyNote").textContent += " · checking optional plan updates; local presets work now";
 
 // ?person=<id> (from "why this reality"): select that resident and follow them.
 if (params.get("person") != null) followResident(Number(params.get("person")));
@@ -2346,7 +2362,8 @@ function updateHud() {
   }
   const s = livingSnapshot?{mood:100*(livingSnapshot.metrics?.modeledUtility??0),doing:Object.fromEntries(Object.entries(livingSnapshot.activityCounts||{}).map(([key,value])=>[{HOME:"at home",WORK:"working",SCHOOL:"at school",TRANSIT:"traveling",DINING:"eating",RECREATION:"recreation",SHOPPING:"shopping"}[key]||key.toLowerCase(),value]))}:world.summary();
   $("mood").style.width = `${s.mood}%`;
-  $("moodN").textContent = s.mood.toFixed(0);
+  $("moodN").textContent = s.mood.toFixed(0)+" / 100";
+  $("moodMeter")?.setAttribute("aria-valuenow",String(Math.max(0,Math.min(100,Math.round(s.mood)))));
   const top = Object.entries(s.doing).sort((a, b) => b[1] - a[1]).slice(0, 4);
   const status = world.policy.floodedNow ? ` · ${world.policy.floodedNow} flooded parcels · ${world.policy.displaced} displaced` : "";
   $("counts").textContent = top.map(([k, v]) => `${v} ${k}`).join(" · ") + status;
@@ -2456,5 +2473,5 @@ if (!embedMode && !businessMode && !simulationId && !loadedExperiment) {
   window.dispatchEvent(new CustomEvent('hbl:world-ready'));
   addEventListener('pagehide',()=>{delete window.hblGuidedActions;},{once:true});
 }
-startup.readyMs=performance.now();for(const [node,disabled] of startupDisabled)node.disabled=policyPending&&['policy','runExperimentBtn','runCycleBtn','demoBtn'].includes(node.id)?true:disabled;startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);
+startup.readyMs=performance.now();for(const [node,disabled] of startupDisabled)node.disabled=disabled;startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);
 requestAnimationFrame(frame);

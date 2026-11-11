@@ -13,6 +13,16 @@ export const EXPERIENCES = Object.freeze([
   },
   {
     "category": "worlds",
+    "title": "Houston Map",
+    "description": "Explore sourced Houston building footprints in a lightweight browser map.",
+    "route": "/tools/houston-map",
+    "preview": "/tools/houston-map",
+    "id": "houston-map",
+    "evidence": "mixed",
+    "role": "map experience"
+  },
+  {
+    "category": "worlds",
     "title": "Flower: Breeze & Petals 3D",
     "description": "Explore a 3D world of breeze and petals.",
     "route": "/tools/flower",
@@ -280,6 +290,16 @@ export const EXPERIENCES = Object.freeze([
     "id": "business",
     "evidence": "synthetic",
     "role": "experience"
+  },
+  {
+    "category": "games",
+    "title": "Houston Bar Atlas",
+    "description": "Browse OSM-tagged Houston-area bars, then play a clearly fictional interior scene anchored to sourced building geometry when available.",
+    "route": "/world/bars/",
+    "preview": "/world/bars/",
+    "id": "houston-bars",
+    "evidence": "mixed",
+    "role": "playable venue atlas"
   },
   {
     "category": "tools",
