@@ -1,8 +1,10 @@
 import { withUniverseNavigation } from './world/universe/html-navigation.js';
 import {createCausalityHandler} from './world/causality/api.js';
 import {createReleaseHealthHandler,initializeReleaseStorage} from './ops/release-health.js';
+import { createPatchVotingHandler } from './ops/patch-voting/api.js';
 const releaseStorage=initializeReleaseStorage();
 const handleReleaseHealth=createReleaseHealthHandler(releaseStorage);
+const handlePatchVoting = createPatchVotingHandler();
 const handleCausality=createCausalityHandler({dbPath:releaseStorage.worldDbPath});
 import {createActNormalService} from './world/party/act-normal-server.js';
 const actNormalService=createActNormalService();
@@ -426,6 +428,8 @@ const server = serve({
   async fetch(request, server) {
     const { pathname } = new URL(request.url);
     if (pathname === "/api/health" || pathname === "/api/ready") return handleReleaseHealth(request);
+    if (pathname === '/vote-on-patch' || pathname === '/vote-on-patch/') return serveFile('./world/patch-voting.html');
+    if (pathname === '/api/patch-votes' || pathname.startsWith('/api/patch-votes/')) return handlePatchVoting(request);
     if(pathname.startsWith('/api/act-normal/'))return actNormalService.fetch(request,server);
     if(/^\/world\/party\/act-normal\/?$/.test(pathname))return serveFile('./world/party/act-normal.html');
 
