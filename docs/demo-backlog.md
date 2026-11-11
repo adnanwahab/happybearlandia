@@ -95,3 +95,5 @@ New features frozen. Next READY assignments are reliability/preservation only: U
 U09 follow-up `3fbb894` plus coordinator `ad3902c`: visible missing-record recomputation disclosure survives graphics readiness; worker3actualbrowserpassed10.4s (exact full-historydigests, saved16/WHY, missingrecord120, mismatch/corrupt/retry). Coordinator rerun underway. Finalcompact responsiveCanvas1440/390/3203passed8s.
 
 U09 coordinator independent3browserpassed8.9s; accepted. Additional test-only boundaryshares seed0/4294967295 worker2passed6.6s, no newmodelbehavior. All approved D01–D05 delivery gates have actual evidence. Release reconciliation stays READY, not deployed or merged.
+
+Inventory-only WHY follow-up `71ffeb7`: coordinator actual browser1passed4.2s with every graphics context unavailable, exactcompletion16-0 jump to16/+24homes and reverse0 clearsfutureevidence. Artifacts `/tmp/hbl-inventory-why-final/`. No productioncodechange.

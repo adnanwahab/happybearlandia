@@ -212,7 +212,8 @@
     "trailReal": "1passed3.4s with nofutureinspector regression",
     "Activity": "3passed4s actual exportauthorityseed",
     "LivingCanvas": "6passed36.8s, noFPSoverlap",
-    "shareRecovery": "Coordinator3passed8.9s exactsavedreplay, visiblemissingrecordrecomputation, mismatch/corrupt/retry; workeradditionalzero-control seeds0/4294967295 2passed6.6s"
+    "shareRecovery": "Coordinator3passed8.9s exactsavedreplay, visiblemissingrecordrecomputation, mismatch/corrupt/retry; workeradditionalzero-control seeds0/4294967295 2passed6.6s",
+    "inventoryOnlyWHY": "Coordinator1passed4.2s: allgraphicscontexts unavailable, exactcompletionjump16, +24homes, reverse0clear"
   },
   "releaseRisks": [
     "main-only catalog houston-bars and route/startup/Activity behavior require preservation reconciliation",
