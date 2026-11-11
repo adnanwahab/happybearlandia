@@ -292,6 +292,16 @@ export const EXPERIENCES = Object.freeze([
     "role": "experience"
   },
   {
+    "category": "games",
+    "title": "Houston Bar Atlas",
+    "description": "Browse OSM-tagged Houston-area bars, then play a clearly fictional interior scene anchored to sourced building geometry when available.",
+    "route": "/world/bars/",
+    "preview": "/world/bars/",
+    "id": "houston-bars",
+    "evidence": "mixed",
+    "role": "playable venue atlas"
+  },
+  {
     "category": "tools",
     "title": "Optimization",
     "description": "Open Decision Studio\u2019s \u201cExplain, fork & optimize\u201d tools for bounded searches.",
