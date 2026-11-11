@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import os
+import re
 from pathlib import Path
 import shutil
 import signal
@@ -19,17 +20,28 @@ import time
 
 HERE = Path(__file__).resolve().parent
 TEMPLATE = HERE / "WORKFLOW.template.md"
+LINEAR_TEMPLATE = HERE / "WORKFLOW.linear.template.md"
 PLACEHOLDER = "__MAX_WORKERS__"
+LINEAR_SLUG_PLACEHOLDER = "REPLACE_LINEAR_PROJECT_SLUG"
 DEFAULT_BASE = Path.home() / ".local" / "share" / "hbl-codex"
 _STOP = False
 
 
-def render_workflow(workers: int) -> str:
+def render_workflow(workers: int, tracker: str = "github", linear_project_slug: str = "") -> str:
     if not 1 <= workers <= 50:
         raise ValueError("workers must be between 1 and 50")
-    source = TEMPLATE.read_text(encoding="utf-8")
+    if tracker not in ("github", "linear"):
+        raise ValueError("tracker must be github or linear")
+    template = LINEAR_TEMPLATE if tracker == "linear" else TEMPLATE
+    source = template.read_text(encoding="utf-8")
     if source.count(PLACEHOLDER) != 1:
         raise ValueError("Expected one max-workers placeholder")
+    if tracker == "linear":
+        if not re.fullmatch(r"[A-Za-z0-9_-]+", linear_project_slug):
+            raise ValueError("--linear-project-slug must be the slug from the Linear project URL")
+        if source.count(LINEAR_SLUG_PLACEHOLDER) != 1:
+            raise ValueError("Expected one Linear project slug placeholder")
+        source = source.replace(LINEAR_SLUG_PLACEHOLDER, linear_project_slug)
     return source.replace(PLACEHOLDER, str(workers))
 
 
@@ -60,6 +72,10 @@ def stop_process(process: subprocess.Popen, grace_seconds: int = 20) -> None:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workers", type=int, default=6, help="Max concurrent Codex workers (1-50; default 6)")
+    parser.add_argument("--tracker", choices=("github", "linear"), default="github",
+                        help="Issue tracker to dispatch from (default github)")
+    parser.add_argument("--linear-project-slug", default=os.getenv("HBL_LINEAR_PROJECT_SLUG", ""),
+                        help="Required for Linear: the final slug segment of the Linear project URL")
     parser.add_argument("--hours", type=float, default=25, help="Dispatcher runtime in hours (default 25)")
     parser.add_argument("--symphony-bin", default=os.getenv("SYMPHONY_BIN", ""),
                         help="Built Symphony executable, e.g. /opt/symphony/elixir/bin/symphony")
@@ -71,7 +87,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        workflow = render_workflow(args.workers)
+        workflow = render_workflow(args.workers, tracker=args.tracker,
+                                   linear_project_slug=args.linear_project_slug)
     except (OSError, ValueError) as err:
         parser.error(str(err))
     if not 0 < args.hours <= 25:
@@ -83,14 +100,19 @@ def main(argv: list[str] | None = None) -> int:
     if args.workers > 6 and not args.ack_scale:
         parser.error("More than 6 workers requires --ack-scale; expand only after a verified pilot")
 
-    workspaces = Path(os.getenv("HBL_SYMPHONY_WORKSPACES", str(DEFAULT_BASE / "workspaces"))).expanduser().resolve()
-    logs = Path(os.getenv("HBL_SYMPHONY_LOGS", str(DEFAULT_BASE / "logs"))).expanduser().resolve()
+    workspace_default = "workspaces-linear" if args.tracker == "linear" else "workspaces"
+    log_default = "logs-linear" if args.tracker == "linear" else "logs"
+    workspaces = Path(os.getenv("HBL_SYMPHONY_WORKSPACES", str(DEFAULT_BASE / workspace_default))).expanduser().resolve()
+    logs = Path(os.getenv("HBL_SYMPHONY_LOGS", str(DEFAULT_BASE / log_default))).expanduser().resolve()
 
     print(f"Repository: adnanwahab/happybearlandia", flush=True)
+    print(f"Tracker: {args.tracker}", flush=True)
+    if args.tracker == "linear":
+        print(f"Linear project: {args.linear_project_slug}", flush=True)
     print(f"Workers: {args.workers} maximum; duration: {args.hours:g} hours", flush=True)
     print(f"Workspace root: {workspaces}", flush=True)
     print(f"Logs: {logs}", flush=True)
-    print("Dispatch gate: open issues with label hbl-agent-ready", flush=True)
+    print("Dispatch gate: eligible issues with label hbl-agent-ready", flush=True)
     print("Target for worker PRs: sprint/one-city-two-futures-20261111", flush=True)
     print("Automatic merging and deployment: DISABLED", flush=True)
     if not args.run:
@@ -98,8 +120,9 @@ def main(argv: list[str] | None = None) -> int:
         print(workflow.split("---", 2)[1].strip()[:2200], flush=True)
         return 0
 
-    if not os.getenv("GITHUB_TOKEN"):
-        parser.error("GITHUB_TOKEN is required on the host (never commit it)")
+    token_env = "LINEAR_API_KEY" if args.tracker == "linear" else "GITHUB_TOKEN"
+    if not os.getenv(token_env):
+        parser.error(f"{token_env} is required on the host (never commit it)")
     if not shutil.which("codex"):
         parser.error("codex executable not on PATH; install Codex and authenticate")
     if not shutil.which("git"):
