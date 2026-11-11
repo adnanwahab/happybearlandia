@@ -1,3 +1,4 @@
+import { attachFutureTransitions } from './backlog-transitions/index.js';
 import { mountContinuity } from './continuity-view.js';
 import { decisionSnapshot, localContextId } from './continuity.js';
 import { housingModel, compileHousingPlan, createHousingScenarios, stressPresets, validateHousingParameters, resolveHousingModel } from '../models/housing/index.js';
@@ -38,6 +39,8 @@ const scenario = () => state.scenarios.find(s => s.id === state.selected);
 const el = (tag, text, className) => { const node = document.createElement(tag); if (text !== undefined) node.textContent = text; if (className) node.className = className; return node; };
 const status = (message, error = false) => { $('#app-status').textContent = message; $('#app-status').classList.toggle('error', error); if (error) { state.errors.push(message); diagnostics.update({ ...(state.results || {}), apiErrors: state.errors }); } };
 const visuals = mountDecisionVisualizations($('#decision-visualizations'), { onSelectRun: selectRun, onEnterFuture: enterFuture });
+const futureTransitions = attachFutureTransitions({multiverse:$('#futures'),city:$('#physical-world'),getSelection:()=>{const run=state.selectedRun||constructionRun;return {experimentId:state.results?.experiment?.id,runId:run?.id,scenarioId:run?.scenarioId,modelVersion:run?.modelVersion,seed:run?.seed,month:constructionMonth,comparison:visuals.comparisonSelection()};}});
+addEventListener('pagehide',()=>futureTransitions.detach(),{once:true});
 const trust = mountDecisionTrust($('#decision-trust'));
 const diagnosticsContainer = el('div'); $('#trust').append(diagnosticsContainer);
 const diagnostics = mountDiagnostics(diagnosticsContainer);
@@ -464,7 +467,7 @@ function syncConstructionWorld() {
 function stopConstructionPlayback() { clearInterval(constructionTimer); constructionTimer = null; $('#building-play').textContent = 'Play'; $('#building-play').setAttribute('aria-label', 'Play construction'); }
 $('#building-scenario').addEventListener('change', () => { state.selected = $('#building-scenario').value; constructionRun = null; constructionMonth = 0; stopConstructionPlayback(); renderScenarios(); });
 $('#building-run').addEventListener('change', () => {const run=state.results?.runs.find(row=>row.id===$('#building-run').value);if(run)void selectRun(run);});
-$('#building-month').addEventListener('input', () => { constructionMonth = Number($('#building-month').value); syncConstructionWorld(); });
+$('#building-month').addEventListener('input', () => { futureTransitions.cancel('scrub'); constructionMonth = Number($('#building-month').value); syncConstructionWorld(); });
 $('#building-reset').addEventListener('click', () => { stopConstructionPlayback(); constructionMonth = 0; syncConstructionWorld(); });
 $('#building-play').addEventListener('click', () => {
   if (constructionTimer) { stopConstructionPlayback(); return; }
@@ -515,15 +518,16 @@ function proposeInputChange(next) {
   proposeApprovedEdit({schemaVersion:'world-edit.v1',summary:'Review proposed alternative before applying',operations,requiresSimulationRerun:true,warnings:[],provider:'user',model:'advanced-studio.v1',prompt:'Review proposed scenario input',baseRevision:getWorldRevisionId(input)});
 }
 async function enterFuture(run, {month = constructionMonth} = {}) {
+  futureTransitions.cancel('enter selection');
   if (typeof run === 'string') run = state.results?.runs.find(row=>row.id===run);
   if (run?.experimentId && run.experimentId !== state.results?.experiment?.id) await reopenExperiment(run.experimentId,state.readonly);
   if (!run || !state.results?.runs.some(row=>row.id===run.id && row.seed===run.seed)) throw new Error('Select an actual stored future from this experiment.');
   await selectRun(run); if(state.selectedRun?.id!==run.id)return; constructionMonth = Number.isFinite(Number(month)) ? Number(month) : 0; stopConstructionPlayback(); syncConstructionWorld();
   document.body.classList.add('entered-future'); $('#future-entry-banner').hidden = false; $('#entered-future-name').textContent = `Inside ${run.id} · seed ${run.seed} · model ${run.modelVersion}`;
   const url=new URL(location.href);url.searchParams.set('run',run.id);url.searchParams.set('month',String(constructionMonth));url.hash='#physical-world';history.replaceState(null,'',url);
-  $('#physical-world').scrollIntoView({behavior:'smooth',block:'start'}); updateAdvancedStudio();
+  updateAdvancedStudio(); void futureTransitions.flyTo('city');
 }
-$('#return-multiverse').addEventListener('click', () => { stopConstructionPlayback(); document.body.classList.remove('entered-future'); $('#future-entry-banner').hidden = true; const url=new URL(location.href);url.hash='#futures';history.replaceState(null,'',url); $('#futures').scrollIntoView({behavior:'smooth',block:'start'}); });
+$('#return-multiverse').addEventListener('click', () => { stopConstructionPlayback(); document.body.classList.remove('entered-future'); $('#future-entry-banner').hidden = true; const url=new URL(location.href);url.hash='#futures';history.replaceState(null,'',url); void futureTransitions.flyTo('multiverse'); });
 
 function projects() { try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]'); } catch { return []; } }
 function refreshLocalProjects() {
@@ -681,7 +685,7 @@ on('apply-import', () => {
   renderParameters(); markDirty(); status(`Applied ${Object.keys(values).length} inputs to ${scenario().name}. Original filename and mapping recorded in the evidence ledger.`);
 });
 function resetResults() {
-  clearTimeout(previewTimer); stopConstructionPlayback(); constructionRun = null; constructionMonth = 0; worldPreview = null; worldVisualPreview = null; state.watch?.destroy(); activeRequest++; runTraces.clear();traceSelectionToken++;automaticTraceKey=null;state.summaryResults=null;state.tracePending=false;state.traceError=null; state.experiment = null; state.results = null; state.previousResults = null; state.selectedRun = null; state.hasRun = false; state.dirty = false; state.preview = false;
+  futureTransitions.cancel('reset'); clearTimeout(previewTimer); stopConstructionPlayback(); constructionRun = null; constructionMonth = 0; worldPreview = null; worldVisualPreview = null; state.watch?.destroy(); activeRequest++; runTraces.clear();traceSelectionToken++;automaticTraceKey=null;state.summaryResults=null;state.tracePending=false;state.traceError=null; state.experiment = null; state.results = null; state.previousResults = null; state.selectedRun = null; state.hasRun = false; state.dirty = false; state.preview = false;
   const empty = { experiment: null, runs: [], aggregates: [], comparisons: [], model: housingModel, evidence: state.evidence };
   visuals.update(empty); trust.update(empty); diagnostics.update(empty); $('#selected-run').hidden = true;
   $('#share-experiment').disabled = $('#download-manifest').disabled = $('#reproduce-experiment').disabled = true;

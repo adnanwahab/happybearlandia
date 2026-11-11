@@ -233,6 +233,7 @@ export function mountDecisionVisualizations(container, {onSelectRun,onEnterFutur
   listen(control('replay-start'),'click',()=>{stop();replayIndex=0;renderReplay()});
   listen(control('replay-play'),'click',()=>{if(timer!==null)return stop();const rows=replayRows();if(rows.length<2)return;if(replayIndex>=rows.length-1)replayIndex=0;control('replay-play').textContent='Pause';control('replay-play').setAttribute('aria-label','Pause future replay');renderReplay();timer=setInterval(()=>{replayIndex++;renderReplay();if(replayIndex>=replayRows().length-1)stop()},700)});
   return {
+    comparisonSelection(){ return {xKey,yKey,zKey,metricKey,scenarioFilter,outcomeFilter,colorMode,searchQuery,showGhost,showDensity,threeD,lassoIds:[...lassoIds].sort(),selectedRunId:selected?.id??null,baselineRunId:baselineSeeds.get(selected?.seed)?.id??null}; },
     update(next={}){
       if(destroyed)return;const prior=state.experiment?.id;state={...next};runs=(Array.isArray(next.runs)?next.runs:[]).filter(success);metrics=(Array.isArray(next.model?.metrics)?next.model.metrics:[]).map(m=>({...m,label:m.label||titleCase(m.id)}));
       const baselineId=next.experiment?.scenarios?.find(s=>s.kind==='baseline')?.id;
