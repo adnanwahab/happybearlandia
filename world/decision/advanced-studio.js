@@ -1,3 +1,5 @@
+import { mountBacklogExplanations } from './backlog-explanations/view.js';
+import { mountHousingComparison } from './backlog-comparison/view.js';
 /** Advanced Studio host contract. All proposals go to the existing human approval
  * preview; this module never applies edits or invokes a separate simulator.
  * Context: {input,results,selectedRun,previousResults,readOnly,busy,stale?}.
@@ -79,7 +81,7 @@ export function mountAdvancedStudio(container, { getInput, getResults, getSelect
   root.innerHTML = `<header class="as-header"><div><p class="as-eyebrow">FROM A WEAK FUTURE TO A BETTER PLAN</p><h2>Find the failure. Test the fix.</h2><p>Explore the evidence, propose a change, approve it, and compare the new futures with the old.</p></div><span class="as-mode">Exploratory model · matched seeds</span></header><p class="as-status" data-as-status role="status" aria-live="polite">Run an experiment to begin.</p>
     <section class="as-future-bar" aria-label="Future shortcuts"><div><strong>Enter a real simulated future</strong><p data-as-selected>No future selected.</p></div><label>Rank by<select data-as-metric aria-label="Future shortcut metric"></select></label><div class="as-actions"><button data-as-pick="best">Best</button><button data-as-pick="median">Median</button><button data-as-pick="worst">Worst</button><button data-as-enter>Enter selected future ↗</button></div></section>
     <details class="as-median"><summary>Compare selected future with its scenario median</summary><div data-as-median></div></details>
-    <nav class="as-tabs" aria-label="Advanced decision tools"><button data-as-tab="intelligence" aria-pressed="true">Failure → test fix</button><button data-as-tab="exploration" aria-pressed="false">Explain, fork & optimize</button><button data-as-tab="robustness" aria-pressed="false">Stress & robustness</button></nav>
+    <section data-as-housing-comparison></section><nav class="as-tabs" aria-label="Advanced decision tools"><button data-as-tab="intelligence" aria-pressed="true">Failure → test fix</button><button data-as-tab="exploration" aria-pressed="false">Explain, fork & optimize</button><button data-as-tab="robustness" aria-pressed="false">Stress & robustness</button></nav>
     <section data-as-pane="intelligence"></section><section data-as-pane="exploration" hidden></section><section data-as-pane="robustness" hidden></section>`;
   container.append(root); const find = selector => root.querySelector(selector);
   let context = {}, destroyed = false, metricId = 'affordability';
@@ -90,8 +92,10 @@ export function mountAdvancedStudio(container, { getInput, getResults, getSelect
   const currentResults = () => getResults?.() || context.results;
   const currentRun = () => getSelectedRun?.() || context.selectedRun;
   const intelligence = mountIntelligence(find('[data-as-pane="intelligence"]'), { onProposeEdit: propose, onSelectRun: run => onSelectRun?.(run) });
+  const explanations = mountBacklogExplanations(find('[data-as-pane="intelligence"]'), {onSelectRun:run=>onSelectRun?.(run),onEvent:({run,month})=>onEnterFuture?.(run,{month})});
   const exploration = mountExploration(find('[data-as-pane="exploration"]'), { getInput: currentInput, getResults: currentResults, getSelectedRun: currentRun, onApplyInput: apply, onProposeEdit: propose, onSelectRun, onEnterFuture });
   const robustness = mountRobustness(find('[data-as-pane="robustness"]'), { getInput: currentInput, onApplyInput: apply, onProposeEdit: propose });
+  const housingComparison = mountHousingComparison(find('[data-as-housing-comparison]'));
   const format = value => new Intl.NumberFormat(undefined, { maximumFractionDigits: 3 }).format(value);
   function renderShortcuts() {
     const results = currentResults(), input = currentInput(), selected = currentRun();
@@ -113,7 +117,7 @@ export function mountAdvancedStudio(container, { getInput, getResults, getSelect
   function update(next = {}) {
     if (destroyed) return; context = next;
     announce(next.stale ? 'Inputs changed. Analysis below describes the stored experiment; approve and run a revision to update results.' : next.busy ? 'Experiment running. Partial results are provisional; analysis updates as actual futures arrive.' : next.readOnly ? 'Read-only results. Explore and enter futures; copy the project to propose edits.' : next.results?.runs?.length ? 'Select a failure pattern, review a proposed fix, and compare the rerun with the previous cloud.' : 'Run an experiment to begin the failure → fix → compare loop.');
-    intelligence.update(next); exploration.update(next); robustness.update(next); renderShortcuts();
+    intelligence.update(next); explanations.update(next); exploration.update(next); robustness.update(next); renderShortcuts(); housingComparison.update({results:currentResults(),selectedRun:currentRun()});
   }
   const click = event => {
     const tab = event.target.closest('[data-as-tab]');
@@ -123,5 +127,5 @@ export function mountAdvancedStudio(container, { getInput, getResults, getSelect
   };
   const change = event => { if (event.target.matches('[data-as-metric]')) { metricId = event.target.value; renderShortcuts(); } };
   root.addEventListener('click', click); root.addEventListener('change', change); update();
-  return { update, destroy() { if (destroyed) return; destroyed = true; intelligence.destroy(); exploration.destroy(); robustness.destroy(); root.removeEventListener('click', click); root.removeEventListener('change', change); root.remove(); } };
+  return { update, destroy() { if (destroyed) return; destroyed = true; explanations.destroy(); housingComparison.destroy(); intelligence.destroy(); exploration.destroy(); robustness.destroy(); root.removeEventListener('click', click); root.removeEventListener('change', change); root.remove(); } };
 }
