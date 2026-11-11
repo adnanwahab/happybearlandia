@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Saved Futures Library · HappyBearLandia</title>
+  <link rel="stylesheet" href="./futures.css">
+  <script type="module" src="./futures.js"></script>
+</head>
+<body>
+  <main>
+    <nav aria-label="World navigation"><a href="/world/">World</a><a href="/world/causal.html">Time Machine</a></nav>
+    <h1>Saved Futures Library</h1>
+    <p>Browse public city simulations and open a recorded month in the Time Machine.</p>
+    <form id="filters" hidden aria-label="Filter saved runs">
+      <label>Seed <input name="seed" type="search" placeholder="Any seed"></label>
+      <label>Model <select name="model"><option value="">Any model</option></select></label>
+      <label>Kind <select name="kind"><option value="">Any kind</option></select></label>
+      <label>From month <input name="from" type="number" min="0" step="1" placeholder="Any"></label>
+      <label>Through month <input name="through" type="number" min="0" step="1" placeholder="Any"></label>
+      <button type="reset">Clear filters</button>
+    </form>
+    <p id="status" role="status">Loading saved runs…</p>
+    <button id="retry" type="button" hidden>Retry</button>
+    <p id="empty" hidden>Open the <a href="/world/causal.html">Time Machine</a> to record the deterministic demo, then reload this library.</p>
+    <ul id="runs" aria-label="Saved runs"></ul>
+    <noscript>Enable JavaScript to browse saved city runs.</noscript>
+  </main>
+</body>
+</html>
