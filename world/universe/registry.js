@@ -13,6 +13,16 @@ export const EXPERIENCES = Object.freeze([
   },
   {
     "category": "worlds",
+    "title": "Houston Map",
+    "description": "Explore sourced Houston building footprints in a lightweight browser map.",
+    "route": "/tools/houston-map",
+    "preview": "/tools/houston-map",
+    "id": "houston-map",
+    "evidence": "mixed",
+    "role": "map experience"
+  },
+  {
+    "category": "worlds",
     "title": "Flower: Breeze & Petals 3D",
     "description": "Explore a 3D world of breeze and petals.",
     "route": "/tools/flower",
