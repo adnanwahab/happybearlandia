@@ -3,6 +3,7 @@ const WIDTH = 620;
 const HEIGHT = 350;
 const DISTRICT_CENTERS = [[310, 100], [145, 238], [475, 238]];
 const LABELS = { unchanged: 'Unchanged', added: 'New', modified: 'Changed', removed: 'Removed' };
+const NOTE_OFFSETS = { building: 23, project: 30 };
 const MODES = [['side', 'Side by side'], ['wipe', 'Wipe'], ['switch', 'A/B switch']];
 const ARMS = { baseline: 'Future A', intervention: 'Future B' };
 let nextSceneId = 0;
@@ -147,7 +148,7 @@ function paintMap(document, target, frame, scene, arm, selectedId) {
   );
   for (const entry of annotations) {
     const { entity, status, x, y } = entry;
-    const label = text(document, target, x, y - (entity.kind === 'building' ? 23 : 14), LABELS[status].toUpperCase(), 'split-map-note');
+    const label = text(document, target, x, y - (NOTE_OFFSETS[entity.kind] ?? 14), LABELS[status].toUpperCase(), 'split-map-note');
     label.setAttribute('data-status', status);
   }
 }
