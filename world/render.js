@@ -1,6 +1,7 @@
+import {mountPlaybackFacts,withMetadataDeadline,mountControlReadiness} from './onboarding/first-run-repairs.js';
 import {createQuickDemoController} from './onboarding/quick-demo-controller.js';
 import {mountFirstRunGuide} from './first-run-guide.js';
-import {createFeedbackAdapter} from './onboarding/feedback-adapter.js';
+import {createFeedbackAdapter,stormFeedback} from './onboarding/feedback-adapter.js';
 import {createPanelManager} from './onboarding/panel-manager.js';
 import {createCameraDirector} from './onboarding/camera-director.js';
 import {createSpotlight} from './onboarding/spotlight.js';
@@ -108,12 +109,20 @@ $("goto").onsubmit = (e) => {
 $("preset").onchange = (e) => { if (e.target.value) { const [a, b] = e.target.value.split(",").map(Number); go(a, b); } };
 $("here").onclick = () => navigator.geolocation?.getCurrentPosition((p) => go(p.coords.latitude, p.coords.longitude));
 
-let visualCamera=null, visualSpotlight=null, visualPanels=null;
+let visualCamera=null, visualSpotlight=null, visualPanels=null, visualComparisonResult=null, visualComparisonView='withPlan';
 const startup = window.hblWorldStartup = { startedAt:performance.now(), firstFrameMs:null, mapReadyMs:null, placeholdersReadyMs:null, geometryReadyMs:null, readyMs:null, geometry:null, cancelled:false };
 const startupAbort = new AbortController();
+// Read model definitions before graphics initialization; a GPU failure must not
+// leave this separate disclosure claiming to load simulation evidence forever.
+window.hblSimulationModel={status:'loading',authority:'legacy-authoritative compatibility model'};
+const metadataDefinitions=withMetadataDeadline(Promise.all([import('./simulation-parameters.js'),import('./simulation-observations.js')]));
+void metadataDefinitions.then(()=>{window.hblSimulationModel={status:'definitions-ready',authority:'legacy-authoritative compatibility model',configuredParameters:null};const panel=$('simulationModelMetadata');if(panel)panel.textContent='Model definitions loaded. Runtime parameter values become available when the scene is ready.';}).catch(error=>{window.hblSimulationModel={status:'unavailable',error:error.message};const panel=$('simulationModelMetadata');if(panel)panel.textContent=`Model metadata unavailable: ${error.message}`;});
+
 let policyPending=false;
 const startupDisabled=new Map([...document.querySelectorAll('#stormBtn,#runExperimentBtn,#runCycleBtn,#demoBtn,#policy')].map(node=>[node,node.disabled]));
 for(const node of startupDisabled.keys())node.disabled=true;
+const controlReadiness=mountControlReadiness(document,()=>!startup.readyMs?'Waiting for the city scene to finish loading.':policyPending?'Loading supported plan packages; current local policy is unchanged.':livingWorld?.active?'This control belongs to the separate legacy daily model; switch to that model to use it.':'A simulation job is active. Wait for its recorded results or stop the demo before starting another run.');
+addEventListener('pagehide',()=>controlReadiness.dispose(),{once:true});
 let buildingDateBridge=null,buildingDatePanel=null,buildingDateLastRefresh=0;
 let startupCityRenderer=null,startupLastFrame=null;
 let startupActive=true,startupRAF=null,manualPanRequested=false,streamingEnabled=false;
@@ -129,24 +138,34 @@ const initialAreaRequest=(async()=>{
 
 const forceWebGL = params.get("renderer") === "webgl" || (loadedExperiment?.save.mode === "living" && !navigator.gpu);
 const useMainWorldGPU = loadedExperiment?.save.mode !== "living" && !forceWebGL && !params.has("living") && !businessMode && !embedMode;
+async function boundedGraphics(factory,milliseconds=8000){
+ let timer,expired=false;const work=Promise.resolve().then(factory);
+ work.then(value=>{if(expired)value?.renderer?.dispose?.();}).catch(()=>{});
+ try{return await Promise.race([work,new Promise((_,reject)=>{timer=setTimeout(()=>{expired=true;reject(new Error('Graphics initialization timed out; switching to a supported renderer.'));},milliseconds);})]);}finally{clearTimeout(timer);}
+}
 let graphics;
+const canUseWebGL=()=>{const probe=document.createElement('canvas').getContext('webgl2');if(!probe)return false;probe.getExtension('WEBGL_lose_context')?.loseContext();return true;};
 try {
-  graphics = useMainWorldGPU
+  graphics = await boundedGraphics(async()=> (['canvas','canvas2d'].includes(params.get('renderer'))||forceWebGL&&!canUseWebGL()) ? (await import('./render/renderer/canvas-renderer.js')).createCanvasRenderer() : useMainWorldGPU
     ? await (await import("./world-gpu.js")).createWorldGPU({ antialias: !embedMode })
-    : await createCityRenderer({ forceWebGL, antialias: !embedMode });
+    : await createCityRenderer({ forceWebGL, antialias: !embedMode }));
 } catch (error) {
-  if (!useMainWorldGPU) {
-    const loading = $('loading');
-    loading.setAttribute('role', 'alert');
-    loading.textContent = '3D World could not start. Check that WebGL2 and hardware acceleration are available.';
-    if (loadedExperiment && params.has('person')) {
-      const link = document.createElement('a');
-      link.href = '/tools/future-journey.html?' + params;
-      link.textContent = 'Return to Worldline';
-      loading.append(' ', link);
+  try {
+    if(!useMainWorldGPU||!canUseWebGL())throw error;
+    graphics=await boundedGraphics(()=>createCityRenderer({forceWebGL:true,antialias:!embedMode}),4000);
+    const loading=$('loading');loading.replaceChildren();loading.removeAttribute('role');loading.textContent='Starting World with WebGL2…';
+    startup.graphicsFallback='WebGPU unavailable; using WebGL2';
+  } catch (fallbackError) {
+    try{graphics=(await import('./render/renderer/canvas-renderer.js')).createCanvasRenderer();startup.graphicsFallback='GPU unavailable; Canvas2D projected geometry';}catch(canvasError){
+    const loading=$('loading');loading.replaceChildren();loading.setAttribute('role','alert');
+    loading.textContent='3D World could not start. Check that WebGL2 and hardware acceleration are available. ';
+    const retry=document.createElement('button');retry.type='button';retry.textContent='Try again';retry.onclick=()=>location.reload();loading.append(retry);
+    const home=document.createElement('a');home.href='/';home.textContent=' Return home';loading.append(home);
+    if(loadedExperiment&&params.has('person')){const link=document.createElement('a');link.href='/tools/future-journey.html?'+params;link.textContent=' Return to Worldline';loading.append(link);}
+    startup.graphicsError=fallbackError.message;
+    throw canvasError;
     }
   }
-  throw error;
 }
 const { renderer, mode: rendererMode } = graphics;
 renderer.setSize(innerWidth, innerHeight);
@@ -214,8 +233,7 @@ const legacyJournalRecorder=world.journals?createJournalRecorder({city:legacyJou
 if(legacyJournalRecorder)void legacyJournalRecorder.flush(true);
 
 // Metadata is read-only; loading it never starts another simulation.
-window.hblSimulationModel={status:'loading',authority:'legacy-authoritative compatibility model'};
-void Promise.all([import('./simulation-parameters.js'),import('./simulation-observations.js')]).then(([parameters,observations])=>{
+void metadataDefinitions.then(([parameters,observations])=>{
  const parameterData=Object.fromEntries(Object.entries(parameters).filter(([,value])=>typeof value!=='function'));
  const observed=observations.createSimulationObservationCollector().result().observations;
  const metadata={status:'ready',authority:'legacy-authoritative compatibility model',parameters:parameterData,configuredParameters:structuredClone(world.parameters),observations:{schemaVersion:observed.schemaVersion,methods:observed.methods,limitations:observed.limitations},limits:['Daily legacy residents, living population and monthly Constitution forecasts remain separate simulation authorities.','Representative five-day annual samples carry state forward; unsampled days do not accrue economic or demographic changes.']};
@@ -487,7 +505,7 @@ function bindActivityRuntime(runtime){if(activityRuntimeUnsubscribe)return;activ
 const legacyActivityUnsubscribe=world.subscribeActivity(()=>{if(!livingWorld?.active)notifyActivity();});
 const playback=createSimulationPlayback({initialSpeed:speed,onChange:state=>{speed=state.paused?0:state.speed;const runtime=livingWorld?.active?livingWorld.getRuntime():null;if(runtime){runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();}for(const button of $("speeds").children)button.classList.toggle("on",Number(button.dataset.s)===(state.paused?0:state.speed));if(selected?.type==="person")renderInspector();}});
 window.hblSimulationPlayback=playback;
-livingWorld=!embedMode?mountLivingWorld({container:document.body,scene,camera,controls,THREE,town,renderer,autoActivate:loadedExperiment?false:!businessMode&&!simulationId&&!demoMode&&!renderBenchmark,initialMinute:loadedExperiment?0:6*60,onRuntimeReady:runtime=>{bindActivityRuntime(runtime);const state=playback.getState();runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();if(!livingPlaybackUnsubscribe)livingPlaybackUnsubscribe=runtime.subscribe(frame=>{if(!livingWorld?.active||!frame?.runtime)return;if(Number.isFinite(frame.runtime.speed)&&frame.runtime.speed!==playback.getState().speed)playback.setSpeed(frame.runtime.speed);frame.runtime.paused?playback.pause():playback.resume();});return true;},onModeChange:active=>{people.visible=!active;follow=false;selected=null;document.documentElement.classList.remove("person-selected");$("inspect").removeAttribute("data-person-selected");$("inspect").style.display="none";cityRenderer.setFeature('traffic',active?false:originalTrafficEnabled);cityRenderer.updateCity({trafficDensity:active?0:1});document.body.classList.toggle('living-active',active);notifyActivity();const fastest=$('speeds').lastElementChild;fastest.dataset.s=active?'32':'60';fastest.textContent=active?'32×':'60×';if(active&&playback.getState().speed>32)playback.setSpeed(32);}}):null;
+livingWorld=!embedMode?mountLivingWorld({container:document.body,scene,camera,controls,THREE,town,renderer,autoActivate:loadedExperiment?false:!businessMode&&!simulationId&&!demoMode&&!renderBenchmark,initialMinute:loadedExperiment?0:6*60,onRuntimeReady:runtime=>{bindActivityRuntime(runtime);const state=playback.getState();runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();if(!livingPlaybackUnsubscribe)livingPlaybackUnsubscribe=runtime.subscribe(frame=>{if(!livingWorld?.active||!frame?.runtime)return;if(Number.isFinite(frame.runtime.speed)&&frame.runtime.speed!==playback.getState().speed)playback.setSpeed(frame.runtime.speed);frame.runtime.paused?playback.pause():playback.resume();});return true;},onModeChange:active=>{if(active){window.hblVisualPass?.controller.stop();visualCamera?.cancel();visualSpotlight?.clear();}people.visible=!active;follow=false;selected=null;document.documentElement.classList.remove("person-selected");$("inspect").removeAttribute("data-person-selected");$("inspect").style.display="none";cityRenderer.setFeature('traffic',active?false:originalTrafficEnabled);cityRenderer.updateCity({trafficDensity:active?0:1});document.body.classList.toggle('living-active',active);notifyActivity();const fastest=$('speeds').lastElementChild;fastest.dataset.s=active?'32':'60';fastest.textContent=active?'32×':'60×';if(active&&playback.getState().speed>32)playback.setSpeed(32);}}):null;
 window.hblLivingWorld=livingWorld;
 const neighborhoodWhatIf = !embedMode ? mountNeighborhoodWhatIf({scene,camera,controls,renderer,THREE,getContext:()=>livingWorld.getContext()}) : null;
 addEventListener('pagehide',()=>neighborhoodWhatIf?.destroy(),{once:true});
@@ -497,17 +515,19 @@ window.hblWorldActivity={
  subscribe(listener){activityListeners.add(listener);return()=>activityListeners.delete(listener);},
  selectPerson(id){if(livingWorld?.active)return livingWorld.selectPerson(String(id));const index=town.people.findIndex(person=>String(person.id)===String(id));if(index>=0)select({type:'person',id:index});}
 };
+const playbackFacts=mountPlaybackFacts(document);
+playbackFacts.update({mood:world.summary().mood,seed:town.seedKey});
 const activityButton=$('activity-dashboard-button');
-async function openActivityDashboard(){try{
+async function openActivityDashboard(){activityButton.textContent='Loading activity…';activityButton.disabled=true;try{
  if(!activityDashboardPromise)activityDashboardPromise=import('./activity-dashboard.js').then(({mountActivityDashboard})=>{
   if(activityDisposed)return;activityDashboard=mountActivityDashboard({container:document.body,...window.hblWorldActivity,onSelectPerson:id=>window.hblWorldActivity.selectPerson(id)});
-  const panel=document.querySelector('.activity-dashboard');visualPanels?.register('activity',panel,{onClose:()=>{activityDashboard.close();mapControls.setEnabled(true);}});panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.tabIndex=-1;
+  const panel=document.querySelector('.activity-dashboard');visualPanels?.register('activity',panel,{addClose:false,onClose:()=>{activityDashboard.close();mapControls.setEnabled(true);}});panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.tabIndex=-1;
   panel.addEventListener('keydown',event=>{event.stopPropagation();if(event.key==='Escape'){event.preventDefault();activityDashboard.close();activityButton.focus();}if(event.key==='Tab'){const items=[...panel.querySelectorAll('button,input,select,[tabindex="0"]')].filter(node=>!node.disabled&&node.getClientRects().length);const first=items[0],last=items.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}});
   activityObserver=new MutationObserver(()=>{const opened=!panel.hidden;mapControls.setEnabled(!opened);activityButton.setAttribute('aria-expanded',String(opened));if(!opened)activityButton.focus();});activityObserver.observe(panel,{attributes:true,attributeFilter:['hidden']});
   return activityDashboard;
  });
  const dashboard=await activityDashboardPromise;if(!dashboard||activityDisposed)return;dashboard.open();visualPanels?.open('activity',{trigger:activityButton});mapControls.setEnabled(false);document.querySelector('.activity-dashboard button')?.focus();
- }catch(error){activityDashboardPromise=null;activityButton.title=error.message;console.error('Activity dashboard unavailable',error);}}
+ }catch(error){activityDashboardPromise=null;activityButton.title=error.message;activityButton.setAttribute('aria-description',`Activity history unavailable: ${error.message}. Click to retry.`);console.error('Activity dashboard unavailable',error);}finally{if(!activityDisposed){activityButton.disabled=false;activityButton.textContent='Activity';}}}
 activityButton.addEventListener('click',openActivityDashboard);
 addEventListener('pagehide',()=>{activityDisposed=true;legacyActivityUnsubscribe?.();activityRuntimeUnsubscribe?.();activityObserver?.disconnect();activityDashboard?.destroy();activityListeners.clear();activityButton.removeEventListener('click',openActivityDashboard);},{once:true});
 
@@ -836,8 +856,8 @@ function updateOverlayLegend() {
   } else if (overlayMode === "wellbeing") {
     overlayLegendEl.textContent = "residents: red = struggling → green = doing well (live)";
   } else if (overlayMode === "cycle") {
-    const label = { before: "before the plan", noPlan: "a week later, no plan", withPlan: "a week later, with plan" }[cycleView];
-    overlayLegendEl.textContent = cycleResult ? `residents colored by well-being ${label}` : "run a cycle first";
+    const label = { before: "before the plan", noPlan: "a week later, no plan", withPlan: "a week later, with plan" }[visualComparisonResult?visualComparisonView:cycleView];
+    overlayLegendEl.textContent = (visualComparisonResult||cycleResult) ? `residents colored by well-being ${label}` : "run a cycle first";
   } else {
     overlayLegendEl.textContent = "";
   }
@@ -909,6 +929,7 @@ function triggerStorm() {
   world.policy.floodedNow = floodedNow;
   world.policy.displaced = displaced;
   world.log(`Storm hit: ${floodedNow} parcels flooded, ${displaced} residents displaced`, "storm");
+  return {floodedNow,displaced};
 }
 
 $("policy").onchange = (e) => {
@@ -1256,6 +1277,7 @@ async function readStateEntryCount() {
 }
 
 function runExperiment10Years() {
+  visualComparisonResult=null;
   if (experimentWorker) return;
   const btn = $("runExperimentBtn");
   if (btn) btn.disabled = true;
@@ -1386,6 +1408,7 @@ function startCycleWorker() {
 }
 
 function runCycle() {
+  visualComparisonResult=null;
   if (cycleBusy) return;
   const requestedId = cyclePackageId();
   const pkg = PLAN_PACKAGES[requestedId]
@@ -1493,6 +1516,7 @@ function showCycle(i) {
 }
 
 function renderCyclePanel() {
+  visualComparisonResult=null;
   const r = cycleResult;
   const el = $("cyclePanel");
   if (!r) { el.style.display = "none"; return; }
@@ -2174,8 +2198,9 @@ function frame(now) {
 
   // People
   // In the well-being and cycle overlays everyone is shown (indoors too), colored red→green.
-  const wbOverlay = overlayMode === "wellbeing" || (overlayMode === "cycle" && cycleResult);
-  const cycleScores = overlayMode === "cycle" && cycleResult ? cycleResult.scores[cycleView] : null;
+  const recordedCycle=visualComparisonResult||cycleResult,recordedView=visualComparisonResult?visualComparisonView:cycleView;
+  const wbOverlay = overlayMode === "wellbeing" || (overlayMode === "cycle" && recordedCycle);
+  const cycleScores = overlayMode === "cycle" && recordedCycle ? recordedCycle.scores[recordedView] : null;
   for (let i = 0; !livingWorld?.active && i < town.people.length; i++) {
     const p = town.people[i];
     const s = smooth[i];
@@ -2300,6 +2325,7 @@ function updateHud() {
   const s = livingSnapshot?{mood:100*(livingSnapshot.metrics?.modeledUtility??0),doing:Object.fromEntries(Object.entries(livingSnapshot.activityCounts||{}).map(([key,value])=>[{HOME:"at home",WORK:"working",SCHOOL:"at school",TRANSIT:"traveling",DINING:"eating",RECREATION:"recreation",SHOPPING:"shopping"}[key]||key.toLowerCase(),value]))}:world.summary();
   $("mood").style.width = `${s.mood}%`;
   $("moodN").textContent = s.mood.toFixed(0);
+  playbackFacts.update({mood:s.mood,seed:livingSnapshot?.config?.seed??town.seedKey,living:!!livingSnapshot});
   const top = Object.entries(s.doing).sort((a, b) => b[1] - a[1]).slice(0, 4);
   const status = world.policy.floodedNow ? ` · ${world.policy.floodedNow} flooded parcels · ${world.policy.displaced} displaced` : "";
   $("counts").textContent = top.map(([k, v]) => `${v} ${k}`).join(" · ") + status;
@@ -2392,46 +2418,48 @@ requestAnimationFrame(frame);
 // First-run presentation uses the legacy scene authority explicitly. Its detached
 // comparison owns a worker; stopping it cannot cancel the full civic experiment.
 if(!embedMode&&!businessMode&&!simulationId&&!loadedExperiment&&!renderBenchmark){
+  const integrationStyles=document.createElement('link');integrationStyles.rel='stylesheet';integrationStyles.href=new URL('./onboarding/integration.css',import.meta.url).href;document.head.append(integrationStyles);
   const feedbackAdapter=createFeedbackAdapter();
   const reducedMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
   const residentById=id=>town.people.find(p=>String(p.id)===String(id));
-  const residentPosition=id=>{const p=residentById(id);return p&&Number.isFinite(p.x)&&Number.isFinite(p.z)?{x:p.x,y:0,z:p.z}:null;};
-  visualPanels=createPanelManager({document});
+  const residentPosition=id=>{if(livingWorld?.active)return null;const p=residentById(id);return p&&Number.isFinite(p.x)&&Number.isFinite(p.z)?{x:p.x,y:0,z:p.z}:null;};
+  visualPanels=createPanelManager({document,onChange:({active,previous})=>{if(!active&&previous)queueMicrotask(()=>{if(document.activeElement===document.body||!document.activeElement?.getClientRects().length)$('world-guide-button')?.focus();});}});
   for(const [id,element] of [['inspect',$('inspect')],['cycle',$('cyclePanel')],['experiment',$('experimentPanel')]])if(element)visualPanels.register(id,element);
+  for(const [index,element] of [...document.querySelectorAll('section.living-city')].entries())visualPanels.register('population-panel-'+index,element);
   visualCamera=createCameraDirector({camera,controls,reducedMotion,getResidentPosition:residentPosition,now:()=>performance.now()});
   visualSpotlight=createSpotlight({THREE,scene,getResidentPosition:residentPosition,reducedMotion});
+  let configurationSummary=null;
   let guide,controller,observation=null,measured=null,configuration=null,focusId=null,workerTimings=null;
   let comparisonWorker=null;
-  // Freeze the recipe after policy packages settle; replay uses these exact inputs.
+  // Freeze a supported local recipe, independent of remote plan loading; replay uses exact inputs.
   let recipe=null;
   const readRecipe=()=>{
     if(recipe)return recipe;
-    const pkg=PLAN_PACKAGES.balanced||PLAN_PACKAGES[cyclePackageId()]||PLAN_PACKAGES.none;
-    recipe=structuredClone({origin,area,maxPeople,proposalIds:pkg?.proposalIds||[],label:pkg?.label||'No plan',year:3,days:7});
+    const pkg=BASE_POLICY_PACKAGES.balanced;
+    recipe=structuredClone({origin,area,maxPeople,proposalIds:pkg?.proposalIds||[],label:pkg?.label||'No plan',source:pkg?.source||'local',year:3,days:7});
     return recipe;
   };
-  const provenance=()=>({authority:'legacy-world',modelVersion:world.modelVersion||'legacy-cycle-v1',seed:town.seedKey,origin:{...origin},days:7,year:3,proposalIds:[...(recipe?.proposalIds||[])],limitations:['Detached matched week, not a continuation of the live resident clock. Legacy resident indexes share deterministic buildTown inputs only; Population and monthly City are not mapped.']});
+  const provenance=()=>({authority:'legacy-world',modelVersion:world.modelVersion||null,modelSource:'world/sim.js',rulesSource:'world/policy.js',rulesVersion:null,seed:town.seedKey,origin:{...origin},days:7,year:3,proposalIds:[...(recipe?.proposalIds||[])],limitations:['Detached matched week, not a continuation of the live resident clock. Legacy resident indexes share deterministic buildTown inputs only; Population and monthly City are not mapped.']});
   const state=()=>({...controller?.getState(),ready:true,observation,feedback:measured,configuration,workerTimings,provenance:provenance()});
-  const refresh=()=>{const value=state();guide?.update(value);return value;};
+  const refresh=()=>{const value=state();guide?.update(value);$('firstRunGuide')?.toggleAttribute('data-demo-engaged',Boolean(observation||measured));$('firstRunGuide')?.toggleAttribute('data-demo-complete',value.status==='completed');if(configurationSummary)configurationSummary.textContent='Detached comparison: '+(configuration?.text||'Quick demo tests the local Balanced plan in a detached matched week.')+(measured?.unsupported?.length?' Unsupported proposals: '+measured.unsupported.map(item=>typeof item==='string'?item:item.id||item.label||'Unidentified proposal').join(', ')+'.':'')+' The ring marks an actual resident position, including indoors; it does not indicate a new building or measured policy effect.';return value;};
   const inspectResident=()=>{
     const p=residentById(focusId);if(!p)return false;
     followResident(town.people.indexOf(p));visualPanels.open('inspect',{trigger:document.activeElement});return true;
   };
   controller=createQuickDemoController({
-    waitForReady:async({signal}={})=>{
-      while(policyPending){if(signal?.aborted)throw new DOMException('Stopped','AbortError');await new Promise(resolve=>setTimeout(resolve,40));}
-    },
+    waitForReady:()=>{if(cycleBusy||demo.running||experimentWorker)throw Error('Finish the active civic comparison or ten-year experiment before starting the quick demo.');},
     observeResident:async({signal})=>{
       await livingWorld?.setActive(false);if(signal.aborted)return;
-      measured=null;workerTimings=null;visualPanels.closeAll();
+      measured=null;visualComparisonResult=null;workerTimings=null;visualPanels.closeAll();
       const p=town.people.find(person=>person.mode==='moving')||town.people[0];
       if(!p)throw Error('This town has no resident to observe.');
       focusId=String(p.id);overlayMode='wellbeing';if(overlayEl)overlayEl.value='wellbeing';
       // Select without opening the inspector, leaving the scene and guide visible.
-      selected={type:'person',id:town.people.indexOf(p)};follow=false;
+      selected={type:'person',id:town.people.indexOf(p)};follow=false;cityRenderer.updateCity({selectedBuilding:null});world.trackActivityPerson(String(p.id));
       document.documentElement.classList.add('person-selected');
       visualCamera.focusResident(focusId);visualSpotlight.showResident(focusId);
-      observation=feedbackAdapter.observed({authority:'legacy-world',residentId:focusId,name:p.name,minute:world.t,activity:p.action||p.mode,mood:p.mood,needs:legacyNeedSnapshot(p,world),position:residentPosition(focusId)});
+      const marker=scene.getObjectByName('world-onboarding-entity-highlight');if(marker){marker.material.depthTest=false;marker.renderOrder=999;}
+      observation=feedbackAdapter.observed({authority:'legacy-world',seed:town.seedKey,residentId:focusId,name:p.name,minute:world.t,activity:p.doing||p.action||p.mode,mood:p.mood,needs:{...p.needs},position:residentPosition(focusId)});
       configuration=feedbackAdapter.configured({...readRecipe(),authority:'legacy-world',scope:'detached matched week'});
       guide.show();refresh();
       await new Promise(requestAnimationFrame);
@@ -2444,7 +2472,7 @@ if(!embedMode&&!businessMode&&!simulationId&&!loadedExperiment&&!renderBenchmark
       const fail=error=>{if(settled)return;settled=true;cleanup();reject(error);};
       const abort=()=>fail(new DOMException('Quick demo stopped','AbortError'));
       signal.addEventListener('abort',abort,{once:true});if(signal.aborted){abort();return;}
-      worker.onerror=event=>fail(Error(event.message||'Comparison worker failed'));
+      worker.onerror=event=>{event.preventDefault?.();fail(Error(event.message||'Comparison worker failed'));};
       worker.onmessage=event=>{
         if(settled||signal.aborted)return;
         const msg=event.data||{},now=performance.now();
@@ -2465,29 +2493,33 @@ if(!embedMode&&!businessMode&&!simulationId&&!loadedExperiment&&!renderBenchmark
       if(signal.aborted)return;
       measured=feedbackAdapter.measured(result,provenance());
       // The score overlay is a recorded comparison, not the current live mood.
-      cycleResult=result;cycleView='noPlan';overlayMode='cycle';if(overlayEl)overlayEl.value='cycle';
+      visualComparisonResult=result;visualComparisonView='noPlan';overlayMode='cycle';const cycleOption=overlayEl?.querySelector('option[value=cycle]');if(cycleOption)cycleOption.disabled=false;if(overlayEl)overlayEl.value='cycle';
       refresh();await new Promise(requestAnimationFrame);if(signal.aborted)return;
-      cycleView='withPlan';
+      visualComparisonView='withPlan';
       const index=result.best?.index;if(Number.isInteger(index)&&town.people[index]){focusId=String(town.people[index].id);visualCamera.focusResident(focusId);visualSpotlight.showResident(focusId);}
       guide.show();refresh();
     },
-    onState:value=>{if(['stopped','error'].includes(value.status)){visualCamera.cancel();visualSpotlight.clear();if(overlayMode==='cycle'){overlayMode='wellbeing';if(overlayEl)overlayEl.value='wellbeing';}}refresh();},
+    onState:value=>{if(value.status==='waiting'){observation=null;measured=null;workerTimings=null;visualComparisonResult=null;}if(['stopped','error'].includes(value.status)){visualComparisonResult=null;visualCamera.cancel();visualSpotlight.clear();if(overlayMode==='cycle'){overlayMode='wellbeing';if(overlayEl)overlayEl.value='wellbeing';}}refresh();},
     now:()=>performance.now()
   });
   guide=mountFirstRunGuide({container:document.body,panelManager:visualPanels,
     onQuickDemo:()=>controller.start({recipeVersion:1}),onStop:()=>controller.stop(),onReplay:()=>controller.getState().runId===null?controller.start({recipeVersion:1}):controller.replay(),onInspect:inspectResident,
-    onCompare:()=>controller.start({recipeVersion:1}),onStorm:()=>{controller.stop();livingWorld?.setActive(false);$('stormBtn').click();guide.update({...state(),feedback:{kind:'observed',label:'Storm observation',summary:'Storm applied to the legacy scene. Inspect the event log for actual flooded parcels and displacement; this is separate from the matched-week estimate.'}});},
-    onTour:()=>{controller.stop();guide.hide();playDemo();},onExperiment:()=>{controller.stop();guide.hide();$('runExperimentBtn').click();}
+    onCompare:()=>controller.start({recipeVersion:1}),onStorm:async()=>{controller.stop();await livingWorld?.setActive(false);const record=triggerStorm();visualComparisonResult=null;measured=stormFeedback(record,{minute:world.t,seed:town.seedKey});overlayMode='flood';if(overlayEl)overlayEl.value='flood';guide.show();refresh();},
+    onTour:()=>{controller.stop();guide.hide();playDemo();},onExperiment:()=>{controller.stop();guide.hide();runExperiment10Years();}
   });
-  const accessibility=mountWorldAccessibility({document,panelManager:visualPanels,getActivePanel:()=>{const id=visualPanels.getActive();return id==='guide'?$('firstRunGuide'):id==='inspect'?$('inspect'):id==='cycle'?$('cyclePanel'):id==='experiment'?$('experimentPanel'):null;},onDismiss:()=>visualPanels.closeAll()});
+  const guideActions=$('firstRunGuide').querySelector('.first-run-actions');
+  const moreActions=document.createElement('details'),moreSummary=document.createElement('summary');moreSummary.textContent='More city actions';moreActions.append(moreSummary);
+  for(const button of [...guideActions.children].slice(4))moreActions.append(button);$('firstRunGuide').append(moreActions);
+  const accessibility=mountWorldAccessibility({document,panelManager:visualPanels,getActivePanel:()=>visualPanels.getActiveElement(),onDismiss:()=>visualPanels.closeAll()});
   const interruptCamera=()=>{visualCamera.cancel();follow=false;};
   renderer.domElement.addEventListener('pointerdown',interruptCamera);renderer.domElement.addEventListener('wheel',interruptCamera,{passive:true});
   for(const id of ['demoBtn','runCycleBtn','runExperimentBtn'])$(id)?.addEventListener('click',()=>{controller.stop();guide.hide();});
   window.hblVisualPass={controller,getState:state,inspectResident,panels:visualPanels,ready:true};
+  configurationSummary=document.createElement('p');configurationSummary.dataset.testid='quick-demo-configuration';configurationSummary.textContent='Configured comparison: local Balanced plan, implementation year 3, matched 7-day horizon. Live playback is separate.';$('firstRunGuide').append(configurationSummary);
   const switcher=document.createElement('div');switcher.className='first-run-actions';switcher.setAttribute('aria-label','Recorded matched-week overlay');
-  for(const [view,label] of [['noPlan','View no plan'],['withPlan','View plan']]){const button=document.createElement('button');button.type='button';button.textContent=label;button.dataset.testid='quick-demo-'+view;button.addEventListener('click',()=>{if(!measured)return;cycleView=view;overlayMode='cycle';if(overlayEl)overlayEl.value='cycle';for(const peer of switcher.children)peer.setAttribute('aria-pressed',String(peer===button));});switcher.append(button);}
+  for(const [view,label] of [['noPlan','View no plan'],['withPlan','View plan']]){const button=document.createElement('button');button.type='button';button.textContent=label;button.dataset.testid='quick-demo-'+view;button.addEventListener('click',()=>{if(measured?.kind!=='matched')return;visualComparisonView=view;overlayMode='cycle';if(overlayEl)overlayEl.value='cycle';for(const peer of switcher.children)peer.setAttribute('aria-pressed',String(peer===button));});switcher.append(button);}
   $('firstRunGuide').append(switcher);
-  const syncComparisonControls=()=>{for(const button of switcher.children)button.disabled=!measured;};
+  const syncComparisonControls=()=>{for(const button of switcher.children){button.disabled=measured?.kind!=='matched';button.setAttribute('aria-pressed',String(button.dataset.testid==='quick-demo-'+visualComparisonView&&measured?.kind==='matched'));}};
   syncComparisonControls();const comparisonControlsTimer=setInterval(syncComparisonControls,200);
   guide.update(state());guide.show();
   addEventListener('pagehide',()=>{clearInterval(comparisonControlsTimer);controller.dispose();comparisonWorker?.terminate();visualCamera.dispose();visualSpotlight.dispose();accessibility.dispose();guide.dispose();visualPanels.dispose();renderer.domElement.removeEventListener('pointerdown',interruptCamera);renderer.domElement.removeEventListener('wheel',interruptCamera);},{once:true});

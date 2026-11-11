@@ -45,6 +45,7 @@ export function createQuickDemoController({
     const run = active;
     mark(run, 'totalMs');
     state = { ...state, status: 'stopped', reason, timings: { ...run.timings } };
+    run.stoppedState = snapshot();
     active = null;
     run.abort.abort(reason);
     onState(snapshot());
@@ -64,7 +65,7 @@ export function createQuickDemoController({
     signal?.addEventListener('abort', externalAbort, { once: true });
     const context = {
       runId: run.id, signal: run.abort.signal, inputs: structuredClone(captured),
-      reducedMotion: typeof reducedMotion === 'function' ? !!reducedMotion() : !!reducedMotion,
+      reducedMotion: false,
       markWorkerReady() { mark(run, 'workerReadyMs'); emit(run, {}); },
       onProgress(progress) {
         if (!current(run)) return;
@@ -80,6 +81,7 @@ export function createQuickDemoController({
       },
     };
     try {
+      context.reducedMotion = typeof reducedMotion === 'function' ? !!reducedMotion() : !!reducedMotion;
       if (signal?.aborted) { externalAbort(); return snapshot(); }
       emit(run, {});
       if (!current(run)) return snapshot();
@@ -96,14 +98,12 @@ export function createQuickDemoController({
         emit(run, { observation: observation ?? null });
         return observation;
       });
-      // Attach immediately so resident failures cannot become unhandled rejections.
-      const residentDone = resident.catch(error => { throw error; });
       mark(run, 'workerStartMs');
       const comparison = wait(run, Promise.resolve().then(() => {
         if (current(run)) return runComparison(context);
       })).then(result => { mark(run, 'computationCompleteMs'); return freezeResult(structuredClone(result ?? null)); });
       emit(run, { status: 'computing' });
-      const [observation, result] = await Promise.all([residentDone, comparison]);
+      const [observation, result] = await Promise.all([resident, comparison]);
       if (!current(run)) return snapshot();
       mark(run, 'revealStartMs');
       emit(run, { status: 'revealing', result: result ?? null });
@@ -119,7 +119,7 @@ export function createQuickDemoController({
       active = null;
       return snapshot();
     } catch (error) {
-      if (!current(run)) return { status: 'stopped', runId: run.id, timings: { ...run.timings } };
+      if (!current(run)) return run.stoppedState ?? snapshot();
       mark(run, 'totalMs');
       emit(run, { status: 'error', error: String(error?.message || error) });
       active = null;

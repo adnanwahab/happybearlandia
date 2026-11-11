@@ -11,7 +11,7 @@ export function createPanelState(onChange = () => {}) {
   };
 }
 
-/** Focus ownership is delegated to onPanelChange({active, previous, element, previousElement, trigger}).
+/** Focus enters the active sheet and returns to its trigger; onChange receives both elements.
  * Legacy features may continue changing hidden/style.display; sync adopts those requests.
  */
 export function createPanelManager({ document: doc = globalThis.document, panels = {}, onChange = () => {}, onPanelChange = onChange, observe = true } = {}) {
@@ -20,12 +20,21 @@ export function createPanelManager({ document: doc = globalThis.document, panels
   let destroyed = false, trigger = null;
   const triggers = new Map();
   const state = createPanelState(({ active, previous }) => {
+    const old = entries.get(previous);
+    if (old) {
+      old.requested = false;
+      if (old.element.tagName === 'DETAILS') old.element.open = false;
+      else if (old.visibility === 'hidden') old.element.hidden = true;
+      else old.element.style.display = 'none';
+    }
     for (const [id, entry] of entries) {
       const suppressed = id !== active;
       entry.element.toggleAttribute('data-world-panel-suppressed', suppressed);
       entry.element.inert = suppressed;
       for (const button of doc.querySelectorAll(`[data-world-open="${id}"]`)) button.setAttribute('aria-expanded', String(!suppressed));
     }
+    if (active) { const controls = doc.getElementById?.('top'); if (controls) controls.open = false; }
+    if (previous) entries.get(previous)?.dismiss?.();
     doc.body?.setAttribute('data-world-active-panel', active || 'none');
     onPanelChange({ active, previous, element: entries.get(active)?.element || null, previousElement: entries.get(previous)?.element || null, trigger });
     if (active) {
@@ -66,7 +75,9 @@ export function createPanelManager({ document: doc = globalThis.document, panels
     if (entry.element.style.display === 'none') entry.element.style.display = 'block';
     if (entry.element.tagName === 'DETAILS') entry.element.open = true;
     entry.requested = true;
-    return state.open(id);
+    const changed = state.open(id);
+    if (!changed) trigger = null;
+    return changed;
   }
   function close(id = state.getState().active) {
     const entry = entries.get(id);
@@ -77,7 +88,6 @@ export function createPanelManager({ document: doc = globalThis.document, panels
     if (entry.element.tagName === 'DETAILS') entry.element.open = false;
     else if (entry.visibility === 'hidden') entry.element.hidden = true;
     else entry.element.style.display = 'none';
-    entry.dismiss?.();
     return true;
   }
   function sync() {
@@ -90,6 +100,8 @@ export function createPanelManager({ document: doc = globalThis.document, panels
     }
   }
   function click(event) {
+    const summary = event.target.closest?.('#top > summary');
+    if (summary && !summary.parentElement.open) close();
     const button = event.target.closest?.('[data-world-open], [data-world-dismiss]');
     if (!button) return;
     const id = button.getAttribute('data-world-open');
@@ -104,5 +116,5 @@ export function createPanelManager({ document: doc = globalThis.document, panels
   observer?.observe(doc.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden', 'style', 'open'] });
   for (const [id, value] of Object.entries(panels)) register(id, value.element || value, value.options || {});
   function dispose() { if (destroyed) return; destroyed = true; observer?.disconnect(); doc.removeEventListener('click', click); doc.removeEventListener('keydown', keydown); state.close(); for (const { element } of entries.values()) { element.removeAttribute('data-world-panel-suppressed'); element.removeAttribute('data-world-panel'); element.inert = false; element.querySelector('[data-world-dismiss]')?.remove(); } entries.clear(); doc.body?.removeAttribute('data-world-active-panel'); }
-  return { register, open, close, closeAll: () => close(), sync, getState: state.getState, getActive: () => state.getState().active, getActiveElement: () => entries.get(state.getState().active)?.element || null, dispose, destroy: dispose }; 
+  return { register, open, close, closeAll: () => close(), sync, getState: state.getState, getActive: () => state.getState().active, getActiveElement: () => entries.get(state.getState().active)?.element || null, dispose, destroy: dispose };
 }

@@ -60,19 +60,21 @@
       .gallery-toolbar label { font-size: 11px; }
       .carousel-rail { padding-top: 18px; }
     }
-  </style>
+  .flagship-demo{display:inline-block;padding:12px 20px;background:#b9f488;color:#142319;border-radius:9px;font-weight:750;text-decoration:none}
+</style>
   <link rel="stylesheet" href="/world/universe/shell.css">
 </head>
 <body>
   <header class="intro">
     <h1>HappyBearLandia</h1>
     <p>Explore living cities, animated worlds, unusual games, and experiments in possible futures.</p>
+    <p><a class="flagship-demo" href="/world/future-machine.html?demo=1">Play Demo</a> · One City, Two Futures · a reproducible housing comparison</p>
     <nav aria-label="Explore"><a href="/world/future-machine.html">Future Machine · 10 Years, 2 Futures</a> · <a href="/tools/future-journey.html">Try Today’s Features</a> · <a href="#explore">Explore the worlds</a> · <a href="/world/civilization/">Emergent Civilizations</a> · <a href="/world/laboratory/">Civilization Laboratory</a> · <a href="/world/invention/">City Invention Studio</a> · <a href="/world/hidden-systems/">Hidden Systems</a> · <a href="/world/learning/">Learning Civilization</a> · <a href="/world/storm/">Sculpt a Storm</a> · <a href="/world/storm/response.html">Crisis Control Room</a> · <a href="/world/connected-lives/">Connected Lives</a> · <a href="/tools/simulation-health">Simulation Health</a> · <a href="/routes">Route directory →</a></nav>
   </header>
   <section id="universe-shell" aria-label="Connected universe"></section>
   <main aria-label="Route previews">
 <section class="carousel" id="explore" aria-roledescription="carousel" aria-label="Interactive worlds and experiments">
-  <header><div><h2>30 Interactive Worlds &amp; Experiments</h2><p>Start with a world. Follow your curiosity. Each preview opens a different possibility.</p></div><div class="carousel-controls"><button type="button" id="carousel-prev" aria-label="Previous preview">←</button><span id="carousel-status" aria-live="polite"></span><button type="button" id="carousel-next" aria-label="Next preview">→</button></div></header>
+  <header><div><h2 id="experience-count">Interactive Worlds &amp; Experiments</h2><p>Start with a world. Follow your curiosity. Each preview opens a different possibility.</p></div><div class="carousel-controls"><button type="button" id="carousel-prev" aria-label="Previous preview">←</button><span id="carousel-status" aria-live="polite"></span><button type="button" id="carousel-next" aria-label="Next preview">→</button></div></header>
   <div class="gallery-toolbar"><label for="carousel-category">Category</label><select id="carousel-category"><option value="all">All experiences</option><option value="worlds">3D Worlds</option><option value="living">Living Simulations</option><option value="science">GPU Science</option><option value="games">Games</option><option value="tools">Tools</option></select><label for="carousel-jump">Jump to a preview</label><select id="carousel-jump"></select><span>Choose Interact to take control of a live preview.</span></div>
   <div class="carousel-rail" id="carousel-rail" tabindex="0" aria-label="App previews. Use left and right arrow keys to browse."></div>
 </section>

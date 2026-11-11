@@ -31,29 +31,30 @@ export function mountFutureMachineUI(root, options = {}) {
   const progress=node('progress'); progress.max=1; progress.setAttribute('aria-label','Simulation progress'); progress.hidden=true;
   shell.append(status,error,progress);
   const comparison=node('section',undefined,'fm-comparison'); comparison.setAttribute('aria-label','Matched city futures');
-  const stage=node('div',undefined,'fm-stage'); stage.setAttribute('aria-label','Synchronized city visualization');
+  const stage=node('div',undefined,'fm-stage'); stage.setAttribute('aria-label','Synchronized city visualization');stage.dataset.testid='future-machine-stage';
   const legends=node('div',undefined,'fm-legends'); legends.append(node('span','WITHOUT PLAN'),node('span','WITH PLAN'));
   const provenance=node('p','No spatial data loaded.','fm-provenance'); comparison.append(legends,stage,provenance); shell.append(comparison);
   const timeline=node('section',undefined,'fm-timeline'); timeline.setAttribute('aria-label','Shared timeline');
-  const date=node('output'); const slider=node('input'); slider.type='range'; slider.min=0; slider.max=120; slider.step=1; slider.setAttribute('aria-label','Shared month for Future A and Future B');
+  const date=node('output'); const slider=node('input'); slider.type='range';slider.dataset.testid='future-machine-timeline'; slider.min=0; slider.max=120; slider.step=1; slider.setAttribute('aria-label','Shared month for Future A and Future B');
   const play=button('Play timelapse',()=>options.externalPlayback ? options.onPlay?.(!state.playing) : timer ? pause() : start());
   const blink=button('Blink A/B',()=>{update({blink:!state.blink}); options.onBlink?.(state.blink);});
   const changed=button('Show Me What Changed',()=>action(options.onShowChanges)); changed.className='fm-primary';
   const ticks=node('div',undefined,'fm-ticks'); for(const year of ['2026','2031','2036'])ticks.append(node('span',year));
   const transport=node('div',undefined,'fm-actions'); transport.append(play,blink,changed);
   timeline.append(date,slider,ticks,transport); shell.append(timeline);
-  const cards=node('section',undefined,'fm-metrics'); cards.setAttribute('aria-label','Measured outcomes');
+  const cards=node('section',undefined,'fm-metrics'); cards.setAttribute('aria-label','Measured outcomes');cards.dataset.testid='future-machine-metrics';
   const metricNodes={};
-  for(const [key,label] of [['homes','Homes'],['commute','Link travel time'],['spending','City spending']]) {
+  for(const [key,label] of [['homes','Homes'],['rent','Mean unit rent'],['spending','City spending']]) {
     const card=node('article',undefined,'fm-card'), delta=node('strong'), values=node('p'), detail=node('p',undefined,'fm-detail');
     const why=button(`WHY · ${label}`,()=>action(options.onMetric,key)); why.className='fm-metric-why'; why.disabled=true;
     card.append(node('h2',label),delta,values,detail,why); cards.append(card); metricNodes[key]={delta,values,detail,why};
   }
   shell.append(cards);
   const inspectors=node('section',undefined,'fm-inspectors');
-  const householdPanel=node('section'), household=node('select'), householdBody=node('pre'); household.setAttribute('aria-label','Monthly City household');
-  householdPanel.append(node('h2','Household outcomes'),household,householdBody);
-  const evidencePanel=node('section'), evidence=node('pre'); evidencePanel.append(node('h2','Evidence inspector'),node('p','Recorded model evidence. A difference alone does not establish a causal chain.'),evidence);
+  const householdPanel=node('section'), household=node('select'), householdBody=node('pre');
+  const householdSummary=node('p'),householdRaw=node('details');householdRaw.append(node('summary','Inspect exact household records'),householdBody); household.setAttribute('aria-label','Monthly City household');
+  householdPanel.append(node('h2','Household outcomes'),household,householdSummary,householdRaw);
+  const evidencePanel=node('section'), evidence=node('pre'); const evidenceRaw=node('details');evidenceRaw.append(node('summary','Inspect run and comparison record'),evidence);evidencePanel.append(node('h2','Evidence inspector'),node('p','Click a changed building or WHY on a measured outcome to inspect its recorded event, policy and model rule.'),evidenceRaw);
   inspectors.append(householdPanel,evidencePanel); shell.append(inspectors);
   const footer=node('footer',undefined,'fm-actions');
   const share=button('Share comparison',()=>action(options.onShare)); const exportButton=button('Export evidence',()=>action(options.onExport));
@@ -77,7 +78,7 @@ export function mountFutureMachineUI(root, options = {}) {
   });
   function fill(select, rows, selected) { select.replaceChildren(...rows.map(row=>{const item=node('option',row.label || row.name || row.id);item.value=row.id;return item;})); if(rows.some(row=>row.id===selected))select.value=selected; }
   function renderPolicy(){ const item=state.policies.find(row=>row.id===policy.value); policyNote.textContent=item?.description || 'Only model-supported interventions are available.'; }
-  function renderHousehold(){ const row=state.households.find(item=>item.id===household.value); householdBody.textContent=row ? JSON.stringify(row,null,2) : 'No supported household observations for this month.'; }
+  function renderHousehold(){ const row=state.households.find(item=>item.id===household.value); householdSummary.textContent=row?`Same City ID in both futures. Monthly income: WITHOUT PLAN ${row.baseline?.income?.toFixed?.(0)??'unavailable'} USD · WITH PLAN ${row.plan?.income?.toFixed?.(0)??'unavailable'} USD. Savings: ${row.baseline?.savings?.toFixed?.(0)??'unavailable'} → ${row.plan?.savings?.toFixed?.(0)??'unavailable'} USD. These are modeled observations, not a real person.`:'No matched household selected.';householdBody.textContent=row ? JSON.stringify(row,null,2) : 'No supported household observations for this month.'; }
   function update(patch={}) {
     if(destroyed)return;
     const old=state;state={...state,...patch,month:clampMonth(patch.month ?? state.month)};
@@ -128,21 +129,21 @@ export function createUI(container, callbacks = {}) {
     onShare:callbacks.onShare,
     onExport:callbacks.onExport,
     onCancel:callbacks.onCancel,
-    onMetric:callbacks.onMetric ? key=>callbacks.onMetric({homes:'housingUnits',commute:'meanTravelMinutes',spending:'capitalSpending'}[key]) : undefined,
+    onMetric:callbacks.onMetric ? key=>callbacks.onMetric({homes:'housingUnits',commute:'meanTravelMinutes',rent:'meanRent',spending:'capitalSpending'}[key]) : undefined,
     onPolicyChange:id=>{if(recipe)recipe={...recipe,intervention:id==='baseline'?null:structuredClone(defaultIntervention)};},
   });
   let defaultIntervention=structuredClone(DEFAULT_RECIPE.intervention);
   const doc=container.ownerDocument;
   const shell=view.stage.closest('.fm-ui');
-  const storyElement=doc.createElement('section');storyElement.className='fm-story';storyElement.setAttribute('aria-label','Recorded change story');shell.querySelector('.fm-inspectors').after(storyElement);
+  const storyElement=doc.createElement('section');storyElement.className='fm-story';storyElement.dataset.testid='future-machine-why';storyElement.setAttribute('aria-label','Recorded change story');shell.querySelector('.fm-inspectors').after(storyElement);
   const actions=shell.querySelector('.fm-timeline .fm-actions');
   const demoPanel=doc.createElement('section');demoPanel.className='fm-demo';demoPanel.setAttribute('aria-label','Guided demo');
-  const demo=doc.createElement('button');demo.type='button';demo.className='fm-primary fm-demo-play';demo.textContent='Play Demo';demo.onclick=()=>callbacks.onDemo?.();
+  const demo=doc.createElement('button');demo.type='button';demo.className='fm-primary fm-demo-play';demo.textContent='Play Demo';demo.dataset.testid='future-machine-demo';demo.onclick=()=>callbacks.onDemo?.();
   const demoPause=doc.createElement('button');demoPause.type='button';demoPause.textContent='Pause demo';demoPause.onclick=()=>callbacks.onDemoPause?.();demoPause.hidden=true;
   const demoCaption=doc.createElement('p');demoCaption.className='fm-demo-caption';demoCaption.setAttribute('role','status');demoCaption.textContent='A guided 45–60 second comparison. Pause anytime to explore.';
   demoPanel.append(demo,demoPause,demoCaption);shell.querySelector('.fm-header').after(demoPanel);
   const runProvenance=doc.createElement('p');runProvenance.className='fm-run-provenance';runProvenance.setAttribute('aria-label','Simulation provenance');shell.querySelector('.fm-comparison').before(runProvenance);
-  const difference=doc.createElement('button');difference.type='button';difference.textContent='Differences only';difference.onclick=()=>callbacks.onMode?.('difference');actions.append(difference);
+  const difference=doc.createElement('button');difference.type='button';difference.textContent='Difference-only';difference.onclick=()=>callbacks.onMode?.('difference');actions.append(difference);
   const split=doc.createElement('button');split.type='button';split.textContent='Side by side';split.onclick=()=>callbacks.onMode?.('split');actions.append(split);
   const ghostsLabel=doc.createElement('label');const ghosts=doc.createElement('input');ghosts.type='checkbox';ghosts.checked=true;ghosts.onchange=()=>callbacks.onGhosts?.(ghosts.checked);ghostsLabel.append(ghosts,doc.createTextNode(' Ghost differences'));actions.append(ghostsLabel);
   const shareLink=doc.createElement('a');shareLink.textContent='Open comparison link';shareLink.hidden=true;shareLink.className='fm-share-link';shell.append(shareLink);
@@ -161,9 +162,9 @@ export function createUI(container, callbacks = {}) {
     runProvenance.textContent=`MONTH ${current.month} / 120 · SEED ${provenance.seed ?? recipe?.seed ?? 'Unavailable'} · MODEL ${provenance.modelVersion ?? recipe?.modelVersion ?? 'Unavailable'} · RUN ${provenance.experimentId ?? current.experimentId ?? 'Not run yet'}`;
     const ready=!!current.frame && !busy;
     const metrics={};
-    for(const [key,source] of [['homes','housingUnits'],['commute','meanTravelMinutes'],['spending','capitalSpending']]){
+    for(const [key,source] of [['homes','housingUnits'],['rent','meanRent'],['spending','capitalSpending']]){
       const metric=current.diff?.metrics?.[source];
-      metrics[key]=metric?{baseline:metric.baseline,intervention:metric.plan,unit:metric.unit,note:key==='commute'?'Modeled mean link travel time; not a household commute.':undefined}:null;
+      metrics[key]=metric?{baseline:metric.baseline,intervention:metric.plan,unit:metric.unit,note:key==='rent'?'All recorded units, including new inventory; not incumbent rent savings.':undefined}:null;
     }
     const a=current.frame?.baseline?.state?.households||[],b=current.frame?.plan?.state?.households||[];
     const ids=[...new Set([...a,...b].map(row=>row.id))].sort();

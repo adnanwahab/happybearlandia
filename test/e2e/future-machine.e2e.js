@@ -6,7 +6,7 @@ async function seek(page,month){await page.getByRole('slider').fill(String(month
 test('fork → run → scrub → blink → inspect → share → refresh with matched monthly City evidence',async({page},testInfo)=>{
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
  await page.goto('/');await page.getByRole('link',{name:/Future Machine/}).first().click();
- await expect(page.getByRole('heading',{name:'Future Machine',exact:true})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'One City, Two Futures',exact:true})).toBeVisible();
  await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);
  const result=await page.evaluate(()=>{const h=window.futureMachine.history;return {lengths:[h.baseline.length,h.plan.length],months:[h.baseline[0].month,h.plan.at(-1).month],sameInitial:JSON.stringify(h.baseline[0].state)===JSON.stringify(h.plan[0].state),seed:h.seed,version:h.modelVersion,hash:h.initialHash,id:h.experimentId};});
  expect(result.lengths).toEqual([121,121]);expect(result.months).toEqual([0,120]);expect(result.sameInitial).toBe(true);expect(result.hash).toBeTruthy();
@@ -17,7 +17,7 @@ test('fork → run → scrub → blink → inspect → share → refresh with ma
  await page.getByRole('button',{name:'Blink: Future A',exact:true}).click();await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.mode)).toBe('plan');
  await page.getByRole('button',{name:'Side by side',exact:true}).click();await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.mode)).toBe('split');
  await seek(page,0);await page.getByRole('button',{name:'Show Me What Changed',exact:true}).click();await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.month)).toBeGreaterThan(0);
- await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('camera unchanged');
+ await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('building-project-policy-1-0');
  await page.getByRole('button',{name:/building-d1 · schematic/}).last().click();await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('building-d1');
  await seek(page,120);await page.getByRole('button',{name:'Share comparison',exact:true}).click();const link=await page.getByRole('link',{name:'Open comparison link'}).getAttribute('href');
  expect(link).toContain('fm=');expect(link).toContain('month=120');
@@ -31,7 +31,7 @@ test('fork → run → scrub → blink → inspect → share → refresh with ma
 
 test('zero diff, invalid URL, missing saved record and narrow-screen journey',async({page})=>{
  await page.setViewportSize({width:390,height:844});await page.goto('/world/future-machine.html');
- await page.getByRole('combobox',{name:'Policy for Future B'}).selectOption('baseline');await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);await seek(page,120);
+ await page.getByRole('combobox',{name:'Plan',exact:true}).selectOption('baseline');await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);await seek(page,120);
  expect(await page.evaluate(()=>window.futureMachine.state.diff.changedCount)).toBe(0);expect(await page.evaluate(()=>Object.values(window.futureMachine.state.diff.metrics).every(m=>m.delta===0))).toBe(true);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  const missing=new URL(page.url());missing.searchParams.set('experiment','city_missing_local_record');await page.goto(missing.href);await ready(page);await expect(page.locator('.fm-status')).toContainText('Saved record unavailable');

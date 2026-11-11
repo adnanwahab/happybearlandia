@@ -1,0 +1,10 @@
+# One City, Two Futures sprint status
+
+Current branch: `sprint/one-city-two-futures-20261111`. Coordinator plus six isolated Codex worker chats; no release merge or deployment.
+
+- Completed: real matched 121-frame histories; 50-second one-click demo and homepage autoplay; split/difference/blink and shared camera/timeline; actual homes/rent/capital KPIs; exact historical completion WHY; share/replay; graphical Canvas in flagship and ordinary World; Activity, numeric mood/seed, provenance, Compiler outcome wording and registry counts.
+- Verified visible improvements: nine integrated browser tests passed, existing five comparison regressions passed, named recording command passed with a playable 55.760-second earlier recording. Fixed seed 42 adds one three-floor building and 24 homes at Month 16; +1,000,000 illustrative USD capital cost. 140 focused tests plus 35 adjacent tests pass; one unit-browser gate skipped. Actual PNG/JSON/video artifacts are under `/tmp/hbl-two-futures-delivery/` and `/tmp/hbl-two-futures-command-proof/`.
+- Work in progress: follow-up queue bootstrap and six next assignments in `docs/demo-backlog.md`. Native WebGPU factory, neutral/cost metric styling, replay boundary audit, mobile control repair, Canvas edge cases and final browser proof.
+- Failing checks: the new stalled-GPU test confirms independent metadata and eventual real fallback, but its final 390px expanded-controls/shortcut bounding-box assertion fails. This is an observed layout defect, not a fake-model or replay failure. Initial 20s software-rendering wait was too short; after extending the observation window, the layout failure became explicit.
+- Next highest-impact action: fix that measured overlap and integrate an actual native WebGPU backend while retaining tested WebGL/Canvas fallbacks. No current claim that the flagship itself uses native WebGPU.
+- Release limits: synthetic schematic layout only, no empirical forecast or cross-model identities. Safari, Firefox, physical phones and actual WebGPU hardware remain unverified. No remote status or prior PR's CI substitutes for current running-browser evidence.

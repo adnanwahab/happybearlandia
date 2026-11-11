@@ -3,8 +3,8 @@ import { EXPERIENCES, searchExperiences, entityActions } from '../world/universe
 import { DEFAULT_CONTEXT, contextFromURL, contextURL, shellURL, createFrameBridge, navigationMessage } from '../world/universe/navigation.js';
 const context={...DEFAULT_CONTEXT,experimentId:'experiment:test:one',runId:'run:test:one',branchId:'branch:test:fork',tick:42,entityId:'person:test:ada'};
 describe('universe navigation',()=>{
- test('catalog has 29 unique original experiences and excludes directory apps',()=>{
-  expect(EXPERIENCES).toHaveLength(29);expect(new Set(EXPERIENCES.map(x=>x.id)).size).toBe(29);
+ test('catalog preserves original experiences and registers the verified map and flagship',()=>{
+  expect(EXPERIENCES).toHaveLength(31);expect(new Set(EXPERIENCES.map(x=>x.id)).size).toBe(EXPERIENCES.length);expect(EXPERIENCES.find(x=>x.id==='future-machine').route).toBe('/world/future-machine.html');expect(EXPERIENCES.find(x=>x.id==='houston-map').route).toBe('/tools/houston-map');
   expect(EXPERIENCES.some(x=>['/tools','/blog','/twitch-plays-robot'].includes(x.route))).toBe(false);
   expect(searchExperiences('/world/house')[0].id).toBe('house');expect(searchExperiences('climate')[0].id).toBe('climate');
  });
