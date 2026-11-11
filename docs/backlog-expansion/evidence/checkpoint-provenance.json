@@ -1,0 +1,49 @@
+{
+  "sourceRoot": "/Users/wahabma/.codex/worktrees/backlog-integration/happybearlandia",
+  "sourceCommit": "37877fbc763cf737a5ffab86024087b4a49ebe89",
+  "experimentId": "decision_829e3420-be28-4495-9b51-f6844d36d12c",
+  "runId": "baseline_0001",
+  "seed": 110210400,
+  "root": {
+    "id": "housing:sha256:104b9db1f465fce2f590b581e3996cfbc77ee844be40acd593d8c0b9b053dd0e",
+    "digest": "sha256:314ae2f3a44ec05bed5a29d6e0d59a7a7837c277a1d6f6e91f7fa864a04ec791"
+  },
+  "final": {
+    "id": "housing:sha256:f210b21e5a5cc8d2587ea6f1f503b048abd48df5426e97d6041f972e4528f568",
+    "digest": "sha256:f281066f059a0d0c6997f8a5ca481f02239e595236920e20f9e4ff2606b7d61d"
+  },
+  "lineage": [
+    {
+      "month": 24,
+      "operations": [
+        {
+          "op": "set_parameter",
+          "target": "construction_capacity",
+          "value": 1000
+        }
+      ],
+      "parentCheckpointId": "housing:sha256:104b9db1f465fce2f590b581e3996cfbc77ee844be40acd593d8c0b9b053dd0e",
+      "parentDigest": "sha256:314ae2f3a44ec05bed5a29d6e0d59a7a7837c277a1d6f6e91f7fa864a04ec791"
+    },
+    {
+      "month": 48,
+      "operations": [
+        {
+          "op": "apply_stress_preset",
+          "target": "stressPresets",
+          "value": "recession"
+        }
+      ],
+      "parentCheckpointId": "housing:sha256:379fdf02ef43a95dbc9ddd56e8c40dae72c5dc6d20761a6351899275c2b4675c",
+      "parentDigest": "sha256:c9afddb296240057252685249deaee3c308dcf221b498a8cc36ad088b0e2a306"
+    }
+  ],
+  "recipeDigest": "sha256:ba60d82089a629434217406764f916ea93c023bfadaf7f2e328091bdee0db2e1",
+  "modelVersion": "1.2.0",
+  "normalPageMounted": true,
+  "testInjectedHost": false,
+  "fractionalPlaybackMonth": 24.9,
+  "checkpointRecordedMonth": 24,
+  "unexpectedPageErrors": [],
+  "unexpectedConsoleErrors": []
+}

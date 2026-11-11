@@ -1,1 +1,61 @@
-{"baseline":"1b19358","demoFinal":"9691d0e","candidateBranch":"codex/backlog-integration","tracks":{"statistics":"1579365","search":"7673574","comparison":"a4541f2","replay":"dfc9224","explanations":"0a545b7","transitions":"2293689","presentation-effects":"b6e9f46","methodology":"ba24c78","sharing":"4d55b57","compatibility":"1170eb6","product-workflows":null},"releaseAuthorized":false}
+{
+  "baseline": "1b19358",
+  "demoFinal": "9691d0e",
+  "candidateBranch": "codex/backlog-integration",
+  "tracks": {
+    "statistics": "1579365",
+    "search": "7673574",
+    "comparison": "a4541f2",
+    "replay": "dfc9224",
+    "explanations": "0a545b7",
+    "transitions": "2293689",
+    "presentation-effects": "b6e9f46",
+    "methodology": "ba24c78",
+    "sharing": "4d55b57",
+    "compatibility": "1170eb6",
+    "product-workflows": null
+  },
+  "releaseAuthorized": false,
+  "finalTrackAcceptance": {
+    "statistics": "0ed6286",
+    "search": "0e2734f",
+    "comparison": "0f95a36",
+    "replay": "a3eb730",
+    "explanations": "17dfbdc",
+    "transitions": "96e72fa",
+    "presentation-effects": "383e02c",
+    "methodology": "abc385a",
+    "sharing": "3b16ec8",
+    "compatibility": "31fac5e with coordinator fixes0cd6ef6",
+    "product-workflows": "0d604aa"
+  },
+  "finalGates": {
+    "backlogTests": {
+      "passed": 112,
+      "assertions": 746
+    },
+    "decision": {
+      "passed": 58,
+      "assertions": 2972
+    },
+    "advanced": {
+      "passed": 42,
+      "assertions": 565
+    },
+    "modelRenderer": {
+      "passed": 137,
+      "skipped": 3,
+      "assertions": 3605
+    },
+    "connectedBrowser": {
+      "passed": 1,
+      "seconds": 45.8
+    },
+    "flagshipBrowser": {
+      "passed": 2,
+      "seconds": 21.6
+    },
+    "bundleModules": 76
+  },
+  "preview": "http://localhost:42983/world/decision.html"
+}

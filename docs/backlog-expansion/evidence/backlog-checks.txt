@@ -1,0 +1,154 @@
+bun test v1.4.2 (744846f84)
+
+test/brief-exact-manifest.test.js:
+(pass) standalone brief downloads exact saved manifest even above print bound [2.26ms]
+
+test/backlog-explanations.test.js:
+(pass) independent clustering partitions two clouds, with normalized scale and deterministic replay [1.34ms]
+(pass) missing, unclassified, numerical failures, constant inputs, version isolation, duplicate IDs [0.29ms]
+(pass) recorded ripple preserves real event index, dates, rules and no future leakage [0.23ms]
+(pass) named natural-language queries use actual same-seed metrics and exact checkpoints [0.38ms]
+(pass) multi-group order invariance, complete exclusion and bounded nonconvergence audit [0.66ms]
+(pass) selected month never consumes final drivers, future events or duplicate snapshots [0.10ms]
+(pass) comparison blocks unknown or unequal authority and malformed clocks [0.08ms]
+
+test/backlog-presentation-effects-parent.test.js:
+(pass) actual Housing fork resolves exact parent and preserves recorded prefix [2.59ms]
+(pass) missing lineage and mismatched identities never infer a parent [1.32ms]
+(pass) corrupt prefix and stale loads remain unavailable [1.03ms]
+
+test/backlog-statistics.test.js:
+(pass) exact analytical additive and interaction partition with seed matching [18.67ms]
+(pass) three factor reference and zero variance [28.01ms]
+(pass) refuses budgets, unsupported distributions and unbalanced duplicates [0.12ms]
+(pass) missing, failed, cancelled evaluations cannot yield decomposition [9.49ms]
+(pass) real versioned housing design equals direct matched runs, preserves input [21.40ms]
+(pass) PDP charts actual numeric means with accessible table, escape labels and gap [0.19ms]
+(pass) adapter retains historical version, schedule, approved projects and fork [8.74ms]
+(pass) offset-stable orthogonal effects reconstruct total within declared tolerance [18.50ms]
+(pass) cancellation during the final evaluation cannot publish completed decomposition [9.48ms]
+(pass) Housing refuses retained timed/fork overrides rather than mislabeling effective levels [0.68ms]
+(pass) unequal factor level counts retain equal product weights and report exact manifest [7.10ms]
+(pass) cross-engine audit discloses accepted arithmetic differences and blocks material/missing metrics [0.35ms]
+(pass) audited Housing PDP executes real reruns and retains every source audit without changing stored values [3.37ms]
+
+test/backlog-comparison.test.js:
+(pass) zero control uses actual seed-matched records without mutation [1.17ms]
+(pass) nonzero stock and construction derive from same records and reverse exactly [0.54ms]
+(pass) missing months and metrics remain missing; zero vacancy remains zero [0.47ms]
+(pass) rejects incompatible identities, versions, unfinished runs and invalid time [2.05ms]
+(pass) keyboard inspection emits exact stored provenance and destroy removes the mounted view [2.74ms]
+(pass) paired hydration uses only exact baseline seed/version and tolerates missing or stale loads [0.89ms]
+
+test/backlog-replay.test.js:
+(pass) actual housing restart preserves all numerical output, lifecycle risk, and event history [373.17ms]
+(pass) nested forks retain immutable causal prefix and seed-matched no-op control [207.33ms]
+(pass) restored lifecycle retains added project clocks and forward cancellation [81.20ms]
+(pass) strict canonical envelopes reject duplicate keys and rehashed incomplete state [6.67ms]
+(pass) disk repository survives reopen with immutable conditional saves and scoped parent retention [168.42ms]
+(pass) missing, corrupt, oversized and mismatched identities reject without fallback [10.38ms]
+
+test/backlog-transitions.test.js:
+(pass) bidirectional flights keep exact stored identity, month, seed and comparison without mutation [0.55ms]
+(pass) superseded callbacks cannot move a later flight [0.09ms]
+(pass) changing runId cancels before another scroll [0.06ms]
+(pass) changing month cancels before another scroll [0.02ms]
+(pass) changing seed cancels before another scroll [0.02ms]
+(pass) changing comparison cancels before another scroll [0.01ms]
+(pass) wheel preserves manual control [0.04ms]
+(pass) pointerdown preserves manual control [0.01ms]
+(pass) touchstart preserves manual control [0.01ms]
+(pass) resize preserves manual control
+(pass) keydown preserves manual control [0.03ms]
+(pass) reduced motion skips all animation, including preference changes mid-flight [0.08ms]
+(pass) detach is idempotent, removes listeners/effects and invalidates stale frames [0.10ms]
+(pass) missing/invalid native selection refuses flight; detached target never animates [0.08ms]
+(pass) DOM removal cancels active flight [0.04ms]
+(pass) diagnostics expose immutable native selection and the exact terminal receipt [0.06ms]
+(pass) live reduced motion cannot finish against a removed destination [0.04ms]
+
+test/backlog-provider-compatibility.test.js:
+(pass) upstream 401 is redacted [0.23ms]
+(pass) upstream 403 is redacted
+(pass) upstream 429 is redacted
+(pass) upstream 500 is redacted
+(pass) upstream 503 is redacted
+(pass) transport forwards cancellation and disallows redirects [0.55ms]
+(pass) live harness defaults to exactly zero calls and requires authorization plus configuration [0.15ms]
+(pass) invalid JSON produces a redacted error [0.37ms]
+
+test/integrated-checkpoint-api.test.js:
+(pass) normal checkpoint handler persists, reloads and approves nested branches [92.41ms]
+
+test/backlog-search.test.js:
+(pass) typed grammar, scope, percentages and evidence preserve exact records [0.80ms]
+(pass) unsupported and ambiguous language never becomes a predictive or event query [0.11ms]
+(pass) exact recorded months, missing values, duplicate observations and no future events [0.23ms]
+(pass) actual housing model output remains immutable and searchable without generated outcomes [0.24ms]
+(pass) searches reloaded versioned records through the existing private store contract [1.60ms]
+(pass) ordinary bounded phrases and numeric boundaries retain exact typed comparisons [0.28ms]
+(pass) exact IDs outrank ambiguous aliases and all selected scope conflicts fail closed [0.30ms]
+
+test/backlog-local-capability-audit.test.js:
+(pass) verified loopback localhost issues opaque cookie [0.71ms]
+(pass) verified loopback 127.0.0.1 issues opaque cookie [0.04ms]
+(pass) verified loopback [::1] issues opaque cookie [0.03ms]
+(pass) remote hosts, spoofed forwarding and unverified peers cannot bootstrap [0.04ms]
+(pass) bootstrap requires exact Origin and rejects cross-site and GET [0.03ms]
+(pass) tampering, expiry and helper recreation revoke ownership [0.06ms]
+(pass) signed ownership survives helper recreation with same protected secret [0.03ms]
+(pass) mutation owner lookup rejects missing Origin [0.02ms]
+(pass) persistent key is private, reloadable and rejects unsafe files [1.13ms]
+(pass) noncanonical, forged, cross-origin and remote cookie requests reject [0.17ms]
+(pass) denied bootstrap retains no-store and nosniff [0.02ms]
+
+test/backlog-methodology.test.js:
+(pass) preserves actual diagnostic sources and uncertainty [2.40ms]
+(pass) escapes data and retains missing metadata [0.44ms]
+(pass) uploaded synthetic calibration retains fit audit and isolates changed holdout [13.22ms]
+(pass) flags temporal overlap, absent units and nonfinite partial scoring without inventing coverage [0.06ms]
+(pass) uploaded unit and geography mismatch rejected by actual adapter [0.09ms]
+
+test/backlog-transitions-metadata.test.js:
+(pass) complete native metadata snapshot preserves projection, filters, page and replay independently [0.23ms]
+(pass) missing/unsupported projection is explicit [0.09ms]
+(pass) missing/unsupported rotation is explicit [0.05ms]
+(pass) missing/unsupported page is explicit [0.02ms]
+(pass) missing/unsupported lassoIds is explicit [0.01ms]
+(pass) missing/unsupported gridSize is explicit [0.01ms]
+(pass) missing/unsupported selectedRunId is explicit
+(pass) lasso ordering cannot spuriously change equivalent state metadata [0.12ms]
+
+test/local-capability.test.js:
+(pass) local capability requires peer, origin, and server-issued cookie [0.19ms]
+(pass) protected persisted key preserves capability owner on restart [1.11ms]
+
+test/backlog-product-workflows.test.js:
+(pass) real disk retention, restart, bounded capacity, consent and idempotency [8.72ms]
+(pass) actual HTTP endpoint: local-only receipt, auth, validation, export/delete and safe failure [7.33ms]
+(pass) reject public directories and corrupt disk without silently erasing records [0.69ms]
+
+test/backlog-sharing.test.js:
+(pass) exact manifest and escaped printable records [0.06ms]
+(pass) bounds and unavailable records [3.63ms]
+(pass) saved URL roundtrip strips credentials and state [0.28ms]
+(pass) QR known byte-mode codewords and bounded URL matrix [5.05ms]
+(pass) manifest comparison ignores key order and only permits valid export timestamps [0.33ms]
+
+test/backlog-presentation-effects.test.js:
+(pass) visual interpolation never advances recorded outcomes [0.08ms]
+(pass) missing records and reverse scrub [0.04ms]
+(pass) fork prefix fixed to parent [0.02ms]
+(pass) pause resume scrub cancel and stale callbacks [0.33ms]
+(pass) event boundaries, horizon and live reduced motion [0.07ms]
+(pass) actual Housing recorded monthly replay and scheduled stress [2.31ms]
+(pass) audio unsupported, denied, muted and disposed paths [0.63ms]
+(pass) cue view uses text, rejects fabricated types and disposes animations [0.08ms]
+
+test/checkpoint-retention.test.js:
+(pass) expired cleanup and durable owner quota survive independent audits [1.52ms]
+
+ 112 pass
+ 0 fail
+ 746 expect() calls
+Ran 112 tests across 18 files. [1250.00ms]

@@ -110,14 +110,14 @@ Acceptance-ticket status counts (not major-feature counts): Existing: 99, New: 6
 | 86 | Before/after metric delta strip | New | Implemented in this release; see component/tests below. |
 | 87 | Scenario overlays | Partial | Paired schematic stored housing scenes mounted; three actual browser cases pass including390/320px and missing baseline; no invented geography. |
 | 88 | Lasso selection | New | Implemented in this release; see component/tests below. |
-| 89 | Failure clustering | Partial | Independent deterministic normalized failure clustering mounted; feature-specific production acceptance in progress. |
+| 89 | Failure clustering | Partial | Verified bounded deterministic normalized failure clustering over actual200savedruns; normal-route browser pass; groupings remain association. |
 | 90 | Failure-rule mining | New | Implemented in this release; see component/tests below. |
 | 91 | Lift calculation | New | Implemented in this release; see component/tests below. |
 | 92 | Failure-support counts | New | Implemented in this release; see component/tests below. |
 | 93 | Success-pattern analysis | New | Implemented in this release; see component/tests below. |
 | 94 | Sensitivity tornado chart | New | Implemented in this release; see component/tests below. |
-| 95 | Partial-dependence chart | Partial | Dedicated numerical PDP SVG/table mounted on existing real reruns; analytical and contract tests pass; dedicated plot browser acceptance pending. |
-| 96 | Variance decomposition | Deferred | Explicit bounded equal-weight factorial controls/report mounted; actual production four-cell browser test passes. Continuous Sobol distributions unsupported. |
+| 95 | Partial-dependence chart | Partial | Verified bounded: real numerical PDP plot and saved-run audit; full unfiltered4-case production statistics suite passes. |
+| 96 | Variance decomposition | Deferred | Verified bounded: declared equal-weight finite factorial, exact numerical components/provenance, draft retention, cancellation/incomplete handling; full4-case suite passes. |
 | 97 | TEST THIS FIX button | New | Implemented in this release; see component/tests below. |
 | 98 | Convert a failure rule into a proposed intervention | New | Implemented in this release; see component/tests below. |
 | 99 | Approve fix before rerun | New | Implemented in this release; see component/tests below. |
@@ -128,13 +128,13 @@ Acceptance-ticket status counts (not major-feature counts): Existing: 99, New: 6
 | 104 | Event → equation linkage | New | Implemented in this release; see component/tests below. |
 | 105 | One-at-a-time counterfactual attribution | New | Matched one-at-a-time model interventions; effects need not add and are not empirical causal proof. |
 | 106 | Top-five reasons for a selected future | New | Implemented in this release; see component/tests below. |
-| 107 | Ripple-effect visualization | Partial | Recorded-event playback and registered dependency associations mounted; no invented event-to-event causality; production acceptance pending. |
-| 108 | “Why did this happen?” natural-language query | Partial | Metric-specific bounded WHY evidence mounted; scrub context fixed; production recheck pending. |
-| 109 | “What changed between these futures?” query | Partial | Bounded same-seed/version/horizon stored comparison query mounted; production acceptance pending. |
+| 107 | Ripple-effect visualization | Partial | Verified bounded recorded-event ripple playback and registered dependencies; actual route/source jump/disposal browser pass; no invented event causation. |
+| 108 | “Why did this happen?” natural-language query | Partial | Verified bounded metric WHY at exact Month12 recorded value with events/rules; actual route browser pass. |
+| 109 | “What changed between these futures?” query | Partial | Verified bounded same-seed/version/horizon metric comparison with exact selected checkpoint; actual route browser pass. |
 | 110 | ENTER FUTURE button | New | Implemented in this release; see component/tests below. |
-| 111 | Multiverse → city camera transition | Partial | Cancellable viewport flight mounted with exact selection/comparison metadata; actual roundtrip browser recheck pending; no geographic3D mapping. |
-| 112 | City → multiverse return transition | Partial | Return flight mounted without resetting exact stored selection; manual/reduced-motion/disposal tested; browser recheck pending. |
-| 113 | On-demand deterministic future replay | Partial | Versioned immutable checkpoints and local capability save/load/resume routes implemented; actual engine/disk nested route test passes; visible UI and endpoint browser gate pending. |
+| 111 | Multiverse → city camera transition | Partial | Verified bounded viewport entry flight preserves actual selected run/month/comparison metadata; production-only browser pass. Geographic3D mapping unsupported. |
+| 112 | City → multiverse return transition | Partial | Verified bounded return viewport flight, manual controls/cancel/reduced motion/disposal; actual production browser pass. |
+| 113 | On-demand deterministic future replay | Partial | Verified bounded local checkpoint save/load/resume: actual normal-host browser, identity/version/digest rejection, protected persistence and quota/retention. Cookie/key loss recovery unsupported. |
 | 114 | 10-year timeline scrubber | Existing | Existing implementation retained; this row is not a claim of newly written functionality. |
 | 115 | Timeline event markers | New | Implemented in this release; see component/tests below. |
 | 116 | Metric charts synchronized with timeline | New | Implemented in this release; see component/tests below. |
@@ -152,7 +152,7 @@ Acceptance-ticket status counts (not major-feature counts): Existing: 99, New: 6
 | 128 | Original vs fork side-by-side timeline | New | Implemented in this release; see component/tests below. |
 | 129 | Original vs fork metric deltas | New | Implemented in this release; see component/tests below. |
 | 130 | Shared pre-fork history | New | Implemented in this release; see component/tests below. |
-| 131 | Deterministic post-fork replay | Partial | Production restored engine nested forks and hash-approved immutable persistence tested; visible lineage controls/endpoint browser acceptance pending; legacy promotion intentionally unsupported. |
+| 131 | Deterministic post-fork replay | Partial | Verified bounded local nested approved checkpoint forks: two generations to120, immutable prefix/parents, actual normal-host browser. Legacy nested scenario promotion unsupported. |
 | 132 | Promote successful fork into a scenario | New | Promotion creates a proposed new scenario requiring approval. |
 | 133 | Recession preset | Existing | Existing implementation retained; this row is not a claim of newly written functionality. |
 | 134 | Inflation shock | Existing | Existing implementation retained; this row is not a claim of newly written functionality. |
@@ -195,20 +195,20 @@ Acceptance-ticket status counts (not major-feature counts): Existing: 99, New: 6
 | 171 | Top drivers | Existing | Existing implementation retained; this row is not a claim of newly written functionality. |
 | 172 | Assumptions-to-verify section | New | Confidence/impact-ranked verification priorities included in the brief. |
 | 173 | Limitations section | Existing | Existing implementation retained; this row is not a claim of newly written functionality. |
-| 174 | Reproduction manifest in appendix | Partial | Bounded exact manifest appendix mounted in printable brief; full manifest export retained; >128KiB print omission disclosed; dedicated browser gate pending. |
+| 174 | Reproduction manifest in appendix | Partial | Verified bounded exact saved manifest appendix/download: >128KiB print omission disclosed, standalone exact download retained; per-request exportedAt legitimately differs. |
 | 175 | Print/PDF stylesheet | Existing | Existing implementation retained; this row is not a claim of newly written functionality. |
 | 176 | Share experiment link | Existing | Existing implementation retained; this row is not a claim of newly written functionality. |
-| 177 | QR-code share from presentation mode | Deferred | Local licensed QR encoder independently decoded at59/512byte URLs; executive-mode mount implemented; saved-link browser gate pending. |
+| 177 | QR-code share from presentation mode | Deferred | Verified bounded local executive QR and read-only recipient browser; independent short/max512-byte CoreImage decode passes. |
 | 178 | Executive Mode | Existing | Existing implementation retained; this row is not a claim of newly written functionality. |
 | 179 | Analyst Mode | Existing | Existing implementation retained; this row is not a claim of newly written functionality. |
 | 180 | 90-second guided tour | New | Implemented in this release; see component/tests below. |
 | 181 | Pinned demo experiment | New | Versioned pinned saved-results fixture. |
 | 182 | Precomputed fallback results | New | Explicit read-only saved fallback; no silent replacement of failed fresh runs. |
-| 183 | Smooth construction animation | Partial | Recorded fractional visual construction playback mounted with separate renderer channel; recorded outcomes/inspectors preserved; focused browser recheck pending. |
-| 184 | Smooth multiverse camera transitions | Partial | Cancellable reduced-motion-aware viewport flight mounted; no continuous geographic3D flythrough claim; browser recheck pending. |
-| 185 | Fork-timeline animation | Deferred | Recorded playback/fixed-prefix adapter implemented; dedicated parent-aware host fork presentation still pending. |
-| 186 | Stress-event presentation effects | Partial | Recorded stress boundary text/presentation mounted; reverse scrub cue clear fixed; feature browser recheck pending. |
-| 187 | Subtle sound design | Deferred | Muted-default explicit user-activated subtle WebAudio mounted with disposal and accessible text; feature browser proof pending. |
+| 183 | Smooth construction animation | Partial | Verified bounded fractional recorded construction visuals; outcomes remain preceding recorded state, reduced motion snaps, actual production browser pass. |
+| 184 | Smooth multiverse camera transitions | Partial | Verified bounded eased viewport transitions with complete metadata and cancellation, actual production browser pass; no geographic fly-through. |
+| 185 | Fork-timeline animation | Deferred | Verified bounded paired recorded fork animation: exact explicit parent identity, fixed prefix, real divergence, shared scale/time, reverse/cancel/missing parent browser pass. |
+| 186 | Stress-event presentation effects | Partial | Verified bounded recorded stress crossing cues and text, reverse/pause/cancellation; actual production browser pass. |
+| 187 | Subtle sound design | Deferred | Verified muted-default explicit activation/mute sound resource paths and actual browser controls; no claim of measured audible hardware output. |
 | 188 | Loading/partial/cancelled/error states | Existing | Existing implementation retained; this row is not a claim of newly written functionality. |
 | 189 | Performance dashboard | Existing | Existing implementation retained; this row is not a claim of newly written functionality. |
 | 190 | Playwright full-demo E2E test | New | Connected loop verified in Chromium. |
@@ -218,5 +218,5 @@ Acceptance-ticket status counts (not major-feature counts): Existing: 99, New: 6
 | 194 | RUN DEMO CTA | Existing | Existing implementation retained; this row is not a claim of newly written functionality. |
 | 195 | REQUEST PILOT CTA | Existing | Existing implementation retained; this row is not a claim of newly written functionality. |
 | 196 | 2-minute demo recording | New | Paced actual two-minute Playwright workflow recording; assertions/computation retained. |
-| 197 | Product analytics events | Partial | Durable local consent/review event store and normal UI mounted behind loopback capability; no automatic/external collection; actual route acceptance pending. |
-| 198 | Pilot-request tracking | Partial | Durable local reviewed pilot brief store, export/deletion and normal UI mounted; no external submission; actual route acceptance pending. |
+| 197 | Product analytics events | Partial | Verified bounded first-party local explicit-consent events: durable store, normal-route receipts/idempotency/export/delete, no automatic/external analytics. |
+| 198 | Pilot-request tracking | Partial | Verified bounded local reviewed pilot requests: normal-route receipts/export/delete, actual server restart identity continuity. No external CRM/submission. |
