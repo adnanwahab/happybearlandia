@@ -1,0 +1,165 @@
+import {calendarLabel, clampMonth, metricPresentation} from './model.js';
+
+/** Mount a renderer-independent view. Call update with recorded data; see README. */
+export function mountFutureMachineUI(root, options = {}) {
+  const doc = root.ownerDocument;
+  let state = {month:0, ready:false, busy:false, blink:false, cities:[], policies:[], metrics:{}, households:[], ...options.initialState};
+  let timer = null, generation = 0, destroyed = false;
+  const listeners = [];
+  function node(tag, text, className) {
+    const element = doc.createElement(tag);
+    if (text !== undefined) element.textContent = text;
+    if (className) element.className = className;
+    return element;
+  }
+  function listen(element, event, callback) { element.addEventListener(event, callback); listeners.push(() => element.removeEventListener(event, callback)); }
+  function button(text, callback) { const element = node('button', text); element.type='button'; listen(element,'click',callback); return element; }
+  function field(text, input) { const label=node('label',text); label.append(input); return label; }
+  const shell=node('section',undefined,'fm-ui'); shell.setAttribute('aria-label','Future Machine controls');
+  const header=node('header',undefined,'fm-header');
+  const title=node('div'); title.append(node('p','10 YEARS · 2 FUTURES · 1 DECISION','fm-eyebrow'),node('h1','Future Machine'),node('p','Fork the same city. Change one policy. Explore the modeled difference.','fm-subtitle'));
+  header.append(title); shell.append(header);
+  const form=node('form',undefined,'fm-setup');
+  const city=node('select'), policy=node('select');
+  const policyNote=node('p',undefined,'fm-policy-note');
+  const fork=node('button','Fork City','fm-primary'); fork.type='submit';
+  const cancel=button('Cancel run',()=>{ generation++; options.onCancel?.(); update({busy:false,status:'Run cancelled. Existing comparison preserved.'}); });
+  form.append(field('City',city),field('Policy for Future B',policy),fork,cancel,policyNote); shell.append(form);
+  const status=node('p','Choose a city and policy to begin.','fm-status'); status.setAttribute('role','status'); status.setAttribute('aria-live','polite');
+  const error=node('p',undefined,'fm-error'); error.setAttribute('role','alert'); error.hidden=true;
+  const progress=node('progress'); progress.max=1; progress.setAttribute('aria-label','Simulation progress'); progress.hidden=true;
+  shell.append(status,error,progress);
+  const comparison=node('section',undefined,'fm-comparison'); comparison.setAttribute('aria-label','Matched city futures');
+  const stage=node('div',undefined,'fm-stage'); stage.setAttribute('aria-label','Synchronized city visualization');
+  const legends=node('div',undefined,'fm-legends'); legends.append(node('span','A · Baseline'),node('span','B · Policy change'));
+  const provenance=node('p','No spatial data loaded.','fm-provenance'); comparison.append(legends,stage,provenance); shell.append(comparison);
+  const timeline=node('section',undefined,'fm-timeline'); timeline.setAttribute('aria-label','Shared timeline');
+  const date=node('output'); const slider=node('input'); slider.type='range'; slider.min=0; slider.max=120; slider.step=1; slider.setAttribute('aria-label','Shared month for Future A and Future B');
+  const play=button('Play timelapse',()=>options.externalPlayback ? options.onPlay?.(!state.playing) : timer ? pause() : start());
+  const blink=button('Blink A/B',()=>{update({blink:!state.blink}); options.onBlink?.(state.blink);});
+  const changed=button('Show Me What Changed',()=>action(options.onShowChanges)); changed.className='fm-primary';
+  const ticks=node('div',undefined,'fm-ticks'); for(const year of ['2026','2031','2036'])ticks.append(node('span',year));
+  const transport=node('div',undefined,'fm-actions'); transport.append(play,blink,changed);
+  timeline.append(date,slider,ticks,transport); shell.append(timeline);
+  const cards=node('section',undefined,'fm-metrics'); cards.setAttribute('aria-label','Measured outcomes');
+  const metricNodes={};
+  for(const [key,label] of [['homes','Homes'],['commute','Commute'],['spending','City spending']]) {
+    const card=node('article',undefined,'fm-card'), delta=node('strong'), values=node('p'), detail=node('p',undefined,'fm-detail');
+    card.append(node('h2',label),delta,values,detail); cards.append(card); metricNodes[key]={delta,values,detail};
+  }
+  shell.append(cards);
+  const inspectors=node('section',undefined,'fm-inspectors');
+  const householdPanel=node('section'), household=node('select'), householdBody=node('pre'); household.setAttribute('aria-label','Monthly City household');
+  householdPanel.append(node('h2','Household outcomes'),household,householdBody);
+  const evidencePanel=node('section'), evidence=node('pre'); evidencePanel.append(node('h2','Evidence inspector'),node('p','Recorded model evidence. A difference alone does not establish a causal chain.'),evidence);
+  inspectors.append(householdPanel,evidencePanel); shell.append(inspectors);
+  const footer=node('footer',undefined,'fm-actions');
+  const share=button('Share comparison',()=>action(options.onShare)); const exportButton=button('Export evidence',()=>action(options.onExport));
+  footer.append(share,exportButton); shell.append(footer); root.append(shell);
+  async function action(callback, ...args) {
+    if (!callback) return;
+    try { await callback(...args); } catch (failure) { if(!destroyed) update({error:failure?.message || String(failure)}); }
+  }
+  function pause() { clearInterval(timer); timer=null; play.textContent='Play timelapse'; play.setAttribute('aria-pressed','false'); }
+  function seek(month) { update({month:clampMonth(month)}); options.onMonthChange?.(state.month); }
+  function start() { if(!state.ready || state.busy)return; if(state.month===120)seek(0); play.textContent='Pause timelapse'; play.setAttribute('aria-pressed','true'); timer=setInterval(()=>{seek(state.month+1);if(state.month===120)pause();}, options.playInterval ?? 400); }
+  listen(slider,'input',()=>{pause();seek(slider.value);});
+  listen(city,'change',()=>{state.cityId=city.value;options.onCityChange?.(city.value);});
+  listen(policy,'change',()=>{state.policyId=policy.value;renderPolicy();options.onPolicyChange?.(policy.value);});
+  listen(household,'change',()=>{state.householdId=household.value;renderHousehold();options.onHouseholdChange?.(household.value);});
+  listen(form,'submit',async event=>{
+    event.preventDefault(); if(state.busy || !options.onFork)return;
+    pause();const current=++generation;update({busy:true,error:null,status:'Running matched 120-month futures…',progress:null});
+    try {await options.onFork({cityId:city.value,policyId:policy.value});if(current===generation&&!destroyed)update({busy:false});}
+    catch(failure){if(current===generation&&!destroyed)update({busy:false,error:failure?.message || String(failure),status:'Run failed. Try again.'});}
+  });
+  function fill(select, rows, selected) { select.replaceChildren(...rows.map(row=>{const item=node('option',row.label || row.name || row.id);item.value=row.id;return item;})); if(rows.some(row=>row.id===selected))select.value=selected; }
+  function renderPolicy(){ const item=state.policies.find(row=>row.id===policy.value); policyNote.textContent=item?.description || 'Only model-supported interventions are available.'; }
+  function renderHousehold(){ const row=state.households.find(item=>item.id===household.value); householdBody.textContent=row ? JSON.stringify(row,null,2) : 'No supported household observations for this month.'; }
+  function update(patch={}) {
+    if(destroyed)return;
+    const old=state;state={...state,...patch,month:clampMonth(patch.month ?? state.month)};
+    if(patch.cities && (!city.options.length || JSON.stringify(patch.cities)!==JSON.stringify(old.cities)))fill(city,state.cities,state.cityId ?? city.value);
+    if(patch.policies && (!policy.options.length || JSON.stringify(patch.policies)!==JSON.stringify(old.policies)))fill(policy,state.policies,state.policyId ?? policy.value);
+    if('cityId' in patch)city.value=state.cityId;
+    if('policyId' in patch)policy.value=state.policyId;
+    renderPolicy();
+    city.disabled=policy.disabled=state.busy;
+    fork.disabled=state.busy || !state.cities.length || !state.policies.length || !options.onFork;
+    cancel.hidden=!state.busy || !options.onCancel;progress.hidden=!state.busy;
+    if(typeof state.progress==='number'&&Number.isFinite(state.progress))progress.value=Math.min(1,Math.max(0,state.progress));else progress.removeAttribute('value');
+    if(state.status)status.textContent=state.status;
+    error.hidden=!state.error;error.textContent=state.error || '';
+    shell.setAttribute('aria-busy',String(state.busy));
+    date.textContent=`${calendarLabel(state.month)} · Month ${state.month} / 120`;slider.value=state.month;slider.setAttribute('aria-valuetext',date.textContent);
+    for(const element of [slider,play,blink])element.disabled=!state.ready || state.busy;
+    changed.disabled=!state.ready || state.busy || !options.onShowChanges;
+    blink.setAttribute('aria-pressed',String(state.blink)); blink.textContent=state.blink?'Blink: Future B':'Blink: Future A';
+    if(!state.ready || state.busy)pause();
+    else if(options.externalPlayback){play.textContent=state.playing?'Pause timelapse':'Play timelapse';play.setAttribute('aria-pressed',String(!!state.playing));}
+    provenance.textContent=state.spatialLabel || 'No spatial data loaded. Unlocated changes remain in the inspector.';
+    for(const key of Object.keys(metricNodes)){const item=metricPresentation(state.metrics?.[key]); const elements=metricNodes[key];elements.delta.textContent=item.delta;elements.values.textContent=`A ${item.baseline} · B ${item.intervention}`;elements.detail.textContent=item.detail;}
+    if(patch.households){fill(household,state.households,state.householdId ?? household.value);renderHousehold();}
+    household.disabled=!state.households.length;
+    if('householdId' in patch){household.value=state.householdId;renderHousehold();}
+    if('evidence' in patch)evidence.textContent=state.evidence ? JSON.stringify(state.evidence,null,2) : 'No recorded evidence selected.';
+    if(!evidence.textContent)evidence.textContent='No recorded evidence selected.';
+    if(!householdBody.textContent)renderHousehold();
+    share.disabled=!state.ready || state.busy || !options.onShare;exportButton.disabled=!state.ready || state.busy || !options.onExport;
+    if(old.month!==state.month)options.onRenderMonth?.(state.month);
+  }
+  update(state);
+  return {stage,update,getState:()=>({...state}),pause,destroy(){destroyed=true;generation++;pause();listeners.forEach(remove=>remove());shell.remove();}};
+}
+
+/** Frozen interface v1 adapter. The coordinator owns simulation, playback, and scene rendering. */
+export function createUI(container, callbacks = {}) {
+  let current={status:'idle',month:0,playing:false,mode:'split',ghosts:true};
+  let recipe=null;
+  const view=mountFutureMachineUI(container,{
+    externalPlayback:true,
+    onFork:()=>callbacks.onRun?.(recipe),
+    onMonthChange:month=>callbacks.onMonth?.(month),
+    onPlay:value=>callbacks.onPlay?.(value),
+    onBlink:value=>callbacks.onMode?.(value?'plan':'baseline'),
+    onShowChanges:callbacks.onDirector,
+    onShare:callbacks.onShare,
+    onExport:callbacks.onExport,
+    onCancel:callbacks.onCancel,
+    onPolicyChange:id=>{if(recipe)recipe={...recipe,intervention:id==='baseline'?null:structuredClone(defaultIntervention)};},
+  });
+  let defaultIntervention=null;
+  const doc=container.ownerDocument;
+  const shell=view.stage.closest('.fm-ui');
+  const storyElement=doc.createElement('section');storyElement.className='fm-story';storyElement.setAttribute('aria-label','Recorded change story');view.stage.parentElement.after(storyElement);
+  const actions=shell.querySelector('.fm-timeline .fm-actions');
+  const split=doc.createElement('button');split.type='button';split.textContent='Side by side';split.onclick=()=>callbacks.onMode?.('split');actions.append(split);
+  const ghostsLabel=doc.createElement('label');const ghosts=doc.createElement('input');ghosts.type='checkbox';ghosts.checked=true;ghosts.onchange=()=>callbacks.onGhosts?.(ghosts.checked);ghostsLabel.append(ghosts,doc.createTextNode(' Ghost differences'));actions.append(ghostsLabel);
+  const shareLink=doc.createElement('a');shareLink.textContent='Open comparison link';shareLink.hidden=true;shareLink.className='fm-share-link';shell.append(shareLink);
+  const noPhysical=doc.createElement('p');noPhysical.className='fm-detail';shell.querySelector('.fm-metrics').after(noPhysical);
+  function update(patch={}) {
+    current={...current,...patch};
+    if(patch.recipe){recipe=structuredClone(patch.recipe);if(recipe.intervention)defaultIntervention=structuredClone(recipe.intervention);}
+    const busy=['loading','running','queued'].includes(current.status);
+    const ready=!!current.frame && !busy;
+    const metrics={};
+    for(const [key,source] of [['homes','housingUnits'],['commute','meanTravelMinutes'],['spending','capitalSpending']]){
+      const metric=current.diff?.metrics?.[source];
+      metrics[key]=metric?{baseline:metric.baseline,intervention:metric.plan,unit:metric.unit,note:key==='commute'?'Modeled mean link travel time; not a household commute.':undefined}:null;
+    }
+    const a=current.frame?.baseline?.state?.households||[],b=current.frame?.plan?.state?.households||[];
+    const ids=[...new Set([...a,...b].map(row=>row.id))].sort();
+    const households=ids.map(id=>({id,label:`City household ${id}`,baseline:a.find(row=>row.id===id)??null,plan:b.find(row=>row.id===id)??null}));
+    view.update({busy,ready,month:current.month,playing:current.playing,status:current.message,error:current.error,metrics,households,
+      cities:[{id:'synthetic',label:'Riverside · Synthetic City'}],
+      policies:defaultIntervention?[{id:'housing',label:'Housing intervention',description:`${defaultIntervention.amount} proposed homes · ${defaultIntervention.cost} illustrative USD · district ${defaultIntervention.districtId}. Construction and funding constraints still apply.`},{id:'baseline',label:'No intervention (matched control)',description:'Compare two unchanged futures from the same initial state and seed.'}]:[{id:'baseline',label:'No intervention (matched control)'}],
+      policyId:recipe?.intervention?'housing':'baseline',spatialLabel:'Synthetic schematic layout · Monthly City model · January 2026–January 2036 · Uncalibrated assumptions. No real-world geometry inferred.',
+      blink:current.mode==='plan',evidence:current.diff?{month:current.month,experimentId:current.experimentId,changedCount:current.diff.changedCount,physicalCount:current.diff.physicalCount,source:'Monthly City comparison. Select an entity for recorded evidence.'}:null,
+    });
+    noPhysical.textContent=current.diff ? (current.diff.available===false?'Comparison unavailable for this month.':current.diff.physicalCount===0?'No physical building or link difference recorded at this month.':'Physical changes are recorded; inspect the highlighted entities for evidence.') : '';
+    split.disabled=ghosts.disabled=!ready;split.setAttribute('aria-pressed',String(current.mode==='split'));ghosts.checked=current.ghosts;
+    shareLink.hidden=!current.shareURL;
+    if(current.shareURL){try{const url=new URL(current.shareURL,doc.baseURI);if(['http:','https:'].includes(url.protocol))shareLink.href=url.href;else{shareLink.removeAttribute('href');shareLink.hidden=true;}}catch{shareLink.removeAttribute('href');shareLink.hidden=true;}}
+  }
+  return {stageElement:view.stage,storyElement,update,dispose(){split.onclick=null;ghosts.onchange=null;view.destroy();}};
+}
