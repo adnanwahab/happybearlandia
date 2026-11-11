@@ -43,3 +43,5 @@ test('missing/invalid native selection refuses flight; detached target never ani
   f.selection={...f.selection,seed:0};f.city.isConnected=false;expect((await f.adapter.flyTo('city')).reason).toBe('view-detached');f.adapter.detach();
 });
 test('DOM removal cancels active flight',async()=>{const f=fixture(),p=f.adapter.flyTo('city');f.city.isConnected=false;f.step(0);expect((await p).reason).toBe('view-detached');f.adapter.detach()});
+test('diagnostics expose immutable native selection and the exact terminal receipt',async()=>{const f=fixture({reduced:true});const before=f.adapter.selection;expect(before).toEqual(f.selection);expect(Object.isFrozen(before)).toBe(true);expect(f.adapter.lastResult).toBe(null);const result=await f.adapter.flyTo('city');expect(f.adapter.lastResult).toBe(result);expect(Object.isFrozen(result)).toBe(true);f.adapter.detach()});
+test('live reduced motion cannot finish against a removed destination',async()=>{const f=fixture(),p=f.adapter.flyTo('city');f.city.isConnected=false;f.motion.matches=true;f.listeners.get('motion')();expect((await p).reason).toBe('view-detached');expect(f.env.scrollY).toBe(0);f.adapter.detach()});

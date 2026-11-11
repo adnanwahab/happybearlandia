@@ -15,17 +15,19 @@ export function attachFutureTransitions({ multiverse, city, getSelection, durati
   if (!multiverse || !city || typeof getSelection !== 'function' || !environment) throw new TypeError('Both views, selection reader and browser required.');
   if (!Number.isFinite(duration) || duration < 0 || duration > 3000) throw new RangeError('Duration must be 0–3000ms.');
   const env = environment, motion = env.matchMedia?.('(prefers-reduced-motion: reduce)');
-  let active = null, disposed = false;
+  let active = null, disposed = false, lastResult = null;
   const current = f => { try { return key(getSelection()) === f.key; } catch { return false; } };
   function settle(f,status,reason) {
     if (active !== f) return;
     active = null;
     if (f.frame != null) env.cancelAnimationFrame(f.frame);
     f.effect?.cancel();
-    f.resolve({status,reason,view:f.view,selection:f.selection,version:TRANSITION_VERSION});
+    lastResult = Object.freeze({status,reason,view:f.view,selection:f.selection,version:TRANSITION_VERSION});
+    f.resolve(lastResult);
   }
   function cancel(reason = 'cancelled') { if (active) settle(active,'cancelled',reason); }
   function finish(f) {
+    if (f.target.isConnected === false) return settle(f,'cancelled','view-detached');
     if (!current(f)) return settle(f,'cancelled','selection-changed');
     env.scrollTo({top:f.end,left:f.left,behavior:'instant'});
     settle(f,'completed',motion?.matches ? 'reduced-motion' : 'arrived');
@@ -41,7 +43,7 @@ export function attachFutureTransitions({ multiverse, city, getSelection, durati
     const max = Math.max(0,(env.document.scrollingElement?.scrollHeight ?? env.document.documentElement.scrollHeight)-env.innerHeight);
     const start = env.scrollY, left = env.scrollX, end = Math.max(0,Math.min(max,start+rect.top-16));
     return new Promise(resolve => {
-      const f = {view,selection,key:selectionKey,start,end,left,resolve,frame:null,effect:null,began:null};
+      const f = {target,view,selection,key:selectionKey,start,end,left,resolve,frame:null,effect:null,began:null};
       active = f;
       if (!current(f)) return settle(f,'cancelled','selection-changed');
       if (motion?.matches || duration === 0) return finish(f);
@@ -83,5 +85,7 @@ export function attachFutureTransitions({ multiverse, city, getSelection, durati
       motion?.removeEventListener?.('change',changedMotion);
     },
     get running() { return active !== null; },
+    get lastResult() { return lastResult; },
+    get selection() { const selection = copy(getSelection()); key(selection); return selection; },
   };
 }
