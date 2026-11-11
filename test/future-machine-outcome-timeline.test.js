@@ -25,14 +25,24 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('renderer-independent outcome timeline 
       window.timeline=createOutcomeTimeline(document.body,{history:{baseline:arm(false),plan:arm(true)},onMonth:month=>months.push(month)});
     });
     expect(await page.locator('canvas').count()).toBe(0);
+    expect(await page.evaluate(()=>{const point=document.querySelector('svg circle');timeline.update(0);return point===document.querySelector('svg circle');})).toBe(true);
+    await page.getByRole('combobox',{name:'Outcome series mode'}).selectOption('delta');
+    expect(await page.locator('svg path').count()).toBe(1);
+    expect(await page.locator('svg line[data-zero-axis]').count()).toBe(1);
+    expect(await page.locator('svg circle').count()).toBe(120);
+    expect(await page.locator('svg circle[data-month="16"] title').textContent()).toContain('24 homes');
+    expect(await page.locator('svg').evaluate(el=>el.getBoundingClientRect().height)).toBeLessThanOrEqual(180);
+
     expect(await page.locator('svg path').first().getAttribute('d').then(d=>d.split('M').length-1)).toBe(2);
     expect(await page.evaluate(()=>{try{timeline.update(1.5);return false;}catch{return true;}})).toBe(true);
     await page.locator('svg circle[data-month="16"]').first().click();
     expect(await page.evaluate(()=>months.at(-1))).toBe(16);expect(await page.locator('.fm-outcome-values').textContent()).toContain('24 homes');
     await page.getByRole('slider').focus();await page.keyboard.press('End');expect(await page.evaluate(()=>months.at(-1))).toBe(120);
     await page.evaluate(()=>timeline.update(4));expect(await page.locator('.fm-outcome-values').textContent()).toContain('Unavailable');
-    await page.getByRole('combobox').selectOption('meanRent');expect(await page.locator('.fm-outcome-values').textContent()).toContain('999.123456789 USD/month');expect(await page.locator('.fm-outcome-note').textContent()).toContain('not incumbent');
-    await page.getByRole('combobox').selectOption('capitalSpending');expect(await page.locator('.fm-outcome-note').textContent()).toContain('cost');
+    await page.getByRole('combobox',{name:'Recorded outcome metric'}).selectOption('meanRent');expect(await page.locator('.fm-outcome-values').textContent()).toContain('999.123456789 USD/month');expect(await page.locator('.fm-outcome-note').textContent()).toContain('not incumbent');
+    expect(await page.locator('svg circle[data-month="16"] title').textContent()).toContain(`${999.123456789-1000} USD/month`);
+    expect(await page.locator('svg line[data-zero-axis]').getAttribute('y1')).toBe('20');
+    await page.getByRole('combobox',{name:'Recorded outcome metric'}).selectOption('capitalSpending');expect(await page.locator('.fm-outcome-note').textContent()).toContain('cost');
     expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
     await page.screenshot({path:'/tmp/future-machine-outcome-timeline-320.png',fullPage:true});
     await page.getByText('Exact recorded values and month selection',{exact:true}).click();await page.getByRole('button',{name:'Select recorded month 16',exact:true}).click();expect(await page.evaluate(()=>months.at(-1))).toBe(16);
