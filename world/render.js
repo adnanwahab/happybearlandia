@@ -121,7 +121,7 @@ void metadataDefinitions.then(()=>{window.hblSimulationModel={status:'definition
 let policyPending=false;
 const startupDisabled=new Map([...document.querySelectorAll('#stormBtn,#runExperimentBtn,#runCycleBtn,#demoBtn,#policy')].map(node=>[node,node.disabled]));
 for(const node of startupDisabled.keys())node.disabled=true;
-const controlReadiness=mountControlReadiness(document,()=>!startup.readyMs?'Waiting for the city scene to finish loading.':policyPending?'Loading supported plan packages; current local policy is unchanged.':livingWorld?.active?'This control belongs to the separate legacy daily model; switch to that model to use it.':'A simulation job is active. Wait for its recorded results or stop the demo before starting another run.');
+const controlReadiness=mountControlReadiness(document,()=>!startup.readyMs?'Waiting for the city scene to finish loading.':livingWorld?.active?'This control belongs to the separate legacy daily model; switch to that model to use it.':'A simulation job is active. Wait for its recorded results or stop the demo before starting another run.');
 addEventListener('pagehide',()=>controlReadiness.dispose(),{once:true});
 let buildingDateBridge=null,buildingDatePanel=null,buildingDateLastRefresh=0;
 let startupCityRenderer=null,startupLastFrame=null;
@@ -639,7 +639,6 @@ const BASE_POLICY_PACKAGES = {
 
 let PLAN_PACKAGES = { ...BASE_POLICY_PACKAGES };
 let PLAN_COMPARE_DIFF = {};
-let BALANCED_SIM_NOTE = "";
 let activePolicyId = "none";
 let policyYear = Math.max(0, Math.min(10, Number(params.get("year") ?? 0) || 0));
 const planYearEl = $("planYear");
@@ -681,10 +680,11 @@ function packageRows(payload) {
 
 function refreshPolicySelect(selected = "none") {
   const sel = $("policy");
-  const options = Object.entries(PLAN_PACKAGES)
-    .map(([id, p]) => `<option value="${id}">${p.label}</option>`)
-    .join("");
-  sel.innerHTML = options;
+  const options=Object.entries(PLAN_PACKAGES).map(([id,p])=>{
+    const option=document.createElement('option');option.value=id;
+    option.textContent=p.label+(p.source==='dear-congress'?' · remote':'');return option;
+  });
+  sel.replaceChildren(...options);
   sel.value = PLAN_PACKAGES[selected] ? selected : "none";
 }
 
@@ -717,16 +717,29 @@ function applyPolicy(id, year = policyYear) {
   world.groceryDelivery = staged.effects.groceryDelivery;
 
   if(scrapbook){scrapbookSource=scrapbookSourceFrame();scrapbook.observe({...scrapbookSource,events:[{type:'POLICY_APPLIED',id:`policy:${world.policy.id}:${year}:${world.t}`,minute:world.t,title:'A policy package changes',text:`${p.label} applied at policy year ${year}. This records a configured scenario change, not proof of its outcomes.`,policyId:world.policy.id}]});}
+  renderPolicyNote(p,year,staged,k);
+}
+
+// Presentation only; saved configurations must not reapply a policy to the checkpoint.
+function renderPolicyNote(p,year,staged,k=p.id) {
   const src = p.source === "dear-congress" ? "dear-congress" : "local";
   const pendingTxt = staged.unsupported.length
     ? ` · not simulated yet: ${staged.unsupported.slice(0, 4).join(", ")}${staged.unsupported.length > 4 ? "…" : ""}`
     : "";
 
-  const simNote = BALANCED_SIM_NOTE ? ` · ${BALANCED_SIM_NOTE}` : "";
+  const comparison=p.source==='dear-congress'?PLAN_COMPARE_DIFF[k]:null;
+  let simNote='';
+  if(comparison){
+    const added=(comparison.addedBySimulated||[]).length,removed=(comparison.removedBySimulated||[]).length;
+    const pending=Array.isArray(comparison.pending)?comparison.pending:[];
+    if(added||removed)simNote=` · Simulated residents changed ${p.label}: +${added} −${removed}`;
+    else if(pending.length){const item=pending[0];simNote=` · Simulated residents are pushing: +${item.id} (${item.streak} of ${item.needed} years)`;}
+    else simNote=` · Simulated residents changed ${p.label}: no change`;
+  }
   $("policyNote").textContent = `${p.label} · year ${year} · transit ×${staged.effects.speedMult.toFixed(2)} · flood mitigation ${Math.round(staged.effects.floodMitigation * 100)}% · housing growth ${Math.round(staged.effects.housingGrowth * 100)}% · vouchers $${staged.effects.voucherMonthly.toFixed(0)}/mo${staged.effects.groceryDelivery > 0 ? ` · grocery delivery ${Math.round(staged.effects.groceryDelivery * 100)}%` : ""} · source: ${src}${pendingTxt}${simNote}`;
 }
 
-async function loadPolicyPackages() {
+async function loadPolicyPackages({preserveExisting=false}={}) {
   const explicit = params.get("plans");
   const q = new URLSearchParams({ lat: String(origin.lat), lng: String(origin.lng) }).toString();
   const syntheticOn = params.get("synthetic") !== "0";
@@ -750,19 +763,24 @@ async function loadPolicyPackages() {
       const rows = compared ? (syntheticOn ? payload.blended : payload.real) : packageRows(payload);
       if (!Array.isArray(rows) || !rows.length) continue;
 
-      const next = { none: BASE_POLICY_PACKAGES.none };
+      const next = preserveExisting?{...PLAN_PACKAGES}:{none:BASE_POLICY_PACKAGES.none};
       const compareDiffById = {};
       let n = 0;
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
         const name = row?.name || row?.title || row?.label || row?.packageName || `Package ${i + 1}`;
-        const id = slug(row?.id || row?.slug || name);
+        const sourceId = slug(row?.id || row?.slug || name);
+        let id=sourceId;
+        if(preserveExisting&&Object.hasOwn(next,id)){
+          const base=`remote-${sourceId}`;id=base;let suffix=2;
+          while(Object.hasOwn(next,id))id=`${base}-${suffix++}`;
+        }
         const items = row?.items || row?.proposals || row?.package?.items || [];
         const proposalIds = Array.from(new Set(items.map(proposalIdFrom).filter(Boolean)));
         if (!proposalIds.length) continue;
         next[id] = { ...derivePolicyProfile(name, id, proposalIds, "dear-congress"), remoteId: String(row?.id ?? name) };
         if (compared) {
-          const rawDiff = payload.diff?.[row?.id] || payload.diff?.[id] || payload.diff?.[name] || { addedBySimulated: [], removedBySimulated: [], moneyMovedB: 0 };
+          const rawDiff = payload.diff?.[row?.id] || payload.diff?.[sourceId] || payload.diff?.[name] || { addedBySimulated: [], removedBySimulated: [], moneyMovedB: 0 };
           compareDiffById[id] = rawDiff;
         }
         n++;
@@ -770,24 +788,7 @@ async function loadPolicyPackages() {
       if (!n) continue;
 
       PLAN_PACKAGES = next;
-      PLAN_COMPARE_DIFF = compareDiffById;
-      const balancedId = Object.keys(next).find((k) => /balanced/i.test(next[k]?.label || ""));
-      const d = balancedId ? PLAN_COMPARE_DIFF[balancedId] : null;
-      if (d) {
-        const add = (d.addedBySimulated || []).length;
-        const rem = (d.removedBySimulated || []).length;
-        const pending = Array.isArray(d.pending) ? d.pending : [];
-        if (add || rem) {
-          BALANCED_SIM_NOTE = `Simulated residents changed Balanced: +${add} −${rem}`;
-        } else if (pending.length) {
-          const p = pending[0];
-          BALANCED_SIM_NOTE = `Simulated residents are pushing: +${p.id} (${p.streak} of ${p.needed} years)`;
-        } else {
-          BALANCED_SIM_NOTE = "Simulated residents changed Balanced: no change";
-        }
-      } else {
-        BALANCED_SIM_NOTE = "";
-      }
+      PLAN_COMPARE_DIFF=preserveExisting?{...PLAN_COMPARE_DIFF,...compareDiffById}:compareDiffById;
       refreshPolicySelect(activePolicyId);
       world.log(`Loaded ${n} plan packages from dear-congress`, "civic");
       return true;
@@ -952,8 +953,7 @@ if (!loadedExperiment && !(embedMode && realityRunSeed)) {
   if(realityRunSeed)await loadPolicyPackages(); // Frozen reality ordering is unchanged.
   else {
     policyPending=true;startup.policyStatus='loading';refreshPolicySelect(activePolicyId);
-    for(const id of ['policy','runExperimentBtn','runCycleBtn','demoBtn'])if($(id))$(id).disabled=true;
-    loadPolicyPackages().then(ok=>{if(startupAbort.signal.aborted)return;policyPending=false;startup.policyStatus=ok?'ready':'local-fallback';if($("policyNote"))$("policyNote").textContent=$("policyNote").textContent.replace(' · remote plan packages loading; current local policy unchanged','')+(ok?'':' · using local presets; remote packages unavailable');for(const id of ['policy','runExperimentBtn','runCycleBtn','demoBtn'])if($(id))$(id).disabled=startupDisabled.get($(id))||false;});
+    loadPolicyPackages({preserveExisting:true}).then(ok=>{if(startupAbort.signal.aborted)return;policyPending=false;startup.policyStatus=ok?'ready':'local-fallback';if($("policyNote"))$("policyNote").textContent=$("policyNote").textContent.replace(' · remote plan packages loading; current local policy unchanged','')+(ok?'':' · using local presets; remote packages unavailable');});
   }
 }
 activePolicyId = $("policy").value || "none";
@@ -1355,8 +1355,7 @@ const signed = (x) => `${x >= 0 ? "+" : "−"}${Math.abs(x).toFixed(1)}`;
 const changeLabel = (x) => x?.label || x?.id || (typeof x === "string" ? x : "");
 const changeLabels = (arr) => (Array.isArray(arr) ? arr.map(changeLabel).filter(Boolean) : []);
 
-// The Balanced package, whichever id it has: presets use "balanced", but when
-// dear-congress loads it replaces them with its own ids ("a", "b", "c").
+// Optional remote plans retain local Balanced; frozen realities may use remote ids.
 function balancedPackageId() {
   const ids = Object.keys(PLAN_PACKAGES).filter((id) => id !== "none" && !id.startsWith("cycle-"));
   return ids.find((id) => /balanced/i.test(PLAN_PACKAGES[id].label)) || ids[0] || "none";
@@ -2385,7 +2384,7 @@ if(loadedExperiment){
    }
    $('top').querySelector('summary').after(navigation);
  }else if(saved.view.selection){if(saved.mode==='living')await livingWorld.selectPerson(saved.view.selection.id);else select(saved.view.selection);}
- if(saved.view.policyPackages)PLAN_PACKAGES=structuredClone(saved.view.policyPackages);activePolicyId=saved.view.policy??'none';policyYear=saved.view.planYear??0;if($('policy'))$('policy').value=activePolicyId;if(planYearEl)planYearEl.value=String(policyYear);
+ if(saved.view.policyPackages)PLAN_PACKAGES=structuredClone(saved.view.policyPackages);activePolicyId=saved.view.policy??'none';policyYear=saved.view.planYear??0;if($('policy')){refreshPolicySelect(activePolicyId);const configured=PLAN_PACKAGES[activePolicyId]??BASE_POLICY_PACKAGES.none;renderPolicyNote(configured,policyYear,computeEffectsForYear(configured.proposalIds||[],policyYear));}if(planYearEl)planYearEl.value=String(policyYear);if(planYearNEl)planYearNEl.textContent=`Year ${policyYear}`;
  const settings=saved.view.playback;if(settings){playback.setSpeed(settings.speed);settings.paused||params.has('person')?playback.pause():playback.resume();}
  if(saved.view.buildingWorkspace){if(!buildingBridge?.restoreCheckpoint)throw Error('Construction checkpoint adapter unavailable');await buildingBridge.ready;buildingBridge.restoreCheckpoint(saved.view.buildingWorkspace);}
  experimentRestored=true;
@@ -2411,7 +2410,7 @@ addEventListener('pagehide',()=>{houseEntryDisposed=true;houseEntryControls?.des
 addEventListener('pagehide',()=>{persistenceDisposed=true;persistencePanel?.destroy();},{once:true});
 
 if(!loadedExperiment)world.log(`Welcome to ${origin.lat.toFixed(3)}, ${origin.lng.toFixed(3)}. Click a person or building.`, "info");
-startup.readyMs=performance.now();for(const [node,disabled] of startupDisabled)node.disabled=policyPending&&['policy','runExperimentBtn','runCycleBtn','demoBtn'].includes(node.id)?true:disabled;startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);
+startup.readyMs=performance.now();for(const [node,disabled] of startupDisabled)node.disabled=disabled;startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);
 requestAnimationFrame(frame);
 
 

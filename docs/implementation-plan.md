@@ -8,6 +8,8 @@ Research follow-up accepted: [matched delay sensitivity](research-sensitivity.md
 
 RC06 focused resize/resource preservation verified: two actual browser journeys, 32 scrub/focus updates and three stage lifecycles per WebGL/Canvas backend, stable per-month geometry counters and zero canvases after disposal. RC07 directory repair verified: all31current registry experiences plus the existing overview shortcut; static24-entry fallback, bounded catalog loading, preserved favorites/secondary routes, and a working flagship entry. Six browser checks,15adjacent unit checks and browser bundle pass. These counts are scoped evidence, not a claim of main-only atlas preservation. Ordinary World optional-package readiness is the next investigated slice.
 
+RC08 accepted: ordinary World local presets and real cycle work are available while optional packages load. Late responses preserve selected local/cycle packages and busy controls; remote labels/amendments are source-scoped. Frozen loading order is retained. Saved remote policy options, configured note and year restore without policy reapplication or checkpoint mutation. Final6browserchecks pass;27readiness/controller/receipt units and12persistence units pass; existingquickdemo/recovery/touch2browserchecks pass. Browser bundle338modules passes. Next investigated slice is independent model-definition disclosure on renderer module-import failure.
+
 [Product design](design.md) defines the target experience. [Engineering instructions](../AGENTS.md) describe how to plan, implement, and verify changes. Keep this plan current with task status, dependencies, acceptance evidence, and commit or PR references when available.
 
 ## Playable Life vertical slice
