@@ -1,5 +1,5 @@
 import {DEFAULT_RECIPE} from '../contracts.js';
-import {calendarLabel, clampMonth, metricPresentation} from './model.js';
+import {calendarLabel, clampMonth, metricPresentation, metricSemantics, householdObservation, householdSummary} from './model.js';
 
 /** Mount a renderer-independent view. Call update with recorded data; see README. */
 export function mountFutureMachineUI(root, options = {}) {
@@ -47,13 +47,13 @@ export function mountFutureMachineUI(root, options = {}) {
   for(const [key,label] of [['homes','Homes'],['rent','Mean unit rent'],['spending','City spending']]) {
     const card=node('article',undefined,'fm-card'), delta=node('strong'), values=node('p'), detail=node('p',undefined,'fm-detail');
     const why=button(`WHY · ${label}`,()=>action(options.onMetric,key)); why.className='fm-metric-why'; why.disabled=true;
-    card.append(node('h2',label),delta,values,detail,why); cards.append(card); metricNodes[key]={delta,values,detail,why};
+    card.append(node('h2',label),delta,values,detail,why); cards.append(card); metricNodes[key]={card,delta,values,detail,why};
   }
   shell.append(cards);
   const inspectors=node('section',undefined,'fm-inspectors');
   const householdPanel=node('section'), household=node('select'), householdBody=node('pre');
-  const householdSummary=node('p'),householdRaw=node('details');householdRaw.append(node('summary','Inspect exact household records'),householdBody); household.setAttribute('aria-label','Monthly City household');
-  householdPanel.append(node('h2','Household outcomes'),household,householdSummary,householdRaw);
+  const householdSummaryNode=node('p',undefined,'fm-household-summary'),householdRaw=node('details');householdRaw.append(node('summary','Inspect exact household records'),householdBody); household.setAttribute('aria-label','Monthly City household');
+  householdPanel.append(node('h2','Household outcomes'),household,householdSummaryNode,householdRaw);
   const evidencePanel=node('section'), evidence=node('pre'); const evidenceRaw=node('details');evidenceRaw.append(node('summary','Inspect run and comparison record'),evidence);evidencePanel.append(node('h2','Evidence inspector'),node('p','Click a changed building or WHY on a measured outcome to inspect its recorded event, policy and model rule.'),evidenceRaw);
   inspectors.append(householdPanel,evidencePanel); shell.append(inspectors);
   const footer=node('footer',undefined,'fm-actions');
@@ -78,7 +78,7 @@ export function mountFutureMachineUI(root, options = {}) {
   });
   function fill(select, rows, selected) { select.replaceChildren(...rows.map(row=>{const item=node('option',row.label || row.name || row.id);item.value=row.id;return item;})); if(rows.some(row=>row.id===selected))select.value=selected; }
   function renderPolicy(){ const item=state.policies.find(row=>row.id===policy.value); policyNote.textContent=item?.description || 'Only model-supported interventions are available.'; }
-  function renderHousehold(){ const row=state.households.find(item=>item.id===household.value); householdSummary.textContent=row?`Same City ID in both futures. Monthly income: WITHOUT PLAN ${row.baseline?.income?.toFixed?.(0)??'unavailable'} USD · WITH PLAN ${row.plan?.income?.toFixed?.(0)??'unavailable'} USD. Savings: ${row.baseline?.savings?.toFixed?.(0)??'unavailable'} → ${row.plan?.savings?.toFixed?.(0)??'unavailable'} USD. These are modeled observations, not a real person.`:'No matched household selected.';householdBody.textContent=row ? JSON.stringify(row,null,2) : 'No supported household observations for this month.'; }
+  function renderHousehold(){ const row=state.households.find(item=>item.id===household.value); householdSummaryNode.textContent=householdSummary(row);householdBody.textContent=row ? JSON.stringify(row,null,2) : 'No supported household observations for this month.'; }
   function update(patch={}) {
     if(destroyed)return;
     const old=state;state={...state,...patch,month:clampMonth(patch.month ?? state.month)};
@@ -101,7 +101,7 @@ export function mountFutureMachineUI(root, options = {}) {
     if(!state.ready || state.busy)pause();
     else if(options.externalPlayback){play.textContent=state.playing?'Pause timelapse':'Play timelapse';play.setAttribute('aria-pressed',String(!!state.playing));}
     provenance.textContent=state.spatialLabel || 'No spatial data loaded. Unlocated changes remain in the inspector.';
-    for(const key of Object.keys(metricNodes)){const item=metricPresentation(state.metrics?.[key]); const elements=metricNodes[key];elements.delta.textContent=item.delta;elements.values.replaceChildren(node('span',`WITHOUT PLAN  ${item.baseline}`,'fm-value-baseline'),node('span',`WITH PLAN  ${item.intervention}`,'fm-value-plan'));elements.detail.textContent=item.detail;elements.why.disabled=!state.ready || state.busy || !options.onMetric || item.delta==='Unavailable';}
+    for(const key of Object.keys(metricNodes)){const item=metricPresentation(state.metrics?.[key]); const elements=metricNodes[key];elements.delta.textContent=item.delta;elements.values.replaceChildren(node('span',`WITHOUT PLAN  ${item.baseline}`,'fm-value-baseline'),node('span',`WITH PLAN  ${item.intervention}`,'fm-value-plan'));const semantics=metricSemantics(key,state.metrics?.[key]);elements.card.dataset.tone=semantics.tone;elements.detail.textContent=key==='rent' && semantics.tone==='neutral' && item.delta!=='Unavailable' ? `${semantics.label}.` : `${semantics.label}. ${item.detail}`;elements.why.disabled=!state.ready || state.busy || !options.onMetric || item.delta==='Unavailable';}
     if(patch.households){fill(household,state.households,state.householdId ?? household.value);renderHousehold();}
     household.disabled=!state.households.length;
     if('householdId' in patch){household.value=state.householdId;renderHousehold();}
@@ -164,11 +164,11 @@ export function createUI(container, callbacks = {}) {
     const metrics={};
     for(const [key,source] of [['homes','housingUnits'],['rent','meanRent'],['spending','capitalSpending']]){
       const metric=current.diff?.metrics?.[source];
-      metrics[key]=metric?{baseline:metric.baseline,intervention:metric.plan,unit:metric.unit,note:key==='rent'?'All recorded units, including new inventory; not incumbent rent savings.':undefined}:null;
+      metrics[key]=metric?{baseline:metric.baseline,intervention:metric.plan,unit:metric.unit,note:key==='rent'?'All recorded units, including new inventory; not incumbent rent savings.':key==='spending'?'Cumulative capital spending in USD; cost is not a welfare gain.':undefined}:null;
     }
     const a=current.frame?.baseline?.state?.households||[],b=current.frame?.plan?.state?.households||[];
     const ids=[...new Set([...a,...b].map(row=>row.id))].sort();
-    const households=ids.map(id=>({id,label:`City household ${id}`,baseline:a.find(row=>row.id===id)??null,plan:b.find(row=>row.id===id)??null}));
+    const households=ids.map(id=>({id,label:`City household ${id}`,baseline:a.find(row=>row.id===id)??null,plan:b.find(row=>row.id===id)??null,baselineHousing:householdObservation(a.find(row=>row.id===id),current.frame?.baseline?.state?.units),planHousing:householdObservation(b.find(row=>row.id===id),current.frame?.plan?.state?.units)}));
     view.update({busy,ready,month:current.month,playing:current.playing,status:current.message,error:current.error,metrics,households,
       cities:[{id:'synthetic',label:'Riverside · Synthetic City'}],
       policies:defaultIntervention?[{id:'housing',label:'Housing intervention',description:`${defaultIntervention.amount} proposed homes · ${defaultIntervention.cost} illustrative USD · district ${defaultIntervention.districtId}. Construction and funding constraints still apply.`},{id:'baseline',label:'No intervention (matched control)',description:'Compare two unchanged futures from the same initial state and seed.'}]:[{id:'baseline',label:'No intervention (matched control)'}],
