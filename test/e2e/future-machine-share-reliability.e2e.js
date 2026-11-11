@@ -23,3 +23,13 @@ test('wrong recipe or model and corrupt links fail explicitly, then ordinary ret
  await page.goto(obsolete);await expect(page.getByRole('alert')).toContainText('model version is unavailable');
  await page.goto('/world/future-machine.html?renderer=canvas2d&fm=corrupt&month=16');await expect(page.getByRole('alert')).toContainText('Invalid shared comparison');await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);expect((await snapshot(page)).recipe.seed).toBe(42);
 });
+
+for(const seed of [0,4294967295])test(`zero-control share at boundary seed ${seed} preserves exact zero outcomes`,async({page},info)=>{
+ await page.goto('/world/future-machine.html?renderer=canvas2d');
+ const url=await page.evaluate(async seed=>{const {DEFAULT_RECIPE}=await import('/world/future-machine/contracts.js');const {createShareURL}=await import('/world/future-machine/share/index.js');return createShareURL({recipe:{...DEFAULT_RECIPE,seed,intervention:null},month:120},location.href);},seed);
+ await page.goto(url);await ready(page);const before=await snapshot(page);
+ expect(before.recipe.seed).toBe(seed);expect(before.recipe.intervention).toBe(null);expect(before.baselineHash).toBe(before.planHash);expect(before.month).toBe(120);expect(Object.values(before.metrics).every(metric=>metric.delta===0)).toBe(true);
+ expect(await page.evaluate(()=>window.futureMachine.history.baseline.every(s=>s.state.seed===window.futureMachine.history.seed)&&window.futureMachine.history.plan.every(s=>s.state.seed===window.futureMachine.history.seed))).toBe(true);
+ await page.getByRole('button',{name:'Share comparison',exact:true}).click();const saved=await page.getByRole('link',{name:'Open comparison link'}).getAttribute('href');await page.goto(saved);await ready(page);const reopened=await snapshot(page);expect(reopened).toEqual(before);
+ const path=info.outputPath(`zero-control-seed-${seed}.json`);await writeFile(path,JSON.stringify({url:saved,before,reopened},null,2));await info.attach('boundary-zero-share',{path,contentType:'application/json'});
+});
