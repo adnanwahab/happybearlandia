@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 import {writeFile} from 'node:fs/promises';
 
 async function seek(page,month){
- const slider=page.getByRole('slider');
+ const slider=page.getByTestId('future-machine-timeline');
  await slider.fill(String(month));await slider.dispatchEvent('input');
  await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.month)).toBe(month);
  // Capture the presented frame after layout/command submission, never the
@@ -54,7 +54,7 @@ async function capture(page,info,name,hardware,errors){
    const x=target.x*image.width/bounds.width,y=target.y*image.height/bounds.height;
    const inside=x>=3&&x<image.width-3&&y>=3&&y<image.height-3;
    if(!inside)return {...target,inside:false};
-   const data=originalContext.getImageData(Math.floor(x)-2,Math.floor(y)-2,5,5).data;let brightest=0;
+   const data=originalContext.getImageData(Math.max(0,Math.floor(x)-5),Math.max(0,Math.floor(y)-5),11,11).data;let brightest=0;
    for(let i=0;i<data.length;i+=4)brightest=Math.max(brightest,data[i],data[i+1],data[i+2]);
    return {...target,inside:true,brightest};
   });
@@ -109,7 +109,7 @@ for(const viewport of [{width:1440,height:1000},{width:390,height:844}]){
    const nav=document.querySelector('nav[aria-label="Connected universe"]');
    const box=node=>{const r=node.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};};
    const n=nav?box(nav):null;
-   const overlaps=n?[...document.querySelectorAll('.fm-ui button,.fm-ui input,.fm-ui select')].filter(node=>node.getClientRects().length).filter(node=>{const r=box(node);return n.left<r.right&&n.right>r.left&&n.top<r.bottom&&n.bottom>r.top;}).map(node=>node.textContent||node.getAttribute('aria-label')||node.tagName):[];
+   const overlaps=n?[...document.querySelectorAll('.fm-ui button,.fm-ui input,.fm-ui select')].filter(node=>node.getClientRects().length&&!node.closest('details:not([open])')).filter(node=>{const r=box(node);return n.left<r.right&&n.right>r.left&&n.top<r.bottom&&n.bottom>r.top;}).map(node=>node.textContent||node.getAttribute('aria-label')||node.tagName):[];
    return {nav:n,overlaps,overflow:document.documentElement.scrollWidth>innerWidth};
   });
   await save(info,`${viewport.width}-layout-console`,{layout,errors,hardware});

@@ -73,3 +73,28 @@ test('stalled GPU initialization cannot stall provenance or usable fallback',asy
  const overlap=await page.evaluate(()=>{const a=document.querySelector('#world-quick-toolbar').getBoundingClientRect(),b=document.querySelector('#top > summary').getBoundingClientRect();return a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;});
  expect(overlap).toBe(false);
 });
+test('all graphics contexts unavailable preserves recorded comparison controls without page errors',async({page})=>{
+ const errors=[];page.on('pageerror',error=>errors.push(error.message));
+ await page.addInitScript(()=>{HTMLCanvasElement.prototype.getContext=()=>null;});
+ await page.goto('/world/future-machine.html?renderer=canvas2d');await page.getByRole('button',{name:'Fork City',exact:true}).click();
+ await expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.status)).toBe('ready');
+ const slider=page.getByTestId('future-machine-timeline');await slider.fill('120');await slider.dispatchEvent('input');
+ await expect.poll(()=>page.evaluate(()=>window.futureMachine.stats.scene.backend)).toBe('inventory-fallback');
+ await page.getByRole('button',{name:/building-project-policy-1-0.*schematic/}).last().click();await expect(page.getByTestId('future-machine-why')).toContainText('PROJECT_COMPLETE');
+ expect(await page.evaluate(()=>window.futureMachine.state.diff.metrics.housingUnits.delta)).toBe(24);expect(errors).toEqual([]);
+});
+test('configured seed remains distinct until real rerun and survives exact shared refresh',async({page})=>{
+ await page.goto('/world/future-machine.html?renderer=canvas2d');await page.getByRole('button',{name:'Fork City',exact:true}).click();
+ await expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.status)).toBe('ready');
+ const original=await page.evaluate(()=>({id:window.futureMachine.history.experimentId,hash:window.futureMachine.history.initialHash}));
+ const seed=page.getByTestId('future-machine-seed');await seed.fill('0');
+ const slider=page.getByTestId('future-machine-timeline');await slider.fill('16');await slider.dispatchEvent('input');
+ await expect(seed).toHaveValue('0');await expect(page.getByLabel('Simulation provenance')).toContainText('SEED 42');
+ expect(await page.evaluate(()=>window.futureMachine.history.experimentId)).toBe(original.id);
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.status)).toBe('ready');
+ expect(await page.evaluate(()=>window.futureMachine.history.seed)).toBe(0);expect(await page.evaluate(()=>window.futureMachine.history.initialHash)).not.toBe(original.hash);
+ await slider.fill('120');await slider.dispatchEvent('input');expect(await page.evaluate(()=>window.futureMachine.state.diff.metrics.housingUnits.delta)).toBe(24);
+ await page.reload();await expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.status)).toBe('ready');await expect(seed).toHaveValue('0');
+ await seed.fill('42');await page.getByRole('button',{name:'Fork City',exact:true}).click();await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.status)).toBe('ready');
+ expect(await page.evaluate(()=>window.futureMachine.history.initialHash)).toBe(original.hash);
+});

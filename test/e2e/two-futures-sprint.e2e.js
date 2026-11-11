@@ -17,6 +17,7 @@ test('real paired runs: matched start, physical divergence, metrics, timeline an
  await seek(page,120);const end=await evidence(page,testInfo,'after-month-120');assertPair(end);expect(end.diff.physicalCount).toBeGreaterThan(0);expect(end.diff.metrics.housingUnits.delta).toBe(24);expect(end.diff.metrics.capitalSpending.delta).toBe(1000000);
  expect(Object.values(end.diff.metrics).filter(m=>Number.isFinite(m.delta)&&m.delta!==0).length).toBeGreaterThanOrEqual(2);
  await expect(page.getByRole('region',{name:'Measured outcomes'})).toContainText('24');
+ await expect(page.locator('.fm-card[data-tone="cost"]')).toHaveCount(1);await expect(page.locator('.fm-card[data-tone="cost"]')).toContainText('Additional capital cost');
  await page.getByRole('button',{name:/building-d1.*schematic/}).last().click();await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('building-d1');
  await page.reload();await ready(page);expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);expect(await page.evaluate(()=>window.futureMachine.state.diff.metrics)).toEqual(end.diff.metrics);
  // A second real run verifies reproducibility independently of the saved replay URL.
@@ -46,4 +47,14 @@ test('record real 45–60 second one-click Play Demo',async({page},testInfo)=>{
  await page.goto(route);const started=Date.now();await page.getByRole('button',{name:/^Play Demo$/i}).click();await ready(page);await page.locator('.fm-comparison').scrollIntoViewIfNeeded();await evidence(page,testInfo,'demo-start');
  await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.demo?.status),{timeout:65000,intervals:[500]}).toBe('complete');
  const elapsedMs=Date.now()-started;expect(elapsedMs).toBeGreaterThanOrEqual(45000);expect(elapsedMs).toBeLessThanOrEqual(60000);const end=await evidence(page,testInfo,'demo-complete');expect(end.diff.metrics.housingUnits.delta).toBe(24);await page.getByRole('button',{name:'WHY · Homes',exact:true}).click();const story=page.getByRole('region',{name:'Recorded change story'});await story.scrollIntoViewIfNeeded();await story.getByText(/^Recorded model events/).click();await expect(story).toContainText('PROJECT_COMPLETE');await page.screenshot({path:testInfo.outputPath('demo-why-completion-event.png')});await page.waitForTimeout(2000);await writeFile(testInfo.outputPath('demo-timing.json'),JSON.stringify({elapsedMs,seed:end.seed,scenario:end.scenario,selectedMonth:end.selectedMonth},null,2));
+});
+
+for(const reducedMotion of ['no-preference','reduce'])test(`cinematic recorded divergence hold respects ${reducedMotion}`,async({page},info)=>{
+ await page.emulateMedia({reducedMotion});await page.goto(route+'?demo=1');await ready(page);
+ await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.month),{timeout:20000}).toBe(16);
+ await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.demo.caption)).toContain('First physical divergence');
+ await page.waitForTimeout(1500);const first=await evidence(page,info,'cinematic-month-16');assertPair(first);expect(first.metrics.find(m=>m.metricId==='housingUnits').delta).toBe(24);
+ await page.getByRole('button',{name:'Pause demo',exact:true}).click();await page.waitForTimeout(500);expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(16);
+ await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('24');
+ await seek(page,0);expect(await page.evaluate(()=>window.futureMachine.history.plan[0].state.buildings.some(b=>b.id==='building-project-policy-1-0'))).toBe(false);
 });

@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 import {writeFile} from 'node:fs/promises';
 
 async function seek(page,month){
- const slider=page.getByRole('slider');
+ const slider=page.getByTestId('future-machine-timeline');
  await slider.fill(String(month));await slider.dispatchEvent('input');
  await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.month)).toBe(month);
 }
@@ -44,7 +44,7 @@ for(const viewport of [{width:1440,height:1000},{width:390,height:844},{width:32
   await page.getByRole('button',{name:'Pause demo',exact:true}).click();
   await seek(page,0);const initial=await snapshot(page,info,`${viewport.width}-matched-0`,errors);
   expect(initial.seed).toBe(42);expect(initial.firstDivergence.month).toBe(16);expect(initial.baselineBuildings).toEqual(initial.planBuildings);expect(initial.metrics.housingUnits.delta).toBe(0);
-  const slider=page.getByRole('slider');await reachable(slider);await page.keyboard.press('ArrowRight');
+  const slider=page.getByTestId('future-machine-timeline');await reachable(slider);await page.keyboard.press('ArrowRight');
   await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.month)).toBe(1);
   await seek(page,16);
   await reachable(page.getByRole('button',{name:'Difference-only',exact:true}));await page.keyboard.press('Enter');
