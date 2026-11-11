@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>City Plan Replay · HappyBearLandia</title>
+  <link rel="stylesheet" href="/world/civilization/civilization.css">
+  <link rel="stylesheet" href="./future.css">
+  <script type="module" src="./page.js"></script>
+</head>
+<body>
+  <main>
+    <nav><a href="/world/invention/">City Invention Studio</a> <a href="/world/invention/reverse/">Reverse Simulator</a></nav>
+    <header>
+      <h1>City Plan Replay</h1>
+      <p>Recompute a versioned Riverside plan and inspect its monthly results.</p>
+    </header>
+    <p id="status" role="status">Opening the City plan…</p>
+    <section id="result" hidden aria-labelledby="snapshot">
+      <div class="toolbar">
+        <label>Simulation month <input id="month" type="range" step="1"></label>
+        <a id="merge">Use this plan in Merge Studio</a>
+        <a id="breakpoint">Set a breakpoint for this plan</a>
+      </div>
+      <h2 id="snapshot"></h2>
+      <p id="scope"></p>
+      <dl id="metrics" class="metric-grid"></dl>
+
+      <h2>Proposed policies</h2>
+      <ul id="policies"></ul>
+      <p id="cost"></p>
+
+      <h2>District snapshot</h2>
+      <div class="table-scroll" tabindex="0" role="region" aria-label="District snapshot">
+        <table>
+          <thead><tr><th scope="col">District</th><th scope="col">Mean recorded commute</th><th scope="col">Trips</th><th scope="col">Housing units</th><th scope="col">Unhoused households</th></tr></thead>
+          <tbody id="districts"></tbody>
+        </table>
+      </div>
+
+      <details>
+        <summary>Inspect simulated events for this month</summary>
+        <ul id="events"></ul>
+      </details>
+    </section>
+  </main>
+</body>
+</html>

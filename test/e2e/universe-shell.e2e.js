@@ -68,3 +68,19 @@ test('new demo shortcuts preserve canonical scope and open the real Time Machine
  await expect(page).toHaveURL(/\/world\/causal\.html/);
  await expect(page.getByRole('heading',{name:'World Time Machine'})).toBeVisible();
 });
+
+test('mission cards are accessible before iframe activation and preserve scope on a phone', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/?' + query);
+  await expect(page.getByRole('heading', { name: 'Choose Your First Adventure' })).toBeVisible();
+  const cards = page.locator('.universe-missions article');
+  await expect(cards).toHaveCount(3);
+  await expect(cards.getByText('Synthetic demo')).toHaveCount(3);
+  const link = page.getByRole('link', { name: 'Start Time Machine' });
+  const url = new URL(await link.getAttribute('href'), page.url());
+  expect(url.pathname).toBe('/world/causal.html');
+  expect(url.searchParams.get('runId')).toBe(new URLSearchParams(query).get('runId'));
+  await link.focus();
+  await expect(link).toBeFocused();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reality Breakpoints · HappyBearLandia</title>
+  <link rel="stylesheet" href="./breakpoints.css">
+  <script type="module" src="./page.js"></script>
+</head>
+<body>
+  <main>
+    <nav aria-label="Invention navigation">
+      <a href="/world/invention/">Invention Studio</a>
+      <a href="/world/causal.html">World Time Machine</a>
+    </nav>
+    <header>
+      <h1>Reality Breakpoints</h1>
+      <p>Run the City model month by month and pause when an outcome meets your threshold.</p>
+    </header>
+    <div class="workspace">
+      <form id="rule">
+        <fieldset>
+          <legend>Pause condition</legend>
+          <label>Metric <select id="metric"></select></label>
+          <label>Comparison
+            <select id="operator">
+              <option value="gt">Exceeds</option>
+              <option value="gte">At least</option>
+              <option value="lt">Below</option>
+              <option value="lte">At most</option>
+            </select>
+          </label>
+          <label>Threshold <input type="number" id="threshold" step="any" required value="12" aria-describedby="unit"></label>
+          <p id="unit"></p>
+        </fieldset>
+        <fieldset>
+          <legend>Scenario</legend>
+          <label>Seed <input type="number" id="seed" step="1" min="0" max="4294967295" required></label>
+          <label>Months to advance <input type="number" id="months" step="1" min="1" max="36" required></label>
+          <details><summary>Choose policies</summary><fieldset id="policies"><legend>Policy options</legend></fieldset></details>
+        </fieldset>
+        <button type="submit">Run from the start</button>
+      </form>
+      <section id="outcome" aria-label="Breakpoint result">
+        <p id="status" role="status">Set a threshold and run the scenario.</p>
+        <div id="result" hidden>
+          <h2 id="result-title" tabindex="-1"></h2>
+          <dl>
+            <dt id="observed-label">Observed value</dt><dd id="observed"></dd>
+            <dt>Threshold</dt><dd id="target"></dd>
+            <dt id="previous-label">Previous snapshot</dt><dd id="previous"></dd>
+            <dt>Observations tested</dt><dd id="tested"></dd>
+          </dl>
+          <p id="run-source"></p>
+          <p><a id="future">Open this month in the scenario viewer</a></p>
+          <section id="evidence" aria-labelledby="evidence-title" hidden>
+            <h3 id="evidence-title">Model events at the pause</h3>
+            <p>These events occurred in the same month. They provide context for the result.</p>
+            <div id="events"></div>
+            <section id="policy-report" hidden>
+              <h4>Policy stages at the pause</h4>
+              <ul id="policy-stages"></ul>
+            </section>
+          </section>
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

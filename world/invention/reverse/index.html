@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reverse Simulator · HappyBearLandia</title>
+  <link rel="stylesheet" href="/world/invention/reverse/view.css">
+  <script type="module" src="/world/invention/reverse/page.js"></script>
+</head>
+<body>
+  <main>
+    <nav aria-label="Invention navigation">
+      <a href="/">HappyBearLandia</a>
+      <a href="/world/invention/">Invention Studio</a>
+    </nav>
+    <header>
+      <h1>Reverse Simulator</h1>
+      <p>Set a commute goal and budget. See which policies reach it in the Riverside City model.</p>
+    </header>
+
+    <section aria-labelledby="goal-title">
+      <h2 id="goal-title">Define success</h2>
+      <form id="goal">
+        <div class="goal-inputs">
+          <label>Target commute reduction (%) <input type="number" name="targetReductionPercent" min="0" max="100" step=".1" required></label>
+          <label>Maximum proposed cost (USD) <input type="number" name="budget" min="0" max="1000000000" step="1" required></label>
+        </div>
+        <fieldset>
+          <legend>Allowed interventions</legend>
+          <div id="interventions"></div>
+        </fieldset>
+        <details>
+          <summary>Search settings</summary>
+          <div class="goal-inputs">
+            <label>Seed <input type="number" name="seed" min="0" max="4294967295" step="1" required></label>
+            <label>Months after starting checkpoint <input type="number" name="months" min="1" max="36" step="1" required></label>
+            <label>Search size <select name="candidateLimit"></select></label>
+          </div>
+          <p>The search admits the lowest-cost compatible bundles first, with up to four options per bundle and one option of each type per district.</p>
+        </details>
+        <div class="actions">
+          <button type="submit">Find plans</button>
+          <button id="cancel" type="button" class="secondary" disabled>Cancel</button>
+        </div>
+      </form>
+      <p id="progress-status" role="status"></p>
+      <progress id="progress" aria-label="Plans evaluated" hidden></progress>
+    </section>
+
+    <section id="results" aria-labelledby="results-title" hidden>
+      <h2 id="results-title"></h2>
+      <p id="result-status"></p>
+      <p id="baseline"></p>
+      <p id="coverage"></p>
+      <div id="frontier" hidden>
+        <h3 id="frontier-title"></h3>
+        <p id="strongest"></p>
+        <div class="table-frame" tabindex="0" aria-label="Scrollable plan comparison">
+          <table>
+            <caption>Final-month comparison. Lower proposed cost, commute time, and unhoused counts define the frontier.</caption>
+            <thead>
+              <tr>
+                <th scope="col">Plan</th><th scope="col">Proposed cost</th><th scope="col">Mean commute</th>
+                <th scope="col">Reduction</th><th scope="col">Trip count</th><th scope="col">Unhoused</th>
+                <th scope="col">Unemployment</th><th scope="col">Housing units</th>
+              </tr>
+            </thead>
+            <tbody id="plan-rows"></tbody>
+          </table>
+        </div>
+        <button id="more" class="secondary" type="button" hidden>Show 20 more plans</button>
+      </div>
+      <details>
+        <summary>How to interpret these results</summary>
+        <p>Plans share one seed and are compared to the same no-change baseline at the final month. Mean commute uses completed modeled trip records and can change when the number of trips changes. Proposed costs are catalog inputs. Projects can be delayed, and the future view shows each policy’s modeled stage.</p>
+        <p>These runs use a synthetic City scenario. They describe outcomes within the selected search space and assumptions.</p>
+      </details>
+    </section>
+    <noscript>Enable JavaScript to run the Reverse Simulator.</noscript>
+  </main>
+</body>
+</html>

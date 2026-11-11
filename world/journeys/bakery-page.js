@@ -5,6 +5,7 @@ const monthInput = find('month');
 const branchButton = find('branch');
 const experimentStatus = find('experiment-status');
 const sceneTemplate = find('scene-template');
+const criticalButton = find('critical-month');
 const baselineScene = find('baseline-scene');
 const futureScene = find('future-scene');
 const format = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 });
@@ -17,6 +18,7 @@ let sequence = 0;
 let baseline;
 let future;
 let busy = false;
+let criticalMonth;
 
 function runInWorker(reopenMonth) {
   if (workerError) return Promise.reject(workerError);
@@ -109,6 +111,64 @@ function drawEvidence(record, row) {
   }
 }
 
+function closeEvent(record) {
+  return record.events.find(event => event.title === 'Riverside Bakery closes');
+}
+
+function caseStages(record, row) {
+  const order = row.delivered + row.unserved;
+  let streak = 0;
+  for (let index = row.month; index >= 0 && record.months[index]?.unserved > 0; index--) streak++;
+  const justClosed = closeEvent(record)?.month === row.month;
+  return [
+    ['road', 'Direct flour route', row.roadClosed ? 'Closed' : 'Open', false],
+    ['delivery', 'Flour delivered', order > 0
+      ? `${format.format(row.delivered)} of ${format.format(order)} units`
+      : 'No order recorded', row.roadClosed && order > 0],
+    ['streak', 'Short deliveries', order > 0
+      ? `${streak} consecutive ${streak === 1 ? 'month' : 'months'}`
+      : 'No active order', streak > 0],
+    ['bakery', 'Bakery', row.bakeryOpen ? 'Open' : justClosed ? 'Closed this month' : 'Closed', justClosed],
+    ['shift', 'Luis’s shift', `${format.format(row.workerHours)} of 8 hours`, row.workerHours < 8],
+  ];
+}
+
+function drawCaseFile(original, alternate) {
+  const left = caseStages(baseline, original);
+  const right = alternate ? caseStages(future, alternate) : null;
+  find('case-chain').replaceChildren(...left.map(([id, label, value, linked], i) => {
+    const stage = document.createElement('li');
+    stage.dataset.caseStage = id;
+    const comparisonLinked = right?.[i][3] ?? false;
+    stage.dataset.connection = linked ? (comparisonLinked ? 'both' : 'baseline') : comparisonLinked ? 'adjusted' : 'none';
+    const values = document.createElement('dl');
+    for (const [branch, text, active] of [['baseline', value, linked], ...(right ? [['adjusted', right[i][2], comparisonLinked]] : [])]) {
+      const entry = document.createElement('div');
+      entry.dataset.caseBranch = branch;
+      entry.dataset.active = String(active);
+      entry.append(element('dt', branch === 'baseline' ? 'Baseline' : 'With reopening'), element('dd', text));
+      values.append(entry);
+    }
+    stage.append(element('h3', label), values);
+    return stage;
+  }));
+
+  const outcome = find('case-outcome');
+  outcome.hidden = !future;
+  if (!future) return;
+  const reopened = future.months[future.recipe.reopenMonth];
+  const closure = closeEvent(future);
+  if (closure && reopened.month > closure.month) {
+    outcome.textContent = `Too late. The bakery closed in ${monthDate(future.months[closure.month])}. The route reopened in ${monthDate(reopened)}, after orders had stopped.`;
+  } else if (!closure && reopened.bakeryOpen && reopened.delivered > 0 && reopened.unserved === 0) {
+    outcome.textContent = `In time. In ${monthDate(reopened)} the bakery received its full ${format.format(reopened.delivered + reopened.unserved)}-unit order through the available route. The third short delivery never occurred.`;
+  } else if (closure) {
+    outcome.textContent = `The closure rule still triggered in ${monthDate(future.months[closure.month])}.`;
+  } else {
+    outcome.textContent = 'The compared timeline has no recorded bakery closure.';
+  }
+}
+
 function syncLever(month) {
   const selected = baseline.months[month];
   branchButton.disabled = busy || month < baseline.decisionMonth;
@@ -135,6 +195,7 @@ function showMonth(month, { updateURL = true } = {}) {
     : `Bakery ${state(original).toLowerCase()} · Schematic map`;
   drawMetrics(original, alternate);
   drawEvidence(future ?? baseline, alternate ?? original);
+  drawCaseFile(original, alternate);
   for (const marker of find('clues').children) {
     marker.setAttribute('aria-current', String(Number(marker.dataset.month) === month));
   }
@@ -249,6 +310,11 @@ async function openJourney() {
     find('start-year').textContent = baseline.months[0].year;
     find('end-year').textContent = baseline.months[baseline.finalMonth].year;
     drawClues();
+    criticalMonth = closeEvent(baseline)?.month;
+    if (baseline.months[criticalMonth]) {
+      criticalButton.hidden = false;
+      criticalButton.title = monthDate(baseline.months[criticalMonth]);
+    }
     let month = baseline.finalMonth;
     if (params.has('month') && /^[0-9]+$/.test(params.get('month'))) {
       const requested = Number(params.get('month'));
@@ -274,6 +340,10 @@ async function openJourney() {
 }
 
 monthInput.addEventListener('input', () => showMonth(Number(monthInput.value)));
+criticalButton.addEventListener('click', () => {
+  showMonth(criticalMonth);
+  monthInput.focus();
+});
 branchButton.addEventListener('click', tryChange);
 find('reset').addEventListener('click', () => showFuture(null, Number(monthInput.value)));
 find('reveal').addEventListener('input', event => {

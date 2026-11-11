@@ -1,7 +1,7 @@
 /** Read-only browser for immutable stored simulation states. */
 export function contextLink(path, context, origin = 'http://localhost') {
   const url = new URL(path, origin);
-  for (const key of ['universeId','worldId','scenarioId','experiment','runId','branchId','tick','time','entityId','returnTo']) {
+  for (const key of ['universeId','worldId','scenarioId','experiment','experimentId','runId','branchId','tick','time','entityId','person','future','returnTo']) {
     if (context[key] != null && context[key] !== '') url.searchParams.set(key, context[key]);
   }
   return url.pathname + url.search;
@@ -14,6 +14,8 @@ async function mount(root) {
   const context = Object.fromEntries(new URLSearchParams(location.search));
   const heading = document.createElement('h1'); heading.textContent = 'Worldline · connected futures'; root.append(heading);
   const notice = document.createElement('p'); notice.textContent = 'Stored simulation states, not forecasts. Submitted geometry, synthetic model outputs and fictional narratives are distinct evidence sources.'; root.append(notice);
+  const guide = document.createElement('a'); guide.textContent = 'Try the saved future journey';
+  guide.href = contextLink('/tools/future-journey.html', context, location.origin); root.append(guide);
   const status = document.createElement('p'); status.setAttribute('role','status'); root.append(status);
   const select = document.createElement('select'); select.setAttribute('aria-label','Stored experiment'); root.append(select);
   const detail = document.createElement('div'); root.append(detail);
@@ -24,6 +26,7 @@ async function mount(root) {
     try {
       const record = await read('/api/world-experiments/' + encodeURIComponent(id)); if(current !== revision) return;
       context.experiment = id;
+      guide.href = contextLink('/tools/future-journey.html', context, location.origin);
       const url = new URL(location.href); url.searchParams.set('experiment',id); history.replaceState(null,'',url);
       status.textContent = 'Saved · ' + record.createdAt;
       const summary = document.createElement('p'); summary.textContent = `${record.save.label} · ${record.save.mode} · parent: ${record.parentId || 'root'} · ${record.notice || 'Stored simulation state'}`; detail.append(summary);

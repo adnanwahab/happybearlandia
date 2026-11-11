@@ -11,3 +11,21 @@ export async function openEditableHouse(page,{population=4,withTV=false}={}){
  await page.goto('/world/house/'+fixture.householdId+'?experiment=editqa01');try{await page.waitForFunction(()=>{const s=window.hblHouseSession,stats=s?.getScene()?.getStats();return s?.getSceneDebug()?.frameCount>0&&stats?.rooms>=4&&stats?.objects>=6;},{},{timeout:15000});}catch(error){throw Error('House fixture did not render: '+(await page.locator('body').innerText()).slice(0,3000));}return fixture;
 }
 export async function houseState(page){return page.evaluate(async()=>{const s=hblHouseSession;return{household:await s.getRuntime().inspectHousehold(s.getHouseholdId()),snapshot:s.getRuntime().getSnapshot(),scene:s.getSceneDebug()};});}
+
+export async function houseSkipHourControl(page) {
+  const tools = page.locator('[data-house-tools]');
+  async function openTools() {
+    if (!await tools.evaluate(details => details.open)) await tools.locator(':scope > summary').click();
+  }
+  await openTools();
+  const inspector = tools.locator('.story-mode-controls button[aria-pressed="false"]');
+  if (await inspector.isVisible()) {
+    await inspector.click();
+    await openTools();
+  }
+  return tools.getByRole('button', { name: 'Skip 1 hour', exact: true });
+}
+
+export async function clickHouseSkipHour(page) {
+  await (await houseSkipHourControl(page)).click();
+}

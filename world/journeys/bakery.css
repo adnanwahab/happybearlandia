@@ -103,3 +103,58 @@ button { border: 1px solid transparent; border-radius: .35rem; padding: .5rem .7
 @media (prefers-reduced-motion: no-preference) {
   .scene .bakery { transition: background-color .2s ease-out; }
 }
+
+.case-file {
+  margin-bottom: 1rem;
+  padding: .95rem 1.15rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: .65rem;
+  --case-adjusted: #a3d6b5;
+}
+.case-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .55rem; }
+.case-chain {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: .7rem;
+  margin: .8rem 0 .6rem;
+  padding: 0;
+  list-style: none;
+}
+.case-chain > li {
+  position: relative;
+  min-width: 0;
+  padding: .55rem;
+  border: 1px solid var(--line);
+  border-radius: .35rem;
+  background: #292c22;
+}
+.case-chain > li + li::before {
+  content: "";
+  position: absolute;
+  width: .7rem;
+  top: 1.15rem;
+  right: 100%;
+  border-top: 2px solid var(--case-link, var(--line));
+}
+.case-chain > li[data-connection="baseline"] { --case-link: var(--amber); }
+.case-chain > li[data-connection="adjusted"] { --case-link: var(--case-adjusted); }
+.case-chain > li[data-connection="both"] { --case-link: var(--ink); }
+.case-chain h3 { margin: 0 0 .32rem; font-size: .86rem; }
+.case-chain dl { display: grid; gap: .32rem; margin: 0; }
+.case-chain dl > div { border-left: 2px solid var(--line); padding-left: .35rem; }
+.case-chain [data-case-branch="baseline"][data-active="true"] { border-color: var(--amber); }
+.case-chain [data-case-branch="adjusted"][data-active="true"] { border-color: var(--case-adjusted); }
+.case-chain dt { font-size: .71rem; color: var(--muted); }
+.case-chain dd { margin: 0; font-size: .84rem; font-weight: 650; overflow-wrap: anywhere; }
+.case-rule, .case-outcome { margin: .5rem 0 0; font-size: .85rem; line-height: 1.45; }
+.case-rule { color: var(--muted); }
+.case-outcome { color: var(--ink); }
+
+@media (max-width: 680px) {
+  .case-chain { grid-template-columns: minmax(0, 1fr); gap: .46rem; }
+  .case-chain > li { display: grid; grid-template-columns: minmax(5rem, .8fr) minmax(0, 1.6fr); align-items: baseline; gap: .45rem; }
+  .case-chain > li + li::before { top: auto; bottom: 100%; left: 1rem; width: 0; height: .46rem; border: 0; border-left: 2px solid var(--case-link, var(--line)); }
+  .case-chain dl { display: flex; flex-wrap: wrap; gap: .32rem .55rem; }
+  .case-chain h3 { margin: 0; }
+}

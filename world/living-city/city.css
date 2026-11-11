@@ -40,3 +40,9 @@ dd { margin: 0 0 .45rem; font-weight: 650; overflow-wrap: anywhere; }
 @media (max-width: 720px) {
   .workspace { grid-template-columns: minmax(0, 1fr); gap: 0; }
 }
+
+.pair-scorecard { padding: .8rem 1rem; border: 1px solid #587e71; border-radius: .6rem; margin-block: .7rem; }
+.pair-bar { position: relative; height: .75rem; background: #233b38; border-radius: .3rem; }
+.pair-bar::after { content: ''; position: absolute; left: 50%; top: -.15rem; bottom: -.15rem; width: 2px; background: #d9e9e1; }
+.pair-bar span { position: absolute; height: 100%; background: #edaa83; }
+.pair-bar span[data-direction="shorter"] { background: #8ae7b4; }

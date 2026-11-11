@@ -1,0 +1,9 @@
+main { max-width: 76rem; }
+#inputs input { width: min(100%, 11rem); }
+#scene { margin-block: 1rem; }
+#edit-title, #results h3 { margin-top: 1.25rem; }
+#plan-edits { padding-inline-start: 1.5rem; }
+#plan-edits li { margin-block: .45rem; }
+#plan-edits button { margin-inline-start: .65rem; padding: .15rem .45rem; }
+.table-wrap { overflow-x: auto; }
+.branches, main > details { margin-top: 1.4rem; padding-top: .8rem; border-top: 1px solid var(--border); }

@@ -1,0 +1,6 @@
+#braid { overflow-x: auto; background: #152725; border: 1px solid var(--border); border-radius: .45rem; margin-block: 1rem; }
+#braid svg { display: block; width: 100%; min-width: 32rem; }
+#braid a:focus-visible circle { stroke: white; stroke-width: 4; }
+#branches { padding-inline-start: 1.5rem; }
+#branches li { margin-block: .65rem; }
+#branches button { margin: .15rem; }

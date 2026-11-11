@@ -18,3 +18,9 @@
 #universe-shell .universe-status { font-size:13px; }
 @media(max-width:600px) { #universe-shell { width:calc(100% - 20px); padding:16px; } }
 @media(prefers-reduced-motion:reduce) { #universe-shell *,#universe-shell *::before { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+
+.universe-missions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: .75rem; margin: 1rem 0; }
+.universe-missions article { padding: 1rem; border: 1px solid #52736b; border-radius: .5rem; background: #132e29; color: #eff8ef; }
+.universe-missions h4 { margin: .35rem 0; font-size: 1.15rem; }
+.universe-missions small { color: #bcd4b5; }
+.universe-missions a { display: inline-block; padding-block: .25rem; }

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Civilization Zoom · HappyBearLandia</title>
+  <link rel="stylesheet" href="./zoom.css">
+  <script type="module" src="./page.js"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <nav aria-label="World navigation"><a href="/world/connected-lives/">Connected Lives</a><a href="/world">Living World</a></nav>
+      <h1>Civilization Zoom</h1>
+      <p>Explore one saved city from its districts down to a resident’s recorded relationships and decisions.</p>
+    </header>
+    <form id="open">
+      <label for="checkpoint">Saved Living World checkpoint</label>
+      <input id="checkpoint" list="checkpoints" required pattern="[A-Za-z0-9_\-]{8,16}" autocomplete="off">
+      <datalist id="checkpoints"></datalist>
+      <button type="submit">Open checkpoint</button>
+    </form>
+    <p id="status" role="status">Finding saved checkpoints…</p>
+    <p id="list-status" role="status"></p>
+    <section id="zoom" hidden aria-labelledby="title">
+      <p id="identity"></p>
+      <nav id="breadcrumbs" aria-label="Zoom levels"></nav>
+      <div id="scale">
+        <canvas id="picture" width="640" height="265" aria-hidden="true"></canvas>
+        <div id="details">
+          <h2 id="title" tabindex="-1"></h2>
+          <p id="description"></p>
+          <div id="content"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

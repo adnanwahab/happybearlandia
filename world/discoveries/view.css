@@ -33,3 +33,8 @@ dd { margin: 0 0 .5rem; }
 .evidence { padding-inline-start: 1.5rem; }
 .evidence li { margin-top: .5rem; }
 .evidence small { display: block; }
+
+#atlas { display: flex; flex-wrap: wrap; gap: .45rem; margin-block: .7rem; }
+#atlas button { border: 1px solid #799888; min-height: 2.5rem; color: #f2f9ee; background: linear-gradient(90deg, #345c4c var(--atlas-count), #19312a var(--atlas-count)); }
+#atlas button[aria-pressed="true"] { outline: 2px solid #a9eabc; }
+#atlas button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }

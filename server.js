@@ -1,6 +1,9 @@
 import { withUniverseNavigation } from './world/universe/html-navigation.js';
 import {createCausalityHandler} from './world/causality/api.js';
-const handleCausality=createCausalityHandler();
+import {createReleaseHealthHandler,initializeReleaseStorage} from './ops/release-health.js';
+const releaseStorage=initializeReleaseStorage();
+const handleReleaseHealth=createReleaseHealthHandler(releaseStorage);
+const handleCausality=createCausalityHandler({dbPath:releaseStorage.worldDbPath});
 import {createActNormalService} from './world/party/act-normal-server.js';
 const actNormalService=createActNormalService();
 import {loadLocalOpenAISettings} from './world/ai/local-settings.js';
@@ -10,7 +13,7 @@ const handleDateMystery=createDateMysteryHandler();
 import {createDatePlacesHandler} from './world/house/date-drive-search.js';
 const handleDatePlaces=createDatePlacesHandler();
 import {createWorldPersistenceHandler,EXPERIMENT_MAX_BYTES} from './world/experiments/persistence-api.js';
-const handleWorldPersistence=createWorldPersistenceHandler();
+const handleWorldPersistence=createWorldPersistenceHandler({dbPath:releaseStorage.worldDbPath});
 import {createRealityShareHandler} from './world/reality/share-api.js';
 import {createOpenQuestionsHandler} from './world/questions/api.js';
 const handleRealityShares=createRealityShareHandler();
@@ -411,6 +414,7 @@ const server = serve({
 
   async fetch(request, server) {
     const { pathname } = new URL(request.url);
+    if (pathname === "/api/health" || pathname === "/api/ready") return handleReleaseHealth(request);
     if(pathname.startsWith('/api/act-normal/'))return actNormalService.fetch(request,server);
     if(/^\/world\/party\/act-normal\/?$/.test(pathname))return serveFile('./world/party/act-normal.html');
 
@@ -455,6 +459,7 @@ const server = serve({
     if (pathname === "/twitch-plays-robot") return serveFile("./tools/twitch-plays-robot.html");
 
     // Tools: /tools/scene-reconstruction, /tools/twitch-plays-robot
+    if (pathname === "/tools/simulation-health") return serveFile("./tools/simulation-health/index.html");
     if (under(pathname, "/tools")) return serveStatic("/tools", "./tools", pathname);
 
     // Game media/assets

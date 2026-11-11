@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Future Search · HappyBearLandia</title>
+  <link rel="stylesheet" href="./search.css">
+  <script type="module" src="./page.js"></script>
+</head>
+<body>
+  <main>
+    <nav aria-label="World navigation"><a href="/world/causal.html">World Time Machine</a></nav>
+    <h1>Future Search</h1>
+    <p>Find saved monthly City simulations that meet your conditions at two exact months.</p>
+    <form>
+      <label>Start month <input name="start" type="number" min="0" step="1" value="0" required></label>
+      <label>End month <input name="end" type="number" min="1" step="1" value="20" required></label>
+      <label>Mean unit rent
+        <select name="rent">
+          <option value="lower">Decreases</option>
+          <option value="at-most">Does not increase</option>
+          <option value="any">No condition</option>
+        </select>
+      </label>
+      <label>Mean district-link travel time
+        <select name="travel">
+          <option value="at-most">Does not increase</option>
+          <option value="lower">Decreases</option>
+          <option value="any">No condition</option>
+        </select>
+      </label>
+      <button>Search saved runs</button>
+    </form>
+    <p class="scope">The travel metric averages modeled network links. Household commute data is unavailable in the saved observations. Changes are measured within each run.</p>
+    <p id="status" role="status"></p>
+    <div id="results"></div>
+  </main>
+</body>
+</html>

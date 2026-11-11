@@ -18,8 +18,13 @@ if (root) {
     <p>World is the stage. Worldline explores possible futures. The causal inspector explains recorded model dependencies.</p>
     <nav aria-label="Universe navigation"><a data-app="world">Enter World</a><a data-app="worldline">Explore Worldline</a><a data-app="experiments">Experiments</a><a id="universe-model">Recorded World model</a></nav>
     <section id="universe-demos" aria-label="Try the new connected demos">
-      <h3>Try the new demos</h3>
-      <p>These are reproducible, synthetic demonstration journeys. They do not yet share one authoritative city and household model.</p>
+      <h3>Choose Your First Adventure</h3>
+      <div class="universe-missions">
+        <article><small>Synthetic demo</small><h4>See 20 months of city change</h4><p>Open the recorded city and find out when a housing project was completed.</p><a data-demo-route="/world/causal.html">Start Time Machine</a></article>
+        <article><small>Synthetic demo</small><h4>Save Riverside Bakery</h4><p>Trace the missing flour deliveries and test when to reopen the road.</p><a data-demo-route="/world/journeys/bakery.html">Open the bakery case</a></article>
+        <article><small>Synthetic demo</small><h4>Help a Commuter</h4><p>Meet a Riverside worker and compare two versions of their commute.</p><a data-demo-route="/world/living-city/">Start the commute challenge</a></article>
+      </div>
+      <p><a data-demo-route="/tools/future-journey.html">Saved Future Journey</a></p>
       <nav aria-label="Demo shortcuts">
         <a data-demo-route="/world/causal.html">Time Machine</a>
         <a data-demo-route="/world/living-city/">Living City challenge</a>

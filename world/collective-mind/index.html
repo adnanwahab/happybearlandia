@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Collective Mind · HappyBearLandia</title>
+  <link rel="stylesheet" href="/world/collective-mind/view.css">
+  <script type="module" src="/world/collective-mind/page.js"></script>
+</head>
+<body>
+  <main>
+    <nav aria-label="World navigation"><a href="/world/connected-lives/">Connected Lives</a><a href="/">HappyBearLandia</a></nav>
+    <header class="intro">
+      <h1>The Collective Mind</h1>
+      <p>Watch 1,000 agents exchange proposals and see where agreement holds, spreads, or breaks apart.</p>
+    </header>
+
+    <div class="workspace">
+      <section class="experiment" aria-labelledby="question-heading">
+        <div class="experiment-heading">
+          <h2 id="question-heading"></h2>
+          <span id="backend" class="backend"></span>
+        </div>
+        <figure>
+          <div id="network" class="network" role="img" aria-label="Agent network"></div>
+          <figcaption>Dots represent agents. The view shows a sample of links between agents who currently agree.</figcaption>
+        </figure>
+        <div class="playback">
+          <button id="play" type="button">Play</button>
+          <label class="round-control">
+            <span>Round <output id="round-output" for="round">0</output></span>
+            <input id="round" type="range" min="0" step="1" value="0">
+          </label>
+          <label class="checkbox"><input id="edges" type="checkbox" checked> Show agreement links</label>
+        </div>
+        <dl class="summary">
+          <div><dt>Links in agreement</dt><dd id="agreement">—</dd></div>
+          <div><dt>Support for leading proposal</dt><dd id="leading">—</dd></div>
+          <div><dt>Changed this round</dt><dd id="changed">—</dd></div>
+        </dl>
+        <ul id="options" class="options" aria-label="Support by proposal"></ul>
+      </section>
+
+      <aside aria-labelledby="settings-heading">
+        <h2 id="settings-heading">Set up the experiment</h2>
+        <form id="settings">
+          <label>Question <input name="question" maxlength="120" required></label>
+          <fieldset>
+            <legend>Proposal labels</legend>
+            <label>Proposal A <input name="a" maxlength="32" required></label>
+            <label>Proposal B <input name="b" maxlength="32" required></label>
+            <label>Proposal C <input name="c" maxlength="32" required></label>
+          </fieldset>
+          <label>Communication network <select name="network"></select></label>
+          <div class="form-pair">
+            <label>Openness (%) <input name="openness" type="number" min="0" max="100" step="any" required></label>
+            <label>Seed <input name="seed" type="number" min="0" max="4294967295" step="1" required></label>
+          </div>
+          <button type="submit">Run experiment</button>
+          <p id="status" role="status"></p>
+        </form>
+        <details>
+          <summary>How agents update</summary>
+          <p>Eight districts start with different proposal preferences. Each agent gives their initial preference a private weight of one to two votes and counts one vote from every contact. A tied result preserves the current choice. Openness controls the chance that an agent follows a clear winner in each round.</p>
+          <p>The question and proposal names label a seeded synthetic model. The same settings reproduce the same rounds.</p>
+        </details>
+      </aside>
+    </div>
+    <noscript>Enable JavaScript to run the experiment.</noscript>
+  </main>
+</body>
+</html>

@@ -118,7 +118,7 @@ const initialAreaRequest=(async()=>{
   }catch(error){return {source:"none",error:`area request failed: ${error.message}`};}
 })();
 
-const useMainWorldGPU = !params.has("living") && !businessMode && !embedMode;
+const useMainWorldGPU = loadedExperiment?.save.mode !== "living" && !params.has("living") && !businessMode && !embedMode;
 const { renderer, mode: rendererMode } = useMainWorldGPU
   ? await (await import("./world-gpu.js")).createWorldGPU({ antialias: !embedMode })
   : await createCityRenderer({ forceWebGL: params.get("renderer") === "webgl", antialias: !embedMode });
@@ -2309,9 +2309,22 @@ if(loadedExperiment){
  const saved=loadedExperiment.save;
  try{playback.pause();if(saved.mode==='living'){await livingWorld.setActive(true);const runtime=livingWorld.getRuntime();runtime.pause();await runtime.restoreCheckpoint(saved.checkpoint);if(saved.view.livingCulture)livingWorld.getCultureSimulation()?.restore(saved.view.livingCulture);}else{await livingWorld?.setActive(false);world.restoreCheckpoint(saved.checkpoint);}
  if(saved.view.camera?.position?.length===3&&saved.view.camera?.target?.length===3){camera.position.fromArray(saved.view.camera.position);controls.target.fromArray(saved.view.camera.target);controls.update();}
- if(saved.view.graphics){const graphics=saved.view.graphics;if(graphics.quality)cityRenderer.setQuality(graphics.quality);if(graphics.settings?.targetFPS)cityRenderer.setTargetFPS(graphics.settings.targetFPS);for(const [name,value] of Object.entries(graphics.features??{}))cityRenderer.setFeature(name,value);}if(saved.view.selection){if(saved.mode==='living')await livingWorld.selectPerson(saved.view.selection.id);else select(saved.view.selection);}
+ if(saved.view.graphics){const graphics=saved.view.graphics;if(graphics.quality)cityRenderer.setQuality(graphics.quality);if(graphics.settings?.targetFPS)cityRenderer.setTargetFPS(graphics.settings.targetFPS);for(const [name,value] of Object.entries(graphics.features??{}))cityRenderer.setFeature(name,value);}if(saved.mode==='living' && params.has('person')){
+   const personId=params.get('person');const runtime=livingWorld.getRuntime();
+   if(!await runtime.inspectPerson(personId))throw Error('That resident is absent from this checkpoint.');
+   await livingWorld.selectPerson(personId);
+   const {journeyURL}=await import('./future-journey/navigation.js');
+   const {inspectFuture}=await import('./future-journey/model.js');
+   const {readPopulationCheckpoint}=await import('./population/checkpoint.js');
+   const exact=inspectFuture({record:loadedExperiment,state:readPopulationCheckpoint(saved.checkpoint)},personId);
+   for(const [surface,label] of [['worldline','Return to Worldline'],['house','Open exact household in House Simulator']]){
+     const link=document.createElement('a');link.textContent=label;
+     link.href=journeyURL(surface,exact,location.search);
+     $('top').append(link);
+   }
+ }else if(saved.view.selection){if(saved.mode==='living')await livingWorld.selectPerson(saved.view.selection.id);else select(saved.view.selection);}
  if(saved.view.policyPackages)PLAN_PACKAGES=structuredClone(saved.view.policyPackages);activePolicyId=saved.view.policy??'none';policyYear=saved.view.planYear??0;if($('policy'))$('policy').value=activePolicyId;if(planYearEl)planYearEl.value=String(policyYear);
- const settings=saved.view.playback;if(settings){playback.setSpeed(settings.speed);settings.paused?playback.pause():playback.resume();}
+ const settings=saved.view.playback;if(settings){playback.setSpeed(settings.speed);settings.paused||params.has('person')?playback.pause():playback.resume();}
  if(saved.view.buildingWorkspace){if(!buildingBridge?.restoreCheckpoint)throw Error('Construction checkpoint adapter unavailable');await buildingBridge.ready;buildingBridge.restoreCheckpoint(saved.view.buildingWorkspace);}
  experimentRestored=true;
  }catch(error){playback.pause();startup.restoreError=error.message;const notice=document.createElement('p');notice.style.cssText='position:fixed;top:80px;left:20px;z-index:999;background:#641f28;color:white;padding:16px';notice.textContent='Saved experiment restoration failed; playback paused: '+error.message;document.body.append(notice);}

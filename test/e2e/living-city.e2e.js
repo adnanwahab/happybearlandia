@@ -20,7 +20,10 @@ test('help a resident, inspect real flows, compare 100 paired futures, and repla
   await expect(page.locator('#pair-status')).toContainText('Pair 1 · Seed');
   await page.getByRole('combobox', { name: 'Choose a paired future' }).selectOption('6');
   await expect(page.locator('#pair-status')).toContainText('Pair 7 · Seed');
-  const pair = await page.locator('#pair').innerText();
+  const pair = await page.locator('#pair dd').allTextContents();
+  const difference = await page.locator('#pair-difference').innerText();
+  await expect(page.getByRole('heading', { name: 'Same-seed commute scorecard' })).toBeVisible();
+  await expect(page.locator('#pair-cost')).toContainText('modeled USD');
   await expect(page.getByRole('heading', { name: 'Living City Council' })).toBeVisible();
   await page.getByText('Ask the resident what changed').click();
   await expect(page.locator('#answer')).toContainText('worker-1');
@@ -30,6 +33,6 @@ test('help a resident, inspect real flows, compare 100 paired futures, and repla
   const link = await page.getByLabel('Share this challenge').inputValue();
   await page.goto(link);
   await expect(page.locator('#pair-status')).toContainText('Pair 7 · Seed');
-  const reopenedPair = await page.locator('#pair').innerText();
-  expect(reopenedPair.replace(/\s+/g, ' ').trim()).toBe(pair.replace(/\s+/g, ' ').trim());
+  await expect(page.locator('#pair dd')).toHaveText(pair);
+  await expect(page.locator('#pair-difference')).toHaveText(difference);
 });

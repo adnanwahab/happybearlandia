@@ -15,6 +15,11 @@ const checkpointStatus = find('checkpoint');
 const inventory = find('inventory');
 const inspectorHost = find('inspector');
 const runPicker = find('saved-run');
+const playbackButton = find('playback');
+const playbackSpeed = find('playback-speed');
+const playbackStatus = find('playback-status');
+const nextEventButton = find('next-event');
+const changeSummary = find('change-summary');
 const updateHeatmap = mountCityHeatmap(find('heatmap'));
 const networkDetails = find('network-details');
 const updateHistoricalNetwork = mountLivingNetwork(find('historical-network'));
@@ -34,6 +39,13 @@ let selectedRun;
 let savedRuns = new Map();
 let selectionNumber = 0;
 let requestNumber = 0;
+let checkpointQueue = Promise.resolve();
+let displayedMonth;
+let monthReady = false;
+let playbackTimer;
+let playing = false;
+let playbackSession = 0;
+let recordedEvents = [];
 
 async function read(path, query = {}, options) {
   const url = new URL('/api/causality/' + path, location.origin);
@@ -108,11 +120,18 @@ async function loadRun(run) {
   }
   const months = [...checkpoints.keys()].sort((a, b) => a - b);
   if (!months.length) throw new Error('This run has no supported city checkpoints.');
+  const eventsByMonth = new Map();
+  for (const event of recordedEvents) {
+    const month = event.context.tick;
+    if (!eventsByMonth.has(month)) eventsByMonth.set(month, []);
+    eventsByMonth.get(month).push(event);
+  }
   return {
     context,
     checkpoints,
     inventory: new Map(),
     events: new Map(recordedEvents.map(event => [event.id, event])),
+    eventsByMonth,
     constructionEvidence: indexConstructionEvidence(recordedEvents, context.worldId),
     firstMonth: months[0],
     lastMonth: months.at(-1),
@@ -125,8 +144,10 @@ function renderTimeline(run) {
   find('first-month').textContent = run.firstMonth;
   find('last-month').textContent = run.lastMonth;
   eventPicker.length = 1;
-  for (const event of run.events.values()) {
-    if (!run.checkpoints.has(event.context.tick)) continue;
+  recordedEvents = [...run.events.values()]
+    .filter(event => run.checkpoints.has(event.context.tick))
+    .sort((a, b) => a.context.tick - b.context.tick || a.sequence - b.sequence);
+  for (const event of recordedEvents) {
     const label = event.type.replaceAll('_', ' ').toLowerCase();
     const transition = event.payload.transition;
     const subject = typeof transition === 'string' ? ` for ${transition.toLowerCase().replaceAll('_', ' ')}` : '';
@@ -220,6 +241,7 @@ function renderInventory(rows, month) {
       }
       button.onclick = () => {
         eventPicker.value = eventId ?? '';
+        pausePlayback(playing ? 'Playback paused.' : '');
         updateURL(month, eventId, row.id);
         inspect(month, row.id, eventId);
       };
@@ -232,14 +254,82 @@ function renderInventory(rows, month) {
   inventory.replaceChildren(...sections);
 }
 
+function renderChangeSummary(rows, month, hasPrevious) {
+  find('change-note').textContent = hasPrevious
+    ? `Entity changes since month ${month - 1}`
+    : 'Change counts require a preceding stored month.';
+  const counts = { Added: 0, Changed: 0, Removed: 0 };
+  if (hasPrevious) {
+    for (const row of Object.values(rows).flat()) {
+      if (row.change) counts[row.change]++;
+    }
+    for (const [label, count] of Object.entries(counts)) {
+      find('change-' + label.toLowerCase()).textContent = count;
+    }
+  }
+  find('change-counts').hidden = !hasPrevious;
+  changeSummary.hidden = false;
+}
+
+function nextRecordedEvent() {
+  if (!monthReady) return null;
+  const current = recordedEvents.findIndex(event => event.id === eventPicker.value);
+  return current >= 0
+    ? recordedEvents[current + 1]
+    : recordedEvents.find(event => event.context.tick > displayedMonth);
+}
+
+function updatePlaybackControls() {
+  playbackButton.textContent = playing ? 'Pause' : 'Play';
+  playbackButton.disabled = !playing && (!monthReady || displayedMonth >= selectedRun?.lastMonth);
+  nextEventButton.disabled = !nextRecordedEvent();
+}
+
+function pausePlayback(message) {
+  clearTimeout(playbackTimer);
+  playbackTimer = undefined;
+  playbackSession++;
+  playing = false;
+  if (message) playbackStatus.textContent = message;
+  updatePlaybackControls();
+}
+
+function schedulePlayback() {
+  const session = playbackSession;
+  playbackTimer = setTimeout(async () => {
+    playbackTimer = undefined;
+    if (!playing || session !== playbackSession) return;
+    const month = displayedMonth + 1;
+    const opened = await showMonth(month);
+    if (!opened || !playing || session !== playbackSession) return;
+    if (month >= selectedRun.lastMonth) pausePlayback(`Playback finished at month ${month}.`);
+    else schedulePlayback();
+  }, 1000 / Number(playbackSpeed.value));
+}
+
+function queueCheckpoint(run, month, request) {
+  const task = checkpointQueue.then(async () => {
+    if (request !== requestNumber) return null;
+    const current = await getInventory(run, month);
+    if (request !== requestNumber) return null;
+    const previous = run.checkpoints.has(month - 1) ? await getInventory(run, month - 1) : null;
+    return { current, previous };
+  });
+  checkpointQueue = task.catch(() => {});
+  return task;
+}
+
 async function showMonth(month, { eventId, entityId } = {}) {
   const run = selectedRun;
-  if (!run) return;
+  if (!run) return false;
   const request = ++requestNumber;
+  monthReady = false;
+  updatePlaybackControls();
   slider.value = month;
   eventPicker.value = eventId ?? '';
   find('month-label').value = `Month ${month}`;
   slider.setAttribute('aria-valuetext', `Month ${month} of ${run.lastMonth}`);
+  changeSummary.hidden = true;
   inventory.replaceChildren();
   inspectorHost.replaceChildren();
   updateHeatmap(null);
@@ -248,36 +338,47 @@ async function showMonth(month, { eventId, entityId } = {}) {
   checkpointStatus.textContent = `Loading stored month ${month}…`;
   updateURL(month, eventId, entityId);
   try {
-    const [current, previous] = await Promise.all([
-      getInventory(run, month), run.checkpoints.has(month - 1) ? getInventory(run, month - 1) : null,
-    ]);
-    if (request !== requestNumber) return;
-    renderInventory(compareInventory(current.rows, previous?.rows), month);
+    const opened = await queueCheckpoint(run, month, request);
+    if (!opened || request !== requestNumber) return false;
+    const { current, previous } = opened;
+    const rows = compareInventory(current.rows, previous?.rows);
+    renderInventory(rows, month);
+    renderChangeSummary(rows, month, Boolean(previous));
     updateHeatmap(current.state);
     networkSnapshot = {
       state: current.state,
-      events: [...run.events.values()].filter(event => event.context.tick === month),
+      events: run.eventsByMonth.get(month),
     };
     if (networkDetails.open) updateHistoricalNetwork(networkSnapshot);
     checkpointStatus.textContent = previous
       ? `Stored month ${month} · changes since month ${month - 1}`
       : month === run.firstMonth ? `Stored month ${month} · starting state` : `Stored month ${month}`;
     inspect(month, entityId, eventId);
+    displayedMonth = month;
+    monthReady = true;
+    updatePlaybackControls();
+    return true;
   } catch (error) {
-    if (request !== requestNumber) return;
+    if (request !== requestNumber) return false;
+    const wasPlaying = playing;
+    pausePlayback(wasPlaying ? `Playback stopped at month ${month}.` : '');
     checkpointStatus.textContent = `Could not open month ${month}. ${error.message}`;
     const button = document.createElement('button');
     button.type = 'button';
     button.textContent = 'Retry checkpoint';
     button.onclick = () => showMonth(month, { eventId, entityId });
     checkpointStatus.append(' ', button);
+    return false;
   }
 }
 
 async function openScenario({ runId, month, eventId, entityId, record = false, refreshRuns = false } = {}) {
   const selection = ++selectionNumber;
   requestNumber++;
+  monthReady = false;
   selectedRun = undefined;
+  pausePlayback();
+  playbackStatus.textContent = '';
   retry.hidden = true;
   runButton.disabled = true;
   find('history').hidden = true;
@@ -325,14 +426,43 @@ async function openScenario({ runId, month, eventId, entityId, record = false, r
 runButton.onclick = () => openScenario({ runId: demoRunId, record: true });
 runPicker.onchange = () => openScenario({ runId: runPicker.value });
 slider.oninput = () => {
+  pausePlayback(playing ? 'Playback paused.' : '');
   const entityId = new URLSearchParams(location.search).get('inspectEntity');
   showMonth(Number(slider.value), { entityId });
 };
 eventPicker.onchange = () => {
+  pausePlayback(playing ? 'Playback paused.' : '');
   const event = selectedRun?.events.get(eventPicker.value);
   if (event) showMonth(event.context.tick, { eventId: event.id, entityId: event.entityIds[0] });
   else showMonth(Number(slider.value));
 };
+
+playbackButton.onclick = () => {
+  if (playing) {
+    pausePlayback('Playback paused.');
+    return;
+  }
+  if (!monthReady || displayedMonth >= selectedRun?.lastMonth) return;
+  playing = true;
+  playbackStatus.textContent = 'Playing stored checkpoints.';
+  updatePlaybackControls();
+  schedulePlayback();
+};
+
+playbackSpeed.onchange = () => {
+  if (!playing || playbackTimer === undefined) return;
+  clearTimeout(playbackTimer);
+  schedulePlayback();
+};
+
+nextEventButton.onclick = () => {
+  const event = nextRecordedEvent();
+  if (!event) return;
+  pausePlayback(playing ? 'Playback paused.' : '');
+  showMonth(event.context.tick, { eventId: event.id, entityId: event.entityIds[0] });
+};
+
+window.addEventListener('pagehide', () => pausePlayback(playing ? 'Playback paused.' : ''));
 
 const params = new URLSearchParams(location.search);
 openScenario({

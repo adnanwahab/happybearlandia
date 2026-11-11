@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Archaeology of the Future · HappyBearLandia</title>
+  <link rel="stylesheet" href="/world/civilization/civilization.css">
+  <script type="module" src="./page.js"></script>
+</head>
+<body>
+  <main>
+    <nav><a href="/world/civilization/">Emergent Civilizations</a> <a href="/world/causal.html">City Time Machine</a></nav>
+    <header>
+      <h1>Archaeology of the Future</h1>
+      <p>Start with a city entity and work backward through its changes in the recorded monthly simulation.</p>
+    </header>
+    <p id="status" role="status">Reading the recorded city layers…</p>
+    <p id="record" hidden><a href="/world/causal.html">Open the city demo to record its checkpoints</a></p>
+    <button id="retry" type="button" hidden>Try again</button>
+    <section id="results" hidden aria-labelledby="subject-title">
+      <div class="toolbar">
+        <label>Entity type <select id="collection"></select></label>
+        <label>Entity <select id="entity"></select></label>
+      </div>
+      <h2 id="subject-title"></h2>
+      <p>Layers show recorded changes to this entity’s summary. Open a checkpoint to inspect the rest of the city at that month.</p>
+      <ol class="history" id="layers"></ol>
+    </section>
+  </main>
+</body>
+</html>

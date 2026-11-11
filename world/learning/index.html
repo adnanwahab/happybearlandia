@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Learning Civilization · HappyBearLandia</title>
+  <link rel="stylesheet" href="/world/civilization/civilization.css">
+  <link rel="stylesheet" href="./page.css">
+  <link rel="stylesheet" href="./observatory.css">
+  <link rel="stylesheet" href="./assembly.css">
+  <link rel="stylesheet" href="./prediction.css">
+  <script type="module" src="./page.js"></script>
+</head>
+<body>
+  <main>
+    <nav aria-label="World navigation"><a href="/">HappyBearLandia</a> <a href="/world/invention/">City Invention Studio</a></nav>
+    <header>
+      <h1>Learning Civilization</h1>
+      <p>Measure what you can, vote on a policy, and make a prediction before you run the approved future.</p>
+    </header>
+    <section aria-labelledby="round-title">
+      <h2 id="round-title">Riverside policy round</h2>
+      <form id="settings">
+        <label>Seed <input name="seed" type="number" min="0" max="4294967295" step="1" required></label>
+        <label>Months to advance <input name="months" type="number" min="1" max="36" step="1" required></label>
+        <button type="submit">Start new round</button>
+      </form>
+      <p id="round-status" role="status">Opening the baseline…</p>
+      <p id="storage" hidden>Browser storage is unavailable. This round and your history are available for this visit.</p>
+    </section>
+    <div id="round" hidden>
+      <section id="observatory" aria-label="Civilization Observatory"></section>
+      <section id="assembly" aria-label="Citizen Assembly"></section>
+      <section id="prediction" aria-label="Prediction League"></section>
+      <section id="reveal-panel" aria-labelledby="reveal-heading" hidden>
+        <h2 id="reveal-heading">Test the approved policy</h2>
+        <button id="reveal" type="button" disabled>Run approved future</button>
+        <p id="reveal-status" role="status"></p>
+        <p id="replays" hidden><a id="adjusted-link">Replay approved future</a> · <a id="baseline-link">Replay baseline</a></p>
+      </section>
+      <p class="provenance">Synthetic monthly City model. Sensor credits and policy costs use separate budgets. Forecasts and outcomes are stored separately in this browser.</p>
+    </div>
+  </main>
+</body>
+</html>

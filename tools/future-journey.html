@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Worldline · Saved Future Journey</title>
+  <link rel="stylesheet" href="/world/civilization/civilization.css">
+  <script type="module" src="/world/future-journey/page.js"></script>
+</head>
+<body>
+<main>
+  <nav><a href="/">HappyBearLandia</a> <a href="/tools/worldline">Worldline</a> <a href="/world/decision.html">Decision Studio</a></nav>
+  <header><h1>Worldline · Saved Future Journey</h1>
+    <p>Open an immutable Living World checkpoint, follow a resident into World and House Simulator, then compare one weather change from that same starting state.</p>
+  </header>
+  <p>Decision Studio housing runs and the monthly City Causal Inspector use different identities and clocks. Their records are available in their own views.</p>
+  <form id="open">
+    <label>Saved experiment <input name="experiment" list="experiments" required></label>
+    <datalist id="experiments"></datalist>
+    <label>Resident ID (optional) <input name="person" maxlength="160"></label>
+    <button type="submit" disabled>Open future</button>
+  </form>
+  <p><button id="demo" type="button" disabled>Create a guided demo checkpoint</button></p>
+  <p id="status" role="status"></p>
+  <section id="result" hidden aria-labelledby="record-title">
+    <h2 id="record-title"></h2>
+    <label>Saved checkpoint <input id="timeline" type="range" min="0" value="0" step="1"></label>
+    <p id="clock"></p>
+    <p id="facts"></p>
+    <p><a id="world">Enter this future in 3D World</a> · <a id="house">Open exact household in House Simulator</a></p>
+    <h2>Fork this checkpoint</h2>
+    <form id="fork">
+      <label>Rain intensity <input name="rain" type="number" min="0" max="1" step="0.05" value="0.8" required></label>
+      <button type="submit">Run matched fork and save child</button>
+    </form>
+    <p id="fork-status" role="status"></p>
+    <section id="comparison" hidden>
+      <h3>Matched one-step comparison</h3>
+      <p id="pair"></p>
+      <a id="child">Open saved child future</a>
+    </section>
+  </section>
+</main>
+</body>
+</html>

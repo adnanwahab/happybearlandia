@@ -1,0 +1,23 @@
+.storm-treaty {
+  min-width: 0;
+  border-block-start: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  margin-block: 1rem;
+  padding-block-start: .7rem;
+}
+.storm-treaty .treaty-inputs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: .65rem;
+}
+.storm-treaty label {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: .25rem;
+  max-width: 100%;
+}
+.storm-treaty input, .storm-treaty select { max-width: 100%; min-width: 0; font: inherit; }
+.storm-treaty [role="status"] { font-weight: 650; }
+.storm-treaty table { width: 100%; table-layout: fixed; }
+.storm-treaty caption { text-align: start; font-weight: 650; }
+.storm-treaty td, .storm-treaty th { overflow-wrap: anywhere; vertical-align: top; }

@@ -41,3 +41,12 @@ fly.toml
 **/*.sqlite
 **/*.sqlite-wal
 **/*.sqlite-shm
+
+# Keep local state, credentials and developer artifacts out of the image.
+.git
+.hbl-city/
+**/.env.*
+**/.aws
+test-results/
+playwright-report/
+**/*.log

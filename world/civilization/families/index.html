@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Generational Families · HappyBearLandia</title>
+  <link rel="stylesheet" href="./families.css">
+  <script type="module" src="./page.js"></script>
+</head>
+<body>
+  <main>
+    <nav aria-label="World navigation"><a href="/world/">HappyBearLandia World</a></nav>
+    <h1>Generational Families</h1>
+    <p class="intro">Follow a simulated resident’s relatives, homes, and work across saved Living World checkpoints.</p>
+    <form>
+      <div class="input-row">
+        <label>Living World save ID
+          <input name="experiment" required pattern="[A-Za-z0-9_\-]{8,16}" autocomplete="off">
+        </label>
+        <label>Resident ID <span>(optional)</span>
+          <input name="person" autocomplete="off">
+        </label>
+        <button>Open family records</button>
+      </div>
+      <p>Use the <code>experiment</code> ID from a saved World link.</p>
+    </form>
+    <p id="status" role="status"></p>
+    <section id="family" hidden aria-labelledby="resident">
+      <header class="resident-head">
+        <div><h2 id="resident"></h2><p id="identity"></p></div>
+        <a id="checkpoint">Open this World checkpoint ↗</a>
+      </header>
+      <div id="tree" class="tree"></div>
+      <p id="coverage"></p>
+      <section class="history" aria-labelledby="history-title">
+        <h3 id="history-title">Saved life history</h3>
+        <p>These are snapshots along this save’s parent chain. Changes between saves can only be dated to that interval.</p>
+        <p id="history-status" role="status"></p>
+        <ol id="timeline"></ol>
+      </section>
+    </section>
+  </main>
+</body>
+</html>
