@@ -198,3 +198,39 @@ Ready-to-apply status now:
 | 96 | Production numeric report/provenance, unchanged saved records, invalid-design handling and real selection cancellation verified; incomplete-result suppression verified as explicit browser module fault injection | Integrate latest owned numerical/audit hardening as applicable. Model failure injection is not an observed production incident. JSON draft-preservation polish remains coordinator-owned. |
 
 Only owned namespaces, unique tests/config and this handoff are committed. No release, deployment, paid provider, production data, external messages, or original-checkout edits.
+
+## Final closure verification: full mounted suite passes
+
+**DONE for tickets 95/96's assigned numerical behavior.** This section supersedes the earlier open PDP blocker and draft-reset limitation: the coordinator has integrated the audited PDP helper and persistent next-design draft.
+
+The complete **unfiltered** production browser command passed:
+
+```sh
+HBL_STATISTICS_SOURCE_ROOT=/Users/wahabma/.codex/worktrees/backlog-integration/happybearlandia \
+HBL_STATISTICS_PORT=43996 \
+HBL_STATISTICS_OUTPUT=/tmp/hbl-statistics-full-audited \
+'/Users/wahabma/Library/Application Support/Zed/node/node-v24.22.1-darwin-arm64/bin/node' \
+node_modules/playwright/cli.js test --config test/backlog-statistics.browser.config.js
+```
+
+**4 passed, 0 failed, 29.8 seconds**, one Chromium worker. Source revision captured by the config: `d489ee23f0c17042dfeecd473d180b9a9c67a82a`. No tests excluded and no model/UI substitutes injected.
+
+Acceptance actually verified:
+
+1. Saved experiment reopened through its normal production URL. Four executed two-factor cells, all three variance components and total independently match direct retained Housing model calculations. Source seed/version/horizon and source run match the manifest; persisted results stay unchanged. Original declared-factor JSON survives execution/render. Editing a different next draft and triggering a normal explanation-form render preserves that next draft while the completed report/manifest retain the original executed factors and exact values.
+2. Invalid JSON remains editable after validation/render; an unsupported four-factor design is refused. A live 125-cell design is cancelled through the actual input selection change and cannot publish a stale completed report afterward.
+3. Four real Housing model runs at seeds 0/4294967295 followed by explicitly injected missing observation retain the finite evidence and suppress decomposition. This remains controlled module mechanics, not a claim of a production model outage.
+4. The saved-run PDP renders five numerical points with eight matched source rows each. Every displayed count/mean matches an independent direct numerical rerun. Eight source arithmetic audits are present, all source metrics pass the declared arithmetic tolerance, and the actual nonzero differences from the previously blocked row are retained. No observed page errors in value/cancellation/PDP journeys.
+
+Actual verified artifacts (report and PDP screenshots inspected):
+
+- `/tmp/hbl-statistics-full-audited/backlog-statistics.browser-71d73-actor-report-and-provenance/statistics-production.png`
+- `/tmp/hbl-statistics-full-audited/backlog-statistics.browser-71d73-actor-report-and-provenance/statistics-production-provenance.json`
+- `/tmp/hbl-statistics-full-audited/backlog-statistics.browser-71d73-actor-report-and-provenance/cross-engine-reconstruction-audit.json`
+- `/tmp/hbl-statistics-full-audited/backlog-statistics.browser-467a8-publish-stale-decomposition/statistics-cancelled.png`
+- `/tmp/hbl-statistics-full-audited/backlog-statistics.browser-c0c8c--actual-numerical-PDP-chart/statistics-pdp.png`
+- `/tmp/hbl-statistics-full-audited/backlog-statistics.browser-c0c8c--actual-numerical-PDP-chart/statistics-pdp-values.json` (five displayed points, direct reference means, full eight-source audit and exact source revision).
+
+For the inspected synthetic example, mean affordability at the first/last declared construction-capacity values is `68.14525119853266` / `75.14069093391215` percent. These are conditional illustrative Housing model outputs, not empirical policy effects, forecasts, or confidence intervals.
+
+This follow-up modifies only the unique browser test and this handoff. Browser-test bundling and `git diff --check` pass; prior unchanged production adapters have 35 passing unit/regression tests (356 assertions). No extra shared-file integration change is requested for this follow-up. Coordinator owns final global backlog/plan status and any release decisions.

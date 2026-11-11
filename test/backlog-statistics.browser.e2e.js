@@ -42,6 +42,7 @@ test('saved production Housing run → exact two-factor report and provenance',a
  await expect(section).toContainText('4/4 evaluations');
  const report=section.locator('section').filter({has:page.getByRole('heading',{name:'Balanced design variance'})});
  await expect(report).toContainText('Total variance:');
+ await expect(section.getByLabel('Declared factorial levels')).toHaveValue(JSON.stringify(factors));
  const details=section.locator('details').filter({has:page.getByText('Design and provenance',{exact:true})});
  await details.locator('summary').click();
  const manifest=JSON.parse(await details.locator('pre').innerText());
@@ -68,6 +69,16 @@ test('saved production Housing run → exact two-factor report and provenance',a
  expect(rows).toHaveLength(3);
  rows.forEach((row,i)=>expect(Number(row[1])).toBeCloseTo(reference.components[i],7));
  expect(rows.reduce((s,r)=>s+Number(r[1]),0)).toBeCloseTo(total,7);
+ // Editing the next draft and rendering another normal panel action must keep
+ // both that draft and the completed design's original report independent.
+ const nextDraft=JSON.stringify([{id:'initial_rent',levels:[1000,2000]}]);
+ await section.getByLabel('Declared factorial levels').fill(nextDraft);
+ await section.locator('summary').first().focus();
+ await page.locator('[data-di-query] button').click();
+ await expect(section.getByLabel('Declared factorial levels')).toHaveValue(nextDraft);
+ expect(await report.locator('tbody tr').evaluateAll(rows=>rows.map(r=>[...r.cells].map(c=>c.textContent)))).toEqual(rows);
+ const retainedManifest=JSON.parse(await details.locator('pre').textContent());
+ expect(retainedManifest.design.factors).toEqual(factors);
  expect(await page.request.get(`/api/decision-experiments/${id}/results?traces=summary`).then(r=>r.json())).toEqual(savedBefore);
  await writeFile(info.outputPath('statistics-production-provenance.json'),JSON.stringify({source:info.config.metadata,manifest,reference,displayedRows:rows,pdpRows},null,2));
  await info.attach('statistics-production-provenance',{body:JSON.stringify({manifest,reference,displayedRows:rows,pdpRows},null,2),contentType:'application/json'});
@@ -81,6 +92,7 @@ test('production invalid declared design and selection cancellation cannot publi
  await section.getByLabel('Declared factorial levels').fill('{');await section.locator('[data-di-action="factorial"]').click();
  await expect(section.getByRole('button',{name:'Execute declared factorial design'})).toBeEnabled();
  await expect(section).not.toContainText('Total variance:');
+ await expect(section.getByLabel('Declared factorial levels')).toHaveValue('{');
  const large=[{id:'construction_capacity',levels:[1000,2000,3000,4000,5000]},{id:'permitting_months',levels:[6,7,8,9,10]},{id:'interest_rate',levels:[0.01,0.02,0.03,0.04,0.05]}];
  await section.getByLabel('Declared factorial levels').fill(JSON.stringify([...large,{id:'adoption',levels:[0,1]}]));
  await section.locator('[data-di-action="factorial"]').click();await expect(panel.locator('.di-status')).toContainText('1–3 unique factors');
@@ -123,6 +135,7 @@ test('browser module incomplete-evaluation contract preserves actual Housing evi
 });
 
 test('saved production run renders actual numerical PDP chart',async({page},info)=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
  const {section,panel}=await openSaved(page);
  await section.locator('[data-di-action="partial"]').click();
  await expect(section.getByRole('img',{name:/Executed numerical partial dependence/})).toBeVisible();
@@ -143,7 +156,15 @@ test('saved production run renders actual numerical PDP chart',async({page},info
   });
  },{points,metricId,scenarioId,parameterId});
  points.forEach((point,i)=>{expect(point[1]).toBe(expected[i].count);expect(point[2]).toBeCloseTo(expected[i].mean,9);});
- await writeFile(info.outputPath('statistics-pdp-values.json'),JSON.stringify({points,expected},null,2));
+ const auditDetails=section.locator('figure details').filter({has:page.getByText('Source reconstruction arithmetic audit',{exact:true})});
+ await auditDetails.locator('summary').click();
+ const audit=JSON.parse(await auditDetails.locator('pre').innerText());
+ expect(audit.audits).toHaveLength(8);
+ expect(audit.audits.every(a=>a.mismatches.length===0)).toBe(true);
+ expect(audit.audits.some(a=>a.roundoff.length>0)).toBe(true);
+ expect(audit.audits.flatMap(a=>a.roundoff).every(c=>Math.abs(c.delta)<=c.tolerance&&c.delta!==0)).toBe(true);
+ await writeFile(info.outputPath('statistics-pdp-values.json'),JSON.stringify({source:info.config.metadata,points,expected,audit},null,2));
  await section.locator('figure').scrollIntoViewIfNeeded();
  await page.screenshot({path:info.outputPath('statistics-pdp.png'),animations:'disabled'});
+ expect(errors).toEqual([]);
 });
