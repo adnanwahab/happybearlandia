@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { housingModel, createHousingScenarios } from '../world/models/housing/index.js';
 const { chromium, expect } = await import(process.env.HBL_PLAYWRIGHT_MODULE || '@playwright/test');
 const sourceRoot = process.env.HBL_EXPLANATIONS_SOURCE_ROOT || process.cwd();
+const sourceHead = Bun.spawnSync(['git', 'rev-parse', 'HEAD'], {cwd: sourceRoot}).stdout.toString().trim();
 const port = process.env.HBL_EXPLANATIONS_ROUTE_PORT || '39932', base = `http://127.0.0.1:${port}`;
 const artifacts = await mkdtemp(join(tmpdir(), 'hbl-explanations-route-'));
 const log = Bun.file(join(artifacts, 'server.log'));
@@ -50,12 +51,16 @@ try {
     await expect(component.locator('[aria-live]')).toContainText('0 recorded metric-specific mechanisms');
     const selectedMonthValue = failure.monthlyTimeline.find(row => row.month === 12).metrics.median_rent;
     await expect(component.locator('[aria-live]')).toContainText(`recorded as ${selectedMonthValue} `);
-    const answer = await component.locator('[aria-live]').innerText(); if (/month (2[0-9]|1[3-9])\b/.test(answer)) throw Error('Future event leakage');
+    const whyText = await component.locator('[aria-live]').innerText();
+    await component.locator('[aria-live]').screenshot({path:join(artifacts,'month-12-why.png')});
+    const answer = whyText; if (/month (2[0-9]|1[3-9])\b/.test(answer)) throw Error('Future event leakage');
     await component.getByRole('textbox').fill('What changed in median rent?'); await component.getByRole('button',{name:'Inspect evidence',exact:true}).click();
     await expect(component.locator('[aria-live]')).toContainText('Same-seed modeled comparison');
     const reference = results.runs.find(r => r.scenarioId === scenarios[0].id && r.seed === failure.seed);
     const value = failure.monthlyTimeline.find(r=>r.month===12).metrics.median_rent, previous = reference.monthlyTimeline.find(r=>r.month===12).metrics.median_rent;
     await expect(component.locator('[aria-live]')).toContainText(`change ${value-previous}`);
+    const comparisonText = await component.locator('[aria-live]').innerText();
+    await component.locator('[aria-live]').screenshot({path:join(artifacts,'month-12-comparison.png')});
     const source = component.getByRole('button',{name:'Inspect source event',exact:true}); const recordedMonth = await source.getAttribute('data-month');
     await source.click();
     await expect(page.locator('#building-month')).toHaveValue(recordedMonth);
@@ -65,6 +70,8 @@ try {
     await component.getByRole('button',{name:'Play recorded events'}).click();
     await page.goto('about:blank'); await page.waitForTimeout(1300); // normal route disposal/navigation while timer active
     if (errors.length) throw Error(errors.join('\n'));
-    console.log(JSON.stringify({status:'DONE',experimentId:experiment.id,runId:failure.id,actualRuns:results.runs.length,checks:'saved failures, cluster selection, trace hydration, month-bounded WHY, numeric same-seed comparison, source jump, mobile overflow, navigation disposal, no page errors',artifacts}));
+    const evidence = {status:'DONE',sourceRoot,sourceHead,experimentId:experiment.id,runId:failure.id,referenceRunId:reference.id,seed:failure.seed,modelVersion:failure.modelVersion,engineVersion:failure.engineVersion,month:12,metricId:'median_rent',unit:'USD/month',value,referenceValue:previous,delta:value-previous,recordedSourceMonth:Number(recordedMonth),whyText,comparisonText,actualRuns:results.runs.length,pageErrors:errors,checks:'saved failures, cluster selection, trace hydration, month-bounded WHY, numeric same-seed comparison, source jump, mobile overflow, navigation disposal, no page or console errors',artifacts};
+    await Bun.write(join(artifacts,'evidence.json'),JSON.stringify(evidence,null,2));
+    console.log(JSON.stringify(evidence));
   }
 } catch (error) { if (page) await page.screenshot({path:join(artifacts,'failure.png'),fullPage:false,timeout:5000}).catch(()=>{}); console.error(JSON.stringify({status:'FAILED',error:error.message,pageErrors:errors,sourceRoot,artifacts})); throw error; } finally { clearTimeout(watchdog); await browser?.close(); server.kill(); await server.exited; }
