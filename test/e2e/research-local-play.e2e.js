@@ -105,6 +105,7 @@ test('saved remote policy restores its exact selector without reloading optional
  await expect.poll(()=>page.evaluate(()=>Boolean(window.hblWorldStartup?.readyMs))).toBe(true);
  await expect.poll(()=>page.evaluate(()=>window.hblWorldStartup.policyStatus)).toBe('ready');
  await page.locator('#top>summary').click();await page.locator('#policy').selectOption('remote-balanced');
+ await page.locator('#worldAdvanced>summary').click();
  await page.locator('#planYear').fill('7');await page.locator('#planYear').dispatchEvent('input');
  await page.locator('#speeds [data-s="0"]').click();
  const saved=await page.evaluate(async()=>{

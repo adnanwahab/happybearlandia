@@ -208,5 +208,16 @@
     "codex/sprint-causal-inspector",
     "sprint-60m/time-machine"
   ],
-  "activeWorktrees": "Retained; later commits from active chats are not silently adopted after the captured snapshot."
+  "activeWorktrees": "Retained; later commits from active chats are not silently adopted after the captured snapshot.",
+  "finalLocalBranch": "main",
+  "checks": {
+    "featureTests": 261,
+    "worldTests": 44,
+    "causalCheckpointTests": 26,
+    "pythonTests": 8,
+    "distinctCanonicalBrowserChecksPassed": 13,
+    "canonicalRecordingSkipped": 1,
+    "distinctLocalPlayChecksPassed": 6,
+    "note": "Browser results include focused reruns after fixture and integration corrections; no claim of one all-green canonical run or repository-wide validation."
+  }
 }
