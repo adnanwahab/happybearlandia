@@ -463,6 +463,14 @@ scene.add(ring);
 /* ---------------------------------------------------------------- */
 /* Interaction                                                       */
 /* ---------------------------------------------------------------- */
+// First-run feedback only describes actual recorded or currently observed model values.
+function worldFeedback(type, detail = {}) {
+  window.dispatchEvent(new CustomEvent('hbl:world-feedback', {detail:{type,...detail}}));
+}
+async function withClassicWorld(action) {
+  if (livingWorld?.active) await livingWorld.setActive(false);
+  return action();
+}
 let speed = Math.max(1, Math.min(100, Number(params.get("speed")) || 1)); // game minutes per real second
 let selected = null; // { type: "person"|"building"|"journal", id }
 let follow = false;
@@ -477,7 +485,7 @@ const activityListeners=new Set();let activityRuntimeUnsubscribe=null,activityDa
 function notifyActivity(){if(!activityListeners.size||!window.hblWorldActivity)return;const snapshot=window.hblWorldActivity.getSnapshot();for(const listener of activityListeners)listener(snapshot);}
 function bindActivityRuntime(runtime){if(activityRuntimeUnsubscribe)return;activityRuntimeUnsubscribe=runtime.subscribe(frame=>{physicalPolicySnapshot=frame;if(livingWorld?.active)notifyActivity();});}
 const legacyActivityUnsubscribe=world.subscribeActivity(()=>{if(!livingWorld?.active)notifyActivity();});
-const playback=createSimulationPlayback({initialSpeed:speed,onChange:state=>{speed=state.paused?0:state.speed;const runtime=livingWorld?.active?livingWorld.getRuntime():null;if(runtime){runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();}for(const button of $("speeds").children)button.classList.toggle("on",Number(button.dataset.s)===(state.paused?0:state.speed));if(selected?.type==="person")renderInspector();}});
+const playback=createSimulationPlayback({initialSpeed:speed,onChange:state=>{speed=state.paused?0:state.speed;const runtime=livingWorld?.active?livingWorld.getRuntime():null;if(runtime){runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();}for(const button of $("speeds").children)button.classList.toggle("on",Number(button.dataset.s)===(state.paused?0:state.speed));if(selected?.type==="person")renderInspector();if(window.hblGuidedActions)worldFeedback("playback",{paused:state.paused,speed:state.speed});}});
 window.hblSimulationPlayback=playback;
 livingWorld=!embedMode?mountLivingWorld({container:document.body,scene,camera,controls,THREE,town,renderer,autoActivate:loadedExperiment?false:!businessMode&&!simulationId&&!demoMode&&!renderBenchmark,initialMinute:loadedExperiment?0:6*60,onRuntimeReady:runtime=>{bindActivityRuntime(runtime);const state=playback.getState();runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();if(!livingPlaybackUnsubscribe)livingPlaybackUnsubscribe=runtime.subscribe(frame=>{if(!livingWorld?.active||!frame?.runtime)return;if(Number.isFinite(frame.runtime.speed)&&frame.runtime.speed!==playback.getState().speed)playback.setSpeed(frame.runtime.speed);frame.runtime.paused?playback.pause():playback.resume();});return true;},onModeChange:active=>{people.visible=!active;follow=false;selected=null;document.documentElement.classList.remove("person-selected");$("inspect").removeAttribute("data-person-selected");$("inspect").style.display="none";cityRenderer.setFeature('traffic',active?false:originalTrafficEnabled);cityRenderer.updateCity({trafficDensity:active?0:1});document.body.classList.toggle('living-active',active);notifyActivity();const fastest=$('speeds').lastElementChild;fastest.dataset.s=active?'32':'60';fastest.textContent=active?'32×':'60×';if(active&&playback.getState().speed>32)playback.setSpeed(32);}}):null;
 window.hblLivingWorld=livingWorld;
@@ -695,7 +703,16 @@ function applyPolicy(id, year = policyYear) {
     : "";
 
   const simNote = BALANCED_SIM_NOTE ? ` · ${BALANCED_SIM_NOTE}` : "";
-  $("policyNote").textContent = `${p.label} · year ${year} · transit ×${staged.effects.speedMult.toFixed(2)} · flood mitigation ${Math.round(staged.effects.floodMitigation * 100)}% · housing growth ${Math.round(staged.effects.housingGrowth * 100)}% · vouchers $${staged.effects.voucherMonthly.toFixed(0)}/mo${staged.effects.groceryDelivery > 0 ? ` · grocery delivery ${Math.round(staged.effects.groceryDelivery * 100)}%` : ""} · source: ${src}${pendingTxt}${simNote}`;
+  $("policyNote").textContent = `${p.label} · year ${year} · transit ×${staged.effects.speedMult.toFixed(2)} · flood mitigation ${Math.round(staged.effects.floodMitigation * 100)}% · housing growth ${Math.round(staged.effects.housingGrowth * 100)}% · vouchers ${staged.effects.voucherMonthly.toFixed(0)}/mo${staged.effects.groceryDelivery > 0 ? ` · grocery delivery ${Math.round(staged.effects.groceryDelivery * 100)}%` : ""} · source: ${src}${pendingTxt}${simNote}`;
+  if (window.hblGuidedActions) worldFeedback('policy', {
+    label: 'Plan configured',
+    message: p.label + ' at plan year ' + year + '. These are configured mechanisms; run a paired experiment to measure outcomes.',
+    metrics: [
+      {label:'Transit time multiplier',value:staged.effects.speedMult.toFixed(2) + '×'},
+      {label:'Flood mitigation',value:Math.round(staged.effects.floodMitigation * 100) + '%'},
+      {label:'Housing growth',value:Math.round(staged.effects.housingGrowth * 100) + '%'},
+    ],
+  });
 }
 
 async function loadPolicyPackages() {
@@ -901,6 +918,18 @@ function triggerStorm() {
   world.policy.floodedNow = floodedNow;
   world.policy.displaced = displaced;
   world.log(`Storm hit: ${floodedNow} parcels flooded, ${displaced} residents displaced`, "storm");
+  overlayMode = 'flood';
+  if (overlayEl) overlayEl.value = 'flood';
+  updateOverlayLegend();
+  worldFeedback('storm', {
+    label:'Storm result',
+    message:'A synthetic storm has affected the classic town. The highlighted flooded parcels and relocated residents come from the simulation.',
+    metrics:[
+      {label:'Flooded parcels',value:String(floodedNow)},
+      {label:'Residents displaced',value:String(displaced)},
+      {label:'Selected plan',value:String(world.policy?.label || 'No plan')},
+    ],
+  });
 }
 
 $("policy").onchange = (e) => {
@@ -917,7 +946,7 @@ if (planYearEl) {
   };
 }
 
-$("stormBtn").onclick = () => triggerStorm();
+$("stormBtn").onclick = () => withClassicWorld(triggerStorm).catch(error => worldFeedback("error",{label:"Storm unavailable",message:error.message}));
 // A world embedded in the grid only needs its frozen plan, so it skips synthesizing packages.
 if (!loadedExperiment && !(embedMode && realityRunSeed)) {
   if(realityRunSeed)await loadPolicyPackages(); // Frozen reality ordering is unchanged.
@@ -1273,6 +1302,7 @@ function runExperiment10Years() {
     }
     if (msg.type === "error") {
       setExperimentStatus(`Experiment failed: ${msg.error}`);
+      worldFeedback('error',{label:'10-year experiment failed',message:String(msg.error)});
       if (btn) btn.disabled = false;
       setExperimentControlsDisabled(false);
       experimentWorker?.terminate();
@@ -1283,6 +1313,17 @@ function runExperiment10Years() {
       const results = msg.results || {};
       renderExperimentResults(results);
       renderExperimentComparison(experimentSeed, results);
+      const chosen = results['Balanced']?.history?.find(row=>row.year===10) || results['Balanced']?.history?.at(-1);
+      const comparison = results['Minimal change']?.history?.find(row=>row.year===10) || results['Minimal change']?.history?.at(-1);
+      const comparisonMetrics = [];
+      for(const [label,key] of [['Average mood','avgMood'],['Flooded parcels','floodedParcels'],['Displaced residents','displacedResidents']]) {
+        const a = comparison?.outcomes?.[key], b = chosen?.outcomes?.[key];
+        if(Number.isFinite(a) && Number.isFinite(b)) comparisonMetrics.push({label:label+' (Balanced − Minimal)',value:(b>=a?'+':'')+(b-a).toFixed(1)});
+      }
+      worldFeedback('longitudinal',{label:'10-year results',
+        message:'Three plan packages have been simulated. These deltas compare Balanced with Minimal change, not with a no-plan branch.',
+        metrics:comparisonMetrics,resultId:'experimentPanel',
+      });
       const before = await beforeStatePromise;
       const after = await readStateEntryCount();
       const stateMsg = before != null && after != null
@@ -1309,7 +1350,7 @@ function runExperiment10Years() {
   });
 }
 
-$("runExperimentBtn")?.addEventListener("click", runExperiment10Years);
+$("runExperimentBtn")?.addEventListener("click", () => withClassicWorld(runExperiment10Years).catch(error=>worldFeedback("error",{label:"Experiment unavailable",message:error.message})));
 
 /* ---------------------------------------------------------------- */
 /* Run cycle: one week of the selected plan vs. no plan, same seed.  */
@@ -1368,6 +1409,7 @@ function startCycleWorker() {
     if (msg.type === "progress") { status.textContent = `${msg.stage}…`; return; }
     if (msg.type === "error") {
       status.textContent = `Cycle failed: ${msg.error}`;
+      worldFeedback('error',{label:'Weekly comparison failed',message:String(msg.error)});
       setCycleBusy(false);
       cycleWaiter?.reject(new Error(msg.error));
       cycleWaiter = null;
@@ -1456,6 +1498,18 @@ function onCycleDone(result) {
   setCycleBusy(false);
   renderCyclePanel();
   $("cyclePanel").scrollTop = 0;
+  worldFeedback('cycle',{
+    label:n===1?'Paired weekly result':'Civic cycle '+n,
+    message:n===1 ? 'Same starting town and seed: '+label+' versus no plan. These are synthetic matched-model results.' : 'Same-seed comparison with keeping plan '+(n-1)+'. Synthetic model results.',
+    metrics:[
+      {label:n===1?'No plan':'Keeping previous plan',value:fmt(r.avg.noPlan)},
+      {label:'With selected plan',value:fmt(r.avg.withPlan)},
+      {label:'Well-being difference',value:signed(d)},
+      {label:'Residents better off',value:String(r.improved)},
+      {label:'Residents worse off',value:String(r.worse)},
+    ],
+    resultId:'cyclePanel',
+  });
   followResident(n > 1 && r.followUp ? r.followUp.index : r.best.index);
   cycleWaiter?.resolve(r);
   cycleWaiter = null;
@@ -1604,7 +1658,7 @@ function renderCyclePanel() {
   };
 }
 
-$("runCycleBtn")?.addEventListener("click", runCycle);
+$("runCycleBtn")?.addEventListener("click", () => withClassicWorld(runCycle).catch(error=>worldFeedback("error",{label:"Weekly comparison unavailable",message:error.message})));
 /* ---------------------------------------------------------------- */
 /* Demo mode: three cycles hands-free, with captions and follow-cam.  */
 /* ---------------------------------------------------------------- */
@@ -1612,7 +1666,8 @@ $("runCycleBtn")?.addEventListener("click", runCycle);
 // cycles use. The blended view counts synthetic journals the world has published
 // over time (including grocery complaints), which would make cycle 1 unpredictable.
 const DEMO_URL = "/world/?lat=29.7286&lng=-95.4746&people=500&demo=1&synthetic=0";
-const DEMO_HOLD_MS = 8000; // how long each caption stays up
+const QUICK_DEMO = params.get('quick') === '1';
+const DEMO_HOLD_MS = QUICK_DEMO ? 1700 : 8000; // short highlight or original full tour
 const demo = { running: false, paused: false, skip: false, stopped: false };
 
 class DemoStopped extends Error {}
@@ -1667,7 +1722,7 @@ async function playDemo() {
     overlayMode = "wellbeing";
     if (overlayEl) overlayEl.value = "wellbeing";
     demoCaption("The town", `${town.people.length} simulated residents. Each one journals about their day. Red means struggling, green means doing well.`);
-    await demoHold(7000);
+    await demoHold(QUICK_DEMO ? 750 : 7000);
 
     // Cycle 1: the Balanced plan vs. an identical town with no plan.
     activePolicyId = balancedPackageId();
@@ -1679,7 +1734,7 @@ async function playDemo() {
     deltas.push({ n: 1, text: signed(r1.avg.withPlan - r1.avg.noPlan) });
     demoShow("noPlan");
     demoCaption("Cycle 1", `A week with no plan: average well-being ${fmt(r1.avg.noPlan)}.`);
-    await demoHold(5000);
+    await demoHold(QUICK_DEMO ? 1300 : 5000);
     demoShow("withPlan");
     followResident(r1.best.index);
     demoCaption("Cycle 1", `With the ${plan1Label} plan: ${fmt(r1.avg.withPlan)} (${deltas[0].text}). ${r1.improved} residents are better off, mostly from shorter commutes.`);
@@ -1691,6 +1746,7 @@ async function playDemo() {
       await demoHold();
     }
 
+    if (!QUICK_DEMO) {
     // Then let residents' journals drive the plan until two more changes land.
     // With dear-congress live, a change can take two cycles: it leans first, then adopts.
     let changes = 0;
@@ -1726,7 +1782,8 @@ async function playDemo() {
       }
     }
 
-    demoCaption("Recap", `${deltas.map((x) => `Cycle ${x.n}: ${x.text}`).join(" · ")}. Each number compares against an identical town on the same seed, so it's the plan's effect, not luck.`);
+    }
+    demoCaption("Recap", `${deltas.map((x) => `Cycle ${x.n}: ${x.text}`).join(" · ")}. Both futures share the same starting town and seed. Differences are synthetic model results.`);
   } catch (err) {
     if (!(err instanceof DemoStopped)) demoCaption("Demo stopped", `Something went wrong: ${err?.message || err}`);
   } finally {
@@ -2275,6 +2332,7 @@ function updateBuildings(daylight) {
   }
 }
 
+let lastFirstRunSampleMs = -Infinity;
 function updateHud() {
   const livingSnapshot=livingWorld?.active?livingWorld.getSnapshot():null;
   $("clock").textContent = livingSnapshot?clock(livingSnapshot.minute):clock(world.t);
@@ -2292,6 +2350,15 @@ function updateHud() {
   const top = Object.entries(s.doing).sort((a, b) => b[1] - a[1]).slice(0, 4);
   const status = world.policy.floodedNow ? ` · ${world.policy.floodedNow} flooded parcels · ${world.policy.displaced} displaced` : "";
   $("counts").textContent = top.map(([k, v]) => `${v} ${k}`).join(" · ") + status;
+  const firstRunNow = performance.now();
+  if(window.hblGuidedActions && firstRunNow-lastFirstRunSampleMs>=1100) {
+    lastFirstRunSampleMs=firstRunNow;
+    worldFeedback('snapshot',{
+      mode:livingSnapshot?'living':'legacy',mood:s.mood,minute:livingSnapshot?.minute ?? world.t,
+      clock:$("clock").textContent,
+      activity:top.slice(0,2).map(([kind,count])=>count+' '+kind).join(' · '),
+    });
+  }
   const rc = $("realConditions");
   if (rc) {
     if (!isHarrisCountyTile) {
@@ -2374,5 +2441,20 @@ addEventListener('pagehide',()=>{houseEntryDisposed=true;houseEntryControls?.des
 addEventListener('pagehide',()=>{persistenceDisposed=true;persistencePanel?.destroy();},{once:true});
 
 if(!loadedExperiment)world.log(`Welcome to ${origin.lat.toFixed(3)}, ${origin.lng.toFixed(3)}. Click a person or building.`, "info");
+// The guide becomes actionable only after the actual World scene is ready.
+if (!embedMode && !businessMode && !simulationId && !loadedExperiment) {
+  window.hblGuidedActions = {
+    week: () => withClassicWorld(async()=>{if(cycleBusy)throw new Error("A cycle is already running.");const completed=nextCycleResult();runCycle();return completed;}),
+    storm: () => withClassicWorld(triggerStorm),
+    tenYear: () => withClassicWorld(runExperiment10Years),
+    resident: () => withClassicWorld(() => {
+      if (!town.people.length) throw new Error("No simulated residents are available.");
+      followResident(0);
+      worldFeedback('resident',{label:'Resident selected',message:'The camera is following a synthetic resident. Their current needs and activities are shown in the inspector.'});
+    }),
+  };
+  window.dispatchEvent(new CustomEvent('hbl:world-ready'));
+  addEventListener('pagehide',()=>{delete window.hblGuidedActions;},{once:true});
+}
 startup.readyMs=performance.now();for(const [node,disabled] of startupDisabled)node.disabled=policyPending&&['policy','runExperimentBtn','runCycleBtn','demoBtn'].includes(node.id)?true:disabled;startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);
 requestAnimationFrame(frame);

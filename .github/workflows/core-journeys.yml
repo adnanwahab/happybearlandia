@@ -40,6 +40,7 @@ jobs:
           test/server.test.js
           test/world-database-path.test.js
           test/overpass-diagnostics.test.js
+          test/first-run-guide.test.js
       - name: Install Chromium for browser journeys
         run: bunx playwright install --with-deps chromium
       - name: Universe shell, sprint experiences, and saved future journey
@@ -48,3 +49,5 @@ jobs:
         run: bunx playwright test --config test/time-machine.browser.config.js world-time-machine.browser.js --workers=1
       - name: Causal inspector component
         run: bunx playwright test --config test/causality.browser.config.js
+      - name: First-run World guidance and feedback
+        run: bunx playwright test --config test/first-run.browser.config.js
