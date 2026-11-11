@@ -3,7 +3,7 @@ import {writeFile} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 const scene=page=>page.evaluate(()=>window.futureMachine.stats.scene);
 async function seek(page,month){const slider=page.getByTestId('future-machine-timeline');await slider.fill(String(month));await slider.dispatchEvent('input');await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.month)).toBe(month);}
-async function observation(page){return page.evaluate(()=>{const {state,history,stats}=window.futureMachine;return {month:state.month,seed:history.seed,modelVersion:history.modelVersion,runId:history.experimentId,initialHash:history.initialHash,recipe:history.recipe,lengths:[history.baseline.length,history.plan.length],metrics:state.diff.metrics,baseline:history.baseline[state.month],plan:history.plan[state.month],scene:stats.scene,canvases:document.querySelectorAll('[data-testid="future-machine-stage"] canvas').length};});}
+async function observation(page){return page.evaluate(()=>{const {state,history,stats}=window.futureMachine;return {month:state.month,seed:history.seed,modelVersion:history.modelVersion,runId:history.experimentId,initialHash:history.initialHash,recipe:history.recipe,lengths:[history.baseline.length,history.plan.length],metrics:state.diff.metrics,baseline:history.baseline[state.month],plan:history.plan[state.month],scene:stats.scene,nativeLabels:document.querySelectorAll('[data-native-city-labels] span').length,canvases:document.querySelectorAll('[data-testid="future-machine-stage"] canvas').length};});}
 
 for(const backend of ['webgpu','webgl'])test(`${backend}: actual initialized loss retains recorded month, run and fallback`,async({page},info)=>{
  const errors={page:[],console:[]},warnings=[];
@@ -27,7 +27,7 @@ for(const backend of ['webgpu','webgl'])test(`${backend}: actual initialized los
  }
  expect(measured).toBe(backend);await seek(page,16);
  const before=await observation(page);expect(before.seed).toBe(42);expect(before.metrics.housingUnits.delta).toBe(24);expect(before.lengths).toEqual([121,121]);expect(before.canvases).toBe(1);
- const stage=page.getByTestId('future-machine-stage');await stage.scrollIntoViewIfNeeded();await stage.screenshot({path:info.outputPath('before-loss.png')});
+ const stage=page.getByTestId('future-machine-stage'),nativeLabels=stage.locator('[data-native-city-labels] span');await expect.poll(()=>nativeLabels.count()).toBeGreaterThan(0);await stage.scrollIntoViewIfNeeded();await stage.screenshot({path:info.outputPath('before-loss.png')});
  let loss;
  try{
   loss=await page.evaluate(async backend=>{
@@ -48,15 +48,16 @@ for(const backend of ['webgpu','webgl'])test(`${backend}: actual initialized los
   },backend);
   if(backend==='webgpu')expect(loss.reason).toBe('destroyed');else{expect(loss.contextLost).toBe(true);expect(loss.event.isTrusted).toBe(true);}
   await expect.poll(async()=>(await scene(page)).backend).toBe('canvas2d');
+  await expect(nativeLabels).toHaveCount(0);
   const after=await observation(page);
   expect(after.canvases).toBe(1);expect(await page.evaluate(()=>window.actualLossProbe.oldCanvas.isConnected)).toBe(false);
   for(const key of ['month','seed','modelVersion','runId','initialHash','recipe','lengths','metrics','baseline','plan'])expect(after[key]).toEqual(before[key]);
   expect(after.scene.error).toMatch(backend==='webgpu'?/WebGPU device lost/:/Graphics context lost/);
   await stage.screenshot({path:info.outputPath('after-real-loss-canvas.png')});
   await page.getByRole('button',{name:'WHY · Homes',exact:true}).click();await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('PROJECT_COMPLETE');
-  await seek(page,15);expect(await page.evaluate(()=>window.futureMachine.state.diff.metrics.housingUnits.delta)).toBe(0);
+  await seek(page,15);await expect(nativeLabels).toHaveCount(0);expect(await page.evaluate(()=>window.futureMachine.state.diff.metrics.housingUnits.delta)).toBe(0);
   await seek(page,16);expect(await page.evaluate(()=>window.futureMachine.state.diff.metrics.housingUnits.delta)).toBe(24);
-  expect((await scene(page)).backend).toBe('canvas2d');
+  expect((await scene(page)).backend).toBe('canvas2d');await expect(nativeLabels).toHaveCount(0);
   expect(errors).toEqual({page:[],console:[]});
  }finally{
   await writeFile(info.outputPath('actual-device-loss-evidence.json'),JSON.stringify({schemaVersion:'actual-device-loss.v1',sourceCommit,backend,browser:page.context().browser().version(),before,loss,after:await observation(page),oldCanvasConnected:await page.evaluate(()=>window.actualLossProbe.oldCanvas?.isConnected??null),errors,warnings,limitations:['Explicit device destruction/context-loss extension tests a controlled real loss, not spontaneous driver failure.','Canvas fallback uses the same monthly City records; projection differs from the GPU camera.']},null,2));
