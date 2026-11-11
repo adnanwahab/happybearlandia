@@ -34,7 +34,7 @@ These are decompositions of the approved demo/compatibility goals, not newly pro
 | U03 | P1 / S / READY | Compare repeated scrub/focus/dispose memory and object counts after native integration; report measured values, not target FPS. | R01 / Worker 6 |
 | U04 | P1 / S / VERIFIED | Stop/restart default guided demo while a changed recipe is loading; stale response cannot resume another recipe. Real API cancellation browser check. | R03 / Coordinator |
 | U05 | P1 / S / READY | Neutral KPI styles agree with zero-control, missing metric and negative delta semantics. Renderer-independent UI behavior test plus browser assertion. | R02 / Worker 2 |
-| U06 | P1 / S / UPCOMING | Make household before/after rent/savings units and new-inventory caveat readable without expanding raw JSON; exact identity only. | R02 / Worker 2 |
+| U06 | P1 / S / VERIFIED | Make household before/after rent/savings units and new-inventory caveat readable without expanding raw JSON; exact identity only. | R02 / Worker 2 |
 | U07 | P1 / S / VERIFIED | Show selected recorded construction stage/progress, never animate an uncompleted building as finished. Inspect actual project months and tests. | R01 / Worker 3 |
 | U08 | P1 / S / READY | Ensure reduced-motion disables animated pulses but keeps selected entity and measured change visible. Real media preference toggle test. | R01/R05 / Worker 5 |
 | U09 | P1 / S / VERIFIED | Validate share reopen after saved record missing, model mismatch and recipe corruption after latest UI/backend integration. Existing browser regression suite. | R01/R03 / Worker 1 |
@@ -42,9 +42,9 @@ These are decompositions of the approved demo/compatibility goals, not newly pro
 | U11 | P1 / S / VERIFIED | Ordinary World Canvas current resident selection and Activity filter/export retain the daily authority and seed; actual runtime only. | R04/R05 / Worker 4 |
 | U12 | P1 / S / VERIFIED | Check no-GPU default Living mode separately from legacy demo; explicitly report unsupported paths, never silently substitute a model. | R05 / Worker 5 |
 | U13 | P2 / S / VERIFIED | Audit browser engines installed locally; run only available engines, report missing Safari/Firefox without claiming support. | R06 / Worker 6 |
-| U14 | P2 / S / READY | Compare gallery/registry unique routes and navigation safety after every added verified entry; preserve the original catalog. Registry + actual homepage tests. | R04 / Worker 4 |
+| U14 | P2 / S / VERIFIED | Compare gallery/registry unique routes and navigation safety after every added verified entry; preserve the original catalog. Registry + actual homepage tests. | R04 / Worker 4 |
 | U15 | P1 / S / UPCOMING | Review external suggestions from `docs/reviews/` only for architecture-compatible, testable approved objectives. Record accepted/rejected/deferred reasons; do not wait for reviews. | Any review arrives / Coordinator |
-| U16 | P0 / S / READY | Final frozen-scope pass: all accepted changes, screenshots, video, commands, commit/worktree references and remaining release blockers agree. | Final candidate / Coordinator |
+| U16 | P0 / S / VERIFIED | Final frozen-scope pass: all accepted changes, screenshots, video, commands, commit/worktree references and remaining release blockers agree. | Final candidate / Coordinator |
 
 ## Additional approved decompositions
 
@@ -127,3 +127,9 @@ U10 independently VERIFIED through the interactive pipeline at `779c360`: actual
 | ID | Priority / complexity / status | User-visible outcome and acceptance | Dependencies | Exclusive ownership | Verification |
 | --- | --- | --- | --- | --- | --- |
 | R15 | P1 / S / READY | Resume a bounded repair through the interactive pipeline after a failed check, retaining failed candidate and logs. Maximum two total attempts; no reset or silent retry. Atomic transition and ownership tests must prove third attempt rejected. | U10 | pipeline coordinator: scripts/pipeline-coordinator.mjs and new test/pipeline-repair.test.js; interface interactive-claims | bun test test/pipeline-repair.test.js test/pipeline-coordinator.test.js |
+
+U16 independently VERIFIED through the same pipeline: candidate15tests/200assertions and integrated15tests/200assertions pass; twelve retained artifact hashes match, actualseed42 simulation reproduces full finalmetrics and firstphysicalMonth16. Exact integrationSHA and per-phasecommandoutput are in engineering-pipeline-status and committed pipeline evidence. U06/U14 legacy rows reconciled to prior semantic-household and actualcatalog tests; R13 remains the separate main-preservation task.
+
+| ID | Priority / complexity / status | User-visible outcome and acceptance | Dependencies | Exclusive ownership | Verification |
+| --- | --- | --- | --- | --- | --- |
+| U17 | P1 / S / VERIFIED | Existing uint32 next-run seed field preserves actual saved-run provenance across scrub/share and realrerun; structured status reconciles historical narrative only. | R03 | Delivered UI/main implementation, no new assignment | Existing configured-seed actual browser journey passed; see sprint status |
