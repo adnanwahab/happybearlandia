@@ -37,6 +37,7 @@ jobs:
           test/living-city-council.test.js
           test/decision-storage.test.js
           test/release-health.test.js
+          test/server.test.js
           test/world-database-path.test.js
           test/overpass-diagnostics.test.js
       - name: Install Chromium for browser journeys

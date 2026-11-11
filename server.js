@@ -41,7 +41,7 @@ import { createOptimizationApiHandler } from "./world/decision/optimization-api.
 import { createBusinessCompilerHandler } from "./world/models/business-v1/compiler-api.js";
 const handleBusinessCompiler = createBusinessCompilerHandler();
 
-const PORT = Number(process.env.PORT) || 3000;
+const PORT = process.env.PORT === '0' ? 0 : Number(process.env.PORT) || 3000;
 const DEAR_CONGRESS_URL = process.env.DEAR_CONGRESS_URL || "https://dear-congress.fly.dev/api";
 const DEAR_CONGRESS_ORIGIN = publicProviderOrigin(DEAR_CONGRESS_URL);
 
