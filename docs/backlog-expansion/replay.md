@@ -82,3 +82,52 @@ Real-endpoint acceptance remains an explicit dependency: coordinator read-only a
 - No browser/screenshots: shared production API/UI remain unwired. Status **INTEGRATION-READY**, not DONE for historical tickets113/131. Concrete next action: coordinator cherry-picks this incremental commit and previous `dfc9224`, applies hooks, authorizes and wires API/store entrypoints, then supplies route contract for real-endpoint acceptance.
 
 Final regression: `bun test --timeout 30000 test/backlog-replay.test.js test/housing-fork.test.js test/housing-model.test.js test/building-lifecycle.test.js test/checkpoint-replay.test.js` **56 passed, 2898 assertions, 5.03s**. Initial default-5-second run had two checkpoint test timeouts under concurrent host load (54 passed/2 timed out); the bounded30-second rerun passed without code changes. `git diff --check` passed. The repository reads at most8MiB+4097 bytes per file and bounds writes to8MiB+4096 envelope bytes.
+
+## Actual endpoint and owned UI acceptance follow-up
+
+Fixture setup fix is its own commit **52ce90c729910533dda7c46fc20d3397bddb436f**. It applies hooks only after successful forward `git apply --check`; otherwise exact reverse `--check` must succeed. Partial/incompatible patches reject. Set `HBL_REPLAY_SOURCE_ROOT` to exercise the coordinator's actual already-patched sources. Actual coordinator-source run: **6 passed, 59 assertions,14.37s**. The normal unpatched source fixture also passed6/59 earlier in this follow-up.
+
+### Component integration interface
+
+Owned browser module `world/decision/backlog-replay/ui.js` exports:
+
+```js
+import { mount as mountHousingCheckpoints } from './backlog-replay/ui.js';
+const checkpoints = mountHousingCheckpoints(container, {
+  getContext: () => supportedCompletedOriginalHousingRun ? {
+    experimentId: state.experiment.id,
+    runId: state.selectedRun.id,
+    month: selectedCompletedMonth,
+    years: state.experiment.years,
+  } : null,
+  fetch: window.fetch.bind(window), // optional; defaults to global fetch
+});
+checkpoints.update(); // after selected source/run/month changes or clearing selection
+checkpoints.getReceipt(); // last accepted {id,digest}, or null after source change
+checkpoints.destroy(); // abort, suppress late response and remove owned section
+```
+
+Coordinator alone owns the host container and normal selected-future mount callsite. Call update after selection/scrubbing and destroy when replacing the host. The component contains its own scoped styles, DOM labels, receipt field, target month and forward-operations JSON array. It supports root save at the source's selected month, load pinned receipt, resume to target, review fork and approve using the exact returned previewHash. It bootstraps `/api/local-capability` with actual same-origin fetch credentials and never reads/displays capability cookies. Source changes clear receipt/provenance and preview. Editing receipt, target or operations invalidates preview and aborts pending requests; approval also compares current source/form before sending. Generation checks discard late responses after cancellation/source update/disposal. Cancellation is explicitly local: an already accepted server write may finish. Provenance shows model/rules/recipe/engine versions, seed, exact month/digests, parent, lineage and expiry; synthetic-model caveat stays visible. No nested legacy scenario promotion exists.
+
+### Real-browser harness and boundaries
+
+`test/backlog-replay-browser.config.js` runs one Chromium worker against a real sourceRoot server on overridable port3489 with isolated temporary world/decision/workflow/checkpoint stores and signing key. SourceRoot is configurable, defaults to cwd, and is treated read-only by this track. It reuses installed sourceRoot Playwright dependencies; no package changes. Run from the replay worktree:
+
+```sh
+HBL_REPLAY_SOURCE_ROOT=/Users/wahabma/.codex/worktrees/backlog-integration/happybearlandia HBL_REPLAY_PORT=3489 bun /Users/wahabma/.codex/worktrees/backlog-integration/happybearlandia/node_modules/@playwright/test/cli.js test --config test/backlog-replay-browser.config.js
+```
+
+The two journeys in `test/backlog-replay-endpoint.e2e.js` exercise:
+
+1. Actual browser HttpOnly SameSiteStrict capability acquisition; completed actual API-created housing run selection; root24; pinned load; two nonempty exact-approved nested forks48/72; resume120; repeat/reload equality; immutable root; seed-matched control equals existing normal engine; foreign-owner access denial despite forged client ownerId; client ownerId ignored; forged capability rejection; cross-origin guards; false preview hash; missing/bad digest/corrupt/version-mismatch records and16KiB body limit. Private isolated test records are temporarily corrupted and restored; no production store is used. Provenance JSON records actual experiment/run/seed, root/final hashes, lineage, expiry and source commit. Actual Decision Studio screenshot reopens the API-created source.
+2. Actual Decision Studio selectedRun binds getContext. The harness serves ONLY the owned UI module asset and mounts it in a dedicated test host; all API calls use the production server. Clicks save25/load/review/edit-invalidates/approve49/approve73/resume120, reload immutable root and show invalid receipt error. Actual endpoint responses are deliberately held AFTER fetch to deterministically test cancellation, source-change suppression and destruction. No API outcomes are mocked. UI screenshot and receipt provenance retained.
+
+User-visible availability remains distinct: the component's real browser clicks are verified through the acceptance host; production host mounting is still coordinator-owned and not claimed by this track. API tests initially expected unsanitized version error text; coordinator now intentionally sanitizes it, so assertion checks rejection status/error without relying on private internal details. An early port3479 attempt could not bind; all actual accepted runs use isolated3489. No deployment or paid calls.
+
+Final current evidence: actual production API + component browser suite **2 passed,16.9s**, against coordinator commit observed `aa01965b35d420ec6c8196474a662c432fdd219b`. Owned nested-resume screenshot addition then verified with focused component **1 passed,12.2s**. All assertions use actual browser cookies and normal production handlers; no fabricated run outcomes. Latest artifacts:
+
+- API/source screenshot and full exact provenance: `/private/var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/hbl-replay-browser-y1ZqCy/artifacts/backlog-replay-endpoint.e2-cda32-wo-approved-forks-→-restart/actual-checkpoint-provenance.json` and sibling `actual-decision-checkpoint-api-source.png`.
+- Nested UI Month120 screenshot visually inspected: `/private/var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/hbl-replay-browser-v1opUx/artifacts/backlog-replay-endpoint.e2-97e89-le-edits-cancel-and-dispose/actual-checkpoint-nested-resume.png`.
+- Same directory `actual-checkpoint-component-provenance.json` records actual API experiment/run/seed/root/final receipts; `actual-checkpoint-component.png` captures stale-source controls before disposal.
+
+Current ticket status:113/131 **INTEGRATION-READY** for normal-entrypoint UI mounting. Production engine hooks, real endpoint, browser capability, immutable persistence and two-generation replay are now actually verified, superseding the earlier “no endpoint” blocker. The remaining coordinator task is mount/update/destroy in normal selected-future host, plus its separately owned durable quota/tree-cleanup work. This track does not claim that a harness-mounted component is already available through the production page. Owned files remain only backlog-replay modules, uniquely named replay tests/config and this handoff. No shared source or global backlog edits. `git diff --check` passed.
