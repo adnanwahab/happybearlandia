@@ -1,0 +1,32 @@
+import {createRequire} from 'node:module';
+const {test,expect}=createRequire((process.env.HBL_OUTCOME_APP_ROOT||process.cwd())+'/package.json')('@playwright/test');
+import {fileURLToPath} from 'node:url';
+const modulePath=fileURLToPath(new URL('../../world/future-machine/ui/outcome-timeline.js',import.meta.url));
+test('actual paired history delta points synchronize scene and KPIs, including 320px Canvas',async({page},testInfo)=>{
+ const errors=[];page.on('pageerror',error=>errors.push(error.message));
+ // Serve only the owned candidate module over the unchanged integrated app.
+ await page.route('**/world/future-machine/ui/outcome-timeline.js',route=>route.fulfill({path:modulePath,contentType:'application/javascript'}));
+ await page.addInitScript(()=>{try{Object.defineProperty(navigator,'gpu',{value:undefined});}catch{}const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return /webgl/i.test(type)?null:original.call(this,type,...args);};});
+ await page.goto('/world/future-machine.html');await page.getByRole('button',{name:'Fork City',exact:true}).click();
+ await expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.status),{timeout:90000}).toBe('ready');
+ await expect.poll(()=>page.evaluate(()=>window.futureMachine.stats.scene.backend)).toBe('canvas2d');
+ const chart=page.getByRole('region',{name:'Recorded outcome timeline'});
+ await chart.getByRole('combobox',{name:'Recorded outcome metric'}).selectOption('housingUnits');
+ await chart.getByRole('combobox',{name:'Outcome series mode'}).selectOption('delta');
+ const exact=await page.evaluate(()=>{const h=window.futureMachine.history;return h.baseline.map((a,i)=>({month:a.month,delta:h.plan[i].metrics.housingUnits-a.metrics.housingUnits}));});
+ expect(exact).toHaveLength(121);expect(exact[0].delta).toBe(0);expect(exact[16].delta).toBe(24);
+ const titles=await chart.locator('svg circle title').allTextContents();expect(titles).toEqual(exact.map(row=>`Month ${row.month} · DELTA (WITH − WITHOUT) ${row.delta} homes`));
+ await chart.locator('svg circle[data-month="16"]').click();
+ await expect.poll(()=>page.evaluate(()=>[window.futureMachine.state.month,window.futureMachine.stats.scene.month])).toEqual([16,16]);
+ await expect(page.getByTestId('future-machine-metrics')).toContainText('+24 homes');await expect(chart.locator('.fm-outcome-values')).toContainText('24 homes');
+ expect(await chart.locator('svg').evaluate(el=>el.getBoundingClientRect().height)).toBeLessThanOrEqual(180);
+ await chart.screenshot({path:testInfo.outputPath('actual-delta-month16-desktop.png')});
+ await page.setViewportSize({width:320,height:720});
+ await chart.locator('svg circle[data-month="0"]').click();await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.month)).toBe(0);
+ await chart.locator('svg circle[data-month="16"]').click();await expect.poll(()=>page.evaluate(()=>window.futureMachine.stats.scene.month)).toBe(16);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await chart.screenshot({path:testInfo.outputPath('actual-delta-month16-320.png')});
+ await page.getByTestId('future-machine-stage').screenshot({path:testInfo.outputPath('actual-canvas-month16-320.png')});
+ await testInfo.attach('actual-run-provenance',{body:JSON.stringify(await page.evaluate(()=>({seed:window.futureMachine.history.seed,run:window.futureMachine.history.experimentId,model:window.futureMachine.history.modelVersion,month:window.futureMachine.state.month,metrics:window.futureMachine.state.diff.metrics,scene:window.futureMachine.stats.scene})),null,2),contentType:'application/json'});
+ expect(errors).toEqual([]);
+});

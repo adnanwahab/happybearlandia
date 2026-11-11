@@ -1,0 +1,12 @@
+{
+  "coordinator": {"threadId":"01a1caa9-f5e5-7f53-9301-1cecba7ba9ae","branch":"sprint/one-city-two-futures-20261111"},
+  "workers": [
+    {"role":"simulation correctness","threadId":"01a1cae3-c8b5-79b2-9cf5-5d4870565bc9","worktree":"/Users/wahabma/.codex/worktrees/9c41/happybearlandia","commit":"34a911817482c339ffecaa0dd6ac38a7b00f0bec"},
+    {"role":"Future Diff UI","threadId":"01a1cae3-ce80-7a73-bea8-01afb180e823","worktree":"/Users/wahabma/.codex/worktrees/70a4/happybearlandia","commit":"1290a9685e1e40d97759b6b17ff0e2bde9164553"},
+    {"role":"model-driven effects","threadId":"01a1cae3-d8cd-73f1-9113-73b93a0c6c17","worktree":"/Users/wahabma/.codex/worktrees/5b17/happybearlandia","commit":"f7f503a98b6a47dd16d3ac5fe5209b0f85253c8a"},
+    {"role":"first-run repairs","threadId":"01a1cae3-e4be-7a43-8cf1-b5d0d5c1ee68","worktree":"/Users/wahabma/.codex/worktrees/fd1d/happybearlandia","commit":"fd3572847645f1cf7e51a9d48ad72e2285022163"},
+    {"role":"Canvas2D","threadId":"01a1cae3-f4fb-7813-a8eb-84718a4d4007","worktree":"/Users/wahabma/.codex/worktrees/0229/happybearlandia","commit":"4c5b393"},
+    {"role":"browser proof and recording","threadId":"01a1cae3-fc6d-7b80-bb3c-a703e557e3ad","worktree":"/Users/wahabma/.codex/worktrees/1e86/happybearlandia","commit":"b615b59c9d5d33819ddd8d3e95e9afc5882841a1"}
+  ],
+  "note":"Worker commits delivered and integrated; listed chat/worktree identity alone does not assert a live process. No additional worker is launched by this manifest. Earlier Future Machine and visual-pass manifests remain historical."
+}

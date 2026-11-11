@@ -1,5 +1,5 @@
 import { Database } from 'bun:sqlite';
-import { mkdirSync, readdirSync, lstatSync, writeFileSync, realpathSync } from 'node:fs';
+import { chmodSync, mkdirSync, readdirSync, lstatSync, writeFileSync, realpathSync } from 'node:fs';
 import { resolve, join, relative, dirname } from 'node:path';
 
 /** Stop all writers first: each SQLite snapshot is consistent, cross-file atomicity needs quiescence. */
@@ -16,6 +16,7 @@ export function backupFutureMachine({cityRoot,sharePath,destination}) {
       if(db.query('PRAGMA integrity_check').get().integrity_check!=='ok')throw new Error(`Integrity check failed: ${from}`);
       db.exec(`VACUUM INTO '${to.replaceAll("'","''")}'`);
       const restored=new Database(to,{readonly:true});try{if(restored.query('PRAGMA integrity_check').get().integrity_check!=='ok')throw new Error('Backup verification failed');}finally{restored.close();}
+      chmodSync(to,0o600);
       files.push(relative(target,to));
     }finally{db.close();}
   }

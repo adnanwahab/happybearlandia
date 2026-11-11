@@ -1,0 +1,9 @@
+/* Keep legacy feature entry points available when a managed sheet is dismissed. */
+body[data-world-active-panel]:not([data-world-active-panel="none"]) :is(.explorer-dock,nav[aria-label="Connected universe"],.social-journey,.constitution-world-diff,.bw-world-tools,.law-panel-toggle,.scrapbook-toggle,.scrapbook-open,.challenge-open,#world-stream-status,#loading:not([role="alert"]),#retry-nearby-map) { display: none !important; }
+body[data-world-active-panel]:not([data-world-active-panel="none"]) #firstRunGuide { isolation: isolate; }
+
+#firstRunGuide[data-demo-engaged] > p:first-of-type, #firstRunGuide[data-demo-engaged] > h2 + p { display: none; }
+#firstRunGuide > details > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 600; }
+
+#firstRunGuide[data-demo-complete] :is([data-testid="quick-demo"],[data-testid="quick-demo-stop"]) { display: none; }
+@media(max-width:640px) { #firstRunGuide .first-run-actions { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:6px; } #firstRunGuide .first-run-actions > button { margin:0; min-width:0; padding:8px; } }
