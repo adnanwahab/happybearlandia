@@ -70,3 +70,39 @@ test('World HTML keeps primary actions visible and advanced controls opt-in', as
   expect(html).toContain('id="demoBtn"');
   expect(html).toContain('/world/first-run-guide.js');
 });
+
+test('guided actions operate on the actual World simulator', async ({page}) => {
+  test.setTimeout(120000);
+  const lat=29.7286,lng=-95.4746,radiusM=400,kx=111320*Math.cos(lat*Math.PI/180);
+  const coord=(x,z)=>[lat-z/110540,lng+x/kx];
+  const buildings=Array.from({length:16},(_,i)=>{
+    const x=(i%4-1.5)*85,z=(Math.floor(i/4)-1.5)*85;
+    return {id:'first-run-building-'+i,kind:i%5===0?'work':'home',levels:3,
+      pts:[coord(x-12,z-12),coord(x+12,z-12),coord(x+12,z+12),coord(x-12,z+12),coord(x-12,z-12)]};
+  });
+  const core={source:'osm',origin:{lat,lng},radiusM,areaKey:lat+','+lng+','+radiusM,
+    bbox:{s:lat-radiusM/110540,n:lat+radiusM/110540,w:lng-radiusM/kx,e:lng+radiusM/kx},
+    buildings,roads:[{kind:'residential',pts:[coord(-300,0),coord(300,0)]}],pois:[],
+    attribution:'Synthetic test geometry',phase:'core',floodZones:[],
+    floodZonesSource:'pending',floodZonesStatus:'pending'};
+  await page.route('**/api/area?**',route=>route.fulfill({json:core}));
+  await page.route('**/api/area/enrichment?**',route=>route.fulfill({json:{
+    ...core,source:'area-enrichment',floodZonesSource:'unavailable',
+    floodZonesStatus:'ready',floodZones:[],
+  }}));
+  await page.route('**/api/plan',route=>route.fulfill({json:{packages:[]}}));
+  await page.route('**/api/dear-congress/**',route=>route.fulfill({json:{packages:[]}}));
+  await page.goto('/world?demo=1&people=16&renderer=webgl',{waitUntil:'domcontentloaded'});
+  const guide=page.locator('#world-first-run-guide');
+  await expect(guide).toBeVisible();
+  await expect.poll(()=>page.evaluate(()=>Boolean(window.hblGuidedActions && window.hblWorldStartup?.readyMs)),{timeout:90000}).toBe(true);
+  await expect(guide.locator('[data-guide-action="storm"]')).toBeEnabled();
+  await guide.locator('[data-guide-action="storm"]').click();
+  await expect(guide.locator('[data-guide-kind]')).toHaveText('Storm result');
+  await expect(guide.locator('[data-guide-metrics]')).toContainText('Flooded parcels');
+  await expect(page.locator('#overlayMode')).toHaveValue('flood');
+  await guide.locator('[data-guide-action="week"]').click();
+  await expect(guide.locator('[data-guide-kind]')).toHaveText('Paired weekly result',{timeout:90000});
+  await expect(guide.locator('[data-guide-metrics]')).toContainText('Well-being difference');
+  await expect(guide.locator('[data-guide-metrics]')).toContainText('Residents better off');
+});
