@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tipping Point Atlas · HappyBearLandia</title>
+  <link rel="stylesheet" href="/world/laboratory/atlas/view.css">
+  <script type="module" src="/world/laboratory/atlas/page.js"></script>
+</head>
+<body>
+  <main>
+    <nav aria-label="Laboratory navigation">
+      <a href="/">HappyBearLandia</a>
+      <a href="/world/laboratory/">Civilization Laboratory</a>
+    </nav>
+    <header>
+      <h1>Tipping Point Atlas</h1>
+      <p>Find where housing outcomes change as construction capacity and population growth vary.</p>
+    </header>
+    <section id="sweep-view" aria-labelledby="sweep-title">
+      <h2 id="sweep-title">Explore housing outcomes</h2>
+      <form id="sweep-form">
+        <label>Sweep size <select name="preset" id="preset"></select></label>
+        <label>First seed <input name="seed" type="number" required min="0" max="4294967295" value="42"></label>
+        <label>Months <input name="horizonMonths" type="number" required min="12" max="72" value="60"></label>
+        <label>Starting households <input name="households" type="number" required min="30" max="120" value="90"></label>
+        <button type="submit">Run sweep</button>
+        <button id="cancel" type="button" class="secondary" disabled>Cancel</button>
+      </form>
+      <p id="sweep-status" role="status"></p>
+      <progress id="sweep-progress" aria-label="Completed scenarios" hidden></progress>
+      <div id="atlas-results" hidden>
+        <p class="muted">Rows show annual population growth assumptions. Columns show construction capacity as a multiple of the reference scenario.</p>
+        <ul class="legend" aria-label="Final housing outcomes">
+          <li class="adequate">A · Adequate</li>
+          <li class="tight">T · Tight</li>
+          <li class="severe">S · Severe shortage</li>
+          <li class="mixed">M · Mixed across seeds</li>
+        </ul>
+        <div class="table-frame" tabindex="0" aria-label="Scrollable atlas grid">
+          <table id="grid"><caption>Final-month majority outcome by parameter pair</caption></table>
+        </div>
+        <p id="contrast"></p>
+        <section id="cell-details" aria-labelledby="cell-title" hidden>
+          <h3 id="cell-title"></h3>
+          <p id="cell-counts"></p>
+          <ul id="samples"></ul>
+        </section>
+      </div>
+      <details>
+        <summary>Starting city and classification rules</summary>
+        <p id="rules"></p>
+        <p>Each scenario runs the same synthetic monthly City model with an already-financed pipeline of six nine-unit housing projects. Capacity scales contractors, labor, materials, and equipment. Actual completions also depend on utility headroom. Annual population growth is a baseline assumption the model adjusts for jobs and housing vacancy.</p>
+        <p>The sweep pairs the same consecutive seeds across cells. Neighboring-cell differences describe this grid and model. More seeds can show variation within the model.</p>
+      </details>
+    </section>
+    <section id="sample-view" aria-labelledby="sample-title" hidden>
+      <h2 id="sample-title">Selected future</h2>
+      <p><a href="/world/laboratory/atlas/">Back to the atlas</a></p>
+      <p id="sample-status" role="status"></p>
+      <div id="sample-detail" hidden>
+        <p id="sample-context"></p>
+        <label for="month">Snapshot month <output id="selected-month" for="month"></output></label>
+        <input id="month" type="range" min="0" step="1">
+        <dl id="sample-metrics" class="metrics"></dl>
+        <div class="table-frame" tabindex="0" aria-label="Scrollable district snapshot">
+          <table>
+            <caption>Exact district values at the selected month</caption>
+            <thead><tr><th scope="col">District</th><th scope="col">Households</th><th scope="col">Housing units</th><th scope="col">Available</th><th scope="col">Unhoused</th><th scope="col">Mean modeled rent</th></tr></thead>
+            <tbody id="districts"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    <noscript>Enable JavaScript to run the simulation.</noscript>
+  </main>
+</body>
+</html>

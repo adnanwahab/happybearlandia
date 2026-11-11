@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>World Genome · HappyBearLandia</title>
+  <link rel="stylesheet" href="/world/civilization/civilization.css">
+  <link rel="stylesheet" href="./genome.css">
+  <script type="module" src="./page.js"></script>
+</head>
+<body>
+  <main>
+    <nav><a href="/world/laboratory/">Civilization Laboratory</a> <a href="/world/laboratory/atlas/">Tipping Point Atlas</a></nav>
+    <header>
+      <h1>World Genome</h1>
+      <p>Change the starting conditions of a synthetic city and compare the result with a matched baseline.</p>
+    </header>
+    <form id="recipe">
+      <fieldset>
+        <legend>City assumptions</legend>
+        <div class="fields">
+          <label>Seed <input name="seed" type="number" min="0" max="4294967295" step="1" required></label>
+          <label>Construction capacity × baseline <input name="constructionSpeed" type="number" min="0.25" max="2.5" step="any" required></label>
+          <label>Annual population growth input (%) <input name="populationGrowth" type="number" min="-2" max="5" step="any" required></label>
+          <label>Developable land capacity × baseline
+            <select name="land"><option value="0.25">0.25×</option><option value="1">1×</option><option value="2">2×</option></select>
+          </label>
+          <label>Electric capacity × baseline
+            <select name="energy"><option value="0.5">0.5×</option><option value="1">1×</option><option value="2">2×</option></select>
+          </label>
+          <label>Road and transit capacity × baseline
+            <select name="transport"><option value="0.5">0.5×</option><option value="1">1×</option><option value="2">2×</option></select>
+          </label>
+          <label>Construction cost per unit × baseline
+            <select name="constructionCost"><option value="0.5">0.5×</option><option value="1">1×</option><option value="2">2×</option></select>
+          </label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Scenario Cookbook</legend>
+        <p>Combine scheduled shocks in the edited scenario.</p>
+        <div class="ingredients" id="ingredients"></div>
+      </fieldset>
+      <button type="submit">Run matched futures</button>
+    </form>
+    <p id="status" role="status"></p>
+    <section id="output" hidden aria-labelledby="comparison-heading">
+      <h2 id="comparison-heading">Matched City outcomes</h2>
+      <p id="scope"></p>
+      <div class="table-scroll" tabindex="0" role="region" aria-label="City outcomes">
+        <table>
+          <thead><tr><th scope="col">Measure</th><th scope="col">Baseline</th><th scope="col">Edited genome</th><th scope="col">Difference</th></tr></thead>
+          <tbody id="metrics"></tbody>
+        </table>
+      </div>
+      <section aria-labelledby="feedback">
+        <h2 id="feedback">Feedback Loop Laboratory</h2>
+        <div class="toolbar">
+          <label>Measure over time <select id="plot-metric"></select></label>
+          <label>Inspect month <input id="plot-month" type="range" min="0" value="0"></label>
+        </div>
+        <canvas id="plot" width="800" height="240" aria-label="Baseline and edited genome values over time" role="img"></canvas>
+        <p>Dashed blue for the baseline. Solid green for the edited genome.</p>
+        <p id="plot-value"></p>
+        <details>
+          <summary>Housing, development and population rules</summary>
+          <ul>
+            <li>When vacancy is low or more households are searching, the housing system can raise asking rents on available units.</li>
+            <li>Higher rents can make a development proposal more profitable. Construction costs, financing, capacity and utility headroom can delay or prevent new supply.</li>
+            <li>Completed projects add units. The annual household growth rule also responds to housing and job vacancies, so demand can change after supply expands.</li>
+          </ul>
+        </details>
+      </section>
+      <h2>Assumption Jenga</h2>
+      <p>Each rerun restores one input to its baseline value and keeps the remaining changes and seed fixed. Differences are measured from the edited genome.</p>
+      <div id="sensitivity"></div>
+      <p><a id="share">Open the shareable recipe</a></p>
+    </section>
+  </main>
+</body>
+</html>

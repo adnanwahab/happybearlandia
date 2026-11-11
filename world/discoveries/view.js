@@ -15,6 +15,7 @@ const inspector = '/world/causality/inspect.html';
 const pageSize = 20;
 let findings = [];
 let shown = pageSize;
+let selectedMonth = null;
 
 for (const [kind, rule] of Object.entries(rules)) {
   $('rules').append(element('dt', rule.label), element('dd', rule.description));
@@ -58,7 +59,26 @@ function findingCard(finding) {
 
 function render() {
   const filter = $('filter').value;
-  const selected = findings.filter(finding => !filter || finding.kind === filter);
+  const matching = findings.filter(finding => !filter || finding.kind === filter);
+  const totals = new Map();
+  for (const { month } of matching) totals.set(month, (totals.get(month) ?? 0) + 1);
+  const peak = Math.max(1, ...totals.values());
+  $('atlas').replaceChildren(...[...totals.entries()].sort(([a], [b]) => a - b).map(([month, count]) => {
+    const button = element('button', `Month ${month} · ${count}`);
+    button.type = 'button';
+    button.style.setProperty('--atlas-count', count / peak * 100 + '%');
+    button.setAttribute('aria-pressed', String(selectedMonth === month));
+    button.setAttribute('aria-label', `Month ${month}, ${count} findings`);
+    button.onclick = () => {
+      selectedMonth = month;
+      shown = pageSize;
+      render();
+      $('atlas').querySelector('[aria-pressed="true"]')?.focus();
+    };
+    return button;
+  }));
+  $('all-months').disabled = selectedMonth === null;
+  const selected = matching.filter(finding => selectedMonth === null || finding.month === selectedMonth);
   $('count').textContent = selected.length
     ? `Showing ${Math.min(shown, selected.length)} of ${selected.length} findings`
     : 'No findings of this type.';
@@ -67,6 +87,7 @@ function render() {
 }
 
 $('filter').addEventListener('change', () => { shown = pageSize; render(); });
+$('all-months').addEventListener('click', () => { selectedMonth = null; shown = pageSize; render(); });
 $('more').addEventListener('click', () => { shown += pageSize; render(); });
 
 const messages = {
@@ -78,6 +99,9 @@ const messages = {
 
 async function load(runId) {
   $('status').textContent = 'Reading recorded monthly observations…';
+  $('results').hidden = true;
+  selectedMonth = null;
+  shown = pageSize;
   try {
     const result = await readMonthlyDiscoveries(runId);
     if (result.status !== 'ready') {

@@ -1,0 +1,50 @@
+.hbl-prediction {
+  min-width: 0;
+  padding-block: 1rem;
+  border-block: 1px solid color-mix(in srgb, currentColor 28%, transparent);
+}
+
+.hbl-prediction h2 { margin: 0 0 .45rem; }
+.hbl-prediction-context, .hbl-prediction-status { margin: .5rem 0; }
+.hbl-prediction-context { font-size: .92rem; }
+.hbl-prediction-status:empty { display: none; }
+.hbl-prediction [hidden] { display: none; }
+
+.hbl-prediction-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: .6rem .85rem;
+  margin: .8rem 0;
+}
+
+.hbl-prediction-form label {
+  display: grid;
+  gap: .25rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.hbl-prediction-form :is(select, input, button) {
+  max-width: 100%;
+  font: inherit;
+}
+
+.hbl-prediction-result dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  gap: .45rem;
+  margin: .75rem 0;
+}
+
+.hbl-prediction-result dl > div {
+  background: color-mix(in srgb, currentColor 7%, transparent);
+  padding: .4rem .6rem;
+}
+
+.hbl-prediction-result dt { font-size: .86rem; }
+.hbl-prediction-result dd { margin: 0; font-weight: 650; font-variant-numeric: tabular-nums; }
+.hbl-prediction details { margin-block: .7rem 0; }
+.hbl-prediction summary { cursor: pointer; }
+.hbl-prediction ol { padding-left: 1.4rem; }
+.hbl-prediction li + li { margin-top: .3rem; }

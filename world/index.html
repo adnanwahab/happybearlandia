@@ -25,6 +25,8 @@
   html.embed .panel, html.embed #tag { display: none !important; }
   .panel { position: fixed; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; backdrop-filter: blur(6px); }
   #top { top: 12px; left: 12px; width: 300px; max-width: calc(100vw - 48px); }
+  .saved-future-navigation { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 6px 0 12px; }
+  .saved-future-navigation a { color: var(--accent); }
 
   #top>summary{display:flex;align-items:center;gap:8px;cursor:pointer;list-style:none}
   #top>summary::-webkit-details-marker{display:none}
@@ -50,6 +52,7 @@
   #feed b { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--muted); margin-right: 6px; }
   #tag { position: fixed; pointer-events: none; font-size: 12px; padding: 2px 6px; border-radius: 6px; background: var(--panel); border: 1px solid var(--line); display: none; transform: translate(-50%, -140%); white-space: nowrap; }
   #loading { position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:60;padding:9px 15px;border:1px solid var(--line);border-radius:9px;background:var(--panel);font-size:13px;color:var(--ink);pointer-events:none;max-width:70vw; }
+  #loading[role=alert] { pointer-events: auto; z-index: 100; }
   .legend { display: flex; flex-wrap: wrap; gap: 8px; font-size: 11px; color: var(--muted); }
   .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
   .warn { margin-top: 8px; padding: 8px 10px; border: 1px solid color-mix(in srgb, #d2552d 55%, var(--line)); border-radius: 8px; background: color-mix(in srgb, #d2552d 12%, transparent); color: color-mix(in srgb, #d2552d 70%, var(--ink)); font-size: 12px; }

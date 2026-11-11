@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rashomon Mode · HappyBearLandia</title>
+  <link rel="stylesheet" href="./perspectives.css">
+  <script type="module" src="./page.js"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <nav aria-label="World navigation"><a href="/">HappyBearLandia</a><a href="/world/causal.html">World Time Machine</a></nav>
+      <h1>Rashomon Mode</h1>
+      <p class="intro">Read the same modeled flood from four residents’ positions. Each perspective pairs an interpretation with what the city recorded about that resident.</p>
+    </header>
+    <p id="status" role="status">Reading saved city records…</p>
+    <p id="record" hidden><a href="/world/causal.html">Open the Time Machine to record the demo</a></p>
+    <button id="retry" type="button" hidden>Try again</button>
+    <section id="report" aria-labelledby="event-title" hidden>
+      <div class="event">
+        <div>
+          <p class="eyebrow" id="month"></p>
+          <h2 id="event-title"></h2>
+          <p id="outcome"></p>
+          <p id="provenance"></p>
+        </div>
+        <div class="evidence">
+          <a id="event-link">Inspect recorded flood</a>
+          <a id="replay-link">Open flood month in Time Machine</a>
+        </div>
+      </div>
+      <p class="boundary">These interpretations are written from modeled circumstances. The saved city run contains housing and transport records. Resident beliefs, testimony, and knowledge of the flood are unavailable.</p>
+      <div id="perspectives"></div>
+    </section>
+  </main>
+  <template id="perspective">
+    <article>
+      <h3></h3>
+      <p class="resident"></p>
+      <div class="interpretation">
+        <h4>Interpretation</h4>
+        <p></p>
+      </div>
+      <section class="checkpoints">
+        <h4>Recorded housing</h4>
+        <dl>
+          <dt>Before the flood</dt><dd class="before"></dd>
+          <dt>End of flood month</dt><dd class="after"></dd>
+          <dt>Prior unit’s condition</dt><dd class="unit-status"></dd>
+        </dl>
+      </section>
+      <div class="evidence">
+        <a class="before-link">Before checkpoint</a>
+        <a class="after-link">After checkpoint</a>
+        <a class="route-link" hidden>Inspect unreachable commute record</a>
+      </div>
+    </article>
+  </template>
+</body>
+</html>

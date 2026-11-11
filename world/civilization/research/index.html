@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Riverside Planning Lab · HappyBearLandia</title>
+  <link rel="stylesheet" href="/world/civilization/civilization.css">
+  <script type="module" src="./page.js"></script>
+</head>
+<body>
+  <main>
+    <nav><a href="/world/civilization/">Emergent Civilizations</a> <a href="/world/living-city/">Living City</a></nav>
+    <header>
+      <h1>Riverside Planning Lab</h1>
+      <p>A simulated planner forecasts a resident’s commute before testing a transit proposal in 100 paired City futures.</p>
+    </header>
+    <form>
+      <label>Scenario seed <input name="seed" type="number" min="0" max="4294967295" step="1" value="2911" required></label>
+      <label>Transit capacity increase
+        <select name="amount">
+          <option value="4">4 trips per step</option>
+          <option value="8" selected>8 trips per step</option>
+          <option value="12">12 trips per step</option>
+        </select>
+      </label>
+      <button type="submit">Run planner experiment</button>
+    </form>
+    <p role="status" id="status"></p>
+    <section id="result" aria-labelledby="result-title" hidden>
+      <h2 id="result-title">Forecast and simulated outcomes</h2>
+      <p id="scope"></p>
+      <table>
+        <thead><tr><th scope="col">Commute time</th><th scope="col">Planner forecast</th><th scope="col">City mean</th></tr></thead>
+        <tbody id="comparison"></tbody>
+      </table>
+      <p id="coverage"></p>
+      <p id="spread"></p>
+      <details>
+        <summary>Inspect the planner’s assumptions</summary>
+        <p>The planner freezes the starting route and trip demand. For each link, it adds 10 minutes for every unit that its demand-to-capacity ratio exceeds one. It assumes the full capacity increase is available. The City model can change routes, lose trips during floods, and take time to deliver the project.</p>
+        <ul id="inputs"></ul>
+      </details>
+      <p><a id="replay" hidden>Replay the first comparable City pair</a></p>
+    </section>
+  </main>
+</body>
+</html>

@@ -2,6 +2,7 @@ import {characterFromPerson,createContinuityStore,SOCIAL_EXPERIENCES} from './co
 import {contextFromURL,contextURL,navigationMessage} from '../universe/navigation.js';
 import {getExperience} from '../universe/registry.js';
 const experience=document.currentScript?.dataset.experience || document.querySelector('script[data-social-experience]')?.dataset.socialExperience;
+const savedFutureView=new URLSearchParams(location.search).get('journey')==='1';
 let context,store,character,initialError;
 try {context=contextFromURL(location.href);store=createContinuityStore(localStorage);character=context.entityId?store.find(context):null;} catch(error) { initialError=error.message; }
 const panel=document.createElement('details');panel.className='social-journey';panel.dataset.testid='social-journey';
@@ -27,7 +28,7 @@ function show(){
  const status=el('p','');status.setAttribute('role','status');content.append(status);
  const references=store.references(character);content.append(el('p',`${references.length} narrative references · no simulation effects`));for(const row of references.slice(-5))content.append(el('p',`${row.experience}: ${row.text}`));
 }
-function select(person,source,tick){if(!store||!context)return;try{character=store.save(characterFromPerson(person,{source,context,tick}));context=character.context;history.replaceState(null,'',contextURL(location.href,context));if(parent!==window)parent.postMessage(navigationMessage('select',context,{entityId:character.personId}),location.origin);show();}catch(error){content.replaceChildren(el('p',error.message));}}
+function select(person,source,tick){if(!store||!context)return;try{character=store.save(characterFromPerson(person,{source,context,tick}));context=character.context;if(!savedFutureView){history.replaceState(null,'',contextURL(location.href,context));if(parent!==window)parent.postMessage(navigationMessage('select',context,{entityId:character.personId}),location.origin);}show();}catch(error){content.replaceChildren(el('p',error.message));}}
 window.addEventListener('hbl:social-person',e=>select(e.detail.person,e.detail.source,e.detail.tick));
 window.addEventListener('hbl:social-narrative',e=>{if(!character||!store)return;try{store.record(character,{experience,text:e.detail.text});show();}catch{/* Unsupported/oversize reference does not affect gameplay. */}});
 show();

@@ -140,6 +140,8 @@ function showSummary(ensemble) {
     ['Matched commutes', `${summary.paired} of ${samples.length} pairs`],
     ['Shorter / unchanged / longer', `${summary.improved} / ${summary.unchanged} / ${summary.worsened}`],
     ['Average paired change', direction(summary.meanDelta)],
+    ['Average budget change', Number.isFinite(summary.meanBalanceDelta)
+      ? currency.format(summary.meanBalanceDelta) : 'Unavailable'],
     ['Range of paired changes', summary.paired ? `${direction(summary.minDelta)} to ${direction(summary.maxDelta)}` : 'No matched trips'],
   ]);
   find('sample').replaceChildren(...samples.map(sample => {
@@ -162,6 +164,7 @@ async function openPair(index) {
   find('sample').value = index;
   find('share').value = '';
   find('copy').disabled = true;
+  find('pair-scorecard').hidden = true;
   find('pair-status').textContent = `Replaying pair ${index + 1}…`;
   try {
     const pair = await simulate('replay', { seed, amount, index, months });
@@ -181,6 +184,20 @@ async function openPair(index) {
     find('answer').textContent =
       `${baseline.participant.personId} ${describeCommute(baseline)} in the baseline and ${describeCommute(intervention)} with the transit proposal.`;
     const proposal = COMMUTE_OPTIONS.find(option => option.amount === amount);
+    const before = baseline.commuteMinutes;
+    const after = intervention.commuteMinutes;
+    const delta = Number.isFinite(before) && Number.isFinite(after) ? after - before : null;
+    const fraction = delta !== null && before > 0 ? delta / before : null;
+    find('pair-difference').textContent = delta === null ? 'Commute change unavailable for this pair.' :
+      direction(delta) + (fraction === null ? '' : ` · ${new Intl.NumberFormat(undefined, { style: 'percent', maximumFractionDigits: 1, signDisplay: 'exceptZero' }).format(fraction)} from baseline`);
+    const bar = find('pair-bar');
+    const width = delta === null ? 0 : 50 * Math.abs(delta) / Math.max(1, before, after);
+    bar.style.width = width + '%';
+    bar.style.left = (delta < 0 ? 50 - width : 50) + '%';
+    bar.dataset.direction = delta < 0 ? 'shorter' : 'longer';
+    find('pair-cost').textContent = Number.isFinite(proposal?.cost)
+      ? `Proposed investment · ${currency.format(proposal.cost)} modeled USD` : 'Proposed investment unavailable.';
+    find('pair-scorecard').hidden = false;
     updateCouncil({ before: baseline, after: intervention, proposal });
     showSnapshot();
     const url = new URL(location.href);

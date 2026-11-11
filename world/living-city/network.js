@@ -1,3 +1,5 @@
+import { cityEntityId } from '../causal/demo.js';
+
 const categories = {
   people: { label: 'People', description: 'Modeled commute demand and household relocations.' },
   money: { label: 'Money', description: 'Recorded city revenue, operating spending, and policy funding.' },
@@ -146,7 +148,7 @@ export function livingNetworkEvidence(edge, events, month) {
     // World causal traces carry exact canonical entity IDs for links and policies.
     const expectedKind = linkId ? 'link' : policyId ? 'policy' : null;
     if (!expectedKind || event.type === 'MODEL_INPUTS' || !event.context?.worldId) return false;
-    const entity = `${expectedKind}:world-city:${encodeURIComponent(`${event.context.worldId}/${linkId ?? policyId}`)}`;
+    const entity = cityEntityId(event.context.worldId, expectedKind, linkId ?? policyId);
     return event.entityIds?.includes(entity);
   }).map(event => ({ id: event.id, type: event.eventType ?? event.type, provenance: event.provenance?.source }));
 }

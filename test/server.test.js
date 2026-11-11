@@ -1,22 +1,48 @@
-// test/server.test.js
-import { describe, it, expect } from "bun:test";
-import server from "../server.js";
+import { expect, test } from 'bun:test';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
-describe("HTTP Server", () => {
-  it("should return 200 and 'Hello from Bun!' on root path", async () => {
-    // Test the fetch handler directly using a mock Request object
-    const req = new Request("http://localhost/");
-    const res = await server.fetch(req);
-    const text = await res.text();
-
-    expect(res.status).toBe(200);
-    expect(text).toBe("Hello from Bun!");
+test('the production server serves the homepage and rejects an unknown route', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'hbl-server-test-'));
+  const server = Bun.spawn([process.execPath, '--no-env-file', 'run', 'server.js'], {
+    env: {
+      PATH: process.env.PATH,
+      PORT: '0',
+      HBL_WORLD_DB_PATH: ':memory:',
+      DECISION_STORE_DIR: join(directory, 'decision'),
+      HBL_JOURNAL_ROOT: join(directory, 'journals'),
+    },
+    stdout: 'pipe',
+    stderr: 'pipe',
   });
-
-  it("should return 404 for unknown paths", async () => {
-    const req = new Request("http://localhost/unknown");
-    const res = await server.fetch(req);
-
-    expect(res.status).toBe(404);
-  });
-});
+  const startupTimer = setTimeout(() => server.kill(), 5000);
+  try {
+    const reader = server.stdout.getReader();
+    const decoder = new TextDecoder();
+    let startup = '';
+    let port;
+    try {
+      while (!port) {
+        const { value, done } = await reader.read();
+        if (done) throw new Error('HappyBearLandia did not start');
+        startup += decoder.decode(value, { stream: true });
+        port = startup.match(/HappyBearLandia running at http:\/\/localhost:(\d+)\r?\n/)?.[1];
+      }
+    } finally {
+      clearTimeout(startupTimer);
+      reader.releaseLock();
+    }
+    const origin = 'http://127.0.0.1:' + port;
+    const home = await fetch(origin, { signal: AbortSignal.timeout(3000) });
+    expect(home.status).toBe(200);
+    expect(home.headers.get('content-type')).toContain('text/html');
+    expect(await home.text()).toContain('Try Today’s Features');
+    const missing = await fetch(origin + '/missing-release-test-page', { signal: AbortSignal.timeout(3000) });
+    expect(missing.status).toBe(404);
+  } finally {
+    server.kill();
+    await server.exited;
+    await rm(directory, { recursive: true, force: true });
+  }
+}, 15000);

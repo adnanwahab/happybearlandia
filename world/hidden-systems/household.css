@@ -1,0 +1,64 @@
+.hbl-household {
+  min-width: 0;
+  margin-block: 1.25rem;
+  border-top: 1px solid color-mix(in srgb, currentColor 26%, transparent);
+  padding-block: 1rem .25rem;
+}
+
+.hbl-household h2 { margin: 0 0 .45rem; }
+
+.hbl-household-context {
+  margin: .55rem 0;
+  font-size: .9rem;
+}
+
+.hbl-household-scroll {
+  overflow-x: auto;
+  padding-block: .1rem .25rem;
+}
+
+.hbl-household-scroll:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.hbl-household [hidden] { display: none; }
+
+.hbl-household table {
+  width: 100%;
+  min-width: 37rem;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.hbl-household caption {
+  padding-bottom: .55rem;
+  text-align: left;
+  font-size: .88rem;
+}
+
+.hbl-household th,
+.hbl-household td {
+  padding: .5rem .65rem;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 17%, transparent);
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.hbl-household thead th { border-bottom-width: 2px; }
+
+.hbl-household tbody th {
+  width: 24%;
+  font-weight: 600;
+}
+
+.hbl-household td {
+  width: 25%;
+  font-variant-numeric: tabular-nums;
+}
+
+.hbl-household :is(td, th):nth-child(3) {
+  background: color-mix(in srgb, currentColor 7%, transparent);
+}
+
+.hbl-household small { display: block; }

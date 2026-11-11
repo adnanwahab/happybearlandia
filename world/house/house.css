@@ -54,3 +54,6 @@
 .house-has-shaders>.house-look-button{position:absolute;top:16px;right:18px;z-index:35;min-height:40px;padding:9px 13px;border:1px solid #a8bca4;border-radius:10px;background:#fcfff1f5;color:#244438;box-shadow:0 4px 18px #193e2325;font:600 13px system-ui;white-space:nowrap}.house-has-shaders .house-topbar{right:142px}@media(max-width:760px){.house-has-shaders>.house-look-button{top:10px;right:10px;min-height:30px;padding:6px 10px;font-size:11px}.house-has-shaders .house-topbar{right:10px}.house-has-shaders .house-home-label{max-width:calc(100% - 110px)}}
 /* Keep the live 3D canvas out of costly backdrop-blur compositing for every HUD panel. */
 .house-game :is(.house-timebar,.house-top-actions button,.house-mode-tabs,.house-bottom-hud,.house-task-queue,.house-toast,.house-action-now,.house-feed-item,.house-drawer,.house-context-menu,.house-scene-controls button,.house-radial-menu){backdrop-filter:none;-webkit-backdrop-filter:none}
+
+/* Keep the open More menu above the bottom HUD's equal stacking level. */
+.house-topbar:has([data-house-tools][open]) { z-index: 31; }

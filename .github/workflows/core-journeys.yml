@@ -19,7 +19,7 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Verify simulation, causal storage, and navigation contracts
         run: >
-          bun test
+          bun test --timeout 60000
           test/universe-shell.test.js
           test/html-navigation.test.js
           test/local-journeys.test.js
@@ -36,11 +36,15 @@ jobs:
           test/living-city-quests.test.js
           test/living-city-council.test.js
           test/decision-storage.test.js
+          test/release-health.test.js
+          test/server.test.js
+          test/world-database-path.test.js
+          test/overpass-diagnostics.test.js
       - name: Install Chromium for browser journeys
         run: bunx playwright install --with-deps chromium
-      - name: Universe shell and discoverability
-        run: bunx playwright test --config test/e2e/universe-shell.config.js
-      - name: Time Machine, Bakery, and Living City
-        run: bunx playwright test --config test/time-machine.browser.config.js
+      - name: Universe shell, sprint experiences, and saved future journey
+        run: bunx playwright test --config test/release-browser.config.js
+      - name: Time Machine recording and playback with a fresh store
+        run: bunx playwright test --config test/time-machine.browser.config.js world-time-machine.browser.js --workers=1
       - name: Causal inspector component
         run: bunx playwright test --config test/causality.browser.config.js

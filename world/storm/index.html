@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sculpt a Storm · HappyBearLandia</title>
+  <link rel="stylesheet" href="/world/civilization/civilization.css">
+  <link rel="stylesheet" href="./storm.css">
+  <link rel="stylesheet" href="./scene.css">
+  <script type="module" src="./page.js"></script>
+</head>
+<body>
+  <main>
+    <nav aria-label="World navigation"><a href="/">HappyBearLandia</a> <a href="/world/hidden-systems/">Hidden Systems</a></nav>
+    <header>
+      <h1>Sculpt a Storm</h1>
+      <p>Send the same rain over two versions of a neighborhood. Follow where water collects and which streets stay open.</p>
+    </header>
+    <section aria-labelledby="inputs-title">
+      <h2 id="inputs-title">Design the storm</h2>
+      <form id="inputs">
+        <label>Rainfall (m per step) <input name="rainRate" type="number" min="0" max="0.06" step="any" required></label>
+        <label>Storm steps <input name="steps" type="number" min="1" max="100" step="1" required></label>
+        <label>Ensemble seed <input name="seed" type="number" min="0" max="4294967295" step="1" required></label>
+        <button type="submit">Run matched storms</button>
+      </form>
+      <p id="run-status" role="status"></p>
+    </section>
+
+    <section aria-labelledby="terrain-title">
+      <h2 id="terrain-title">Neighborhood terrain</h2>
+      <div class="toolbar">
+        <button id="play" type="button" disabled>Play runoff</button>
+        <label>Storm step <input id="tick" type="range" min="0" value="0" disabled></label>
+        <output id="step-label" for="tick"></output>
+        <label for="arm">Show future</label>
+        <select id="arm"><option value="adjusted">Edited</option><option value="baseline">Baseline</option></select>
+      </div>
+      <div id="scene"></div>
+      <p id="water"></p>
+      <section aria-labelledby="edit-title">
+        <h3 id="edit-title">Edit a grid cell</h3>
+        <p id="selection"></p>
+        <div class="toolbar" id="edits"></div>
+        <p><button id="preset" type="button">Add drainage by Low Crossing</button></p>
+        <p id="edit-status" role="status"></p>
+        <ul id="plan-edits"></ul>
+        <p id="cost"></p>
+      </section>
+    </section>
+
+    <section id="results" aria-labelledby="impact-title" hidden>
+      <h2 id="impact-title">Infrastructure and household exposure</h2>
+      <p id="rules"></p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Any time during the storm</th><th scope="col">Baseline</th><th scope="col">Edited</th></tr></thead>
+          <tbody id="impacts"></tbody>
+        </table>
+      </div>
+      <h3>Changes at this step</h3>
+      <ul id="events"></ul>
+      <div class="toolbar">
+        <button id="ensemble" type="button">Run 100 matched storms</button>
+        <button id="cancel-ensemble" type="button" hidden>Cancel ensemble</button>
+      </div>
+      <p id="ensemble-status" role="status"></p>
+      <div id="ensemble-results"></div>
+      <div class="toolbar branches">
+        <button id="save" type="button">Save simulated branch</button>
+        <button id="download" type="button">Download event record</button>
+        <label for="branches">Saved branches</label>
+        <select id="branches"><option value="">Choose a branch</option></select>
+        <a id="share">Open shareable recipe</a>
+        <a id="response-link">Respond to the edited storm</a>
+      </div>
+      <p id="save-status" role="status"></p>
+    </section>
+
+    <details>
+      <summary>Model assumptions</summary>
+      <p>The synthetic grid uses local downhill transfer with closed outer edges. Rain adds depth, and drainage removes water up to the outlet’s capacity. Detention lowers the selected terrain cell. A raised road changes its surface elevation. Each step is a model step with an unspecified real duration.</p>
+      <p>Road links close at 0.20 m on any sampled road cell. A building is exposed at 0.15 m on any footprint cell. Access uses open links to the modeled depot. Elevations, costs, and rules are illustrative.</p>
+    </details>
+  </main>
+</body>
+</html>

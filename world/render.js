@@ -78,7 +78,8 @@ const origin = {
   lat: loadedExperiment?.save.view.origin.lat??parseCoord(params.get("lat"), 29.7286),
   lng: loadedExperiment?.save.view.origin.lng??parseCoord(params.get("lng"), -95.4746),
 };
-const requestedPeople = Number(loadedExperiment?.save.view.maxPeople??loadedExperiment?.save.checkpoint.people?.length??params.get("people") ?? 2000);
+const savedSyntheticHome = loadedExperiment?.save.mode === "living" && loadedExperiment.save.geometry.area.source === "synthetic";
+const requestedPeople = Number(loadedExperiment?.save.view.maxPeople??loadedExperiment?.save.checkpoint.people?.length??params.get("people") ?? (savedSyntheticHome ? 1 : 2000));
 const maxPeople = Number.isFinite(requestedPeople) ? Math.max(1, Math.min(3000, Math.floor(requestedPeople))) : 2000;
 const $ = (id) => document.getElementById(id);
 if(!embedMode){const routesLink=document.createElement('a');routesLink.href='/routes';routesLink.textContent='All routes';routesLink.style.cssText='display:inline-block;margin:4px 8px';$('top').append(routesLink);}
@@ -118,10 +119,28 @@ const initialAreaRequest=(async()=>{
   }catch(error){return {source:"none",error:`area request failed: ${error.message}`};}
 })();
 
-const useMainWorldGPU = !params.has("living") && !businessMode && !embedMode;
-const { renderer, mode: rendererMode } = useMainWorldGPU
-  ? await (await import("./world-gpu.js")).createWorldGPU({ antialias: !embedMode })
-  : await createCityRenderer({ forceWebGL: params.get("renderer") === "webgl", antialias: !embedMode });
+const forceWebGL = params.get("renderer") === "webgl" || (loadedExperiment?.save.mode === "living" && !navigator.gpu);
+const useMainWorldGPU = loadedExperiment?.save.mode !== "living" && !forceWebGL && !params.has("living") && !businessMode && !embedMode;
+let graphics;
+try {
+  graphics = useMainWorldGPU
+    ? await (await import("./world-gpu.js")).createWorldGPU({ antialias: !embedMode })
+    : await createCityRenderer({ forceWebGL, antialias: !embedMode });
+} catch (error) {
+  if (!useMainWorldGPU) {
+    const loading = $('loading');
+    loading.setAttribute('role', 'alert');
+    loading.textContent = '3D World could not start. Check that WebGL2 and hardware acceleration are available.';
+    if (loadedExperiment && params.has('person')) {
+      const link = document.createElement('a');
+      link.href = '/tools/future-journey.html?' + params;
+      link.textContent = 'Return to Worldline';
+      loading.append(' ', link);
+    }
+  }
+  throw error;
+}
+const { renderer, mode: rendererMode } = graphics;
 renderer.setSize(innerWidth, innerHeight);
 $("view").appendChild(renderer.domElement);
 
@@ -179,7 +198,7 @@ addEventListener("pagehide",()=>{startup.cancelled=true;startupAbort.abort();sta
 let area = await initialAreaRequest;
 const originalAreaGeometry=structuredClone(area);
 startup.mapReadyMs=performance.now();
-const town = buildTown(origin, area, { maxPeople });
+const town = buildTown(origin, area, { maxPeople, savedGeometry: savedSyntheticHome });
 mountConstitutionComparison({ THREE, scene, camera, controls, town, params });
 const world = createWorld(town, { journalsEnabled:!embedMode&&!realityRunSeed&&Boolean(journalCity(origin)),recordHistory:!embedMode, ...(realityRunSeed ? { runSeed:realityRunSeed } : {}) });
 const legacyJournalCity=journalCity(origin),legacyJournalRun=`legacy:${crypto.randomUUID()}`;
@@ -209,7 +228,9 @@ const floodSourceTxt = area.floodZonesStatus === "pending" ? "FEMA flood zones l
   ? `FEMA NFHL flood zones loaded (${(area.floodZones || []).length} polygons)`
   : `FEMA flood zones unavailable (${area.floodZonesError || "request failed"}); using local lowland fallback.`;
 
-$("source").textContent = town.source === "osm"
+$("source").textContent = town.source === "synthetic"
+  ? `${town.buildings.length} buildings from saved synthetic geometry`
+  : town.source === "osm"
   ? `${town.buildings.length} real buildings (${town.attribution}) · ${town.people.length} synthetic residents · ${floodSourceTxt}`
   : area.error
     ? `Couldn't load map data (${area.error}), so this is a procedural town · ${town.people.length} synthetic residents · ${floodSourceTxt}`
@@ -2309,9 +2330,26 @@ if(loadedExperiment){
  const saved=loadedExperiment.save;
  try{playback.pause();if(saved.mode==='living'){await livingWorld.setActive(true);const runtime=livingWorld.getRuntime();runtime.pause();await runtime.restoreCheckpoint(saved.checkpoint);if(saved.view.livingCulture)livingWorld.getCultureSimulation()?.restore(saved.view.livingCulture);}else{await livingWorld?.setActive(false);world.restoreCheckpoint(saved.checkpoint);}
  if(saved.view.camera?.position?.length===3&&saved.view.camera?.target?.length===3){camera.position.fromArray(saved.view.camera.position);controls.target.fromArray(saved.view.camera.target);controls.update();}
- if(saved.view.graphics){const graphics=saved.view.graphics;if(graphics.quality)cityRenderer.setQuality(graphics.quality);if(graphics.settings?.targetFPS)cityRenderer.setTargetFPS(graphics.settings.targetFPS);for(const [name,value] of Object.entries(graphics.features??{}))cityRenderer.setFeature(name,value);}if(saved.view.selection){if(saved.mode==='living')await livingWorld.selectPerson(saved.view.selection.id);else select(saved.view.selection);}
+ if(saved.view.graphics){const graphics=saved.view.graphics;if(graphics.quality)cityRenderer.setQuality(graphics.quality);if(graphics.settings?.targetFPS)cityRenderer.setTargetFPS(graphics.settings.targetFPS);for(const [name,value] of Object.entries(graphics.features??{}))cityRenderer.setFeature(name,value);}if(saved.mode==='living' && params.has('person')){
+   const personId=params.get('person');const runtime=livingWorld.getRuntime();
+   if(!await runtime.inspectPerson(personId))throw Error('That resident is absent from this checkpoint.');
+   await livingWorld.selectPerson(personId);
+   const {journeyURL}=await import('./future-journey/navigation.js');
+   const {inspectFuture}=await import('./future-journey/model.js');
+   const {readPopulationCheckpoint}=await import('./population/checkpoint.js');
+   const exact=inspectFuture({record:loadedExperiment,state:readPopulationCheckpoint(saved.checkpoint)},personId);
+   const navigation=document.createElement('nav');
+   navigation.className='saved-future-navigation';
+   navigation.setAttribute('aria-label','Saved future');
+   for(const [surface,label] of [['worldline','Return to Worldline'],['house','Open exact household in House Simulator']]){
+     const link=document.createElement('a');link.textContent=label;
+     link.href=journeyURL(surface,exact,location.search);
+     navigation.append(link);
+   }
+   $('top').querySelector('summary').after(navigation);
+ }else if(saved.view.selection){if(saved.mode==='living')await livingWorld.selectPerson(saved.view.selection.id);else select(saved.view.selection);}
  if(saved.view.policyPackages)PLAN_PACKAGES=structuredClone(saved.view.policyPackages);activePolicyId=saved.view.policy??'none';policyYear=saved.view.planYear??0;if($('policy'))$('policy').value=activePolicyId;if(planYearEl)planYearEl.value=String(policyYear);
- const settings=saved.view.playback;if(settings){playback.setSpeed(settings.speed);settings.paused?playback.pause():playback.resume();}
+ const settings=saved.view.playback;if(settings){playback.setSpeed(settings.speed);settings.paused||params.has('person')?playback.pause():playback.resume();}
  if(saved.view.buildingWorkspace){if(!buildingBridge?.restoreCheckpoint)throw Error('Construction checkpoint adapter unavailable');await buildingBridge.ready;buildingBridge.restoreCheckpoint(saved.view.buildingWorkspace);}
  experimentRestored=true;
  }catch(error){playback.pause();startup.restoreError=error.message;const notice=document.createElement('p');notice.style.cssText='position:fixed;top:80px;left:20px;z-index:999;background:#641f28;color:white;padding:16px';notice.textContent='Saved experiment restoration failed; playback paused: '+error.message;document.body.append(notice);}

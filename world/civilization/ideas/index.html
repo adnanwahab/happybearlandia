@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How Ideas Spread · HappyBearLandia</title>
+  <link rel="stylesheet" href="/world/civilization/ideas/view.css">
+  <script type="module" src="/world/civilization/ideas/page.js"></script>
+</head>
+<body>
+  <main>
+    <nav aria-label="HappyBearLandia"><a href="/">HappyBearLandia</a><a href="/world?living=1">Living World</a></nav>
+    <header>
+      <h1>How Ideas Spread</h1>
+      <p>Introduce an idea into a saved city and see where its recorded conversations could carry it.</p>
+    </header>
+    <section aria-labelledby="source-heading">
+      <h2 id="source-heading">Choose a saved Living World</h2>
+      <form id="source-form">
+        <label for="save">Saved simulation</label>
+        <select id="save" name="save"><option value="">Choose a save</option></select>
+        <button>Load contacts</button>
+      </form>
+      <p id="source-status" role="status">Looking for saved simulations…</p>
+    </section>
+    <section id="experiment" aria-labelledby="experiment-heading" hidden>
+      <h2 id="experiment-heading">Introduce an idea</h2>
+      <p id="provenance"></p>
+      <p><a id="source-link">Open source checkpoint in World ↗</a></p>
+      <form id="idea-form">
+        <label>Idea <input name="title" required maxlength="80" value="A neighborhood tool library"></label>
+        <label>First adopter <select name="starterId" required></select></label>
+        <label>Random seed <input name="seed" type="number" required min="0" max="4294967295" step="1" value="42"></label>
+        <button>Run experiment</button>
+      </form>
+      <details>
+        <summary>Model rules</summary>
+        <p id="rules"></p>
+        <p>The idea starts at the chosen resident’s first retained conversation. New adopters can pass it along from the next simulation minute. The experiment uses a saved slice of synthetic conversations and ends at the checkpoint. This is a read-only experiment.</p>
+      </details>
+    </section>
+    <section id="results" aria-labelledby="result-heading" hidden>
+      <h2 id="result-heading"></h2>
+      <p id="outcome" role="status"></p>
+      <ol id="timeline"></ol>
+    </section>
+    <noscript>Enable JavaScript to read the saved contacts and run the experiment.</noscript>
+  </main>
+</body>
+</html>

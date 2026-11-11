@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Worldline Merge Studio · HappyBearLandia</title>
+  <link rel="stylesheet" href="./studio.css">
+  <script type="module" src="./page.js"></script>
+</head>
+<body>
+  <main>
+    <nav aria-label="Simulation navigation"><a href="/world/invention/">City Invention Studio</a> <a href="/tools/worldline">Worldline</a></nav>
+    <h1>Worldline Merge Studio</h1>
+    <p>Combine two versioned City plans. Rerun their policies from the same starting city and compare the four outcomes.</p>
+    <form>
+      <label>Future A link <input name="left" autocomplete="off" spellcheck="false" required></label>
+      <label>Future B link <input name="right" autocomplete="off" spellcheck="false" required></label>
+      <div class="buttons">
+        <button id="run">Merge and rerun</button>
+        <button id="example" type="button">Use transit and housing example</button>
+      </div>
+    </form>
+    <p id="status" role="status"></p>
+    <section id="results" aria-labelledby="results-title" hidden>
+      <h2 id="results-title">Four futures from one starting city</h2>
+      <p id="scope"></p>
+      <div id="arms"></div>
+      <h3>Final month outcomes</h3>
+      <p>Mean commute uses trips recorded in each arm. The recorded trip count can differ between arms.</p>
+      <div class="table" role="region" tabindex="0" aria-label="Final month comparison" id="metrics"></div>
+      <section aria-labelledby="interactions-title">
+        <h3 id="interactions-title">Combined effects</h3>
+        <div id="interactions"></div>
+      </section>
+    </section>
+  </main>
+</body>
+</html>

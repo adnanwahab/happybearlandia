@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simulation Health · HappyBearLandia</title>
+  <link rel="stylesheet" href="/tools/simulation-health/health.css">
+  <script type="module" src="/tools/simulation-health/page.js"></script>
+</head>
+<body>
+  <main>
+    <nav aria-label="Site navigation"><a href="/">HappyBearLandia</a></nav>
+    <h1>Simulation Health</h1>
+    <p>Check this server’s release and required storage. Timings are measured in your browser.</p>
+    <button type="button">Refresh checks</button>
+    <p id="status" role="status">Checking the server…</p>
+    <dl>
+      <div><dt>Build</dt><dd id="build">Waiting</dd></div>
+      <div><dt>HTTP liveness</dt><dd id="live">Waiting</dd></div>
+      <div><dt>Release readiness</dt><dd id="ready">Waiting</dd></div>
+      <div><dt>World and causal storage</dt><dd id="world">Waiting</dd></div>
+      <div><dt>Decision storage</dt><dd id="decision">Waiting</dd></div>
+    </dl>
+    <p>Checks are local to this server. They do not exercise third-party APIs, simulate a scenario, or verify a backup.</p>
+  </main>
+</body>
+</html>

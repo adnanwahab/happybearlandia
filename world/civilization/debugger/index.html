@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reality Debugger · HappyBearLandia</title>
+  <link rel="stylesheet" href="./debugger.css">
+  <script type="module" src="./page.js"></script>
+</head>
+<body>
+  <main>
+    <nav aria-label="World navigation"><a href="/">HappyBearLandia</a><a href="/world/causal.html">World Time Machine</a></nav>
+    <header>
+      <h1>Reality Debugger</h1>
+      <p>Inspect a recorded monthly city checkpoint for broken references and invalid resource records.</p>
+    </header>
+    <label id="month-field" hidden>Stored month <select id="month"></select></label>
+    <p id="status" role="status">Finding saved city checkpoints…</p>
+    <p id="record" hidden><a href="/world/causal.html">Open the Time Machine to record or choose a city run</a></p>
+    <button id="retry" type="button" hidden>Try again</button>
+    <section id="audit" hidden aria-labelledby="audit-title">
+      <div class="summary">
+        <h2 id="audit-title">Checkpoint integrity</h2>
+        <p id="provenance"></p>
+        <p id="checkpoint"></p>
+        <a id="replay">Open this month in Time Machine</a>
+      </div>
+      <ul id="checks" class="checks"></ul>
+      <section id="scarcity" aria-labelledby="scarcity-title" hidden>
+        <h2 id="scarcity-title">Modeled shortages</h2>
+        <p>These counts describe the city model’s outcomes for this checkpoint.</p>
+        <dl id="indicators"></dl>
+      </section>
+    </section>
+  </main>
+</body>
+</html>
