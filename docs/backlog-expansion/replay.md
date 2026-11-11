@@ -131,3 +131,24 @@ Final current evidence: actual production API + component browser suite **2 pass
 - Same directory `actual-checkpoint-component-provenance.json` records actual API experiment/run/seed/root/final receipts; `actual-checkpoint-component.png` captures stale-source controls before disposal.
 
 Current ticket status:113/131 **INTEGRATION-READY** for normal-entrypoint UI mounting. Production engine hooks, real endpoint, browser capability, immutable persistence and two-generation replay are now actually verified, superseding the earlier “no endpoint” blocker. The remaining coordinator task is mount/update/destroy in normal selected-future host, plus its separately owned durable quota/tree-cleanup work. This track does not claim that a harness-mounted component is already available through the production page. Owned files remain only backlog-replay modules, uniquely named replay tests/config and this handoff. No shared source or global backlog edits. `git diff --check` passed.
+
+## Final normal-page acceptance: DONE for bounded113/131
+
+Coordinator's production Studio now mounts the owned component under `#physical-world`, updates it on selected source/scrub, and destroys it on pagehide. `test/backlog-replay-normal.e2e.js` is a separate normal-route regression: it does NOT inject a component, create a test host, intercept assets or mutate application state. Only read-only state polling and normal same-origin API setup/verification are used; all workflow actions use the actual saved-run selector, keyboard replay slider and production checkpoint buttons.
+
+Final command:
+
+```sh
+HBL_REPLAY_SOURCE_ROOT=/Users/wahabma/.codex/worktrees/backlog-integration/happybearlandia HBL_REPLAY_PORT=3489 bun /Users/wahabma/.codex/worktrees/backlog-integration/happybearlandia/node_modules/@playwright/test/cli.js test --config test/backlog-replay-browser.config.js --grep 'normal selected-future'
+```
+
+**1 passed,22.5s** (test21.5s). Earlier integer-month normal journey also passed13.2s; final adds explicit fractional24.9→recorded24 verification. First draft assumed integer slider steps and failed on actual0.1 playback step; test corrected to use actual keyboard PageUp and ArrowRight behavior, without changing production slider.
+
+Actual completed API source selected using Construction future. Playback24.9 saves exactly recorded24, never a fractional model state. Save/load24 → review exact capacity edit → approve48 → review exact recession edit → approve72 → resume120 → reload final passes. Each approval request uses the exact preview hash visible in the UI; checkpoints retain exact model/recipe/parent hashes and two-generation lineage. Each child prefix equals its actual stored parent. Root serialized hash/content remains unchanged after both branches/resume. Changing playback to25 clears receipt and disables approval; selecting the second actual saved run clears receipt and invalidates the pending preview. **Zero unexpected page errors and zero console errors**.
+
+Evidence root: `/private/var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/hbl-replay-browser-Ze0drP/artifacts/backlog-replay-normal.e2e.-b5d30-nd-invalidates-stale-source/`.
+
+- `normal-checkpoint-nested-resume.png`: actual normally mounted production checkpoint panel at resumed120; visually inspected.
+- `normal-checkpoint-provenance.json`: actual source `decision_829e3420-be28-4495-9b51-f6844d36d12c`, run `baseline_0001`, seed110210400, exact root/final receipts, lineage, model1.2.0 and recipeDigest, recorded24 vs playback24.9, zero error arrays. Source HEAD observed at final evidence capture: `37877fbc763cf737a5ffab86024087b4a49ebe89` (coordinator checkout was active, not a frozen deployment).
+
+Acceptance status supersedes earlier integration blockers: **DONE for the bounded local housing checkpoint/restart/nested-fork slice of historical113/131**. Coordinator owns broader release status and its quota/tree-cleanup verification. Local capability lifetime/key-loss recovery and synthetic model limitations remain as documented; no hosted multi-user ownership, cross-model authority, legacy nested promotion, deployment or empirical calibration is claimed. Framework harness tests remain separate from this normal-page proof. Only new unique test/config and this owned handoff changed in this final acceptance increment. `git diff --check` passed.
