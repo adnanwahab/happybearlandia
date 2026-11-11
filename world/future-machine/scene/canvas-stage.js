@@ -86,7 +86,16 @@ export function createCanvasStage(container,{onSelect,onCameraChange}={}) {
         ctx.lineWidth=active?4:row.change?2:1;ctx.fill();ctx.stroke();ctx.setLineDash([]);drawn++;
         const center=canvasPoint(row.x,row.z,camera,view);
         if(row.progress!==undefined&&!row.ghost) {ctx.fillStyle='#17242b';ctx.fillRect(center.x-7*camera.zoom,center.y-2,14*camera.zoom,4);ctx.fillStyle='#fff0bc';ctx.fillRect(center.x-7*camera.zoom,center.y-2,14*camera.zoom*row.progress,4);}
-        if(camera.zoom>=2&&!row.ghost) {ctx.font='10px system-ui';ctx.fillStyle='#f3f8fa';ctx.fillText(row.id,center.x-6,center.y+19*camera.zoom,Math.max(30,22*camera.zoom));}
+        if(camera.zoom>=2&&!row.ghost&&center.x>=view.x&&center.x<=view.x+view.width&&center.y>=54&&center.y<height-44) {
+          ctx.font='10px system-ui';ctx.fillStyle='#f3f8fa';
+          const text=ctx.measureText(row.id),maxWidth=Math.max(1,Math.min(Math.max(30,22*camera.zoom),view.width-12));
+          const textWidth=Math.min(text?.width??row.id.length*6,maxWidth);
+          const ascent=text?.actualBoundingBoxAscent??10,descent=text?.actualBoundingBoxDescent??3;
+          // Fit ink inside this arm and above the footer without moving the camera.
+          const x=clamp(center.x-6,view.x+6,view.x+view.width-6-textWidth);
+          const y=clamp(center.y+19*camera.zoom,54+ascent,height-44-6-descent);
+          ctx.fillText(row.id,x,y,maxWidth);
+        }
       }
       ctx.fillStyle='#eaf7fa';ctx.font='bold 14px system-ui';ctx.fillText(mode==='difference'?'RECORDED DIFFERENCES':view.arm==='baseline'?'WITHOUT PLAN':'WITH PLAN',view.x+14,25);
       ctx.font='11px system-ui';ctx.fillText(`Month ${projection?.month ?? '—'} · ${canvasRows(projection,diff,view.arm,mode,false).filter(r=>!r.ghost).length} locations`,view.x+14,44);
