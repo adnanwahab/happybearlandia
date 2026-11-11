@@ -33,7 +33,10 @@ export function journeyURL(surface, selection, source = '') {
   if (Number.isSafeInteger(tick) && tick >= 0) query.set('tick', tick);
   const lineage = incoming.get('future');
   if (lineage && SAVE_ID.test(lineage)) query.set('future', lineage);
-  if (surface === 'world') return '/world?' + query;
+  if (surface === 'world') {
+    query.set('journey', '1');
+    return '/world?' + query;
+  }
   if (surface === 'worldline') return '/tools/future-journey.html?' + query;
   if (surface === 'house' && household && person) {
     query.set('playableLife', '1');

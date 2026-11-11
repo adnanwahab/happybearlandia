@@ -10,7 +10,10 @@ export default defineConfig({
   workers: 1,
   timeout: 90000,
   expect: { timeout: 15000 },
-  use: { baseURL, launchOptions: { ...(executablePath && { executablePath }), args: ['--enable-unsafe-swiftshader'] } },
+  use: { baseURL, trace: 'retain-on-failure', launchOptions: {
+    ...(executablePath && { executablePath }),
+    args: [...(executablePath ? [] : ['--use-gl=angle', '--use-angle=swiftshader']), '--enable-unsafe-swiftshader'],
+  } },
   webServer: {
     command: 'bun --no-env-file run server.js', cwd: process.cwd(), url: baseURL, reuseExistingServer: false,
     env: { PORT: port, HBL_WORLD_DB_PATH: ':memory:' },

@@ -15,6 +15,7 @@ Use this checklist after selecting a release. The November 10 audit was read-onl
 - [ ] Use `bun install --frozen-lockfile` and `bunx playwright install chromium`. On Linux CI install browser dependencies with `bunx playwright install --with-deps chromium`.
 - [ ] Run the core simulation, causal storage, replay, navigation, and Decision storage suite in the [merged workflow](https://github.com/adnanwahab/happybearlandia/blob/fd43cc739b82b39dfe85a72db713b6d1ddaaf450/.github/workflows/core-journeys.yml). Run its Universe shell, Time Machine, and causal inspector browser configs.
 - [ ] Run `bunx playwright test --config test/civilization.browser.config.js` for the working-tree release journeys. Record test totals and commit SHA. An in-memory store is suitable for browser isolation. Use a temporary file-backed store for restart and migration tests.
+- [ ] Run `bunx playwright test --config test/release-browser.config.js` for the guided saved future, Universe shell, Living City, Bakery, and Discoveries. Run `bunx playwright test --config test/time-machine.browser.config.js world-time-machine.browser.js --workers=1` on a separate server so the empty-state journey starts before any other test records the demo.
 - [ ] Run the focused Bun tests for every included group and attempt `bun test` across the repository. For any failure or timeout, name the test, reproduce on the base if classifying it as pre-existing, and state the release impact. Affected core and release-path tests must pass.
 - [ ] On the candidate verify no browser modules or workers return 404, causal JSON routes return the expected content type, and local dependency and GPU fallbacks remain usable. For the local server use a fresh private test directory or `HBL_WORLD_DB_PATH=:memory:`; avoid using the workstation’s existing saved database.
 - [ ] Open the candidate’s CI run and verify the recorded SHA. GitHub reported main unprotected at audit time, so treat green checks as a manual release gate unless required status checks are configured. [Audited main CI run](https://github.com/adnanwahab/happybearlandia/actions/runs/42927630933)
@@ -73,6 +74,19 @@ Transfer to a private workstation or backup destination with `fly ssh sftp get <
 - [ ] With the staged save fixture, exercise Time Machine event replay, Bakery evidence, a same-seed Living City comparison, one approved Observatory experiment, and Storm comparison. Restore an existing resident from Connected Lives to the exact World and House checkpoint. Repeat production read-only smoke where data is already available. Ask for separate approval before creating test saves or recording scenarios in production.
 - [ ] Run the read-only browser smoke against the deployed build with `HBL_SMOKE_URL=https://happybearlandia.fly.dev HBL_SMOKE_BUILD_ID=<verified-sha> bunx playwright test --config test/production-smoke.config.js`. Confirm both storage checks, the build shown on Simulation Health, and advertised route responses.
 - [ ] Record actual Fly version, image digest, mount, smoke times and results. Keep the old image and offsite backup until the monitoring window ends.
+
+## Local walkthrough URLs
+
+Use the local application origin, `http://127.0.0.1:3000` with the default port. Start with [home](http://127.0.0.1:3000/) and select **Try Today’s Features**, or open the [Saved Future Journey](http://127.0.0.1:3000/tools/future-journey.html) directly. Create the demo checkpoint and follow its generated World and House links. The save ID in those links is created by the local store. Return to Worldline, change rain intensity, save the matched fork, then scrub between the recorded checkpoints.
+
+- [Decision Studio](http://127.0.0.1:3000/world/decision.html)
+- [Time Machine](http://127.0.0.1:3000/world/causal.html)
+- [Living City](http://127.0.0.1:3000/world/living-city/)
+- [Riverside Bakery](http://127.0.0.1:3000/world/journeys/bakery.html)
+- [Living Newspaper](http://127.0.0.1:3000/world/newspaper/)
+- [Surprising Discoveries](http://127.0.0.1:3000/world/discoveries/)
+- [Causal Inspector](http://127.0.0.1:3000/world/causality/inspect.html)
+- [Simulation Health](http://127.0.0.1:3000/tools/simulation-health/) · [Liveness](http://127.0.0.1:3000/api/health) · [Readiness](http://127.0.0.1:3000/api/ready)
 
 ### Rollback
 

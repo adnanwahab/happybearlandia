@@ -119,11 +119,28 @@ const initialAreaRequest=(async()=>{
   }catch(error){return {source:"none",error:`area request failed: ${error.message}`};}
 })();
 
-const forceWebGL = params.get("renderer") === "webgl";
+const forceWebGL = params.get("renderer") === "webgl" || (loadedExperiment?.save.mode === "living" && !navigator.gpu);
 const useMainWorldGPU = loadedExperiment?.save.mode !== "living" && !forceWebGL && !params.has("living") && !businessMode && !embedMode;
-const { renderer, mode: rendererMode } = useMainWorldGPU
-  ? await (await import("./world-gpu.js")).createWorldGPU({ antialias: !embedMode })
-  : await createCityRenderer({ forceWebGL, antialias: !embedMode });
+let graphics;
+try {
+  graphics = useMainWorldGPU
+    ? await (await import("./world-gpu.js")).createWorldGPU({ antialias: !embedMode })
+    : await createCityRenderer({ forceWebGL, antialias: !embedMode });
+} catch (error) {
+  if (!useMainWorldGPU) {
+    const loading = $('loading');
+    loading.setAttribute('role', 'alert');
+    loading.textContent = '3D World could not start. Check that WebGL2 and hardware acceleration are available.';
+    if (loadedExperiment && params.has('person')) {
+      const link = document.createElement('a');
+      link.href = '/tools/future-journey.html?' + params;
+      link.textContent = 'Return to Worldline';
+      loading.append(' ', link);
+    }
+  }
+  throw error;
+}
+const { renderer, mode: rendererMode } = graphics;
 renderer.setSize(innerWidth, innerHeight);
 $("view").appendChild(renderer.domElement);
 
@@ -2321,11 +2338,15 @@ if(loadedExperiment){
    const {inspectFuture}=await import('./future-journey/model.js');
    const {readPopulationCheckpoint}=await import('./population/checkpoint.js');
    const exact=inspectFuture({record:loadedExperiment,state:readPopulationCheckpoint(saved.checkpoint)},personId);
+   const navigation=document.createElement('nav');
+   navigation.className='saved-future-navigation';
+   navigation.setAttribute('aria-label','Saved future');
    for(const [surface,label] of [['worldline','Return to Worldline'],['house','Open exact household in House Simulator']]){
      const link=document.createElement('a');link.textContent=label;
      link.href=journeyURL(surface,exact,location.search);
-     $('top').append(link);
+     navigation.append(link);
    }
+   $('top').querySelector('summary').after(navigation);
  }else if(saved.view.selection){if(saved.mode==='living')await livingWorld.selectPerson(saved.view.selection.id);else select(saved.view.selection);}
  if(saved.view.policyPackages)PLAN_PACKAGES=structuredClone(saved.view.policyPackages);activePolicyId=saved.view.policy??'none';policyYear=saved.view.planYear??0;if($('policy'))$('policy').value=activePolicyId;if(planYearEl)planYearEl.value=String(policyYear);
  const settings=saved.view.playback;if(settings){playback.setSpeed(settings.speed);settings.paused||params.has('person')?playback.pause():playback.resume();}

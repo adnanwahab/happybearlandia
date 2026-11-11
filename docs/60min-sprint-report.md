@@ -24,3 +24,5 @@ The Worldline and House links carry the saved experiment, canonical Population r
 | Causal Inspector | `f0d3c8dd6cc7ae0b42f2f4e88bdf2b90db3dbfee` | Three Inspector and two Time Machine Playwright tests, 11 Bun tests, plus a browser bundle. |
 
 See [release audit](release-audit.md) for combined verification, outstanding failures and release impact. See [release checklist](release-checklist.md) for the next candidate and deployment gates.
+
+The screenshot pass used a single Chromium tab and a fresh local store. It captured all six views after interaction, including a completed construction event, pair 7 of 100 commute futures, a Bakery reopening, the corresponding recorded dependency graph, and four findings from month 6. The draft integration review is [PR #9](https://github.com/adnanwahab/happybearlandia/pull/9).

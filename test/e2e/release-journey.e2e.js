@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
 
 test('an exact Living World future survives World, House, replay and a matched fork', async ({ page, request }) => {
-  test.setTimeout(120000);
+  test.setTimeout(180000);
+  await page.setViewportSize({ width: 900, height: 600 });
   await page.goto('/');
   await page.getByRole('link', { name: 'Try Today’s Features', exact: true }).click();
   await page.getByRole('button', { name: 'Create a guided demo checkpoint' }).click();
@@ -23,6 +24,7 @@ test('an exact Living World future survives World, House, replay and a matched f
   await expect(page.locator('#source')).toContainText('1 buildings from saved synthetic geometry');
   await expect(page.locator('#source')).toContainText('WEBGL2');
   await expect(page.getByRole('link', { name: 'Return to Worldline' })).toBeVisible({ timeout: 45000 });
+  expect(new URL(page.url()).searchParams.get('entityId')).toBe('person:population:' + person);
   await page.getByRole('link', { name: 'Open exact household in House Simulator' }).click();
   await expect(page.getByRole('heading', { name: 'Live a day as Alex Rivera' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Return to Worldline' })).toHaveAttribute('href', new RegExp('experiment=' + parent));
@@ -63,4 +65,24 @@ test('invalid IDs and missing saved checkpoints are visible', async ({ page }) =
   await expect(page.getByRole('status').filter({ hasText: 'Invalid saved experiment ID.' })).toBeVisible();
   await page.goto('/tools/future-journey.html?experiment=missing0001');
   await expect(page.getByRole('status').filter({ hasText: 'Saved checkpoint is missing.' })).toBeVisible();
+});
+
+test('saved World offers a return link when 3D rendering is unavailable', async ({ page }) => {
+  await page.goto('/tools/future-journey.html');
+  await page.getByRole('button', { name: 'Create a guided demo checkpoint' }).click();
+  await expect(page.locator('#clock')).toContainText('Minute 360');
+  await page.addInitScript(() => {
+    if (location.pathname !== '/world') return;
+    Object.defineProperty(navigator, 'gpu', { value: undefined });
+    const context = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (type, ...options) {
+      if (type === 'webgl2') return null;
+      return context.call(this, type, ...options);
+    };
+  });
+  await page.getByRole('link', { name: 'Enter this future in 3D World' }).click();
+  const error = page.getByRole('alert').filter({ hasText: '3D World could not start.' });
+  await expect(error).toBeVisible();
+  await error.getByRole('link', { name: 'Return to Worldline' }).click();
+  await expect(page.locator('#clock')).toContainText('Minute 360');
 });

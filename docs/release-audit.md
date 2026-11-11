@@ -88,3 +88,30 @@ On the developer Mac with concurrent tests, `bun ops/measure-simulation.js` meas
 | P1 | Decision Studio and Population use separate models. An authoritative cross-model future requires a versioned entity/time mapping and checkpoint contract. |
 | P1 | Verify the production CPU and memory budget and staging cold starts. The recorded local workloads do not establish Fly capacity. |
 | P2 | Causal graph preview caps records and links. Open the expandable raw response for the full returned page. |
+
+## Release integration follow-up
+
+GitHub main remained at `fd43cc739b82b39dfe85a72db713b6d1ddaaf450`, with PR #8 merged. GitHub listed PRs #2, #5, and #6 still open. The draft release PR was open at `b0a680fd61eb2af8310684598a1d44819c8b98dd` during this review. Fly still reported release 67 complete and one started DFW Machine. [Draft release PR](https://github.com/adnanwahab/happybearlandia/pull/9)
+
+The guided future initially failed in World because the saved Population run went through the WebGPU-only startup path. The saved synthetic home was also being replaced by a procedural town. The saved route now selects the compatible renderer and renders the checkpoint's synthetic footprint. Chrome passed both focused journey tests, including opening World with WebGPU unavailable, exact House navigation, Back, refresh, a repeated fork that reproduced the saved checkpoint, and invalid and missing saves. Decision Studio remains a separate authority and is linked from the journey.
+
+| Classification | Release scope |
+| --- | --- |
+| Fully working and surfaced in focused browser runs | Guided saved Population future, the Universe directory and shortcuts, Living City commute comparison, Riverside Bakery investigation, and Surprising Discoveries. |
+| Implemented but without a public production entry | Build and readiness probes, Simulation Health, and read-only post-deployment smoke. The local file-backed rehearsal passed. Fly is serving the previous release. |
+| Partially integrated | Decision Studio and the saved Population journey share navigation. Their future, entity and clock mapping is still open. The monthly Causal Inspector is a separate recorded City authority. |
+| Broken or unresolved in broad verification | The full suite has timeout, graphics, and legacy scenario failures. The focused Act Normal rerun passed all five tests after reducing GPU contention in the two-client test fixtures. The sleeping-bed test now exercises a real available bed and separately verifies that an occupied bed cannot move. |
+| Not yet implemented | Authoritative Decision Studio future entry into a Population checkpoint and a production backup/restore rehearsal on staging. |
+
+The focused persistence, health, replay, fork, and provider diagnostics suite passed 38 tests. The House garden suite passed seven, including the occupied-bed regression. The local post-deployment smoke rehearsal passed against file-backed storage and a synthetic build ID. GitHub's core verification passed at the audited PR head. [Draft CI run](https://github.com/adnanwahab/happybearlandia/actions/runs/42931209687/job/130230113740)
+
+The repeat full Playwright attempt selected 354 tests. It ended at the eight-minute limit with 19 passes, 15 failures, 320 unrun tests and two teardown errors. It used an isolated source snapshot from before the guided renderer and party harness fixes. Failures covered Act Normal, World activity and construction, legacy journals and traditions, City Invention, renderer checks, community projects, and Collective Mind WebGPU. The trace evidence does not establish that all failures are pre-existing. Use the focused results for the supported release paths and keep the broad suite open.
+
+An independent temporary file-backed startup reached readiness in 423 ms. All 80 loopback requests returned 200. The p95 values were 0.29 ms for health, 5.38 ms for readiness, 0.64 ms for the dashboard and 0.96 ms for home. A second sample under concurrent local tests measured 100 matched commute futures in 29.37 seconds wall time and 4.89 seconds combined CPU, with RSS increasing from 26.33 MB to 63.98 MB and a 132,412-byte result. The guided checkpoint was 35,381 bytes. This sample does not measure Fly capacity.
+
+### Additional isolated checks
+
+- Act Normal passed 5/5 focused browser checks. The native House party passed its full eight-guest save/reload, recap, and departure journey. The narrow viewport Skip control and all 23 focused party Bun tests passed. Four adjacent House workflows still failed during fixture or interaction checks, with one unrun in that sweep.
+- The separate civilization browser sweep passed 12 of 19, failed one Archaeology assertion while loading, and reached its cap with six unrun. Archaeology passed alone after the browser expectation budget was set to 15 seconds. This sweep verified the homepage deck.gl iframe and unavailable-bundle message, a real Connected Lives handoff, and Collective Mind WebGPU in the local environment.
+- A clean Git archive of `b0a680fd61eb2af8310684598a1d44819c8b98dd` built successfully using `bun install --frozen-lockfile` in the Docker image. Fly config validation passed. The image started with a disposable disk-backed Docker volume at `/data`, the Fly mount guard enabled, both readiness checks `ok`, and its exact build ID. The post-deployment browser smoke passed 1/1 against that local image. No production volume or data was used.
+- Provider diagnostics redaction passed 20 focused Bun tests. An isolated server with synthetic endpoint paths confirmed that diagnostics omit private URL components while the configured paths still reach each test upstream.
