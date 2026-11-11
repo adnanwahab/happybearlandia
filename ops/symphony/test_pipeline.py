@@ -79,7 +79,7 @@ class SymphonyConfigTests(unittest.TestCase):
 
     @staticmethod
     def _fake_run(command, **kwargs):
-        output = "true\\n" if command[:2] == ["gh", "api"] else ""
+        output = "true\n" if command[:2] == ["gh", "api"] else ""
         return subprocess.CompletedProcess(command, 0, stdout=output)
 
     def test_preflight_accepts_configured_host(self):
@@ -93,7 +93,7 @@ class SymphonyConfigTests(unittest.TestCase):
     def test_preflight_rejects_no_push_permission(self):
         def no_push(command, **kwargs):
             if command[:2] == ["gh", "api"]:
-                return subprocess.CompletedProcess(command, 0, stdout="false\\n")
+                return subprocess.CompletedProcess(command, 0, stdout="false\n")
             return subprocess.CompletedProcess(command, 0, stdout="")
         with mock.patch.dict(os.environ, {"LINEAR_API_KEY": "test"}, clear=True), \
                 mock.patch.object(run_25h.shutil, "which", return_value="/usr/bin/placeholder"), \
