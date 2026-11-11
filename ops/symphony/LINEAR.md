@@ -1,5 +1,8 @@
 # Linear → Symphony → Codex: HappyBearLandia
 
+Target Linear project: **HBL — 1M Player Launch: Week 1** ([open project](https://linear.app/shel-bernstein/project/hbl-1m-player-launch-week-1-da57f913e8aa)).
+Default project slug: `hbl-1m-player-launch-week-1-da57f913e8aa`.
+
 This opt-in configuration dispatches from **one Linear project** using
 `run_25h.py --tracker linear`. It does not start new sessions or make
 issues ready unless explicitly run and labeled. A separate GitHub Issues
@@ -36,7 +39,7 @@ Run from a local checkout containing the latest
 
 ```bash
 export SYMPHONY_BIN="$HOME/.local/bin/symphony-v0.0.3-macos_arm64"
-export HBL_LINEAR_PROJECT_SLUG="REPLACE_WITH_YOUR_LINEAR_PROJECT_SLUG"
+export HBL_LINEAR_PROJECT_SLUG="hbl-1m-player-launch-week-1-da57f913e8aa"
 read -s LINEAR_API_KEY
 export LINEAR_API_KEY
 unset GITHUB_TOKEN
