@@ -29,7 +29,7 @@ These are decompositions of the approved demo/compatibility goals, not newly pro
 
 | ID | Priority / complexity / status | Task, acceptance and verification | Dependencies / intended owner |
 | --- | --- | --- | --- |
-| U01 | P1 / S / READY | Native backend failure before/after init selects truthful fallback without leaked half-renderer. Factory rejection/disposal tests plus browser context failure. | R01 / Worker 3 |
+| U01 | P1 / S / VERIFIED | Native backend failure before/after init selects truthful fallback without leaked half-renderer. Factory rejection/disposal tests plus browser context failure. | R01 / Worker 3 |
 | U02 | P1 / S / READY | Native renderer resize preserves both viewport scales and camera; no clipped changed building. Desktop→390px browser screenshot. | R01 / Worker 3 |
 | U03 | P1 / S / READY | Compare repeated scrub/focus/dispose memory and object counts after native integration; report measured values, not target FPS. | R01 / Worker 6 |
 | U04 | P1 / S / VERIFIED | Stop/restart default guided demo while a changed recipe is loading; stale response cannot resume another recipe. Real API cancellation browser check. | R03 / Coordinator |
@@ -183,8 +183,8 @@ The following eight approved reliability/preservation tasks become READY after t
 
 | ID | Priority / complexity / status | User-visible outcome and acceptance | Dependencies | Exclusive ownership | Verification |
 | --- | --- | --- | --- | --- | --- |
-| R13 | P1 / S / READY | Preserve main-only catalog/route behavior in a local reconciliation candidate: compare actual catalogs, name missing routes, prove current flagship retained; report concrete failing preservation test before any repair. No main merge. | R11 | catalog worker: new test/pipeline-catalog-preservation.test.js only | bun test test/pipeline-catalog-preservation.test.js |
-| R14 | P1 / S / READY | Prove local Play remains usable during optional plan/provenance failure. Exercise actual loading failure and report precise bounded repair if broken. | R04, R09 | compatibility worker: new test/e2e/pipeline-local-play.e2e.js + test/pipeline-local-play.browser.config.js only | bunx playwright test --config test/pipeline-local-play.browser.config.js |
+| R13 | P1 / S / BLOCKED | Preserve main-only catalog/route behavior in a local reconciliation candidate: compare actual catalogs, name missing routes, prove current flagship retained; report concrete failing preservation test before any repair. No main merge. | R11 | catalog worker: new test/pipeline-catalog-preservation.test.js only | bun test test/pipeline-catalog-preservation.test.js |
+| R14 | P1 / S / BLOCKED | Prove local Play remains usable during optional plan/provenance failure. Exercise actual loading failure and report precise bounded repair if broken. | R04, R09 | compatibility worker: new test/e2e/pipeline-local-play.e2e.js + test/pipeline-local-play.browser.config.js only | bunx playwright test --config test/pipeline-local-play.browser.config.js |
 
 Execution refinements for existing IDs (same approved outcomes; status overrides historical UPCOMING only when dependencies verified):
 
@@ -203,10 +203,32 @@ U10 independently VERIFIED through the interactive pipeline at `779c360`: actual
 
 | ID | Priority / complexity / status | User-visible outcome and acceptance | Dependencies | Exclusive ownership | Verification |
 | --- | --- | --- | --- | --- | --- |
-| R15 | P1 / S / READY | Resume a bounded repair through the interactive pipeline after a failed check, retaining failed candidate and logs. Maximum two total attempts; no reset or silent retry. Atomic transition and ownership tests must prove third attempt rejected. | U10 | pipeline coordinator: scripts/pipeline-coordinator.mjs and new test/pipeline-repair.test.js; interface interactive-claims | bun test test/pipeline-repair.test.js test/pipeline-coordinator.test.js |
+| R15 | P1 / S / VERIFIED | Resume a bounded repair through the interactive pipeline after a failed check, retaining failed candidate and logs. Maximum two total attempts; no reset or silent retry. Atomic transition and ownership tests must prove third attempt rejected. | U10 | pipeline coordinator: scripts/pipeline-coordinator.mjs and new test/pipeline-repair.test.js; interface interactive-claims | bun test test/pipeline-repair.test.js test/pipeline-coordinator.test.js |
 
 U16 independently VERIFIED through the same pipeline: candidate15tests/200assertions and integrated15tests/200assertions pass; twelve retained artifact hashes match, actualseed42 simulation reproduces full finalmetrics and firstphysicalMonth16. Exact integrationSHA and per-phasecommandoutput are in engineering-pipeline-status and committed pipeline evidence. U06/U14 legacy rows reconciled to prior semantic-household and actualcatalog tests; R13 remains the separate main-preservation task.
 
 | ID | Priority / complexity / status | User-visible outcome and acceptance | Dependencies | Exclusive ownership | Verification |
 | --- | --- | --- | --- | --- | --- |
 | U17 | P1 / S / VERIFIED | Existing uint32 next-run seed field preserves actual saved-run provenance across scrub/share and realrerun; structured status reconciles historical narrative only. | R03 | Delivered UI/main implementation, no new assignment | Existing configured-seed actual browser journey passed; see sprint status |
+
+
+## Continuous coordinator reliability execution
+
+Authoritative execution update after source audit1de9fd8. R15 accepted on sprint atd548153 after independent candidate12pass/66assertions and integrated12pass/66assertions; broader combined37pass/202assertions. R13/R14 were checked independently and deliberately not cherry-picked. Full command exits, stdout/stderr, reviews and timestamps: coordinator-resume-evidence.json.
+
+| ID | Priority / complexity / status | Outcome / next acceptance | Dependencies | Exclusive ownership | Verification |
+| --- | --- | --- | --- | --- | --- |
+| `R13` | P1 / S / REPAIR | Candidate67aed30 retains Future Machine but proves missing HoustonBars catalog, ten missing directory entries and atlas wiring. Requires separately scoped preservation implementation; no runtime edit authorized by its test-only claim. | R11 | catalog-worker; test/pipeline-catalog-preservation.test.js | Independent2pass/3fail; candidate retained, no integration |
+| `R14` | P1 / S / REPAIR | Candidatea1aa70d: optional-plan pending/error paths pass. Aborting required simulation-observations module blocks renderer and disclosure initialization. This is a core module failure, not isolated optional metadata failure; acceptance must distinguish these cases. | R04, R09 | browser-proof-r14; assigned browser test/config | Independent8unitpass; browser2pass/1fail23.2s; not integrated |
+| `R15` | P1 / S / VERIFIED | Owner-only explicit repair, two total verification attempts, failed-evidence retention, racing resume protection and occupied REVIEW/REPAIR reservations. Integrated failures require manual reconciliation; no reset/repeated cherry-pick. | U10 | coordinator; scripts/pipeline-coordinator.mjs + test/pipeline-repair.test.js | d548153; candidate/integrated gates pass |
+
+Next compatible reliability dispatch U01 was sent to the existing native-renderer worker. A message is not a durable claim; confirm runtime status before treating it as RUNNING. Two external NB candidates remain REVIEW; no new product surfaces accepted. Failed contributions reserve ownership until explicit reconciliation.
+
+
+### Observed loss-overlay repair
+
+U01 actual loss tests integrated345d4c7: candidate and integrated backend9pass/1opt-inbrowserSkip plus2actualbrowserloss tests each. Visual review identified retained native label spans over Canvas: no stale canvas, but stale graphics remain. U01 is mechanism proof only until U18 repairs and verifies the full visible fallback acceptance.
+
+| ID | Priority / complexity / status | Executable acceptance | Dependencies | Exclusive ownership | Verification |
+| --- | --- | --- | --- | --- | --- |
+| U18 | P0 / S / READY | Clear native overlay labels on actual GPU/WebGL failure before creating Canvas. Preserve recorded state, inventory, Canvas labels and controls. Extend existing actual-loss tests to require native labels before loss and no stale native labels after loss/scrub. No renderer/City redesign. | R01 | Coordinator isolated repair: world/future-machine/scene/index.js; test/e2e/pipeline-device-loss.e2e.js | Backend/Canvas/scene units + actual native/WebGL loss browser config and visually inspected fallback PNG |

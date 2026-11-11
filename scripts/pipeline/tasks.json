@@ -245,6 +245,38 @@
         ]
       ],
       "browserTests": []
+    },
+    "U18": {
+      "kind": "feature",
+      "dependencies": [
+        "R01"
+      ],
+      "files": [
+        "world/future-machine/scene/index.js",
+        "test/e2e/pipeline-device-loss.e2e.js"
+      ],
+      "interfaces": [
+        "scene-fallback-lifecycle"
+      ],
+      "userFacing": true,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/future-machine-backend.test.js",
+          "test/future-machine-canvas.test.js",
+          "test/future-machine-scene.test.js"
+        ]
+      ],
+      "browserTests": [
+        [
+          "bunx",
+          "playwright",
+          "test",
+          "--config",
+          "test/pipeline-device-loss.browser.config.js"
+        ]
+      ]
     }
   },
   "regressionTests": [
