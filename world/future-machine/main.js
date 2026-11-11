@@ -22,7 +22,7 @@ function updateURL(){if(!history)return;state.shareURL=createShareURL({recipe:hi
 function setMonth(month){try{state.month=assertMonth(Number(month));if(history){state.frame=frame();state.diff=diffs[state.month];stage.update(state.frame,state.diff);updateURL();}update();}catch(error){state.error=error.message;update();}}
 function setPlaying(value){clearInterval(playTimer);playTimer=null;state.playing=Boolean(value&&history);if(state.playing){if(state.month===MONTHS)setMonth(0);playTimer=setInterval(()=>{if(state.month>=MONTHS)return setPlaying(false);setMonth(state.month+1);},200);}update();}
 function select(entity){if(!history)return;setPlaying(false);showStory(describeSelection(frame(),diffs[state.month],entity));}
-function jump(stop){if(!history||!stop)return;setPlaying(false);setMonth(stop.month);if(stop.entity)stage.focus(stop.entity);showStory({...stop,limitations:story.limitations});}
+function jump(stop){if(!history||!stop)return;setPlaying(false);setMonth(stop.month);const located=stop.entity?stage.focus(stop.entity):false;showStory({...stop,summary:`${stop.summary}${stop.entity&&!located?' No unambiguous scene mapping for this entity; camera unchanged.':''}`,limitations:story.limitations});}
 function direct(){if(!story)return;setPlaying(false);const stops=story.stops||[];const next=stops.find(stop=>stop.month>state.month)||stops[0];if(next)jump(next);else showStory(story);}
 async function run(recipe=state.recipe,savedId=null,selectedMonth=0){
   request?.abort();request=new AbortController();const current=request;const start=performance.now();
@@ -34,7 +34,8 @@ async function run(recipe=state.recipe,savedId=null,selectedMonth=0){
     else loaded=await createExperiment(recipe,options);
     if(disposed||request!==current)return;
     assertHistoryIdentity(loaded,{recipe,experimentId:fallback?null:savedId});
-    history=loaded;diffs=compareHistory(history);story=buildStory(history,diffs);stats.runMs=performance.now()-start;
+    stage.dispose();stage=createStage(ui.stageElement,{onSelect:select});stage.setMode(state.mode);stage.setGhosts(state.ghosts);
+    history=loaded;diffs=compareHistory(history);story=buildStory(history,diffs);story.limitations.push(...(history.baseline[0].state.provenance.assumptions||[]));stats.runMs=performance.now()-start;
     state={...state,status:'ready',recipe:history.recipe,experimentId:history.experimentId,message:`${fallback?'Saved record unavailable; reran the versioned recipe. ':''}120 months complete · detailed states recomputed from the saved monthly City manifest. Synthetic, uncalibrated model.`,error:null};
     setMonth(selectedMonth);showStory(story);stats.readyMs=performance.now()-stats.startedAt;
   }catch(error){if(request!==current||disposed)return;state.status='error';state.error=error.message;state.message='The comparison could not be opened. Check the inputs and use Fork City to retry.';update();}
@@ -43,6 +44,7 @@ async function share(){if(!history)return;updateURL();update();try{await navigat
 function exportReport(){if(!history)return;const report=createEvidenceReport(history,{month:state.month,diff:diffs[state.month],story});const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='future-machine-evidence.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function dispose(){if(disposed)return;disposed=true;request?.abort();clearInterval(playTimer);storyDispose();stage?.dispose();ui.dispose();window.removeEventListener('pagehide',dispose);}
 window.addEventListener('pagehide',dispose);
+window.addEventListener('pageshow',event=>{if(event.persisted&&disposed)location.reload();});
 // Read-only diagnostics for local resource measurements and integration checks.
 window.futureMachine={get history(){return history;},get state(){return {...state};},get stats(){return {...stats,scene:stage?.getStats?.()};},dispose};
 update();

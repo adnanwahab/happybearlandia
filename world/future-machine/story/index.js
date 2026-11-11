@@ -17,14 +17,17 @@ export function selectChanges(frames, {limit = 6} = {}) {
     if (!change.collection || typeof change.entityId !== 'string' || !change.entityId) throw new Error('Change requires exact City entity ID');
     // Structural changes rank above field changes. No incomparable currency/length sum.
     const fieldCount = Array.isArray(change.fields) ? change.fields.length : Object.keys(change.fields || {}).length;
-    return {...clone(change), month: frame.month, significance: ['added', 'removed'].includes(change.kind) ? 1000 + fieldCount : Math.max(1, fieldCount)};
+    return {...clone(change), month: frame.month, significance: ['added', 'removed'].includes(change.kind) ? (physical(change) ? 2000 : 1000) + fieldCount : Math.max(1, fieldCount)};
   }));
   const chronological = (a, b) => a.month - b.month || compare(key(a), key(b));
   candidates.sort(chronological);
   if (!candidates.length) return {status: 'no-change', first: null, significant: [], stops: [], physicalStatus: 'no-physical-change'};
   const first = candidates[0];
-  const significant = [...candidates].sort((a, b) => b.significance - a.significance || chronological(a, b));
-  const stops = [first, ...significant.filter(row => row !== first)].slice(0, limit);
+  const ranked = [...candidates].sort((a, b) => b.significance - a.significance || chronological(a, b));
+  const unique = new Map();
+  for (const row of ranked) if (!unique.has(key(row))) unique.set(key(row), row);
+  const significant = [...unique.values()];
+  const stops = [first, ...significant.filter(row => key(row) !== key(first))].slice(0, limit);
   return {status: 'changed', first, significant: significant.slice(0, limit), stops, physicalStatus: candidates.some(physical) ? 'physical-change' : 'no-physical-change'};
 }
 
@@ -106,7 +109,7 @@ export function buildStory(history, diffs) {
     return {month: change.month, title: `${index === 0 ? 'First divergence' : 'Significant change'} · ${entity.collection} ${entity.id}`, summary: detail.summary, entity, evidence: detail.evidence, limitations: detail.limitations};
   });
   return {stops, summary: selected.status === 'no-change' ? 'No recorded differences in available paired months.' : `${stops.length} selected modeled changes. ${selected.physicalStatus === 'no-physical-change' ? 'No physical building or link change was recorded.' : 'Building or link differences are available for inspection.'}`,
-    limitations: [...limits, 'Significance ranks additions/removals before changed-field count, then month and exact ID; it is an editorial rule, not a causal or welfare score.', ...(diffs.some(row => !row.available) ? ['Some paired months are unavailable; first divergence is only among available months.'] : [])]};
+    limitations: [...limits, 'Significance ranks physical additions/removals first, then other additions/removals and changed-field count; repeated entity/kind changes are deduplicated; ties use month and exact ID; it is an editorial rule, not a causal or welfare score.', ...(diffs.some(row => !row.available) ? ['Some paired months are unavailable; first divergence is only among available months.'] : [])]};
 }
 
 export function describeSelection(frame, diff, {collection, id, arm} = {}) {
@@ -135,9 +138,10 @@ export function renderStory(container, description, {onJump} = {}) {
     text('p', stop.summary);
   }
   const evidence = description.evidence || (description.stops || []).flatMap(stop => stop.evidence);
-  text('h3', 'Recorded model events');
-  if (!evidence.length) text('p', 'No matching entity events supplied. Causal explanation unavailable.');
-  for (const receipt of evidence) text('pre', JSON.stringify(receipt, null, 2));
+  const receipts = text('details', '');
+  text('summary', `Recorded model events (${evidence.length})`, receipts);
+  if (!evidence.length) text('p', 'No matching entity events supplied. Causal explanation unavailable.', receipts);
+  for (const receipt of evidence) text('pre', JSON.stringify(receipt, null, 2), receipts);
   for (const limitation of description.limitations || []) text('p', limitation);
   container.replaceChildren(root);
   return () => { for (const [button, handler] of listeners) button.removeEventListener('click', handler); root.remove(); };

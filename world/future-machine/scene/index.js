@@ -111,7 +111,7 @@ export function createStage(container, {onSelect} = {}) {
     setMode(value){if(!['split','baseline','plan'].includes(value))throw new TypeError('Unknown scene mode');mode=value;summary();draw();},
     setGhosts(value){ghosts=Boolean(value);rebuild();},
     focus(entity){if(disposed||!projection)return false;const row=[...projection.a,...projection.b].find(r=>r.collection===entity?.collection&&r.id===entity.id);if(!row)return false;selected=entity;if(camera){controls.target.set(row.x,row.height/2,row.z);camera.position.set(row.x+60,row.height+60,row.z+60);controls.update();}rebuild();return true;},
-    getStats(){return {backend:renderer&&!error?'webgl':'inventory-fallback',objects:meshes.length,month:projection?.month??null,layoutVersion:mapping.version,error};},
+    getStats(){return {backend:renderer&&!error?'webgl':'inventory-fallback',objects:meshes.length,geometries:renderer?.info.memory.geometries??0,textures:renderer?.info.memory.textures??0,month:projection?.month??null,layoutVersion:mapping.version,error};},
     dispose(){if(disposed)return;disposed=true;observer?.disconnect();globalThis.removeEventListener?.('resize',resize);views.removeEventListener('click',pick);renderer?.domElement.removeEventListener('webglcontextlost',lost);controls?.dispose();releaseMeshes();renderer?.dispose();root.remove();},
   };
   return api;

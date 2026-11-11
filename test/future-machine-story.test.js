@@ -102,3 +102,9 @@ test('renderer creates accessible jumps, literal evidence and disposes handlers'
   expect(root.children.some(row=>row.textContent==='<script>literal</script>')).toBe(true);
   dispose();expect(button.handlers.size).toBe(0);expect(root.removed).toBe(true);
 });
+
+
+test('director deduplicates repeated policy additions and includes completed physical buildings',()=>{
+ const frames=Array.from({length:120},(_,i)=>({month:i+1,changes:[{collection:'policies',entityId:'policy',kind:'added'},...(i>=8?[{collection:'buildings',entityId:'new-home',kind:'added'}]:[])]}));
+ const result=selectChanges(frames);expect(result.stops[0].month).toBe(1);expect(result.stops[1].entityId).toBe('new-home');expect(result.stops[1].month).toBe(9);expect(result.stops).toHaveLength(2);
+});

@@ -1,3 +1,4 @@
+import {DEFAULT_RECIPE} from '../contracts.js';
 import {calendarLabel, clampMonth, metricPresentation} from './model.js';
 
 /** Mount a renderer-independent view. Call update with recorded data; see README. */
@@ -128,10 +129,10 @@ export function createUI(container, callbacks = {}) {
     onCancel:callbacks.onCancel,
     onPolicyChange:id=>{if(recipe)recipe={...recipe,intervention:id==='baseline'?null:structuredClone(defaultIntervention)};},
   });
-  let defaultIntervention=null;
+  let defaultIntervention=structuredClone(DEFAULT_RECIPE.intervention);
   const doc=container.ownerDocument;
   const shell=view.stage.closest('.fm-ui');
-  const storyElement=doc.createElement('section');storyElement.className='fm-story';storyElement.setAttribute('aria-label','Recorded change story');view.stage.parentElement.after(storyElement);
+  const storyElement=doc.createElement('section');storyElement.className='fm-story';storyElement.setAttribute('aria-label','Recorded change story');shell.querySelector('.fm-inspectors').after(storyElement);
   const actions=shell.querySelector('.fm-timeline .fm-actions');
   const split=doc.createElement('button');split.type='button';split.textContent='Side by side';split.onclick=()=>callbacks.onMode?.('split');actions.append(split);
   const ghostsLabel=doc.createElement('label');const ghosts=doc.createElement('input');ghosts.type='checkbox';ghosts.checked=true;ghosts.onchange=()=>callbacks.onGhosts?.(ghosts.checked);ghostsLabel.append(ghosts,doc.createTextNode(' Ghost differences'));actions.append(ghostsLabel);

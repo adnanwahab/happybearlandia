@@ -33,3 +33,5 @@ Source inspection of the coordinator's initial `main.js` (2026-11-11) identified
 3. Catch evidence export errors and show them in the UI. A missing digest or incomplete replay should produce an actionable unavailable export state rather than an uncaught event-handler exception.
 
 The integrated UI/scene modules were not yet present in the coordinator checkout at this review, so browser interaction, keyboard navigation, responsive layout and clipboard/download behavior remain unverified by this worker.
+
+Integration resolution: the composed page now checks saved identity before display, retains the fallback disclosure, and routes export errors through the UI action handler. Final browser evidence is documented in `docs/future-machine.md`.

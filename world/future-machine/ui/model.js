@@ -10,7 +10,8 @@ export function calendarLabel(month) {
 }
 export function formatMeasurement(value, unit = '') {
   if (typeof value !== 'number' || !Number.isFinite(value)) return 'Unavailable';
-  return `${new Intl.NumberFormat('en', {maximumFractionDigits:2}).format(value)}${unit ? ` ${unit}` : ''}`;
+  const display=Math.abs(value)>0&&Math.abs(value)<0.01 ? `${value<0?'-':''}<0.01` : new Intl.NumberFormat('en', {maximumFractionDigits:2}).format(value===0?0:value);
+  return `${display}${unit ? ` ${unit}` : ''}`;
 }
 export function metricPresentation(metric) {
   const unit = metric?.unit || '';
