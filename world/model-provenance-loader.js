@@ -18,7 +18,8 @@ if(host){
     pre.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;max-height:300px;overflow:auto';
     details.append(title,pre);host.append(details);
   }).catch(error=>{
-    settled=true;clearTimeout(timeout);
+    clearTimeout(timeout);
     show('Model definitions could not load ('+error.message+'). This is not evidence that the simulation has no modeled parameters.');
+    settled=true;
   });
 }
