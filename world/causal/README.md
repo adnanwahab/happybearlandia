@@ -15,3 +15,10 @@ The timeline requests the immutable checkpoint for the selected month and, where
 The Time Machine links to the [Living Newspaper](../newspaper/index.html) and [Surprising Discoveries](../discoveries/index.html). Both read the same stored simulation through the causal API. The newspaper presents selected events in yearly editions. Discoveries scores completed monthly World observations using explicit rules and links to the evidence.
 
 This view covers months 0–20 of the synthetic monthly CityState fixture. The general World map, the minute-based population runtime, arbitrary run selection, and branching from the selected month require additional integration. Checkpoints provide recorded playback; verified recomputation requires independently recorded target digests.
+
+
+## Fixture grid prototype (NB-U01)
+
+`neighborhood-grid-view.js` exports `createNeighborhoodGridView(container,{onSelect})` with `update(fixture)`, `setMetric(id)`, `focusCell(id)`, `getStats()` and `dispose()`. Hosts must link `neighborhood-grid-view.css`. No production entry point mounts it. `normalizeGridFixture` accepts only `{source:'fixture',metrics:[{id,label,unit,min,max}],cells:[{id,row,column,values:{metricId:{value,reason,source}}}]}`. Bounds:12metrics,256cells,16positions per axis. Cells are schematic fixtures; they are not actual City districts or geographic positions. Null/nonfinite values remain unavailable, numeric zero remains valid; units and sources accompany selections. Canvas2D uses DOM buttons for keyboard accessibility, and absent Canvas contexts retain DOM presentation. No animation loop or model runs are created.
+
+Verify pure checks with `bun test test/neighborhood-grid-view.test.js`. Include the actual Chromium fixture harness with `HBL_GRID_BROWSER=1` (optional `HBL_GRID_TEST_DEPENDENCY_ROOT` resolves an installed Playwright dependency tree). Its320/1440 screenshots are component evidence only. NB-U02 and geographic G02/G03 contracts must be completed and verified before real City data or any production-page integration is enabled.

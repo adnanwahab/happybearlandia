@@ -279,3 +279,5 @@ Acceptance: open the ordinary Future Machine route, fork, compare district value
 Material scope decision: district context ships before any grid. Synthetic flagship positions have no supported geographic footprint, so there is no cell attribution. Original image labels remain missing; crew assignments/model changes are deferred. Grid tasks retain their ID/dependencies and are not declared complete by this district summary. Existing release/main-preservation blockers and worker ownership remain in force.
 
 District increment implementation: `c4cbfa22dfb1d034d3eee072d42058552e89a8cc`; final7unit/57assertions,18adjacentpass/1skip/129assertions,1actualChromiumjourney5.5s, browser build and diffcheck pass. Full grid remains dependent work.
+
+NB-U01 prototype follow-up: integrated `c789517` from worker `4660ca3`. Independent7tests/48assertions pass including actual Chromium320/1440 with GPU disabled. This is an explicitly labeled fixture component; it accepts no City authority and is not mounted in a production page. NB-U02/G02/G03 still gate real grid integration. Existing district summary remains the shipped normal-entry-point slice.
