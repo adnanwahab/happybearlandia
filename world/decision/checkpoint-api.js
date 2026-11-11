@@ -40,6 +40,6 @@ export function createCheckpointHandler({authorize,store=createDecisionStore(),d
    if(new TextEncoder().encode(output.serialized).length>(capacity?.remainingBytes??0))return json({error:'Checkpoint byte quota reached'},429);
    await repository.save(scope,output.serialized,{expiresAt,...(parent?{parent:{id:parent.checkpoint.id,digest:parent.checkpoint.digest}}:{})});
    return json({...output,expiresAt},201);
-  }catch(error){return json({error:error.code==='ENOENT'?'Checkpoint unavailable':'Checkpoint rejected',detail:error.code==='ENOENT'?undefined:String(error.message).slice(0,200)},400);}finally{active.delete(ownerId);}
+  }catch(error){const capacity=/quota|storage limit|audit bound/.test(error.message);return json({error:error.code==='ENOENT'?'Checkpoint unavailable':capacity?'Checkpoint capacity reached':'Checkpoint rejected',detail:'Check source identity, supported version, month, approval and retained checkpoint.'},capacity?429:400);}finally{active.delete(ownerId);}
  };
 }

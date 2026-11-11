@@ -31,10 +31,10 @@ test('signed ownership survives helper recreation with same protected secret',()
  const restarted=createLocalCapabilityBoundary({secret:Buffer.alloc(32,7),now:()=>1700000000000,isLocalPeer:()=>true});
  expect(restarted.owner(make(undefined,{cookie}))).toBe('00000000000000000000000000000001');
 });
-test('audit finding: owner lookup accepts missing Origin on POST',()=>{
+test('mutation owner lookup rejects missing Origin',()=>{
  const f=fixture(),cookie=f.issue().headers.get('set-cookie').split(';')[0];
  const request=new Request('http://localhost:3193/api/workflows',{method:'POST',headers:{'x-test-peer':'verified',cookie}});
- expect(f.boundary.owner(request)).toBe('00000000000000000000000000000001');
+ expect(f.boundary.owner(request)).toBeNull();
 });
 
 import {mkdtempSync,statSync,chmodSync,writeFileSync,symlinkSync,rmSync} from 'node:fs';
@@ -62,7 +62,7 @@ test('noncanonical, forged, cross-origin and remote cookie requests reject',()=>
  for(const headers of [{origin:'http://evil.invalid'},{'sec-fetch-site':'cross-site'},{'x-test-peer':'unverified'}])expect(f.boundary.owner(make(undefined,{'x-test-peer':'verified',cookie,...headers}))).toBeNull();
  expect(f.boundary.owner(make('http://evil.invalid',{'x-test-peer':'verified',cookie}))).toBeNull();
 });
-test('audit finding: denied bootstrap omits no-store and nosniff',()=>{
+test('denied bootstrap retains no-store and nosniff',()=>{
  const response=fixture().boundary.handle(make());
- expect(response.status).toBe(403);expect(response.headers.get('cache-control')).toBeNull();expect(response.headers.get('x-content-type-options')).toBeNull();
+ expect(response.status).toBe(403);expect(response.headers.get('cache-control')).toBe('no-store');expect(response.headers.get('x-content-type-options')).toBe('nosniff');
 });
