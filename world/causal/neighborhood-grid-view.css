@@ -1,0 +1,68 @@
+.neighborhood-grid-view {
+  position:relative;
+  box-sizing:border-box;
+  max-width:100%;
+  min-width:0;
+  padding:12px;
+  border:1px solid #667e8e;
+  border-radius:12px;
+  background:#10232d;
+  color:#edf5fa;
+  font:13px/1.5 system-ui
+}
+.neighborhood-grid-view p {
+  margin:6px 0;
+  overflow-wrap:anywhere
+}
+.neighborhood-grid-view select {
+  max-width:100%;
+  min-height:44px;
+  font:inherit
+}
+.neighborhood-grid-viewport {
+  max-width:100%;
+  overflow:auto;
+  margin:10px 0;
+  overscroll-behavior:contain
+}
+.neighborhood-grid-surface {
+  position:relative
+}
+.neighborhood-grid-surface canvas {
+  position:absolute;
+  inset:0;
+  pointer-events:none
+}
+.neighborhood-grid-cells {
+  position:absolute;
+  inset:0;
+  display:grid
+}
+.neighborhood-grid-cells button {
+  box-sizing:border-box;
+  width:64px;
+  height:64px;
+  min-height:44px;
+  border:0;
+  color:white;
+  font:700 16px system-ui;
+  text-shadow:0 1px 3px #000;
+  background:transparent;
+  cursor:pointer
+}
+.neighborhood-grid-cells button:focus-visible {
+  outline:3px solid #fff2a0;
+  outline-offset:-5px
+}
+.neighborhood-grid-cells button[aria-pressed=true] {
+  box-shadow:inset 0 0 0 3px #ffe69a
+}
+@media(prefers-reduced-motion:reduce) {
+  .neighborhood-grid-view * {
+  animation:none!important;
+  transition:none!important;
+  scroll-behavior:auto!important
+}
+
+}
+
