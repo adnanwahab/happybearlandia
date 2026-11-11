@@ -18,7 +18,7 @@ import {createWorldPersistenceHandler,EXPERIMENT_MAX_BYTES} from './world/experi
 const handleWorldPersistence=createWorldPersistenceHandler({dbPath:releaseStorage.worldDbPath});
 import {createRealityShareHandler} from './world/reality/share-api.js';
 import {createOpenQuestionsHandler} from './world/questions/api.js';
-const handleRealityShares=createRealityShareHandler();
+const handleRealityShares=createRealityShareHandler({dbPath:process.env.HBL_REALITY_SHARE_DB_PATH||undefined});
 const handleOpenQuestions=createOpenQuestionsHandler();
 import {createTemporalCityHandler} from './world/temporal/api.js';
 const handleTemporalCity=createTemporalCityHandler();
