@@ -34,3 +34,18 @@ test('real housing trail jumps to exact recorded policy, project and completion 
  const after=await page.evaluate(async()=>{const {stateHash}=await import('/world/future-machine/data/core.js');return stateHash(window.futureMachine.history.baseline);});expect(after).toBe(evidence.baselineHash);
  const path=testInfo.outputPath('evidence-trail-real.json');await writeFile(path,JSON.stringify({...evidence,noFuture,inspectorAfterReverseScrub},null,2));await testInfo.attach('exact-evidence-trail',{path,contentType:'application/json'});console.log('TRAIL_EVIDENCE',path);expect(errors).toEqual([]);
 });
+
+test('inventory-only fallback retains exact evidence jumps and reverse-scrub honesty',async({page},info)=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.addInitScript(()=>{HTMLCanvasElement.prototype.getContext=function(){return null;};});
+ await page.goto('/world/future-machine.html?renderer=canvas2d');await page.getByRole('button',{name:'Fork City',exact:true}).click();
+ await expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.status),{timeout:90000}).toBe('ready');
+ await selectAdded(page);const trail=page.getByRole('region',{name:'Visual WHY evidence trail'});
+ expect(await page.evaluate(()=>window.futureMachine.stats.scene.backend)).toBe('inventory-fallback');
+ expect(await page.evaluate(()=>window.futureMachine.state.diff.metrics.housingUnits.delta)).toBe(24);
+ await trail.getByRole('button',{name:'completion · Month 16 · event 16-0',exact:true}).click();await synchronized(page,16);
+ await expect(trail.getByRole('button',{name:'housing-units · Month 16 · event 16-0 · 24 homes',exact:true})).toBeVisible();
+ await page.screenshot({path:info.outputPath('inventory-only-evidence-month16.png'),fullPage:true});
+ await seek(page,0);await expect(trail.getByRole('button',{name:/completion.*16-0/})).toHaveCount(0);await expect(trail.getByRole('button',{name:/housing-units/})).toHaveCount(0);await expect(trail).toContainText('Building is absent at the selected recorded month.');
+ expect(errors).toEqual([]);
+});
