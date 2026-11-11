@@ -90,7 +90,7 @@
 #world-first-run-guide [data-guide-open-result]{
   margin-top:8px;padding:6px 9px;border:1px solid var(--guide-border);background:transparent;
 }
-#world-first-run-guide.is-collapsed{max-height:38vh;}
+#world-first-run-guide.is-collapsed{max-height:38vh;left:320px;right:auto;width:min(345px,calc(100vw - 690px));}
 #world-first-run-guide.is-collapsed h2{font-size:15px;margin:2px 0 5px;}
 #world-first-run-guide.is-collapsed .world-guide-feedback{margin-top:7px;}
 #worldAdvanced {
@@ -109,6 +109,7 @@
 #worldAdvanced:focus-within > summary{outline-offset:2px;}
 @media(max-width:950px){
   #world-first-run-guide{top:auto;bottom:60px;right:10px;max-height:min(48vh,520px);}
+  #world-first-run-guide.is-collapsed{top:52px;bottom:auto;left:auto;right:10px;width:min(320px,calc(100vw - 25px));max-height:34vh;}
 }
 @media(max-width:640px){
   #world-first-run-guide{width:min(320px,calc(100vw - 20px));max-height:37vh;padding:10px;bottom:50px;}
