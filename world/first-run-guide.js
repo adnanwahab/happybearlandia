@@ -147,6 +147,8 @@ export function mountWorldFirstRunGuide({doc = document, root = doc.body, win = 
     resultButton.hidden = true;
     const resultId = detail.resultId;
     if (typeof resultId === 'string' && ['cyclePanel','experimentPanel'].includes(resultId)) {
+      // Keep measured feedback visible without covering the full comparison panel.
+      setCollapsed(true);
       resultButton.hidden = false;
       resultButton.onclick = () => {
         const target = doc.getElementById(resultId);
