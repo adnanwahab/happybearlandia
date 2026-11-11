@@ -14,3 +14,9 @@ test('QR known byte-mode codewords and bounded URL matrix',()=>{
  expect(result.matrix.slice(0,7).map(row=>row.slice(0,7).map(Number).join(''))).toEqual(['1111111','1000001','1011101','1011101','1011101','1000001','1111111']);
  expect(()=>shareQR('https://example.com/'+ 'x'.repeat(520),'e')).toThrow(RangeError);
 });
+import {compareManifestExports} from './backlog-sharing-structural.js';
+test('manifest comparison ignores key order and only permits valid export timestamps',()=>{
+ expect(compareManifestExports({seed:42,exportedAt:'2026-11-11T00:00:00Z'},{exportedAt:'2026-11-11T01:00:00Z',seed:42}).material).toEqual([]);
+ expect(compareManifestExports({experiment:{seed:42}},{experiment:{seed:43}}).material).toEqual(['$.experiment.seed']);
+ expect(compareManifestExports({exportedAt:'invalid'},{exportedAt:'2026-11-11T00:00:00Z'}).material).toEqual(['$.exportedAt']);
+});
