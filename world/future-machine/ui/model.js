@@ -19,6 +19,6 @@ export function metricPresentation(metric) {
   return available ? {
     baseline:formatMeasurement(metric.baseline, unit), intervention:formatMeasurement(metric.intervention, unit),
     delta:`${metric.intervention - metric.baseline > 0 ? '+' : ''}${formatMeasurement(metric.intervention - metric.baseline, unit)}`,
-    detail:metric.note || 'Modeled difference · B − A',
+    detail:metric.note || 'Modeled difference · WITH PLAN − WITHOUT PLAN',
   } : {baseline:'Unavailable', intervention:'Unavailable', delta:'Unavailable', detail:metric?.reason || metric?.note || 'No supported measurement for this month.'};
 }

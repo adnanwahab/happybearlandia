@@ -16,3 +16,18 @@ The optional `callbacks.onCancel()` extension exposes Cancel run during loading.
 - Browser import and DOM construction defer all simulation work to callbacks. No third-party UI dependency, network request, server change, or production write is introduced.
 
 Integration owner must include the stylesheet, mount the scene/story, and verify the full API journey. Add `onCancel` to coordinator composition if user-visible request cancellation is required. No shared contracts or implementation plan were edited here.
+
+## One City, Two Futures additions
+
+The v1 adapter preserves the existing stage, story, timeline, Fork City and native control selectors. Its title is now **One City, Two Futures**; the plan field is labeled **Plan** and the travel metric **Link travel time**. Left/right legends read WITHOUT PLAN / WITH PLAN. Every available metric has a native WHY button; `onMetric(key)` receives `housingUnits`, `meanTravelMinutes`, or `capitalSpending`. Unavailable measurements remain unavailable and their WHY buttons are disabled. All values and units still come directly from the supplied diff; this UI makes no simulation calls.
+
+Coordinator additions (no shared contracts edited):
+
+- `onDemo()` starts or restarts the coordinator-owned guided sequence, including at idle before a frame exists. `.fm-demo-play` remains the stable selector; text is Play Demo or Restart Demo.
+- `onDemoPause()` toggles the coordinator-owned sequence. Update `demo:{status,paused,caption,elapsedMs}`. Active statuses are playing/running/paused/preparing/loading; complete restores Play Demo and offers manual exploration. The pause button reads Pause demo / Resume demo. Caption is live-announced; elapsedMs is displayed as elapsed whole seconds, never estimated compute progress.
+- `onMode('difference')` is dispatched by **Differences only**; the scene/coordinator must implement this mode. Existing split/baseline/plan callbacks are preserved.
+- `provenance:{seed,modelVersion,experimentId}` updates the always visible `.fm-run-provenance` alongside current month. Missing values are explicit, with recipe seed/version as fallback. Nested demo/provenance updates merge partially.
+
+The synthetic mapping and generator assumptions remain visible beneath the city: zero private parcel capacity, utility capacity 200 per district/network and zero annual growth. The UI does not claim a real geographic mapping or empirical causal certainty.
+
+Latest focused verification: `HBL_FM_BROWSER=1 HBL_PLAYWRIGHT_MODULE=/Users/wahabma/happybearlandia/node_modules/@playwright/test/index.mjs bun test test/future-machine-ui.test.js` passed 5 tests / 33 assertions. Includes idle demo, pause/resume, two WHY metric keys, difference-mode dispatch, provenance, keyboard timeline, loading/cancel/error, unsafe URL, disposal, and no overflow at 390px/1440px. Desktop test-fixture screenshot: `/tmp/future-machine-ui-desktop.png`. This is component evidence with an intentionally empty stage, not an actual model run screenshot. Full engine values, synchronized city, 45–60 second runner, integrated screenshots and browser recording remain coordinator acceptance work.

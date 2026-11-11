@@ -18,21 +18,21 @@ export function mountFutureMachineUI(root, options = {}) {
   function field(text, input) { const label=node('label',text); label.append(input); return label; }
   const shell=node('section',undefined,'fm-ui'); shell.setAttribute('aria-label','Future Machine controls');
   const header=node('header',undefined,'fm-header');
-  const title=node('div'); title.append(node('p','10 YEARS · 2 FUTURES · 1 DECISION','fm-eyebrow'),node('h1','Future Machine'),node('p','Fork the same city. Change one policy. Explore the modeled difference.','fm-subtitle'));
+  const title=node('div'); title.append(node('p','10 YEARS · 2 FUTURES · 1 DECISION','fm-eyebrow'),node('h1','One City, Two Futures'),node('p','One shared beginning. One housing plan. Explore ten modeled years.','fm-subtitle'));
   header.append(title); shell.append(header);
   const form=node('form',undefined,'fm-setup');
   const city=node('select'), policy=node('select');
   const policyNote=node('p',undefined,'fm-policy-note');
   const fork=node('button','Fork City','fm-primary'); fork.type='submit';
   const cancel=button('Cancel run',()=>{ generation++; options.onCancel?.(); update({busy:false,status:'Run cancelled. Existing comparison preserved.'}); });
-  form.append(field('City',city),field('Policy for Future B',policy),fork,cancel,policyNote); shell.append(form);
+  form.append(field('City',city),field('Plan',policy),fork,cancel,policyNote); shell.append(form);
   const status=node('p','Choose a city and policy to begin.','fm-status'); status.setAttribute('role','status'); status.setAttribute('aria-live','polite');
   const error=node('p',undefined,'fm-error'); error.setAttribute('role','alert'); error.hidden=true;
   const progress=node('progress'); progress.max=1; progress.setAttribute('aria-label','Simulation progress'); progress.hidden=true;
   shell.append(status,error,progress);
   const comparison=node('section',undefined,'fm-comparison'); comparison.setAttribute('aria-label','Matched city futures');
   const stage=node('div',undefined,'fm-stage'); stage.setAttribute('aria-label','Synchronized city visualization');
-  const legends=node('div',undefined,'fm-legends'); legends.append(node('span','A · Baseline'),node('span','B · Policy change'));
+  const legends=node('div',undefined,'fm-legends'); legends.append(node('span','WITHOUT PLAN'),node('span','WITH PLAN'));
   const provenance=node('p','No spatial data loaded.','fm-provenance'); comparison.append(legends,stage,provenance); shell.append(comparison);
   const timeline=node('section',undefined,'fm-timeline'); timeline.setAttribute('aria-label','Shared timeline');
   const date=node('output'); const slider=node('input'); slider.type='range'; slider.min=0; slider.max=120; slider.step=1; slider.setAttribute('aria-label','Shared month for Future A and Future B');
@@ -44,9 +44,10 @@ export function mountFutureMachineUI(root, options = {}) {
   timeline.append(date,slider,ticks,transport); shell.append(timeline);
   const cards=node('section',undefined,'fm-metrics'); cards.setAttribute('aria-label','Measured outcomes');
   const metricNodes={};
-  for(const [key,label] of [['homes','Homes'],['commute','Commute'],['spending','City spending']]) {
+  for(const [key,label] of [['homes','Homes'],['commute','Link travel time'],['spending','City spending']]) {
     const card=node('article',undefined,'fm-card'), delta=node('strong'), values=node('p'), detail=node('p',undefined,'fm-detail');
-    card.append(node('h2',label),delta,values,detail); cards.append(card); metricNodes[key]={delta,values,detail};
+    const why=button(`WHY · ${label}`,()=>action(options.onMetric,key)); why.className='fm-metric-why'; why.disabled=true;
+    card.append(node('h2',label),delta,values,detail,why); cards.append(card); metricNodes[key]={delta,values,detail,why};
   }
   shell.append(cards);
   const inspectors=node('section',undefined,'fm-inspectors');
@@ -99,7 +100,7 @@ export function mountFutureMachineUI(root, options = {}) {
     if(!state.ready || state.busy)pause();
     else if(options.externalPlayback){play.textContent=state.playing?'Pause timelapse':'Play timelapse';play.setAttribute('aria-pressed',String(!!state.playing));}
     provenance.textContent=state.spatialLabel || 'No spatial data loaded. Unlocated changes remain in the inspector.';
-    for(const key of Object.keys(metricNodes)){const item=metricPresentation(state.metrics?.[key]); const elements=metricNodes[key];elements.delta.textContent=item.delta;elements.values.textContent=`A ${item.baseline} · B ${item.intervention}`;elements.detail.textContent=item.detail;}
+    for(const key of Object.keys(metricNodes)){const item=metricPresentation(state.metrics?.[key]); const elements=metricNodes[key];elements.delta.textContent=item.delta;elements.values.replaceChildren(node('span',`WITHOUT PLAN  ${item.baseline}`,'fm-value-baseline'),node('span',`WITH PLAN  ${item.intervention}`,'fm-value-plan'));elements.detail.textContent=item.detail;elements.why.disabled=!state.ready || state.busy || !options.onMetric || item.delta==='Unavailable';}
     if(patch.households){fill(household,state.households,state.householdId ?? household.value);renderHousehold();}
     household.disabled=!state.households.length;
     if('householdId' in patch){household.value=state.householdId;renderHousehold();}
@@ -116,7 +117,7 @@ export function mountFutureMachineUI(root, options = {}) {
 /** Frozen interface v1 adapter. The coordinator owns simulation, playback, and scene rendering. */
 export function createUI(container, callbacks = {}) {
   let current={status:'idle',month:0,playing:false,mode:'split',ghosts:true};
-  let recipe=null;
+  let recipe=structuredClone(DEFAULT_RECIPE);
   const view=mountFutureMachineUI(container,{
     externalPlayback:true,
     onFork:()=>callbacks.onRun?.(recipe),
@@ -127,6 +128,7 @@ export function createUI(container, callbacks = {}) {
     onShare:callbacks.onShare,
     onExport:callbacks.onExport,
     onCancel:callbacks.onCancel,
+    onMetric:callbacks.onMetric ? key=>callbacks.onMetric({homes:'housingUnits',commute:'meanTravelMinutes',spending:'capitalSpending'}[key]) : undefined,
     onPolicyChange:id=>{if(recipe)recipe={...recipe,intervention:id==='baseline'?null:structuredClone(defaultIntervention)};},
   });
   let defaultIntervention=structuredClone(DEFAULT_RECIPE.intervention);
@@ -134,14 +136,29 @@ export function createUI(container, callbacks = {}) {
   const shell=view.stage.closest('.fm-ui');
   const storyElement=doc.createElement('section');storyElement.className='fm-story';storyElement.setAttribute('aria-label','Recorded change story');shell.querySelector('.fm-inspectors').after(storyElement);
   const actions=shell.querySelector('.fm-timeline .fm-actions');
+  const demoPanel=doc.createElement('section');demoPanel.className='fm-demo';demoPanel.setAttribute('aria-label','Guided demo');
+  const demo=doc.createElement('button');demo.type='button';demo.className='fm-primary fm-demo-play';demo.textContent='Play Demo';demo.onclick=()=>callbacks.onDemo?.();
+  const demoPause=doc.createElement('button');demoPause.type='button';demoPause.textContent='Pause demo';demoPause.onclick=()=>callbacks.onDemoPause?.();demoPause.hidden=true;
+  const demoCaption=doc.createElement('p');demoCaption.className='fm-demo-caption';demoCaption.setAttribute('role','status');demoCaption.textContent='A guided 45–60 second comparison. Pause anytime to explore.';
+  demoPanel.append(demo,demoPause,demoCaption);shell.querySelector('.fm-header').after(demoPanel);
+  const runProvenance=doc.createElement('p');runProvenance.className='fm-run-provenance';runProvenance.setAttribute('aria-label','Simulation provenance');shell.querySelector('.fm-comparison').before(runProvenance);
+  const difference=doc.createElement('button');difference.type='button';difference.textContent='Differences only';difference.onclick=()=>callbacks.onMode?.('difference');actions.append(difference);
   const split=doc.createElement('button');split.type='button';split.textContent='Side by side';split.onclick=()=>callbacks.onMode?.('split');actions.append(split);
   const ghostsLabel=doc.createElement('label');const ghosts=doc.createElement('input');ghosts.type='checkbox';ghosts.checked=true;ghosts.onchange=()=>callbacks.onGhosts?.(ghosts.checked);ghostsLabel.append(ghosts,doc.createTextNode(' Ghost differences'));actions.append(ghostsLabel);
   const shareLink=doc.createElement('a');shareLink.textContent='Open comparison link';shareLink.hidden=true;shareLink.className='fm-share-link';shell.append(shareLink);
   const noPhysical=doc.createElement('p');noPhysical.className='fm-detail';shell.querySelector('.fm-metrics').after(noPhysical);
   function update(patch={}) {
-    current={...current,...patch};
+    current={...current,...patch,...(patch.demo?{demo:{...current.demo,...patch.demo}}:{}),...(patch.provenance?{provenance:{...current.provenance,...patch.provenance}}:{})};
     if(patch.recipe){recipe=structuredClone(patch.recipe);if(recipe.intervention)defaultIntervention=structuredClone(recipe.intervention);}
     const busy=['loading','running','queued'].includes(current.status);
+    const demoState=current.demo || {};
+    const demoActive=['playing','running','paused','preparing','loading'].includes(demoState.status);
+    demo.disabled=busy || !callbacks.onDemo;demo.textContent=demoActive?'Restart Demo':'Play Demo';
+    demoPause.hidden=!demoActive;demoPause.disabled=busy || !callbacks.onDemoPause;demoPause.textContent=demoState.paused?'Resume demo':'Pause demo';demoPause.setAttribute('aria-pressed',String(!!demoState.paused));
+    demoCaption.textContent=demoState.caption || (demoState.status==='complete'?'Demo complete. Scrub the timeline or select a result to explore.':'A guided 45–60 second comparison. Pause anytime to explore.');
+    if(Number.isFinite(demoState.elapsedMs))demoCaption.textContent+=` · ${Math.floor(Math.max(0,demoState.elapsedMs)/1000)}s`;
+    const provenance=current.provenance || {};
+    runProvenance.textContent=`MONTH ${current.month} / 120 · SEED ${provenance.seed ?? recipe?.seed ?? 'Unavailable'} · MODEL ${provenance.modelVersion ?? recipe?.modelVersion ?? 'Unavailable'} · RUN ${provenance.experimentId ?? current.experimentId ?? 'Not run yet'}`;
     const ready=!!current.frame && !busy;
     const metrics={};
     for(const [key,source] of [['homes','housingUnits'],['commute','meanTravelMinutes'],['spending','capitalSpending']]){
@@ -154,13 +171,13 @@ export function createUI(container, callbacks = {}) {
     view.update({busy,ready,month:current.month,playing:current.playing,status:current.message,error:current.error,metrics,households,
       cities:[{id:'synthetic',label:'Riverside · Synthetic City'}],
       policies:defaultIntervention?[{id:'housing',label:'Housing intervention',description:`${defaultIntervention.amount} proposed homes · ${defaultIntervention.cost} illustrative USD · district ${defaultIntervention.districtId}. Construction and funding constraints still apply.`},{id:'baseline',label:'No intervention (matched control)',description:'Compare two unchanged futures from the same initial state and seed.'}]:[{id:'baseline',label:'No intervention (matched control)'}],
-      policyId:recipe?.intervention?'housing':'baseline',spatialLabel:'Synthetic schematic layout · Monthly City model · January 2026–January 2036 · Uncalibrated assumptions. No real-world geometry inferred.',
+      policyId:recipe?.intervention?'housing':'baseline',spatialLabel:'Synthetic schematic layout · Monthly City model · January 2026–January 2036 · Uncalibrated assumptions. No real-world geometry inferred. Private parcel capacity 0; utility capacity 200 per district/network; annual growth 0.',
       blink:current.mode==='plan',evidence:current.diff?{month:current.month,experimentId:current.experimentId,changedCount:current.diff.changedCount,physicalCount:current.diff.physicalCount,source:'Monthly City comparison. Select an entity for recorded evidence.'}:null,
     });
     noPhysical.textContent=current.diff ? (current.diff.available===false?'Comparison unavailable for this month.':current.diff.physicalCount===0?'No physical building or link difference recorded at this month.':'Physical changes are recorded; inspect the highlighted entities for evidence.') : '';
-    split.disabled=ghosts.disabled=!ready;split.setAttribute('aria-pressed',String(current.mode==='split'));ghosts.checked=current.ghosts;
+    difference.disabled=split.disabled=ghosts.disabled=!ready;difference.setAttribute('aria-pressed',String(current.mode==='difference'));split.setAttribute('aria-pressed',String(current.mode==='split'));ghosts.checked=current.ghosts;
     shareLink.hidden=!current.shareURL;
     if(current.shareURL){try{const url=new URL(current.shareURL,doc.baseURI);if(['http:','https:'].includes(url.protocol))shareLink.href=url.href;else{shareLink.removeAttribute('href');shareLink.hidden=true;}}catch{shareLink.removeAttribute('href');shareLink.hidden=true;}}
   }
-  return {stageElement:view.stage,storyElement,update,dispose(){split.onclick=null;ghosts.onchange=null;view.destroy();}};
+  return {stageElement:view.stage,storyElement,update,dispose(){demo.onclick=null;demoPause.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
 }
