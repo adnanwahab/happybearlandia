@@ -36,6 +36,7 @@ export function createCheckpointHandler({authorize,store=createDecisionStore(),d
      output=await adapter.fork(parent.serialized,payload.operations,month);
     }else if(action==='resume')output=await adapter.resume(parent.serialized,month);else return json({error:'Unsupported action'},400);
    }
+   if(!parent){try{const existing=await repository.load(scope,{id:output.checkpoint.id,digest:output.checkpoint.digest});if(existing.serialized!==output.serialized)throw Error('Immutable root conflict');return json({...output,expiresAt:existing.expiresAt},201);}catch(error){if(error.code!=='ENOENT')throw error;}}
    const expiresAt=parent?.expiresAt??Date.now()+86400000;
    if(new TextEncoder().encode(output.serialized).length>(capacity?.remainingBytes??0))return json({error:'Checkpoint byte quota reached'},429);
    await repository.save(scope,output.serialized,{expiresAt,...(parent?{parent:{id:parent.checkpoint.id,digest:parent.checkpoint.digest}}:{})});
