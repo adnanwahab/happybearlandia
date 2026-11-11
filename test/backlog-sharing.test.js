@@ -1,0 +1,5 @@
+import {test,expect} from 'bun:test';
+import {reproductionAppendix,savedReadonlyLink} from '../world/decision/backlog-sharing/appendix.js';
+test('exact manifest and escaped printable records',()=>{const m={seed:0,unit:'USD',missing:null,modelVersion:'1',time:'month',note:'<script>'};const r=reproductionAppendix(m);expect(JSON.parse(r.json)).toEqual(m);expect(r.html).not.toContain('<script>');});
+test('bounds and unavailable records',()=>{expect(reproductionAppendix(null).json).toBeNull();expect(reproductionAppendix({data:'x'.repeat(140000)}).html).toContain('print bound');expect(()=>reproductionAppendix({data:'x'.repeat(8388608)})).toThrow();});
+test('saved URL roundtrip strips credentials and state',()=>{const u=new URL(savedReadonlyLink('https://u:p@example.com/decision?secret=x#f','experiment_1'));expect(u.searchParams.get('experiment')).toBe('experiment_1');expect(u.searchParams.get('readonly')).toBe('1');expect(u.username).toBe('');expect(u.searchParams.has('secret')).toBe(false);});
