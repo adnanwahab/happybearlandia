@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test';
 const ready=page=>expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.status),{timeout:90000}).toBe('ready');
-async function seek(page,month){const slider=page.getByRole('slider');await slider.focus();await slider.press('Home');for(let i=0;i<month;i++)await slider.press('ArrowRight');await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.month)).toBe(month);}
+async function seek(page,month){const slider=page.getByTestId('future-machine-timeline');await slider.focus();await slider.press('Home');for(let i=0;i<month;i++)await slider.press('ArrowRight');await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.month)).toBe(month);}
 
 for(const viewport of [{width:320,height:740},{width:740,height:320}])test(`Canvas keyboard, exact selection and reduced motion ${viewport.width}x${viewport.height}`,async({page},testInfo)=>{
  await page.setViewportSize(viewport);await page.emulateMedia({reducedMotion:'reduce'});const errors=[];page.on('pageerror',e=>errors.push(e.message));

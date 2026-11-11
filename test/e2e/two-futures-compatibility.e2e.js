@@ -44,7 +44,7 @@ test('320px Canvas comparison retains timeline, metrics and WHY without overflow
  await page.goto('/world/future-machine.html?renderer=canvas2d');await page.getByRole('button',{name:'Play Demo',exact:true}).click();
  await expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.status)).toBe('ready');
  await page.getByRole('button',{name:'Pause demo',exact:true}).click();
- const slider=page.getByRole('slider');await slider.fill('120');await slider.dispatchEvent('input');
+ const slider=page.getByTestId('future-machine-timeline');await slider.fill('120');await slider.dispatchEvent('input');
  await page.getByRole('button',{name:'Difference-only',exact:true}).click();
  expect(await page.evaluate(()=>window.futureMachine.stats.scene.backend)).toBe('canvas2d');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);

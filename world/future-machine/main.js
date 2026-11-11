@@ -11,7 +11,7 @@ import { buildStory, describeSelection, renderStory } from './story/index.js';
 import { createShareURL, parseShareURL, createEvidenceReport, assertHistoryIdentity } from './share/index.js';
 
 const app=document.querySelector('#app');
-let outcomeTimeline=null;
+let inspectorEntity=null,outcomeTimeline=null;
 let history=null,diffs=[],story=null,stage=null,storyDispose=()=>{},request=null,playTimer=null,disposed=false;
 let state={status:'idle',message:'Fork the same city. Change one decision. Watch ten modeled years.',recipe:structuredClone(DEFAULT_RECIPE),month:0,playing:false,mode:'split',ghosts:true,experimentId:null,shareURL:null,error:null};
 const stats={startedAt:performance.now(),readyMs:null,runMs:null};
@@ -36,9 +36,9 @@ function configure(recipe){try{state.recipe=validateRecipe(recipe);state.error=n
 function update(){if(!disposed){ui.update(state);outcomeTimeline?.update(state.month);}}
 function cancel(){demoGeneration++;director.stop();request?.abort();request=null;setPlaying(false);state.status=history?'ready':'idle';state.error=null;state.message='Run cancelled. Any completed comparison remains available.';update();}
 function frame(){return history?getFrame(history,state.month):null;}
-function showStory(description){storyDispose();const clean=renderStory(ui.storyElement,description,{onJump:jump})||(()=>{});const entity=description.entity;const trailClean=history&&entity?.id?renderEvidenceTrail(ui.storyElement,history,{...entity,month:state.month},{onJump:jump}):()=>{};storyDispose=()=>{clean();trailClean();};}
+function showStory(description){storyDispose();const clean=renderStory(ui.storyElement,description,{onJump:jump})||(()=>{});const entity=description.entity;inspectorEntity=entity??null;const trailClean=history&&entity?.id?renderEvidenceTrail(ui.storyElement,history,{...entity,month:state.month},{onJump:jump}):()=>{};storyDispose=()=>{clean();trailClean();};}
 function updateURL(){if(!history)return;state.shareURL=createShareURL({recipe:history.recipe,experimentId:history.experimentId,month:state.month},location.href);window.history.replaceState(null,'',state.shareURL);}
-function setMonth(month){try{state.month=assertMonth(Number(month));if(history){state.frame=frame();state.diff=diffs[state.month];stage.update(state.frame,state.diff);updateURL();}update();}catch(error){state.error=error.message;update();}}
+function setMonth(month){try{state.month=assertMonth(Number(month));if(history){state.frame=frame();state.diff=diffs[state.month];stage.update(state.frame,state.diff);updateURL();if(inspectorEntity)showStory(withContext(entityDescription(inspectorEntity)));}update();}catch(error){state.error=error.message;update();}}
 function setPlaying(value){clearInterval(playTimer);playTimer=null;state.playing=Boolean(value&&history);if(state.playing){if(state.month===MONTHS)setMonth(0);playTimer=setInterval(()=>{if(state.month>=MONTHS)return setPlaying(false);setMonth(state.month+1);},200);}update();}
 function select(entity){if(!history)return;director.stop();setPlaying(false);stage.focus(entity);showStory(withContext(entityDescription(entity)));}
 function jump(stop){if(!history||!stop)return;demoGeneration++;director.stop();setPlaying(false);setMonth(stop.month);const located=stop.entity?stage.focus(stop.entity):false;const detail=stop.entity?entityDescription(stop.entity):stop;showStory(withContext({...stop,...detail,summary:`${detail.summary}${stop.entity&&!located?' No unambiguous scene mapping for this entity; camera unchanged.':''}`,limitations:story.limitations}));}
@@ -55,7 +55,7 @@ async function run(recipe=state.recipe,savedId=null,selectedMonth=0){
     if(disposed||request!==current)return;
     assertHistoryIdentity(loaded,{recipe,experimentId:fallback?null:savedId});
     stage.dispose();stage=createStage(ui.stageElement,{onSelect:select,history:loaded});stage.setMode(state.mode);stage.setGhosts(state.ghosts);
-    outcomeTimeline?.dispose();outcomeTimeline=createOutcomeTimeline(outcomeHost,{history:loaded,onMonth:manualMonth});
+    inspectorEntity=null;outcomeTimeline?.dispose();outcomeTimeline=createOutcomeTimeline(outcomeHost,{history:loaded,onMonth:manualMonth});
     history=loaded;diffs=compareHistory(history);story=buildStory(history,diffs);story.limitations.push(...(history.baseline[0].state.provenance.assumptions||[]));stats.runMs=performance.now()-start;
     state={...state,status:'ready',recipe:history.recipe,provenance:{seed:history.seed,modelVersion:history.modelVersion,experimentId:history.experimentId},experimentId:history.experimentId,message:`${fallback?'Saved record unavailable; reran the versioned recipe. ':''}120 months complete · detailed states recomputed from the saved monthly City manifest. Synthetic, uncalibrated model.`,error:null};
     state.status='loading';state.message='Preparing synchronized city graphics…';setMonth(selectedMonth);await stage.whenReady();if(disposed||request!==current)return;state.status='ready';state.message=`120 recorded months ready · ${stage.getStats().backend} · Synthetic monthly City model.`;update();showStory(withContext(story));stats.readyMs=performance.now()-stats.startedAt;

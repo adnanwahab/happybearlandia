@@ -3,6 +3,7 @@
 import {readdir,readFile,stat,writeFile} from 'node:fs/promises';
 import {join,resolve,basename} from 'node:path';
 import {execFileSync} from 'node:child_process';
+if(process.argv.includes('--help')){console.log('Usage: bun scripts/verify-demo-artifacts.mjs ARTIFACT_DIRECTORY');process.exit(0);}
 const root=resolve(process.argv[2]||'/tmp/hbl-two-futures-acceptance');
 async function walk(dir){return (await Promise.all((await readdir(dir,{withFileTypes:true})).map(e=>e.isDirectory()?walk(join(dir,e.name)):join(dir,e.name)))).flat();}
 const files=await walk(root),records=[];

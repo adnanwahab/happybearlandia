@@ -39,7 +39,7 @@ test('guided controls, shared camera, difference-only and metric WHY',async({pag
 });
 
 test('forced unavailable WebGL retains actual paired evidence and selection',async({page},testInfo)=>{
- await page.addInitScript(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return /webgl/i.test(type)?null:original.call(this,type,...args);};});await fork(page);await seek(page,120);await expect.poll(()=>page.evaluate(()=>window.futureMachine.stats.scene.backend)).toBe('canvas2d');await page.getByRole('button',{name:/building-d1.*schematic/}).last().click();await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('building-d1');const record=await evidence(page,testInfo,'webgl-unavailable');expect(record.diff.metrics.housingUnits.delta).toBe(24);
+ await page.addInitScript(()=>{Object.defineProperty(navigator,'gpu',{value:undefined,configurable:true});const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return /webgl/i.test(type)?null:original.call(this,type,...args);};});await fork(page);await seek(page,120);await expect.poll(()=>page.evaluate(()=>window.futureMachine.stats.scene.backend)).toBe('canvas2d');await page.getByRole('button',{name:/building-d1.*schematic/}).last().click();await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('building-d1');const record=await evidence(page,testInfo,'webgl-unavailable');expect(record.diff.metrics.housingUnits.delta).toBe(24);
 });
 
 test('record real 45–60 second one-click Play Demo',async({page},testInfo)=>{
