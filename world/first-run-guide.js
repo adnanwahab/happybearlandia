@@ -48,8 +48,9 @@ function node(doc, name, className, text) {
  * @param {{doc?: Document, root?: HTMLElement, win?: Window, storage?: Storage}} options
  * @returns {{destroy:()=>void, setReady:(boolean)=>void, publish:(object)=>void}}
  */
-export function mountWorldFirstRunGuide({doc = document, root = doc.body, win = doc.defaultView, storage = win?.localStorage} = {}) {
+export function mountWorldFirstRunGuide({doc = document, root = doc.body, win = doc.defaultView, storage} = {}) {
   if (!root || !doc || !win) throw new TypeError('A document, root and window are required');
+  if (!storage) try { storage = win.localStorage; } catch { /* Storage may be disabled. */ }
   const panel = node(doc, 'aside', 'world-first-run-guide');
   panel.id = 'world-first-run-guide';
   panel.dataset.testid = 'world-first-run-guide';
