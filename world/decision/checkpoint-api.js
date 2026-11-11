@@ -1,3 +1,4 @@
+import {checkpointCapacity} from './checkpoint-retention.js';
 import {createHousingCheckpointAdapter} from './backlog-replay/index.js';
 import {createHousingCheckpointRepository} from './backlog-replay/repository.js';
 import {simulateHousingRun} from '../models/housing/index.js';
@@ -21,6 +22,7 @@ export function createCheckpointHandler({authorize,store=createDecisionStore(),d
    const record=await store.load(experimentId),run=record?.runs?.find(r=>r.id===runId);if(!run)return json({error:'Source unavailable'},404);
    if(run.modelVersion!=='1.2.0'||run.status!=='completed'||run.fork)return json({error:'Unsupported source; use original completed housing 1.2.0 run'},409);
    const scope={ownerId,experimentId,runId};let output,parent;
+   const capacity=action==='load'?null:await checkpointCapacity(directory,ownerId);
    if(action==='start'){
     const scenario=record.experiment.scenarios.find(s=>s.id===run.scenarioId);
     output=await adapter.start({parameters:run.sampledParameters,seed:run.seed,years:record.experiment.years,projects:run.inputProjects??scenario.projects??[],scheduledStress:run.scheduledStress??scenario.scheduledStress??[]},month);
@@ -35,6 +37,7 @@ export function createCheckpointHandler({authorize,store=createDecisionStore(),d
     }else if(action==='resume')output=await adapter.resume(parent.serialized,month);else return json({error:'Unsupported action'},400);
    }
    const expiresAt=parent?.expiresAt??Date.now()+86400000;
+   if(new TextEncoder().encode(output.serialized).length>(capacity?.remainingBytes??0))return json({error:'Checkpoint byte quota reached'},429);
    await repository.save(scope,output.serialized,{expiresAt,...(parent?{parent:{id:parent.checkpoint.id,digest:parent.checkpoint.digest}}:{})});
    return json({...output,expiresAt},201);
   }catch(error){return json({error:error.code==='ENOENT'?'Checkpoint unavailable':'Checkpoint rejected',detail:error.code==='ENOENT'?undefined:String(error.message).slice(0,200)},400);}finally{active.delete(ownerId);}
