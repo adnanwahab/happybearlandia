@@ -132,8 +132,8 @@ export function mountDecisionTrust(container) {
     const button = event.target.closest("[data-action]"); if (!button || !root.contains(button)) return;
     const name = button.dataset.action;
     try {
-      if (name === "brief") openDecisionBrief({ ...data, evidence, analysis, backtest: backtest || publishedResult, robustnessReport });
-      if (name === "manifest") download("decision-reproduction.json", JSON.stringify(buildDecisionManifest({ ...data, evidence, backtest: backtest || publishedResult, robustnessReport }), null, 2));
+      if (name === "brief") { const response=await fetch(`/api/decision-experiments/${encodeURIComponent(data.experiment.id)}/manifest`);if(!response.ok)throw Error("Saved reproduction manifest unavailable; retry after reopening the experiment.");const savedManifest=await response.json();openDecisionBrief({ ...data, savedManifest, evidence, analysis, backtest: backtest || publishedResult, robustnessReport }); }
+      if (name === "manifest") { const response=await fetch(`/api/decision-experiments/${encodeURIComponent(data.experiment.id)}/manifest`);if(!response.ok)throw Error("Saved reproduction manifest unavailable");download("decision-reproduction.json",JSON.stringify(await response.json(),null,2)); }
       if (name === "export-evidence") download("decision-evidence.json", JSON.stringify({ schemaVersion: "decision-evidence.v1", evidence }, null, 2));
       if (name === "export-csv") download("decision-evidence.csv", evidenceCsv(evidence), "text/csv;charset=utf-8");
       if (name === "backtest") { await evaluate(); return; }
