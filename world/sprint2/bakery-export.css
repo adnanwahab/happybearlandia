@@ -1,0 +1,23 @@
+.download-link {
+  display: inline-block;
+  margin-top: .35rem;
+  border-radius: .35rem;
+  padding: .55rem .8rem;
+  color: #241a0c;
+  background: var(--amber);
+  font-weight: 700;
+}
+
+.export-limitations {
+  margin-top: 1rem;
+  padding: 1.15rem;
+}
+
+.export-limitations ul {
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 0;
+  padding-left: 1.2rem;
+}
+
+.export-limitations li + li { margin-top: .35rem; }

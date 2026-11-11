@@ -200,6 +200,9 @@ function bestSuccessfulMonth(month) {
 
 function showFuture(next, selectedMonth, { score = true } = {}) {
   future = next;
+  const evidenceURL = new URL('../sprint2/bakery-export.html', location.href);
+  if (future) evidenceURL.searchParams.set('recipe', encodeBakeryRecipe(future.recipe));
+  find('evidence-export').href = evidenceURL.href;
   futureScene.hidden = !future;
   find('swipe').hidden = !future;
   find('divider').hidden = !future;
