@@ -59,7 +59,9 @@ into the sprint branch, main, or deploy. No release merge/deployment is
 authorized by this configuration. Network access is allowed in the Codex
 workspace sandbox for tests and Git remote operations; use a disposable,
 isolated trusted host, tightly scoped GitHub credentials, no production
-secrets, and the default reject-all-approval-request policy. Symphony is
+secrets, and `approval_policy: never` only with the constrained
+`workspace-write` sandbox. This is unattended execution; it does not
+authorize sandbox bypass, production secrets, merges, or deployment. Symphony is
 prototype software; review its security posture before unattended use.
 
 ## Prepare the host
@@ -190,3 +192,28 @@ deduplication across *multiple* dispatcher instances, distributed resource
 quotas, CI-enforced merge gates, and audited budget monitoring. Do not run
 multiple Symphony instances against the same issue labels unless
 coordination is proven; local claims are not a distributed lock.
+
+## Troubleshooting no-PR loops (Linear)
+
+The Linear workflow now requires both `hbl-agent-ready` and
+`hbl-coordinator-approved` to avoid cycling through imported Todo issues
+that lack confirmed dependencies or exclusive file ownership. No broad
+set of old tickets should receive the second label automatically.
+
+Before `--run`, use `python3 ops/symphony/run_25h.py --tracker linear
+--workers 20 --ack-scale --preflight`. This checks local tools, Git author
+identity, GitHub CLI login and push permission, the tracker credential and
+whether the dashboard port is already occupied. Fix failing checks first;
+preflight does not validate worker sandbox access or install dependencies.
+
+Watch `http://127.0.0.1:43110/api/v1/state` and inspect workspaces for
+new commits and GitHub PR URLs. `no available orchestrator slots` is a
+capacity/backoff message, not proof of a code failure. If clean workspaces
+keep accumulating with no PRs, read the Linear handoff comments and the full
+Symphony error logs. Fix the root cause before applying the second label to
+additional tasks. A clean no-change audit is not a completed implementation.
+
+The configuration has a 20-turn per-issue limit, bounded retry backoff,
+and stall timeouts; workers still need an eligible issue with real ownership
+and an authenticated GitHub write path. `--workers 20` is a ceiling, not a
+requirement to keep 20 sessions busy.
