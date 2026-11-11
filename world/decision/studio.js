@@ -1,3 +1,4 @@
+import { mount as mountHousingCheckpoints } from './backlog-replay/ui.js';
 import { createRecordedParentResolver } from './backlog-presentation-effects/parent.js';
 import { mountProductWorkflows } from './backlog-product-workflows/ui.js';
 import { mountPresentationShare } from './backlog-sharing/qr.js';
@@ -40,6 +41,7 @@ state.selected = state.scenarios.find(s => s.kind === 'plan-a')?.id || state.sce
 let previewTimer;
 let traceSelectionToken = 0, automaticTraceKey = null;
 let worldPreview = null, worldVisualPreview = null, constructionRun = null, constructionTimer = null, constructionMonth = 0;
+let checkpointUI=null;
 let recordedPlayer = null, pairedPresentation = null, playbackGeneration=0;
 let constructionView = null, worldTools = null, advancedStudio = null;
 const scenario = () => state.scenarios.find(s => s.id === state.selected);
@@ -57,6 +59,8 @@ const workflowUI=mountProductWorkflows(workflowHost,{fetch:async(url,options)=>{
 addEventListener('pagehide',()=>workflowUI.dispose(),{once:true});
 mountPilotRequest(pilotContainer, { getContext: () => ({ decision: $('#decision-text').value, modelId: housingModel.id, modelVersion: housingModel.version }) });
 const parentResolver=createRecordedParentResolver({fetchTrace:async(experimentId,runId,{signal})=>{const base=`/api/decision-experiments/${encodeURIComponent(experimentId)}`;const [a,b]=await Promise.all([fetch(base,{signal}),fetch(`${base}/runs/${encodeURIComponent(runId)}`,{signal})]);if(!a.ok||!b.ok)throw Error('Parent unavailable');const {experiment}=await a.json(),{run}=await b.json();if(experiment.id!==experimentId||experiment.modelVersion!==run.modelVersion)throw Error('Parent provenance mismatch');return {...run,modelId:experiment.modelId};}});
+const checkpointHost=el('div');$('#physical-world').append(checkpointHost);checkpointUI=mountHousingCheckpoints(checkpointHost,{getContext:()=>({experimentId:state.results?.experiment?.id,runId:constructionRun?.id,month:Math.floor(constructionMonth),years:state.results?.experiment?.years})});
+addEventListener('pagehide',()=>checkpointUI.destroy(),{once:true});
 const forkPanel=el('section');forkPanel.setAttribute('aria-label','Recorded fork timeline');$('#building-world').after(forkPanel);
 function renderForkPresentation(frame){if(!pairedPresentation)return;const parent=pairedPresentation.parent,projectId=pairedPresentation.projectId,month=constructionMonth;const original=constructionFrame(parent,projectId,month),branch=constructionFrame(constructionRun,projectId,month);const project=constructionRun.projects?.find(p=>p.projectId===projectId)?.proposal;const max=Math.max(1,project?.geometry?.floors||1);forkPanel.replaceChildren(el('h3','Recorded original and fork timeline'),el('p',`Month ${month.toFixed(1)} · branch month ${pairedPresentation.forkMonth} · ${month<=pairedPresentation.forkMonth?'fixed original prefix':'recorded branch suffix'}. Visual interpolation only; recorded units remain authoritative.`));const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 420 140');svg.setAttribute('role','img');svg.setAttribute('aria-label','Original and fork recorded construction');for(const [index,value]of [original,branch].entries()){const rect=document.createElementNS(svg.namespaceURI,'rect');const floors=value.visual?.floorsBuilt;const h=Number.isFinite(floors)?Math.max(0,Math.min(1,floors/max))*100:0;for(const [key,v]of Object.entries({x:40+index*200,y:110-h,width:80,height:h,fill:index?'#147d79':'#536878'}))rect.setAttribute(key,String(v));svg.append(rect);}forkPanel.append(svg,el('pre',JSON.stringify({original:{runId:parent.id,recorded:original.recorded},fork:{runId:constructionRun.id,recorded:branch.recorded}},null,2)));}
 const sound = createSubtleSound(), cueHost = el('div'); $('#building-world').before(cueHost);
@@ -501,6 +505,7 @@ $('#building-play').addEventListener('click', async () => {
 });
 
 function updateAdvancedStudio() {
+  checkpointUI?.update();
   advancedStudio?.update({ input: currentInput(), results: state.results, selectedRun: state.selectedRun || constructionRun, previousResults: state.previousResults, readOnly: state.readonly, busy: state.busy, stale: state.dirty, scenarioId: state.selected, month: constructionMonth });
 }
 function proposeApprovedEdit(proposal) {
