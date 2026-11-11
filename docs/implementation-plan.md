@@ -298,3 +298,6 @@ R15 accepted atd548153: candidate/integrated12pass each, combined37pass. R13/R14
 
 
 Observed follow-up U18: actual U01 screenshots expose stale native label spans above the Canvas fallback, despite the old canvas being removed. Next bounded slice clears the native overlay at fallback transition and adds a live-loss regression assertion. Acceptance requires real native/WebGL loss with one Canvas, no retained native labels, identical recorded month/seed/KPIs, working WHY/scrub and screenshot inspection. Own scene/index.js and existing device-loss browser test only. Shared City data is unchanged.
+
+
+U02 actual resize proof exposed Canvas ID-label right overflow and44px footer overlap at390/320 after focus. Native resize passes and both preserve actual frame/seed/metrics. Authorize one bounded repair by the current U02 owner in canvas-stage.js only, plus existing assigned test/config. Preserve first candidatee30a1c0 and independent failing gate under the same claim; record scope reconciliation under shared lock before owner repair resume. Require text bounds within arm/abovefooter and unchanged recorded state across desktop→390→320→desktop.

@@ -59,15 +59,19 @@
       ],
       "files": [
         "test/e2e/pipeline-resize.e2e.js",
-        "test/pipeline-resize.browser.config.js"
+        "test/pipeline-resize.browser.config.js",
+        "world/future-machine/scene/canvas-stage.js"
       ],
-      "interfaces": [],
+      "interfaces": [
+        "canvas-label-layout"
+      ],
       "userFacing": false,
       "tests": [
         [
           "bun",
           "test",
-          "test/future-machine-scene.test.js"
+          "test/future-machine-scene.test.js",
+          "test/future-machine-canvas.test.js"
         ]
       ],
       "browserTests": [

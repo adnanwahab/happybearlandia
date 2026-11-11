@@ -231,4 +231,9 @@ U01 actual loss tests integrated345d4c7: candidate and integrated backend9pass/1
 
 | ID | Priority / complexity / status | Executable acceptance | Dependencies | Exclusive ownership | Verification |
 | --- | --- | --- | --- | --- | --- |
-| U18 | P0 / S / READY | Clear native overlay labels on actual GPU/WebGL failure before creating Canvas. Preserve recorded state, inventory, Canvas labels and controls. Extend existing actual-loss tests to require native labels before loss and no stale native labels after loss/scrub. No renderer/City redesign. | R01 | Coordinator isolated repair: world/future-machine/scene/index.js; test/e2e/pipeline-device-loss.e2e.js | Backend/Canvas/scene units + actual native/WebGL loss browser config and visually inspected fallback PNG |
+| U18 | P0 / S / VERIFIED | Clear native overlay labels on actual GPU/WebGL failure before creating Canvas. Preserve recorded state, inventory, Canvas labels and controls. Extend existing actual-loss tests to require native labels before loss and no stale native labels after loss/scrub. No renderer/City redesign. | R01 | Coordinator isolated repair: world/future-machine/scene/index.js; test/e2e/pipeline-device-loss.e2e.js | Backend/Canvas/scene units + actual native/WebGL loss browser config and visually inspected fallback PNG |
+
+
+U18 accepted1d0a488 after real-loss regression first failedbothbackends (7stale spans), then candidate/integrated units26pass1browser-gatedskip and actualnative/WebGLbrowser2pass each. Clears only native overlay; Canvas labels and recorded inventory retained.
+
+U02 candidatee30a1c0 exposed Canvas focused-ID overflow at390/320 and footer overlap, native resize passes. Bounded repair scope explicitly extended by coordinator to scene/canvas-stage.js plus its existing test/config. Same owner, baseline and two-attempt limit; original failing commit/logs retained. Explicit shared-lock scope reconciliation must precede repair resume. Fit ID text within its arm viewport and above44px footer without changing camera or outcomes; second candidate and integrated checks must pass. No other production ownership transferred.
