@@ -1,6 +1,9 @@
 import { test, expect } from 'bun:test';
 import { mkdtempSync, mkdirSync, cpSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { createHousingCheckpointRepository } from '../world/decision/backlog-replay/repository.js';
+import { canonicalJSON, canonicalDigest } from '../world/replay/engine.js';
+import { writeFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createHousingCheckpointAdapter } from '../world/decision/backlog-replay/index.js';
 import { simulateHousingRun, createHousingScenarios } from '../world/models/housing/index.js';
@@ -56,6 +59,60 @@ try {
     expect(row.states.at(-1).status).toBe('cancelled');
     expect(row.states.filter(state => state.month <= 13)).toEqual(b.result.projects.find(row => row.projectId === added.id).states);
     expect(d.result.accounting.finalHousing).toBeCloseTo(d.result.accounting.initialHousing + d.result.accounting.completedHomes - d.result.accounting.demolishedHomes, 5);
+  });
+  test('strict canonical envelopes reject duplicate keys and rehashed incomplete state', async () => {
+    const a = await adapter.start(input(42), 12);
+    await expect(adapter.restore(' ' + a.serialized)).rejects.toThrow('Noncanonical');
+    await expect(adapter.restore(a.serialized.replace('{', '{"schemaVersion":"duplicate",'))).rejects.toThrow('Noncanonical');
+    for (const mutate of [r => delete r.state.randomState, r => r.state.monthlyTimeline.splice(2, 1), r => r.state.lifecycle.rows.push(r.state.lifecycle.rows[0])]) {
+      const r = JSON.parse(a.serialized); mutate(r); delete r.digest; r.digest = await canonicalDigest(r);
+      await expect(adapter.restore(canonicalJSON(r))).rejects.toThrow();
+    }
+    const r = JSON.parse(a.serialized); r.state.rent += 1;
+    await expect(adapter.restore(canonicalJSON(r))).rejects.toThrow('Corrupt');
+  });
+  test('disk repository survives reopen with immutable conditional saves and scoped parent retention', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'hbl-checkpoints-'));
+    const publicRoot = mkdtempSync(join(tmpdir(), 'hbl-served-'));
+    const scope = { ownerId: 'owner1', experimentId: 'experiment1', runId: 'run1' };
+    let time = 1000;
+    const create = () => createHousingCheckpointRepository({ directory, adapter, publicRoots: [publicRoot], now: () => time });
+    try {
+      const repo = create(), a = await adapter.start(input(42), 24);
+      const expiresAt = 10000;
+      const sameMonthResume = await adapter.resume(a.serialized, 24);
+      expect(sameMonthResume.checkpoint.id).not.toBe(a.checkpoint.id);
+      const saves = await Promise.all([repo.save(scope, a.serialized, { expiresAt }), repo.save(scope, a.serialized, { expiresAt })]);
+      expect(saves[0]).toEqual(saves[1]);
+      const pinned = { id: a.checkpoint.id, digest: a.checkpoint.digest };
+      expect((await create().load(scope, pinned)).serialized).toBe(a.serialized);
+      await expect(repo.save(scope, a.serialized, { expiresAt: 9000 })).rejects.toThrow('conflict');
+      await expect(repo.load({ ...scope, ownerId: 'owner2' }, pinned)).rejects.toThrow();
+      await expect(repo.load(scope, { ...pinned, digest: 'wrong' })).rejects.toThrow();
+      const b = await adapter.fork(a.serialized, [{ op: 'set_parameter', target: 'construction_capacity', value: 1000 }], 48);
+      await expect(repo.save(scope, b.serialized, { expiresAt })).rejects.toThrow('parent');
+      const parent = pinned;
+      await expect(repo.save(scope, b.serialized, { expiresAt: 10001, parent })).rejects.toThrow('outlive');
+      const changed = JSON.parse(b.serialized);
+      changed.state.monthlyTimeline[0].metrics.median_rent += 1;
+      delete changed.digest; changed.digest = await canonicalDigest(changed);
+      await expect(repo.save(scope, canonicalJSON(changed), { expiresAt, parent })).rejects.toThrow('prefix');
+      await repo.save(scope, b.serialized, { expiresAt, parent });
+      const c = await adapter.fork(b.serialized, [{ op: 'apply_stress_preset', target: 'stressPresets', value: 'recession' }], 72);
+      await repo.save(scope, c.serialized, { expiresAt, parent: { id: b.checkpoint.id, digest: b.checkpoint.digest } });
+      const restored = await create().load(scope, { id: c.checkpoint.id, digest: c.checkpoint.digest });
+      expect((await adapter.resume(restored.serialized, 120)).result).toEqual((await adapter.resume(c.serialized, 120)).result);
+      expect((await repo.load(scope, pinned)).serialized).toBe(a.serialized);
+      expect((await readdir(directory)).filter(path => path.endsWith('.tmp'))).toEqual([]);
+      time = expiresAt;
+      await expect(repo.load(scope, pinned)).rejects.toThrow('expired');
+      time = 1000;
+      const file = (await readdir(directory))[0];
+      await writeFile(join(directory, file), 'x'.repeat(8 * 1024 * 1024 + 4097));
+      await expect(repo.load(scope, { id: [a, b, c].find(row => file.includes(row.checkpoint.id.slice(15))).checkpoint.id })).rejects.toThrow('oversized');
+      const publicRepo = createHousingCheckpointRepository({ directory: join(publicRoot, 'bad'), adapter, publicRoots: [publicRoot] });
+      await expect(publicRepo.save(scope, a.serialized, { expiresAt: Date.now() + 10000 })).rejects.toThrow('served roots');
+    } finally { rmSync(directory, { recursive: true, force: true }); rmSync(publicRoot, { recursive: true, force: true }); }
   });
   test('missing, corrupt, oversized and mismatched identities reject without fallback', async () => {
     const a = await adapter.start(input(42), 12);
