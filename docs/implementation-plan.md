@@ -323,3 +323,16 @@ All eleven workgroups have delivered their assigned bounded increments into the 
 Frozen combined backlog/shared checks112pass/746assertions; existing Decision58pass/2972assertions, Advanced42pass/565assertions; retained flagship/model/renderer137pass/3browser-gatedskips/3605assertions. Feature-specific real browser gates complete for all assigned bounded tracks; native/fallback flagship2pass21.6s. Model calibration/live providers/absent browser engines retain documented external evidence limits. No release merge/deployment authorized. Final candidate and preview references follow in the integration evidence record.
 
 Final frozen connected browser loop1pass45.8s; Studio bundle76modules and diffcheck pass. Local isolated preview http://localhost:42983/world/decision.html; delivery artifacts include actual screenshots, provenance, checksums and retained33-item demo queue references. No new release or deployment.
+
+
+## NB district comparison increment (2026-11-11)
+
+Next end-to-end slice after the verified flagship: reuse its immutable monthly City pair to compare the provisional twelve district metrics on the same selected month. Prerequisites are the existing validated seed/model/original/horizon adapter, fixed pair identity and recorded timeline; no new engine, clock, storage or geographic mapping is needed. Coordinator owns main.js composition; pure projection modules and dedicated tests are separate from existing worker directories.
+
+Acceptance: open the ordinary Future Machine route, fork, compare district values at Months 0/16/120, switch metric with keyboard, reverse scrub and refresh; exact source values, units, sample counts, missing/null semantics and 320px no-GPU layout must agree. Registry, partition conservation, rental-only means, unknown district coverage, incompatible pairs and deterministic 121-frame projection have focused checks. Delivered candidate and actual evidence: [NB intake review](reviews/nb-intake-20261111.md).
+
+Material scope decision: district context ships before any grid. Synthetic flagship positions have no supported geographic footprint, so there is no cell attribution. Original image labels remain missing; crew assignments/model changes are deferred. Grid tasks retain their ID/dependencies and are not declared complete by this district summary. Existing release/main-preservation blockers and worker ownership remain in force.
+
+District increment implementation: `c4cbfa22dfb1d034d3eee072d42058552e89a8cc`; final7unit/57assertions,18adjacentpass/1skip/129assertions,1actualChromiumjourney5.5s, browser build and diffcheck pass. Full grid remains dependent work.
+
+NB-U01 prototype follow-up: integrated `c789517` from worker `4660ca3`. Independent7tests/48assertions pass including actual Chromium320/1440 with GPU disabled. This is an explicitly labeled fixture component; it accepts no City authority and is not mounted in a production page. NB-U02/G02/G03 still gate real grid integration. Existing district summary remains the shipped normal-entry-point slice.
