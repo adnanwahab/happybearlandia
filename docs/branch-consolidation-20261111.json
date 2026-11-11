@@ -189,5 +189,24 @@
       "ac3f503987eb9b9c6474b7f2ccc535ad9dd38806"
     ]
   ],
-  "remotePolicy": "Delete only recent heads already ancestors of origin/main; preserve open PRs and unique remote work. No main push or deployment."
+  "remotePolicy": "Delete only recent heads already ancestors of origin/main; preserve open PRs and unique remote work. No main push or deployment.",
+  "deletedLocalBranches": [
+    "codex/future-machine-data",
+    "codex/future-machine-diff",
+    "codex/future-machine-integration",
+    "codex/future-machine-scene",
+    "codex/future-machine-share",
+    "codex/future-machine-story",
+    "codex/future-machine-ui",
+    "codex/future-split-evidence",
+    "codex/future-split-model",
+    "codex/future-split-scene",
+    "codex/future-split-theater",
+    "codex/nov10-release-integration",
+    "codex/pipeline-u10-receipts",
+    "codex/sprint-2-integration",
+    "codex/sprint-causal-inspector",
+    "sprint-60m/time-machine"
+  ],
+  "activeWorktrees": "Retained; later commits from active chats are not silently adopted after the captured snapshot."
 }
