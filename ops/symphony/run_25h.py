@@ -126,7 +126,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Dispatcher log: {log_path}", flush=True)
         with log_path.open("a", encoding="utf-8", buffering=1) as out:
             while not _STOP and time.monotonic() < deadline:
-                cmd = [executable, str(runtime_workflow), "--port", str(args.port),
+                cmd = [executable, "--i-understand-that-this-will-be-running-without-the-usual-guardrails", str(runtime_workflow), "--port", str(args.port),
                        "--logs-root", str(logs)]
                 process = subprocess.Popen(cmd, env=env, cwd=str(HERE),
                                            stdout=out, stderr=subprocess.STDOUT,
