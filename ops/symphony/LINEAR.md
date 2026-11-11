@@ -1,80 +1,95 @@
-# Linear + Symphony pilot for HappyBearLandia
+# Linear → Symphony → Codex: HappyBearLandia
 
-Symphony currently defaults to GitHub Issues through `run_25h.py`.
-**Do not assume the GitHub supervisor switches to Linear automatically.**
-For a Linear pilot, use the separate `WORKFLOW.linear.template.md` and
-launch the Symphony executable directly. Stop the GitHub supervisor first.
+This opt-in configuration dispatches from **one Linear project** using
+`run_25h.py --tracker linear`. It does not start new sessions or make
+issues ready unless explicitly run and labeled. A separate GitHub Issues
+configuration is also supported; do not run both against overlapping work.
 
-## Prepare Linear
+## Linear project setup
 
-1. Create or select a Linear **team** for HappyBearLandia.
-2. Create the project "HBL — 1M Player Launch: Week 1".
-3. Import the supplied 56-issue CSV through Settings → Administration →
-   Import/Export → CLI import → Linear CSV, choosing the HBL team.
-   Linear's CLI CSV importer may not preserve project associations or native
-   blocking relations. Bulk-select the imported issues and press Shift+P to
-   associate them with the project. Rebuild actual `blocked by` links.
-4. All issues begin in **Backlog**; never label the full imported queue ready.
-5. Create a team-level `hbl-agent-ready` label. Use states `Todo`,
-   `In Progress`, `Human Review`, `Rework`, and `Done`, or adapt the
-   workflow template to your actual team states.
-6. Copy the project URL and obtain the actual project slug (no guessed slug).
-7. Create a **restricted personal Linear API key** in Settings → Account →
-   Security & Access, with only the permissions and teams needed. The Linear
-   connection inside ChatGPT does not automatically provide this host token.
+Create/select a Linear project and copy its URL. The final URL component is
+its `project_slug`. Create a **team** label `hbl-agent-ready`.
 
-## Fetch the versioned Linear workflow into your local HBL checkout
+The versioned Linear workflow uses:
+- `tracker.kind: linear` with host-supplied `LINEAR_API_KEY`.
+- `tracker.required_labels: [hbl-agent-ready]`.
+- `tracker.active_states: [Todo, In Progress]` (NOT `Backlog`).
+- `agent.max_concurrent_agents` rendered from `--workers`.
+- Workspaces isolated under a separate `workspaces-linear` directory.
+- Workers open PRs against the sprint integration branch, not main.
+- No automated merge, production deploy, or production data modification.
 
-```bash
-cd "$HOME/happybearlandia"
-git fetch origin ops/symphony-codex-pipeline-20261111
-git show origin/ops/symphony-codex-pipeline-20261111:ops/symphony/WORKFLOW.linear.template.md > ops/symphony/WORKFLOW.linear.md
-python3 - <<'PY'
-from pathlib import Path
-p = Path("ops/symphony/WORKFLOW.linear.md")
-slug = input("Linear project slug: ").strip()
-assert slug and all(c.isalnum() or c in "-_" for c in slug)
-s = p.read_text()
-assert s.count("REPLACE_LINEAR_PROJECT_SLUG") == 1
-p.write_text(s.replace("REPLACE_LINEAR_PROJECT_SLUG", slug))
-PY
-```
+**Why Todo instead of Backlog?** Symphony v0.0.3's Linear adapter explicitly
+checks nonterminal native blockers for `Todo` issues. CSV dependency text
+does not automatically become native Linear blocker relations. Audit every
+candidate, link `blocked by` dependencies, verify a unique file owner and
+acceptance tests, move eligible tasks from Backlog to Todo, and apply the
+`hbl-agent-ready` label. Do **not** bulk-label unreviewed tickets.
 
-## Start the one-worker pilot manually
+## One-worker pilot and 20-worker operation
 
-Stop the existing GitHub Symphony supervisor with Ctrl+C before proceeding.
-Do not paste your Linear key into code, commits, screenshots, or chats.
+Stop any currently running GitHub Symphony supervisor (Ctrl+C) before
+starting the Linear dispatcher; they use the same dashboard port.
+
+Run from a local checkout containing the latest
+`ops/symphony/run_25h.py` and `WORKFLOW.linear.template.md`:
 
 ```bash
+export SYMPHONY_BIN="$HOME/.local/bin/symphony-v0.0.3-macos_arm64"
+export HBL_LINEAR_PROJECT_SLUG="REPLACE_WITH_YOUR_LINEAR_PROJECT_SLUG"
 read -s LINEAR_API_KEY
 export LINEAR_API_KEY
-export HBL_SYMPHONY_WORKSPACES="$HOME/.local/share/hbl-codex/workspaces-linear"
-export SYMPHONY_BIN="$HOME/.local/bin/symphony-v0.0.3-macos_arm64"
 unset GITHUB_TOKEN
-"$SYMPHONY_BIN" --i-understand-that-this-will-be-running-without-the-usual-guardrails ops/symphony/WORKFLOW.linear.md --port 43110
+
+python3 ops/symphony/run_25h.py --tracker linear --workers 1 --hours 1 --run
 ```
 
-The dashboard starts at http://127.0.0.1:43110. In Linear, audit one
-small, unfinished implementation issue, move it to `Todo`, and add the
-exact `hbl-agent-ready` label. Symphony will poll the project and start one
-Codex issue worker. It does not automatically create backlog tasks or merge
-PRs. `Ctrl+C` stops the foreground pilot.
+Test a single approved Todo issue with label `hbl-agent-ready`.
+Confirm it is picked up, creates an isolated workspace, and produces a
+reviewable PR and test evidence.
 
-**Strong warning:** The Symphony release is prototype software and explicitly
-requires acknowledgment of reduced guardrails. Run it in a dedicated trusted
-development environment without production credentials, not as an unattended
-unbounded process on a personal laptop. Verify one real PR with CI and manual
-review before higher concurrency.
+When your host, Codex quota, issue dependencies and CI/integration capacity
+are verified, launch up to 20 concurrent worker sessions:
 
-## Notes on import and delivery
+```bash
+python3 ops/symphony/run_25h.py --tracker linear --workers 20 --ack-scale --hours 25 --run
+```
 
-- Linear projects and issues are different objects. A CSV import into a
-  team does not itself create a Symphony-compatible project or native
-  dependency graph. Each issue can have only one project.
-- The 56 issues are candidate backlog items, not all suitable to ship in
-  one week; prioritization should follow actual player and CI evidence.
-- The first Github Issue pilot is https://github.com/adnanwahab/happybearlandia/issues/22
-  and can be dispatched with `hbl-agent-ready` while the **GitHub**
-  configuration (not Linear) is running.
-- If a Linear issue has an open PR, the worker should remove its dispatch
-  label and hand it off for independent review, not auto-merge.
+The 20-worker option sets **maximum concurrency**, not a target number of
+occupied sessions. Only genuinely ready issues are dispatched. The same
+supervisor retries the daemon after crashes within a bounded budget and
+stops after 25 hours. It does not enforce a token/dollar budget or ensure
+20 workers can run on one machine. Put actual provider-side limits in place
+and monitor CPU, RAM, disk, rate limits and PR integration latency.
+
+## Planning/integration loops
+
+Symphony does not create good backlog tasks by itself and cannot safely
+treat every backlog issue as independent. Maintain a planning/coordinator
+loop that:
+1. Audits actual source, open worktrees, overlapping issues and merged PRs.
+2. Converts free-text dependencies into native `blocked by` relations.
+3. Approves a bounded, conflict-free batch by moving to `Todo` and adding
+   `hbl-agent-ready`.
+4. Checks new PRs in `In Review`, requires real CI evidence, and integrates
+   only after explicit approval into the sprint branch.
+5. Marks verified issues Done, removes their dispatch labels, and promotes
+   newly unblocked tasks. Never mark a historical GitHub mirror Done solely
+   because a local status note says VERIFIED; check the actual branch/PR.
+
+## Known security limits
+
+The Symphony Elixir v0.0.3 binary requires the explicit
+`--i-understand-that-this-will-be-running-without-the-usual-guardrails`
+acknowledgment, passed by this supervisor. It is prototype software and
+is **not** a security boundary. Use a trusted isolated developer host with
+scoped credentials, no production secrets and guarded branches, and do not
+let untrusted issue bodies override your worktree/security rules. The
+repository `AGENTS.md` currently describes up to six delegated workers;
+reconcile that policy and measure integration before moving to 20.
+
+The Linear connection inside ChatGPT does not automatically authenticate
+the local Symphony process. Use a host-only `LINEAR_API_KEY` from Linear
+Settings → Account → Security & Access. Symphony's current adapter strips
+the declared tracker token from Codex child environments; do not assume
+other environment variables and host credentials are protected.
