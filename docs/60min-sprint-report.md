@@ -26,3 +26,5 @@ The Worldline and House links carry the saved experiment, canonical Population r
 See [release audit](release-audit.md) for combined verification, outstanding failures and release impact. See [release checklist](release-checklist.md) for the next candidate and deployment gates.
 
 The screenshot pass used a single Chromium tab and a fresh local store. It captured all six views after interaction, including a completed construction event, pair 7 of 100 commute futures, a Bakery reopening, the corresponding recorded dependency graph, and four findings from month 6. The draft integration review is [PR #9](https://github.com/adnanwahab/happybearlandia/pull/9).
+
+The integrated pinned Chromium suite passed 12/12. The isolated Time Machine and Causal Inspector suites each passed 3/3. The final focused Bun selection passed 80/80. Local Docker smoke passed 1/1 on application commit `d5d546df17bc64c0cb8d0cbb2b6332df09233c92` with the disposable mounted volume and the Fly storage guard enabled.

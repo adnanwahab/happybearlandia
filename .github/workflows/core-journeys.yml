@@ -38,6 +38,7 @@ jobs:
           test/decision-storage.test.js
           test/release-health.test.js
           test/world-database-path.test.js
+          test/overpass-diagnostics.test.js
       - name: Install Chromium for browser journeys
         run: bunx playwright install --with-deps chromium
       - name: Universe shell, sprint experiences, and saved future journey
