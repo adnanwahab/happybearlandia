@@ -31,7 +31,8 @@ class SymphonyConfigTests(unittest.TestCase):
         self.assertIn("max_concurrent_agents: 20", workflow)
         self.assertIn("project_slug: \"happybearlandia-b9c5a0b0c5d0\"", workflow)
         self.assertIn("hbl-agent-ready", workflow)
-        self.assertIn("- Backlog", workflow)
+        self.assertIn("- Todo", workflow)
+        self.assertNotIn("- Backlog", workflow)
         self.assertNotIn("REPLACE_LINEAR_PROJECT_SLUG", workflow)
         self.assertNotIn("__MAX_WORKERS__", workflow)
 
