@@ -36,3 +36,42 @@ test('rejects incompatible identities, versions, unfinished runs and invalid tim
   }
   for (const month of [-1, .5]) expect(pairedHousingScene({ ...fixture(), month }).available).toBe(false);
 });
+
+test('keyboard inspection emits exact stored provenance and destroy removes the mounted view', async () => {
+  const { mountHousingComparison } = await import('../world/decision/backlog-comparison/view.js');
+  class Element extends EventTarget {
+    constructor(doc) { super(); this.ownerDocument = doc; this.children = []; this.attrs = {}; this.style = {}; }
+    setAttribute(key, value) { this.attrs[key] = value; }
+    append(...children) { for (const child of children) { child.parent = this; this.children.push(child); } }
+    replaceChildren(...children) { this.children = []; this.append(...children); }
+    remove() { this.parent.children = this.parent.children.filter(child => child !== this); }
+  }
+  class DetailEvent extends Event { constructor(type, options) { super(type, options); this.detail = options.detail; } }
+  const doc = { defaultView: { CustomEvent: DetailEvent, innerWidth: 320 } }; doc.createElement = () => new Element(doc); doc.createElementNS = () => new Element(doc);
+  const container = new Element(doc), inspected = [], input = fixture(true);
+  const view = mountHousingComparison(container, { onInspect: detail => inspected.push(detail) });
+  view.update({ ...input, month: 120 });
+  const root = container.children[0], emitted = [];
+  expect(root.children[3].attrs.viewBox).toBe('0 0 400 760');
+  expect(root.children[3].children[1].attrs.transform).toBe('translate(0 380)'); root.addEventListener('housing-comparison:inspect', event => emitted.push(event.detail));
+  const walk = el => [el, ...el.children.flatMap(walk)];
+  const project = walk(root).find(el => el.attrs['data-project-id'] === 'comparison-tower');
+  const key = new Event('keydown', { cancelable: true }); Object.defineProperty(key, 'key', { value: 'Enter' }); project.dispatchEvent(key);
+  expect(key.defaultPrevented).toBe(true);
+  expect(inspected).toEqual([{ runId: input.selectedRun.id, projectId: 'comparison-tower', month: 120, state: input.selectedRun.projects[0].states[120] }]);
+  expect(emitted).toEqual(inspected);
+  view.destroy(); expect(container.children).toEqual([]); view.update(input); expect(container.children).toEqual([]);
+});
+
+test('paired hydration uses only exact baseline seed/version and tolerates missing or stale loads', async () => {
+  const { hydrateComparisonBaseline } = await import('../world/decision/backlog-comparison/hydration.js');
+  const input = fixture(true); input.results.experiment.id = 'saved-housing';
+  const calls = [], loadRun = async (...args) => { calls.push(args); return input.results.runs[0]; };
+  expect((await hydrateComparisonBaseline({ ...input, loadRun })).id).toBe('base-0');
+  expect(calls).toEqual([['saved-housing', 'base-0']]);
+  expect(await hydrateComparisonBaseline({ ...input, loadRun: async () => { throw Error('network'); } })).toBeNull();
+  let current = true;
+  expect(await hydrateComparisonBaseline({ ...input, isCurrent: () => current, loadRun: async () => { current = false; return input.results.runs[0]; } })).toBeNull();
+  input.results.runs[0].seed = 9;
+  expect(await hydrateComparisonBaseline({ ...input, loadRun })).toBeNull(); expect(calls).toHaveLength(1);
+});
