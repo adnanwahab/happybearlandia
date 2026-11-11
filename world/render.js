@@ -506,8 +506,12 @@ async function openActivityDashboard(){try{
   activityObserver=new MutationObserver(()=>{const opened=!panel.hidden;mapControls.setEnabled(!opened);activityButton.setAttribute('aria-expanded',String(opened));if(!opened)activityButton.focus();});activityObserver.observe(panel,{attributes:true,attributeFilter:['hidden']});
   return activityDashboard;
  });
- const dashboard=await activityDashboardPromise;if(!dashboard||activityDisposed)return;dashboard.open();mapControls.setEnabled(false);document.querySelector('.activity-dashboard button')?.focus();
+ const dashboard=await activityDashboardPromise;if(!dashboard||activityDisposed)return;
+ if(dashboard.isOpen()){dashboard.close();activityButton.setAttribute('aria-expanded','false');return;}
+ await dashboard.open();mapControls.setEnabled(false);activityButton.setAttribute('aria-expanded','true');document.querySelector('.activity-dashboard button')?.focus();
  }catch(error){activityDashboardPromise=null;activityButton.title=error.message;console.error('Activity dashboard unavailable',error);}}
+activityButton.setAttribute('aria-expanded','false');
+activityButton.setAttribute('aria-controls','world-activity-dashboard');
 activityButton.addEventListener('click',openActivityDashboard);
 addEventListener('pagehide',()=>{activityDisposed=true;legacyActivityUnsubscribe?.();activityRuntimeUnsubscribe?.();activityObserver?.disconnect();activityDashboard?.destroy();activityListeners.clear();activityButton.removeEventListener('click',openActivityDashboard);},{once:true});
 
