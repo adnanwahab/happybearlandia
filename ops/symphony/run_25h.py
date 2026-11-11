@@ -10,6 +10,7 @@ import argparse
 import datetime as dt
 import os
 import re
+import socket
 from pathlib import Path
 import shutil
 import signal
@@ -69,6 +70,56 @@ def stop_process(process: subprocess.Popen, grace_seconds: int = 20) -> None:
             process.wait(timeout=10)
 
 
+def preflight_errors(tracker: str, port: int) -> list[str]:
+    """Fail before spawning workers when PR delivery or the local daemon cannot work.
+
+    This is a host-side check, not proof of Codex sandbox network access.
+    Error messages intentionally contain no command output or credentials.
+    """
+    errors: list[str] = []
+    required = ("git", "gh", "bun", "codex")
+    for command in required:
+        if not shutil.which(command):
+            errors.append(f"{command} is not on PATH")
+
+    if tracker == "linear" and not os.getenv("LINEAR_API_KEY"):
+        errors.append("LINEAR_API_KEY is missing; export it securely")
+    if tracker == "github" and not os.getenv("GITHUB_TOKEN"):
+        errors.append("GITHUB_TOKEN is missing; export it securely")
+
+    def succeeds(command: list[str]) -> bool:
+        try:
+            result = subprocess.run(
+                command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                timeout=20, check=False)
+            return result.returncode == 0
+        except (OSError, subprocess.TimeoutExpired):
+            return False
+
+    if shutil.which("git"):
+        for field in ("user.name", "user.email"):
+            if not succeeds(["git", "config", "--get", field]):
+                errors.append(f"Git author {field} is not configured")
+
+    if shutil.which("gh"):
+        if not succeeds(["gh", "auth", "status"]):
+            errors.append("GitHub CLI is not authenticated: run gh auth login")
+        elif not succeeds([
+                "gh", "api", "repos/adnanwahab/happybearlandia",
+                "--jq", ".permissions.push | select(. == true)"]):
+            errors.append("GitHub CLI cannot verify push access to adnanwahab/happybearlandia")
+
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.settimeout(1)
+            if sock.connect_ex(("127.0.0.1", port)) == 0:
+                errors.append(f"Port {port} is already occupied; stop the old dispatcher before relaunch")
+    except OSError:
+        errors.append(f"Cannot check dashboard port {port}")
+
+    return errors
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workers", type=int, default=6, help="Max concurrent Codex workers (1-50; default 6)")
@@ -82,6 +133,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--port", type=int, default=43110, help="Local Symphony dashboard port")
     parser.add_argument("--max-restarts", type=int, default=10, help="Maximum dispatcher restarts")
     parser.add_argument("--run", action="store_true", help="Actually launch the dispatcher")
+    parser.add_argument("--preflight", action="store_true",
+                        help="Check host prerequisites and GitHub permissions; do not launch")
     parser.add_argument("--ack-scale", action="store_true",
                         help="Acknowledge resource/usage risks when requesting >6 workers")
     args = parser.parse_args(argv)
@@ -115,9 +168,19 @@ def main(argv: list[str] | None = None) -> int:
     print("Dispatch gate: eligible issues with label hbl-agent-ready", flush=True)
     print("Target for worker PRs: sprint/one-city-two-futures-20261111", flush=True)
     print("Automatic merging and deployment: DISABLED", flush=True)
-    if not args.run:
+    if not args.run and not args.preflight:
         print("Dry run only. Supply --run to launch. Sample rendered YAML:", flush=True)
         print(workflow.split("---", 2)[1].strip()[:2200], flush=True)
+        return 0
+
+    if args.run and args.preflight:
+        parser.error("Choose --run or --preflight, not both")
+
+    errors = preflight_errors(args.tracker, args.port)
+    if errors:
+        parser.error("Preflight failed:\\n- " + "\\n- ".join(errors))
+    print("Preflight passed: Git/Codex/Bun/gh, GitHub push access, Git identity, port", flush=True)
+    if args.preflight:
         return 0
 
     token_env = "LINEAR_API_KEY" if args.tracker == "linear" else "GITHUB_TOKEN"
