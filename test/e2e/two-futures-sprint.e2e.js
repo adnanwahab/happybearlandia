@@ -53,8 +53,11 @@ for(const reducedMotion of ['no-preference','reduce'])test(`cinematic recorded d
  await page.emulateMedia({reducedMotion});await page.goto(route+'?demo=1');await ready(page);
  await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.month),{timeout:20000}).toBe(16);
  await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.demo.caption)).toContain('First physical divergence');
- await page.waitForTimeout(1500);const first=await evidence(page,info,'cinematic-month-16');assertPair(first);expect(first.metrics.find(m=>m.metricId==='housingUnits').delta).toBe(24);
+ await page.waitForTimeout(1500);
+ // Pause after observing the real hold, before full-history JSON and screenshot
+ // capture can consume the remaining presentation clock on a busy host.
  await page.getByRole('button',{name:'Pause demo',exact:true}).click();await page.waitForTimeout(500);expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(16);
+ const first=await evidence(page,info,'cinematic-month-16');assertPair(first);expect(first.metrics.find(m=>m.metricId==='housingUnits').delta).toBe(24);
  await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('24');
  await seek(page,0);expect(await page.evaluate(()=>window.futureMachine.history.plan[0].state.buildings.some(b=>b.id==='building-project-policy-1-0'))).toBe(false);
 });
