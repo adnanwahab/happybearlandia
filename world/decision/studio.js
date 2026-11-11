@@ -1,3 +1,4 @@
+import { mountPresentationShare } from './backlog-sharing/qr.js';
 import { constructionFrame } from './backlog-presentation-effects/index.js';
 import { createRecordedPlayback, mountStressCue, createSubtleSound } from './backlog-presentation-effects/playback.js';
 import { attachFutureTransitions } from './backlog-transitions/index.js';
@@ -678,7 +679,7 @@ function updateExecutiveSummary() {
   $('#executive-question').textContent = input.decision || 'Describe a housing decision to begin.';
   $('#executive-options').textContent = `${input.scenarios.map(s => s.name).join('  /  ')} · ${input.runs} futures per scenario · ${input.years} years · ${housingModel.label}`;
 }
-on('executive-toggle', () => { const active = document.body.classList.toggle('executive-mode'); $('#executive-summary').hidden = !active; updateExecutiveSummary(); $('#executive-toggle').setAttribute('aria-pressed', String(active)); $('#executive-toggle').textContent = active ? 'Analyst mode' : 'Executive mode'; if (active) $('#studio').scrollIntoView({ behavior: 'smooth' }); });
+on('executive-toggle', () => { const active = document.body.classList.toggle('executive-mode'); $('#executive-summary').hidden = !active; updateExecutiveSummary(); $('#executive-toggle').setAttribute('aria-pressed', String(active)); $('#executive-toggle').textContent = active ? 'Analyst mode' : 'Executive mode'; if (active) {let share=$('#executive-share');if(!share){share=el('section');share.id='executive-share';$('#executive-summary').append(share);}mountPresentationShare(share,new URL('/world/decision.html',location.origin).href,state.experiment?.id);$('#studio').scrollIntoView({ behavior: 'smooth' });} });
 $('#parameter-upload').addEventListener('change', () => safe(async () => {
   const file = $('#parameter-upload').files[0]; if (!file) return;
   if (file.size > 2 * 1024 * 1024) throw new Error('Use a CSV or JSON file smaller than 2 MB.');
