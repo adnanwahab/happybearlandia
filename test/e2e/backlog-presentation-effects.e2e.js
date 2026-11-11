@@ -17,10 +17,10 @@ test('recorded presentation through Decision Studio production route',async({pag
  await expect(label).toBeVisible();
  await page.locator('#building-scenario').selectOption('plan-a');
  const scrub=page.locator('#building-month');
- await scrub.fill('36');await scrub.dispatchEvent('input');
- expect(await scrub.inputValue()).toBe('36');
+ await scrub.fill('36.5');await scrub.dispatchEvent('input');
+ expect(await scrub.inputValue()).toBe('36.5');
+ await expect(label).not.toContainText('recession');
  await page.locator('#building-play').click();
- await expect(label).toContainText('none through this month');
  await expect(label).toContainText('recession');
  await page.locator('#building-play').click();
  const paused=await scrub.inputValue();await page.waitForTimeout(250);expect(await scrub.inputValue()).toBe(paused);
@@ -29,7 +29,7 @@ test('recorded presentation through Decision Studio production route',async({pag
  if(await mute.count()){await expect(mute).toHaveAttribute('aria-pressed','true');await mute.click();await expect(page.getByRole('button',{name:'Enable subtle sound',exact:true})).toHaveAttribute('aria-pressed','false');}
  else await expect(page.getByRole('button',{name:'Audio unavailable',exact:true})).toBeVisible();
  await page.emulateMedia({reducedMotion:'reduce'});
- await scrub.fill('36');await scrub.dispatchEvent('input');
+ await scrub.fill('36.5');await scrub.dispatchEvent('input');
  await page.locator('#building-play').click();
  await page.locator('#building-reset').click();
  expect(await scrub.inputValue()).toBe('0');
