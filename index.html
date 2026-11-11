@@ -72,7 +72,7 @@
   <section id="universe-shell" aria-label="Connected universe"></section>
   <main aria-label="Route previews">
 <section class="carousel" id="explore" aria-roledescription="carousel" aria-label="Interactive worlds and experiments">
-  <header><div><h2>30 Interactive Worlds &amp; Experiments</h2><p>Start with a world. Follow your curiosity. Each preview opens a different possibility.</p></div><div class="carousel-controls"><button type="button" id="carousel-prev" aria-label="Previous preview">←</button><span id="carousel-status" aria-live="polite"></span><button type="button" id="carousel-next" aria-label="Next preview">→</button></div></header>
+  <header><div><h2><span id="gallery-count">31</span> Interactive Worlds &amp; Experiments</h2><p>Start with a world. Follow your curiosity. Each preview opens a different possibility.</p></div><div class="carousel-controls"><button type="button" id="carousel-prev" aria-label="Previous preview">←</button><span id="carousel-status" aria-live="polite"></span><button type="button" id="carousel-next" aria-label="Next preview">→</button></div></header>
   <div class="gallery-toolbar"><label for="carousel-category">Category</label><select id="carousel-category"><option value="all">All experiences</option><option value="worlds">3D Worlds</option><option value="living">Living Simulations</option><option value="science">GPU Science</option><option value="games">Games</option><option value="tools">Tools</option></select><label for="carousel-jump">Jump to a preview</label><select id="carousel-jump"></select><span>Choose Interact to take control of a live preview.</span></div>
   <div class="carousel-rail" id="carousel-rail" tabindex="0" aria-label="App previews. Use left and right arrow keys to browse."></div>
 </section>
@@ -204,6 +204,11 @@
       <iframe src="/world/decision.html?demo=1#advanced" title="Optimization preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
       <div class="path">/world/decision.html?demo=1#advanced</div>
     </section>
+<section data-carousel="games" aria-labelledby="houston-bars-heading">
+  <header><div><h2 id="houston-bars-heading">Houston Bar Atlas</h2><p>Explore OSM-mapped bars and play a fictional, low-fidelity interior scene.</p></div><a href="/world/bars/" target="_blank" rel="noopener">Open Houston Bar Atlas ↗</a></header>
+  <iframe src="/world/bars/" title="Houston Bar Atlas preview" loading="lazy"></iframe>
+  <div class="path">/world/bars/</div>
+</section>
 
 
 
@@ -211,6 +216,7 @@
 <noscript><p>Enable JavaScript for interactive previews, or <a href="/routes">browse all routes</a>.</p></noscript>
   </main>
 <script src="/tools/iframe-gallery.js" defer></script>
+<script type="module">import {EXPERIENCES} from "/world/universe/registry.js";document.getElementById("gallery-count").textContent=EXPERIENCES.length;</script>
 <script type="module" src="/world/universe/shell.js"></script>
 </body>
 </html>
