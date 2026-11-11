@@ -60,3 +60,35 @@ test('searches reloaded versioned records through the existing private store con
     expect((await store.load('stored-search')).runs).toEqual(loaded.runs);
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
+
+test('ordinary bounded phrases and numeric boundaries retain exact typed comparisons', () => {
+  const definitions = [...metrics, { id: 'public_expenditure', label: 'Cost', unit: 'USD' }];
+  for (const [query, value, expected] of [
+    ['show me futures where rent is at most $2,000 USD/month', 2000, true],
+    ['find worlds with rent greater than $-2', 0, true],
+    ['rent >= $-2.5 USD/month', -2.5, true],
+    ['rent < -2.5', -2.5, false],
+    ['rent = 0', -0, true],
+    ['rent = 0.0000001', .0000001, true],
+    ['rent > 1000000000000000000000', 1e22, true],
+    ['rent <= 2000', 2000.00001, false],
+  ]) {
+    const compiled = compile(query, definitions);
+    expect(compiled.error).toBeUndefined();
+    expect(compiled.test({ ...run, metrics: { median_rent: value } })).toBe(expected);
+  }
+  expect(compile('cost < 2b USD', definitions).test({ ...run, metrics: { public_expenditure: 1999999999 } })).toBe(true);
+  expect(compile('vacancy = -5%', metrics).test({ ...run, metrics: { vacancy_rate: -.05 } })).toBe(true);
+  expect(compile('vacancy = 5 fraction', metrics).test({ ...run, metrics: { vacancy_rate: 5 } })).toBe(true);
+  for (const query of ['rent > -$2', 'rent < 12,34', 'rent > NaN', 'rent > Infinity', 'rent > 1e3', 'rent > 2 euros', 'rent > $2 USD', 'rent > 2 USD/month please', `rent > ${'9'.repeat(320)}`]) expect(compile(query, definitions).error).toBeTruthy();
+});
+test('exact IDs outrank ambiguous aliases and all selected scope conflicts fail closed', () => {
+  const ambiguous = [...metrics, { id: 'annual_rent', label: 'Rent', unit: 'USD/year' }];
+  expect(compile('rent < 2000', ambiguous).error).toContain('ambiguous');
+  expect(compile('median_rent < 2000', ambiguous).test(run)).toBe(true);
+  expect(compile('median_rent < 2000', [...metrics, { id: 'different', label: 'median_rent', unit: 'USD' }]).test(run)).toBe(true);
+  for (const [query, scope] of [['seed 1', { seed: 0 }], ['scenario alternative', { scenarioId: 'baseline' }], ['model version v2', { modelVersion: 'v1' }], ['at month 2', { month: 1 }]]) expect(compile(query, metrics, scope).error).toContain('conflicts');
+  for (const query of ['seed 4294967296', 'at month 601', 'seed 0 and seed 1', 'at month 0 and at month 1', Array(13).fill('rent > 0').join(' and '), 'rent < 1 and', 'rent is cheaper', 'what if we build homes']) expect(compile(query, metrics).error).toBeTruthy();
+  expect(compile('seed 4294967295', metrics).test({ ...run, seed: 4294967295 })).toBe(true);
+  expect(compile('model version v1', metrics).explain({ ...run, modelVersion: undefined }).status).toBe('missing');
+});

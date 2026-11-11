@@ -2,6 +2,7 @@ import { compileFutureSearch, futureOutcome } from '../visualizations.js';
 export const SEARCH_VERSION = 'recorded-future-search.v1';
 const finite = value => typeof value === 'number' && Number.isFinite(value);
 const normalize = value => String(value).toLowerCase().replace(/[_-]/g, ' ').trim();
+const compare = (value, operator, threshold) => operator === '=' ? value === threshold : ['<', 'below', 'under', 'less than'].includes(operator) ? value < threshold : ['<=', 'at most'].includes(operator) ? value <= threshold : ['>', 'above', 'over', 'greater than'].includes(operator) ? value > threshold : value >= threshold;
 const aliases = { rent: 'median_rent', cost: 'public_expenditure', supply: 'housing_supply', vacancy: 'vacancy_rate' };
 
 /** Read-only Decision results adapter, compatible with visualization search.
@@ -32,8 +33,9 @@ export function compileRecordedFutureSearch(query, metrics = [], selected = {}) 
     }
     const match = clause.match(/^(.+?)\s*(<=|>=|<|>|=|below|under|less than|above|over|greater than|at least|at most)\s*(\$?)(-?(?:\d+(?:,\d{3})*)(?:\.\d+)?)([kmb])?\s*(.*?)$/i);
     if (!match) return fail(`Unsupported clause “${clause}”. Use a metric comparison or event: phrase.`);
-    const needle = normalize(match[1]);
-    let candidates = metrics.filter(metric => metric.id === aliases[needle] || normalize(metric.id) === needle || normalize(metric.label) === needle);
+    const needle = normalize(match[1]).replace(/\s+is$/, '');
+    let candidates = metrics.filter(metric => normalize(metric.id) === needle);
+    if (!candidates.length) candidates = metrics.filter(metric => metric.id === aliases[needle] || normalize(metric.label) === needle);
     if (!candidates.length) candidates = metrics.filter(metric => normalize(metric.id).includes(needle) || normalize(metric.label).includes(needle));
     if (candidates.length !== 1) return fail(`Unknown or ambiguous metric “${match[1]}”. Use its exact ID.`);
     const metric = candidates[0], unit = match[6].trim(), declared = String(metric.unit || '');
@@ -41,9 +43,9 @@ export function compileRecordedFutureSearch(query, metrics = [], selected = {}) 
     if (unit && !(unit === '%' && ['fraction', 'probability', '%'].includes(declared)) && unit.toLowerCase() !== declared.toLowerCase()) return fail(`Expected ${metric.id} in ${declared}; received ${unit}.`);
     const threshold = Number(match[4].replaceAll(',', '')) * ({ k: 1e3, m: 1e6, b: 1e9 }[match[5]?.toLowerCase()] || 1) / (unit === '%' && ['fraction', 'probability'].includes(declared) ? 100 : 1);
     if (!finite(threshold)) return fail('Threshold must be finite.');
-    // Delegate supported numeric semantics to the existing compiler, with exact ID.
-    const compiled = compileFutureSearch(`${metric.id} ${match[2]} ${threshold}`, metrics);
-    if (compiled.error) return fail(compiled.error);
+    // Evaluate the parsed number directly: stringifying tiny/large thresholds
+    // to exponent notation would make the legacy text parser reject valid input.
+    const compiled = { test: run => finite(run.metrics?.[metric.id]) && compare(run.metrics[metric.id], match[2].toLowerCase(), threshold) };
     rules.push({ kind: 'metric', metricId: metric.id, unit: declared, operator: match[2], threshold, compiled });
   }
   for (const [key, max] of [['month', 600], ['seed', 0xffffffff]]) if (scope[key] !== undefined && (!Number.isInteger(scope[key]) || scope[key] < 0 || scope[key] > max)) return fail(`Selected ${key} must be an integer from 0 to ${max}.`);
@@ -74,7 +76,7 @@ export function compileRecordedFutureSearch(query, metrics = [], selected = {}) 
     return { status: evidence.some(item => item.status === 'excluded') ? 'excluded' : evidence.some(item => item.status === 'missing') ? 'missing' : 'match', version: SEARCH_VERSION,
       source: { runId: run?.id, experimentId: run?.experimentId, scenarioId: run?.scenarioId, seed: run?.seed, modelId: run?.modelId, modelVersion: run?.modelVersion, month: scope.month ?? 'final' }, evidence };
   }
-  return { version: SEARCH_VERSION, scope, rules: rules.map(({ compiled, ...rule }) => rule), description: `Recorded futures; ${scope.month === undefined ? 'final metrics' : `exact month ${scope.month}`}; ${rules.length} conditions. No forecast generated.`, explain, test: (run, scenario) => explain(run, scenario).status === 'match' };
+  return { version: SEARCH_VERSION, scope, rules: rules.map(({ compiled, ...rule }) => rule), description: `Recorded futures; ${scope.month === undefined ? 'final metrics' : `exact month ${scope.month}`}; ${rules.length} conditions. Only loaded records and snapshots are searched; missing measurements are excluded. No forecast generated.`, explain, test: (run, scenario) => explain(run, scenario).status === 'match' };
 }
 
 /** Search a loaded Decision store/API record. Bounds are explicit: never sample
