@@ -15,7 +15,7 @@ test('Canvas legacy Activity retains real person filtering, history authority, s
  await expect(page.locator('#view canvas')).toHaveAttribute('data-renderer','canvas2d');
  await openControls(page);await page.getByRole('button',{name:'Pause',exact:true}).click();
  const source=await page.evaluate(()=>window.hblWorldActivity.getSnapshot());
- expect(source.mode).toBe('legacy');expect(source.peopleCount).toBe(30);expect(source.modelVersion).toBe('neighborhood-activity.v2');
+ expect(source.mode).toBe('legacy');expect(source.seed).toBe('29.7286,-95.4746');expect(source.peopleCount).toBe(30);expect(source.modelVersion).toBe('neighborhood-activity.v2');
  const personId=String(source.people[0].id);expect(personId).toBeTruthy();
  await openActivity(page);await dashboard(page).getByLabel('Person ID',{exact:true}).fill(personId);
  await dashboard(page).getByRole('button',{name:'Apply filters',exact:true}).click();
@@ -81,4 +81,22 @@ test('homepage gallery and directory navigation derive from the authoritative ca
  const response=await page.request.get(src.href);expect(response.status()).toBe(200);expect(response.headers()['content-type']).toContain('text/html');
  await page.screenshot({path:info.outputPath('catalog-worldline-navigation.png'),fullPage:true});
  console.log('CATALOG_FOLLOWUP',JSON.stringify({count:EXPERIENCES.length,uniqueIds:new Set(EXPERIENCES.map(row=>row.id)).size,selected:src.pathname}));
+});
+
+
+test('Activity context preserves declared seeds through repeated JSON/CSV normalization and marks missing unavailable',async({page})=>{
+ await page.goto('/');
+ const result=await page.evaluate(async()=>{
+  const {createActivityExportContext,exportActivityHistory}=await import('/world/activity-analysis.js');
+  const samples=[{seed:'29.7286,-95.4746'},{seed:0},{config:{seed:4294967295}},{seed:''},{seed:NaN},{seed:{private:'drop'}},{}];
+  return samples.map(snapshot=>{
+   const context=createActivityExportContext(snapshot),history={coverage:{},retention:{}},analysis={notes:[],series:[],recentEvents:[]};
+   const json=JSON.parse(exportActivityHistory(history,analysis,{context}));
+   return {seed:context.seed,jsonSeed:json.context.seed,csv:exportActivityHistory(history,analysis,{format:'csv',context})};
+  });
+ });
+ expect(result.map(row=>row.seed)).toEqual(['29.7286,-95.4746',0,4294967295,null,null,null,null]);
+ expect(result.map(row=>row.jsonSeed)).toEqual(result.map(row=>row.seed));
+ for(const row of result)expect(row.csv).toContain('seed');
+ expect(result[0].csv).toContain('29.7286,-95.4746');expect(JSON.stringify(result)).not.toContain('private');
 });
