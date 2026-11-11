@@ -3,7 +3,7 @@ const params=new URLSearchParams(location.search);
 const requested=params.get('renderer');
 const canvasMode=requested==='canvas2d'||requested==='lite'||requested==='2d';
 function hasWebGL2(){
-  try{const canvas=document.createElement('canvas'),gl=canvas.getContext('webgl2',{failIfMajorPerformanceCaveat:true});const ok=!!gl;
+  try{const canvas=document.createElement('canvas'),gl=canvas.getContext('webgl2');const ok=!!gl;
     gl?.getExtension('WEBGL_lose_context')?.loseContext();return ok;}catch{return false;}
 }
 const fallback=()=>{
