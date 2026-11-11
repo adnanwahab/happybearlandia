@@ -40,7 +40,26 @@
         <select id="event"><option value="">Choose a recorded event</option></select>
       </label>
     </div>
+    <div class="playback-controls">
+      <button id="playback" type="button" disabled>Play</button>
+      <label for="playback-speed">Playback speed
+        <select id="playback-speed">
+          <option value="1">1×</option>
+          <option value="4">4×</option>
+        </select>
+      </label>
+      <button id="next-event" type="button" disabled>Next recorded event</button>
+    </div>
+    <p id="playback-status" role="status"></p>
     <p id="checkpoint" role="status"></p>
+    <div id="change-summary" role="group" aria-label="Month-to-month entity changes" hidden>
+      <p id="change-note"></p>
+      <dl id="change-counts" class="change-counts">
+        <div><dt>Added</dt><dd id="change-added"></dd></div>
+        <div><dt>Changed</dt><dd id="change-changed"></dd></div>
+        <div><dt>Removed</dt><dd id="change-removed"></dd></div>
+      </dl>
+    </div>
     <div id="heatmap" hidden></div>
     <details id="network-details">
       <summary>Explore this month’s network</summary>

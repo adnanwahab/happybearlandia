@@ -36,3 +36,14 @@ header nav { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; }
     from { background: #fff; transform: translateY(.2rem); }
   }
 }
+
+.playback-controls { display: flex; flex-wrap: wrap; gap: .55rem 1rem; align-items: end; }
+.playback-controls label { display: grid; gap: .15rem; font-size: .9rem; font-weight: 700; }
+#playback { min-width: 5.75rem; background: #235547; color: #fff; }
+#playback-status:empty { margin: 0; }
+#change-note { margin: .5rem 0; }
+.change-counts { display: flex; flex-wrap: wrap; gap: .5rem; margin: .55rem 0 1rem; }
+.change-counts[hidden] { display: none; }
+.change-counts div { display: flex; align-items: baseline; gap: .55rem; padding: .35rem .65rem; border: 1px solid #b4caba; border-radius: .45rem; background: #fff; }
+.change-counts dt { font-size: .92rem; }
+.change-counts dd { margin: 0; font-weight: 750; font-variant-numeric: tabular-nums; }
