@@ -11,10 +11,19 @@ import { createBuildingProposal } from '../world/buildings/proposal.js';
 // Exercise the exact proposed shared-file hooks in an isolated temporary source tree.
 const temp = mkdtempSync(join(tmpdir(), 'hbl-replay-'));
 mkdirSync(join(temp, 'world'));
-cpSync(new URL('../world/models', import.meta.url), join(temp, 'world/models'), { recursive: true });
-cpSync(new URL('../world/buildings', import.meta.url), join(temp, 'world/buildings'), { recursive: true });
-const patch = Bun.spawnSync(['git', 'apply', '--unsafe-paths', new URL('../world/decision/backlog-replay/integration.patch', import.meta.url).pathname], { cwd: temp });
-if (patch.exitCode) throw new Error(patch.stderr.toString());
+const modelRoot = process.env.HBL_REPLAY_SOURCE_ROOT;
+cpSync(modelRoot ? join(modelRoot, 'world/models') : new URL('../world/models', import.meta.url), join(temp, 'world/models'), { recursive: true });
+cpSync(modelRoot ? join(modelRoot, 'world/buildings') : new URL('../world/buildings', import.meta.url), join(temp, 'world/buildings'), { recursive: true });
+const patchPath = new URL('../world/decision/backlog-replay/integration.patch', import.meta.url).pathname;
+const apply = (...options) => Bun.spawnSync(['git', 'apply', '--unsafe-paths', ...options, patchPath], { cwd: temp });
+const forward = apply('--check');
+if (forward.exitCode === 0) {
+  const result = apply();
+  if (result.exitCode) throw new Error(result.stderr.toString());
+} else {
+  const reverse = apply('--reverse', '--check');
+  if (reverse.exitCode) throw new Error('Partial or incompatible checkpoint hooks: ' + forward.stderr.toString() + reverse.stderr.toString());
+}
 const integrated = await import(join(temp, 'world/models/housing/index.js'));
 const adapter = createHousingCheckpointAdapter({ simulateRun: integrated.simulateHousingRun });
 const input = seed => ({ parameters: createHousingScenarios()[1].parameters, seed, years: 10, projects: [createBuildingProposal({ id: 'checkpoint-tower', status: 'approved' })] });
