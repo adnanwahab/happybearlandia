@@ -4,16 +4,18 @@ import { compareHistory } from './diff/index.js';
 import { createStage } from './scene/index.js';
 import { createUI } from './ui/index.js';
 import { buildStory, describeSelection, renderStory } from './story/index.js';
-import { createShareURL, parseShareURL, createEvidenceReport } from './share/index.js';
+import { createShareURL, parseShareURL, createEvidenceReport, assertHistoryIdentity } from './share/index.js';
 
 const app=document.querySelector('#app');
 let history=null,diffs=[],story=null,stage=null,storyDispose=()=>{},request=null,playTimer=null,disposed=false;
 let state={status:'idle',message:'Fork the same city. Change one decision. Watch ten modeled years.',recipe:structuredClone(DEFAULT_RECIPE),month:0,playing:false,mode:'split',ghosts:true,experimentId:null,shareURL:null,error:null};
 const stats={startedAt:performance.now(),readyMs:null,runMs:null};
-const ui=createUI(app,{onRun:run,onMonth:setMonth,onPlay:setPlaying,onMode(mode){state.mode=mode;stage?.setMode(mode);update();},onGhosts(value){state.ghosts=value;stage?.setGhosts(value);update();},onDirector:direct,onShare:share,onExport:exportReport});
+app.replaceChildren();
+const ui=createUI(app,{onRun:run,onCancel:cancel,onMonth:setMonth,onPlay:setPlaying,onMode(mode){state.mode=mode;stage?.setMode(mode);update();},onGhosts(value){state.ghosts=value;stage?.setGhosts(value);update();},onDirector:direct,onShare:share,onExport:exportReport});
 stage=createStage(ui.stageElement,{onSelect:select});
 stage.setMode(state.mode);stage.setGhosts(state.ghosts);
 function update(){if(!disposed)ui.update(state);}
+function cancel(){request?.abort();request=null;setPlaying(false);state.status=history?'ready':'idle';state.error=null;state.message='Run cancelled. Any completed comparison remains available.';update();}
 function frame(){return history?getFrame(history,state.month):null;}
 function showStory(description){storyDispose();storyDispose=renderStory(ui.storyElement,description,{onJump:jump})||(()=>{});}
 function updateURL(){if(!history)return;state.shareURL=createShareURL({recipe:history.recipe,experimentId:history.experimentId,month:state.month},location.href);window.history.replaceState(null,'',state.shareURL);}
@@ -27,12 +29,13 @@ async function run(recipe=state.recipe,savedId=null,selectedMonth=0){
   setPlaying(false);state={...state,status:'loading',error:null,message:savedId?'Opening saved experiment…':'Running paired 120-month futures…',shareURL:null};update();
   const options={signal:current.signal,onProgress(progress){if(request!==current)return;state.message=progress.message||progress.status;update();}};
   try{
-    recipe=validateRecipe(recipe);let loaded;
-    if(savedId){try{loaded=await loadExperiment(savedId,options);}catch(error){if(current.signal.aborted)throw error;state.message=`Saved experiment unavailable (${error.message}). Recomputing the bounded shared recipe.`;update();loaded=await createExperiment(recipe,options);loaded={...loaded,provenance:{...loaded.provenance,shareFallback:'Saved record unavailable; recomputed from recipe.'}};}}
+    recipe=validateRecipe(recipe);let loaded;let fallback=false;
+    if(savedId){try{loaded=await loadExperiment(savedId,options);}catch(error){if(current.signal.aborted||!/not found/i.test(error.message))throw error;fallback=true;state.message=`Saved experiment unavailable (${error.message}). Recomputing the bounded shared recipe.`;update();loaded=await createExperiment(recipe,options);loaded={...loaded,provenance:{...loaded.provenance,shareFallback:'Saved record unavailable; recomputed from recipe.'}};}}
     else loaded=await createExperiment(recipe,options);
     if(disposed||request!==current)return;
+    assertHistoryIdentity(loaded,{recipe,experimentId:fallback?null:savedId});
     history=loaded;diffs=compareHistory(history);story=buildStory(history,diffs);stats.runMs=performance.now()-start;
-    state={...state,status:'ready',recipe:history.recipe,experimentId:history.experimentId,message:'120 months complete · detailed states recomputed from the saved monthly City manifest. Synthetic, uncalibrated model.',error:null};
+    state={...state,status:'ready',recipe:history.recipe,experimentId:history.experimentId,message:`${fallback?'Saved record unavailable; reran the versioned recipe. ':''}120 months complete · detailed states recomputed from the saved monthly City manifest. Synthetic, uncalibrated model.`,error:null};
     setMonth(selectedMonth);showStory(story);stats.readyMs=performance.now()-stats.startedAt;
   }catch(error){if(request!==current||disposed)return;state.status='error';state.error=error.message;state.message='The comparison could not be opened. Check the inputs and use Fork City to retry.';update();}
 }
