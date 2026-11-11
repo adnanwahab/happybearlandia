@@ -1,5 +1,6 @@
+import {recordedConstructionProgress} from './construction-progress.js';
 /** Rendering projection only. Never joins City identities to another model. */
-export const LAYOUT_VERSION = 'future-machine-layout.v1';
+export const LAYOUT_VERSION = 'future-machine-layout.v2';
 const key = (kind, id) => `${kind}:${id}`;
 function rows(state, name) {
   if (!state || !Array.isArray(state[name])) throw new TypeError(`Missing City ${name}`);
@@ -32,7 +33,12 @@ export function createSpatialMapping() {
       if (!Number.isInteger(a?.month) || a.month !== b?.month) throw new TypeError('Scenes require matched City months');
       const buildings = [rows(a, 'buildings'), rows(b, 'buildings')];
       const projects = [rows(a, 'projects'), rows(b, 'projects')];
-      const all = [...buildings.flat().map(row => key('buildings', row.id)), ...projects.flat().filter(p => p.type === 'housing' && p.stage !== 'completion' && p.stage !== 'abandoned').map(row => key('projects', row.id))];
+      const progress = [a,b].map(state => recordedConstructionProgress({state}));
+      const projectSlot = (side, id) => {
+        const buildingId = progress[side].find(row => row.id === id)?.housingProjectBuildingId;
+        return buildingId ? key('buildings', buildingId) : key('projects', id);
+      };
+      const all = [...buildings.flat().map(row => key('buildings', row.id)), ...projects.flatMap((list, side) => list.filter(p => p.type === 'housing' && p.stage !== 'completion' && p.stage !== 'abandoned').map(row => projectSlot(side, row.id)))];
       for (const id of [...new Set(all)].sort()) if (!slots.has(id)) slots.set(id, slots.size);
       // Duplicate source identities cannot establish an unambiguous footprint mapping.
       const ambiguous = new Set();
@@ -53,9 +59,10 @@ export function createSpatialMapping() {
       }));
       for (const [side, list] of projects.entries()) for (const row of list) {
         if (row.type !== 'housing' || ['completion','abandoned'].includes(row.stage)) continue;
-        if (!Number.isFinite(row.progress) || !Number.isFinite(row.duration) || row.duration <= 0) continue;
-        const slot = slots.get(key('projects', row.id));
-        mapped[side].push({collection:'projects',id:row.id,record:row,mapping:'synthetic-layout',polygon:null,x:(slot%10)*24,z:Math.floor(slot/10)*24,height:3,progress:Math.max(0,Math.min(1,row.progress/row.duration))});
+        const construction = progress[side].find(record => record.id === row.id);
+        if (construction?.progressRatio == null) continue;
+        const slot = slots.get(projectSlot(side, row.id));
+        mapped[side].push({collection:'projects',id:row.id,record:row,mapping:'synthetic-layout',polygon:null,x:(slot%10)*24,z:Math.floor(slot/10)*24,height:3,progress:construction.progressRatio,construction});
       }
       // Separate schematic inventory spatially from any sourced footprint extent.
       const sourced = mapped.flat().filter(r=>r.polygon);
