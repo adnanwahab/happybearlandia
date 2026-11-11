@@ -23,7 +23,7 @@ function error(status, message) {
 }
 function validString(value, min, max) {
   return typeof value === 'string' && value.trim().length >= min &&
-    value.trim().length <= max && !/[\u0000-\u001f\u007f]/.test(value);
+    value.trim().length <= max && !/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(value);
 }
 function sign(secret, token) {
   return createHmac('sha256', secret).update('session:' + token).digest('hex');

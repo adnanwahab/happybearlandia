@@ -47,3 +47,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Private local historical map database
 .data/
+
+# Private patch votes and agent job state
+.hbl-private/
