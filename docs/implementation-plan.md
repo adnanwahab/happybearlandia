@@ -1003,3 +1003,27 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-224 — Probability clouds
+
+Slice: reuse the completed paired ensemble at its shared clock, map every located
+modeled structure's presence count to opacity, and retain run/seed provenance.
+The core already visits all modeled buildings/locations; loaded geography outside
+the model remains unavailable. No invented presence is assigned to it.
+Acceptance: exact count/denominator alpha, zero omitted, full presence opaque,
+visible seed/count legend, repeatable rendering. WebGL keeps two batches using
+RGBA vertex colors; SVG fallback uses exact count buckets (at most 100), replacing
+the previous eight color buckets. A Canvas adapter uses the same count ratios.
+Risks: overlapping strokes composite; alpha describes individual strokes, not
+combined pixel brightness. Cross-device raster hashes are not guaranteed.
+Verification and usability status recorded below after checks.
+
+Delivered: existing WebGL and SVG entry points now show exact frequency alpha;
+legend shows seeds, arm, denominator and endpoint explanation. Added Canvas
+adapter, endpoint/fraction tests and browser replay/hash/legend regression.
+Actual verification: `bun test test/reality-ensemble-view.test.js
+world/reality/ensemble.test.js` passed 12 tests / 99 assertions. Playwright could
+not start its server on either 3184 or 41983 (Bun listen EADDRINUSE); no browser
+assertions or image hashes were observed. The added browser test is pending a
+host with working server binding. Five-person comprehension and city-scale
+readability/kill-criterion evaluation remain unperformed. No deployment.
