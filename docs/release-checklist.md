@@ -2,6 +2,10 @@
 
 Use this checklist after selecting a release. The November 10 audit was read-only. Backup creation on the production host, restore, deployment, restart, and production test writes require the operator’s authorization and a maintenance window. See the [release audit](release-audit.md) for the observed source and production state.
 
+## Million-resident claim gate
+
+Before any public million-agent claim, satisfy the separate [verified evidence gate](million-resident-release-gate.md). Run `bun ops/check-million-release.js evidence.json`, archive its report, and resolve every HOLD with independent review and explicit operator approval. Ordinary release health checks do not verify population scale.
+
 ## 1. Freeze the candidate and review the diff
 
 - [ ] Reconfirm remote main with `git ls-remote --heads origin main`. The audited tip was `fd43cc739b82b39dfe85a72db713b6d1ddaaf450`, the merge commit of [PR #8](https://github.com/adnanwahab/happybearlandia/pull/8).

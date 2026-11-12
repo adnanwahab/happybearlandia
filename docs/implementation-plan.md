@@ -1003,3 +1003,34 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+
+## SHE-177 — verified million-resident release gate
+
+Status: review candidate. Owned slice on isolated issue branch `mini/SHE-177`:
+versioned evidence policy, executable fail-closed checker, focused regression
+suite, core-journeys CI wiring and release-checklist entry. No engine or browser
+behavior changes. The smallest end-to-end slice is a submitted receipt producing
+an explicit PASS/HOLD report and a failing CLI exit on absent evidence.
+
+Prerequisites for an actual claim: SHE-141 count semantics, SHE-151 architecture
+measurements, SHE-171 benchmark runner, SHE-173 readback work, SHE-175 compatibility
+matrix and SHE-220 device soak evidence. No supplied million-scale receipt exists.
+The bounded count fixture is not scale evidence. GitHub live PR audit was attempted
+but CLI network access failed; local CI and code were inspected. No delegation
+was needed because this slice shares a single policy/interface owner.
+
+Acceptance evidence: `bun test test/million-release.test.js test/agent-counts.test.js`
+passed 13 tests / 306 assertions, including policy boundaries, each failed gate,
+malformed/missing evidence, distinct count units and nonzero CLI failure. Tests
+use synthetic receipts only. Browser tests are inapplicable; no browser behavior
+changed. No repository-wide lint/type script is configured. The policy's proposed
+1M interactions/s, 80% full-device RAM, 20-minute soak and 10-second p95 first-play
+budgets require independent product/reviewer approval and measured feasibility.
+The checker validates submitted attestations; humans must authenticate artifacts,
+verify full matrix coverage, causal evidence and approval identity. Neither CI
+nor a passing synthetic receipt authorizes a public claim or deployment.
+
+Next: independent review of policy and code, then collect exact-candidate device
+measurements and authenticated approvals. Live hosted CI/PR audit remains pending.
+See [policy and receipt contract](million-resident-release-gate.md).
