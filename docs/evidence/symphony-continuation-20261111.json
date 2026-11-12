@@ -19,7 +19,7 @@
     "resourceWarningsAsErrors": true
   },
   "runtime": {
-    "pid": 26040,
+    "pid": 32399,
     "maxConcurrentAgents": 1,
     "actualWorkers": 0,
     "maxTurns": 20,
@@ -29,7 +29,12 @@
     ],
     "pinnedWorkflow": "~/.local/state/hbl-publisher/throughput-runtime/20261111-lifecycle-v2/WORKFLOW.md",
     "defaultWritableRoots": "canonical issue workspace only",
-    "modelTokensObserved": 0
+    "modelTokensObserved": 0,
+    "owner": "other terminal, explicitly selected by user",
+    "activeWorkflow": "/Users/wahabma/happybearlandia/tools/symphony/elixir/WORKFLOW.md",
+    "pinnedWorkflowIsActive": false,
+    "observedAt": 1794459851.3911722,
+    "observerPID": 33294
   },
   "cachedObservation": {
     "cyclesObserved": 3,

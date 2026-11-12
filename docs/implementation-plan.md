@@ -574,3 +574,5 @@ idempotentretryfailedexit1 andwasnotrepeated; newCLIdiagnosticfixinhostownerPR42
 SHE83/142 pilotlabels exist butnoclaims/newmodeltokens; resource/cleanclone/25active
 ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
+
+Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.

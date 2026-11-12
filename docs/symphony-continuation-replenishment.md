@@ -199,10 +199,11 @@ before any Codex tokens. Guards correctly refused manual publication and exact-P
 shutdown when their prerequisites changed; those refusals are not claimed as
 successful operations. The identified idle replacement was then stopped safely.
 
-Authoritative runtime is now PID26040, versioned `20261111-lifecycle-v2/symphony`,
+During repair, PID26040 used the versioned `20261111-lifecycle-v2/symphony`,
 with its PRIVATE PINNED `WORKFLOW.md` in the same host directory (mode0400), cap1,
-max_turns20 and both labels. The shared repository workflow is now a template,
-not the effective running file. Its future edits do not reconfigure this process.
+max_turns20 and both labels. During that pinned interval, the shared repository workflow was only a template;
+its edits could not reconfigure the private process. The final user-selected
+terminal handoff below supersedes this temporary runtime ownership.
 The user was asked to pause the competing terminal's restarts, not delete its
 workspaces. The API reports the actual pinned workflow path. Cached read-only
 observerPID26942 (`20261111-observer-v4`) uses that same pinned file, never apply.
@@ -228,9 +229,9 @@ core test and local source/spec documentation are under
 `/private/tmp/hbl-drain-runtime-backup-20261111`. Native readme/spec changes are
 represented by the pinned source patch and supplemental `lifecycle-spec.patch`.
 `continuation-workflow.patch` records only the20turn setting, separate from the
-host owner's root/hook changes. For this installed run, observation commands must
-use `$HOME/.local/state/hbl-publisher/throughput-runtime/20261111-lifecycle-v2/WORKFLOW.md`
-as `--workflow`; do not restart from the concurrently edited shared template.
+host owner's root/hook changes. The private pinned workflow remains a preserved recovery snapshot. The final
+user-selected terminal owns the current workflow; use the actual path reported
+by the API, rather than assuming the private snapshot is still active.
 
 The publisher owner subsequently fixed canonical CLI module identity and added an
 actual child-process regression. Its133focused tests and the full installed
@@ -247,3 +248,23 @@ inventory scans, not measured delivery throughput. Resources/runtime were freshl
 sampled while the queue stayed held. New metrics distinguish60second observation
 interval from300second full-inventory cacheTTL. First-pass CI, issue-completion
 rates and accepted throughput remain unavailable without trustworthy outcome data.
+
+## Final user-selected runtime handoff
+
+The user explicitly chose **Keep the other terminal's runtime** after that
+terminal replaced the private pinned process again. This coordinator stopped
+competing restarts and configuration writes. Final read-only observation:
+PID32399 runs `./bin/symphony` with the original repository WORKFLOW path;
+cap1/max_turns20/bothpilot+pressurefilters/source-onlyroot,0running/0retrying/
+0blocked. That terminal is now authoritative. The private versioned executable
+and workflow remain useful recovery evidence; they are not falsely reported as
+the running instance. No further native build will overwrite its executing bin.
+
+Read-only observerPID33294 (`20261111-observer-v5`) uses the actual source workflow
+path and the final tested cache/interval metadata. It does not approve, lease,
+execute or publish tasks. Dispatcher ownership is no longer contested by this
+coordinator. Future runtime changes belong to the user's selected terminal and
+must be measured again before claiming a different worker count or resource fit.
+The remaining task is safe productive implementation, not another restart: SHE83
+is the selected next candidate, then SHE142; both remain unclaimed until resource,
+source-only clone/preflight and ownership/readiness records actually pass.
