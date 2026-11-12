@@ -12,7 +12,13 @@ Offline Symphony tests passed 8/8 and the one-worker Linear dry-run exited 0.
 No browser behavior changed, so app launch, Playwright and media are inapplicable.
 Final commit/check evidence is handed off through `.git/hbl-workpad.json`;
 GitHub draft publication and remote-base freshness remain host gates after the
-session. This slice does not claim a live end-to-end publishing pass.
+session. On resume, read-only Linear and GitHub checks confirmed the host
+published commit `cc9d10afc7c0d543eae6d4f37e8b461d4eba3b57` as open
+[draft PR #24](https://github.com/adnanwahab/happybearlandia/pull/24), with
+the correct sprint base and issue branch; no comments or review threads
+were returned. The report now records that live receipt separately from
+the original offline tests, which passed 8/8 again. CI and dispatcher
+internals remain unverified; publication of this follow-up is a host gate.
 
 [Product design](design.md) defines the target experience. [Engineering instructions](../AGENTS.md) describe how to plan, implement, and verify changes. Keep this plan current with task status, dependencies, acceptance evidence, and commit or PR references when available.
 

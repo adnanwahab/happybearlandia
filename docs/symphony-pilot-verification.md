@@ -1,9 +1,9 @@
 # Symphony pilot verification — SHE-179
 
 Evidence recorded on November 11, 2026 in the isolated `SHE-179` checkout.
-This report covers the worker execution and local publishing handoff. A live
-GitHub draft PR is not yet verified: the trusted publisher runs after this
-session ends.
+The initial execution below covers the worker and local publishing handoff.
+The resumed verification at the end records the subsequently observed live
+GitHub draft PR. Historical pending statements describe the initial execution.
 
 ## Observed execution and boundaries
 
@@ -70,3 +70,36 @@ is claimed. The final local commit, whitespace-check results and handoff status
 are recorded in the local workpad update for the host; a publisher receipt is
 required before describing the complete Linear → Symphony → Codex → GitHub
 pipeline as live-verified end to end.
+
+## Resumed live publication verification
+
+On resume, the file already existed in local commit
+`cc9d10afc7c0d543eae6d4f37e8b461d4eba3b57`; it was preserved rather than
+recreated. The initial absence check above is earlier execution evidence,
+not a new absence check in this session.
+
+- Read-only Linear `get_issue` returned In Progress, `symphony-pilot`, no
+  blocking relations, and an attachment linking [draft PR #24](https://github.com/adnanwahab/happybearlandia/pull/24).
+- The refreshed host workpad reported that PR and published commit
+  `cc9d10afc7c0d543eae6d4f37e8b461d4eba3b57`.
+- Read-only GitHub `get_pr_info` independently confirmed PR #24 is open,
+  unmerged and draft, with head `symphony/SHE-179` at that same full SHA
+  and base `sprint/one-city-two-futures-20261111` at
+  `ec408d03a70fdaac90c1eb82263a5740797c36bf`. Local HEAD and the local
+  sprint tracking ref matched those respective SHAs.
+- `fetch_pr_comments` returned no comments and
+  `list_pull_request_review_threads` returned no review threads.
+- Reran `/opt/homebrew/bin/python3 -m unittest discover -s ops/symphony
+  -p test_pipeline.py -v`: **8 passed, offline**. Reran
+  `/opt/homebrew/bin/python3 ops/symphony/run_25h.py --tracker linear
+  --workers 1`: **exit 0, dry-run only**. Inline Python isolation checks
+  and local base ancestry passed again; no merge or conflict resolution
+  was required.
+
+These observations verify that this issue reached a live GitHub draft with
+the expected committed documentation, and that Linear links that draft.
+They do not independently verify dispatcher internals, host authentication
+or publisher implementation, CI results, or approval by a reviewer. The new
+documentation update still requires host publication after this session;
+the receipt above verifies the earlier commit only. No browser behavior
+changed, so app launch, Playwright and uploaded media remain inapplicable.
