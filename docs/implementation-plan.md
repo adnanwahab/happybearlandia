@@ -1,5 +1,27 @@
 # HappyBearLandia implementation plan
 
+## Customer-discovery preparation — SHE-257
+
+Documentation slice: [interview protocol](customer-discovery-interviews.md).
+Prepared a 30-minute neutral guide, explicit opt-in consent script, proposed
+recruitment decision record, private notes template, and one-page synthesis
+template. The source issue is a decision ticket: no automated dispatch or
+outreach. SHE-52 supplies opt-in/minimal-identifier requirements; existing World
+feedback presentation is simulation output, not participant research.
+
+Acceptance: commit guide/script before interviews; human approves the exact
+recruitment method before outreach; five consented interviews and private note
+sets; summary states actual sample size and participant-level theme counts.
+Current evidence: 0/5 interviews, no participant notes or findings. Preparation
+reviewed against the full SHE-257 and SHE-52 descriptions; Markdown links and
+whitespace checked locally. No runtime/browser behavior changed, so application
+tests and Playwright are inapplicable. Git metadata is read-only in this
+workspace; commit remains an authorized host workflow step, with no commit or
+PR reference available. Next: human reviews recruitment and private handling
+terms, then conducts interviews after guide/script commit. Small self-selected
+sample and reidentification from quotes remain material risks; private notes,
+separate quote consent, evidence counts, and explicit limitations address them.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
