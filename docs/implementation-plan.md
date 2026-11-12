@@ -1003,3 +1003,26 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-108 — worker and GPU failure boundaries
+
+Scoped slice: shared WebGPU demo device-loss recovery, owned by
+`tools/webgpu-demo-runtime.js`, its focused test, and the boundary inventory.
+Prerequisites: existing issue branch `mini/SHE-108` was clean; inspected worker,
+City and demo renderer paths and existing tests. GitHub PR search for SHE-108,
+failure boundaries and the runtime returned only unrelated PR #32; no verified
+duplicate. No shared protocol or simulation changes are needed.
+Acceptance: device loss stops rendering, attempts every resource cleanup despite
+individual failures, and displays an actionable alert without a rejected loss
+handler. Test normal loss, cleanup exceptions, rejected loss notification and
+late loss after disposal through the normal exported runtime entry point.
+Risk: synthetic device/DOM fault injection does not certify physical GPU recovery.
+
+SHE-108 delivered: [boundary inventory and reproduction](compute-failure-boundaries.md).
+Shared demo cleanup now attempts remaining resources after individual failures;
+resolved/rejected device loss produces an actionable alert, while disposed pages
+ignore late loss. Focused integration and existing worker/GPU regressions passed
+29/29 (180 assertions) on Bun 1.4.2; no unhandled rejection. No lint/type scripts
+exist. Browser-facing verification uses focused runtime integration, not
+Playwright or physical GPU testing. Remaining geometry deadlines/post bookkeeping,
+City messageerror and host presentation audits are explicitly documented.
