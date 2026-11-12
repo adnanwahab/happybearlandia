@@ -1,5 +1,40 @@
 # HappyBearLandia implementation plan
 
+## SHE-72 — Canvas2D interface reconciliation (2026-11-12)
+
+The current sprint already renders Future Machine through scene/canvas-stage.js
+and ordinary World through render/renderer/canvas-renderer.js. The original
+renderer-entry.js/canvas2d-world.js adoption paths are obsolete; preserve the
+integrated renderers rather than duplicate their engines. This slice adds the
+assigned fallback/index.js Snapshot-facing factory using the same spatial mapping
+and Canvas presenter. It reports supplied metrics with units, labels missing
+measurements, rejects mismatched clocks, and clears incomplete pairs instead of
+claiming absent inventory. It adds the two originally requested test entry points.
+
+Acceptance evidence: seed42/default recipe, synthetic monthly City, month0 homes
+delta0 and month16 delta24 from actual engine snapshots; input evidence unchanged.
+`bun test test/canvas2d-world.test.js test/future-machine-fallback.test.js
+test/future-machine-canvas.test.js test/world-canvas-renderer.test.js
+test/future-machine-backend.test.js`:24pass/0fail/1existing browser-gated skip,
+147assertions. `git diff --check` passed. World tests exercise its supplied Three
+scene geometry, not monthly City simulation or legacy policy actions.
+
+Browser attempt: `bunx playwright test --config
+test/world-canvas-followup.browser.config.js` failed before browser execution:
+server listen EADDRINUSE on39891; retry with HBL_WORLD_CANVAS_PORT=41972 failed
+identically. No new screenshots, measured browser trace, Activity/policy action
+verification or browser acceptance claimed. Existing browser suites retain
+desktop/390px, forced Canvas and missing-GPU coverage for host execution.
+
+Integration handoff: coordinator/scene owner must choose whether to route the
+existing scene wrapper through createCanvas2DStage; this worker leaves scene/,
+main.js, World entry HTML and shared contracts untouched. The new factory is
+tested directly but is not yet selected by the normal application entry point.
+Re-run browser verification after that integration, including month0/16 captures,
+exact selection and startup failure. No merge/deployment or remote mutation.
+Branch mini/SHE-72; commit/PR publication remains pending because shared Git
+metadata is outside this session's writable roots.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
