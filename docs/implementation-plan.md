@@ -1003,3 +1003,25 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-153 — falsifiable resident evidence card
+
+Local slice on isolated `mini/SHE-153` worktree: own new evidence-card module,
+page, receipt exporter and focused tests; add discovery from the existing people
+benchmark. Audit found SHE-141's bounded CPU contract present (PRs 34/35), while
+SHE-151 is Todo with no shootout receipt. No matching implementation PR found.
+Do not extend frozen City receipts or conflate Population and CPU fixture IDs.
+Acceptance: replay source-backed receipt events, derive all six counts and prose
+from the same receipt, expose machine/version/seed/limits and measured outcome,
+reject malformed evidence, and clearly mark million-scale and human review as
+unverified. Missing receipts remain unavailable. Receipt timings are reported
+measurements, not independently attested. Human claim review and the architecture
+shootout remain prerequisites for a verified million-resident demonstration.
+
+SHE-153 status: local bounded increment implemented; see
+[contract and measured evidence](demo-evidence-card.md). 13 focused tests / 294
+assertions passed; measured 4096-record receipt replayed successfully. Diff
+whitespace check passed. Browser script retained but sandbox denies Chromium
+launch; normal-route UI verification remains open. No configured lint/typecheck.
+No commit/PR/publication. Full acceptance still needs SHE-151 measured receipts,
+a compatible production adapter, browser verification and human claim review.
