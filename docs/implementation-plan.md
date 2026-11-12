@@ -1003,3 +1003,31 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Emergence feasibility audit — SHE-238
+
+Completed a source/test audit at `b963dd353538294cb0fbf5d34d5283fad6e10e68`:
+[report](emergence-feasibility-audit.md). Covers actual Population/House agent
+state, relationships, employment, movement, local business activity, events and
+persistence; supplies ten deterministic scenario specifications, each with exact
+implementation points, gaps, measures, UI exposure, regressions and complexity.
+Distinguishes authored initial conditions, existing helper/worker tests, synthetic
+model results and proposed end-to-end scenarios. No gameplay changes or ten-run
+scenario artifact suite are claimed.
+
+Acceptance evidence: focused Bun run passed 81 tests across 10 files, 527
+assertions, 14.38s, including worker continuation and SQLite persistence;
+`git diff --check` passed. Browser checks skipped for documentation-only scope.
+No commit/PR published by this audit.
+
+Recommended next integrated slice: save/reopen a genuine cooking/shared-dinner
+receipt through World → House, reusing authoritative action/payment records and
+checkpoints. Prerequisites: explicit versioned save/report validation, bounded
+cited-evidence retention, exact identity/time links and revision handling.
+Acceptance: one ingredient charge, elapsed preparation/attendance, immutable
+parent, deterministic mid-action continuation and normal-entry browser report
+reload, including rejection/missing-evidence paths. Main risks: event eviction,
+checkpoint size and fabricated causal interpretation. Follow with an explained
+employer cash-exhaustion → job loss → actual settlement slice, then a saved park
+encounter after an existing hotspot improvement. These three slices are proposed,
+not implemented; full scope and acceptance criteria are in the report.
