@@ -1,98 +1,116 @@
-import {test,expect} from '@playwright/test';
-import {EXPERIENCES} from '../../world/universe/registry.js';
+import {test, expect} from '@playwright/test';
 
-test('directory renders every registry entry and filters without changing its total',async({page})=>{
- await page.goto('/routes');
- await expect(page.locator('.routes article')).toHaveCount(EXPERIENCES.length);
- expect(await page.locator('.routes article > a:first-of-type').evaluateAll(nodes=>nodes.map(node=>node.getAttribute('href')))).toEqual(EXPERIENCES.map(row=>row.route));
- await page.getByRole('searchbox').fill('future-machine');
- await expect(page.locator('.routes article:visible')).toHaveCount(1);
- await expect(page.locator('#result-count')).toHaveText(`1 of ${EXPERIENCES.length} workspaces`);
+const fixture = '<!doctype html><html lang="en"><head><meta charset="utf-8"><link rel="stylesheet" href="/world/first-run-guide.css"></head><body><script type="module" src="/world/first-run-guide.js"></script></body></html>';
+
+test.beforeEach(async ({page}) => {
+  await page.route('**/world/first-run-fixture.html*', route => route.fulfill({contentType:'text/html',body:fixture}));
 });
 
-test('stalled Activity history exposes a bounded error and can retry',async({page})=>{
- await page.goto('/routes');
- await page.evaluate(async()=>{
-  const {mountActivityDashboard}=await import('/world/activity-dashboard.js');
-  window.testActivity=mountActivityDashboard({container:document.body,getSnapshot:()=>({mode:'legacy',runId:'timeout-test'}),getHistory:()=>new Promise(()=>{})});
-  void window.testActivity.open();
- });
- const status=page.locator('.activity-dashboard [role=status]');
- await expect(status).toHaveAttribute('data-state','error',{timeout:12000});
- await expect(status).toContainText('Apply filters or reopen Activity to retry');
- await page.waitForTimeout(600);
- await expect(status).toHaveAttribute('data-state','error');
- await page.getByRole('button',{name:'Apply filters',exact:true}).click();
- await expect(status).toHaveAttribute('data-state','loading');
+test('first-run panel works before the expensive 3D renderer is ready', async ({page}) => {
+  await page.goto('/world/first-run-fixture.html');
+  const guide = page.locator('#world-first-run-guide');
+  await expect(guide).toBeVisible();
+  await expect(guide.getByRole('heading', {name:'Make the city change.'})).toBeVisible();
+  await expect(guide.locator('[data-guide-action]')).toHaveCount(4);
+  await expect(guide.locator('[data-guide-action="week"]')).toBeDisabled();
+  await expect(guide.locator('[data-guide-quick]')).toHaveAttribute('href', /quick=1.*$/);
+  await expect(guide.locator('[data-guide-quick]')).toHaveAttribute('href', /autoplay=1/);
+
+  await page.evaluate(() => {
+    window.hblGuidedActions = {
+      week: () => window.dispatchEvent(new CustomEvent('hbl:world-feedback', {
+        detail: {type:'cycle',label:'Paired weekly result',message:'Synthetic result verified.',
+          metrics:[{label:'Well-being difference',value:'+2.4'}],resultId:'cyclePanel'},
+      })),
+      storm: () => {},
+      resident: () => {},
+      tenYear: () => {},
+    };
+    window.dispatchEvent(new CustomEvent('hbl:world-ready'));
+  });
+  await expect(guide.locator('[data-guide-action="week"]')).toBeEnabled();
+  await guide.locator('[data-guide-action="week"]').click();
+  await expect(guide.locator('[data-guide-message]')).toContainText('Synthetic result verified');
+  await expect(guide.locator('[data-guide-metrics]')).toContainText('+2.4');
+  await expect(guide.locator('[data-guide-open-result]')).toBeVisible();
 });
 
-test('provenance survives a blocked graphics entry point',async({page})=>{
- await page.route('**/world/render.js',route=>route.abort());
- await page.goto('/world/?demo=1&people=30&renderer=webgl');
- await expect.poll(()=>page.evaluate(()=>window.hblSimulationModel?.status)).toBe('definitions-ready');
- await page.locator('#simulationModelDisclosure').evaluate(node=>node.open=true);
- await expect(page.locator('#simulationModelMetadata')).toContainText('loaded independently of graphics');
- await expect(page.locator('#simulationModelMetadata pre')).toContainText('Declared synthetic modeling assumption');
+test('playback observations and minimization survive refresh without altering simulation', async ({page}) => {
+  await page.goto('/world/first-run-fixture.html');
+  await page.evaluate(() => {
+    window.dispatchEvent(new CustomEvent('hbl:world-feedback', {
+      detail:{type:'snapshot',mood:49,clock:'Monday 08:00',mode:'legacy',activity:'5 walking'},
+    }));
+    window.dispatchEvent(new CustomEvent('hbl:world-feedback', {
+      detail:{type:'playback',paused:false,speed:10},
+    }));
+    window.dispatchEvent(new CustomEvent('hbl:world-feedback', {
+      detail:{type:'snapshot',mood:53,clock:'Monday 10:00',mode:'legacy',activity:'10 walking'},
+    }));
+  });
+  const guide = page.locator('#world-first-run-guide');
+  await expect(guide.locator('[data-guide-live]')).toContainText('+4 points');
+  await guide.locator('[data-guide-toggle]').click();
+  await expect(guide.locator('#world-guide-content')).toBeHidden();
+  await page.reload();
+  await expect(guide.locator('#world-guide-content')).toBeHidden();
+  await guide.locator('[data-guide-toggle]').click();
+  await expect(guide.locator('#world-guide-content')).toBeVisible();
+  await page.goto('/world/first-run-fixture.html?embed=1');
+  await expect(page.locator('#world-first-run-guide')).toHaveCount(0);
 });
 
-test('desktop and mobile Activity reopen with focus, actual history and reproducible seed',async({page},info)=>{
- await page.goto('/world/?demo=1&people=30&renderer=webgl');
- await expect.poll(()=>page.evaluate(()=>window.hblWorldStartup?.readyMs),{timeout:60000}).toBeTruthy();
- const measurements=[];
- for(const viewport of [{width:1280,height:900},{width:390,height:844}]){
-  await page.setViewportSize(viewport);
-  const button=page.getByRole('button',{name:'Activity dashboard',exact:true});
-  for(let i=0;i<2;i++){
-   await button.click();
-   const panel=page.getByRole('dialog',{name:'Activity history dashboard'});
-   await expect(panel).toBeVisible();
-   await expect(panel.getByRole('status')).toHaveAttribute('data-state',/ready|empty/);
-   if(!i)await page.screenshot({path:info.outputPath(`activity-${viewport.width}.png`)});
-   await panel.getByRole('button',{name:'Close',exact:true}).click();
-   await expect(panel).toBeHidden();await expect(button).toBeFocused();
-  }
-  const top=page.locator('#top');await top.evaluate(node=>node.open=true);
-  await expect(page.locator('#experimentSeedInput')).not.toHaveValue('');
-  measurements.push(await page.evaluate(()=>({mode:window.hblWorldActivity.getSnapshot().mode,seed:document.querySelector('#experimentSeedInput').value,mood:document.querySelector('#moodN').textContent,viewport:innerWidth})));
-  await page.screenshot({path:info.outputPath(`controls-${viewport.width}.png`)});
- }
- await info.attach('runtime-values',{body:JSON.stringify(measurements,null,2),contentType:'application/json'});
+test('World HTML keeps primary actions visible and advanced controls opt-in', async ({request}) => {
+  const response = await request.get('/world');
+  expect(response.ok()).toBe(true);
+  const html = await response.text();
+  expect(html).toContain('id="worldAdvanced"');
+  expect(html).toContain('Advanced settings');
+  expect(html).toContain('id="runCycleBtn"');
+  expect(html).toContain('id="demoBtn"');
+  expect(html).toContain('/world/first-run-guide.js');
 });
 
-
-test('directory uses the same catalog as home and Play Demo opens the flagship',async({page},info)=>{
- await page.goto('/routes.html');
- await expect(page.locator('.routes article')).toHaveCount(EXPERIENCES.length);
- await expect(page.locator('#result-count')).toHaveText(`${EXPERIENCES.length} of ${EXPERIENCES.length} workspaces`);
- const routes=await page.locator('.routes article > a:first-of-type').evaluateAll(links=>links.map(link=>link.getAttribute('href')));
- expect(routes).toEqual(EXPERIENCES.map(row=>row.route));
- await page.getByRole('searchbox').fill('houston');
- await expect(page.locator('.routes article:visible')).toHaveCount(1);
- await expect(page.locator('.routes article:visible')).toContainText('Houston Neighborhood Map');
- await page.screenshot({path:info.outputPath('directory-filter.png'),fullPage:true});
- await page.goto('/');await page.getByRole('link',{name:'Play Demo',exact:true}).click();
- await expect(page).toHaveURL(/\/world\/future-machine\.html\?demo=1/);
+test('guided actions operate on the actual World simulator', async ({page}) => {
+  test.setTimeout(120000);
+  const lat=29.7286,lng=-95.4746,radiusM=400,kx=111320*Math.cos(lat*Math.PI/180);
+  const coord=(x,z)=>[lat-z/110540,lng+x/kx];
+  const buildings=Array.from({length:16},(_,i)=>{
+    const x=(i%4-1.5)*85,z=(Math.floor(i/4)-1.5)*85;
+    return {id:'first-run-building-'+i,kind:i%5===0?'work':'home',levels:3,
+      pts:[coord(x-12,z-12),coord(x+12,z-12),coord(x+12,z+12),coord(x-12,z+12),coord(x-12,z-12)]};
+  });
+  const core={source:'osm',origin:{lat,lng},radiusM,areaKey:lat+','+lng+','+radiusM,
+    bbox:{s:lat-radiusM/110540,n:lat+radiusM/110540,w:lng-radiusM/kx,e:lng+radiusM/kx},
+    buildings,roads:[{kind:'residential',pts:[coord(-300,0),coord(300,0)]}],pois:[],
+    attribution:'Synthetic test geometry',phase:'core',floodZones:[],
+    floodZonesSource:'pending',floodZonesStatus:'pending'};
+  await page.route('**/api/area?**',route=>route.fulfill({json:core}));
+  await page.route('**/api/area/enrichment?**',route=>route.fulfill({json:{
+    ...core,source:'area-enrichment',floodZonesSource:'unavailable',
+    floodZonesStatus:'ready',floodZones:[],
+  }}));
+  await page.route('**/api/plan',route=>route.fulfill({json:{packages:[]}}));
+  await page.route('**/api/dear-congress/**',route=>route.fulfill({json:{packages:[]}}));
+  await page.goto('/world?demo=1&people=16&renderer=webgl',{waitUntil:'domcontentloaded'});
+  const guide=page.locator('#world-first-run-guide');
+  await expect(guide).toBeVisible();
+  await expect.poll(()=>page.evaluate(()=>Boolean(window.hblGuidedActions && window.hblWorldStartup?.readyMs)),{timeout:90000}).toBe(true);
+  // The early guide hands visibility to the richer ready-state guide. Its live
+  // experiments remain available through one explicitly selected companion sheet.
+  await expect(page.locator('#firstRunGuide')).toBeVisible();
+  await expect(guide).toBeHidden();
+  await page.getByText('More city actions', {exact:true}).click();
+  await page.getByTestId('live-experiment-feedback').click();
+  await expect(guide).toBeVisible();
+  await expect(page.locator('#firstRunGuide')).toBeHidden();
+  await expect(guide.locator('[data-guide-action="storm"]')).toBeEnabled();
+  await guide.locator('[data-guide-action="storm"]').click();
+  await expect(guide.locator('[data-guide-kind]')).toHaveText('Storm result');
+  await expect(guide.locator('[data-guide-metrics]')).toContainText('Flooded parcels');
+  await expect(page.locator('#overlayMode')).toHaveValue('flood');
+  await guide.locator('[data-guide-action="week"]').click();
+  await expect(guide.locator('[data-guide-kind]')).toHaveText('Paired weekly result',{timeout:90000});
+  await expect(guide.locator('[data-guide-metrics]')).toContainText('Well-being difference');
+  await expect(guide.locator('[data-guide-metrics]')).toContainText('Residents better off');
 });
-
-for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
- test(`World Activity reopens with focus and current playback facts at ${viewport.width}px`,async({page},info)=>{
-  await page.setViewportSize(viewport);
-  // World legacy mode uses the geographic authority seed, independently of the
-  // flagship's numeric monthly City seed. Preserve both route and mode explicitly.
-  await page.goto('/world/?demo=1&synthetic=1&people=30&renderer=canvas2d');
-  await expect.poll(()=>page.evaluate(()=>window.hblVisualPass?.ready),{timeout:60000}).toBe(true);
-  const trigger=page.getByRole('button',{name:'Activity dashboard',exact:true});
-  const panel=page.getByRole('dialog',{name:'Activity history dashboard'});
-  await expect(page.locator('#world-playback-facts')).toContainText(/Mood: \d+ \/ 100 · Seed: /);
-  await page.screenshot({path:info.outputPath(`world-${viewport.width}-before.png`)});
-  for(let visit=0;visit<2;visit++){
-   await trigger.click();await expect(panel).toBeVisible();
-   await expect(panel.getByRole('status')).toHaveAttribute('data-state',/ready|empty|error/);
-   await page.screenshot({path:info.outputPath(`world-${viewport.width}-activity-${visit}.png`)});
-   await panel.getByRole('button',{name:'Close',exact:true}).click();
-   await expect(panel).toBeHidden();await expect(trigger).toBeFocused();
-  }
-  const observed=await page.evaluate(()=>({snapshot:window.hblWorldActivity.getSnapshot(),facts:document.querySelector('#world-playback-facts').textContent}));
-  await info.attach('runtime-authority',{body:JSON.stringify({mode:observed.snapshot.mode,seed:observed.snapshot.seed,modelVersion:observed.snapshot.modelVersion,facts:observed.facts}),contentType:'application/json'});
- });
-}

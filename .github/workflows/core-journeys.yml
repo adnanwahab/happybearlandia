@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
 
+  workflow_dispatch:
 permissions:
   contents: read
 
@@ -52,6 +53,8 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+      - name: First-run World guidance and feedback
+        run: bunx playwright test --config test/first-run.browser.config.js
   verify:
     # Keep browser dependencies on an explicit Playwright-supported Ubuntu release.
     runs-on: ubuntu-24.04
@@ -87,6 +90,8 @@ jobs:
           test/patch-voting-server.test.js
           test/world-database-path.test.js
           test/overpass-diagnostics.test.js
+          test/first-run-guide.test.js
+          test/global-illumination.test.js
       - name: Verify bounded asynchronous renderer readback
         run: bun test test/gpu-readback.test.js test/render-performance.test.js
       - name: Verify finite agent-count exports and transition evidence

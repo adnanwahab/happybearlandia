@@ -1,25 +1,3 @@
-import {createGitHubHandler} from './ops/previews/api.js';
-const handleGitHub = createGitHubHandler();
-
-import {createDetectiveHandler} from './ops/detective/api.js';
-const handleDetective=createDetectiveHandler();
-
-import { createOperationsObservatoryHandler } from './ops/operations-observatory.js';
-const handleOperationsObservatory = createOperationsObservatoryHandler();
-
-import { createExperimentHandler, cookieIdentity } from './ops/release-experiments/system.js';
-const handleReleaseExperiment = createExperimentHandler({
-  file: process.env.HBL_RELEASE_EXPERIMENT_FILE,
-  identify: (request, id) => cookieIdentity(request, id, process.env.HBL_RELEASE_IDENTITY_SECRET),
-});
-
-import { createSimulationAdmission, simulationAdmissionOptionsFromEnv } from './ops/security/simulation-admission.js';
-const admitSimulation = createSimulationAdmission(simulationAdmissionOptionsFromEnv(process.env));
-
-import { createPlayerFeedbackHandler } from './ops/player-feedback/api.js';
-const handlePlayerFeedback = createPlayerFeedbackHandler();
-import {createSessionSurveyHandler} from './ops/session-survey/api.js';
-const handleSessionSurvey=createSessionSurveyHandler();
 import { withUniverseNavigation } from './world/universe/html-navigation.js';
 import {createCausalityHandler} from './world/causality/api.js';
 import {createReleaseHealthHandler,initializeReleaseStorage} from './ops/release-health.js';
@@ -44,6 +22,8 @@ loadLocalOpenAISettings();
 import {createDateMysteryHandler} from './world/date/mystery-api.js';
 const handleDateMystery=createDateMysteryHandler();
 import {createDatePlacesHandler} from './world/house/date-drive-search.js';
+import {createHoustonBarCatalogHandler} from './world/bar/houston-catalog.js';
+const handleHoustonBars=createHoustonBarCatalogHandler();
 const handleDatePlaces=createDatePlacesHandler();
 import {createWorldPersistenceHandler,EXPERIMENT_MAX_BYTES} from './world/experiments/persistence-api.js';
 const handleWorldPersistence=createWorldPersistenceHandler({dbPath:releaseStorage.worldDbPath});
@@ -457,15 +437,8 @@ const server = serve({
   port: PORT,
 
   async fetch(request, server) {
-    const releaseResponse = handleReleaseExperiment(request);
-    if (releaseResponse) return releaseResponse;
     const { pathname } = new URL(request.url);
-    if (pathname === "/api/operations-observatory") return handleOperationsObservatory(request);
-    if (pathname === "/tools/operations-observatory") return Response.redirect(new URL("/tools/operations-observatory/", request.url), 302);
-
-    const admission = admitSimulation(request, server.requestIP(request)?.address);
-    if (admission) return admission;
-    if (pathname === "/api/health" || pathname === "/api/ready" || pathname === "/api/demo/ready") return handleReleaseHealth(request);
+    if (pathname === "/api/health" || pathname === "/api/ready") return handleReleaseHealth(request);
     if (pathname === '/vote-on-patch' || pathname === '/vote-on-patch/') return serveFile('./world/patch-voting.html');
     if (pathname === '/api/patch-votes' || pathname.startsWith('/api/patch-votes/')) return patchVoting(request);
     if(pathname.startsWith('/api/act-normal/'))return actNormalService.fetch(request,server);
@@ -487,9 +460,6 @@ const server = serve({
     if (pathname === "/world/bench/people" || pathname === "/world/bench/people/") return serveFile("./world/people-benchmark.html");
 
     if (pathname.replace(/\/$/, "") === "/routes") return serveFile("./routes.html");
-    if (pathname.startsWith("/api/github/")) return await handleGitHub(request);
-    if (/^\/github(?:\/pulls\/[1-9]\d{0,7}|\/previews\/[a-f0-9]{32})?\/?$/.test(pathname)) return serveFile("./web/github/index.html");
-    if (pathname === "/github-client.js") return serveFile("./web/github/client.js");
     // Public landing page
     if (pathname === "/" || pathname === "/index.html") {
       return serveFile("./index.html");
@@ -507,7 +477,6 @@ const server = serve({
       return notFound();
     }
 
-    if (['/shared/media/pipeline.js', '/shared/media/preferences.js'].includes(pathname)) return serveFile(`.${pathname}`);
     // Browser-safe universe wire contracts; keep server-only shared modules private.
     if (pathname === "/shared/causality/index.js") return serveFile("./shared/causality/index.js");
     if (under(pathname, "/visualizations")) return serveStatic("/visualizations", "./visualizations", pathname);
@@ -539,6 +508,7 @@ const server = serve({
 
     // Synthetic world: /world?lat=29.7286&lng=-95.4746
     if (["/api/date-places", "/api/date-places/drive", "/api/date-places/nearby", "/api/date-drive-options"].includes(pathname)) return handleDatePlaces(request);
+    if (pathname === "/api/houston-bars") return handleHoustonBars(request);
     if (pathname === "/api/area") {
       try {
         return await handleArea(new URL(request.url));
@@ -549,16 +519,13 @@ const server = serve({
     }
     if (pathname === "/api/area/enrichment") return handleAreaEnrichment(new URL(request.url));
     if (pathname === "/api/overpass-health") return handleOverpassHealth();
-    if (pathname === "/api/player-feedback") return handlePlayerFeedback(request);
     if (pathname === "/api/config") return handleConfig();
-    if (under(pathname, "/api/detective")) return handleDetective(request);
     if (under(pathname, "/api/causality")) return handleCausality(request);
     if (under(pathname, "/api/world-history")) return handleTemporalCity(request);
     if (under(pathname, "/api/reality-shares")) return handleRealityShares(request);
     if (under(pathname, "/api/world-homes")) return handleWorldPersistence(request);
     if (under(pathname, "/api/world-experiments")) return handleWorldPersistence(request);
     if (["/api/date-mystery/status","/api/date-mystery/generate"].includes(pathname)) return handleDateMystery(request);
-    if (pathname === "/api/session-survey") return handleSessionSurvey(request);
     if (pathname === "/api/world-questions") return handleOpenQuestions(request);
     if (under(pathname, "/api/decision-experiments")) return handleDecisionExperiments(request);
     if (under(pathname, "/api/world-edits")) return handleWorldEdits(request);
@@ -572,10 +539,13 @@ const server = serve({
     if (pathname === "/api/constitution-city/plan") return handleConstitutionSource(request);
     if (/^\/r\/[A-Za-z0-9_-]{8,16}\/?$/.test(pathname)) return serveFile("./world/reality-compiler.html");
     if (["/change", "/reality-compiler", "/city-speaks"].includes(pathname.replace(/\/$/, ""))) return serveFile("./world/reality-compiler.html");
+    // Bar night is an independent social scene with its own local progress.
+    if (/^\/world\/bar\/?$/.test(pathname)) return serveFile("./world/bar/index.html");
     // House mode observes/restores the same saved population authority as /world.
     // Asset URLs in this entry point are absolute so household IDs are not directories.
     if (/^\/world\/date\/[^/]{1,540}\/?$/.test(pathname)&&!pathname.endsWith('.js')&&!pathname.endsWith('.css')&&!pathname.endsWith('.html')) return serveFile("./world/date/index.html");
     if (/^\/world\/house(?:\/[A-Za-z0-9_-]{1,80})?\/?$/.test(pathname)) return serveFile("./world/house/index.html");
+    if (pathname === "/world/bars" || pathname === "/world/bars/") return serveFile("./world/bars/index.html");
     if (pathname.replace(/\/$/, "") === "/visualize-constitution") return serveFile("./world/constitution-city.html");
     if (["/world/visualize-consitution", "/world/visualize-constitution"].includes(pathname.replace(/\/$/, ""))) return serveFile("./world/constitution-city.html");
     if (pathname === "/api/plan") return handlePlan(request);

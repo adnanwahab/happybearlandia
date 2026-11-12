@@ -136,12 +136,13 @@
   <p>In <a href="/world/future-machine.html?demo=1">Future Machine</a>, inspect the selected month, entities, and available event evidence, then export the evidence or share the versioned recipe. Check the seed, model version, inputs, units, and limitations. Replay recomputes from the saved manifest; equivalence to independently retained checkpoints has not been verified. Missing records or incompatible versions cannot support an exact replay claim.</p>
 </section>
 <section class="carousel" id="explore" aria-roledescription="carousel" aria-label="Interactive worlds and experiments">
-  <header><div><h2 id="experience-count">Interactive Worlds &amp; Experiments</h2><p>Start with a world. Follow your curiosity. Each preview opens a different possibility.</p></div><div class="carousel-controls"><button type="button" id="carousel-prev" aria-label="Previous preview">←</button><span id="carousel-status" aria-live="polite"></span><button type="button" id="carousel-next" aria-label="Next preview">→</button></div></header>
+  <header><div><h2 id="experience-count"><span id="gallery-count">31</span> Interactive Worlds &amp; Experiments</h2><p>Start with a world. Follow your curiosity. Each preview opens a different possibility.</p></div><div class="carousel-controls"><button type="button" id="carousel-prev" aria-label="Previous preview">←</button><span id="carousel-status" aria-live="polite"></span><button type="button" id="carousel-next" aria-label="Next preview">→</button></div></header>
   <div class="gallery-toolbar"><label for="carousel-category">Category</label><select id="carousel-category"><option value="all">All experiences</option><option value="worlds">3D Worlds</option><option value="living">Living Simulations</option><option value="science">GPU Science</option><option value="games">Games</option><option value="tools">Tools</option></select><label for="carousel-jump">Jump to a preview</label><select id="carousel-jump"></select><span>Choose Interact to take control of a live preview.</span></div>
   <div class="carousel-rail" id="carousel-rail" tabindex="0" aria-label="App previews. Use left and right arrow keys to browse."></div>
 </section>
 
 <template id="preview-catalog">
+<section data-carousel="worlds" aria-labelledby="future-machine-preview"><header><div><h2 id="future-machine-preview">One City, Two Futures</h2><p>Compare matched monthly City futures and inspect recorded housing outcomes.</p></div><a href="/world/future-machine.html" target="_blank" rel="noopener">Open Future Machine ↗</a></header><iframe src="/world/future-machine.html" title="Future Machine preview" loading="lazy"></iframe><div class="path">/world/future-machine.html</div></section>
 <section data-carousel="worlds" aria-labelledby="route-0">
       <header><div><h2 id="route-0">World</h2><p>Explore the streamed city, its residents, policy tools and saved experiments.</p></div><a href="/world" target="_blank" rel="noopener">Open World ↗</a></header>
       <iframe data-preview-src="/world?embed=1&amp;demo=1&amp;quality=LOW" src="/world" title="World preview" loading="lazy" allow="fullscreen" allowfullscreen></iframe>
@@ -271,10 +272,16 @@
 
 
 
+<section data-carousel="games" aria-labelledby="houston-bars-heading">
+  <header><div><h2 id="houston-bars-heading">Houston Bar Atlas</h2><p>Explore OSM-mapped bars and play a fictional, low-fidelity interior scene.</p></div><a href="/world/bars/" target="_blank" rel="noopener">Open Houston Bar Atlas ↗</a></header>
+  <iframe src="/world/bars/" title="Houston Bar Atlas preview" loading="lazy"></iframe>
+  <div class="path">/world/bars/</div>
+</section>
 </template>
 <noscript><p>Enable JavaScript for interactive previews, or <a href="/routes">browse all routes</a>.</p></noscript>
   </main>
 <script src="/tools/iframe-gallery.js" defer></script>
+<script type="module">import {EXPERIENCES} from "/world/universe/registry.js";document.getElementById("gallery-count").textContent=EXPERIENCES.length;</script>
 <script type="module" src="/world/universe/shell.js"></script>
 <script type="module" src="/world/onboarding-experiment/main.js"></script>
 <script type="module">

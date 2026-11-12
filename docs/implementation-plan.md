@@ -7745,3 +7745,120 @@ and historical receipt tests now pass. Their recorded hosted performance-budget
 failures are not represented as fixed or green. The full model-validation sweep
 was started separately and is not claimed complete in this record. This is
 integration evidence for the existing sprint branch, not public-launch approval.
+
+
+## Five-minute GitHub merge checks — November 12, 2026
+
+Requested slice: move the hourly ChatGPT merge task to GitHub Actions with a five-minute schedule. Use the repository GITHUB_TOKEN, the current main and Symphony sprint targets, existing CI, current review state, and explicit holds. Ordinary ready PRs need no extra label or new approval requirement. This is deterministic CI/review-based merging; it does not run an AI semantic code review.
+
+Acceptance: paginate candidates and review evidence; skip drafts, forks, conflicting/unknown merges, holds, unresolved findings, workflow/policy edits, missing or failing CI, stale heads and stale integration bases; bind merges to the checked head SHA; merge at most one PR per pass. Recheck current main CI after every main merge. Add workflow_dispatch to core journeys because a merge made with GITHUB_TOKEN does not trigger its ordinary push event. Allow an explicit manual dry run and publish an Actions summary. Preserve existing targets, branch protections, application code, and deployment behavior.
+
+Implementation: .github/workflows/auto-merge.yml, .github/scripts/auto-merge.cjs, test/auto-merge.test.cjs, and docs/auto-merge.md. No application/browser behavior changes; focused mocked-API tests verify scheduler decisions and failure paths. Live activation and verification are recorded in the implementation PR and workflow run; retire the hourly ChatGPT merger only after the new schedule is active.
+
+Local verification: 79 tests/subtests passed with `node --test --test-reporter=spec test/auto-merge.test.cjs`; zero failures. Both workflow YAML files parsed successfully. The five-minute cron, read-only default token scope, explicit merge-job permissions, manual dry-run default, and core workflow dispatch trigger were checked. No live merges were used as tests.
+
+
+## First-run World guidance and feedback (November 11)
+
+Status: **implemented on review branch; automated verification pending**.
+
+This slice improves the existing /world entry point without changing simulation contracts or adding a new simulation authority.
+
+- [x] A first-run coach appears before the 3D world finishes initializing; provides a pinned quick-demo link and three guided experiments (matched weekly plan comparison, storm, 10-year packages), plus inspect-resident.
+- [x] World publishes actual, bounded outcome notifications for configured plans, local storm effects, matched weekly well-being, and the existing 10-year package experiment. Playback reports observational mood/activity changes without representing them as policy effects.
+- [x] A short narrated first-cycle comparison is available through ?demo=1&quick=1&autoplay=1; the original multi-cycle tour remains intact.
+- [x] Advanced plan-year, overlay, seed, source and diagnostic controls are grouped under a native disclosure, preserving IDs and existing functionality.
+- [x] Focused Bun and Playwright tests have been added to the core workflow.
+- [ ] Confirm the branch CI and real /world browser smoke before merging.
+- [ ] Verify performance on the target Mac browser and check that slower devices meet the intended quick-demo duration.
+
+Important limits: the quick reel's model computation may take longer than its caption hold times. In the existing 10-year experience, three plan packages are compared; no unmodeled decade-long no-plan outcome is asserted. On the normal /world page, the classic local storm and weekly comparisons are separate from the default Living Population runtime, so guided actions explicitly switch modes first.
+
+Acceptance path: open /world, inspect the coach before startup completes, select a weekly paired comparison, observe the actual delta in "What changed?", run a local storm, pause/play and inspect the observational mood changes, open the 10-year package report, verify advanced disclosure, reload a minimized guide, and open the short demo via its stable URL. Embed and saved-experiment pages should remain free of the coach.
+
+Verification commands: `bun test test/first-run-guide.test.js` and `bunx playwright test --config test/first-run.browser.config.js`.
+
+
+## PR38 main integration conflict resolution
+
+Preserve both branches’ CI suites, dynamic gallery count, outcome interpretation,
+activity toggle/retry accessibility, storm feedback/return value and playback facts.
+The early World guide remains available before startup; after startup the panel
+manager makes the matched-comparison guide primary and exposes live experiment
+feedback as one companion sheet under More city actions. Both guide APIs remain
+compatible. Verify unit/CI contracts and actual first-run/visual browser journeys
+before merging PR38 into main. Staging/CDN validation remains a separate blocker.
+
+PR38 integration acceptance evidence: workflow unit groups passed 91/68/8 tests
+(167 total, zero failures); focused conflict/cache/guide/catalog tests passed
+27 tests with540 assertions. First-run browser suite passed4 tests, including
+actual storm/weekly simulation and one-visible-guide selection. Desktop visual
+integration passed matched replay, injected worker failure/recovery, inspector
+and Full Demo after preserving nonblocking optional-plan refresh. The first
+pre-correction browser run exposed disabled Full Demo; its failure is retained
+in /private/tmp/hbl-pr38-visual.log. Mobile rerun and hosted browser CI are
+merge gates checked by the coordinator; their final results belong to PR38.
+No live Symphony, staging/CDN approval or deployment is part of this resolution.
+
+Hosted browser CI caught the main renderer-entry bypassing saved checkpoint
+restoration on GPU failure. Saved experiment URLs now retain render.js and its
+checkpoint-aware Canvas fallback/error return view, rather than starting a new
+low-fidelity simulation. Both saved-World failure-path regressions gate merge.
+
+Final local browser gates passed: mobile WebGL/reduced-motion comparison at
+320/390/768/844 widths (one panel, no overflow); saved checkpoint Canvas fallback
+and all-graphics-unavailable exact return2/2. First-frame timing now records the
+first successful normal render too, since synchronous saved restoration may finish
+before the scheduled startup frame runs. Desktop replay/recovery passed1/1.
+
+## SHE-250 / GitHub44 — World screen-space global illumination
+
+Next integrated slice: an opt-in GLOBAL ILLUMINATION button on the normal World
+entry point, lazy local Three.js SSGI composition, and an off path that bypasses
+all GI passes. Reuse installed Three0.186; no dependency/runtime changes. Only
+WebGPU is initially supported; WebGL2/Canvas2D remain playable with an explicitly
+unavailable control. Preserve simulation identity and clocks. Acceptance: real
+GPU on/off pixels, pressed/status semantics, lazy failure recovery, resize and
+resource disposal, plus unchanged paused simulation state. Main risk: MRT/SSGI
+shader compatibility and GPU cost; retain off by default and bounded samples.
+Symphony is held; this chat owns direct implementation, not a duplicate worker.
+
+Delivered: lazy MRT color/diffuse/packed-normal/depth SSGI pipeline; explicit
+GLOBAL ILLUMINATION pressed/loading/unavailable control; zero GI passes when off;
+renderer-state recovery and target cleanup. Mobile placement avoids the guide
+sheet. Existing WebGL/Canvas paths stay available with GI disabled.
+
+Actual verification:28 renderer/lifecycle tests passed,137 assertions (five GI
+regressions cover lazy reuse, unsupported paths, import/render failure, disposal
+during loading and off-during-loading). Native Metal Chromium acceptance passed
+3/3 in24.4seconds: actual World GI pixel difference, identical paused simulation
+snapshot, resize/320px click, WebGL unavailable, and Canvas2D unavailable. GI
+module bundle succeeded; full application bundling remains blocked by an existing
+absolute /vendor/three import in world/buildings/renderer.js, unrelated to GI.
+Initial unsafe-software-WebGPU device loss and superseded cleanup/mobile runs
+are retained under /private/tmp/hbl-gi-*.log; failures were fixed/rechecked, not
+waived. No Safari, performance/FPS, path tracing or offscreen-light claim.
+No Symphony activation, automatic merge or deployment. Review through draft PR.
+
+Hosted acceptance caught the narrow saved-future return link beneath the new
+button. Saved-future navigation now reserves its top area while GI stays at the
+bottom; the existing saved Canvas/graphics-error return tests both passed locally
+(2/2,11.1seconds) without changing their assertions. Fresh hosted CI gates review.
+
+### PR5 Social Bear integration — November 12, 2026
+
+User authorized resolving PR5 against main and merging after validation. Retained
+main's canonical searchable directory and all current House toolbar controls;
+registered Social Bear as one fictional experience with its exact HTML mapping,
+while preserving bar entry and safe household return context. The bar remains
+independent browser-local authored gameplay; no household/city model coupling.
+Acceptance: both bar paths/assets and existing House route work, directory finds
+exactly one Social Bear, purchases/conversation/group replies persist after reload,
+and 390px/320px layouts remain usable with the graphical fallback.
+
+Validation:32 Node bar gameplay/save tests and15 Bun server/local-journey/registry/
+HTML navigation tests passed (228 assertions), plus real-server Chromium smoke. Smoke checks six normal
+routes, six guests/three groups, two separate group reactions, spend/dialogue
+persistence, safe household return and no horizontal overflow at390px/320px.
+WebGL was deliberately disabled for fallback verification; native GPU visuals
+were not reverified. No deployment or Symphony mutation. Hosted CI gates merge.

@@ -16,7 +16,7 @@
     title.textContent=experience.title;description.textContent=experience.description;header.append(title,description);frame.setAttribute('src',experience.route);frame.dataset.previewSrc=experience.preview;frame.title=experience.title;section.append(header,frame);return section;
   });
   const countHeading = document.getElementById('experience-count');
-  if (countHeading) countHeading.textContent = `${sources.length} Interactive Worlds & Experiments`;
+  if (countHeading) { const count = countHeading.querySelector("#gallery-count"); if (count) count.textContent = String(sources.length); else countHeading.textContent = `${sources.length} Interactive Worlds & Experiments`; }
   let active = 0, queued = false, visible = true;
   const cards = sources.map((section, index) => {
     const source = section.querySelector('iframe');

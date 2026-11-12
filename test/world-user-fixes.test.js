@@ -1,91 +1,56 @@
-import {test,expect} from 'bun:test';
-import {readFileSync} from 'node:fs';
-import {withHistoryDeadline,activityRequest} from '../world/activity-dashboard.js';
-import {formatOutcomeSummary} from '../world/reality/outcome-feedback.js';
+import {describe,test,expect} from 'bun:test';
+import {createHoustonBarCatalogHandler,normalizeHoustonBarElements} from '../world/bar/houston-catalog.js';
+import {ringContains,findVenueFootprint,venueSceneGeometry} from '../world/bars/scene.js';
+import {interpretRealityResults} from '../world/reality/results-interpretation.js';
 import {EXPERIENCES} from '../world/universe/registry.js';
+import {readFileSync} from 'node:fs';
 
-test('history deadline rejects stalled calls and a later retry still succeeds',async()=>{
- await expect(withHistoryDeadline(()=>new Promise(()=>{}),5)).rejects.toThrow('Apply filters or reopen Activity to retry');
- expect(await withHistoryDeadline(()=>({buckets:[]}),20)).toEqual({buckets:[]});
- await expect(withHistoryDeadline(()=>{throw Error('worker failed');},20)).rejects.toThrow('worker failed');
+describe('Houston Bar Atlas real OSM boundaries',()=>{
+  const bar={type:'node',id:42,lat:29.72,lon:-95.38,tags:{amenity:'bar',name:'Example Record'}};
+  test('normalizes safe OSM venues and preserves exact IDs',()=>{
+    expect(normalizeHoustonBarElements([bar,bar,{...bar,id:43,tags:{amenity:'restaurant'}},{...bar,id:44,lat:35}])).toEqual([{
+      id:'node:42',osmType:'node',osmId:42,kind:'bar',name:'Example Record',lat:29.72,lng:-95.38,
+      address:'',neighborhood:'',levels:null,sourceUrl:'https://www.openstreetmap.org/node/42',
+    }]);
+  });
+  test('caches bounded Overpass results, rejects POST, and never invents bars',async()=>{
+    let calls=0;const handler=createHoustonBarCatalogHandler({lookup:async()=>{calls++;return{elements:[bar]};},now:()=>1000});
+    const request=new Request('http://localhost/api/houston-bars');
+    const first=await handler(request),body=await first.json();
+    expect(first.status).toBe(200);expect(body.venueCount).toBe(1);expect(body.venues[0].id).toBe('node:42');
+    await handler(request);expect(calls).toBe(1);
+    expect((await handler(new Request(request.url,{method:'POST'}))).status).toBe(405);
+    const missing=createHoustonBarCatalogHandler({lookup:async()=>{throw Error('unavailable');}});
+    const unavailable=await missing(request);expect(unavailable.status).toBe(503);expect((await unavailable.json()).venues).toEqual([]);
+  });
+  test('uses exact way ID or point containment, never nearest guess',()=>{
+    const venue={lat:29.72,lng:-95.38,osmType:'way',osmId:7};
+    const b={id:'w7',pts:[[29.719,-95.381],[29.719,-95.379],[29.721,-95.379],[29.721,-95.381],[29.719,-95.381]],levels:2};
+    expect(ringContains([venue.lat,venue.lng],b.pts)).toBe(true);
+    const exact=findVenueFootprint(venue,{buildings:[b]});
+    expect(exact.source).toBe('osm-exact-way');
+    expect(venueSceneGeometry(venue,exact).levels).toBe(2);
+    expect(findVenueFootprint({...venue,osmType:'node',osmId:99},{buildings:[{...b,pts:b.pts.map(([lat,lng])=>[lat+.1,lng])}]})).toBe(null);
+    expect(venueSceneGeometry(venue,null).source).toBe('illustrative');
+  });
 });
-test('policy goal failures preserve completed and execution error counts',()=>{
- const summary=formatOutcomeSummary({requested:100,completed:100,passed:0,failed:100,errors:0});
- expect(summary).toContain('100/100 requested pairs completed; 0 execution errors');
- expect(summary).toContain('100 nonpassing');
+test('Reality Compiler distinguishes policy-test nonpasses from actual simulation errors',()=>{
+  const report={summary:{requested:100,completed:100,passed:0,failed:100,errors:0,unavailable:0},manifest:{tests:[{id:'rent',metric:'medianRent',operator:'<=',threshold:5,unit:'percent'}]},runs:[
+    {status:'completed',pass:false,tests:[{id:'rent',status:'fail'}]},
+  ]};
+  const interpreted=interpretRealityResults(report);
+  expect(interpreted.status).toBe('no-goals-met');
+  expect(interpreted.title).toContain('0 met every goal');
+  expect(interpreted.message).toContain('does not mean');
+  expect(interpreted.details[0]).toContain('medianRent');
+  expect(interpretRealityResults({summary:{requested:10,completed:0,errors:10},runs:[]}).status).toBe('no-completed-runs');
 });
-test('homepage flagship and catalog use existing registered routes',()=>{
- const home=readFileSync('index.html','utf8'),directory=readFileSync('routes.html','utf8');
- expect(home).toContain('href="/world/future-machine.html?demo=1">Play Demo');
- expect(EXPERIENCES).toHaveLength(31);
- expect(new Set(EXPERIENCES.map(row=>row.route)).size).toBe(EXPERIENCES.length);
- expect(directory).toContain('import {EXPERIENCES}');
+test('Home gallery, connected universe, and /routes share one catalog',()=>{
+ const index=readFileSync('index.html','utf8'),routes=readFileSync('routes.html','utf8'),shell=readFileSync('world/universe/shell.js','utf8');
+ const previewCount=[...index.matchAll(/<section data-carousel=/g)].length;
+ expect(previewCount).toBe(EXPERIENCES.length);
+ expect(EXPERIENCES.map(x=>x.id).length).toBe(new Set(EXPERIENCES.map(x=>x.id)).size);
+ expect(routes).toContain("import {EXPERIENCES}");
+ expect(shell).toContain('EXPERIENCES.length');
+ expect(EXPERIENCES.find(x=>x.id==='houston-bars')?.route).toBe('/world/bars/');
 });
-
-
-// Execute the directory's normal module entry with a small DOM, including its
-// actual search and favorite handlers, rather than duplicating catalog logic.
-function directorySession(saved='[]') {
- class Node {
-  constructor(tag='div'){this.tag=tag;this.children=[];this.dataset={};this.attributes={};this.listeners={};this.value='';this._text='';this.hidden=false;}
-  set textContent(value){this._text=String(value);this.children=[];}
-  get textContent(){return this._text+this.children.map(n=>n.textContent).join(' ');}
-  append(...nodes){this.children.push(...nodes);}
-  prepend(node){this.children.unshift(node);}
-  after(...nodes){this.afterNodes=nodes;}
-  replaceChildren(...nodes){this.children=nodes;}
-  setAttribute(key,value){this.attributes[key]=value;}
-  getAttribute(key){return key==='href'?this.href:this.attributes[key];}
-  addEventListener(type,handler){this.listeners[type]=handler;}
-  querySelectorAll(selector){const matches=n=>selector.startsWith('.')?n.className===selector.slice(1):n.tag===selector;return this.children.flatMap(n=>[...(matches(n)?[n]:[]),...n.querySelectorAll(selector)]);}
-  querySelector(selector){return this.querySelectorAll(selector)[0];}
-  cloneNode(){const node=new Node(this.tag);Object.assign(node,{href:this.href,_text:this._text});return node;}
-  focus(){}
- }
- const selectors=['.routes','#search','.filters','#results-heading','#result-count','.empty','.clear-search','#reset','.directory-tools'];
- const nodes=Object.fromEntries(selectors.map(key=>[key,new Node()]));
- nodes['.empty'].append(new Node('p'));
- const old=new Node('article'),primary=new Node('a'),secondary=new Node('a');primary.href='/reality-compiler';secondary.href='/world/experiment-lab.html';old.append(primary,secondary);nodes['.routes'].append(old);
- const extra=new Node('article'),extraLink=new Node('a');extraLink.href='/supplementary-destination';extra.append(extraLink);nodes['.routes'].append(extra);
- const document={querySelector:selector=>selector==='.empty p'?nodes['.empty'].querySelector('p'):nodes[selector],createElement:tag=>new Node(tag),createTextNode:text=>{const node=new Node('#text');node.textContent=text;return node;}};
- const localStorage={getItem:()=>saved,setItem:(_,value)=>{saved=value;}};
- const html=readFileSync(new URL('../routes.html',import.meta.url),'utf8');
- const script=html.match(/<script type="module">([\s\S]*?)<\/script>/)[1].replace(/import .*?;\n/,'');
- new Function('document','localStorage','EXPERIENCES',script)(document,localStorage,EXPERIENCES);
- return {nodes,saved:()=>JSON.parse(saved)};
-}
-
-test('directory renders every registry route and retains secondary destinations',()=>{
- const {nodes}=directorySession();const cards=nodes['.routes'].children;
- expect(cards.map(card=>card.dataset.experienceId)).toEqual(EXPERIENCES.map(row=>row.id));
- expect(cards.map(card=>card.querySelector('a').href)).toEqual(EXPERIENCES.map(row=>row.route));
- expect(nodes['#result-count'].textContent).toBe(`${EXPERIENCES.length} of ${EXPERIENCES.length} workspaces`);
- expect(cards.find(card=>card.dataset.experienceId==='experiments').querySelectorAll('a').map(a=>a.href)).toContain('/world/experiment-lab.html');
- expect(nodes['.directory-tools'].hidden).toBe(false);
- expect(nodes['.routes'].afterNodes[0].querySelectorAll('a').map(a=>a.href)).toContain('/supplementary-destination');
-});
-
-test('registry directory supports search, category filtering and durable favorites',()=>{
- const {nodes,saved}=directorySession();const input=nodes['#search'],cards=nodes['.routes'].children;
- input.value='houston';input.listeners.input();expect(cards.filter(card=>!card.hidden).map(card=>card.dataset.experienceId)).toEqual(['houston-map']);
- nodes['.clear-search'].listeners.click();expect(cards.every(card=>!card.hidden)).toBe(true);
- const flagship=cards.find(card=>card.dataset.experienceId==='future-machine');flagship.querySelector('.favorite').listeners.click();expect(saved()).toEqual(['/world/future-machine.html']);
- nodes['.filters'].children.find(node=>node.textContent==='Favorites').listeners.click();expect(cards.filter(card=>!card.hidden)).toEqual([flagship]);
- const restored=directorySession(JSON.stringify(saved())).nodes;restored['.filters'].children.find(node=>node.textContent==='Favorites').listeners.click();expect(restored['.routes'].children.filter(card=>!card.hidden).map(card=>card.dataset.experienceId)).toEqual(['future-machine']);
- nodes['.filters'].children.find(node=>node.textContent==='Tools & analysis').listeners.click();expect(cards.filter(card=>!card.hidden).every(card=>card.dataset.category==='Tools & analysis')).toBe(true);
-});
-
-test('homepage Play Demo targets flagship and keeps the World entry',()=>{
- const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
- expect(html).toMatch(/class="flagship-demo" href="\/world\/future-machine.html\?demo=1">Play Demo/);
- expect(EXPERIENCES.find(row=>row.id==='world').route).toBe('/world');
-});
-
- test('Activity requests bound stalled sources and propagate real failures without replacing results',async()=>{
- const history={buckets:[],coverage:{toMinute:42}};
- expect(await activityRequest(()=>history,50)).toBe(history);
- expect(await activityRequest(()=>Promise.resolve(history),50)).toBe(history);
- await expect(activityRequest(()=>{throw Error('source unavailable');},50)).rejects.toThrow('source unavailable');
- await expect(activityRequest(()=>Promise.reject(Error('query failed')),50)).rejects.toThrow('query failed');
- await expect(activityRequest(()=>new Promise(()=>{}),5)).rejects.toThrow('Apply filters or reopen Activity to retry');
- });

@@ -62,93 +62,16 @@ The 60 FPS target has not been certified on an 8-core M4 Air or Safari. Headless
 
 This implementation does not complete the full 12-week backlog. Remaining work includes actual streamed district resource eviction, production KTX2/Basis assets (the loader/cache boundary exists), full asset vehicle/tree LOD libraries, skinned near pedestrians, water, SSR, AO/bloom/post pipeline comparisons, compute experiments, richer construction equipment, utility/bridge infrastructure, and Safari/WebGPU hardware regression baselines. The procedural environment map supplies HDR reflections; authored HDR sky assets and local probes can be added later.
 
-Per-route absolute load/frame/heap checks and retained CPU profiles are available
-with `bun run profile:performance`; see [budget scope and commands](../../docs/performance-budgets.md).
+## Global illumination (GitHub44 / SHE-250)
 
-Backend diagnostics use the completed renderer initialization result: the World source line displays `renderer WEBGPU`, `renderer WEBGL2`, or `renderer CANVAS2D`, and `getPerformanceStats().backend` exposes the corresponding lowercase identifier. API presence alone does not establish WebGPU success. `?renderer=canvas2d` selects the projected-geometry fallback explicitly. The `detected` cases in `test/e2e/city-renderer.e2e.js` deny WebGPU adapters (and optionally WebGL contexts) to check fallback labels and usable graphics controls.
-
-World startup probes native initialization rather than relying on `navigator.gpu`
-alone. Adapter rejection selects WebGL2, then Canvas2D when WebGL2 is unavailable.
-The persistent source notice includes the startup failure reason. Both fallbacks
-retain the normal town geometry and simulation state; Canvas2D is a projected
-low-fidelity view. Focused rejection checks live in `city-renderer.e2e.js`.
-
-### Bounded timing readback (SHE-173)
-
-City timing requests run at most every 250 ms with one unresolved request. The
-animation callback never awaits a transfer. `getPerformanceStats().readback`
-reports support, enabled/pending state and the latest completed result with
-`requestedAt`, `completedAt`, `ageMs` and `requestFrame` (performance-clock ms).
-These are transfer timestamps: requestFrame is the submission-side frame marker,
-not a promise of the exact GPU source frame. Three.js 0.186 resolves its bounded
-query batch and returns the last recorded frame duration. Backend-internal errors
-may return its last value; these timestamps do not establish an exact GPU capture
-time. No simulation counter or checkpoint is inferred from a render timing.
-GPU percentile exports count each completed transfer once (`gpuSamples`), exclude
-pre-recording requests, and leave unavailable measurements null. The UI retains
-the last observation alongside its age; it is not a current-frame observation.
-
-Use `?readback=off` or `setReadbackEnabled(false)` to disable both timestamp
-recording and explicit transfers (preventing Three's full-pool auto-resolve).
-Disabling or destroying invalidates late results; an unresolved request retains
-its slot rather than growing a timeout/retry queue. Unsupported timing stays off.
-
-Reproduce a paired frame-time comparison on the same device/browser:
-
-```sh
-READBACK=off bun scripts/benchmark-renderer.js http://localhost:3000 aerial-city /tmp/readback-off.json
-READBACK=on bun scripts/benchmark-renderer.js http://localhost:3000 aerial-city /tmp/readback-on.json /tmp/readback-off.json
-```
-
-The script compares **frame p95**, even when both reports have GPU timings.
-Reports include readback mode/interval, browser, viewport, backend, scene URL and
-quality settings. Repeat in reverse order to assess thermal/order noise. This is
-a visual synthetic scene comparison with the existing deterministic camera path,
-not a simulation throughput or model/run comparison. No hardware performance
-improvement is certified by unit tests.
-
-## Progressive startup and streamed geometry allowance (SHE-170)
-
-`progressive-loader.js` shares one **4 ms** allowance across resident startup and
-all streamed tile loaders in the same JS module context. Native RAF timestamps
-identify a frame. A chunk is one attachment including its failure fallback;
-worker generation stays outside this allowance. No further chunk starts once
-4 ms has been spent. A synchronous chunk cannot be preempted, so the bound is
-4 ms plus the final chunk's duration, not a hard 4 ms browser blocking guarantee.
-Each loader also keeps its local time/count limits and 2–4 outstanding results.
-Other render, model initialization, observer hooks, sorting and GPU work are
-outside this attachment allowance.
-
-`getProgress()` (also exposed by `hblWorldStartup.geometry` and streamed tile
-progress) adds `maxChunkMs`, `maxBatchMs`, `budgetOverruns` (local batches over
-budget), and `budgetDeferrals` (shared allowance unavailable). These are elapsed
-wall times; an async attachment's wait is conservatively included, not measured
-CPU blocking. Async chunks serialize across loaders; cancellation releases their
-allowance immediately and rejects late attachment counts as before. Separate
-module contexts do not share an allowance. Custom frame drivers should deliver
-the same timestamp to callbacks in a frame and can inject a shared
-`createFrameAllowance()` through `frameAllowance` for isolated deterministic tests.
-Normal browser entry points use the default automatically.
-
-Reproduce checks:
-
-```sh
-bun test test/progressive-loader.test.js test/map-streamer.test.js test/procedural-geometry.test.js test/worker-platform.test.js --timeout 30000
-bunx --no-install playwright test test/e2e/world-progressive-controls.e2e.js --workers=1
-```
-
-Local evidence: Darwin arm64, Bun 1.4.2; 42 tests / 6640 assertions passed.
-The scheduler stress fixture is **synthetic**, seed 42, LCG input rule
-`(imul(index + seed, 1664525) + 1013904223) >>> 0`, nine competing loaders,
-1000 queued items each, 600 simulated RAF frames, 1 ms modeled attachment cost.
-It verifies <=4 attachments per frame, bounded ready/inflight work, progress,
-independent frame callbacks and immediate cancellation with no late attachment.
-The separate 5 ms chunk fixture verifies overrun reporting. These simulated
-clocks are correctness evidence, not measured hardware throughput or camera FPS.
-Existing real-worker tests verify fixed-step replay, actual futures cancellation
-and validation gates without changing model versions, seeds or run manifests.
-
-Chromium 1.63.0 Playwright startup was attempted on ports 3100 and 3370; both app
-server binds failed with EADDRINUSE before any browser test ran. Sustained live
-camera/cancel responsiveness and actual main-thread long-task measurements remain
-unverified. Review candidate only; do not infer million-agent performance.
+The GLOBAL ILLUMINATION button opts into local Three.js SSGI on WebGPU. It starts
+off; off bypasses the scene/GI passes entirely. This screen-space approximation
+adds indirect lighting and occlusion using visible color, diffuse color, normal
+and depth buffers. It cannot see offscreen light or replace path tracing. The
+bounded24-sample preset has additional GPU cost and no temporal filter. Targets
+follow renderer size/pixel ratio; page exit disposes pipeline, GI and scene pass.
+WebGL2/Canvas2D show UNAVAILABLE and retain direct rendering. Initialization or
+render failure disables GI and restores the direct path. Simulation inputs,
+clocks, saved state and hashes are never read or written by this presentation
+control. `window.hblGlobalIllumination.getState()` reports the current capability
+and toggle state for diagnostics.
