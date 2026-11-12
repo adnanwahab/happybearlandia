@@ -143,7 +143,7 @@
   "acceptedBaseline": "2c9d973234ea73546d5597b068cda538a5136a2f",
   "nextActive": {
     "id": "U03",
-    "status": "RUNNING",
+    "status": "REVIEW",
     "owner": "browser-resources-u03",
     "worktree": "/Users/wahabma/.codex/worktrees/pipeline-resources-u03/happybearlandia",
     "base": "2c9d973234ea73546d5597b068cda538a5136a2f",
@@ -167,7 +167,8 @@
         "test/pipeline-resources.browser.config.js"
       ]
     ],
-    "browserMeasurementGate": "Wait FINAL_GATE_RELEASED until accepted-source canonical/recording checks complete, then run measurements without competing proof jobs."
+    "browserMeasurementGate": "Released historically; independent candidate checks now PASS. Await clean integration and integrated checks.",
+    "commit": "ef1339b17f9cd860f34bc3722b84347833c596b6"
   },
   "acceptedInThisResume": [
     {
@@ -194,5 +195,49 @@
       "commit": "3ebc17b45641c4e50c4805a233adbfe627ec1dc5",
       "integratedCommit": "1d0a488a0ddd8936ce53294594723d2f04317bab"
     }
-  ]
+  ],
+  "resumption": {
+    "head": "ec408d03a70fdaac90c1eb82263a5740797c36bf",
+    "decision": "HOLD_NEW_DISPATCH_DRAIN_U03_REVIEW",
+    "reason": "Review depth3 exceeds2; R13/R14 repair reservations retained; integration checkout dirty.",
+    "nextIntegration": {
+      "id": "U03",
+      "commit": "ef1339b17f9cd860f34bc3722b84347833c596b6",
+      "candidateReview": "PASS",
+      "reviewFile": "docs/coordinator-u03-review.json",
+      "requires": [
+        "Preserve and reconcile unrelated dirty checkout changes through their owners",
+        "Run existing integrate command; it independently repeats candidate and integrated checks"
+      ],
+      "status": "REVIEW_NOT_INTEGRATED"
+    },
+    "nextDispatch": {
+      "id": "U05",
+      "status": "PREPARED_NOT_LAUNCHED",
+      "existingWorkerThreadId": "01a1cae3-ce80-7a73-bea8-01afb180e823",
+      "files": [
+        "test/pipeline-kpi-semantics.test.js"
+      ],
+      "interfaces": [],
+      "dependencies": [
+        "R02"
+      ],
+      "base": "ec408d03a70fdaac90c1eb82263a5740797c36bf",
+      "acceptance": "Regression for zero-control, missing KPI and negative-rent semantic styling; exact recorded units and cost disclosure retained; tests only. No runtime edit without separately bounded repair.",
+      "checks": [
+        [
+          "bun",
+          "test",
+          "test/pipeline-kpi-semantics.test.js"
+        ]
+      ],
+      "prerequisites": [
+        "U03 VERIFIED frees reservation and reduces review depth to2",
+        "Clean integration checkout and isolated clean worker worktree at actual current HEAD",
+        "Durable claim before starting existing worker; base above must refresh if HEAD changes"
+      ]
+    },
+    "following": "U08 after capacity and claims permit; R13/R14 owner-only bounded scope reconciliation required.",
+    "workersLaunched": 0
+  }
 }
