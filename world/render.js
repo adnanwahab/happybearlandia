@@ -1,6 +1,7 @@
 import {createGlobalIllumination} from './render/global-illumination.js';
 import {mountPlaybackFacts,withMetadataDeadline,mountControlReadiness} from './onboarding/first-run-repairs.js';
 import {createQuickDemoController} from './onboarding/quick-demo-controller.js';
+import {mountSessionSurvey} from './onboarding/session-survey.js';
 import {mountFirstRunGuide} from './first-run-guide.js';
 import {createFeedbackAdapter,stormFeedback} from './onboarding/feedback-adapter.js';
 import {createPanelManager} from './onboarding/panel-manager.js';
@@ -2548,13 +2549,14 @@ if(!embedMode&&!businessMode&&!simulationId&&!loadedExperiment&&!renderBenchmark
     recipe=structuredClone({origin,area,maxPeople,proposalIds:pkg?.proposalIds||[],label:pkg?.label||'No plan',source:pkg?.source||'local',year:3,days:7});
     return recipe;
   };
-  const provenance=()=>({authority:'legacy-world',modelVersion:world.modelVersion||null,modelSource:'world/sim.js',rulesSource:'world/policy.js',rulesVersion:null,seed:town.seedKey,origin:{...origin},days:7,year:3,proposalIds:[...(recipe?.proposalIds||[])],limitations:['Detached matched week, not a continuation of the live resident clock. Legacy resident indexes share deterministic buildTown inputs only; Population and monthly City are not mapped.']});
+  const provenance=()=>({authority:'legacy-world',modelVersion:world.modelVersion||null,modelSource:'world/sim.js',rulesSource:'world/policy.js',rulesVersion:null,seed:town.seedKey,origin:{...origin},days:7,year:recipe?.year??3,proposalIds:[...(recipe?.proposalIds||[])],limitations:['Detached matched week, not a continuation of the live resident clock. Legacy resident indexes share deterministic buildTown inputs only; Population and monthly City are not mapped.']});
   const state=()=>({...controller?.getState(),ready:true,observation,feedback:measured,configuration,workerTimings,provenance:provenance()});
   const refresh=()=>{const value=state();guide?.update(value);$('firstRunGuide')?.toggleAttribute('data-demo-engaged',Boolean(observation||measured));$('firstRunGuide')?.toggleAttribute('data-demo-complete',value.status==='completed');if(configurationSummary)configurationSummary.textContent='Detached comparison: '+(configuration?.text||'Quick demo tests the local Balanced plan in a detached matched week.')+(measured?.unsupported?.length?' Unsupported proposals: '+measured.unsupported.map(item=>typeof item==='string'?item:item.id||item.label||'Unidentified proposal').join(', ')+'.':'')+' The ring marks an actual resident position, including indoors; it does not indicate a new building or measured policy effect.';return value;};
   const inspectResident=()=>{
     const p=residentById(focusId);if(!p)return false;
     followResident(town.people.indexOf(p));visualPanels.open('inspect',{trigger:document.activeElement});return true;
   };
+  const sessionSurvey=mountSessionSurvey(document.body);
   controller=createQuickDemoController({
     waitForReady:()=>{if(cycleBusy||demo.running||experimentWorker)throw Error('Finish the active civic comparison or ten-year experiment before starting the quick demo.');},
     observeResident:async({signal})=>{
@@ -2608,14 +2610,18 @@ if(!embedMode&&!businessMode&&!simulationId&&!loadedExperiment&&!renderBenchmark
       const index=result.best?.index;if(Number.isInteger(index)&&town.people[index]){focusId=String(town.people[index].id);visualCamera.focusResident(focusId);visualSpotlight.showResident(focusId);}
       guide.show();refresh();
     },
-    onState:value=>{if(value.status==='waiting'){observation=null;measured=null;workerTimings=null;visualComparisonResult=null;}if(['stopped','error'].includes(value.status)){visualComparisonResult=null;visualCamera.cancel();visualSpotlight.clear();if(overlayMode==='cycle'){overlayMode='wellbeing';if(overlayEl)overlayEl.value='wellbeing';}}refresh();},
+    onState:value=>{sessionSurvey.update(value);if(value.status==='waiting'){observation=null;measured=null;workerTimings=null;visualComparisonResult=null;}if(['stopped','error'].includes(value.status)){visualComparisonResult=null;visualCamera.cancel();visualSpotlight.clear();if(overlayMode==='cycle'){overlayMode='wellbeing';if(overlayEl)overlayEl.value='wellbeing';}}refresh();},
     now:()=>performance.now()
   });
   guide=mountFirstRunGuide({container:document.body,panelManager:visualPanels,
-    onQuickDemo:()=>controller.start({recipeVersion:1}),onStop:()=>controller.stop(),onReplay:()=>controller.getState().runId===null?controller.start({recipeVersion:1}):controller.replay(),onInspect:inspectResident,
+    onQuickDemo:()=>controller.start({recipeVersion:1}),onStop:()=>controller.stop(),
+    onReplay:()=>{if(controller.getState().status==='completed')sessionSurvey.replayStarted();return controller.getState().runId===null?controller.start({recipeVersion:1}):controller.replay();},
+    onChangeYear:year=>{if(controller.getState().status!=='completed'||![0,1,3,5,10].includes(year)||year===readRecipe().year)return;recipe={...readRecipe(),year};return controller.start({recipeVersion:1,year});},
+    onInspect:inspectResident,
     onCompare:()=>controller.start({recipeVersion:1}),onStorm:async()=>{controller.stop();await livingWorld?.setActive(false);const record=triggerStorm();visualComparisonResult=null;measured=stormFeedback(record,{minute:world.t,seed:town.seedKey});overlayMode='flood';if(overlayEl)overlayEl.value='flood';guide.show();refresh();},
     onTour:()=>{controller.stop();guide.hide();playDemo();},onExperiment:()=>{controller.stop();guide.hide();runExperiment10Years();}
   });
+  $('firstRunGuide').append(document.querySelector('[data-testid=session-survey]'));
   const guideActions=$('firstRunGuide').querySelector('.first-run-actions');
   const moreActions=document.createElement('details'),moreSummary=document.createElement('summary');moreSummary.textContent='More city actions';moreActions.append(moreSummary);
   for(const button of [...guideActions.children].slice(4))moreActions.append(button);$('firstRunGuide').append(moreActions);
@@ -2632,5 +2638,5 @@ if(!embedMode&&!businessMode&&!simulationId&&!loadedExperiment&&!renderBenchmark
   const syncComparisonControls=()=>{for(const button of switcher.children){button.disabled=measured?.kind!=='matched';button.setAttribute('aria-pressed',String(button.dataset.testid==='quick-demo-'+visualComparisonView&&measured?.kind==='matched'));}};
   syncComparisonControls();const comparisonControlsTimer=setInterval(syncComparisonControls,200);
   guide.update(state());guide.show();
-  addEventListener('pagehide',()=>{clearInterval(comparisonControlsTimer);controller.dispose();comparisonWorker?.terminate();visualCamera.dispose();visualSpotlight.dispose();accessibility.dispose();guide.dispose();visualPanels.dispose();renderer.domElement.removeEventListener('pointerdown',interruptCamera);renderer.domElement.removeEventListener('wheel',interruptCamera);},{once:true});
+  addEventListener('pagehide',()=>{clearInterval(comparisonControlsTimer);controller.dispose();comparisonWorker?.terminate();visualCamera.dispose();visualSpotlight.dispose();accessibility.dispose();sessionSurvey.dispose();guide.dispose();visualPanels.dispose();renderer.domElement.removeEventListener('pointerdown',interruptCamera);renderer.domElement.removeEventListener('wheel',interruptCamera);},{once:true});
 }
