@@ -1003,3 +1003,30 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-236 — resident performance lab
+
+In progress: audit the authoritative Population path and measure generation,
+fixed-step compute, view selection, snapshot construction and structured copying
+at increasing resident counts. Related SHE-151 owns the broader architecture
+shootout; SHE-149 owns interaction spatial grids; SHE-171 owns million-scale
+browser phases; SHE-167 owns lazy allocation. This slice owns bounded headless
+measurements and exact display-selection alternatives, not those interfaces.
+Acceptance: repeatable seeded raw samples and machine metadata; compare current
+full sort with heap, insertion and partition selection using identical results;
+retain simulation determinism and existing non-WebGPU CPU behavior; deliver a
+local git-am patch without pushing. Rendering/GPU/frame rate and browser transfer
+latency require separate browser evidence and must remain unmeasured here.
+
+Completed locally: [performance report](resident-performance-lab.md), opt-in
+seeded runner, raw 1k/10k/100k measurements, sampled CPU profile and three exact
+selection alternatives. The chosen production change reuses validated history
+need entries; the heap selector remains experimental because it regresses small
+populations. The original/optimized comparison at 100k measured median steps of
+262.056/210.230 ms; a final full-sort production-path run measured 236.315 ms.
+All measured variants retained identical full-state hashes at each size.
+Focused acceptance passed 49 tests / 635 assertions, including failure paths,
+conservation, replay and existing renderer integration. No package lint/typecheck
+scripts exist. No browser/GPU timing or million-resident capacity claim is made.
+No production data, deployment, push or Linear status change. Delivery is a local
+git-am patch; browser/GPU and broader scenario benchmarking remain separate work.

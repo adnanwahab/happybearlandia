@@ -1,0 +1,703 @@
+{
+  "schemaVersion": "she236-resident-lab.v1",
+  "capturedAt": "2026-11-12T20:43:56.280Z",
+  "sourceHashes": {
+    "world/population/visible-sample.js": "0d2ef991b95ff28636ea9ca2635b5a03a34ece6ac0ef0a4012b68da062bd3e00",
+    "world/activity-history.js": "28ac360a0359800f29bc91901ede2d9c41d6124924ce947bf28ba88d191eb996",
+    "scripts/benchmark-residents.js": "e67107229affd5c91ce77905122406d917ad38827144e401a3d24d635629d5f1"
+  },
+  "sourceCommit": "b963dd353538294cb0fbf5d34d5283fad6e10e68",
+  "machine": {
+    "cpu": "Apple M4",
+    "logicalCPUs": 10,
+    "memoryBytes": 17179869184,
+    "platform": "darwin",
+    "release": "24.6.0",
+    "arch": "arm64",
+    "runtime": {
+      "node": "26.3.0",
+      "bun": "1.4.2",
+      "boringssl": "41bf9b59c2ebf277a7aa427e1ecad5cc80dd4d4f",
+      "openssl": "1.1.0",
+      "llhttp": "9.3.0",
+      "libarchive": "ded82291ab41d5e355831b96b0e1ff49e24d8939",
+      "mimalloc": "6a64e1ba7f5b2130d4efccb67ec87fd0003f0f6a",
+      "picohttpparser": "066d2b1e9ab820703db0837a7255d92d30f0c9f5",
+      "uwebsockets": "744846f844374847c902b5e7fd59b4342a51ef99",
+      "webkit": "2e2aa2290fac856d6f451ceacb58f7f5b44dd057",
+      "zig": "04e7f6ac1e009525bc00934f20199c68f04e0a24",
+      "zlib": "12731092979c6d07f42da27da673a9f6c7b13586",
+      "tinycc": "05f0fafaa3be31e31d7b4b5c17dc60f62c991171",
+      "lolhtml": "725ce499aa9b71e38b7a2d0a9fbb6d7294a4079e",
+      "ares": "c7a3138dcfe3bb0eaaf10c0c24c36dc66dc790ab",
+      "libdeflate": "c8c56a20f8f621e6a966b716b31f1dedab6a41e3",
+      "usockets": "744846f844374847c902b5e7fd59b4342a51ef99",
+      "lshpack": "8905c024b6d052f083a3d11d0a169b3c2735c8a1",
+      "zstd": "f8745da6ff1ad1e7bab384bd1f9d742439278e99",
+      "v8": "14.6.202.34-node.20",
+      "uv": "1.48.0",
+      "napi": "10",
+      "icu": "76.1",
+      "unicode": "16.0",
+      "sqlite": "3.43.2",
+      "modules": "147"
+    }
+  },
+  "repetitions": 3,
+  "warmupRunsPerSize": 1,
+  "context": {
+    "id": "she236-synthetic.v1",
+    "districts": [
+      {
+        "id": "home",
+        "x": 0,
+        "z": 0,
+        "transit": 0.6,
+        "services": 0.7
+      },
+      {
+        "id": "jobs",
+        "x": 1800,
+        "z": 0,
+        "transit": 0.8,
+        "services": 0.8
+      }
+    ],
+    "provenance": {
+      "type": "synthetic-benchmark",
+      "calibrated": false
+    }
+  },
+  "view": {
+    "x": 0,
+    "z": 0
+  },
+  "reports": [
+    {
+      "population": 1000,
+      "modelVersion": "1.3.0",
+      "seed": 42,
+      "initialMinute": 360,
+      "finalMinute": 376,
+      "steps": 16,
+      "stepMinutes": 1,
+      "visibleAvatars": null,
+      "displayRows": 500,
+      "interactions": null,
+      "deterministicStateHash": "21d001eeb122a6d9c486313167cf5ed535bcb7107723309ce4baa84292f29f03",
+      "hashEncoding": "node:v8 serialize of serializePopulation",
+      "typedBufferBytes": 703008,
+      "snapshotJsonBytes": 2040307,
+      "validation": {
+        "targets": {
+          "population": 1000,
+          "householdSize": 2.5,
+          "medianIncome": 72000,
+          "employmentRate": 0.75
+        },
+        "actual": {
+          "population": 1000,
+          "householdSize": 2.5,
+          "medianIncome": 72000,
+          "employmentRate": 0.7503250975292588
+        },
+        "errors": {
+          "population": {
+            "absolute": 0,
+            "relative": 0
+          },
+          "householdSize": {
+            "absolute": 0,
+            "relative": 0
+          },
+          "medianIncome": {
+            "absolute": 0,
+            "relative": 0
+          },
+          "employmentRate": {
+            "absolute": 0.00032509752925879987,
+            "relative": 0.0004334633723450665
+          }
+        },
+        "tolerances": {
+          "population": 0,
+          "householdSize": 0.06,
+          "medianIncome": 0.02,
+          "employmentRate": 0.05
+        },
+        "passed": true,
+        "gate": {
+          "accepted": true,
+          "reasons": []
+        },
+        "source": {
+          "type": "synthetic",
+          "confidence": "low"
+        },
+        "synthetic": true,
+        "calibrated": false,
+        "notes": [
+          "Generated targets are assumption checks, not independent empirical validation. Income targets validate baseline resources before policy wage multipliers.",
+          "Household sizes use adjacent integer sizes; full joint demographic distributions are not fitted."
+        ]
+      },
+      "processMemory": {
+        "rss": 157925376,
+        "heapTotal": 26790912,
+        "heapUsed": 12343413,
+        "external": 9242848,
+        "arrayBuffers": 4520694
+      },
+      "phases": {
+        "generation": {
+          "samplesMs": [
+            3.1572910000000007,
+            1.9234579999999823,
+            2.188208000000003
+          ],
+          "p50Ms": 2.188208000000003,
+          "p95Ms": 3.1572910000000007
+        },
+        "step": {
+          "samplesMs": [
+            5.233499999999992,
+            3.9043330000000083,
+            2.6864999999999952,
+            3.3107499999999845,
+            2.5868340000000103,
+            3.088458000000003,
+            2.417332999999985,
+            2.8565419999999904,
+            2.439582999999999,
+            2.7595000000000027,
+            2.1482500000000186,
+            2.235541000000012,
+            2.557457999999997,
+            2.2787910000000124,
+            2.799124999999975,
+            2.266707999999994,
+            3.6619999999999777,
+            3.8227919999999926,
+            2.281333000000018,
+            2.6629580000000033,
+            2.264916999999997,
+            2.0588750000000005,
+            2.5104589999999973,
+            2.1354169999999897,
+            2.0571250000000134,
+            2.404042000000004,
+            2.040124999999989,
+            2.091124999999977,
+            2.6118749999999977,
+            2.1098340000000064,
+            2.0484590000000082,
+            2.48791700000001,
+            3.012833999999998,
+            2.145042000000018,
+            2.8712089999999932,
+            2.2928750000000093,
+            2.2484159999999918,
+            2.850875000000002,
+            2.127874999999989,
+            2.0711670000000026,
+            2.115875000000017,
+            2.748958000000016,
+            1.9898330000000328,
+            1.9914999999999736,
+            2.8398749999999495,
+            1.920833000000016,
+            1.934791999999959,
+            3.2205830000000333
+          ],
+          "p50Ms": 2.417332999999985,
+          "p95Ms": 3.8227919999999926
+        },
+        "snapshot": {
+          "samplesMs": [
+            1.375708000000003,
+            1.2641669999999863,
+            1.183334000000002
+          ],
+          "p50Ms": 1.2641669999999863,
+          "p95Ms": 1.375708000000003
+        },
+        "clone": {
+          "samplesMs": [
+            3.3638750000000073,
+            2.978749999999991,
+            3.086708999999985
+          ],
+          "p50Ms": 3.086708999999985,
+          "p95Ms": 3.3638750000000073
+        },
+        "json": {
+          "samplesMs": [
+            3.9935410000000218,
+            2.5914579999999887,
+            2.7377919999999563
+          ],
+          "p50Ms": 2.7377919999999563,
+          "p95Ms": 3.9935410000000218
+        }
+      },
+      "selection": {
+        "fullSort": {
+          "samplesMs": [
+            0.05829199999999446,
+            0.05612500000000864,
+            0.05291699999997945
+          ],
+          "p50Ms": 0.05612500000000864,
+          "p95Ms": 0.05829199999999446
+        },
+        "heap": {
+          "samplesMs": [
+            0.2961249999999893,
+            0.12566699999999287,
+            0.11858399999999847
+          ],
+          "p50Ms": 0.12566699999999287,
+          "p95Ms": 0.2961249999999893
+        },
+        "insertion": {
+          "samplesMs": [
+            0.13404199999999378,
+            0.08400000000000318,
+            0.0831670000000031
+          ],
+          "p50Ms": 0.08400000000000318,
+          "p95Ms": 0.13404199999999378
+        },
+        "partition": {
+          "samplesMs": [
+            0.10974999999999113,
+            0.0629170000000272,
+            0.0755839999999921
+          ],
+          "p50Ms": 0.0755839999999921,
+          "p95Ms": 0.10974999999999113
+        }
+      }
+    },
+    {
+      "population": 10000,
+      "modelVersion": "1.3.0",
+      "seed": 42,
+      "initialMinute": 360,
+      "finalMinute": 376,
+      "steps": 16,
+      "stepMinutes": 1,
+      "visibleAvatars": null,
+      "displayRows": 500,
+      "interactions": null,
+      "deterministicStateHash": "9f14feea691d755cb4b32a48a5660f11d56525e6e319ce2743f9bc67b281fed7",
+      "hashEncoding": "node:v8 serialize of serializePopulation",
+      "typedBufferBytes": 7018752,
+      "snapshotJsonBytes": 2021215,
+      "validation": {
+        "targets": {
+          "population": 10000,
+          "householdSize": 2.5,
+          "medianIncome": 72000,
+          "employmentRate": 0.75
+        },
+        "actual": {
+          "population": 10000,
+          "householdSize": 2.5,
+          "medianIncome": 72000,
+          "employmentRate": 0.7500663658083355
+        },
+        "errors": {
+          "population": {
+            "absolute": 0,
+            "relative": 0
+          },
+          "householdSize": {
+            "absolute": 0,
+            "relative": 0
+          },
+          "medianIncome": {
+            "absolute": 0,
+            "relative": 0
+          },
+          "employmentRate": {
+            "absolute": 0.0000663658083355223,
+            "relative": 0.00008848774444736307
+          }
+        },
+        "tolerances": {
+          "population": 0,
+          "householdSize": 0.06,
+          "medianIncome": 0.02,
+          "employmentRate": 0.05
+        },
+        "passed": true,
+        "gate": {
+          "accepted": true,
+          "reasons": []
+        },
+        "source": {
+          "type": "synthetic",
+          "confidence": "low"
+        },
+        "synthetic": true,
+        "calibrated": false,
+        "notes": [
+          "Generated targets are assumption checks, not independent empirical validation. Income targets validate baseline resources before policy wage multipliers.",
+          "Household sizes use adjacent integer sizes; full joint demographic distributions are not fitted."
+        ]
+      },
+      "processMemory": {
+        "rss": 271564800,
+        "heapTotal": 65634304,
+        "heapUsed": 46413110,
+        "external": 38770021,
+        "arrayBuffers": 21896223
+      },
+      "phases": {
+        "generation": {
+          "samplesMs": [
+            7.848625000000084,
+            9.034415999999965,
+            8.280207999999902
+          ],
+          "p50Ms": 8.280207999999902,
+          "p95Ms": 9.034415999999965
+        },
+        "step": {
+          "samplesMs": [
+            26.55849999999998,
+            21.166500000000042,
+            18.20074999999997,
+            18.446542000000022,
+            21.176624999999945,
+            20.772041999999942,
+            20.022082999999952,
+            21.80383299999994,
+            18.874416999999994,
+            18.21320800000001,
+            19.14487500000007,
+            22.346208000000047,
+            19.954416000000037,
+            20.176000000000045,
+            19.563666000000012,
+            19.078750000000014,
+            22.940292,
+            19.15641599999981,
+            19.505042000000003,
+            19.03362500000003,
+            22.579833000000008,
+            19.290333000000146,
+            18.594958000000133,
+            21.19404200000008,
+            20.441667000000052,
+            20.76620899999989,
+            21.309999999999945,
+            21.626500000000078,
+            21.67862500000001,
+            22.050792,
+            21.66283300000009,
+            21.779541999999992,
+            24.859207999999853,
+            19.236667000000125,
+            19.379500000000007,
+            18.834125000000085,
+            20.322333999999955,
+            20.799167000000125,
+            21.78774999999996,
+            21.273500000000013,
+            23.41775000000007,
+            21.878749999999854,
+            23.19470799999999,
+            23.695541999999932,
+            24.581291000000192,
+            23.367041999999856,
+            24.67816700000003,
+            24.43837500000018
+          ],
+          "p50Ms": 21.176624999999945,
+          "p95Ms": 24.67816700000003
+        },
+        "snapshot": {
+          "samplesMs": [
+            1.7873749999999973,
+            1.615542000000005,
+            2.4814590000000862
+          ],
+          "p50Ms": 1.7873749999999973,
+          "p95Ms": 2.4814590000000862
+        },
+        "clone": {
+          "samplesMs": [
+            2.900250000000028,
+            2.885291999999936,
+            3.408416999999872
+          ],
+          "p50Ms": 2.900250000000028,
+          "p95Ms": 3.408416999999872
+        },
+        "json": {
+          "samplesMs": [
+            2.2945000000000846,
+            3.0417499999998654,
+            3.5573340000000826
+          ],
+          "p50Ms": 3.0417499999998654,
+          "p95Ms": 3.5573340000000826
+        }
+      },
+      "selection": {
+        "fullSort": {
+          "samplesMs": [
+            0.43191699999999855,
+            0.45966599999997015,
+            0.48233299999992596
+          ],
+          "p50Ms": 0.45966599999997015,
+          "p95Ms": 0.48233299999992596
+        },
+        "heap": {
+          "samplesMs": [
+            0.20583299999998417,
+            0.19962499999996908,
+            0.2951669999999922
+          ],
+          "p50Ms": 0.20583299999998417,
+          "p95Ms": 0.2951669999999922
+        },
+        "insertion": {
+          "samplesMs": [
+            0.8907920000000331,
+            0.26033299999994597,
+            0.27091599999994287
+          ],
+          "p50Ms": 0.27091599999994287,
+          "p95Ms": 0.8907920000000331
+        },
+        "partition": {
+          "samplesMs": [
+            0.29558400000007623,
+            0.27854200000001583,
+            1.5739160000000538
+          ],
+          "p50Ms": 0.29558400000007623,
+          "p95Ms": 1.5739160000000538
+        }
+      }
+    },
+    {
+      "population": 100000,
+      "modelVersion": "1.3.0",
+      "seed": 42,
+      "initialMinute": 360,
+      "finalMinute": 376,
+      "steps": 16,
+      "stepMinutes": 1,
+      "visibleAvatars": null,
+      "displayRows": 500,
+      "interactions": null,
+      "deterministicStateHash": "7d83fc4876b909e5bf7f4fc0c1879d865452924965fc63078b040a02fc7f1271",
+      "hashEncoding": "node:v8 serialize of serializePopulation",
+      "typedBufferBytes": 70172996,
+      "snapshotJsonBytes": 2032195,
+      "validation": {
+        "targets": {
+          "population": 100000,
+          "householdSize": 2.5,
+          "medianIncome": 72000,
+          "employmentRate": 0.75
+        },
+        "actual": {
+          "population": 100000,
+          "householdSize": 2.5,
+          "medianIncome": 72000,
+          "employmentRate": 0.7500033341779918
+        },
+        "errors": {
+          "population": {
+            "absolute": 0,
+            "relative": 0
+          },
+          "householdSize": {
+            "absolute": 0,
+            "relative": 0
+          },
+          "medianIncome": {
+            "absolute": 0,
+            "relative": 0
+          },
+          "employmentRate": {
+            "absolute": 0.0000033341779918094616,
+            "relative": 0.000004445570655745949
+          }
+        },
+        "tolerances": {
+          "population": 0,
+          "householdSize": 0.06,
+          "medianIncome": 0.02,
+          "employmentRate": 0.05
+        },
+        "passed": true,
+        "gate": {
+          "accepted": true,
+          "reasons": []
+        },
+        "source": {
+          "type": "synthetic",
+          "confidence": "low"
+        },
+        "synthetic": true,
+        "calibrated": false,
+        "notes": [
+          "Generated targets are assumption checks, not independent empirical validation. Income targets validate baseline resources before policy wage multipliers.",
+          "Household sizes use adjacent integer sizes; full joint demographic distributions are not fitted."
+        ]
+      },
+      "processMemory": {
+        "rss": 1078919168,
+        "heapTotal": 434391040,
+        "heapUsed": 397044136,
+        "external": 377721078,
+        "arrayBuffers": 288739578
+      },
+      "phases": {
+        "generation": {
+          "samplesMs": [
+            59.17737500000021,
+            64.17649999999958,
+            56.628209000000425
+          ],
+          "p50Ms": 59.17737500000021,
+          "p95Ms": 64.17649999999958
+        },
+        "step": {
+          "samplesMs": [
+            263.9443340000007,
+            218.30983300000025,
+            213.52241700000013,
+            227.39545799999996,
+            200.6491670000005,
+            207.03912500000024,
+            200.4601249999996,
+            199.84308299999975,
+            211.44570799999929,
+            253.14762500000052,
+            210.22970799999985,
+            205.73016600000028,
+            228.1961250000004,
+            242.89420900000005,
+            227.6544159999994,
+            233.8519580000011,
+            269.21695799999907,
+            231.7021249999998,
+            230.3130000000001,
+            232.6227089999993,
+            232.70908400000008,
+            236.96608300000116,
+            218.17816700000003,
+            215.34008300000096,
+            205.21912499999962,
+            199.9858750000003,
+            201.08120899999994,
+            206.51591700000063,
+            203.1726669999989,
+            203.0354159999988,
+            219.80691699999988,
+            249.2310409999991,
+            223.10145899999952,
+            205.7872920000009,
+            218.93762500000048,
+            205.21737500000017,
+            203.7445000000007,
+            208.52999999999884,
+            203.9560419999998,
+            209.53233300000102,
+            205.36337500000081,
+            205.9776669999992,
+            211.85954100000163,
+            200.72533300000032,
+            207.65841700000055,
+            201.4267920000002,
+            194.901167,
+            198.36916700000074
+          ],
+          "p50Ms": 210.22970799999985,
+          "p95Ms": 253.14762500000052
+        },
+        "snapshot": {
+          "samplesMs": [
+            10.450000000000728,
+            9.783042000000933,
+            7.969499999999243
+          ],
+          "p50Ms": 9.783042000000933,
+          "p95Ms": 10.450000000000728
+        },
+        "clone": {
+          "samplesMs": [
+            3.1130410000005213,
+            3.6747080000004644,
+            3.053083000002516
+          ],
+          "p50Ms": 3.1130410000005213,
+          "p95Ms": 3.6747080000004644
+        },
+        "json": {
+          "samplesMs": [
+            2.575458000001163,
+            2.9385000000002037,
+            2.6848749999990105
+          ],
+          "p50Ms": 2.6848749999990105,
+          "p95Ms": 2.9385000000002037
+        }
+      },
+      "selection": {
+        "fullSort": {
+          "samplesMs": [
+            5.092083999999886,
+            5.636459000001196,
+            5.4817500000026484
+          ],
+          "p50Ms": 5.4817500000026484,
+          "p95Ms": 5.636459000001196
+        },
+        "heap": {
+          "samplesMs": [
+            1.2257920000010927,
+            1.2614579999990383,
+            0.7214590000003227
+          ],
+          "p50Ms": 1.2257920000010927,
+          "p95Ms": 1.2614579999990383
+        },
+        "insertion": {
+          "samplesMs": [
+            2.7849590000005264,
+            2.6443749999998545,
+            2.318250000000262
+          ],
+          "p50Ms": 2.6443749999998545,
+          "p95Ms": 2.7849590000005264
+        },
+        "partition": {
+          "samplesMs": [
+            2.433000000000902,
+            2.1679170000006707,
+            1.7621670000007725
+          ],
+          "p50Ms": 2.1679170000006707,
+          "p95Ms": 2.433000000000902
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "Synthetic two-district morning workload; not calibrated or a resident ceiling.",
+    "Phase timings exclude validation/hash/export; step includes normal metrics/history.",
+    "Clone is an in-process structuredClone proxy, not measured worker transfer latency.",
+    "Typed bytes exclude objects; process memory is sampled, shared across phases, not peak/per-model memory.",
+    "No browser, GPU synchronization, draw calls, rendered FPS, main-thread latency or pairwise interaction throughput measured.",
+    "All alternatives select identical display IDs; they do not change simulation cadence or model rules."
+  ]
+}
