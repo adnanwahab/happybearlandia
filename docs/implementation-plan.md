@@ -1003,3 +1003,35 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## District policy resource allocation — SHE-131
+
+Delivered a bounded completion of the existing World “Challenge a friend” panel,
+not a second simulation or the illustrative six-mission arithmetic sandbox.
+Scope owned here: `world/challenges/panel.js`, its stylesheet, focused challenge
+UI tests and the new district allocation browser test. Existing frozen challenge
+contracts, City equations and mapped World entry point remain authoritative.
+Planning dependency SHE-141 was read as Done. Connected GitHub searches for
+`challenge` and `SHE-131` returned no matches; local overlap is the existing
+housing/commute challenge contract and panel, which this slice reuses.
+
+Acceptance: three district-scoped policies show explicit synthetic capital costs
+and mechanism tradeoffs. Default cap is 20,000 synthetic USD, below the 25,000
+combined menu cost. Live authorized/remaining totals update for both plans;
+over-cap selections cannot freeze or start verification. Blank, nonfinite,
+negative and excessive caps are rejected. Costs exclude recurring operations;
+actual cumulative capital spending still comes from the existing monthly ledger.
+Same-seed replay retains the frozen initial hash, engine version and horizon.
+Unavailable metrics and differences within tolerance explicitly state that the
+model cannot resolve the result. Editing a candidate clears stale comparisons.
+No calibrated forecasts or million-agent execution claims are introduced.
+
+Verification: 13 focused Bun tests pass, including deterministic replay of each
+policy against an unchanged control, real housing-improvement evidence in the
+existing contract suite, input boundaries, missing observations and budget
+eligibility. `git diff --check` passes. Added browser test covers live totals,
+over-budget rejection, real worker replay, matched provenance and stale-result
+clearing, but execution is unverified: repository Playwright server startup fails
+with EADDRINUSE on both 3100 and alternate 3191. No deployment or publication.
+Next action: run `bunx playwright test test/e2e/district-allocation.e2e.js` in a
+host that permits the configured local servers, then review the UI result.
