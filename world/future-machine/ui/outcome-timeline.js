@@ -45,7 +45,7 @@ export function createOutcomeTimeline(container,{history,onMonth}={}) {
   const note=node('p');note.className='fm-outcome-note';
   const details=node('details'),scroll=node('div'),table=node('table');scroll.className='fm-outcome-scroll';details.append(node('summary','Exact recorded values and month selection'),scroll);scroll.append(table);
   shell.append(style,node('h2','How outcomes diverge'),label,modeLabel,legend,chart,summary,note,details);container.append(shell);
-  const household=createHouseholdTimeline(shell,{history,onMonth});
+  const household=createHouseholdTimeline(shell,{history,onMonth:next=>{update(next,{announce:true});onMonth?.(next);}});
   function choose(next){if(disposed)return;const row=series.get(key)[next];if(!row || (row.baseline===null&&row.plan===null))return;update(next,{announce:true});onMonth?.(next);}
   let cursor,highlight,highlightTitle,position;
   function renderChart(rows){

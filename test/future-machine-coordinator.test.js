@@ -17,7 +17,7 @@ import {assertFrameIntegrity} from '../world/future-machine/integrity.js';
 const source=await readFile(new URL('../world/future-machine/main.js',import.meta.url),'utf8');
 const deferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};};
 function historyFor(recipe=DEFAULT_RECIPE,id='city_coordinator'){
- const snapshots=()=>Array.from({length:121},(_,month)=>({month,state:{households:[],buildings:[],provenance:{assumptions:[]}},metrics:{},events:[],causalRecords:[],decisions:[]}));
+ const snapshots=()=>Array.from({length:121},(_,month)=>({month,state:{month,seed:recipe.seed,version:recipe.modelVersion,households:[],buildings:[],projects:[],provenance:{assumptions:[]}},metrics:{},events:[],causalRecords:[],decisions:[]}));
  return {schemaVersion:'future-machine.v1',modelVersion:recipe.modelVersion,seed:recipe.seed,recipe:structuredClone(recipe),experimentId:id,initialHash:'fixture-only',baseline:snapshots(),plan:snapshots(),provenance:{}};
 }
 const diffFor=month=>({month,available:true,changedCount:month>=16?1:0,physicalCount:month>=16?1:0,entities:month>=16?[{...first.entity,kind:'added',before:null,after:{id:first.entity.id},changedFields:['id'],physical:true}]:[],metrics:{housingUnits:{baseline:36,plan:month>=16?60:36,delta:month>=16?24:0,unit:'homes',status:'available'}}});
@@ -56,7 +56,7 @@ async function boot(options={}){
    let backend=gate?'pending':options.renderer??'canvas2d';
    let camera=structuredClone(options.camera??{x:0,z:0,zoom:1});
    const stage={onSelect,onCameraInteraction,history,disposed:false,shots:[],frames:[],restored:[],transition:false,cancellations:0,
-    setMode:noop,setGhosts:noop,resetCamera:noop,update(frame,diff){this.frames.push({frame:structuredClone(frame),diff:structuredClone(diff)});},
+    setMode:noop,setGhosts:noop,resetCamera:noop,update(frame,diff){if(frame)assertFrameIntegrity(frame);this.frames.push({frame:structuredClone(frame),diff:structuredClone(diff)});},
     focus(entity,settings={}){this.shots.push({entity:structuredClone(entity),...settings});this.transition=Boolean(settings.animate);return true;},
     cancelCamera(){this.transition=false;this.cancellations++;},getCamera:()=>structuredClone(camera),
     setCamera(value){if(options.compatibleCamera===false)return false;camera=structuredClone(value);this.restored.push(camera);return true;},
@@ -395,6 +395,12 @@ test('initial preview renders actual Month 0 inventory without claiming complete
   expect(app.stages[0].frames.at(-1)).toEqual({frame:app.state.frame,diff:null});
   expect(app.description.title).toContain('initial snapshot');expect(app.description.evidence).toEqual([]);
   expect(app.updates.at(-1).preview).toBe(true);expect(app.followUpState.history).toBeNull();
+  expect(app.state.frame.baseline.metrics).toEqual({});expect(app.receiptCallbacks.getContext().history).toBeNull();
+  const id=app.state.frame.plan.state.buildings[0].id;app.stages[0].onSelect({collection:'buildings',id,arm:'invalid'});
+  expect(app.stages[0].shots).toEqual([]);
+  app.stages[0].onSelect({collection:'buildings',id,arm:'plan'});
+  expect(app.description.title).toBe(`Initial snapshot · ${id}`);expect(app.description.evidence).toEqual([]);
+  expect(app.window.futureMachine.firstPlayEvents.some(row=>['demo_start','first_divergence','why_opened'].includes(row.event.type))).toBe(false);
  }finally{app.dispose();}
  expect(app.state.frame).toBeNull();expect(app.stages[0].disposed).toBe(true);
 });
@@ -435,5 +441,34 @@ test('cancel retains initial inventory and ignores a late result without restori
   pending.resolve(historyFor());await playing;await app.drain();app.tick(50000);
   expect(app.state.frame).toEqual(initial);expect(app.window.futureMachine.history).toBeNull();
   expect(app.state.playing).toBe(false);expect(app.window.futureMachine.stats.demoTiming).toBeNull();
+ }finally{app.dispose();}
+});
+
+test('editing initial preview preserves pending draft and prevents late autoplay when the original pair finishes',async()=>{
+ const pending=deferred(),app=await boot({create:()=>pending.promise});
+ try{
+  const playing=app.callbacks.onDemo();await app.drain();
+  const draft={...DEFAULT_RECIPE,seed:99};app.callbacks.onConfigure(draft);
+  expect(app.state.frame.plan.state.seed).toBe(99);expect(app.state.preview).toBe(true);
+  pending.resolve(historyFor(DEFAULT_RECIPE));await playing;await app.drain();
+  expect(app.state.preview).toBe(false);expect(app.state.recipe).toEqual(draft);
+  expect(app.window.futureMachine.history.recipe).toEqual(DEFAULT_RECIPE);expect(app.updates.at(-1).comparisonRecipe).toEqual(DEFAULT_RECIPE);
+  expect(app.state.provenance.seed).toBe(42);expect(app.state.demo.status).toBe('manual');expect(app.state.playing).toBe(false);
+ }finally{app.dispose();}
+});
+
+
+
+test('reset during initial preparation keeps the original draft when useful nondefault work completes',async()=>{
+ const pending=deferred(),app=await boot({create:()=>pending.promise});
+ try{
+  const revised={...DEFAULT_RECIPE,seed:99},running=app.callbacks.onRun(revised);await app.drain();
+  expect(app.state).toMatchObject({status:'loading',preview:true});expect(app.state.frame.plan.state.seed).toBe(99);
+  app.callbacks.onReset();await app.drain();
+  expect(app.state.recipe).toEqual(DEFAULT_RECIPE);expect(app.state.frame.plan.state.seed).toBe(42);
+  pending.resolve(historyFor(revised,'city_pending_reset'));await running;await app.drain();
+  expect(app.state.recipe).toEqual(DEFAULT_RECIPE);expect(app.window.futureMachine.history.recipe).toEqual(revised);
+  expect(app.updates.at(-1).comparisonRecipe).toEqual(revised);expect(app.state.provenance.seed).toBe(99);
+  expect(app.state.preview).toBe(false);expect(app.state.playing).toBe(false);
  }finally{app.dispose();}
 });

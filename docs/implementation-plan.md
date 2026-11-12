@@ -7862,3 +7862,53 @@ routes, six guests/three groups, two separate group reactions, spend/dialogue
 persistence, safe household return and no horizontal overflow at390px/320px.
 WebGL was deliberately disabled for fallback verification; native GPU visuals
 were not reverified. No deployment or Symphony mutation. Hosted CI gates merge.
+
+
+## Post-merge compatibility follow-up — November 12, 2026
+
+PR #276 integrated the 35 original heads #240–#274 and PR #277 reconciled the
+sprint into main while a separate local integration review was completing. This
+follow-up starts from that actual main commit, ab4358f, and carries forward only
+verified missing compatibility corrections. It does not replace the main tree
+with the parallel integration tree.
+
+The frozen city-challenge.v1 cap is actual cumulative capital expense within the
+recorded horizon. Candidate UI verification must therefore allow a planned
+12,000 housing project delayed ten months in a two-month, zero-cap challenge;
+the actual worker records zero capital spending. The UI now validates the selected
+actions and lets replay enforce the frozen cap, with explicit planned-versus-actual
+copy. The new reference-plan authoring guard remains. A regression imports the
+exact frozen file through the actual panel handler, selects housing, clicks Verify
+and awaits verification.worker.js, asserting unchanged terms and the recorded
+not-beaten result. The old UI rejection was reproduced before the correction.
+
+The current WHY report now records the final evidence.js source digest. All
+thirteen audited source files match the verified generation, and all six
+deterministic run measurements, manifests, state and ledger digests are unchanged.
+The first two-file command hit Bun's default five-second allowance in the existing
+long replay audit; rerunning with the protocol's documented 60-second allowance
+passed all seven tests / 81 assertions. No test deadline or model rule was changed.
+
+
+### Combined compatibility verification on current main
+
+The current-main follow-up combines the saved-challenge correction with focused
+Future Machine fixes for pending preview configuration, manual takeover, exact
+preview arm selection, initial-preview year guards, shared renderer disposal,
+repeated fallback handling, deduplicated live announcements and synchronized
+household selection. Main's additional City Lab lifecycle fix, stronger replay
+and screenshot assertions, explicit preview provenance, stale-receipt guard,
+separate visual household values and final history-reference cleanup remain.
+The device-loss Playwright configuration's import.meta/CommonJS loading error
+was reproduced and the minimal loader-compatible directory resolution collects
+both device-loss journeys.
+
+Final combined selection: 123 passed, two optional browser cases skipped, zero
+failed, 1,031 assertions across 22 files. This includes actual saved replay and
+receipt/challenge preservation, the new imported-file UI/worker regression,
+main's City Lab lifecycle check and all six deterministic WHY audit runs. Both
+changed browser entrypoints compile; the UI group collected 24 browser journeys
+across five configurations and parsed all eleven changed JavaScript files.
+Browser discovery is not browser execution: the previously observed Chromium
+socket EPERM remains the execution limit. No graphics-loss, visual or device
+performance result is claimed.

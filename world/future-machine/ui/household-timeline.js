@@ -33,21 +33,29 @@ export function createHouseholdTimeline(container,{history,onMonth}={}) {
   const shell=node('section');shell.setAttribute('aria-label','Household change timeline');
   const label=node('label','City household '),select=node('select');select.setAttribute('aria-label','Timeline household');label.append(select);
   const ids=[...new Set(['baseline','plan'].flatMap(arm=>(history[arm]??[]).flatMap(s=>s?.state?.households?.map(h=>h.id)??[])))].sort();
-  for(const id of ids){const option=node('option',id);option.value=id;select.append(option);}
+  for(const id of ids){const option=node('option',id);option.value=id;select.append(option);}select.value=ids[0]??'';
   let rows=ids.length?householdTimeline(history,ids[0]):[],month=0,disposed=false;
   const provenance=node('p',`RUN ${history.experimentId??'Unavailable'} · SEED ${history.seed??'Unavailable'} · MODEL ${history.modelVersion??'Unavailable'}`);
-  const values=node('p');values.style.whiteSpace='pre-line';
+  const values=node('p');values.className='fm-household-values';values.style.whiteSpace='pre-line';
   const announcement=node('span');announcement.setAttribute('aria-live','polite');announcement.dataset.householdAnnouncement='true';announcement.style.cssText='position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap';
   const previous=node('button','Previous household change'),next=node('button','Next household change');previous.type=next.type='button';
   const table=node('table'),head=node('tr');for(const text of ['Recorded month','WITHOUT PLAN changes','WITH PLAN changes'])head.append(node('th',text));table.append(head);
   const body=node('tbody');table.append(body);const details=node('details');details.append(node('summary','All recorded household changes'),table);
   shell.append(node('h2','One household, two futures'),label,provenance,previous,next,values,announcement,details,node('p','Synthetic monthly City observations, including recomputed history. Changes compare adjacent observed months; missing months and unmatched households are unavailable. Unit IDs are City homes, with no House Simulator mapping. Changes alone do not establish cause.'));container.append(shell);
-  const stops=()=>rows.filter(row=>row.changes.some(list=>list.length));
-  function update(value,{announce=false}={}){if(disposed)return;assertMonth(value);month=value;const row=rows[month];const format=arm=>{const v=row?.[arm];return v?`Home ${v.unitId??'Unavailable'} · income ${v.income??'Unavailable'} USD/month · savings ${v.savings??'Unavailable'} USD · rent ${v.rent??'Unavailable'} USD/month`:'Unavailable — no matched observation';};values.textContent=`${select.value||'No households'} · Month ${month}\nWITHOUT PLAN: ${format('baseline')}\nWITH PLAN: ${format('plan')}`;if(announce&&announcement.textContent!==values.textContent)announcement.textContent=values.textContent;previous.disabled=!stops().some(r=>r.month<month);next.disabled=!stops().some(r=>r.month>month);}
+  let changeStops=[];
+  function update(value,{announce=false}={}){
+    if(disposed)return;assertMonth(value);month=value;
+    const row=rows[month];
+    const format=arm=>{const v=row?.[arm];return v?`Home ${v.unitId??'Unavailable'} · income ${v.income??'Unavailable'} USD/month · savings ${v.savings??'Unavailable'} USD · rent ${v.rent??'Unavailable'} USD/month`:'Unavailable — no matched observation';};
+    const text=`${select.value||'No households'} · Month ${month}\nWITHOUT PLAN: ${format('baseline')}\nWITH PLAN: ${format('plan')}`;
+    if(values.textContent!==text)values.textContent=text;
+    if(announce&&announcement.textContent!==text)announcement.textContent=text;
+    previous.disabled=!changeStops.some(row=>row.month<month);next.disabled=!changeStops.some(row=>row.month>month);
+  }
   function choose(value){if(disposed)return;update(value,{announce:true});onMonth?.(value);}
-  function render({announce=false}={}){body.replaceChildren();for(const row of stops()){const tr=node('tr'),cell=node('td'),button=node('button',String(row.month));button.type='button';button.onclick=()=>choose(row.month);cell.append(button);tr.append(cell,...row.changes.map(list=>node('td',list.join(', ')||'No recorded change')));body.append(tr);}update(month,{announce});}
-  previous.onclick=()=>{const stop=stops().filter(r=>r.month<month).at(-1);if(stop)choose(stop.month);};
-  next.onclick=()=>{const stop=stops().find(r=>r.month>month);if(stop)choose(stop.month);};
-  select.onchange=()=>{rows=householdTimeline(history,select.value);render({announce:true});};select.disabled=!ids.length;render();
-  return {update,dispose(){disposed=true;select.onchange=previous.onclick=next.onclick=null;shell.remove();}};
+  function render(){changeStops=rows.filter(row=>row.changes.some(list=>list.length));body.replaceChildren();for(const row of changeStops){const tr=node('tr'),cell=node('td'),button=node('button',String(row.month));button.type='button';button.onclick=()=>choose(row.month);cell.append(button);tr.append(cell,...row.changes.map(list=>node('td',list.join(', ')||'No recorded change')));body.append(tr);}update(month,{announce:true});}
+  previous.onclick=()=>{const stop=changeStops.filter(row=>row.month<month).at(-1);if(stop)choose(stop.month);};
+  next.onclick=()=>{const stop=changeStops.find(row=>row.month>month);if(stop)choose(stop.month);};
+  select.onchange=()=>{if(disposed)return;rows=householdTimeline(history,select.value);render();onMonth?.(month);};select.disabled=!ids.length;render();
+  return {update,dispose(){if(disposed)return;disposed=true;select.onchange=previous.onclick=next.onclick=null;shell.remove();}};
 }
