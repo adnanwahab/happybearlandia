@@ -543,6 +543,28 @@ Fresh clean-package gate:92tests passed; latest installed-host164passed
 (other owners expanded the suite after the earlier106-test pass). Private readback
 `/private/tmp/hbl-workpad-oversize-repair/`; no live hook invocation/issue mutation.
 
+### Open PR browser and explicit isolated revision previews
+
+Implement `/github` open-only pagination (25/page), detail and explicit SHA-checked
+preview admission. Metadata GETs never provision. A durable SQLite queue feeds a
+separate trusted runner, one preparation/two runtimes, with immutable identities,
+restart reconciliation, bounded retention and authenticated same-origin creation.
+Local Docker guests receive no host source/data/credentials and no outbound network;
+Fly uses a separately activated secretless provider, never production builds/data.
+Acceptance: exact SHA backend/frontend, real local application browser rendering,
+concurrent/restart deduplication and failure/security tests. No Symphony edits.
+Risks: Docker/network/dependency availability and Fly isolation/budget activation.
+Fly live verification remains explicitly pending operator activation. Use current
+verified sprint baseline173f953; open one draft PR, no merge/deployment.
+
+Implemented slice: open-only paginated metadata/detail UI, explicit SHA conflict
+check, capability/origin gates, SQLite durable queue and OS-locked separate runner,
+network-none local provider/HTTP-WS relay, Fly adapter/trusted build/firewall recipe.
+Existing authenticated gh read transport returned8openPRs. ActualPR40 data-only
+preparation succeeded; real local Docker/browser rendering is BLOCKED by host
+pressure/headroom guard. Fly live activation is PENDING budget/isolation review.
+Focused tests and390px Chromium UI smoke passed; see docs/github-preview-evidence.md.
+Do not call fixture providers or source preparation a completed rendering milestone.
 ## Improvement services: first shared slice — November 11, 2026
 
 Audit actual sprint33e84c3, active worktrees, host workflow, CI and Linear before
@@ -634,3 +656,13 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+### PR45 conflict resolution — November 12, 2026
+
+Resolved the append-only implementation-plan conflict by retaining both the
+preview feature record and the sprint's newer implementation/evidence sections.
+No preview runtime behavior changed during resolution. Combined-head validation:
+35 focused preview/provider/navigation tests passed (294 assertions); Chromium
+390px UI smoke passed with mocked metadata, XSS checks and one explicit preview
+POST. Live Docker/Fly rendering remains unverified and providers remain subject
+to their documented activation gates. User explicitly authorized PR45 merge.
