@@ -1,5 +1,35 @@
 # HappyBearLandia implementation plan
 
+## Queued simulation cancellation — SHE-81 (2026-11-12)
+
+Delivered a bounded slice on the existing isolated `mini/SHE-81` checkout.
+Prerequisites/audit: Worker pool already removes queued tasks and rejects their
+promises; Population Studio already queues replacement futures behind active-job
+settlement. GitHub cancellation search found PR26 (City replay lifetime), a
+different boundary; local branch inventory and Linear SHE81 show an incomplete
+historical audit rather than a delivered cancellation PR. No new queue/API/model
+was introduced. Ownership: worker pool lifecycle, Studio runner and focused tests.
+
+Acceptance tasks completed: verify immediate admission-capacity release and
+drain after queued cancellation; ignore retired-worker errors; invalidate queued
+Studio replacements and reject late active results after cancel/supersession.
+Saved results remain caller-owned. The runner now rejects superseded active
+calls as well as pending replacements; existing generation checks remain intact.
+Risks: cancellation is local to these runtime instances, not persisted server
+jobs; injected event tests establish race handling, not browser rendering.
+
+Evidence: `bun test test/queued-simulation-cancel.test.js
+test/worker-platform.test.js test/population-studio.test.js` passed 27 tests,
+147 assertions, 0 failures (8.62s). The new test file is the reproducible run
+artifact: real echo worker for bounded admission, injected retired-worker events,
+and deferred Studio settlement with seed42 requests and retained-result checks.
+Existing real seeded paired simulation/replay tests also passed. No model rules
+or stochastic data changed. Focused integration checks cover the browser-facing
+runner; full browser rendering remains unverified. No lint/typecheck script is
+defined in package.json. Node syntax checks for both changed modules and
+`git diff --check` passed. Publication/commit reference remains pending; no merge,
+deployment, production mutation or dispatch-label change was performed.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
