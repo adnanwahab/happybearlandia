@@ -527,3 +527,44 @@ Acceptance/evidence and operator recovery: docs/symphony-workpad-oversize-repair
 Fresh clean-package gate:92tests passed; latest installed-host164passed
 (other owners expanded the suite after the earlier106-test pass). Private readback
 `/private/tmp/hbl-workpad-oversize-repair/`; no live hook invocation/issue mutation.
+
+## Improvement services: first shared slice — November 11, 2026
+
+Audit actual sprint33e84c3, active worktrees, host workflow, CI and Linear before
+implementation. Reuse merged SHE180 PR30/31/37, existing replay/benchmark artifacts
+and current one-worker, dual-label resource hold. SHE7 is absent; SHE52/SHE120
+are incomplete and overlap. Simulation feedback presentation is not consented
+player collection. Existing research worktrees contain experiments, not an
+OpenAlex/Crossref acquisition service. Preserve all of these owners and stores.
+
+Central owner: this branch alone owns new ops/improvement core schema, private
+SQLite proposal inbox, atomic receipts/cursors/budgets, CLI and read-only adapter
+to existing coordinator reports. It stores proposed work, not simulation runs.
+The default dry-run must not create state or contact services; --record writes
+only the local inbox. Neither mode executes proposed test argv or grants labels.
+
+Three separately owned follow-ons were created under existing product issues:
+SHE246 (parent185), research metadata/cache in ops/improvement/research/;
+SHE247 (parent189), evidence normalization in evaluation/;
+SHE248 (parent196), consented aggregate triage in feedback/. Each owns its module,
+fixtures and tests only, can test with an injected sink, and waits for the shared
+contract before integrated handoff. No execution approval or live activation.
+
+Acceptance for this slice: strict versioned source/hypothesis/acceptance/test/
+dependency/dedup validation; transactional proposal + cursor ingestion; replay
+and conflicting-revision behavior; durable restart and intake limits; no lost
+cursor on failure; private state; dry-run zero filesystem/remote mutations;
+existing-issue/PR/dependency hold projection from fresh complete coordinator
+reports. Source references are structurally checked, not factual verification.
+Paper retrieval, CI execution, feedback collection and live services are later
+phases. Delivered core has 25 passing focused tests (independently rerun) and
+150 passing existing coordinator regressions. A dedicated CI job runs the new
+contracts. Real SHE180 dry-run scanned 178 issues with no selections. Actual CLI
+default dry-run created no state; local record stored one proposal/checkpoint;
+restart replay produced zero new proposals; final dry-run left DB bytes/mtime
+unchanged. Existing SHE141 delivery was held rather than duplicated. Source
+hashes and sanitized observations: docs/evidence/improvement-intake-smoke.json.
+Independent review's corrupt-receipt finding was fixed and regression-tested.
+No browser behavior changed; local Playwright is not applicable. Draft PR and
+hosted CI are pending. Next tasks are SHE-246, SHE-247 and SHE-248; no execution
+labels or persistent service activation were applied.
