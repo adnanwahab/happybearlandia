@@ -330,3 +330,25 @@ follow `update(month,{announce:true})` only for manual selection. Autoplay does
 not announce each household frame; household navigation and selector changes
 announce the requested observation. The retained chart keeps its existing cursor
 and manual-only summary behavior.
+
+## SHE-266 synthetic family cards
+
+`family-card.js` derives presentation identities from `family.v1:<seed>:<City ID>`;
+names and procedural faces do not mutate or describe real people. The main UI
+replaces the older visible household inspector with this paired card, retaining
+its lower-level interface for compatibility. Rank once per history by maximum
+absolute rent/income difference over matched months, then City ID for ties;
+missing matched burdens rank last. Selection remains fixed during playback.
+No occupation is invented from the seed. Household size is the recorded size.
+
+Each numeric card link opens the current month's exact household, reciprocally
+occupied unit, building and observation with run/seed/model/arm. Monthly bar
+buttons open that exact month's records without changing the shared clock.
+Burden uses positive recorded income; gaps and invalid joins stay unavailable.
+Bars clip visually at 100%, while their accessible labels retain exact ratios.
+Moved/stayed compares the current exact unit with Month 0, not every intervening
+move. Names/avatars are synthetic; outcomes are uncalibrated model observations.
+`onFollowFamily(id|null)` only controls presentation. The stage resolves each
+arm's household → occupied unit → building on every frame and highlights both
+recorded buildings, including different buildings after a move. Unmapped homes
+remain unhighlighted. Camera and simulation playback are unchanged.

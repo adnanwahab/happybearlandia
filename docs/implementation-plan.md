@@ -7922,3 +7922,33 @@ test/world-user-fixes.test.js still reports 32 homepage carousel sections versus
 33 registered experiences. The identical failure was reproduced using exact
 118aad baseline inputs; this existing catalog mismatch was not changed by PR278.
 No simulation, seed, runtime, gallery, or target-branch changes were made.
+
+## SHE-266 — synthetic Future Machine families (2026-11-12)
+
+Next integrated slice: deterministic seed/City-ID identities and procedural faces,
+paired burden cards linked to exact monthly household/unit records, fixed ordering
+by maximum matched monthly burden difference, and follow highlights resolved from
+each arm's occupied unit to its recorded building on the shared playback clock.
+Own only family presentation, coordinator wiring, scene selection, focused tests
+and documentation in clean isolated `mini/SHE-266`. No independent worker tasks;
+one worker as authorized. Existing raw household inspector remains available.
+Prerequisites: existing paired history, reciprocal occupancy and building IDs.
+Acceptance: identity replay stability, no invented job or missing observations,
+exact record links, different arm buildings after moves, existing app tests and
+browser smoke. Risks: synthetic identity is presentation only; absent building
+mappings must remain unhighlighted; one modeled pair is not empirical causality.
+Remote main audited through GitHub (fbdce9e8); local fetch blocked by shared Git
+metadata permissions. No SHE-266 PR found. Labels already present in Linear.
+
+SHE-266 implemented: versioned seeded names/faces; exact-record paired burden,
+home and moved/stayed cards; monthly record-linked bars; fixed burden-difference
+ranking; follow highlights separately resolved in both scene arms and updated by
+the existing clock. Main UI and secondary timeline picker use synthetic names.
+No model rules or state generation changed. See `docs/reviews/SHE-266.md` for
+source contracts, remote-main audit, scope limits and next action.
+Verification: 68 passed / 1 browser opt-in skipped / 0 failed, 929 assertions;
+browser entry bundle passed. Playwright attempted twice, blocked before launch
+by Bun listen EADDRINUSE on ports 39884 and 41967. Visual/GPU/mobile acceptance
+remains unverified. Current remote main has unrelated newer coordinator/scene
+fixes to preserve during integration; fetch/rebase/commit are unavailable because
+shared Git metadata is outside writable roots. No merge or deployment.

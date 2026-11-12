@@ -1,3 +1,4 @@
+import {mountFamilyCard} from './family-card.js';
 import {mountControlReadiness} from '../../onboarding/first-run-repairs.js';
 
 import {PLAYABLE_RECIPES} from '../recipes.js';
@@ -72,7 +73,7 @@ export function mountFutureMachineUI(root, options = {}) {
   }
   shell.append(cards,node('p','Differences are WITH PLAN − WITHOUT PLAN at the selected month. Capital spending is cumulative cost, not a welfare gain; homes count recorded housing units. One paired synthetic run uses a shared seed, not an uncertainty interval. Uncalibrated assumptions and seed variation can change results; these values are not an empirical forecast.','fm-detail fm-metric-limits'));
   const inspectors=node('section',undefined,'fm-inspectors');
-  const householdPanel=node('section'), household=node('select'), householdBody=node('pre');
+  const householdPanel=node('section',undefined,'fm-household-legacy'), household=node('select'), householdBody=node('pre');
   const householdSummaryNode=node('p',undefined,'fm-household-summary'),householdRaw=node('details');householdRaw.append(node('summary','Inspect exact household records'),householdBody); household.setAttribute('aria-label','Monthly City household');
   householdPanel.append(node('h2','Household outcomes'),household,householdSummaryNode,householdRaw);
   const evidencePanel=node('section'), evidence=node('pre'); const evidenceRaw=node('details');evidenceRaw.append(node('summary','Inspect run and comparison record'),evidence);evidencePanel.append(node('h2','Evidence inspector'),node('p','Click a changed building or WHY on a measured outcome to inspect its recorded event, policy and model rule.'),evidenceRaw);
@@ -150,6 +151,8 @@ export function mountFutureMachineUI(root, options = {}) {
 export function createUI(container, callbacks = {}) {
   let current={status:'idle',month:0,playing:false,mode:'split',ghosts:true};
   let recipe=structuredClone(DEFAULT_RECIPE), configurationDirty=false;
+  const familyHost=container.ownerDocument.createElement("div");
+  const family=mountFamilyCard(familyHost,{onFollow:callbacks.onFollowFamily});
   const view=mountFutureMachineUI(container,{
     externalPlayback:true,
     onFork:()=>{if(!configureSeed())throw new Error(seedError.textContent);if(!configureAmount())throw new Error(amountInput.validationMessage);return callbacks.onRun?.(structuredClone(recipe));},
@@ -307,6 +310,7 @@ export function createUI(container, callbacks = {}) {
       const metric=current.preview?null:current.diff?.metrics?.[source];
       metrics[key]=metric?{provenance:MONTHLY_CITY_PROVENANCE,...comparisonMetric(metric),note:key==='rent'?'All recorded units, including new inventory; not incumbent rent savings.':key==='spending'?'Cumulative capital spending in USD; cost is not a welfare gain.':undefined}:null;
     }
+    family.update(current);
     const a=current.frame?.baseline?.state?.households||[],b=current.frame?.plan?.state?.households||[];
     const ids=[...new Set([...a,...b].map(row=>row.id))].sort();
     const households=ids.map(id=>({id,label:`City household ${id}`,baseline:a.find(row=>row.id===id)??null,plan:b.find(row=>row.id===id)??null,baselineHousing:householdObservation(a.find(row=>row.id===id),current.frame?.baseline?.state?.units),planHousing:householdObservation(b.find(row=>row.id===id),current.frame?.plan?.state?.units)}));
@@ -341,5 +345,7 @@ export function createUI(container, callbacks = {}) {
     shareLink.hidden=!current.shareURL;
     if(current.shareURL){try{const url=new URL(current.shareURL,doc.baseURI);if(['http:','https:'].includes(url.protocol)){shareLink.href=url.href;copyURL.value=url.href;copyLabel.hidden=false;}else{shareLink.removeAttribute('href');shareLink.hidden=true;}}catch{shareLink.removeAttribute('href');shareLink.hidden=true;}}
   }
-  return {stageElement:view.stage,storyElement,update,dispose(){copyShare.onclick=null;previewOpen.onclick=null;reset.onclick=null;autoCamera.onchange=null;retry.onclick=null;constructionWhy.onclick=null;remember.onclick=null;clear.onclick=null;amountInput.oninput=null;browserShare.onclick=null;copyURL.onfocus=null;seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;demoSkip.onclick=null;demoManual.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
+  view.stage.after(familyHost);
+  container.querySelector('.fm-household-legacy').hidden=true;
+  return {stageElement:view.stage,storyElement,update,dispose(){family.dispose();familyHost.remove();copyShare.onclick=null;previewOpen.onclick=null;reset.onclick=null;autoCamera.onchange=null;retry.onclick=null;constructionWhy.onclick=null;remember.onclick=null;clear.onclick=null;amountInput.oninput=null;browserShare.onclick=null;copyURL.onfocus=null;seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;demoSkip.onclick=null;demoManual.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
 }
