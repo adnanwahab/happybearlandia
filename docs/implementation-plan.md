@@ -1003,3 +1003,34 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-226 — One Life, Many Worlds prototype
+
+Implemented in City Lab → Enter future. Select one shared-initial-state household
+in a completed two-arm, Month 0 → 120 experiment with at least 30 runs. Replay
+indices 0–29 sequentially, verify endpoint seed/time and household/home identity,
+and render endpoint fans plus exact home, savings and burden rows. Selection
+changes abort the old collection; cancellation and API errors discard partial
+results. No cross-model or cross-city joins, new storage or model changes.
+
+Acceptance evidence: `bun test test/city-life.test.js test/city-worker-call.test.js`
+passed 13 tests / 93 assertions, covering sequential collection, paired seeds,
+uint32 wraparound, identity/time failures, departures and variance decomposition,
+plus real replay-worker/API regressions. Added browser fixture flow in
+`test/e2e/city-life.e2e.js`; Playwright setup blocked by server EADDRINUSE on both
+3100 and alternate 3416, so browser rendering remains unverified. Fixture browser
+test uses synthetic replay responses; a real 60-replay performance/user study is
+still needed. No claim that policy beats luck or the success signal is achieved.
+
+Descriptive population variance splits balanced complete pairs into variance of
+the two arm means (policy) and mean within-arm variance (luck); show mean paired
+change separately. Missing/departed outcomes and undefined burdens are explicit
+and excluded with complete-pair N. Informative departure may bias this subset.
+The default lab horizon/run count is unchanged; use summary retention, 30 runs
+and 120 months for this prototype. Existing workload and two-job server limits
+remain authoritative. Next: real saved-run browser/performance validation and
+user assessment of whether this endpoint view yields a stable resident story.
+
+Additional integration gate: 24 tests / 134 assertions passed across city-life,
+city-systems, project-unblock and server-civic-api; includes SQLite persistence
+and real create/poll/query/export/replay API journey. `git diff --check` passed.

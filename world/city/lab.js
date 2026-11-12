@@ -1,6 +1,8 @@
+import {mountLife} from './life.js';
 import {mountProjectUnblock} from './unblock-view.js';
 import {createCityFromArea} from './seed.js';
 const $=id=>document.getElementById(id);
+const life=mountLife($('many-worlds'));
 const unblock=mountProjectUnblock($('project-unblock'));
 let replaySource=null;
 let selected=null,pollTimer=null,imported=null,replay=null,requestGeneration=0;
@@ -20,7 +22,7 @@ function status(message,error=false){$('status').textContent=message;$('status')
 function options(target,rows,value,label){$(target).replaceChildren(...rows.map(row=>{const el=document.createElement('option');el.value=value(row);el.textContent=label(row);return el;}));}
 async function saved(){const {experiments}=await api('/api/city-experiments');$('saved').replaceChildren(...experiments.map(e=>{const button=document.createElement('button');button.textContent=`${e.experiment_id.slice(0,16)} · ${e.status}`;button.onclick=()=>select(e.experiment_id);return button;}));}
 async function select(id) {
-  selected=id;replay=null;replaySource=null;unblock.update(null);$('replay-summary').replaceChildren();$('replay-events').replaceChildren();$('replay-decisions').replaceChildren();$('replay-flows').replaceChildren();
+  life.update(null);selected=id;replay=null;replaySource=null;unblock.update(null);$('replay-summary').replaceChildren();$('replay-events').replaceChildren();$('replay-decisions').replaceChildren();$('replay-flows').replaceChildren();
   const generation=++requestGeneration;clearTimeout(pollTimer);history.replaceState(null,'',`?experiment=${id}`);
   try {
     const tables=await api(`/api/experiments/${id}/tables`);if(generation!==requestGeneration)return;
@@ -35,6 +37,7 @@ async function refresh(generation=requestGeneration) {
     status(`${result.manifest.title} · ${result.status} · ${result.completed} / ${result.total} futures${result.error?' · '+result.error:''}`,!!result.error);
     const comparison=new Map();for(const row of result.metrics){if(!comparison.has(row.metric_id))comparison.set(row.metric_id,{metric:row.metric_id});comparison.get(row.metric_id)[row.scenario_id]=`${n(row.mean_value)} (${n(row.minimum)}–${n(row.maximum)})`;}
     table('metrics',[...comparison.values()]);options('replay-scenario',result.manifest.scenarios,s=>s.id,s=>s.id);$('replay-index').max=result.manifest.runs-1;
+    if(!['queued','running'].includes(result.status))life.update(result,id);
     const lineage=await api(`/api/experiments/${id}/lineage`);if(generation!==requestGeneration)return;
     $('manifest').textContent=JSON.stringify(lineage,null,2);$('dependencies').replaceChildren(...lineage.dependencyGraph.map(d=>{const p=document.createElement('p');p.textContent=`${d.dependsOn.join(' + ')||'Clock / external inputs'} → ${d.system}`;return p;}));
     const events=await api(`/api/experiments/${id}/query`,{sql:'SELECT system, event_type, COUNT(*) AS events FROM system_events GROUP BY system, event_type ORDER BY events DESC'});if(generation!==requestGeneration)return;table('events',events.rows);
