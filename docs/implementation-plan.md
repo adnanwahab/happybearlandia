@@ -1003,3 +1003,39 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-161 — occupancy versus recorded interaction heatmap
+
+Delivered a read-only Living City overview panel, backed by the same worker
+snapshot and clock as the rest of the view. Ownership: new city-heatmap module,
+model snapshot field, world-view mounting, focused tests and this plan entry.
+Residential occupancy counts every synthetic resident at their assigned home,
+falling back to their district anchor when building records are absent. It
+separately sums represented residents; a million represented residents does not
+mean a million independently simulated people. Activity counts recorded hotspot
+encounters once each in (minute - 30, minute], without population expansion.
+Retained encounters are bounded to 120 citywide; the UI explicitly reports that
+this is incomplete when retention removes records. This slice does not claim
+coverage of every kind of model interaction. Missing older snapshot data shows
+unavailable. No simulation commands or new causal claims are introduced.
+
+Acceptance: deterministic fixture verifies home sums, representation weights,
+window boundaries, future exclusion and unmapped encounters; real model tests
+verify sample-independent counts and seed-matched projection. SVG uses native
+browser rendering with a numeric text summary, independent of WebGL/GPU support.
+Schematic coordinates are model coordinates, not a geographic basemap. Each
+measure normalizes by its displayed maximum (shown numerically); these intensities
+must not be compared as shared physical units across measures or timestamps.
+Existing checkpoint selection supplies the snapshot timestamp; no separate
+history archive or encounter completeness guarantee is added.
+
+Verification: initial regression run found missing building anchors and the
+fallback was corrected. Default 5-second suite timeout expired on the existing
+weekend model test; rerun with 30-second per-test limit recorded below. Browser
+smoke and before/after capture test added, but Playwright server startup failed
+with EADDRINUSE on both 3100 and 3191 in this environment; no browser result or
+recording is claimed. No merge, deployment or production data changes.
+Final numerical/regression result: `bun test --timeout 30000
+ test/city-heatmap.test.js test/population-model.test.js` passed 16/16 tests,
+202 assertions in 9.37 seconds. `git diff --check` passed. Browser acceptance
+and actual before/after recordings remain outstanding because startup is blocked.
