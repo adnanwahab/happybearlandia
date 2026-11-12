@@ -21,3 +21,32 @@ A temporary localhost harness exercised the module in Chromium with the installe
 ## Remaining integration checks
 
 Coordinator should run the real route with City replay data and verify UI-to-stage wiring, responsive framing, director focus, and 120-month playback. Large imported geometries and Safari/device performance are unmeasured. Current integration uses bounded native WebGPU→WebGL→Canvas rendering, then accessible inventory if all contexts fail. AppleMetal native and desktop390/320 Canvas journeys are verified in the sprint status; Safari/device performance remains unmeasured.
+
+## SHE-74 verification — November 12, 2026
+
+The assignment's scene/effects implementation is already integrated in this
+checkout; this verification does not introduce a second implementation or change
+the City model or shared interfaces.
+
+- `bun test test/future-machine-scene.test.js test/building-renderer.test.js`:
+  17 passed, 0 failed, 46 assertions.
+- `bun test test/future-machine-effects.test.js test/future-machine-construction-progress.test.js`:
+  11 passed, 0 failed, 87 assertions. These exercise changed-entity effects,
+  reduced motion, material cleanup, exact project/building identity, and recorded
+  construction observations against the actual monthly engine.
+- The synthetic seed-42 housing recipe (30 initial households, 120 months,
+  district `d1`, 24 homes, 1,000,000 illustrative USD, delay 0, compliance 1;
+  model `city-systems.1.0.0`) first produces
+  `building-project-policy-1-0` at Month 16. The model-backed effects test
+  verifies the +24-home delta. Month 15 records 11/12 construction work and
+  no completed building; Month 16 records completion and actual inventory.
+- Attempted the existing Playwright paired-run, shared-camera/click, and
+  reduced-motion divergence tests with the one-city-two-futures configuration.
+  The server exited before browser execution with `EADDRINUSE` on both ports
+  39974 and 49974. No fresh screenshots, click/resize verification, FPS or GPU
+  memory measurements were obtained. Earlier browser evidence above remains
+  historical evidence, not a result of this verification.
+
+Integration follow-up: rerun those browser checks in an environment where the
+isolated server can bind, retaining Month 0 and Month 16 screenshots and the
+exact-ID selection evidence. No release or deployment was performed.
