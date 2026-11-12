@@ -45,6 +45,21 @@ class LifecycleOverlayTest(unittest.TestCase):
         source = self.root/sorted(o.FILES)[0]; source.unlink(); source.symlink_to(target)
         with self.assertRaises(ValueError): o.install(self.root)
 
+    def test_interrupted_install_can_be_restored_twice_without_losing_newer_edits(self):
+        import os
+        real_replace = os.replace
+        count = [0]
+        def interrupted(*args, **kwargs):
+            count[0] += 1
+            if count[0] == 2: raise OSError('simulated interruption')
+            return real_replace(*args, **kwargs)
+        backup = Path(self.temp.name)/'backup'
+        with patch.object(o.os, 'replace', side_effect=interrupted):
+            with self.assertRaises(OSError): o.install(self.root, backup)
+        self.assertTrue(o.restore(self.root, backup)['restored'])
+        self.assertTrue(o.restore(self.root, backup)['restored'])
+        for name in o.FILES: self.assertEqual((self.root/name).read_text(), 'original\n')
+
     def test_restore_refuses_newer_source(self):
         backup = Path(self.temp.name)/'backup'; o.install(self.root, backup)
         target = self.root/sorted(o.FILES)[0]; target.write_text('later work\n')

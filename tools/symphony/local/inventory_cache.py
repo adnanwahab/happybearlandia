@@ -2,6 +2,7 @@
 
 scanMetrics belong to the original full scan. inventoryCache reports cache age and
 hit status separately; a hit does not mean that the original scan used zero calls.
+Oversized receipts hold observation without deleting/replacing retained evidence.
 """
 import copy
 import json
@@ -14,6 +15,8 @@ import time
 import uuid
 
 import coordinator_host as host
+
+MAX_CACHE_BYTES = 32 * 1024 * 1024
 
 
 class InventoryCache:
@@ -52,24 +55,69 @@ class InventoryCache:
     def _valid_snapshot(cls, snapshot, now):
         if (not isinstance(snapshot, dict) or not isinstance(snapshot.get('issues'), list) or
                 not isinstance(snapshot.get('prs'), list) or
-                not re.fullmatch('[a-f0-9]{40}', str(snapshot.get('baseSha', ''))) or
+                not isinstance(snapshot.get('baseSha'), str) or
+                not re.fullmatch('[a-f0-9]{40}', snapshot['baseSha']) or
                 not cls._timestamp(snapshot.get('scannedAt')) or snapshot['scannedAt'] > now or
                 snapshot.get('partial') is True or snapshot.get('complete') is False):
             return False
-        required = {'id', 'identifier', 'state', 'labels', 'comments', 'blockedBy', 'attachments'}
+        def text(value):
+            return isinstance(value, str) and bool(value.strip())
+
+        def state(value):
+            return isinstance(value, dict) and text(value.get('name'))
+
+        def repository(value):
+            return isinstance(value, dict) and text(value.get('full_name'))
+
+        # Validate the normalized data consumed by classify()/linked()/approve(),
+        # not merely the outer envelope. Corrupt observation receipts must cause
+        # a fresh scan instead of repeatedly failing later classification.
+        required = {'id', 'identifier', 'title', 'description', 'state', 'team',
+                    'labels', 'comments', 'blockedBy', 'relations', 'attachments'}
         for issue in snapshot['issues']:
             if (not isinstance(issue, dict) or not required.issubset(issue) or
-                    not all(isinstance(issue[k], str) and issue[k] for k in ('id', 'identifier', 'state')) or
+                    not all(text(issue[k]) for k in ('id', 'identifier', 'title', 'state')) or
+                    not (issue['description'] is None or isinstance(issue['description'], str)) or
+                    not isinstance(issue['team'], dict) or not text(issue['team'].get('id')) or
                     not isinstance(issue['labels'], dict) or
-                    any(not isinstance(issue[k], list) for k in ('comments', 'blockedBy', 'attachments'))):
+                    any(not text(name) or not text(ident) for name, ident in issue['labels'].items()) or
+                    any(not isinstance(issue[k], list) for k in ('comments', 'blockedBy', 'relations', 'attachments'))):
                 return False
-        if len({i['id'] for i in snapshot['issues']}) != len(snapshot['issues']):
+            if any(not isinstance(comment, dict) or not text(comment.get('id')) or
+                   not isinstance(comment.get('body'), str) for comment in issue['comments']):
+                return False
+            if any(not isinstance(blocker, dict) or not text(blocker.get('identifier')) or
+                   not state(blocker.get('state')) for blocker in issue['blockedBy']):
+                return False
+            if any(not isinstance(relation, dict) or not text(relation.get('type'))
+                   for relation in issue['relations']):
+                return False
+            if any(not isinstance(attachment, dict) or not text(attachment.get('id')) or
+                   not text(attachment.get('url')) or 'title' not in attachment or
+                   not (attachment['title'] is None or isinstance(attachment['title'], str))
+                   for attachment in issue['attachments']):
+                return False
+        issues = snapshot['issues']
+        if (len({i['id'] for i in issues}) != len(issues) or
+                len({i['identifier'].casefold() for i in issues}) != len(issues)):
             return False
         for pr in snapshot['prs']:
             if (not isinstance(pr, dict) or type(pr.get('number')) is not int or pr['number'] < 1 or
-                    pr.get('state') not in ('open', 'closed') or not isinstance(pr.get('head'), dict) or
-                    not isinstance(pr.get('base'), dict) or not isinstance(pr.get('files'), list)):
+                    pr.get('state') not in ('open', 'closed') or type(pr.get('draft')) is not bool or
+                    not isinstance(pr.get('title'), str) or 'body' not in pr or
+                    not (pr['body'] is None or isinstance(pr['body'], str)) or
+                    not text(pr.get('html_url')) or not isinstance(pr.get('head'), dict) or
+                    not text(pr['head'].get('ref')) or
+                    not isinstance(pr['head'].get('sha'), str) or
+                    not re.fullmatch('[a-f0-9]{40}', pr['head']['sha']) or
+                    'repo' not in pr['head'] or
+                    not (pr['head']['repo'] is None or repository(pr['head']['repo'])) or
+                    not isinstance(pr.get('base'), dict) or not text(pr['base'].get('ref')) or
+                    not repository(pr['base'].get('repo')) or not isinstance(pr.get('files'), list) or
+                    any(not text(path) for path in pr['files'])):
                 return False
+        if len({pr['number'] for pr in snapshot['prs']}) != len(snapshot['prs']):
+            return False
         return True
 
     def _load(self, directory_fd):
@@ -79,13 +127,20 @@ class InventoryCache:
             return None
         except OSError:
             raise host.PublicationError('Inventory cache path is unsafe; preserve and reconcile') from None
-        with os.fdopen(fd) as stream:
+        with os.fdopen(fd, 'rb') as stream:
             info = os.fstat(stream.fileno())
             if (not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid() or
                     stat.S_IMODE(info.st_mode) != 0o600 or info.st_nlink != 1):
                 raise host.PublicationError('Inventory cache must be a private host-owned regular file without links')
+            if info.st_size > MAX_CACHE_BYTES:
+                raise host.PublicationError('Inventory cache exceeds the receipt size limit; preserve and reconcile')
+            # Bound the read too: metadata can change after fstat, although our
+            # own writers always replace atomically rather than append in place.
+            payload = stream.read(MAX_CACHE_BYTES + 1)
+            if len(payload) > MAX_CACHE_BYTES:
+                raise host.PublicationError('Inventory cache exceeds the receipt size limit; preserve and reconcile')
             try:
-                return json.load(stream)
+                return json.loads(payload)
             except (ValueError, UnicodeError):
                 return None
 
@@ -93,6 +148,8 @@ class InventoryCache:
         # Recheck an existing destination before replacing it; never follow links.
         self._load(directory_fd)
         payload = json.dumps(value, allow_nan=False, sort_keys=True) + '\n'
+        if len(payload.encode('utf-8')) > MAX_CACHE_BYTES:
+            raise host.PublicationError('Inventory snapshot exceeds the receipt size limit; prior evidence retained')
         temporary = '.inventory-' + uuid.uuid4().hex
         fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
                      0o600, dir_fd=directory_fd)

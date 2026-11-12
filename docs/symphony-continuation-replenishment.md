@@ -145,8 +145,8 @@ were installed:310tests,0failures,6existing skips; formatter, strictCredo/specs,
 exclusions were unchanged; the new fake-appserver fixtures independently exercise
 20turns, one thread/workspace, terminal-stop-atone, malformed input and hookerrors.
 A realOTP parking regression proves no implementation retry on the nextpoll.
-Standalone integrated package:168tests passed both Python3.14 and the workflow's
-actual `/usr/bin/python3`3.9, with ResourceWarning treated as an error. The Python3.9
+Standalone integrated package:173tests passed on the workflow's
+actual `/usr/bin/python3`3.9, with ResourceWarning treated as an error. The full installed host suite passed213tests. The Python3.9
 HTTPError-with-no-response cleanup regression found by the host owner was fixed
 without masking the original network error. Initial strictlint and legacyhook
 assertion failures were corrected; no assertion/coverage threshold was waived.
@@ -171,3 +171,63 @@ truthfully preserve the missing source-only issue clones. They idempotently
 ensured pilot labels only; external pilotlabels already existed. No pressurelabel
 or modelclaim was added. The current active readiness file remains separate and
 disabled. These are five next candidates, not five eligible executable tasks.
+
+## Final isolation, interference and recovery evidence
+
+Adversarial review found and fixed interrupted-install rollback: restore accepts
+only exact pinned before/after states per original file, handles missing new tests,
+rejects unknown edits, and can be repeated. Actual pinned-source apply/restore/
+repeated-restore passed in a disposable copy. Handoff parent validation now happens
+before probing its child, so even a symlink to an empty directory fails closed.
+Cache validation rejects malformed normalized fields/duplicate identifiers and
+bounds both receipt parsing and serialization at32MiB, preserving prior evidence
+on an oversize hold.15cachetests passed.
+
+The actual app-server configuration still contained a legacy implicit `.git`
+writable-root exception, despite the separate standard-profile probe rejecting
+metadata writes. The native schema now defaults to only the canonical workspace
+root. Existing explicit operator root-list semantics remain unchanged; the active
+profile configures no extra roots.55configurationtests passed, including the
+public Config helper and the actual runtime-settings path. The final full native
+`make all` again passed310/0fail/6skip and100%configuredcoverage.
+
+The user confirmed another terminal intentionally edits/restarts Symphony. It
+changed the cap to3, removed the second label filter and replaced the process
+while verification was ongoing. Configuration snapshots and retry evidence were
+preserved. Missing host assignments rejected SHE83/142 (and an unrelatedSHE165)
+before any Codex tokens. Guards correctly refused manual publication and exact-PID
+shutdown when their prerequisites changed; those refusals are not claimed as
+successful operations. The identified idle replacement was then stopped safely.
+
+Authoritative runtime is now PID26040, versioned `20261111-lifecycle-v2/symphony`,
+with its PRIVATE PINNED `WORKFLOW.md` in the same host directory (mode0400), cap1,
+max_turns20 and both labels. The shared repository workflow is now a template,
+not the effective running file. Its future edits do not reconfigure this process.
+The user was asked to pause the competing terminal's restarts, not delete its
+workspaces. The API reports the actual pinned workflow path. Cached read-only
+observerPID26942 (`20261111-observer-v4`) uses that same pinned file, never apply.
+No blanket approval or pressure release was added.
+
+Real host publication recovery produced OPEN/DRAFT PR40 at
+4845c3dadc1cc32c6d6e42b64cf6583410884b79, linked to SHE121 with a durable published
+receipt. This was retained worker implementation with6unit/27assertions and7host
+browser checks, not a fresh model run. Native logs show the external runtime's
+before_run correctly rejected its pending terminal handoff, then its after_run
+published the retained work. The coordinator's manual command had not run then.
+A later ONE retry was explicitly approved by the user and invoked once; it exited1
+with a sanitized PublicationError. The published receipt/PR remained intact; live
+idempotence is not claimed passed. The host owner is fixing CLI exception identity
+so expected policy errors retain their safe diagnostic instead of looking like
+an unspecified transport interruption. No second retry is inferred from that
+one-use approval.
+
+Source backup manifests are under
+`/private/tmp/hbl-drain-lifecycle-installed-backup-20261111` and
+`/private/tmp/hbl-drain-host-package-backup-20261111`; original workflow snapshots,
+core test and local source/spec documentation are under
+`/private/tmp/hbl-drain-runtime-backup-20261111`. Native readme/spec changes are
+represented by the pinned source patch and supplemental `lifecycle-spec.patch`.
+`continuation-workflow.patch` records only the20turn setting, separate from the
+host owner's root/hook changes. For this installed run, observation commands must
+use `$HOME/.local/state/hbl-publisher/throughput-runtime/20261111-lifecycle-v2/WORKFLOW.md`
+as `--workflow`; do not restart from the concurrently edited shared template.

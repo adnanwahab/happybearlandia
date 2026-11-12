@@ -6,14 +6,18 @@ from pathlib import Path
 import stat
 import tempfile
 import unittest
+from unittest.mock import patch
+
+import inventory_cache as cache_module
 
 import coordinator_host as host
 from inventory_cache import InventoryCache
 
 
 def snapshot(now):
-    return dict(issues=[dict(id='issue-id', identifier='SHE-1', state='Todo', labels={},
-                            comments=[], blockedBy=[], attachments=[])], prs=[],
+    return dict(issues=[dict(id='issue-id', identifier='SHE-1', title='Observed task',
+                            description=None, state='Todo', team={'id': 'team-id'}, labels={},
+                            comments=[], blockedBy=[], relations=[], attachments=[])], prs=[],
                 baseSha='a' * 40, scannedAt=now, scanMetrics={'linearQueryCalls': 18})
 
 
@@ -111,6 +115,58 @@ class InventoryCacheTest(unittest.TestCase):
             self.assertFalse(self.cache.scan(observation=True)['inventoryCache']['hit'])
             self.assertEqual(self.services.calls, before + 1)
 
+    def test_tampered_required_issue_fields_and_duplicate_identifiers_refetch(self):
+        self.cache.scan(observation=True)
+        valid = json.loads(self.file.read_text())
+        malformed = []
+        for field in ['title', 'description', 'team', 'relations']:
+            receipt = copy.deepcopy(valid)
+            del receipt['snapshot']['issues'][0][field]
+            malformed.append(receipt)
+        for field, value in [
+            ('team', {}), ('comments', [{'id': 'comment-id'}]),
+            ('blockedBy', [{'identifier': 'SHE-2'}]),
+            ('blockedBy', [{'identifier': 'SHE-2', 'state': {}}]),
+            ('attachments', [{'id': 'attachment-id', 'title': 'Evidence'}]),
+        ]:
+            receipt = copy.deepcopy(valid)
+            receipt['snapshot']['issues'][0][field] = value
+            malformed.append(receipt)
+        duplicate = copy.deepcopy(valid)
+        other = copy.deepcopy(duplicate['snapshot']['issues'][0])
+        other.update(id='different-id', identifier='she-1')
+        duplicate['snapshot']['issues'].append(other)
+        malformed.append(duplicate)
+        for receipt in malformed:
+            with self.subTest(receipt=receipt):
+                self.file.write_text(json.dumps(receipt))
+                before = self.services.calls
+                result = self.cache.scan(observation=True)
+                self.assertFalse(result['inventoryCache']['hit'])
+                self.assertEqual(self.services.calls, before + 1)
+                self.assertEqual(result['issues'], snapshot(self.now)['issues'])
+
+    def test_tampered_pr_missing_link_or_ref_fields_refetches(self):
+        self.cache.scan(observation=True)
+        valid = json.loads(self.file.read_text())
+        pull = dict(number=1, state='open', draft=True, title='SHE-1 implementation', body=None,
+                    html_url='https://github.com/adnanwahab/happybearlandia/pull/1',
+                    head={'ref': 'symphony/SHE-1', 'sha': 'b' * 40,
+                          'repo': {'full_name': 'adnanwahab/happybearlandia'}},
+                    base={'ref': 'sprint/one-city-two-futures-20261111',
+                          'repo': {'full_name': 'adnanwahab/happybearlandia'}}, files=['feature.py'])
+        complete = copy.deepcopy(valid)
+        complete['snapshot']['prs'] = [pull]
+        self.file.write_text(json.dumps(complete))
+        self.assertTrue(self.cache.scan(observation=True)['inventoryCache']['hit'])
+        for field in ['html_url', 'head', 'base', 'body', 'draft']:
+            receipt = copy.deepcopy(complete)
+            del receipt['snapshot']['prs'][0][field]
+            self.file.write_text(json.dumps(receipt))
+            before = self.services.calls
+            self.assertFalse(self.cache.scan(observation=True)['inventoryCache']['hit'])
+            self.assertEqual(self.services.calls, before + 1)
+
     def test_incomplete_fresh_snapshot_preserves_prior_receipt(self):
         self.cache.scan(observation=True)
         old = self.file.read_bytes()
@@ -153,6 +209,35 @@ class InventoryCacheTest(unittest.TestCase):
         with self.assertRaises(host.PublicationError):
             self.cache.scan(observation=True)
         self.assertEqual(self.services.calls, 0)
+
+    def test_oversized_private_receipt_holds_before_parsing_and_preserves_bytes(self):
+        self.cache.scan(observation=True)
+        original = self.file.read_bytes()
+        before = self.services.calls
+        with patch.object(cache_module, 'MAX_CACHE_BYTES', len(original) - 1), \
+                patch.object(cache_module.json, 'loads', side_effect=AssertionError('Must not parse oversized receipt')):
+            with self.assertRaisesRegex(host.PublicationError, 'size limit'):
+                self.cache.scan(observation=True)
+        self.assertEqual(self.file.read_bytes(), original)
+        self.assertEqual(self.services.calls, before)
+
+    def test_exact_size_boundary_is_accepted_and_oversized_refresh_retains_old_receipt(self):
+        self.cache.scan(observation=True)
+        original = self.file.read_bytes()
+        with patch.object(cache_module, 'MAX_CACHE_BYTES', len(original)):
+            self.assertTrue(self.cache.scan(observation=True)['inventoryCache']['hit'])
+        self.now += 301
+        original_scan = self.services.scan
+        def larger():
+            result = original_scan()
+            result['issues'][0]['description'] = 'Fixture diagnostic ' * 100
+            return result
+        with patch.object(self.services, 'scan', side_effect=larger), \
+                patch.object(cache_module, 'MAX_CACHE_BYTES', len(original) + 20):
+            with self.assertRaisesRegex(host.PublicationError, 'size limit'):
+                self.cache.scan(observation=True)
+        self.assertEqual(self.file.read_bytes(), original)
+        self.assertFalse(any(p.name.startswith('.inventory-') for p in self.directory.iterdir()))
 
     def test_invalid_ttl_and_mode_do_not_start_any_inventory(self):
         for ttl in [0, 59, 301, True, 60.0]:

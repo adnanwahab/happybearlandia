@@ -57,6 +57,7 @@ class SchedulerTest(unittest.TestCase):
             self.assertEqual(adapter.approve,cache.return_value.approve)
 
     def test_two_readonly_cycles_share_one_full_inventory_and_keep_cache_age(self):
+        for task in self.services.snapshot['issues']: task['relations'] = []
         adapter=s._ObservationServices(self.services,self.directory/'inventory-cache')
         results=s.run_loop(**dict(self.kw,services=adapter,apply=False),max_cycles=2)
         self.assertEqual(self.services.reads,1)

@@ -1,9 +1,6 @@
 --- a/lib/symphony_elixir/agent_runner.ex
 +++ b/lib/symphony_elixir/agent_runner.ex
-@@ -47,7 +47,14 @@
-             run_codex_turns(workspace, issue, codex_update_recipient, opts, worker_host)
-           end
-         after
+@@ -50 +50,8 @@
 -          Workspace.run_after_run_hook(workspace, issue, worker_host)
 +          case Workspace.run_after_run_hook(workspace, issue, worker_host) do
 +            :ok ->
@@ -13,22 +10,10 @@
 +              park_host_recovery(codex_update_recipient, issue, :after_run_failed)
 +              raise RuntimeError, "Host after_run failed; operator recovery required"
 +          end
-         end
- 
-       {:error, reason} ->
-@@ -110,7 +117,7 @@
-            ) do
-       Logger.info("Completed agent run for #{issue_context(issue)} session_id=#{turn_session[:session_id]} workspace=#{workspace} turn=#{turn_number}/#{max_turns}")
- 
+@@ -113 +120 @@
 -      case continue_with_issue?(issue, issue_state_fetcher) do
 +      case continuation_outcome(workspace, issue, issue_state_fetcher, codex_update_recipient) do
-         {:continue, refreshed_issue} when turn_number < max_turns ->
-           Logger.info("Continuing agent run for #{issue_context(refreshed_issue)} after normal turn completion turn=#{turn_number}/#{max_turns}")
- 
-@@ -139,6 +146,93 @@
-     end
-   end
- 
+@@ -141,0 +149,93 @@
 +  # Model-authored data can request an early stop, never authorize publication.
 +  # The trusted after_run hook remains the sole validator/publisher.
 +  @doc false
@@ -56,15 +41,21 @@
 +
 +  defp read_handoff(workspace, [directory, filename]) do
 +    parent = Path.join(workspace, directory)
-+    path = Path.join(parent, filename)
 +
++    case File.lstat(parent) do
++      {:error, :enoent} -> :absent
++      {:ok, %{type: :directory}} -> read_handoff_file(Path.join(parent, filename))
++      _ -> {:error, :invalid_handoff}
++    end
++  end
++
++  defp read_handoff_file(path) do
 +    case File.lstat(path) do
 +      {:error, :enoent} ->
 +        :absent
 +
 +      {:ok, %{type: :regular, size: size}} when size <= 262_144 ->
-+        with {:ok, %{type: :directory}} <- File.lstat(parent),
-+             {:ok, data} <- read_bounded_handoff(path),
++        with {:ok, data} <- read_bounded_handoff(path),
 +             true <- byte_size(data) <= 262_144,
 +             {:ok, decoded} <- Jason.decode(data) do
 +          {:ok, decoded}
@@ -116,79 +107,31 @@
 +    })
 +  end
 +
-   defp build_turn_prompt(issue, opts, 1, _max_turns), do: PromptBuilder.build_prompt(issue, opts)
- 
-   defp build_turn_prompt(_issue, _opts, turn_number, max_turns) do
 --- a/lib/symphony_elixir/workspace.ex
 +++ b/lib/symphony_elixir/workspace.ex
-@@ -231,7 +231,7 @@
-     end
-   end
- 
+@@ -234 +234 @@
 -  @spec run_after_run_hook(Path.t(), map() | String.t() | nil, worker_host()) :: :ok
 +  @spec run_after_run_hook(Path.t(), map() | String.t() | nil, worker_host()) :: :ok | {:error, term()}
-   def run_after_run_hook(workspace, issue_or_identifier, worker_host \\ nil) when is_binary(workspace) do
-     issue_context = issue_context(issue_or_identifier)
-     hooks = Config.settings!().hooks
-@@ -242,7 +242,6 @@
- 
-       command ->
-         run_hook(command, workspace, issue_context, "after_run", worker_host)
+@@ -245 +244,0 @@
 -        |> ignore_hook_failure()
-     end
-   end
- 
 --- a/lib/symphony_elixir/orchestrator.ex
 +++ b/lib/symphony_elixir/orchestrator.ex
-@@ -657,7 +657,7 @@
-   defp last_activity_timestamp(_running_entry), do: nil
- 
-   defp input_required_blocker?(running_entry) when is_map(running_entry) do
+@@ -660 +660 @@
 -    Map.get(running_entry, :last_codex_event) in [:turn_input_required, :approval_required] or
 +    Map.get(running_entry, :last_codex_event) in [:turn_input_required, :approval_required, :host_handoff_blocked] or
-       not is_nil(input_required_completion_outcome(Map.get(running_entry, :completion))) or
-       codex_message_method(Map.get(running_entry, :last_codex_message)) ==
-         "mcpServer/elicitation/request"
-@@ -698,6 +698,7 @@
- 
-   defp codex_event_blocker_error(:turn_input_required), do: "codex turn requires operator input"
-   defp codex_event_blocker_error(:approval_required), do: "codex turn requires approval"
+@@ -700,0 +701 @@
 +  defp codex_event_blocker_error(:host_handoff_blocked), do: "host handoff requires operator recovery; implementation parked"
-   defp codex_event_blocker_error(_event), do: nil
- 
-   defp completion_blocker_error(completion) do
 --- a/lib/symphony_elixir_web/factory_throughput.ex
 +++ b/lib/symphony_elixir_web/factory_throughput.ex
-@@ -22,7 +22,7 @@
-   end
- 
-   defp valid_snapshot?(data) do
+@@ -25 +25 @@
 -    maps = ~w(runtime queue rates cycle_times utilization resources tokens api quality)
 +    maps = ~w(runtime queue rates cycle_times utilization resources tokens api quality inventory)
-     lists = [data["timeline"] || [], data["watchdog"] || [], get_in(data, ["runtime", "workers"]) || [], get_in(data, ["queue", "blocking_reasons"]) || []]
- 
-     Enum.all?(maps, &is_map(Map.get(data, &1, %{}))) and
-@@ -50,7 +50,7 @@
-           <p class="metric-label">{label}</p><p class="metric-value numeric">{value}</p>
-         </article>
-       </div>
+@@ -53 +53 @@
 -      <p class="section-copy">Repository PR rates include coordinator work; Symphony-only rates require an exact Symphony issue branch. Small samples do not establish capacity.</p>
 +      <p class="section-copy">Repository PR rates include coordinator work; Symphony-only rates require an exact Symphony issue branch. Small samples do not establish capacity. Inventory age is separate from current resource samples; API counts describe the last full scan.</p>
-       <h3>Watchdog</h3>
-       <ul><li :for={entry <- @data["watchdog"] || []}>{entry["code"]} · {entry["severity"]} {entry["issue"]}</li></ul>
-       <h3>Blocking reasons</h3>
-@@ -92,6 +92,7 @@
-       {"API retries", ["api", "retries"]},
-       {"API throttles", ["api", "throttles"]},
-       {"Scan seconds", ["api", "scan_seconds"]},
+@@ -94,0 +95 @@
 +      {"Inventory age seconds", ["inventory", "age_seconds"]},
-       {"Available RAM bytes", ["resources", "available_memory_bytes"]},
-       {"Swap used bytes", ["resources", "swap_used_bytes"]},
-       {"Free disk bytes", ["resources", "disk_free_bytes"]},
-@@ -122,8 +123,19 @@
- 
-   @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
-   def index(conn, _params) do
+@@ -124,0 +126,11 @@
 +    settings = SymphonyElixir.Config.settings!()
 +
 +    data =
@@ -200,18 +143,12 @@
 +        "workflow_path" => SymphonyElixir.Workflow.workflow_file_path()
 +      })
 +
-     conn
-     |> Plug.Conn.put_resp_header("cache-control", "no-store")
+@@ -127 +139 @@
 -    |> json(SymphonyElixirWeb.FactoryThroughput.snapshot())
 +    |> json(data)
-   end
- end
 --- a/test/symphony_elixir/factory_throughput_test.exs
 +++ b/test/symphony_elixir/factory_throughput_test.exs
-@@ -40,7 +40,14 @@
-     result = SymphonyElixirWeb.FactoryThroughputController.call(conn, options)
-     assert result.status == 200
-     assert Plug.Conn.get_resp_header(result, "cache-control") == ["no-store"]
+@@ -43 +43,8 @@
 -    assert Jason.decode!(result.resp_body) == %{"unavailable" => true}
 +    data = Jason.decode!(result.resp_body)
 +    assert data["unavailable"] == true
@@ -221,16 +158,61 @@
 +
 +    assert Enum.sort(Map.keys(data["effective_configuration"])) ==
 +             ["max_concurrent_agents", "max_turns", "required_labels", "workflow_path", "workspace_root"]
-   end
- 
-   test "symlink snapshot is refused", %{path: path, directory: directory} do
 --- a/test/symphony_elixir/core_test.exs
 +++ b/test/symphony_elixir/core_test.exs
-@@ -132,6 +132,7 @@
- 
-     assert tracker["active_states"] == ["Todo", "In Progress", "Rework"]
-     assert config["agent"]["max_concurrent_agents"] == 1
+@@ -134,0 +135 @@
 +    assert config["agent"]["max_turns"] == 20
-     assert config["codex"]["thread_sandbox"] == "workspace-write"
- 
-     assert config["codex"]["turn_sandbox_policy"] == %{
+--- a/lib/symphony_elixir/config/schema.ex
++++ b/lib/symphony_elixir/config/schema.ex
+@@ -342 +342 @@
+-          {:ok, Map.put(policy, "writableRoots", isolated_git_roots(defaults["writableRoots"]))}
++          {:ok, Map.put(policy, "writableRoots", defaults["writableRoots"])}
+@@ -352,10 +351,0 @@
+-    end
+-  end
+-
+-  defp isolated_git_roots([workspace]) do
+-    git_dir = Path.join(workspace, ".git")
+-
+-    if File.dir?(git_dir) and PathSafety.canonicalize(git_dir) == {:ok, git_dir} do
+-      [workspace, git_dir]
+-    else
+-      [workspace]
+--- a/test/symphony_elixir/workspace_and_config_test.exs
++++ b/test/symphony_elixir/workspace_and_config_test.exs
+@@ -20,2 +20 @@
+-    assert [writable, git_dir] = policy["writableRoots"]
+-    assert git_dir == Path.join(writable, ".git")
++    assert [writable] = policy["writableRoots"]
+@@ -22,0 +22,12 @@
++    assert Config.codex_turn_sandbox_policy(root) == policy
++    assert {:ok, runtime_settings} = Config.codex_runtime_settings(root)
++    assert runtime_settings.turn_sandbox_policy == policy
++    assert runtime_settings.thread_sandbox == "workspace-write"
++
++    # Metadata integrity belongs to trusted host isolation checks. Even an
++    # existing or symlinked .git must never acquire an explicit writable grant.
++    File.rmdir!(Path.join(root, ".git"))
++    target = Path.join(root, "host-metadata")
++    File.mkdir_p!(target)
++    File.ln_s!(target, Path.join(root, ".git"))
++    assert Config.codex_turn_sandbox_policy(root) == policy
+--- a/README.md
++++ b/README.md
+@@ -414,6 +414,10 @@
+-This checkout's WORKFLOW.md selects `symphony-pilot`, one worker and independent
+-clones under `~/code/symphony-pilot-isolated`. Its hooks have stable absolute paths
+-in this checkout. Keep that checkout available or update both paths deliberately.
+-Codex retains workspace-write sandboxing with network access enabled. A workspaceWrite
+-turn policy that omits writableRoots receives the canonical issue workspace and its contained .git directory
+-at runtime (explicit Git access supports unattended commits); explicitly supplied root lists retain their existing semantics. Unresolved
++This checkout's WORKFLOW.md requires `symphony-pilot` and the temporary
++`symphony-pressure-release` safety gate, one worker, tested max_turns20, and
++independent source-only clones under `~/code/symphony-source-only`. Its hooks
++have stable absolute paths; keep the checkout available or update them deliberately.
++Codex retains workspace-write sandboxing with network access enabled. A policy
++that omits writableRoots receives only the canonical issue workspace, with no
++explicit Git metadata exception. Workers edit/test source and write data-only
++handoffs; the trusted host owns fetch/branches/staging/commits/push/draft publication.
++Explicit operator root lists retain their existing semantics; this profile does
++not configure extra roots. Unresolved

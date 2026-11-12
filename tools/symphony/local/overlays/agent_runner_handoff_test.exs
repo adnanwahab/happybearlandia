@@ -36,6 +36,8 @@ defmodule SymphonyElixir.AgentRunnerHandoffTest do
     File.write!(Path.join(root, "elsewhere/workpad.json"), Jason.encode!(%{status: "handoff", notes: "symlinked parent"}))
     File.ln_s!(Path.join(root, "elsewhere"), directory)
     assert {:error, :invalid_handoff} = AgentRunner.local_handoff_outcome(root)
+    File.rm!(Path.join(root, "elsewhere/workpad.json"))
+    assert {:error, :invalid_handoff} = AgentRunner.local_handoff_outcome(root)
   end
 
   test "legacy handoff remains data-only and malformed competing data fails closed" do

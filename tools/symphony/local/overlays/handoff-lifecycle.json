@@ -3,7 +3,7 @@
   "files": {
     "lib/symphony_elixir/agent_runner.ex": {
       "before": "4b4ab877427c76e5778034c7c89a41e9ec884fb1b142f3c6754550f3ba25be39",
-      "after": "e5d612505ab03302527e86401589e536317c6f58cb943d1175e6dbc467e542b7"
+      "after": "0e56577d986b25a341be2e4e0217f64a268c309ad6b065d4881e9eea56132ccf"
     },
     "lib/symphony_elixir/workspace.ex": {
       "before": "b72132293f572fa0c7caa38adda941452072e8639f2c39b4c8a569d69084c6e5",
@@ -24,6 +24,18 @@
     "test/symphony_elixir/core_test.exs": {
       "before": "90434354ff3f6e392ff65801e90c96ffaef8e50887ef3ed7d77f9c93cb8761c6",
       "after": "a00b38d4a71c91479fb82f8e90068fb9b5eb4fdae7b9570548e172c1c31bb6a0"
+    },
+    "lib/symphony_elixir/config/schema.ex": {
+      "before": "e1c2719de7eba6b6a5166d8b937c719c0dfdd2d5ecbbe0bcd482900adf65361c",
+      "after": "3474056154d19e0d9e5951ad9e014f8a6305cdba555eb69abb057aafdbc849fd"
+    },
+    "test/symphony_elixir/workspace_and_config_test.exs": {
+      "before": "56a147f76c13c36f378768f5d26ed2164abc795a933f9e57db56ca762cdfa06e",
+      "after": "492bd68b046e04d1ae5a237b0e28d9acea5e7e288872b68ba6cf9ef0e6c5885f"
+    },
+    "README.md": {
+      "before": "f6b9c02da6336399b27ab53ae98f94a00d28be37955d669fb5b64742ccd1648d",
+      "after": "d71dd4a16ba8bb72cae50eca7d5d48952786fff59e2901c0f97d64527609dc3c"
     }
   }
 }

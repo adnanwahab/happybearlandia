@@ -11,7 +11,8 @@ import tempfile
 BUNDLE = Path(__file__).with_name('overlays')
 FILES = {'lib/symphony_elixir/agent_runner.ex', 'lib/symphony_elixir/workspace.ex',
          'lib/symphony_elixir/orchestrator.ex', 'lib/symphony_elixir_web/factory_throughput.ex',
-         'test/symphony_elixir/factory_throughput_test.exs', 'test/symphony_elixir/core_test.exs'}
+         'test/symphony_elixir/factory_throughput_test.exs', 'test/symphony_elixir/core_test.exs', 'lib/symphony_elixir/config/schema.ex',
+         'test/symphony_elixir/workspace_and_config_test.exs', 'README.md'}
 TESTS = ('agent_runner_handoff_test.exs', 'host_handoff_parking_test.exs')
 
 
@@ -94,13 +95,28 @@ def restore(root, backup):
     names = FILES | {'test/symphony_elixir/'+name for name in TESTS}
     if manifest.get('root') != str(root) or set(manifest.get('files', {})) != names:
         raise ValueError('Wrong backup')
+    current = {}
     for name, record in manifest['files'].items():
-        if sha(read_regular(root/name)) != record['after']:
+        path = root/name
+        if record['before'] is None and not path.exists() and not path.is_symlink():
+            current[name] = None
+            continue
+        value = sha(read_regular(path))
+        if value not in {record['before'], record['after']}:
             raise ValueError('Newer installed edit; preserve it')
+        current[name] = value
+    for name, record in manifest['files'].items():
         if record['before'] is not None and sha(read_regular(backup/name)) != record['before']:
             raise ValueError('Backup changed')
     for name, record in manifest['files'].items():
-        if record['before'] is not None: (root/name).write_bytes(read_regular(backup/name))
+        if record['before'] is not None and current[name] != record['before']:
+            target = root/name
+            fd, temporary = tempfile.mkstemp(dir=target.parent, prefix='.lifecycle-restore-')
+            try:
+                with os.fdopen(fd, 'wb') as stream: stream.write(read_regular(backup/name))
+                os.replace(temporary, target)
+            finally:
+                if os.path.exists(temporary): os.unlink(temporary)
     return {'restored': True, 'retained_new_tests': True}
 
 
