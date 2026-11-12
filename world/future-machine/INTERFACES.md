@@ -73,3 +73,21 @@ The 50-second `demo-controller.js` is a presentation clock, not a simulator. It 
 - `createOutcomeTimeline(container,{history,onMonth}) -> {update(month),dispose()}` consumes the same immutable121snapshots. Point/keyboard selections emit integer recordedmonth through coordinator manualMonth; no independent clock/simulation. Metric units from METRIC_UNITS; unavailable measurements stay gaps.
 - `recordedConstructionProgress(snapshot)` returns recorded stage/work/units and exact model-owned housing-project building identity. Work ratio is not elapsed calendar fraction or completed housing. Actual inventory determines building presence; layoutv2 preserves one schematic slot across supported project completion.
 - `buildEvidenceTrail(history,{collection,id,month})`: arm-scoped nodes/edges contain exact record, first observed month, eventID and unavailable reasons. `renderEvidenceTrail(container,history,selection,{onJump})` presents those records. Completion jumps retain building selection; all evidence jumps stop demo presentation. Independently verified causal dependency traces are explicitly unavailable.
+
+## SHE-98 permalink preview extension
+
+`createShareURL` accepts optional `landing:{version:1,mode,ghosts,camera}`;
+`parseShareURL` returns it when supplied. The bounded JSON `landing` query key
+rejects duplicates, unknown fields, unsupported versions and nonfinite/out-of-range
+camera values. Existing links remain supported. Camera is null (unavailable),
+Canvas `{x,z,zoom}`, or perspective `{position:[x,y,z],target:[x,y,z]}`.
+`stage.setCamera(camera)` restores a compatible representation after `whenReady()`;
+false means unsupported renderer, which the coordinator visibly discloses.
+
+Share comparison pauses presentation and opens a focused preview of a detached
+URL/context from the displayed history, excluding pending recipe edits. UI state
+`sharePreview:{url,context}` and callback `onCopyShare()` expose a separate explicit
+copy action. Subsequent exploration retains that exact preview until Share is
+clicked again; starting another run clears it. Opening a link restores view,
+ghosts and camera after scene readiness and lands paused. Camera compatibility
+across Canvas and perspective renderers is not asserted.

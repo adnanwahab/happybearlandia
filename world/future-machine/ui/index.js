@@ -163,9 +163,16 @@ export function createUI(container, callbacks = {}) {
   const split=doc.createElement('button');split.type='button';split.textContent='Side by side';split.onclick=()=>callbacks.onMode?.('split');actions.append(split);
   const ghostsLabel=doc.createElement('label');const ghosts=doc.createElement('input');ghosts.type='checkbox';ghosts.checked=true;ghosts.onchange=()=>callbacks.onGhosts?.(ghosts.checked);ghostsLabel.append(ghosts,doc.createTextNode(' Ghost differences'));actions.append(ghostsLabel);
   const shareLink=doc.createElement('a');shareLink.textContent='Open comparison link';shareLink.hidden=true;shareLink.className='fm-share-link';shell.append(shareLink);
+  const preview=doc.createElement('section');preview.hidden=true;preview.setAttribute('aria-label','Comparison permalink preview');
+  const previewTitle=doc.createElement('h2');previewTitle.textContent='Comparison permalink preview';previewTitle.tabIndex=-1;
+  const previewText=doc.createElement('pre');previewText.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere';
+  const previewLink=doc.createElement('a');previewLink.textContent='Open previewed comparison';
+  const copyShare=doc.createElement('button');copyShare.type='button';copyShare.textContent='Copy previewed link';copyShare.onclick=()=>callbacks.onCopyShare?.();
+  preview.append(previewTitle,previewText,previewLink,copyShare);shell.append(preview);
   const noPhysical=doc.createElement('p');noPhysical.className='fm-detail';shell.querySelector('.fm-metrics').after(noPhysical);
   function update(patch={}) {
     const previousExperiment=current.experimentId ?? current.provenance?.experimentId;
+    const previousPreview=current.sharePreview;
     current={...current,...patch,...(patch.demo?{demo:{...current.demo,...patch.demo}}:{}),...(patch.provenance?{provenance:{...current.provenance,...patch.provenance}}:{})};
     if(patch.recipe){
       const incomingExperiment=current.experimentId ?? current.provenance?.experimentId;
@@ -201,8 +208,15 @@ export function createUI(container, callbacks = {}) {
     });
     noPhysical.textContent=current.diff ? (current.diff.available===false?'Comparison unavailable for this month.':current.diff.physicalCount===0?'No physical building or link difference recorded at this month.':'Physical changes are recorded; inspect the highlighted entities for evidence.') : '';
     difference.disabled=split.disabled=ghosts.disabled=!ready;difference.setAttribute('aria-pressed',String(current.mode==='difference'));split.setAttribute('aria-pressed',String(current.mode==='split'));ghosts.checked=current.ghosts;
+    preview.hidden=!current.sharePreview;
+    if(current.sharePreview){
+      const {context,url}=current.sharePreview;
+      previewText.textContent=`Synthetic monthly City scenario · baseline vs plan\nSeed ${context.recipe.seed} · Month ${context.month}\nSaved experiment: ${context.experimentId??'none'}\nInputs: ${JSON.stringify(context.recipe,null,2)}\nLanding: ${JSON.stringify(context.landing,null,2)}\nOpens paused in Future Machine. Missing saved records recompute the pinned recipe; this is not verified checkpoint recovery. Camera restoration requires a compatible renderer.`;
+      previewLink.href=url;copyShare.disabled=current.status!=='ready'||!callbacks.onCopyShare;
+      if(current.sharePreview!==previousPreview)previewTitle.focus();
+    }
     shareLink.hidden=!current.shareURL;
     if(current.shareURL){try{const url=new URL(current.shareURL,doc.baseURI);if(['http:','https:'].includes(url.protocol))shareLink.href=url.href;else{shareLink.removeAttribute('href');shareLink.hidden=true;}}catch{shareLink.removeAttribute('href');shareLink.hidden=true;}}
   }
-  return {stageElement:view.stage,storyElement,update,dispose(){seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
+  return {stageElement:view.stage,storyElement,update,dispose(){copyShare.onclick=null;seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
 }

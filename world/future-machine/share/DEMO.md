@@ -35,3 +35,10 @@ Source inspection of the coordinator's initial `main.js` (2026-11-11) identified
 The integrated UI/scene modules were not yet present in the coordinator checkout at this review, so browser interaction, keyboard navigation, responsive layout and clipboard/download behavior remain unverified by this worker.
 
 Integration resolution: the composed page now checks saved identity before display, retains the fallback disclosure, and routes export errors through the UI action handler. Final browser evidence is documented in `docs/future-machine.md`.
+
+SHE-98: Share comparison now previews the displayed recipe, seed, saved identity,
+month and landing context before Copy previewed link writes to the clipboard.
+Pending next-run edits are excluded. The optional versioned `landing` parameter
+restores view/ghosts and a compatible renderer camera; old links still work.
+Run `bunx playwright test --config test/future-machine-permalink.browser.config.mjs`
+for the fresh-page integration check with isolated temporary storage.

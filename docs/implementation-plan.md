@@ -1003,3 +1003,33 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-98 — comparison permalink preview
+
+Next slice: extend the existing Future Machine share codec with optional validated
+landing context (view, ghosts, camera); retain old links. Preview the displayed
+run's exact recipe, seed, month, saved identity and landing context before an
+explicit copy action. Pending next-run edits must not leak into sharing.
+Acceptance: codec rejection/boundary tests and a focused browser journey opening
+the actual preview URL in a fresh page and comparing restored inputs/month/camera.
+Camera representations differ between Canvas and perspective renderers; unsupported
+cross-renderer restoration must be disclosed. No deployment or production changes.
+
+Implemented: optional backward-compatible versioned landing codec; paused,
+keyboard-focused preview from displayed history; explicit copy with unavailable
+clipboard fallback; view/ghosts and compatible camera restoration after graphics
+readiness. Shared and coordinator/UI/scene interfaces are documented. Existing
+missing-saved-record recomputation and model/identity checks remain intact.
+
+Verification: focused share, scene, UI, Canvas, diff and data/API suites passed
+47 tests / 335 assertions (one browser-gated skip); browser bundle passed.
+Final share-boundary rerun passed 8 tests / 103 assertions; Playwright test discovery passed. Whitespace check passed.
+The dedicated isolated-storage Playwright journey covers pending seed exclusion,
+no copy before preview, actual copied URL, clipboard denial and fresh-page input,
+month, camera and view restoration. It remains unexecuted: Bun server startup
+fails EADDRINUSE on 3198, 43891 and even port 0 in this environment. A temporary
+config module-format error was corrected to .mjs before the final startup attempt.
+No screenshot or completed browser result is claimed. No lint/typecheck scripts
+exist. Next action: run the committed browser config where localhost listening
+works, review screenshot and restored context, then publish through the authorized
+host workflow. No commit/PR, issue transition, merge or deployment was performed.
