@@ -1003,3 +1003,53 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-73 first-run reconciliation — November 12, 2026
+
+Audit at `b963dd3` on `mini/SHE-73`: GitHub issue17 remains open and PR11
+is merged (`2ead54ed`), so no cherry-pick or duplicate first-run implementation
+is needed. Existing homepage Play Demo already targets
+`/world/future-machine.html?demo=1`; the numeric mood/authority seed, independent
+metadata deadline, Reality outcome wording and31-entry registry are present.
+The old assignment's `test/first-run-guide.test.js` is absent; Bun silently
+ignores that missing argument. Current repair coverage is
+`test/world-first-run-repairs.test.js`.
+
+Next integrated slice/acceptance: make `/routes.html` use that same registry,
+retain search/category/favorites and auxiliary destinations, and bound Activity
+source requests with an actionable error. Prerequisite: reuse existing registry
+and dashboard source identity/lifecycle guards. Risks: saved route favorites and
+secondary links must survive; stalled work must not update the UI after timeout.
+No shared simulation contract or flagship run logic changes.
+
+Delivered: registry-generated directory cards/counts/categories with31 unique
+experiences, preserved secondary links and standalone WebGPU collection link.
+Activity snapshot/history/place-comparison requests each have a10-second
+deadline with close/reopen remediation; underlying source work is not canceled.
+Existing serial/lifecycle checks still discard stale responses. No controls
+were newly disabled. Worker5 renderer script tags and mode links are unchanged.
+
+Evidence:13 focused tests/61 assertions pass using
+`bun test test/world-user-fixes.test.js test/universe-shell.test.js test/world-first-run-repairs.test.js`.
+New directory tests execute the actual inline module with a small DOM and verify
+membership/routes, search, category filters, persisted favorites and secondary
+links. Deadline tests cover sync/async success, thrown/rejected errors and a
+never-settling source. Three new Playwright tests discover successfully via
+`bunx playwright test test/e2e/world-first-run.e2e.js --list`.
+Browser execution is blocked before any test: Bun serve reports EADDRINUSE on
+41924,42773 and42774 in this sandbox. No new screenshots, before/after runtime
+measurements, seed/mode observations or full first-run acceptance are claimed.
+Browser fixtures explicitly select legacy World with30 synthetic residents and
+Canvas2D; its geographic authority seed is distinct from flagship City seed42.
+
+Publication remains a trusted-host task: workspace policy grants read-only Git
+metadata, so no commit/push/PR was attempted here. Review the source diff, run
+the three browser tests in a host able to bind a local server, inspect generated
+desktop/mobile screenshots, then publish the bounded repair. No merge/deploy.
+
+Final combined verification:38 tests/252 assertions pass across the focused
+three files plus activity-analysis, activity-history, activity-runtime and
+legacy-activity-history. `bun build world/activity-dashboard.js --target browser
+--outfile /private/tmp/she73-activity-dashboard.js` and `git diff --check` pass.
+No lint/typecheck scripts exist in package.json. Remaining verification is the
+blocked browser run, including visual inspection and actual seed/mode evidence.
