@@ -1003,3 +1003,11 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-77 review reconciliation — 2026-11-12
+
+Reviewed checkout `b963dd3` on `mini/SHE-77`; no application changes or worker dispatch were needed for this review. Live GitHub issue #13 is closed with state reason `completed` (closed at 2026-11-12T20:47:49Z), while Linear SHE-77 remains In Review. Treat the original assignment as completed; tracker reconciliation does not authorize release. Historical R13/R14 diagnostics in the coordinator records were not reverified or cleared by this pass.
+
+Fresh verification: `bun test test/future-machine-data.test.js test/future-machine-diff.test.js test/future-machine-story.test.js test/future-machine-share.test.js test/two-futures-evidence.test.js test/two-futures-demo-controller.test.js test/future-machine-scene.test.js test/future-machine-canvas.test.js` passed **52 tests, 0 failures, 332 assertions** across eight files. This includes persisted City API reopen, matched Month 0, deterministic 120-month replay, zero intervention, missing-data behavior, and the seed-42 Month-16 physical addition of 24 homes in one building.
+
+Focused Playwright command: `bunx --no-install playwright test --config test/two-futures-sprint.browser.config.js --grep 'real paired runs'`. Both the default port 39931 and retry with `HBL_TWO_FUTURES_PORT=41777` failed before browser execution because Bun could not bind the server (`EADDRINUSE`). No fresh screenshot, recording, or browser acceptance is claimed. Retry in an environment permitting the isolated test server before relying on current browser acceptance. Prior artifacts remain historical evidence. No main merge, deployment, production data change, or remote tracker mutation was performed.
