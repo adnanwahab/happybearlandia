@@ -1003,3 +1003,28 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-55 — anonymous simulation traffic
+
+Owned slice: `ops/security/simulation-admission.js`, server admission wiring,
+`test/simulation-admission.test.js`, `docs/simulation-admission.md`, and this plan
+entry. No delegated work or changes to deployment/release gates. Baseline:
+existing per-job bounds, City worker lifecycle and paired-job serialization are
+reused. Add shared socket-client and process submission budgets before expensive
+handlers; preserve read/cancel paths and all simulation contracts.
+
+Acceptance: bounded live identities, cross-route limits, untrusted-header
+resistance, predictable no-store 429/retry guidance, small-use success and exact
+window recovery. Main risks: process-local/resetting state, shared proxy/NAT
+addresses, fixed-window bursts, variable per-job cost. Contract documents these
+limits; distributed quotas and staging tuning require operational follow-up.
+
+Delivered local slice: six submissions/client/minute, sixty/process/minute;
+4096 live identity cap fails closed. Unit and loopback HTTP load verification plus
+existing civic/worker regression command in the contract passed 16 tests with
+zero failures and one opt-in HTTP test skipped. The explicit HTTP attempt failed
+because loopback listen was blocked (EADDRINUSE at port 0); no HTTP load result
+is claimed. Unit checks verify window recovery with an injected clock. No UI behavior changed; Playwright is inapplicable.
+Staging load, dependency deployment readiness (HBL-W1-041/HBL-W1-029), and
+multi-replica enforcement remain unverified. No production deployment, main merge,
+or Linear dispatch-label changes. Source remains reviewable in this workspace.
