@@ -1003,3 +1003,30 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Session survey — SHE-120
+
+Next slice: World quick demo → two successful Replay comparison completions →
+collapsed optional survey → unchecked consent → private submission receipt.
+Initial play, failed/stopped runs and repeated state notifications do not count.
+Owned files: new world/onboarding/session-survey modules, ops/session-survey,
+focused tests and small render/server integrations. PR204/SHE52 owns structured
+player-feedback; preserve that contract and use a separate versioned endpoint.
+No delegation is needed for this small coupled slice. This checkout is isolated
+on mini/SHE-120. Acceptance: no first-play popup, optional clarity/fun choice and
+500-character suggestion, explicit consent, bounded server input, private storage,
+submit/failure/retry/dismiss states, no model/provenance changes. Risks: free text
+can contain volunteered personal data; warn against it, reject common contact
+identifiers, retain no client metadata, and document local operator deletion.
+
+Implemented the scoped quick-demo survey, private answer-only SQLite endpoint,
+shared validation, and focused form/lifecycle/API regressions. Actual checks:
+19 tests passed / 121 assertions across session-survey, quick-demo-controller and
+world-visual-feedback; git diff --check passed. Browser test committed but not
+executed: Playwright webServer failed EADDRINUSE on both 3100 and isolated39741;
+no process was stopped. Initial dependency install also failed tempdir EPERM;
+the existing shared Playwright CLI subsequently reached server startup. Browser
+layout and real three-comparison worker integration remain unverified. No new
+lint/type scripts exist in package.json. No deployment, production mutation,
+Git publication or Linear dispatch labels changed. Review should resolve the
+separate PR204 invitation placement and rerun browser acceptance before release.

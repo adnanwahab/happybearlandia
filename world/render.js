@@ -1,3 +1,4 @@
+import {mountSessionSurvey} from './onboarding/session-survey.js';
 import {mountPlaybackFacts,withMetadataDeadline,mountControlReadiness} from './onboarding/first-run-repairs.js';
 import {createQuickDemoController} from './onboarding/quick-demo-controller.js';
 import {mountFirstRunGuide} from './first-run-guide.js';
@@ -2503,14 +2504,16 @@ if(!embedMode&&!businessMode&&!simulationId&&!loadedExperiment&&!renderBenchmark
       const index=result.best?.index;if(Number.isInteger(index)&&town.people[index]){focusId=String(town.people[index].id);visualCamera.focusResident(focusId);visualSpotlight.showResident(focusId);}
       guide.show();refresh();
     },
-    onState:value=>{if(value.status==='waiting'){observation=null;measured=null;workerTimings=null;visualComparisonResult=null;}if(['stopped','error'].includes(value.status)){visualComparisonResult=null;visualCamera.cancel();visualSpotlight.clear();if(overlayMode==='cycle'){overlayMode='wellbeing';if(overlayEl)overlayEl.value='wellbeing';}}refresh();},
+    onState:value=>{sessionSurvey?.update(value);if(value.status==='waiting'){observation=null;measured=null;workerTimings=null;visualComparisonResult=null;}if(['stopped','error'].includes(value.status)){visualComparisonResult=null;visualCamera.cancel();visualSpotlight.clear();if(overlayMode==='cycle'){overlayMode='wellbeing';if(overlayEl)overlayEl.value='wellbeing';}}refresh();},
     now:()=>performance.now()
   });
+  const sessionSurvey=mountSessionSurvey(document.body);
   guide=mountFirstRunGuide({container:document.body,panelManager:visualPanels,
-    onQuickDemo:()=>controller.start({recipeVersion:1}),onStop:()=>controller.stop(),onReplay:()=>controller.getState().runId===null?controller.start({recipeVersion:1}):controller.replay(),onInspect:inspectResident,
+    onQuickDemo:()=>controller.start({recipeVersion:1}),onStop:()=>controller.stop(),onReplay:()=>{if(controller.getState().status==='completed')sessionSurvey.replayStarted();return controller.getState().runId===null?controller.start({recipeVersion:1}):controller.replay();},onInspect:inspectResident,
     onCompare:()=>controller.start({recipeVersion:1}),onStorm:async()=>{controller.stop();await livingWorld?.setActive(false);const record=triggerStorm();visualComparisonResult=null;measured=stormFeedback(record,{minute:world.t,seed:town.seedKey});overlayMode='flood';if(overlayEl)overlayEl.value='flood';guide.show();refresh();},
     onTour:()=>{controller.stop();guide.hide();playDemo();},onExperiment:()=>{controller.stop();guide.hide();runExperiment10Years();}
   });
+  $('firstRunGuide').append(document.querySelector('[data-testid=session-survey]'));
   const guideActions=$('firstRunGuide').querySelector('.first-run-actions');
   const moreActions=document.createElement('details'),moreSummary=document.createElement('summary');moreSummary.textContent='More city actions';moreActions.append(moreSummary);
   for(const button of [...guideActions.children].slice(4))moreActions.append(button);$('firstRunGuide').append(moreActions);
@@ -2526,5 +2529,5 @@ if(!embedMode&&!businessMode&&!simulationId&&!loadedExperiment&&!renderBenchmark
   const syncComparisonControls=()=>{for(const button of switcher.children){button.disabled=measured?.kind!=='matched';button.setAttribute('aria-pressed',String(button.dataset.testid==='quick-demo-'+visualComparisonView&&measured?.kind==='matched'));}};
   syncComparisonControls();const comparisonControlsTimer=setInterval(syncComparisonControls,200);
   guide.update(state());guide.show();
-  addEventListener('pagehide',()=>{clearInterval(comparisonControlsTimer);controller.dispose();comparisonWorker?.terminate();visualCamera.dispose();visualSpotlight.dispose();accessibility.dispose();guide.dispose();visualPanels.dispose();renderer.domElement.removeEventListener('pointerdown',interruptCamera);renderer.domElement.removeEventListener('wheel',interruptCamera);},{once:true});
+  addEventListener('pagehide',()=>{clearInterval(comparisonControlsTimer);controller.dispose();comparisonWorker?.terminate();visualCamera.dispose();visualSpotlight.dispose();accessibility.dispose();sessionSurvey.dispose();guide.dispose();visualPanels.dispose();renderer.domElement.removeEventListener('pointerdown',interruptCamera);renderer.domElement.removeEventListener('wheel',interruptCamera);},{once:true});
 }
