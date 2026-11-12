@@ -1003,3 +1003,46 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+
+## Launch landing page — SHE-53 / HBL-W1-040
+
+Local review slice on `mini/SHE-53`: owned files are `index.html`,
+`data/launch/{two-futures.png,provenance.json}`, the dedicated launch browser
+config/test, and this plan entry. No simulation, sharing, routing, or shell
+interfaces changed. Audit: `/` serves `index.html`; the existing Play Demo
+already targets `/world/future-machine.html?demo=1`. Reuse that route and the
+versioned paired City model rather than reimplementing gameplay. Existing
+carousel and connected-world navigation remain available.
+
+Prerequisites inspected in Linear: HBL-W1-007 (SHE-12) is Backlog;
+HBL-W1-034 (SHE-47) is In Progress. Copy is therefore provisional, not
+claimed user-tested; optional sharing is omitted pending the share-card work.
+This is a local implementation requested directly by the user, not a Symphony
+dispatch; no ready label, release gate, main merge, or deployment changed.
+
+Delivered: one prominent Play link, housing what-if promise, three concrete
+steps, visible synthetic/uncalibrated-model limits, and an actual retained
+Month-120 demo capture. Original screenshot pixels are preserved, displayed
+through a CSS crop; provenance records source artifact, hash, seed 42,
+model/data versions, recipe, run identity, and immutable starting hash. This
+capture is historical demo evidence, not a fresh screenshot of this branch.
+
+Acceptance remaining: run desktop/mobile screenshot and first-click journeys
+with `bunx playwright test --config test/launch-landing.browser.config.js` on an
+unrestricted host. Tests check image load, overflow, single hero CTA, actual
+navigation, demo readiness and seed. Current invocation failed before tests:
+the npm-selected Bun shim reports its postinstall was not run. Direct
+`bun --no-env-file run server.js` with isolated stores and ports 39933 and
+42153 failed to bind (EADDRINUSE). A direct installed-Chromium launch also
+failed with macOS MachPortRendezvous bootstrap permission denied. No fresh
+mobile/desktop screenshot or successful first click is claimed.
+
+Verification: `TMPDIR=/private/tmp bun install --frozen-lockfile` passed;
+`bun test test/future-machine-data.test.js test/future-machine-diff.test.js
+test/two-futures-demo-controller.test.js test/future-machine-ui.test.js`
+passed 24, skipped 1 browser-gated test, failed 0 (172 assertions).
+`git diff --check` passed. No repository lint/typecheck script is defined.
+Risks: provisional copy, historical visual, and pending browser acceptance.
+No commit or PR created. Next: complete host browser acceptance and obtain
+copy-testing/share-card dependency evidence before release readiness.
