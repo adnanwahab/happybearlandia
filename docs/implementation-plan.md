@@ -1003,3 +1003,44 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-172 — allocation recovery (review candidate)
+
+Slice: catch reported Population allocation failures in the existing worker/runtime
+and offer an explicit half-population reset from Living City. Prerequisites audited:
+Population runtime/worker, count contract, model card and core-journeys CI; related
+GitHub memory search returned orchestration work, not a Population recovery PR.
+This isolated issue checkout is `mini/SHE-172`. No architecture.md exists.
+
+Acceptance: allocation-specific errors pause advancement; ordinary failures do not
+trigger degradation; a deliberate retry resets with fewer synthetic individuals,
+records before/after populations, seed and source run/tick, and labels changed
+identity/trajectory fidelity. Recovery provenance travels with snapshots and
+checkpoint runtime metadata. Population size is not the independently active
+changed-state count defined by SHE-141; neither active counts nor cohort precision
+are fabricated. There is no cohort backend offered by this slice.
+
+Risks/limits: browser/OS process termination cannot be caught; this handles errors
+reported to JavaScript. No real exhaustion stress test or scale/performance claim.
+Verification evidence will be recorded below. No deployment or production changes.
+
+Delivered: runtime pause/advance guard, explicit retry with failed-worker disposal,
+Living City recovery control and fidelity receipt, source configuration/run/seed/
+model provenance retained through checkpoint restore, and focused CI coverage.
+
+Actual verification on 2026-11-12, Darwin arm64, Bun 1.4.2, synthetic seed 42:
+- `bun test test/population-memory-pressure.test.js test/population-studio.test.js test/agent-counts.test.js test/population-world-view.test.js world/population/fresh-start.test.js`: 40 passed, 0 failed, 438 assertions on the final integrated run.
+- Final focused memory tests: 4 passed, 0 failed, 32 assertions. Injected allocation
+  errors, real worker recovery from 80 to 40, seed-matched direct-run equivalence,
+  advance failure, repeated failure at one, and checkpoint provenance round trip.
+- Initial model/world-view/fresh-start regression run: 30 passed, 281 assertions.
+- Broader checkpoint run: 8 passed, 1 timeout across checkpoint and memory tests.
+  The same `worker checkpoints restore full state and continue identically at 10
+  and 30 minutes` test timed out at 30 seconds against untouched HEAD runtime in
+  a temporary baseline copy (removed afterward). Existing failure remains unresolved.
+- Browser bundle: `bun build world/population/world-view.js --target browser --external three --outdir /private/tmp/she172-build` passed; `git diff --check` passed.
+- Playwright attempted with the added `population-memory-pressure.e2e.js`, but
+  server listen failed with EADDRINUSE at 39772 and no visible listener. Browser
+  journey remains unverified; no browser/device exhaustion or performance result
+  is claimed. Next action: run this focused browser case in an environment that
+  permits the application server, then review this candidate before publication.
