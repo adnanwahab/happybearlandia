@@ -1003,3 +1003,30 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-45 — safe small-user backend load test
+
+Scope/ownership: `ops/backend-load-test.mjs`, `test/backend-load-test.test.js`,
+`docs/backend-load-test.md` and this entry, on `mini/SHE-45`. Retained the initial
+untracked runner/tests and reused the working City/server civic APIs. Dependency
+SHE-42 is Done in Linear; source inspection confirms two active City jobs and 429
+rejection. Actual staging deployment verification is a prerequisite to execution.
+
+Delivered slice: network-free default plan; explicit staging configuration and
+readiness/build-SHA gate; two users/four seeded scenario journeys through homepage,
+static asset, create, bounded polling and same-ID replay. No retries, redirects,
+cookies or cleanup mutations. Bounded requests/body/time; failure stops new work;
+receipt retains created IDs, model/recipe and per-kind latency/error/overload
+statistics. Server saturation is unavailable until operator monitoring supplies it.
+
+Acceptance: real server handler/worker/temporary SQLite integration plus refusal,
+overload, malformed response, size and metric tests. Exact run commands and
+operator staging/cleanup procedure: [runbook](backend-load-test.md). No browser
+behavior change; no Playwright needed. No production/staging execution, deploy,
+merge or dispatcher approval performed. Remaining: approved isolated staging
+origin/build and measured server resources; record actual p50/p95/errors and
+saturation there before claiming capacity. No PR/commit created in this session.
+
+Final verification: the three-file Bun command above passed 22 tests, zero failures,
+177 assertions in 4.19 seconds. `git diff --check` passed. No package lint/typecheck
+script is configured. Live staging metrics remain pending as described above.
