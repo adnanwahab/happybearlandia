@@ -1003,3 +1003,36 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-47 / HBL-W1-034 — truthful comparison image
+
+Branch: `mini/SHE-47`. Scope owned in this slice: new
+`world/future-machine/share/card.js`, additive card callback in `main.js` and
+`ui/index.js`, focused card tests/config, and sharing documentation. No engine,
+API, deployment, production data, or shared record contract changes.
+
+Baseline audit: HBL-W1-033's required sharing infrastructure is present in
+`share/index.js` and `main.js`: pinned recipe links, selected-month reopening,
+saved identity checks, visible recipe fallback and evidence JSON. These are
+reused rather than reimplemented. Existing share tests pass. The missing image
+export is now exposed as **Download share card**, enabled with a completed run.
+
+Delivered slice: build detached card data from the selected paired snapshots;
+validate evidence identity/completeness and state month/seed/model; render a
+self-contained SVG and download a 1200×900 PNG. Include exact recorded housing,
+whole-stock rent, link travel and cumulative spending values with units, deltas,
+month/calendar, seed, model, synthetic generator version, run and input digest.
+No-change and unavailable measurements remain explicit. The card labels synthetic
+uncalibrated results, single-seed uncertainty limits and manifest recomputation;
+missing-record fallback remains disclosed. It captures the month before async
+image decoding. No simulation rerun or scene capture supplies card values.
+
+Acceptance evidence (2026-11-12):
+- `bun test test/future-machine-share-card.test.js test/future-machine-share.test.js test/future-machine-ui.test.js`: **15 passed, 1 optional browser test skipped**, 172 assertions. Real monthly engine pairs verify exact Month 0/16/120 values, no-change, missing metrics, mismatched seed/month, escaping and immutable source records.
+- `git diff --check`: passed.
+- `bunx playwright test --config test/future-machine-share-card.browser.config.js`: blocked before tests by local server `EADDRINUSE` (canonical port 39884 and isolated retry 39947). No listener was returned by `lsof` for 39947.
+- Server-free Chromium launch also blocked: macOS MachPort rendezvous bootstrap permission denied. Browser download, PNG repeated-output comparison, screenshot inspection and app smoke remain **unverified**. Committed browser test performs those downloads against real API history and checks unchanged control when run in an environment permitting server/browser startup. No screenshots, PR or commit receipt are claimed.
+
+Next action: run the focused browser config in an unrestricted development
+session, inspect paired/no-change PNGs and the full-page control screenshot,
+and resolve any rendering findings before marking browser acceptance complete.

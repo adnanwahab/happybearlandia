@@ -58,7 +58,7 @@ export function mountFutureMachineUI(root, options = {}) {
   inspectors.append(householdPanel,evidencePanel); shell.append(inspectors);
   const footer=node('footer',undefined,'fm-actions');
   const share=button('Share comparison',()=>action(options.onShare)); const exportButton=button('Export evidence',()=>action(options.onExport));
-  footer.append(share,exportButton); shell.append(footer); root.append(shell);
+  const cardButton=button('Download share card',()=>action(options.onCard)); footer.append(share,exportButton,cardButton); shell.append(footer); root.append(shell);
   async function action(callback, ...args) {
     if (!callback) return;
     try { await callback(...args); } catch (failure) { if(!destroyed) update({error:failure?.message || String(failure)}); }
@@ -108,7 +108,7 @@ export function mountFutureMachineUI(root, options = {}) {
     if('evidence' in patch)evidence.textContent=state.evidence ? JSON.stringify(state.evidence,null,2) : 'No recorded evidence selected.';
     if(!evidence.textContent)evidence.textContent='No recorded evidence selected.';
     if(!householdBody.textContent)renderHousehold();
-    share.disabled=!state.ready || state.busy || !options.onShare;exportButton.disabled=!state.ready || state.busy || !options.onExport;
+    cardButton.disabled=!state.ready || state.busy || !options.onCard;share.disabled=!state.ready || state.busy || !options.onShare;exportButton.disabled=!state.ready || state.busy || !options.onExport;
     if(old.month!==state.month)options.onRenderMonth?.(state.month);
   }
   update(state);
@@ -128,6 +128,7 @@ export function createUI(container, callbacks = {}) {
     onShowChanges:callbacks.onDirector,
     onShare:callbacks.onShare,
     onExport:callbacks.onExport,
+    onCard:callbacks.onCard,
     onCancel:callbacks.onCancel,
     onMetric:callbacks.onMetric ? key=>callbacks.onMetric({homes:'housingUnits',commute:'meanTravelMinutes',rent:'meanRent',spending:'capitalSpending'}[key]) : undefined,
     onPolicyChange:id=>{recipe={...recipe,intervention:id==='baseline'?null:structuredClone(defaultIntervention)};configurationDirty=true;callbacks.onConfigure?.(structuredClone(recipe));},
