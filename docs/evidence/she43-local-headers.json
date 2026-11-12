@@ -1,0 +1,794 @@
+{
+  "auditVersion": 1,
+  "auditToolSha256": "b1a5c3e272fbc551fd56e01f65f503b0e2d9f1f5c8689b72e79d88872d8234bc",
+  "observedAt": "2026-11-12T03:23:38.662Z",
+  "evidenceType": "local-non-production",
+  "sourceSha": "f1174eb9a5cead6892370d25af97167a0babb54b",
+  "runtime": {
+    "bun": "1.4.2",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "origin": "http://127.0.0.1:57057",
+  "stagingVerified": false,
+  "inventoryScope": "Tracked source files in public-root candidates; excludes node_modules, untracked data and route-denied-file analysis.",
+  "inventory": {
+    "javascript": {
+      "count": 1044,
+      "bytes": 18599687,
+      "samples": [
+        {
+          "path": "data/server.js",
+          "bytes": 2870
+        },
+        {
+          "path": "game/debug-recorder.js",
+          "bytes": 1791
+        },
+        {
+          "path": "game/index.js",
+          "bytes": 132756
+        },
+        {
+          "path": "game/poker/Card.js",
+          "bytes": 616
+        },
+        {
+          "path": "game/poker/CasinoPokerController.js",
+          "bytes": 10932
+        }
+      ]
+    },
+    "images": {
+      "count": 27,
+      "bytes": 39157767,
+      "samples": [
+        {
+          "path": "data/augmented_reality.gif",
+          "bytes": 5038661
+        },
+        {
+          "path": "data/games.gif",
+          "bytes": 770082
+        },
+        {
+          "path": "data/multiplayer-robots.png",
+          "bytes": 1991695
+        },
+        {
+          "path": "data/screenshots/1.gif",
+          "bytes": 31281
+        },
+        {
+          "path": "data/screenshots/2.gif",
+          "bytes": 94788
+        }
+      ]
+    },
+    "wasm": {
+      "count": 2,
+      "bytes": 719753,
+      "samples": [
+        {
+          "path": "tools/lumen/addons/libs/basis/basis_transcoder.wasm",
+          "bytes": 527333
+        },
+        {
+          "path": "tools/lumen/addons/libs/draco/draco_decoder.wasm",
+          "bytes": 192420
+        }
+      ]
+    },
+    "models": {
+      "count": 67,
+      "bytes": 93720256,
+      "samples": [
+        {
+          "path": "data/glb/bar_lounge_couch.glb",
+          "bytes": 3158484
+        },
+        {
+          "path": "data/glb/bar_lounge_middle_couch.glb",
+          "bytes": 45048
+        },
+        {
+          "path": "data/glb/bar_lounge_tables.glb",
+          "bytes": 2257640
+        },
+        {
+          "path": "data/glb/bar_lounge_wooden_floor.glb",
+          "bytes": 3123244
+        },
+        {
+          "path": "data/glb/bear-player-sitting.glb",
+          "bytes": 14108
+        }
+      ]
+    },
+    "jsonData": {
+      "count": 307,
+      "bytes": 35330341,
+      "samples": [
+        {
+          "path": "data/events/2026-09-18/20260918T212114.336Z-scene_3-1fbb5db5-7327-4647-ade7-f8ca9a62a977.json",
+          "bytes": 42136
+        },
+        {
+          "path": "data/events/2026-09-18/20260918T212230.583Z-scene-78386247-7694-420e-8a0c-fe42147c3e63.json",
+          "bytes": 171608
+        },
+        {
+          "path": "data/events/2026-09-18/20260918T212302.974Z-scene-bb0d9a2b-972d-49e5-b734-0bad0f68857b.json",
+          "bytes": 29823
+        },
+        {
+          "path": "data/events/2026-09-18/20260918T212307.525Z-scene-c42b9057-c248-461b-9626-7f8c89304bd5.json",
+          "bytes": 86437
+        },
+        {
+          "path": "data/events/2026-09-18/20260918T213127.743Z-scene-beee7d8a-ff41-4a98-bda6-86ee7fe29293.json",
+          "bytes": 72279
+        }
+      ]
+    }
+  },
+  "responses": [
+    {
+      "path": "/",
+      "kind": "html",
+      "method": "GET",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "content-type": "text/html;charset=utf-8",
+        "content-length": "23783"
+      },
+      "bodyBytes": 23783,
+      "bodySha256": "ff6e7f86eb095694a43758cbbccfb29c5169c78b51f1ba8d633ca076a4fdb484",
+      "assessment": {
+        "directives": [
+          ""
+        ],
+        "issues": [
+          "html-freshness-unspecified",
+          "cache-policy-unspecified"
+        ]
+      }
+    },
+    {
+      "path": "/",
+      "kind": "html",
+      "method": "HEAD",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "content-length": "23783"
+      },
+      "bodyBytes": 0,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "assessment": {
+        "directives": [
+          ""
+        ],
+        "issues": [
+          "html-freshness-unspecified",
+          "cache-policy-unspecified"
+        ]
+      }
+    },
+    {
+      "path": "/world/future-machine.html",
+      "kind": "html",
+      "method": "GET",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/html;charset=utf-8",
+        "content-length": "1542"
+      },
+      "bodyBytes": 1542,
+      "bodySha256": "76d49ab53a8e78805beb5aad3c6908a7830b77694a7858ac95e70868f6265cd1",
+      "assessment": {
+        "directives": [
+          "no-cache"
+        ],
+        "issues": []
+      }
+    },
+    {
+      "path": "/world/future-machine.html",
+      "kind": "html",
+      "method": "HEAD",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/html;charset=utf-8",
+        "content-length": "1542"
+      },
+      "bodyBytes": 0,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "assessment": {
+        "directives": [
+          "no-cache"
+        ],
+        "issues": []
+      }
+    },
+    {
+      "path": "/world/future-machine/main.js",
+      "kind": "javascript",
+      "method": "GET",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/javascript;charset=utf-8",
+        "content-length": "13036"
+      },
+      "bodyBytes": 13036,
+      "bodySha256": "8208b76f982ffdc69b722aea9605af5814cebd4d1166e596720d9a4341cc743a",
+      "assessment": {
+        "directives": [
+          "no-cache"
+        ],
+        "issues": []
+      }
+    },
+    {
+      "path": "/world/future-machine/main.js",
+      "kind": "javascript",
+      "method": "HEAD",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/javascript;charset=utf-8",
+        "content-length": "13036"
+      },
+      "bodyBytes": 0,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "assessment": {
+        "directives": [
+          "no-cache"
+        ],
+        "issues": []
+      }
+    },
+    {
+      "path": "/vendor/three/three.module.js",
+      "kind": "javascript",
+      "method": "GET",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "content-type": "text/javascript;charset=utf-8",
+        "content-length": "662772"
+      },
+      "bodyBytes": 662772,
+      "bodySha256": "9052042d676cb0fdc1ddfefe193053f34b7ac0513a616fdac4535d49987812ea",
+      "assessment": {
+        "directives": [
+          ""
+        ],
+        "issues": [
+          "cache-policy-unspecified"
+        ]
+      }
+    },
+    {
+      "path": "/vendor/three/three.module.js",
+      "kind": "javascript",
+      "method": "HEAD",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "content-length": "662772"
+      },
+      "bodyBytes": 0,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "assessment": {
+        "directives": [
+          ""
+        ],
+        "issues": [
+          "cache-policy-unspecified"
+        ]
+      }
+    },
+    {
+      "path": "/vendor/jolt/jolt-physics.wasm-compat.js",
+      "kind": "embedded-wasm-javascript",
+      "method": "GET",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "content-type": "text/javascript;charset=utf-8",
+        "content-length": "3222495"
+      },
+      "bodyBytes": 3222495,
+      "bodySha256": "011233a5fff762d6f0f5b50726b315246bf68cb182f0a10024559d04f4c257de",
+      "assessment": {
+        "directives": [
+          ""
+        ],
+        "issues": [
+          "cache-policy-unspecified"
+        ]
+      }
+    },
+    {
+      "path": "/vendor/jolt/jolt-physics.wasm-compat.js",
+      "kind": "embedded-wasm-javascript",
+      "method": "HEAD",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "content-length": "3222495"
+      },
+      "bodyBytes": 0,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "assessment": {
+        "directives": [
+          ""
+        ],
+        "issues": [
+          "cache-policy-unspecified"
+        ]
+      }
+    },
+    {
+      "path": "/tools/lumen/addons/libs/basis/basis_transcoder.wasm",
+      "kind": "wasm",
+      "method": "GET",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "content-type": "application/wasm",
+        "content-length": "527333"
+      },
+      "bodyBytes": 527333,
+      "bodySha256": "6cf17dc889352c42e9acf8897107978d127005fe3386c36a0e3845e27967630a",
+      "assessment": {
+        "directives": [
+          ""
+        ],
+        "issues": [
+          "cache-policy-unspecified"
+        ]
+      }
+    },
+    {
+      "path": "/tools/lumen/addons/libs/basis/basis_transcoder.wasm",
+      "kind": "wasm",
+      "method": "HEAD",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "content-length": "527333"
+      },
+      "bodyBytes": 0,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "assessment": {
+        "directives": [
+          ""
+        ],
+        "issues": [
+          "cache-policy-unspecified"
+        ]
+      }
+    },
+    {
+      "path": "/data/screenshots/1.gif",
+      "kind": "image",
+      "method": "GET",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "content-type": "image/gif",
+        "content-length": "31281"
+      },
+      "bodyBytes": 31281,
+      "bodySha256": "8dd419f5a2393e67ac96696f94cc8827112cd713875305cd5998e2063f847a68",
+      "assessment": {
+        "directives": [
+          ""
+        ],
+        "issues": [
+          "cache-policy-unspecified"
+        ]
+      }
+    },
+    {
+      "path": "/data/screenshots/1.gif",
+      "kind": "image",
+      "method": "HEAD",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "content-length": "31281"
+      },
+      "bodyBytes": 0,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "assessment": {
+        "directives": [
+          ""
+        ],
+        "issues": [
+          "cache-policy-unspecified"
+        ]
+      }
+    },
+    {
+      "path": "/data/glb/poker_chair.glb",
+      "kind": "model",
+      "method": "GET",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "content-type": "model/gltf-binary",
+        "content-length": "1038836"
+      },
+      "bodyBytes": 1038836,
+      "bodySha256": "9ebb64b9f35befa7defc1b788f1fa18573f5eee14276acd52293cbe7fc16e821",
+      "assessment": {
+        "directives": [
+          ""
+        ],
+        "issues": [
+          "cache-policy-unspecified"
+        ]
+      }
+    },
+    {
+      "path": "/data/glb/poker_chair.glb",
+      "kind": "model",
+      "method": "HEAD",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "content-length": "1038836"
+      },
+      "bodyBytes": 0,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "assessment": {
+        "directives": [
+          ""
+        ],
+        "issues": [
+          "cache-policy-unspecified"
+        ]
+      }
+    },
+    {
+      "path": "/game/main.js",
+      "kind": "generated-javascript",
+      "method": "GET",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "cache-control": "no-store",
+        "content-type": "text/javascript; charset=utf-8",
+        "content-length": "1231411"
+      },
+      "bodyBytes": 1231411,
+      "bodySha256": "51caa59524a5800b7c3e23b3a3c14fd5863efcf025b2f328f297368ffee0c25d",
+      "assessment": {
+        "directives": [
+          "no-store"
+        ],
+        "issues": []
+      }
+    },
+    {
+      "path": "/game/main.js",
+      "kind": "generated-javascript",
+      "method": "HEAD",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "cache-control": "no-store",
+        "content-type": "text/javascript; charset=utf-8",
+        "content-length": "1231411"
+      },
+      "bodyBytes": 0,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "assessment": {
+        "directives": [
+          "no-store"
+        ],
+        "issues": []
+      }
+    },
+    {
+      "path": "/api/health",
+      "kind": "dynamic",
+      "method": "GET",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "cache-control": "no-store",
+        "content-type": "application/json;charset=utf-8",
+        "content-length": "39"
+      },
+      "bodyBytes": 39,
+      "bodySha256": "d70a55e2415c4457dae3c79110a8d7cef6925e78f81908e0fdad6cfba87ff3da",
+      "assessment": {
+        "directives": [
+          "no-store"
+        ],
+        "issues": []
+      }
+    },
+    {
+      "path": "/api/health",
+      "kind": "dynamic",
+      "method": "HEAD",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "cache-control": "no-store",
+        "content-type": "application/json; charset=utf-8",
+        "content-length": "0"
+      },
+      "bodyBytes": 0,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "assessment": {
+        "directives": [
+          "no-store"
+        ],
+        "issues": []
+      }
+    },
+    {
+      "path": "/api/ready",
+      "kind": "dynamic",
+      "method": "GET",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "cache-control": "no-store",
+        "content-type": "application/json;charset=utf-8",
+        "content-length": "96"
+      },
+      "bodyBytes": 96,
+      "bodySha256": "5ff6b448f8917db9312496c8cfeebeee12062fff68a4cfc21be5d7c3f9d91b4e",
+      "assessment": {
+        "directives": [
+          "no-store"
+        ],
+        "issues": []
+      }
+    },
+    {
+      "path": "/api/ready",
+      "kind": "dynamic",
+      "method": "HEAD",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "cache-control": "no-store",
+        "content-type": "application/json; charset=utf-8",
+        "content-length": "0"
+      },
+      "bodyBytes": 0,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "assessment": {
+        "directives": [
+          "no-store"
+        ],
+        "issues": []
+      }
+    },
+    {
+      "path": "/api/config",
+      "kind": "dynamic",
+      "method": "GET",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "cache-control": "no-store",
+        "content-type": "application/json;charset=utf-8",
+        "content-length": "399"
+      },
+      "bodyBytes": 399,
+      "bodySha256": "4601420ff82dfdb97b65e8c907ef01900706d835a7456dfa7772491a63bdd8a7",
+      "assessment": {
+        "directives": [
+          "no-store"
+        ],
+        "issues": []
+      }
+    },
+    {
+      "path": "/api/config",
+      "kind": "dynamic",
+      "method": "HEAD",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "cache-control": "no-store",
+        "content-type": "application/json;charset=utf-8",
+        "content-length": "399"
+      },
+      "bodyBytes": 0,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "assessment": {
+        "directives": [
+          "no-store"
+        ],
+        "issues": []
+      }
+    },
+    {
+      "path": "/api/world-experiments",
+      "kind": "dynamic",
+      "method": "GET",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "cache-control": "no-store",
+        "content-type": "application/json;charset=utf-8",
+        "content-length": "126"
+      },
+      "bodyBytes": 126,
+      "bodySha256": "493388ddeb02893051767d9df7761c9f660118e6b2843d13cdddb582d115cb82",
+      "assessment": {
+        "directives": [
+          "no-store"
+        ],
+        "issues": []
+      }
+    },
+    {
+      "path": "/api/world-experiments",
+      "kind": "dynamic",
+      "method": "HEAD",
+      "expectedStatus": 405,
+      "status": 405,
+      "headers": {
+        "cache-control": "no-store",
+        "content-type": "application/json;charset=utf-8",
+        "content-length": "89"
+      },
+      "bodyBytes": 0,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "assessment": {
+        "directives": [
+          "no-store"
+        ],
+        "issues": []
+      }
+    },
+    {
+      "path": "/world/decision/store.js",
+      "kind": "private-source-denial",
+      "method": "GET",
+      "expectedStatus": 404,
+      "status": 404,
+      "headers": {
+        "content-type": "text/plain;charset=utf-8",
+        "content-length": "9"
+      },
+      "bodyBytes": 9,
+      "bodySha256": "e3ebaa16dd9d9b9fc107c42183fb6cf9d22927e1af03dbbdfa0ccc38e4e4ac31",
+      "assessment": {
+        "directives": [
+          ""
+        ],
+        "issues": [
+          "error-cache-policy-unspecified",
+          "cache-policy-unspecified"
+        ]
+      }
+    },
+    {
+      "path": "/world/decision/store.js",
+      "kind": "private-source-denial",
+      "method": "HEAD",
+      "expectedStatus": 404,
+      "status": 404,
+      "headers": {
+        "content-length": "9"
+      },
+      "bodyBytes": 0,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "assessment": {
+        "directives": [
+          ""
+        ],
+        "issues": [
+          "error-cache-policy-unspecified",
+          "cache-policy-unspecified"
+        ]
+      }
+    },
+    {
+      "path": "/world/%zz.js",
+      "kind": "malformed-path-denial",
+      "method": "GET",
+      "expectedStatus": 404,
+      "status": 404,
+      "headers": {
+        "content-type": "text/plain;charset=utf-8",
+        "content-length": "9"
+      },
+      "bodyBytes": 9,
+      "bodySha256": "e3ebaa16dd9d9b9fc107c42183fb6cf9d22927e1af03dbbdfa0ccc38e4e4ac31",
+      "assessment": {
+        "directives": [
+          ""
+        ],
+        "issues": [
+          "error-cache-policy-unspecified",
+          "cache-policy-unspecified"
+        ]
+      }
+    },
+    {
+      "path": "/world/%zz.js",
+      "kind": "malformed-path-denial",
+      "method": "HEAD",
+      "expectedStatus": 404,
+      "status": 404,
+      "headers": {
+        "content-length": "9"
+      },
+      "bodyBytes": 0,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "assessment": {
+        "directives": [
+          ""
+        ],
+        "issues": [
+          "error-cache-policy-unspecified",
+          "cache-policy-unspecified"
+        ]
+      }
+    },
+    {
+      "path": "/missing-she43-cache-audit.js",
+      "kind": "missing",
+      "method": "GET",
+      "expectedStatus": 404,
+      "status": 404,
+      "headers": {
+        "content-type": "text/plain;charset=utf-8",
+        "content-length": "9"
+      },
+      "bodyBytes": 9,
+      "bodySha256": "e3ebaa16dd9d9b9fc107c42183fb6cf9d22927e1af03dbbdfa0ccc38e4e4ac31",
+      "assessment": {
+        "directives": [
+          ""
+        ],
+        "issues": [
+          "error-cache-policy-unspecified",
+          "cache-policy-unspecified"
+        ]
+      }
+    },
+    {
+      "path": "/missing-she43-cache-audit.js",
+      "kind": "missing",
+      "method": "HEAD",
+      "expectedStatus": 404,
+      "status": 404,
+      "headers": {
+        "content-length": "9"
+      },
+      "bodyBytes": 0,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "assessment": {
+        "directives": [
+          ""
+        ],
+        "issues": [
+          "error-cache-policy-unspecified",
+          "cache-policy-unspecified"
+        ]
+      }
+    }
+  ]
+}
