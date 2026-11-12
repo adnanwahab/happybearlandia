@@ -404,6 +404,25 @@ exercising the actual controls and renderer fallback. Full hosted verification
 must pass before merge; current publication/merge status is authoritative at
 https://github.com/adnanwahab/happybearlandia/pull/26.
 
+## Symphony recovery prerequisite slice — November 11, 2026
+
+Recovery mission: prove operational prerequisites before the first new dispatch.
+Own new `ops/symphony/workspace_preflight.py` and its focused tests plus the
+recovery note; preserve active peer ownership of installed hooks/coordinator and
+throughput work. Acceptance: contained disposable clone, real sandbox local
+commit, approved sprint fetch, locked dependencies/imports, sanitized auth/error
+checks and cleanup. No label, merge, deployment or scheduler side effects.
+
+Eleven focused regression tests and19 total ops tests pass, including shared metadata, alternates,
+symlinks, disk, permission denial, secret sanitization, credential-file refusal
+and timeout descendant cleanup. Initial real host probe passed all checks at
+sprint870c0ca. Two further full clones hit180second timeouts; the copied-object
+cache path passed all9 real checks against0d115ec in5.9seconds, including the
+corrected credential guard, remote fetch and actual sandbox commit/imports.
+Browser behavior is unchanged. Hook installation and continuous queue proof are
+separate operational gates, not implied by preflight success. See
+[recovery evidence and candidate ownership](symphony-recovery-preflight.md).
+
 
 ## SHE-180 safe backlog coordinator package and activation
 
