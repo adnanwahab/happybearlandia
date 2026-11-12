@@ -57,3 +57,22 @@ implemented and tested here; these remaining release gates must not be reported
 as completed release experiments. SHE-203 consumes the checklist and remains a
 separate future implementation. Publication and Linear status updates are handled
 by the trusted coordinator; this worker used no remote write credentials.
+
+## Current-base revalidation before publication
+
+The initial results above remain historical evidence against sprint `f1174eb`.
+The coordinator's publication freshness guard stopped before pushing when the
+remote sprint advanced to `f794ba25e89ee1db9c1ee3a6bdc562e404ca1965`. The coordinator
+merged that base losslessly into this issue branch at
+`77ff0f84143f5c17aad9dc5f188d3d33fd050a1e`, preserving the original issue commits.
+No issue-owned path conflicted with the manifest/replay and saved-World/browser
+repairs contributed by their existing owners.
+
+Revalidated that combined source with GitHub/Linear token environment variables
+removed: `bun test test/release-operations-dry-run.test.js test/release-health.test.js`
+passed **13 tests, 0 failures, 69 assertions** on Bun 1.4.2.
+`bun --no-env-file ops/release-operations-dry-run.js` exited 0 with `problems: []`,
+`singleWriterRequired: true`, `canaryAllowed: false`, `productionVerified: false`.
+`git diff --check` passed. This repeats the issue's local acceptance against the
+new base; it does not establish staging or production verification. Publication
+remains exclusively the trusted coordinator's action.
