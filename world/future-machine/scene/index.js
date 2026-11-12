@@ -1,3 +1,4 @@
+import {constructionGhosts} from './construction-ghosts.js';
 import {createRendererBackend} from './renderer-backend.js';
 import {createCanvasStage,fitCanvasCamera} from './canvas-stage.js';
 import {createVisualEffects} from './effects.js';
@@ -58,6 +59,7 @@ export function createStage(container, {onSelect,history} = {}) {
     for(const [side,records] of [projection.a,projection.b].entries()) {
       for(const row of records)if(mode!=='difference'||changed(row))add(row,scenes[side],side?'plan':'baseline');
       if(ghosts) {
+        for(const row of projection.constructionGhosts?.[side?'plan':'baseline']||[])add(row,scenes[side],side?'plan':'baseline',true);
         const other=side?projection.a:projection.b;
         for(const row of other) if((mode!=='difference'||changed(row))&&!records.some(r=>r.collection===row.collection&&r.id===row.id))add(row,scenes[side],side?'plan':'baseline',true);
       }
@@ -85,6 +87,12 @@ export function createStage(container, {onSelect,history} = {}) {
         const button=doc.createElement('button');button.type='button';button.style.cssText='display:inline-block;margin:4px 4px 0 0;font:11px system-ui;padding:5px 7px;min-height:32px';
         button.textContent=`${row.id}${row.construction?` · ${row.construction.stage??"stage unavailable"} · ${row.construction.units??"unavailable"} planned homes`:""} · ${row.mapping === 'synthetic-layout'?'schematic':'OSM footprint'}${row.progress===undefined?'':` · recorded progress ${Math.round(row.progress*100)}%`}`;
         button.onclick=()=>onSelect?.({collection:row.collection,id:row.id,arm:side?'plan':'baseline'});section.append(button);
+      }
+      for(const row of projection.constructionGhosts?.[side?'plan':'baseline']||[]) {
+        const button=doc.createElement('button');button.type='button';
+        button.dataset.constructionEvent=row.eventId;
+        button.textContent=`Preview silhouette · ${row.id} · absent now · Month ${row.eventMonth} · event ${row.eventId} · policy ${row.policyId} · inspect completion`;
+        button.onclick=()=>onSelect?.({collection:row.collection,id:row.id,arm:row.arm,eventMonth:row.eventMonth});section.append(button);
       }
       list.append(section);
     }
@@ -131,7 +139,8 @@ export function createStage(container, {onSelect,history} = {}) {
       if(disposed)return;
       if(!frame?.baseline?.state||!frame?.plan?.state){projection=null;releaseMeshes();list.replaceChildren();legend.textContent='City snapshots unavailable';status.textContent='Both futures are required for a matched scene.';draw();return;}
       currentFrame=frame;currentDiff=diff;const first=!projection;projection=mapping.frame(frame.baseline.state,frame.plan.state);
-      legend.textContent=`Month ${frame.month} · ${projection.label}`;
+      projection.constructionGhosts=constructionGhosts(history,frame.month,mapping);
+      legend.textContent=`Month ${frame.month} · ${projection.label} Dashed previews: next-month recorded completion, absent now; inspect its event below.`;
       if(!error)status.textContent=(renderBackend==='webgpu'?'WebGPU · ':'WebGL · ')+(projection.physicalDifference?'Recorded building differences · wireframe ghosts show presence in the other future.':'No recorded physical building difference at this month.');
       summary();canvasStage?.update(projection,diff);if(first&&canvasStage&&fitRows)canvasStage.setCamera(fitCanvasCamera({a:fitRows,b:fitRows},views.clientWidth,views.clientHeight,mode));rebuild();if(first)fit();
     },

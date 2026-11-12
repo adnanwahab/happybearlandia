@@ -21,3 +21,16 @@ A temporary localhost harness exercised the module in Chromium with the installe
 ## Remaining integration checks
 
 Coordinator should run the real route with City replay data and verify UI-to-stage wiring, responsive framing, director focus, and 120-month playback. Large imported geometries and Safari/device performance are unmeasured. Current integration uses bounded native WebGPU→WebGL→Canvas rendering, then accessible inventory if all contexts fail. AppleMetal native and desktop390/320 Canvas journeys are verified in the sprint status; Safari/device performance remains unmeasured.
+
+## Exact construction previews (SHE-159)
+
+The month immediately before a recorded policy-owned housing PROJECT_COMPLETE
+shows a separate wireframe/dashed preview of the next snapshot's building.
+This is a rendering preview, never current inventory or a predicted outcome.
+The inventory button names its exact event ID and policy ID and opens that
+completion month and building's WHY evidence. Both adjacent snapshots, an exact
+project/building mapping, recorded event time and actual absence/presence are
+required. Preview meshes are nonselectable; the explicit button works in native,
+Canvas2D and inventory-only fallback. The Ghost differences toggle controls
+preview geometry. Current support covers housing creation only; modifications
+without an explicit model-owned event/identity contract remain disabled.

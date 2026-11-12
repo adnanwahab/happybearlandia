@@ -79,3 +79,18 @@ test('largest supported recipe stays bounded across scrubs and releases scene re
  await page.goto('/world/future-machine.html?fm=invalid&month=121');await page.goBack({waitUntil:'domcontentloaded'});await ready(page);expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);
  await page.evaluate(()=>window.futureMachine.dispose());expect(await page.evaluate(()=>window.futureMachine.stats.scene.objects)).toBe(0);expect(await page.locator('.fm-ui').count()).toBe(0);
 });
+
+test('construction preview opens its exact recorded completion',async({page},testInfo)=>{
+ await page.goto('/world/future-machine.html?renderer=canvas2d');
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();
+ await expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.status)).toBe('ready');
+ const event=await page.evaluate(()=>window.futureMachine.history.plan.flatMap(s=>(s.events||[]).filter(e=>e.eventType==='PROJECT_COMPLETE'&&s.state.projects.some(p=>p.id===e.payload?.projectId&&p.type==='housing'&&p.policyId))).at(0));
+ expect(event).toBeTruthy();
+ const slider=page.getByTestId('future-machine-timeline');await slider.fill(String(event.simulationTime-1));await slider.dispatchEvent('input');
+ const preview=page.locator('[data-construction-event]');await expect(preview).toHaveAttribute('data-construction-event',event.id);
+ await page.screenshot({path:testInfo.outputPath('construction-before.png')});
+ await preview.click();await expect(slider).toHaveValue(String(event.simulationTime));
+ await expect(page.getByTestId('future-machine-why')).toContainText(event.id);
+ await expect(preview).toHaveCount(0);
+ await page.screenshot({path:testInfo.outputPath('construction-after.png')});
+});

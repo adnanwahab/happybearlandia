@@ -1003,3 +1003,26 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-159 — exact construction event silhouettes
+
+Owned slice: Future Machine scene construction-ghost projection, renderer and
+Canvas integration, event selection, focused tests and scene documentation.
+Prerequisites: existing monthly City history, housingProjectBuildingId mapping
+and completion receipts (HBL-1M-015 provenance interface). No model changes.
+Acceptance: Month n-1 has no solid new building; a separately labeled preview
+silhouette links to exact arm/event/project/policy at Month n; Month n uses only
+recorded inventory. Missing prior snapshots or unmatched events create no ghost.
+Risk/limit: bounded housing completion support only; no inferred modification
+or cross-model mapping. Verify deterministic fixtures and browser before/after.
+
+Delivered: separate next-month preview projection with exact event, arm, project
+and policy IDs; native wireframe/Canvas dashed geometry and accessible completion
+jump. Solid inventory stays snapshot-owned. Receipt lookup respects selected arm.
+Verification: 99 passing Future Machine tests / 958 assertions, 3 existing browser
+checks skipped. Focused browser recording test added, but server startup failed
+with EADDRINUSE on 39884 and alternate 39959; no screenshots/video claimed.
+Linear related-backlog lookup timed out; local provenance interfaces inspected.
+No deployment or production mutation. Remaining: run the focused browser journey
+and capture before/after on a host with available listeners; add modifications
+only when the model supplies explicit building mutation event semantics.

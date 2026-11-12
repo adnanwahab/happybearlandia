@@ -21,6 +21,7 @@ export function canvasRows(projection, diff, arm, mode='split', ghosts=true) {
   const present = new Set(own.map(identity));
   const rows = own.map(row => ({...row,arm,ghost:false,change:changes.get(identity(row)) || null}));
   if (ghosts || mode === 'difference') for (const row of other) if (!present.has(identity(row))) rows.push({...row,arm,ghost:true,change:changes.get(identity(row)) || null});
+  if(ghosts)for(const row of projection.constructionGhosts?.[arm]||[])rows.push({...row,arm,ghost:true,change:'construction-preview'});
   return mode === 'difference' ? rows.filter(row => row.change) : rows;
 }
 function polygon(row) { return row.polygon || [[row.x-7,row.z-7],[row.x+7,row.z-7],[row.x+7,row.z+7],[row.x-7,row.z+7]]; }
