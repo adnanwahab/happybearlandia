@@ -1003,3 +1003,23 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## First-play consumer compatibility — SHE-175
+
+Bounded slice: existing homepage Play Demo → real monthly City seed-42 pair →
+first draw → receipt → timeline/WHY, plus no-WebGPU/no-context and actual device
+loss. Prerequisites: runnable local Bun server, installed Playwright engines;
+physical M-series/integrated Intel/AMD/mobile availability and planning
+HBL-1M-039/HBL-1M-041 remain unverified. Acceptance requires measured browser/device
+rows with seed/model/run provenance, working interactions and explicit failure
+outcomes. Risks: emulation mistaken for devices, draw submission mistaken for
+scanout, headless/software backend mistaken for hardware WebGPU.
+
+Delivered review candidate: dedicated opt-in Chromium/Firefox/WebKit desktop and
+mobile-profile config, first-play evidence attachments and existing initialized
+loss suite integration. No application behavior changed. Focused scene/data/share
+regression: 21 pass / 145 assertions; discovery: 8 Chromium / 24 all-engine tests.
+Actual browser attempts exited before tests: Bun listen EADDRINUSE on 3199 and
+58473. No timings/device passes invented. Matrix, manual protocol, source hashes
+and startup log: [compatibility report](first-play-compatibility.md). Browser and
+physical-device acceptance remain open; no publication, merge or deployment.
