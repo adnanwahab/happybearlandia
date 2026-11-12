@@ -141,7 +141,17 @@ export function renderStory(container, description, {onJump} = {}) {
   const receipts = text('details', '');
   text('summary', `Recorded model events (${evidence.length})`, receipts);
   if (!evidence.length) text('p', 'No matching entity events supplied. Causal explanation unavailable.', receipts);
-  for (const receipt of evidence) text('pre', JSON.stringify(receipt, null, 2), receipts);
+  for (const receipt of evidence) {
+    text('pre', JSON.stringify(receipt, null, 2), receipts);
+    const id = receipt.entity?.id ?? receipt.entity?.entityId;
+    const arm = {a:'baseline',b:'plan',baseline:'baseline',plan:'plan'}[receipt.future];
+    if (id && receipt.entity?.collection && arm && Number.isInteger(receipt.month) && receipt.month >= 0 && receipt.month <= 120) {
+      const button = text('button', `Inspect event ${receipt.eventId} · ${arm} · ${id} · Month ${receipt.month}`, receipts);
+      button.type = 'button';
+      const handler = () => onJump?.({month:receipt.month,entity:{collection:receipt.entity.collection,id,arm},title:`WHY · event ${receipt.eventId}`,summary:'Selected exact recorded entity event. Related records do not establish A/B causality.',evidence:[receipt]});
+      button.addEventListener('click', handler); listeners.push([button, handler]);
+    } else text('p', 'Unsupported entity causality: this receipt has no exact selectable City identity, arm or month.', receipts);
+  }
   for (const limitation of description.limitations || []) text('p', limitation);
   container.replaceChildren(root);
   return () => { for (const [button, handler] of listeners) button.removeEventListener('click', handler); root.remove(); };

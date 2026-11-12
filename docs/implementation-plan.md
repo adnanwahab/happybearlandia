@@ -1003,3 +1003,42 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-32 — exact What Changed selection
+
+Local slice on `mini/SHE-32`: preserve existing deterministic story jumps,
+exact scene lookup, monthly City provenance and construction evidence. Audit
+found KPI WHY selected an arbitrary physical difference, and raw event receipts
+had no selection action. SHE-30 is In Progress in Linear; its policy work is a
+separate prerequisite, not claimed complete here. No dispatch state changes.
+This slice owns `world/future-machine/main.js`, `evidence.js`, story rendering
+and its README, focused tests, and this plan entry. Work is sequential because
+selection and receipt composition share one interface.
+
+Acceptance: housing KPI offers only model-owned completed-building receipts;
+other aggregate metrics explicitly disclose unsupported entity causality.
+Selecting a receipt preserves exact ID, arm and event month, focuses only a
+supported scene mapping and retains the WHY receipt. Missing mappings never
+substitute a different entity. Verify unit regressions and normal-route browser
+interaction, including the unsupported metric path. No simulation changes.
+
+Delivered: KPI inspection no longer picks an arbitrary physical difference;
+housing offers exact historical completion stops, other metrics disclose
+unsupported causality. Event buttons retain receipt, arm, identity and month
+through the existing scene focus/WHY flow. No model, seed or data changes.
+
+Verification (2026-11-12): `bun test test/future-machine-*.test.js` passed
+98 tests / 961 assertions, 3 browser-gated skips. After adding a real matched
+120-month KPI regression, `bun test test/future-machine-metric-selection.test.js
+test/future-machine-story.test.js` passed 12 tests / 65 assertions, including
+Month120 → exact Month16 event16-0, missing/zero/unsupported paths and disposal.
+`node --check world/future-machine/main.js` and `git diff --check` passed.
+No lint/typecheck scripts are defined. Playwright commands
+`bunx playwright test test/e2e/future-machine.e2e.js -g 'KPI WHY'` (default and
+alternate HBL_PLAYWRIGHT_PORT/HBL_PLAYWRIGHT_PARTY_PORT) and
+`bunx playwright test --config test/future-machine.browser.config.js -g 'KPI WHY'`
+all failed before test execution: server bind EADDRINUSE on3100,39432,39884.
+No browser screenshot obtained; the added browser regression remains unverified.
+Next action: run that regression in an environment permitting an isolated app
+server, capture the screenshot, and review alongside prerequisite SHE-30.
+No commit/PR, dispatch labels, merge or deployment performed by this slice.

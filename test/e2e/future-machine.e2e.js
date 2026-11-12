@@ -79,3 +79,23 @@ test('largest supported recipe stays bounded across scrubs and releases scene re
  await page.goto('/world/future-machine.html?fm=invalid&month=121');await page.goBack({waitUntil:'domcontentloaded'});await ready(page);expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);
  await page.evaluate(()=>window.futureMachine.dispose());expect(await page.evaluate(()=>window.futureMachine.stats.scene.objects)).toBe(0);expect(await page.locator('.fm-ui').count()).toBe(0);
 });
+
+test('KPI WHY selects exact historical completion and discloses unsupported aggregate links',async({page},testInfo)=>{
+ await page.goto('/world/future-machine.html?renderer=canvas');
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);await seek(page,120);
+ await page.getByRole('button',{name:'WHY · Homes',exact:true}).click();
+ const story=page.getByRole('region',{name:'Recorded change story'});
+ await story.getByRole('button',{name:/Recorded housing completion/}).first().click();
+ const selected=await page.evaluate(()=>({month:window.futureMachine.state.month,targets:window.futureMachine.stats.scene.targets}));
+ expect(selected.month).toBeLessThan(120);
+ await expect(story).toContainText('building-project-policy-1-0');
+ await story.getByText(/^Recorded model events \(/).click();
+ const receipt=story.getByRole('button',{name:/Inspect event .* · plan · building-project-policy-1-0/});
+ await expect(receipt).toBeVisible();await receipt.click();
+ await expect(story).toContainText('WHY · event');
+ expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(selected.month);
+ await seek(page,120);await page.getByRole('button',{name:'WHY · Mean unit rent',exact:true}).click();
+ await expect(story).toContainText('Unsupported entity causality');
+ expect(await story.getByRole('button').count()).toBe(0);
+ await page.screenshot({path:testInfo.outputPath('she-32-unsupported-causality.png'),fullPage:true});
+});
