@@ -1003,3 +1003,41 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Research Library and Evidence Graph — SHE-185
+
+Next integrated slice: a browser-safe versioned library, housing parameter/equation/
+metric inventory derived from existing registries, civic experiment projection,
+and a discoverable read-only browser with assumptions, evidence gaps and JSON
+import/export. No simulation values change. Shared library snapshots are the read
+contract for future calibration, validation and scientific export consumers.
+Acceptance: every inventoried rule is sourced or explicitly an assumption; source
+license/retrieval metadata and support links validated; unresolved/dangling links
+and empirical gaps remain visible; filters and export preserve the same graph.
+Prerequisites: existing housing schema/causal registry and civic evidence layer.
+Risks: there is no complete cross-engine rule inventory or verified paper corpus;
+implementation references are not empirical validation. Other engines and future
+consumer integrations must remain explicit gaps rather than claimed coverage.
+
+Delivered working increment: `/world/research-library.html`, linked from `/routes`
+and Decision Studio; 52 housing records (model1.2.0), two local implementation
+references, assumption/search filters, visible empirical/license/dangling-link
+gaps, validated session JSON import and lossless export. Civic evidence attachment
+preserves source license/retrieval metadata and includes the versioned read
+snapshot. No invented paper, observation, retrieval date or license permission.
+Interface and limits: `world/research-library/README.md`.
+
+Verification:35tests passed/0failed/2326assertions across research-library,
+evidence-registry, civic-experiment, housing-model, experiment-verification and
+metric-registry suites. Browser-target bundle passed (5modules); diff whitespace
+check passed. An initial search expectation omitted equations containing the
+queried parameter; corrected to include both valid matches. Browser smoke remains
+unverified: Playwright dependencies absent and isolated server binds on31885 and
+32851 both returned EADDRINUSE in this sandbox. No deployment or Git publication.
+
+SHE-185 remains partial: next inventory Population/City/Business rule registries,
+retrieve/review real papers and datasets with confirmed license provenance, and
+wire the calibration lab, model validation and scientific export workflows to the
+shared snapshot. NOASSERTION is deliberately a visible license-review gap, not
+completion of the verified-license requirement. No complete cross-model evidence
+coverage or implemented future consumer is claimed.
