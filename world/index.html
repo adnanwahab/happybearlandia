@@ -188,14 +188,17 @@ body:has(.saved-future-navigation) #global-illumination-button{top:auto;bottom:m
     <button id="runCycleBtn" type="button" title="Apply the selected plan for a simulated week and compare against no plan">Run cycle</button>
     <button id="cycleShowBtn" type="button" hidden title="Reopen the cycle results panel">Show results</button>
     <button id="demoBtn" type="button" title="Play the full guided civic cycle tour; for the short demo use Start Here">▶ Full demo</button>
-    <span class="muted" id="cycleStatus">One week, plan vs no plan</span>
+    <span id="cycleRunState" role="status">Ready</span>
+    <progress id="cycleProgress" max="1" aria-label="Weekly comparison progress" hidden></progress>
+    <button id="cycleCancel" type="button" hidden>Cancel cycle</button>
+    <span class="muted" id="cycleStatus" role="status">One week, plan vs no plan</span>
   </div>
   <div class="row" style="margin-top:2px">
     <button id="runExperimentBtn" type="button">10-year longitudinal experiment</button>
-    <span class="muted" id="experimentStatus">Idle</span>
+    <span class="muted">10-year status: <span id="experimentStatus">Idle</span></span>
   </div>
   <div class="row" style="margin-top:2px">
-    <span class="exp-compare" id="experimentCompare">No completed run yet.</span>
+    <span class="exp-compare" id="experimentCompare">No completed 10-year run yet.</span>
   </div>
   <details id="worldAdvanced" class="world-advanced-controls">
     <summary>Advanced settings · plan year, overlays, seeds &amp; diagnostics</summary>

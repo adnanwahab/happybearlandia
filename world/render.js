@@ -1405,6 +1405,7 @@ $("runExperimentBtn")?.addEventListener("click", () => withClassicWorld(runExper
 /* ---------------------------------------------------------------- */
 let cycleWorker = null;     // stays alive between cycles so cycle 2 continues cycle 1's worlds
 let cycleBusy = false;
+let cycleDeadline = null;
 let cycleResults = [];      // one entry per completed cycle
 let cycleIdx = 0;           // which cycle the panel and overlay show
 let cycleWho = "best";
@@ -1443,27 +1444,49 @@ function cycleStatusText(r, n) {
 
 function setCycleBusy(busy) {
   cycleBusy = busy;
+  clearTimeout(cycleDeadline);
+  if (busy) cycleDeadline = setTimeout(() => failCycle("The weekly comparison exceeded its 120-second limit. Try Run cycle again."), 120000);
+  $("cycleRunState").textContent = busy ? "Running" : "Ready";
+  $("cycleProgress").hidden = !busy;
+  $("cycleCancel").hidden = !busy;
+  if (busy) $("cycleProgress").removeAttribute("value");
   $("runCycleBtn").disabled = busy;
   const next = $("cycleNext");
   if (next) next.disabled = busy;
 }
 
+function failCycle(message, cancelled = false) {
+  cycleWorker?.terminate();
+  cycleWorker = null;
+  setCycleBusy(false);
+  $("cycleRunState").textContent = cancelled ? "Cancelled" : "Failed";
+  $("cycleStatus").textContent = message + " Click Run cycle to retry.";
+  $("runCycleBtn").textContent = "Retry Run cycle";
+  cycleWaiter?.reject(new Error(message));
+  cycleWaiter = null;
+  if (!cancelled) worldFeedback('error', {label:'Weekly comparison failed', message});
+}
+
+$("cycleCancel")?.addEventListener("click", () => failCycle("Weekly comparison cancelled.", true));
+
 function startCycleWorker() {
   cycleWorker?.terminate();
-  cycleWorker = createTrackedWorker(new URL("./cycle.worker.js", import.meta.url), { type: "module" }, { type: "Cycle", ownership: { system: "legacy-cycle" } });
-  cycleWorker.onmessage = (ev) => {
+  const worker = createTrackedWorker(new URL("./cycle.worker.js", import.meta.url), { type: "module" }, { type: "Cycle", ownership: { system: "legacy-cycle" } });
+  cycleWorker = worker;
+  worker.onerror = (event) => { if (cycleWorker === worker && cycleBusy) failCycle(event.message || "The simulation worker could not start."); };
+  worker.onmessageerror = () => { if (cycleWorker === worker && cycleBusy) failCycle("The simulation result could not be read."); };
+  worker.onmessage = (ev) => {
+    if (cycleWorker !== worker || !cycleBusy) return;
     const msg = ev?.data || {};
-    const status = $("cycleStatus");
-    if (msg.type === "progress") { status.textContent = `${msg.stage}…`; return; }
-    if (msg.type === "error") {
-      status.textContent = `Cycle failed: ${msg.error}`;
-      worldFeedback('error',{label:'Weekly comparison failed',message:String(msg.error)});
-      setCycleBusy(false);
-      cycleWaiter?.reject(new Error(msg.error));
-      cycleWaiter = null;
+    if (msg.type === "progress") {
+      $("cycleStatus").textContent = `${msg.stage}…`;
+      if (Number.isFinite(msg.frac)) $("cycleProgress").value = Math.max(0, Math.min(1, msg.frac));
       return;
     }
-    if (msg.type === "done") onCycleDone(msg.result);
+    if (msg.type === "error") { failCycle(String(msg.error)); return; }
+    if (msg.type === "done") {
+      try { onCycleDone(msg.result); } catch (error) { failCycle(error.message); }
+    }
   };
 }
 
@@ -1486,21 +1509,23 @@ function runCycle() {
   $("cycleStatus").textContent = "Starting…";
   cycleResults = [];
 
-  // The visible world adopts the plan too, so what you watch matches what was measured.
-  $("policy").value = pkgId;
-  activePolicyId = pkgId;
-  policyYear = year;
-  if (planYearEl) planYearEl.value = String(year);
-  if (planYearNEl) planYearNEl.textContent = `Year ${year}`;
-  applyPolicy(pkgId, year);
+  try {
+    // The visible world adopts the plan too, so what you watch matches what was measured.
+    $("policy").value = pkgId;
+    activePolicyId = pkgId;
+    policyYear = year;
+    if (planYearEl) planYearEl.value = String(year);
+    if (planYearNEl) planYearNEl.textContent = `Year ${year}`;
+    applyPolicy(pkgId, year);
 
-  startCycleWorker(); // a fresh cycle 1 starts from fresh worlds
-  pendingCycleLabel = pkgLabel;
-  pendingCycleSource = pkg.source;
-  cycleWorker.postMessage({
-    type: "run",
-    payload: { origin, area, maxPeople, proposalIds: pkg.proposalIds || [], label: pkgLabel, remoteId: pkg.remoteId || null, year, days: 7 },
-  });
+    startCycleWorker(); // a fresh cycle 1 starts from fresh worlds
+    pendingCycleLabel = pkgLabel;
+    pendingCycleSource = pkg.source;
+    cycleWorker.postMessage({
+      type: "run",
+      payload: { origin, area, maxPeople, proposalIds: pkg.proposalIds || [], label: pkgLabel, remoteId: pkg.remoteId || null, year, days: 7 },
+    });
+  } catch (error) { failCycle(error.message); }
 }
 
 function runNextCycle() {
@@ -1509,7 +1534,8 @@ function runNextCycle() {
   $("cycleStatus").textContent = "Reading residents' journals…";
   pendingCycleLabel = null;
   pendingCycleSource = null;
-  cycleWorker.postMessage({ type: "next" });
+  try { cycleWorker.postMessage({ type: "next" }); }
+  catch (error) { failCycle(error.message); }
 }
 
 let pendingCycleLabel = null;
@@ -1545,6 +1571,8 @@ function onCycleDone(result) {
   const addedForLog = changeLabels(r.added);
   world.log(`Cycle ${n}${n > 1 && addedForLog.length ? ` (+ ${addedForLog.join(", ")})` : `: ${label}`} → ${signed(d)} avg well-being ${vs}`, "civic");
   setCycleBusy(false);
+  $("cycleRunState").textContent = "Completed";
+  $("runCycleBtn").textContent = "Run cycle";
   renderCyclePanel();
   $("cyclePanel").scrollTop = 0;
   worldFeedback('cycle',{
