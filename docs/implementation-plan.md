@@ -1003,3 +1003,23 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-123 — assistive narration
+
+Slice: Future Machine selected monthly City entity comparison. Reuse exact diff
+records and event-linked inspector; no new model or cross-model identity mapping.
+Own story narration, coordinator wiring, focused tests and documentation sequentially
+in the existing isolated `mini/SHE-123` checkout. No independent work requires delegation.
+Acceptance: native user-triggered control announces bounded actual before/after values,
+selected month and run provenance; selection/playback never announces automatically;
+repeated requests for identical output do not mutate the live region. Missing values,
+added/removed inventory and absent comparisons remain explicit. Risks: long structured
+fields need bounded summaries; screen-reader speech itself requires manual verification.
+Status: implemented in `story/narration.js`, story renderer and `main.js`, with story
+README and focused tests. Open PR search for narration/SHE-123 returned no duplicate.
+Verification: focused narration/story/diff/UI suites passed 29 tests (175 assertions),
+with 2 opt-in browser tests skipped; `git diff --check` passed. Attempting the new
+Chromium check failed at Bun local server binding (`EADDRINUSE`, port 0), before
+browser launch. Browser integration and actual screen-reader speech remain unverified;
+rerun `HBL_FM_BROWSER=1 bun test test/assistive-narration.test.js` on a host permitting
+local servers, then check speech manually. No deployment or production writes.
