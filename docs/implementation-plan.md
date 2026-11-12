@@ -1003,3 +1003,33 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-196 — feature voting and feedback
+
+Extend the existing `/vote-on-patch` ballot and private patch-vote store rather
+than duplicating it or simulation feedback presentation. Own ops/patch-voting,
+world/patch-voting and focused tests. Prerequisites: existing signing secret and
+private database. Next slice: explicit per-session opt-in, private typed reports
+with optional manually supplied replay seed, and local-only triage/duplicate
+merge. Acceptance: no cookie on read; no collection without consent; reports
+never public; atomic duplicate merge; submit/error/opt-out browser checks.
+Risks: browser identity is best effort, seed alone is not a complete replay
+recipe, no production activation or automated improvement-service handoff.
+
+Delivered: extended existing ballot/API; no cookie on reads or rejected writes;
+consent required for every vote/report; typed private feedback and optional seed;
+local triage lists advisory tallies and reports; atomic idea merge preserves
+source text and target reference. Existing suggestions migrate as ideas. No
+simulation state, execution service, public report endpoint or production change.
+Operator contract: ops/patch-voting/README.md. No new backend or parallel store.
+
+Verification: `bun test test/patch-voting.test.js test/patch-feedback-ui.test.js`
+passed 7 tests / 39 assertions. Covers collection rejection, private report,
+seed absence/presence, duplicate/cycle rejection, legacy migration/reopen,
+submit, network error, and opt-out using the actual controller with DOM doubles.
+`git diff --check` passed. Production entry integration command
+`bun test test/patch-voting-server.test.js` blocked before startup: Bun listen
+EADDRINUSE even at PORT=0 in this environment. Playwright dependency absent;
+no browser screenshots or visual validation claimed. Next verification: install
+locked dependencies and run the production test and browser smoke at
+/vote-on-patch in an environment allowing local listen. No commit/PR/deploy.
