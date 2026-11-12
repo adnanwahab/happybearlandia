@@ -1003,3 +1003,50 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-8 — core first-play funnel
+
+Next slice: reuse merged SHE-7 schema from PR #113, instrument confirmed Future
+Machine UI transitions, retain seven first-only in-memory milestones with actual
+renderer, explicit UI version and closed scenario identity. No simulation changes,
+external collection, deployment or merge. Integration ownership and exact dependency
+provenance: [first-play instrumentation](first-play-instrumentation.md).
+
+Acceptance: valid schema envelopes; no emitted invented outcomes, missing-history
+divergence or failed-run start; one milestone per page session across replay;
+clipboard settlement result; explicit saved-return entry. Existing City history,
+versions, seeds and synthetic disclaimers remain authoritative. Tasks: restore exact
+merged prerequisite; implement bounded adapter and entry-point calls; unit-test
+failure/dedup paths; run real browser journey and existing regressions; review diff.
+Risk: this checkout predates SHE-7; source restoration is integration of completed
+work, not a replacement implementation. Browser bind permission may block local
+acceptance; no passing browser claim without actual execution.
+
+
+Delivered locally: restored the exact three SHE-7 dependency files and wired the
+seven milestones through the real Future Machine handlers. The versioned wrapper
+is bounded to seven records; no persistent identity or network analytics added.
+WHY emission follows inspector rendering, including the guided inspector; simulator
+facts come from existing paired-history differences. Source remains on `mini/SHE-8`;
+no new commit/PR, main merge or deployment was performed.
+
+Actual verification:
+- `bun test test/first-play-funnel.test.js test/first-play-events.test.js test/two-futures-demo-controller.test.js test/demo-fallback.test.js test/future-machine-ui.test.js test/future-machine-diff.test.js test/future-machine-data.test.js test/future-machine-share.test.js`:
+  47 pass, 1 optional Chromium test skipped, 0 fail, 785 assertions (3.15s).
+- `node --check world/future-machine/main.js` and
+  `node --check test/e2e/first-play.e2e.js`: passed.
+- `git diff --check`: passed. Restored dependency files match PR head bytes.
+- `bunx playwright test --config test/first-play.browser.config.js --list`:
+  two browser tests discovered successfully.
+- `bunx playwright test --config test/first-play.browser.config.js` and
+  `HBL_TWO_FUTURES_PORT=39983 bunx playwright test --config test/first-play.browser.config.js`:
+  blocked before browser execution by server bind failure (Bun reports EADDRINUSE).
+  Independent Python ephemeral localhost socket probe confirms PermissionError,
+  errno 1 / Operation not permitted. No port was stopped or existing server reused.
+
+Unresolved acceptance: run the two committed browser tests in an environment that
+permits localhost binding. No browser event/replay pass or screenshots are claimed.
+The visible UI is unchanged. Existing package scripts expose no lint/typecheck gate.
+Final publication should target the sprint with merged SHE-7 present so its restored
+files do not appear as new implementation. Coordinator file-ownership/dispatch
+metadata has not been changed; no competing worker or dispatch was launched.
