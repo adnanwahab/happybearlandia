@@ -1,6 +1,7 @@
 // Integration catalog. Excludes the Tools directory app, Blog, and Twitch robot.
 // Apps under /tools retain their standalone routes and are separate experiences.
 export const EXPERIENCES = Object.freeze([
+  {id:'social-bear',category:'games',title:'The Social Bear',description:'Meet six fictional adults, share authored conversations and play a separate bar night.',route:'/world/bar',preview:'/world/bar',evidence:'fictional',role:'social game'},
   {id:'future-machine',category:'worlds',title:'One City, Two Futures',description:'Compare matched monthly City futures and inspect recorded housing outcomes.',route:'/world/future-machine.html',preview:'/world/future-machine.html?renderer=canvas2d',evidence:'synthetic',role:'paired comparison'},
   {id:'houston-map',category:'worlds',title:'Houston Neighborhood Map',description:'Explore sourced OpenStreetMap footprints with illustrative elevations.',route:'/tools/houston-map',preview:'/tools/houston-map',evidence:'mixed',role:'map experience'},
   {

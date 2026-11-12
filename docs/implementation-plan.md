@@ -614,3 +614,21 @@ Hosted acceptance caught the narrow saved-future return link beneath the new
 button. Saved-future navigation now reserves its top area while GI stays at the
 bottom; the existing saved Canvas/graphics-error return tests both passed locally
 (2/2,11.1seconds) without changing their assertions. Fresh hosted CI gates review.
+
+### PR5 Social Bear integration — November 12, 2026
+
+User authorized resolving PR5 against main and merging after validation. Retained
+main's canonical searchable directory and all current House toolbar controls;
+registered Social Bear as one fictional experience with its exact HTML mapping,
+while preserving bar entry and safe household return context. The bar remains
+independent browser-local authored gameplay; no household/city model coupling.
+Acceptance: both bar paths/assets and existing House route work, directory finds
+exactly one Social Bear, purchases/conversation/group replies persist after reload,
+and 390px/320px layouts remain usable with the graphical fallback.
+
+Validation:32 Node bar gameplay/save tests and15 Bun server/local-journey/registry/
+HTML navigation tests passed (228 assertions), plus real-server Chromium smoke. Smoke checks six normal
+routes, six guests/three groups, two separate group reactions, spend/dialogue
+persistence, safe household return and no horizontal overflow at390px/320px.
+WebGL was deliberately disabled for fallback verification; native GPU visuals
+were not reverified. No deployment or Symphony mutation. Hosted CI gates merge.
