@@ -1,4 +1,4 @@
-(() => {
+(async () => {
   const rail = document.getElementById('carousel-rail');
   const jump = document.getElementById('carousel-jump');
   const categorySelect = document.getElementById('carousel-category');
@@ -6,7 +6,17 @@
   const catalog = document.getElementById('preview-catalog');
   if (!rail || !catalog) return;
   const categories = { worlds: '3D Worlds', living: 'Living Simulations', science: 'GPU Science', games: 'Games', tools: 'Tools' };
-  const sources = [...catalog.content.querySelectorAll('section[data-carousel]')];
+  const {EXPERIENCES}=await import('/world/universe/registry.js');
+  const templates=[...catalog.content.querySelectorAll('section[data-carousel]')];
+  const sources=EXPERIENCES.map(experience=>{
+    const existing=templates.find(section=>section.querySelector('iframe')?.getAttribute('src')===experience.route);
+    if(existing)return existing;
+    const section=document.createElement('section');section.dataset.carousel=experience.category;
+    const header=document.createElement('header'),title=document.createElement('h2'),description=document.createElement('p'),frame=document.createElement('iframe');
+    title.textContent=experience.title;description.textContent=experience.description;header.append(title,description);frame.setAttribute('src',experience.route);frame.dataset.previewSrc=experience.preview;frame.title=experience.title;section.append(header,frame);return section;
+  });
+  const countHeading = document.getElementById('experience-count');
+  if (countHeading) { const count = countHeading.querySelector("#gallery-count"); if (count) count.textContent = String(sources.length); else countHeading.textContent = `${sources.length} Interactive Worlds & Experiments`; }
   let active = 0, queued = false, visible = true;
   const cards = sources.map((section, index) => {
     const source = section.querySelector('iframe');

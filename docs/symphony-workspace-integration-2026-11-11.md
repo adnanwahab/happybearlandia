@@ -1,0 +1,198 @@
+# Symphony workspace integration audit — November 11, 2026
+
+User request: recover and integrate completed work from inactive Symphony workspaces while preserving original work, following the disk-space audit.
+
+The three independent read-only reviews covered `~/code/symphony-workspaces`, `~/code/symphony-pilot-isolated` and `~/.local/share/hbl-codex/workspaces-linear`. The live Symphony endpoint at port 43111 reported zero running, retrying and blocked jobs before integration. No original workspace, shared bare repository, database or personal file was deleted or rewritten.
+
+## Integration result
+
+Local branch: `codex/merge-complete-symphony-20261111`.
+Base: `f1174eb9a5cead6892370d25af97167a0babb54b`, verified against the remote sprint ref. The existing dirty primary checkout remains on its original branch with its local changes intact. No push, PR creation, release/main merge or deployment was performed.
+
+SHE-89 contained six untracked, locally functional receipt-example files at source HEAD `42a821b03839bcfed127a727b01ea6158a687e45`. They were adopted byte-for-byte from `~/.local/share/hbl-codex/workspaces-linear/SHE-89`, without committing or changing that workspace. This is recovery of an uncommitted deliverable, not a merge of a nonexistent task commit. The files use the existing monthly City generator, normalization, bounded recipe codec and evidence exporter; they do not introduce a simulation engine or production persistence.
+
+The housing receipt records seed 42 and month 16: 36 baseline homes, 60 plan homes, +24 homes, and 1,000,000 illustrative USD plan capital spending. The seed-7 month-120 zero-control receipt has identical paired observations. Both disclose synthetic assumptions and recomputation limits. The fixtures are illustrative model evidence, not empirical forecasts.
+
+The branch intentionally uses the current sprint: `origin/main` at `78c3c5145a23a1300c1919fd70effc843052a3af` lacks imported Future Machine modules required by these files. Porting them there alone would not work.
+
+## Other workspace findings
+
+- Legacy Symphony root: 55 workspace HEADs equal the existing `ec408d03` sprint baseline. All tracked-clean; 52 fully clean. Three small untracked notes describe blocked/unstarted work and were left alone. No unique completed source contribution to merge.
+- Pilot root: 27 repositories, of which 20 are unchanged baseline copies. Six are incomplete checkouts with mass staged deletions; existing tracked file contents match baseline. Their indexes must not be treated as completed deletion work.
+- Pilot SHE-179 has two documentation commits, already merged through [PR #24](https://github.com/adnanwahab/happybearlandia/pull/24) into sprint merge `f1174eb9`. No duplicate merge was made.
+- Linear SHE-70's uncommitted CI runner pin was deferred: no actual hosted runner check was available, and it is independent of the recovered receipt slice.
+- Linear SHE-115 cancellation extraction lacks associated tests/completion evidence and was deferred. Empty and partial checkout indexes were not adopted.
+
+No workspace is certified for retirement by this review. Ignored data and remote preservation of every source artifact have not been exhaustively established, and SHE-89's original untracked files remain local. This task does not claim additional disk recovery.
+
+## Validation
+
+- `bun scripts/example-receipts.js --check`: two receipts regenerate byte-for-byte with matching canonical hashes.
+- `bun test test/example-receipts.test.js test/future-machine-share.test.js test/future-machine-data.test.js test/future-machine-diff.test.js`: **25 passed, 0 failed, 218 assertions** on the isolated integrated branch.
+- Independent SHE-179 offline pipeline audit: eight tests passed; the already-merged documentation was not imported again.
+- Browser checks skipped: the adopted change is an offline fixture generator and tests; application/browser behavior is unchanged.
+- Whitespace and source-copy integrity checks passed.
+
+## Recovered source integrity
+
+Each SHA-256 below hashes the exact source file bytes and the matching adopted bytes. These byte hashes are distinct from canonical receipt hashes in `test/fixtures/example-receipts/hashes.json`.
+
+| Path | SHA-256 |
+| --- | --- |
+| `scripts/example-receipts.js` | `acafea57b231f023f728bfa51f9f47871f1a54567748fcb966b08fe157e6444a` |
+| `test/example-receipts.test.js` | `ad9659be4370e05f69583d6b90807b007d6edd35a21f53ff1a571b4b0b679c3d` |
+| `test/fixtures/example-receipts/README.md` | `1af8b56211c65107747962bc250c9e286bc7a5de01daf9427adb7c1e6b3509f5` |
+| `test/fixtures/example-receipts/hashes.json` | `4d509d7e71ad425d3917c086b82a74faebf1ba0dacb6ef679da071d704d15d0e` |
+| `test/fixtures/example-receipts/housing-month-16.json` | `c57993d51eb89b47d5d5bedbcecc666e54f90bd9f710801e8d6e93abdf8be1de` |
+| `test/fixtures/example-receipts/zero-control-month-120.json` | `47d3210743118031c6cba0bcefb9b0bcb4fe29120d14672f0f2df4734232c82f` |
+
+
+## Linear-first mergeability check — November 11, 2026
+
+The user requested checking Linear before deciding whether workspace work is mergeable. Live Linear queries returned **59 In Review issues and one Done issue** in team SHE. Three reviewers read issue descriptions, acceptance, attachments/relations and workpad comments, then checked corresponding copies in all three workspace roots. Status labels were not treated as completion evidence. This audit performed no Linear status/comment changes or additional implementation.
+
+**No additional complete contribution is ready to merge from the 59 In Review workspaces.** Eight original worker/fixture scopes already exist in the sprint baseline, 49 have blocked/incomplete handoffs without a distinct completed contribution, and two retain unfinished uncommitted changes (SHE-70 and SHE-115). Workpad-reported test results are historical baseline observations unless explicitly rerun in the validation section above.
+
+The sole Done issue, [SHE-179](https://linear.app/shel-bernstein/issue/SHE-179/symphony-pilot-verify-end-to-end-draft-pr-publishing-create-a-new-file), is already merged as PR #24. Historical PR #9 is also merged, but its storage-readiness implementation does not satisfy all of the later SHE-78 demo-health scope.
+
+**Correction to the initial workspace-only assessment:** [SHE-89](https://linear.app/shel-bernstein/issue/SHE-89/hbl-sym-012-generate-reproducible-example-receipts-for-docs-and-test) is In Progress. Commit `37bb98a7306e9318830dad74c6d843035317b945` recovered a tested existing Future Machine example subset, not completion of the entire Linear issue. Its latest workpad identifies SHE-79 → SHE-83 → SHE-84 canonical receipt/validator prerequisites; native Linear relation edges are empty, so these are recorded textual prerequisites, not invented formal tracker edges. No general canonical receipt import validation is claimed. The recovered CLI/fixtures remain useful and passed the recorded 25-test integrated check.
+
+Typical legacy paths below are `~/code/symphony-workspaces/SHE-ID`, clean at `ec408d03` with no distinct task commits. All three roots were considered where matching copies exist. Empty and incomplete checkout indexes were excluded. SHE-70's one-file WIP and SHE-115's API/helper WIP are under `~/.local/share/hbl-codex/workspaces-linear/`; their originals were preserved.
+
+| Linear task | Current status | Workspace / mergeability finding |
+| --- | --- | --- |
+| [SHE-7](https://linear.app/shel-bernstein/issue/SHE-7/hbl-w1-002-define-versioned-privacy-conscious-first-play-events) — [HBL-W1-002] Define versioned, privacy-conscious first-play events | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-9](https://linear.app/shel-bernstein/issue/SHE-9/hbl-w1-004-establish-reproducible-paired-futures-smoke-fixtures) — [HBL-W1-004] Establish reproducible paired-futures smoke fixtures | In Review | Original scope already integrated; no new workspace contribution. |
+| [SHE-10](https://linear.app/shel-bernstein/issue/SHE-10/hbl-w1-005-create-a-first-play-browser-error-evidence-collector) — [HBL-W1-005] Create a first-play browser-error evidence collector | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-11](https://linear.app/shel-bernstein/issue/SHE-11/hbl-w1-006-capture-cold-start-performance-on-each-renderer) — [HBL-W1-006] Capture cold-start performance on each renderer | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-18](https://linear.app/shel-bernstein/issue/SHE-18/hbl-w1-013-fix-narrow-mobile-navigation-and-panel-collision) — [HBL-W1-013] Fix narrow-mobile navigation and panel collision | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-19](https://linear.app/shel-bernstein/issue/SHE-19/hbl-w1-014-verify-keyboard-and-screen-reader-first-play-semantics) — [HBL-W1-014] Verify keyboard and screen-reader first-play semantics | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-21](https://linear.app/shel-bernstein/issue/SHE-21/worker-1-deterministic-city-paired-runs-and-replay) — Worker 1: deterministic City paired runs and replay | In Review | Original scope already integrated; no new workspace contribution. |
+| [SHE-52](https://linear.app/shel-bernstein/issue/SHE-52/hbl-w1-039-capture-lightweight-player-feedback-with-consent) — [HBL-W1-039] Capture lightweight player feedback with consent | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-58](https://linear.app/shel-bernstein/issue/SHE-58/hbl-w1-045-audit-contrast-reduced-motion-and-assisted-input) — [HBL-W1-045] Audit contrast, reduced motion and assisted input | In Review | Blocked handoff; local workpad note only. |
+| [SHE-62](https://linear.app/shel-bernstein/issue/SHE-62/hbl-w1-049-run-independent-no-instructions-first-play-acceptance) — [HBL-W1-049] Run independent no-instructions first-play acceptance | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-67](https://linear.app/shel-bernstein/issue/SHE-67/hbl-w1-054-write-an-evidence-based-release-gono-go-report) — [HBL-W1-054] Write an evidence-based release go/no-go report | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-69](https://linear.app/shel-bernstein/issue/SHE-69/hbl-w1-056-create-the-next-two-week-roadmap-from-observed-player) — [HBL-W1-056] Create the next two-week roadmap from observed player behavior | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-70](https://linear.app/shel-bernstein/issue/SHE-70/gh-22-hbl-pilot-make-browser-ci-reliable-on-an-explicitly-supported) — [GH-22] [HBL PILOT] Make browser CI reliable on an explicitly supported runner | In Review | Uncommitted CI runner pin; no successful CI rerun or completion PR. |
+| [SHE-72](https://linear.app/shel-bernstein/issue/SHE-72/gh-18-worker-5-canvas2d-fallback-for-world-and-future-machine) — [GH-18] Worker 5: Canvas2D fallback for World and Future Machine | In Review | Original scope already integrated; no new workspace contribution. |
+| [SHE-73](https://linear.app/shel-bernstein/issue/SHE-73/gh-17-worker-4-first-run-ux-repairs-and-homepage-play-demo-wiring) — [GH-17] Worker 4: first-run UX repairs and homepage Play Demo wiring | In Review | Original scope already integrated; no new workspace contribution. |
+| [SHE-74](https://linear.app/shel-bernstein/issue/SHE-74/gh-16-worker-3-model-driven-paired-city-scene-and-first-divergence) — [GH-16] Worker 3: model-driven paired City scene and first-divergence visual effects | In Review | Original scope already integrated; no new workspace contribution. |
+| [SHE-75](https://linear.app/shel-bernstein/issue/SHE-75/gh-15-worker-2-future-diff-calculations-and-interactive-comparison-ui) — [GH-15] Worker 2: Future Diff calculations and interactive comparison UI | In Review | Original scope already integrated; no new workspace contribution. |
+| [SHE-76](https://linear.app/shel-bernstein/issue/SHE-76/gh-14-worker-1-deterministic-city-paired-runs-and-replay) — [GH-14] Worker 1: deterministic City paired runs and replay | In Review | Original scope already integrated; no new workspace contribution. |
+| [SHE-77](https://linear.app/shel-bernstein/issue/SHE-77/gh-13-sprint-coordinator-one-city-two-futures-paired-model-demo) — [GH-13] Sprint coordinator: One City, Two Futures — paired model demo, evidence, release gate | In Review | Original scope already integrated; no new workspace contribution. |
+| [SHE-78](https://linear.app/shel-bernstein/issue/SHE-78/hbl-sym-001-create-a-single-first-play-demo-readiness-health-endpoint) — [HBL-SYM-001] Create a single first-play demo readiness health endpoint | In Review | Earlier storage-health PR #9 merged; requested demo health scope remains incomplete. |
+| [SHE-79](https://linear.app/shel-bernstein/issue/SHE-79/hbl-sym-002-add-scenario-manifest-schema-validation-at-startup) — [HBL-SYM-002] Add scenario manifest schema validation at startup | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-80](https://linear.app/shel-bernstein/issue/SHE-80/hbl-sym-003-show-explicit-simulation-run-lifecycle-states) — [HBL-SYM-003] Show explicit simulation run lifecycle states | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-81](https://linear.app/shel-bernstein/issue/SHE-81/hbl-sym-004-implement-cancel-for-queued-simulation-requests) — [HBL-SYM-004] Implement cancel for queued simulation requests | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-82](https://linear.app/shel-bernstein/issue/SHE-82/hbl-sym-005-prevent-out-of-order-run-results-from-replacing-current) — [HBL-SYM-005] Prevent out-of-order run results from replacing current scenario | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-85](https://linear.app/shel-bernstein/issue/SHE-85/hbl-sym-008-add-provenance-badges-for-observed-synthetic-and-modeled) — [HBL-SYM-008] Add provenance badges for observed, synthetic and modeled values | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-86](https://linear.app/shel-bernstein/issue/SHE-86/hbl-sym-009-implement-snapshot-integrity-checks-between-renderer-and) — [HBL-SYM-009] Implement snapshot integrity checks between renderer and model | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-90](https://linear.app/shel-bernstein/issue/SHE-90/hbl-sym-013-add-an-explainable-causal-event-trail-for-each-changed) — [HBL-SYM-013] Add an explainable causal event trail for each changed entity | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-91](https://linear.app/shel-bernstein/issue/SHE-91/hbl-sym-014-implement-event-inspector-empty-state-and-uncertainty) — [HBL-SYM-014] Implement event inspector empty-state and uncertainty messaging | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-92](https://linear.app/shel-bernstein/issue/SHE-92/hbl-sym-015-show-linked-city-entity-ids-across-map-and-metrics) — [HBL-SYM-015] Show linked city entity IDs across map and metrics | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-93](https://linear.app/shel-bernstein/issue/SHE-93/hbl-sym-016-animate-model-backed-building-construction-milestones) — [HBL-SYM-016] Animate model-backed building construction milestones | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-96](https://linear.app/shel-bernstein/issue/SHE-96/hbl-sym-019-show-confidence-and-data-limitations-on-neighborhood) — [HBL-SYM-019] Show confidence and data limitations on neighborhood metrics | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-98](https://linear.app/shel-bernstein/issue/SHE-98/hbl-sym-021-implement-one-click-scenario-comparison-permalink-preview) — [HBL-SYM-021] Implement one-click scenario comparison permalink preview | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-100](https://linear.app/shel-bernstein/issue/SHE-100/hbl-sym-023-add-a-compact-on-screen-quest-discover-the-first) — [HBL-SYM-023] Add a compact on-screen quest: discover the first divergence | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-101](https://linear.app/shel-bernstein/issue/SHE-101/hbl-sym-024-offer-an-optional-second-intervention-after-the-first) — [HBL-SYM-024] Offer an optional second intervention after the first replay | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-103](https://linear.app/shel-bernstein/issue/SHE-103/hbl-sym-026-add-first-play-error-report-with-scrubbed-diagnostic) — [HBL-SYM-026] Add first-play error report with scrubbed diagnostic bundle | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-104](https://linear.app/shel-bernstein/issue/SHE-104/hbl-sym-027-measure-time-from-play-demo-click-to-first-meaningful) — [HBL-SYM-027] Measure time from Play Demo click to first meaningful frame | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-105](https://linear.app/shel-bernstein/issue/SHE-105/hbl-sym-028-detect-webgpu-adapter-initialization-failure-and-downgrade) — [HBL-SYM-028] Detect WebGPU adapter initialization failure and downgrade gracefully | In Review | Existing fallback implementation overlaps; no new workspace contribution or full issue acceptance. |
+| [SHE-106](https://linear.app/shel-bernstein/issue/SHE-106/hbl-sym-029-avoid-duplicate-textures-and-buffers-during-future-replay) — [HBL-SYM-029] Avoid duplicate textures and buffers during future replay | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-108](https://linear.app/shel-bernstein/issue/SHE-108/hbl-sym-031-document-worker-and-gpu-fallback-failure-boundaries) — [HBL-SYM-031] Document worker and GPU fallback failure boundaries | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-109](https://linear.app/shel-bernstein/issue/SHE-109/hbl-sym-032-add-per-route-lightweight-startup-smoke-test) — [HBL-SYM-032] Add per-route lightweight startup smoke test | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-110](https://linear.app/shel-bernstein/issue/SHE-110/hbl-sym-033-add-ci-fixtures-for-invalid-and-maliciously-oversized-run) — [HBL-SYM-033] Add CI fixtures for invalid and maliciously oversized run inputs | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-111](https://linear.app/shel-bernstein/issue/SHE-111/hbl-sym-034-add-a-deterministic-seed-replay-ci-matrix) — [HBL-SYM-034] Add a deterministic seed replay CI matrix | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-113](https://linear.app/shel-bernstein/issue/SHE-113/hbl-sym-036-automate-screenshot-evidence-at-month-zero-and-first) — [HBL-SYM-036] Automate screenshot evidence at month zero and first divergence | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-114](https://linear.app/shel-bernstein/issue/SHE-114/hbl-sym-037-instrument-bounded-server-run-queue-with-operational) — [HBL-SYM-037] Instrument bounded server run queue with operational counters | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-115](https://linear.app/shel-bernstein/issue/SHE-115/hbl-sym-038-add-request-time-budget-and-cancellation-tests-for-heavy) — [HBL-SYM-038] Add request-time budget and cancellation tests for heavy runs | In Review | Uncommitted worker cancellation helper/API changes; required lifecycle tests absent. |
+| [SHE-116](https://linear.app/shel-bernstein/issue/SHE-116/hbl-sym-039-create-a-transparent-how-this-simulation-works-in-game) — [HBL-SYM-039] Create a transparent 'How this simulation works' in-game panel | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-122](https://linear.app/shel-bernstein/issue/SHE-122/hbl-sym-045-build-small-screen-full-game-screenshot-regression-pack) — [HBL-SYM-045] Build small-screen full-game screenshot regression pack | In Review | Blocked handoff; local workpad note only. |
+| [SHE-124](https://linear.app/shel-bernstein/issue/SHE-124/hbl-sym-047-define-weekly-retention-metrics-with-explicit-denominator) — [HBL-SYM-047] Define weekly retention metrics with explicit denominator definitions | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-126](https://linear.app/shel-bernstein/issue/SHE-126/hbl-sym-049-draft-symphony-issue-readiness-and-dispatch-checklist) — [HBL-SYM-049] Draft Symphony issue-readiness and dispatch checklist | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-131](https://linear.app/shel-bernstein/issue/SHE-131/hbl-1m-004-play-a-district-level-policy-resource-allocation-challenge) — [HBL-1M-004] Play a district-level policy resource allocation challenge | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-136](https://linear.app/shel-bernstein/issue/SHE-136/hbl-1m-009-build-a-neighborhood-council-decision-scene-backed-by) — [HBL-1M-009] Build a neighborhood council decision scene backed by policy inputs | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-137](https://linear.app/shel-bernstein/issue/SHE-137/hbl-1m-010-add-independent-simulation-speed-and-camera-speed-controls) — [HBL-1M-010] Add independent simulation speed and camera-speed controls | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-157](https://linear.app/shel-bernstein/issue/SHE-157/hbl-1m-030-make-a-cross-scale-first-divergence-cinematic-shot) — [HBL-1M-030] Make a cross-scale first-divergence cinematic shot | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-158](https://linear.app/shel-bernstein/issue/SHE-158/hbl-1m-031-stream-spatial-city-tiles-progressively-under-camera-motion) — [HBL-1M-031] Stream spatial city tiles progressively under camera motion | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-161](https://linear.app/shel-bernstein/issue/SHE-161/hbl-1m-034-build-an-occupancy-versus-activity-city-heatmap-toggle) — [HBL-1M-034] Build an occupancy-versus-activity city heatmap toggle | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-164](https://linear.app/shel-bernstein/issue/SHE-164/hbl-1m-037-draw-causal-event-pulses-across-linked-city-entities) — [HBL-1M-037] Draw causal event pulses across linked city entities | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-166](https://linear.app/shel-bernstein/issue/SHE-166/hbl-1m-039-provide-an-instant-playable-city-preview-while-the-deep) — [HBL-1M-039] Provide an instant playable city preview while the deep model initializes | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-167](https://linear.app/shel-bernstein/issue/SHE-167/hbl-1m-040-avoid-allocating-all-one-million-resident-rows-during) — [HBL-1M-040] Avoid allocating all one-million resident rows during initial page load | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+| [SHE-169](https://linear.app/shel-bernstein/issue/SHE-169/hbl-1m-042-recover-game-state-from-webgpu-device-loss-without-invented) — [HBL-1M-042] Recover game state from WebGPU device loss without invented outcomes | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
+
+Next useful action is to review the eight already-integrated scopes against their task acceptance and resolve the documented dispatch/ownership/prerequisite blockers. SHE-70 and SHE-115 require a separate tested completion slice; they should not be merged as finished work merely because Linear says In Review. No workspaces are certified for deletion.
+
+
+## Authorized unblocking increment — November 11, 2026
+
+After the audit, the user authorized parallel unblocking. Three agents handled
+independent manifest, worker-lifecycle and operational-proof tracks. Ownership
+was exclusive; new source work used managed isolated worktrees from `c7113b0`.
+Original workspaces, dirty primary-checkout changes and the shared bare Git
+repository were preserved.
+
+### Implemented and integrated locally
+
+- **SHE-115:** `060c26ef8fddb7eeac4f1717efe8e8cbda33cbcb` → integration
+  `8c40ed6`. Added a disposable City worker lifecycle helper and forwarded replay
+  request cancellation. Pre/during abort, timeout, malformed replies, errors and
+  settlement races clean up and terminate once. Real replay tests show capacity
+  reuse, exact seed/state parity and immutable inputs. Existing HTTP 400 errors
+  and background persisted experiments remain compatible.
+- **SHE-79:** `01bf4243c7f6043701a69eb3b5c0d6543976f988` → integration
+  `81690ca`. Hardened the existing completed Future Machine manifest load
+  boundary: scenario structure/IDs, intervention arrays/objects, optional bounded
+  display title, versions/seeds, and common-initial generator integrity. Invalid
+  metadata/state now fails before expensive replay; omitted legacy titles and
+  valid Unicode/text titles still work. No invented display-name schema,
+  server-wide startup registry, or general receipt import contract is claimed.
+
+Independent coordinator verification after combining both commits:
+
+```sh
+bun test --timeout 15000 test/city-worker-call.test.js test/city-systems.test.js test/project-unblock.test.js test/server-civic-api.test.js test/future-machine-manifest-validation.test.js test/future-machine-data.test.js test/future-machine-boundaries.test.js test/future-machine-share.test.js test/future-machine-diff.test.js test/example-receipts.test.js
+bunx playwright test --config test/symphony-unblock.browser.config.js
+```
+
+Results: **68 passed / 629 assertions**, then **two browser checks passed in
+7.7 seconds**. The normal Fork City → month 16 → WHY journey used actual API
+workers and retained +24 homes. A deliberately corrupted display title in a real
+completed API response produced a visible actionable error, echoed no input and
+issued zero replay requests; the database and model outcomes were not fabricated.
+Screenshots were inspected. Runtime source tested was `81690ca`.
+
+Browser artifacts:
+`/private/var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/hbl-symphony-unblock/`.
+The negative fixture is explicitly test-injected metadata, not a real model
+observation. No new browser cancellation claim is inferred from the worker tests.
+
+### Existing shared infrastructure was proved, not rewritten
+
+The operational reviewer executed 49 offline host tests, 55 cached ExUnit
+workspace/config tests, one real OS-sandbox Git fixture (clone/fetch/merge/add/
+commit), shell syntax checks and the plaintext-credential guard. All passed.
+Fresh independent pilot clones keep `.git` inside their own writable roots;
+legacy shared linked metadata is correctly refused. The active workflow uses
+stable `PROCEDURES.md` replacements for absent manual skills and a trusted host
+workpad/publisher. This is consistent with the explicit workspace sandbox policy
+in [official App Server documentation](https://learn.chatgpt.com/docs/app-server).
+No unrestricted sandbox or shared bare Git write permission was introduced.
+
+The reviewer observed dispatcher PID 35041 on port 43111, max concurrency four,
+zero running/retrying/blocked jobs, active states Todo/In Progress/Rework and the
+`symphony-pilot` label gate. The 59 old In Review handoffs will not automatically
+resume. Host transport mocks do not prove current remote write scopes. The old
+SHE-179 publisher receipt says error despite its PR already being merged; it was
+preserved, not retried or rewritten into a success claim.
+
+### Remaining gates
+
+Only SHE-79 and SHE-115 moved to **In Progress** for actual scoped work. No
+comments, Done states, dispatch labels, bulk requeue, publication, automatic
+merge or deployment were applied. The tested branch is local and requires
+publication/review before the remote Symphony source can consume these changes.
+The existing fixture subset still does not complete SHE-83/SHE-84/SHE-89 canonical
+receipt acceptance. Other task-specific ownership, prerequisite, human-study and
+media-upload requirements remain. These results remove concrete implementation
+and historical infrastructure concerns; they do not certify all 59 tasks ready.

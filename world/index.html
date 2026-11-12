@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>HappyBearLandia world</title>
 <link rel="stylesheet" href="/world/person-needs.css" />
 <link rel="stylesheet" href="/world/first-run-guide.css" />
@@ -101,6 +101,7 @@
   section.living-person{overflow-anchor:none;position:fixed;right:14px;top:76px;z-index:120;width:min(390px,calc(100vw - 28px));max-height:calc(100vh - 92px);overflow:auto;box-sizing:border-box}
   @media(max-width:640px){:root #inspect[data-inspector-focused],section.living-person{top:auto;bottom:12px;max-height:65vh}}
 </style>
+
 <script>
   // Dear Congress "Simulate realities" links land on /world?simulation=…: show the outcome
   // landscape first. Runs before the 3D module so it works even if three.js is slow to load.
@@ -122,12 +123,15 @@
 <body>
 <a class="constitution-link" href="/visualize-constitution" style="position:fixed;bottom:12px;right:12px;z-index:50;background:#152333;color:white;padding:10px;border-radius:8px">Visualize Constitution</a>
 <div id="view"></div>
-<button type="button" id="activity-dashboard-button" data-testid="activity-dashboard-button" aria-haspopup="dialog">Activity dashboard</button>
+<nav id="world-quick-toolbar" aria-label="World shortcuts">
+  <button type="button" id="world-guide-button" data-world-open="guide" aria-expanded="false">Start here</button>
+  <button type="button" id="activity-dashboard-button" data-testid="activity-dashboard-button" aria-label="Activity dashboard" aria-haspopup="dialog">Activity</button>
+</nav>
 <div id="loading">Generating your neighborhood…</div>
 <div id="tag"></div>
 
-<details class="panel" id="top" open>
-  <summary title="Minimize or expand world controls"><h1>HappyBearLandia · world</h1></summary>
+<details class="panel" id="top">
+  <summary title="Minimize or expand world controls" aria-label="HappyBearLandia world controls"><h1>World controls</h1></summary>
   <div class="row"><a href="/reality-compiler" onclick="this.search=location.search">Reality Compiler</a> · <a href="/city-speaks" onclick="this.search=location.search">Who does this hurt?</a></div>
   <a href="/world/city-lab.html" onclick="this.search=location.search" style="color:var(--accent);font-size:12px">City Systems Laboratory ↗</a>
   <div class="row"><a id="world-lite-link" href="/world?renderer=canvas2d">Use 2D low-fidelity mode</a></div>

@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "hbl-workpad-oversize-repair.v2",
+  "verifiedAt": "2026-11-12T04:02:43.698211+00:00",
+  "branch": "codex/symphony-workpad-oversize-20261111",
+  "base": "0d5a529",
+  "observedNotesCharacters": 42212,
+  "maxNotesCharacters": 40000,
+  "focusedTests": {
+    "passed": 35,
+    "failed": 0,
+    "newRegressionTests": 13,
+    "log": "docs/evidence/workpad-oversize-focused.log"
+  },
+  "installedHostTests": {
+    "passed": 164,
+    "failed": 0,
+    "log": "docs/evidence/workpad-oversize-installed-host.log",
+    "note": "Other owners expanded the installed host suite during repair; earlier106-test pass remains historical."
+  },
+  "standalonePackageTests": {
+    "passed": 92,
+    "failed": 0,
+    "log": "docs/evidence/workpad-oversize-package.log"
+  },
+  "earlierFailure": {
+    "totalTests": 104,
+    "failures": 1,
+    "cause": "Concurrent pressure-release workflow guard versus older publisher exact-string test; independently reconciled by runtime owner",
+    "log": "docs/evidence/workpad-oversize-earlier-failure.log"
+  },
+  "publisherDependency": "Byte-identical copy of already installed publish.py; no publisher policy/code edit",
+  "liveActions": {
+    "issueWorkspaceMetadataEdits": 0,
+    "linearMutations": 0,
+    "workerLaunches": 0,
+    "workflowEdits": 0,
+    "schedulerEdits": 0,
+    "publicationAttempts": 0
+  },
+  "sha256": {
+    "tools/symphony/local/workpad.py": "d2b6e315552f79a7294362205db983217d710bde894ee2c9c60f1ec0d4447c5e",
+    "tools/symphony/local/publish.py": "2b6f8665246b1cfde32535336ee321a3a5654157df613dde72eee5bbca73c355",
+    "tools/symphony/local/test_workpad.py": "3eea35c91eee0b570fea9e0ceaabd7d0fd3e13a1d6288325d769c642457c27b8",
+    "tools/symphony/local/test_workpad_oversize.py": "912820fa154978a8a9c4614311e732af8b498de6b5487c8158f6aefea9e3bbf7",
+    "tools/symphony/local/test_linear.py": "006c4454bb473f955bd2edddf11964bb29aa553aaed735cad4e7fb133c8d607b"
+  }
+}

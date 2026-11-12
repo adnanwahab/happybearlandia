@@ -47,3 +47,9 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Private local historical map database
 .data/
+
+# Local dispatcher previews; real state is in the shared Git directory
+.pipeline-dry-run/
+
+# Private patch votes and agent job state
+.hbl-private/

@@ -96,6 +96,14 @@ test('guided actions operate on the actual World simulator', async ({page}) => {
   const guide=page.locator('#world-first-run-guide');
   await expect(guide).toBeVisible();
   await expect.poll(()=>page.evaluate(()=>Boolean(window.hblGuidedActions && window.hblWorldStartup?.readyMs)),{timeout:90000}).toBe(true);
+  // The early guide hands visibility to the richer ready-state guide. Its live
+  // experiments remain available through one explicitly selected companion sheet.
+  await expect(page.locator('#firstRunGuide')).toBeVisible();
+  await expect(guide).toBeHidden();
+  await page.getByText('More city actions', {exact:true}).click();
+  await page.getByTestId('live-experiment-feedback').click();
+  await expect(guide).toBeVisible();
+  await expect(page.locator('#firstRunGuide')).toBeHidden();
   await expect(guide.locator('[data-guide-action="storm"]')).toBeEnabled();
   await guide.locator('[data-guide-action="storm"]').click();
   await expect(guide.locator('[data-guide-kind]')).toHaveText('Storm result');
