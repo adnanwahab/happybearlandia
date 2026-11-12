@@ -1003,3 +1003,41 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-10 — first-play browser-error evidence
+
+Audit on branch `mini/SHE-10`: existing `test/e2e/game.e2e.js` already checked
+page exceptions, console errors, failed requests/HTTP responses and WebSocket
+errors and attached raw strings. Reuse those assertions; no application or
+simulation changes. This slice owns only that test, `test/helpers/browser-evidence.js`,
+`test/browser-evidence.test.js`, `test/e2e/browser-evidence.e2e.js`,
+`test/browser-evidence.browser.config.js`, and this plan entry. Checkout was clean
+at start. No coordinator ownership inventory was supplied or modified.
+
+Implemented a reusable bounded collector installed before navigation. Playwright
+`pageerror` covers uncaught exceptions and unhandled promise rejections. Attach
+versioned JSON with test status, redacted current URL, event kinds/messages and
+an overflow count even when navigation/assertions fail. Existing WebSocket and
+external-dependency failures use the same redaction. No DOM, cookies, storage,
+request bodies, screenshots or production telemetry are collected.
+
+Redaction removes URL paths/query/fragments, email addresses, common credential
+assignments/Bearer tokens, home-directory usernames and phone-like numbers.
+It is best effort: arbitrary prose names and unrecognized secret formats cannot
+be reliably identified. Treat artifacts as local diagnostic data and review
+before sharing; Playwright's separately configured traces are outside this
+collector's redaction contract. Messages are limited to 2,000 characters and
+collection to 100 events. No seed/data/model contracts are changed.
+
+Verification (2026-11-12): `bun test test/browser-evidence.test.js` passed 3 tests,
+11 assertions, including attachment contents, redaction, clean traffic, overflow
+and disposal. `git diff --check` passed. Browser acceptance tests are added for
+real injected exceptions/rejections and a clean page; they remain unverified.
+`bunx playwright test test/e2e/browser-evidence.e2e.js test/e2e/game.e2e.js`
+failed before tests because port3100 reported EADDRINUSE; retry with
+`HBL_PLAYWRIGHT_PORT=54110 HBL_PLAYWRIGHT_PARTY_PORT=54111` failed similarly.
+`bunx playwright test --config test/browser-evidence.browser.config.js` reached
+Chromium launch but both tests were blocked by macOS MachPortRendezvousServer
+bootstrap_check_in Permission denied (1100). No UI changed; no screenshots.
+Next: run those browser commands on an authorized host to verify real browser
+error delivery and the normal game startup. No PR, merge or deploy performed.
