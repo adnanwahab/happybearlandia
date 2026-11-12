@@ -1003,3 +1003,38 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Landing page simulation FAQ — SHE-119
+
+Slice: add six concise, always-visible answers on the normal `/` homepage,
+with a navigation anchor and a Future Machine entry link. Owned files are
+`index.html` and this plan; model, persistence, and shared interfaces stay with
+their existing owners. No delegation is needed for this single static slice.
+
+Audit: no existing homepage FAQ; connected GitHub open-PR search for FAQ
+returned no matches (2026-11-12). This checkout is the isolated `mini/SHE-119`
+workspace. No `docs/architecture.md` exists. Copy checked against
+`world/future-machine/share/index.js` (version/identity validation and exported
+limitations), `data/core.js`, `INTERFACES.md`, `docs/future-machine.md`, and
+`world/decision/analysis.js` (successful samples and same-seed pairing).
+
+Acceptance: explain conditional modeled results, deterministic inputs and seed,
+sampled uncertainty versus real-world odds, synthetic data, causal limits, and
+evidence/recomputation limits without implying all site experiences replay.
+Use semantic headings and visible paragraphs without JavaScript; verify the
+FAQ anchor/link, readable text and no FAQ overflow at 320px, 390px and desktop.
+Risk: ensemble spread omits unmodeled mechanisms; the single-pair flagship
+cannot be presented as an uncertainty distribution. No empirical accuracy
+or independent checkpoint-equivalence claim is made.
+
+Implemented and statically verified: six FAQ headings, unique IDs, named section,
+and navigation anchor. `bun test test/future-machine-share.test.js
+ test/decision-analysis.test.js`: 18 passed, 159 assertions, zero failures.
+`git diff --check` passed. No lint/typecheck scripts exist in package.json.
+Browser verification is blocked: Python local server bind returned Operation
+not permitted; cached Playwright Chromium also failed at launch with macOS
+MachPortRendezvousServer permission denied. No browser assertions ran. Mobile
+320/390px and desktop visual/keyboard checks remain for a browser-capable host.
+CSS uses 16px body copy, wrapping paragraphs, responsive padding and existing
+visible link focus styles; answers remain in the HTML without JavaScript.
+No deployment, production writes, or Git publication is part of this slice.
