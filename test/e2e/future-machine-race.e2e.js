@@ -46,9 +46,10 @@ test('cancel/restart keeps latest actual pair and blocks stale demo continuation
    // Cancellation retains the previous comparison for exploration.
    expect((await identity(page)).baselineHash).toBe(original.baselineHash);
    await page.getByRole('combobox',{name:'Plan',exact:true}).selectOption(restartWithPlan?'housing':'baseline');
+   if(restartWithPlan)await page.getByRole('spinbutton',{name:'Proposed homes for next run'}).fill('12');
    await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);await seek(page,37);
    const latest=await identity(page);expect(latest.id).not.toBe(held.url.split('/').at(-2));
-   expect(latest.recipe.intervention===null).toBe(!restartWithPlan);expect(latest.homes).toBe(restartWithPlan?24:0);
+   expect(latest.recipe.intervention===null).toBe(!restartWithPlan);expect(latest.homes).toBe(restartWithPlan?12:0);
    expect(latest.baselineHash).toBe(original.baselineHash);expect(latest.initialHash).toBe(original.initialHash);expect(latest.commonInitial).toBe(true);expect(latest.lengths).toEqual([121,121]);
    await gate.release();
    // A stale demo would restart its presentation clock, then advance after 4s.

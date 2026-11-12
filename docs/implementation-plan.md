@@ -1003,3 +1003,38 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-35 — intervention edit and rerun
+
+Audit: Future Machine already has paired 120-month City runs, immutable histories,
+pending seed configuration, saved recipe sharing, request-identity guards and
+cancel/restart browser coverage. These satisfy the underlying common-start and
+comparison prerequisites (HBL-W1-017/018 behavior); fixed housing/no-plan selection
+leaves numeric policy editing missing. This slice owns only Future Machine UI,
+coordinator configuration messaging, focused browser coverage and their docs.
+No dispatcher, model, API, versioned recipe or release gate changes.
+
+Acceptance: edit 1–120 proposed homes using existing validated housing amount;
+keep cost, district, delay, compliance, seed and generator unchanged; preserve
+displayed history/share while editing; obtain a new actual result with identical
+initial and baseline hashes; cancel a delayed old response and retain the latest
+edited result. Risks: proposed amount is not guaranteed construction; fixed cost
+is an illustrative assumption, not an estimated per-home cost. Existing model
+constraints and synthetic disclosures remain visible. Verification pending.
+
+Verification (2026-11-12, branch `mini/SHE-35`, no commit/PR):
+`bun test test/future-machine-ui.test.js test/future-machine-data.test.js test/future-machine-share.test.js test/future-machine-scrub-identity.test.js`
+passed 21 tests / 349 assertions, one opt-in Chromium test skipped. The added
+real-engine regression verifies 12 versus 24 constructed homes, identical initial
+and baseline hashes, and immutable prior results. Its first draft incorrectly
+read metrics directly from engine steps; corrected to use authoritative normalized
+snapshots, then the full focused command passed. `git diff --check` passed.
+
+Browser attempts remain blocked: `HBL_FM_BROWSER=1 HBL_PLAYWRIGHT_MODULE=/Users/wahabma/happybearlandia/node_modules/@playwright/test/index.mjs bun test test/future-machine-ui.test.js test/future-machine-data.test.js test/future-machine-share.test.js`
+failed before Chromium at Bun.serve port 0 (`EADDRINUSE`); 18 non-browser tests
+passed. `/Users/wahabma/happybearlandia/node_modules/.bin/playwright test test/e2e/intervention-rerun.e2e.js test/e2e/future-machine-race.e2e.js`
+failed before browser launch because server port 3100 returned `EADDRINUSE`.
+No screenshot or successful browser result claimed. Added actual-API edit/share/
+reload browser coverage and extended the existing delayed-response race to edit
+12 homes; these require rerun where local servers can start. No lint/typecheck
+scripts are defined. No deployment, merge, dispatch or production data changes.

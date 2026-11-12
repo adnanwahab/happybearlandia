@@ -121,7 +121,7 @@ export function createUI(container, callbacks = {}) {
   let recipe=structuredClone(DEFAULT_RECIPE), configurationDirty=false;
   const view=mountFutureMachineUI(container,{
     externalPlayback:true,
-    onFork:()=>{if(!configureSeed())throw new Error(seedError.textContent);return callbacks.onRun?.(structuredClone(recipe));},
+    onFork:()=>{if(!configureSeed())throw new Error(seedError.textContent);if(!configureAmount())throw new Error(amountInput.validationMessage);return callbacks.onRun?.(structuredClone(recipe));},
     onMonthChange:month=>callbacks.onMonth?.(month),
     onPlay:value=>callbacks.onPlay?.(value),
     onBlink:value=>callbacks.onMode?.(value?'plan':'baseline'),
@@ -151,6 +151,20 @@ export function createUI(container, callbacks = {}) {
   }
   seedInput.oninput=configureSeed;
 
+  const amountLabel=doc.createElement('label');amountLabel.className='fm-seed-label';amountLabel.textContent='Proposed homes for next run';
+  const amountInput=doc.createElement('input');amountInput.type='number';amountInput.min='1';amountInput.max='120';amountInput.step='1';amountInput.required=true;amountInput.value=String(defaultIntervention.amount);amountInput.setAttribute('aria-label','Proposed homes for next run');
+  const amountHelp=doc.createElement('small');amountHelp.textContent='1–120 proposed homes. Cost, district and timing stay fixed; construction constraints apply. Fork City reruns from the same seed and initial conditions unless you change the seed. Displayed results stay unchanged until completion.';
+  amountLabel.append(amountInput,amountHelp);shell.querySelector('.fm-setup').insertBefore(amountLabel,shell.querySelector('.fm-setup button'));
+  function configureAmount(){
+    if(!recipe.intervention || recipe.intervention.type!=='housing')return true;
+    const amount=Number(amountInput.value),valid=amountInput.value!=='' && Number.isInteger(amount) && amount>=1 && amount<=120;
+    amountInput.setCustomValidity(valid?'':'Proposed homes must be a whole number from 1 through 120.');amountInput.setAttribute('aria-invalid',String(!valid));
+    if(!valid){configurationDirty=true;return false;}
+    if(amount!==recipe.intervention.amount){defaultIntervention={...recipe.intervention,amount};recipe={...recipe,intervention:structuredClone(defaultIntervention)};configurationDirty=true;callbacks.onConfigure?.(structuredClone(recipe));}
+    return true;
+  }
+  amountInput.oninput=configureAmount;
+
   const storyElement=doc.createElement('section');storyElement.className='fm-story';storyElement.dataset.testid='future-machine-why';storyElement.setAttribute('aria-label','Recorded change story');shell.querySelector('.fm-inspectors').after(storyElement);
   const actions=shell.querySelector('.fm-timeline .fm-actions');
   const demoPanel=doc.createElement('section');demoPanel.className='fm-demo';demoPanel.setAttribute('aria-label','Guided demo');
@@ -169,13 +183,14 @@ export function createUI(container, callbacks = {}) {
     current={...current,...patch,...(patch.demo?{demo:{...current.demo,...patch.demo}}:{}),...(patch.provenance?{provenance:{...current.provenance,...patch.provenance}}:{})};
     if(patch.recipe){
       const incomingExperiment=current.experimentId ?? current.provenance?.experimentId;
-      const accepted=seedInput.getAttribute('aria-invalid')!=='true' && JSON.stringify(patch.recipe)===JSON.stringify(recipe);
+      const accepted=seedInput.getAttribute('aria-invalid')!=='true' && amountInput.getAttribute('aria-invalid')!=='true' && JSON.stringify(patch.recipe)===JSON.stringify(recipe);
       if(!configurationDirty || accepted || (previousExperiment && incomingExperiment && previousExperiment!==incomingExperiment)){
         recipe=structuredClone(patch.recipe);configurationDirty=false;seedInput.value=String(recipe.seed);seedError.hidden=true;seedInput.setCustomValidity('');seedInput.setAttribute('aria-invalid','false');
         if(recipe.intervention)defaultIntervention=structuredClone(recipe.intervention);
+        amountInput.value=String(defaultIntervention.amount);amountInput.setCustomValidity('');amountInput.setAttribute('aria-invalid','false');
       }
     }
-    const busy=['loading','running','queued'].includes(current.status);seedInput.disabled=busy;
+    const busy=['loading','running','queued'].includes(current.status);seedInput.disabled=busy;amountInput.disabled=busy || recipe.intervention?.type!=='housing';
     const demoState=current.demo || {};
     const demoActive=['playing','running','paused','preparing','loading'].includes(demoState.status);
     demo.disabled=busy || !callbacks.onDemo;demo.textContent=demoActive?'Restart Demo':'Play Demo';
@@ -204,5 +219,5 @@ export function createUI(container, callbacks = {}) {
     shareLink.hidden=!current.shareURL;
     if(current.shareURL){try{const url=new URL(current.shareURL,doc.baseURI);if(['http:','https:'].includes(url.protocol))shareLink.href=url.href;else{shareLink.removeAttribute('href');shareLink.hidden=true;}}catch{shareLink.removeAttribute('href');shareLink.hidden=true;}}
   }
-  return {stageElement:view.stage,storyElement,update,dispose(){seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
+  return {stageElement:view.stage,storyElement,update,dispose(){amountInput.oninput=null;seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
 }

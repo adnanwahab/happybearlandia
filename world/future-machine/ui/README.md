@@ -45,3 +45,15 @@ Focused browser evidence is component-only: `/tmp/future-machine-ui-semantic-mob
 `onConfigure(recipe)` is additive and receives a detached configured recipe on valid seed changes or policy edits. The visible **Seed for next run** field (`data-testid="future-machine-seed"`) accepts decimal uint32 integers including 0 and 4294967295. Empty, nonnumeric, fractional, negative and out-of-range input remains visible with an error, never becomes zero, never dispatches configuration and blocks Fork City through native validity. `onRun(recipe)` receives the configured recipe, not the displayed run recipe. Busy runs disable seed editing.
 
 Pending edits survive ordinary `update` calls, including repeated old `recipe` values on timeline/inspection updates. A recipe matching valid pending configuration acknowledges it; a changed nonempty experiment ID plus an explicit recipe replaces it for a newly displayed run. The run provenance reads `provenance` or the coordinator's displayed `recipe`, never the pending seed. The coordinator owns validation/persistence and must keep saved history/share URLs tied to the actual run, supplying recipe and experiment ID when switching runs. No main/shared contract changes are included.
+
+## SHE-35 housing edit loop
+
+**Proposed homes for next run** edits the existing housing intervention amount
+(whole numbers 1–120) through `onConfigure` and `onRun`. Other intervention fields
+remain unchanged, including illustrative total cost; this is a bounded synthetic
+assumption edit, not a cost estimate or promise of completed homes. The control
+is disabled for no intervention, other intervention types and busy runs. Invalid
+input blocks native form submission. Pending edits survive scrubbing while
+provenance and sharing refer to the displayed history. Fork City recomputes both
+arms from the configured seed and versioned generator; unchanged seed/population
+preserve the original baseline. Existing request guards reject stale completion.

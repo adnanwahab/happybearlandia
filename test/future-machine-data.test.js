@@ -108,3 +108,18 @@ test('normalization preserves completion provenance and rejects a missing capita
   delete run.steps[0].state.systems.finance.capitalExpense;
   expect(() => normalizeReplay(initial,run)).toThrow('Missing monthly finance capital ledger');
 });
+
+test('editing proposed homes reuses the original baseline and leaves prior results immutable',async()=>{
+  const originalInitial=freeze(initialForRecipe());
+  const baseline=freeze(replay(originalInitial));
+  const originalPlan=freeze(replay(originalInitial,DEFAULT_RECIPE.intervention));
+  const before=await stateHash({originalInitial,baseline,originalPlan});
+  const recipe=validateRecipe({...DEFAULT_RECIPE,intervention:{...DEFAULT_RECIPE.intervention,amount:12}});
+  const editedInitial=initialForRecipe(recipe);
+  expect(await stateHash(editedInitial)).toBe(await stateHash(originalInitial));
+  expect(await stateHash(replay(editedInitial))).toBe(await stateHash(baseline));
+  const editedPlan=replay(editedInitial,recipe.intervention);
+  expect(normalizeReplay(editedInitial,editedPlan)[120].metrics.housingUnits-normalizeReplay(originalInitial,baseline)[120].metrics.housingUnits).toBe(12);
+  expect(normalizeReplay(originalInitial,originalPlan)[120].metrics.housingUnits-normalizeReplay(originalInitial,baseline)[120].metrics.housingUnits).toBe(24);
+  expect(await stateHash({originalInitial,baseline,originalPlan})).toBe(before);
+});
