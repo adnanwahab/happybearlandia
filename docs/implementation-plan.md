@@ -1003,3 +1003,11 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-217 — D02 outcome timeline
+
+Implemented a single integrated slice: retain the coordinator's shared month slider, use static recorded series with one moving cursor/highlight, route chart/table selections through manual month selection, and announce manual selections only. Axis labels round to four significant digits while exact data and missing-month gaps are preserved. No simulation contracts or provenance changed. The review source `docs/reviews/claude.md` is absent in this checkout; the full Linear issue supplies the requirements.
+
+Acceptance coverage added to the component browser test: no extra slider, stable path identity and zero path/live-summary mutations through months 0–120, one summary mutation on manual selection, missing observations, metric/mode changes, exact values, table selection, disposal and 320px layout. Integrated outcome-delta test uses chart coordinates and checks shared slider count, scene/KPI synchronization and WHY at the clicked month.
+
+Verification: focused outcome/UI unit tests passed (8 tests, 52 assertions; 2 browser tests skipped by default). `git diff --check` passed. Explicit browser attempts were blocked: the integrated app server fails to bind port 39917 (`EADDRINUSE`); the component test now uses intercepted module requests without a server, but Chromium launch fails with MachPortRendezvousServer permission denied. Browser acceptance remains unverified and should be rerun in a browser-capable environment using `HBL_FM_BROWSER=1 bun test test/future-machine-outcome-timeline.test.js` and `playwright test --config test/outcome-delta.browser.config.js`. No deployment or production data changes.
