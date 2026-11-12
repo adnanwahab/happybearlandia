@@ -1,5 +1,55 @@
 # HappyBearLandia implementation plan
 
+## SHE-156 executed-trip transit ribbons — prerequisite audit
+
+Status (2026-11-12): implementation blocked on a retained, versioned trip
+ledger from SHE-145 / HBL-1M-018. No ribbon behavior delivered or acceptance
+claimed. This checkout has no `world/spatial-events/` source. Read-only Linear
+inspection found SHE-145 still Todo with [draft PR #173](https://github.com/adnanwahab/happybearlandia/pull/173).
+Inspection of that PR's actual diff found a synthetic ring-tile CPU spike:
+`runSpatialEvents` returns counters, final-state and ordering hashes, but no
+retained arrivals, departures, trip identities or tile geography. Its documented
+integer clock and IDs have no Population mapping. Merging that PR alone will
+therefore not supply this feature's ledger prerequisite.
+
+Existing interfaces were inspected: `world/population/model.js` derives
+`odFlows` from agents with positive remaining travel time, explicitly labeled
+"current in-progress agent trips". `world/population/renderer.js` draws up to
+200 fixed-width origin/destination lines. These are instantaneous occupancy,
+not executed-trip counts across a selected interval. The separate
+`world/reality/flow-view.js` retains generic resource records and explicitly
+disclaims physical routing; it is not a substitute trip ledger. Existing recent
+event retention cannot establish complete tile-pair history. No architecture.md
+is present. Related transit PR #157 addresses station crowd interactions, not
+the missing Architecture C trip export.
+
+Next independently verifiable slice after the prerequisite is available:
+
+1. Define the ledger producer interface with its owner: immutable run identity,
+   model/rules versions, source, seed and scenario inputs; stable trip/event IDs;
+   ordered tile path or explicitly schematic endpoint anchors; executed arrival
+   time and time units; raw counts and any representation weights; retained
+   coverage bounds and dropped-record indicators. Keep Population and spatial
+   spike identities/clocks separate unless a tested mapping is supplied.
+2. Own a new read-only transit ribbon adapter and focused fixtures/tests; wire
+   it through the producer's normal run/timespan entry point. Aggregate completed
+   trips once by directed tile pair in a declared half-open time interval.
+   Preserve reverse flows separately; never treat missing coverage as zero.
+3. Derive width from a documented fixed count scale and animate direction along
+   supplied paths with deterministic model-time phase. Label endpoint-only
+   connections schematic. Provide Canvas2D fallback or explicitly disable the
+   ribbon layer with an accessible reason when its renderer is unavailable.
+4. Verify exact ledger reconciliation, no duplicate arrival counting, zero vs
+   missing coverage, reversed pairs, interval boundaries, invalid anchors,
+   retention gaps, deterministic seed replay and checkpoint reload. Capture
+   before/after recordings at the normal entry point with the same run/time.
+
+Only this planning entry is changed/reserved in SHE-156; no dependency files,
+simulation semantics, existing flow UI, dispatch, merge or deployment changed.
+Validation for this documentation-only increment: `git diff --check`. Browser
+tests and recordings are deferred with implementation; no graphical acceptance
+or replay evidence is asserted. No repository lint/typecheck script is defined.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
