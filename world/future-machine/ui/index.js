@@ -87,8 +87,8 @@ export function mountFutureMachineUI(root, options = {}) {
     if('cityId' in patch)city.value=state.cityId;
     if('policyId' in patch)policy.value=state.policyId;
     renderPolicy();
-    city.disabled=policy.disabled=state.busy;
-    fork.disabled=state.busy || !state.cities.length || !state.policies.length || !options.onFork;
+    city.disabled=policy.disabled=state.busy && !state.preview;
+    fork.disabled=(state.busy && !state.preview) || !state.cities.length || !state.policies.length || !options.onFork;
     cancel.hidden=!state.busy || !options.onCancel;progress.hidden=!state.busy;
     if(typeof state.progress==='number'&&Number.isFinite(state.progress))progress.value=Math.min(1,Math.max(0,state.progress));else progress.removeAttribute('value');
     if(state.status)status.textContent=state.status;
@@ -175,7 +175,7 @@ export function createUI(container, callbacks = {}) {
         if(recipe.intervention)defaultIntervention=structuredClone(recipe.intervention);
       }
     }
-    const busy=['loading','running','queued'].includes(current.status);seedInput.disabled=busy;
+    const busy=['loading','running','queued'].includes(current.status);seedInput.disabled=busy && !current.preview;
     const demoState=current.demo || {};
     const demoActive=['playing','running','paused','preparing','loading'].includes(demoState.status);
     demo.disabled=busy || !callbacks.onDemo;demo.textContent=demoActive?'Restart Demo':'Play Demo';
@@ -183,8 +183,8 @@ export function createUI(container, callbacks = {}) {
     demoCaption.textContent=demoState.caption || (demoState.status==='complete'?'Demo complete. Scrub the timeline or select a result to explore.':'A guided 45–60 second comparison. Pause anytime to explore.');
     if(Number.isFinite(demoState.elapsedMs))demoCaption.textContent+=` · ${Math.floor(Math.max(0,demoState.elapsedMs)/1000)}s`;
     const provenance=current.provenance || {};
-    runProvenance.textContent=`MONTH ${current.month} / 120 · SEED ${provenance.seed ?? current.recipe?.seed ?? 'Unavailable'} · MODEL ${provenance.modelVersion ?? current.recipe?.modelVersion ?? 'Unavailable'} · RUN ${provenance.experimentId ?? current.experimentId ?? 'Not run yet'}`;
-    const ready=!!current.frame && !busy;
+    runProvenance.textContent=(current.preview?'INITIAL SNAPSHOT · Synthetic model inventory · Future results unavailable · ':'')+`MONTH ${current.month} / 120 · SEED ${provenance.seed ?? current.recipe?.seed ?? 'Unavailable'} · MODEL ${provenance.modelVersion ?? current.recipe?.modelVersion ?? 'Unavailable'} · RUN ${provenance.experimentId ?? current.experimentId ?? 'Not run yet'}`;
+    const ready=!!current.frame && !busy && !current.preview;
     const metrics={};
     for(const [key,source] of [['homes','housingUnits'],['rent','meanRent'],['spending','capitalSpending']]){
       const metric=current.diff?.metrics?.[source];
@@ -193,7 +193,7 @@ export function createUI(container, callbacks = {}) {
     const a=current.frame?.baseline?.state?.households||[],b=current.frame?.plan?.state?.households||[];
     const ids=[...new Set([...a,...b].map(row=>row.id))].sort();
     const households=ids.map(id=>({id,label:`City household ${id}`,baseline:a.find(row=>row.id===id)??null,plan:b.find(row=>row.id===id)??null,baselineHousing:householdObservation(a.find(row=>row.id===id),current.frame?.baseline?.state?.units),planHousing:householdObservation(b.find(row=>row.id===id),current.frame?.plan?.state?.units)}));
-    view.update({busy,ready,month:current.month,playing:current.playing,status:current.message,error:current.error,metrics,households,
+    view.update({busy,ready,preview:current.preview,month:current.month,playing:current.playing,status:current.message,error:current.error,metrics,households,
       cities:[{id:'synthetic',label:'Riverside · Synthetic City'}],
       policies:defaultIntervention?[{id:'housing',label:'Housing intervention',description:`${defaultIntervention.amount} proposed homes · ${defaultIntervention.cost} illustrative USD · district ${defaultIntervention.districtId}. Construction and funding constraints still apply.`},{id:'baseline',label:'No intervention (matched control)',description:'Compare two unchanged futures from the same initial state and seed.'}]:[{id:'baseline',label:'No intervention (matched control)'}],
       policyId:recipe?.intervention?'housing':'baseline',spatialLabel:'Synthetic schematic layout · Monthly City model · January 2026–January 2036 · Uncalibrated assumptions. No real-world geometry inferred. Private parcel capacity 0; utility capacity 200 per district/network; annual growth 0.',

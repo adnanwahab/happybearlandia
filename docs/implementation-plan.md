@@ -1003,3 +1003,33 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-166 — instant city preview (review candidate)
+
+Scope: existing Future Machine homepage entry and demo. Audit found no SHE-166
+PR in the connected GitHub search; the current isolated branch is mini/SHE-166.
+Core journeys CI already verifies Future Machine manifest, boundary and replay
+contracts. No architecture.md or more specific AGENTS.md exists for this module.
+
+Implemented smallest slice: render the existing versioned initialForRecipe
+Month 0 inventory before any API request. Label it as synthetic initial inventory
+with seed, model and dataset version; never generate future metrics or claim a
+saved run. Building/household inspection and proposal/seed choice remain usable
+while the first run is pending. Fork City replaces the pending request through
+the existing abort/stale-response guard. Timeline, future metrics, export and
+sharing remain gated on validated history. Failure/cancel retains the preview.
+Normal completed runs still use manifest identity validation and recorded replay.
+
+Acceptance evidence: macOS arm64, Bun 1.4.2; `bun test --timeout 15000
+ test/future-machine-data.test.js test/future-machine-boundaries.test.js
+ test/future-machine-ui.test.js`: 16 pass, 1 optional Chromium component skip,
+125 assertions. Includes seeds 0/4294967295, deterministic persisted replay,
+identity failures and stale-response cancellation. `git diff --check` passed.
+New Chromium test uses default seed 42, 1440x1000 viewport and a held request
+followed by HTTP 503 to verify inspection/action choice without future outputs.
+`bunx playwright test --config test/instant-city-preview.browser.config.js`
+blocked before browser launch: local server returned EADDRINUSE at both 39931
+and override 39946. Browser behavior and integrated successful transition remain
+unverified in this environment; rerun that test and the existing two-futures
+suite on a host that can bind its isolated server. No timing/public performance
+claim, merge, production-data change or deployment. Review candidate only.
