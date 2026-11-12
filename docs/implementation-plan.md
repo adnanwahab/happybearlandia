@@ -1003,3 +1003,54 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-130 — Follow a household across a simulated week
+
+Next slice: open a saved Living World household from the resident inspector,
+advance exactly 10,080 minutes on its existing Population clock, retain matching
+worker events and daily state/decision observations, and save a read-only replay
+with an immutable parent checkpoint. Own the new household-week model/UI/tests
+and narrow House entry routing changes in this issue workspace. No engine rules
+or cross-model identity adapters change; this integrated slice needs one owner.
+
+Prerequisite audit (2026-11-12): Linear SHE-142 Done and GitHub PR50 merged
+(`8f7b3be6`), though its files are absent from this older checkout. Its 32 abstract
+ticks cannot represent days. Reuse the existing Population authority, household
+membership and fixed-minute observation API rather than inventing that mapping.
+No SHE-130 PR found. Existing Playable Life covers a resident's commanded day
+and 30-day follow-up; SHE-226/PR110 covers cross-seed futures and SHE-139 owns
+side-by-side timelines. This slice adds only a single-run household week.
+
+Acceptance: stable exact household/member/run/model/seed identity; exact clock
+boundaries; chronological full event records with retained causal fields; explicit
+sampling/retention/no-event gaps; daily home/activity/needs/decision evidence;
+no unsupported action controls; persisted replay reload without recomputation.
+Verify collector filtering, ordering, bounds, missing data and resume, House
+regressions and browser journey where setup permits. Risks: worker event buffers
+are bounded and decision traces are sampled, so completeness is never claimed;
+large populations may exceed the existing observation work budget.
+Status: implementation in progress; no publication or deployment requested.
+
+Delivered: `world/house/household-week.js` records bounded full-fidelity events
+and daily state/decision samples; `household-week-ui.js` provides observation,
+pause/resume, save retry and read-only replay. Narrow `bridge.js`/`app.js` changes
+connect the existing World inspector and exact saved House route. Contract and
+limits: [household-week.md](household-week.md). Same-minute events preserve source
+order; no alternate engine, synthetic event narrative or rule change was added.
+
+Acceptance evidence: focused worker/collector/UI/bridge/roundtrip suite passed
+11 tests /105 assertions, including independent authoritative event comparison,
+seed-matched checkpoint replay, exact seven-day boundary, missing observations,
+retention, committed pause/resume, failed-save retry without further simulation,
+parent immutability and read-only rendering. Existing House integration/lifecycle
+suite passed10 tests /81 assertions. JavaScript syntax and `git diff --check`
+passed. No lint/typecheck script exists. Playwright test was added but both normal
+server launch attempts failed before tests with Bun `EADDRINUSE` (3190,41930).
+Browser layout and full route journey therefore remain unverified; rerun the
+command in the feature documentation where local server binding is available.
+Interrupted in-page observation resumes; reload before saving restarts at the
+parent checkpoint. No commit/PR, merge, deploy or production mutation performed.
+Final combined gate after review: all five listed unit/integration files passed
+21tests /186 assertions in11.75s on Bun1.4.2; syntax and whitespace checks clean.
+Implementation complete locally; browser acceptance remains pending the server
+binding prerequisite above.
