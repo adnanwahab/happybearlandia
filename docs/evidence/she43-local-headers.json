@@ -1,21 +1,21 @@
 {
   "auditVersion": 1,
   "auditToolSha256": "b1a5c3e272fbc551fd56e01f65f503b0e2d9f1f5c8689b72e79d88872d8234bc",
-  "observedAt": "2026-11-12T03:23:38.662Z",
+  "observedAt": "2026-11-12T03:26:16.968Z",
   "evidenceType": "local-non-production",
-  "sourceSha": "f1174eb9a5cead6892370d25af97167a0babb54b",
+  "sourceSha": "59d2e6546421732b41c137d0d8d114fb22c89ce9",
   "runtime": {
     "bun": "1.4.2",
     "platform": "darwin",
     "arch": "arm64"
   },
-  "origin": "http://127.0.0.1:57057",
+  "origin": "http://127.0.0.1:58169",
   "stagingVerified": false,
   "inventoryScope": "Tracked source files in public-root candidates; excludes node_modules, untracked data and route-denied-file analysis.",
   "inventory": {
     "javascript": {
-      "count": 1044,
-      "bytes": 18599687,
+      "count": 1045,
+      "bytes": 18602572,
       "samples": [
         {
           "path": "data/server.js",
@@ -593,7 +593,7 @@
         "content-length": "399"
       },
       "bodyBytes": 399,
-      "bodySha256": "4601420ff82dfdb97b65e8c907ef01900706d835a7456dfa7772491a63bdd8a7",
+      "bodySha256": "492ccdf5462ec4efb036aa613a31311b7d3dcc3ad6dc5cc30920cbd176818fa2",
       "assessment": {
         "directives": [
           "no-store"

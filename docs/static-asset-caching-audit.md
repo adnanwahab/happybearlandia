@@ -8,7 +8,7 @@ production configuration, application response policy, or simulation data change
 The release coordinator assigned this issue only this report,
 `ops/static-asset-cache-audit.mjs`, `test/static-asset-cache-audit.test.js`, and
 `docs/evidence/she43-local-headers.json`. The persistent Linear workpad is
-`e90e3b64-15dc-44a8-a3b2-c379242a0a35`. Source baseline is remote sprint
+`e90e3b64-15dc-44a8-a3b2-c379242a0a35`. Original source baseline was remote sprint
 `f1174eb9a5cead6892370d25af97167a0babb54b`; the independent issue branch is
 `codex/she-43-static-cache-audit`. Shared `server.js`, CI, the implementation plan,
 and browser/renderer contracts remain coordinator-owned. The coordinator checked
@@ -82,11 +82,11 @@ The audit records those actual contracts rather than treating HEAD as complete
 substitute evidence. Sampled responses had no ETag, Last-Modified, Age, Via or
 Content-Encoding header. This does not prove edge validator/compression behavior.
 
-Tracked candidate inventory at the baseline:
+Tracked candidate inventory at the refreshed candidate (see revalidation below):
 
 | Category | Files | Bytes |
 | --- | ---: | ---: |
-| JavaScript / MJS | 1,044 | 18,599,687 |
+| JavaScript / MJS | 1,045 | 18,602,572 |
 | Images | 27 | 39,157,767 |
 | Standalone WASM | 2 | 719,753 |
 | GLB/GLTF/OBJ models | 67 | 93,720,256 |
@@ -158,3 +158,32 @@ An attempted `node --check` was unavailable on this shell PATH; Bun tests parse
 and execute both new modules. Playwright was skipped because no UI/browser code
 or serving behavior changed; real HTTP integration checks cover this audit scope.
 No production response policy was corrected under another owner's reservation.
+
+
+## Fresh-base integration revalidation
+
+Before publication the coordinator's freshness guard detected that remote sprint
+advanced to `f794ba25e89ee1db9c1ee3a6bdc562e404ca1965`. It includes reviewed
+replay/manifest and saved-World/browser assertion repairs from another owner.
+The coordinator merged that base losslessly into this issue branch as
+`59d2e6546421732b41c137d0d8d114fb22c89ce9`, retaining the original SHE-43
+implementation commit `bb469f0fbb822fa494f12f1b882158919bbfd7f1`. None of
+this issue's owned audit paths overlapped the new base; this worker changed only
+this report and its evidence receipt during revalidation.
+
+On that exact merged candidate the credential-stripped test command above
+passed again: **13 tests, 0 failures, 207 assertions, 2.13 seconds**. The CLI
+exited zero; refreshed receipt observation time is `2026-11-12T03:26:16.968Z`,
+with `sourceSha=59d2e6546421732b41c137d0d8d114fb22c89ce9`. All 32 GET/HEAD
+measurements matched expected statuses, sampled policies were unchanged, and
+the receipt's auditToolSha256 matched the unchanged collector's SHA-256.
+The artifact pins the application source exported before this report/evidence
+commit; it cannot self-reference the commit containing its own bytes.
+
+Current tracked source inventory adds one JavaScript file and 2,885 bytes.
+The first audit on f1174eb observed 1,044 JS/MJS files / 18,599,687 bytes;
+those earlier passing tests remain historical evidence, not substituted for
+this refreshed run. All other inventory category counts/bytes remain unchanged.
+`git diff --check` passed again. Staging acceptance remains unverified and no
+publication, merge into sprint, production request, or deployment was executed
+by this issue worker.
