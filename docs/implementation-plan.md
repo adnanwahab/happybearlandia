@@ -565,6 +565,9 @@ restart replay produced zero new proposals; final dry-run left DB bytes/mtime
 unchanged. Existing SHE141 delivery was held rather than duplicated. Source
 hashes and sanitized observations: docs/evidence/improvement-intake-smoke.json.
 Independent review's corrupt-receipt finding was fixed and regression-tested.
-No browser behavior changed; local Playwright is not applicable. Draft PR and
-hosted CI are pending. Next tasks are SHE-246, SHE-247 and SHE-248; no execution
-labels or persistent service activation were applied.
+No browser behavior changed; local Playwright is not applicable. Published
+[draft PR #41](https://github.com/adnanwahab/happybearlandia/pull/41); hosted CI is
+pending final-head verification. Next tasks are SHE-246, SHE-247 and SHE-248,
+each linked to that contract PR. No execution labels or persistent service
+activation were applied. User explicitly requested keeping the PR draft;
+the separate merge/cleanup owner was notified to exclude it.
