@@ -1,4 +1,8 @@
-// Acceptance: bunx playwright test --config test/one-city-two-futures.browser.config.js
-// Recording: bun scripts/record-one-city-two-futures.mjs --output /tmp/two-futures-recording
-// The canonical suite owns server isolation, browser settings and artifact policy.
-export { default } from './two-futures-sprint.browser.config.js';
+// Keep existing sprint regressions and add the issue's explicit acceptance journey.
+import canonical from './two-futures-sprint.browser.config.js';
+export default {
+ ...canonical,
+ testMatch:[...canonical.testMatch,'one-city-two-futures.e2e.js'],
+ use:{...canonical.use,viewport:{width:1440,height:900},video:{mode:'on',size:{width:1440,height:900}},trace:'on'},
+ webServer:{...canonical.webServer,command:'bun --no-env-file run start'},
+};
