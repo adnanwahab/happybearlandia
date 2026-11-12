@@ -147,7 +147,7 @@ async function init(){
     if(response.ok)townArea=await response.json();
   }catch{status.textContent='Map provider unavailable; starting a procedural fictional neighborhood.';}
   town=buildTown(origin,townArea,{maxPeople:count});
-  world=createWorld(town,{recordHistory:true});
+  world=createWorld(town,{recordHistory:true,...(query.get("seed")?{runSeed:query.get("seed")}:{})});
   canvas=document.createElement('canvas');canvas.id='canvas-lite-world';canvas.setAttribute('aria-label','Playable low fidelity top-down city');canvas.style.cssText='width:100%;height:100%;display:block;touch-action:none';$('view').append(canvas);
   ctx=canvas.getContext('2d');if(!ctx){status.textContent='Canvas2D is unavailable. Try another browser.';return;}
   $('source').textContent='Canvas2D low fidelity · '+(townArea.source==='osm'?'OSM building footprints, fictional residents':'Procedural fictional neighborhood')+' · same legacy City activity rules as the classic World, simplified graphics.';

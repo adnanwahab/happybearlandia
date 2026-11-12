@@ -7922,3 +7922,23 @@ test/world-user-fixes.test.js still reports 32 homepage carousel sections versus
 33 registered experiences. The identical failure was reproduced using exact
 118aad baseline inputs; this existing catalog mismatch was not changed by PR278.
 No simulation, seed, runtime, gallery, or target-branch changes were made.
+
+## SHE-268 postcard place picker — active slice
+
+Replace the explorer dock's first action with a full-screen, accessible picker:
+six authored illustrated presets, one-tap selection after opening, deterministic
+URL seeds, approximate pin map, existing address search, explicit geolocation
+consent and precise-coordinate disclosure. Reuse renderer navigation via a fresh
+URL; never carry saved-run identity to a new place. Animate the 3D arrival with
+reduced-motion support. Verify URL contracts and normal `/world` entry points.
+Risks: map search requires its upstream service; map geometry is live and a seed
+alone does not freeze OSM inputs. Postcard hooks are authored prompts, not results.
+
+SHE-268 delivered the integrated picker, URL run-seed wiring in both renderers,
+3D arrival, coordinate disclosure and effective activity-seed provenance.
+[Review and acceptance evidence](reviews/SHE-268.md) records exact source paths,
+remote-main audit and ODD comparison. Focused checks: 25 tests / 215 assertions
+passed; diff whitespace passed. Three browser tests are committed but unexecuted:
+the normal server failed to bind two attempted ports (`EADDRINUSE`). Browser
+acceptance and visual flight/mobile review remain pending on a runnable host.
+No commit/PR, merge, deployment or production changes.
