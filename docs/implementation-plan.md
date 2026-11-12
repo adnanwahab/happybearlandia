@@ -7922,3 +7922,31 @@ test/world-user-fixes.test.js still reports 32 homepage carousel sections versus
 33 registered experiences. The identical failure was reproduced using exact
 118aad baseline inputs; this existing catalog mismatch was not changed by PR278.
 No simulation, seed, runtime, gallery, or target-branch changes were made.
+
+
+## SHE-262 — simulation-clock lighting (2026-11-12)
+
+Slice: default World lighting follows its active Population/legacy minute; expose
+full-population building home counts, bind façades by exact building ID, add dusk
+street/vehicle lamps and Canvas sky tint. Preserve manual visual overrides.
+Prerequisites audited: render host, facade/sky/details, Population snapshot and
+House home predicate. No independent work is delegated (single-worker issue).
+Acceptance: deterministic full-model counts independent of visible sampling;
+night/home fraction and office hours; dawn/dusk/weekend colors; Canvas sky;
+normal-entry browser smoke plus focused model/renderer regressions.
+Risks: synthetic home anchors can be nonresidential; unmapped buildings must
+remain dark. Shader window selection approximates a fraction with finite cells.
+Remote audit: GitHub main city-renderer still pins 14:00; no SHE-262 PR found.
+Git fetch is blocked by shared-git permissions and shell DNS; preserve this base.
+
+SHE-262 implementation status: implemented and locally verified; browser visual
+acceptance remains blocked by sandbox socket permissions. Full-population
+snapshot counts, exact façade identity, office gating, authored solar/weekend
+lighting, street/headlights and Canvas background are integrated. Review and
+exact commands/results: [SHE-262 acceptance evidence](reviews/SHE-262.md).
+Focused suite: 35 passed at explicit 15s timeout; final changed tests 8 passed /
+82 assertions. Browser bundle: 357 modules; diff check clean. Broader checkpoint
+suite has an unresolved 30s timeout; broad City/housing validation was stopped
+at 30/106 replay cases (no full pass claimed). Next action: run renderer browser
+suite and investigate checkpoint timeout on a host permitting local servers.
+No commit/PR, merge, deployment or production data change performed.

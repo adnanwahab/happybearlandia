@@ -68,13 +68,17 @@ export function createCityDetails(scene, town) {
   function kit(name,x,y,z,r=0){for(const part of PROP_KITS[name]){const [px,py,pz]=part.position;propTransforms[part.material].push({p:[x+px*Math.cos(r)+pz*Math.sin(r),y+py,z-px*Math.sin(r)+pz*Math.cos(r)],s:part.scale,r});}}
   for(const [i,b] of town.buildings.entries())if(b.kind==='park'){kit('bench',b.center[0]+7,0,b.center[1]);kit('bin',b.center[0]+9,0,b.center[1]);}else if(b.height>8){kit(['hvac','vent','solar','antenna','water-tank'][i%5],b.center[0]+2,b.height,b.center[1]+2);}
   for(const [i,route] of routes.entries())for(let d=14;d<route.length;d+=55){const x=route.a[0]+route.dx*d/route.length+route.nx*6,z=route.a[1]+route.dz*d/route.length+route.nz*6;kit('streetlight',x,0,z,route.r);if(i%3===0)kit('sign',x+2,0,z);}
+  let streetLampMaterial;
   const propColors={metal:0x778084,dark:0x333c40,wood:0x927352,red:0xb65d43,lamp:0xffdd9b,solar:0x33526d,sign:0x386b59};
-  for(const [family,transforms] of Object.entries(propTransforms)){const mat=material(propColors[family]);if(family==='lamp'){mat.emissive.setHex(0xffd38b);mat.emissiveIntensity=.8;}instances('props',box,mat,transforms);}
+  for(const [family,transforms] of Object.entries(propTransforms)){const mat=material(propColors[family]);if(family==='lamp'){streetLampMaterial=mat;mat.emissive.setHex(0xffd38b);mat.emissiveIntensity=.8;}instances('props',box,mat,transforms);}
   const carTransforms=Array.from({length:Math.min(600,routes.length*8)},(_,i)=>({p:[0,-20,0],s:[1.8,.65,3.8],c:[0xc8d0d5,0x364d60,0xb65e43,0xd4be87,0x55585c][i%5]}));
   const cars=instances('traffic',box,material(0xffffff,.34),carTransforms);
   const cabins=instances('traffic',box,material(0x263b45,.25),carTransforms.map(t=>({...t,s:[1.45,.58,1.9],c:null})));
   const wheelGeometry=track(new THREE.CylinderGeometry(.32,.32,.2,8));wheelGeometry.rotateZ(Math.PI/2);
   const wheels=instances('traffic',wheelGeometry,material(0x202322),Array.from({length:carTransforms.length*4},()=>({p:[0,-20,0],s:[1,1,1]})));
+  const headlightMaterial=track(new THREE.MeshBasicMaterial({color:0xffedba}));
+  const headlights=instances('traffic',box,headlightMaterial,Array.from({length:carTransforms.length*2},()=>({p:[0,-20,0],s:[.3,.2,.12]})));
+  headlights.name='dusk-headlights';
   const vehicleMetadata = carTransforms.map((transform, instanceId) => createTrafficVehicleMetadata(instanceId, { color: transform.c, routeIndex: instanceId % Math.max(1, routes.length) }));
   cars.userData.pickKind = 'vehicle';
   cars.userData.vehicleMetadata = vehicleMetadata;
@@ -108,6 +112,9 @@ export function createCityDetails(scene, town) {
       wetness += ((weather==='rain'?1:0)-wetness)*Math.min(1,dt*.4);
       roadMaterial.roughness=.94-wetness*.67;roadMaterial.color.set(0x353a3c).multiplyScalar(1-wetness*.3);
       for(const [name,meshes] of Object.entries(groups))for(const m of meshes)m.visible=features[name]!==false;
+      const lampStrength=state.lighting?.lamps??0;
+      if(streetLampMaterial)streetLampMaterial.emissiveIntensity=lampStrength*1.4;
+      headlights.visible=features.traffic!==false&&lampStrength>0;headlightMaterial.color.setHex(0xffedba).multiplyScalar(lampStrength);
       rain.visible=features.rain!==false&&wetness>.05;rain.position.set(camera.position.x,0,camera.position.z);
       rain.geometry.setDrawRange(0,Math.floor(rainCount*wetness*settings.density));
       trafficDensity=Number.isFinite(state.trafficDensity)?THREE.MathUtils.clamp(state.trafficDensity,0,1):trafficDensity;
@@ -121,9 +128,11 @@ export function createCityDetails(scene, town) {
         const x=route.a[0]+route.dx*t+route.nx*2*sign,z=route.a[1]+route.dz*t+route.nz*2*sign,heading=route.r+(sign<0?Math.PI:0);
         dummy.position.set(x,.7,z);dummy.scale.set(1.8,.65,3.8);dummy.rotation.set(0,heading,0);dummy.updateMatrix();cars.setMatrixAt(i,dummy.matrix);
         dummy.position.set(x,1.27,z);dummy.scale.set(1.45,.58,1.9);dummy.updateMatrix();cabins.setMatrixAt(i,dummy.matrix);
+        for(let side=0;side<2;side++){const lateral=side? .6:-.6,longitudinal=1.94;dummy.position.set(x+Math.cos(heading)*lateral+Math.sin(heading)*longitudinal,.72,z-Math.sin(heading)*lateral+Math.cos(heading)*longitudinal);dummy.scale.set(.3,.2,.12);dummy.updateMatrix();headlights.setMatrixAt(i*2+side,dummy.matrix);}
         let wheel=0;for(const side of [-1,1])for(const end of [-1,1]){const lateral=side*.86,longitudinal=end*1.15;dummy.position.set(x+Math.cos(heading)*lateral+Math.sin(heading)*longitudinal,.35,z-Math.sin(heading)*lateral+Math.cos(heading)*longitudinal);dummy.scale.set(1,1,1);dummy.updateMatrix();wheels.setMatrixAt(i*4+wheel++,dummy.matrix);}
       }
       cars.instanceMatrix.needsUpdate=true;cars.computeBoundingSphere();
+      headlights.count=cars.count*2;headlights.instanceMatrix.needsUpdate=true;headlights.computeBoundingSphere();
       cabins.count=cars.count;wheels.count=cars.count*4;for(const mesh of [cabins,wheels]){mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();}
       if(now-lastStatic>250){lastStatic=now;
         for(const name of ['vegetation','roofs','props'])for(const mesh of groups[name]||[]){

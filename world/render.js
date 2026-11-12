@@ -1,3 +1,4 @@
+import {simulationLighting,legacyHomeCounts,legacyBuildingOccupancy} from "./render/environment/sim-lighting.js";
 import {createGlobalIllumination} from './render/global-illumination.js';
 import {mountPlaybackFacts,withMetadataDeadline,mountControlReadiness} from './onboarding/first-run-repairs.js';
 import {createQuickDemoController} from './onboarding/quick-demo-controller.js';
@@ -408,7 +409,7 @@ startup.placeholdersReadyMs=performance.now();
 const progressiveGeometry=createProgressiveLoader({items:town.buildings,signal:startupAbort.signal,concurrency:3,frameBudgetMs:4,maxAttachmentsPerFrame:6,
   priority:b=>Math.hypot(b.center[0]-camera.position.x,b.center[1]-camera.position.z),
   load:b=>geometryCache.building({id:b.id,poly:b.poly,height:b.height,kind:b.kind}),
-  attach:(data,b)=>{const geo=toBufferGeometry(data),facade=createFacadeMaterial(b.baseColor,hash32(String(b.id))%1000,{...data.metadata.facade,park:b.kind==="park"}),mesh=b.mesh;const old=mesh.geometry;mesh.geometry=geo;mesh.material=facade.material;mesh.userData.loadingGeometry=false;mesh.userData.geometryTier=1;buildingDateBridge?.refresh();facades.push(facade);b.populationFacade=facade;old.dispose();return()=>{geo.dispose();facade.material.dispose();};},
+  attach:(data,b)=>{const geo=toBufferGeometry(data),facade=createFacadeMaterial(b.baseColor,hash32(String(b.id))%1000,{...data.metadata.facade,park:b.kind==="park"}),mesh=b.mesh;const old=mesh.geometry;mesh.geometry=geo;mesh.material=facade.material;mesh.userData.loadingGeometry=false;mesh.userData.geometryTier=1;buildingDateBridge?.refresh();facade.building=b;facades.push(facade);b.populationFacade=facade;old.dispose();return()=>{geo.dispose();facade.material.dispose();};},
   fallback:(error,b)=>{b.mesh.userData.geometryError=error.message;return()=>b.mesh.geometry.dispose();},
   disposeSource:()=>geometryCache.dispose(),
   onProgress:progress=>{startup.geometry=progress;const label=$("loading");if(label)label.textContent=`Detailed buildings ${progress.successful} / ${progress.total}${progress.fallbacks?` · ${progress.fallbacks} footprints retained`:''}`;}
@@ -446,7 +447,7 @@ function updateContextMinimap(chunks){if(chunks)pendingContextChunks=chunks;if(!
 const mapStreamer=createMapStreamer({mode:generatedContext?'generated':'osm',buildGeneratedTile:tile=>buildTown({lat:tile.lat,lng:tile.lng},{source:'none'},{maxPeople:0}),origin,projector:geoProj,initialArea:{...area,origin:area.origin||origin},initialBuildingIds:town.buildings.map(b=>b.id),tileRadiusM:generatedContext?430:([150,250,400].includes(area.radiusM)?area.radiusM:400),geometryCache,camera,signal:startupAbort.signal,maxTiles:9,concurrency:2,
   getTarget:()=>controls.target,
   getView:()=>{const footprint=mapControls.getPanFootprint?.(),distance=camera.position.distanceTo(controls.target),halfHeight=distance*Math.tan(camera.getEffectiveFOV()*Math.PI/360);return {x:controls.target.x,z:controls.target.z,halfWidth:footprint?footprint.width/2:halfHeight*camera.aspect,halfDepth:footprint?footprint.depth/2:halfHeight};},
-  attachBuilding:(data,b)=>{const geometry=toBufferGeometry(data),facade=createFacadeMaterial(baseColorFor(b),hash32(String(b.id))%1000,{...data.metadata.facade,park:b.kind==="park"}),mesh=new THREE.Mesh(geometry,facade.material);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.contextBuilding=b;b.mesh=mesh;scene.add(mesh);buildingDateBridge?.register(mesh,b);facades.push(facade);contextBuildings.set(b.id,b);return()=>{contextBuildings.delete(b.id);buildingDateBridge?.unregister(mesh);scene.remove(mesh);geometry.dispose();facade.material.dispose();const index=facades.indexOf(facade);if(index>=0)facades.splice(index,1);};},
+  attachBuilding:(data,b)=>{const geometry=toBufferGeometry(data),facade=createFacadeMaterial(baseColorFor(b),hash32(String(b.id))%1000,{...data.metadata.facade,park:b.kind==="park"}),mesh=new THREE.Mesh(geometry,facade.material);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.contextBuilding=b;b.mesh=mesh;scene.add(mesh);buildingDateBridge?.register(mesh,b);facade.building=b;facades.push(facade);contextBuildings.set(b.id,b);return()=>{contextBuildings.delete(b.id);buildingDateBridge?.unregister(mesh);scene.remove(mesh);geometry.dispose();facade.material.dispose();const index=facades.indexOf(facade);if(index>=0)facades.splice(index,1);};},
   attachTile:(context,tile)=>{const group=new THREE.Group(),bounds=tile.actualBounds||tile.bounds,width=bounds.maxX-bounds.minX,depth=bounds.maxZ-bounds.minZ;const base=new THREE.Mesh(new THREE.PlaneGeometry(width,depth),new THREE.MeshLambertMaterial({color:0x626b50}));base.rotation.x=-Math.PI/2;base.position.set((bounds.minX+bounds.maxX)/2,-.12,(bounds.minZ+bounds.maxZ)/2);base.receiveShadow=true;group.add(base);const minimapRoads=[];for(const road of context.roads||[]){const projected=(road.pts||[]).map(point=>context.coordinates==='world'?point:geoProj.toXZ(point[0],point[1]));minimapRoads.push({...road,pts:projected});const points=projected.map(([x,z])=>new THREE.Vector3(x,.06,z));if(points.length<2)continue;group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),new THREE.LineBasicMaterial({color:0x92938e})));}scene.add(group);contextRoads.set(tile.key,minimapRoads);return()=>{contextRoads.delete(tile.key);disposeContext(group);};},
   onProgress:state=>{startup.stream=state;contextMapBounds=state.activeWindowBounds;contextViewLimited=state.viewLimited;const unavailable=state.tiles.filter(tile=>tile.status==='error').length,partial=state.tiles.filter(tile=>tile.status==='partial'||tile.error&&tile.status!=='error').length;retryNearby.hidden=!unavailable&&!partial;retryNearby.disabled=state.activeFetches>0;streamStatus.textContent=`${state.mode==='generated'?'Generated':'Real-map'} neighbor context: ${state.tileCount} / 9 retained areas · ${state.buildingCount} context buildings · ${state.activeFetches} map requests${unavailable?` · ${unavailable} unavailable`:''}${partial?` · ${partial} partial`:''}${state.viewLimited?' · zoom in for complete view coverage':''}. Original resident model unchanged.`;updateContextMinimap(state.tiles);}
 });
@@ -2224,7 +2225,8 @@ $("feed").addEventListener("click", (e) => {
 /* ---------------------------------------------------------------- */
 /* Loop                                                              */
 /* ---------------------------------------------------------------- */
-const night = new THREE.Color(0x1a1d2b), day = new THREE.Color(0xdfe7ee), sky = new THREE.Color();
+const sky = new THREE.Color();
+let lightingSnapshot=null,lightingMinute=null,lightingLiving=null;
 let acc = 0, slowTimer = 0, lastEvents = -1;
 let lastEmbedPostT = -Infinity;
 let last = performance.now();
@@ -2254,22 +2256,26 @@ function frame(now) {
   if(!livingWorld?.active)businessUI?.update();
   livingWorld?.update(now);
 
-  // Keep the default daylight lighting independent of the simulation clock.
-  // Only follow simulated time when explicitly selected in the renderer controls.
+  // Follow the active authority; manual renderer presets only override presentation.
   const livingMinute=livingWorld?.active?livingWorld.getClockMinute():null;
   const policyFrame=livingWorld?.active?physicalPolicySnapshot:null;
   const policyMinute=Number.isFinite(livingMinute)?livingMinute:world.t;
   physicalPolicyLayer.update({minute:policyMinute,transitService:livingWorld?.active?(policyFrame?.config?.transitService??0):(world.transitServiceMult??0),projects:world.projects??[],districts:policyFrame?.districts??[],source:livingWorld?.active?'Living configured transit service; no civic project ledger supplied':'Legacy transitServiceMult; actual civic projects only'});
-  const m = cityRenderer.timeOfDay != null ? cityRenderer.timeOfDay * 60 : Number.isFinite(livingMinute) ? livingMinute % 1440 : world.minuteOfDay();
-  const daylight = Math.max(0, Math.sin(((m - 6 * 60) / (14 * 60)) * Math.PI)); // 6am–8pm arc
-  sky.copy(night).lerp(day, daylight);
+  const lighting=simulationLighting(policyMinute,cityRenderer.timeOfDay);
+  const {daylight,angle:ang}=lighting;
+  sky.setHex(lighting.skyColor);
+  const lightSnapshot=livingWorld?.active?livingWorld.getSnapshot():null;
+  cityRenderer.updateCity({lighting});
+  if(lightSnapshot!==lightingSnapshot||policyMinute!==lightingMinute||Boolean(livingWorld?.active)!==lightingLiving){
+    lightingSnapshot=lightSnapshot;lightingMinute=policyMinute;lightingLiving=Boolean(livingWorld?.active);
+    cityRenderer.updateCity({buildingHomeCounts:lightSnapshot?.buildingHomeCounts??(lightingLiving?[]:legacyHomeCounts(town.people,town.buildings)),buildingOccupancy:lightSnapshot?.buildingOccupancy??(lightingLiving?[]:legacyBuildingOccupancy(town.people,town.buildings))});
+  }
   scene.background = buildingBridge?.worldVisuals.skyColor ? new THREE.Color(buildingBridge.worldVisuals.skyColor) : sky;
   hemi.intensity = (buildingBridge?.worldVisuals.nightBrightness ?? 0.12) + 0.42 * daylight;
   hemi.color.setHex(0xc5ddf2);hemi.groundColor.setHex(0x55523f);
   sun.intensity = 2.8 * daylight;
   sun.color.setHex(daylight < .35 ? 0xffce98 : 0xffefda);
-  const ang = ((m - 6 * 60) / (14 * 60)) * Math.PI;
-  sun.position.set(Math.cos(ang) * 400, Math.max(40, Math.sin(ang) * 500), 200);
+  sun.position.set(Math.cos(ang) * 400, Math.sin(ang) * 500, 200);
 
   // People
   // In the well-being and cycle overlays everyone is shown (indoors too), colored red→green.

@@ -36,7 +36,7 @@ export function createCanvasRenderer({canvas=document.createElement('canvas')}={
           shapes.push({points:hull(points),depth,color:'#'+color.getHexString(),opacity:material.opacity??1});
         }
       });
-      context.fillStyle='#10242e';context.fillRect(0,0,width,height);
+      context.fillStyle=scene.background?.isColor?'#'+scene.background.getHexString():'#10242e';context.fillRect(0,0,width,height);
       shapes.sort((a,b)=>b.depth-a.depth);
       for(const shape of shapes){if(shape.points.length<3)continue;context.globalAlpha=Math.max(.15,Math.min(1,shape.opacity));context.fillStyle=shape.color;context.strokeStyle='#b0d6df55';context.beginPath();shape.points.forEach((p,i)=>i?context.lineTo(p.x,p.y):context.moveTo(p.x,p.y));context.closePath();context.fill();context.stroke();}
       context.globalAlpha=1;context.fillStyle='#e2f0fa';context.font='12px system-ui';context.fillText('Canvas2D · low fidelity · projected scene bounds · decorative detail omitted',16,height-16);
