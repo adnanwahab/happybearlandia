@@ -7922,3 +7922,28 @@ test/world-user-fixes.test.js still reports 32 homepage carousel sections versus
 33 registered experiences. The identical failure was reproduced using exact
 118aad baseline inputs; this existing catalog mismatch was not changed by PR278.
 No simulation, seed, runtime, gallery, or target-branch changes were made.
+
+## SHE-267 — neighborhood stage and recorded divergence
+
+Slice in progress: retain City projections, metrics, recorded floor heights and
+existing synchronized director; add muted stage-owned neighborhood architecture,
+streets and trees using World geometry, and a receipt-validated construction burst
+and ripple. Scenery must never enter inventory, picks, diffs or metrics. Verify
+actual seed-42 Month-16 receipt, missing/forged receipts, replay deduplication,
+reduced motion, disposal and normal route where browser setup permits.
+Remote main scene inspected through GitHub; no SHE-267 PR found. Local Git fetch
+is blocked by read-only shared Git metadata; shell remote DNS is unavailable.
+No production changes. Single worker owns scene module, integration and tests.
+
+Implemented slice: World architecture generator reused for native schematic
+inventory and muted decorative neighbors, streets, sidewalks and trees. Context
+is separate from inventory/picks/metrics. Exact recorded completion ID gates the
+burst and director dolly; shared camera and particles preserve synchronized arms.
+Existing recorded floors and geography disclaimer retained. See
+[checked work record](reviews/SHE-267.md) for source and remote audit evidence.
+49 tests pass, 1 browser-gated skip, 1608 assertions; browser bundle succeeds.
+Playwright server binding failed on 39931 and 41967 before browser execution.
+Visual acceptance remains pending; next is the added SHE-267 normal-route test
+and guided normal/reduced-motion review on a host able to bind the server.
+Canvas retains its low-fidelity view; optional wipe not included. No model change,
+merge, deployment or production data change.
