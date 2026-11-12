@@ -1,0 +1,35 @@
+--- a/SPEC.md
++++ b/SPEC.md
+@@ -925 +925 @@
+-- `after_run` failure or timeout is logged and ignored.
++- Local trusted-publication profile: `after_run` failure or timeout is logged and parks implementation for host recovery; it is never reported as successful completion.
+@@ -1945 +1945 @@
+-    run_hook_best_effort("after_run", workspace.path)
++    run_hook_or_park_host_recovery("after_run", workspace.path)
+@@ -1955 +1955 @@
+-      run_hook_best_effort("after_run", workspace.path)
++      run_hook_or_park_host_recovery("after_run", workspace.path)
+@@ -1967 +1967 @@
+-      run_hook_best_effort("after_run", workspace.path)
++      run_hook_or_park_host_recovery("after_run", workspace.path)
+@@ -1973 +1973 @@
+-      run_hook_best_effort("after_run", workspace.path)
++      run_hook_or_park_host_recovery("after_run", workspace.path)
+@@ -1990 +1990 @@
+-  run_hook_best_effort("after_run", workspace.path)
++  run_hook_or_park_host_recovery("after_run", workspace.path)
+@@ -2096 +2096 @@
+-- `after_run` hook runs after each attempt and failure/timeouts are logged and ignored
++- `after_run` runs once after each attempt; local trusted-publication failures/timeouts park implementation for host recovery. Terminal data-only handoff stops continuation promptly; it does not authorize publication.
+@@ -2324,5 +2324,6 @@
+-resolution supplies the canonical issue workspace and, when present and not a
+-symlink, its own .git directory. The explicit contained Git root supports
+-unattended Git writes while keeping all other paths outside the issue boundary
+-read-only. Explicit caller-provided root lists retain their existing semantics;
+-the pilot's before_run hook rejects linked worktrees and external Git objects.
++resolution supplies only the canonical issue workspace. No explicit .git writable
++exception is added: source-only workers do not fetch, branch, stage, commit or
++push. Trusted host hooks own Git metadata and draft publication. Explicit
++caller-provided root lists retain their existing semantics; the active local
++profile does not configure metadata roots. Host preparation rejects linked
++worktrees, external objects and unapproved file assignments.
