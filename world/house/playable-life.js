@@ -3,6 +3,7 @@ import { journeyURL } from '../future-journey/navigation.js';
 
 const DAY = 1440;
 const FOLLOW_UP_DAYS = 30;
+const SEASON_DAYS = 90;
 const sessionVersion = 'playable-life.v1';
 const labels = { work: 'Clean the living room', travel: 'Travel home', socialize: 'Talk with a housemate', purchase: 'Buy a plant', rest: 'Rest' };
 
@@ -111,7 +112,8 @@ export async function mountPlayableLife(container, { runtime, entry, record }, e
   function showReport(report, finalId) {
     const { controlSession, before, dayEnd: day, after, events, actions, trace } = report;
     title.textContent = 'A day as ' + (before.name ?? entityId);
-    clock.textContent = 'The city advanced 30 modeled days after the resident’s day ended.';
+    const days = report.followUp?.days ?? FOLLOW_UP_DAYS;
+    clock.textContent = 'The city advanced ' + days + ' modeled days after the resident’s day ended.';
     const changes = make('dl');
     for (const [key, value] of Object.entries(before.needs)) {
       const values = [value, day.needs[key], after.needs[key]];
@@ -144,7 +146,7 @@ export async function mountPlayableLife(container, { runtime, entry, record }, e
       make('p', 'The follow-up includes autonomous city activity. These changes describe the observed trajectory.'),
       actions.length ? commands : make('p', 'The resident followed the ordinary schedule.'),
       evidenceRows, decisions);
-    result.replaceChildren(make('h2', 'Resident changes'), make('p', 'Start → End of day → 30-day follow-up'), changes, evidence);
+    result.replaceChildren(make('h2', 'Resident changes'), make('p', 'Start → End of day → ' + days + '-day follow-up'), changes, evidence);
     links.replaceChildren(
       anchor('Open starting World checkpoint', worldURL(controlSession.runId)),
       anchor('Open follow-up World checkpoint', worldURL(finalId)),
@@ -183,7 +185,16 @@ export async function mountPlayableLife(container, { runtime, entry, record }, e
   const population = start.config.population;
   const batchMinutes = Math.min(DAY, Math.floor(20_000_000 / population) * stepMinutes);
   const dayEnd = start.minute + DAY;
-  const followUpEnd = dayEnd + FOLLOW_UP_DAYS * DAY;
+  let followUpDays = FOLLOW_UP_DAYS;
+  let followUpEnd = dayEnd + followUpDays * DAY;
+  const horizon = make('select');
+  horizon.setAttribute('aria-label', 'Autonomous follow-up duration');
+  for (const [days, label] of [[FOLLOW_UP_DAYS, '30 modeled days'], [SEASON_DAYS, 'A season (90 modeled days)']]) {
+    const option = make('option', label);
+    option.value = String(days);
+    horizon.append(option);
+  }
+  controls.append(horizon);
   const events = new Map();
   const previousEvents = new Set((start.events ?? []).map(event => event.id));
   const actions = [];
@@ -219,6 +230,7 @@ export async function mountPlayableLife(container, { runtime, entry, record }, e
   const buttons = [];
   const refresh = () => {
     const remaining = Math.max(0, dayEnd - runtime.getSnapshot().minute);
+    horizon.disabled = busy || handoff || finished;
     clock.textContent = handoff ? 'Autonomous follow-up' : remaining + ' modeled minutes left in this day.';
     for (const button of buttons) button.disabled = busy || finished ||
       (button !== finish && (handoff || !remaining || (button.dataset.action === 'socialize' && !target.value)));
@@ -263,7 +275,7 @@ export async function mountPlayableLife(container, { runtime, entry, record }, e
       const progress = await runtime.observeHousehold({ householdId, minutes, signal });
       if (progress.status !== 'completed') throw new Error('The clock stopped. Continue to resume from the last committed minute.');
       if (handoff) status.textContent = 'Autonomous follow-up · ' +
-        Math.max(0, Math.floor((runtime.getSnapshot().minute - dayEnd) / DAY)) + ' of 30 days';
+        Math.max(0, Math.floor((runtime.getSnapshot().minute - dayEnd) / DAY)) + ' of ' + followUpDays + ' days';
     }
   }
   button('Advance time', async () => {
@@ -271,6 +283,10 @@ export async function mountPlayableLife(container, { runtime, entry, record }, e
     showFacts(await read());
   });
   const finish = button('End the day and observe 30 days', async () => {
+    if (!handoff) {
+      followUpDays = Number(horizon.value);
+      followUpEnd = dayEnd + followUpDays * DAY;
+    }
     handoff = true;
     finish.textContent = 'Continue follow-up and save';
     followUpController = new AbortController();
@@ -288,6 +304,7 @@ export async function mountPlayableLife(container, { runtime, entry, record }, e
     const final = await read();
     const report = {
       schemaVersion: sessionVersion, modelVersion: record.save.checkpoint.modelVersion, controlSession, before,
+      followUp: { days: followUpDays, startMinute: dayEnd, endMinute: followUpEnd, endTick: runtime.getSnapshot().runtime.tick },
       dayEnd: residentSummary(dayClose.person, dayClose.household),
       after: residentSummary(final.person, final.household),
       actions: [...actions], events: [...events.values()],
@@ -307,6 +324,9 @@ export async function mountPlayableLife(container, { runtime, entry, record }, e
     status.textContent = 'Saved the follow-up checkpoint.';
     doc.defaultView.history.replaceState(null, '', residentURL(saved.record.id, 'lifeReview'));
     runtime.destroy();
+  });
+  horizon.addEventListener('change', () => {
+    finish.textContent = 'End the day and observe ' + horizon.value + ' days';
   });
   controls.append(pause);
   showFacts(initial);
