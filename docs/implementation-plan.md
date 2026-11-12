@@ -7922,3 +7922,34 @@ test/world-user-fixes.test.js still reports 32 homepage carousel sections versus
 33 registered experiences. The identical failure was reproduced using exact
 118aad baseline inputs; this existing catalog mismatch was not changed by PR278.
 No simulation, seed, runtime, gallery, or target-branch changes were made.
+
+## SHE-237 r2 — emergent storyteller design
+
+Completed design-only slice: [25 situations and five recommendations](reviews/SHE-237-r2.md).
+Audited prior SHE-238 output, SHE-49 source/evidence and merged PR #166, live
+Linear issue state, current remote sprint SHA `53090035` (matches this checkout),
+and newer main `fbdce9e8` integration differences. No existing 25-item SHE-237
+deliverable was found. Preserved prior work; no product implementation added.
+
+Acceptance: exactly 25 situations each specify mechanisms, trigger, recorded
+state, discovery and causal replay; exactly five ranked systems have feasibility,
+replayability and engagement rationale. Shared evidence contract distinguishes
+existing rules from proposed extensions, synthetic inputs from results, and
+Population/City/idea authorities. No fabricated customer ledger, cross-model
+identity, clinical outcome or guaranteed dramatic result is assumed.
+
+Fresh verification: seven focused Bun files passed 61 tests / 418 assertions,
+zero failures (5.87s), including normal runtime/worker House actions and checkpoint
+transfer, relationships, hotspots, traditions, employment, household risk and
+three City recipes. Report count/field/link checks and `git diff --check` pass.
+Browser checks skipped for documentation-only scope; these regressions do not
+certify proposed receipt journeys. No PR/commit reference exists for this r2 yet.
+
+Next proposed implementation slice (outside this ticket): persist/reopen one
+actual dinner-to-conversation receipt through World → House. Prerequisites are a
+bounded versioned evidence/save contract, exact actor/time links, retained source
+records and immutable revision handling. Acceptance and failure paths are in the
+report; browser action-to-receipt/reload verification is required when implemented.
+Risks: evidence eviction, clock/identity mismatch and confusing helper fixtures
+with integrated outcomes. The named paired-experiments source was not located;
+the supplied full experiment-6 issue governs the completed design scope.
