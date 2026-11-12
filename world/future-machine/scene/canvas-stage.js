@@ -56,6 +56,7 @@ export function createCanvasStage(container,{onSelect,onCameraChange}={}) {
   try {ctx=canvas.getContext('2d');} catch(error) {canvas.remove();throw error;}
   if (!ctx) {canvas.remove();throw new Error('Canvas2D unavailable');}
   let projection=null,diff=null,mode='split',ghosts=true,selected=null,disposed=false,fitted=false;
+  let pixelRatio=null;
   let width=1,height=1,camera={x:0,z:0,zoom:1},drawn=0;
   const pointers=new Map(), listeners=[];
   let gesture=null;
@@ -107,7 +108,7 @@ export function createCanvasStage(container,{onSelect,onCameraChange}={}) {
     ctx.fillText(width<500?'Green: recorded change · dashed: other-future ghost':'Green: recorded change · dashed: other-future ghost · drag / arrows: pan · scroll / pinch / ±: zoom',12,height-10,Math.max(1,width-24));
   }
   function changed(){draw();onCameraChange?.({...camera});}
-  function resize(){if(disposed)return;width=dimension(container.clientWidth,640);height=Math.max(280,dimension(container.clientHeight,400));const ratio=Math.min(dimension(globalThis.devicePixelRatio,1),2);canvas.width=Math.round(width*ratio);canvas.height=Math.round(height*ratio);ctx.setTransform(ratio,0,0,ratio,0,0);if(!fitted&&projection&&(projection.a.length||projection.b.length)){camera=fitCanvasCamera(projection,width,height,mode);fitted=true;}draw();}
+  function resize(){if(disposed)return;width=dimension(container.clientWidth,640);height=Math.max(280,dimension(container.clientHeight,400));const ratio=pixelRatio??Math.min(dimension(globalThis.devicePixelRatio,1),2);canvas.width=Math.round(width*ratio);canvas.height=Math.round(height*ratio);ctx.setTransform(ratio,0,0,ratio,0,0);if(!fitted&&projection&&(projection.a.length||projection.b.length)){camera=fitCanvasCamera(projection,width,height,mode);fitted=true;}draw();}
   function local(e){const box=canvas.getBoundingClientRect();if(!Number.isFinite(box.width)||!Number.isFinite(box.height)||box.width<=0||box.height<=0||!Number.isFinite(e.clientX)||!Number.isFinite(e.clientY))return null;return {x:(e.clientX-box.left)*width/box.width,y:(e.clientY-box.top)*height/box.height};}
   function distance(){const p=[...pointers.values()];return p.length>1?Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y):0;}
   function startGesture(){const p=[...pointers.values()];gesture={start:{...p[0]},camera:{...camera},distance:distance(),moved:false};}
@@ -128,6 +129,7 @@ export function createCanvasStage(container,{onSelect,onCameraChange}={}) {
     setMode(next){if(!MODES.includes(next))throw new TypeError('Unknown scene mode');if(disposed)return;mode=next;draw();},
     setGhosts(value){if(disposed)return;ghosts=Boolean(value);draw();},
     focus(entity){if(disposed)return false;const row=[...(projection?.a||[]),...(projection?.b||[])].find(r=>identity(r)===identity(entity||{}));if(!row)return false;selected={collection:row.collection,id:row.id};camera={...camera,x:row.x,z:row.z};changed();return true;},
+    setPixelRatio(value){if(!Number.isFinite(value)||value<=0||value>2)throw new RangeError('Pixel ratio must be positive and at most 2');pixelRatio=value;resize();},
     getCamera(){return {...camera};},
     setCamera(next){if(!next||!Number.isFinite(next.x)||!Number.isFinite(next.z)||!Number.isFinite(next.zoom)||next.zoom<=0)throw new TypeError('Camera requires finite x, z and positive zoom');if(disposed)return;camera={x:next.x,z:next.z,zoom:clamp(next.zoom,.02,32)};fitted=true;draw();},
     getStats(){return {backend:'canvas2d',objects:disposed?0:drawn,canvases:disposed?0:1,month:projection?.month??null,mode,ghosts,disposed,animationFrames:0,layoutVersion:'future-machine-layout.v1'};},

@@ -68,3 +68,16 @@ test('context and initial draw exceptions release every owned node and listener'
   const f=fixture();f.canvas.getContext=getContext;expect(()=>createCanvasStage(f.container)).toThrow();expect(f.removed).toBe(true);expect(f.handlers.size).toBe(0);
  }
 });
+
+test('resolution preset reverses backing cost without changing inventory, camera or inputs',()=>{
+ const f=fixture(),stage=createCanvasStage(f.container),p=projection();
+ stage.update(p,diff);stage.setCamera({x:10,z:20,zoom:2});stage.setPixelRatio(1.5);
+ const before={camera:stage.getCamera(),stats:stage.getStats(),input:JSON.stringify({p,diff})};
+ expect(f.canvas.width).toBe(1200);
+ stage.setPixelRatio(.75);expect(f.canvas.width).toBe(600);expect(f.canvas.height).toBe(300);
+ expect({camera:stage.getCamera(),stats:stage.getStats(),input:JSON.stringify({p,diff})}).toEqual(before);
+ stage.setPixelRatio(1.5);expect(f.canvas.width).toBe(1200);
+ expect({camera:stage.getCamera(),stats:stage.getStats(),input:JSON.stringify({p,diff})}).toEqual(before);
+ for(const value of [0,-1,NaN,Infinity,3])expect(()=>stage.setPixelRatio(value)).toThrow();
+ stage.dispose();stage.setPixelRatio(.75);expect(f.canvas.width).toBe(0);
+});
