@@ -1003,3 +1003,22 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-29 first-impression playtest — preparation, 2026-11-12
+
+Prepared [the moderator packet](research/SHE-29-first-impression-playtest.md),
+including a no-instruction homepage minute, five blank participant records,
+provenance fields, and evidence-based follow-up ranking. Existing Play Demo,
+recorded-divergence effects, versioned sharing and responsive browser coverage
+were inspected; no application feature was reimplemented. Owned preparation
+files are that packet and this entry. Coordinator session/build ownership is
+pending. Live Linear prerequisites: SHE-15 Backlog; SHE-19 In Review, with SHE-18
+In Review. No dispatch/readiness gate changed.
+
+Acceptance remains **incomplete: 0/5 human sessions conducted**. No participant
+findings or bugs invented. Local focused verification:
+`bun test test/two-futures-demo-controller.test.js test/future-machine-effects.test.js test/future-machine-share.test.js`
+passed 15 tests / 136 assertions, zero failures. Documentation-only change;
+Playwright skipped. Branch `mini/SHE-29`, audited baseline `b963dd3`; no PR.
+Next: coordinator confirms dependencies and pinned build, then an observer runs
+five new-player sessions and records observations, synthesis and ranked bugs.
