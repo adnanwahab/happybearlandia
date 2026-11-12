@@ -45,3 +45,13 @@ Focused browser evidence is component-only: `/tmp/future-machine-ui-semantic-mob
 `onConfigure(recipe)` is additive and receives a detached configured recipe on valid seed changes or policy edits. The visible **Seed for next run** field (`data-testid="future-machine-seed"`) accepts decimal uint32 integers including 0 and 4294967295. Empty, nonnumeric, fractional, negative and out-of-range input remains visible with an error, never becomes zero, never dispatches configuration and blocks Fork City through native validity. `onRun(recipe)` receives the configured recipe, not the displayed run recipe. Busy runs disable seed editing.
 
 Pending edits survive ordinary `update` calls, including repeated old `recipe` values on timeline/inspection updates. A recipe matching valid pending configuration acknowledges it; a changed nonempty experiment ID plus an explicit recipe replaces it for a newly displayed run. The run provenance reads `provenance` or the coordinator's displayed `recipe`, never the pending seed. The coordinator owns validation/persistence and must keep saved history/share URLs tied to the actual run, supplying recipe and experiment ID when switching runs. No main/shared contract changes are included.
+
+## Demo KPI source contract (SHE-112)
+
+`bun run test:demo-kpis` checks the exact three-card inventory against mutations
+of synthetic monthly snapshot metrics through `getFrame`, `compareFrame` and
+`createUI`. It exercises the native timeline callback at Months 16/120 and reverse
+time, both arms, units, zero and explicitly unavailable measurements/snapshots.
+The same file's three non-browser pipeline tests run in ordinary Bun tests.
+Browser execution requires installed Chromium; it is not silently skipped by the
+explicit command. Fixtures are synthetic source-contract probes, not forecasts.

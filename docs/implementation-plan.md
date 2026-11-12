@@ -1003,3 +1003,32 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-112 — demo KPI source contract (2026-11-12)
+
+Bounded slice: the flagship One City, Two Futures cards (Homes, Mean unit rent,
+City spending). Existing diff tests covered missing values but not each rendered
+card after source mutation. Linear issue and GitHub PR search were read before
+implementation; returned metric work concerned CityState catalogs and agent
+counts, not this rendered-card contract. This isolated SHE-112 workspace owns
+only the new test, package command and documentation; no production code changes.
+
+Acceptance: seed-42 synthetic recorded-shape fixtures retain model/month identity;
+mutate each arm's authoritative snapshot metrics at Months 16 and 120; use the
+existing getFrame → compareFrame → createUI path and native slider callback;
+assert exact card inventory, both arm values, units, delta, selected-month
+provenance, reverse time, zero, absent/null/nonfinite/nonnumeric values and missing
+snapshots. No forecast or empirical provenance is claimed for mutated fixtures.
+
+Delivered `test/demo-kpi-contract.test.js` and `bun run test:demo-kpis`.
+Headless checks of snapshot → diff → presentation plus existing UI/diff/data
+regressions: 25 passed, 2 browser tests skipped, 216 assertions, 6.70 seconds.
+Explicit browser execution was attempted: installed Chromium exits before test
+execution with macOS bootstrap_check_in Permission denied (1100). Initial local
+server binding was also blocked; final browser test intercepts local module
+requests through Playwright and requires no listening server. Browser acceptance
+remains unverified; rerun `bun run test:demo-kpis` on a browser-capable host.
+`HBL_PLAYWRIGHT_MODULE` optionally points at an installed Playwright ESM module.
+No lint/typecheck scripts exist in package.json. No commit/PR, merge, deployment
+or production mutation performed. Scope does not claim coverage of every numeric
+observation in other application surfaces or the optional raw evidence views.
