@@ -1,4 +1,5 @@
-import {mountPlaybackFacts,withMetadataDeadline,mountControlReadiness} from './onboarding/first-run-repairs.js';
+import {modelDefinitions} from './model-provenance-loader.js';
+import {mountPlaybackFacts,mountControlReadiness} from './onboarding/first-run-repairs.js';
 import {createQuickDemoController} from './onboarding/quick-demo-controller.js';
 import {mountFirstRunGuide} from './first-run-guide.js';
 import {createFeedbackAdapter,stormFeedback} from './onboarding/feedback-adapter.js';
@@ -114,9 +115,7 @@ const startup = window.hblWorldStartup = { startedAt:performance.now(), firstFra
 const startupAbort = new AbortController();
 // Read model definitions before graphics initialization; a GPU failure must not
 // leave this separate disclosure claiming to load simulation evidence forever.
-window.hblSimulationModel={status:'loading',authority:'legacy daily parameter definitions (separate simulation authority)'};
-const metadataDefinitions=withMetadataDeadline(Promise.all([import('./simulation-parameters.js'),import('./simulation-observations.js')]));
-void metadataDefinitions.then(()=>{window.hblSimulationModel={status:'definitions-ready',authority:'legacy daily parameter definitions (separate simulation authority)',configuredParameters:null};const panel=$('simulationModelMetadata');if(panel)panel.textContent='Model definitions loaded. Runtime parameter values become available when the scene is ready.';}).catch(error=>{window.hblSimulationModel={status:'unavailable',error:error.message};const panel=$('simulationModelMetadata');if(panel)panel.textContent=`Model metadata unavailable: ${error.message}`;});
+const metadataDefinitions=modelDefinitions;
 
 let policyPending=false;
 const startupDisabled=new Map([...document.querySelectorAll('#stormBtn,#runExperimentBtn,#runCycleBtn,#demoBtn,#policy')].map(node=>[node,node.disabled]));
