@@ -1003,3 +1003,47 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-152 — bounded seed/parameter sensitivity
+
+Owned isolated worktree: `workspaces/SHE-152`, branch `mini/SHE-152`, base b963dd3.
+Own new population ensemble module, CLI, focused tests and evidence/report only,
+plus this plan entry. Existing population/rules/contracts remain read-only.
+Audit: no matching open SHE-152 PR found through connected GitHub search; shell
+GitHub network unavailable. SHE-142 is Done in Linear but oracle files are absent
+from this checkout; SHE-151 architecture shootout is Todo. Do not claim those
+prerequisites, cross-backend parity or million-agent evidence are satisfied.
+
+Next integrated slice: run the production CPU Population entry points over six
+paired seeds, baseline/rent/transit levers and five explicit/represented sizes.
+Separate size changes (100/100, 200/200, 400/400) from resolution changes
+(100/400, 200/400, 400/400); compare display samples with full person-weighted
+housing burden. Publish raw rows, empirical central 90% seed intervals, paired
+deltas, counts, scenario/model/rules source hashes, machine and limits.
+Acceptance: deterministic rerun, population/membership/trip-flow/clock invariants,
+missing travel denominator explicit, independent arithmetic oracle for summaries,
+invalid input rejection, actual CLI measurement and focused model regressions.
+Risks: shared capacities and generator quotas depend on resolution; matched seeds
+across sizes are scenario matches, not verified resident identity mappings.
+Intervals cover only tested synthetic seeds; systematic sampling error is not
+an estimate of empirical population bias. No UI/production changes or deployment.
+
+Delivered bounded increment: `world/population/seed-ensemble.js`, normal CLI
+`scripts/run-seed-ensemble.js`, focused tests and published local report
+[population-seed-sensitivity.md](population-seed-sensitivity.md) with raw
+[evidence](evidence/population-seed-ensemble.json). Actual study:90 futures and
+90 verification reruns; six seeds, five sizes/resolutions, three arms, one day.
+All population/membership/trip-flow/finite-burden/clock checks pass. Exact
+retained-observation replay digest matches;156 source hashes independently
+checked against current files. Final focused+existing regressions:24pass,
+0fail,318assertions,8.22s. Invalid one-seed CLI exits1 with diagnostic.
+`git diff --check` passes; no browser behavior changed, so Playwright skipped.
+No repository lint/type-check script exists for this JavaScript slice.
+
+Material result: display samples have measurable selection error; rent/transit
+levers affect modeled outcomes; baseline size/resolution difference intervals
+cross zero in this bounded study. Source versions, denominators, seed intervals,
+machine and timing are recorded. No full-state or cross-backend parity claimed.
+SHE-142 oracle integration and SHE-151 shootout remain prerequisites for the
+large-scale extension; issue-wide architecture acceptance remains incomplete.
+No commit, PR, merge, deployment or external publication performed in this slice.
