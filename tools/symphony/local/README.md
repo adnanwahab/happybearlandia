@@ -1,3 +1,5 @@
+See [the measured throughput follow-up](../../../docs/symphony-throughput.md) for the guarded recurring scheduler, native dashboard overlay, verification and rollback.
+
 # HappyBearLandia trusted host backlog coordinator
 
 See [COORDINATOR.md](COORDINATOR.md) for installation, readiness evidence,
