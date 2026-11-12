@@ -2,7 +2,7 @@ import { mountPairedComparison } from '/tools/paired-comparison.js';
 import { graphStyles, renderEvidenceGraph } from './graph-view.js';
 
 const attributes = { runId: 'run-id', entityId: 'entity-id', tick: 'tick', targetId: 'target-id' };
-const tabs = ['Why', 'History', 'What if', 'Evidence'];
+const tabs = ['Why', 'Ripple', 'History', 'What if', 'Evidence'];
 const inspectorStyles = `
   :host { display: block; font: 16px system-ui; color: #173330; background: #f5faf7;
     border: 1px solid #9ebbb1; border-radius: 12px; padding: clamp(12px, 4vw, 20px); }
@@ -228,14 +228,15 @@ export class CausalInspector extends HTMLElement {
     if (tab === 'History' && this.historyCursor != null) params.set('afterSequence', String(this.historyCursor));
     status.textContent = 'Loading recorded evidence…';
     try {
-      const endpoint = tab === 'History' ? 'timeline' : 'explain';
+      const endpoint = tab === 'History' ? 'timeline' : tab === 'Ripple' ? 'ripple' : 'explain';
       const response = await fetch('/api/causality/' + endpoint + '?' + params, { signal: this.controller.signal });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Unable to load records');
       if (serial !== this.serial) return;
       status.textContent = data.incomplete ? 'Incomplete graph: some dependencies are unavailable or outside traversal limits.' :
         'Recorded model dependencies; these are not proof of real-world causation.';
-      if (tab === 'Why') {
+      if (tab === 'Ripple') panel.append(element('p', 'Downstream ripple · at most five recorded connections. ' + data.interpretation), element('p', 'Limits and gaps: ' + (data.reasons.join(', ') || 'none within returned chain')));
+      if (tab === 'Why' || tab === 'Ripple') {
         const graph = renderEvidenceGraph(data, context.targetId, record => this.selectRecord(record));
         panel.append(graph.root);
         if (focusRecord === context.targetId) graph.targetButton?.focus();

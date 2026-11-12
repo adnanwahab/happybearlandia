@@ -120,3 +120,17 @@ test('bounds large responses and keeps empty, tab navigation, and retry states a
   await page.getByRole('button', { name: 'Retry', exact: true }).click();
   await expect(page.getByRole('heading', { name: source.type, exact: true })).toBeVisible();
 });
+
+test('Ripple tab shows bounded downstream connections and explicit gaps', async ({ page }) => {
+  await page.route(explanation, route => route.fulfill({json:{nodes:[source],edges:[],evidence:[]}}));
+  await page.route('**/api/causality/ripple?**', route => route.fulfill({json:{
+    targetId: source.id, nodes:[source,target], edges:[edge], evidence:[source],
+    incomplete:true, reasons:['edge-limit','missing-dependency'], missingIds:['event:test:missing'],
+    interpretation:'Recorded model causation or correlation as labeled on each edge; not empirical causal proof.',
+  }}));
+  await page.goto(inspect(source));
+  await page.getByRole('tab',{name:'Ripple',exact:true}).click();
+  await expect(page.getByText('Downstream ripple · at most five recorded connections.',{exact:false})).toBeVisible();
+  await expect(page.getByText('Limits and gaps: edge-limit, missing-dependency')).toBeVisible();
+  await expect(page.getByRole('region',{name:'Recorded evidence graph'}).getByText('Contributes to',{exact:true})).toBeVisible();
+});

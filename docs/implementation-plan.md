@@ -1003,3 +1003,31 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-138 — bounded ripple inspector
+
+Slice: add a downstream Ripple tab to the existing stored-event inspector and a
+read-only `/api/causality/ripple` route. Own only ripple traversal, read-route/tab
+integration, focused tests and their documentation. No new simulation authority.
+Planning SHE-141 and blocking SHE-142 are Done (Linear read November 12); oracle
+PR #50 is absent from this checkout, so this slice uses existing monthly City
+records only. Backlog audit found no GitHub ripple issue; provenance PR #62 owns
+idea diffusion and #4 owns the guided policy model. Neither is modified. Existing
+backwards Why traversal and Butterfly Ledger single-input ablation are separate.
+Acceptance: at most five downstream edges total, source-event citations, explicit
+relation labels, bounded cycles, visible missing dependencies and truncation,
+original run/seed/model context. Risk: existing traces may end before a resident
+outcome; report the gap rather than inventing a cross-model identity or edge.
+
+Delivered: downstream route/traversal and Ripple tab reuse the existing graph,
+relation/evidence display and navigation. Five total edges also bound branch
+fanout, with six queries maximum and 100 evidence references per edge. Cycles
+and missing source events are explicitly reported; no fabricated bridge to a
+resident is introduced. Verification: 8 tests passed, 42 assertions, including
+real SQLite City recording through the normal dispatcher. Existing and new
+Playwright tab tests remain unverified: both default port39871 and alternate
+39983 failed to bind (EADDRINUSE); no existing process was stopped. No configured
+package lint/type-check script. Next: run browser suite in a permitted host and
+review trace coverage before extending to oracle or other simulation identities.
+Final regression gate: 19 tests passed / 332 assertions across ripple, read API,
+World causal adapter and shared causality contracts; `git diff --check` passed.
