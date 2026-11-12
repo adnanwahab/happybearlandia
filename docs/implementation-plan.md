@@ -1,5 +1,35 @@
 # HappyBearLandia implementation plan
 
+## SHE-182 revision 2 — publication repair (November 12, 2026)
+
+Delivered slice: merged-only, same-repository Mini Symphony branch mapping and
+idempotent Linear merge-evidence publication, including `mini/SHE-182-r2` to
+`SHE-182`. Remote sprint HEAD matches this checkout; current sprint and main
+contain no prior sync helper. Preserve SHE-180 as sole queue/lease owner and
+existing dual approval checks. See [the checked audit](reviews/SHE-182-r2.md)
+for exact source/test evidence, prior PR195 and remaining acceptance.
+
+Changed interfaces: `.github/scripts/sync-merged-pr.cjs` and
+`.github/workflows/linear-merged-pr.yml`; regression entry point is
+`node --test test/sync-merged-pr.test.cjs`. The workflow runs trusted base code,
+never worker head code with its secret. It links merged evidence without
+changing issue status or granting acceptance. Failed/uncertain writes stop;
+rerunning safely upserts the same issue/URL attachment.
+
+Actual verification: 222 host tests, 21 ops tests and 5 publication tests passed
+(248 total). Node syntax and diff whitespace checks passed. Python YAML parsing
+was unavailable because PyYAML is not installed; Ruby YAML parsing passed.
+No browser behavior changed; Playwright skipped.
+No merge, deployment, production write or runtime activation occurred.
+
+Operational prerequisites/risks: repository `LINEAR_API_KEY` availability could
+not be inspected; configure/verify it before hosted synchronization. Hosted sync
+requires reviewed default-branch installation and an observed eligible merged PR;
+no hosted claim is made. Full issue acceptance still requires trusted-host hard
+resource containment and external runtime approval/retry/recovery validation.
+Those runtime changes are outside this explicitly scoped publication follow-up.
+No commit/PR reference exists for this revision yet.
+
 ## SHE-256 concurrency decision gate — 2026-11-12
 
 Delivered documentation increment: [decision gate](symphony-concurrency-gate.md)

@@ -1,0 +1,40 @@
+name: Link merged Mini Symphony PRs
+on:
+  pull_request_target:
+    types: [closed]
+  pull_request:
+    paths:
+      - '.github/scripts/sync-merged-pr.cjs'
+      - '.github/workflows/linear-merged-pr.yml'
+      - 'test/sync-merged-pr.test.cjs'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: node --test test/sync-merged-pr.test.cjs
+  sync:
+    needs: verify
+    if: github.event_name == 'pull_request_target' && github.event.pull_request.merged == true && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      # Execute only trusted base source, never the PR head or its commands.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/github-script@v7
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+        with:
+          script: |
+            const { syncMergedPR } = require('./.github/scripts/sync-merged-pr.cjs');
+            const result = await syncMergedPR({ event: context.payload,
+              repository: process.env.GITHUB_REPOSITORY, token: process.env.LINEAR_API_KEY });
+            await core.summary.addHeading('Linear merged PR evidence').addRaw(JSON.stringify(result)).write();
