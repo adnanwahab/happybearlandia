@@ -1003,3 +1003,43 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-163 — receipt-linked outcome landscape
+
+Next slice: extend the existing Decision Studio entry point, not a new simulation
+or renderer. Own `world/decision/visualizations.js`, focused landscape tests and
+this plan entry. SHE-141 is Done; read-only GitHub search found no SHE-163 PR.
+The existing API stores full per-run records and serves them on demand; reuse
+that record as the receipt rather than claiming the monthly City receipt schema
+applies to the separate Decision model. Keep seed, scenario, experiment, model
+and engine identity inspectable. SVG is the CPU/low-capability path (no GPU
+required); the paged button grid remains the accessible selection alternative.
+
+Acceptance: 100 actual completed runs resolve to their exact API record and
+selected recorded timeline; exclude incompatible versions/identities, report
+omitted rows and missing axis values, and never place absent depth at a fictional
+coordinate. Bounded scenario sampling and on-demand traces remain in place.
+Verify deterministic fixtures and the real entry-point browser journey, including
+receipt readback, replay and missing data. Risk: summary traces load asynchronously;
+receipt access must remain independent of that load. No engine/API/storage changes,
+production mutations or deployment. This coupled view slice needs one owner.
+
+Implemented: selected future receipt link uses the existing exact run API; model,
+engine, experiment/scenario identity and uint32 seed gate plotted/browsable rows.
+Missing depth values are excluded rather than centered, with explicit omission
+counts; zero is retained. Existing previous-experiment outlines remain inspection
+only and existing version/horizon gates continue to withhold incompatible pairs.
+The existing exploratory browser fixture now supplies its actual engine version.
+
+Verification: 49 tests passed / 0 failed (1,384 assertions) across decision
+visualizations, kernel, analysis, integration and exploration. New integration
+executes 100 real one-year baseline runs (synthetic housing model, seed42), reads
+all100 exact receipt URLs, checks identity/metrics, recomputes selected run73's
+stored timeline exactly and checks a missing receipt404. Fixtures do not represent
+measured city forecasts or agent/render throughput. `git diff --check` passed.
+Added real-entry-point Playwright case for100 runs/scenario, exact selection,
+receipt readback, playback, missing depth and before/after screenshots. Execution
+is blocked before tests: Bun server bind returned EADDRINUSE on ports3183 and43861.
+No browser pass or captured media claimed. Next gate: rerun
+`HBL_PLAYWRIGHT_PORT=43861 HBL_PLAYWRIGHT_PARTY_PORT=43862 playwright test test/e2e/receipt-landscape.e2e.js test/e2e/visualization-exploration.e2e.js`
+in an environment where the local server can bind. No merge/deploy performed.
