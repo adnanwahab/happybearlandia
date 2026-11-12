@@ -342,6 +342,7 @@ class CoordinatorTest(unittest.TestCase):
             self.assertEqual(c.main(['--dry-run','--evidence',str(evidence),'--report',str(report),'--json-report',str(snapshot)]),0)
         self.assertIn('DRY RUN',report.read_text())
         self.assertEqual(len(json.loads(snapshot.read_text())['issues']),4)
+        self.assertEqual(snapshot.stat().st_mode & 0o777,0o600)
         self.assertFalse((self.directory/'leases.json').exists())
         self.assertEqual(self.services.calls,[])
 
