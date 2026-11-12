@@ -573,7 +573,7 @@ runSimulationsButton.addEventListener("click", async () => {
     });
     renderSimulationBatch(state.simulationBatch);
   } catch (error) {
-    simulationSummary.textContent = error.message;
+    simulationSummary.textContent = `${error.message}. ${state.simulationBatch ? 'Earlier completed results remain visible.' : 'No completed results are available.'} Check your connection and select Run worlds to retry.`;
   } finally {
     runSimulationsButton.disabled = false;
   }

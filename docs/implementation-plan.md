@@ -1003,3 +1003,44 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-28 — failed HTTP simulation fetch recovery
+
+Local implementation on `mini/SHE-28`. Audit: Experiment Lab already assigns a
+new batch only after all simulations resolve and re-enables Run worlds on error;
+its prior results, seed/model metadata, analysis and synthetic disclaimers remain.
+The HTTP civic bridge lacked timeout/retry and accepted a null score as
+zero. Existing cycle-worker retry and saved Decision demo fallback are separate
+flows and were left intact. No architecture.md or more specific module AGENTS.md
+exists in this checkout. Initial working tree was clean; this slice owns only
+`world/hbl-simulator-bridge.js`, the simulation-run catch in
+`world/experiment-lab.js`, `test/hbl-simulator-bridge.test.js`,
+`test/e2e/simulation-fetch-recovery.e2e.js`, and this plan entry. No dispatcher,
+release gate, production data, or remote issue state changes are included.
+
+Implemented: at most two identical HTTP simulation requests, 250ms retry delay,
+10s deadline per attempt including JSON body consumption, and abort on timeout.
+Network/timeout/5xx/408/429 failures retry once; other HTTP errors, malformed JSON
+and invalid results fail explicitly. Successful results keep their original
+model, seed and disclaimer. No replacement simulation is manufactured. The Lab
+failure message identifies retained completed results (or their absence) and
+instructs the user to check the connection and select Run worlds again. The
+registered in-process simulator and built-in model behavior are unchanged.
+The bridge POST is an evaluation of the same immutable input; this policy must
+not be reused for mutation endpoints. A timed-out server may continue work even
+when the client aborts; the client still has a strict two-attempt bound.
+
+Acceptance evidence: `bun test test/hbl-simulator-bridge.test.js
+test/simulation-adapter.test.js test/live-simulation.test.js
+test/experiment-verification.test.js test/run-job-manager.test.js` — 22 tests
+passed, including injected offline/500/request-timeout/body-timeout recovery,
+persistent failure bounds, exact serialized input reuse and missing data errors.
+`bunx --no-install playwright test test/e2e/simulation-fetch-recovery.e2e.js
+--list` discovers three browser scenarios. Actual browser execution is blocked:
+that command without `--list` failed starting Bun with EADDRINUSE on port3100;
+repeat with HBL_PLAYWRIGHT_PORT=38128 HBL_PLAYWRIGHT_PARTY_PORT=38129 failed
+likewise on38128. Thus UI recovery, retained DOM results and screenshots are not
+yet browser-verified. The focused browser tests exercise the normal Lab entry,
+retain an actual completed batch across persistent offline/500/timeout failures,
+and retry via Run worlds. Next action: run these in a server-capable environment
+and inspect generated screenshots before publication. No PR/commit created.
