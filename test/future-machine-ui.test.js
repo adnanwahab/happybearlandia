@@ -61,6 +61,16 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('Chromium controls, loading, failure, k
     await page.evaluate(()=>ui.update({demo:{status:'paused',paused:true,caption:'Explore the city'}}));
     await page.getByRole('button',{name:'Resume demo',exact:true}).click();
     expect(await page.evaluate(()=>calls.filter(call=>call[0]==='demoPause').length)).toBe(2);
+    const explanation=page.locator('.fm-explanation');
+    expect(await explanation.getAttribute('open')).toBeNull();
+    await explanation.locator('summary').focus();await page.keyboard.press('Enter');
+    expect(await explanation.getAttribute('open')).not.toBeNull();
+    expect(await explanation.textContent()).toContain('not predictions of real rents');
+    expect(await explanation.textContent()).toContain('not independently verified stored checkpoints');
+    expect(await explanation.getByRole('link').count()).toBe(5);
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
+    await explanation.locator('summary').focus();await page.keyboard.press('Space');
+    expect(await explanation.getAttribute('open')).toBeNull();
     await page.getByRole('slider').focus();await page.keyboard.press('End');
     expect(await page.evaluate(()=>calls.some(call=>call[0]==='month'&&call[1]===120))).toBe(true);
     for(const name of ['Play timelapse','Blink: Future A','Show Me What Changed','Share comparison','Export evidence'])await page.getByRole('button',{name,exact:true}).click();

@@ -1003,3 +1003,29 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+
+## SHE-116 — How this simulation works
+
+Delivered the minimal flagship slice: a native expandable explanation immediately
+below the Future Machine header, available before running and during loading or
+failure. Ownership is limited to the existing UI, its component browser test and
+these interface/status docs; no model or persistence interface changed. Audit of
+actual UI/data/share contracts found no panel, and GitHub open-PR search for
+SHE-116 / “How this simulation works” returned no matches.
+
+Acceptance: explain synthetic scope, explicit generator assumptions, coarse rules,
+metric limitations, matched seeds, versioned recipes and recomputation in plain
+language. Source links are pinned to audited base b963dd353538294cb0fbf5d34d5283fad6e10e68.
+Native details/summary provides keyboard operation without modal focus handling;
+content wraps for small screens. Existing displayed provenance remains authoritative.
+No real forecast or independently verified checkpoint claim is introduced.
+
+Verification: UI/model, real SQLite-backed data/replay, share, diff and story
+checks passed (38 tests, 282 assertions; one opt-in browser test skipped) via
+`bun test test/future-machine-{ui,data,share,diff,story}.test.js`. Whitespace
+check passed. Attempted opt-in Chromium component check failed before browser
+launch: Bun.serve({port:0}) returned EADDRINUSE under the managed sandbox. Added
+Enter/Space disclosure and narrow-screen overflow assertions remain unexecuted.
+Browser acceptance therefore remains a follow-up in an environment allowing a
+local test listener. No deployment, production data change or issue approval.

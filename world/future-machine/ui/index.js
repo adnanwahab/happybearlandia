@@ -20,6 +20,20 @@ export function mountFutureMachineUI(root, options = {}) {
   const header=node('header',undefined,'fm-header');
   const title=node('div'); title.append(node('p','10 YEARS · 2 FUTURES · 1 DECISION','fm-eyebrow'),node('h1','One City, Two Futures'),node('p','One shared beginning. One housing plan. Explore ten modeled years.','fm-subtitle'));
   header.append(title); shell.append(header);
+  const explanation=node('details',undefined,'fm-explanation');
+  explanation.append(node('summary','How this simulation works'));
+  const sourceBase='https://github.com/adnanwahab/happybearlandia/blob/b963dd353538294cb0fbf5d34d5283fad6e10e68/';
+  for(const [heading,text,path,label] of [
+    ['A synthetic city, not a forecast','Riverside is an invented city with no real geographic coordinates. Two futures start from the same city and run for 120 modeled months. The calendar is illustrative. Results are uncalibrated model outcomes, not predictions of real rents, residents or policy effects.','world/future-machine/data/README.md','City setup and data sources'],
+    ['What the model assumes','The monthly City model uses rules for housing, households, jobs, transport, utilities, construction and budgets. This demo assumes no private parcel capacity, utility capacity 200 per district and network, and zero annual growth. The default plan requests 24 homes for 1,000,000 modeled USD; these are scenario inputs, not real construction estimates.','world/future-machine/contracts.js','Default scenario inputs'],
+    ['What the numbers leave out','Rules are coarse substitutes for real behavior, including district service coverage and aggregate business demand. Mean unit rent covers the whole housing stock, so adding differently priced homes can change the average without changing an existing tenant’s rent. Link travel time is not a resident’s commute. Missing measurements remain unavailable. A difference between futures is conditional on these rules and assumptions.','world/city/README.md','Model rules and limitations'],
+    ['Seeds and fair comparisons','A seed fixes the model’s random choices. Both futures use the same starting city and seed, with the selected plan applied to one arm. Repeating a recipe requires the same model version and inputs. One paired run does not measure the range of possible outcomes or establish a real-world causal effect. The provenance line shows the displayed run; changing “Seed for next run” takes effect after Fork City.','world/future-machine/data/README.md','Matched runs and replay contract'],
+    ['Replay and evidence','Share comparison includes the versioned recipe, saved experiment ID and selected month. Detailed monthly states are recomputed from the saved manifest, not independently verified stored checkpoints. If the saved experiment is missing, the app explicitly reruns the recipe; incompatible versions fail rather than silently upgrade. WHY and Export evidence expose recorded events and inputs; this adapter has no causal trace records, so explanations do not prove causation.','docs/future-machine-storage.md','Storage and replay limits'],
+  ]) {
+    const section=node('section');const link=node('a',label);link.href=sourceBase+path;link.target='_blank';link.rel='noopener noreferrer';link.append(node('span',' (source, opens in new tab)'));
+    section.append(node('h2',heading),node('p',text),link);explanation.append(section);
+  }
+  shell.append(explanation);
   const form=node('form',undefined,'fm-setup');
   const city=node('select'), policy=node('select');
   const policyNote=node('p',undefined,'fm-policy-note');
