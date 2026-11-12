@@ -1003,3 +1003,54 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-150 — transparent Population rule audit
+
+Owned slice in existing isolated `mini/SHE-150` workspace: new read-only
+`world/population/invariants.js`, audit CLI, focused tests, evidence and model
+validation note. No production rule or shared interface changes. Baseline
+`b963dd353538294cb0fbf5d34d5283fad6e10e68` was clean. Repository/model-card audit
+found synthetic assumptions, full authoritative typed state, bounded render samples,
+and existing target checks that do not constitute empirical validation.
+
+Prerequisites: SHE-141 metric contract is present. SHE-142 is Done with PR #50
+in Linear, but its scalar source is absent in this checkout. GitHub search for
+SHE-150 returned no matching implementation (one unrelated PR #41 result).
+Do not infer scalar/Population equivalence or import another owner's work.
+No parallel implementation needed for this bounded slice.
+
+Acceptance: independently count full-state membership, population and represented
+weight; check labor/housing capacities, needs/resources, service-score bounds,
+travel stock/flow balance, choice feasibility and retained event ordering. Mutation
+tests must reject broken rules. Compare seeded repeated runs and report normalized
+histogram drift through the normal create/step entry points. Run bounded
+three-day, two-seed configuration sweep; record actual machine/runtime, versions,
+inputs, hashes, failures and elapsed time. Empirical plausibility, long-run stability,
+service demand conservation and cross-backend validation remain unavailable.
+
+Risks: Population/City/Decision clocks and IDs differ; service score has no demand
+ledger; retained traces omit older evidence; generation target tolerances are
+engineering assumptions. Distribution drift is descriptive, with no invented
+empirical threshold. Replaying fixed inputs verifies determinism only.
+
+Delivered/verified: read-only auditor and executable configuration sweep, model-card
+link and `docs/population-rule-validation.md`. Eight 1,000-record runs (two seeds,
+four configurations, 144 half-hour commits each) pass, with recorded synthetic
+30-building geography and real travel exposure. Repeat execution matched all
+reports and final-state hashes. Measured sweep 19.449s; raw metadata/results in
+`docs/evidence/she-150-population-rules.json`. Transit removal trip-mode TV distance
+0.116103/0.117005; interpret as synthetic response only. Auditor correctly accepts
+explicit null/zero-mass no-feasible-route traces; regression added.
+
+Final five-file suite:46pass/0fail/1180assertions in13.12s using `bun test --timeout
+15000` and the files listed in the validation note. Earlier default-limit run had
+45pass/1existing eight-day test timeout (5.989s); unchanged assertions then passed
+in5.649s under the explicit timeout. CLI population0 exits1; JSON exposure check
+and `git diff --check` pass. No root lint/type script exists. No browser-facing
+changes; Playwright skipped. No commit/PR created by this source-only slice.
+
+Remaining issue scope: empirical plausibility/calibration requires identified
+observational data and matched units/windows; service flow conservation needs an
+actual demand/capacity ledger; scalar/backend validation requires SHE-142 source
+integration and explicit mappings. Three days/two seeds does not establish
+long-run or city-scale stability. These limits are not marked verified.

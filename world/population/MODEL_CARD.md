@@ -82,3 +82,11 @@ Inspecting a household in Households at risk exposes a What would help this hous
 Rent reduction, childcare subsidy and wage increase controls each accept 0–100%; the projection horizon is 1–365 whole days. The comparison shows each intervention alone and their combination. Rent relief reduces the recorded rent outflow, childcare support reimburses only recorded household-paid care, and wage support scales actual received wages. A household without wages receives no invented job or wage income. Public childcare cost, added employer payroll and landlords' rent forgone are reported separately, per synthetic household, over the chosen horizon. Their sum equals the additional household resources. Full childcare/rent relief cannot exceed recorded charges.
 
 Savings projections use current savings plus daily net cash flow multiplied by the horizon. Work hours, employment, benefits, other spending, prices and behavior stay constant; tax, administration, business viability and general market responses are outside the calculation. Negative savings remain visible as an uncovered deficit. The calculator executes no policy, changes no population state and writes no simulation records. Its JSON export includes settings, baseline, scenarios, evidence bounds, source run/snapshot context and assumptions. The supporting payment link retains the selected snapshot cutoff.
+
+A read-only consistency audit is available through `bun scripts/audit-population-rules.js`.
+It checks authoritative full-state totals, financial membership, housing/job
+capacity, needs, travel balance, retained choices and event ordering. The
+[validation note](../../docs/population-rule-validation.md) records synthetic
+sources, configuration drift, measured evidence and unavailable validation.
+Passing these engineering checks is not empirical calibration or evidence of
+cross-model equivalence.
