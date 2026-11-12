@@ -1003,3 +1003,25 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## GPU conflict reproducibility — SHE-148
+
+Owned slice in isolated checkout `SHE-148`, branch `mini/SHE-148`: new
+`world/gpu-reproducibility.js`, browser research harness, focused tests and report.
+No production simulation authority changes. Prerequisites HBL-1M-015/016 remain
+planning dependencies; current Population runtime is single-worker, not GPU.
+Acceptance: seeded integer resource counts, demand sums and minimum-contact IDs;
+CPU oracle versus atomic, two-phase and stable sort-by-key GPU implementations;
+100 independent reset runs per seed/backend, exact arrays and hashes, adapter
+metadata and end-to-end overhead. Integer-only scope excludes floating reductions.
+Risk: hardware/browser availability can block adapter measurements; unavailable
+backends must remain unverified. No multi-adapter claim without recorded runs.
+
+Delivered research harness and [scope/evidence report](gpu-reproducibility.md).
+Verification: 8 focused tests / 25 assertions pass; 100 CPU repeats per each of
+three seeds have exact hashes; benchmark bundles successfully; whitespace check
+passes. Browser benchmark exits 1 on local server bind failure (`EADDRINUSE`,
+port 0); evidence explicitly records no adapters. GPU shader execution, CPU/GPU
+parity, GPU overhead and distinct-adapter coverage remain unverified. Next action:
+run the supplied browser benchmark on eligible adapters and record measurements.
+No deployment, publication or Linear status change was performed.
