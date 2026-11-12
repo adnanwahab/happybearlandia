@@ -1003,3 +1003,34 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Simulation Benchmark Arena — SHE-191
+
+Next integrated slice: a versioned monthly City standard suite, adapter contract,
+sequential execution/replay, immutable score files and CLI side-by-side comparison.
+Prerequisites: existing City state validation, deterministic seed rules and hashing.
+One owner implements the shared runner/adapter/CLI together; independent agent
+work would compete on these interfaces. Acceptance: baseline, housing, flood and
+minimum-population cases across fixed boundary seeds; retain per-case failures,
+counts, digests, resource measurements, observed-history alignment and seed bands;
+compare only identical suite/history hashes. Tests cover real engine replay,
+missing evidence, invalid metrics, failures and incompatible comparisons.
+Risks: no empirical historical dataset or historical executable versions exist in
+this checkout; accuracy must be unavailable without supplied evidence. RSS samples
+are process measurements, not peak model memory. No production or browser changes.
+
+Delivered: `world/benchmark/{arena,city}.js`, executable
+`scripts/benchmark-arena.js`, contract/limitations in `docs/benchmark-arena.md`
+and focused regression tests. CLI archive/restart/comparison test runs the real
+20-case standard suite twice. Actual standalone measurement:20/20cases,
+0failures/0replaymismatches; accuracy unavailable, as intended without observed
+history. Initial measured execution sum480.33ms and max sampled RSS102465536bytes
+are local noisy observations, not capacity guarantees. Focused6tests/47assertions
+passed, and preceding integrated replay/count check18tests/349assertions passed.
+No lint/type-check command is configured. No browser behavior changed, so
+Playwright is inapplicable. Historical executable adapters, an independently
+aligned observed dataset, calibrated uncertainty and hard process timeout/crash
+isolation remain explicit limits; the arena does not invent those prerequisites.
+Final combined gate:19tests passed,356assertions,11.43s; `git diff --check`
+passed. Includes CLI durable archive/restart comparison and unchanged existing
+agent-count and independent seed-replay regression suites.
