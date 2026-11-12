@@ -39,8 +39,13 @@ jobs:
           test/decision-storage.test.js
           test/release-health.test.js
           test/server.test.js
+          test/patch-voting.test.js
+          test/patch-queue.test.js
+          test/patch-voting-server.test.js
           test/world-database-path.test.js
           test/overpass-diagnostics.test.js
+      - name: Verify finite agent-count exports and transition evidence
+        run: bun test test/agent-counts.test.js
       - name: Verify manifest preflight and replay cancellation regressions
         run: >
           bun test --timeout 15000

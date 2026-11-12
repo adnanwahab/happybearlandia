@@ -485,6 +485,19 @@ Dialyzer passed; installed-host104tests passed; package102tests passed; actual
 Playwright dashboard smoke passed without page errors. Retain current approval
 hold, review ownership individually, then measure nonduplicate useful tickets at
 concurrency1 before considering4/6/8/12. Human review required before merging.
+## Independent agent-count review repair — November 11, 2026
+
+PR34's bounded synthetic metric interface can accept a positive finite duration
+whose derived throughput overflows. JSON then changes Infinity into null,
+contradicting the zero-duration unavailable contract. Repair only the metric
+rate calculation, focused tests and its contract documentation; preserve models,
+counts, provenance and operational ownership. Acceptance: reject overflow for
+both pair and tick rates; retain finite extremes, empty runs and zero-duration
+semantics. No browser behavior change or deployment. Actual focused/integration
+verification:34tests passed,530assertions,10.37seconds using30second per-test
+limit; whitespace clean. Default5second baseline timing failure remains recorded
+in recovery evidence; assertions were not removed or weakened.
+
 Published draft PR #30, first package commit f4072a0. Actual CLI dry-run exit0,
 175issues/21PRs/28reserved/0selected; no lease file. Standalone44pass and post-extraction
 installed-host93pass. SHE-126/127/180 reconciliation comments link the draft and
