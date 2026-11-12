@@ -22,6 +22,31 @@ internals remain unverified; publication of this follow-up is a host gate.
 
 [Product design](design.md) defines the target experience. [Engineering instructions](../AGENTS.md) describe how to plan, implement, and verify changes. Keep this plan current with task status, dependencies, acceptance evidence, and commit or PR references when available.
 
+## SHE-91 — Event inspector attribution messaging
+
+Implemented on isolated issue branch `mini/SHE-91`: explicit no-selection and
+missing-record states; attribution coverage notices for absent dependencies,
+multiple potentially conflicting inputs, and incomplete history. Existing
+recorded graphs, provenance, correlation separation, and API contracts remain
+in use. No payload-based conflict adjudication or model support registry was
+introduced: this generic reader cannot distinguish unsupported dependency
+recording from history that was not retained. It states that limitation directly.
+
+Audit: read the Linear issue and local causal reader/component tests; GitHub
+searches for SHE-91 PRs, event-inspector issues, and she-91 branches returned no
+matches. The existing graph covered missing dependencies and bounded traversal,
+but lacked the attribution notices and dedicated missing-record state.
+
+Acceptance evidence: `bun test test/causality-messaging.test.js test/causality-read.test.js`
+passed 8 tests (33 assertions), including the real stored World scenario API
+integration. Four added component journeys cover no event, conflicting inputs,
+incomplete data, and an unrecognized model with no dependencies. Playwright
+could not launch its fixture server: Bun reported EADDRINUSE on both 39871 and
+an isolated retry on 39879. Browser execution remains unverified; rerun
+`bunx playwright test --config test/causality.browser.config.js` on a host able
+to bind the fixture port. `git diff --check` passed. No deployment, issue label
+change, publication, or main merge performed.
+
 ## Playable Life vertical slice
 
 Source is the “15 new features I'd add next” emerging civilization proposal. Start with “Live a Day as Anyone” on the shared Living World and House Simulator Population authority. Use the selected resident's existing identity and keep the current clock. The available work and travel activities are a household chore and the trip home. The follow-up uses 30 modeled days.

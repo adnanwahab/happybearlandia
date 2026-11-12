@@ -35,3 +35,13 @@ Checks: `bun test test/causality-read.test.js`; component browser checks:
 
 Use `HBL_FULL_SERVER=1 bunx playwright test --config test/causality.browser.config.js`
 to run the same browser check against the complete application.
+
+Attribution coverage: Why keeps all returned inputs and warns that multiple
+inputs may provide conflicting explanations; it does not adjudicate their claims
+or rank causes. With no recorded dependency, the reader cannot distinguish an
+unsupported recording model from unretained history and states both possibilities.
+Incomplete history and missing records never establish the absence of an event
+or cause. Missing selections and 404 responses offer History/ID recovery guidance;
+transient failures retain Retry. No model support registry is implied.
+
+Messaging unit checks: `bun test test/causality-messaging.test.js`.

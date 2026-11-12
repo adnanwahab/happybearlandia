@@ -125,11 +125,24 @@ function returnedRecords(data, targetId) {
     }
   }
   const edges = valid.filter(edge => shown.has(edge.fromId) && shown.has(edge.toId)).slice(0, EDGE_LIMIT);
-  return { target, shown, edges, missingEndpoints, unsupportedRelations, nodeCount: nodes.size, edgeCount: valid.length };
+  return { target, shown, edges, attributionEdges: valid, missingEndpoints, unsupportedRelations, nodeCount: nodes.size, edgeCount: valid.length };
+}
+
+/** Describe attribution coverage without interpreting record payloads as causal proof. */
+export function attributionNotes(data, selectedId, target, edges) {
+  const notes = [];
+  // Multiple inputs are not necessarily contradictory. Preserve each recorded
+  // claim without choosing a winner or inferring a causal ranking.
+  const inputs = new Set(edges.filter(edge => edge.toId === selectedId && edge.relation !== 'correlates')
+    .map(edge => edge.fromId));
+  if (inputs.size > 1) notes.push('Multiple recorded inputs were returned. They may offer different or conflicting explanations; this view does not resolve conflicts or identify a single cause. Inspect each record and its provenance.');
+  if (target && !inputs.size) notes.push('No recorded attribution is available for this target. The model may not support dependency recording, or this run may not have retained it. This response cannot distinguish those cases. An event or correlation alone does not establish a cause.');
+  if (data.incomplete) notes.push('Attribution is uncertain because the returned history is incomplete. Missing records must not be interpreted as evidence that no cause exists.');
+  return notes;
 }
 
 export function renderEvidenceGraph(data, selectedId, onSelect) {
-  const { target, shown, edges, missingEndpoints, unsupportedRelations, nodeCount, edgeCount } =
+  const { target, shown, edges, attributionEdges, missingEndpoints, unsupportedRelations, nodeCount, edgeCount } =
     returnedRecords(data, selectedId);
   const evidenceIds = new Set((data.evidence ?? []).map(record => record?.id).filter(Boolean));
   const root = element('section', undefined, 'evidence-graph');
@@ -139,6 +152,7 @@ export function renderEvidenceGraph(data, selectedId, onSelect) {
     'evidence-graph__metadata'));
 
   const notes = [];
+  notes.push(...attributionNotes(data, selectedId, target, attributionEdges));
   if (!target) notes.push('The selected target record was not returned.');
   if (missingEndpoints) notes.push(`${missingEndpoints} returned connection${missingEndpoints === 1 ? '' : 's'} omitted because an endpoint record is unavailable.`);
   if (unsupportedRelations) notes.push(`${unsupportedRelations} connection${unsupportedRelations === 1 ? '' : 's'} omitted because the relationship type is unsupported.`);

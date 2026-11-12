@@ -208,7 +208,7 @@ export class CausalInspector extends HTMLElement {
       if (value != null && value !== '') params.set(key, String(value));
     }
     if (tab !== 'History' && !context.targetId) {
-      status.textContent = 'Choose a recorded event or observation to explain.';
+      status.textContent = 'No event selected. Choose a recorded event or observation from History to inspect its evidence. No cause has been identified.';
       return;
     }
     if (tab === 'Why') {
@@ -231,6 +231,11 @@ export class CausalInspector extends HTMLElement {
       const endpoint = tab === 'History' ? 'timeline' : 'explain';
       const response = await fetch('/api/causality/' + endpoint + '?' + params, { signal: this.controller.signal });
       const data = await response.json();
+      if (serial !== this.serial) return;
+      if (response.status === 404) {
+        status.textContent = 'No stored run or target record was found for this selection. The record may be unavailable or may not have been retained. This does not establish that no event occurred or identify a cause. Check the run and record IDs, or choose a record from History.';
+        return;
+      }
       if (!response.ok) throw new Error(data.error || 'Unable to load records');
       if (serial !== this.serial) return;
       status.textContent = data.incomplete ? 'Incomplete graph: some dependencies are unavailable or outside traversal limits.' :

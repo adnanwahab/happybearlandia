@@ -120,3 +120,46 @@ test('bounds large responses and keeps empty, tab navigation, and retry states a
   await page.getByRole('button', { name: 'Retry', exact: true }).click();
   await expect(page.getByRole('heading', { name: source.type, exact: true })).toBeVisible();
 });
+
+test('explains an unselected event and a missing stored target without inventing causality', async ({ page }) => {
+  await page.goto('/world/causality/inspect.html?runId=' + runId);
+  await expect(page.getByRole('status')).toContainText('No event selected');
+  await expect(page.getByRole('status')).toContainText('from History');
+  await page.route(explanation, route => route.fulfill({ status: 404, json: { error: 'Stored target record not found' } }));
+  await page.goto(inspect(target));
+  await expect(page.getByRole('status')).toContainText('No stored run or target record');
+  await expect(page.getByRole('status')).toContainText('does not establish that no event occurred');
+  await expect(page.getByRole('button', { name: 'Retry', exact: true })).toHaveCount(0);
+});
+
+test('preserves conflicting input records without selecting a cause', async ({ page }) => {
+  const other = { ...source, id: 'event:test:conflicting', type: 'Construction inputs disputed', payload: { available: false } };
+  await page.route(explanation, route => route.fulfill({ json: {
+    nodes: [target, { ...source, payload: { available: true } }, other],
+    edges: [edge, { ...edge, id: 'edge:test:other', fromId: other.id }], evidence: [],
+  } }));
+  await page.goto(inspect(target));
+  await expect(page.getByText('Multiple recorded inputs were returned.', { exact: false })).toContainText('does not resolve conflicts');
+  await expect(page.locator('[data-relation="contributes"]')).toHaveCount(2);
+  await expect(page.getByRole('heading', { name: other.type, exact: true })).toBeVisible();
+});
+
+test('explains incomplete attribution alongside the specific missing evidence', async ({ page }) => {
+  await page.route(explanation, route => route.fulfill({ json: {
+    nodes: [target], edges: [], evidence: [], incomplete: true,
+    reasons: ['missing-evidence'], missingIds: ['event:test:lost'],
+  } }));
+  await page.goto(inspect(target));
+  await expect(page.getByText('Attribution is uncertain', { exact: false })).toContainText('must not be interpreted as evidence that no cause exists');
+  await expect(page.getByText('A referenced evidence record is unavailable.', { exact: true })).toBeVisible();
+});
+
+test('does not invent model support when an unrecognized model returns no dependencies', async ({ page }) => {
+  const unsupported = { ...target, context: { ...target.context, modelVersion: 'unrecognized-model-v99' } };
+  await page.route(explanation, route => route.fulfill({ json: { nodes: [unsupported], edges: [], evidence: [], incomplete: false } }));
+  await page.goto(inspect(target));
+  await expect(page.getByText('No recorded attribution is available', { exact: false })).toContainText('cannot distinguish those cases');
+  await expect(page.getByText('No recorded attribution is available', { exact: false })).toContainText('may not support dependency recording');
+  await expect(page.locator('.evidence-graph__edge')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Inspect ' + target.type, exact: true })).toBeVisible();
+});
