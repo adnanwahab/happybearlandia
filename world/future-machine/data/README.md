@@ -52,3 +52,38 @@ The existing `loadExperiment`/`createExperiment` path validates the completed sa
 The City's existing optional `manifest.title` is the display-name boundary: if supplied, it must be nonblank text within the API's existing 200-code-unit bound, without C0/C1 or bidi override/isolate controls. Printable Unicode and literal markup remain text; values are neither rewritten nor echoed in validation errors. A missing title remains valid for legacy manifests. No new per-scenario `displayName`/`name` field, required metadata, general scenario catalog, API schema or engine was introduced. Unsupported generic scenario manifests are not converted into a Future Machine pair.
 
 `test/future-machine-manifest-validation.test.js` covers corrupt shapes/metadata, unsupported or missing inputs, pre-replay generator rejection, valid/legacy manifests, a zero-control pair and actual SQLite-backed City API creation/reopen. Errors reject the normal adapter promise, which the existing host displays; this increment does not change UI rendering or make server-wide startup-validation claims. Invalid submitted City jobs may already exist on the server; this client preflight prevents replay/rendering, not production job cancellation.
+
+## SHE-76 paired acceptance closure (2026-11-12)
+
+The adapter was already integrated at base `b963dd3`; this increment adds the
+assignment's missing `test/future-machine-paired.test.js`, without changing the
+engine, API or shared interfaces. The test runs the actual engine twice using
+`DEFAULT_RECIPE`, normalizes both complete arms and compares canonical SHA-256
+digests of snapshots and frame diffs. It also independently runs the null-policy
+control, verifies identical arms and zero differences across all 121 frames,
+checks finite-or-null metrics and logs the exact recipe and measured divergence.
+
+Seed 42 digest evidence (same on both executions):
+
+| Content | SHA-256 |
+| --- | --- |
+| Common initial state | `e62e2cfd67d6f4a48dbeb9bc6a739a1abe1eb8a3e62e8e88241555829bc4d3fe` |
+| Normalized baseline | `139fcb91f0114f87d883d12ef12ed8b06ab3032af7d271410ddfcaef06011f95` |
+| Normalized plan | `69480cbe85d6d3f33e152c1d7046a8fab54deb603f9376d5c5beb23c07fe3bf9` |
+| Frame diffs | `1431a5c2df93ee0593bfee9293a735854b6505e7d438918f32caa30224416aee` |
+
+First physical divergence remains Month 16, added building
+`building-project-policy-1-0`: housing 36 baseline / 60 plan / +24 homes;
+cumulative capital 0 / 1,000,000 / +1,000,000 USD. This is synthetic modeled
+inventory, with the generator assumptions and replay limitations above.
+
+Actual verification:
+
+- `bun test test/future-machine-data.test.js test/future-machine-paired.test.js test/city-systems.test.js`: 19 passed, 0 failed, 622 assertions, three files.
+- `bun test test/future-machine-boundaries.test.js test/future-machine-manifest-validation.test.js test/future-machine-diff.test.js`: 23 passed, 0 failed, 285 assertions, three files. Includes saved identity/version/seed drift, missing snapshots, polling/replay abort and fresh retry.
+- `git diff --check`: passed. No browser behavior changed; browser smoke and media were not needed for this test/documentation increment.
+
+Coordinator handoff: retain the existing adapter; integrate this paired regression
+and update the coordinator-owned implementation plan with this acceptance
+evidence. That plan is outside this assignment's allowed files. No release,
+deployment or production data change was performed.
