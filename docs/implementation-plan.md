@@ -580,3 +580,32 @@ Final local browser gates passed: mobile WebGL/reduced-motion comparison at
 and all-graphics-unavailable exact return2/2. First-frame timing now records the
 first successful normal render too, since synchronous saved restoration may finish
 before the scheduled startup frame runs. Desktop replay/recovery passed1/1.
+
+## SHE-250 / GitHub44 — World screen-space global illumination
+
+Next integrated slice: an opt-in GLOBAL ILLUMINATION button on the normal World
+entry point, lazy local Three.js SSGI composition, and an off path that bypasses
+all GI passes. Reuse installed Three0.186; no dependency/runtime changes. Only
+WebGPU is initially supported; WebGL2/Canvas2D remain playable with an explicitly
+unavailable control. Preserve simulation identity and clocks. Acceptance: real
+GPU on/off pixels, pressed/status semantics, lazy failure recovery, resize and
+resource disposal, plus unchanged paused simulation state. Main risk: MRT/SSGI
+shader compatibility and GPU cost; retain off by default and bounded samples.
+Symphony is held; this chat owns direct implementation, not a duplicate worker.
+
+Delivered: lazy MRT color/diffuse/packed-normal/depth SSGI pipeline; explicit
+GLOBAL ILLUMINATION pressed/loading/unavailable control; zero GI passes when off;
+renderer-state recovery and target cleanup. Mobile placement avoids the guide
+sheet. Existing WebGL/Canvas paths stay available with GI disabled.
+
+Actual verification:28 renderer/lifecycle tests passed,137 assertions (five GI
+regressions cover lazy reuse, unsupported paths, import/render failure, disposal
+during loading and off-during-loading). Native Metal Chromium acceptance passed
+3/3 in24.4seconds: actual World GI pixel difference, identical paused simulation
+snapshot, resize/320px click, WebGL unavailable, and Canvas2D unavailable. GI
+module bundle succeeded; full application bundling remains blocked by an existing
+absolute /vendor/three import in world/buildings/renderer.js, unrelated to GI.
+Initial unsafe-software-WebGPU device loss and superseded cleanup/mobile runs
+are retained under /private/tmp/hbl-gi-*.log; failures were fixed/rechecked, not
+waived. No Safari, performance/FPS, path tracing or offscreen-light claim.
+No Symphony activation, automatic merge or deployment. Review through draft PR.

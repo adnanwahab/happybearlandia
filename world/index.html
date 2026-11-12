@@ -118,7 +118,15 @@
   "three/addons/": "/vendor/three/addons/"
 } }
 </script>
-<style>.embed .constitution-link{display:none}</style>
+<style>.embed .constitution-link{display:none}
+#global-illumination-button{position:fixed;bottom:max(12px,env(safe-area-inset-bottom));left:max(12px,env(safe-area-inset-left));z-index:91;min-height:44px;max-width:calc(100vw - 24px);padding:10px 14px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px;font-size:12px;font-weight:700}
+#global-illumination-button::after{content:' · ' attr(data-state);color:var(--muted)}
+#global-illumination-button[aria-pressed="true"]{border-color:var(--accent)}
+#global-illumination-button:disabled{opacity:.65}
+.embed #global-illumination-button{display:none}
+@media(max-width:640px){#global-illumination-button{bottom:auto;top:calc(max(12px,env(safe-area-inset-top)) + 100px)}}
+@media(max-height:500px) and (orientation:landscape){#global-illumination-button{bottom:auto;top:calc(max(12px,env(safe-area-inset-top)) + 64px);max-width:40vw;white-space:normal}}
+</style>
 </head>
 <body>
 <a class="constitution-link" href="/visualize-constitution" style="position:fixed;bottom:12px;right:12px;z-index:50;background:#152333;color:white;padding:10px;border-radius:8px">Visualize Constitution</a>
@@ -127,6 +135,7 @@
   <button type="button" id="world-guide-button" data-world-open="guide" aria-expanded="false">Start here</button>
   <button type="button" id="activity-dashboard-button" data-testid="activity-dashboard-button" aria-label="Activity dashboard" aria-haspopup="dialog">Activity</button>
 </nav>
+<button type="button" id="global-illumination-button" aria-pressed="false" data-state="UNAVAILABLE" disabled title="Waiting for a WebGPU renderer">GLOBAL ILLUMINATION</button>
 <div id="loading">Generating your neighborhood…</div>
 <div id="tag"></div>
 

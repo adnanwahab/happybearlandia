@@ -1,3 +1,4 @@
+import {createGlobalIllumination} from './render/global-illumination.js';
 import {mountPlaybackFacts,withMetadataDeadline,mountControlReadiness} from './onboarding/first-run-repairs.js';
 import {createQuickDemoController} from './onboarding/quick-demo-controller.js';
 import {mountFirstRunGuide} from './first-run-guide.js';
@@ -175,6 +176,9 @@ $("view").appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 1, 5000);
 camera.position.set(320, 125, 450);
+const globalIllumination=createGlobalIllumination({renderer,scene,camera,mode:rendererMode,button:$('global-illumination-button')});
+window.hblGlobalIllumination=globalIllumination;
+addEventListener('pagehide',()=>{globalIllumination.dispose();delete window.hblGlobalIllumination;},{once:true});
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 30, 0);
 controls.maxPolarAngle = Math.PI * 0.47;
@@ -212,7 +216,7 @@ scene.add(ground);
 
 
 scene.background=new THREE.Color(0xbcd3df);
-function drawStartupFrame(now){if(!startupActive||startupAbort.signal.aborted)return;const started=performance.now(),frameMs=startupLastFrame===null?0:now-startupLastFrame;startupLastFrame=now;mapControls.update(now);fpsMeter.update(now);controls.update();startupCityRenderer?.beforeFrame(now,0,1,null,{}, {now:0,dt:0});renderer.render(scene,camera);if(frameMs>0)startupCityRenderer?.afterFrame(now,performance.now()-started,frameMs);startup.firstFrameMs??=performance.now();startupRAF=requestAnimationFrame(drawStartupFrame);}
+function drawStartupFrame(now){if(!startupActive||startupAbort.signal.aborted)return;const started=performance.now(),frameMs=startupLastFrame===null?0:now-startupLastFrame;startupLastFrame=now;mapControls.update(now);fpsMeter.update(now);controls.update();startupCityRenderer?.beforeFrame(now,0,1,null,{}, {now:0,dt:0});globalIllumination.render();if(frameMs>0)startupCityRenderer?.afterFrame(now,performance.now()-started,frameMs);startup.firstFrameMs??=performance.now();startupRAF=requestAnimationFrame(drawStartupFrame);}
 requestAnimationFrame(drawStartupFrame);
 addEventListener("pagehide",()=>{startup.cancelled=true;startupAbort.abort();startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);removeEventListener("resize",resizeWorldView);},{once:true});
 
@@ -2330,7 +2334,7 @@ function frame(now) {
   gpuParticleMenu?.update();
   const drawCity=cityRenderer.beforeFrame(now,dt,daylight,selected?.type==='building'?selected.id:null,buildingBridge?.worldVisuals,{now:simulationFrame.simulationNow/10,dt:simulationFrame.deltaMs/10000});
   if(livingWorld?.active)livingWorld.applyBuildingOccupancy?.();
-  if(drawCity){renderer.render(scene,camera);startup.firstFrameMs??=performance.now();if(scrapbook&&scrapbookSource)void scrapbook.afterRender(renderer.domElement,scrapbookSource);}
+  if(drawCity){globalIllumination.render();startup.firstFrameMs??=performance.now();if(scrapbook&&scrapbookSource)void scrapbook.afterRender(renderer.domElement,scrapbookSource);}
   cityRenderer.afterFrame(now, performance.now() - cpuStart, frameMs);
   visualCamera?.update(now);
   visualSpotlight?.update(now);
