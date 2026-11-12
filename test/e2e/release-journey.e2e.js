@@ -1,9 +1,8 @@
 import { expect, test } from '@playwright/test';
 
 async function savedFutureNavigation(page) {
-  // Saved-checkpoint links live in the normal collapsible World controls.
-  const controls = page.locator('#top');
-  if (await controls.getAttribute('open') === null) await controls.locator(':scope > summary').click();
+  // Saved exits remain usable while resident selection keeps controls collapsed.
+  await expect(page.locator('#top')).not.toHaveAttribute('open', '');
   const navigation = page.getByRole('navigation', { name: 'Saved future', exact: true });
   await expect(navigation).toBeVisible({ timeout: 45000 });
   return navigation;
@@ -77,7 +76,8 @@ test('invalid IDs and missing saved checkpoints are visible', async ({ page }) =
   await expect(page.getByRole('status').filter({ hasText: 'Saved checkpoint is missing.' })).toBeVisible();
 });
 
-test('saved World retains the exact checkpoint and return link through real Canvas fallback', async ({ page }, testInfo) => {
+test('saved World retains the exact checkpoint and return link through real Canvas fallback on a phone', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/tools/future-journey.html');
   await page.getByRole('button', { name: 'Create a guided demo checkpoint' }).click();
   await expect(page.locator('#clock')).toContainText('Minute 360');
@@ -118,8 +118,31 @@ test('saved World retains the exact checkpoint and return link through real Canv
     snapshot: window.hblLivingWorld.getSnapshot(),
   }));
   await testInfo.attach('saved-world-canvas-fallback', { body: JSON.stringify({ parent, person, evidence, errors }, null, 2), contentType: 'application/json' });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('saved-world-canvas-fallback.png') });
+  await page.screenshot({ path: '/tmp/hbl-saved-future-canvas-phone.png' });
   await navigation.getByRole('link', { name: 'Return to Worldline' }).click();
+  expect(new URL(page.url()).searchParams.get('experiment')).toBe(parent);
+  expect(new URL(page.url()).searchParams.get('person')).toBe(person);
+  await expect(page.locator('#clock')).toContainText('Minute 360');
+});
+
+// Canvas2D is a supported fallback, so exercise the fatal path by removing it too.
+test('saved World offers an exact return when every graphics backend is unavailable', async ({ page }) => {
+  await page.goto('/tools/future-journey.html');
+  await page.getByRole('button', { name: 'Create a guided demo checkpoint' }).click();
+  await expect(page.locator('#clock')).toContainText('Minute 360');
+  const parent = new URL(page.url()).searchParams.get('experiment');
+  const person = new URL(page.url()).searchParams.get('person');
+  await page.addInitScript(() => {
+    if (!/^\/world\/?$/.test(location.pathname)) return;
+    Object.defineProperty(navigator, 'gpu', { value: undefined });
+    HTMLCanvasElement.prototype.getContext = () => null;
+  });
+  await page.getByRole('link', { name: 'Enter this future in 3D World' }).click();
+  const error = page.getByRole('alert').filter({ hasText: '3D World could not start.' });
+  await expect(error).toBeVisible();
+  await error.getByRole('link', { name: 'Return to Worldline' }).click();
   expect(new URL(page.url()).searchParams.get('experiment')).toBe(parent);
   expect(new URL(page.url()).searchParams.get('person')).toBe(person);
   await expect(page.locator('#clock')).toContainText('Minute 360');

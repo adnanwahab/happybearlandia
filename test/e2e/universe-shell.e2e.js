@@ -14,7 +14,7 @@ test('directory, contextual transitions, iframe selection and history preserve s
  await page.goto('/?'+query);
  const shell=page.locator('#universe-shell');
  await expect(shell.locator('.universe-card')).toHaveCount(EXPERIENCES.length);
- expect((await shell.locator('.universe-card [data-app]').evaluateAll(links=>links.map(link=>link.dataset.app))).sort()).toEqual(EXPERIENCES.map(app=>app.id).sort());
+ expect(await shell.locator('.universe-card a[data-app]').evaluateAll(links => links.map(link => link.dataset.app))).toEqual(EXPERIENCES.map(app => app.id));
  await shell.getByRole('searchbox').fill('/world/house');
  await expect(shell.locator('.universe-card')).toHaveCount(1);
  const standalone=shell.getByRole('link',{name:'Standalone ↗'});

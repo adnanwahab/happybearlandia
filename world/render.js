@@ -2383,7 +2383,11 @@ if(loadedExperiment){
      link.href=journeyURL(surface,exact,location.search);
      navigation.append(link);
    }
-   $('top').querySelector('summary').after(navigation);
+   // Resident selection collapses World controls. Saved-checkpoint exits must
+   // remain reachable independently of that foreground panel and GPU backend.
+   navigation.classList.add('panel');
+   navigation.style.cssText='position:fixed;top:calc(var(--world-top,12px) + 104px);left:12px;max-width:clamp(200px,calc(100vw - 430px),420px);padding:8px 12px;z-index:89';
+   document.body.append(navigation);
  }else if(saved.view.selection){if(saved.mode==='living')await livingWorld.selectPerson(saved.view.selection.id);else select(saved.view.selection);}
  if(saved.view.policyPackages)PLAN_PACKAGES=structuredClone(saved.view.policyPackages);activePolicyId=saved.view.policy??'none';policyYear=saved.view.planYear??0;if($('policy'))$('policy').value=activePolicyId;if(planYearEl)planYearEl.value=String(policyYear);
  const settings=saved.view.playback;if(settings){playback.setSpeed(settings.speed);settings.paused||params.has('person')?playback.pause():playback.resume();}
