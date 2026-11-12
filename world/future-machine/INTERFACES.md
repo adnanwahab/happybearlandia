@@ -86,3 +86,23 @@ earliest paired month and exact ID ordering. Demo and first physical story stop
 share it. The director exposes `setHidden(boolean)` to exclude hidden-tab time
 while retaining manual pause. Caption text and elapsed seconds are separate DOM
 nodes; only caption text belongs to the live region.
+
+## Opt-in local continuation
+
+`recent.js` reuses strict share validation and owns only
+`hbl.future-machine.recent.v1` in browser localStorage. Its `readRecent`,
+`saveRecent`, and `clearRecent` functions accept a Storage object and propagate
+storage/validation errors for visible feedback. The JSON contains exactly
+`{recipe,experimentId,month}`. No full URL, account, resident, observation,
+result, or private text is retained. Recipes remain the bounded synthetic v1
+contract. There is no time-based expiry; incompatible versions fail explicitly.
+
+`createUI` adds `onRemember()` and `onClearRecent()` callbacks, plus
+`remembering` and `recentMessage` state. Remember is available after a completed
+comparison. That choice enables subsequent completed-run/month updates on this
+browser. Unrun input edits do not change the saved recipe. Bare entry resumes
+local context; explicit comparison links take precedence and update the recent
+reference if consent is already active. Missing records follow existing labeled
+recipe recomputation. Clear removes only the local reference, disables further
+writes, and leaves the displayed comparison and server records available.
+Storage errors are announced; failed removal does not falsely claim success.

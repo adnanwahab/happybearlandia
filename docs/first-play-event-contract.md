@@ -127,3 +127,15 @@ so no UI screenshots or Playwright run are applicable.
 - No commit or PR created: this workspace permits source edits but Git metadata
   is read-only. The host publisher must publish these three files as a scoped
   draft PR against `sprint/one-city-two-futures-20261111`; no merge or deploy.
+
+## Current City compatibility (integration, November 12, 2026)
+
+The merged City model is `city-systems.1.1.0`. Current instrumentation emits
+`hbl.first-play.v2` through `FIRST_PLAY_CURRENT_SCHEMA_VERSION`, with the same
+closed envelope and payload fields. Its divergence facts require that exact
+1.1.0 model. The existing `FIRST_PLAY_SCHEMA_VERSION` continues to identify
+legacy v1, whose divergence facts still require 1.0.0. Validation accepts both
+explicit schema/model pairs and rejects cross-version combinations; old records
+are never relabeled. New model versions need another explicit contract update.
+Neither version stores or transmits events; all privacy and size bounds above
+remain in force.

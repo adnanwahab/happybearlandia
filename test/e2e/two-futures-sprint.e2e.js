@@ -82,3 +82,18 @@ test('rent microscope follows recorded month and exposes counts and signed compo
  await page.getByRole('button',{name:'WHY · Homes',exact:true}).click();await expect(microscope).toHaveCount(0);
  expect(errors).toEqual([]);
 });
+
+for(const reducedMotion of ['no-preference','reduce'])test(`first construction cue uses actual records in ${reducedMotion}`,async({page},info)=>{
+ await page.emulateMedia({reducedMotion});await fork(page);
+ const cue=page.getByRole('complementary',{name:'First recorded construction'});
+ await expect(cue).toBeHidden();
+ expect(await page.evaluate(()=>JSON.stringify(window.futureMachine.history.baseline[0].state)===JSON.stringify(window.futureMachine.history.plan[0].state))).toBe(true);
+ const first=await page.evaluate(()=>{const h=window.futureMachine.history;for(const snapshot of h.plan){const baseline=h.baseline.find(row=>row.month===snapshot.month);const building=snapshot.state.buildings.find(b=>!baseline.state.buildings.some(a=>a.id===b.id));if(building)return {month:snapshot.month,id:building.id};}});
+ expect(first.month).toBe(16);await seek(page,first.month);
+ await expect(cue).toBeVisible();await expect(cue).toContainText('Month 16');await expect(cue).toContainText('+24 homes');
+ const targets=await page.evaluate(()=>window.futureMachine.stats.scene.targets);expect(targets.some(t=>t.id===first.id&&t.arm==='plan')).toBe(true);
+ await cue.getByRole('button',{name:'Inspect WHY'}).click();
+ await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText(first.id);
+ await page.locator('.fm-comparison').screenshot({path:info.outputPath('first-construction.png')});
+ await seek(page,15);await expect(cue).toBeHidden();await seek(page,17);await expect(cue).toBeHidden();await seek(page,0);await expect(cue).toBeHidden();
+});

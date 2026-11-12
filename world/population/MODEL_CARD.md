@@ -88,3 +88,14 @@ Savings projections use current savings plus daily net cash flow multiplied by t
 New resident reports fork the exact paused checkpoint before player commands. The autonomous control receives no player commands and advances through the same 24-hour day plus the selected 30- or 90-day follow-up at the checkpoint’s fixed step. The existing `playable-life.v1` report retains its trajectory fields and adds `arm` and `matchedControl`: seed, modelVersion (also rules version), starting runId, entityId, startTick and endTick. The control also records `after` and an empty `actions` list. Starting checkpoint configuration and world context are the scenario inputs; accepted commands and their minutes remain in the report. Needs use model points and savings use USD. Both arms use the same resident identity and clock without a cross-model mapping. The horizon locks at handoff and remains identical across both arms and pause/resume.
 
 The panel subtracts control outcomes from played outcomes only when provenance matches; unavailable measurements stay unavailable. Reports without compatible arms are observational. This synthetic comparison describes the complete player command sequence in one seeded run, with no sampling uncertainty estimate or empirical causal claim. The control runs on demand, resumes after cancellation, and is destroyed when the report is saved or the page closes.
+
+## Research-only transport ablation
+
+Research-only transport ablation hooks (`transport-experiment.js`) are inert
+unless explicitly attached to a fresh model by the headless research runner.
+The full arm preserves ordinary state exactly. Frozen, shuffled, half and double
+transport feedback leave household, care, housing, firm and social dependencies
+active. They do not constitute resident independence. Controls and streamed
+observers are not production checkpoint state; regenerate from the versioned
+recipe. [E2 protocol and limitations](../../docs/research/million-agent-architectures.md)
+defines the output graph and the withheld release claim.

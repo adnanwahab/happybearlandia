@@ -62,3 +62,11 @@ two categories requires producer evidence contracts, not inferred causality.
 
 Checks: `bun test test/game-director.test.js test/future-machine-*.test.js`.
 Browser coverage: `bunx playwright test test/e2e/game-director.e2e.js`.
+
+KPI inspection offers housing completion stops only through the City-owned
+project/building relationship in `../evidence.js`. Other aggregates have no
+verified metric-to-entity causal link and display an explicit notice. Raw
+receipts with exact City identity, arm and valid month offer an Inspect event
+button through the existing `onJump` callback. The coordinator retains the
+selected receipt and arm while changing the shared month and focusing that
+exact entity. A failed spatial lookup leaves the camera unchanged.

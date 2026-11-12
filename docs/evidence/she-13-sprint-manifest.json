@@ -1,0 +1,247 @@
+{
+  "schemaVersion": "hbl-sprint-evidence.v1",
+  "issue": "SHE-13",
+  "auditedAt": "2026-11-12T19:54:51.408108+00:00",
+  "sourceCommit": "b963dd353538294cb0fbf5d34d5283fad6e10e68",
+  "branch": "mini/SHE-13",
+  "route": "/world/future-machine.html",
+  "historicalManifest": "docs/demo-evidence-manifest.json",
+  "historicalManifestSha256": "6ec4ee658807c0c16e518099d51416c5ccb5065f3da7497c173f69ae1457c3d1",
+  "historicalImplementationCommit": "ad3902c522559b699cf70a1ae848c55b9e01641c",
+  "latestReportedApplicationCommit": "2c9d973234ea73546d5597b068cda538a5136a2f",
+  "recipe": {
+    "schemaVersion": "future-machine.v1",
+    "modelVersion": "city-systems.1.0.0",
+    "seed": 42,
+    "households": 30,
+    "months": 120,
+    "intervention": {
+      "type": "housing",
+      "districtId": "d1",
+      "amount": 24,
+      "cost": 1000000,
+      "delay": 0,
+      "compliance": 1
+    }
+  },
+  "initialHash": "e62e2cfd67d6f4a48dbeb9bc6a739a1abe1eb8a3e62e8e88241555829bc4d3fe",
+  "finalMetrics": {
+    "population": {
+      "baseline": 90,
+      "plan": 90,
+      "delta": 0,
+      "unit": "people",
+      "status": "available",
+      "missing": []
+    },
+    "households": {
+      "baseline": 30,
+      "plan": 30,
+      "delta": 0,
+      "unit": "households",
+      "status": "available",
+      "missing": []
+    },
+    "housingUnits": {
+      "baseline": 36,
+      "plan": 60,
+      "delta": 24,
+      "unit": "homes",
+      "status": "available",
+      "missing": []
+    },
+    "availableUnits": {
+      "baseline": 6,
+      "plan": 30,
+      "delta": 24,
+      "unit": "homes",
+      "status": "available",
+      "missing": []
+    },
+    "meanRent": {
+      "baseline": 971.504282807192,
+      "plan": 230.73527356811846,
+      "delta": -740.7690092390735,
+      "unit": "USD/month",
+      "status": "available",
+      "missing": []
+    },
+    "unhoused": {
+      "baseline": 0,
+      "plan": 0,
+      "delta": 0,
+      "unit": "households",
+      "status": "available",
+      "missing": []
+    },
+    "employed": {
+      "baseline": 9,
+      "plan": 12,
+      "delta": 3,
+      "unit": "workers",
+      "status": "available",
+      "missing": []
+    },
+    "jobs": {
+      "baseline": 9,
+      "plan": 12,
+      "delta": 3,
+      "unit": "jobs",
+      "status": "available",
+      "missing": []
+    },
+    "businesses": {
+      "baseline": 3,
+      "plan": 4,
+      "delta": 1,
+      "unit": "businesses",
+      "status": "available",
+      "missing": []
+    },
+    "meanTravelMinutes": {
+      "baseline": 15.000361152000002,
+      "plan": 15.000108743111113,
+      "delta": -0.00025240888888866664,
+      "unit": "minutes/link",
+      "status": "available",
+      "missing": []
+    },
+    "balance": {
+      "baseline": 14241683.678263139,
+      "plan": 13223778.8936223,
+      "delta": -1017904.7846408393,
+      "unit": "USD",
+      "status": "available",
+      "missing": []
+    },
+    "debt": {
+      "baseline": 0,
+      "plan": 0,
+      "delta": 0,
+      "unit": "USD",
+      "status": "available",
+      "missing": []
+    },
+    "capitalSpending": {
+      "baseline": 0,
+      "plan": 1000000,
+      "delta": 1000000,
+      "unit": "USD cumulative",
+      "status": "available",
+      "missing": []
+    },
+    "completedProjects": {
+      "baseline": 0,
+      "plan": 1,
+      "delta": 1,
+      "unit": "projects",
+      "status": "available",
+      "missing": []
+    }
+  },
+  "artifacts": [
+    {
+      "kind": "cinematic",
+      "path": "/tmp/hbl-integrated-decisions-proof/two-futures-sprint.e2e.js--0b5a2-rgence-hold-respects-reduce/cinematic-month-16.png",
+      "sha256": "864c71d425b7534206b3e615f679af696056d6ab1de3f289e37366ef0f7a0151",
+      "actualSha256": "864c71d425b7534206b3e615f679af696056d6ab1de3f289e37366ef0f7a0151",
+      "bytes": 1113209,
+      "status": "verified"
+    },
+    {
+      "kind": "cinematic",
+      "path": "/tmp/hbl-integrated-decisions-proof/two-futures-sprint.e2e.js--2e7e6-hold-respects-no-preference/cinematic-month-16.png",
+      "sha256": "7e8a968d1d802fdbb9afcaf9e03f9758a83ba3f34fc4bc34143036559c470c51",
+      "actualSha256": "7e8a968d1d802fdbb9afcaf9e03f9758a83ba3f34fc4bc34143036559c470c51",
+      "bytes": 1112770,
+      "status": "verified"
+    },
+    {
+      "kind": "native390",
+      "path": "/tmp/hbl-native-decisions-integrated/native-presentation-proof.-5e7b7-calized-Month-16-difference/390-month-16-canvas.png",
+      "sha256": "aa167ce1b7f6a0c7802ea60ab99f419832ee5a014636a62728af87f6240a4078",
+      "actualSha256": "aa167ce1b7f6a0c7802ea60ab99f419832ee5a014636a62728af87f6240a4078",
+      "bytes": 19125,
+      "status": "verified"
+    },
+    {
+      "kind": "construction15",
+      "path": "/tmp/hbl-construction-final/construction-recorded-real-0449f-ompletion-and-reverse-scrub/month-15-construction.png",
+      "sha256": "25bf0ee947bb577339d6c3d7b0bd637f44df4212b180777f16100854f753e3e5",
+      "actualSha256": "25bf0ee947bb577339d6c3d7b0bd637f44df4212b180777f16100854f753e3e5",
+      "bytes": 118709,
+      "status": "verified"
+    },
+    {
+      "kind": "construction15",
+      "path": "/tmp/hbl-construction-final/construction-recorded-real-110cf-ompletion-and-reverse-scrub/month-15-construction.png",
+      "sha256": "4460f46df143dbf90f608cefedf4e4e1d9bc8d049a93d44b98c6a9e8a016e844",
+      "actualSha256": "4460f46df143dbf90f608cefedf4e4e1d9bc8d049a93d44b98c6a9e8a016e844",
+      "bytes": 67093,
+      "status": "verified"
+    },
+    {
+      "kind": "construction16",
+      "path": "/tmp/hbl-construction-final/construction-recorded-real-0449f-ompletion-and-reverse-scrub/month-16-completed.png",
+      "sha256": "0e080e12d6f8bb7a20eae11899b64c0c196131eb9f387abdd5c59fd74bf65d5f",
+      "actualSha256": "0e080e12d6f8bb7a20eae11899b64c0c196131eb9f387abdd5c59fd74bf65d5f",
+      "bytes": 116929,
+      "status": "verified"
+    },
+    {
+      "kind": "construction16",
+      "path": "/tmp/hbl-construction-final/construction-recorded-real-110cf-ompletion-and-reverse-scrub/month-16-completed.png",
+      "sha256": "79a4355ef6e52e79c890e207c4784d24383ebd2edec421f57a2e07096bde6c0d",
+      "actualSha256": "79a4355ef6e52e79c890e207c4784d24383ebd2edec421f57a2e07096bde6c0d",
+      "bytes": 62260,
+      "status": "verified"
+    },
+    {
+      "kind": "delta320",
+      "path": "/tmp/outcome-delta-browser-evidence/outcome-delta.e2e.js-actua-75f26-KPIs-including-320px-Canvas/actual-delta-month16-320.png",
+      "sha256": "d64bc05b43ae48e01cb2e709f33783aa1073d7277a2db9d5ff8331a5c1f8957d",
+      "status": "missing"
+    },
+    {
+      "kind": "why16",
+      "path": "/tmp/hbl-evidence-trail-final/evidence-trail-real.e2e.js-36a4c-oject-and-completion-months/evidence-trail-completion-month16.png",
+      "sha256": "0cc324394798304202f34c286f0f89d26f491f6ade0cbb396ee0f014236404a8",
+      "actualSha256": "0cc324394798304202f34c286f0f89d26f491f6ade0cbb396ee0f014236404a8",
+      "bytes": 1055362,
+      "status": "verified"
+    },
+    {
+      "kind": "inspectorReverse0",
+      "path": "/tmp/hbl-evidence-trail-final/evidence-trail-real.e2e.js-36a4c-oject-and-completion-months/evidence-trail-scrub-zero-refreshed.png",
+      "sha256": "b241f0df05bb05d6f6aed78d45453b7ae14d139ea96eb3b940c114dbed274ee2",
+      "actualSha256": "b241f0df05bb05d6f6aed78d45453b7ae14d139ea96eb3b940c114dbed274ee2",
+      "bytes": 927788,
+      "status": "verified"
+    },
+    {
+      "kind": "recording",
+      "path": "/tmp/hbl-approved-final-recording/one-city-two-futures.mp4",
+      "sha256": "be8ada5ed32bb98e16fe8bcc75fe17e3988b19287f8d82f3ea7e617bf950d82f",
+      "actualSha256": "be8ada5ed32bb98e16fe8bcc75fe17e3988b19287f8d82f3ea7e617bf950d82f",
+      "bytes": 2357218,
+      "status": "verified"
+    },
+    {
+      "kind": "recordingAudit",
+      "path": "/tmp/hbl-approved-final-recording/artifact-audit.json",
+      "sha256": "2de00c3d568631bd22b6d31d291a244fa1ecb18214e0908792f80b240d6da7ad",
+      "actualSha256": "2de00c3d568631bd22b6d31d291a244fa1ecb18214e0908792f80b240d6da7ad",
+      "bytes": 7738,
+      "status": "verified"
+    }
+  ],
+  "verification": {
+    "command": "bun test test/pipeline-evidence-manifest.test.js",
+    "exitCode": 0,
+    "passed": 14,
+    "skipped": 1,
+    "failed": 0,
+    "assertions": 195
+  },
+  "qualification": "Availability and hashes observed locally on audit date; historical browser execution and duration are not fresh browser or visual verification. Temporary media are not bundled or durable public URLs."
+}

@@ -100,3 +100,27 @@ month 16, re-signed outcome mismatch, uint32 seeds 0/4294967295, null identity,
 canonical ordering, immutable detached export, incomplete histories and
 pre-network rejection of malformed/tampered/version-mismatched inputs. There
 is no browser-facing change or browser verification claim.
+
+## Player inspection and copy
+
+At `/world/future-machine.html`, complete a run, select a month, and expand
+**Replay receipt**. **Inspect current receipt** produces readable JSON from the
+existing canonical receipt library. **Copy receipt** copies those bytes; when
+clipboard access fails the field selects its text for manual copying. Selecting
+a different month or run clears the old export so a new inspection is explicit.
+The receipt includes model/rules versions, seed, bounded policy inputs, selected
+month events, causal records and decisions, provenance and synthetic limitations.
+It excludes page/account data and uses the existing synthetic monthly City data.
+
+Paste the JSON into **Paste replay receipt** and choose **Reopen receipt**.
+Validation and strict saved-run recomputation must succeed before replacing the
+comparison. Corrupt/unsupported metadata, unavailable saved records and changed
+outcomes fail visibly. Reopening has no recipe fallback. The saved experiment
+must still exist on this service. Receipt verification does not authenticate its
+author or establish empirical causality. Existing share and download controls
+keep their contracts.
+
+Focused UI verification command:
+`bunx playwright test --config test/future-machine.browser.config.js -g 'player inspects'`.
+This session could not start the local browser server (bind `EADDRINUSE`);
+no UI screenshot was produced.

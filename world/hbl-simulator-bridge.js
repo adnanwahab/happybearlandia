@@ -11,7 +11,7 @@ export function validateCivicSimulationResult(result, metricRegistry = []) {
   const errors = [];
   if (!isObject(result)) return { ok: false, errors: ["simulation result must be an object"] };
 
-  const score = finiteNumber(result.score);
+  const score = result.score == null ? null : finiteNumber(result.score);
   if (score === null) errors.push("score must be finite");
   if (result.metrics !== undefined && !isObject(result.metrics)) errors.push("metrics must be an object when present");
 
@@ -45,23 +45,46 @@ export function createHttpCivicSimulator(endpoint, options = {}) {
   if (!endpoint || typeof fetchImpl !== "function") throw new Error("HTTP civic simulator requires endpoint and fetch");
 
   return async ({ experiment, world, options: runOptions }) => {
-    const response = await fetchImpl(endpoint, {
-      method: "POST",
-      headers: { "content-type": "application/json", accept: "application/json" },
-      body: JSON.stringify({
-        schemaVersion: "civic-simulation-request.v1",
-        experiment,
-        world,
-        options: runOptions || {},
-      }),
-    });
+    // Retry the identical simulation input once; never substitute generated output.
+    const body = JSON.stringify({ schemaVersion: "civic-simulation-request.v1", experiment, world, options: runOptions || {} });
+    const timeoutMs = Number.isFinite(options.timeoutMs) && options.timeoutMs > 0 ? Math.min(options.timeoutMs, 60000) : 10000;
     let payload;
-    try {
-      payload = await response.json();
-    } catch {
-      throw new Error(`Civic simulator ${endpoint} returned non-JSON (${response.status})`);
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const controller = new AbortController();
+      let timer;
+      let retryable = true;
+      try {
+        payload = await Promise.race([
+          (async () => {
+            const response = await fetchImpl(endpoint, {
+              method: "POST",
+              headers: { "content-type": "application/json", accept: "application/json" },
+              body,
+              signal: controller.signal,
+            });
+            retryable = response.status >= 500 || response.status === 408 || response.status === 429;
+            if (!response.ok) throw new Error(`Civic simulator returned HTTP ${response.status}`);
+            // Missing/malformed data is an explicit failure, never a zero score.
+            retryable = false;
+            return await response.json();
+          })(),
+          new Promise((_, reject) => {
+            timer = setTimeout(() => {
+              retryable = true;
+              reject(new Error(`Civic simulator timed out after ${timeoutMs}ms`));
+              controller.abort();
+            }, timeoutMs);
+          }),
+        ]);
+        break;
+      } catch (error) {
+        clearTimeout(timer);
+        if (!retryable || attempt === 1) throw new Error(`Simulation unavailable: ${error.message}`, { cause: error });
+        await new Promise(resolve => setTimeout(resolve, 250));
+      } finally {
+        clearTimeout(timer);
+      }
     }
-    if (!response.ok) throw new Error(payload?.error || `Civic simulator ${endpoint} returned HTTP ${response.status}`);
     const result = payload?.result && isObject(payload.result) ? payload.result : payload;
     const validation = validateCivicSimulationResult(result, experiment?.outcomes?.metricRegistry || []);
     if (!validation.ok) throw new Error(`Invalid civic simulation result: ${validation.errors.join("; ")}`);

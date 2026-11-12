@@ -1,0 +1,447 @@
+{
+  "config": {
+    "argv": [
+      "/Users/wahabma/.nvm/versions/node/v26.13.0/bin/node",
+      "/Users/wahabma/happybearlandia/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "test/she63-release-matrix.config.js",
+      "--list"
+    ],
+    "configFile": "/Users/wahabma/happybearlandia/workspaces/SHE-63/test/she63-release-matrix.config.js",
+    "rootDir": "/Users/wahabma/happybearlandia/workspaces/SHE-63/test/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {},
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/wahabma/happybearlandia/workspaces/SHE-63/test-results/she63-matrix",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "installed-chrome",
+        "name": "installed-chrome",
+        "testDir": "/Users/wahabma/happybearlandia/workspaces/SHE-63/test/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "two-futures-sprint.e2e.js",
+          "two-futures-compatibility.e2e.js",
+          "future-machine-share-reliability.e2e.js"
+        ],
+        "timeout": 150000
+      },
+      {
+        "outputDir": "/Users/wahabma/happybearlandia/workspaces/SHE-63/test-results/she63-matrix",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "playwright-firefox",
+        "name": "playwright-firefox",
+        "testDir": "/Users/wahabma/happybearlandia/workspaces/SHE-63/test/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "two-futures-sprint.e2e.js",
+          "two-futures-compatibility.e2e.js",
+          "future-machine-share-reliability.e2e.js"
+        ],
+        "timeout": 150000
+      },
+      {
+        "outputDir": "/Users/wahabma/happybearlandia/workspaces/SHE-63/test-results/she63-matrix",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "playwright-webkit",
+        "name": "playwright-webkit",
+        "testDir": "/Users/wahabma/happybearlandia/workspaces/SHE-63/test/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "two-futures-sprint.e2e.js",
+          "two-futures-compatibility.e2e.js",
+          "future-machine-share-reliability.e2e.js"
+        ],
+        "timeout": 150000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/she63-matrix-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": {
+      "command": "bun --no-env-file run server.js",
+      "cwd": "/Users/wahabma/happybearlandia/workspaces/SHE-63",
+      "url": "http://127.0.0.1:54663",
+      "reuseExistingServer": false,
+      "timeout": 60000,
+      "env": {
+        "PORT": "54663",
+        "HBL_WORLD_DB_PATH": "/var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/she63-matrix-ARhup5/world.sqlite",
+        "HBL_CITY_DATA_DIR": "/var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/she63-matrix-ARhup5/city",
+        "HBL_REALITY_SHARE_DB_PATH": "/var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/she63-matrix-ARhup5/shares.sqlite",
+        "DECISION_STORE_DIR": "/var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/she63-matrix-ARhup5/decision"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "future-machine-share-reliability.e2e.js",
+      "file": "future-machine-share-reliability.e2e.js",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "actual saved replay retains selected month, identity and exact histories after refresh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "installed-chrome",
+              "projectName": "installed-chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "98585d061e720ee8cd10-9ad1446f3e5e9244fa0e",
+          "file": "future-machine-share-reliability.e2e.js",
+          "line": 6,
+          "column": 5
+        },
+        {
+          "title": "actual saved replay retains selected month, identity and exact histories after refresh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "playwright-firefox",
+              "projectName": "playwright-firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "98585d061e720ee8cd10-6dcbf1560274d97cc903",
+          "file": "future-machine-share-reliability.e2e.js",
+          "line": 6,
+          "column": 5
+        },
+        {
+          "title": "actual saved replay retains selected month, identity and exact histories after refresh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "playwright-webkit",
+              "projectName": "playwright-webkit",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "98585d061e720ee8cd10-50e22b3d3164e2afb6bc",
+          "file": "future-machine-share-reliability.e2e.js",
+          "line": 6,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "two-futures-compatibility.e2e.js",
+      "file": "two-futures-compatibility.e2e.js",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "320px Canvas comparison retains timeline, metrics and WHY without overflow",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "installed-chrome",
+              "projectName": "installed-chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "065cc00a68eab64e338a-73aaffe5e9e591197f19",
+          "file": "two-futures-compatibility.e2e.js",
+          "line": 42,
+          "column": 5
+        },
+        {
+          "title": "320px Canvas comparison retains timeline, metrics and WHY without overflow",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "playwright-firefox",
+              "projectName": "playwright-firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "065cc00a68eab64e338a-1c3d7ed659ed279f5ca3",
+          "file": "two-futures-compatibility.e2e.js",
+          "line": 42,
+          "column": 5
+        },
+        {
+          "title": "320px Canvas comparison retains timeline, metrics and WHY without overflow",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "playwright-webkit",
+              "projectName": "playwright-webkit",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "065cc00a68eab64e338a-1bae59947fa7d58a650c",
+          "file": "two-futures-compatibility.e2e.js",
+          "line": 42,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "two-futures-sprint.e2e.js",
+      "file": "two-futures-sprint.e2e.js",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "real paired runs: matched start, physical divergence, metrics, timeline and deterministic refresh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "installed-chrome",
+              "projectName": "installed-chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eab2c595f2b83d356562-9f96d0597b911efe3f85",
+          "file": "two-futures-sprint.e2e.js",
+          "line": 14,
+          "column": 5
+        },
+        {
+          "title": "guided controls, shared camera, difference-only and metric WHY",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "installed-chrome",
+              "projectName": "installed-chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eab2c595f2b83d356562-25f047e972122ec4deda",
+          "file": "two-futures-sprint.e2e.js",
+          "line": 27,
+          "column": 5
+        },
+        {
+          "title": "forced unavailable WebGL retains actual paired evidence and selection",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "installed-chrome",
+              "projectName": "installed-chrome",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eab2c595f2b83d356562-c4cdf288dbdcabe5605c",
+          "file": "two-futures-sprint.e2e.js",
+          "line": 41,
+          "column": 5
+        },
+        {
+          "title": "real paired runs: matched start, physical divergence, metrics, timeline and deterministic refresh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "playwright-firefox",
+              "projectName": "playwright-firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eab2c595f2b83d356562-669458f1f440e54c0d04",
+          "file": "two-futures-sprint.e2e.js",
+          "line": 14,
+          "column": 5
+        },
+        {
+          "title": "guided controls, shared camera, difference-only and metric WHY",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "playwright-firefox",
+              "projectName": "playwright-firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eab2c595f2b83d356562-a1cd9328ff8e8d8d0227",
+          "file": "two-futures-sprint.e2e.js",
+          "line": 27,
+          "column": 5
+        },
+        {
+          "title": "forced unavailable WebGL retains actual paired evidence and selection",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "playwright-firefox",
+              "projectName": "playwright-firefox",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eab2c595f2b83d356562-02eb23061353c8ff133b",
+          "file": "two-futures-sprint.e2e.js",
+          "line": 41,
+          "column": 5
+        },
+        {
+          "title": "real paired runs: matched start, physical divergence, metrics, timeline and deterministic refresh",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "playwright-webkit",
+              "projectName": "playwright-webkit",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eab2c595f2b83d356562-9c2d2b7b7ccf244f8309",
+          "file": "two-futures-sprint.e2e.js",
+          "line": 14,
+          "column": 5
+        },
+        {
+          "title": "guided controls, shared camera, difference-only and metric WHY",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "playwright-webkit",
+              "projectName": "playwright-webkit",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eab2c595f2b83d356562-70ea8e4fc5d9b22de685",
+          "file": "two-futures-sprint.e2e.js",
+          "line": 27,
+          "column": 5
+        },
+        {
+          "title": "forced unavailable WebGL retains actual paired evidence and selection",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "playwright-webkit",
+              "projectName": "playwright-webkit",
+              "results": [],
+              "status": "skipped"
+            }
+          ],
+          "id": "eab2c595f2b83d356562-32d93629c4b9747d5220",
+          "file": "two-futures-sprint.e2e.js",
+          "line": 41,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-12T19:54:23.517Z",
+    "duration": 44.19,
+    "expected": 0,
+    "skipped": 15,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

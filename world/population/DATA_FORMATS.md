@@ -24,3 +24,46 @@ CSV supports quoted cells, escaped quotes, CRLF and BOM. In the metadata editor 
 Only explicit city population target fields propose global generation settings. District medians are not averaged into a city median. District distributions, employment, OD and transit are validation/reference data until an explicit adapter exists. Proposals disclose coverage, warnings, applied:false and requiresReset:true and are delivered for Studio review. No source import automatically establishes calibration.
 
 Retained fact exports preserve decision/trip/observation records that actually exist. Separate departure/arrival facts do not imply a complete linked trip. Missing values remain null. Paired actor differences use the shared world/analysis/behavior-deltas.js comparator and are explicitly scoped to supplied actors.
+
+### Reported allocation recovery (`population-memory-recovery.v1`)
+
+`createPopulationRuntime().getMemoryRecovery()` returns a pending offer only after
+an allocation-specific error during reset or advance. `recoverWithFewerAgents()`
+is an explicit fresh reset with `max(1, floor(population / 2))` individuals; it
+releases the failed worker before retrying. At one individual no smaller offer
+exists. Advance/resume stay blocked until a reset or checkpoint restore succeeds.
+Ordinary worker errors, timeouts, generic RangeErrors and slow frames do not count
+as evidence of memory pressure.
+
+The successful snapshot's `resetProvenance.memoryRecovery` and checkpoint runtime's
+`memoryRecovery` retain the source configuration, seed, model version, run/revision,
+committed tick, before/after population and fidelity note. The source configuration
+and source run are historical evidence, not a checkpoint of a partially failed
+model. Recovery changes population identities and trajectories. Both measured
+active-agent fields are null: allocated individuals do not establish the number of
+independently changed states in a measurement window. No cohort backend or retained
+microagent precision is claimed. Living City displays the offer and final counts;
+recovery leaves the new run paused. Process termination outside JavaScript remains
+unrecoverable by this API.
+
+## Neighborhood selection diagnostic
+
+`runtime.inspectNeighborhood({minX,maxX,minZ,maxZ})` reads the full authoritative
+worker at the committed tick without advancing it. Bounds are inclusive current
+world x/z coordinates, ordered, finite and within ±1,000,000. The
+`population-selection.v1` response carries bounds, tick, minute, model version,
+seed and a last-step activity window. `simulatedAgents` counts individual records,
+not the visible sample or represented weights. `activeAgents` counts distinct
+selected residents that changed any of x/z, activity, travel remaining, hunger,
+energy, fun or social during that step. Intermediate substep changes persist in
+the diagnostic even if values later revert. This is a declared subset of state,
+not a claim that every other state field is instrumented. Before any step or in
+legacy saves without diagnostics it is null. Missing interaction evidence is
+null, never zero. Aggregate-only persons is zero only for unit weights; otherwise
+null because the model does not place separate aggregate persons spatially.
+
+Optional `model.selectionActivity` retains tick, from/to minutes and a Uint8Array
+of changed resident indices through existing checkpoints. It is observational;
+it does not alter behavior or random seeds. The Living World toolbar exposes
+Shift-drag ground selection and a keyboard bounds form. Inspection pauses the
+clock and labels the returned snapshot; selecting again refreshes it.

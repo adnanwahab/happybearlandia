@@ -75,6 +75,10 @@ function summarize(metric, baseline, plan) {
  * runPairedExperiment({ town, plan, seeds, years, checkpoints, baseSeed, primaryMetric, neutralBand, onProgress })
  *  town: from buildTown(); plan: anything compilePlan() accepts.
  *  Returns { meta, final, series, futures, runs }.
+ *  yieldControl defaults to a timer task between bounded stepping slices;
+ *  pass null only when the caller already isolates computation in a worker.
+ *  shouldStop is checked within both arms; cancellation rejects without publishing
+ *  an incomplete pair. Scheduling never changes modeled minutes or random draws.
  */
 export async function runPairedExperiment({
   town,
@@ -87,6 +91,7 @@ export async function runPairedExperiment({
   neutralBand = 0.25,
   onProgress = null,
   shouldStop = null,
+  yieldControl = () => new Promise((resolve) => setTimeout(resolve, 0)),
 }) {
   const t0 = Date.now();
   const spec = compilePlan(plan);
@@ -105,7 +110,7 @@ export async function runPairedExperiment({
     const byYear = {};
     for (const year of cps) {
       if (shouldStop?.()) throw new Error("experiment cancelled");
-      const common = { town, year, seed: runSeed, runSeed, yearStartMs: 0 };
+      const common = { town, year, seed: runSeed, runSeed, yearStartMs: 0, yieldControl, shouldStop };
       const base = await simulateYear({ ...common, proposalIds: [], packageLabel: "No plan" });
       const { proposalIds, adoptedYearByProposal } = planForYear(spec, year);
       // Nothing started yet → the plan world is the baseline world, same draws.

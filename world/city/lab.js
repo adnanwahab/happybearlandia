@@ -1,4 +1,5 @@
 import {mountLife} from './life.js';
+import {housingDrainageExperiment, POLICY_COMPARISON_VERSION, POLICY_FLOOD_QUERY} from './policy-comparison.js';
 import {mountProjectUnblock} from './unblock-view.js';
 import {createCityFromArea} from './seed.js';
 const $=id=>document.getElementById(id);
@@ -22,7 +23,7 @@ function status(message,error=false){$('status').textContent=message;$('status')
 function options(target,rows,value,label){$(target).replaceChildren(...rows.map(row=>{const el=document.createElement('option');el.value=value(row);el.textContent=label(row);return el;}));}
 async function saved(){const {experiments}=await api('/api/city-experiments');$('saved').replaceChildren(...experiments.map(e=>{const button=document.createElement('button');button.textContent=`${e.experiment_id.slice(0,16)} · ${e.status}`;button.onclick=()=>select(e.experiment_id);return button;}));}
 async function select(id) {
-  life.update(null);selected=id;replay=null;replaySource=null;unblock.update(null);$('replay-summary').replaceChildren();$('replay-events').replaceChildren();$('replay-decisions').replaceChildren();$('replay-flows').replaceChildren();
+  life.update(null);$('policy-flood').hidden=true;selected=id;replay=null;replaySource=null;unblock.update(null);$('replay-summary').replaceChildren();$('replay-events').replaceChildren();$('replay-decisions').replaceChildren();$('replay-flows').replaceChildren();
   const generation=++requestGeneration;clearTimeout(pollTimer);history.replaceState(null,'',`?experiment=${id}`);
   try {
     const tables=await api(`/api/experiments/${id}/tables`);if(generation!==requestGeneration)return;
@@ -38,6 +39,10 @@ async function refresh(generation=requestGeneration) {
     const comparison=new Map();for(const row of result.metrics){if(!comparison.has(row.metric_id))comparison.set(row.metric_id,{metric:row.metric_id});comparison.get(row.metric_id)[row.scenario_id]=`${n(row.mean_value)} (${n(row.minimum)}–${n(row.maximum)})`;}
     table('metrics',[...comparison.values()]);options('replay-scenario',result.manifest.scenarios,s=>s.id,s=>s.id);$('replay-index').max=result.manifest.runs-1;
     if(!['queued','running'].includes(result.status))life.update(result,id);
+    if(result.manifest.initial.provenance.guidedComparison?.recipeVersion===POLICY_COMPARISON_VERSION) {
+      const flood=await api(`/api/experiments/${id}/query`,{sql:POLICY_FLOOD_QUERY});if(generation!==requestGeneration)return;
+      $('policy-flood').hidden=false;table('policy-flood-results',flood.rows);
+    }
     const lineage=await api(`/api/experiments/${id}/lineage`);if(generation!==requestGeneration)return;
     $('manifest').textContent=JSON.stringify(lineage,null,2);$('dependencies').replaceChildren(...lineage.dependencyGraph.map(d=>{const p=document.createElement('p');p.textContent=`${d.dependsOn.join(' + ')||'Clock / external inputs'} → ${d.system}`;return p;}));
     const events=await api(`/api/experiments/${id}/query`,{sql:'SELECT system, event_type, COUNT(*) AS events FROM system_events GROUP BY system, event_type ORDER BY events DESC'});if(generation!==requestGeneration)return;table('events',events.rows);
@@ -77,3 +82,13 @@ $('load-area').onclick=async()=>{
   try {const lat=Number($('latitude').value),lng=Number($('longitude').value);if(!Number.isFinite(lat)||Math.abs(lat)>90||!Number.isFinite(lng)||Math.abs(lng)>180)throw new Error('Invalid coordinates');status('Loading OSM geometry…');const area=await api(`/api/area?lat=${lat}&lng=${lng}&radiusM=400`);imported=createCityFromArea(area,{seed:Number(document.querySelector('[name=seed]').value),households:Number(document.querySelector('[name=households]').value)});options('district',imported.districts,d=>d.id,d=>d.name);$('import-status').textContent=`${imported.buildings.length} OSM footprints · synthetic city systems`;status('Area loaded. Geometry is sourced; system assumptions remain synthetic.');}catch(error){status(error.message,true);}finally{$('load-area').disabled=false;}
 };
 const coords=new URL(location.href).searchParams;for(const [key,id]of [['lat','latitude'],['lng','longitude']])if(coords.has(key))$(id).value=coords.get(key);
+
+$('compare-policies').onclick=async()=>{
+  $('compare-policies').disabled=true;
+  try {
+    status('Preparing matched housing and drainage futures…');
+    const result=await api('/api/city-experiments',housingDrainageExperiment());
+    document.querySelector('[data-tab=overview]').click();
+    await select(result.id);await saved();
+  }catch(error){status(error.message,true);}finally{$('compare-policies').disabled=false;}
+};

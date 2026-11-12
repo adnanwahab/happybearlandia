@@ -1,0 +1,220 @@
+{
+  "schemaVersion": "hbl-guided-demo-receipt.v1",
+  "issue": "SHE-64",
+  "status": "historical-capture-verified-current-source-recording-blocked",
+  "verifiedDate": "2026-11-12",
+  "auditedCommit": "b963dd353538294cb0fbf5d34d5283fad6e10e68",
+  "branch": "mini/SHE-64",
+  "captureAttribution": "Existing November 11 integrated recording; docs/demo-evidence-manifest.json associates progressive captures with ad3902c522559b699cf70a1ae848c55b9e01641c. Exact capture commit is not independently established.",
+  "experimentId": "city_705bdf23e7e64d3b8d6b51f1665d11f6",
+  "recipe": {
+    "schemaVersion": "future-machine.v1",
+    "modelVersion": "city-systems.1.0.0",
+    "seed": 42,
+    "households": 30,
+    "months": 120,
+    "intervention": {
+      "type": "housing",
+      "districtId": "d1",
+      "amount": 24,
+      "cost": 1000000,
+      "delay": 0,
+      "compliance": 1
+    }
+  },
+  "initialHash": "e62e2cfd67d6f4a48dbeb9bc6a739a1abe1eb8a3e62e8e88241555829bc4d3fe",
+  "firstPhysicalBuildingDivergence": {
+    "month": 16,
+    "collection": "buildings",
+    "id": "building-project-policy-1-0"
+  },
+  "completionMetrics": {
+    "population": {
+      "baseline": 90,
+      "plan": 90,
+      "delta": 0,
+      "unit": "people",
+      "status": "available",
+      "missing": []
+    },
+    "households": {
+      "baseline": 30,
+      "plan": 30,
+      "delta": 0,
+      "unit": "households",
+      "status": "available",
+      "missing": []
+    },
+    "housingUnits": {
+      "baseline": 36,
+      "plan": 60,
+      "delta": 24,
+      "unit": "homes",
+      "status": "available",
+      "missing": []
+    },
+    "availableUnits": {
+      "baseline": 6,
+      "plan": 30,
+      "delta": 24,
+      "unit": "homes",
+      "status": "available",
+      "missing": []
+    },
+    "meanRent": {
+      "baseline": 971.504282807192,
+      "plan": 230.73527356811846,
+      "delta": -740.7690092390735,
+      "unit": "USD/month",
+      "status": "available",
+      "missing": []
+    },
+    "unhoused": {
+      "baseline": 0,
+      "plan": 0,
+      "delta": 0,
+      "unit": "households",
+      "status": "available",
+      "missing": []
+    },
+    "employed": {
+      "baseline": 9,
+      "plan": 12,
+      "delta": 3,
+      "unit": "workers",
+      "status": "available",
+      "missing": []
+    },
+    "jobs": {
+      "baseline": 9,
+      "plan": 12,
+      "delta": 3,
+      "unit": "jobs",
+      "status": "available",
+      "missing": []
+    },
+    "businesses": {
+      "baseline": 3,
+      "plan": 4,
+      "delta": 1,
+      "unit": "businesses",
+      "status": "available",
+      "missing": []
+    },
+    "meanTravelMinutes": {
+      "baseline": 15.000361152000002,
+      "plan": 15.000108743111113,
+      "delta": -0.00025240888888866664,
+      "unit": "minutes/link",
+      "status": "available",
+      "missing": []
+    },
+    "balance": {
+      "baseline": 14241683.678263139,
+      "plan": 13223778.8936223,
+      "delta": -1017904.7846408393,
+      "unit": "USD",
+      "status": "available",
+      "missing": []
+    },
+    "debt": {
+      "baseline": 0,
+      "plan": 0,
+      "delta": 0,
+      "unit": "USD",
+      "status": "available",
+      "missing": []
+    },
+    "capitalSpending": {
+      "baseline": 0,
+      "plan": 1000000,
+      "delta": 1000000,
+      "unit": "USD cumulative",
+      "status": "available",
+      "missing": []
+    },
+    "completedProjects": {
+      "baseline": 0,
+      "plan": 1,
+      "delta": 1,
+      "unit": "projects",
+      "status": "available",
+      "missing": []
+    }
+  },
+  "mp4Seconds": 56.84,
+  "playToCompletionMs": 54840,
+  "visualInspection": {
+    "video-month16.png": "Frame at 14 seconds: Month 16, added 24-home structure and baseline ghost.",
+    "video-why.png": "Frame at 55 seconds: WHY, event 16-0, model, seed, run, limitations."
+  },
+  "currentChecks": {
+    "focusedTests": "12 passed, 0 failed, 91 assertions",
+    "artifactVerifier": "2 records, 1 WebM, months 0/120",
+    "mp4Decode": "ffmpeg full decode exit 0",
+    "freshBrowser": "Blocked: bind denied by sandbox; two recording attempts failed before browser launch."
+  },
+  "limitations": [
+    "Historical evidence does not prove current HEAD browser behavior.",
+    "Single continuous browser WebM retained; MP4 hash matches prior manifest. No independent forensic guarantee about historical capture editing.",
+    "Synthetic uncalibrated City model; no empirical forecast or independent causal certainty.",
+    "No deployment, production mutation, merge, push, PR creation or Linear status change."
+  ],
+  "artifacts": [
+    {
+      "path": "docs/evidence/she64/artifact-audit.json",
+      "bytes": 7695,
+      "sha256": "7b2ef29bd582db7c2159ee25d0ed27b26e49776379cf580ee899f7c3530d9f44"
+    },
+    {
+      "path": "docs/evidence/she64/demo-complete.json",
+      "bytes": 497931,
+      "sha256": "ed2882c8bbb48b9f6f9eb235e3e707acb2c8d5746760d1ca8028c1a4898c5dc5"
+    },
+    {
+      "path": "docs/evidence/she64/demo-complete.png",
+      "bytes": 1083752,
+      "sha256": "cd5713bf7df1e07e923481476d8154804a08f6eec7d9a12fc580c7faaa1b4647"
+    },
+    {
+      "path": "docs/evidence/she64/demo-start.json",
+      "bytes": 163461,
+      "sha256": "ff97be2b5f603ffa945c6466658e0a5d03dec2230b9c257127b8776abad055d2"
+    },
+    {
+      "path": "docs/evidence/she64/demo-start.png",
+      "bytes": 1016767,
+      "sha256": "8d2a648b76a6b38e458b46cbab67bb8b380dece4d74e2bda00d51dfab7cc352e"
+    },
+    {
+      "path": "docs/evidence/she64/demo-timing.json",
+      "bytes": 386,
+      "sha256": "a52edf95ad0dabe05e1188628a8d99e994fd74258b9452b456ead2bdaca67ebc"
+    },
+    {
+      "path": "docs/evidence/she64/demo-why-completion-event.png",
+      "bytes": 186977,
+      "sha256": "ec4601f833f5ab0bdbc23e0674ae2128866deeb66ef275aad2421e50b6a4e8a8"
+    },
+    {
+      "path": "docs/evidence/she64/one-city-two-futures.mp4",
+      "bytes": 2357218,
+      "sha256": "be8ada5ed32bb98e16fe8bcc75fe17e3988b19287f8d82f3ea7e617bf950d82f"
+    },
+    {
+      "path": "docs/evidence/she64/video-month16.png",
+      "bytes": 521909,
+      "sha256": "892aa109d820a4112f6f60742482d8d7c64dfd7f5f5928a6dc78b8579c5d9450"
+    },
+    {
+      "path": "docs/evidence/she64/video-why.png",
+      "bytes": 375668,
+      "sha256": "8ce47e1ab0ffe65b05ec7f2dd85db68f8e0f36c8361a5190ead9db838373725f"
+    },
+    {
+      "path": "docs/evidence/she64/video.webm",
+      "bytes": 4089390,
+      "sha256": "d857d79ba5e7bb6afb01d070d822fb5f5b83591a35db9fe530bae9a15f29abfd"
+    }
+  ]
+}

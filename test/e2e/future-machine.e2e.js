@@ -179,3 +179,52 @@ test('blocked Three and all contexts unavailable preserve inventory and WHY',asy
  await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('WHY');
  expect(await page.evaluate(()=>window.futureMachine.stats.scene.backend)).toBe('inventory-fallback');
 });
+
+test('player inspects, copies and strictly reopens a replay receipt',async({page,context},testInfo)=>{
+ await context.grantPermissions(['clipboard-read','clipboard-write']);
+ await page.goto('/world/future-machine.html');
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);await seek(page,16);
+ await page.getByText('Replay receipt',{exact:true}).click();
+ await page.getByRole('button',{name:'Inspect current receipt',exact:true}).click();
+ const output=page.getByRole('textbox',{name:'Current replay receipt',exact:true});
+ await expect(output).not.toHaveValue('');const text=await output.inputValue(),receipt=JSON.parse(text);
+ expect(receipt.evidence.month).toBe(16);expect(receipt.evidence.recipe.intervention.type).toBeTruthy();
+ expect(receipt.evidence.observations.plan.events.length).toBeGreaterThan(0);
+ await page.getByRole('button',{name:'Copy receipt',exact:true}).click();
+ expect(await page.evaluate(()=>navigator.clipboard.readText())).toBe(text);
+ const paste=page.getByRole('textbox',{name:'Paste replay receipt',exact:true});
+ await seek(page,0);await expect(output).toHaveValue('');await paste.fill(text);
+ await page.getByRole('button',{name:'Reopen receipt',exact:true}).click();
+ await expect(page.getByText('Receipt verified and reopened at its recorded month.',{exact:true})).toBeVisible();
+ expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(16);
+ expect(await page.evaluate(()=>window.futureMachine.history.experimentId)).toBe(receipt.evidence.experimentId);
+ for(const broken of ['{',JSON.stringify({...receipt,schemaVersion:'unknown'}),JSON.stringify({...receipt,checksum:'0'.repeat(64)})]){
+   await paste.fill(broken);await page.getByRole('button',{name:'Reopen receipt',exact:true}).click();
+   await expect(page.getByText(/^Receipt could not be reopened:/)).toBeVisible();
+   expect(await page.evaluate(()=>window.futureMachine.history.experimentId)).toBe(receipt.evidence.experimentId);
+ }
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);
+ await seek(page,16);await page.getByRole('button',{name:'Inspect current receipt',exact:true}).click();await expect(output).not.toHaveValue('');
+ await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.screenshot({path:testInfo.outputPath('replay-receipt-mobile.png'),fullPage:true});
+});
+
+test('KPI WHY selects exact historical completion and discloses unsupported aggregate links',async({page},testInfo)=>{
+ await page.goto('/world/future-machine.html?renderer=canvas');
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);await seek(page,120);
+ await page.getByRole('button',{name:'WHY · Homes',exact:true}).click();
+ const story=page.getByRole('region',{name:'Recorded change story'});
+ await story.getByRole('button',{name:/Recorded housing completion/}).first().click();
+ const selected=await page.evaluate(()=>({month:window.futureMachine.state.month,targets:window.futureMachine.stats.scene.targets}));
+ expect(selected.month).toBeLessThan(120);
+ await expect(story).toContainText('building-project-policy-1-0');
+ await story.getByText(/^Recorded model events \(/).click();
+ const receipt=story.getByRole('button',{name:/Inspect event .* · plan · building-project-policy-1-0/});
+ await expect(receipt).toBeVisible();await receipt.click();
+ await expect(story).toContainText('WHY · event');
+ expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(selected.month);
+ await seek(page,120);await page.getByRole('button',{name:'WHY · Mean unit rent',exact:true}).click();
+ await expect(story).toContainText('Unsupported entity causality');
+ expect(await story.getByRole('button',{name:/Recorded housing completion|Inspect event/}).count()).toBe(0);
+ await page.screenshot({path:testInfo.outputPath('she-32-unsupported-causality.png'),fullPage:true});
+});

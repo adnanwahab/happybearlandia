@@ -11,7 +11,7 @@
 /* Direction is a measurement, not a universal benefit score. */
 .fm-card[data-tone=neutral] strong,.fm-card[data-tone=unavailable] strong{color:#adbed0}.fm-card[data-tone=cost] strong{color:#ffd29b}.fm-card[data-tone=change] strong{color:#d6eaff}.fm-card[data-tone=unavailable]{background:#10202e}.fm-inspectors>section>p{line-height:1.8}
 .fm-household-summary{white-space:pre-line}
-.fm-seed-label input{font:inherit;color:inherit;background:#182a3c;border:1px solid var(--fm-line);border-radius:9px;padding:11px 15px;min-height:46px;width:100%;min-width:0}.fm-seed-label small{font-size:11px;font-weight:400;color:var(--fm-muted);max-width:270px}.fm-seed-error{grid-column:1/-1}.fm-seed-label input[aria-invalid=true]{border-color:#ff9797}.fm-setup{grid-template-columns:1fr 1.3fr 1fr auto auto}@media(max-width:760px){.fm-setup{grid-template-columns:1fr 1fr}}
+.fm-seed-label input{font:inherit;color:inherit;background:#182a3c;border:1px solid var(--fm-line);border-radius:9px;padding:11px 15px;min-height:46px;width:100%;min-width:0}.fm-seed-label small{font-size:11px;font-weight:400;color:var(--fm-muted);max-width:270px}.fm-seed-error{grid-column:1/-1}.fm-seed-label input[aria-invalid=true]{border-color:#ff9797}.fm-setup{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr) auto auto}@media(max-width:760px){.fm-setup{grid-template-columns:1fr 1fr}}
 
 .fm-ledger { overflow-wrap:anywhere; margin-block:1rem; }
 .fm-ledger meter { width:8rem; max-width:100%; }
@@ -20,3 +20,16 @@
 .fm-rent-stack { display:flex; height:28px; width:100%; border:1px solid #718096; border-radius:4px; overflow:hidden; }
 .fm-rent-stack span { display:block; height:100%; }
 .fm-rent-decomposition { margin-block:1rem; padding:1rem; border:1px solid #718096; border-radius:8px; }
+
+.fm-arm-inputs{font-size:12px;line-height:1.7;letter-spacing:normal;font-weight:400;color:var(--fm-muted);overflow-wrap:anywhere;margin-top:8px}
+
+/* Recorded-month cue stays legible without animation, including reduced motion. */
+.fm-first-construction{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;background:#213d32;border-bottom:2px solid #b9f488;color:#f0ffe4;font-size:clamp(15px,1.5vw,20px)}
+.fm-first-construction strong{line-height:1.4}.fm-first-construction button{flex-shrink:0}
+@media(max-width:760px){.fm-first-construction{flex-wrap:wrap}}
+
+.fm-challenges > div {display:grid;gap:10px;margin:16px 0;padding:16px;border:1px solid var(--fm-line);border-radius:12px;min-width:0}
+.fm-challenges label {display:grid;gap:8px}
+.fm-challenges textarea {box-sizing:border-box;width:100%;max-width:100%;resize:vertical;font:inherit;padding:10px;background:#0b1729;color:inherit;border:1px solid #4b6381;border-radius:8px}
+.fm-challenges a {overflow-wrap:anywhere}
+.fm-challenges summary {cursor:pointer;font-weight:700}
