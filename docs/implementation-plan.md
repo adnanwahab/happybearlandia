@@ -7922,3 +7922,30 @@ test/world-user-fixes.test.js still reports 32 homepage carousel sections versus
 33 registered experiences. The identical failure was reproduced using exact
 118aad baseline inputs; this existing catalog mismatch was not changed by PR278.
 No simulation, seed, runtime, gallery, or target-branch changes were made.
+
+## SHE-229 r2 — scientific skeptic critique (2026-11-12)
+
+Analysis-only acceptance delivered in [docs/reviews/SHE-229-r2.md](reviews/SHE-229-r2.md):
+20 risk hypotheses, each with concrete scenario, falsifiable test, uncertainty
+visualization and practical engineering proposal, plus 5 user-run experiment
+protocols grounded in existing Decision Studio/Living City controls. No product
+implementation is requested or included. Existing ODD descriptions remain valid.
+
+Audited prior local output/history, live SHE-229 and overlapping SHE-96/SHE-153,
+and merged PRs #203/#175; no prior matching SHE-229 report/PR was found in the
+bounded searches. Approval labels were already present. Clean isolated branch
+mini/SHE-229-r2 owns only the report and this appended record. Git fetch was
+blocked by shared metadata permissions; GitHub remote main was pinned at
+fbdce9e8b489f2dd02acbe33c007a944ecf64e74 and five critical source blobs were
+compared successfully with this checkout. Whole-tree equivalence is not claimed.
+
+Actual verification: focused housing-model, decision-integration,
+time-machine-heatmap, demo-evidence, paired-future-comparison and living-city-recipe
+suites: 49 pass, 0 fail, 3425 assertions in 6 files (Bun 1.4.2). These establish
+implementation behavior including normal Decision API execution/reproduction,
+not external scientific validity. All five user protocols remain proposed and
+unexecuted. Document checks passed: exactly 20 complete risks and 5 experiment protocols;
+all relative report links resolve and both changed documents have no trailing
+whitespace. `git diff --check` passed for tracked changes.
+No browser behavior changed; Playwright skipped. No configured general lint or
+typecheck. No merge/deployment/production mutation; commit/PR publication pending.
