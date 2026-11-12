@@ -1003,3 +1003,36 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-225 — Detective of Futures
+
+Next slice: a server-owned five-case synthetic Month-120 mystery, entered from
+Future Machine. Prerequisites: existing monthly City generator, matched seeds,
+anchored recorded evidence, canonical recipe hashing. Acceptance: four shuffled
+choices, ID-only saved puzzle links, allowlisted evidence without recipe leakage,
+server-counted distinct evidence steps, immutable scored reveal with matched-run
+receipt. Verify persistence, replay determinism, invalid requests and browser flow.
+Risks: this is an exploratory model, not empirical causal inference; completion
+metrics describe attempts, not authenticated unique people. No production rollout.
+
+Implemented: [server/API and storage contract](../ops/detective/README.md),
+`ops/detective/api.js`, `world/detective.{html,js}`, normal server route and
+Future Machine entry. Five versioned seed/recipe cases, four per-attempt shuffled
+choices, allowlisted outcome/evidence responses, canonical SHA-256 answer checks,
+immutable reveal/receipt, distinct-step scoring, persisted ID-only attempt URLs,
+and aggregate completion/zero-evidence counters are integrated. Evidence trail
+summaries reuse SHE-214's builder; raw records stay server-side until reveal.
+The saved puzzle is separate from the ordinary City manifest API by design.
+
+Verification: `bun test test/detective.test.js
+ test/future-machine-evidence-trail.test.js test/future-machine-data.test.js`
+passed 10 tests / 184 assertions, covering all five cases, reveal hashes,
+restart durability, invalid steps/answers/IDs, incorrect scores, frozen evidence
+counts, deterministic matched replay and existing anchored evidence regressions.
+`git diff --check` passed. No lint/typecheck script exists. The focused
+`test/detective.browser.config.js` browser journey was attempted twice but the
+normal app server failed to bind on ports 39889 and 41927 (EADDRINUSE); browser
+behavior remains unverified. No deployment or production changes. Next action:
+run that browser test in a host that permits server binding, then conduct player
+sessions to measure the 60% success signal and zero-evidence kill criterion.
+Single-process file storage and anonymous attempt counts limit public scale.

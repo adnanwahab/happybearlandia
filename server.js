@@ -1,3 +1,5 @@
+import {createDetectiveHandler} from './ops/detective/api.js';
+const handleDetective=createDetectiveHandler();
 import { withUniverseNavigation } from './world/universe/html-navigation.js';
 import {createCausalityHandler} from './world/causality/api.js';
 import {createReleaseHealthHandler,initializeReleaseStorage} from './ops/release-health.js';
@@ -517,6 +519,7 @@ const server = serve({
     if (pathname === "/api/area/enrichment") return handleAreaEnrichment(new URL(request.url));
     if (pathname === "/api/overpass-health") return handleOverpassHealth();
     if (pathname === "/api/config") return handleConfig();
+    if (under(pathname, "/api/detective")) return handleDetective(request);
     if (under(pathname, "/api/causality")) return handleCausality(request);
     if (under(pathname, "/api/world-history")) return handleTemporalCity(request);
     if (under(pathname, "/api/reality-shares")) return handleRealityShares(request);
