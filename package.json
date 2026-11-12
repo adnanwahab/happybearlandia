@@ -6,6 +6,9 @@
   "scripts": {
     "start": "bun run server.js",
     "test:e2e": "playwright test",
+    "test:player-lab": "bun test test/player-lab.test.js test/bakery-journey.test.js test/bakery-scenario.test.js",
+    "player-lab": "bun tools/player-lab/run.js",
+    "player-lab:triage": "bun tools/player-lab/triage.js",
     "screenshot:index": "bun scripts/screenshot-index.js",
     "seed:supabase:conversations": "bun scripts/seed-supabase-conversations.js",
     "demo": "bun run server.js",

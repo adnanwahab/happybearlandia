@@ -1003,3 +1003,38 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## AI Player Testing Lab — SHE-187
+
+Next integrated slice: reuse the public Riverside Bakery first-play browser journey
+with scripted policies for early intervention, last chance, too-late intervention,
+and malformed shared recipes. Prerequisites: Bun, Playwright Chromium, local app.
+Acceptance: browser journeys record ordered steps, observed final state, policy seed,
+fixed model seed/version and source revision; replay compares independently recorded
+observations. Failed runs produce Linear Triage issues only via explicit operator
+submission, without assignment or dispatch labels. Tests cover policies, replay and
+triage failure paths. Risks: scripted players cannot assess confusion or fun; bakery
+is synthetic and has no model randomness; browser/server availability may block live
+verification. SHE-29 and SHE-62 remain human acceptance gates.
+
+Implemented this slice in `tools/player-lab/`: four bounded public-control policies,
+JSON observations and Playwright traces, source-fingerprinted replay, explicit
+Linear preview/submission with Triage-only state resolution and exclusive local
+submission receipts. Repository commands: `player-lab`, `player-lab:triage`,
+`test:player-lab`. Transport tests verify no assignment/labels and refusal when
+Triage is absent; action-failure tests retain provenance and final observations.
+
+Verification: `bun test test/player-lab.test.js test/bakery-journey.test.js
+test/bakery-scenario.test.js` passed 11 tests / 67 assertions; `git diff --check`
+passed. Frozen dependency install succeeded with `TMPDIR=/private/tmp`. Attempts
+to start the normal server on ports 3100 and 39879 reported EADDRINUSE. Direct
+lab launch reached installed Chromium but macOS rejected its MachPortRendezvous
+bootstrap registration (Permission denied). Thus browser completion, actual
+browser replay equivalence and live Linear submission remain unverified. No real
+finding or synthetic test issue was published. Next action: run the documented
+suite and replay on a host that permits Chromium and local listening; inspect
+actual failures and submit only reproducible findings to Triage. Broader quest
+coverage and human judgments of confusion/fun remain outside this bounded slice.
+The package shortcut also passed with `bun run --bun test:player-lab` (11/11).
+Without `--bun`, this checkout resolves an uninitialized local `node_modules/bun`
+shim and fails before tests; direct Bun and the `--bun` form are verified.
