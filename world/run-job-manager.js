@@ -9,6 +9,9 @@ export class RunJobManager {
     this.jobs = new Map();
     this.cache = options.cache || new Map();
     this.listeners = new Map();
+    this.active = 0;
+    this.pending = [];
+    this.rejected = 0;
   }
 
   createJob({ experiment, worldBatch, adapter, chunkSize = 250, concurrency = 16 }) {
@@ -16,6 +19,12 @@ export class RunJobManager {
     const identity = { experimentId: experiment.id, plan: experiment.plan, model: experiment.model, seed: worldBatch.seed, worldIds: worldBatch.worlds.map((row) => row.id), adapter: adapter.id };
     const id = `run_${fingerprint(identity)}`;
     if (this.jobs.has(id)) return this.jobs.get(id).public;
+    if (this.active >= 2 && this.pending.length >= 8) {
+      this.rejected++;
+      const error = new Error("Simulation capacity reached; retry after a running job finishes");
+      error.status = 429;
+      throw error;
+    }
     const internal = {
       id,
       createdAt: nowIso(),
@@ -24,7 +33,7 @@ export class RunJobManager {
       completed: 0,
       total: worldBatch.worlds.length,
       chunkSize: Math.max(1, Math.round(chunkSize)),
-      concurrency: Math.max(1, Math.min(64, Math.round(concurrency))),
+      concurrency: Math.max(1, Math.min(8, Math.round(Number.isFinite(concurrency) ? concurrency : 8))),
       experimentId: experiment.id || null,
       seed: worldBatch.seed ?? null,
       adapter: { id: adapter.id, label: adapter.label, predictive: adapter.predictive, modelClass: adapter.modelClass },
@@ -35,8 +44,25 @@ export class RunJobManager {
     };
     internal.public = this.snapshot(internal);
     this.jobs.set(id, internal);
-    internal.promise = this.#run(internal, { experiment, worldBatch, adapter });
+    internal.promise = new Promise((resolve, reject) => {
+      this.pending.push({ job: internal, input: { experiment, worldBatch, adapter }, resolve, reject });
+    });
+    // Jobs can fail before a caller polls/waits; retain the rejection for wait().
+    internal.promise.catch(() => {});
+    this.#drain();
     return internal.public;
+  }
+
+  budget() {
+    return { active: this.active, queued: this.pending.length, rejected: this.rejected, maxActive: 2, maxQueued: 8, maxConcurrencyPerJob: 8 };
+  }
+
+  #drain() {
+    while (this.active < 2 && this.pending.length) {
+      const { job, input, resolve, reject } = this.pending.shift();
+      this.active++;
+      this.#run(job, input).then(resolve, reject).finally(() => { this.active--; this.#drain(); });
+    }
   }
 
   async #run(job, { experiment, worldBatch, adapter }) {
@@ -55,7 +81,18 @@ export class RunJobManager {
         }
         for (const [index, row] of cachedRows) job.simulations[index] = row;
         if (missing.length) {
-          const batch = await simulateExperiment(experiment, { worlds: missing.map((row) => row.world) }, adapter, { concurrency: job.concurrency });
+          // A failed Promise.all may leave sibling adapter calls in flight.
+          // Hold this job's slot until those calls settle as well.
+          const inFlight = new Set();
+          const trackedAdapter = { ...adapter, simulateWorld: (...args) => {
+            const promise = Promise.resolve().then(() => adapter.simulateWorld(...args));
+            inFlight.add(promise);
+            promise.finally(() => inFlight.delete(promise)).catch(() => {});
+            return promise;
+          } };
+          let batch;
+          try { batch = await simulateExperiment(experiment, { worlds: missing.map((row) => row.world) }, trackedAdapter, { concurrency: job.concurrency }); }
+          finally { await Promise.allSettled([...inFlight]); }
           batch.simulations.forEach((simulation, index) => {
             const target = missing[index];
             job.simulations[target.index] = simulation;
@@ -122,7 +159,12 @@ export function createRunApiHandler(manager, resolveRunInput) {
     if (!id && request.method === "POST") {
       const body = await request.json();
       const input = await resolveRunInput(body);
-      return Response.json(manager.createJob(input), { status: 202 });
+      try {
+        return Response.json(manager.createJob(input), { status: 202 });
+      } catch (error) {
+        if (error.status !== 429) throw error;
+        return Response.json({ error: error.message, budget: manager.budget() }, { status: 429, headers: { "retry-after": "1", "cache-control": "no-store" } });
+      }
     }
     if (id && request.method === "GET") {
       const job = manager.get(id, url.searchParams.get("results") === "1");

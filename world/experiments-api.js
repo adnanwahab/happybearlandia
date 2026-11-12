@@ -22,6 +22,7 @@ export const LIMITS = Object.freeze({
   years: { def: 5, max: 10 },
   maxPeople: { def: 120, max: 300 },
   keepJobs: 50,
+  maxPending: 9, // one preparing/running plus eight waiting
 });
 
 export const DEFAULT_LOCATION = Object.freeze({ lat: 29.7286, lng: -95.4746, name: "Gulfton, Houston" });
@@ -64,6 +65,7 @@ export function findPackage(payload, name) {
  */
 export function createExperimentsHandler({ fetchPlan, getArea, runner = runPairedExperiment } = {}) {
   const jobs = new Map(); // id → job
+  let pending = 0;
   let queue = Promise.resolve(); // one experiment at a time; they are CPU-bound
 
   function publicJob(job, withResult = true) {
@@ -107,6 +109,10 @@ export function createExperimentsHandler({ fetchPlan, getArea, runner = runPaire
   }
 
   async function start(request) {
+    if (pending >= LIMITS.maxPending) return new Response(JSON.stringify({ error: "Simulation capacity reached; retry after a running experiment finishes", budget: { pending, maxPending: LIMITS.maxPending } }), { status: 429, headers: { ...CORS, "content-type": "application/json", "retry-after": "1" } });
+    pending++;
+    let admitted = false;
+    try {
     let body;
     try {
       body = await request.json();
@@ -143,8 +149,12 @@ export function createExperimentsHandler({ fetchPlan, getArea, runner = runPaire
     const id = `exp_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
     const job = { id, status: "queued", createdAt: new Date().toISOString(), plan, params, progress: { step: 0, totalSteps: 0 }, result: null, error: null };
     jobs.set(id, job);
-    while (jobs.size > LIMITS.keepJobs) jobs.delete(jobs.keys().next().value);
+    for (const [oldId, oldJob] of jobs) {
+      if (jobs.size <= LIMITS.keepJobs) break;
+      if (oldJob.status === "done" || oldJob.status === "error") jobs.delete(oldId);
+    }
 
+    admitted = true;
     queue = queue.then(async () => {
       job.status = "running";
       try {
@@ -164,10 +174,11 @@ export function createExperimentsHandler({ fetchPlan, getArea, runner = runPaire
       } catch (err) {
         job.status = "error";
         job.error = String(err?.message || err);
-      }
+      } finally { pending--; }
     });
 
     return json(publicJob(job, false), 202);
+    } finally { if (!admitted) pending--; }
   }
 
   return async function handleExperiments(request) {

@@ -1003,3 +1003,38 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-42 — bounded simulation admission
+
+Audit: Decision API already limits two active experiments and replay weight;
+optimization limits one worker. Civic RunJobManager has only per-job fanout;
+paired experiments serialize but queue without limit and evict active records.
+This slice owns world/run-job-manager.js, world/experiments-api.js, their tests,
+and this plan. No separate coordinator assignment exists in this checkout.
+Implement FIFO civic admission (2 active, 8 waiting, at most 8 adapter calls per
+job) and paired admission (1 active/preparing, 8 waiting). Reject overflow with
+429 and Retry-After before creating a job. Preserve dedup, seeds, output order,
+cache writes, disclaimers and active paired records. Acceptance: held-run burst
+tests prove bounds, useful overload, readable status, recovery and exactly-once
+results. Limits are per process, not distributed; histories/caches and individual
+request sizes remain existing limitations. No model, deployment or merge changes.
+
+Delivered on `mini/SHE-42`: FIFO civic job queue, 429 JSON budget/retry header,
+per-job fanout clamp, dedup before admission, and slot release only after failed
+adapter siblings settle. Paired admission reserves capacity before asynchronous
+plan preparation; validation releases reservations and retention evicts only
+terminal jobs. Existing per-handler worker/replay guards remain intact.
+Synthetic held-run load: 10 civic jobs accepted, overflow rejected, peak <=16
+adapter calls, exactly250 calls/cache entries; paired burst30 accepts9/rejects21,
+all accepted IDs readable, exactly9 executions including one injected failure.
+These are deterministic concurrency tests, not a production capacity benchmark.
+Defaults are conservative policy choices, not empirically tuned CPU/RSS limits.
+Verification: `bun test test/run-job-manager.test.js world/experiments-api.test.js
+ test/server-civic-api.test.js test/simulation-adapter.test.js
+ test/reproducibility.test.js` passed22tests/79assertions (854ms). `git diff
+ --check` passed. No lint/typecheck script is defined. `bun test
+ test/server.test.js` failed at server startup; direct isolated launch reproduced
+Bun listen EADDRINUSE at port0, so socket/browser smoke remains unverified.
+Playwright skipped: no browser behavior changed. No PR/commit or deploy created.
+Limits: process-local queues, existing unbounded civic history/cache, and civic
+body parsing/world generation before job admission remain outside this slice.
