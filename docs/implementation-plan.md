@@ -1003,3 +1003,35 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Save format migration — SHE-200
+
+Delivered slice: monthly City experiment saves, the authority exercised by SHE-59
+and Future Machine. Format v1 is separate from model/rules VERSION. The sole
+historical format (unversioned v0) migrates on read by adding metadata on a clone;
+SQLite originals and recorded run outcomes remain unchanged. Unknown formats
+fail closed. New manifests persist the format version in both existing copies.
+Migration receipts disclose from/to, outcomeChanged:false and verification limits.
+
+Acceptance: test each supported migration, idempotence, input preservation,
+unsupported formats, real API save/reopen/replay, and a deliberately changed
+recorded outcome returning HTTP409 without overwriting evidence. Replay compares
+all stored final metrics with recomputation, including missing/extra keys;
+unavailable evidence also returns409. Model version unavailability retains the
+existing explicit error. No fallback overwrites a saved outcome.
+
+Limits: verification does not cover intermediate events or full-state equality;
+legacy summary saves never stored that evidence. This slice does not migrate
+Population/House, Decision Studio, or independent Reality share formats. Future
+format changes require another ordered migration and regression test; changed
+simulation equations still require a model VERSION bump. No deployment or
+production data mutation. Verification results recorded after execution below.
+
+Actual verification: 14/14 tests passed across save migration, Future Machine
+storage/data and SHE-59 sweep suites (117 assertions); 29/29 passed across
+migration, City systems, manifest validation, boundaries and scrub identity
+(497 assertions). The migration suite appears in both runs. `git diff --check`
+passed. No configured lint/type-check scripts. Focused real-worker/SQLite API
+integration covers the changed server path; no browser rendering changed and
+Playwright was not run. Remaining expansion: inventory and migrate other engines'
+independent save contracts before claiming application-wide format coverage.
