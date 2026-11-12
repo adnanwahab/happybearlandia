@@ -1003,3 +1003,38 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## ODD social model descriptions — SHE-190
+
+Slice: inventory independent individual-based social mechanisms and shared
+submodels, read executable rules and existing contracts, write seven-element
+ODD descriptions with local assumptions and reproduction boundaries, and require
+code-to-description review through AGENTS.md and the PR template. Prerequisites:
+existing product design, Population model card, City and subsystem contracts.
+Acceptance: every inventoried ABM has an ODD, linked source/verification entry
+points, explicit assumptions and a documented reviewer evidence requirement.
+Risk: a file called model is not necessarily an ABM; classify aggregate engines
+and read-only views explicitly rather than claiming new simulation authorities.
+
+Delivered nine descriptions under docs/models, including Population/House, City,
+legacy World, civic prototype, idea diffusion, Collective Mind, two social games
+and the bounded transfer fixture. No runtime equations, schemas or versions
+changed. Existing module documents remain detailed contracts linked by the ODD.
+Verification results are recorded below after local checks. Browser behavior is
+unchanged; Playwright is inapplicable. Actual reviewer/branch-protection enforcement
+is a repository hosting responsibility; this change establishes the review rule
+and evidence fields, not proof of a future human approval.
+
+Actual local evidence (2026-11-12): nine seven-section ODD files and all their
+local Markdown links validated; git diff --check passed. Focused civic/diffusion/
+Collective Mind/bar/count suites: 45 passed. Population/culture/weather/playback/
+City/unblock/API suites: 57 passed (13.33s); House: 21 passed. Party: 19 passed,
+one WebSocket test failed to bind a local listener (EADDRINUSE). The initial
+combined run reached four passing checkpoint checks but its worker continuation
+test timed out at 30 seconds and the process stopped progressing; interrupted
+that process and completed the other suites separately. No claim that the worker
+checkpoint integration or local WebSocket integration passed. No runtime changes
+were made to address those environment/test limitations. Review performed against
+source included fixed civic-agent aggregates, synchronous opinion updates, exact
+idea adoption/fading, City dependency ordering and Population/legacy clock
+boundaries; corrected legacy step wording to its whole-minute validation contract.

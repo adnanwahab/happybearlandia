@@ -20,6 +20,8 @@ When independent implementation tasks justify delegation and the environment per
 
 ## Simulation requirements
 
+- Maintain the [ODD model inventory and descriptions](docs/models/README.md). Every new agent-based social model needs all seven ODD elements. Update affected descriptions in the same change as model rules, assumptions, inputs or scheduling. Before approval, reviewers must compare the description and linked subsystem contracts against executable code and record paths checked, discrepancies resolved and verification evidence in the PR. State assumptions beside the mechanism that uses them.
+
 - Distinguish observations, synthetic assumptions, modeled results, and narrative interpretation. Record data sources, model and rules versions, scenario inputs, and random seeds.
 - Preserve event provenance and causal dependencies. Test deterministic replay and seed-matched comparisons where relevant. Verify invariants, transitions, missing observations, and boundary cases.
 - Reuse the same versioned run data across views. Explicitly map entity identities and time across models. Document uncertainty and limitations alongside the relevant result.
