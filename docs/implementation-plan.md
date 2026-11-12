@@ -1003,3 +1003,24 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-207 research-to-code contract slice — November 12, 2026
+
+Reuse the existing weighted research lane and source-only Symphony lifecycle.
+Own ops/research_pipeline, research worker template guidance and this plan entry.
+Prerequisites: existing trusted coordinator readiness/ownership/resource reviews;
+research brief authoring before dispatch. Implement brief validation, reproducible
+versioned model manifests, independent engineering/scientific review bindings and
+read-only CLI. Acceptance: neither gate substitutes for the other; changed model
+or brief invalidates review; intended use explicitly gameplay/experiments;
+malformed inputs fail closed; no command execution or remote mutations.
+
+Implemented local slice and documented operator handoff. Synthetic example is
+NOT_EVALUATED; no scientific model or live dispatch is claimed. Structural checks
+cannot authenticate reviewer identities or substantiate evidence. Live host
+installation, protected review enforcement and a real research pilot remain
+follow-up; existing pilot/pressure filters were preserved.
+
+Verification: 5 research contract tests and 19 existing Symphony tests pass;
+`git diff --check` passes. No browser behavior changed; Playwright inapplicable.
+The Linear workflow template now requires both existing dispatch labels.
