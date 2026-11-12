@@ -86,17 +86,17 @@
   <nav aria-label="Developer previews" style="padding:12px 20px"><a href="/github">GitHub / Try a version</a></nav>
   <header class="intro">
     <div class="launch">
-      <div>
-        <p class="eyebrow">HappyBearLandia · Synthetic city demo</p>
+      <div class="demo-entry">
+        <p class="eyebrow">HappyBearLandia · Start here · Synthetic city demo</p>
         <h1>One city. Two possible futures.</h1>
-        <p>What changes when a city adds housing? Compare ten modeled years with and without one housing plan, then inspect why the results differ.</p>
-        <p><a class="flagship-demo" href="/world/future-machine.html?demo=1">Play Demo <span aria-hidden="true">→</span></a></p>
+        <p id="demo-explanation">Watch a guided comparison of ten modeled years with and without a housing plan. Pause to explore the city and inspect why outcomes changed. No setup needed.</p>
+        <p><a class="flagship-demo" data-demo-start href="/world/future-machine.html?demo=1" aria-describedby="demo-explanation demo-disclaimer">Play Demo <span aria-hidden="true">→</span></a></p>
         <ol class="launch-steps">
           <li>Start from the same city and random seed.</li>
           <li>Watch the housing plan and baseline unfold side by side.</li>
           <li>Select a changed building or an outcome’s WHY to inspect recorded model evidence.</li>
         </ol>
-        <p class="limits">This is synthetic what-if modeling: fictional people and an illustrative city governed by explicit rules. Results depend on the model’s assumptions. They are not predictions of a real city or evidence that a policy will work in practice.</p>
+        <p class="limits" id="demo-disclaimer">This is a reproducible synthetic scenario: fictional people and an illustrative city governed by explicit rules. Results depend on the model’s assumptions. They are not predictions of a real city or evidence that a policy will work in practice.</p>
       </div>
       <figure>
         <img src="/data/launch/two-futures.png" width="1440" height="3006" alt="Actual demo capture: baseline buildings beside the housing-plan future, with 24 added homes highlighted in green.">

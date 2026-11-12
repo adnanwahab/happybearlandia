@@ -1,5 +1,5 @@
 const number = value => typeof value === 'number' && Number.isFinite(value) ? value.toFixed(1) : 'Unavailable';
-export function mountFirstRunGuide({ container, onQuickDemo, onStop, onReplay, onInspect, onCompare, onStorm, onTour, onExperiment, panelManager, announce } = {}) {
+export function mountFirstRunGuide({ container, onQuickDemo, onStop, onReplay, onChangeYear, onInspect, onCompare, onStorm, onTour, onExperiment, panelManager, announce } = {}) {
   if (!container?.ownerDocument) throw new Error('First-run guide requires a DOM container');
   const doc = container.ownerDocument;
   const root = doc.createElement('section');
@@ -27,11 +27,22 @@ export function mountFirstRunGuide({ container, onQuickDemo, onStop, onReplay, o
   button('Full civic tour', null, onTour); button('Explore 10 years', null, onExperiment);
   const details = make('div', ''); details.className = 'first-run-feedback';
   const heading = make('h3', 'What changed?', details), body = make('p', 'Choose an action to inspect its evidence.', details);
+  const repeat = make('div', ''); repeat.hidden = true;
+  make('h3', 'Change one thing', repeat);
+  make('p', 'Try a different policy implementation year. Keep the same town, plan and matched seven-day horizon.', repeat);
+  const yearLabel = make('label', 'Policy implementation year ', repeat);
+  const year = make('select', '', yearLabel); year.dataset.testid = 'quick-demo-year';
+  for (const value of [0, 1, 3, 5, 10]) { const option = make('option', `Year ${value}`, year); option.value = String(value); }
+  const change = button('Change year and compare', 'quick-demo-change', () => onChangeYear(Number(year.value)));
+  repeat.append(change);
+  const syncYear = () => { change.disabled = !onChangeYear || state.status !== 'completed' || Number(year.value) === state.feedback?.year; };
+  year.addEventListener('change', syncYear); listeners.push(() => year.removeEventListener('change', syncYear));
   const source = make('p', '', details); source.className = 'first-run-source';
   const close = button('Dismiss', null, () => hide()); close.setAttribute('aria-label', 'Dismiss Start here');
   container.append(root); panelManager?.register('guide', root);
   function update(next = {}) {
     if (disposed) return;
+    const previousStatus = state.status, previousRun = state.runId;
     state = { ...state, ...next };
     const busy = ['waiting', 'observing', 'computing', 'revealing'].includes(state.status);
     quick.disabled = state.ready !== true || busy || !onQuickDemo;
@@ -39,6 +50,10 @@ export function mountFirstRunGuide({ container, onQuickDemo, onStop, onReplay, o
     replay.disabled = state.ready !== true || busy || !onReplay;
     replay.textContent = state.status === 'error' ? 'Retry comparison' : 'Replay comparison';
     inspect.disabled = !onInspect || !(state.observation || state.feedback?.resident);
+    repeat.hidden = state.status !== 'completed' || state.feedback?.kind !== 'matched' || !onChangeYear;
+    if (!repeat.hidden && (previousStatus !== 'completed' || previousRun !== state.runId)) year.value = String(state.feedback.year === 0 ? 3 : 0);
+    year.disabled = busy;
+    syncYear();
     const progress = state.progress;
     const text = state.status === 'error' ? `Comparison failed: ${state.error?.message || state.error || 'Unknown error'}. Retry when ready.`
       : state.status === 'stopped' ? 'Stopped. Replay starts a fresh matched comparison.'
