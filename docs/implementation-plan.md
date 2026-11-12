@@ -1,5 +1,30 @@
 # HappyBearLandia implementation plan
 
+## SHE-34 — stable district schematic mapping
+
+Owned slice: new `world/city/district-grid.js`, its contract documentation and
+`test/district-grid.test.js`, plus this status entry. No shared engine, route,
+scene or metric implementation changes. Prerequisite SHE-33/HBL-W1-020 is Done
+in Linear with PR133 attached; its catalog is absent from this checkout, so this
+slice uses existing `districtHeatmap` records without inventing catalog fields.
+Audit overlap: `scene/mapping.js` already provides building/project slots and
+reverse-scrub tests; `causal/heatmap.js` already computes district measurements.
+Neither supplies a versioned district context tile identity contract.
+
+Delivered `city-district-grid.v1`: exact district IDs scoped by experiment/run,
+initial hash, model version and seed; immutable initial layout; stateless exact
+checkpoint projection; zero/null/missing/absent distinction and unlocated
+unsupported inventory. Acceptance checks real engine paired Month0/16/120 and
+reverse scrub, reordered inventory, foreign provenance, duplicate IDs and source
+immutability. No real geography or per-cell precision is inferred.
+
+Verification (final): `bun test test/district-grid.test.js test/time-machine-heatmap.test.js test/future-machine-scrub-identity.test.js test/city-systems.test.js test/project-unblock.test.js test/server-civic-api.test.js`
+— 30 passed, 0 failed, 449 assertions, 4.28s. `git diff --check` passed.
+No root lint/type-check script is configured for these JavaScript modules.
+Branch `mini/SHE-34`; no commit/PR created by this slice. Browser behavior is
+unchanged, so Playwright/screenshots are not applicable. Follow-on UI wiring and
+geographic coverage remain outside this identity-contract issue.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
