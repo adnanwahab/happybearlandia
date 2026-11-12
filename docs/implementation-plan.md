@@ -1,5 +1,34 @@
 # HappyBearLandia implementation plan
 
+## SHE-113 — automated paired scene evidence
+
+Bounded slice: reuse the normal Future Machine Fork City entry, authoritative
+monthly history and existing physical comparison rules. Detect the earliest
+physical building/link difference rather than assuming Month 16 or using the
+presentation clock. Capture Month 0 and that exact month in one matched run.
+Prerequisites: complete matched 121-frame history, versioned recipe, local Bun
+server and Chromium. Missing or incompatible history fails closed. Unchanged
+runs explicitly report no physical divergence and request only Month 0.
+
+Acceptance: manifest records recipe/scenario version, model version, seed,
+initial hash, experiment, provenance, actual divergence month and physical
+entities. Each capture includes paired state JSON and scene PNG with identical
+camera, viewport and backend. Physical scene divergence is distinct from the
+first policy or financial change; synthetic modeled results are not observations.
+Ownership: capture-evidence.js, focused unit tests, existing browser evidence
+suite and this plan only. No model, production storage or deployment changes.
+
+Verification: 6 focused tests passed, including Month 1/37/120,
+modified buildings, reordered history, unchanged runs and missing/mismatched
+history, removed buildings and nonphysical policy/financial changes. Combined
+capture/diff/construction evidence suite: 18 tests passed. Whitespace check passed.
+Both browser attempts failed before tests: Bun listen returned EADDRINUSE at
+39931 and isolated port 39973. Browser captures remain unverified; no completed
+scene screenshot proof is claimed. Reproduce captures on a host allowing listen:
+`HBL_TWO_FUTURES_PORT=39973 bunx playwright test --config test/one-city-two-futures.browser.config.js --grep 'automated month zero'`.
+Artifacts are written beneath `test-results/two-futures-sprint/` and include
+`capture-manifest.json`, `scene-month-*.png` and `capture-month-*.json`.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
