@@ -19,7 +19,7 @@ test('fork → run → scrub → blink → inspect → share → refresh with ma
  await seek(page,0);await page.getByRole('button',{name:'Show Me What Changed',exact:true}).click();await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.month)).toBeGreaterThan(0);
  await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('building-project-policy-1-0');
  await page.getByRole('button',{name:/building-d1 · schematic/}).last().click();await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('building-d1');
- await seek(page,120);await page.getByRole('button',{name:'Share comparison',exact:true}).click();const link=await page.getByRole('link',{name:'Open comparison link'}).getAttribute('href');
+ await seek(page,120);await page.getByRole('button',{name:'Copy comparison link',exact:true}).click();const link=await page.getByRole('link',{name:'Open comparison link'}).getAttribute('href');
  expect(link).toContain('fm=');expect(link).toContain('month=120');
  const before=await page.evaluate(()=>window.futureMachine.state.diff.metrics);
  await page.reload();await ready(page);expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);expect(await page.evaluate(()=>window.futureMachine.history.experimentId)).toBe(result.id);expect(await page.evaluate(()=>window.futureMachine.state.diff.metrics)).toEqual(before);
@@ -66,7 +66,7 @@ test('40-second demo tour',async({page},testInfo)=>{
  await page.locator('.fm-stage').scrollIntoViewIfNeeded();await hold(25000);
  await seek(page,120);await page.getByRole('button',{name:/building-project-policy-1-0 · schematic/}).last().click();await page.getByRole('region',{name:'Recorded change story'}).scrollIntoViewIfNeeded();
  await page.getByText(/^Recorded model events \(/).click();await hold(32000);
- await page.getByRole('button',{name:'Share comparison',exact:true}).click();await page.getByRole('link',{name:'Open comparison link'}).scrollIntoViewIfNeeded();await hold(36000);
+ await page.getByRole('button',{name:'Copy comparison link',exact:true}).click();await page.getByRole('link',{name:'Open comparison link'}).scrollIntoViewIfNeeded();await hold(36000);
  await page.locator('.fm-stage').scrollIntoViewIfNeeded();await page.screenshot({path:testInfo.outputPath('future-machine-thumbnail.png')});await hold(40000);
  await testInfo.attach('final-comparison-url',{body:page.url(),contentType:'text/plain'});
 });

@@ -63,7 +63,7 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('Chromium controls, loading, failure, k
     expect(await page.evaluate(()=>calls.filter(call=>call[0]==='demoPause').length)).toBe(2);
     await page.getByRole('slider').focus();await page.keyboard.press('End');
     expect(await page.evaluate(()=>calls.some(call=>call[0]==='month'&&call[1]===120))).toBe(true);
-    for(const name of ['Play timelapse','Blink: Future A','Show Me What Changed','Share comparison','Export evidence'])await page.getByRole('button',{name,exact:true}).click();
+    for(const name of ['Play timelapse','Blink: Future A','Show Me What Changed','Copy comparison link','Export evidence'])await page.getByRole('button',{name,exact:true}).click();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
     const seed=page.getByLabel('Seed for next run',{exact:false});
     await seed.fill('0');

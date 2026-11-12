@@ -1003,3 +1003,38 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-48 — accessible copy and browser sharing
+
+Audit: existing Future Machine codec, saved identity validation, selected-month
+URLs, missing-record disclosure and replay tests already implement the underlying
+sharing contract. Reused them; no model, data, seed or provenance changes.
+HBL-W1-033 is SHE-46 and remains Backlog in Linear; existing source/test overlap
+does not mark that broader audit complete. This direct local implementation does
+not promote issues or activate dispatch. Branch: `mini/SHE-48`; no PR/deployment.
+
+Bounded slice owns main.js sharing callbacks, UI controls/styles/docs, matching
+Future Machine tests, a dedicated copy browser suite/config and this plan entry.
+Acceptance: one keyboard-accessible copy action, supported native share,
+announced success/cancel/failure, selectable URL and retry on clipboard denial,
+exact saved scenario/month reopen in a fresh browser context. Pending operations
+disable both actions; late completion cannot overwrite feedback for another URL.
+Existing synthetic model disclosures and URL validation are retained.
+
+Verification: `bun test test/future-machine-share.test.js test/future-machine-ui.test.js`
+passed 13 tests / 123 assertions, with the pre-existing browser-gated test skipped.
+`bunx playwright test --config test/future-machine-copy.browser.config.js` could
+not start its server: Bun reports EADDRINUSE for ports 39884 and 39948, and an
+independent `Bun.serve({port:0,...})` probe also fails. Browser success, screenshots,
+and actual clipboard/reopen acceptance are therefore pending host verification.
+The new suite tests clipboard denial, keyboard selection/retry, fresh-context
+reopen, native success, cancellation and failure using controlled browser APIs.
+Native OS share-sheet integration is not established by those mocks. No lint or
+typecheck scripts are configured. Next: run this suite on a host that permits
+local server binding and review its `copy-fallback.png` screenshot before release.
+
+Final local regression command:
+`bun test test/future-machine-share.test.js test/future-machine-ui.test.js test/future-machine-boundaries.test.js test/future-machine-manifest-validation.test.js`
+passed 25 tests / 331 assertions, 1 browser-gated skip, 0 failures.
+`bunx playwright test --config test/future-machine-copy.browser.config.js --list`
+discovers both new journeys successfully; `git diff --check` passes.

@@ -57,7 +57,7 @@ export function mountFutureMachineUI(root, options = {}) {
   const evidencePanel=node('section'), evidence=node('pre'); const evidenceRaw=node('details');evidenceRaw.append(node('summary','Inspect run and comparison record'),evidence);evidencePanel.append(node('h2','Evidence inspector'),node('p','Click a changed building or WHY on a measured outcome to inspect its recorded event, policy and model rule.'),evidenceRaw);
   inspectors.append(householdPanel,evidencePanel); shell.append(inspectors);
   const footer=node('footer',undefined,'fm-actions');
-  const share=button('Share comparison',()=>action(options.onShare)); const exportButton=button('Export evidence',()=>action(options.onExport));
+  const share=button('Copy comparison link',()=>action(options.onShare)); const exportButton=button('Export evidence',()=>action(options.onExport));
   footer.append(share,exportButton); shell.append(footer); root.append(shell);
   async function action(callback, ...args) {
     if (!callback) return;
@@ -162,6 +162,9 @@ export function createUI(container, callbacks = {}) {
   const difference=doc.createElement('button');difference.type='button';difference.textContent='Difference-only';difference.onclick=()=>callbacks.onMode?.('difference');actions.append(difference);
   const split=doc.createElement('button');split.type='button';split.textContent='Side by side';split.onclick=()=>callbacks.onMode?.('split');actions.append(split);
   const ghostsLabel=doc.createElement('label');const ghosts=doc.createElement('input');ghosts.type='checkbox';ghosts.checked=true;ghosts.onchange=()=>callbacks.onGhosts?.(ghosts.checked);ghostsLabel.append(ghosts,doc.createTextNode(' Ghost differences'));actions.append(ghostsLabel);
+  const browserShare=doc.createElement('button');browserShare.type='button';browserShare.textContent='Share comparison';browserShare.hidden=!callbacks.onBrowserShare;browserShare.onclick=()=>callbacks.onBrowserShare?.();shell.querySelector('footer').append(browserShare);
+  const copyLabel=doc.createElement('label');copyLabel.textContent='Comparison URL';copyLabel.className='fm-copy-url';copyLabel.hidden=true;
+  const copyURL=doc.createElement('input');copyURL.type='text';copyURL.readOnly=true;copyURL.setAttribute('aria-label','Comparison URL');copyURL.onfocus=()=>copyURL.select();copyLabel.append(copyURL);shell.append(copyLabel);
   const shareLink=doc.createElement('a');shareLink.textContent='Open comparison link';shareLink.hidden=true;shareLink.className='fm-share-link';shell.append(shareLink);
   const noPhysical=doc.createElement('p');noPhysical.className='fm-detail';shell.querySelector('.fm-metrics').after(noPhysical);
   function update(patch={}) {
@@ -201,8 +204,11 @@ export function createUI(container, callbacks = {}) {
     });
     noPhysical.textContent=current.diff ? (current.diff.available===false?'Comparison unavailable for this month.':current.diff.physicalCount===0?'No physical building or link difference recorded at this month.':'Physical changes are recorded; inspect the highlighted entities for evidence.') : '';
     difference.disabled=split.disabled=ghosts.disabled=!ready;difference.setAttribute('aria-pressed',String(current.mode==='difference'));split.setAttribute('aria-pressed',String(current.mode==='split'));ghosts.checked=current.ghosts;
+    browserShare.disabled=!ready || !!current.shareBusy;
+    shell.querySelector('footer button').disabled=!ready || !!current.shareBusy || !callbacks.onShare;
+    copyLabel.hidden=true;copyURL.value='';
     shareLink.hidden=!current.shareURL;
-    if(current.shareURL){try{const url=new URL(current.shareURL,doc.baseURI);if(['http:','https:'].includes(url.protocol))shareLink.href=url.href;else{shareLink.removeAttribute('href');shareLink.hidden=true;}}catch{shareLink.removeAttribute('href');shareLink.hidden=true;}}
+    if(current.shareURL){try{const url=new URL(current.shareURL,doc.baseURI);if(['http:','https:'].includes(url.protocol)){shareLink.href=url.href;copyURL.value=url.href;copyLabel.hidden=false;}else{shareLink.removeAttribute('href');shareLink.hidden=true;}}catch{shareLink.removeAttribute('href');shareLink.hidden=true;}}
   }
-  return {stageElement:view.stage,storyElement,update,dispose(){seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
+  return {stageElement:view.stage,storyElement,update,dispose(){browserShare.onclick=null;copyURL.onfocus=null;seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
 }
