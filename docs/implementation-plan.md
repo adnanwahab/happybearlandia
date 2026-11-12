@@ -1003,3 +1003,37 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-136 — optional neighborhood council scene
+
+Next slice: reuse Living City's existing transit policy and same-seed paired
+worker rather than create another council model. Own only Living City page,
+council presentation and focused tests. Existing City Council Night and City
+Speaks remain separate model surfaces. GitHub searches for council and SHE-136
+returned no PR overlap; Linear SHE-141 (HBL-1M-014) is Done.
+Acceptance: opt in, choose an existing capacity option, run one 12-month pair,
+inspect changed/unchanged/unavailable metrics and version/seed/policy provenance,
+leave or revise without a vote gate. Retain the existing 100-pair journey.
+Risks: one synthetic pair is not an empirical forecast or an ensemble estimate;
+shared recipes reopen the existing 100-pair journey. Verify actual policy mapping,
+deterministic replay, browser retry/leave paths and existing Living City tests.
+
+Implemented: optional disclosure and leave control at `/world/living-city/`;
+short comparison uses `runCommuteEnsemble({samples:1})` and the existing replay,
+policy presets, council rules and outcome records. Changed, unchanged and missing
+metrics are explicitly listed; provenance includes scenario/model version,
+starting and paired seeds, pair index, terminal month and policy fields.
+Changing the proposal clears the previous provenance and returns votes to pending.
+The 100-pair action remains available; council votes never gate continuation.
+
+Verification: `bun test test/living-city-council.test.js
+ test/living-city-quests.test.js` passed 7 tests / 121 assertions, including all
+three policy presets, exact summary-to-replay metrics and 100-pair replay.
+`git diff --check` passed. No lint/type-check scripts are defined in package.json.
+Browser coverage added for opt-in/leave, injected comparison failure and retry,
+one-pair output and policy revision. Playwright could not start its local server:
+Bun returned EADDRINUSE on both 3100 and isolated retry port 33136; browser
+behavior remains unverified. Next action: run
+`HBL_PLAYWRIGHT_PORT=<free-port> HBL_PLAYWRIGHT_PARTY_PORT=<free-port>
+bunx playwright test test/e2e/living-city.e2e.js` on a host that permits listening.
+No deployment or production changes; dispatch review remains required.
