@@ -61,3 +61,46 @@ for(const reducedMotion of ['no-preference','reduce'])test(`cinematic recorded d
  await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('24');
  await seek(page,0);expect(await page.evaluate(()=>window.futureMachine.history.plan[0].state.buildings.some(b=>b.id==='building-project-policy-1-0'))).toBe(false);
 });
+
+// Exercise normal entry points with actual Tab/Enter/Space/range keys. Never
+// focus(), click(), fill(), or dispatch synthetic control events in this journey.
+test('keyboard first play completes and exposes named replay, WHY and share controls', async ({page}, testInfo) => {
+  async function tabTo(target, key='Tab') {
+    for(let count=0;count<500;count++) {
+      await page.keyboard.press(key);
+      const focused=page.locator(':focus');
+      await expect(focused).toBeVisible();
+      expect(await focused.evaluate(element=>!element.closest('[hidden], [inert], [aria-hidden="true"]'))).toBe(true);
+      if(await target.evaluate(element=>element===element.ownerDocument.activeElement))return;
+    }
+    throw new Error(`Keyboard could not reach ${await target.getAttribute('aria-label') || await target.textContent()}`);
+  }
+  await page.goto('/');
+  await tabTo(page.getByRole('link',{name:'Play Demo',exact:true}));
+  await page.keyboard.press('Enter');
+  await ready(page);
+  await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.demo?.status),{timeout:75000}).toBe('complete');
+  expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);
+  const difference=page.getByRole('button',{name:'Difference-only',exact:true});
+  const split=page.getByRole('button',{name:'Side by side',exact:true});
+  await tabTo(difference);await page.keyboard.press('Enter');await expect(difference).toHaveAttribute('aria-pressed','true');
+  await tabTo(split);await page.keyboard.press('Space');await expect(split).toHaveAttribute('aria-pressed','true');
+  const slider=page.getByRole('slider',{name:'Shared month for Future A and Future B'});
+  await tabTo(slider,'Shift+Tab');await page.keyboard.press('Home');
+  expect(await slider.inputValue()).toBe('0');
+  await page.keyboard.press('ArrowRight');expect(await slider.inputValue()).toBe('1');
+  await page.keyboard.press('End');await expect(slider).toHaveAttribute('aria-valuetext',/Month 120 \/ 120/);
+  const why=page.getByRole('button',{name:'WHY · Homes',exact:true});
+  await tabTo(why);await page.keyboard.press('Enter');await expect(why).toBeFocused();
+  const story=page.getByRole('region',{name:'Recorded change story'});
+  await expect(story).toContainText('120');await expect(story).toContainText(/synthetic|uncalibrated/i);
+  await expect(page.getByRole('region',{name:'Measured outcomes'})).toContainText('WITHOUT PLAN');
+  await expect(page.getByRole('region',{name:'Measured outcomes'})).toContainText('WITH PLAN');
+  await tabTo(page.getByRole('button',{name:'Share comparison',exact:true}));await page.keyboard.press('Enter');
+  const link=page.getByRole('link',{name:'Open comparison link',exact:true});await tabTo(link);
+  const metrics=await page.evaluate(()=>window.futureMachine.state.diff.metrics);
+  await page.keyboard.press('Enter');await ready(page);
+  expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);
+  expect(await page.evaluate(()=>window.futureMachine.state.diff.metrics)).toEqual(metrics);
+  await page.screenshot({path:testInfo.outputPath('keyboard-completed-replay.png'),fullPage:true});
+});

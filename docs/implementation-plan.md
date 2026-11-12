@@ -1003,3 +1003,34 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-19 — keyboard and screen-reader first-play verification
+
+Audit (2026-11-12): existing `world/future-machine/ui/index.js` already provides
+native Play Demo, split/difference buttons with pressed state, a named shared
+month range with calendar value text, metric-specific WHY buttons, and share
+button/link. Status/error semantics and textual WITHOUT PLAN / WITH PLAN,
+capital-cost and synthetic/uncalibrated labels overlap completed flagship work.
+No simulation, recipe, disclaimer or application implementation is changed.
+
+This bounded slice owns only the keyboard regression appended to
+`test/e2e/two-futures-sprint.e2e.js` and this plan entry on `mini/SHE-19`.
+No delegation or shared interface edits. Existing suite/configuration is reused.
+Acceptance test enters via homepage Play Demo using Tab/Enter, waits for actual
+guided completion, changes view with Enter/Space, scrubs Home/ArrowRight/End,
+opens WHY, reaches share, and reopens the exact month/results using the generated
+link. It checks visible focus outside hidden/inert/aria-hidden ancestors and
+text labels rather than color. Reverse Tab navigation is included. Real replay
+completion is required; no synthetic events or injected simulation data.
+
+Actual checks:
+- `bun test test/future-machine-ui.test.js test/future-machine-share.test.js test/two-futures-demo-controller.test.js`: 15 passed, 1 browser-gated skip, 136 assertions.
+- `git diff --check`: passed.
+- `/Users/wahabma/happybearlandia/node_modules/.bin/playwright test --config test/two-futures-sprint.browser.config.js -g 'keyboard first play'`: blocked before test execution by server bind failure. Retry with `HBL_TWO_FUTURES_PORT=41919` produced the same error. Python loopback bind to port 0 independently returned `PermissionError [Errno 1] Operation not permitted`, confirming sandbox restriction rather than evidence of a port collision.
+
+Pending: run the committed keyboard journey in a host permitting loopback servers,
+inspect its screenshot, and manually check speech with a screen reader. Browser
+semantics and a completed keyboard replay are not claimed verified by this slice.
+No new screenshot, commit, PR, deployment or merge. HBL-W1-013 prerequisite and
+coordinator ownership beyond these local test/document edits remain unconfirmed;
+no dispatch gate or Linear status was changed.
