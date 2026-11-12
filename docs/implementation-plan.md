@@ -1003,3 +1003,50 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Living City Engine — SHE-195
+
+Next integrated slice: extend the monthly City Laboratory authority, not the
+separate minute-based Population engine. Existing demand, employment, housing,
+construction and policy rules remain authoritative. Add durable resident identity
+(one modeled adult per worker), monthly routine/need proxies, social ties, goals
+and event-linked memories; preserve departed residents. Attach versioned assumed
+rule references to events and log every building inventory mutation with its
+construction causes. Bump the model version to prevent silent old-run replay.
+
+Acceptance: twelve-month identity and memory continuity, JSON checkpoint resume
+matches uninterrupted execution, demand-driven openings/closures, building logs,
+seed-matched lasting policy effects, and explicit assumption references. These
+are coarse monthly proxies, not daily routines or calibrated human behavior.
+No cross-model identity mapping is claimed. Existing saved experiment replay
+exposes the added state/events without a new persistence authority. Verification
+and remaining limitations are recorded below after checks.
+
+Delivered: `world/city/residents.js`, engine/system integration, resident validation,
+model 1.1.0 and regression tests. Every system event carries its assumed rule;
+building additions carry exact completion-event dependencies. Six focused tests
+cover annual state, serialized resume, business demand, paired lasting housing
+policy, flood effects, departure, malformed input and uncaused building mutation.
+Future Machine now validates replay states at their actual month instead of
+rewriting the clock to zero; initial input retains its 1 MB bound, while replay
+state allows 10 MB for accumulated memories (same entity/horizon bounds).
+
+Actual verification: city/API/project-unblock/seed-replay suite 30 passed;
+Future Machine data/boundaries/manifest, worker lifecycle and resident suite
+33 passed; final resident-only suite 6 passed. `git diff --check` passed.
+Playwright city-lab smoke was attempted twice but server startup failed with
+EADDRINUSE on ports 3100 and 3195; browser behavior remains unverified. Existing
+API tests exercise real disposable workers, SQLite persistence and deterministic
+replay. No deployment, production changes, commit or PR publication performed.
+
+Limitations: residents are synthetic monthly adult proxies, with a simple social
+tie rule and observational needs; daily activities and playable control remain
+with Population. Context event links are explicitly not causal proof. Persisted
+experiments regenerate resident detail by versioned replay, rather than storing
+every full resident checkpoint in SQLite. Existing City event views expose the
+new records; dedicated resident navigation and cross-model mapping remain future
+work. Old 1.0.0 replay requires its original interpreter, which is not supplied.
+Final API acceptance was strengthened to a complete twelve-month saved experiment:
+12 city-system tests passed, including replayed resident memories and month-12
+resident events from real worker/SQLite integration. This supersedes the earlier
+three-month API fixture. Final whitespace check passed.
