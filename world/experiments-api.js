@@ -66,10 +66,19 @@ export function createExperimentsHandler({ fetchPlan, getArea, runner = runPaire
   const jobs = new Map(); // id → job
   let queue = Promise.resolve(); // one experiment at a time; they are CPU-bound
 
+  function transition(job, state) {
+    job.lifecycle = state;
+    job.status = ({ completed: "done", failed: "error", starting: "running", retrying: "queued" })[state] || state;
+    job.events.push({ sequence: job.events.length, state, at: new Date().toISOString(), attempt: job.attempt });
+  }
+
   function publicJob(job, withResult = true) {
     const out = {
       experimentId: job.id,
       status: job.status,
+      lifecycle: job.lifecycle,
+      events: job.events,
+      attempt: job.attempt,
       createdAt: job.createdAt,
       plan: { planId: job.plan.planId, label: job.plan.label, unsupported: job.plan.unsupported },
       params: job.params,
@@ -141,33 +150,50 @@ export function createExperimentsHandler({ fetchPlan, getArea, runner = runPaire
     };
 
     const id = `exp_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
-    const job = { id, status: "queued", createdAt: new Date().toISOString(), plan, params, progress: { step: 0, totalSteps: 0 }, result: null, error: null };
+    const job = { id, status: "queued", createdAt: new Date().toISOString(), plan, params, progress: { step: 0, totalSteps: 0 }, result: null, error: null, lifecycle: null, events: [], attempt: 1 };
     jobs.set(id, job);
-    while (jobs.size > LIMITS.keepJobs) jobs.delete(jobs.keys().next().value);
+    while (jobs.size > LIMITS.keepJobs) {
+      const terminal = [...jobs.values()].find(j => ["completed", "failed", "canceled"].includes(j.lifecycle));
+      if (!terminal) break;
+      jobs.delete(terminal.id);
+    }
 
-    queue = queue.then(async () => {
-      job.status = "running";
-      try {
-        const town = await buildExperimentTown(location, params.maxPeople, params.procedural);
-        job.result = await runner({
-          town,
-          plan,
-          seeds: params.seeds,
-          years: params.years,
-          checkpoints: params.checkpoints,
-          baseSeed: params.baseSeed,
-          onProgress: (p) => { job.progress = { step: p.step, totalSteps: p.totalSteps }; },
-          shouldStop: () => !jobs.has(id),
-        });
-        job.result.meta.location = location;
-        job.status = "done";
-      } catch (err) {
-        job.status = "error";
-        job.error = String(err?.message || err);
-      }
-    });
+    transition(job, "queued");
+    enqueue(job);
 
     return json(publicJob(job, false), 202);
+  }
+
+  function enqueue(job) {
+    job.execution = queue.then(async () => {
+      if (job.lifecycle === "canceled") return;
+      const { params, plan } = job;
+      const { location } = params;
+      transition(job, "starting");
+      try {
+        const town = await buildExperimentTown(location, params.maxPeople, params.procedural);
+        if (job.lifecycle === "canceled") return;
+        transition(job, "running");
+        const result = await runner({
+          town, plan, seeds: params.seeds, years: params.years,
+          checkpoints: params.checkpoints, baseSeed: params.baseSeed,
+          onProgress: (p) => {
+            if (job.lifecycle !== "canceled") job.progress = { step: p.step, totalSteps: p.totalSteps };
+          },
+          shouldStop: () => job.lifecycle === "canceled",
+        });
+        if (job.lifecycle === "canceled") return;
+        result.meta.location = location;
+        job.result = result;
+        transition(job, "completed");
+      } catch (err) {
+        if (job.lifecycle === "canceled") return;
+        job.error = String(err?.message || err);
+        transition(job, "failed");
+      }
+    });
+    queue = job.execution;
+    // The API owns this promise; failures must never poison the shared queue.
   }
 
   return async function handleExperiments(request) {
@@ -180,9 +206,28 @@ export function createExperimentsHandler({ fetchPlan, getArea, runner = runPaire
       if (request.method === "GET") return json({ experiments: [...jobs.values()].reverse().map((j) => publicJob(j, false)) });
       return json({ error: "Use GET or POST" }, 405);
     }
-    if (request.method !== "GET") return json({ error: "Use GET" }, 405);
-    const job = jobs.get(decodeURIComponent(rest));
+    const [id, action, extra] = rest.split("/");
+    const job = jobs.get(decodeURIComponent(id));
     if (!job) return json({ error: "No such experiment (they are kept in memory and reset on deploy)" }, 404);
+    if (request.method === "POST" && !extra && action === "cancel") {
+      if (!["completed", "failed", "canceled"].includes(job.lifecycle)) transition(job, "canceled");
+      return json(publicJob(job));
+    }
+    if (request.method === "POST" && !extra && action === "retry") {
+      if (!["failed", "canceled"].includes(job.lifecycle)) return json({ error: "Only failed or canceled runs can retry" }, 409);
+      // Wait for any canceled in-flight attempt before resetting its cancellation flag.
+      await job.execution;
+      if (!["failed", "canceled"].includes(job.lifecycle)) return json({ error: "Retry already requested" }, 409);
+      job.attempt += 1;
+      job.error = null;
+      job.result = null;
+      job.progress = { step: 0, totalSteps: 0 };
+      transition(job, "retrying");
+      const response = json(publicJob(job), 202);
+      enqueue(job);
+      return response;
+    }
+    if (request.method !== "GET" || action) return json({ error: "Unsupported operation" }, 405);
     return json(publicJob(job));
   };
 }

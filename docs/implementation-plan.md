@@ -1003,3 +1003,27 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-80 — explicit Plan simulation lifecycle
+
+Next integrated slice: extend the existing `/api/world/experiments` authority and
+`/world/plan` entry point with observed queued, starting, running, completed,
+failed, canceled and retrying lifecycle records. Preserve legacy done/error status
+for existing Constitution consumers. Add cooperative cancellation and explicit
+retry of failed/canceled jobs using identical pinned inputs; no automatic retry.
+Acceptance: backend transition/cancellation race tests, UI status/control tests,
+and a reproducible lifecycle receipt. Risks: in-memory jobs reset on restart;
+cancellation can only stop CPU work at existing paired-run yield boundaries.
+
+Delivered locally: additive backend lifecycle/event/attempt fields preserve the
+legacy status contract; Plan status, cancel/retry and transport refresh controls
+use backend snapshots. No unrelated runner interfaces changed. Contract and
+reproduction commands: [run-lifecycle.md](run-lifecycle.md); observed controlled
+receipt: [she80-lifecycle.json](evidence/she80-lifecycle.json).
+Verification: 20 tests / 96 assertions pass across lifecycle UI/backend, experiment
+API (including real tiny-town runner), civic API integration and run manager.
+JavaScript syntax and whitespace checks pass. Focused Playwright test added but
+not executed: server startup returned EADDRINUSE on both 3100 and alternate 3380.
+Browser behavior remains unverified until that startup blocker is resolved.
+No package lint/type-check commands exist. No commit, PR, merge or deployment
+performed; this source increment is ready for review with that browser limit.

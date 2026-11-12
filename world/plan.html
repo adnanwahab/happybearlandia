@@ -76,9 +76,11 @@
       <label>Futures <input id="seeds" type="number" min="1" max="32" value="8" /></label>
       <label>Years <input id="years" type="number" min="1" max="10" value="5" /></label>
       <button id="run" class="primary">Simulate</button>
+      <button id="cancelRun" hidden>Cancel run</button>
+      <button id="retryRun" hidden>Retry same run</button>
     </div>
     <div class="progress" id="progress" hidden><i></i></div>
-    <div class="muted" id="status" style="margin-top:8px"></div>
+    <div class="muted" id="status" role="status" aria-live="polite" style="margin-top:8px"></div>
   </section>
 
   <section class="card" id="futuresCard" hidden>
@@ -121,6 +123,7 @@
 </main>
 
 <script type="module">
+import { showRunLifecycle } from "./run-lifecycle-ui.js";
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -255,44 +258,73 @@ function render(result) {
   $("disclaimer").textContent = meta.disclaimer;
 }
 
+let currentJob = null;
+let busy = false;
+const lifecycleNodes = { status: $("status"), run: $("run"), cancel: $("cancelRun"), retry: $("retryRun"), progress: $("progress") };
+function observe(job) {
+  currentJob = job;
+  const terminal = showRunLifecycle(job, lifecycleNodes);
+  const { step = 0, totalSteps = 0 } = job.progress || {};
+  $("progress").firstElementChild.style.width = totalSteps ? `${100 * step / totalSteps}%` : "0%";
+  if (job.lifecycle === 'completed' || job.status === 'done') render(job.result);
+  return terminal;
+}
+async function requestJob(url, options) {
+  const response = await fetch(url, options);
+  const job = await response.json();
+  if (!response.ok) throw new Error(job.error || `HTTP ${response.status}`);
+  return job;
+}
+async function follow(job) {
+  while (!observe(job)) {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    job = await requestJob(job.statusUrl);
+  }
+}
+async function task(work) {
+  if (busy) return;
+  busy = true;
+  $("run").disabled = true;
+  $("retryRun").disabled = true;
+  try { await work(); }
+  catch (error) {
+    $("status").textContent = `Connection/request error: ${error.message}. Last observed state: ${currentJob?.lifecycle || 'none'}.`;
+    // Keep the last observed backend state and allow reconnection to this run.
+    if (currentJob) {
+      $("retryRun").hidden = false;
+      $("retryRun").textContent = 'Refresh run status';
+    } else $("run").disabled = false;
+  } finally { busy = false; $("retryRun").disabled = false; }
+}
 async function run() {
+  if (busy) return;
   const body = planBody();
   if (!body) return;
   const [lat, lng] = $("place").value.split(",").map(Number);
   Object.assign(body, {
     location: { lat, lng, name: $("place").selectedOptions[0]?.textContent },
-    seeds: Number($("seeds").value),
-    years: Number($("years").value),
+    seeds: Number($("seeds").value), years: Number($("years").value),
   });
-  $("run").disabled = true;
-  $("progress").hidden = false;
-  $("progress").firstElementChild.style.width = "0";
-  $("status").textContent = "Starting…";
-  try {
-    const res = await fetch("/api/world/experiments", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
-    const job = await res.json();
-    if (!res.ok) throw new Error(job.error || `HTTP ${res.status}`);
-    for (;;) {
-      await new Promise((r) => setTimeout(r, 1000));
-      const s = await (await fetch(job.statusUrl)).json();
-      const { step = 0, totalSteps = 0 } = s.progress || {};
-      $("progress").firstElementChild.style.width = totalSteps ? `${(100 * step) / totalSteps}%` : "4%";
-      $("status").textContent = s.status === "queued" ? "Waiting for another simulation to finish…"
-        : `Simulating futures… ${step}/${totalSteps || "?"} world-years`;
-      if (s.status === "error") throw new Error(s.error);
-      if (s.status === "done") {
-        render(s.result);
-        $("status").textContent = `Done in ${(s.result.meta.elapsedMs / 1000).toFixed(0)}s.`;
-        break;
-      }
-    }
-  } catch (err) {
-    $("status").innerHTML = `<span class="error">${esc(err.message || err)}</span>`;
-  } finally {
-    $("run").disabled = false;
-    $("progress").hidden = true;
-  }
+  currentJob = null;
+  $("cancelRun").hidden = $("retryRun").hidden = true;
+  $("futuresCard").hidden = $("chartsCard").hidden = $("actionsCard").hidden = true;
+  $("status").textContent = 'Submitting simulation request…';
+  await task(async () => follow(await requestJob('/api/world/experiments', {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
+  })));
 }
+$("cancelRun").onclick = async () => {
+  if (!currentJob) return;
+  $("cancelRun").disabled = true;
+  try { observe(await requestJob(`${currentJob.statusUrl}/cancel`, { method: 'POST' })); }
+  catch (error) { $("status").textContent = `Cancellation request failed: ${error.message}. Cancellation is unconfirmed.`; }
+  finally { $("cancelRun").disabled = false; }
+};
+$("retryRun").onclick = () => task(async () => {
+  const refresh = $("retryRun").textContent === 'Refresh run status';
+  $("retryRun").textContent = 'Retry same run';
+  await follow(await requestJob(refresh ? currentJob.statusUrl : `${currentJob.statusUrl}/retry`, refresh ? undefined : { method: 'POST' }));
+});
 
 $("run").onclick = run;
 if (planBody() && params.get("autorun") !== "0") run();
