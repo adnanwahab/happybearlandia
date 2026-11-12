@@ -1,3 +1,4 @@
+import {beginSelectionWindow,recordSelectionChanges} from './neighborhood-selection.js';
 import {prepareNeighborhoodTraditions,recordNeighborhoodTraditions,inspectNeighborhoodTraditions} from './neighborhood-traditions.js';
 import {modelHouseholdRisk} from './household-risk.js';
 import {householdMoneyHistory} from './money-history.js';
@@ -60,9 +61,9 @@ export function stepPopulation(model,{tick=model.tick+1,minutes=15,config}={}){
  if(!Number.isInteger(tick)||tick<=model.tick)throw new Error("Population tick must increase monotonically.");
  if(!Number.isFinite(minutes)||minutes<=0||minutes>1440)throw new Error("Step minutes must be >0 and <=1440.");
  if(config){const next=normalizePopulationConfig({...model.config,...config});for(const id of["population","seed","snapshotId","householdSize","medianIncome","incomeSpread","employmentRate","calendarStartEpochDay"])if(next[id]!==model.config[id])throw new Error(`${id} changes require explicit population reset.`);model.config=next;}
- initializeBasicNeeds(model);model.tick=tick;const end=model.minute+minutes;
+ initializeBasicNeeds(model);const selectionWindow=beginSelectionWindow(model);model.tick=tick;const end=model.minute+minutes;
  while(model.minute<end-1e-9){
-  const traditionAttendance=prepareNeighborhoodTraditions(model);advanceHouseRoommates(model);processHouseholdTasks(model);prepareHouseholdSystems(model);advanceConfiguredParties(model);prepareConfiguredHouseLife(model);const start=model.minute;let delta=Math.min(end-start,15-start%15,nextHouseholdSystemBoundary(model,start,end)-start);
+  const selectionBefore=beginSelectionWindow(model);const traditionAttendance=prepareNeighborhoodTraditions(model);advanceHouseRoommates(model);processHouseholdTasks(model);prepareHouseholdSystems(model);advanceConfiguredParties(model);prepareConfiguredHouseLife(model);const start=model.minute;let delta=Math.min(end-start,15-start%15,nextHouseholdSystemBoundary(model,start,end)-start);
   for(const event of model.config.events)for(const boundary of[event.startMinute,event.startMinute+event.durationMinutes])if(boundary>start+1e-9)delta=Math.min(delta,boundary-start);
   for(const party of Object.values(model.houseParties?.active??{}))if(party.until>start+1e-9)delta=Math.min(delta,party.until-start);
   for(const home of Object.values(model.houses?.homes??{})){const date=home.systems?.dates?.active;if(date)for(const boundary of [date.untilMinute,date.travel?.etaMinute,date.localMovement?.etaMinute,date.activity?date.activity.startedMinute+date.activity.durationMinutes:0])if(boundary>start+1e-9)delta=Math.min(delta,boundary-start);}
@@ -79,9 +80,9 @@ export function stepPopulation(model,{tick=model.tick+1,minutes=15,config}={}){
   stepActivities(model,delta,effects);recordNeighborhoodTraditions(model,start,start+delta,traditionAttendance);if(model.social?.cityTraditions?.some(t=>t.current))populationSocial(model).stepTraditions();if(model.social?.promises?.some(p=>p.status==='scheduled'))populationSocial(model).stepPromises();advanceHouseholdSystems(model,start,start+delta);advanceHouseRoommates(model);advanceConfiguredHouseLife(model);advanceConfiguredParties(model);processHouseholdTasks(model);
   const day=Math.floor(model.minute/1440);
   if(day>model.lastDay){finalizeChildrenDay(model,day-1);finalizeEmploymentDay(model,day-1);for(const {type,...promotion}of finalizeHouseProgressionDay(model,day-1))recordEvent(model,'HOUSE_CAREER_PROMOTION',promotion);const dailyEffects=eventEffects(model,model.minute);stepLocalEconomy(model,dailyEffects);householdDecisions(model,dailyEffects);syncRoommateHomes(model);for(const home of Object.values(model.houses?.homes??{}))if(home.progression)updateHouseholdGoals(model,home);model.lastDay=day;}
-  model.lastEffects=eventEffects(model,model.minute);
+  model.lastEffects=eventEffects(model,model.minute);recordSelectionChanges(model,selectionBefore,selectionWindow);
  }
- advanceHotspotSocial(model,(a,b)=>populationSocial(model).interact(a,b,'talk'));aggregate(model);model.timeSeries.push({tick:model.tick,minute:model.minute,...model.metrics});if(model.timeSeries.length>240)model.timeSeries.shift();return model;
+ advanceHotspotSocial(model,(a,b)=>populationSocial(model).interact(a,b,'talk'));recordSelectionChanges(model,selectionWindow,selectionWindow);model.selectionActivity={tick:model.tick,fromMinute:selectionWindow.minute,toMinute:model.minute,changed:selectionWindow.changed};aggregate(model);model.timeSeries.push({tick:model.tick,minute:model.minute,...model.metrics});if(model.timeSeries.length>240)model.timeSeries.shift();return model;
 }
 
 export function refreshPopulationMetrics(model){aggregate(model);return model.metrics;}

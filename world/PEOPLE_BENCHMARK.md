@@ -29,3 +29,13 @@ node scripts/benchmark-people.js http://127.0.0.1:PORT 10000,50000,100000 1 /pri
 ```
 
 Or run `living-city-world.e2e.js`'s benchmark case with `HBL_BENCH_POPULATIONS=10000,50000,100000` and an isolated Playwright webServer. Product's temporary config is `/private/tmp/hbl-living-product.config.mjs`; its server shuts down when tests finish.
+
+## Interaction sensitivity research
+
+The headless `bun scripts/benchmark-interaction-ablation.js` entry uses the same
+synthetic geography and actual Population rules. It measures five transport
+feedback arms with matched seeds, headline outcomes, sampled resource-incidence
+graphs and paired 95% bands. See [E2 coverage and protocol](../docs/research/million-agent-architectures.md).
+This first slice **does not** supply a complete no-interaction control and cannot
+authorize an “interacting residents” claim. Runtime version and source hashes
+in each report supersede the historical throughput table above.

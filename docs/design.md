@@ -117,3 +117,16 @@ inbox as drafts for human triage. Every claim links to a library entry or is
 explicitly unsupported; metadata citations do not establish a mechanism.
 Experiments declare a hypothesis, data sources and acceptance criteria. The
 role never dispatches work. See [the role contract](../ops/research_agents/README.md).
+
+## Storm hazard fields
+
+Sculpt a Storm includes a Canvas2D depth/drainage inspector using the same
+selected arm, grid cell and recorded step as its terrain view. Depth is in
+metres; compiled drainage capacity is in metres per model step, not measured
+outflow. Fixed colour bands show source values, with zero distinct from missing
+or invalid values. Crosses identify unknown tiles, diagonal marks identify
+sampled estimates when supplied, and dots identify unquantified structural
+model uncertainty. Current single-run frames are modeled values, not sampled
+probabilities. No calibrated uncertainty interval is available. Selection shows
+recipe/model versions, backend, seed, arm, step, rain input and synthetic-source
+limitations. With Canvas2D unavailable, the textual selected-cell reading remains.

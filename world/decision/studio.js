@@ -1,3 +1,4 @@
+import { renderParameterDiff } from './parameter-diff.js';
 import { mountContinuity } from './continuity-view.js';
 import { decisionSnapshot, localContextId } from './continuity.js';
 import { housingModel, compileHousingPlan, createHousingScenarios, stressPresets, validateHousingParameters, resolveHousingModel } from '../models/housing/index.js';
@@ -231,9 +232,11 @@ function renderParameters() {
     renderFields(); renderCurve(); uncertainty.append(distribution, fields); row.append(mini, uncertainty); const role = definition.role || definition.controlGroup || definition.parameterRole; const group = /policy|lever/.test(role || '') || !role && policyIds.has(definition.id) ? 'policy' : 'world'; groups[group].append(row);
   }
 }
-function updateRunDescription() { $('#run-description').textContent = `${Number($('#run-count').value).toLocaleString()} futures × ${state.scenarios.length} scenarios. Same seed sequence, different choices.`; }
+function updateParameterDiff() { renderParameterDiff($('#scenario-parameter-diff'), currentInput(), activeModel, state.selected); }
+function updateRunDescription() { updateParameterDiff(); $('#run-description').textContent = `${Number($('#run-count').value).toLocaleString()} futures × ${state.scenarios.length} scenarios. Same seed sequence, different choices.`; }
 function updateDraftTrust() { trust.update({ experiment: currentInput(), runs: [], aggregates: [], comparisons: [], model: activeModel, evidence: collectedEvidence(), readOnly: state.readonly }); }
 function markDirty() {
+  updateParameterDiff();
   if (state.readonly) return;
   state.dirty = true; state.generation++; updateAdvancedStudio(); $('#share-experiment').disabled = true;
   if (!state.results) updateDraftTrust();

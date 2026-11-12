@@ -448,8 +448,27 @@ export function applyConditions(world, simTown, conditions, {applyInitialWealth=
   if (Number.isFinite(c.mobilityMult)) world.transitServiceMult = Math.max(0.3, Number(world.transitServiceMult??1) * c.mobilityMult);
 }
 
-export async function simulateYear({ town, proposalIds, year, packageLabel, seed, adoptedYearByProposal = null, yearStartMs, stormSeverityValue = null, runSeed = null, collectPeople = false, conditions = null, longitudinalState = null }) {
+export async function simulateYear({ town, proposalIds, year, packageLabel, seed, adoptedYearByProposal = null, yearStartMs, stormSeverityValue = null, runSeed = null, collectPeople = false, conditions = null, longitudinalState = null, yieldControl = null, shouldStop = null }) {
   const simTown = cloneTown(town);
+  // Preserve whole-minute model ordering; wall time controls scheduling only.
+  // Callers already in a dedicated worker can retain the unchunked path.
+  let sliceStart = performance.now();
+  const step = async (minutes) => {
+    if (!yieldControl) {
+      if (shouldStop?.()) throw new Error("experiment cancelled");
+      world.step(minutes);
+      return;
+    }
+    for (let minute = 0; minute < minutes; minute++) {
+      if (shouldStop?.()) throw new Error("experiment cancelled");
+      world.step(1);
+      if (performance.now() - sliceStart >= 8) {
+        await yieldControl();
+        sliceStart = performance.now();
+        if (shouldStop?.()) throw new Error("experiment cancelled");
+      }
+    }
+  };
   const annualRunSeed=`${runSeed??seed}:year:${year}`;
   const world = createWorld(simTown, { startMinute: 0, runSeed:annualRunSeed, ...(longitudinalState?{state:structuredClone(longitudinalState)}:{}) });
   for(const building of world.buildings)if(building.state)building.state.flooded=false;
@@ -497,7 +516,7 @@ export async function simulateYear({ town, proposalIds, year, packageLabel, seed
 
   for (let d = 0; d < days; d++) {
     if (d === stormDay) {
-      world.step(12 * 60);
+      await step(12 * 60);
       const severity = (Number.isFinite(stormSeverityValue) ? Number(stormSeverityValue) : stormSeverity(seed, year)) * (Number.isFinite(conditions?.stormMult) ? conditions.stormMult : 1);
       const totalFloodMitigation = Number(staged.floodMitigation || 0);
       const displacedNoMitigation = estimateStormDisplacement(world, severity, 0);
@@ -512,16 +531,16 @@ export async function simulateYear({ town, proposalIds, year, packageLabel, seed
 
       const storm = applyStorm(world, severity);
       displacedResidents += storm.displaced;
-      world.step(6 * 60); // to 18:00
+      await step(6 * 60); // to 18:00
     } else {
-      world.step(18 * 60); // to 18:00
+      await step(18 * 60); // to 18:00
     }
 
     const parks = world.buildings.filter((b) => b.kind === "park");
     const litterAt18 = parks.length ? parks.reduce((s, p) => s + Number(p.state?.litter || 0), 0) / parks.length : 0;
     litterSamples.push(litterAt18);
 
-    world.step(6 * 60); // midnight reset -> yesterday becomes available
+    await step(6 * 60); // midnight reset -> yesterday becomes available
 
     collector.sample(world);
     if (perPerson) {

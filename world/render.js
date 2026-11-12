@@ -2443,7 +2443,7 @@ if(!embedMode&&!businessMode&&!simulationId&&!loadedExperiment&&!renderBenchmark
     recipe=structuredClone({origin,area,maxPeople,proposalIds:pkg?.proposalIds||[],label:pkg?.label||'No plan',source:pkg?.source||'local',year:3,days:7});
     return recipe;
   };
-  const provenance=()=>({authority:'legacy-world',modelVersion:world.modelVersion||null,modelSource:'world/sim.js',rulesSource:'world/policy.js',rulesVersion:null,seed:town.seedKey,origin:{...origin},days:7,year:3,proposalIds:[...(recipe?.proposalIds||[])],limitations:['Detached matched week, not a continuation of the live resident clock. Legacy resident indexes share deterministic buildTown inputs only; Population and monthly City are not mapped.']});
+  const provenance=()=>({authority:'legacy-world',modelVersion:world.modelVersion||null,modelSource:'world/sim.js',rulesSource:'world/policy.js',rulesVersion:null,seed:town.seedKey,origin:{...origin},days:7,year:recipe?.year??3,proposalIds:[...(recipe?.proposalIds||[])],limitations:['Detached matched week, not a continuation of the live resident clock. Legacy resident indexes share deterministic buildTown inputs only; Population and monthly City are not mapped.']});
   const state=()=>({...controller?.getState(),ready:true,observation,feedback:measured,configuration,workerTimings,provenance:provenance()});
   const refresh=()=>{const value=state();guide?.update(value);$('firstRunGuide')?.toggleAttribute('data-demo-engaged',Boolean(observation||measured));$('firstRunGuide')?.toggleAttribute('data-demo-complete',value.status==='completed');if(configurationSummary)configurationSummary.textContent='Detached comparison: '+(configuration?.text||'Quick demo tests the local Balanced plan in a detached matched week.')+(measured?.unsupported?.length?' Unsupported proposals: '+measured.unsupported.map(item=>typeof item==='string'?item:item.id||item.label||'Unidentified proposal').join(', ')+'.':'')+' The ring marks an actual resident position, including indoors; it does not indicate a new building or measured policy effect.';return value;};
   const inspectResident=()=>{
@@ -2507,7 +2507,11 @@ if(!embedMode&&!businessMode&&!simulationId&&!loadedExperiment&&!renderBenchmark
     now:()=>performance.now()
   });
   guide=mountFirstRunGuide({container:document.body,panelManager:visualPanels,
-    onQuickDemo:()=>controller.start({recipeVersion:1}),onStop:()=>controller.stop(),onReplay:()=>controller.getState().runId===null?controller.start({recipeVersion:1}):controller.replay(),onInspect:inspectResident,
+    onQuickDemo:()=>controller.start({recipeVersion:1}),onStop:()=>controller.stop(),onChangeYear:year=>{
+      if(controller.getState().status!=='completed'||![0,1,3,5,10].includes(year)||year===readRecipe().year)return;
+      recipe={...readRecipe(),year};
+      return controller.start({recipeVersion:1,year});
+    },onReplay:()=>controller.getState().runId===null?controller.start({recipeVersion:1}):controller.replay(),onInspect:inspectResident,
     onCompare:()=>controller.start({recipeVersion:1}),onStorm:async()=>{controller.stop();await livingWorld?.setActive(false);const record=triggerStorm();visualComparisonResult=null;measured=stormFeedback(record,{minute:world.t,seed:town.seedKey});overlayMode='flood';if(overlayEl)overlayEl.value='flood';guide.show();refresh();},
     onTour:()=>{controller.stop();guide.hide();playDemo();},onExperiment:()=>{controller.stop();guide.hide();runExperiment10Years();}
   });

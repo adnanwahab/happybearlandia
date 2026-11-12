@@ -3,7 +3,7 @@ import { VERSION } from '../city/contracts.js';
 import { demoRunId } from './demo.js';
 import { mountCityHeatmap } from './heatmap.js';
 import { mountLivingNetwork } from '../living-city/network.js';
-import { cityInventory, compareInventory, indexConstructionEvidence } from './history.js';
+import { cityInventory, compareInventory, indexConstructionEvidence, hasInventoryEntity } from './history.js';
 
 const find = id => document.getElementById(id);
 const runButton = find('run');
@@ -14,6 +14,32 @@ const eventPicker = find('event');
 const checkpointStatus = find('checkpoint');
 const inventory = find('inventory');
 const inspectorHost = find('inspector');
+const copyInvestigation = find('copy-investigation');
+const investigationStatus = find('investigation-status');
+const investigationFallback = find('investigation-fallback');
+let investigationURL;
+
+function clearInvestigation() {
+  investigationURL = undefined;
+  copyInvestigation.disabled = true;
+  investigationStatus.textContent = '';
+  investigationFallback.hidden = true;
+}
+
+copyInvestigation.onclick = async () => {
+  const url = investigationURL;
+  if (!url) return;
+  try {
+    await navigator.clipboard.writeText(url);
+    if (investigationURL === url) investigationStatus.textContent = 'Investigation link copied.';
+  } catch {
+    if (investigationURL !== url) return;
+    investigationStatus.textContent = 'Could not copy automatically. Select and copy the link below.';
+    investigationFallback.hidden = false;
+    find('investigation-link').value = url;
+    find('investigation-link').select();
+  }
+};
 const runPicker = find('saved-run');
 const playbackButton = find('playback');
 const playbackSpeed = find('playback-speed');
@@ -29,6 +55,7 @@ networkDetails.addEventListener('toggle', () => {
 });
 const checkpointCacheSize = 12;
 const labels = {
+  districts: 'Districts',
   buildings: 'Buildings',
   households: 'Households',
   workers: 'People',
@@ -190,6 +217,8 @@ function updateURL(month, eventId, entityId) {
   url.searchParams.set('runId', selectedRun.context.runId);
   url.searchParams.set('month', month);
   url.searchParams.delete('targetId');
+  url.searchParams.delete('entityId');
+  url.searchParams.delete('tick');
   for (const [key, value] of [['event', eventId], ['inspectEntity', entityId]]) {
     if (value) url.searchParams.set(key, value);
     else url.searchParams.delete(key);
@@ -198,6 +227,11 @@ function updateURL(month, eventId, entityId) {
 }
 
 function inspect(month, entityId, eventId) {
+  clearInvestigation();
+  if (entityId) {
+    investigationURL = location.href;
+    copyInvestigation.disabled = false;
+  }
   for (const button of inventory.querySelectorAll('button')) {
     button.setAttribute('aria-pressed', String(button.dataset.entityId === entityId));
   }
@@ -324,6 +358,7 @@ async function showMonth(month, { eventId, entityId } = {}) {
   if (!run) return false;
   const request = ++requestNumber;
   monthReady = false;
+  clearInvestigation();
   updatePlaybackControls();
   slider.value = month;
   eventPicker.value = eventId ?? '';
@@ -353,7 +388,13 @@ async function showMonth(month, { eventId, entityId } = {}) {
     checkpointStatus.textContent = previous
       ? `Stored month ${month} · changes since month ${month - 1}`
       : month === run.firstMonth ? `Stored month ${month} · starting state` : `Stored month ${month}`;
+    const staleEntity = entityId && !hasInventoryEntity(rows, entityId);
+    if (staleEntity) {
+      entityId = undefined;
+      updateURL(month, eventId, entityId);
+    }
     inspect(month, entityId, eventId);
+    if (staleEntity) investigationStatus.textContent = 'The linked entity is unavailable at this month. Showing the stored city checkpoint.';
     displayedMonth = month;
     monthReady = true;
     updatePlaybackControls();
@@ -377,6 +418,7 @@ async function openScenario({ runId, month, eventId, entityId, record = false, r
   requestNumber++;
   monthReady = false;
   selectedRun = undefined;
+  clearInvestigation();
   pausePlayback();
   playbackStatus.textContent = '';
   retry.hidden = true;

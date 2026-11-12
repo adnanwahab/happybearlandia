@@ -40,3 +40,14 @@ test('state emissions follow caption, status and whole seconds instead of 20 Hz 
  for(time=50;time<1000;time+=50)tick();expect(states.length).toBe(initial);
  time=1000;tick();expect(states.length).toBe(initial+1);c.dispose();
 });
+
+test('preparation retains pause intent, restart resets it, and takeover cancels ticks',()=>{
+ let time=0,tick;const months=[],states=[];
+ const c=createDemoController({now:()=>time,schedule:f=>(tick=f,1),unschedule:()=>{},onMonth:m=>months.push(m),onState:s=>states.push(s)});
+ c.prepare();c.togglePause();expect(c.getState()).toMatchObject({status:'preparing',paused:true});
+ c.start(null,{paused:c.getState().paused});time=10000;tick();expect(months).toEqual([0]);
+ c.togglePause();time=15000;tick();expect(c.getState().elapsedMs).toBe(5000);
+ c.prepare();expect(c.getState()).toMatchObject({status:'preparing',paused:false,elapsedMs:0});
+ c.start(null);c.takeover();time=60000;tick();expect(c.getState().status).toBe('manual');
+ expect(states.at(-1).caption).toContain('Manual control');c.dispose();
+});

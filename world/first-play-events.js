@@ -1,5 +1,7 @@
 /** Pure first-play contract. See docs/first-play-event-contract.md. */
 export const FIRST_PLAY_SCHEMA_VERSION = 'hbl.first-play.v1';
+export const FIRST_PLAY_CURRENT_SCHEMA_VERSION = 'hbl.first-play.v2';
+const modelVersions = Object.freeze({'hbl.first-play.v1':'city-systems.1.0.0','hbl.first-play.v2':'city-systems.1.1.0'});
 export const MAX_FIRST_PLAY_EVENT_BYTES = 1024;
 const choice = (...values) => value => values.includes(value);
 const integer = max => value => Number.isSafeInteger(value) && value >= 0 && value <= max;
@@ -9,7 +11,7 @@ const fields = Object.freeze({
   demo_start: { mode: choice('fresh', 'saved') },
   first_input: { control: choice('policy', 'timeline', 'scenario', 'playback') },
   first_divergence: { facts: value => exact(value, {
-    source: choice('recorded-paired-history'), modelVersion: choice('city-systems.1.0.0'),
+    source: choice('recorded-paired-history'), modelVersion: choice(...Object.values(modelVersions)),
     dataVersion: choice('future-machine.v1'), seed: integer(0xffffffff),
     month: value => integer(120)(value) && value > 0,
     scenario: choice('plan'), synthetic: choice(true),
@@ -37,13 +39,14 @@ function exact(value, rules) {
 export function validateFirstPlayEvent(event) {
   try {
     if (!exact(event, {
-      schemaVersion: choice(FIRST_PLAY_SCHEMA_VERSION),
+      schemaVersion: value => typeof value === 'string' && Object.hasOwn(modelVersions, value),
       type: value => typeof value === 'string' && Object.hasOwn(fields, value),
       sessionId: session,
       elapsedMs: integer(86_400_000),
       payload: value => Boolean(value && typeof value === 'object'),
     })) return { ok: false, code: 'INVALID_ENVELOPE' };
     if (!exact(event.payload, fields[event.type])) return { ok: false, code: 'INVALID_PAYLOAD' };
+    if (event.type === 'first_divergence' && event.payload.facts.modelVersion !== modelVersions[event.schemaVersion]) return { ok: false, code: 'INVALID_PAYLOAD' };
     if (new TextEncoder().encode(JSON.stringify(event)).byteLength > MAX_FIRST_PLAY_EVENT_BYTES)
       return { ok: false, code: 'EVENT_TOO_LARGE' };
     return { ok: true };

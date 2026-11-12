@@ -6,7 +6,7 @@ This implements a coarse, monthly first release of the supplied Months 10–12 s
 
 ## Model and synchronization
 
-`contracts.js` defines the eight v1 system contracts, deterministic counter draws, assignment invariants and an atomic capacity registry. `engine.js` exposes `createEngine`, `addIntervention`, `scheduleShock`, and `cityMetrics`. Each of twelve packs implements initialize/proposeStep/resolve/commit/observe.
+`contracts.js` defines the eight v1 system contracts, deterministic counter draws, assignment invariants and an atomic capacity registry. `engine.js` exposes `createEngine`, `addIntervention`, `scheduleShock`, and `cityMetrics`. Each of thirteen packs implements initialize/proposeStep/resolve/commit/observe.
 
 All proposals read a recursively frozen STATE(t). Resolvers operate on an unpublished draft, following explicit topologically sorted dependencies; pack registration order does not change outcomes. Commits publish system summaries and observations after resolution. Failure discards the draft. Annual demographics and quarterly development use the same monthly clock; business openings/closures happen quarterly. This is a district planning clock, separate from rendering and daily population activities.
 
@@ -14,7 +14,7 @@ Resolution graph:
 
 ```
 environment → governance → utilities → development → construction
-→ transport → businesses → jobs → housing → services → demographics → finance
+→ transport → businesses → jobs → housing → services → demographics → finance → residents
 ```
 
 Housing/jobs affect next month's transport, accessibility affects current housing choice, and finance feeds next month's funding. These one-month lags are deliberate. A resolver may see prior resolved draft changes; a proposal cannot. Individual capacity reservations and multi-resource reservations are deterministic and atomic.
@@ -172,3 +172,32 @@ variance is the average population variance inside each arm. Mean paired changes
 are separate. These descriptive squared-unit quantities are conditional on the
 synthetic model; missing outcomes may bias the subset. They are neither confidence
 intervals nor a finding that policy or luck always dominates.
+
+## Guided housing versus drainage comparison
+
+The City Lab's **Compare housing versus drainage** button runs
+`housing-drainage.v1` from `policy-comparison.js` through the ordinary experiment
+API. It uses a fresh synthetic 120-household inventory, five matched seeds
+42–46, 36 months, and a Riverside flood beginning in month 24 for three months
+at severity 0.7. It does not use the custom form or imported inventory.
+
+The baseline has no intervention. Housing proposes six homes for USD 840,000;
+drainage proposes the supported resilience project, +0.4 protection for
+USD 200,000. Both pass through ordinary funding, permitting, construction and
+completion gates. The resilience fraction reduces effective shock severity and
+flood damage probability; it is not a hydraulic drainage model. The recipe and
+model versions are retained in initial provenance, alongside the complete
+inventory, scenarios, shock, seed and horizon in the saved manifest.
+
+Compare shows final metric means/ranges and event-time flood damage means with
+observed event counts (five expected per arm). Repairs can erase final damage
+stocks; missing events must not be interpreted as zero damage. Ending cash
+includes ordinary operations and revenue as well as project spending. These are
+uncalibrated modeled outcomes; lower rents or less homelessness are not promised.
+Saved experiments reopen the same evidence and Enter future recomputes a selected
+arm/seed using the existing version check.
+
+Verification: `bun test --timeout 15000 test/policy-comparison.test.js` covers
+all matched seeds, actual funded completion, independent monthly replay,
+immutable inputs and API persistence/query/replay. The focused browser journey
+is in `test/e2e/city-systems.e2e.js`.

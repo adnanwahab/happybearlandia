@@ -1,7 +1,7 @@
 import { createMediaPreferences } from '../../../shared/media/preferences.js';
 import {createRendererBackend} from './renderer-backend.js';
 import {createCanvasStage,fitCanvasCamera} from './canvas-stage.js';
-import {createVisualEffects} from './effects.js';
+import {createVisualEffects, recordedEntityLabel} from './effects.js';
 import {createSpatialMapping} from './mapping.js';
 
 /** Synchronous host API; renderer loading is deferred so fallback remains usable. */
@@ -105,7 +105,7 @@ export function createStage(container, {onSelect,history} = {}) {
     arms.forEach((arm,i)=>{renderer.setViewport(i*segment,0,segment,height);renderer.setScissor(i*segment,0,segment,height);renderer.render(scenes[arm],camera);});
     draws++;
     const visibleLabels=new Set();
-    arms.forEach((arm,i)=>{const records=arm?projection?.b:projection?.a;if(!records)return;for(const row of records){if(mode==='difference'&&!changed(row))continue;const count=(arm?currentFrame?.plan:currentFrame?.baseline)?.state?.units?.filter(u=>u.buildingId===row.id).length;const isChanged=changed(row);if(!count&&!isChanged)continue;const point=new THREE.Vector3(row.x,row.height+8,row.z).project(camera);const x=(i+(point.x+1)/2)*segment,y=(1-point.y)/2*height;if(x<i*segment||x>(i+1)*segment||y<0||y>height)continue;const key=`${arm}:${row.collection}:${row.id}`;visibleLabels.add(key);let label=labelNodes.get(key);if(!label){label=doc.createElement('span');labelNodes.set(key,label);labels.append(label);}const text=count?`${count} homes${isChanged?' · added':''}`:`Project · ${row.construction?.stage??"stage unavailable"} · ${row.construction?.progressRatio==null?"progress unavailable":Math.round(row.construction.progressRatio*100)+"% work"}`;const measureKey=`${text}:${isChanged}:${segment}`;if(label.textContent!==text)label.textContent=text;label.style.cssText=`position:absolute;left:${x}px;top:${y}px;transform:translate(-50%,-100%);font:${isChanged?'700 13':'11'}px system-ui;color:${isChanged?'#dcffbd':'#adc9d5'};background:#0a1a24d9;padding:5px 8px;border-radius:5px;white-space:nowrap`;label.style.maxWidth=`${Math.max(1,segment-12)}px`;label.style.overflow="hidden";label.style.textOverflow="ellipsis";
+    arms.forEach((arm,i)=>{const records=arm?projection?.b:projection?.a;if(!records)return;for(const row of records){if(mode==='difference'&&!changed(row))continue;const count=(arm?currentFrame?.plan:currentFrame?.baseline)?.state?.units?.filter(u=>u.buildingId===row.id).length;const isChanged=changed(row);if(!count&&!isChanged)continue;const point=new THREE.Vector3(row.x,row.height+8,row.z).project(camera);const x=(i+(point.x+1)/2)*segment,y=(1-point.y)/2*height;if(x<i*segment||x>(i+1)*segment||y<0||y>height)continue;const key=`${arm}:${row.collection}:${row.id}`;visibleLabels.add(key);let label=labelNodes.get(key);if(!label){label=doc.createElement('span');labelNodes.set(key,label);labels.append(label);}const text=recordedEntityLabel(row,count,currentDiff,arm?'plan':'baseline');const measureKey=`${text}:${isChanged}:${segment}`;if(label.textContent!==text)label.textContent=text;label.style.cssText=`position:absolute;left:${x}px;top:${y}px;transform:translate(-50%,-100%);font:${isChanged?'700 13':'11'}px system-ui;color:${isChanged?'#dcffbd':'#adc9d5'};background:#0a1a24d9;padding:5px 8px;border-radius:5px;white-space:nowrap`;label.style.maxWidth=`${Math.max(1,segment-12)}px`;label.style.overflow="hidden";label.style.textOverflow="ellipsis";
       if(label.measureKey!==measureKey){label.halfWidth=Math.min(label.offsetWidth,Math.max(1,segment-12))/2;label.measureKey=measureKey;}
       label.style.left=`${Math.max(i*segment+label.halfWidth+6,Math.min((i+1)*segment-label.halfWidth-6,x))}px`;}});
     for(const [key,label] of labelNodes)if(!visibleLabels.has(key)){label.remove();labelNodes.delete(key);}
@@ -120,7 +120,7 @@ export function createStage(container, {onSelect,history} = {}) {
       for(const row of records) {
         if(mode==='difference'&&!changed(row))continue;
         const button=doc.createElement('button');button.type='button';button.style.cssText='display:inline-block;margin:4px 4px 0 0;font:11px system-ui;padding:5px 7px;min-height:32px';
-        button.textContent=`${row.id}${row.construction?` · ${row.construction.stage??"stage unavailable"} · ${row.construction.units??"unavailable"} planned homes`:""} · ${row.mapping === 'synthetic-layout'?'schematic':'OSM footprint'}${row.progress===undefined?'':` · recorded progress ${Math.round(row.progress*100)}%`}`;
+        button.textContent=`${row.id}${row.construction?` · ${row.construction.stage??"stage unavailable"} · ${row.construction.units??"unavailable"} planned homes`:""} · ${row.mapping === 'synthetic-layout'?'schematic · unlocated':'OSM footprint'}${row.progress===undefined?'':` · recorded progress ${Math.round(row.progress*100)}%`}`;
         button.onclick=()=>onSelect?.({collection:row.collection,id:row.id,arm:side?'plan':'baseline'});section.append(button);
       }
       list.append(section);
@@ -138,8 +138,8 @@ export function createStage(container, {onSelect,history} = {}) {
     const box=views.getBoundingClientRect(),x=event.clientX-box.left,y=event.clientY-box.top;
     const arm=['split','difference'].includes(mode)?(x<width/2?0:1):(mode==='plan'?1:0),segment=['split','difference'].includes(mode)?width/2:width;
     const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(((x%segment)/segment)*2-1,1-y/height*2),camera);
-    const hit=ray.intersectObjects(meshes.filter(m=>m.visible&&m.parent===scenes[arm]&&!m.userData.ghost))[0];
-    if(hit)onSelect?.({...hit.object.userData,ghost:undefined});
+    const hit=ray.intersectObjects(meshes.filter(m=>m.visible&&m.parent===scenes[arm]&&!m.userData.ghost),false)[0];
+    if(hit){const {collection,id,arm}=hit.object.userData;onSelect?.({collection,id,arm});}
   }
   views.addEventListener('click',pick);
   // Native ESM uses the host's same-version curated Three import map.
@@ -175,7 +175,7 @@ export function createStage(container, {onSelect,history} = {}) {
     whenReady:()=>ready,
     update(frame,diff) {
       if(disposed)return;
-      if(!frame?.baseline?.state||!frame?.plan?.state){projection=null;currentFrame=null;currentDiff=null;canvasStage?.update(null,null);releaseMeshes();list.replaceChildren();legend.textContent='City snapshots unavailable';status.textContent='Both futures are required for a matched scene.';draw();return;}
+      if(!frame?.baseline?.state||!frame?.plan?.state){projection=null;currentFrame=null;currentDiff=null;selected=null;cameraTransition=null;canvasStage?.update(null,null);releaseMeshes();labels.replaceChildren();labelNodes.clear();list.replaceChildren();legend.textContent='City snapshots unavailable';status.textContent='Both futures are required for a matched scene.';draw();return;}
       currentFrame=frame;currentDiff=diff;const first=!projection;projection=mapping.frame(frame.baseline.state,frame.plan.state);
       legend.textContent=`Month ${frame.month} · ${projection.label}`;
       if(!error)status.textContent=renderBackend==='pending'?'Inventory ready · graphics loading in the background.':(renderBackend==='webgpu'?'WebGPU · ':'WebGL · ')+(projection.physicalDifference?'Recorded building differences · wireframe ghosts show presence in the other future.':'No recorded physical building difference at this month.');

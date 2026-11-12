@@ -26,6 +26,26 @@ let currentPair;
 let enteredSnapshot;
 let homeOpen = false;
 let replayRevision = 0;
+let challengeStarted = false;
+let inspected = false;
+let shared = false;
+let recordedEvent = null;
+
+function challengeStatus() {
+  find('challenge-status').textContent = !challengeStarted ? 'Ready when you are.'
+    : !currentPair ? '1/4 · Choose a policy, then compare futures.'
+    : !inspected ? '2/4 · Futures computed. Inspect one recorded event.'
+    : !shared ? '3/4 · Event inspected. Copy the exact replay receipt to finish.'
+    : '4/4 · Challenge complete. Receipt copied — a clean browser can replay this future.';
+}
+function resetEvidence() {
+  inspected = false;
+  shared = false;
+  recordedEvent = null;
+  find('event-inspector').open = false;
+  find('event-record').textContent = '';
+  challengeStatus();
+}
 
 worker.addEventListener('message', ({ data }) => {
   const request = pending.get(data.id);
@@ -168,6 +188,8 @@ async function openPair(index) {
   const revision = ++replayRevision;
   const experiment = activeExperiment;
   const { seed, amount } = experiment;
+  currentPair = null;
+  resetEvidence();
   find('sample').value = index;
   find('share').value = '';
   find('copy').disabled = true;
@@ -178,6 +200,13 @@ async function openPair(index) {
     if (revision !== replayRevision) return;
     enteredSnapshot = null;
     currentPair = pair;
+    recordedEvent = pair.intervention.events.find(event => event.system === 'policies')
+      ?? pair.intervention.events[0] ?? null;
+    find('event-record').textContent = recordedEvent
+      ? JSON.stringify({ scenarioVersion: QUEST_SCENARIO_VERSION, modelVersion: VERSION,
+          scenarioSeed: seed, seed: pair.seed, amount, index, months,
+          startMonth: starting.month, arm: 'intervention', event: recordedEvent }, null, 2)
+      : 'No recorded event is available for this pair.';
     find('view').value = 'intervention';
     const { baseline, intervention } = pair;
     measurements(find('pair'), [
@@ -214,6 +243,7 @@ async function openPair(index) {
     find('copy').textContent = 'Copy';
     find('copy').disabled = false;
     history.replaceState(history.state, '', url);
+    challengeStatus();
   } catch (error) {
     if (revision !== replayRevision) return;
     find('pair-status').textContent = `This pair could not be replayed. ${error.message}`;
@@ -225,6 +255,7 @@ async function compare({ amount, index, seed }) {
   activeExperiment = { seed, amount };
   enteredSnapshot = null;
   currentPair = null;
+  resetEvidence();
   find('view').value = 'starting';
   find('test').disabled = true;
   find('investment').disabled = true;
@@ -256,17 +287,46 @@ find('visit').onclick = () => {
   find('visit').setAttribute('aria-expanded', String(homeOpen));
   if (homeOpen) showHome(selection());
 };
-find('investment').onchange = setProposal;
+find('begin').onclick = () => {
+  challengeStarted = true;
+  find('investment').focus();
+  challengeStatus();
+};
+find('event-inspector').ontoggle = () => {
+  if (find('event-inspector').open && recordedEvent && currentPair) {
+    inspected = true;
+    challengeStatus();
+  }
+};
+find('investment').onchange = () => {
+  replayRevision++;
+  currentPair = null;
+  resetEvidence();
+  find('results').hidden = true;
+  find('share').value = '';
+  find('copy').disabled = true;
+  find('view').value = 'starting';
+  showSnapshot();
+  setProposal();
+};
 find('test').onclick = () => compare({ seed: starting.seed, amount: Number(find('investment').value) });
 find('sample').onchange = () => openPair(Number(find('sample').value));
 find('view').onchange = () => { enteredSnapshot = null; showSnapshot(); };
 find('copy').onclick = async () => {
   const input = find('share');
+  if (!input.value || !currentPair) return;
+  const receipt = input.value;
+  const revision = replayRevision;
   try {
-    await navigator.clipboard.writeText(input.value);
+    await navigator.clipboard.writeText(receipt);
+    if (revision !== replayRevision || input.value !== receipt) return;
+    shared = inspected;
+    challengeStatus();
     find('copy').textContent = 'Copied';
   } catch {
+    if (revision !== replayRevision || input.value !== receipt) return;
     input.select();
+    find('challenge-status').textContent = 'Clipboard unavailable. Select and copy the replay link manually; automatic completion is unavailable.';
   }
 };
 

@@ -1,3 +1,5 @@
+import { mountHazardField } from './hazard-field.js';
+import { mountControlReadiness } from '../onboarding/first-run-repairs.js';
 import { consequences, impactMetrics } from './compare.js';
 import { simulateWaterGPU } from './gpu.js';
 import { mountStormScene } from './scene.js';
@@ -22,6 +24,12 @@ let selected = CROSSING_CELL;
 let comparison;
 let timer;
 let ensembleWorker;
+mountControlReadiness(document, control => {
+  if (submit.disabled) return 'Computing matched storms. Wait for results before changing inputs or starting another run.';
+  if (control.id === 'ensemble' && ensembleWorker) return 'The 100-storm comparison is running. Wait or select Cancel ensemble.';
+  return 'Run matched storms to use playback, save this draft, or download its results.';
+}, document.querySelector('main'));
+
 
 function cellLabel(index) {
   return `row ${Math.floor(index / SIZE) + 1}, column ${index % SIZE + 1}`;
@@ -31,6 +39,8 @@ const scene = mountStormScene(find('scene'), { onCell(index) {
   selected = index;
   renderScene();
 } });
+
+const hazard = mountHazardField(find('hazard-field'), index => { selected = index; renderScene(); });
 
 function element(tag, text) {
   const node = document.createElement(tag);
@@ -122,6 +132,8 @@ function renderScene() {
   const depth = arm.water.frames[tick];
   const { terrain } = arm.input;
   scene.render({ size: SIZE, terrain, depth, buildings, roads, selected });
+  hazard.render({ size: SIZE, depth, drains: arm.input.drains, selected,
+    provenance: `${comparison.recipe.version} · ${arm.water.modelVersion} · ${arm.water.backend} solver · seed ${comparison.recipe.seed} · ${armPicker.value} · step ${tick} · rain ${comparison.recipe.rainRate} m per step · synthetic terrain and drain inputs; closed edges, illustrative runoff rules` });
   const entity = buildings.find(row => row.cells.includes(selected)) ?? roads.find(row => row.cells.includes(selected));
   find('selection').textContent = `Selected ${cellLabel(selected)}${entity ? ' · ' + entity.name : ''} · Depth ${number.format(depth[selected])} m`;
   find('step-label').value = `Step ${tick} of ${comparison.recipe.steps}`;
@@ -182,12 +194,14 @@ async function run(recipe, step, arm) {
   find('ensemble-status').textContent = '';
   submit.disabled = true;
   for (const input of form.querySelectorAll('input')) input.disabled = true;
-  branches.disabled = true;
+  branches.disabled = armPicker.disabled = true;
+  for (const button of document.querySelectorAll('#edits button, #plan-edits button, #preset')) button.disabled = true;
   enableResultActions(false);
+  tickPicker.disabled = play.disabled = true;
   let completed = false;
   find('run-status').textContent = 'Computing matched water simulations…';
-  const inputs = { baseline: compileStorm({ ...recipe, edits: [] }), adjusted: compileStorm(recipe) };
   try {
+    const inputs = { baseline: compileStorm({ ...recipe, edits: [] }), adjusted: compileStorm(recipe) };
     let runs;
     try {
       runs = [await simulateWaterGPU(inputs.baseline), await simulateWaterGPU(inputs.adjusted)];
@@ -198,11 +212,12 @@ async function run(recipe, step, arm) {
     completed = true;
     find('run-status').textContent = `Matched storms ready · ${runs[0].backend} water solver`;
   } catch (error) {
-    find('run-status').textContent = error.message;
+    find('run-status').textContent = `${error.message} Select Run matched storms to retry.`;
   } finally {
     submit.disabled = false;
     for (const input of form.querySelectorAll('input')) input.disabled = false;
-    branches.disabled = false;
+    branches.disabled = armPicker.disabled = false;
+    for (const button of document.querySelectorAll('#edits button, #plan-edits button, #preset')) button.disabled = false;
     enableResultActions(completed);
     find('response-link').hidden = !completed;
   }

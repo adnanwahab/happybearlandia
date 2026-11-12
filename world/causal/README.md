@@ -10,8 +10,23 @@ Only mapped district `city-policy` interventions with exact allowlisted type, am
 
 Open `/world/causal.html` and choose **Record deterministic scenario** once. This explicitly records the seed-2911 fixture through POST `/api/causality/world-scenario`. The endpoint accepts no client payload and rejects foreign origins. The fixed run is idempotent after completion, and later visits load it read-only.
 
-The timeline requests the immutable checkpoint for the selected month and, where available, the previous month. It compares the displayed fields for buildings, households, people, businesses and district links. When the model records a housing project's completion and produces its building, selecting the new building opens the corresponding construction trace. Other entities open their recorded history. The event picker jumps directly to a recorded event. The page preserves unrelated URL parameters and uses `month`, `event` and `inspectEntity` for its own selection.
+The timeline requests the immutable checkpoint for the selected month and, where available, the previous month. It compares the displayed fields for districts, buildings, households, people, businesses and district links. When the model records a housing project's completion and produces its building, selecting the new building opens the corresponding construction trace. Other entities open their recorded history. The event picker jumps directly to a recorded event. The page preserves unrelated URL parameters and uses `month`, `event` and `inspectEntity` for its own selection.
 
 The Time Machine links to the [Living Newspaper](../newspaper/index.html) and [Surprising Discoveries](../discoveries/index.html). Both read the same stored simulation through the causal API. The newspaper presents selected events in yearly editions. Discoveries scores completed monthly World observations using explicit rules and links to the evidence.
 
 This view covers months 0–20 of the synthetic monthly CityState fixture. The general World map, the minute-based population runtime, arbitrary run selection, and branching from the selected month require additional integration. Checkpoints provide recorded playback; verified recomputation requires independently recorded target digests.
+
+### Sharing an investigation
+
+Select a building or district in the inventory and choose **Copy investigation
+link**. The absolute URL retains the saved `runId`, checkpoint `month`, canonical
+`inspectEntity`, and any selected construction `event`, along with unrelated URL
+context. Opening it in another browser session reads the same server's saved
+checkpoints without recording a new run. Clipboard denial reveals a selectable
+link for manual copying. Copy is disabled during checkpoint loading and failure.
+
+If an entity ID is absent from the checkpoint and its previous-month removal
+rows, the page clears that selection, shows a notice, and keeps the stored month.
+An unavailable event falls back to the requested month and entity; an unavailable
+run retains the existing explicit error and retry action. Links depend on the
+server retaining that run, and do not embed or upload checkpoint data.
