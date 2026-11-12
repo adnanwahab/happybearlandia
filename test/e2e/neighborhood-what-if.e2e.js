@@ -19,6 +19,16 @@ test('place an addition, compare paired days, inspect residents, cancel and clea
  await panel.getByRole('button',{name:'Simulate before & after'}).click();
  await expect(panel.locator('[data-status]')).toContainText('Comparison complete',{timeout:90000});
  await expect(panel.locator('[data-summary]')).toContainText('200 synthetic residents');await expect(panel.locator('[data-metrics] tr')).toHaveCount(3);
+ await expect(panel.locator('[data-pair-context]')).toContainText('seed 42 in both arms');
+ await expect(panel.locator('[data-pair-output] table')).toHaveCount(2);
+ const firstId=await panel.getByRole('textbox',{name:'First resident ID'}).inputValue();
+ await panel.getByRole('textbox',{name:'Second resident ID'}).fill('missing-resident');
+ await panel.getByRole('button',{name:'Compare residents',exact:true}).click();
+ await expect(panel.locator('[data-pair-output]')).toContainText('Resident unavailable');
+ await expect(panel.locator('[data-pair-output] table')).toHaveCount(1);
+ await panel.getByRole('textbox',{name:'Second resident ID'}).fill(firstId);
+ await panel.getByRole('button',{name:'Compare residents',exact:true}).click();
+ await expect(panel.locator('[data-pair-output] table')).toHaveCount(2);
  await panel.getByRole('button',{name:'Housing burden',exact:true}).click();await expect(panel.locator('[data-explanation]')).toContainText('improved');
  await panel.getByRole('button',{name:'Average commute',exact:true}).click();
  const resident=panel.locator('[data-residents] button').first();if(await resident.count()){await resident.click();await expect(panel.locator('[data-status]')).toContainText('Comparison resident');}

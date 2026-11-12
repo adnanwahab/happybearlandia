@@ -1003,3 +1003,37 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-133 — two seeded residents (2026-11-12)
+
+Slice: extend the existing World → What if? paired-day result with two resident
+ID inputs, showing each resident in both recorded arms. Ownership: what-if panel,
+new read-only resident selection helper, focused tests and this plan. No parallel
+implementation is needed for this integrated slice.
+
+Audit: SHE-142 is Done / PR50, but scalar oracle files are absent at local base
+b963dd3. SHE-226 is Done / PR110 and overlaps household multi-seed exploration;
+this slice stays on existing Population paired-day records, not City households,
+30-seed inference or a new oracle adapter. GitHub resident and SHE-133 searches
+found no matching implementation PR. Existing what-if records already preserve
+seed, project, horizon and matched generated resident IDs.
+
+Acceptance: choose any two IDs after a real paired run; show baseline, addition
+and differences with units, null commute and missing-ID states; explain identity,
+seed and causal limits. Verify repeatability, zero change, arbitrary IDs and UI
+selection/invalidation. Risk: this is one synthetic 24-hour intervention at tick
+0, not arbitrary policy timelines or a production resident cross-model mapping.
+
+Delivered locally: pair inputs and two recorded-outcome tables in the existing
+What If entry point; exact-ID checks, missing resident/arm identity and null-trip
+handling; visible seed/model/input-derived run identity, intervention timing,
+units and causal limits. Added module README and bounded responsive styles.
+Actual verification: 32 Bun tests passed / 362 assertions across neighborhood,
+Population and worker suites. Browser test expanded for pair selection and
+missing-ID recovery, but execution blocked before browser startup: server bind
+EADDRINUSE on both 3100 and alternate 39331. No browser/layout proof claimed.
+No lint/type scripts are configured. Final syntax/build and whitespace checks
+are recorded with the handoff. No merge, deployment or production mutation.
+Remaining scope: arbitrary policy timelines and persistent comparison records
+would require a separate data/editor slice; oracle and City household mappings
+remain unsupported. Dispatch/release review remains required by SHE-133.
