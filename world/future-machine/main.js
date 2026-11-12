@@ -1,3 +1,4 @@
+import {consumeDemoClick,createDemoTiming,visibleCity} from './demo-performance.js';
 import {renderEvidenceTrail} from './story/evidence-trail-view.js';
 import { constructionReceipts } from './evidence.js';
 import { createDemoController } from './demo-controller.js';
@@ -14,6 +15,21 @@ const app=document.querySelector('#app');
 let inspectorEntity=null,outcomeTimeline=null;
 let history=null,diffs=[],story=null,stage=null,storyDispose=()=>{},request=null,playTimer=null,disposed=false;
 let state={status:'idle',message:'Fork the same city. Change one decision. Watch ten modeled years.',recipe:structuredClone(DEFAULT_RECIPE),month:0,playing:false,mode:'split',ghosts:true,experimentId:null,shareURL:null,error:null};
+const demoTiming=createDemoTiming();
+let entryClick=consumeDemoClick(),timingFrame=null;
+function measureVisibleDemo(generation,warm){
+  let painted=false;
+  const check=()=>{
+    if(disposed||generation!==demoGeneration)return;
+    const canvas=ui.stageElement.querySelector('canvas');
+    if(state.status==='ready'&&history&&visibleCity(canvas)){
+      if(painted){demoTiming.finish(stage.getStats().backend,warm);return;}
+      painted=true;
+    }else painted=false;
+    timingFrame=requestAnimationFrame(check);
+  };
+  timingFrame=requestAnimationFrame(check);
+}
 const stats={startedAt:performance.now(),readyMs:null,runMs:null};
 app.replaceChildren();
 const ui=createUI(app,{onRun:run,onConfigure:configure,onCancel:cancel,onMonth:manualMonth,onPlay:manualPlay,onDemo:playDemo,onDemoPause:()=>director.togglePause(),onMetric:explainMetric,onMode(mode){state.mode=mode;stage?.setMode(mode);update();},onGhosts(value){state.ghosts=value;stage?.setGhosts(value);update();},onDirector:direct,onShare:share,onExport:exportReport});
@@ -29,7 +45,7 @@ function manualPlay(value){demoGeneration++;director.stop();setPlaying(value);}
 function withContext(description){return {...description,summary:`${description.summary} Run ${history?.experimentId??'unavailable'} · ${history?.modelVersion??'unavailable'} · seed ${history?.seed??'unavailable'} · Month ${state.month}. Intervention: ${history?.recipe.intervention?`${history.recipe.intervention.type}, proposed amount ${history.recipe.intervention.amount}, district ${history.recipe.intervention.districtId}, ${history.recipe.intervention.cost.toLocaleString('en-US')} illustrative USD`:'none (matched control)'}.`,limitations:[...(description.limitations||[]),'Synthetic, uncalibrated City model; a controlled model contrast is not empirical causal certainty.']};}
 function entityDescription(entity){const detail=describeSelection(frame(),diffs[state.month],entity);const receipts=constructionReceipts(history,entity,state.month);return {...detail,entity:{collection:entity.collection,id:entity.id},evidence:[...detail.evidence,...receipts],summary:detail.summary.replace('No matching entity event was supplied.',receipts.length?'No new event at the selected month; historical completion evidence follows.':'No matching entity event was supplied.')+(receipts.length?` Recorded construction completion at Month ${receipts[0].month} created ${receipts[0].payload.units} homes under ${receipts[0].policyId}; exact model-owned building/project relationship.`:'')};}
 function physicalStop(){for(const diff of diffs){const entity=diff.entities?.find(e=>e.physical&&e.collection==='buildings');if(entity)return {month:diff.month,entity:{collection:entity.collection,id:entity.id}};}return null;}
-async function playDemo(){const generation=++demoGeneration;director.stop();state.demoExplained=false;setPlaying(false);if(!history||JSON.stringify(history.recipe)!==JSON.stringify(DEFAULT_RECIPE))await run(structuredClone(DEFAULT_RECIPE));if(generation!==demoGeneration||!history||state.status!=='ready'||JSON.stringify(history.recipe)!==JSON.stringify(DEFAULT_RECIPE))return;state.mode='split';stage.setMode('split');stage.resetCamera();director.start(physicalStop());}
+async function playDemo(){if(timingFrame)cancelAnimationFrame(timingFrame);const warm=Boolean(history&&JSON.stringify(history.recipe)===JSON.stringify(DEFAULT_RECIPE));demoTiming.start(entryClick??undefined,entryClick===null?'button':'homepage');entryClick=null;const generation=++demoGeneration;director.stop();state.demoExplained=false;setPlaying(false);if(!history||JSON.stringify(history.recipe)!==JSON.stringify(DEFAULT_RECIPE))await run(structuredClone(DEFAULT_RECIPE));if(generation!==demoGeneration||!history||state.status!=='ready'||JSON.stringify(history.recipe)!==JSON.stringify(DEFAULT_RECIPE))return;state.mode='split';stage.setMode('split');stage.resetCamera();director.start(physicalStop());measureVisibleDemo(generation,warm);}
 function explainMetric(key,stop=true){if(!history)return;if(stop){demoGeneration++;director.stop();setPlaying(false);}const source={homes:'housingUnits',commute:'meanTravelMinutes',spending:'capitalSpending'}[key]||key;const metric=diffs[state.month]?.metrics?.[source];const changed=diffs[state.month]?.entities?.filter(e=>e.physical)||[];const entity=changed.find(e=>e.collection==='buildings')||changed[0];const details=entity?entityDescription({collection:entity.collection,id:entity.id}):{evidence:[],limitations:[]};showStory(withContext({...details,title:`WHY · ${source} · Month ${state.month}`,summary:`WITHOUT PLAN ${metric?.baseline??'unavailable'}; WITH PLAN ${metric?.plan??'unavailable'}; delta ${metric?.delta??'unavailable'} ${metric?.unit??''}. ${details.summary||'No related physical entity event is recorded at this selected month.'} Housing supply changes when the City construction model completes a funded project; entitlement alone does not create homes. Link travel time is a coarse modeled network mean, not individual commute. Spending is cumulative recorded capital expense.`}));}
 
 function configure(recipe){try{state.recipe=validateRecipe(recipe);state.error=null;state.message=history?`Next run configured with seed ${state.recipe.seed}. Displayed results and shared link still refer to saved seed ${history.seed}.`:`Configured seed ${state.recipe.seed}. Fork City runs two matched futures.`;update();}catch(error){state.error=error.message;update();}}
@@ -63,10 +79,10 @@ async function run(recipe=state.recipe,savedId=null,selectedMonth=0){
 }
 async function share(){if(!history)return;updateURL();update();try{await navigator.clipboard.writeText(state.shareURL);state.message='Comparison link copied. It includes the versioned recipe, saved experiment and selected month.';}catch{state.message='Your comparison link is ready below. Copy it to reopen this month.';}update();}
 function exportReport(){if(!history)return;const report=createEvidenceReport(history,{month:state.month,diff:diffs[state.month],story});const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='future-machine-evidence.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
-function dispose(){if(disposed)return;disposed=true;request?.abort();clearInterval(playTimer);storyDispose();outcomeTimeline?.dispose();stage?.dispose();ui.dispose();director.dispose();history=null;diffs=[];story=null;state.frame=null;state.diff=null;window.removeEventListener('pagehide',dispose);}
+function dispose(){if(disposed)return;if(timingFrame)cancelAnimationFrame(timingFrame);demoTiming.cancel();disposed=true;request?.abort();clearInterval(playTimer);storyDispose();outcomeTimeline?.dispose();stage?.dispose();ui.dispose();director.dispose();history=null;diffs=[];story=null;state.frame=null;state.diff=null;window.removeEventListener('pagehide',dispose);}
 window.addEventListener('pagehide',dispose);
 window.addEventListener('pageshow',event=>{if(event.persisted&&disposed)location.reload();});
 // Read-only diagnostics for local resource measurements and integration checks.
-window.futureMachine={get history(){return history;},get state(){return {...state};},get stats(){return {...stats,scene:stage?.getStats?.()};},dispose};
+window.futureMachine={get history(){return history;},get state(){return {...state};},get stats(){return {...stats,demoTiming:demoTiming.result,scene:stage?.getStats?.()};},dispose};
 update();
 try{const context=parseShareURL(location.href);if(context)void run(context.recipe,context.experimentId,context.month);else if(new URLSearchParams(location.search).get('demo')==='1')void playDemo();}catch(error){state.status='error';state.error=`Invalid shared comparison: ${error.message}`;state.message='Use Fork City to start a valid bounded comparison.';update();}

@@ -73,3 +73,15 @@ The 50-second `demo-controller.js` is a presentation clock, not a simulator. It 
 - `createOutcomeTimeline(container,{history,onMonth}) -> {update(month),dispose()}` consumes the same immutable121snapshots. Point/keyboard selections emit integer recordedmonth through coordinator manualMonth; no independent clock/simulation. Metric units from METRIC_UNITS; unavailable measurements stay gaps.
 - `recordedConstructionProgress(snapshot)` returns recorded stage/work/units and exact model-owned housing-project building identity. Work ratio is not elapsed calendar fraction or completed housing. Actual inventory determines building presence; layoutv2 preserves one schematic slot across supported project completion.
 - `buildEvidenceTrail(history,{collection,id,month})`: arm-scoped nodes/edges contain exact record, first observed month, eventID and unavailable reasons. `renderEvidenceTrail(container,history,selection,{onJump})` presents those records. Completion jumps retain building selection; all evidence jumps stop demo presentation. Independently verified causal dependency traces are explicitly unavailable.
+
+## Local demo performance diagnostic
+
+`window.futureMachine.stats.demoTiming` is null until a successful Play Demo
+attempt has valid paired history, a ready graphics backend and a visible canvas
+across two animation frames. Then it exposes `{version:1,source,renderer,state,
+durationMs,endpoint:'visible-city-after-paint'}`. Source is `homepage` or `button`;
+state is `cold` (needs default history) or `warm` (history reused), independent of
+HTTP cache. Duration includes offscreen/hidden waiting. This paint-opportunity
+proxy does not claim a GPU presentation timestamp. Inventory-only fallback does
+not count. Values stay local; the only session storage is a single-use homepage
+click timestamp with a 60-second handoff lifetime. No upload or identifiers.

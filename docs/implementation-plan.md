@@ -1003,3 +1003,34 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-104 — Play Demo first visible city timing
+
+Owned slice: homepage click handoff, Future Machine coordinator, new local timing
+module and focused tests. Existing scene readiness and validated paired history
+are prerequisites. Measure click through two visible animation frames after
+renderer readiness; require a connected, visible canvas intersecting the viewport
+and a foreground document. Empty/loading/inventory-only/error states cannot
+complete. This is a browser paint-opportunity proxy, not GPU presentation feedback.
+Warm means the default paired history was already in memory; cold means it needed
+creation. It does not infer HTTP cache state. Renderer is actual WebGPU/WebGL/Canvas2D.
+Only the latest rounded duration, source, renderer and cold/warm label remain in
+memory. The homepage stores one expiring, single-use timestamp in sessionStorage;
+storage denial is tolerated. No telemetry upload or entity/run/recipe identifiers.
+
+Audit: clean issue workspace at b963dd3; current integration audit explicitly
+lists SHE-104 as incomplete with no completed implementation commit/PR. Live
+GitHub PR query failed due API connectivity; duplicate verification remains
+limited to repository evidence. No Git metadata writes, merge or deployment.
+Acceptance: focused regression tests plus real homepage cold/button warm browser
+tests for Canvas2D and WebGL, attaching observed JSON durations. WebGPU remains
+hardware-dependent and is labeled by the same actual-backend diagnostic.
+
+Verification: timing unit tests passed (3 tests, 18 assertions); integrated focused
+regressions passed 22 tests / 140 assertions, with one existing browser-gated skip.
+Whitespace check passed. Browser startup
+blocked twice: Bun reported EADDRINUSE for ports 39931 and 54804; no browser
+journey or real duration is claimed. Reproduce with
+`HBL_TWO_FUTURES_PORT=<free-port> bunx playwright test --config test/demo-performance.browser.config.js`.
+Real cold/warm timing acceptance remains pending that run in an environment where
+the local server can bind. No existing server was stopped or reused.
