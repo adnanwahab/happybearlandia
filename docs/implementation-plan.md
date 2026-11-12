@@ -1,5 +1,20 @@
 # HappyBearLandia implementation plan
 
+## SHE-129 — seeded representative resident drill-down
+
+Status (2026-11-12): implementation blocked on SHE-144's cohort authority and
+versioned sampling API. [Readiness audit and next integrated slice](cohort-resident-drilldown.md)
+records source/backlog overlap, owned documentation paths, acceptance and risks.
+SHE-144 is Todo; linked draft PR #169 contains documentation only, with no engine
+or sampler. Existing Population income aggregates and visible persistent-person
+samples cannot substitute for hierarchical census samples. No functional delivery
+or simulation validation is claimed. Next: make reviewed prerequisite source
+available, then integrate cohort selection, labeled samples/counts/weights and
+nonmutating deterministic revisits through its actual interface. Principal risks
+are invented persistent identity, inspection-dependent RNG/state and inconsistent
+weight semantics. Documentation-only whitespace verification passed; application
+and browser tests were not run because no application behavior changed.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
