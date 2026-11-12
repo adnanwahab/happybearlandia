@@ -1003,3 +1003,25 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-167 — lazy million-resident startup audit
+
+Partial review candidate: [audit, reproducible probe and limits](population-startup.md).
+Current Population 1.3.0 defaults to 10,000 explicit rows, caps at 100,000 and
+starts on activation (ordinary World auto-activates; opt-out/demo defer). No 1M
+resident initializer exists in this baseline. SHE-141's metric contract is Done;
+it does not choose a paged/cohort simulation architecture. Preserve model semantics
+rather than silently downsample using an optional device-memory hint.
+
+Delivered independently verifiable slice: allocation and invalid-request regression
+coverage plus cold-process browser probe through the real World toolbar. Acceptance
+evidence: 5 new/related tests (75 assertions) and 22 Population/metric tests
+(459 assertions) pass. Combined final run: 27 passed, 534 assertions, 9.78s;
+syntax and whitespace checks passed. Browser/server setup blocked measurements: listen EADDRINUSE,
+Chromium launch closed, Firefox/WebKit absent. No frame/memory numbers claimed.
+
+Remaining prerequisites and acceptance: choose the million-resident architecture,
+measure target-device allocation budgets, implement bounded initialization on the
+ordinary entry path, and verify cold shipping Chrome/Safari/Firefox memory and
+first meaningful interaction. Optional probe currently covers only opt-out startup;
+WebKit does not replace Safari. No runtime behavior change, merge or deployment.
