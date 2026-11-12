@@ -3,7 +3,8 @@ import { expect, test } from '@playwright/test';
 test('help a resident, inspect real flows, compare 100 paired futures, and replay a shared challenge', async ({ page }) => {
   await page.goto('/world/living-city/');
   await expect(page.getByRole('heading', { name: 'The Riverside commute' })).toBeVisible();
-  await expect(page.getByRole('combobox', { name: 'City requests' }).locator('option')).toHaveCount(5);
+  expect(await page.getByRole('combobox', { name: 'City requests' }).locator('option').count()).toBeGreaterThanOrEqual(5);
+  await expect(page.locator('#quest-status')).toContainText('Status: active');
   await page.getByRole('button', { name: 'Visit the resident’s home' }).click();
   await expect(page.getByRole('heading', { name: 'Home in Riverside' })).toBeVisible();
   await expect(page.locator('#home')).toContainText('building-d1');

@@ -1,3 +1,4 @@
+import { discoverQuests, updateQuests } from './emergent-quests.js';
 import { draw, VERSION } from '../city/contracts.js';
 import { addIntervention, cityMetrics, createEngine, scheduleShock } from '../city/engine.js';
 import { createCity } from '../city/seed.js';
@@ -66,78 +67,13 @@ function inspectParticipant(state, trips) {
   };
 }
 
-function questCards({ state, trips }, participant) {
-  const { month } = state;
-  const record = (metric, label, value, unit) => ({ metric, label, value, unit, month });
-  const entity = (collection, row) => ({ collection, id: row.id, districtId: row.districtId });
-  const worker = state.workers.find(row => row.id === participant.personId);
-  const household = state.households.find(row => row.id === 'household-0');
-  const unit = state.units.find(row => row.id === household.unitId);
-  const business = state.businesses.find(row => row.id === 'business-d2');
-  const school = state.facilities.find(row => row.id === 'school-d0');
-  const utility = state.utilities.find(row => row.id === 'electric-d2');
-  const commute = trips.find(row => row.personId === worker.id);
-  const routeLinks = state.links.filter(link => commute.route.includes(link.id));
-
-  return [
-    {
-      id: 'commute', title: 'The Riverside commute',
-      request: 'I travel from Riverside to my job in Center. Can you make the trip shorter?',
-      entity: entity('workers', worker),
-      evidence: [
-        record('transport.experiencedMinutes', 'Recorded commute', commute.experiencedMinutes, 'minutes'),
-        record('transport.plannedMinutes', 'Planned trip', commute.plannedMinutes, 'minutes'),
-        ...routeLinks.map(link => record('transport.linkCapacity', `Capacity on ${link.id}`, link.capacity, 'trips per step')),
-      ],
-    },
-    {
-      id: 'housing', title: 'A rent bill in Center',
-      request: 'Our rent takes a large share of our household income. Can we find a home we can afford?',
-      entity: entity('households', household),
-      evidence: [
-        record('housing.rent', 'Rent for the current unit', unit.rent, 'modeled currency / month'),
-        record('housing.burden', 'Share of income spent on rent', household.housingBurden * 100, '%'),
-      ],
-    },
-    {
-      id: 'business', title: 'Keep the Uptown shop open',
-      request: 'Our operating costs are higher than demand can support. What would help us stay open?',
-      entity: entity('businesses', business),
-      evidence: [
-        record('businesses.demand', 'Modeled demand', business.demand, 'modeled currency / month'),
-        record('businesses.cost', 'Operating costs', business.cost, 'modeled currency / month'),
-        record('businesses.viability', 'Demand less costs', business.viability, 'modeled currency / month'),
-      ],
-    },
-    {
-      id: 'school', title: 'More places at Center School',
-      request: 'We have more pupils than places. Can you help us make room?',
-      entity: entity('facilities', school),
-      evidence: [
-        record('services.demand', 'School demand', school.demand, 'places'),
-        record('services.capacity', 'School capacity', school.capacity, 'places'),
-      ],
-    },
-    {
-      id: 'utility', title: 'Uptown needs more power',
-      request: 'Our electricity capacity falls short of local demand. Can you close the gap?',
-      entity: entity('utilities', utility),
-      evidence: [
-        record('utilities.demand', 'Electric demand', utility.demand, 'modeled units'),
-        record('utilities.effectiveCapacity', 'Effective capacity', utility.effectiveCapacity, 'modeled units'),
-        record('utilities.serviceLevel', 'Demand served', utility.serviceLevel * 100, '%'),
-      ],
-    },
-  ];
-}
-
 export function createQuestScenario({ seed = defaultSeed } = {}) {
   const { state, trips, events } = engine.step(engine.step(initialCity(seed)).state);
   const participant = inspectParticipant(state, trips);
   return {
     seed, modelVersion: VERSION, scenarioVersion: QUEST_SCENARIO_VERSION,
     month: state.month, state, trips, events, participant,
-    quests: questCards({ state, trips }, participant),
+    quests: discoverQuests({ state, trips }),
   };
 }
 
@@ -172,12 +108,19 @@ function sampleStart(state, index) {
   return { seed, shock, state: shock ? scheduleShock(sharedState, shock) : sharedState };
 }
 
-function advance(state, months, includeCheckpoint) {
+function advance(state, months, includeCheckpoint, initialQuests) {
+  let quests = initialQuests;
   const events = [];
   let result;
   for (let step = 0; step < months; step++) {
     result = engine.step(state);
     state = result.state;
+    if (includeCheckpoint) {
+      quests = updateQuests(quests, result);
+      for (const quest of discoverQuests(result)) {
+        if (!quests.some(row => row.id === quest.id)) quests.push(quest);
+      }
+    }
     if (includeCheckpoint) events.push(...result.events);
   }
   const { trips } = result;
@@ -188,15 +131,16 @@ function advance(state, months, includeCheckpoint) {
     meanRent, balance, employed, overloadedServices,
     policyStage: state.policies.at(-1)?.stage ?? null,
     participant,
-    ...(includeCheckpoint ? { state, trips, events } : {}),
+    ...(includeCheckpoint ? { state, trips, events, quests } : {}),
   };
 }
 
 function compareSample(experiment, index, includeCheckpoint) {
   const { scenario, policy, months } = experiment;
   const start = sampleStart(scenario.state, index);
-  const baseline = advance(start.state, months, includeCheckpoint);
-  const intervention = advance(addIntervention(start.state, policy), months, includeCheckpoint);
+  const quests = discoverQuests({ state: start.state, trips: scenario.trips });
+  const baseline = advance(start.state, months, includeCheckpoint, quests);
+  const intervention = advance(addIntervention(start.state, policy), months, includeCheckpoint, quests);
   const delta = Object.fromEntries(['meanRent', 'balance', 'employed', 'overloadedServices']
     .map(key => [key, intervention[key] - baseline[key]]));
   delta.commuteMinutes = baseline.commuteMinutes === null || intervention.commuteMinutes === null

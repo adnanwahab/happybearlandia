@@ -1003,3 +1003,28 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Emergent quests and shared worlds — SHE-209
+
+Next slice: derive requests from monthly CityState rather than fixed entity IDs,
+track objectives on every engine step, and expose recorded completions in Living
+City replay. Prerequisites: existing City engine, immutable checkpoints and paired
+commute recipe. Acceptance: source entity/metric/time/version/seed citations,
+state-driven completion receipts, deterministic replay, missing-data handling,
+and a scenario contract allowing multiple named players with revision conflicts
+rejected. Tasks: implement discovery/lifecycle; integrate worker replay and UI;
+verify real engine transitions and local multi-player commands.
+
+Shared play is a later phase: this slice supplies a local authoritative scenario
+contract, not hosted synchronization, authentication or cross-browser sessions.
+Rules are explicit synthetic objectives, not causal attribution to a player.
+Existing commute recipes and their engine inputs remain unchanged.
+Status: local quest slice implemented. Discovery scans current entities; replay
+checks each monthly state and records first completion evidence. The request
+panel shows selected-future status. A pure multi-player scenario authority
+supports named participants, command attribution and optimistic revision checks;
+remote play remains pending. Interface: [quest contract](../world/living-city/quests-contract.md).
+Verification: focused quest, replay, council, network, recipe and City-system
+suites passed: 27 tests, 257 assertions, zero failures; `git diff --check` passed. Browser suite attempted on ports 3100 and
+3819; both local server launches failed with EADDRINUSE, so browser rendering
+and interaction remain unverified. No deployment or production changes.

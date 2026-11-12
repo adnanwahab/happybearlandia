@@ -102,15 +102,20 @@ function showSnapshot() {
     selectedWorkerId: snapshot.participant.personId,
   });
   if (homeOpen) showHome(snapshot);
+  showQuest();
 }
 
 function showQuest() {
   const quest = starting.quests.find(item => item.id === find('quest').value);
   if (!quest) return;
   find('quest-title').textContent = quest.title;
+  const observed = selection().quests?.find(row => row.id === quest.id) ?? quest;
   find('request').textContent = quest.request;
+  find('quest-status').textContent = observed.completion
+    ? `Completed · Month ${observed.completion.month}: ${measure(observed.completion.before.value, observed.completion.before.unit)} → ${measure(observed.completion.after.value, observed.completion.after.unit)}. Modeled outcome; player causality is not inferred.`
+    : `Status: ${observed.status}. Target: ${measure(quest.objective.target, quest.evidence[0].unit)} or less. Rules: ${quest.provenance.rulesVersion} · Seed ${quest.provenance.seed}`;
   const visit = find('visit');
-  visit.hidden = quest !== starting.quests[0];
+  visit.hidden = quest.entity.id !== starting.participant.personId;
   if (visit.hidden && homeOpen) {
     homeOpen = false;
     find('home').hidden = true;
