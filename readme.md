@@ -1,361 +1,128 @@
-# Peoplebox - HappyBearHouse
-- [ ] local AI setup ?
+# HappyBearLandia 🐻
 
-# Grattitude game
-# HappyBearLandia - VR/AR Game Studio for Education
+**Explore a place. Change an assumption. See how its future changes—and inspect why.**
 
-![map](map.png)
+HappyBearLandia is a simulation playground for cities, households, businesses, and alternative futures. It combines interactive worlds with repeatable experiments: propose a change, compare it with a baseline, follow the evidence, and share a scenario someone else can reopen.
 
-# write journal -> synthesize plan -> simulate 100 realities from that plan 
+Real geography, synthetic model outputs, and story interpretation have different roles here. A modeled future is an experiment under declared assumptions, rather than a prediction of what will happen.
 
+## Start with one city, two futures
 
+The flagship **Future Machine** compares a synthetic Riverside city with and without a housing proposal over 120 modeled months. Scrub both futures together, inspect construction and spending, and open the records behind a change.
 
-# Computer Vision for Beginners
+The default scenario produces **36 baseline homes versus 60 plan homes**, with **1,000,000 illustrative USD** in additional cumulative capital spending. These are results of the versioned synthetic scenario. Its scene is schematic; it does not assign those outcomes to real geographic parcels.
 
-# simulate so much data can visualize long term trends
+## Run locally
 
-# explore many futures from simulator
+Install [Bun](https://bun.sh/), then run from the repository root:
 
-# Simulator visualizes list of proposals from dear-congress.fly.dev
-# simulator helps system
-https://mixkit.co/free-sound-effects/funny/
-
-Imagine clicking anywhere in your Replay Analyzer
-Your /replay-analyzer/:scene_id could eventually have a timeline like:
-00:00 ━━━━━━━━━●━━━━━━━━━━━━━━━━━━━━ 00:30
-               ↑
-             12.4s
-
-You pause at 12.4s.
-
-Instead of only:
-
-Play / Pause / Rewind
-
-you could have:
-FORK WORLD
-
-Click it.
-
-The simulator reconstructs:
-Bear:
- position = [3.1, 0, -4.2]
- velocity = [0.4, 0, 0.1]
-
-Ball:
- position = [...]
- velocity = [...]
-
-Domino #1:
- rotation = [...]
-
-Cart:
- sleeping = true
-
-Door:
- closed
-
-NPC #4:
- walking toward bar
-
-That becomes a checkpoint.
-
-Then you modify something.
-ball.mass = 3kg → 5kg
-
-and hit:
-RUN 100 FUTURES
-
-Now you get:
-Original
-    │
-    ├── mass 3.0 → success
-    ├── mass 3.2 → success
-    ├── mass 3.4 → success
-    ├── mass 3.6 → success
-    ├── mass 3.8 → collision
-    ├── mass 4.0 → collision
-    └── mass 5.0 → cart knocked over
-
-That would be extremely useful for game development.
-
-The world becomes a tree
-Instead of thinking of your replay system as:
-PAST ───────────────→ FUTURE
-
-think:
-                         state S₀
-                            │
-                         action A
-                            │
-                         state S₁
-                            │
-             ┌──────────────┼──────────────┐
-             │              │              │
-           action B       action C       action D
-             │              │              │
-            S₂             S₃             S₄
-          / | \           / | \           / \
-         ↓  ↓  ↓         ↓  ↓  ↓         ↓   ↓
-
-Now HappyBearLandia isn't merely recording what happened.
-
-It's exploring a possibility tree.
-
-That concept shows up in many fields under different names:
-
-rollouts, counterfactual simulation, Monte Carlo simulation, trajectory branching, planning, world models, and scenario generation.
-
-They are all closely related.
-
-
-This is counterfactual simulation
-You're asking:
-“What would have happened if something had been different?”
-
-For example:
-Observed reality
-───────────────
-Bear pushes ball at 4.2 m/s
-→ puzzle succeeds
-
-Now branch it:
-What if velocity = 3.0?
-What if velocity = 3.1?
-What if velocity = 3.2?
-...
-What if velocity = 7.0?
-
-Suddenly you can discover something like:
-velocity
-
-2 ─────────── FAIL
-3 ─────────── FAIL
-4 ─────────── SUCCESS
-5 ─────────── SUCCESS
-6 ─────────── SUCCESS
-7 ─────────── CHAOTIC FAILURE
-8 ─────────── CHAOTIC FAILURE
-
-That's much more informative than knowing that one run succeeded.
-
-You've discovered the space of possible outcomes.
-
-                    START
-                      │
-        ┌─────────────┼─────────────┐
-        ↓             ↓             ↓
-    push box       pick apple     move chair
-        │             │             │
-        ↓             ↓             ↓
-      fail          maybe          maybe
-                      │
-                ┌─────┴─────┐
-                ↓           ↓
-             throw       walk over
-                │           │
-               fail       SUCCESS
-
-                         HAPPYBEARLANDIA
-
-                              Scene
-                                │
-                                ▼
-                         Initial State S₀
-                                │
-                                ▼
-                         ┌── Simulator ──┐
-                         │               │
-                  Physics             Agents
-                         │               │
-                         └──────┬────────┘
-                                │
-                                ▼
-                             Events
-                                │
-                                ▼
-                          State History
-                                │
-                   ┌────────────┴────────────┐
-                   ▼                         ▼
-                Replay                     Fork
-                                              │
-                                   ┌──────────┼──────────┐
-                                   ▼          ▼          ▼
-                                Future 1   Future 2   Future 3
-                                   │          │          │
-                                   └──────────┼──────────┘
-                                              ▼
-                                         Evaluator
-                                              │
-                                              ▼
-                                      Outcome Landscape
-
-
-                                                               ☀ MAGNIFYING GLASS
-                                                                     │
-                                                                     ▼
-                                                                burns string
-                                                                     │
-                                                                     ▼
-                                                              🎈 balloon rises
-                                                                     │
-                                                          pulls rope over pulley
-                                                                     │
-                                                                     ▼
-                                             marble track ◀──── RELEASES MARBLE
-                                                  │
-                                                  ▼
-                                             ╭─────────╮
-                                             │ spirals │
-                                             ╰────┬────╯
-                                                  ▼
-                                             DOMINO FIELD
-                                           ▯ ▯ ▯ ▯ ▯ ▯ ▯
-                                                      │
-                                                      ▼
-                                                    hammer
-                                                      │
-                                                      ▼
-                                                 🔔 rings bell
-                                                      │
-                                                      ▼
-                                              startled toy bird
-                                                      │
-                                                      ▼
-                                                knocks ball
-                                                      │
-                                                      ▼
-                                           ball rolls through giant
-                                                  CLOCKWORK
-                                                ⚙️ ⚙️ ⚙️ ⚙️
-                                                      │
-                                                      ▼
-                                                lifts elevator
-                                                      │
-                                                      ▼
-                                                toy train departs
-                                       🚂━━━━━━━━━━━━━━━━━━━━━━━━━━
-                                                                │
-                                                                ▼
-                                                         train hits lever
-                                                                │
-                                                                ▼
-                                                          bucket tips
-                                                                │
-                                                           water falls
-                                                                ▼
-                                                         WATER WHEEL
-                                                          ≋≋≋ ⚙ ≋≋≋
-                                                                │
-                                                                ▼
-                                                       generator spins
-                                                                │
-                                                                ▼
-                                                          💡 light turns on
-                                                                │
-                                                                ▼
-                                                      solar sensor detects it
-                                                                │
-                                                                ▼
-                                                          servo releases
-                                                             bowling ball
-                                                                │
-                                                                ▼
-                                                           🎳
-                                                      enormous ramp
-                                                                │
-                                                                ▼
-                                                         launches seesaw
-                                                          ╱────────╲
-                                                        🐻          ●
-                                                                │
-                                                                ▼
-                                                         glove punches
-                                                           toaster
-                                                                │
-                                                                ▼
-                                                          toast launches
-                                                                │
-                                                                ▼
-                                                       toast hits cymbal
-                                                            💥
-                                                                │
-                                                                ▼
-                                                    vibration releases spoon
-                                                                │
-                                                                ▼
-                                                       spoon falls into cup
-                                                                │
-                                                                ▼
-                                                          kettle tilts
-                                                               ☕
-                                                                │
-                                                                ▼
-                                      
-                                                          ONE CUP OF TEA
-
-simulators, games, tools, robots
-
-this repo has a physics puzzle game that makes data for machine learning
-
-# Usage instructions
-
-how to run application locally
-
-\`bun run dev\`
-
-how to run augmented reality locally
-
-op run --env-file=.env.op -- bun scripts/fs-sync-mediapipe.ts
-
-## /game
-## /edit (Augmented_reality)
-## /pick-and-place multiplayer_robots
-## /inference
-## /training
-## /data
-
-
-# hardware 
-https://www.hiwonder.com/products/nexarm6-axis
-
-- 5 minutes stream per day
-fswebcam -r 1920x1080 --no-banner image.jpg
-ffmpeg -f v4l2 -framerate 30 -video_size 1920x1080 \
--i /dev/video0 \
--t 5 \
--c:v libx264 \
--preset veryfast \
-output.mp4
-HappyBearLandia/
-  webcam/
-    2026-09-11/
-      00-00.mp4
-
-# how to run locally
+```sh
+bun install
 bun run start
+```
 
-## World map `.env` setup (recommended)
+Open **http://localhost:3000** and choose **Play Demo**, or go directly to **http://localhost:3000/world/future-machine.html**. Set `PORT` to use another port.
 
-Bun auto-loads `.env` from the project root, so you can configure world map connectivity once:
+The synthetic demo is the best starting point. Features using live geography or external providers have additional service and configuration requirements; consult their module documentation. Local execution can create SQLite databases and saved files. Storage configuration and backup procedures are documented in [release operations](docs/release-operations.md) and [Future Machine storage](docs/future-machine-storage.md).
 
-1. Copy the template:
-   `cp .env.example .env`
-2. Edit `.env` and set a reachable Overpass endpoint:
-   - `OVERPASS_URL=https://<reachable-host>/api/interpreter`
-   - `OVERPASS_TIMEOUT_MS=15000`
-3. Start server:
-   `bun server.js`
-4. Validate connectivity:
-   - `/api/config` shows active runtime config (safe fields only)
-   - `/api/overpass-health` should show `reachable: 1+`
-   - `/api/area?lat=40.7265&lng=-73.9815` should return `"source":"osm"` when reachable
+### Live map configuration
 
-# how to deploy
+Bun loads the repository's `.env` automatically. For live map requests, set
+`OVERPASS_URL` to a reachable Overpass interpreter endpoint and optionally set
+`OVERPASS_TIMEOUT_MS=15000`. The available example is [`.env.example`](.env.example);
+merge the settings into an existing `.env` rather than replacing it.
 
-fly deploy
+Check `/api/overpass-health` for connectivity and
+`/api/area?lat=40.7265&lng=-73.9815` for an area response. A response with
+`"source":"osm"` indicates sourced map data. Provider availability can vary.
 
-# references
-- https://www.youtube.com/watch?v=4Tr0otuiQuU&list=RD4Tr0otuiQuU&start_radio=1
-- https://github.com/jhuckaby/canvascycle
+## Explore the application
+
+Paths below are relative to your running local server.
+
+| Experience | Local path | What to try |
+| --- | --- | --- |
+| Future Machine | `/world/future-machine.html` | Compare the housing futures, scrub time, inspect a change, and share a recipe. |
+| Living World | `/world?living=1` | Explore simulated residents, households, schedules, and needs. |
+| House Simulator | `/world/house` | Inspect a household; supported saved-resident journeys retain Population identity. |
+| Decision Studio | `/world/decision.html` | Configure alternatives and examine housing-model outcomes. |
+| Worldline | `/tools/worldline` | Explore outcomes under different assumptions. |
+| City Laboratory | `/world/city-lab.html` | Run experiments with the monthly City model. |
+| FlowMap | `/tools/flowmap` | Explore synthetic supply-chain disruptions and rerouting. |
+
+The homepage also contains the broader catalog of games, tools, and experiments. These experiences have different levels of integration; a navigation link alone does not establish shared simulation state.
+
+## Architecture today
+
+![Current architecture: application experiences connect to model-owned execution and versioned contracts, backed by the Bun server and feature-specific stores.](docs/images/architecture-current.svg)
+
+The application uses **Bun and JavaScript modules**, **Three.js**, **Web Workers**, and **SQLite plus file-backed persistence**. Some interfaces use React; existing multiplayer surfaces use WebSockets.
+
+Three important simulation authorities coexist: **monthly City**, **World Population**, and **Decision Studio housing**. Each owns its state, identifiers, and clock. Shared contracts describe run context, provenance, metrics, and supported interventions. Cross-view integration requires an explicit mapping; equal local IDs are insufficient.
+
+Replay also has distinct meanings. Future Machine currently reconstructs detailed history from a stored manifest. Determinism is tested, but that reconstruction is not independently verified equivalence to recorded checkpoints. See the [Future Machine handoff](docs/future-machine.md) for assumptions and limitations.
+
+## Architecture three months from now
+
+**Proposed target: February 11, 2027.** This is an architectural direction based on the product design, not a delivery commitment or a claim that these integrations already exist.
+
+![Proposed February 2027 architecture: explore, compare, explain and share through explicit authority-scoped adapters and versioned run/evidence interfaces, retaining independent engines and hardening existing storage.](docs/images/architecture-target-2027-02.svg)
+
+The priority is a complete journey through the existing foundations. Keep model ownership explicit while making supported comparisons, selections, and evidence easier to follow across views.
+
+| Window | Focus | Evidence of completion |
+| --- | --- | --- |
+| Month 1 | Consolidate the flagship journey | Normal-entry tests cover comparison, event inspection, missing data, and share/reopen. Record reproducibility inputs and measure replay cost. |
+| Month 2 | Integrate one supported cross-view slice | Document entity, time, and metric mappings for one model pair. Verify that selection and evidence survive navigation and reload; unsupported mappings remain explicit. |
+| Month 3 | Harden persistence and sharing | Validate ownership and access rules where sharing requires them, retention, isolated backup restoration, and device/network limits. Keep recorded and recomputed replay labels accurate. |
+
+The first prerequisite for cross-model work is proving the mapping. Public persistent sharing additionally depends on authorization, durability, and operational checks. Detailed feature status remains in the [implementation plan](docs/implementation-plan.md); the target diagram does not override it.
+
+## Find your way through the code
+
+| Location | Responsibility |
+| --- | --- |
+| [`server.js`](server.js) | Bun server, application routes, API composition, and static serving. |
+| [`world/future-machine/`](world/future-machine/) | Flagship comparison data, scene, UI, story, and sharing. |
+| [`world/city/`](world/city/README.md) | Monthly City engine and coupled system contracts. |
+| [`world/universe/`](world/universe/README.md) | Experience registry and contextual navigation. |
+| [`shared/causality/`](shared/causality/README.md) | Shared identity, run, metric, provenance, and intervention contracts. |
+| [`world/replay/`](world/replay/README.md) | Replay infrastructure and verification contracts. |
+| [`world/counterfactual/`](world/counterfactual/README.md) | Fork execution, dependency handling, and bounded interventions. |
+| [`test/`](test/) | Behavior, integration, and browser checks. |
+| [`tools/`](tools/) · [`game/`](game/README.md) · [`blog/`](blog/README.md) | Additional experiences, physics playground, and publishing. |
+
+## Verify a change
+
+Run the checks for the affected slice. A small starting set for the simulation foundations is:
+
+```sh
+bun test test/causality-contracts.test.js test/counterfactual-fork.test.js test/bakery-journey.test.js
+```
+
+Other existing entry points include:
+
+```sh
+bun run test:city
+bun run test:decision
+bun run test:build-world
+```
+
+Browser suites use Playwright. Install Chromium once, then run a focused journey:
+
+```sh
+bunx playwright install chromium
+bunx playwright test --config test/future-machine.browser.config.js
+```
+
+These are focused checks, not a claim that every experience passes. Consult the relevant test configuration for server and environment requirements. The package currently has no default `test`, lint, or repository-wide typecheck script; individual modules document additional checks.
+
+## Design and contribution
+
+Start with the [product design](docs/design.md), [implementation plan](docs/implementation-plan.md), and [engineering instructions](AGENTS.md). Finish a tested journey through the normal application entry points before broadening a substantial feature.
+
+Preserve seeds, model and rules versions, inputs, provenance, and parent-run history. Keep observations, assumptions, modeled results, and narrative interpretation distinguishable. Document uncertainty and missing evidence alongside the result.
+
+For deployment and persistence work, use the [release checklist](docs/release-checklist.md) and [release operations](docs/release-operations.md). Local test success is only one part of release readiness.
+
+Earlier sketches and references are preserved in the [original README notes](docs/original-readme-notes.md). These are historical ideas, not current feature documentation.

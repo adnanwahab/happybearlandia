@@ -1,0 +1,49 @@
+{
+  "exitCode": 0,
+  "sourceStableDuringTests": true,
+  "files": {
+    "tools/symphony/local/backlog_coordinator.py": "95e9272426e7a3849bcc56e86c18b1f36be7c74ee2a559c7a942f206c216774c",
+    "tools/symphony/local/test_backlog_coordinator.py": "6b11309ee04023d740639e7f23997707c5ccd22efbc43413d91dab8b70772e44",
+    "tools/symphony/local/COORDINATOR.md": "02ecd4be4fabd87429051a935e21ed11f38198a8a967e91abcea48c26561abde",
+    "tools/symphony/local/coordinator-readiness.example.json": "9fa628954242f3bf56aaba43f275cd99dd4d6bd55f65049be6eab8c700d0068e",
+    "tools/symphony/local/README.md": "483711f5088b4385d561f3043f01e56d4e98c428525d683f1fd41bc4ae9d58a1"
+  },
+  "schemaVersion": "hbl-she180-implementation.v1",
+  "issue": "SHE-180",
+  "verifiedAt": "2026-11-12T03:19:02.716811+00:00",
+  "branch": "sprint/one-city-two-futures-20261111",
+  "baseline": "ec408d03a70fdaac90c1eb82263a5740797c36bf",
+  "tests": {
+    "command": "HBL_TEST_CODEX_SANDBOX=0 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tools/symphony/local -p 'test_*.py' -v",
+    "passed": 80,
+    "failed": 0,
+    "newCoordinatorTests": 31,
+    "log": "/private/tmp/hbl-she180-tests-verified.log"
+  },
+  "otherChecks": [
+    "Python AST parse passed",
+    "Disabled evidence JSON parse passed",
+    "git diff --check passed",
+    "CLI dry-run Markdown/full JSON exercised with offline services"
+  ],
+  "scope": [
+    "tools/symphony/local/backlog_coordinator.py",
+    "tools/symphony/local/test_backlog_coordinator.py",
+    "tools/symphony/local/COORDINATOR.md",
+    "tools/symphony/local/coordinator-readiness.example.json",
+    "tools/symphony/local/README.md",
+    "docs/implementation-plan.md"
+  ],
+  "livePilot": "Not executed: issue authorizes planning/implementation only; overlap/activation requires operator review",
+  "remoteWrites": false,
+  "schedulerInstalled": false,
+  "workersLaunched": 0,
+  "commit": null,
+  "limitations": [
+    "Source/test/clean-clone prerequisites use explicit trusted operator evidence pinned to base/issue/review digests.",
+    "Regex captures SHE references conservatively; prose aliases require human canonical mapping.",
+    "One host flock; external writers/multiple hosts are outside the lock.",
+    "Remote GraphQL schema/auth/eventual visibility and actual three-worker publication not exercised.",
+    "Current dispatcher remains concurrency1; approval cap3 does not increase worker concurrency."
+  ]
+}

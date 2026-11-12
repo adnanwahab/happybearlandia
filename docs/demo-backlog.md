@@ -1,3 +1,10 @@
+> Current coordinator re-audit (2026-11-11): U03 is REVIEW (candidate independently
+> passes), not RUNNING. U05/U08 READY; R13/R14 retained REPAIR; two external NB
+> REVIEW. New dispatch held by review depth3; integration held by unrelated dirty
+> checkout changes. No new integration/worker claimed. See
+> [resumption status](coordinator-resumption-status.md) and
+> [next dispatch](coordinator-next-dispatch.json). Historical evidence below retained.
+
 # Demo execution queue
 
 Scope: the existing **One City, Two Futures** journey and reported first-run defects. This queue is executable work, not a request for another plan. Coordinator owns contracts, queue, integration, entry points and final verification. Six existing Codex chats own isolated worktrees; see `one-city-two-futures-workers.json`. No release merge or deployment is authorized.

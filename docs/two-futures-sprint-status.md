@@ -1,3 +1,10 @@
+> Current coordinator re-audit (2026-11-11): U03 is REVIEW (candidate independently
+> passes), not RUNNING. U05/U08 READY; R13/R14 retained REPAIR; two external NB
+> REVIEW. New dispatch held by review depth3; integration held by unrelated dirty
+> checkout changes. No new integration/worker claimed. See
+> [resumption status](coordinator-resumption-status.md) and
+> [next dispatch](coordinator-next-dispatch.json). Historical evidence below retained.
+
 # Current accepted increment — application source2c9d973
 
 U18 stale native labels and U02 Canvas390/320 focused-label/footer clipping repaired and independently integrated. R15 bounded repair delivered; real U02 failed→repair→verified path exercised with original failure retained. Final139unitpass/3skip/0fail/1199assertions; canonical13browserpass/1recordingskip; responsive3pass; actualMetal/WebGL loss2pass; separate namedrecording1pass with52.868s actualPlay→completion. Artifactvalidator2records/1video. No release/deploy.

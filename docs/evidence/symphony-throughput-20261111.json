@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "scope": "observed scan optimization; delivery throughput unverified",
+  "baseline": {
+    "issues": 175,
+    "logicalLinearQueries": 877,
+    "concurrency": 1,
+    "ramGiB": 16,
+    "swapUsedMiB": [
+      28419,
+      28315
+    ]
+  },
+  "optimizedLiveAudit": {
+    "issues": 175,
+    "pullRequests": 22,
+    "logicalLinearQueries": 18,
+    "githubCommands": 24,
+    "githubRetries": 0,
+    "nestedContinuationCalls": 0,
+    "elapsedSeconds": 21.196
+  },
+  "queryReductionPercent": 97.95,
+  "nativeGates": {
+    "tests": 305,
+    "failures": 0,
+    "skipped": 6,
+    "coveragePercent": 100,
+    "formatter": "passed",
+    "lint": "passed",
+    "build": "passed",
+    "dialyzer": "passed"
+  },
+  "packageTests": {
+    "tests": 102,
+    "failures": 0
+  },
+  "installedHostTests": {
+    "tests": 164,
+    "failures": 0
+  },
+  "browserSmoke": {
+    "panelPresent": true,
+    "pageErrors": []
+  },
+  "liveWorkerExperiment": {
+    "performed": false,
+    "reason": "resource pressure and unresolved approval/ownership; preserve user safety hold"
+  },
+  "deliveryThroughputImprovement": null,
+  "liveRecurringObservation": {
+    "cycles": 2,
+    "newGrants": 0,
+    "apply": false,
+    "utilization": {
+      "capacity_seconds": 90.16565704345703,
+      "fraction": 0.0,
+      "idle_fraction": 1.0,
+      "observed_seconds": 90.16565704345703,
+      "samples": 3
+    }
+  }
+}
