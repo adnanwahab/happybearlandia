@@ -1003,3 +1003,23 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-64 final guided recording receipt — November 12, 2026
+
+Owned slice: `docs/evidence/she64/**` and this status entry only; no app changes.
+Audited the existing canonical recording command/test and prior integrated
+manifest rather than rebuilding working behavior. Recipe and source prerequisites
+exist: seed42, city-systems.1.0.0, Month16 building divergence and exact WHY.
+Retained the earlier actual browser WebM/MP4, screenshots, snapshots, timing and
+hash receipt in [the SHE-64 evidence directory](evidence/she64/README.md).
+Both videos fully decode, each56.84s; MP4 matches the historical manifest SHA.
+Inspected video frames at14s/55s showing Month16 and WHY event16-0/model/seed/run
+and synthetic limitations. Current focused12tests/91assertions pass; artifact
+verifier2records/1video passes. No feature or simulation contract changed.
+
+Fresh recording attempts on ports39964 and41864 both failed before browser launch;
+direct ephemeral localhost bind returns EPERM under this sandbox. Historical
+capture commit is not independently established; it must not be represented as
+current HEAD proof. Current-source final recording acceptance remains blocked
+until a server-capable host runs the documented command and verifies the video.
+No PR/push/merge/deploy or Linear dispatch change. Baseline b963dd3, mini/SHE-64.
