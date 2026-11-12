@@ -1003,3 +1003,31 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-87 — scenario parameter diff inspector
+
+Slice: add a read-only baseline/selected-scenario table to Decision Studio using
+resolved scenario inputs and the active model schema. Show every default, unit,
+uncertainty distribution, seed, horizon, and non-parameter scenario setting.
+Preserve input maps; never copy an alternative's assumptions into the baseline.
+Verify sparse defaults, uncertainty-only changes, stress settings, live edits,
+and seed-matched deterministic replay. Risk: configured inputs are not sampled
+run values; label that boundary explicitly. Existing per-control deltas are
+partial coverage, not a complete inspector. GitHub CLI audit is network-blocked.
+
+Delivered: `world/decision/parameter-diff.js` reads resolved inheritance without
+mutating scenarios; Decision Studio refreshes the accessible table on selection,
+edit, import, and run-control changes. Every schema default and uncertainty is
+shown, plus non-parameter settings (including stress/fork/project changes).
+Configured values are explicitly distinguished from sampled/stress-adjusted
+run values; selected-future seed overrides are disclosed. No runner/data contract
+changes. Reproducible synthetic recipe and full diff:
+`docs/evidence/she-87-parameter-diff.json`.
+
+Verification: 20 focused tests (136 assertions) and 12 API/continuity integration
+tests (510 assertions) passed. `git diff --check` passed. Focused Playwright
+was attempted on ports 3100 and 3187; both server starts failed with EADDRINUSE,
+so live browser behavior remains unverified. Browser regression is retained in
+`test/e2e/parameter-diff.e2e.js`. GitHub connector search found no parameter-diff
+PR; CLI remote audit was network-blocked. Local issue branch `mini/SHE-87` was
+clean before this slice. No commit/PR publication or production changes.
