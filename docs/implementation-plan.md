@@ -1003,3 +1003,37 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-154 — Citywide current-position density
+
+Scope: independent CPU/Canvas2D slice in Population density modules, snapshot
+adapter, Living City overview, dedicated tests and data-format documentation.
+SHE-141 is Done with metric contract PR34; weighted mass is distinct from
+independently updated resident records. No changes to its owned metric files.
+Existing district shading measures home population, so retain and label it;
+add a current-position tile map under overview → Layer → Population density.
+
+Acceptance: full resident-state aggregation at the snapshot tick, 32×32 bounded
+array, explicit and weighted legends, reconciled missing/outside categories,
+seed-matched replay independent of visible sample, Canvas2D rendering and reset.
+Worker-side typed integer bins avoid transferring or rendering all residents.
+No GPU compute claim, observed demographic claim or million-agent benchmark.
+Risks: O(residents + locations) per snapshot; no million-scale timing measured.
+Weights are uniform model cohort weights, and current mass is not home density.
+The Canvas2D map needs no GPU; enclosing Living City retains its existing WebGPU
+requirement. No Canvas2D context disables the map with an explicit notice.
+
+Delivered implementation and deterministic tests; verification results below.
+Browser before/after capture is provided by population-density.e2e.js but blocked
+locally: server bind rejected and Chromium failed MachPortRendezvous bootstrap
+with Permission denied (1100). No screenshots or browser success claimed.
+
+Actual verification: `bun test --timeout 15000 test/population-density.test.js
+test/population-model.test.js test/population-visible-sample.test.js
+test/population-world-view.test.js test/world-runtime.test.js`: 46 passed,
+0 failed, 429 assertions. First combined run hit the existing weekend model
+test's default 5s timeout; rerun passed with 15s limit, no weakened assertions.
+`git diff --check` passed. No package lint/typecheck scripts are defined.
+Browser smoke and before/after recordings remain the next verification step on
+a host that permits Chromium; the feature is not claimed visually verified.
+No merge, publication, deployment or production data changes performed.

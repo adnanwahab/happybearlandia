@@ -24,3 +24,20 @@ CSV supports quoted cells, escaped quotes, CRLF and BOM. In the metadata editor 
 Only explicit city population target fields propose global generation settings. District medians are not averaged into a city median. District distributions, employment, OD and transit are validation/reference data until an explicit adapter exists. Proposals disclose coverage, warnings, applied:false and requiresReset:true and are delivered for Studio review. No source import automatically establishes calibration.
 
 Retained fact exports preserve decision/trip/observation records that actually exist. Separate departure/arrival facts do not imply a complete linked trip. Missing values remain null. Paired actor differences use the shared world/analysis/behavior-deltas.js comparator and are explicitly scoped to supplied actors.
+
+### Current-position density (`population-density.v1`)
+
+Population snapshots include `density`: modelVersion, seed, tick, minute,
+size=32, bounds, row-major `explicit` resident counts and `weighted` cohort mass.
+Bounds span model locations plus one world unit (and origin); row zero is minZ.
+Each finite in-bounds current resident position contributes once, including home
+and inactive travelers. “Explicit active agents” means all simulated resident
+states, not only commuters or visible avatars. Weight is the model's uniform
+represented-population multiplier. No rendering sample or district average is
+used. `located + missing + outside = total`; weighted bins sum to located×weight,
+and representedTotal=total×weight (floating-point tolerance applies).
+Missing/nonfinite and outside positions remain separate, never edge-clamped.
+Units are counts per tile, not area-normalized density. Color scale is linear
+zero-to-current-maximum per selected mode and tick; colors across ticks are not
+fixed-scale comparisons. The overview Canvas2D legend reports its scale and totals.
+Older snapshots without density show unavailable, never reconstructed estimates.
