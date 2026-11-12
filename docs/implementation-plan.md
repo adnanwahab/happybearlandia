@@ -403,3 +403,19 @@ registered IDs and exact saved checkpoint/House/fork/replay assertions while
 exercising the actual controls and renderer fallback. Full hosted verification
 must pass before merge; current publication/merge status is authoritative at
 https://github.com/adnanwahab/happybearlandia/pull/26.
+
+
+## SHE-180 safe backlog coordinator package and activation
+
+Package the standalone coordinator and minimal extracted host adapter without
+changing the existing Symphony workflow, sandbox, publisher or unrelated source.
+Original installed-host80-test evidence is retained separately from the clean
+package test run. Requirements/gaps for SHE-126/127 are explicitly mapped in
+docs/symphony-coordinator-reconciliation.md; neither issue is marked Done.
+
+Actual live read-only audit succeeded on175issues/17PRs. It found30reserved active
+issues and incomplete ownership; no safe three-issue batch is approved by this
+snapshot. Do not weaken these gates, bulk-reset statuses or infer stopped claims
+from an idle dispatcher. User-authorized live pilot remains conditional on real
+candidate readiness. Publish this working package as draft only; no merge/deploy.
+Acceptance and exact test/audit evidence: docs/she-180-coordinator-evidence.json.
