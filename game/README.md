@@ -80,3 +80,10 @@ view still uses external deck.gl and GeoJSON resources; it is outside this smoke
 test's startup workflow.
 
 The `*.e2e.js` filenames keep these tests separate from Bun's unit test discovery.
+
+## Animation and sound
+
+Character clips and collision audio use the [shared media pipeline](../shared/media/README.md).
+The bottom-left settings expose reduced motion and persisted volume (muted by
+default). The shared loader enforces encoded-byte budgets before assets become
+playable; the bear importer additionally enforces decoded clip/track/key limits.

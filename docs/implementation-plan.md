@@ -1003,3 +1003,38 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Animation, audio and cinematics — SHE-198
+
+Next integrated slice: shared bounded binary acquisition for the existing game bear
+GLB and collision sound; live reduced-motion and persisted volume controls; explicit
+skip/replay for the existing recorded-divergence cinematic. Existing model, audio,
+Three loader and cinematic clock are prerequisites. No simulation authority changes.
+Acceptance: measured per-kind and aggregate byte caps (including concurrent loads),
+retryable failures, teardown, normal game entry integration, preference changes,
+and deterministic cinematic play/pause/skip/replay. Engineering budgets are limits,
+not device performance measurements. External GLTF resources must be rejected to
+prevent bypassing the acquisition budget. Browser smoke plus focused unit checks.
+
+Delivered: `shared/media` owns the versioned streaming byte/cache boundary,
+embedded GLB and animation-work checks, shared motion/volume preferences and
+controls. Game bear/collision and household cue/fallback acquisition now use it.
+The comparison scene observes live OS motion changes and the persisted override;
+its existing director now exposes Skip and Replay with a 60-second ceiling.
+Simulation events, run identity and six-second divergence hold stay authoritative.
+Interface, budgets and scope are documented in `shared/media/README.md` and
+`game/README.md`. Existing standalone Soundboard and static scenery are outside
+this animation/sound playback slice. No authored content or causal graph invented.
+
+Acceptance evidence (2026-11-12): focused command in the media README passed
+33 tests, 164 assertions, 0 failures; 1 existing opt-in Chromium test skipped.
+The production bear parsed through Three GLTFLoader: 2 clips, 10 tracks, 44 keys.
+Browser-target builds of game, Future Machine and household sound entrypoints
+passed; Bun-target server build passed; `git diff --check` passed.
+`bun install --frozen-lockfile` required `TMPDIR=/private/tmp` and then succeeded.
+Playwright game smoke could not start: repository launcher first hit a local Bun
+postinstall shim, then an absolute-Bun temporary configuration reached server
+startup but listen failed EADDRINUSE on both 3100 and 39878. No browser playback,
+screenshot, visual/codec or device-performance result is claimed. Added focused
+normal-route browser cases for preferences and skip/replay; next action is run
+those plus the game smoke where server binding is available. No deploy or merge.

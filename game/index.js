@@ -1,3 +1,5 @@
+import { createMediaPipeline, validateEmbeddedGLB, validateAnimationClips } from '../shared/media/pipeline.js';
+import { createMediaPreferences, mountMediaControls } from '../shared/media/preferences.js';
 import { loadScene, loadSceneConversations } from './scene-loader.js';
 import { DebugRecorder } from './debug-recorder.js';
 import initJolt from 'jolt-physics/wasm-compat';
@@ -1569,14 +1571,18 @@ function loadTreeModel() {
   });
 }
 
+const mediaPipeline = createMediaPipeline();
+let mediaPreferences = null;
+
 function loadHappyBearModel() {
   const loader =
     new GLTFLoader();
 
   return new Promise(resolve => {
-    loader.load(
-      happyBearModelUrl,
-      gltf => {
+    mediaPipeline.load('bear-player', 'animation', happyBearModelUrl)
+      .then(validateEmbeddedGLB)
+      .then(data => new Promise((done, reject) => loader.parse(data, '', done, reject)))
+      .then(gltf => {
         const object =
           gltf.scene ??
           gltf.scenes?.[0] ??
@@ -1620,19 +1626,12 @@ function loadHappyBearModel() {
           -center.z
         );
 
+        happyBearModelAnimationClips = validateAnimationClips(gltf.animations ?? []);
         happyBearModelTemplate = object;
         happyBearModelTemplateSize = size;
-        happyBearModelAnimationClips =
-          Array.isArray(
-            gltf.animations
-          )
-            ? gltf.animations
-            : [];
 
         resolve(object);
-      },
-      undefined,
-      error => {
+      }).catch(error => {
         console.warn(
           "Unable to load bear-player model:",
           error
@@ -1641,8 +1640,7 @@ function loadHappyBearModel() {
         happyBearModelAnimationClips = [];
 
         resolve(null);
-      }
-    );
+      });
   });
 }
 
@@ -2435,7 +2433,7 @@ function renderExample() {
 
   for (let i = 0; i < rotatingPointLights.length; i++) {
     const angle =
-      time * rotatingLightAngularSpeed +
+      (mediaPreferences?.get().reducedMotion ? 0 : time) * rotatingLightAngularSpeed +
       i * (Math.PI * 2) / rotatingPointLights.length;
 
     rotatingPointLights[i].position.set(
@@ -3750,10 +3748,33 @@ if (!isGalleryRoute()) {
   const tealCubeGlowDuration =
     5;
 
-  const audio =
-    new Audio(
-      "/game/sound.m4a"
-    );
+  mediaPreferences = createMediaPreferences(window);
+  const removeMediaControls = mountMediaControls(document, mediaPreferences);
+  const audio = new Audio();
+  let audioUrl = null, soundGeneration = 0;
+  const unsubscribeMedia = mediaPreferences.subscribe(({volume}) => {
+    audio.volume = volume;
+    if (!volume) { soundGeneration++; audio.pause(); }
+  });
+  async function playCollisionSound() {
+    if (!mediaPreferences.get().volume || document.hidden) return;
+    const generation = ++soundGeneration;
+    try {
+      const data = await mediaPipeline.load('collision', 'audio', '/game/sound.m4a');
+      if (generation !== soundGeneration || !mediaPreferences.get().volume || document.hidden) return;
+      if (!audioUrl) { audioUrl = URL.createObjectURL(new Blob([data], {type:'audio/mp4'})); audio.src = audioUrl; }
+      audio.currentTime = 0;
+      await audio.play();
+    } catch (error) { console.warn('Collision sound unavailable:', error); }
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { soundGeneration++; audio.pause(); }
+  });
+  window.addEventListener('pagehide', () => {
+    soundGeneration++; audio.pause(); audio.removeAttribute('src'); audio.load();
+    if (audioUrl) URL.revokeObjectURL(audioUrl);
+    unsubscribeMedia(); removeMediaControls(); mediaPreferences.dispose(); mediaPipeline.dispose();
+  }, {once:true});
 
 
   // =====================================================================
@@ -4518,9 +4539,8 @@ if (!isGalleryRoute()) {
       return;
     }
 
-    const elapsed =
-      currentTime -
-      tealCubeGlowStartTime;
+    const elapsed = mediaPreferences?.get().reducedMotion ? tealCubeGlowDuration :
+      currentTime - tealCubeGlowStartTime;
 
     const progress =
       Math.min(
@@ -6429,8 +6449,6 @@ if (!isGalleryRoute()) {
             1.5;
         }
 
-        audio.currentTime = 0;
-
         emitDebugEvent({
           type: "music",
           objectId: "teal-cube",
@@ -6445,12 +6463,7 @@ if (!isGalleryRoute()) {
             collisionEvent.id,
         });
 
-        audio.play().catch(error =>
-          console.error(
-            "Unable to play collision sound:",
-            error
-          )
-        );
+        void playCollisionSound();
       }
     }
   };
@@ -7318,11 +7331,12 @@ if (!isGalleryRoute()) {
           .length();
 
       const shouldPlayWalkAnimation =
+        !mediaPreferences.get().reducedMotion &&
         !isInteractionDialogOpen &&
         horizontalSpeed >=
           PLAYER_WALK_SPEED_THRESHOLD;
 
-      playerWalkBlendWeight =
+      playerWalkBlendWeight = mediaPreferences.get().reducedMotion ? 0 :
         THREE.MathUtils.damp(
           playerWalkBlendWeight,
           shouldPlayWalkAnimation
@@ -7336,9 +7350,7 @@ if (!isGalleryRoute()) {
         playerWalkBlendWeight
       );
 
-      playerAnimationMixer.update(
-        deltaTime
-      );
+      playerAnimationMixer.update(mediaPreferences.get().reducedMotion ? 0 : Math.min(deltaTime, 0.1));
     }
 
     sendLocalPlayerState();

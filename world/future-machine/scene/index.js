@@ -1,3 +1,4 @@
+import { createMediaPreferences } from '../../../shared/media/preferences.js';
 import {createRendererBackend} from './renderer-backend.js';
 import {createCanvasStage,fitCanvasCamera} from './canvas-stage.js';
 import {createVisualEffects} from './effects.js';
@@ -6,6 +7,8 @@ import {createSpatialMapping} from './mapping.js';
 /** Synchronous host API; renderer loading is deferred so fallback remains usable. */
 export function createStage(container, {onSelect,history} = {}) {
   const doc = container.ownerDocument;
+  const preferences = createMediaPreferences(doc.defaultView);
+  let unsubscribeMotion = () => {};
   const root = doc.createElement('section');
   root.setAttribute('aria-label', 'Synchronized City comparison');
   root.style.cssText = 'position:relative;min-height:300px;background:#10232d;color:#eef6fb;border-radius:12px;overflow:hidden';
@@ -26,7 +29,7 @@ export function createStage(container, {onSelect,history} = {}) {
   const observer=globalThis.ResizeObserver ? new ResizeObserver(resize) : null;
   observer?.observe(views);globalThis.addEventListener?.('resize',resize);
   function releaseMeshes() {
-    effects?.dispose();effects=THREE&&!canvasStage&&!disposed&&!error?createVisualEffects({THREE,reducedMotion:globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches}):null;
+    effects?.dispose();effects=THREE&&!canvasStage&&!disposed&&!error?createVisualEffects({THREE,reducedMotion:preferences.get().reducedMotion}):null;
     for(const mesh of meshes) {mesh.parent?.remove(mesh);mesh.geometry.dispose();mesh.material.dispose();for(const child of mesh.children){child.geometry?.dispose();child.material?.dispose();}}
     meshes=[];
   }
@@ -109,7 +112,7 @@ export function createStage(container, {onSelect,history} = {}) {
   Promise.all([import('three'),import('three/addons/controls/OrbitControls.js')]).then(async ([module,{OrbitControls}])=>{
     if(disposed||canvasStage)return;THREE=module;
     if(new URLSearchParams(location.search).get('renderer')&&['canvas','canvas2d'].includes(new URLSearchParams(location.search).get('renderer'))){fail(new Error('Canvas2D selected'));return;}
-    effects=createVisualEffects({THREE,reducedMotion:globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches});
+    effects=createVisualEffects({THREE,reducedMotion:preferences.get().reducedMotion});
     const selectedBackend=await createRendererBackend({THREE,forceWebGL:new URLSearchParams(location.search).get('renderer')==='webgl'});if(disposed){selectedBackend.renderer.dispose();return;}renderer=selectedBackend.renderer;renderBackend=selectedBackend.backend;backendReason=selectedBackend.reason;renderer.autoClear=false;renderer.setClearColor(0x10232d,1);renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio||1,1.5));
     views.append(renderer.domElement);renderer.domElement.style.cssText='display:block;width:100%;height:100%';renderer.domElement.setAttribute('aria-label','City inventory scenes; drag to orbit, scroll to zoom');
     scenes=[0,1].map(()=>{const scene=new THREE.Scene();scene.background=renderBackend==='webgpu'?null:new THREE.Color(0x10232d);scene.add(new THREE.HemisphereLight(0xdfeeff,0x425449,2));const sun=new THREE.DirectionalLight(0xffffff,2);sun.position.set(50,100,60);scene.add(sun);const grid=new THREE.GridHelper(600,25,0x456070,0x203746);grid.position.y=-.1;scene.add(grid);return scene;});
@@ -125,6 +128,12 @@ export function createStage(container, {onSelect,history} = {}) {
   }).catch(fail);
   function lost(event) {event.preventDefault();fail(new Error('Graphics context lost'));}
   function fail(reason) {if(disposed||canvasStage)return;error=reason?.message||'Graphics unavailable';status.textContent='Canvas2D low-fidelity view · same recorded City inventory, camera and timeline.';controls?.dispose();effects?.dispose();if(animation)cancelAnimationFrame(animation);releaseMeshes();renderer?.dispose();renderer?.domElement.remove();renderer=null;labels.replaceChildren();try{canvasStage=createCanvasStage(views,{onSelect});canvasStage.setMode(mode);canvasStage.setGhosts(ghosts);if(projection){canvasStage.update(projection,currentDiff);if(fitRows)canvasStage.setCamera(fitCanvasCamera({a:fitRows,b:fitRows},views.clientWidth,views.clientHeight,mode));}}catch(fallbackError){canvasStage?.dispose();canvasStage=null;error=`${error}; ${fallbackError.message}`;views.hidden=true;status.textContent='Graphics unavailable. The exact recorded inventory, timeline, outcomes and WHY controls remain available below.';}resolveReady({backend:canvasStage?'canvas2d':'inventory-fallback'});}
+  unsubscribeMotion = preferences.subscribe(state => {
+    if (state.reducedMotion && cameraTransition) {
+      camera.position.copy(cameraTransition.endPosition);controls.target.copy(cameraTransition.endTarget);controls.update();cameraTransition=null;
+    }
+    if (projection) { rebuild(); draw(); }
+  });
   const api={
     whenReady:()=>ready,
     update(frame,diff) {
@@ -137,11 +146,11 @@ export function createStage(container, {onSelect,history} = {}) {
     },
     setMode(value){if(!['split','baseline','plan','difference'].includes(value))throw new TypeError('Unknown scene mode');mode=value;canvasStage?.setMode(value);summary();rebuild();draw();},
     setGhosts(value){ghosts=Boolean(value);canvasStage?.setGhosts(ghosts);rebuild();},
-    focus(entity,{animate=false}={}){if(disposed||!projection)return false;const row=[...projection.a,...projection.b].find(r=>r.collection===entity?.collection&&r.id===entity.id);if(!row)return false;selected=entity;canvasStage?.focus(entity);if(camera){cameraTransition=null;const endTarget=new THREE.Vector3(row.x,row.height/2,row.z),endPosition=new THREE.Vector3(row.x+60,row.height+60,row.z+60);if(animate&&!globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches)cameraTransition={start:performance.now(),position:camera.position.clone(),target:controls.target.clone(),endPosition,endTarget};else{controls.target.copy(endTarget);camera.position.copy(endPosition);controls.update();}}rebuild();return true;},
+    focus(entity,{animate=false}={}){if(disposed||!projection)return false;const row=[...projection.a,...projection.b].find(r=>r.collection===entity?.collection&&r.id===entity.id);if(!row)return false;selected=entity;canvasStage?.focus(entity);if(camera){cameraTransition=null;const endTarget=new THREE.Vector3(row.x,row.height/2,row.z),endPosition=new THREE.Vector3(row.x+60,row.height+60,row.z+60);if(animate&&!preferences.get().reducedMotion)cameraTransition={start:performance.now(),position:camera.position.clone(),target:controls.target.clone(),endPosition,endTarget};else{controls.target.copy(endTarget);camera.position.copy(endPosition);controls.update();}}rebuild();return true;},
     resetCamera(){cameraTransition=null;if(canvasStage&&projection)canvasStage.setCamera(fitCanvasCamera(fitRows?{a:fitRows,b:fitRows}:projection,views.clientWidth,views.clientHeight,mode));fit();draw();},
     getCamera(){return canvasStage?.getCamera()||{position:camera?.position.toArray()??null,target:controls?.target.toArray()??null};},
     getStats(){const arms=['split','difference'].includes(mode)?[0,1]:[mode==='plan'?1:0];const segment=width/arms.length;const targets=camera?meshes.filter(m=>!m.userData.ghost&&arms.includes(m.parent===scenes[0]?0:1)).map(m=>{const arm=m.parent===scenes[0]?0:1;const v=m.position.clone().project(camera);return {...m.userData,x:(arms.indexOf(arm)+(v.x+1)/2)*segment,y:(1-v.y)/2*height};}):[];return {...canvasStage?.getStats(),targets,camera:api.getCamera(),mode,disposed,backend:disposed?'disposed':canvasStage?'canvas2d':renderer&&!error?renderBackend:'inventory-fallback',backendReason,objects:canvasStage?canvasStage.getStats().objects:meshes.length,geometries:renderer?.info?.memory?.geometries??null,textures:renderer?.info?.memory?.textures??null,month:projection?.month??null,layoutVersion:mapping.version,error};},
-    dispose(){if(disposed)return;disposed=true;observer?.disconnect();globalThis.removeEventListener?.('resize',resize);canvasStage?.dispose();effects?.dispose();if(animation)cancelAnimationFrame(animation);views.removeEventListener('click',pick);renderer?.domElement.removeEventListener('webglcontextlost',lost);controls?.dispose();releaseMeshes();for(const scene of scenes)scene.traverse(object=>{if(object.geometry){object.geometry.dispose();if(Array.isArray(object.material))object.material.forEach(material=>material.dispose());else object.material.dispose();}});effects?.dispose();renderer?.dispose();renderer=null;root.remove();resolveReady({backend:'disposed'});},
+    dispose(){if(disposed)return;disposed=true;unsubscribeMotion();preferences.dispose();observer?.disconnect();globalThis.removeEventListener?.('resize',resize);canvasStage?.dispose();effects?.dispose();if(animation)cancelAnimationFrame(animation);views.removeEventListener('click',pick);renderer?.domElement.removeEventListener('webglcontextlost',lost);controls?.dispose();releaseMeshes();for(const scene of scenes)scene.traverse(object=>{if(object.geometry){object.geometry.dispose();if(Array.isArray(object.material))object.material.forEach(material=>material.dispose());else object.material.dispose();}});effects?.dispose();renderer?.dispose();renderer=null;root.remove();resolveReady({backend:'disposed'});},
   };
   return api;
 }

@@ -475,6 +475,7 @@ const server = serve({
       return notFound();
     }
 
+    if (['/shared/media/pipeline.js', '/shared/media/preferences.js'].includes(pathname)) return serveFile(`.${pathname}`);
     // Browser-safe universe wire contracts; keep server-only shared modules private.
     if (pathname === "/shared/causality/index.js") return serveFile("./shared/causality/index.js");
     if (under(pathname, "/visualizations")) return serveStatic("/visualizations", "./visualizations", pathname);

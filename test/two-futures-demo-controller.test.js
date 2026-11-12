@@ -17,3 +17,10 @@ test('recorded divergence holds six seconds and replay preserves the same month 
  expect(months).toEqual([0,0,15,16,16,16,16,120]);expect(highlights).toEqual([stop]);
  c.start(stop);time+=10000;tick();expect(months.at(-1)).toBe(16);expect(highlights).toHaveLength(2);c.dispose();
 });
+
+test('skip completes once, replay resets supplied evidence and disposal prevents restart',()=>{
+ let time=0,tick;const months=[],highlights=[];const c=createDemoController({now:()=>time,schedule:f=>(tick=f,1),unschedule:()=>{},onMonth:m=>months.push(m),onHighlight:x=>highlights.push(x)});
+ c.start({month:16,entity:{id:'actual'}});c.skip();expect(months).toEqual([0,120]);expect(c.getState().status).toBe('complete');c.skip();expect(months).toHaveLength(2);
+ c.replay();time=10000;tick();expect(months.at(-1)).toBe(16);expect(highlights).toHaveLength(1);c.dispose();c.replay();expect(c.getState().status).toBe('disposed');
+ expect(()=>createDemoController({duration:60001})).toThrow('budget');
+});
