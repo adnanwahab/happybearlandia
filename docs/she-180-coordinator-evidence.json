@@ -79,7 +79,7 @@
     "leasesCreated": 0,
     "workersLaunched": 0,
     "draftHandoffsVerified": 0,
-    "reason": "30 retained active issues; unknown ownership and unresolved candidate prerequisites. Do not bypass classifier to fill batch."
+    "reason": "Latest CLI snapshot:28 retained active issues, unknown ownership and unresolved candidate prerequisites; selected none. No bypass."
   },
   "recurringScheduling": {
     "authorizedConditionally": true,
@@ -87,13 +87,38 @@
     "reason": "Requires completed controlled live pilot evidence first"
   },
   "files": {
-    "tools/symphony/local/backlog_coordinator.py": "493b27d13134054b076bb6cefe6e39bee8343670acb2e098cc67cc93c6ba049e",
+    "tools/symphony/local/backlog_coordinator.py": "55e75567a04c3923a312764f95d6158778c7694e20992a5c70fdc10666be8b9b",
     "tools/symphony/local/coordinator_host.py": "1445d4e396d3ba158001ac4615708247804099f7e7ecbf5d027adef9fe8c4835",
-    "tools/symphony/local/test_backlog_coordinator.py": "2b9a56a1b7718af6feba59c6a817bd088887c6511e16f511d27ee5abcfc5f831",
+    "tools/symphony/local/test_backlog_coordinator.py": "554b05292a7261803f01b6982f641ff6d82f5e3747f655cf673816387501d70b",
     "tools/symphony/local/test_coordinator_host.py": "3526ee278bf5b8d28a960e205ddb31cc6573c27db06905786f00649709c966e2",
     "tools/symphony/local/COORDINATOR.md": "fb9f73ea3c04131d745b3aefe12b2fe9cde02d5907d667eda7d08728006d114f",
     "tools/symphony/local/coordinator-readiness.example.json": "9fa628954242f3bf56aaba43f275cd99dd4d6bd55f65049be6eab8c700d0068e",
     "tools/symphony/local/README.md": "12cf6da58f54e956614f548b0509a6126d55f9c9a9f7ab89f92ebd97cce208e4",
-    "docs/symphony-coordinator-reconciliation.md": "31a56eda03349a9f7b14fa00d713e87e4b5cffb35a1b06ce5ca79ec4b2e9274a"
+    "docs/symphony-coordinator-reconciliation.md": "c23ecdee8ec528b9ddb8dc2fc42618e5320c7bf2cb794994bb21346660d8d67f"
+  },
+  "liveCliDryRun": {
+    "exitCode": 0,
+    "issues": 175,
+    "pullRequests": 21,
+    "baseSha": "3fb9652f83d49e2d39d55aee7b31b6593f8c5849",
+    "occupied": 28,
+    "cap": 3,
+    "selected": [],
+    "dryRun": true,
+    "leaseFileCreated": false,
+    "jsonReport": "/private/tmp/hbl-she180-host-cli-audit.json",
+    "markdownReport": "/private/tmp/hbl-she180-host-cli-audit.md",
+    "note": "Newer snapshot than the initial service audit; source changes by other coordinators are not overwritten."
+  },
+  "postExtractionInstalledHostRun": {
+    "passed": 93,
+    "failed": 0,
+    "log": "docs/evidence/she-180-installed-host-93-tests.log"
+  },
+  "draftPr": "https://github.com/adnanwahab/happybearlandia/pull/30",
+  "linearReconciliationComments": {
+    "SHE-180": "4a869a76-93ab-4433-98f7-586497afdb5f",
+    "SHE-126": "45383d77-dc82-415b-8092-33e6c2243898",
+    "SHE-127": "dc2f8ab8-eb73-4726-9cd3-a6caea5c1dc7"
   }
 }
