@@ -1,3 +1,4 @@
+import { readRunInput } from "./run-input.js";
 import { fingerprint } from "./reproducibility.js";
 import { simulateExperiment } from "./simulation-adapter.js";
 
@@ -36,6 +37,8 @@ export class RunJobManager {
     internal.public = this.snapshot(internal);
     this.jobs.set(id, internal);
     internal.promise = this.#run(internal, { experiment, worldBatch, adapter });
+    // Polling clients never await this promise; retain rejection for wait() callers.
+    internal.promise.catch(() => {});
     return internal.public;
   }
 
@@ -120,7 +123,7 @@ export function createRunApiHandler(manager, resolveRunInput) {
     if (parts[0] !== "api" || parts[1] !== "runs") return null;
     const id = parts[2] || null;
     if (!id && request.method === "POST") {
-      const body = await request.json();
+      const body = await readRunInput(request);
       const input = await resolveRunInput(body);
       return Response.json(manager.createJob(input), { status: 202 });
     }

@@ -1,3 +1,4 @@
+import { RUN_INPUT_LIMITS, validateRunInput } from "./run-input.js";
 import { createCityApi } from "./city/api.js";
 import { handleExperimentApi } from "./experiment-api.js";
 import { loadServerExperiment } from "./server-experiment-store.js";
@@ -63,6 +64,8 @@ export async function resolveServerRunInput(body = {}, options = {}) {
     throw apiError("Run request body must be a JSON object", 400);
   }
 
+  validateRunInput(body);
+
   let experiment = body.experiment || body.snapshot?.experiment || null;
   let worldBatch = body.worldBatch || body.snapshot?.worldBatch || null;
   const savedExperimentId = body.experimentId || body.recordId || null;
@@ -79,9 +82,19 @@ export async function resolveServerRunInput(body = {}, options = {}) {
     throw apiError("Run request requires a civic-experiment.v1 experiment or a valid saved experimentId", 400);
   }
 
-  if (!worldBatch?.worlds?.length) {
+  validateRunInput({ experiment, worldBatch });
+  if (worldBatch != null && (!Array.isArray(worldBatch.worlds) || !worldBatch.worlds.length || worldBatch.worlds.some(row => !row || typeof row !== "object" || Array.isArray(row) || typeof row.id !== "string" || !row.id.length))) {
+    throw apiError("worldBatch.worlds must contain identified world objects", 400);
+  }
+
+  if (!worldBatch) {
+    const runs = finiteInteger(body.runs, experiment?.experiment?.runs || 100, 1, RUN_INPUT_LIMITS.array);
+    const variables = experiment.worldModel?.variables;
+    if (!Array.isArray(variables) || runs * Math.max(1, variables.length) > RUN_INPUT_LIMITS.nodes) {
+      throw apiError("Run generation exceeds workload limit or has invalid variables", 400);
+    }
     worldBatch = generateWorlds(experiment, {
-      runs: finiteInteger(body.runs, experiment?.experiment?.runs || 100, 1, 100000),
+      runs,
       seed: body.seed ?? experiment?.experiment?.seed,
       overrides: body.overrides || {},
       scenarioFamilies: body.scenarioFamilies,
@@ -129,7 +142,7 @@ export function createServerCivicApiHandler(options = {}) {
         return await runHandler(request);
       } catch (error) {
         return Response.json(
-          { error: String(error?.message || error) },
+          { error: String(error?.message || error).slice(0, RUN_INPUT_LIMITS.errorChars) },
           { status: errorStatus(error), headers: { "cache-control": "no-store" } },
         );
       }

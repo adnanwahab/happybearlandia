@@ -1003,3 +1003,31 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-110 — invalid and oversized civic run inputs
+
+Completed the integrated `/api/runs` slice: [input contract](run-input-contract.md),
+bounded streaming/preflight, inline world shape checks, generation amplification
+limit, and observed background rejection handling. Ownership is limited to the
+run resolver/manager, new preflight module, security fixtures, core CI workflow,
+and documentation. No shared interfaces or independent implementation tasks
+required delegation. Audit found no GitHub PR referencing SHE-110.
+
+Acceptance: reject malformed JSON, NaN/infinities, invalid timestamps, oversized
+arrays/bodies/depth/node counts before job creation; preserve seed/schema inputs
+and valid recovery; retain pollable failures without unhandled process crashes.
+The focused suite is wired into CI; synthetic seed-42 fixtures include exact
+boundaries, cancelled oversized streams, and an isolated Bun process regression.
+Adjacent generator, adapter, reproducibility, City and run API tests are included
+in local verification. Browser behavior is unchanged, so Playwright is skipped.
+No lint/typecheck commands are configured in package.json. No merge, deployment,
+production data changes or remote publication performed. Broader simulation API
+limits and aggregate job/cache quotas remain outside this slice.
+
+Final local acceptance evidence (2026-11-12): `bun test --timeout 15000
+ test/run-input-security.test.js test/run-job-manager.test.js
+ test/server-civic-api.test.js test/world-generator.test.js
+ test/simulation-adapter.test.js test/reproducibility.test.js
+ test/city-systems.test.js test/project-unblock.test.js` passed **59 tests across
+8 files, 575 assertions, zero failures**. `git diff --check` passed. Hosted CI
+execution and PR publication remain unverified.

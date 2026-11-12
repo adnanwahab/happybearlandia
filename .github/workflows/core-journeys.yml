@@ -59,6 +59,8 @@ jobs:
           test/future-machine-share.test.js
           test/future-machine-diff.test.js
           test/example-receipts.test.js
+      - name: Reject invalid and oversized public run inputs
+        run: bun test --timeout 15000 test/run-input-security.test.js test/run-job-manager.test.js test/server-civic-api.test.js
       - name: Install Chromium for browser journeys
         run: bunx playwright install --with-deps chromium
       - name: Universe shell, sprint experiences, and saved future journey
