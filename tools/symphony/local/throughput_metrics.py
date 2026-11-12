@@ -228,7 +228,12 @@ class MetricsStore:
         # Logical query calls are measured; hidden Linear transport retries and
         # HTTP throttles are not inferred from successful logical calls.
         api['read_counter_scope'] = 'logical_transport_calls'
-        payload = {'runtime': {stage: number(counts.get(stage)) for stage in ('running', 'retrying', 'blocked')},
+        inventory = report.get('inventoryCache')
+        inventory = inventory if isinstance(inventory, dict) else {}
+        payload = {'inventory': {'cache_hit': inventory.get('hit') if type(inventory.get('hit')) is bool else None,
+                    'age_seconds': number(inventory.get('ageSeconds')), 'ttl_seconds': number(inventory.get('ttlSeconds')),
+                    'observation_only': inventory.get('observationOnly') if type(inventory.get('observationOnly')) is bool else None},
+                   'runtime': {stage: number(counts.get(stage)) for stage in ('running', 'retrying', 'blocked')},
                    'workers': workers, 'max_workers': number(report.get('max_workers', runtime.get('max_workers'))),
                    'queue': {'ready': ready if isinstance(report.get('issues'), list) else None, 'blocked': sum(bool(r.get('reasons')) for r in rows if isinstance(r, dict)) if isinstance(report.get('issues'), list) else None,
                              'remaining_estimate': remaining, 'total_project_issues': total_project,
@@ -329,6 +334,7 @@ class MetricsStore:
                 'cycle_times': {'scope': 'pr_creation_to_merge', 'median_seconds': median, 'p95_seconds': p95, 'samples': len(cycles), 'small_sample': len(cycles) < 20},
                 'utilization': {'fraction': busy/capacity if capacity else None, 'idle_fraction': 1-busy/capacity if capacity else None,
                                 'observed_seconds': observed, 'capacity_seconds': capacity, 'samples': len(samples)},
+                'inventory': latest.get('inventory', {}),
                 'resources': latest.get('resources', {key: None for key in RESOURCE_KEYS}), 'tokens': token_data,
                 'api': latest.get('api', {key: None for key in API_KEYS}),
                 'quality': {'first_pass_ci_success_rate': None, 'retry_rate': None, 'failure_rate': None,
