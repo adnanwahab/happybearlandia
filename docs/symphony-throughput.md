@@ -116,3 +116,5 @@ commits, workpads and credentials were preserved.
 Two completed real observer cycles recorded zero grants and0.0utilization over90.166sampledseconds (the runtime was deliberately held). This verifies recurrence, not useful changes per worker-hour.
 
 Final race regressions cover PR backlog/publication receipts arriving during the mandatory fresh scan, policy/resource changes during that scan, and shutdown during the final check. All retain pending ownership without adding the dispatch label. Final integrated standalone package:102tests passed with ResourceWarning treated as an error. Blocking categories count each affected issue once.
+
+After installing the reviewed package beside existing host hooks, the full installed Python suite passed164tests with ResourceWarning treated as an error. Final observerPID91400 uses `20261111-observer-v3`; runtimePID88616 and all pressure gates remain unchanged.
