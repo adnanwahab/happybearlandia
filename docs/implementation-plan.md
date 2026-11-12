@@ -1003,3 +1003,37 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-127 — read-only queue duplicate report
+
+Next integrated slice: reuse the existing SHE-180 host scanner, readiness
+classifier and dry-run CLI; add complete repository GitHub issue inventory and
+explicit matching evidence without a new dispatcher. Owned files: coordinator
+scanner/classifier/render, dedicated queue tests, coordinator documentation and
+this status entry. Existing worktree `mini/SHE-127` is isolated and initially
+clean. No independent implementation task warrants another agent/shared interface.
+
+Prerequisites: host read credentials and trusted readiness evidence for a live
+scan; SHE-126 dependency stays a readiness hold, not an implementation waiver.
+Acceptance: each held item retains reasons; open/closed GitHub matches carry
+number/state/URL/signal; dry-run leaves remote issues, source and lease state
+unchanged and never calls approval. Incomplete inventory fails closed. Risks:
+conservative prose matches and cross-repository/fuzzy aliases require operator
+audit; older caches lack the additive issue inventory until refreshed.
+
+Delivered: additive scanner/report fields and conservative match holds using
+Linear identifier, exact title or attached URL. Reuses all existing dependency,
+PR and ownership checks. Synthetic regression tests exercise no-state/no-approval
+behavior with approvals enabled, identifier boundary, closed issue and alias
+matches, PR exclusion and incomplete pagination failure. No browser behavior
+changed; Playwright is inapplicable. Live CLI GitHub audit was blocked by network
+connectivity; connector search did not supply usable PR evidence, so no live
+source/PR duplicate clearance or dispatch readiness is claimed. No labels,
+issues, runtime configuration, merge or production data changed.
+
+Acceptance evidence (2026-11-12): `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest
+discover -s tools/symphony/local -p 'test_*.py'` passed 217 tests in 10.269s;
+`git diff --check` passed. Diff review confirms additive report fields and only
+read endpoints added; existing default/apply boundary is unchanged. Reproducible
+synthetic evidence is in `test_queue_report.py`; live host scan remains the next
+operator step when connectivity and SHE-126 readiness evidence are available.

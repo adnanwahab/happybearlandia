@@ -120,9 +120,11 @@ class Services:
             # GitHub caps pull-request files at 3000; incomplete evidence is a hold.
             if len(pr['files']) >= 3000:
                 raise host.PublicationError('Coordinator: GitHub PR file limit reached; reconcile manually')
+        github_issues = [i for i in self.github_pages(
+            f'repos/{host.REPO}/issues?state=all&per_page=100') if 'pull_request' not in i]
         base = self.github(f'repos/{host.REPO}/git/ref/heads/{host.BASE}')['object']['sha']
         self.scan_metrics['elapsedSeconds'] = time.monotonic() - started
-        return {'issues': issues, 'prs': prs, 'baseSha': base, 'scannedAt': time.time(),
+        return {'issues': issues, 'prs': prs, 'githubIssues': github_issues, 'baseSha': base, 'scannedAt': time.time(),
                 'scanMetrics': dict(self.scan_metrics)}
 
     def github(self, endpoint, pages=False):
@@ -173,6 +175,19 @@ def linked(pr, issue):
     return ((pr.get('head') or {}).get('ref') == 'symphony/' + issue['identifier'] or
             issue['identifier'] in {x.upper() for x in ISSUE_REF.findall((pr.get('title') or '') + '\n' + (pr.get('body') or ''))} or
             any(a['url'].rstrip('/') == pr['html_url'].rstrip('/') for a in issue['attachments']))
+
+
+def github_issue_matches(candidate, issue):
+    """Conservative signals only; a match requires human reconciliation."""
+    signals = []
+    text = (candidate.get('title') or '') + '\n' + (candidate.get('body') or '')
+    if issue['identifier'].upper() in {x.upper() for x in ISSUE_REF.findall(text)}:
+        signals.append('Linear identifier')
+    if candidate.get('title', '').strip().casefold() == issue['title'].strip().casefold():
+        signals.append('exact title')
+    if any(a['url'].rstrip('/') == candidate['html_url'].rstrip('/') for a in issue['attachments']):
+        signals.append('attachment URL')
+    return signals
 
 
 def delivered(pr, issue):
@@ -280,6 +295,13 @@ def classify(snapshot, config, state, now=None):
                 reasons.append(f'prerequisite {dep}: completion/verification missing ({status or "not in project"})')
         if any(r['type'] in {'duplicate', 'duplicate_of'} for r in issue.get('relations', [])):
             reasons.append('native duplicate relation requires reconciliation')
+        github_matches = [dict(number=g['number'], url=g['html_url'], state=g['state'],
+                               signals=signals)
+                          for g in snapshot.get('githubIssues', [])
+                          if (signals := github_issue_matches(g, issue))]
+        if github_matches:
+            reasons.append('matching GitHub issues require reconciliation: ' +
+                           ','.join(str(g['number']) for g in github_matches))
         matching = [p for p in prs if linked(p, issue)]
         if matching:
             reasons.append('existing PR/merged/closed implementation requires reconciliation: ' + ','.join(str(p['number']) for p in matching))
@@ -312,6 +334,7 @@ def classify(snapshot, config, state, now=None):
                      'description': issue['description'], 'title': issue['title'],
                      'workpads': [c['id'] for c in issue['comments'] if c['body'].startswith('## Codex Workpad')],
                      'comments': issue['comments'], 'attachments': issue['attachments'],
+                     'matchingGitHubIssues': github_matches,
                      'existingPRs': [p['number'] for p in matching], 'files': scope(review),
                      'interfaces': review.get('interfaces') or [], 'reasons': reasons, 'eligible': not reasons})
     return rows
@@ -439,7 +462,8 @@ def cycle(services, config, directory, apply=False):
         row['eligible'] = not row['reasons']
     report = {'dryRun': not apply, 'projectId': PROJECT, 'baseSha': snapshot['baseSha'],
               'scannedAt': snapshot['scannedAt'], 'scanMetrics': snapshot.get('scanMetrics', {}), 'cap': cap, 'occupied': len(occupied_ids),
-              'issues': rows, 'selected': [r['identifier'] for r in selected], 'leases': state['leases'], 'pullRequests': snapshot['prs']}
+              'issues': rows, 'selected': [r['identifier'] for r in selected], 'leases': state['leases'], 'pullRequests': snapshot['prs'],
+              'githubIssues': snapshot.get('githubIssues', [])}
     if not apply:
         return report
     if config.get('enableApprovals') is not True or not config.get('overlapReconciledBy'):
@@ -478,6 +502,9 @@ def render(report):
                       'Digest: ' + row['digest'], 'Files: ' + ', '.join(row['files']),
                       'Interfaces: ' + ', '.join(row['interfaces']),
                       'Prose references: ' + ', '.join(row['proseReferences']),
+                      'Matching GitHub issues: ' + ', '.join(
+                          f'#{g["number"]} ({g["state"]}; {", ".join(g["signals"])}) {g["url"]}'
+                          for g in row.get('matchingGitHubIssues', [])),
                       'Existing PRs: ' + ', '.join(map(str, row['existingPRs'])), ''])
     return '\n'.join(lines)
 
