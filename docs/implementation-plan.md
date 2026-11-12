@@ -1003,3 +1003,31 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-66 — first-play dashboard
+
+Audit: no first-play instrumentation/export consumer exists in this checkout;
+SHE-8 remains Backlog. SHE-124 is In Review and owns retention instrumentation;
+GitHub issue search for SHE-124 returned no linked work (CLI network unavailable).
+Do not duplicate simulation analytics, activity dashboard, or retention collection.
+Owned slice: `tools/first-play/`, focused tests, and this plan entry. No shared
+server edits: existing `/tools` static route serves the dashboard. The proposed
+versioned read-only export adapter aggregates actual supplied events, deduplicates
+IDs, excludes known bot sessions, orders funnel transitions, and groups UTC
+landing session cohorts. Acceptance: fixture counts, missing data, bot/duplicate
+handling, unavailable retention and browser upload/error paths. Risk: producer
+contract is not yet integrated; live conversion and cross-session retention
+remain blocked on SHE-8/SHE-124. No deployment or production data changes.
+
+Verification on branch `mini/SHE-66`: `bun test test/first-play-dashboard.test.js`
+passed 4 tests / 17 assertions; `node --check tools/first-play/aggregate.js`,
+`node --check tools/first-play/page.js` and `git diff --check` passed.
+`bunx playwright test test/e2e/first-play-dashboard.e2e.js` failed before tests
+because Bun could not bind port3100 (`EADDRINUSE`); retry with
+`HBL_PLAYWRIGHT_PORT=3466 HBL_PLAYWRIGHT_PARTY_PORT=3467` failed identically on3466.
+No browser result or screenshot is claimed. Focused browser test is retained for
+an environment where the application server can bind. No lint/type scripts are
+configured. No commit/PR created. Remaining acceptance: agree producer contract
+with SHE-8, wire its real recorded export, coordinate retention with SHE-124,
+and run the browser check. This working read-only increment is not a completed
+live first-play measurement system.
