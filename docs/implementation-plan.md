@@ -527,3 +527,26 @@ Acceptance/evidence and operator recovery: docs/symphony-workpad-oversize-repair
 Fresh clean-package gate:92tests passed; latest installed-host164passed
 (other owners expanded the suite after the earlier106-test pass). Private readback
 `/private/tmp/hbl-workpad-oversize-repair/`; no live hook invocation/issue mutation.
+
+### Open PR browser and explicit isolated revision previews
+
+Implement `/github` open-only pagination (25/page), detail and explicit SHA-checked
+preview admission. Metadata GETs never provision. A durable SQLite queue feeds a
+separate trusted runner, one preparation/two runtimes, with immutable identities,
+restart reconciliation, bounded retention and authenticated same-origin creation.
+Local Docker guests receive no host source/data/credentials and no outbound network;
+Fly uses a separately activated secretless provider, never production builds/data.
+Acceptance: exact SHA backend/frontend, real local application browser rendering,
+concurrent/restart deduplication and failure/security tests. No Symphony edits.
+Risks: Docker/network/dependency availability and Fly isolation/budget activation.
+Fly live verification remains explicitly pending operator activation. Use current
+verified sprint baseline173f953; open one draft PR, no merge/deployment.
+
+Implemented slice: open-only paginated metadata/detail UI, explicit SHA conflict
+check, capability/origin gates, SQLite durable queue and OS-locked separate runner,
+network-none local provider/HTTP-WS relay, Fly adapter/trusted build/firewall recipe.
+Existing authenticated gh read transport returned8openPRs. ActualPR40 data-only
+preparation succeeded; real local Docker/browser rendering is BLOCKED by host
+pressure/headroom guard. Fly live activation is PENDING budget/isolation review.
+Focused tests and390px Chromium UI smoke passed; see docs/github-preview-evidence.md.
+Do not call fixture providers or source preparation a completed rendering milestone.

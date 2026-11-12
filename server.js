@@ -1,3 +1,5 @@
+import {createGitHubHandler} from './ops/previews/api.js';
+const handleGitHub = createGitHubHandler();
 import { withUniverseNavigation } from './world/universe/html-navigation.js';
 import {createCausalityHandler} from './world/causality/api.js';
 import {createReleaseHealthHandler,initializeReleaseStorage} from './ops/release-health.js';
@@ -458,6 +460,9 @@ const server = serve({
     if (pathname === "/world/bench/people" || pathname === "/world/bench/people/") return serveFile("./world/people-benchmark.html");
 
     if (pathname.replace(/\/$/, "") === "/routes") return serveFile("./routes.html");
+    if (pathname.startsWith("/api/github/")) return await handleGitHub(request);
+    if (/^\/github(?:\/pulls\/[1-9]\d{0,7}|\/previews\/[a-f0-9]{32})?\/?$/.test(pathname)) return serveFile("./web/github/index.html");
+    if (pathname === "/github-client.js") return serveFile("./web/github/client.js");
     // Public landing page
     if (pathname === "/" || pathname === "/index.html") {
       return serveFile("./index.html");
