@@ -59,6 +59,8 @@ jobs:
           test/future-machine-share.test.js
           test/future-machine-diff.test.js
           test/example-receipts.test.js
+      - name: Verify bounded network and comparison recovery
+        run: bun test test/map-streamer.test.js test/world-quick-demo-controller.test.js test/world-first-run-repairs.test.js
       - name: Install Chromium for browser journeys
         run: bunx playwright install --with-deps chromium
       - name: Universe shell, sprint experiences, and saved future journey

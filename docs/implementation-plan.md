@@ -1003,3 +1003,49 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-176 — bounded first-run recovery (review candidate)
+
+Audited current design, visual-pass contracts, renderer README, map streamer,
+quick controller, tests and core-journeys CI on isolated branch `mini/SHE-176`.
+The existing quick demo uses a local Balanced recipe, not remote compute; there
+is no remote-compute connection in that controller. GitHub offline PR search
+returned only historical browser assignment #19, not a competing implementation.
+No new worktree is needed: this checkout is already the issue workspace.
+
+Slice: keep the loaded resident neighborhood available when neighboring map
+requests stall; bound quick-demo readiness/computation/reveal operations; return
+explicit retry/continue guidance. Prerequisites are the existing map retry and
+controller cancellation contracts. Acceptance: release request slots, retain the
+resident tile, never complete a failed request, retry captured inputs and reject
+late results. Risks: a slow legitimate operation can exceed its deadline; defaults
+are 15 seconds per map request and 120 seconds per quick-demo operation. No
+automatic rerun, replacement model, seed changes or network-status heuristic.
+
+Delivered: abort-aware deadline wrapper that settles even uncooperative providers;
+map request timeout and eviction cancellation; comparison timeout through the
+existing error/cancellation path; explicit continue-exploring guidance. CI now
+includes the focused regression suite. Loaded resident data is retained in memory;
+this slice does not add an offline service worker or cold-start asset cache.
+
+Evidence: Bun 1.4.2 on macOS arm64, 25 focused tests passed / 124 assertions,
+including stalled map abort, baseline retention, exact seed-176 comparison retry,
+and ignored stale map/comparison responses. Existing success, partial coverage,
+worker error and cancellation paths also pass. Browser integration harness uses
+normal served modules and guide controls with synthetic comparison success,
+seed 176, offline mode and CDP 400ms latency / 50KB/s each direction. It is not
+full-scene/model acceptance evidence. Reproduce with:
+`bunx playwright test --config test/network-recovery.browser.config.js`.
+Actual browser execution is blocked: local server startup failed with EADDRINUSE
+on both 54476 and 39876 before any browser test ran. No offline/3G browser pass
+or public performance claim is made. No standalone lint/type script exists.
+
+Remaining acceptance: run that browser suite in a host permitting local server
+startup; exercise the complete World journey and the separate remote-compute and
+scenario-request surfaces, including warm-cache provenance and interruption.
+Planning dependency HBL-1M-039 remains unverified. This is a reviewable working
+increment, not closure of all SHE-176 acceptance. No commit, PR, merge or deploy.
+
+Final local regression: 31 tests / 155 assertions passed across map streamer,
+quick-demo controller, first-run repairs and tile navigation. `git diff --check`
+passed. Browser startup blocker unchanged; browser tests remain unexecuted.

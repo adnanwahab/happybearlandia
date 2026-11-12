@@ -40,7 +40,7 @@ export function mountFirstRunGuide({ container, onQuickDemo, onStop, onReplay, o
     replay.textContent = state.status === 'error' ? 'Retry comparison' : 'Replay comparison';
     inspect.disabled = !onInspect || !(state.observation || state.feedback?.resident);
     const progress = state.progress;
-    const text = state.status === 'error' ? `Comparison failed: ${state.error?.message || state.error || 'Unknown error'}. Retry when ready.`
+    const text = state.status === 'error' ? `Comparison failed: ${state.error?.message || state.error || 'Unknown error'}. Retry comparison or dismiss to continue exploring the loaded city. No completed run was produced.`
       : state.status === 'stopped' ? 'Stopped. Replay starts a fresh matched comparison.'
       : state.status === 'completed' ? 'Comparison complete. Inspect a resident or replay.'
       : busy ? `${state.status === 'computing' ? 'Comparing matched futures' : state.status}…${progress?.stage ? ` ${progress.stage}` : ''}${typeof progress?.fraction === 'number' && Number.isFinite(progress.fraction) ? ` ${Math.round(Math.max(0, Math.min(1, progress.fraction)) * 100)}%` : ''}`
