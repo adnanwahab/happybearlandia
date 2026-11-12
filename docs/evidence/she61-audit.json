@@ -181,5 +181,39 @@
     "source": "coordinator-inspected PR25 run; not rerun by SHE61",
     "result": "Ubuntu24.04 dependency, unit and Chromium installation passed; release browsers failed3 existing assertions; later steps skipped",
     "limitation": "PR25 is unmerged; current sprint workflow still uses ubuntu-latest. This is not a passing full release gate."
+  },
+  "currentBaseVerification": {
+    "observedAt": "2026-11-12T03:26:17Z",
+    "upstreamSprintCommit": "f794ba25e89ee1db9c1ee3a6bdc562e404ca1965",
+    "testedMergedHead": "607694a87ba14b6c3abe585429ca5f69a58339dc",
+    "retainedOriginalAuditCommit": "75ce8d489c1d6a2c597026e8449c5c46ebedb8d8",
+    "dependencyFilesUnchanged": true,
+    "registryQueryRepeated": false,
+    "registryReceiptScope": "Original recorded query retained; unchanged lock and manifest verified by SHA256, not a new advisory freshness claim.",
+    "units": {
+      "command": "bun test test/dependency-browser-audit.test.js test/future-machine-backend.test.js",
+      "passed": 15,
+      "failed": 0,
+      "skipped": 1,
+      "assertions": 74
+    },
+    "browser": {
+      "command": "HBL_TWO_FUTURES_PORT=54561 HBL_TWO_FUTURES_ARTIFACT_DIR=/private/tmp/she61-current-base-browser-proof bunx playwright test --config test/one-city-two-futures.browser.config.js --grep 'homepage Play Demo starts|320px Canvas comparison' --reporter=line",
+      "passed": 2,
+      "failed": 0,
+      "seconds": 6.3,
+      "scope": "Unchanged limited Chromium journeys; isolated loopback server and disposable stores; integration credential variables removed.",
+      "initialSetupFailure": "Sandbox could not bind54561; authorized rerun passed; no existing service stopped."
+    },
+    "upstreamRepairObservation": "Current base contains savedWorld/browser assertion repairs and manifest/replay fixes. PR25 failed run remains historical evidence, not a claim that current source has those failures. Current workflow remains ubuntu-latest.",
+    "notVerifiedHere": [
+      "Full canonical release suite on current base",
+      "Current hosted CI status",
+      "Firefox",
+      "WebKit",
+      "Safari",
+      "Physical devices",
+      "Native WebGPU"
+    ]
   }
 }

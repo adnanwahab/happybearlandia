@@ -128,3 +128,29 @@ regressions were rerun without modifying those interfaces.
 The report's implementation and limited verification are complete; broader
 release, full browser matrix, production measurements and hosted repair remain
 separate gates. No merge, deployment or production write was performed.
+
+
+## Current-base revalidation after upstream integration
+
+The parent coordinator losslessly merged current sprint
+`f794ba25e89ee1db9c1ee3a6bdc562e404ca1965` into this issue branch; the original
+SHE-61 commit `75ce8d489c1d6a2c597026e8449c5c46ebedb8d8` remains in history.
+At merged HEAD `607694a87ba14b6c3abe585429ca5f69a58339dc`, the exact targeted
+unit/backend command passed **15 tests, 0 failures, 1 existing browser-gated skip,
+74 assertions**. The same two unchanged Chromium journeys passed **2 tests,
+0 failures, 6.3s**, with credential variables removed, disposable local stores
+and the isolated54561 server. The first sandbox bind attempt failed; the
+authorized rerun passed without stopping another service.
+
+`package.json` and `bun.lock` are unchanged from the original audit, and both
+SHA-256 values still match the recorded receipt. No new advisory request was
+made: the original query remains a time-qualified receipt, not a refreshed
+registry result. Current source includes the upstream manifest/replay fixes and
+saved-World/browser assertion repairs. The PR25 run and remediation ledger above
+are historical evidence from the original base; they must not be read as proof
+those three failures still exist on this current base. The current workflow still
+uses ubuntu-latest. Full canonical-suite validation and current hosted CI remain
+their existing owners' gates; SHE-61's limited rerun neither duplicates nor
+certifies them. Firefox/WebKit/Safari/physical-device/native-WebGPU limitations
+remain unchanged. No new ownership transfer, dependency upgrade or CI weakening
+was performed.
