@@ -1003,3 +1003,19 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Multiscale Population rendering — SHE-155
+
+Independent slice owns `world/population/render-lod.js`, Population renderer and
+World toolbar integration, focused LOD tests and `docs/population-render-lod.md`.
+Prerequisite SHE-141 is Done; its metric contract remains unchanged. Existing
+worker district totals and bounded positions suffice; no simulation changes.
+Acceptance: distance heat, sample clusters, individual residents, persistent
+record/draw separation, immutable zoom metrics, deterministic fixtures and
+explicit disabled low-capability path. Risks: district counts are residence,
+not street occupancy; clusters cover only the sample; WebGPU remains required.
+Code slice implemented; final focused Population and metric-contract verification
+passed 24 tests/345 assertions; git diff --check passed. Browser smoke
+was attempted twice: local server startup failed with EADDRINUSE on ports 3100
+and 3415. Browser appearance and before/after recordings remain unverified;
+rerun with a working server before graphical acceptance. No deployment or merge.
