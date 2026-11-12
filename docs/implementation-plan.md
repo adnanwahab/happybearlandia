@@ -1,5 +1,26 @@
 # HappyBearLandia implementation plan
 
+## SHE-253 — quest-selection director paired experiment
+
+Preparation only; experiment execution remains gated by the issue's explicit
+human metric-selection requirement. [Protocol draft](experiments/quest-selection-paired.md)
+records current quest/replay infrastructure, proposed definitions, paired analysis,
+null check and fixed stop rule. No experiment has run and no results are claimed.
+Living City's transit ensemble and monthly City replay evidence do not establish
+quest-selection replay. House date quests are a candidate test bed requiring
+explicit scope selection; the existing House lab compares designs.
+
+Next independently verifiable slice: obtain and record human test-bed/metric/
+horizon approval; commit the finalized protocol before running; then implement
+one selector adapter through ordinary quest commands, full event collection,
+independent deterministic replay and label-invariance tests. Only after those
+gates pass run exactly 100 paired seeds and report effects, intervals, failures
+and what was not measured. Main risks: switching runtimes without approval,
+bounded event retention, ambiguous first-quest timing and policy-dependent RNG.
+Documentation-only preparation is verified with `git diff --check`; no browser
+behavior changes, so Playwright is inapplicable. Acceptance remains incomplete
+until the human preregistration and actual paired/null results are recorded.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
