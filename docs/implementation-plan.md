@@ -1003,3 +1003,31 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-100 — optional first-divergence quest
+
+Implemented a compact Future Machine quest through the existing Fork City,
+monthly timeline and exact-entity inspector. Steps require an explicitly requested
+successful paired run, a manual visit to the first available recorded entity
+difference, and inspection of that same entity at that month. Demo playback and
+shared-link loading do not award progress. New completed runs reset progress;
+unchanged controls disclose no divergence. Native buttons provide keyboard
+operation and an optional hide/show control. Progress is session-local.
+
+Dependencies: existing validated monthly City histories, stable-ID compareHistory
+and evidence inspector. No new simulation authority, clock, seed, identity mapping
+or persistence contract. The target is the earliest available entity difference,
+which can precede physical construction; it is not a causal or welfare ranking.
+No parallel implementation tasks justified delegation. This issue workspace owns
+only the quest module, coordinator wiring, styles, tests and this plan entry.
+
+Acceptance evidence: 28 focused unit/regression tests passed, 167 assertions;
+one existing opt-in Chromium component test skipped. Added a real-entry-point
+Playwright quest test covering keyboard completion, recorded target identity,
+hide/show and 390px overflow. Its execution is blocked locally: both default
+port 3100 and alternate 3198 server launches returned EADDRINUSE before any test
+ran. Browser behavior therefore remains unverified. No lint/typecheck script is
+configured. Git diff whitespace check passed. Read-only GitHub searches returned
+no SHE-100 PR or matching branch; Linear supplied no attachment. No issue status,
+approval label, production state, merge or deployment was changed. Next action:
+run the committed browser test where the app server can bind, then review/publish.
