@@ -1,5 +1,33 @@
 # HappyBearLandia implementation plan
 
+## Paired invention experiments — SHE-221
+
+Selected first slice: high-priority Experiment 2 Codex correctness audit
+(SHE-230), reusing completed SHE-59 seed-sweep infrastructure and existing
+SHE-76 paired-history implementation. Scope is report-first; no application
+fixes, model changes, push or deployment. The live child inventory marks
+Experiment 7 Codex and both Experiment 5 assignments Canceled; do not launch
+those from the umbrella's older priority summary.
+
+Acceptance: inspect actual engines and existing tests; reproduce and classify
+findings; distinguish observed behavior, proposed fixes and untested risks;
+provide smallest fixes and regression criteria. Delivered report:
+[correctness audit](reviews/she-221-correctness-audit.md). Focused checks pass
+56 tests with 479 assertions. Two defects reproduced at normal experiment
+normalization and engine boundaries: unsupported state versions and orphan
+worker household references. No implementation change was selected. The full
+106-case replay rerun passed with zero mismatches, without overwriting retained
+SHE-59 evidence. A separate 72-step ledger/parent-immutability probe also passed.
+
+Next implementation slice, after report review: one owner adds version and
+worker membership validation with boundary regressions, preserving valid seeded
+outputs. Risks: explicit imported-state compatibility, potential intended
+nonresident-worker semantics, and replay/version changes if random-key encoding
+is later revised. Missing legacy outcomes and delimiter aliasing remain proposed
+investigations. Other child experiments and Claude reinterpretation remain open;
+this entry does not mark the umbrella complete. Documentation is delivered with
+a local git-am patch; no PR or production change is authorized by this slice.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
