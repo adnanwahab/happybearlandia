@@ -65,3 +65,5 @@ export function compareHistory(history) {
 }
 
 export {compareCityStates, compareEntities, compareHouseholds, metricDelta} from './core.js';
+
+export {firstDivergence} from './first-divergence.js';

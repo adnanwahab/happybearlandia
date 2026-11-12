@@ -102,7 +102,7 @@ export function mountFutureMachineUI(root, options = {}) {
     else if(options.externalPlayback){play.textContent=state.playing?'Pause timelapse':'Play timelapse';play.setAttribute('aria-pressed',String(!!state.playing));}
     provenance.textContent=state.spatialLabel || 'No spatial data loaded. Unlocated changes remain in the inspector.';
     for(const key of Object.keys(metricNodes)){const item=metricPresentation(state.metrics?.[key]); const elements=metricNodes[key];elements.delta.textContent=item.delta;elements.values.replaceChildren(node('span',`WITHOUT PLAN  ${item.baseline}`,'fm-value-baseline'),node('span',`WITH PLAN  ${item.intervention}`,'fm-value-plan'));const semantics=metricSemantics(key,state.metrics?.[key]);elements.card.dataset.tone=semantics.tone;elements.detail.textContent=key==='rent' && semantics.tone==='neutral' && item.delta!=='Unavailable' ? `${semantics.label}.` : `${semantics.label}. ${item.detail}`;elements.why.disabled=!state.ready || state.busy || !options.onMetric || item.delta==='Unavailable';}
-    if(patch.households){fill(household,state.households,state.householdId ?? household.value);renderHousehold();}
+    if(patch.households && JSON.stringify(patch.households)!==JSON.stringify(old.households)){fill(household,state.households,state.householdId ?? household.value);renderHousehold();}
     household.disabled=!state.households.length;
     if('householdId' in patch){household.value=state.householdId;renderHousehold();}
     if('evidence' in patch)evidence.textContent=state.evidence ? JSON.stringify(state.evidence,null,2) : 'No recorded evidence selected.';
@@ -157,7 +157,8 @@ export function createUI(container, callbacks = {}) {
   const demo=doc.createElement('button');demo.type='button';demo.className='fm-primary fm-demo-play';demo.textContent='Play Demo';demo.dataset.testid='future-machine-demo';demo.onclick=()=>callbacks.onDemo?.();
   const demoPause=doc.createElement('button');demoPause.type='button';demoPause.textContent='Pause demo';demoPause.onclick=()=>callbacks.onDemoPause?.();demoPause.hidden=true;
   const demoCaption=doc.createElement('p');demoCaption.className='fm-demo-caption';demoCaption.setAttribute('role','status');demoCaption.textContent='A guided 45–60 second comparison. Pause anytime to explore.';
-  demoPanel.append(demo,demoPause,demoCaption);shell.querySelector('.fm-header').after(demoPanel);
+  const demoSeconds=doc.createElement('span');demoSeconds.className='fm-demo-seconds';
+  demoPanel.append(demo,demoPause,demoCaption,demoSeconds);shell.querySelector('.fm-header').after(demoPanel);
   const runProvenance=doc.createElement('p');runProvenance.className='fm-run-provenance';runProvenance.setAttribute('aria-label','Simulation provenance');shell.querySelector('.fm-comparison').before(runProvenance);
   const difference=doc.createElement('button');difference.type='button';difference.textContent='Difference-only';difference.onclick=()=>callbacks.onMode?.('difference');actions.append(difference);
   const split=doc.createElement('button');split.type='button';split.textContent='Side by side';split.onclick=()=>callbacks.onMode?.('split');actions.append(split);
@@ -180,8 +181,9 @@ export function createUI(container, callbacks = {}) {
     const demoActive=['playing','running','paused','preparing','loading'].includes(demoState.status);
     demo.disabled=busy || !callbacks.onDemo;demo.textContent=demoActive?'Restart Demo':'Play Demo';
     demoPause.hidden=!demoActive;demoPause.disabled=busy || !callbacks.onDemoPause;demoPause.textContent=demoState.paused?'Resume demo':'Pause demo';demoPause.setAttribute('aria-pressed',String(!!demoState.paused));
-    demoCaption.textContent=demoState.caption || (demoState.status==='complete'?'Demo complete. Scrub the timeline or select a result to explore.':'A guided 45–60 second comparison. Pause anytime to explore.');
-    if(Number.isFinite(demoState.elapsedMs))demoCaption.textContent+=` · ${Math.floor(Math.max(0,demoState.elapsedMs)/1000)}s`;
+    const caption=demoState.caption || (demoState.status==='complete'?'Demo complete. Scrub the timeline or select a result to explore.':'A guided 45–60 second comparison. Pause anytime to explore.');
+    if(demoCaption.textContent!==caption)demoCaption.textContent=caption;
+    demoSeconds.textContent=Number.isFinite(demoState.elapsedMs)?`${Math.floor(Math.max(0,demoState.elapsedMs)/1000)}s`:'';
     const provenance=current.provenance || {};
     runProvenance.textContent=`MONTH ${current.month} / 120 · SEED ${provenance.seed ?? current.recipe?.seed ?? 'Unavailable'} · MODEL ${provenance.modelVersion ?? current.recipe?.modelVersion ?? 'Unavailable'} · RUN ${provenance.experimentId ?? current.experimentId ?? 'Not run yet'}`;
     const ready=!!current.frame && !busy;

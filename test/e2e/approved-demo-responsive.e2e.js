@@ -12,13 +12,10 @@ async function reachable(control){
  await control.click({trial:true});await control.focus();await expect(control).toBeFocused();
 }
 async function snapshot(page,info,name,errors){
- const state=await page.evaluate(()=>{
+ const state=await page.evaluate(async()=>{
   const api=window.futureMachine,h=api.history,s=api.state;
-  let firstDivergence=null;
-  for(let month=0;month<h.plan.length;month++){
-   const added=h.plan[month].state.buildings.find(row=>!h.baseline[month].state.buildings.some(before=>before.id===row.id));
-   if(added){firstDivergence={month,collection:'buildings',id:added.id};break;}
-  }
+  const {firstDivergence:find,compareHistory}=await import('/world/future-machine/diff/index.js');
+  const stop=find(h,compareHistory(h));const firstDivergence=stop?{month:stop.month,...stop.entity,building:h.plan[stop.month].state.buildings.find(row=>row.id===stop.entity.id)}:null;
   return {schemaVersion:'approved-demo-responsive.v1',recipe:h.recipe,seed:h.seed,modelVersion:h.modelVersion,initialHash:h.initialHash,runId:h.experimentId,month:s.month,firstDivergence,metrics:s.diff.metrics,scene:api.stats.scene,baselineBuildings:h.baseline[s.month].state.buildings,planBuildings:h.plan[s.month].state.buildings,evidence:h.plan.slice(0,s.month+1).flatMap(snapshot=>snapshot.events.map(event=>({arm:'plan',snapshotMonth:snapshot.month,...event}))),reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches,overflow:document.documentElement.scrollWidth>innerWidth};
  });
  await writeFile(info.outputPath(`${name}.json`),JSON.stringify({...state,errors},null,2));

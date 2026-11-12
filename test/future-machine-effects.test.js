@@ -1,6 +1,7 @@
+import {firstDivergence} from '../world/future-machine/diff/index.js';
 import {test, expect} from 'bun:test';
 import * as THREE from 'three';
-import {createVisualEffects, changedEntityKeys, firstPhysicalStop} from '../world/future-machine/scene/effects.js';
+import {createVisualEffects, changedEntityKeys} from '../world/future-machine/scene/effects.js';
 import {createEngine, addIntervention} from '../world/city/engine.js';
 import {initialForRecipe, normalizeReplay} from '../world/future-machine/data/index.js';
 import {DEFAULT_RECIPE} from '../world/future-machine/contracts.js';
@@ -74,14 +75,24 @@ test('fixed seed actual monthly model yields +24 homes and first mapped physical
     return normalizeReplay(initial,{steps});
   }
   const history={seed:42,modelVersion:DEFAULT_RECIPE.modelVersion,baseline:replay(),plan:replay(DEFAULT_RECIPE.intervention)};
-  const diffs=compareHistory(history), stop=firstPhysicalStop(history,diffs);
+  const diffs=compareHistory(history), stop=firstDivergence(history,diffs);
   expect(history.plan[120].metrics.housingUnits-history.baseline[120].metrics.housingUnits).toBe(24);
   expect(history.plan[120].metrics.capitalSpending).toBe(1000000);
-  expect(stop).not.toBe(null);
+  expect(stop).toEqual({month:16,entity:{collection:'buildings',id:'building-project-policy-1-0'}});
   expect(diffs[stop.month].entities.some(e=>e.id===stop.entity.id && e.physical)).toBe(true);
   expect(history.plan[stop.month].state.buildings.some(b=>b.id===stop.entity.id)).toBe(true);
-  expect(firstPhysicalStop(history,[{month:stop.month,...compareEntities(history.baseline[stop.month].state,history.plan[stop.month].state)}])).toEqual(stop);
+  expect(firstDivergence(history,[{month:stop.month,...compareEntities(history.baseline[stop.month].state,history.plan[stop.month].state)}])).toEqual(stop);
   console.log('Effects verified model stop:',JSON.stringify(stop));
-  expect(firstPhysicalStop(history,[diffs[0]])).toBe(null);
-  expect(firstPhysicalStop({},diffs)).toBe(null);
+  expect(firstDivergence(history,[diffs[0]])).toBe(null);
+  expect(firstDivergence({},diffs)).toBe(null);
+});
+
+test('first divergence orders simultaneous buildings by exact ID and agrees with story',async()=>{
+ const {buildStory}=await import('../world/future-machine/story/index.js');
+ const snapshot={month:3,state:{month:3,buildings:[{id:'z'},{id:'a'}],projects:[]},events:[]};
+ const history={baseline:[snapshot],plan:[snapshot]};
+ const diff={month:3,available:true,entities:['z','a'].map(id=>({collection:'buildings',id,kind:'added',physical:true}))};
+ const stop=firstDivergence(history,[diff]);expect(stop.entity.id).toBe('a');
+ expect(buildStory(history,[diff]).stops[0]).toMatchObject(stop);
+ expect(firstDivergence(history,[{...diff,entities:[...diff.entities].reverse()}])).toEqual(stop);
 });

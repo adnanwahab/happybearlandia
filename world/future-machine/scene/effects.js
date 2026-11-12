@@ -12,27 +12,6 @@ export function changedEntityKeys(diff) {
   return new Set(changes(diff).filter(row => typeof row.id === 'string' && typeof row.collection === 'string').map(key));
 }
 
-/** First recorded, renderable building divergence, never a project/policy proxy. */
-export function firstPhysicalStop(history, diffs) {
-  const mapping = createSpatialMapping();
-  for (const diff of [...(diffs || [])].sort((a, b) => a.month - b.month)) {
-    const month = diff.month;
-    const a = history?.baseline?.find(s => (s.month ?? s.state?.month) === month)?.state;
-    const b = history?.plan?.find(s => (s.month ?? s.state?.month) === month)?.state;
-    if (!a || !b) continue;
-    const projected = mapping.frame(a, b);
-    const candidates = changes(diff).filter(row => row.collection === 'buildings' &&
-      (row.physical === true || (!Object.hasOwn(row, 'physical') &&
-        (['added', 'removed'].includes(row.kind) || (row.changedFields || []).some(f => ['floors', 'height', 'geometry', 'bbox', 'parcelId'].includes(f))))));
-    for (const row of candidates.sort((a, b) => a.id.localeCompare(b.id))) {
-      if ([...projected.a, ...projected.b].some(mapped => key(mapped) === key(row))) {
-        return {month, entity: {collection: 'buildings', id: row.id}};
-      }
-    }
-  }
-  return null;
-}
-
 /**
  * Presentation only: changed must come from the current diff. Each mesh owns its
  * cloned materials until dispose(). Reuse a mesh across recorded rows to tween

@@ -17,3 +17,19 @@ test('recorded divergence holds six seconds and replay preserves the same month 
  expect(months).toEqual([0,0,15,16,16,16,16,120]);expect(highlights).toEqual([stop]);
  c.start(stop);time+=10000;tick();expect(months.at(-1)).toBe(16);expect(highlights).toHaveLength(2);c.dispose();
 });
+
+test('hidden time preserves the first divergence hold and manual pause',()=>{
+ let time=0,tick;const months=[];
+ const c=createDemoController({now:()=>time,schedule:f=>(tick=f,1),unschedule:()=>{},onMonth:m=>months.push(m)});
+ c.start({month:16});time=9000;tick();c.setHidden(true);time=30000;tick();c.setHidden(false);
+ time=31000;tick();expect(months.at(-1)).toBe(16);expect(c.getState().elapsedMs).toBe(10000);
+ c.togglePause();c.setHidden(true);time=60000;c.setHidden(false);tick();expect(c.getState().paused).toBe(true);expect(c.getState().elapsedMs).toBe(10000);
+ c.dispose();
+});
+test('state emissions follow caption, status and whole seconds instead of 20 Hz ticks',()=>{
+ let time=0,tick;const states=[];
+ const c=createDemoController({now:()=>time,schedule:f=>(tick=f,1),unschedule:()=>{},onState:s=>states.push(s)});
+ c.start({month:16});const initial=states.length;
+ for(time=50;time<1000;time+=50)tick();expect(states.length).toBe(initial);
+ time=1000;tick();expect(states.length).toBe(initial+1);c.dispose();
+});

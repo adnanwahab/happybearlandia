@@ -1003,3 +1003,32 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-215 — shared first divergence and calm demo updates
+
+Implemented one `diff/first-divergence.js` rule for the demo, story's first
+physical stop and browser evidence helpers: earliest paired mapped building
+change, exact ID tie break. Later story stops retain significance ranking;
+without a renderable building, other changes remain inspectable as significant
+changes. No model, recipe or simulation clock changes.
+Director notifications now require a changed caption/status/pause state or whole
+second. Coordinator UI updates coalesce per animation frame; unchanged household
+options are retained. Seconds sit outside the caption live region, whose text is
+written only on caption changes. Visibility pauses elapsed presentation time and
+preserves manual pause. Selection invalidates a pending demo and its inspector
+survives graphics readiness.
+
+Acceptance evidence: focused model/diff/story/effects/UI/director tests pass,
+including seed42 Month16/building-project-policy-1-0, exact-ID ties, hidden at9s /
+shown at30s then resumption in the Month16 hold, and bounded state emissions.
+Browser MutationObserver regression added for unchanged-month household options
+and caption text. Playwright startup blocked: server bind returned EADDRINUSE on
+both3100 and3215; browser mutation counts and pending-readiness click remain
+unverified in this environment. Source review `docs/reviews/claude.md` is absent
+in this checkout; the complete Linear SHE-215 description supplied requirements.
+Next: run the focused browser regression and delayed-readiness selection journey
+when local server startup is available. No deployment or production mutation.
+Final checks: focused suite37passed/1skipped; expanded Future Machine suite
+101passed/3skipped across17files,964assertions. Playwright --list successfully
+parsed all17selected browser tests. `git diff --check` passed. The skipped unit
+entries require browser execution; no browser-pass claim is made.
