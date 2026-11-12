@@ -1,3 +1,4 @@
+import { mountExplorationBadges } from './exploration-badges.js';
 import { mountContinuity } from './continuity-view.js';
 import { decisionSnapshot, localContextId } from './continuity.js';
 import { housingModel, compileHousingPlan, createHousingScenarios, stressPresets, validateHousingParameters, resolveHousingModel } from '../models/housing/index.js';
@@ -38,6 +39,7 @@ const scenario = () => state.scenarios.find(s => s.id === state.selected);
 const el = (tag, text, className) => { const node = document.createElement(tag); if (text !== undefined) node.textContent = text; if (className) node.className = className; return node; };
 const status = (message, error = false) => { $('#app-status').textContent = message; $('#app-status').classList.toggle('error', error); if (error) { state.errors.push(message); diagnostics.update({ ...(state.results || {}), apiErrors: state.errors }); } };
 const visuals = mountDecisionVisualizations($('#decision-visualizations'), { onSelectRun: selectRun, onEnterFuture: enterFuture });
+const badges = mountExplorationBadges($('#decision-visualizations'));
 const trust = mountDecisionTrust($('#decision-trust'));
 const diagnosticsContainer = el('div'); $('#trust').append(diagnosticsContainer);
 const diagnostics = mountDiagnostics(diagnosticsContainer);
@@ -283,7 +285,7 @@ function renderResults(result) {
   const data = { ...result, experiment: state.experiment, runs: summaryRows.map(row=>mergeRunTrace(row,runTraces.peek(state.experiment.id,row.id))), previousResults: state.previousResults, model: result.model || resolveHousingModel(state.experiment?.modelVersion || activeModel.version).model, readOnly: state.readonly, evidence: state.evidence, apiErrors: state.errors };
   state.summaryResults = {...data,runs:summaryRows,previousResults:undefined};
   continuity.update(decisionSnapshot({ ...data, job: continuityJob, selectedRun: state.selectedRun }), { namespace: 'decision', experimentId: state.experiment?.id });
-  state.results = data; visuals.update(data); trust.update(data); diagnostics.update(data);
+  state.results = data; badges.update(data); visuals.update(data); trust.update(data); diagnostics.update(data);
   syncConstructionWorld(); worldTools?.update(); updateAdvancedStudio();
   const experiment = state.experiment;
   updateExecutiveSummary();
@@ -683,7 +685,7 @@ on('apply-import', () => {
 function resetResults() {
   clearTimeout(previewTimer); stopConstructionPlayback(); constructionRun = null; constructionMonth = 0; worldPreview = null; worldVisualPreview = null; state.watch?.destroy(); activeRequest++; runTraces.clear();traceSelectionToken++;automaticTraceKey=null;state.summaryResults=null;state.tracePending=false;state.traceError=null; state.experiment = null; state.results = null; state.previousResults = null; state.selectedRun = null; state.hasRun = false; state.dirty = false; state.preview = false;
   const empty = { experiment: null, runs: [], aggregates: [], comparisons: [], model: housingModel, evidence: state.evidence };
-  visuals.update(empty); trust.update(empty); diagnostics.update(empty); $('#selected-run').hidden = true;
+  badges.update(empty); visuals.update(empty); trust.update(empty); diagnostics.update(empty); $('#selected-run').hidden = true;
   $('#share-experiment').disabled = $('#download-manifest').disabled = $('#reproduce-experiment').disabled = true;
   $('#result-context').textContent = 'Run the project to calculate its possible futures.';
   syncConstructionWorld(); updateAdvancedStudio();

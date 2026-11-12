@@ -1003,3 +1003,31 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-102 — Local scenario exploration badges
+
+Slice: Decision Studio's existing completed housing results feed an optional
+inspection panel. Explicit inspection recognizes four distinct supported policy
+levers changed against the saved baseline, plus matched-seed cost/affordability
+inspection. Prerequisites: completed non-preview experiment, matching supported
+model version, finite metrics and a baseline/alternative seed pair. Repeated
+inspection, renamed scenarios and reloads cannot double-award a badge.
+
+Browser storage contains only a version and allowlisted badge IDs: no identity,
+scenario text, timestamps, scores, streaks, or server writes. Clearing is explicit;
+storage failure falls back to visit-only recognition. Risks: browser storage can
+be cleared or edited and is not authoritative; concurrent tabs may overwrite
+recognition. Recognition describes inspection, not causal evidence or policy
+quality. This isolated issue checkout owns the new badge module/tests and small
+Studio integration only. No shared simulation contracts change.
+
+Implemented: `world/decision/exploration-badges.js`, Studio result/reset hooks,
+unit tests and a browser journey through example → run → inspect → reload → clear.
+Verification: `bun test test/exploration-badges.test.js
+test/decision-visualizations.test.js test/decision-integration.test.js` passed
+21 tests / 536 assertions. Browser journey remains unrun: checkout has no
+`node_modules/.bin/playwright` or installed `@playwright/test`. No lint/typecheck
+scripts are defined. GitHub open-PR audit via `gh pr list` failed to connect to
+api.github.com; local branch inventory and full Linear issue were inspected.
+No existing badge implementation found. Remote overlap review and browser smoke
+are remaining gates; no commit, publication, merge or deployment performed.
