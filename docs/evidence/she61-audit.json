@@ -1,0 +1,185 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-11-12T03:21:51.402Z",
+  "runtime": {
+    "bun": "1.4.2",
+    "platform": "darwin",
+    "architecture": "arm64"
+  },
+  "source": {
+    "command": "bun audit --json",
+    "endpoint": "https://registry.npmjs.org/-/npm/v1/security/advisories/bulk",
+    "lockSha256": "43291a19e81c5ea0e2c3ee463d66273e66bdef30794fae3e144711cdba270b4d",
+    "manifestSha256": "9997ea090a87e78bd4e7a7a7382638dbe671958927cdf8a230048e6c296d8e90",
+    "lockUnchanged": true,
+    "registryExitCode": 0,
+    "stderrPresent": false,
+    "baseCommit": "f1174eb9a5cead6892370d25af97167a0babb54b",
+    "integrationBranch": "sprint/one-city-two-futures-20261111",
+    "timedOut": false,
+    "timeoutMs": 30000
+  },
+  "dependencies": [
+    {
+      "name": "@aws-sdk/client-s3",
+      "group": "dependencies",
+      "requested": "^3.1136.0",
+      "locked": "3.1136.0"
+    },
+    {
+      "name": "@headlessui/react",
+      "group": "dependencies",
+      "requested": "^2.2.10",
+      "locked": "2.2.10"
+    },
+    {
+      "name": "@playwright/test",
+      "group": "devDependencies",
+      "requested": "^1.63.0",
+      "locked": "1.63.0"
+    },
+    {
+      "name": "@supabase/server",
+      "group": "dependencies",
+      "requested": "^1.9.2",
+      "locked": "1.9.2"
+    },
+    {
+      "name": "bun-plugin-tailwind",
+      "group": "dependencies",
+      "requested": "^0.1.2",
+      "locked": "0.1.2"
+    },
+    {
+      "name": "jolt-physics",
+      "group": "dependencies",
+      "requested": "^1.1.0",
+      "locked": "1.1.0"
+    },
+    {
+      "name": "react",
+      "group": "dependencies",
+      "requested": "^19.3.0",
+      "locked": "19.3.0"
+    },
+    {
+      "name": "react-dom",
+      "group": "dependencies",
+      "requested": "^19.3.0",
+      "locked": "19.3.0"
+    },
+    {
+      "name": "react-router",
+      "group": "dependencies",
+      "requested": "^8.4.0",
+      "locked": "8.4.0"
+    },
+    {
+      "name": "tailwindcss",
+      "group": "dependencies",
+      "requested": "^4.3.3",
+      "locked": "4.3.3"
+    },
+    {
+      "name": "three",
+      "group": "dependencies",
+      "requested": "^0.186.0",
+      "locked": "0.186.0"
+    }
+  ],
+  "lockedPackageEntries": 85,
+  "advisoryAudit": {
+    "status": "no-advisories-returned",
+    "advisories": []
+  },
+  "browsers": [
+    {
+      "engine": "chromium",
+      "expectedExecutablePresent": true,
+      "validation": "not-run-by-inventory",
+      "limitation": "Presence does not establish application support"
+    },
+    {
+      "engine": "firefox",
+      "expectedExecutablePresent": false,
+      "validation": "not-run-by-inventory",
+      "limitation": "Presence does not establish application support"
+    },
+    {
+      "engine": "webkit",
+      "expectedExecutablePresent": false,
+      "validation": "not-run-by-inventory",
+      "limitation": "Playwright WebKit is not installed Safari or a physical iOS device"
+    }
+  ],
+  "confirmedApplicationVulnerabilities": [],
+  "limitations": [
+    "Registry data is time-dependent and may omit undisclosed or unreported vulnerabilities.",
+    "No application exploitability test was performed; zero returned advisories is not a security certification.",
+    "Browser inventory checks expected executable presence only; application journey evidence is recorded separately.",
+    "No dependencies, lockfile, browser binaries, CI coverage or production configuration are changed."
+  ],
+  "attempts": [
+    {
+      "scope": "initial sandbox registry request",
+      "exitCode": 2,
+      "status": "unavailable",
+      "reason": "invalid-or-missing-json",
+      "note": "Sandbox DNS failure; rerun with authorized network access. Not counted as a clean audit."
+    },
+    {
+      "scope": "final advisory query with integration credential variables removed",
+      "exitCode": 0,
+      "status": "no-advisories-returned"
+    }
+  ],
+  "validation": [
+    {
+      "command": "bun test test/dependency-browser-audit.test.js test/future-machine-backend.test.js",
+      "passed": 15,
+      "failed": 0,
+      "skipped": 1,
+      "assertions": 74,
+      "skip": "existing backend browser-gated component; not removed or relabeled"
+    },
+    {
+      "command": "HBL_TWO_FUTURES_PORT=54561 HBL_TWO_FUTURES_ARTIFACT_DIR=/private/tmp/she61-final-browser-proof bunx playwright test --config test/one-city-two-futures.browser.config.js --grep 'homepage Play Demo starts|320px Canvas comparison' --reporter=line",
+      "passed": 2,
+      "failed": 0,
+      "seconds": 6.7,
+      "environment": "macOS arm64, Playwright 1.63.0, installed Chromium revision1243; unique loopback server with disposable stores",
+      "credentialVariablesRemoved": [
+        "LINEAR_API_KEY",
+        "GH_TOKEN",
+        "GITHUB_TOKEN",
+        "GH_ENTERPRISE_TOKEN",
+        "GITHUB_ENTERPRISE_TOKEN"
+      ],
+      "artifactDirectory": "/private/tmp/she61-final-browser-proof",
+      "initialSetupFailure": "Initial sandbox server could not bind54561; approved local test run passed. No existing process was killed."
+    },
+    {
+      "command": "bun build ops/dependency-browser-audit.mjs --target=bun --external '*' --outfile /private/tmp/she61-audit-syntax.js",
+      "exitCode": 0,
+      "scope": "syntax compilation only; one module bundled, no app changes"
+    }
+  ],
+  "ownership": {
+    "coordinatorAgreementComment": "7f19f3d6-7c84-40d7-964f-793f805d4f17",
+    "scope": "new audit report/tool/tests only; no active Worker6 claim overridden",
+    "preserved": [
+      "U13 engine inventory history",
+      "R01 renderer interfaces",
+      "R06 browser proof",
+      "SHE-26 canonical test/config/recording paths",
+      "SHE-27 active browser repair and CI",
+      "SHE-63 full cross-browser release matrix"
+    ]
+  },
+  "hostedEvidence": {
+    "url": "https://github.com/adnanwahab/happybearlandia/actions/runs/43146084856",
+    "source": "coordinator-inspected PR25 run; not rerun by SHE61",
+    "result": "Ubuntu24.04 dependency, unit and Chromium installation passed; release browsers failed3 existing assertions; later steps skipped",
+    "limitation": "PR25 is unmerged; current sprint workflow still uses ubuntu-latest. This is not a passing full release gate."
+  }
+}
