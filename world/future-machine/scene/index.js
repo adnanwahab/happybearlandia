@@ -19,6 +19,7 @@ export function createStage(container, {onSelect,history,onCameraInteraction} = 
   const legend = doc.createElement('p'), status = doc.createElement('p'), views = doc.createElement('div'), list = doc.createElement('div');
   legend.style.cssText = status.style.cssText = 'margin:8px 12px;font:12px/1.5 system-ui';
   status.setAttribute('role','status');
+  function setStatus(text){if(status.textContent!==text)status.textContent=text;}
   views.style.cssText = 'position:relative;height:clamp(280px,32vw,400px);touch-action:none';
   list.style.cssText='display:flex;gap:12px;max-height:180px;overflow:auto;padding:8px 12px';
   const labels=doc.createElement('div');labels.dataset.nativeCityLabels='true';labels.style.cssText='position:absolute;inset:0;pointer-events:none;overflow:hidden';views.append(labels);root.append(legend,status,views,list); container.append(root);
@@ -59,20 +60,19 @@ export function createStage(container, {onSelect,history,onCameraInteraction} = 
   const resize=()=>{ width=Math.max(1,views.clientWidth);height=Math.max(1,views.clientHeight);renderer?.setSize(width,height,false);draw(); };
   const observer=globalThis.ResizeObserver ? new ResizeObserver(resize) : null;
   observer?.observe(views);globalThis.addEventListener?.('resize',resize);
-  function releaseMeshes() {
-    for(const mesh of meshes) disposeMesh(mesh);
-    retained.clear();meshes=[];
+  function releaseMeshes(released=new Set()) {
+    for(const mesh of meshes) disposeMesh(mesh,released);
+    retained.clear();meshes=[];return released;
   }
-  function disposeMesh(mesh) {
+  function releaseScenes(){
+    const released=releaseMeshes();
+    for(const scene of scenes){disposeObjectResources(scene,released);scene.clear();}
+    scenes=[];
+  }
+  function disposeMesh(mesh,released) {
     effects?.remove(mesh);
     mesh.parent?.remove(mesh);
-    disposeObjectResources(mesh);
-  }
-
-  function releaseScenes() {
-    releaseMeshes();
-    for(const scene of scenes) {disposeObjectResources(scene);scene.clear();}
-    scenes=[];
+    disposeObjectResources(mesh,released);
   }
 
   function color(row,ghost) {
@@ -202,10 +202,26 @@ export function createStage(container, {onSelect,history,onCameraInteraction} = 
     if(disposed)return;renderReady=true;refreshBookmarkControls();draw();resolveReady({backend:renderBackend});
     if(renderBackend==='webgpu')renderer.backend?.device?.lost?.then(info=>{if(!disposed)fail(new Error(`WebGPU device lost: ${info.message||info.reason}`));});
     const animate=now=>{if(disposed||canvasStage)return;if(cameraTransition){const t=Math.min(1,(now-cameraTransition.start)/1200),smooth=t*t*(3-2*t);camera.position.lerpVectors(cameraTransition.position,cameraTransition.endPosition,smooth);controls.target.lerpVectors(cameraTransition.target,cameraTransition.endTarget,smooth);controls.update();if(t===1)cameraTransition=null;draw();}if(effects?.tick(now))draw();animation=requestAnimationFrame(animate);};animation=requestAnimationFrame(animate);
-    status.textContent=(renderBackend==='webgpu'?'WebGPU · ':'WebGL · ')+(projection?.physicalDifference?'Recorded building differences · wireframe ghosts show presence in the other future.':'No recorded physical building difference at this month.');
+    setStatus((renderBackend==='webgpu'?'WebGPU · ':'WebGL · ')+(projection?.physicalDifference?'Recorded building differences · wireframe ghosts show presence in the other future.':'No recorded physical building difference at this month.'));
   }).catch(reason=>{clearTimeout(importDeadline);fail(reason);});
   function lost(event) {event.preventDefault();fail(new Error('Graphics context lost'));}
-  function fail(reason) {if(disposed||canvasStage)return;bookmark=null;bookmarkStatus.textContent='No view saved. Bookmark lasts until a new comparison or page reload.';error=reason?.message||'Graphics unavailable';status.textContent=`${/device lost|context lost/i.test(error)?'Graphics connection lost. ':''}Canvas2D low-fidelity view · same recorded City inventory and timeline. No simulation rerun is needed.`;controls?.dispose();effects?.dispose();if(animation)cancelAnimationFrame(animation);releaseScenes();renderer?.domElement.removeEventListener('webglcontextlost',lost);renderer?.dispose();renderer?.forceContextLoss?.();renderer?.domElement.remove();renderer=null;controls=null;camera=null;effects=null;cameraTransition=null;renderReady=false;labels.replaceChildren();labelNodes.clear();try{canvasStage=createCanvasStage(views,{onSelect,onCameraInteraction});canvasStage.setPixelRatio(pixelRatio(true));canvasStage.setMode(mode);canvasStage.setGhosts(ghosts);if(projection){canvasStage.update(projection,currentDiff);if(fitRows)canvasStage.setCamera(fitCanvasCamera({a:fitRows,b:fitRows},views.clientWidth,views.clientHeight,mode));if(selected)canvasStage.focus(selected);}}catch(fallbackError){canvasStage?.dispose();canvasStage=null;error=`${error}; ${fallbackError.message}`;views.hidden=true;status.textContent='Graphics unavailable. The exact recorded inventory, timeline, outcomes and WHY controls remain available below.';}refreshBookmarkControls();resolveReady({backend:canvasStage?'canvas2d':'inventory-fallback'});}
+  function fail(reason) {
+    if(disposed||canvasStage||error)return;
+    bookmark=null;bookmarkStatus.textContent='No view saved. Bookmark lasts until a new comparison or page reload.';
+    error=reason?.message||'Graphics unavailable';
+    setStatus(`${/device lost|context lost/i.test(error)?'Graphics connection lost. ':''}Canvas2D low-fidelity view · same recorded City inventory and timeline. No simulation rerun is needed.`);
+    controls?.dispose();controls=null;effects?.dispose();effects=null;
+    if(animation!==null)cancelAnimationFrame(animation);animation=null;cameraTransition=null;renderReady=false;
+    releaseScenes();
+    renderer?.domElement.removeEventListener('webglcontextlost',lost);
+    renderer?.dispose();renderer?.forceContextLoss?.();renderer?.domElement.remove();renderer=null;camera=null;
+    labels.replaceChildren();labelNodes.clear();
+    try{
+      canvasStage=createCanvasStage(views,{onSelect,onCameraInteraction});canvasStage.setPixelRatio(pixelRatio(true));canvasStage.setMode(mode);canvasStage.setGhosts(ghosts);
+      if(projection){canvasStage.update(projection,currentDiff);if(fitRows)canvasStage.setCamera(fitCanvasCamera({a:fitRows,b:fitRows},views.clientWidth,views.clientHeight,mode));if(selected)canvasStage.focus(selected);}
+    }catch(fallbackError){canvasStage?.dispose();canvasStage=null;error=`${error}; ${fallbackError.message}`;views.hidden=true;setStatus('Graphics unavailable. The exact recorded inventory, timeline, outcomes and WHY controls remain available below.');}
+    refreshBookmarkControls();resolveReady({backend:canvasStage?'canvas2d':'inventory-fallback'});
+  }
   unsubscribeMotion = preferences.subscribe(state => {
     if (state.reducedMotion && cameraTransition) {
       camera.position.copy(cameraTransition.endPosition);controls.target.copy(cameraTransition.endTarget);controls.update();cameraTransition=null;
@@ -222,13 +238,13 @@ export function createStage(container, {onSelect,history,onCameraInteraction} = 
     },
     update(frame,diff) {
       if(disposed)return;
-      if(!frame?.baseline?.state||!frame?.plan?.state){projection=null;refreshBookmarkControls();currentFrame=null;currentDiff=null;selected=null;cameraTransition=null;canvasStage?.update(null,null);releaseMeshes();labels.replaceChildren();labelNodes.clear();list.replaceChildren();legend.textContent='City snapshots unavailable';status.textContent='Both futures are required for a matched scene.';draw();if(frame)assertFrameIntegrity(frame,history);return;}
+      if(!frame?.baseline?.state||!frame?.plan?.state){projection=null;refreshBookmarkControls();currentFrame=null;currentDiff=null;selected=null;cameraTransition=null;canvasStage?.update(null,null);releaseMeshes();labels.replaceChildren();labelNodes.clear();list.replaceChildren();legend.textContent='City snapshots unavailable';setStatus('Both futures are required for a matched scene.');draw();if(frame)assertFrameIntegrity(frame,history);return;}
       assertFrameIntegrity(frame,history);
       currentFrame=frame;currentDiff=diff;const first=!projection;projection=mapping.frame(frame.baseline.state,frame.plan.state);
       projection.constructionGhosts=constructionGhosts(history,frame.month,mapping);
       const previews=Object.values(projection.constructionGhosts).some(rows=>rows.length);
       legend.textContent=`Month ${frame.month} · ${projection.label}${previews?' Dashed previews: next-month recorded completion, absent now; inspect its event below.':''}`;
-      if(!error)status.textContent=renderBackend==='pending'?'Inventory ready · graphics loading in the background.':(renderBackend==='webgpu'?'WebGPU · ':'WebGL · ')+(projection.physicalDifference?'Recorded building differences · wireframe ghosts show presence in the other future.':'No recorded physical building difference at this month.');
+      if(!error)setStatus(renderBackend==='pending'?'Inventory ready · graphics loading in the background.':(renderBackend==='webgpu'?'WebGPU · ':'WebGL · ')+(projection.physicalDifference?'Recorded building differences · wireframe ghosts show presence in the other future.':'No recorded physical building difference at this month.'));
       refreshBookmarkControls();summary();canvasStage?.update(projection,diff);if(first&&canvasStage&&fitRows)canvasStage.setCamera(fitCanvasCamera({a:fitRows,b:fitRows},views.clientWidth,views.clientHeight,mode));rebuild();if(first)fit();
     },
     setMode(value){if(!['split','baseline','plan','difference'].includes(value))throw new TypeError('Unknown scene mode');mode=value;canvasStage?.setMode(value);summary();rebuild();draw();},
@@ -266,7 +282,16 @@ export function createStage(container, {onSelect,history,onCameraInteraction} = 
       bookmarkStatus.textContent='Saved view restored in both worlds.';return true;
     },
     getStats(){const arms=['split','difference'].includes(mode)?[0,1]:[mode==='plan'?1:0];const segment=width/arms.length;const targets=camera?meshes.filter(m=>m.visible&&!m.userData.ghost&&arms.includes(m.parent===scenes[0]?0:1)).map(m=>{const arm=m.parent===scenes[0]?0:1;const v=m.position.clone().project(camera);return {...m.userData,meshId:m.uuid,height:m.geometry.parameters?.height??null,scaleY:m.scale.y,x:(arms.indexOf(arm)+(v.x+1)/2)*segment,y:(1-v.y)/2*height};}):[];return {...canvasStage?.getStats(),quality,pixelRatio:pixelRatio(Boolean(canvasStage)),targets,camera:api.getCamera(),mode,disposed,backend:disposed?'disposed':canvasStage?'canvas2d':error?'inventory-fallback':renderReady&&renderer?renderBackend:'pending',backendReason,objects:canvasStage?canvasStage.getStats().objects:meshes.length,draws,geometries:renderer?.info?.memory?.geometries??null,textures:renderer?.info?.memory?.textures??null,month:projection?.month??null,layoutVersion:mapping.version,error};},
-    dispose(){if(disposed)return;disposed=true;bookmark=null;saveView.onclick=restoreView.onclick=null;refreshBookmarkControls();qualitySelect.onchange=null;clearTimeout(importDeadline);unsubscribeMotion();preferences.dispose();observer?.disconnect();globalThis.removeEventListener?.('resize',resize);canvasStage?.dispose();effects?.dispose();if(animation)cancelAnimationFrame(animation);views.removeEventListener('click',pick);renderer?.domElement.removeEventListener('webglcontextlost',lost);controls?.dispose();releaseScenes();renderer?.dispose();renderer?.forceContextLoss?.();renderer=null;controls=null;camera=null;effects=null;canvasStage=null;projection=null;currentFrame=null;currentDiff=null;fitRows=null;selected=null;cameraTransition=null;history=null;labels.replaceChildren();labelNodes.clear();list.replaceChildren();root.remove();resolveReady({backend:'disposed'});},
+    dispose(){
+      if(disposed)return;disposed=true;bookmark=null;saveView.onclick=restoreView.onclick=null;refreshBookmarkControls();qualitySelect.onchange=null;
+      clearTimeout(importDeadline);unsubscribeMotion();preferences.dispose();observer?.disconnect();globalThis.removeEventListener?.('resize',resize);
+      canvasStage?.dispose();effects?.dispose();
+      if(animation!==null)cancelAnimationFrame(animation);animation=null;
+      views.removeEventListener('click',pick);renderer?.domElement.removeEventListener('webglcontextlost',lost);controls?.dispose();
+      releaseScenes();renderer?.dispose();renderer?.forceContextLoss?.();
+      renderer=null;controls=null;camera=null;effects=null;canvasStage=null;projection=null;currentFrame=null;currentDiff=null;fitRows=null;selected=null;cameraTransition=null;renderReady=false;history=null;
+      labels.replaceChildren();labelNodes.clear();list.replaceChildren();root.remove();resolveReady({backend:'disposed'});
+    },
   };
   return api;
 }

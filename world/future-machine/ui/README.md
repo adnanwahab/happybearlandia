@@ -256,7 +256,9 @@ With the city canvas focused, Page Up advances 12 months, Page Down retreats
 entity difference, including policy and nonphysical changes. A comparison with
 no divergence announces that state without moving. Keys stop playback through
 the coordinator's manual selection path. Text controls, modified shortcuts,
-composition and loading are ignored. Arrow keys retain camera navigation.
+composition, loading and initial inventory previews are ignored. A failed initial
+run cannot expose future months; a failed rerun with completed history retains
+recorded navigation. Arrow keys retain camera navigation.
 
 ## SHE-88 reset
 
@@ -265,8 +267,9 @@ is the page-entry shared/resumed recipe or DEFAULT_RECIPE and remains fixed acro
 Reset to original clears invalid seed text and restores the complete detached
 recipe, including null policy and nonvisible fields. It does not run a simulation.
 The coordinator preserves displayed history, provenance, evidence export and share
-URL until Fork City completes a replacement. Reset is disabled while busy and
-without an onReset callback. Reloading a shared comparison establishes that
+URL until Fork City completes a replacement. Reset is disabled during a rerun
+with completed history and without an onReset callback; initial inventory preview
+reset remains available during preparation. Reloading a shared comparison establishes that
 comparison's recipe as the new original.
 
 ## SHE-85 provenance
@@ -312,11 +315,20 @@ takeover, so a slow guided demo cannot start moving the view after the user has
 chosen an entity. Once a completed comparison exists, failures preserve that
 comparison and its exact share/replay identity instead of replacing it with an
 initial preview.
+
+Editing or resetting an initial preview takes manual control and advances the
+configuration generation. Useful pending work may finish, but its result cannot
+replace newer draft inputs or resume the guided tour. Displayed comparison and
+share provenance still identify the actual completed recipe, independently of
+the pending draft. Strict receipt completion does not introduce another preview.
+
 ## SHE-139 household timeline
 
 The outcome timeline composes `createHouseholdTimeline(container,{history,onMonth})`.
-It reads the same paired monthly City history; `update(month)` follows the shared
-clock and navigation emits `onMonth(month)` to stop playback and select both arms.
+It reads the same paired monthly City history; `update(month,{announce=false})`
+follows the shared clock. Navigation and explicit household selection emit
+`onMonth(month)` to stop playback and select both arms. The parent immediately
+synchronizes its cursor and manual summary when a household action selects time.
 A native household selector, previous/next controls and expandable change table
 expose exact City household/home IDs, run, seed, version and monetary units.
 Changes are field differences between adjacent observed months within each arm,
@@ -330,3 +342,21 @@ follow `update(month,{announce:true})` only for manual selection. Autoplay does
 not announce each household frame; household navigation and selector changes
 announce the requested observation. The retained chart keeps its existing cursor
 and manual-only summary behavior.
+
+
+### Post-merge compatibility verification — November 12, 2026
+
+The compatibility follow-up starts from merged main `ab4358f`, preserving its
+preview reset/cancel/retry behavior, separate visual household values and quiet
+live region, exact provenance, and stronger browser fixtures. Cached household
+change stops and repeated-text checks avoid unnecessary work; explicit selection
+synchronizes both timelines and disposal is idempotent.
+
+One focused run across coordinator, household/outcome timelines, year shortcuts,
+scene/backend/bookmarks/effects and resources passed 70 tests, with two optional
+browser tests skipped and 464 assertions. The browser entry bundled 55 modules.
+All 11 changed JavaScript files passed syntax checks. Playwright discovery found
+24 journeys across five Future Machine configs, including both device-loss tests
+after fixing the actual CommonJS config-loader failure. Discovery is not browser
+execution; the previously confirmed socket EPERM limitation remains. No browser
+rendering, GPU-loss, heap-bound or paint-timing result is claimed for this slice.
