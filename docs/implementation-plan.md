@@ -1003,3 +1003,40 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-181 — Reality Calibration Lab
+
+Next integrated slice: browser-accessible housing calibration lab, linked from
+Research and Decision Studio. Reuse housing v1.2.0 and evidence.v1 records.
+A versioned JSON recipe declares geography, constant-dollar basis, historical
+origins with dated input vintages, tuning/validation split and Research Library
+citations. Tune only explicitly requested evidence-backed rent_response values;
+freeze the selected value before evaluating held-out origins. No live state writes.
+Acceptance: errors by metric/year horizon, missing outcomes and failure counts,
+measured/synthetic labels, citation anchors, verification/validation/uncertainty
+answers, exportable replay recipe/seeds and deterministic regression tests.
+Risks: supplied metadata cannot prove historical authenticity; fit does not
+identify a causal coefficient. Synthetic fixtures must never imply real accuracy.
+
+Delivered: `world/calibration/` implements the versioned bounded housing lab,
+recipe-local Research Library, per-metric/per-horizon errors, seed-matched
+baseline/fitted results, missing-value states and full recipe/report downloads.
+Research institutions and Decision Studio link to the normal static route.
+Only evidence-linked rent_response grid candidates can be proposed, only on
+strict tuning improvement; selection freezes before any validation scoring.
+Per-seed resolved input/output records retain replay provenance. Other housing
+coefficients remain synthetic defaults. No real historical accuracy is claimed.
+
+Verification: 49 tests passed / 0 failed across calibration, historical fitting,
+housing invariants/history, evidence registry, decision analysis and full Decision
+API integration (2,875 assertions). Deterministic replay and holdout-poisoning
+regressions pass. `git diff --check` passed. No repository lint/typecheck script
+is configured. Focused Playwright tests were added for Research navigation,
+actual model execution, evidence anchors, export, mobile overflow and bad imports;
+execution is blocked before browser startup by server bind `EADDRINUSE` on both
+3181 and 43981. Browser results remain unverified; rerun
+`bunx playwright test --config test/calibration-browser.config.mjs` on a host
+that can bind its test server. No deployment, production mutation or remote
+publication. Citation authenticity, measurement uncertainty and coefficient
+identification still require independent evidence review; this feature does not
+supply an empirically validated real-city parameter pack.
