@@ -1,5 +1,32 @@
 # HappyBearLandia implementation plan
 
+## SHE-93 construction milestone audit — November 12, 2026
+
+Existing implementation satisfies the bounded model contract; no duplicate feature
+implementation is needed. `scene/construction-progress.js` reads exact City
+observations, and `scene/mapping.js` shares the model-owned project/building slot.
+Under City `city-systems.1.0.0`, default recipe seed 42, month 15 records 11/12
+project work with no building; month 16 records completion and the building with
+24 added homes. Reverse scrubbing restores the prior projection exactly. Visual
+effects require recorded changes; new inventory appears at full recorded size.
+These are synthetic model results and schematic positions, not observed real
+construction or geographic parcel claims.
+
+Fresh local verification: construction-progress, scene and effects suites passed
+20 tests / 109 assertions. They cover missing/invalid observations, unsupported
+models, immutable inputs, fixed-seed completion, reverse scrubbing, reduced motion
+and absence of animation without change evidence. Browser acceptance remains
+unverified in this audit: Node Playwright could not load the existing import.meta
+config; `bun --bun x playwright` loaded it but server startup failed with
+EADDRINUSE on ports 39972 and 40993. No browser pass is claimed.
+
+Linear SHE-93 remains In Review. Related renderer follow-up SHE-216 is already
+Done and links https://github.com/adnanwahab/happybearlandia/pull/99; its newer
+retained-mesh implementation is not present in this checkout and was not modified.
+GitHub search found no PR explicitly naming SHE-93. Next integration action:
+verify the recorded 0→15→16→15→0 browser journey on the current integrated renderer
+before closing review. No merge, deployment or production data change performed.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
