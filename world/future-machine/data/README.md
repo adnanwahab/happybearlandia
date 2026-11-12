@@ -1,5 +1,27 @@
 # Future Machine City adapter
 
+## SHE-21 acceptance refresh (2026-11-12)
+
+The adapter already exists on this checkout. The remaining owned slice adds
+`test/future-machine-paired.test.js`: run the default seed-42 recipe twice,
+compare canonical full normalized state and diff digests, verify both 121-frame
+arms and unchanged Month 0, then run a null-intervention pair and require zero
+differences at every month. Prerequisites are the existing City engine and frozen
+diff interface; neither is modified. This local status lives here because the
+assignment reserves the shared implementation plan for the coordinator.
+
+Observed acceptance: `bun test test/future-machine-data.test.js test/future-machine-paired.test.js test/city-systems.test.js`
+passed 19 tests, 0 failed, 143 assertions. The new test logs the complete scenario,
+seed, actual completion event and measured Month-16 homes 36/60/+24 and cumulative
+capital USD 0/1000000/+1000000. First physical entity is the added building
+`building-project-policy-1-0`, with no identified parcel. Original hash:
+`e62e2cfd67d6f4a48dbeb9bc6a739a1abe1eb8a3e62e8e88241555829bc4d3fe`;
+paired state digest `7a1d5108b5096380fa3acef8172616fcbcb5dd8810ecbf0993d671441a965264`;
+diff digest `1431a5c2df93ee0593bfee9293a735854b6505e7d438918f32caa30224416aee`.
+These are real synthetic engine results, not observations of a real city.
+Replay remains recomputation. No browser behavior changed; browser/media
+verification remains with the coordinator. No shared interfaces changed.
+
 `index.js` implements the frozen v1 interfaces with the existing persisted City API. Create uses one run per arm, summary storage, matched seed, 120 monthly steps; sequential replay supplies exact detailed state. Both returned Month 0 snapshots are the unchanged common original, before the plan policy is proposed. History and nested records are frozen. Canonical SHA-256 identifies the original; reopened manifests must match the generator, model pack manifest, pair structure and horizon.
 
 The versioned `future-machine-synthetic.v1` generator starts with City `createCity`, initialized once. Explicit assumptions: no private parcel capacity, utility capacity 200 for each network/district, annual growth zero. It has no geographic coordinates. The default intervention produces 24 additional completed homes and 1,000,000 modeled USD capital spending after 120 months. These are synthetic, uncalibrated model results, not a prediction.
