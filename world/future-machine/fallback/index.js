@@ -1,6 +1,7 @@
 import {createCanvasStage} from '../scene/canvas-stage.js';
 import {createSpatialMapping} from '../scene/mapping.js';
 import {METRIC_UNITS} from '../contracts.js';
+import {assertFrameIntegrity} from '../integrity.js';
 
 /** Snapshot-facing adapter; City remains the sole simulation authority. */
 export function createCanvas2DStage(container, {onSelect} = {}) {
@@ -35,7 +36,7 @@ export function createCanvas2DStage(container, {onSelect} = {}) {
       const heading = doc.createElement('h3'); heading.textContent = arm === 'baseline' ? 'Without plan' : 'With plan'; section.append(heading);
       const snapshot = frame?.[arm];
       const metrics = doc.createElement('p');
-      metrics.textContent = snapshot?.metrics && Object.keys(snapshot.metrics).length ? Object.entries(snapshot.metrics).map(([key,value]) => `${key}: ${Number.isFinite(value) ? value : 'unavailable'}${METRIC_UNITS[key] ? ' ' + METRIC_UNITS[key] : ''}`).join(' · ') : 'Metrics unavailable';
+      metrics.textContent = snapshot?.metrics && Object.keys(snapshot.metrics).length ? [...new Set([...Object.keys(METRIC_UNITS),...Object.keys(snapshot.metrics)])].map(key => { const value=snapshot.metrics[key]; return `${key}: ${Number.isFinite(value) ? value : 'unavailable'}${METRIC_UNITS[key] ? ' ' + METRIC_UNITS[key] : ''}`; }).join(' · ') : 'Metrics unavailable';
       section.append(metrics);
       for (const collection of ['buildings', 'projects']) {
         if (!Array.isArray(snapshot?.state?.[collection])) { const note = doc.createElement('p'); note.textContent = `${collection} unavailable`; section.append(note); continue; }
@@ -59,6 +60,7 @@ export function createCanvas2DStage(container, {onSelect} = {}) {
       frame = next; currentDiff = diff;
       let projection = null;
       draw(() => {
+        if (next) assertFrameIntegrity(next);
         if (next?.baseline?.state && next?.plan?.state) projection = mapping.frame(next.baseline.state, next.plan.state);
         canvas?.update(projection, diff);
       });

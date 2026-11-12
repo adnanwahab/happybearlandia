@@ -107,3 +107,96 @@ DOM/Canvas adapter, including replacement, detached state, timeline/mode changes
 missing frames, disposal and inventory fallback. The route-level Playwright test
 is `test/e2e/future-machine-bookmark.e2e.js` (Canvas and WebGL); execution requires
 a host that can bind the application servers.
+
+## SHE-74 verification — November 12, 2026
+
+Historical verification of `b963dd3` and City 1.0.0; these measurements do not
+replace the later integrated City 1.1.0 evidence above.
+
+The assignment's scene/effects implementation is already integrated in this
+checkout; this verification does not introduce a second implementation or change
+the City model or shared interfaces.
+
+- `bun test test/future-machine-scene.test.js test/building-renderer.test.js`:
+  17 passed, 0 failed, 46 assertions.
+- `bun test test/future-machine-effects.test.js test/future-machine-construction-progress.test.js`:
+  11 passed, 0 failed, 87 assertions. These exercise changed-entity effects,
+  reduced motion, material cleanup, exact project/building identity, and recorded
+  construction observations against the actual monthly engine.
+- The synthetic seed-42 housing recipe (30 initial households, 120 months,
+  district `d1`, 24 homes, 1,000,000 illustrative USD, delay 0, compliance 1;
+  model `city-systems.1.0.0`) first produces
+  `building-project-policy-1-0` at Month 16. The model-backed effects test
+  verifies the +24-home delta. Month 15 records 11/12 construction work and
+  no completed building; Month 16 records completion and actual inventory.
+- Attempted the existing Playwright paired-run, shared-camera/click, and
+  reduced-motion divergence tests with the one-city-two-futures configuration.
+  The server exited before browser execution with `EADDRINUSE` on both ports
+  39974 and 49974. No fresh screenshots, click/resize verification, FPS or GPU
+  memory measurements were obtained. Earlier browser evidence above remains
+  historical evidence, not a result of this verification.
+
+Integration follow-up: rerun those browser checks in an environment where the
+isolated server can bind, retaining Month 0 and Month 16 screenshots and the
+exact-ID selection evidence. No release or deployment was performed.
+
+## Exact construction previews (SHE-159)
+
+The month immediately before a recorded policy-owned housing PROJECT_COMPLETE
+shows a separate wireframe/dashed preview of the next snapshot's building.
+This is a rendering preview, never current inventory or a predicted outcome.
+The inventory button names its exact event ID and policy ID and opens that
+completion month and building's WHY evidence. Both adjacent snapshots, an exact
+project/building mapping, recorded event time and actual absence/presence are
+required. Preview meshes are nonselectable; the explicit button works in native,
+Canvas2D and inventory-only fallback. The Ghost differences toggle controls
+preview geometry. Current support covers housing creation only; modifications
+without an explicit model-owned event/identity contract remain disabled.
+
+Integration keeps preview meshes under distinct retained keys from recorded
+inventory and other-arm ghosts. The explicit completion action carries its
+arm, event ID and month; the coordinator verifies that exact receipt before
+manual navigation, URL update and selected-month announcement. Canvas legends
+identify next-month previews separately from current recorded changes.
+
+## Replay ownership audit (SHE-106)
+
+A stage owns its meshes, edge buffers, project gauges, grid buffers/materials,
+renderer, controls and effects. Rebuild disposes the prior mesh trees; effects
+first restore the original materials and dispose their private clones. No
+textures are created by the current inventory scene. The disposal helper handles
+shared geometry/material/map references once within a tree, including material
+arrays. It is for stage-owned assets, not externally cached textures.
+
+Fallback now releases both scene grids as well as inventory, removes the context
+listener and relinquishes the WebGL context. Normal disposal does the same and
+clears frame/projection/camera-fit references; deferred renderer completion also
+relinquishes its context. Missing frames clear the Canvas projection and labels.
+No City rules, recipe, persistence contracts or model outputs changed.
+
+Reproduce the acceptance test with:
+`bunx playwright test --config test/future-machine.browser.config.js --grep SHE-106`.
+It runs 30 sequential Fork City actions at seed 42 using the default versioned
+synthetic recipe, compares SHA-256 of both complete normalized histories and
+seed/model version, and samples Chromium heap after explicit CDP garbage
+collection at Month 120. Proposed bound: every sample <= first warmed sample +
+32 MiB; geometry and texture counts must remain equal to the first run. The JSON
+attachment records every sample and digest. Counts are allocation diagnostics,
+not GPU byte measurements; this local default-recipe check makes no Safari,
+WebGPU, maximum-recipe or physical-device claim.
+
+Verification in this restricted checkout: 38 focused tests passed, 1 opt-in
+Chromium test skipped (215 assertions). Browser acceptance is **unverified**:
+Playwright's server initially resolved an uninitialized package-local Bun; a
+throwaway configuration selecting installed Bun then failed to bind both ports
+39884 and 39986 with EADDRINUSE (no listener observed on 39986). Temporary
+configuration was removed. No 30-replay heap measurement or passing browser
+result is claimed. Run the above test on a host able to start the isolated
+server before considering the issue accepted.
+
+Integration preserves the retained mesh/effect cache, keyed labels, exact
+construction previews, camera bookmarks and quality/media controls. Resource
+release now clears both scene trees and owned contexts on fallback/disposal;
+disposal also drops the history reference. The thirty-run test waits for actual
+WebGL readiness and hashes normalized model frames separately from each newly
+allocated experiment identity. Per-run experiment IDs remain in its evidence.

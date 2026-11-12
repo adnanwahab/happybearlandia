@@ -85,3 +85,23 @@ describe('quick demo orchestration', () => {
     expect(controller.getState().timings).toMatchObject({workerStartupMs:4,computationMs:12});
   });
 });
+
+test('interrupted comparison times out without completion and retries the exact captured seed', async () => {
+  let late, first = true, staleSignal;
+  const seeds = [], states = [];
+  const controller = createQuickDemoController({operationTimeoutMs:15,
+    runComparison: ({inputs,signal}) => {
+      seeds.push(inputs.seed);
+      if (!first) return actual;
+      first=false; staleSignal=signal;
+      return new Promise(resolve => {late=resolve;});
+    }, onState:state=>states.push(state.status) });
+  const failed = await controller.start({seed:176});
+  expect(failed.status).toBe('error'); expect(failed.result).toBeNull();
+  expect(states).not.toContain('completed'); expect(staleSignal.aborted).toBe(true);
+  const retried = await controller.replay();
+  expect(retried.status).toBe('completed'); expect(seeds).toEqual([176,176]);
+  late({fake:true}); await flush();
+  expect(controller.getState().result).toEqual(actual);
+  controller.dispose();
+});

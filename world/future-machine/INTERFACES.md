@@ -181,3 +181,32 @@ permalinks deliberately serialize only perspective position/target. Shared camer
 restoration waits for graphics and yields to intervening manual input. Pausing or
 taking over freezes any active camera shot; actual camera gestures take manual
 control, while programmatic focus/restoration never trigger takeover.
+
+Optional follow-up: `follow-up.js` offers one housing revision per page session
+when a ready replay reaches Month 120. `followUpRecipe(recipe)` validates inputs
+and returns a recipe with 12 more proposed homes and proportional rounded budget,
+or null when unsupported/out of bounds. It preserves every other recipe field.
+`createFollowUp(root,{onAccept})` owns accept/dismiss controls and disposal; main
+reruns via the existing paired API. Both added and total illustrative costs and
+synthetic scaling assumptions are visible. Dismissal lasts for the loaded result;
+reload can offer again. Acceptance consumes the page-session offer. The existing
+saved result is immutable. No recipe schema or multiple-policy support is added.
+
+## Local demo performance diagnostic
+
+`window.futureMachine.stats.demoTiming` is null until a successful Play Demo
+attempt has valid paired history, a ready graphics backend and a visible canvas
+across two animation frames. Then it exposes `{version:1,source,renderer,state,
+durationMs,endpoint:'visible-city-after-paint'}`. Source is `homepage` or `button`;
+state is `cold` (needs default history) or `warm` (history reused), independent of
+HTTP cache. Duration includes offscreen/hidden waiting. This paint-opportunity
+proxy does not claim a GPU presentation timestamp. Inventory-only fallback does
+not count. Values stay local; the only session storage is a single-use homepage
+click timestamp with a 60-second handoff lifetime. No upload or identifiers.
+
+Timing integration: warm reuse requires a ready default comparison. A failed or
+pending run starts a fresh bounded attempt. Manual takeover and disposal cancel
+measurement; terminal inventory fallback settles without a graphics timing result
+or continued paint polling. Storage acquisition is inside the optional-storage
+failure guard. The shared visibility/readiness rules do not treat initial preview
+inventory as a completed paired comparison.

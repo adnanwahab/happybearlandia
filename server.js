@@ -18,6 +18,8 @@ const admitSimulation = createSimulationAdmission(simulationAdmissionOptionsFrom
 
 import { createPlayerFeedbackHandler } from './ops/player-feedback/api.js';
 const handlePlayerFeedback = createPlayerFeedbackHandler();
+import {createSessionSurveyHandler} from './ops/session-survey/api.js';
+const handleSessionSurvey=createSessionSurveyHandler();
 import { withUniverseNavigation } from './world/universe/html-navigation.js';
 import {createCausalityHandler} from './world/causality/api.js';
 import {createReleaseHealthHandler,initializeReleaseStorage} from './ops/release-health.js';
@@ -556,6 +558,7 @@ const server = serve({
     if (under(pathname, "/api/world-homes")) return handleWorldPersistence(request);
     if (under(pathname, "/api/world-experiments")) return handleWorldPersistence(request);
     if (["/api/date-mystery/status","/api/date-mystery/generate"].includes(pathname)) return handleDateMystery(request);
+    if (pathname === "/api/session-survey") return handleSessionSurvey(request);
     if (pathname === "/api/world-questions") return handleOpenQuestions(request);
     if (under(pathname, "/api/decision-experiments")) return handleDecisionExperiments(request);
     if (under(pathname, "/api/world-edits")) return handleWorldEdits(request);

@@ -294,3 +294,49 @@ test('wrong scenario replay never reaches side-by-side rendering',async({page})=
  await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);
  expect(await page.evaluate(()=>window.futureMachine.history.plan[120].identity.runId)).toBe('plan-0');
 });
+
+test('construction preview opens its exact recorded completion',async({page},testInfo)=>{
+ await page.goto('/world/future-machine.html?renderer=canvas2d');
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();
+ await expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.status)).toBe('ready');
+ const event=await page.evaluate(()=>window.futureMachine.history.plan.flatMap(s=>(s.events||[]).filter(e=>e.eventType==='PROJECT_COMPLETE'&&s.state.projects.some(p=>p.id===e.payload?.projectId&&p.type==='housing'&&p.policyId))).at(0));
+ expect(event).toBeTruthy();
+ const slider=page.getByTestId('future-machine-timeline');await slider.fill(String(event.simulationTime-1));await slider.dispatchEvent('input');
+ const preview=page.locator('[data-construction-event]');await expect(preview).toHaveAttribute('data-construction-event',event.id);
+ await page.screenshot({path:testInfo.outputPath('construction-before.png')});
+ await preview.click();await expect(slider).toHaveValue(String(event.simulationTime));
+ await expect(page.getByTestId('future-machine-why')).toContainText(event.id);
+ await expect(preview).toHaveCount(0);
+ await page.screenshot({path:testInfo.outputPath('construction-after.png')});
+});
+
+test('SHE-106: thirty sequential replays preserve model digest and bounded resources',async({page},testInfo)=>{
+ test.setTimeout(240000);
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('/world/future-machine.html?renderer=webgl');
+ const cdp=await page.context().newCDPSession(page);
+ const samples=[];let digest;
+ for(let replay=0;replay<30;replay++){
+  await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);await expect.poll(()=>page.evaluate(()=>window.futureMachine.stats.scene.backend)).toBe('webgl');await seek(page,120);
+  const result=await page.evaluate(async()=>{
+   const h=window.futureMachine.history;
+   const modelFrames=frames=>frames.map(({identity,...recorded})=>recorded);
+   const bytes=new TextEncoder().encode(JSON.stringify({seed:h.seed,version:h.modelVersion,baseline:modelFrames(h.baseline),plan:modelFrames(h.plan)}));
+   const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),v=>v.toString(16).padStart(2,'0')).join('');
+   return {hash,experimentId:h.experimentId,scene:window.futureMachine.stats.scene,delta:window.futureMachine.state.diff.metrics.housingUnits.delta};
+  });
+  expect(result.scene.backend).toBe('webgl');expect(result.delta).toBe(24);
+  digest??=result.hash;expect(result.hash).toBe(digest);
+  await cdp.send('HeapProfiler.collectGarbage');
+  const heap=(await cdp.send('Runtime.getHeapUsage')).usedSize;
+  samples.push({replay:replay+1,experimentId:result.experimentId,heap,geometries:result.scene.geometries,textures:result.scene.textures});
+  expect(heap).toBeLessThanOrEqual(samples[0].heap+32*1024*1024);
+  expect(result.scene.geometries).toBe(samples[0].geometries);
+  expect(result.scene.textures).toBe(samples[0].textures);
+ }
+ await page.evaluate(()=>{window.futureMachine.dispose();window.futureMachine.dispose();});
+ expect(await page.locator('.fm-stage canvas').count()).toBe(0);
+ expect(await page.evaluate(()=>window.futureMachine.stats.scene.objects)).toBe(0);
+ expect(errors).toEqual([]);
+ await testInfo.attach('replay-resources.json',{body:JSON.stringify({digest,samples,boundBytes:32*1024*1024},null,2),contentType:'application/json'});
+});

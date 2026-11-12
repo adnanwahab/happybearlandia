@@ -1,0 +1,162 @@
+bun test v1.4.2 (744846f84)
+
+test/world-database-path.test.js:
+(pass) local defaults and environment override remain explicit without requiring a Fly mount [0.19ms]
+(pass) Fly fails closed before writing when configured path is absent, relative, memory, root or image filesystem [0.78ms]
+(pass) a separate writable actual directory mount permits the whole SQLite directory including missing nested folders [0.85ms]
+(pass) overlay, tmpfs, readonly mounts and root bind mounts cannot masquerade as persistent data [1.01ms]
+(pass) symlinks escaping a mounted directory and nested ephemeral mounts fail closed [1.52ms]
+(pass) mount parser decodes Linux escaped paths without a loose string-prefix match [0.04ms]
+
+test/bakery-scenario.test.js:
+(pass) the bakery mystery follows recorded supply, business, and worker outcomes [2.35ms]
+(pass) shareable recipes preserve the prefix and replay early and late interventions [0.58ms]
+(pass) unsupported recipes fail without silently changing the model or decision [0.10ms]
+
+test/html-navigation.test.js:
+(pass) registered experience HTML integration > every registered route resolves its own experience, including shared documents [1.63ms]
+(pass) registered experience HTML integration > registered documents exist and receive exactly one bootstrap [9.44ms]
+(pass) registered experience HTML integration > server aliases and direct HTML entries identify their experience [0.50ms]
+(pass) registered experience HTML integration > unsupported routes and shell are not mislabeled or transformed [0.15ms]
+(pass) registered experience HTML integration > Bun file responses retain HTML MIME after conversion to text [0.43ms]
+(pass) registered experience HTML integration > response transform preserves status, content type and cache headers [0.26ms]
+
+test/living-city-network.test.js:
+(pass) commute and relocation records retain independent values, links and selected worker [0.58ms]
+(pass) financial transfers and utility demand use the recorded units and month [0.18ms]
+(pass) evidence matches exact IDs in the selected month [0.15ms]
+
+test/time-machine-checkpoints.test.js:
+(pass) checkpoint metadata is run-scoped and paginates past unsupported checkpoints [34.91ms]
+
+test/server.test.js:
+23 |     let startup = '';
+24 |     let port;
+25 |     try {
+26 |       while (!port) {
+27 |         const { value, done } = await reader.read();
+28 |         if (done) throw new Error('HappyBearLandia did not start');
+                                 ^
+error: HappyBearLandia did not start
+      at <anonymous> (/Users/wahabma/happybearlandia/workspaces/SHE-67/test/server.test.js:28:29)
+(fail) the production server serves the homepage and rejects an unknown route [105.61ms]
+
+test/causal-storage.test.js:
+(pass) atomic rollback, same run references, unique sequences, time ordered DAG and associations [2.54ms]
+(pass) bounded pagination, hashes, checkpoint verification and terminal immutability [1.51ms]
+(pass) observations and assumptions share ordered sequence; malformed commits cannot partially save [1.27ms]
+(pass) additive migration and complete causal data survive file reopen with metadata [5.79ms]
+
+test/universe-shell.test.js:
+(pass) universe navigation > catalog preserves original experiences and registers the verified map and flagship [0.46ms]
+(pass) universe navigation > round trip retains scope and app-specific parameters/hash [0.84ms]
+(pass) universe navigation > rejects ambiguous, malformed and cross-origin links [0.19ms]
+(pass) universe navigation > iframe requires exact source, origin, version, context and registered route; disposes [0.66ms]
+
+test/world-causal-adapter.test.js:
+(pass) world-only scenario records five genuine mechanisms deterministically without changing seeded state [337.79ms]
+(pass) strict mapped interventions reject stale, foreign, unknown parameters and do not change input state [5.04ms]
+(pass) trace is opt-in and no graph is fabricated for a quiet transition [4.25ms]
+(pass) scenario endpoint persists contract-valid dependencies once and rejects foreign writes [387.12ms]
+
+test/patch-queue.test.js:
+(pass) only curated tasks with completed prerequisites and closed successful votes enter READY [0.60ms]
+(pass) open, unpopular, already-running or verified tasks are not dispatched [0.05ms]
+
+test/causality-contracts.test.js:
+(pass) canonical encoding and explicit local mappings [0.30ms]
+(pass) strict run validation rejects extra keys, invalid numbers, and clones input [0.14ms]
+(pass) metric registry rejects duplicates and incompatible observation units [0.11ms]
+(pass) interventions fail closed for stale scope, arbitrary actions and extra parameters [0.23ms]
+(pass) iframe envelopes reject spoofed origins, sources, versions, and types [0.14ms]
+(pass) navigation roundtrips optional branch/time/selection without ambiguous ticks [0.18ms]
+(pass) snapshots reject mixed runs and duplicate records; JSON rejects unsafe structures [0.19ms]
+
+test/patch-voting.test.js:
+(pass) votes are persistent within one browser identity and can be changed or withdrawn [3.28ms]
+(pass) cross-site and invalid inputs cannot vote; voting closes after its window [0.75ms]
+(pass) public suggestions remain pending and cannot modify the approved ballot [0.71ms]
+(pass) deployment without signing secret is read-only and disallows votes [0.35ms]
+
+test/living-city-recipe.test.js:
+(pass) a challenge link pins the rules version, seed, investment and selected pair [0.21ms]
+(pass) challenge links reject unsupported models and out-of-bounds simulation inputs [0.09ms]
+
+test/causality-read.test.js:
+(pass) explain walks recorded backwards edges, excludes correlations and bounds depth [2.35ms]
+(pass) dangling records remain explicitly missing and no invented edge is returned [0.07ms]
+(pass) read API validates parameters, missing records, methods, pagination and timeline scope [1.67ms]
+(pass) modular dispatcher shares actual persisted world scenario records with explanation and replay [285.90ms]
+
+test/release-health.test.js:
+(pass) liveness remains separate from readiness and exposes only a safe build identifier [12.55ms]
+(pass) startup preflight rejects newer causal revisions before modifying the database [11.91ms]
+(pass) recognized legacy storage can migrate while a foreign SQLite schema is rejected [11.68ms]
+(pass) readiness requires the initialized world_saved_homes table [11.38ms]
+(pass) readiness requires the initialized world_house_sessions table [9.21ms]
+(pass) malformed saved-home tables fail both startup preflight and readiness [11.07ms]
+(pass) Decision preflight accepts an initializable path without creating it and rejects a file [39.71ms]
+
+test/overpass-diagnostics.test.js:
+(pass) provider display origins drop credentials, paths, query and fragments [0.08ms]
+(pass) health routes the original endpoint while returning only the origin and safe probe details [1.47ms]
+(pass) map and health failures never echo configured URLs or arbitrary provider messages [3.38ms]
+
+test/decision-storage.test.js:
+(pass) Decision Studio defaults to private repository state and honors explicit paths [0.20ms]
+(pass) a store override cannot use a symlink into a served directory [1.32ms]
+(pass) backup and restore preserve full snapshots and summaries without overwriting a store [10.71ms]
+
+test/checkpoint-replay.test.js:
+(pass) canonical state sorts keys and rejects lossy values [0.26ms]
+(pass) selects immutable checkpoint and applies only ordered post-checkpoint events through target [0.65ms]
+(pass) fails closed for hash tampering, model drift and descriptive history [0.90ms]
+(pass) verified recomputation requires target digest and excludes AI/render/wall clock records [0.74ms]
+(pass) ambiguous ordering and unavailable tick fail; API exposes real state [0.61ms]
+(pass) real CityState recomputation matches existing engine and validates checkpoint clock [74.88ms]
+(pass) SQLite checkpoint envelope integrates with immutable causal persistence [1.89ms]
+(pass) registered causal dispatcher serves persisted City state without live-state fallback [27.99ms]
+(pass) latest checkpoint wins, explicit ID pins immutable history, and corrupted latest never falls back [1.05ms]
+(pass) World producer historical month resolves complete persisted authority amid descriptive causal traces [350.42ms]
+
+test/living-city-quests.test.js:
+(pass) five quests describe actual entities and observed problems in the authored city [3.38ms]
+(pass) 100 paired futures keep seeds distinct across samples and exactly replay both arms [2424.77ms]
+(pass) policy presets are validated and an unfinished project cannot improve link capacity [11.47ms]
+
+test/patch-voting-server.test.js:
+20 |     const reader = server.stdout.getReader();
+21 |     const decoder = new TextDecoder();
+22 |     let startup = '', port;
+23 |     while (!port) {
+24 |       const { value, done } = await reader.read();
+25 |       if (done) throw new Error('server failed to start: ' + startup);
+                               ^
+error: server failed to start: 
+      at <anonymous> (/Users/wahabma/happybearlandia/workspaces/SHE-67/test/patch-voting-server.test.js:25:27)
+(fail) production server serves the patch ballot and records a vote with the signed cookie [147.92ms]
+
+test/bakery-journey.test.js:
+(pass) Houston fixture closure calculates shortage and detour cost [0.41ms]
+(pass) replay is deterministic and leaves parent immutable [0.21ms]
+(pass) unsupported interventions fail explicitly [0.06ms]
+
+test/local-journeys.test.js:
+(pass) default off and explicit consent; no payloads accepted [0.37ms]
+(pass) milestones deduplicate per controller; clicks repeat; reset revokes consent [0.16ms]
+(pass) bounded allowlisted storage and fail closed malformed/unavailable storage [0.11ms]
+(pass) revocation in another controller is respected immediately [0.02ms]
+
+test/living-city-council.test.js:
+(pass) council applies distinct goals and forms groups from current votes [0.34ms]
+(pass) treasurer revises a provisional support position when the paired outcome shows a deficit [0.12ms]
+(pass) missing and unchanged metrics hold their votes without inventing evidence [0.05ms]
+
+2 tests failed:
+(fail) the production server serves the homepage and rejects an unknown route [105.61ms]
+(fail) production server serves the patch ballot and records a vote with the signed cookie [147.92ms]
+
+ 86 pass
+ 2 fail
+ 854 expect() calls
+Ran 88 tests across 23 files. [4.48s]

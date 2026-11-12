@@ -85,3 +85,7 @@ or unlocated structures remain coverage gaps. Overlapping strokes composite;
 pixel brightness is not itself a frequency. Geometry is a footprint or anchor,
 with no invented building heights. City-scale readability and the five-person
 comprehension test remain product research gates.
+
+## Local weekly retention
+
+Opt in and inspect session-cohort definitions at `/world/analytics/index.html`. Only completed comparison and successful shared-replay observations are recorded. Collection is local, bounded and disabled by default; no visitor identity, URL, link identifier or simulation payload is recorded. This is not site-wide analytics. Model clocks and random seeds are not used: these are wall-clock UTC observations under `hbl-retention.v1`.

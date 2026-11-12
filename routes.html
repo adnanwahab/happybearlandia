@@ -25,25 +25,30 @@
 <article><h2>World Line Talk</h2><p>Explore World Line Talk.</p><a href="/tools/world-line-talk">Open World Line Talk →</a></article>
 <article><h2>1,000 Inner Lives</h2><p>Explore 1,000 Inner Lives.</p><a href="/tools/inner-lives">Open 1,000 Inner Lives →</a></article>
 <article><h2>RiskUniverse</h2><p>100,000 financial futures with WebGPU portfolio Monte Carlo.</p><a href="/tools/riskuniverse/">Open RiskUniverse →</a></article>
-</main><section class="empty" hidden><h2>No workspaces found</h2><p>Try a different search or explore the full directory.</p><button id="reset">Show all workspaces</button></section><footer><span>HappyBearLandia · A place to explore possible worlds.</span><a href="/">Back to home ↗</a></footer><script type="module">
+</main><section class="empty" hidden><h2>No workspaces found</h2><p>Try a different search or explore the full directory.</p><button id="reset">Show all workspaces</button></section><footer><span>HappyBearLandia · A place to explore possible worlds.</span><a href="/tools/webgpu/">WebGPU demo collection ↗</a><a href="/">Back to home ↗</a></footer><script type="module">
 import {EXPERIENCES} from "/world/universe/registry.js";
 (() => {
 const groups=['Worlds & people','Decisions & experiments','Tools & analysis','Play & discover'];
-const root=document.querySelector('.routes');
-const existing=[...root.children];
-const categoryGroups={worlds:0,living:0,science:2,games:3,tools:1};
+const categoryNames={worlds:groups[0],living:groups[0],science:groups[1],tools:groups[2],games:groups[3]};
+const directory=document.querySelector('.routes');
+// Retain authored secondary links while the registry owns membership and primary routes.
+const originalCards=[...directory.children];
+const existing=new Map(originalCards.map(card=>[card.querySelector('a')?.getAttribute('href'),card]));
 const cards=EXPERIENCES.map(experience=>{
- const card=existing.find(node=>node.querySelector('a')?.getAttribute('href')===experience.route)||document.createElement('article');
- if(!card.children.length){
-  const title=document.createElement('h2'),description=document.createElement('p'),link=document.createElement('a'),code=document.createElement('code');
-  title.textContent=experience.title;description.textContent=experience.description;link.href=experience.route;link.textContent='Open '+experience.title+' →';code.textContent=experience.route;card.append(title,description,link,code);
- }
- card.dataset.category=groups[categoryGroups[experience.category]];return card;
+ const card=document.createElement('article');card.dataset.category=categoryNames[experience.category]||groups[2];card.dataset.experienceId=experience.id;
+ const heading=document.createElement('h2');heading.textContent=experience.title;
+ const description=document.createElement('p');description.textContent=experience.description;
+ const link=document.createElement('a');link.href=experience.route;link.textContent=`Open ${experience.title} →`;
+ const code=document.createElement('code');code.textContent=experience.route;
+ card.append(heading,description,link);
+ for(const extra of [...(existing.get(experience.route)?.querySelectorAll('a')||[])].slice(1))card.append(extra.cloneNode(true));
+ card.append(code);return card;
 });
 // Keep supplementary destinations available without counting them as catalog entries.
-const extras=existing.filter(card=>!cards.includes(card));
-if(extras.length){const section=document.createElement('section');section.setAttribute('aria-label','Additional destinations');for(const card of extras)for(const link of card.querySelectorAll('a')){section.append(link,document.createTextNode(' · '));}root.after(section);}
-root.replaceChildren(...cards);
+const catalogRoutes=new Set(EXPERIENCES.map(experience=>experience.route));
+const extras=originalCards.filter(card=>!catalogRoutes.has(card.querySelector('a')?.getAttribute('href')));
+if(extras.length){const section=document.createElement('section');section.setAttribute('aria-label','Additional destinations');for(const card of extras)for(const link of card.querySelectorAll('a')){section.append(link,document.createTextNode(' · '));}directory.after(section);}
+directory.replaceChildren(...cards);
 let saved=new Set();try{saved=new Set(JSON.parse(localStorage.getItem('hbl-directory-favorites')||'[]'))}catch{}
 let active='All';const input=document.querySelector('#search');const filters=document.querySelector('.filters');
 const options=['All',...groups,'Favorites'];
