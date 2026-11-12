@@ -1003,3 +1003,30 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-111 — deterministic seed replay CI matrix
+
+Slice: pin three 120-month normalized monthly City fixtures and check them in
+parallel CI jobs on every PR and main push (a superset of engine changes).
+Prerequisites: existing City engine, Future Machine generator/normalizer and
+canonical SHA-256 helper. No engine behavior or model version changes.
+Acceptance: committed hashes match; failures locate first month/entity;
+replacement fixtures require a changed model version and documented rationale.
+Owned files: replay CLI, golden fixtures/tests, dedicated workflow and version
+notes. Risk: exact floating point hashes intentionally expose runtime drift;
+CI pins Bun 1.4.2. Initial fixtures establish city-systems.1.0.0, with synthetic
+assumptions and full recipe/rules/generator provenance. No cross-model mapping.
+The existing 106-case sweep remains separate. GitHub PR audit was attempted
+but blocked by network connectivity; local checkout contained no golden matrix.
+Delivered and locally verified: all three CLI checks matched 121 normalized
+months each on Bun 1.4.2. Golden + existing sweep suites passed 9 tests;
+final golden + retained data/boundary/scrub-identity run passed 16 tests,
+279 assertions. The final version guard regression also passed 4 tests,
+15 assertions. `git diff --check` passed. No lint/type-check script exists.
+Browser behavior is unaffected; Playwright skipped. Workflow execution on
+GitHub and remote PR/duplicate audit remain unverified due network access.
+No merge, deployment, production data change, commit or PR was made.
+The guard checks PR base or main push predecessor, permits initial fixture
+creation, and requires replacement baselines to introduce a newly documented
+model version. Exact full-frame hashes include event/observation provenance;
+entity hashes diagnose state additions/removals/changes in the earliest frame.
