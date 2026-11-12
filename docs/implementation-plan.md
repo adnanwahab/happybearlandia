@@ -1003,3 +1003,25 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-114 — bounded server run queue counters
+
+Audit: current runner had no queue admission bound or operational counters;
+GitHub PR search for SHE-114 returned no matching PR. Existing simulation/cache
+and server API interfaces are reused. Scope is one integrated manager/API/test
+slice; no additional workers, deployment or production data changes.
+
+Acceptance: FIFO queue with trusted finite limits; saturation returns 429 with
+retry advice; anonymous process-local counters reconcile success, failure,
+duplicates and rejections. Preserve seed/result contracts and test recovery after
+failure, observer exceptions, zero waiting capacity and normal server routing.
+Material limits: historical job/cache retention and execution timeouts remain
+outside this slice. Counter meanings and lifetime: [run queue contract](run-queue.md).
+
+Delivered in `world/run-job-manager.js` and `world/server-civic-api.js`, with
+focused manager and API regression coverage. Actual verification: targeted manager,
+API and persistence checks pass (10 tests). Broader production-server smoke test
+failed before HTTP assertions; direct startup with PORT=0 reproduces Bun listen
+EADDRINUSE in this environment. No browser behavior changed; Playwright skipped.
+No package lint/typecheck commands exist. Whitespace check passed. No commit or
+PR publication performed in this source-only workspace.
