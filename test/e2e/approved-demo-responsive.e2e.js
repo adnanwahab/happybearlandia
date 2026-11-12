@@ -38,7 +38,22 @@ for(const viewport of [{width:1440,height:1000},{width:390,height:844},{width:32
     const url=new URL(location.href);url.searchParams.set('renderer','canvas2d');history.replaceState(null,'',url);
    }
   });
-  await page.goto('/');await page.getByRole('link',{name:'Play Demo',exact:true}).click();
+  await page.goto('/');
+  const entry=page.locator('.demo-entry'),cta=page.getByRole('link',{name:'Play Demo',exact:true});
+  await expect(cta).toHaveCount(1);
+  await expect(cta).toBeInViewport();
+  await expect(cta).toHaveAttribute('href','/world/future-machine.html?demo=1');
+  await expect(cta).toHaveAccessibleDescription(/guided comparison of ten modeled years.*synthetic scenario/);
+  await expect(entry).toContainText('No setup needed.');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
+  // Verify the intro elements do not overlap and the CTA is unobscured.
+  const boxes=await entry.locator('h2, p, a').evaluateAll(nodes=>nodes.map(node=>{
+   const {top,bottom}=node.getBoundingClientRect();return {top,bottom};
+  }));
+  for(let i=1;i<boxes.length;i++)expect(boxes[i].top).toBeGreaterThanOrEqual(boxes[i-1].bottom);
+  await cta.click({trial:true});
+  await page.screenshot({path:info.outputPath(`${viewport.width}-homepage.png`),fullPage:true});
+  await cta.focus();await expect(cta).toBeFocused();await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/\/world\/future-machine\.html\?/);
   await expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.status),{timeout:90000}).toBe('ready');
   await page.getByRole('button',{name:'Pause demo',exact:true}).click();

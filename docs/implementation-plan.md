@@ -1,5 +1,42 @@
 # HappyBearLandia implementation plan
 
+## SHE-14 — homepage Play Demo explanation (2026-11-12)
+
+Baseline audit: the homepage already has one prominent Play Demo link to
+`/world/future-machine.html?demo=1`; the functioning guided clock and matched
+comparison are covered by `test/e2e/approved-demo-responsive.e2e.js` and
+`test/two-futures-demo-controller.test.js`. HBL-W1-001 / SHE-6 is Done in
+Linear. This slice reuses that entry and runtime, adding a short explanation
+of the guided ten-year housing comparison, pause/exploration, and synthetic
+scenario limits. No model, seed, data, recipe or results change.
+
+Local ownership is limited to `index.html`, the existing responsive browser
+test, and this plan on branch `mini/SHE-14`; checkout was clean at audit.
+No automated dispatch labels/status, release gates, merge or deployment changed.
+The work is a small single-owner slice, with no independent implementation
+tasks requiring delegation.
+
+Implemented: one existing primary CTA, a Start here heading, descriptive text
+associated through `aria-describedby`, and a truthful synthetic-data disclaimer.
+Responsive test now checks the single visible CTA, keyboard activation, unchanged
+destination, accessible explanation, no horizontal overflow or intro overlap,
+and captures homepage screenshots at 1440, 390 and 320px before continuing the
+existing real comparison/WHY journey.
+
+Actual verification:
+- `bun test test/two-futures-demo-controller.test.js`: 2 passed, 13 assertions.
+- `bun test test/server.test.js test/two-futures-demo-controller.test.js`:
+  2 passed, 1 failed; server exits before startup on its ephemeral port.
+- `/Users/wahabma/happybearlandia/node_modules/.bin/playwright test --config test/approved-demo-responsive.browser.config.js`:
+  blocked before browser tests by Bun listen `EADDRINUSE` on 39962.
+- Repeated with `HBL_RESPONSIVE_PORT=41873`: same startup blocker.
+- `git diff --check`: passed.
+
+Remaining acceptance: run that responsive command in an environment where Bun
+can listen, inspect the generated `*-homepage.png` screenshots and verify the
+demo journey. No screenshots were generated here; browser layout and activation
+remain unverified. No commit or PR created.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
