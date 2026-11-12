@@ -1,3 +1,4 @@
+import {bindYearShortcuts} from './ui/year-shortcuts.js';
 import {renderEvidenceTrail} from './story/evidence-trail-view.js';
 import { constructionReceipts } from './evidence.js';
 import { createDemoController } from './demo-controller.js';
@@ -17,6 +18,7 @@ let state={status:'idle',message:'Fork the same city. Change one decision. Watch
 const stats={startedAt:performance.now(),readyMs:null,runMs:null};
 app.replaceChildren();
 const ui=createUI(app,{onRun:run,onConfigure:configure,onCancel:cancel,onMonth:manualMonth,onPlay:manualPlay,onDemo:playDemo,onDemoPause:()=>director.togglePause(),onMetric:explainMetric,onMode(mode){state.mode=mode;stage?.setMode(mode);update();},onGhosts(value){state.ghosts=value;stage?.setGhosts(value);update();},onDirector:direct,onShare:share,onExport:exportReport});
+const removeYearShortcuts=bindYearShortcuts(ui.stageElement,{getState:()=>state,getDiffs:()=>diffs,onMonth:manualMonth,onMissing(){state.message='No recorded divergence in this comparison.';update();}});
 const outcomeHost=document.createElement("div");ui.stageElement.after(outcomeHost);
 stage=createStage(ui.stageElement,{onSelect:select});
 stage.setMode(state.mode);stage.setGhosts(state.ghosts);
@@ -63,7 +65,7 @@ async function run(recipe=state.recipe,savedId=null,selectedMonth=0){
 }
 async function share(){if(!history)return;updateURL();update();try{await navigator.clipboard.writeText(state.shareURL);state.message='Comparison link copied. It includes the versioned recipe, saved experiment and selected month.';}catch{state.message='Your comparison link is ready below. Copy it to reopen this month.';}update();}
 function exportReport(){if(!history)return;const report=createEvidenceReport(history,{month:state.month,diff:diffs[state.month],story});const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='future-machine-evidence.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
-function dispose(){if(disposed)return;disposed=true;request?.abort();clearInterval(playTimer);storyDispose();outcomeTimeline?.dispose();stage?.dispose();ui.dispose();director.dispose();history=null;diffs=[];story=null;state.frame=null;state.diff=null;window.removeEventListener('pagehide',dispose);}
+function dispose(){if(disposed)return;disposed=true;request?.abort();removeYearShortcuts();clearInterval(playTimer);storyDispose();outcomeTimeline?.dispose();stage?.dispose();ui.dispose();director.dispose();history=null;diffs=[];story=null;state.frame=null;state.diff=null;window.removeEventListener('pagehide',dispose);}
 window.addEventListener('pagehide',dispose);
 window.addEventListener('pageshow',event=>{if(event.persisted&&disposed)location.reload();});
 // Read-only diagnostics for local resource measurements and integration checks.

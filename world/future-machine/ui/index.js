@@ -41,7 +41,7 @@ export function mountFutureMachineUI(root, options = {}) {
   const changed=button('Show Me What Changed',()=>action(options.onShowChanges)); changed.className='fm-primary';
   const ticks=node('div',undefined,'fm-ticks'); for(const year of ['2026','2031','2036'])ticks.append(node('span',year));
   const transport=node('div',undefined,'fm-actions'); transport.append(play,blink,changed);
-  timeline.append(date,slider,ticks,transport); shell.append(timeline);
+  timeline.append(date,slider,ticks,transport,node('p','Focus the city canvas: Page Up advances one year; Page Down retreats one year; D jumps to the first recorded divergence (including policy or nonphysical changes). Years stop at Months 0 and 120.','fm-detail')); shell.append(timeline);
   const cards=node('section',undefined,'fm-metrics'); cards.setAttribute('aria-label','Measured outcomes');cards.dataset.testid='future-machine-metrics';
   const metricNodes={};
   for(const [key,label] of [['homes','Homes'],['rent','Mean unit rent'],['spending','City spending']]) {

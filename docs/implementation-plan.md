@@ -1003,3 +1003,23 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-95 controlled year shortcuts
+
+Slice: canvas-focused Page Up / Page Down moves the shared selection by 12
+months, clamped to 0–120; D selects the earliest available diff with recorded
+entity changes, including nonphysical policy changes. Reuse manualMonth so
+playback/director stop and both views, evidence and URL remain synchronized.
+Dependencies: existing paired history/diff and focusable scene canvases.
+Acceptance: ignore text controls, modifiers, composition and loading; preserve
+camera arrows; document keys visibly; handle a zero-difference run explicitly.
+Risk: first divergence differs from the demo's first physical building change;
+the visible help explicitly explains this distinction. Implemented with delegated
+canvas handling and cleanup across stage replacement/disposal; WebGL canvas is
+now keyboard-focusable and both renderers expose aria-keyshortcuts.
+Verification: 21 passed, 1 browser-gated skip, 317 assertions via Bun on
+year-shortcuts, UI, scrub-identity and diff tests; git diff --check passed.
+Added integrated Chromium coverage for focused navigation, URL synchronization,
+input editing and unchanged-control feedback. Its execution is unverified:
+server startup failed EADDRINUSE on both 39884 and isolated retry 39995.
+No lint/typecheck scripts are defined. No publication or deployment performed.

@@ -48,7 +48,7 @@ export function fitCanvasCamera(projection, width, height, mode='split') {
 }
 export function createCanvasStage(container,{onSelect,onCameraChange}={}) {
   const doc=container.ownerDocument, canvas=doc.createElement('canvas');
-  canvas.tabIndex=0;
+  canvas.tabIndex=0;canvas.setAttribute('aria-keyshortcuts','PageUp PageDown d');
   canvas.setAttribute('aria-label','Low fidelity City map. Drag or arrow keys to pan; scroll, pinch, plus or minus to zoom. Click a building or project to inspect.');
   canvas.style.cssText='display:block;width:100%;height:100%;min-height:280px;touch-action:none;outline-offset:-3px';
   container.append(canvas);
