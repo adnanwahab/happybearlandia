@@ -40,3 +40,27 @@ test('missing snapshots, wrong-version events and ordinary buildings never inven
  expect(ordinary.nodes.some(n=>n.type==='completion')).toBe(false);
  const duplicate={...h,plan:[...h.plan,h.plan[16]]};expect(()=>trail(16,duplicate)).toThrow('Duplicate evidence month');
 });
+
+test('trail view retains exact nodes across policy/project navigation and Return',async()=>{
+ const {renderEvidenceTrail}=await import('../world/future-machine/story/evidence-trail-view.js');
+ class Element {
+  constructor(tag){this.tag=tag;this.children=[];this.dataset={};this.style={};this.attributes={};this.ownerDocument=doc;}
+  append(...children){this.children.push(...children);for(const child of children)child.parent=this;}
+  setAttribute(key,value){this.attributes[key]=value;}
+  removeAttribute(key){delete this.attributes[key];}
+  remove(){this.parent.children=this.parent.children.filter(child=>child!==this);}
+ }
+ const doc={createElement:tag=>new Element(tag)},container=new Element('div');
+ const all=node=>[node,...node.children.flatMap(all)];let selected=null,returned=false;
+ const view=renderEvidenceTrail(container,h,{collection:'buildings',id,month:120},{onJump:stop=>{selected=stop;view.update(stop.month,stop.nodeId);},onReturn:()=>{returned=true;view.update(120);}});
+ const nodes=all(container),buttons=nodes.filter(n=>n.dataset.nodeId),ids=buttons.map(n=>n.dataset.nodeId);
+ const policy=buttons.find(n=>n.textContent==='policy · Month 1'),project=buttons.find(n=>n.textContent==='project · Month 3');
+ policy.onclick();expect(selected).toMatchObject({month:1,entity:{collection:'policies',id:'policy-1-0'},nodeId:policy.dataset.nodeId});expect(policy.attributes['aria-current']).toBe('step');
+ project.onclick();expect(project.attributes['aria-current']).toBe('step');expect(policy.attributes['aria-current']).toBeUndefined();
+ expect(nodes.some(n=>n.textContent==='Viewing Month 3 · trail recorded through Month 120')).toBe(true);
+ nodes.find(n=>n.textContent==='Return').onclick();expect(returned).toBe(true);
+ expect(all(container).filter(n=>n.dataset.nodeId).map(n=>n.dataset.nodeId)).toEqual(ids);
+ for(let month=0;month<=120;month++)view.update(month);
+ expect(all(container).filter(n=>n.dataset.nodeId)).toEqual(buttons);
+ view();expect(container.children).toHaveLength(0);
+});

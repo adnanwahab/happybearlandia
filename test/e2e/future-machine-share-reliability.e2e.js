@@ -5,7 +5,7 @@ async function snapshot(page){return page.evaluate(async()=>{const h=window.futu
 async function selectMonth(page,month){await page.getByTestId('future-machine-timeline').fill(String(month));await page.getByTestId('future-machine-timeline').dispatchEvent('input');}
 test('actual saved replay retains selected month, identity and exact histories after refresh',async({page},info)=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/world/future-machine.html?renderer=canvas2d');await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);await selectMonth(page,16);
- await page.getByRole('button',{name:'Share comparison',exact:true}).click();const url=await page.getByRole('link',{name:'Open comparison link'}).getAttribute('href');const before=await snapshot(page);await page.goto(url);await ready(page);const after=await snapshot(page);expect(after).toEqual(before);expect(after.month).toBe(16);expect(after.metrics.housingUnits.delta).toBe(24);
+ await page.getByRole('button',{name:'Copy comparison link',exact:true}).click();const url=await page.getByRole('link',{name:'Open comparison link'}).getAttribute('href');const before=await snapshot(page);await page.goto(url);await ready(page);const after=await snapshot(page);expect(after).toEqual(before);expect(after.month).toBe(16);expect(after.metrics.housingUnits.delta).toBe(24);
  await page.getByRole('button',{name:/building-project-policy-1-0 · schematic/}).last().click();await expect(page.getByRole('region',{name:'Visual WHY evidence trail'})).toContainText('event 16-0');expect(errors).toEqual([]);
  const path=info.outputPath('saved-replay.json');await writeFile(path,JSON.stringify({url,before,after},null,2));await info.attach('saved-replay',{path,contentType:'application/json'});
 });
@@ -30,6 +30,6 @@ for(const seed of [0,4294967295])test(`zero-control share at boundary seed ${see
  await page.goto(url);await ready(page);const before=await snapshot(page);
  expect(before.recipe.seed).toBe(seed);expect(before.recipe.intervention).toBe(null);expect(before.baselineHash).toBe(before.planHash);expect(before.month).toBe(120);expect(Object.values(before.metrics).every(metric=>metric.delta===0)).toBe(true);
  expect(await page.evaluate(()=>window.futureMachine.history.baseline.every(s=>s.state.seed===window.futureMachine.history.seed)&&window.futureMachine.history.plan.every(s=>s.state.seed===window.futureMachine.history.seed))).toBe(true);
- await page.getByRole('button',{name:'Share comparison',exact:true}).click();const saved=await page.getByRole('link',{name:'Open comparison link'}).getAttribute('href');await page.goto(saved);await ready(page);const reopened=await snapshot(page);expect(reopened).toEqual(before);
+ await page.getByRole('button',{name:'Copy comparison link',exact:true}).click();const saved=await page.getByRole('link',{name:'Open comparison link'}).getAttribute('href');await page.goto(saved);await ready(page);const reopened=await snapshot(page);expect(reopened).toEqual(before);
  const path=info.outputPath(`zero-control-seed-${seed}.json`);await writeFile(path,JSON.stringify({url:saved,before,reopened},null,2));await info.attach('boundary-zero-share',{path,contentType:'application/json'});
 });

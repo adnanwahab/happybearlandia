@@ -21,3 +21,28 @@ A temporary localhost harness exercised the module in Chromium with the installe
 ## Remaining integration checks
 
 Coordinator should run the real route with City replay data and verify UI-to-stage wiring, responsive framing, director focus, and 120-month playback. Large imported geometries and Safari/device performance are unmeasured. Current integration uses bounded native WebGPU→WebGL→Canvas rendering, then accessible inventory if all contexts fail. AppleMetal native and desktop390/320 Canvas journeys are verified in the sprint status; Safari/device performance remains unmeasured.
+
+## Retained native rendering (SHE-216)
+
+Native meshes and their effect state persist by `arm:collection:id:ghost` across
+monthly updates, focus, and mode changes. Missing entities release mesh, edge,
+gauge and effect resources immediately. Recorded height/footprint changes replace
+only that entity's geometry; the same mesh supports the recorded-height tween.
+New buildings appear at their full recorded height. Project gauges reuse their
+geometry and scale the work bar independently of building floors. Native labels
+are keyed and reused; label widths are measured only when text, emphasis or viewport width changes. Difference
+mode hides unchanged retained inventory. `getStats().draws` counts native stage
+draws; target diagnostics include mesh identity, recorded box height and scale.
+Effects finish with a final draw and settle after900ms without pulse resets on
+unchanged monthly rows. Canvas reports the same `LAYOUT_VERSION` as the mapping.
+
+Focused unit regressions pass; the added normal-route native browser regression
+is pending because local server startup returned EADDRINUSE on three ports.
+
+Graphics readiness is independent of comparison readiness: `update()` immediately
+renders the selectable inventory. Three and OrbitControls imports share a
+10-second deadline, followed by the existing bounded backend setup or
+Canvas/inventory fallback. Late imports after the deadline are ignored. Pending
+entity focus is applied when a camera attaches; framing uses the full history,
+not the month at which graphics happened to finish. `whenReady()` resolves on
+backend/fallback readiness or disposal; it must not gate ordinary data controls.

@@ -117,3 +117,58 @@ Each test runs two bounded continuations in a disposable browser worker from exa
 Enter the assumed one-time public cost explicitly. The test requires sufficient saved city cash, subtracts that amount once and records it in the first comparison month's capital ledger. Capacity becomes available next month: this is an immediate-procurement diagnostic, not a simulated construction pipeline for an upgrade. Recurring staffing or procurement costs are not inferred. Spending differences include city-wide feedback during the selected horizon and are not project invoices. Comparisons are capped at 60 months, 120,000 household-months and a 30-second worker timeout; cancellation is available. A project not completed during the horizon is reported as unfinished within that horizon, never as permanently impossible.
 
 Run `bun test test/project-unblock.test.js` for the paired-future and budget checks and `bunx playwright test test/e2e/project-unblock.e2e.js` for the saved-experiment UI flow.
+
+## Living City residents (city-systems.1.1.0)
+
+A thirteenth pack, `residents`, resolves after finance on the same monthly clock.
+One synthetic adult is identified by each worker ID; this is not the complete
+household population and has no identity mapping to the Population runtime.
+Initialization is additive and retains saved records. Departing residents remain
+in history. Each monthly record includes the current job, a home/work or job-search
+routine, housing/livelihood/social needs, social ties, two goals and memories
+linking to that month's `RESIDENT_MONTH` event. Replay through the existing API
+returns these records in each step's state. Enter future's event table displays
+the resident observations and building changes; there is no dedicated life UI.
+
+All new equations are synthetic assumptions: housing need satisfaction is 100
+when housed and 0 otherwise; livelihood satisfaction is bounded
+`100 * (1 - housingBurden)`; an active resident adds one point of social
+satisfaction and tie strength per month with the first other resident whose
+household is in the same district. Ties and social satisfaction cap at 100.
+Goals reflect current housing and job assignment, not permanent achievements.
+Routines are monthly labels, not simulated daily trips. Departed residents have
+no local housing/livelihood satisfaction and keep historical ties and memories.
+
+Every system event embeds a `payload.rule` with rule ID, model version and
+`synthetic-assumption` classification. The registry points here and the existing
+system equations/source; no empirical calibration is claimed. Resident events
+record exact input household/worker fields and before/after observations.
+`contextEventIds` identifies same-month district context, not demonstrated causal
+effects. Each building inventory mutation emits `BUILDING_CHANGED`, storing
+before/after inventory and exact construction-completion event IDs. An uncaused
+building mutation rejects the unpublished step. Housing-unit repairs are unit
+changes and retain existing environment events rather than being building-row
+mutations. Policy effects still require paired runs; single resident trajectories
+are observational.
+
+The version bump deliberately prevents old version manifests from being replayed
+under these new rules. Existing saved experiments remain readable. No legacy
+version interpreter or automatic migration is supplied.
+
+## One Life, Many Worlds
+
+In Enter future, select a household to compare Month 120 across the first 30
+matched seeds in two arms. Use a completed experiment starting at month zero,
+30 or more runs, 120 months and summary retention. The client sequentially calls
+the existing replay route and retains only endpoint rows. Cancelling or selecting
+another experiment aborts the current replay. Home identity is the City unit ID;
+this is a household story, with no individual-person or other-model join.
+
+The endpoint fans and exact table show seeds, homes, savings (USD) and rent /
+monthly income. Departures are unavailable, unhoused households have no burden,
+and zero-income burden is undefined. Variances use balanced complete seed pairs:
+between-arm variance is the population variance of the two means; within-arm
+variance is the average population variance inside each arm. Mean paired changes
+are separate. These descriptive squared-unit quantities are conditional on the
+synthetic model; missing outcomes may bias the subset. They are neither confidence
+intervals nor a finding that policy or luck always dominates.

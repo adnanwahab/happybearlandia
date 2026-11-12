@@ -39,7 +39,8 @@ waive their blockers. No remote issue/comment was changed.
 The scanner enumerates every issue in the pinned HBL project, then every comment,
 label, inverse relation and attachment, following cursors until complete. Native
 `blockedBy` uses the same inverse `blocks` relation as Symphony's Linear adapter.
-Every repository PR (open/closed/merged) and its changed-file pages are read using
+Every repository GitHub issue (open/closed, excluding PR entries) and
+every repository PR (open/closed/merged) and its changed-file pages are read using
 host Keychain `gh api --paginate --slurp`. A cyclic/incomplete response or GitHub's
 3000-file PR ceiling aborts without further approvals. Linear uses the extracted existing
 bounded, sanitized transport retries; GitHub reads retry three times.
@@ -51,6 +52,35 @@ files, reviewed scope, digests and hold reasons for every issue. The Markdown
 report summarizes every issue; it never hides held issues from the audit.
 A missing workpad is not a hold: the trusted before_run hook initializes it.
 Multiple workpads fail closed without deleting any.
+
+### SHE-127 queue duplicate report
+
+The existing `--dry-run` command above is the queue-report entry point. GitHub
+issues are matched by bounded Linear identifier in title/body, case-insensitive
+exact title, or exact attached issue URL (ignoring a trailing slash). Each match
+records number, URL, open/closed state and signals in `matchingGitHubIssues`;
+Markdown includes the same evidence. Both open and closed matches hold readiness
+for human reconciliation. A match is a conservative signal, not proof that code
+was delivered. Unrelated prose references can therefore require manual review.
+GitHub issue comments, fuzzy semantic similarity and cross-repository aliases
+are not searched; the trusted operator source/duplicate audit remains required.
+
+This extends the SHE-180 scanner/classifier instead of creating a second queue
+or dispatcher. It preserves every project issue in the report, including items
+without the queue label (held as `not in review queue`), so dependencies and
+ownership remain visible. JSON adds `githubIssues` to the existing snapshot;
+older cached snapshots without it cannot provide GitHub issue matching until a
+fresh scan. Apply always performs a fresh service scan. Dry-run never grants
+labels or starts workers, even if trusted evidence enables approvals. Optional
+report paths explicitly write local artifacts; use paths outside the checkout
+to leave source files untouched. JSON contains private issue content; retain it
+locally with the existing mode600 atomic writer.
+
+Offline verification: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s
+tools/symphony/local -p 'test_*.py'`. `test_queue_report.py` uses synthetic data to
+check open/closed matches, identifier boundaries, attachment aliases, unchanged
+input/state, no approval calls, PR exclusion and incomplete-inventory failure.
+No live dispatch, issue mutation or production operation is part of this slice.
 
 ## Trusted readiness evidence
 

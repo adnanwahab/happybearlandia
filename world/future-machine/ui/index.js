@@ -1,4 +1,5 @@
 import {DEFAULT_RECIPE} from '../contracts.js';
+import {policyChoices, policyId} from './policies.js';
 import {calendarLabel, clampMonth, metricPresentation, metricSemantics, householdObservation, householdSummary} from './model.js';
 
 /** Mount a renderer-independent view. Call update with recorded data; see README. */
@@ -57,9 +58,10 @@ export function mountFutureMachineUI(root, options = {}) {
   const evidencePanel=node('section'), evidence=node('pre'); const evidenceRaw=node('details');evidenceRaw.append(node('summary','Inspect run and comparison record'),evidence);evidencePanel.append(node('h2','Evidence inspector'),node('p','Click a changed building or WHY on a measured outcome to inspect its recorded event, policy and model rule.'),evidenceRaw);
   inspectors.append(householdPanel,evidencePanel); shell.append(inspectors);
   const footer=node('footer',undefined,'fm-actions');
-  const share=button('Share comparison',()=>action(options.onShare)); const exportButton=button('Export evidence',()=>action(options.onExport));
+  const share=button('Copy comparison link',()=>action(options.onShare)); const exportButton=button('Export evidence',()=>action(options.onExport));
   const importLink=node('a','Import run receipt'); importLink.href='/world/future-machine/share/import.html';
-  footer.append(share,exportButton,importLink); shell.append(footer); root.append(shell);
+  const cardButton=button('Download share card',()=>action(options.onCard));
+  footer.append(share,exportButton,cardButton,importLink); shell.append(footer); root.append(shell);
   async function action(callback, ...args) {
     if (!callback) return;
     try { await callback(...args); } catch (failure) { if(!destroyed) update({error:failure?.message || String(failure)}); }
@@ -103,13 +105,13 @@ export function mountFutureMachineUI(root, options = {}) {
     else if(options.externalPlayback){play.textContent=state.playing?'Pause timelapse':'Play timelapse';play.setAttribute('aria-pressed',String(!!state.playing));}
     provenance.textContent=state.spatialLabel || 'No spatial data loaded. Unlocated changes remain in the inspector.';
     for(const key of Object.keys(metricNodes)){const item=metricPresentation(state.metrics?.[key]); const elements=metricNodes[key];elements.delta.textContent=item.delta;elements.values.replaceChildren(node('span',`WITHOUT PLAN  ${item.baseline}`,'fm-value-baseline'),node('span',`WITH PLAN  ${item.intervention}`,'fm-value-plan'));const semantics=metricSemantics(key,state.metrics?.[key]);elements.card.dataset.tone=semantics.tone;elements.detail.textContent=key==='rent' && semantics.tone==='neutral' && item.delta!=='Unavailable' ? `${semantics.label}.` : `${semantics.label}. ${item.detail}`;elements.why.disabled=!state.ready || state.busy || !options.onMetric || item.delta==='Unavailable';}
-    if(patch.households){fill(household,state.households,state.householdId ?? household.value);renderHousehold();}
+    if(patch.households && JSON.stringify(patch.households)!==JSON.stringify(old.households)){fill(household,state.households,state.householdId ?? household.value);renderHousehold();}
     household.disabled=!state.households.length;
     if('householdId' in patch){household.value=state.householdId;renderHousehold();}
     if('evidence' in patch)evidence.textContent=state.evidence ? JSON.stringify(state.evidence,null,2) : 'No recorded evidence selected.';
     if(!evidence.textContent)evidence.textContent='No recorded evidence selected.';
     if(!householdBody.textContent)renderHousehold();
-    share.disabled=!state.ready || state.busy || !options.onShare;exportButton.disabled=!state.ready || state.busy || !options.onExport;
+    cardButton.disabled=!state.ready || state.busy || !options.onCard;share.disabled=!state.ready || state.busy || !options.onShare;exportButton.disabled=!state.ready || state.busy || !options.onExport;
     if(old.month!==state.month)options.onRenderMonth?.(state.month);
   }
   update(state);
@@ -129,11 +131,11 @@ export function createUI(container, callbacks = {}) {
     onShowChanges:callbacks.onDirector,
     onShare:callbacks.onShare,
     onExport:callbacks.onExport,
+    onCard:callbacks.onCard,
     onCancel:callbacks.onCancel,
     onMetric:callbacks.onMetric ? key=>callbacks.onMetric({homes:'housingUnits',commute:'meanTravelMinutes',rent:'meanRent',spending:'capitalSpending'}[key]) : undefined,
-    onPolicyChange:id=>{recipe={...recipe,intervention:id==='baseline'?null:structuredClone(defaultIntervention)};configurationDirty=true;callbacks.onConfigure?.(structuredClone(recipe));},
+    onPolicyChange:id=>{recipe={...recipe,intervention:structuredClone(policyChoices(recipe.intervention).find(choice=>choice.id===id).intervention)};configurationDirty=true;callbacks.onConfigure?.(structuredClone(recipe));},
   });
-  let defaultIntervention=structuredClone(DEFAULT_RECIPE.intervention);
   const doc=container.ownerDocument;
   const shell=view.stage.closest('.fm-ui');
   const seedLabel=doc.createElement('label');seedLabel.textContent='Seed for next run';seedLabel.className='fm-seed-label';
@@ -158,11 +160,16 @@ export function createUI(container, callbacks = {}) {
   const demo=doc.createElement('button');demo.type='button';demo.className='fm-primary fm-demo-play';demo.textContent='Play Demo';demo.dataset.testid='future-machine-demo';demo.onclick=()=>callbacks.onDemo?.();
   const demoPause=doc.createElement('button');demoPause.type='button';demoPause.textContent='Pause demo';demoPause.onclick=()=>callbacks.onDemoPause?.();demoPause.hidden=true;
   const demoCaption=doc.createElement('p');demoCaption.className='fm-demo-caption';demoCaption.setAttribute('role','status');demoCaption.textContent='A guided 45–60 second comparison. Pause anytime to explore.';
-  demoPanel.append(demo,demoPause,demoCaption);shell.querySelector('.fm-header').after(demoPanel);
+  const demoSkip=doc.createElement('button');demoSkip.type='button';demoSkip.textContent='Skip demo';demoSkip.hidden=true;demoSkip.onclick=()=>callbacks.onDemoSkip?.();
+  const demoSeconds=doc.createElement('span');demoSeconds.className='fm-demo-seconds';
+  demoPanel.append(demo,demoPause,demoSkip,demoCaption,demoSeconds);shell.querySelector('.fm-header').after(demoPanel);
   const runProvenance=doc.createElement('p');runProvenance.className='fm-run-provenance';runProvenance.setAttribute('aria-label','Simulation provenance');shell.querySelector('.fm-comparison').before(runProvenance);
   const difference=doc.createElement('button');difference.type='button';difference.textContent='Difference-only';difference.onclick=()=>callbacks.onMode?.('difference');actions.append(difference);
   const split=doc.createElement('button');split.type='button';split.textContent='Side by side';split.onclick=()=>callbacks.onMode?.('split');actions.append(split);
   const ghostsLabel=doc.createElement('label');const ghosts=doc.createElement('input');ghosts.type='checkbox';ghosts.checked=true;ghosts.onchange=()=>callbacks.onGhosts?.(ghosts.checked);ghostsLabel.append(ghosts,doc.createTextNode(' Ghost differences'));actions.append(ghostsLabel);
+  const browserShare=doc.createElement('button');browserShare.type='button';browserShare.textContent='Share comparison';browserShare.hidden=!callbacks.onBrowserShare;browserShare.onclick=()=>callbacks.onBrowserShare?.();shell.querySelector('footer').append(browserShare);
+  const copyLabel=doc.createElement('label');copyLabel.textContent='Comparison URL';copyLabel.className='fm-copy-url';copyLabel.hidden=true;
+  const copyURL=doc.createElement('input');copyURL.type='text';copyURL.readOnly=true;copyURL.setAttribute('aria-label','Comparison URL');copyURL.onfocus=()=>copyURL.select();copyLabel.append(copyURL);shell.append(copyLabel);
   const shareLink=doc.createElement('a');shareLink.textContent='Open comparison link';shareLink.hidden=true;shareLink.className='fm-share-link';shell.append(shareLink);
   const noPhysical=doc.createElement('p');noPhysical.className='fm-detail';shell.querySelector('.fm-metrics').after(noPhysical);
   function update(patch={}) {
@@ -173,16 +180,16 @@ export function createUI(container, callbacks = {}) {
       const accepted=seedInput.getAttribute('aria-invalid')!=='true' && JSON.stringify(patch.recipe)===JSON.stringify(recipe);
       if(!configurationDirty || accepted || (previousExperiment && incomingExperiment && previousExperiment!==incomingExperiment)){
         recipe=structuredClone(patch.recipe);configurationDirty=false;seedInput.value=String(recipe.seed);seedError.hidden=true;seedInput.setCustomValidity('');seedInput.setAttribute('aria-invalid','false');
-        if(recipe.intervention)defaultIntervention=structuredClone(recipe.intervention);
       }
     }
     const busy=['loading','running','queued'].includes(current.status);seedInput.disabled=busy;
     const demoState=current.demo || {};
     const demoActive=['playing','running','paused','preparing','loading'].includes(demoState.status);
-    demo.disabled=busy || !callbacks.onDemo;demo.textContent=demoActive?'Restart Demo':'Play Demo';
+    demo.disabled=busy || !callbacks.onDemo;demo.textContent=demoActive?'Restart Demo':demoState.status==='complete'?'Replay Demo':'Play Demo';demoSkip.hidden=!demoActive;demoSkip.disabled=busy;
     demoPause.hidden=!demoActive;demoPause.disabled=busy || !callbacks.onDemoPause;demoPause.textContent=demoState.paused?'Resume demo':'Pause demo';demoPause.setAttribute('aria-pressed',String(!!demoState.paused));
-    demoCaption.textContent=demoState.caption || (demoState.status==='complete'?'Demo complete. Scrub the timeline or select a result to explore.':'A guided 45–60 second comparison. Pause anytime to explore.');
-    if(Number.isFinite(demoState.elapsedMs))demoCaption.textContent+=` · ${Math.floor(Math.max(0,demoState.elapsedMs)/1000)}s`;
+    const caption=demoState.caption || (demoState.status==='complete'?'Demo complete. Scrub the timeline or select a result to explore.':'A guided 45–60 second comparison. Pause anytime to explore.');
+    if(demoCaption.textContent!==caption)demoCaption.textContent=caption;
+    demoSeconds.textContent=Number.isFinite(demoState.elapsedMs)?`${Math.floor(Math.max(0,demoState.elapsedMs)/1000)}s`:'';
     const provenance=current.provenance || {};
     runProvenance.textContent=`MONTH ${current.month} / 120 · SEED ${provenance.seed ?? current.recipe?.seed ?? 'Unavailable'} · MODEL ${provenance.modelVersion ?? current.recipe?.modelVersion ?? 'Unavailable'} · RUN ${provenance.experimentId ?? current.experimentId ?? 'Not run yet'}`;
     const ready=!!current.frame && !busy;
@@ -196,14 +203,17 @@ export function createUI(container, callbacks = {}) {
     const households=ids.map(id=>({id,label:`City household ${id}`,baseline:a.find(row=>row.id===id)??null,plan:b.find(row=>row.id===id)??null,baselineHousing:householdObservation(a.find(row=>row.id===id),current.frame?.baseline?.state?.units),planHousing:householdObservation(b.find(row=>row.id===id),current.frame?.plan?.state?.units)}));
     view.update({busy,ready,month:current.month,playing:current.playing,status:current.message,error:current.error,metrics,households,
       cities:[{id:'synthetic',label:'Riverside · Synthetic City'}],
-      policies:defaultIntervention?[{id:'housing',label:'Housing intervention',description:`${defaultIntervention.amount} proposed homes · ${defaultIntervention.cost} illustrative USD · district ${defaultIntervention.districtId}. Construction and funding constraints still apply.`},{id:'baseline',label:'No intervention (matched control)',description:'Compare two unchanged futures from the same initial state and seed.'}]:[{id:'baseline',label:'No intervention (matched control)'}],
-      policyId:recipe?.intervention?'housing':'baseline',spatialLabel:'Synthetic schematic layout · Monthly City model · January 2026–January 2036 · Uncalibrated assumptions. No real-world geometry inferred. Private parcel capacity 0; utility capacity 200 per district/network; annual growth 0.',
+      policies:policyChoices(recipe.intervention),
+      policyId:policyId(recipe.intervention),spatialLabel:'Synthetic schematic layout · Monthly City model · January 2026–January 2036 · Uncalibrated assumptions. No real-world geometry inferred. Private parcel capacity 0; utility capacity 200 per district/network; annual growth 0.',
       blink:current.mode==='plan',evidence:current.diff?{month:current.month,experimentId:current.experimentId,changedCount:current.diff.changedCount,physicalCount:current.diff.physicalCount,source:'Monthly City comparison. Select an entity for recorded evidence.'}:null,
     });
     noPhysical.textContent=current.diff ? (current.diff.available===false?'Comparison unavailable for this month.':current.diff.physicalCount===0?'No physical building or link difference recorded at this month.':'Physical changes are recorded; inspect the highlighted entities for evidence.') : '';
     difference.disabled=split.disabled=ghosts.disabled=!ready;difference.setAttribute('aria-pressed',String(current.mode==='difference'));split.setAttribute('aria-pressed',String(current.mode==='split'));ghosts.checked=current.ghosts;
+    browserShare.disabled=!ready || !!current.shareBusy;
+    shell.querySelector('footer button').disabled=!ready || !!current.shareBusy || !callbacks.onShare;
+    copyLabel.hidden=true;copyURL.value='';
     shareLink.hidden=!current.shareURL;
-    if(current.shareURL){try{const url=new URL(current.shareURL,doc.baseURI);if(['http:','https:'].includes(url.protocol))shareLink.href=url.href;else{shareLink.removeAttribute('href');shareLink.hidden=true;}}catch{shareLink.removeAttribute('href');shareLink.hidden=true;}}
+    if(current.shareURL){try{const url=new URL(current.shareURL,doc.baseURI);if(['http:','https:'].includes(url.protocol)){shareLink.href=url.href;copyURL.value=url.href;copyLabel.hidden=false;}else{shareLink.removeAttribute('href');shareLink.hidden=true;}}catch{shareLink.removeAttribute('href');shareLink.hidden=true;}}
   }
-  return {stageElement:view.stage,storyElement,update,dispose(){seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
+  return {stageElement:view.stage,storyElement,update,dispose(){browserShare.onclick=null;copyURL.onfocus=null;seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;demoSkip.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
 }

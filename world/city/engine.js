@@ -1,3 +1,4 @@
+import {CITY_RULES, initializeResidents, logBuildingChanges} from './residents.js';
 import {CapacityRegistry, CONTRACTS, VERSION, clamp, draw, sum, validateState} from './contracts.js';
 import {createSystemPacks} from './systems.js';
 function freeze(value) { if(value && typeof value==='object') {Object.freeze(value); for(const v of Object.values(value))freeze(v);} return value; }
@@ -13,7 +14,7 @@ export function createEngine(packs = createSystemPacks(), {trace = false} = {}) 
   }
   return {
     manifest:ordered.map(({id,version,cadence,dependencies})=>({id,version,cadence,dependencies})),
-    initialize(state) {const next=structuredClone(state);for(const p of ordered)p.initialize(next);validateState(next);return next;},
+    initialize(state) {const next=structuredClone(state);for(const p of ordered)p.initialize(next);initializeResidents(next);validateState(next);return next;},
     step(state) {
       validateState(state);
       const snapshot=freeze(structuredClone(state)),next=structuredClone(state),time=state.month+1;
@@ -23,7 +24,7 @@ export function createEngine(packs = createSystemPacks(), {trace = false} = {}) 
       const context={time,registry,events,decisions,moves,trips,
         record:trace?(record)=>causalRecords.push(structuredClone(record)):undefined,
         random:(...keys)=>draw(state.seed,time,...keys),
-        event(system,type,geographyId,payload={},severity=1) {const event={schemaVersion:CONTRACTS.SystemEvent,id:`${time}-${events.length}`,simulationTime:time,system,eventType:type,geographyId,severity,payload,modelId:system,modelVersion:VERSION};events.push(event);return event;},
+        event(system,type,geographyId,payload={},severity=1) {const event={schemaVersion:CONTRACTS.SystemEvent,id:`${time}-${events.length}`,simulationTime:time,system,eventType:type,geographyId,severity,payload:{...payload,rule:CITY_RULES[system]??{id:`extension.${system}`,version:VERSION,evidenceType:'synthetic-assumption'}},modelId:system,modelVersion:VERSION};events.push(event);return event;},
         flow(resource,from,to,amount,system) {if(!Number.isFinite(amount)||amount<0)throw new Error('Invalid resource flow');next.flows.push({schemaVersion:CONTRACTS.ResourceFlow,time,resource,from,to,amount,system});},
         decision(system,actorId,type,chosenOption,primaryReason,alternatives=[]) {decisions.push({simulationTime:time,actorType:system,actorId,decisionType:type,chosenOption,primaryReason,alternatives,modelId:system,modelVersion:VERSION});}
       };
@@ -37,6 +38,7 @@ export function createEngine(packs = createSystemPacks(), {trace = false} = {}) 
         for(const before of policies){const after=next.policies.find(row=>row.id===before.id);if(after.stage!==before.stage)context.record({system:p.id,type:'POLICY_STAGE_CHANGED',entity:['policies',before.id],inputs:{stage:before.stage,delay:before.delay,cost:before.cost,balance:snapshot.finance.balance,administration:snapshot.parameters.administration},outputs:{stage:after.stage}});}
         return {schemaVersion:CONTRACTS.MarketResolution,system:p.id,time,value};
       });
+      logBuildingChanges(snapshot,next,context);
       for(const [i,p] of active.entries())p.commit(next,resolutions[i].value,context);
       const observations=active.flatMap(p=>p.observe(next,context).map(o=>({schemaVersion:CONTRACTS.CityObservation,simulationTime:time,geographyType:'city',geographyId:'city',system:p.id,modelVersion:p.version,...o})));
       validateState(next);

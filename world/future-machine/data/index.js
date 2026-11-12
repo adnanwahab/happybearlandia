@@ -50,7 +50,7 @@ export function normalizeReplay(initial, replay) {
 }
 function checkReplayState(state) {
   const originalMonth = state.month;
-  checkInitial({ ...state, month: 0 });
+  checkInitial(state, {replay:true});
   assertMonth(originalMonth);
 }
 async function historyFrom(record, baselineReplay, planReplay, recipe, initialHash) {

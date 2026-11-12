@@ -1,0 +1,31 @@
+name: First interaction measurements
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/performance/**'
+      - 'test/**first-interaction*'
+      - 'test/performance/**'
+      - '.github/workflows/first-interaction-performance.yml'
+permissions:
+  contents: read
+jobs:
+  measure:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun test test/first-interaction-budgets.test.js
+      - run: bunx playwright install --with-deps chromium
+      - name: Measure cold emulated profiles (calibration, not regression approval)
+        run: HBL_PERF_CALIBRATE=1 bunx playwright test --config test/first-interaction.browser.config.js
+      - name: Choose baseline-based budget proposals
+        run: bun scripts/performance/calibrate-first-interaction.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: first-interaction-measurements
+          path: test-results/first-interaction
+          if-no-files-found: error

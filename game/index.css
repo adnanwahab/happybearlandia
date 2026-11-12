@@ -1,2 +1,16 @@
 /* Tailwind build is not available in static /game runtime.
    Keep this file present so /game/index.html can load without 404s. */
+
+/* Keep focus discernible against both the scene and dark overlay panels. */
+:focus-visible {
+  outline: 3px solid #facc15;
+  outline-offset: 3px;
+}
+dialog::backdrop { background: #020617cc; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

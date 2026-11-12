@@ -107,3 +107,13 @@ Report simulated evaluation and real-world evaluation separately, with provenanc
 - Which snapshots must be retained for exact replay when model versions change, and which scenarios can be rebuilt from a pinned recipe?
 - What evidence and thresholds make a modeled change meaningful to a player, and what does a first-time player need to complete the guided journey?
 - Which authorization and retention contracts are required before public submissions, persistent shared state, and multiplayer decisions?
+
+## Research agent role
+
+Operator-invoked research agents inspect supplied simulation rules and a pinned
+Research Library snapshot, compare approaches, and propose experiments or
+implementation issues. Their output enters the existing private improvement
+inbox as drafts for human triage. Every claim links to a library entry or is
+explicitly unsupported; metadata citations do not establish a mechanism.
+Experiments declare a hypothesis, data sources and acceptance criteria. The
+role never dispatches work. See [the role contract](../ops/research_agents/README.md).

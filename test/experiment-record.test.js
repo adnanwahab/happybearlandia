@@ -37,3 +37,10 @@ describe("experiment records and lineage", () => {
     expect(summarizeExperimentRecord(child)).toMatchObject({ title: "Housing plan", revision: 2 });
   });
 });
+
+test("different research metadata and results retain distinct record identities", () => {
+  const base = { experiment, registry: { hypothesis: "A" }, simulationBatch: { simulations: [{ score: 1 }] } };
+  const first = createExperimentRecord(base);
+  expect(createExperimentRecord({ ...base, registry: { hypothesis: "B" } }).id).not.toBe(first.id);
+  expect(createExperimentRecord({ ...base, simulationBatch: { simulations: [{ score: 2 }] } }).id).not.toBe(first.id);
+});

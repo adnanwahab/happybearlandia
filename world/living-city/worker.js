@@ -1,6 +1,8 @@
+import { branchCity } from './builder.js';
 import { createQuestScenario, replayCommuteSample, runCommuteEnsemble } from './quests.js';
 
 const actions = {
+  branch: branchCity,
   open: createQuestScenario,
   compare: runCommuteEnsemble,
   replay: replayCommuteSample,

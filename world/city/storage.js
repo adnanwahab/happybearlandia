@@ -1,6 +1,7 @@
 import {Database} from 'bun:sqlite';
 import {mkdirSync, readFileSync} from 'node:fs';
 import {join, resolve, relative} from 'node:path';
+import {migrateCitySave} from './save-format.js';
 import {VERSION} from './contracts.js';
 const idPattern=/^city_[a-zA-Z0-9_-]{1,100}$/;
 const sqlSchema=`
@@ -47,9 +48,10 @@ export class CityStore {
     this.queues=new Map();
   }
   path(id) {if(!idPattern.test(id))throw new Error('Invalid city experiment ID');return join(this.root,'experiments',`${id}.sqlite`);}
-  get(id){this.path(id);const row=this.control.query('SELECT * FROM experiment_index WHERE experiment_id=?').get(id);return row?{...row,manifest:JSON.parse(row.manifest_json)}:null;}
+  get(id){this.path(id);const row=this.control.query('SELECT * FROM experiment_index WHERE experiment_id=?').get(id);return row?{...row,...migrateCitySave(JSON.parse(row.manifest_json))}:null;}
   list(){return this.control.query('SELECT experiment_id,status,created_at,error FROM experiment_index ORDER BY created_at DESC LIMIT 100').all();}
   create(id,manifest) {
+    manifest=migrateCitySave(manifest).manifest;
     const db=open(this.path(id));
     try{db.exec(sqlSchema);db.query('INSERT INTO metadata VALUES (?,?)').run('manifest',json(manifest));}finally{db.close();}
     this.control.query('INSERT INTO experiment_index VALUES (?,?,?,?,NULL)').run(id,'queued',new Date().toISOString(),json(manifest));
@@ -90,6 +92,10 @@ export class CityStore {
         for(const flow of step.flows)insert('resource_flows',[runId,t,flow.resource,flow.from,flow.to,flow.amount,flow.system]);
       }
     });
+  }
+  savedOutcome(id,runId) {
+    const db=open(this.path(id),true);
+    try{return Object.fromEntries(db.query('SELECT metric_id,value FROM run_metrics WHERE run_id=?').all(runId).map(r=>[r.metric_id,r.value]));}finally{db.close();}
   }
   tables(id){const db=open(this.path(id),true);try{return db.query("SELECT name FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%'").all().map(({name})=>({name,columns:db.query(`PRAGMA table_info(${name})`).all().map(c=>({name:c.name,type:c.type}))}));}finally{db.close();}}
   export(id){const db=open(this.path(id));try{db.exec('PRAGMA wal_checkpoint(TRUNCATE)');}finally{db.close();}return readFileSync(this.path(id));}

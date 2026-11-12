@@ -22,7 +22,7 @@ test('production server serves the patch ballot and records a vote with the sign
     let startup = '', port;
     while (!port) {
       const { value, done } = await reader.read();
-      if (done) throw new Error('server failed to start: ' + startup);
+      if (done) throw new Error('server failed to start: ' + startup + await new Response(server.stderr).text());
       startup += decoder.decode(value, { stream: true });
       port = startup.match(/HappyBearLandia running at http:\/\/localhost:(\d+)\r?\n/)?.[1];
     }
@@ -38,18 +38,19 @@ test('production server serves the patch ballot and records a vote with the sign
     expect(list.status).toBe(200);
     const initial = await list.json();
     expect(initial.patches.some(row => row.id === 'U06')).toBe(true);
-    const cookie = list.headers.get('set-cookie').split(';')[0];
+    expect(list.headers.get('set-cookie')).toBeNull();
+    const cookie = '';
     const cast = await fetch(origin + '/api/patch-votes/U06/vote', {
       method: 'POST',
       headers: { origin, cookie, 'content-type': 'application/json' },
-      body: JSON.stringify({ value: 1 })
+      body: JSON.stringify({ value: 1, consent: true })
     });
     expect(cast.status).toBe(200);
     expect((await cast.json()).patches.find(row => row.id === 'U06').score).toBe(1);
     const forbidden = await fetch(origin + '/api/patch-votes/U06/vote', {
       method: 'POST',
       headers: { origin: 'https://other.example', cookie, 'content-type': 'application/json' },
-      body: JSON.stringify({ value: 1 })
+      body: JSON.stringify({ value: 1, consent: true })
     });
     expect(forbidden.status).toBe(403);
   } finally {

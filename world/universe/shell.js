@@ -1,4 +1,5 @@
 import { EXPERIENCES, getExperience, searchExperiences, entityActions } from './registry.js';
+import { mountFunAnalytics } from './fun-analytics.js';
 import { mountLocalJourneyControls } from './local-journeys.js';
 import { contextFromURL, contextURL, shellURL, createFrameBridge } from './navigation.js';
 
@@ -43,6 +44,7 @@ if (root) {
     <div class="universe-results" aria-label="Experience directory"></div>
     <div id="universe-stage"></div><div id="universe-local-controls"></div>`;
   const journeys=mountLocalJourneyControls(root.querySelector('#universe-local-controls'));
+  mountFunAnalytics(root.querySelector('#universe-local-controls'));
   const visited=new Set();
   const results = root.querySelector('.universe-results');
   const stage = root.querySelector('#universe-stage');

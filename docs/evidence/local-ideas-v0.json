@@ -1,0 +1,767 @@
+{
+  "schemaVersion": "local-idea-comparison.v1",
+  "treatment": {
+    "recipe": {
+      "model": "local-idea.v1",
+      "rules": "radius-sharing.v1",
+      "idea": "drainage-policy-changed",
+      "source": "synthetic-fixed-positions.v1",
+      "maxResidents": 512,
+      "maxTicks": 1000,
+      "residents": [
+        {
+          "id": "resident-0",
+          "x": 0,
+          "y": 0
+        },
+        {
+          "id": "resident-1",
+          "x": 8,
+          "y": 0
+        },
+        {
+          "id": "resident-10",
+          "x": 0,
+          "y": 16
+        },
+        {
+          "id": "resident-11",
+          "x": 8,
+          "y": 16
+        },
+        {
+          "id": "resident-12",
+          "x": 16,
+          "y": 16
+        },
+        {
+          "id": "resident-13",
+          "x": 24,
+          "y": 16
+        },
+        {
+          "id": "resident-14",
+          "x": 32,
+          "y": 16
+        },
+        {
+          "id": "resident-15",
+          "x": 0,
+          "y": 24
+        },
+        {
+          "id": "resident-16",
+          "x": 8,
+          "y": 24
+        },
+        {
+          "id": "resident-17",
+          "x": 16,
+          "y": 24
+        },
+        {
+          "id": "resident-18",
+          "x": 24,
+          "y": 24
+        },
+        {
+          "id": "resident-19",
+          "x": 32,
+          "y": 24
+        },
+        {
+          "id": "resident-2",
+          "x": 16,
+          "y": 0
+        },
+        {
+          "id": "resident-20",
+          "x": 0,
+          "y": 32
+        },
+        {
+          "id": "resident-21",
+          "x": 8,
+          "y": 32
+        },
+        {
+          "id": "resident-22",
+          "x": 16,
+          "y": 32
+        },
+        {
+          "id": "resident-23",
+          "x": 24,
+          "y": 32
+        },
+        {
+          "id": "resident-24",
+          "x": 32,
+          "y": 32
+        },
+        {
+          "id": "resident-3",
+          "x": 24,
+          "y": 0
+        },
+        {
+          "id": "resident-4",
+          "x": 32,
+          "y": 0
+        },
+        {
+          "id": "resident-5",
+          "x": 0,
+          "y": 8
+        },
+        {
+          "id": "resident-6",
+          "x": 8,
+          "y": 8
+        },
+        {
+          "id": "resident-7",
+          "x": 16,
+          "y": 8
+        },
+        {
+          "id": "resident-8",
+          "x": 24,
+          "y": 8
+        },
+        {
+          "id": "resident-9",
+          "x": 32,
+          "y": 8
+        }
+      ],
+      "originId": "resident-0",
+      "seed": 42,
+      "ticks": 12,
+      "radius": 8,
+      "probability": 0.65,
+      "sharing": true
+    },
+    "events": [
+      {
+        "id": 0,
+        "sourceId": null,
+        "receiverId": "resident-0",
+        "tick": 0,
+        "hopCount": 0,
+        "parentId": null
+      },
+      {
+        "id": 1,
+        "sourceId": "resident-0",
+        "receiverId": "resident-5",
+        "tick": 1,
+        "hopCount": 1,
+        "parentId": 0,
+        "distance": 8,
+        "adoptionDraw": 0.2767954682931304
+      },
+      {
+        "id": 2,
+        "sourceId": "resident-0",
+        "receiverId": "resident-1",
+        "tick": 2,
+        "hopCount": 1,
+        "parentId": 0,
+        "distance": 8,
+        "adoptionDraw": 0.17151085613295436
+      },
+      {
+        "id": 3,
+        "sourceId": "resident-5",
+        "receiverId": "resident-6",
+        "tick": 2,
+        "hopCount": 2,
+        "parentId": 1,
+        "distance": 8,
+        "adoptionDraw": 0.49776501650922
+      },
+      {
+        "id": 4,
+        "sourceId": "resident-1",
+        "receiverId": "resident-2",
+        "tick": 3,
+        "hopCount": 2,
+        "parentId": 2,
+        "distance": 8,
+        "adoptionDraw": 0.4018547683954239
+      },
+      {
+        "id": 5,
+        "sourceId": "resident-5",
+        "receiverId": "resident-10",
+        "tick": 3,
+        "hopCount": 2,
+        "parentId": 1,
+        "distance": 8,
+        "adoptionDraw": 0.09879148029722273
+      },
+      {
+        "id": 6,
+        "sourceId": "resident-6",
+        "receiverId": "resident-11",
+        "tick": 3,
+        "hopCount": 3,
+        "parentId": 3,
+        "distance": 8,
+        "adoptionDraw": 0.6284346065949649
+      },
+      {
+        "id": 7,
+        "sourceId": "resident-6",
+        "receiverId": "resident-7",
+        "tick": 3,
+        "hopCount": 3,
+        "parentId": 3,
+        "distance": 8,
+        "adoptionDraw": 0.40601026243530214
+      },
+      {
+        "id": 8,
+        "sourceId": "resident-10",
+        "receiverId": "resident-15",
+        "tick": 4,
+        "hopCount": 3,
+        "parentId": 5,
+        "distance": 8,
+        "adoptionDraw": 0.09084928804077208
+      },
+      {
+        "id": 9,
+        "sourceId": "resident-2",
+        "receiverId": "resident-3",
+        "tick": 4,
+        "hopCount": 3,
+        "parentId": 4,
+        "distance": 8,
+        "adoptionDraw": 0.24030552268959582
+      },
+      {
+        "id": 10,
+        "sourceId": "resident-7",
+        "receiverId": "resident-8",
+        "tick": 4,
+        "hopCount": 4,
+        "parentId": 7,
+        "distance": 8,
+        "adoptionDraw": 0.023443242302164435
+      },
+      {
+        "id": 11,
+        "sourceId": "resident-11",
+        "receiverId": "resident-12",
+        "tick": 5,
+        "hopCount": 4,
+        "parentId": 6,
+        "distance": 8,
+        "adoptionDraw": 0.39624743117019534
+      },
+      {
+        "id": 12,
+        "sourceId": "resident-11",
+        "receiverId": "resident-16",
+        "tick": 5,
+        "hopCount": 4,
+        "parentId": 6,
+        "distance": 8,
+        "adoptionDraw": 0.37565729091875255
+      },
+      {
+        "id": 13,
+        "sourceId": "resident-15",
+        "receiverId": "resident-20",
+        "tick": 5,
+        "hopCount": 4,
+        "parentId": 8,
+        "distance": 8,
+        "adoptionDraw": 0.3648700446356088
+      },
+      {
+        "id": 14,
+        "sourceId": "resident-3",
+        "receiverId": "resident-4",
+        "tick": 5,
+        "hopCount": 4,
+        "parentId": 9,
+        "distance": 8,
+        "adoptionDraw": 0.24573729978874326
+      },
+      {
+        "id": 15,
+        "sourceId": "resident-12",
+        "receiverId": "resident-13",
+        "tick": 6,
+        "hopCount": 5,
+        "parentId": 11,
+        "distance": 8,
+        "adoptionDraw": 0.46323321480304
+      },
+      {
+        "id": 16,
+        "sourceId": "resident-12",
+        "receiverId": "resident-17",
+        "tick": 6,
+        "hopCount": 5,
+        "parentId": 11,
+        "distance": 8,
+        "adoptionDraw": 0.36291240202263
+      },
+      {
+        "id": 17,
+        "sourceId": "resident-4",
+        "receiverId": "resident-9",
+        "tick": 6,
+        "hopCount": 5,
+        "parentId": 14,
+        "distance": 8,
+        "adoptionDraw": 0.3408567579463124
+      },
+      {
+        "id": 18,
+        "sourceId": "resident-13",
+        "receiverId": "resident-18",
+        "tick": 7,
+        "hopCount": 6,
+        "parentId": 15,
+        "distance": 8,
+        "adoptionDraw": 0.5745003931224346
+      },
+      {
+        "id": 19,
+        "sourceId": "resident-16",
+        "receiverId": "resident-21",
+        "tick": 7,
+        "hopCount": 5,
+        "parentId": 12,
+        "distance": 8,
+        "adoptionDraw": 0.5976193936076015
+      },
+      {
+        "id": 20,
+        "sourceId": "resident-17",
+        "receiverId": "resident-22",
+        "tick": 7,
+        "hopCount": 6,
+        "parentId": 16,
+        "distance": 8,
+        "adoptionDraw": 0.09627172187902033
+      },
+      {
+        "id": 21,
+        "sourceId": "resident-9",
+        "receiverId": "resident-14",
+        "tick": 7,
+        "hopCount": 6,
+        "parentId": 17,
+        "distance": 8,
+        "adoptionDraw": 0.12898365943692625
+      },
+      {
+        "id": 22,
+        "sourceId": "resident-14",
+        "receiverId": "resident-19",
+        "tick": 8,
+        "hopCount": 7,
+        "parentId": 21,
+        "distance": 8,
+        "adoptionDraw": 0.27346196747384965
+      },
+      {
+        "id": 23,
+        "sourceId": "resident-22",
+        "receiverId": "resident-23",
+        "tick": 8,
+        "hopCount": 7,
+        "parentId": 20,
+        "distance": 8,
+        "adoptionDraw": 0.4277702316176146
+      },
+      {
+        "id": 24,
+        "sourceId": "resident-23",
+        "receiverId": "resident-24",
+        "tick": 9,
+        "hopCount": 8,
+        "parentId": 23,
+        "distance": 8,
+        "adoptionDraw": 0.15648206742480397
+      }
+    ],
+    "curve": [
+      {
+        "tick": 0,
+        "informed": 1
+      },
+      {
+        "tick": 1,
+        "informed": 2
+      },
+      {
+        "tick": 2,
+        "informed": 4
+      },
+      {
+        "tick": 3,
+        "informed": 8
+      },
+      {
+        "tick": 4,
+        "informed": 11
+      },
+      {
+        "tick": 5,
+        "informed": 15
+      },
+      {
+        "tick": 6,
+        "informed": 18
+      },
+      {
+        "tick": 7,
+        "informed": 22
+      },
+      {
+        "tick": 8,
+        "informed": 24
+      },
+      {
+        "tick": 9,
+        "informed": 25
+      },
+      {
+        "tick": 10,
+        "informed": 25
+      },
+      {
+        "tick": 11,
+        "informed": 25
+      },
+      {
+        "tick": 12,
+        "informed": 25
+      }
+    ],
+    "informedIds": [
+      "resident-0",
+      "resident-1",
+      "resident-10",
+      "resident-11",
+      "resident-12",
+      "resident-13",
+      "resident-14",
+      "resident-15",
+      "resident-16",
+      "resident-17",
+      "resident-18",
+      "resident-19",
+      "resident-2",
+      "resident-20",
+      "resident-21",
+      "resident-22",
+      "resident-23",
+      "resident-24",
+      "resident-3",
+      "resident-4",
+      "resident-5",
+      "resident-6",
+      "resident-7",
+      "resident-8",
+      "resident-9"
+    ]
+  },
+  "control": {
+    "recipe": {
+      "model": "local-idea.v1",
+      "rules": "radius-sharing.v1",
+      "idea": "drainage-policy-changed",
+      "source": "synthetic-fixed-positions.v1",
+      "maxResidents": 512,
+      "maxTicks": 1000,
+      "residents": [
+        {
+          "id": "resident-0",
+          "x": 0,
+          "y": 0
+        },
+        {
+          "id": "resident-1",
+          "x": 8,
+          "y": 0
+        },
+        {
+          "id": "resident-10",
+          "x": 0,
+          "y": 16
+        },
+        {
+          "id": "resident-11",
+          "x": 8,
+          "y": 16
+        },
+        {
+          "id": "resident-12",
+          "x": 16,
+          "y": 16
+        },
+        {
+          "id": "resident-13",
+          "x": 24,
+          "y": 16
+        },
+        {
+          "id": "resident-14",
+          "x": 32,
+          "y": 16
+        },
+        {
+          "id": "resident-15",
+          "x": 0,
+          "y": 24
+        },
+        {
+          "id": "resident-16",
+          "x": 8,
+          "y": 24
+        },
+        {
+          "id": "resident-17",
+          "x": 16,
+          "y": 24
+        },
+        {
+          "id": "resident-18",
+          "x": 24,
+          "y": 24
+        },
+        {
+          "id": "resident-19",
+          "x": 32,
+          "y": 24
+        },
+        {
+          "id": "resident-2",
+          "x": 16,
+          "y": 0
+        },
+        {
+          "id": "resident-20",
+          "x": 0,
+          "y": 32
+        },
+        {
+          "id": "resident-21",
+          "x": 8,
+          "y": 32
+        },
+        {
+          "id": "resident-22",
+          "x": 16,
+          "y": 32
+        },
+        {
+          "id": "resident-23",
+          "x": 24,
+          "y": 32
+        },
+        {
+          "id": "resident-24",
+          "x": 32,
+          "y": 32
+        },
+        {
+          "id": "resident-3",
+          "x": 24,
+          "y": 0
+        },
+        {
+          "id": "resident-4",
+          "x": 32,
+          "y": 0
+        },
+        {
+          "id": "resident-5",
+          "x": 0,
+          "y": 8
+        },
+        {
+          "id": "resident-6",
+          "x": 8,
+          "y": 8
+        },
+        {
+          "id": "resident-7",
+          "x": 16,
+          "y": 8
+        },
+        {
+          "id": "resident-8",
+          "x": 24,
+          "y": 8
+        },
+        {
+          "id": "resident-9",
+          "x": 32,
+          "y": 8
+        }
+      ],
+      "originId": "resident-0",
+      "seed": 42,
+      "ticks": 12,
+      "radius": 8,
+      "probability": 0.65,
+      "sharing": false
+    },
+    "events": [
+      {
+        "id": 0,
+        "sourceId": null,
+        "receiverId": "resident-0",
+        "tick": 0,
+        "hopCount": 0,
+        "parentId": null
+      }
+    ],
+    "curve": [
+      {
+        "tick": 0,
+        "informed": 1
+      },
+      {
+        "tick": 1,
+        "informed": 1
+      },
+      {
+        "tick": 2,
+        "informed": 1
+      },
+      {
+        "tick": 3,
+        "informed": 1
+      },
+      {
+        "tick": 4,
+        "informed": 1
+      },
+      {
+        "tick": 5,
+        "informed": 1
+      },
+      {
+        "tick": 6,
+        "informed": 1
+      },
+      {
+        "tick": 7,
+        "informed": 1
+      },
+      {
+        "tick": 8,
+        "informed": 1
+      },
+      {
+        "tick": 9,
+        "informed": 1
+      },
+      {
+        "tick": 10,
+        "informed": 1
+      },
+      {
+        "tick": 11,
+        "informed": 1
+      },
+      {
+        "tick": 12,
+        "informed": 1
+      }
+    ],
+    "informedIds": [
+      "resident-0"
+    ]
+  },
+  "curve": [
+    {
+      "tick": 0,
+      "sharing": 1,
+      "noSharing": 1,
+      "difference": 0
+    },
+    {
+      "tick": 1,
+      "sharing": 2,
+      "noSharing": 1,
+      "difference": 1
+    },
+    {
+      "tick": 2,
+      "sharing": 4,
+      "noSharing": 1,
+      "difference": 3
+    },
+    {
+      "tick": 3,
+      "sharing": 8,
+      "noSharing": 1,
+      "difference": 7
+    },
+    {
+      "tick": 4,
+      "sharing": 11,
+      "noSharing": 1,
+      "difference": 10
+    },
+    {
+      "tick": 5,
+      "sharing": 15,
+      "noSharing": 1,
+      "difference": 14
+    },
+    {
+      "tick": 6,
+      "sharing": 18,
+      "noSharing": 1,
+      "difference": 17
+    },
+    {
+      "tick": 7,
+      "sharing": 22,
+      "noSharing": 1,
+      "difference": 21
+    },
+    {
+      "tick": 8,
+      "sharing": 24,
+      "noSharing": 1,
+      "difference": 23
+    },
+    {
+      "tick": 9,
+      "sharing": 25,
+      "noSharing": 1,
+      "difference": 24
+    },
+    {
+      "tick": 10,
+      "sharing": 25,
+      "noSharing": 1,
+      "difference": 24
+    },
+    {
+      "tick": 11,
+      "sharing": 25,
+      "noSharing": 1,
+      "difference": 24
+    },
+    {
+      "tick": 12,
+      "sharing": 25,
+      "noSharing": 1,
+      "difference": 24
+    }
+  ]
+}

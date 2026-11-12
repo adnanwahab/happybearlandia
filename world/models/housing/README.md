@@ -279,3 +279,31 @@ Backlog coverage for this component: numerical portions of 5, 19–25, 104–106
 124–127, 129–131. UI approval, fork comparison/promotion, graph rendering and
 broader optimization/stress workflows belong to their respective owners; this
 module does not claim completion of all numbered product requirements.
+
+## CI validation rules
+
+[Automatic model validation](../../../docs/model-validation.md) runs the existing
+calibration and backtest tests plus `housing.houston-stock-error` on every PR.
+The accuracy rule requires complete finite predictions and unchanged observed
+stock, dataset, model version, seed and ensemble size. Absolute mean stock error
+must not exceed the reviewed fixture plus 0.000001 homes numerical tolerance.
+The Houston overlapping-vintage diagnostic is not a strict forecasting backtest.
+
+The checked calibration invariants are: historical inputs used for initialization
+and coefficient fitting were available at cutoff; held-out observations do not
+enter fitting; geography, units and dollar basis match; missing dates, sentinel
+values and invalid horizons are rejected. Synthetic coefficient recovery must
+recover the known coefficient. Seed replay reproduces all numerical outputs;
+policy and uncertainty scenarios preserve their supported parameter contracts.
+Stock and pipeline conservation equations are specified under Accounting and
+equations above. The monthly City has its own separate
+[invariant catalog](../../city/VALIDATION.md).
+
+Additional checked housing invariants: public expenditure equals actual subsidy
+plus voucher spending; each stays within its annual budget times horizon; zero
+funding or zero adoption yields zero policy expenditure; zero adoption preserves
+current-policy supply and rents. All timeline metrics are finite. The supported
+plan increases supply, reduces rents and spends more than baseline; every
+registered parameter affects dynamics. Stress application is idempotent and
+order independent, rejects unknown presets and changes numerical outcomes.
+Malformed parameters, nonnumeric inputs and invalid horizons fail explicitly.

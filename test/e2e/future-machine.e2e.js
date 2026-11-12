@@ -19,10 +19,10 @@ test('fork → run → scrub → blink → inspect → share → refresh with ma
  await seek(page,0);await page.getByRole('button',{name:'Show Me What Changed',exact:true}).click();await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.month)).toBeGreaterThan(0);
  await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('building-project-policy-1-0');
  await page.getByRole('button',{name:/building-d1 · schematic/}).last().click();await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('building-d1');
- await seek(page,120);await page.getByRole('button',{name:'Share comparison',exact:true}).click();const link=await page.getByRole('link',{name:'Open comparison link'}).getAttribute('href');
+ await seek(page,120);await page.getByRole('button',{name:'Copy comparison link',exact:true}).click();const link=await page.getByRole('link',{name:'Open comparison link'}).getAttribute('href');
  expect(link).toContain('fm=');expect(link).toContain('month=120');
  const before=await page.evaluate(()=>window.futureMachine.state.diff.metrics);
- await page.reload();await ready(page);expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);expect(await page.evaluate(()=>window.futureMachine.history.experimentId)).toBe(result.id);expect(await page.evaluate(()=>window.futureMachine.state.diff.metrics)).toEqual(before);
+ await page.reload();await ready(page);expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);await expect(page.locator('.fm-outcome-values')).toContainText('Month 120');expect(await page.evaluate(()=>window.futureMachine.history.experimentId)).toBe(result.id);expect(await page.evaluate(()=>window.futureMachine.state.diff.metrics)).toEqual(before);
  const downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:'Export evidence',exact:true}).click();const download=await downloadPromise;await download.saveAs(testInfo.outputPath('future-machine-evidence.json'));
  await page.screenshot({path:testInfo.outputPath('future-machine-2036.png'),fullPage:true});
  console.log('FUTURE_MACHINE_MEASUREMENTS',JSON.stringify(await page.evaluate(()=>({timings:window.futureMachine.stats,heap:performance.memory?.usedJSHeapSize,resources:performance.getEntriesByType('resource').map(r=>({name:new URL(r.name).pathname,bytes:r.transferSize,durationMs:r.duration}))}))));
@@ -66,7 +66,7 @@ test('40-second demo tour',async({page},testInfo)=>{
  await page.locator('.fm-stage').scrollIntoViewIfNeeded();await hold(25000);
  await seek(page,120);await page.getByRole('button',{name:/building-project-policy-1-0 · schematic/}).last().click();await page.getByRole('region',{name:'Recorded change story'}).scrollIntoViewIfNeeded();
  await page.getByText(/^Recorded model events \(/).click();await hold(32000);
- await page.getByRole('button',{name:'Share comparison',exact:true}).click();await page.getByRole('link',{name:'Open comparison link'}).scrollIntoViewIfNeeded();await hold(36000);
+ await page.getByRole('button',{name:'Copy comparison link',exact:true}).click();await page.getByRole('link',{name:'Open comparison link'}).scrollIntoViewIfNeeded();await hold(36000);
  await page.locator('.fm-stage').scrollIntoViewIfNeeded();await page.screenshot({path:testInfo.outputPath('future-machine-thumbnail.png')});await hold(40000);
  await testInfo.attach('final-comparison-url',{body:page.url(),contentType:'text/plain'});
 });
@@ -78,4 +78,104 @@ test('largest supported recipe stays bounded across scrubs and releases scene re
  expect(max).toBeLessThanOrEqual(10);console.log('FUTURE_MACHINE_UPPER_BOUND',JSON.stringify(await page.evaluate(()=>({timings:window.futureMachine.stats,heap:performance.memory?.usedJSHeapSize,historyBytes:JSON.stringify(window.futureMachine.history).length,maxObjects:10}))));
  await page.goto('/world/future-machine.html?fm=invalid&month=121');await page.goBack({waitUntil:'domcontentloaded'});await ready(page);expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);
  await page.evaluate(()=>window.futureMachine.dispose());expect(await page.evaluate(()=>window.futureMachine.stats.scene.objects)).toBe(0);expect(await page.locator('.fm-ui').count()).toBe(0);
+});
+
+test('first policy choices change the real matched pair and preserve loaded recipes',async({page},testInfo)=>{
+ await page.goto('/world/future-machine.html?renderer=canvas');
+ const policy=page.getByLabel('Plan',{exact:true});
+ await expect(policy.locator('option')).toHaveCount(3);
+ let baselineHash;
+ for(const [id,homes,cost] of [['housing-small',12,500000],['housing',24,1000000],['baseline',0,0]]){
+  await policy.selectOption(id);
+  await expect(page.locator('.fm-policy-note')).toContainText(id==='baseline'?'No policy added':'Source: monthly City');
+  await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);await seek(page,120);
+  const result=await page.evaluate(()=>{const h=window.futureMachine.history;return {hash:h.initialHash,homes:window.futureMachine.state.diff.metrics.housingUnits.delta,cost:h.plan[120].metrics.capitalSpending,seed:h.seed,common:JSON.stringify(h.baseline[0])===JSON.stringify(h.plan[0])};});
+  baselineHash??=result.hash;expect(result.hash).toBe(baselineHash);expect(result.homes).toBe(homes);expect(result.cost).toBe(cost);expect(result.seed).toBe(42);expect(result.common).toBe(true);
+  await expect(policy).toHaveValue(id);
+  if(id==='housing-small'){
+   await page.screenshot({path:testInfo.outputPath('first-policy-small.png'),fullPage:true});
+   await page.getByRole('button',{name:'Copy comparison link',exact:true}).click();await page.reload();await ready(page);await expect(policy).toHaveValue(id);
+  }
+ }
+});
+
+
+test('retained native meshes settle, scrub without growth, and reverse recorded completion',async({page})=>{
+ await page.goto('/world/future-machine.html?renderer=webgl');
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);
+ expect(await page.evaluate(()=>window.futureMachine.stats.scene.backend)).toBe('webgl');
+ const result=await page.evaluate(async()=>{
+   const slider=document.querySelector('input[type=range]');
+   const seek=month=>{slider.value=month;slider.dispatchEvent(new Event('input'));};
+   const stats=()=>window.futureMachine.stats.scene;
+   const scrub=()=>{for(let month=0;month<=120;month++)seek(month);return stats().geometries;};
+   const first=scrub(),second=scrub();
+   seek(16);const at16=stats().targets.find(t=>t.id==='building-project-policy-1-0'&&t.arm==='plan');
+   seek(15);const removed=!stats().targets.some(t=>t.id==='building-project-policy-1-0'&&t.arm==='plan');
+   seek(16);const added=stats().targets.find(t=>t.id==='building-project-policy-1-0'&&t.arm==='plan');
+   const ordinary=stats().targets.find(t=>t.arm==='baseline');
+   seek(17);const retained=stats().targets.find(t=>t.id===ordinary.id&&t.arm==='baseline').meshId===ordinary.meshId;
+   const label=document.querySelector('[data-native-city-labels] span');
+   seek(18);const labelRetained=!label||label.isConnected;
+   return {first,second,removed,at16,added,retained,labelRetained};
+ });
+ expect(result.first).toBeGreaterThan(0);expect(result.second).toBe(result.first);
+ expect(result.removed).toBe(true);expect(result.added.height).toBe(9);expect(result.added.scaleY).toBe(1);
+ expect(result.retained).toBe(true);expect(result.labelRetained).toBe(true);
+ await page.waitForTimeout(1000);const settled=await page.evaluate(()=>window.futureMachine.stats.scene.draws);
+ await page.waitForTimeout(200);expect(await page.evaluate(()=>window.futureMachine.stats.scene.draws)).toBe(settled);
+ // Exercise the production stage with two recorded heights for the same entity.
+ const tween=await page.evaluate(async()=>{
+   const {createStage}=await import('/world/future-machine/scene/index.js');
+   const {compareFrame}=await import('/world/future-machine/diff/index.js');
+   const h=window.futureMachine.history,container=document.createElement('div');container.style.width='800px';document.body.append(container);
+   const stage=createStage(container);const frame={month:16,baseline:h.baseline[16],plan:structuredClone(h.plan[16])};
+   stage.update(frame,compareFrame(frame));await stage.whenReady();
+   const before=stage.getStats().targets.find(t=>t.id==='building-project-policy-1-0'&&t.arm==='plan');
+   frame.plan.state.buildings.find(b=>b.id===before.id).floors=6;
+   stage.update(frame,compareFrame(frame));const during=stage.getStats().targets.find(t=>t.id===before.id&&t.arm==='plan');
+   stage.dispose();container.remove();return {before,during};
+ });
+ expect(tween.during.meshId).toBe(tween.before.meshId);expect(tween.during.height).toBe(18);expect(tween.during.scaleY).toBe(.5);
+});
+
+for(const delay of [3000,30000])test(`progressive readiness with Three delayed ${delay}ms`,async({page})=>{
+ const errors=[];page.on('pageerror',error=>errors.push(error.message));
+ const releaseAt=Date.now()+delay;
+ await page.route('**/vendor/three/**',async route=>{await new Promise(resolve=>setTimeout(resolve,Math.max(0,releaseAt-Date.now())));await route.continue().catch(()=>{});});
+ await page.goto('/world/future-machine.html?renderer=webgl',{waitUntil:'domcontentloaded'});
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);
+ // Data readiness must expose every normal entry point without waiting for imports.
+ const started=Date.now();
+ await expect(page.getByTestId('future-machine-timeline')).toBeEnabled({timeout:1000});
+ await expect(page.getByRole('button',{name:'Copy comparison link',exact:true})).toBeEnabled({timeout:1000});
+ await page.getByRole('button',{name:'Play timelapse',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Pause timelapse',exact:true})).toBeEnabled();
+ await page.getByRole('button',{name:'Pause timelapse',exact:true}).click();
+ await seek(page,120);
+ expect(await page.evaluate(()=>window.futureMachine.state.diff.metrics.housingUnits.delta)).toBe(24);
+ await page.getByRole('button',{name:/WHY.*homes/i}).click();
+ await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('WHY');
+ expect(Date.now()-started).toBeLessThan(1000);
+ await page.getByRole('button',{name:/building-d1 · schematic/}).last().click();
+ await expect.poll(()=>page.evaluate(()=>window.futureMachine.stats.scene.backend)).toBe(delay>10000?'canvas2d':'webgl');
+ expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);
+ await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('building-d1');
+ const camera=await page.evaluate(()=>window.futureMachine.stats.scene.camera);
+ if(delay>10000)await page.waitForTimeout(21000);
+ expect(await page.evaluate(()=>window.futureMachine.stats.scene.camera)).toEqual(camera);
+ expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);
+ expect(errors).toEqual([]);
+});
+
+test('blocked Three and all contexts unavailable preserve inventory and WHY',async({page})=>{
+ await page.addInitScript(()=>{HTMLCanvasElement.prototype.getContext=()=>null;});
+ await page.route('**/vendor/three/**',route=>route.abort());
+ await page.goto('/world/future-machine.html');await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);await seek(page,120);
+ await expect(page.getByText('Graphics unavailable. The exact recorded inventory, timeline, outcomes and WHY controls remain available below.')).toBeVisible();
+ await page.getByRole('button',{name:/building-d1 · schematic/}).last().click();
+ await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('building-d1');
+ await page.getByRole('button',{name:/WHY.*homes/i}).click();
+ await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('WHY');
+ expect(await page.evaluate(()=>window.futureMachine.stats.scene.backend)).toBe('inventory-fallback');
 });

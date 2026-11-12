@@ -6,6 +6,7 @@ tracker:
     api_key: $LINEAR_API_KEY
   required_labels:
     - hbl-agent-ready
+    - hbl-coordinator-approved
   active_states:
     - Todo
     - In Progress
@@ -65,3 +66,13 @@ test evidence and blockers, and move completed work to `In Review` (not
 eligible for dispatch); remove hbl-agent-ready when available. If required
 authentication or tooling is unavailable, report the blocker rather than
 inventing success.
+
+Research engineer lane (issues labeled hbl-research):
+Read ops/research_pipeline/README.md. Require a research-brief.v1 attachment
+covering question, hypothesis, sources, intended use, acceptance and verification,
+validation and uncertainty before implementing. If absent, report the missing
+brief as a blocker. Implement only assigned model changes, data adapters,
+experiments and tests. Preserve reproducibility and prepare research-release.v1
+with both gates NOT_EVALUATED for independent engineering and scientific review.
+Never self-approve either gate. Both hbl-agent-ready and hbl-coordinator-approved
+are required for research dispatch; this prompt does not grant either label.

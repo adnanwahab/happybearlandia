@@ -12,13 +12,10 @@ async function reachable(control){
  await control.click({trial:true});await control.focus();await expect(control).toBeFocused();
 }
 async function snapshot(page,info,name,errors){
- const state=await page.evaluate(()=>{
+ const state=await page.evaluate(async()=>{
   const api=window.futureMachine,h=api.history,s=api.state;
-  let firstDivergence=null;
-  for(let month=0;month<h.plan.length;month++){
-   const added=h.plan[month].state.buildings.find(row=>!h.baseline[month].state.buildings.some(before=>before.id===row.id));
-   if(added){firstDivergence={month,collection:'buildings',id:added.id};break;}
-  }
+  const {firstDivergence:find,compareHistory}=await import('/world/future-machine/diff/index.js');
+  const stop=find(h,compareHistory(h));const firstDivergence=stop?{month:stop.month,...stop.entity,building:h.plan[stop.month].state.buildings.find(row=>row.id===stop.entity.id)}:null;
   return {schemaVersion:'approved-demo-responsive.v1',recipe:h.recipe,seed:h.seed,modelVersion:h.modelVersion,initialHash:h.initialHash,runId:h.experimentId,month:s.month,firstDivergence,metrics:s.diff.metrics,scene:api.stats.scene,baselineBuildings:h.baseline[s.month].state.buildings,planBuildings:h.plan[s.month].state.buildings,evidence:h.plan.slice(0,s.month+1).flatMap(snapshot=>snapshot.events.map(event=>({arm:'plan',snapshotMonth:snapshot.month,...event}))),reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches,overflow:document.documentElement.scrollWidth>innerWidth};
  });
  await writeFile(info.outputPath(`${name}.json`),JSON.stringify({...state,errors},null,2));
@@ -27,21 +24,29 @@ async function snapshot(page,info,name,errors){
 }
 
 for(const viewport of [{width:1440,height:1000},{width:390,height:844},{width:320,height:640}]){
- test(`homepage Canvas reduced-motion journey at ${viewport.width}px`,async({page},info)=>{
+ test(`homepage Canvas reduced-motion journey at ${viewport.width}px`,async({page,browserName},info)=>{
   const errors={page:[],console:[]};
   page.on('pageerror',e=>errors.page.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.console.push(m.text());});
   await page.setViewportSize(viewport);
   // Configure the supported renderer query before application modules execute
   // after the real homepage click. Simulation APIs and outcomes stay untouched.
-  await page.addInitScript(()=>{
+  await page.addInitScript(({emulate})=>{
    if(location.pathname==='/world/future-machine.html'){
     const url=new URL(location.href);url.searchParams.set('renderer','canvas2d');history.replaceState(null,'',url);
+    if(emulate){
+     const calls=[];
+     for(const name of ['replaceState','pushState']){
+      const original=history[name].bind(history);
+      history[name]=(...args)=>{const now=performance.now();while(calls.length&&now-calls[0]>=30000)calls.shift();if(calls.length>=100)throw new DOMException('History write limit','SecurityError');calls.push(now);return original(...args);};
+     }
+    }
    }
-  });
+  },{emulate:browserName==='chromium'});
   await page.goto('/');await page.getByRole('link',{name:'Play Demo',exact:true}).click();
   await expect(page).toHaveURL(/\/world\/future-machine\.html\?/);
   await expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.status),{timeout:90000}).toBe('ready');
   await page.getByRole('button',{name:'Pause demo',exact:true}).click();
+  expect(await page.evaluate(()=>Number(new URL(location.href).searchParams.get('month'))===window.futureMachine.state.month)).toBe(true);
   await seek(page,0);const initial=await snapshot(page,info,`${viewport.width}-matched-0`,errors);
   expect(initial.seed).toBe(42);expect(initial.firstDivergence.month).toBe(16);expect(initial.baselineBuildings).toEqual(initial.planBuildings);expect(initial.metrics.housingUnits.delta).toBe(0);
   const slider=page.getByTestId('future-machine-timeline');await reachable(slider);await page.keyboard.press('ArrowRight');

@@ -1,3 +1,4 @@
+import {LAYOUT_VERSION} from './mapping.js';
 /** Low-fidelity orthographic view of the existing City projection, never model authority. */
 const MODES = ['split', 'baseline', 'plan', 'difference'];
 const identity = row => `${row.collection}:${row.id}`;
@@ -130,7 +131,7 @@ export function createCanvasStage(container,{onSelect,onCameraChange}={}) {
     focus(entity){if(disposed)return false;const row=[...(projection?.a||[]),...(projection?.b||[])].find(r=>identity(r)===identity(entity||{}));if(!row)return false;selected={collection:row.collection,id:row.id};camera={...camera,x:row.x,z:row.z};changed();return true;},
     getCamera(){return {...camera};},
     setCamera(next){if(!next||!Number.isFinite(next.x)||!Number.isFinite(next.z)||!Number.isFinite(next.zoom)||next.zoom<=0)throw new TypeError('Camera requires finite x, z and positive zoom');if(disposed)return;camera={x:next.x,z:next.z,zoom:clamp(next.zoom,.02,32)};fitted=true;draw();},
-    getStats(){return {backend:'canvas2d',objects:disposed?0:drawn,canvases:disposed?0:1,month:projection?.month??null,mode,ghosts,disposed,animationFrames:0,layoutVersion:'future-machine-layout.v1'};},
+    getStats(){return {backend:'canvas2d',objects:disposed?0:drawn,canvases:disposed?0:1,month:projection?.month??null,mode,ghosts,disposed,animationFrames:0,layoutVersion:LAYOUT_VERSION};},
     dispose(){if(disposed)return;disposed=true;observer?.disconnect();for(const remove of listeners)remove();listeners.length=0;pointers.clear();projection=null;diff=null;canvas.width=0;canvas.height=0;canvas.remove();},
   };
 }
