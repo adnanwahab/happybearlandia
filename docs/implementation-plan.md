@@ -1003,3 +1003,25 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-33 — neighborhood metric source audit (2026-11-12)
+
+Delivered a metadata-only `neighborhood-metrics.v1` catalog and lookup for the
+12 provisional district metrics. Prerequisite SHE-9 is Done in Linear. Source
+inspection found existing city-wide summaries, three heatmap layers and a
+separate plan-domain registry; these are retained. Owned files are the new
+`world/city/neighborhood-metrics.js`, `test/neighborhood-metrics.test.js`,
+`docs/neighborhood-metric-audit.md` and this appended status entry.
+
+Acceptance: stable unique IDs, exact source paths/units/reducers/denominators,
+model and schema versions, monthly time scope, synthetic evidence, missing-data
+policy, and null/not_modeled for unaudited labels. The registry exposes no
+fabricated measurements. Tests verify fields on seed-33 initial and next-month
+engine states and preserve the input. Material limitation: source support is
+metadata, not per-snapshot availability or aggregation. Screenshot labels are
+still unverified. NB-M02/M04/M05 remain downstream work. No UI change,
+Playwright requirement, model/version change, deployment or release action.
+
+Verification: `bun test --timeout 15000 test/neighborhood-metrics.test.js test/city-systems.test.js test/time-machine-heatmap.test.js test/metric-registry.test.js` passed 22 tests / 781 assertions, zero failures (latest independent rerun: 3.30s, Bun 1.4.2). This includes existing SQLite/API replay integration. `git diff --check` passed. No lint/type-check script is configured. The four draft files were already local changes when this verification resumed; source review confirmed their mapping against the archived proposal, seed, systems, contracts, existing summaries and heatmaps. SHE-9 was independently rechecked as Done.
+Branch `mini/SHE-33`; no commit/PR published. Full overlap and caveats:
+[neighborhood metric audit](neighborhood-metric-audit.md).
