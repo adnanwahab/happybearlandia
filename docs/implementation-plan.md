@@ -1003,3 +1003,23 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-58 accessibility audit — partial, November 12, 2026
+
+Next slice: audit existing primary World sheets and Future Machine controls;
+reuse visual-pass accessibility rather than replacing it. Acceptance is rendered
+contrast, keyboard focus/dismissal, narration alternatives, static progress and
+target sizes, with real browser evidence. SHE-19 remains In Review. This worker
+owns only the new SHE-58 report and isolated browser audit/config; shared UI
+ownership remains with integration. No simulation contracts change.
+
+Delivered source audit and runnable browser-audit candidate:
+[findings and exact evidence](accessibility/she-58-audit.md). Focused checks:
+22 passed / 1 skipped / 0 failed. Browser startup failed on two fixed ports and
+an ephemeral-port component server (Bun EADDRINUSE); no screenshots or browser
+pass claimed. Critical source finding: light quick-demo foreground/background
+contrast is 4.26:1, below 4.5:1; shared stylesheet correction is pending integration.
+All-panel conformance and prerequisite completion remain unresolved. Branch
+`mini/SHE-58`; no PR, merge or deployment. Next: stylesheet owner integrates the
+contrast correction, then run the browser audit with local binding available and
+complete assisted-input review. Do not mark the issue complete on unit evidence.
