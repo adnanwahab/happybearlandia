@@ -1,5 +1,51 @@
 # HappyBearLandia implementation plan
 
+## Scientific Dataset Portal — SHE-205 (later phase)
+
+Status: deferred, not implemented. [SHE-205](https://linear.app/shel-bernstein/issue/SHE-205/build-the-scientific-dataset-portal)
+explicitly places this work in a later phase. Read-only issue inspection on
+2026-11-12 confirmed Backlog status and a related issue,
+[Scientific Data Export / SHE-193](https://linear.app/shel-bernstein/issue/SHE-193/build-scientific-data-export),
+also in Backlog. The export contract is a technical prerequisite; Linear currently
+records a related issue, not a formal blocking relation.
+
+Current evidence: `world/future-machine/share/run-receipt.js` and
+`scripts/export-run-receipt.js` provide canonical monthly City JSON receipts,
+documented in [run-receipt.md](run-receipt.md). These retain model/rules identity,
+seed and provenance, with validation and replay limits. They are a reuse candidate,
+not the Scientific Data Export package: inspection found no implementation of its
+Parquet-or-Arrow, JSON and CSV contract with licensing and a data dictionary.
+The receipt documentation identifies the City rules as synthetic and uncalibrated.
+Do not publish them as measured results or infer a dataset license from code access.
+
+The next end-to-end slice, once the export contract is available, is a read-only
+catalog leading to one documented experiment and downloads of that same versioned
+export. Start with one supported model authority; cross-model aggregation needs
+explicit identity and time mappings before expansion.
+
+| Status | Task | Prerequisites and acceptance |
+| --- | --- | --- |
+| Deferred | Integrate Scientific Data Export | Reuse SHE-193's schema, validators and serializers for Parquet or Arrow, JSON and CSV; retain its machine-readable provenance and data dictionary. Do not introduce a portal-specific competing format. |
+| Deferred | Define publishable experiment records | Require stable experiment/export identity, model and rules versions, recorded seeds, scenario inputs, source references, source licenses, output license and measured/synthetic classification. Keep published versions immutable; missing required metadata prevents publication. |
+| Deferred | Find and read experiments | Add a discoverable application entry point, catalog search and stable experiment/version links. Show model version, seeds, sources, license, uncertainty and limitations on each detail page. Show measured or synthetic labels on every portal page and each catalog result; identify synthetic inputs separately from measured sources. Sourced geography alone does not make modeled outcomes measured. |
+| Deferred | Download the documented version | Serve the exact export version described on the page through SHE-193's supported formats. Preserve provenance, licenses, classification and dictionary according to that contract. Missing experiments, unsupported versions and unavailable artifacts need explicit responses without substituting another run. |
+| Deferred | Verify the integrated journey | From the normal app entry point, search, open an experiment/version and download each supported format. Validate each artifact against SHE-193, open it in a notebook without cleanup, and compare identity, seeds, sources and classification with the page. Test missing metadata/artifacts, unknown IDs/versions, mixed source provenance and deterministic replay where the model supports it. Run relevant integration checks and a browser smoke test. |
+
+Material decisions still needed before implementation: the supported publication
+store and catalog index, which records are authorized for public release, and
+the license of each source and derived output. Existing saved experiments are
+not automatically public datasets. Preserve each model's state authority and
+clock, and distinguish measured observations, synthetic inputs, modeled results
+and narrative interpretation throughout the portal.
+
+Acceptance evidence for this planning slice: inspected the product design,
+existing implementation plan, server entry point, receipt implementation and
+documentation, package dependencies, and both live issue descriptions/statuses.
+No runtime behavior changed; application tests and Playwright are inapplicable.
+The portal acceptance criteria remain unverified and deferred. Next action:
+deliver SHE-193's validated export contract, then select one licensed experiment
+for the integrated portal slice. No issue status or relationship was changed.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
