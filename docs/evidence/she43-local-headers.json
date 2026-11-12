@@ -1,15 +1,15 @@
 {
   "auditVersion": 1,
   "auditToolSha256": "1c4285ba93a62229edd7f1e527718e9edb30f7c0e242dfa23d16e0a47ae3f722",
-  "observedAt": "2026-11-12T04:26:55.673Z",
+  "observedAt": "2026-11-12T04:29:48.331Z",
   "evidenceType": "local-non-production",
-  "sourceSha": "0d5a529290773d66f293e624bdbf408d07970d2a",
+  "sourceSha": "0d126fa5b619fe7b038c04db1c710da4ba6855b9",
   "runtime": {
     "bun": "1.4.2",
     "platform": "darwin",
     "arch": "arm64"
   },
-  "origin": "http://127.0.0.1:65383",
+  "origin": "http://127.0.0.1:49303",
   "stagingVerified": false,
   "inventoryScope": "Tracked source files in public-root candidates; excludes node_modules, untracked data and route-denied-file analysis.",
   "inventory": {
@@ -232,7 +232,7 @@
         "content-length": "1588"
       },
       "bodyBytes": 1588,
-      "bodySha256": "458f0f56cb727bf8f75418abeca8cffc5467be85726a641cc64e83b35a12d64f",
+      "bodySha256": "6140cbbb711b747a71cf50e096440b53f4a8b4bb54120baf6be1a0722fe9a5b9",
       "assessment": {
         "directives": [
           "no-store"
@@ -681,7 +681,7 @@
         "content-length": "399"
       },
       "bodyBytes": 399,
-      "bodySha256": "c4506cecd5463bca411f5131246b6da1b1cc60e1f2b505794f1094472137c356",
+      "bodySha256": "3e5f705514a99358ce8ec58a35b93686085e851425c9021f79318328ae588b03",
       "assessment": {
         "directives": [
           "no-store"
