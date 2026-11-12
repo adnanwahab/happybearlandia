@@ -12,9 +12,9 @@
     "world/city/contracts.js": "acc25d88cefa26c412c6f8c0a627837c6f0db8e03255063b9edb8ed7b0b7922a",
     "world/city/seed.js": "cfdf7f11804c626cb84296d574cf0135691857a0400a6f982a40d138b4fb94c7",
     "world/future-machine/contracts.js": "6d9a1dc5996e82178685e8cda49ef05691c5f37cbe75c9bc73b55b3516ce189c",
-    "world/future-machine/data/index.js": "c186e29489f5d1e07654fefad6984ee7d2802c19ecdd9cb7e03d2d3ecca681ab",
+    "world/future-machine/data/index.js": "bf3d550509c76c7fe78793488a39fb3b5546919a292620618fc7c1d37c5f08b1",
     "world/future-machine/diff/core.js": "a953f8775e637a49301130d958e947d25017cb0a14b2e58fd79fdbff95d4d321",
-    "world/future-machine/story/index.js": "08a4b02a1d064fcbd23511f954debacffb2b95d8fc9887bdb8661567a619df71",
+    "world/future-machine/story/index.js": "314d72f8b06058d74e8d165c42fa2af652486e23066799a1b25e9a962e22b234",
     "world/future-machine/evidence.js": "a90e1af0e204b46522a745ad7c9b01d4f6a30defc75c3ebaeb107edf52dc1d49"
   },
   "runs": [

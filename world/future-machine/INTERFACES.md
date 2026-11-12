@@ -106,3 +106,78 @@ reference if consent is already active. Missing records follow existing labeled
 recipe recomputation. Clear removes only the local reference, disables further
 writes, and leaves the displayed comparison and server records available.
 Storage errors are announced; failed removal does not falsely claim success.
+
+### SHE-157 cross-scale shot
+
+The director emits `onShot({month,entity,scale})` at the first physical divergence:
+`neighborhood` at reveal and `building` three presentation seconds later. Both
+use the held exact monthly frame; skipped holds do not emit shots at a later month.
+`focus(entity,{animate,scale})` frames the same exact entity with wider schematic
+context or a building close-up; both arms share the camera. Neighborhood framing
+is presentation context, not geographic evidence. Canvas uses immediate shared
+orthographic framing; reduced-motion native rendering also moves immediately.
+The Automatic camera checkbox suppresses demo camera reset and both shots and
+cancels an active transition. Evidence inspection still runs when it is disabled.
+No shader/effect changes or new simulation state are introduced.
+
+`stage.setQuality('standard'|'power-saving')` selects a session-local rendering resolution cap (Standard: existing 1.5 GPU / 2 Canvas DPR cap; Power saving: 0.75). The native Rendering quality selector is always above the scene, including Canvas fallback. `getStats()` reports `quality` and `pixelRatio`. The Canvas adapter's `setPixelRatio(number)` resizes only its backing buffer and preserves camera and inventory. Presets do not touch simulation timing, histories, receipts, recipe or shared URLs; actual energy savings depend on the device and are not measured.
+
+## Optional first-play diagnostics (SHE-103)
+
+`diagnostics.js` owns the release constant `APP_VERSION` and the strict
+`hbl.first-play-diagnostic.v1` allowlist. Update that constant when shipping a
+new app revision. Bundle fields are schemaVersion, appVersion, renderer,
+errorType and traceId only. Renderer is a measured backend enum (unknown at
+boot); error type is a call-site category, never an exception name or message.
+Trace IDs are random local 128-bit IDs and have no server correlation contract.
+No URLs, stack traces, recipes, input, timestamps, device strings or remote
+collection. Preview is read-only; checkbox consent gates clipboard writes and
+resets on each failure/retry. Clipboard denial selects the report for manual
+copy. Entry points cover boot import/initialization, comparison and invalid
+share failures. Module download failure before diagnostics loads still requires
+browser refresh; successful renderer fallback is not an application failure.
+
+## Snapshot integrity extension (SHE-86)
+
+Persisted adapter snapshots additionally carry `identity: {experimentId,
+scenarioId,runIndex,runId}` verified against the City replay response. The run ID
+is `${scenarioId}-${runIndex}`, scoped to `experimentId`; Future Machine uses
+baseline/plan index 0. Month 0 states are identical with distinct arm identities.
+Persisted histories require all 121 snapshots in order with matching state
+month/seed/model and exact arm identities before rendering. The stage validates
+history at construction and frame identity/clock compatibility at update. Missing
+unpersisted diff inputs remain unavailable. Replay responses without the identity
+envelope are rejected, so frontend/backend releases must be coordinated.
+
+Canonical receipt v1 retains its existing simulation snapshot digest semantics:
+the new top-level transport identity is validated by the full history integrity
+check, then excluded from selected/terminal hashes. The receipt's experiment,
+scenario, seed/model and saved-outcome verification remain strict. This preserves
+previously exported City 1.1 receipts without excluding any recorded simulation
+data or changing the receipt version.
+
+## SHE-98 permalink preview extension
+
+`createShareURL` accepts optional `landing:{version:1,mode,ghosts,camera}`;
+`parseShareURL` returns it when supplied. The bounded JSON `landing` query key
+rejects duplicates, unknown fields, unsupported versions and nonfinite/out-of-range
+camera values. Existing links remain supported. Camera is null (unavailable),
+Canvas `{x,z,zoom}`, or perspective `{position:[x,y,z],target:[x,y,z]}`.
+`stage.setCamera(camera)` restores a compatible representation after `whenReady()`;
+false means unsupported renderer, which the coordinator visibly discloses.
+
+Preview comparison link pauses presentation and opens a focused preview of a detached
+URL/context from the displayed history, excluding pending recipe edits. UI state
+`sharePreview:{url,context}` and callback `onCopyShare()` expose a separate explicit
+copy action. Subsequent exploration retains that exact preview until Preview comparison link is
+clicked again; starting another run clears it. Opening a link restores view,
+ghosts and camera after scene readiness and lands paused. Camera compatibility
+across Canvas and perspective renderers is not asserted.
+
+Direct Copy comparison link and optional native Share comparison remain available.
+Preview uses onPreviewShare and its explicit copy shares the settled-result telemetry
+and clipboard failure handling. Camera bookmarks retain their full local pose; v1
+permalinks deliberately serialize only perspective position/target. Shared camera
+restoration waits for graphics and yields to intervening manual input. Pausing or
+taking over freezes any active camera shot; actual camera gestures take manual
+control, while programmatic focus/restoration never trigger takeover.

@@ -201,3 +201,9 @@ Verification: `bun test --timeout 15000 test/policy-comparison.test.js` covers
 all matched seeds, actual funded completion, independent monthly replay,
 immutable inputs and API persistence/query/replay. The focused browser journey
 is in `test/e2e/city-systems.e2e.js`.
+
+Replay responses include an additive `identity` envelope with `experimentId`,
+`scenarioId`, `runIndex` and `runId` (`scenarioId-runIndex`, scoped to experiment).
+It identifies the validated replay request; Future Machine rejects missing or
+mismatched identity before using response states. This does not authenticate
+response contents or change stored records/model rules.

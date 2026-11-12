@@ -6,22 +6,31 @@ function clone(value) { return value == null ? value : JSON.parse(JSON.stringify
 
 export class RunJobManager {
   constructor(options = {}) {
+    for (const [name, fallback, min] of [["maxRunning", 2, 1], ["maxQueued", 8, 0]]) {
+      const value = options[name] ?? fallback;
+      if (!Number.isSafeInteger(value) || value < min) throw new Error(`Invalid ${name}`);
+      this[name] = value;
+    }
+    this.running = 0;
+    this.queue = [];
+    this.counters = { submitted: 0, queued: 0, completed: 0, failed: 0, rejected: 0, deduplicated: 0 };
     this.jobs = new Map();
     this.cache = options.cache || new Map();
     this.listeners = new Map();
-    this.active = 0;
-    this.pending = [];
-    this.rejected = 0;
   }
 
   createJob({ experiment, worldBatch, adapter, chunkSize = 250, concurrency = 16 }) {
     if (!experiment || !worldBatch?.worlds || !adapter) throw new Error("Run job requires experiment, worldBatch, and adapter");
     const identity = { experimentId: experiment.id, plan: experiment.plan, model: experiment.model, seed: worldBatch.seed, worldIds: worldBatch.worlds.map((row) => row.id), adapter: adapter.id };
     const id = `run_${fingerprint(identity)}`;
-    if (this.jobs.has(id)) return this.jobs.get(id).public;
-    if (this.active >= 2 && this.pending.length >= 8) {
-      this.rejected++;
-      const error = new Error("Simulation capacity reached; retry after a running job finishes");
+    this.counters.submitted += 1;
+    if (this.jobs.has(id)) {
+      this.counters.deduplicated += 1;
+      return this.jobs.get(id).public;
+    }
+    if (this.running >= this.maxRunning && this.queue.length >= this.maxQueued) {
+      this.counters.rejected += 1;
+      const error = new Error("Simulation capacity reached; run queue is full; retry later");
       error.status = 429;
       throw error;
     }
@@ -45,24 +54,49 @@ export class RunJobManager {
     internal.public = this.snapshot(internal);
     this.jobs.set(id, internal);
     internal.promise = new Promise((resolve, reject) => {
-      this.pending.push({ job: internal, input: { experiment, worldBatch, adapter }, resolve, reject });
+      internal.resolve = resolve;
+      internal.reject = reject;
     });
-    // Jobs can fail before a caller polls/waits; retain the rejection for wait().
+    // Jobs can fail before a polling client calls wait(). Keep the rejection observed.
     internal.promise.catch(() => {});
-    this.#drain();
+    const entry = { job: internal, input: { experiment, worldBatch, adapter } };
+    if (this.running < this.maxRunning) this.#start(entry);
+    else {
+      this.queue.push(entry);
+      this.counters.queued += 1;
+    }
     return internal.public;
   }
 
   budget() {
-    return { active: this.active, queued: this.pending.length, rejected: this.rejected, maxActive: 2, maxQueued: 8, maxConcurrencyPerJob: 8 };
+    return { active: this.running, queued: this.queue.length, rejected: this.counters.rejected, maxActive: this.maxRunning, maxQueued: this.maxQueued, maxConcurrencyPerJob: 8 };
   }
 
-  #drain() {
-    while (this.active < 2 && this.pending.length) {
-      const { job, input, resolve, reject } = this.pending.shift();
-      this.active++;
-      this.#run(job, input).then(resolve, reject).finally(() => { this.active--; this.#drain(); });
-    }
+  metrics() {
+    return {
+      schemaVersion: "hbl-run-queue-metrics.v1",
+      ...this.counters,
+      running: this.running,
+      queueDepth: this.queue.length,
+      maxRunning: this.maxRunning,
+      maxQueued: this.maxQueued,
+    };
+  }
+
+  #start({ job, input }) {
+    this.running += 1;
+    this.#run(job, input).then(
+      () => this.#finish(job, false),
+      (error) => this.#finish(job, true, error),
+    );
+  }
+
+  #finish(job, failed, error) {
+    this.running -= 1;
+    this.counters[failed ? "failed" : "completed"] += 1;
+    if (this.queue.length) this.#start(this.queue.shift());
+    if (failed) job.reject(error);
+    else job.resolve();
   }
 
   async #run(job, { experiment, worldBatch, adapter }) {
@@ -145,7 +179,10 @@ export class RunJobManager {
   }
   #emit(job) {
     job.public = this.snapshot(job);
-    for (const fn of this.listeners.get(job.id) || []) fn(job.public);
+    for (const fn of this.listeners.get(job.id) || []) {
+      // Observers must not change execution outcomes or stall queue draining.
+      try { fn(job.public); } catch {}
+    }
   }
 }
 
@@ -156,13 +193,16 @@ export function createRunApiHandler(manager, resolveRunInput) {
     const parts = url.pathname.split("/").filter(Boolean);
     if (parts[0] !== "api" || parts[1] !== "runs") return null;
     const id = parts[2] || null;
+    if (id === "metrics" && parts.length === 3 && request.method === "GET") {
+      return Response.json(manager.metrics(), { headers: { "cache-control": "no-store" } });
+    }
     if (!id && request.method === "POST") {
       const body = await request.json();
       const input = await resolveRunInput(body);
       try {
         return Response.json(manager.createJob(input), { status: 202 });
       } catch (error) {
-        if (error.status !== 429) throw error;
+        if (error?.status !== 429) throw error;
         return Response.json({ error: error.message, budget: manager.budget() }, { status: 429, headers: { "retry-after": "1", "cache-control": "no-store" } });
       }
     }

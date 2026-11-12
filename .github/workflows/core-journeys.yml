@@ -102,8 +102,15 @@ jobs:
           test/future-machine-share.test.js
           test/future-machine-diff.test.js
           test/example-receipts.test.js
+      - name: Verify safe WebGPU and storm fallback contracts
+        run: >
+          bun test test/storm-execution.test.js test/storm-physics.test.js
+          test/storm-scenario.test.js test/storm-impacts.test.js
+          test/storm-recovery.test.js test/storm-treaty.test.js
       - name: Install browser engines for canonical journeys
         run: bunx playwright install --with-deps chromium firefox webkit
+      - name: Verify visible GPU, worker, and Canvas2D fallbacks
+        run: bun --bun x playwright test --config test/webgpu-limits.browser.config.mjs
       - name: Universe shell, sprint experiences, and saved future journey
         run: bunx playwright test --config test/release-browser.config.js
       - name: Flagship canonical journey across Chromium, Firefox and WebKit

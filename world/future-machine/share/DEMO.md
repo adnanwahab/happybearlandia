@@ -52,3 +52,10 @@ for actual-run download, repeat-image equality, no-change and UI screenshot
 evidence. This session could not start the local server or Chromium; see the
 SHE-47 implementation-plan entry for exact blockers. Visual acceptance remains
 pending; numeric and identity acceptance passed the focused Bun tests.
+
+SHE-98: Preview comparison link previews the displayed recipe, seed, saved identity,
+month and landing context before Copy previewed link writes to the clipboard.
+Pending next-run edits are excluded. The optional versioned `landing` parameter
+restores view/ghosts and a compatible renderer camera; old links still work.
+Run `bunx playwright test --config test/future-machine-permalink.browser.config.mjs`
+for the fresh-page integration check with isolated temporary storage.

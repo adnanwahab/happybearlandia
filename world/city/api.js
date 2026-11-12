@@ -89,7 +89,7 @@ export function createCityApi({root,store:providedStore}={}) {
           const result=await workerCall('./run.worker.js',{initial,seed:(initial.seed+runIndex)>>>0,months:record.manifest.months,replay:true},60000,{signal:request.signal});
           const verification=compareSavedOutcome(db.savedOutcome(id,`${scenarioId}-${runIndex}`),result.metrics);
           if(verification.status!=='matched')return json({error:verification.status==='mismatch'?'Saved replay outcome mismatch':'Saved replay outcome verification unavailable',verification,migrations:record.migrations},409);
-          return json({...result,verification,migrations:record.migrations});
+          return json({...result,verification,migrations:record.migrations,identity:{experimentId:id,scenarioId,runIndex,runId:`${scenarioId}-${runIndex}`}});
         }finally{active.delete(token);}
       }
       if(action==='export') {

@@ -2,6 +2,7 @@ import {mountControlReadiness} from '../../onboarding/first-run-repairs.js';
 
 import {PLAYABLE_RECIPES} from '../recipes.js';
 import {createShareURL} from '../share/index.js';
+import {provenancePresentation, MONTHLY_CITY_PROVENANCE} from './provenance.js';
 import {DEFAULT_RECIPE} from '../contracts.js';
 import {policyChoices, policyId} from './policies.js';
 import {calendarLabel, clampMonth, metricPresentation, metricSemantics, householdObservation, householdSummary, comparisonMetric, firstConstructionLabel} from './model.js';
@@ -25,6 +26,20 @@ export function mountFutureMachineUI(root, options = {}) {
   const header=node('header',undefined,'fm-header');
   const title=node('div'); title.append(node('p','10 YEARS · 2 FUTURES · 1 DECISION','fm-eyebrow'),node('h1','One City, Two Futures'),node('p','One shared beginning. One housing plan. Explore ten modeled years.','fm-subtitle'));
   header.append(title); shell.append(header);
+  const explanation=node('details',undefined,'fm-explanation');
+  explanation.append(node('summary','How this simulation works'));
+  const sourceBase='https://github.com/adnanwahab/happybearlandia/blob/f17af6f734badd0125fa32dde2f62509e0f46f4e/';
+  for(const [heading,text,path,label] of [
+    ['A synthetic city, not a forecast','Riverside is an invented city with no real geographic coordinates. Two futures start from the same city and run for 120 modeled months. The calendar is illustrative. Results are uncalibrated model outcomes, not predictions of real rents, residents or policy effects.','world/future-machine/data/README.md','City setup and data sources'],
+    ['What the model assumes','The monthly City model uses rules for housing, households, jobs, transport, utilities, construction and budgets. This demo assumes no private parcel capacity, utility capacity 200 per district and network, and zero annual growth. The default plan requests 24 homes for 1,000,000 modeled USD; these are scenario inputs, not real construction estimates.','world/future-machine/contracts.js','Default scenario inputs'],
+    ['What the numbers leave out','Rules are coarse substitutes for real behavior, including district service coverage and aggregate business demand. Mean unit rent covers the whole housing stock, so adding differently priced homes can change the average without changing an existing tenant’s rent. Link travel time is not a resident’s commute. Missing measurements remain unavailable. A difference between futures is conditional on these rules and assumptions.','world/city/README.md','Model rules and limitations'],
+    ['Seeds and fair comparisons','A seed fixes the model’s random choices. Both futures use the same starting city and seed, with the selected plan applied to one arm. Repeating a recipe requires the same model version and inputs. One paired run does not measure the range of possible outcomes or establish a real-world causal effect. The provenance line shows the displayed run; changing “Seed for next run” takes effect after Fork City.','world/future-machine/data/README.md','Matched runs and replay contract'],
+    ['Replay and evidence','Comparison links include the versioned recipe, saved experiment ID and selected month. Detailed monthly states are recomputed from the saved manifest, not independently verified stored checkpoints. Ordinary comparison links explicitly rerun a missing saved record from its recipe; imported receipts and shared questions require the exact saved run and fail if unavailable. Incompatible versions fail rather than silently upgrade. WHY and Export evidence expose recorded events and inputs; this adapter has no causal trace records, so explanations do not prove causation.','docs/future-machine-storage.md','Storage and replay limits'],
+  ]) {
+    const section=node('section');const link=node('a',label);link.href=sourceBase+path;link.target='_blank';link.rel='noopener noreferrer';link.append(node('span',' (source, opens in new tab)'));
+    section.append(node('h2',heading),node('p',text),link);explanation.append(section);
+  }
+  shell.append(explanation);
   const form=node('form',undefined,'fm-setup');
   const city=node('select'), policy=node('select');
   const policyNote=node('p',undefined,'fm-policy-note');
@@ -46,13 +61,14 @@ export function mountFutureMachineUI(root, options = {}) {
   const changed=button('Show Me What Changed',()=>action(options.onShowChanges)); changed.className='fm-primary';
   const ticks=node('div',undefined,'fm-ticks'); for(const year of ['2026','2031','2036'])ticks.append(node('span',year));
   const transport=node('div',undefined,'fm-actions'); transport.append(play,blink,changed);
-  timeline.append(date,slider,ticks,transport); shell.append(timeline);
+  timeline.append(date,slider,ticks,transport,node('p','Focus the city canvas: Page Up advances one year; Page Down retreats one year; D jumps to the first recorded divergence (including policy or nonphysical changes). Years stop at Months 0 and 120.','fm-detail')); shell.append(timeline);
   const cards=node('section',undefined,'fm-metrics'); cards.setAttribute('aria-label','Measured outcomes');cards.dataset.testid='future-machine-metrics';
   const metricNodes={};
   for(const [key,label] of [['homes','Homes'],['rent','Mean unit rent'],['spending','City spending']]) {
-    const card=node('article',undefined,'fm-card'), delta=node('strong'), values=node('p'), detail=node('p',undefined,'fm-detail');
+    const card=node('article',undefined,'fm-card'), delta=node('strong'), values=node('p'), detail=node('p',undefined,'fm-detail'), badge=node('button',undefined,'fm-provenance-badge'); badge.type='button';
+    const sourceDetail=node('p',undefined,'fm-detail');sourceDetail.hidden=true;badge.setAttribute('aria-expanded','false');listen(badge,'click',()=>{sourceDetail.hidden=!sourceDetail.hidden;badge.setAttribute('aria-expanded',String(!sourceDetail.hidden));});
     const why=button(`WHY · ${label}`,()=>action(options.onMetric,key)); why.className='fm-metric-why'; why.disabled=true;
-    card.append(node('h2',label),delta,values,detail,why); cards.append(card); metricNodes[key]={card,delta,values,detail,why};
+    card.append(node('h2',label),delta,values,badge,sourceDetail,detail,why); cards.append(card); metricNodes[key]={card,delta,values,badge,sourceDetail,detail,why};
   }
   shell.append(cards,node('p','Differences are WITH PLAN − WITHOUT PLAN at the selected month. Capital spending is cumulative cost, not a welfare gain; homes count recorded housing units. One paired synthetic run uses a shared seed, not an uncertainty interval. Uncalibrated assumptions and seed variation can change results; these values are not an empirical forecast.','fm-detail fm-metric-limits'));
   const inspectors=node('section',undefined,'fm-inspectors');
@@ -115,7 +131,7 @@ export function mountFutureMachineUI(root, options = {}) {
     if(!state.ready || state.busy)pause();
     else if(options.externalPlayback){play.textContent=state.playing?'Pause timelapse':'Play timelapse';play.setAttribute('aria-pressed',String(!!state.playing));}
     provenance.textContent=state.spatialLabel || 'No spatial data loaded. Unlocated changes remain in the inspector.';
-    for(const key of Object.keys(metricNodes)){const item=metricPresentation(state.metrics?.[key]); const elements=metricNodes[key];elements.delta.textContent=item.delta;elements.values.replaceChildren(node('span',`WITHOUT PLAN  ${item.baseline}`,'fm-value-baseline'),node('span',`WITH PLAN  ${item.intervention}`,'fm-value-plan'));const semantics=metricSemantics(key,state.metrics?.[key]);elements.card.dataset.tone=semantics.tone;elements.detail.textContent=key==='rent' && semantics.tone==='neutral' && item.delta!=='Unavailable' ? `${semantics.label}.` : `${semantics.label}. ${item.detail}`;elements.why.disabled=!state.ready || state.busy || !options.onMetric || item.delta==='Unavailable';}
+    for(const key of Object.keys(metricNodes)){const item=metricPresentation(state.metrics?.[key]); const elements=metricNodes[key];const provenance=provenancePresentation(state.metrics?.[key]?.provenance);elements.sourceDetail.textContent=provenance.description;elements.badge.textContent=provenance.label;elements.badge.title=provenance.description;elements.badge.setAttribute('aria-label',provenance.description);elements.badge.dataset.category=provenance.category;elements.card.title=provenance.description;elements.delta.textContent=item.delta;elements.values.replaceChildren(node('span',`WITHOUT PLAN  ${item.baseline}`,'fm-value-baseline'),node('span',`WITH PLAN  ${item.intervention}`,'fm-value-plan'));const semantics=metricSemantics(key,state.metrics?.[key]);elements.card.dataset.tone=semantics.tone;elements.detail.textContent=key==='rent' && semantics.tone==='neutral' && item.delta!=='Unavailable' ? `${semantics.label}.` : `${semantics.label}. ${item.detail}`;elements.why.disabled=!state.ready || state.busy || !options.onMetric || item.delta==='Unavailable';}
     if(patch.households && JSON.stringify(patch.households)!==JSON.stringify(old.households)){fill(household,state.households,state.householdId ?? household.value);renderHousehold();}
     household.disabled=!state.households.length;
     if('householdId' in patch){household.value=state.householdId;renderHousehold();}
@@ -176,6 +192,18 @@ export function createUI(container, callbacks = {}) {
     return true;
   }
   seedInput.oninput=configureSeed;
+  const reset=doc.createElement('button');reset.type='button';reset.textContent='Reset to original';reset.dataset.testid='future-machine-reset';
+  reset.title='Restore the original seed and policy. Keep displayed results; Fork City reruns on demand.';
+  reset.onclick=()=>{
+    if(reset.disabled)return;
+    recipe=structuredClone(current.originalRecipe || DEFAULT_RECIPE);configurationDirty=false;
+    syncAmount();
+    seedInput.value=String(recipe.seed);seedInput.setCustomValidity('');seedInput.setAttribute('aria-invalid','false');seedError.hidden=true;
+    callbacks.onReset?.();
+    update({});
+  };
+  shell.querySelector('.fm-setup').append(reset);
+
 
   const amountLabel=doc.createElement('label');amountLabel.className='fm-seed-label';amountLabel.textContent='Proposed homes for next run';
   const amountInput=doc.createElement('input');amountInput.type='number';amountInput.min='1';amountInput.max='120';amountInput.step='1';amountInput.required=true;amountInput.value=String(recipe.intervention.amount);amountInput.setAttribute('aria-label','Proposed homes for next run');
@@ -198,10 +226,11 @@ export function createUI(container, callbacks = {}) {
   const demo=doc.createElement('button');demo.type='button';demo.className='fm-primary fm-demo-play';demo.textContent='Play Demo';demo.dataset.testid='future-machine-demo';demo.onclick=()=>callbacks.onDemo?.();
   const demoPause=doc.createElement('button');demoPause.type='button';demoPause.textContent='Pause demo';demoPause.onclick=()=>callbacks.onDemoPause?.();demoPause.hidden=true;
   const demoCaption=doc.createElement('p');demoCaption.className='fm-demo-caption';demoCaption.setAttribute('role','status');demoCaption.textContent='A guided 45–60 second comparison. Pause anytime to explore.';
+  const cameraLabel=doc.createElement('label');const autoCamera=doc.createElement('input');autoCamera.type='checkbox';autoCamera.checked=true;autoCamera.onchange=()=>callbacks.onAutoCamera?.(autoCamera.checked);cameraLabel.append(autoCamera,doc.createTextNode(' Automatic camera'));
   const demoSkip=doc.createElement('button');demoSkip.type='button';demoSkip.textContent='Skip demo';demoSkip.hidden=true;demoSkip.onclick=()=>callbacks.onDemoSkip?.();
   const demoSeconds=doc.createElement('span');demoSeconds.className='fm-demo-seconds';
   const demoManual=doc.createElement('button');demoManual.type='button';demoManual.textContent='Take manual control';demoManual.onclick=()=>callbacks.onDemoManual?.();demoManual.hidden=true;
-  demoPanel.append(demo,demoPause,demoSkip,demoManual,demoCaption,demoSeconds);shell.querySelector('.fm-header').after(demoPanel);
+  demoPanel.append(demo,demoPause,demoSkip,demoManual,cameraLabel,demoCaption,demoSeconds);shell.querySelector('.fm-header').after(demoPanel);
   const recentPanel=doc.createElement('section');recentPanel.className='fm-demo';recentPanel.setAttribute('aria-label','Local continuation');
   const remember=doc.createElement('button');remember.type='button';remember.textContent='Remember this comparison';remember.onclick=()=>callbacks.onRemember?.();
   const clear=doc.createElement('button');clear.type='button';clear.textContent='Clear saved comparison';clear.onclick=()=>callbacks.onClearRecent?.();
@@ -227,9 +256,17 @@ export function createUI(container, callbacks = {}) {
   const firstConstruction=doc.createElement('aside');firstConstruction.className='fm-first-construction';firstConstruction.hidden=true;firstConstruction.setAttribute('aria-label','First recorded construction');
   const constructionText=doc.createElement('strong');const constructionWhy=doc.createElement('button');constructionWhy.type='button';constructionWhy.textContent='Inspect WHY';constructionWhy.onclick=()=>callbacks.onFirstConstruction?.();
   firstConstruction.append(constructionText,constructionWhy);view.stage.before(firstConstruction);
+  const previewOpen=doc.createElement('button');previewOpen.type='button';previewOpen.textContent='Preview comparison link';previewOpen.onclick=()=>callbacks.onPreviewShare?.();shell.querySelector('footer').append(previewOpen);
+  const preview=doc.createElement('section');preview.hidden=true;preview.setAttribute('aria-label','Comparison permalink preview');
+  const previewTitle=doc.createElement('h2');previewTitle.textContent='Comparison permalink preview';previewTitle.tabIndex=-1;
+  const previewText=doc.createElement('pre');previewText.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere';
+  const previewLink=doc.createElement('a');previewLink.textContent='Open previewed comparison';
+  const copyShare=doc.createElement('button');copyShare.type='button';copyShare.textContent='Copy previewed link';copyShare.onclick=()=>callbacks.onCopyShare?.();
+  preview.append(previewTitle,previewText,previewLink,copyShare);shell.append(preview);
   const noPhysical=doc.createElement('p');noPhysical.className='fm-detail';shell.querySelector('.fm-metrics').after(noPhysical);
   function update(patch={}) {
     const previousExperiment=current.experimentId ?? current.provenance?.experimentId;
+    const previousPreview=current.sharePreview;
     current={...current,...patch,...(patch.demo?{demo:{...current.demo,...patch.demo}}:{}),...(patch.provenance?{provenance:{...current.provenance,...patch.provenance}}:{})};
     if(patch.recipe){
       const incomingExperiment=current.experimentId ?? current.provenance?.experimentId;
@@ -241,6 +278,8 @@ export function createUI(container, callbacks = {}) {
     }
     retry.hidden=current.status!=='error' || !callbacks.onRetry || current.canRetry===false;
     const busy=['loading','running','queued'].includes(current.status);seedInput.disabled=busy;amountInput.disabled=busy || recipe.intervention?.type!=='housing';
+    autoCamera.checked=current.autoCamera!==false;
+    reset.disabled=busy || !callbacks.onReset;
     const demoState=current.demo || {};
     const demoActive=['playing','running','paused','preparing','loading'].includes(demoState.status);
     demo.disabled=!callbacks.onDemo;demo.textContent=demoActive?'Restart Demo':demoState.status==='complete'?'Replay Demo':'Play Demo';demoSkip.hidden=!demoActive;demoSkip.disabled=busy || demoState.status==='preparing' || !callbacks.onDemoSkip;
@@ -266,7 +305,7 @@ export function createUI(container, callbacks = {}) {
     const metrics={};
     for(const [key,source] of [['homes','housingUnits'],['rent','meanRent'],['spending','capitalSpending']]){
       const metric=current.diff?.metrics?.[source];
-      metrics[key]=metric?{...comparisonMetric(metric),note:key==='rent'?'All recorded units, including new inventory; not incumbent rent savings.':key==='spending'?'Cumulative capital spending in USD; cost is not a welfare gain.':undefined}:null;
+      metrics[key]=metric?{provenance:MONTHLY_CITY_PROVENANCE,...comparisonMetric(metric),note:key==='rent'?'All recorded units, including new inventory; not incumbent rent savings.':key==='spending'?'Cumulative capital spending in USD; cost is not a welfare gain.':undefined}:null;
     }
     const a=current.frame?.baseline?.state?.households||[],b=current.frame?.plan?.state?.households||[];
     const ids=[...new Set([...a,...b].map(row=>row.id))].sort();
@@ -290,8 +329,17 @@ export function createUI(container, callbacks = {}) {
     browserShare.disabled=!ready || !!current.shareBusy;
     shell.querySelector('footer button').disabled=!ready || !!current.shareBusy || !callbacks.onShare;
     copyLabel.hidden=true;copyURL.value='';
+    previewOpen.disabled=!ready||!!current.shareBusy||!callbacks.onPreviewShare;
+    preview.hidden=!current.sharePreview;
+    if(current.sharePreview){
+      const {context,url}=current.sharePreview;
+      previewText.textContent=`Synthetic monthly City scenario · baseline vs plan\nSeed ${context.recipe.seed} · Month ${context.month}\nSaved experiment: ${context.experimentId??'none'}\nInputs: ${JSON.stringify(context.recipe,null,2)}\nLanding: ${JSON.stringify(context.landing,null,2)}\nOpens paused in Future Machine. Ordinary missing records recompute the pinned recipe; receipt-backed questions require the exact saved run; this is not verified checkpoint recovery. Camera restoration requires a compatible renderer.`;
+      let validURL=false;try{const parsed=new URL(url,doc.baseURI);if(['http:','https:'].includes(parsed.protocol)){previewLink.href=parsed.href;validURL=true;}}catch{}
+      previewLink.hidden=!validURL;if(!validURL)previewLink.removeAttribute('href');copyShare.disabled=!validURL||!ready||!!current.shareBusy||!callbacks.onCopyShare;
+      if(current.sharePreview!==previousPreview)previewTitle.focus();
+    }
     shareLink.hidden=!current.shareURL;
     if(current.shareURL){try{const url=new URL(current.shareURL,doc.baseURI);if(['http:','https:'].includes(url.protocol)){shareLink.href=url.href;copyURL.value=url.href;copyLabel.hidden=false;}else{shareLink.removeAttribute('href');shareLink.hidden=true;}}catch{shareLink.removeAttribute('href');shareLink.hidden=true;}}
   }
-  return {stageElement:view.stage,storyElement,update,dispose(){retry.onclick=null;constructionWhy.onclick=null;remember.onclick=null;clear.onclick=null;amountInput.oninput=null;browserShare.onclick=null;copyURL.onfocus=null;seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;demoSkip.onclick=null;demoManual.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
+  return {stageElement:view.stage,storyElement,update,dispose(){copyShare.onclick=null;previewOpen.onclick=null;reset.onclick=null;autoCamera.onchange=null;retry.onclick=null;constructionWhy.onclick=null;remember.onclick=null;clear.onclick=null;amountInput.oninput=null;browserShare.onclick=null;copyURL.onfocus=null;seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;demoSkip.onclick=null;demoManual.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
 }

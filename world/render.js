@@ -1,4 +1,5 @@
-import {mountPlaybackFacts,withMetadataDeadline,mountControlReadiness} from './onboarding/first-run-repairs.js';
+import {modelDefinitions} from './model-provenance-loader.js';
+import {mountPlaybackFacts,mountControlReadiness} from './onboarding/first-run-repairs.js';
 import {createQuickDemoController} from './onboarding/quick-demo-controller.js';
 import {mountFirstRunGuide} from './first-run-guide.js';
 import {createFeedbackAdapter,stormFeedback} from './onboarding/feedback-adapter.js';
@@ -114,9 +115,7 @@ const startup = window.hblWorldStartup = { startedAt:performance.now(), firstFra
 const startupAbort = new AbortController();
 // Read model definitions before graphics initialization; a GPU failure must not
 // leave this separate disclosure claiming to load simulation evidence forever.
-window.hblSimulationModel={status:'loading',authority:'legacy daily parameter definitions (separate simulation authority)'};
-const metadataDefinitions=withMetadataDeadline(Promise.all([import('./simulation-parameters.js'),import('./simulation-observations.js')]));
-void metadataDefinitions.then(()=>{window.hblSimulationModel={status:'definitions-ready',authority:'legacy daily parameter definitions (separate simulation authority)',configuredParameters:null};const panel=$('simulationModelMetadata');if(panel)panel.textContent='Model definitions loaded. Runtime parameter values become available when the scene is ready.';}).catch(error=>{window.hblSimulationModel={status:'unavailable',error:error.message};const panel=$('simulationModelMetadata');if(panel)panel.textContent=`Model metadata unavailable: ${error.message}`;});
+const metadataDefinitions=modelDefinitions;
 
 let policyPending=false;
 const startupDisabled=new Map([...document.querySelectorAll('#stormBtn,#runExperimentBtn,#runCycleBtn,#demoBtn,#policy')].map(node=>[node,node.disabled]));
@@ -154,9 +153,9 @@ try {
     if(!useMainWorldGPU||!canUseWebGL())throw error;
     graphics=await boundedGraphics(()=>createCityRenderer({forceWebGL:true,antialias:!embedMode}),4000);
     const loading=$('loading');loading.replaceChildren();loading.removeAttribute('role');loading.textContent='Starting World with WebGL2…';
-    startup.graphicsFallback='WebGPU unavailable; using WebGL2';
+    startup.graphicsFallback=`WebGPU unavailable; using WebGL2: ${error?.message || 'adapter initialization failed'}`;
   } catch (fallbackError) {
-    try{graphics=(await import('./render/renderer/canvas-renderer.js')).createCanvasRenderer();startup.graphicsFallback='GPU unavailable; Canvas2D projected geometry';}catch(canvasError){
+    try{graphics=(await import('./render/renderer/canvas-renderer.js')).createCanvasRenderer();startup.graphicsFallback=`GPU unavailable; Canvas2D projected geometry: ${error?.message || 'graphics initialization failed'}`;}catch(canvasError){
     const loading=$('loading');loading.replaceChildren();loading.setAttribute('role','alert');
     loading.textContent='3D World could not start. Check that WebGL2 and hardware acceleration are available. ';
     const retry=document.createElement('button');retry.type='button';retry.textContent='Try again';retry.onclick=()=>location.reload();loading.append(retry);
@@ -265,6 +264,7 @@ $("source").textContent = town.source === "synthetic"
       : `No map data here, so this is a procedural town · ${town.people.length} synthetic residents · ${floodSourceTxt}`;
 $("loading").textContent=`Map ready · adding ${town.buildings.length} buildings…`;
 $("source").textContent += ` · renderer ${rendererMode.toUpperCase()}`;
+if(startup.graphicsFallback) $("source").textContent += ` · ${startup.graphicsFallback}`;
 const tileNavigation = !embedMode ? mountTileNavigation({container: $("tile-navigation"),area,town,origin,camera,controls,THREE,navigate: (next,view,bounds)=>go(next.lat,next.lng,view,bounds)}) : null;
 addEventListener("pagehide",()=>tileNavigation?.destroy(),{once:true});
 

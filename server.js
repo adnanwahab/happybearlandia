@@ -15,6 +15,9 @@ const handleReleaseExperiment = createExperimentHandler({
 
 import { createSimulationAdmission, simulationAdmissionOptionsFromEnv } from './ops/security/simulation-admission.js';
 const admitSimulation = createSimulationAdmission(simulationAdmissionOptionsFromEnv(process.env));
+
+import { createPlayerFeedbackHandler } from './ops/player-feedback/api.js';
+const handlePlayerFeedback = createPlayerFeedbackHandler();
 import { withUniverseNavigation } from './world/universe/html-navigation.js';
 import {createCausalityHandler} from './world/causality/api.js';
 import {createReleaseHealthHandler,initializeReleaseStorage} from './ops/release-health.js';
@@ -460,7 +463,7 @@ const server = serve({
 
     const admission = admitSimulation(request, server.requestIP(request)?.address);
     if (admission) return admission;
-    if (pathname === "/api/health" || pathname === "/api/ready") return handleReleaseHealth(request);
+    if (pathname === "/api/health" || pathname === "/api/ready" || pathname === "/api/demo/ready") return handleReleaseHealth(request);
     if (pathname === '/vote-on-patch' || pathname === '/vote-on-patch/') return serveFile('./world/patch-voting.html');
     if (pathname === '/api/patch-votes' || pathname.startsWith('/api/patch-votes/')) return patchVoting(request);
     if(pathname.startsWith('/api/act-normal/'))return actNormalService.fetch(request,server);
@@ -544,6 +547,7 @@ const server = serve({
     }
     if (pathname === "/api/area/enrichment") return handleAreaEnrichment(new URL(request.url));
     if (pathname === "/api/overpass-health") return handleOverpassHealth();
+    if (pathname === "/api/player-feedback") return handlePlayerFeedback(request);
     if (pathname === "/api/config") return handleConfig();
     if (under(pathname, "/api/detective")) return handleDetective(request);
     if (under(pathname, "/api/causality")) return handleCausality(request);

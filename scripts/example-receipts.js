@@ -3,7 +3,8 @@ import { DEFAULT_RECIPE } from '../world/future-machine/contracts.js';
 import { createEngine, addIntervention } from '../world/city/engine.js';
 import { initialForRecipe, normalizeReplay } from '../world/future-machine/data/index.js';
 import { stateHash } from '../world/future-machine/data/core.js';
-import { createEvidenceReport, decodeRecipe, encodeRecipe } from '../world/future-machine/share/index.js';
+import { decodeRecipe, encodeRecipe } from '../world/future-machine/share/index.js';
+import { createRunReceipt, validateRunReceipt } from '../world/future-machine/share/run-receipt.js';
 
 export const examplesDirectory = new URL('../test/fixtures/example-receipts/', import.meta.url);
 export const exampleCases = [
@@ -29,13 +30,14 @@ export async function generateExample({ recipe, month }) {
     },
   };
   if (await stateHash(initial) !== initialHash) throw new Error('Initial state mutated');
-  return createEvidenceReport(history, { month });
+  return createRunReceipt(history, { month });
 }
 
 export async function checkExamples() {
   const hashes = JSON.parse(await readFile(new URL('hashes.json', examplesDirectory), 'utf8'));
   for (const example of exampleCases) {
     const expected = await readFile(new URL(`${example.name}.json`, examplesDirectory), 'utf8');
+    await validateRunReceipt(JSON.parse(expected));
     const report = await generateExample(example);
     if (expected !== JSON.stringify(report, null, 2) + '\n' || hashes[example.name] !== await stateHash(report)) {
       throw new Error(`Example receipt mismatch: ${example.name}`);

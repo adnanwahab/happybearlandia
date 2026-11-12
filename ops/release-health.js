@@ -1,10 +1,26 @@
 import { Database } from 'bun:sqlite';
 import { accessSync, constants, existsSync, lstatSync, mkdirSync, realpathSync, statSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { DECISION_OPTIMIZATION_DIRECTORY, DEFAULT_DECISION_STORE_DIR } from '../world/decision/store.js';
 import { resolveWorldDatabasePath } from '../world/experiments/database-path.js';
 
 const probeTTL = 2000;
+// Bounded availability inventory for the homepage's Play Demo entry point.
+export const DEMO_FILES = Object.freeze({
+  demoAssets: ['index.html', 'world/future-machine.html', 'world/future-machine/main.js',
+    'world/future-machine/ui/styles.css', 'world/future-machine/demo-controller.js'],
+  scenarioFixtures: ['world/future-machine/contracts.js', 'world/future-machine/data/index.js',
+    'world/city/seed.js', 'world/city/engine.js'],
+});
+
+function probeDemoFiles(root, files) {
+  for (const file of files) {
+    const path = join(root, file);
+    if (!statSync(path).isFile() || statSync(path).size === 0) throw new Error('Demo file unavailable');
+    accessSync(path, constants.R_OK);
+  }
+}
 const worldColumns = {
   world_experiment_saves: ['id', 'parent_id', 'created_at', 'bytes', 'metadata', 'data'],
   world_experiment_write_attempts: ['at'],
@@ -156,12 +172,15 @@ function canProbe(probe) {
 
 export function createReleaseHealthHandler({
   worldDbPath, decisionDirectory, env = process.env, now = () => performance.now(),
+  demoRoot = fileURLToPath(new URL('../', import.meta.url)),
+  cityDirectory = env.HBL_CITY_DATA_DIR || '.hbl-city',
 } = {}) {
   const buildId = publicBuildId(env.HBL_BUILD_ID, env.NODE_ENV === 'production');
   let cached;
+  let demoCached;
   return request => {
     const path = new URL(request.url).pathname;
-    if (path !== '/api/health' && path !== '/api/ready') return null;
+    if (!['/api/health', '/api/ready', '/api/demo/ready'].includes(path)) return null;
     const headers = { 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' };
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       return new Response(null, { status: 405, headers: { ...headers, allow: 'GET, HEAD' } });
@@ -169,7 +188,7 @@ export function createReleaseHealthHandler({
 
     let report = { status: 'ok', buildId };
     let status = 200;
-    if (path === '/api/ready') {
+    if (path !== '/api/health') {
       const at = now();
       if (!cached || at - cached.at >= probeTTL) {
         cached = {
@@ -180,8 +199,30 @@ export function createReleaseHealthHandler({
           },
         };
       }
-      const ready = Object.values(cached.checks).every(check => check === 'ok');
-      report = { status: ready ? 'ready' : 'unavailable', buildId, checks: cached.checks };
+      let checks = cached.checks;
+      if (path === '/api/demo/ready') {
+        if (!demoCached || at - demoCached.at >= probeTTL) {
+          demoCached = { at, checks: { ...Object.fromEntries(Object.entries(DEMO_FILES).map(
+            ([name, files]) => [name, canProbe(() => probeDemoFiles(demoRoot, files))],
+          )), cityStorage: canProbe(() => {
+            // CityStore initializes lazily on first play. Inspect its existing
+            // ancestor without initializing a store or changing queued runs.
+            if (!existsSync(join(cityDirectory, 'hbl.sqlite'))) {
+              let ancestor = resolve(cityDirectory);
+              while (!existsSync(ancestor)) ancestor = dirname(ancestor);
+              directoryAvailable(ancestor);
+              return;
+            }
+            directoryAvailable(join(cityDirectory, 'experiments'));
+            readOnly(join(cityDirectory, 'hbl.sqlite'), db => {
+              db.query('SELECT experiment_id, status, manifest_json FROM experiment_index LIMIT 1').get();
+            });
+          }) } };
+        }
+        checks = { ...demoCached.checks, ...checks };
+      }
+      const ready = Object.values(checks).every(check => check === 'ok');
+      report = { status: ready ? 'ready' : 'unavailable', buildId, checks };
       if (!ready) status = 503;
     }
     if (request.method === 'HEAD') {

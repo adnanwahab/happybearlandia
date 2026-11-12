@@ -1,0 +1,22 @@
+name: Opt-in synthetic million-agent benchmark
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  benchmark:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun test test/million-benchmark.test.js test/agent-counts.test.js
+      - run: bunx playwright install --with-deps chromium
+      - run: bun scripts/benchmark-million.js million-benchmark.json 30 42
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: synthetic-million-benchmark-review-candidate
+          path: million-benchmark.json
+          if-no-files-found: warn

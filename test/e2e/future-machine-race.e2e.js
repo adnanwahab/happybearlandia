@@ -5,7 +5,7 @@ async function seek(page,month){await page.getByRole('slider').fill(String(month
 async function identity(page){return page.evaluate(async()=>{
  const h=window.futureMachine.history,s=window.futureMachine.state;
  const {stateHash}=await import('/world/future-machine/data/core.js');
- return {id:h.experimentId,recipe:h.recipe,initialHash:h.initialHash,baselineHash:await stateHash(h.baseline),commonInitial:JSON.stringify(h.baseline[0])===JSON.stringify(h.plan[0]),lengths:[h.baseline.length,h.plan.length],month:s.month,demo:s.demo?.status??'idle',homes:h.plan[120].metrics.housingUnits-h.baseline[120].metrics.housingUnits,backend:window.futureMachine.stats.scene.backend};
+ return {id:h.experimentId,recipe:h.recipe,initialHash:h.initialHash,baselineHash:await stateHash(h.baseline),commonInitial:JSON.stringify(h.baseline[0].state)===JSON.stringify(h.plan[0].state),lengths:[h.baseline.length,h.plan.length],month:s.month,demo:s.demo?.status??'idle',homes:h.plan[120].metrics.housingUnits-h.baseline[120].metrics.housingUnits,backend:window.futureMachine.stats.scene.backend};
  });}
 
 // Only latency is injected. Every held response is fetched from the actual City

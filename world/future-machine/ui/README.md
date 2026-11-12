@@ -10,6 +10,17 @@ The optional `callbacks.onCancel()` extension exposes Cancel run during loading.
 
 ## Acceptance and verification
 
+SHE-75 follow-up (2026-11-12): the adapter preserves a diff metric's missing
+status. Presentation also rejects a nonfinite B−A result even when both arm
+values are finite, keeping the card unavailable and its WHY control disabled.
+The focused diff/UI suites passed 18 tests, with one browser-gated skip.
+An explicit browser run failed before Chromium launch because `Bun.serve`
+could not bind its local port (`EADDRINUSE`); no fresh integrated screenshot
+or mobile interaction evidence was collected in this follow-up. Earlier
+browser evidence below is historical. The coordinator-owned implementation
+plan remains unchanged under this worker's file scope; the remaining handoff
+is to rerun browser acceptance in an environment that permits local listening.
+
 - `bun test test/future-machine-ui.test.js`: calendar endpoints, input bounds, zero/missing/nonfinite measurements, signed and zero deltas.
 - `HBL_FM_BROWSER=1 bun test test/future-machine-ui.test.js` runs the committed Chromium test (with installed `@playwright/test`); `HBL_PLAYWRIGHT_MODULE` can point to an existing module installation. The full run passed 5 tests / 28 assertions.
 - Chromium smoke exercised native range End to Month 120, delegated play/blink/director/share/export, Fork City, loading disablement, error announcement, unsafe share URL rejection, disposal, and 390px/1440px layouts with no horizontal overflow. This smoke used injected recorded-shape fixtures; it did not exercise the unfinished combined application or real API runs.
@@ -227,3 +238,57 @@ Closed, validated actions made while graphics are pending retain their action
 time and settled share result until a measured backend is available. Disposal
 clears deferred records. City 1.1.0 facts use explicit event v2, while legacy v1
 validation remains restricted to City 1.0.0; no historical fact is relabeled.
+
+`discovery-quest.js` mounts the optional session-local three-step quest. The
+coordinator explicitly marks successful user-requested runs; automatic replay or
+demo loading cannot start it. Manual timeline/director visits and exact-entity
+inspection consume the same monthly diffs as the scene. Native quest buttons
+visit and inspect the recorded target, and hide/show preserves progress. An
+unchanged comparison leaves discovery unavailable with an explicit explanation.
+If the visitor explores another month after visiting the target, Inspect quest
+entity explicitly returns to the recorded target month before selecting it and
+announcing that month. Completed progress never leaves an enabled no-op action.
+
+## Canvas year shortcuts
+
+With the city canvas focused, Page Up advances 12 months, Page Down retreats
+12 months (bounded to Months 0–120), and D jumps to the first available recorded
+entity difference, including policy and nonphysical changes. A comparison with
+no divergence announces that state without moving. Keys stop playback through
+the coordinator's manual selection path. Text controls, modified shortcuts,
+composition and loading are ignored. Arrow keys retain camera navigation.
+
+## SHE-88 reset
+
+`onReset()` and `originalRecipe` are additive coordinator contracts. The original
+is the page-entry shared/resumed recipe or DEFAULT_RECIPE and remains fixed across forks.
+Reset to original clears invalid seed text and restores the complete detached
+recipe, including null policy and nonvisible fields. It does not run a simulation.
+The coordinator preserves displayed history, provenance, evidence export and share
+URL until Fork City completes a replacement. Reset is disabled while busy and
+without an onReset callback. Reloading a shared comparison establishes that
+comparison's recipe as the new original.
+
+## SHE-85 provenance
+
+Each comparison card has a category badge, native category/source tooltip and
+expandable source detail (keyboard Enter/Space or touch activation). The lower-level
+view accepts optional `metric.provenance:{category,source,limitation}`. Categories
+are observed, synthetic and modeled; absent/unknown metadata stays explicitly
+unavailable. The City adapter labels engine outputs modeled with synthetic,
+uncalibrated inputs; recording a model output never makes it an empirical
+observation. The retained selected chart point title and persistent note use the same
+source description. Numeric formatting and stored records are unchanged.
+
+
+## Simulation explanation (SHE-116)
+
+The native **How this simulation works** disclosure is mounted beneath the header
+by both UI factories and remains available in idle, loading and error states.
+It covers the synthetic monthly City scope, generator assumptions, metric caveats,
+matched seeds, version constraints, share fallback and recomputed replay limits.
+Supporting links open an audited repository revision in a new tab with an explicit
+label. The panel does not compute outcomes or use pending configuration as run
+provenance. Native summary keyboard behavior and wrapping are covered by the
+opt-in Chromium test; this workspace could not execute that test because its
+local server bind was rejected (EADDRINUSE).

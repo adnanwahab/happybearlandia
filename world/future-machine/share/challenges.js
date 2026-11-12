@@ -12,6 +12,7 @@ function questionText(value) {
   return value.trim();
 }
 export async function createChallengeURL(history, {question, month}, baseURL) {
+  if (!history?.experimentId) throw new Error('Challenge requires a saved experiment.');
   const receipt = await createRunReceipt(history, {month});
   if (!receipt.evidence.experimentId) throw new Error('Challenge requires a saved experiment.');
   const url = new URL(createShareURL({recipe:history.recipe, experimentId:history.experimentId, month}, baseURL));

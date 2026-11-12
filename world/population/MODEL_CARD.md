@@ -99,3 +99,13 @@ active. They do not constitute resident independence. Controls and streamed
 observers are not production checkpoint state; regenerate from the versioned
 recipe. [E2 protocol and limitations](../../docs/research/million-agent-architectures.md)
 defines the output graph and the withheld release claim.
+
+## Population invariant diagnostics
+
+A read-only consistency audit is available through `bun scripts/audit-population-rules.js`.
+It checks authoritative full-state totals, financial membership, housing/job
+capacity, needs, travel balance, retained choices and event ordering. The
+[validation note](../../docs/population-rule-validation.md) records synthetic
+sources, configuration drift, measured evidence and unavailable validation.
+Passing these engineering checks is not empirical calibration or evidence of
+cross-model equivalence.

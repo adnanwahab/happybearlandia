@@ -126,11 +126,16 @@ export function describeSelection(frame, diff, {collection, id, arm} = {}) {
 }
 
 /** DOM uses textContent exclusively: payload strings never become markup. */
-export function renderStory(container, description, {onJump} = {}) {
+export function renderStory(container, description, {onJump, onNarrate} = {}) {
   const doc = container.ownerDocument;
   const root = doc.createElement('section');
   const listeners = [];
   function text(tag, value, parent = root) { const element = doc.createElement(tag); element.textContent = value; parent.append(element); return element; }
+  if (onNarrate) {
+    const button = text('button', 'Describe selected change');
+    button.type = 'button';
+    button.addEventListener('click', onNarrate); listeners.push([button, onNarrate]);
+  }
   text('h2', description.title || 'Show Me What Changed');
   text('p', `Narrative interpretation: ${description.summary}`);
   for (const stop of description.stops || []) {

@@ -54,3 +54,29 @@ intervention ablation or inferred policy-to-resident bridge.
 
 Checks: `bun test test/ripple-inspector.test.js test/causality-read.test.js`.
 The inspector browser suite includes the Ripple tab and visible gap disclosure.
+
+### Recorded dependency pulses
+
+On record selection the graph pulses up to eight evidence-backed, chronological,
+same-run event connections in deterministic order for three cycles. Each pulse
+exposes `data-edge-id`, `data-from-event` and `data-to-event`; cards retain exact
+entity IDs. Returned citations must all resolve. Correlations never animate.
+These describe recorded model mechanisms, not empirical causation. CSS/DOM
+provides the low-capability view without Canvas/WebGL; reduced-motion disables
+animation while retaining the complete static graph preview and inspection.
+
+### Attribution coverage
+
+Attribution coverage: Why keeps all returned inputs and warns that multiple
+inputs may provide conflicting explanations; it does not adjudicate their claims
+or rank causes. With no recorded dependency, the reader cannot distinguish an
+unsupported recording model from unretained history and states both possibilities.
+Incomplete history and missing records never establish the absence of an event
+or cause. Missing selections and 404 responses offer History/ID recovery guidance;
+transient failures retain Retry. No model support registry is implied.
+
+Messaging unit checks: `bun test test/causality-messaging.test.js`.
+
+Attribution coverage notices apply to **Why**. Ripple returns downstream edges,
+so it retains its own chain limits and gaps without interpreting omitted upstream
+attribution as missing history. Both views retain evidence-backed pulse limits.

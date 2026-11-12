@@ -33,15 +33,15 @@ test('stage inventory selects exact IDs and missing snapshots clear selection an
  const locationDescriptor=Object.getOwnPropertyDescriptor(globalThis,'location');
  Object.defineProperty(globalThis,'location',{configurable:true,value:{search:'?renderer=canvas2d'}});
  const doc={defaultView:{matchMedia:()=>({matches:false,addEventListener:(_,fn)=>motionListeners.add(fn),removeEventListener:(_,fn)=>motionListeners.delete(fn)})},createElement(tag){const node={tag,children:[],style:{},dataset:{},clientWidth:640,clientHeight:320,
-  setAttribute(){},append(...children){this.children.push(...children);},replaceChildren(...children){this.children=children;},
+  setAttribute(){},append(...children){for(const child of children){this.children.push(child);if(child&&typeof child==='object')child.parentNode=this;}},insertBefore(child,before){const index=this.children.indexOf(before);this.children.splice(index<0?this.children.length:index,0,child);child.parentNode=this;},before(...children){for(const child of children)this.parentNode.insertBefore(child,this);},replaceChildren(...children){this.children=[];this.append(...children);},
   addEventListener(){},removeEventListener(){},remove(){this.removed=true;},getContext:()=>context,ownerDocument:doc};elements.push(node);return node;}};
  const container=doc.createElement('div'), selections=[];
  let stage;
  try{
   stage=createStage(container,{onSelect:selection=>selections.push(selection)});
   await stage.whenReady();expect(stage.getStats().backend).toBe('canvas2d');
-  const s=state([building('a')]);stage.update({month:0,baseline:{state:s},plan:{state:s}},{entities:[]});
-  const button=elements.find(node=>node.tag==='button');
+  const s=state([building('a')]);stage.update({month:0,baseline:{month:0,state:s},plan:{month:0,state:s}},{entities:[]});
+  const button=elements.find(node=>node.tag==='button'&&node.textContent?.includes('schematic · unlocated'));
   expect(button.textContent).toContain('schematic · unlocated');button.onclick();
   expect(selections).toEqual([{collection:'buildings',id:'a',arm:'baseline'}]);
   expect(stage.focus({collection:'buildings',id:'a'})).toBe(true);

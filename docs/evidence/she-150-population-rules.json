@@ -1,0 +1,4238 @@
+{
+  "schemaVersion": "population-invariants.v1",
+  "generatedAt": "2026-11-12T20:40:12.920Z",
+  "machine": {
+    "platform": "darwin",
+    "release": "24.6.0",
+    "arch": "arm64",
+    "cpu": "Apple M4",
+    "logicalCPUs": 10,
+    "memoryBytes": 17179869184,
+    "runtime": "v26.3.0",
+    "bun": "1.4.2"
+  },
+  "worldContext": {
+    "buildings": [
+      {
+        "id": "synthetic-b0",
+        "center": [
+          0,
+          0
+        ],
+        "kind": "work"
+      },
+      {
+        "id": "synthetic-b1",
+        "center": [
+          180,
+          250
+        ],
+        "kind": "home"
+      },
+      {
+        "id": "synthetic-b2",
+        "center": [
+          360,
+          500
+        ],
+        "kind": "work"
+      },
+      {
+        "id": "synthetic-b3",
+        "center": [
+          540,
+          750
+        ],
+        "kind": "home"
+      },
+      {
+        "id": "synthetic-b4",
+        "center": [
+          720,
+          0
+        ],
+        "kind": "work"
+      },
+      {
+        "id": "synthetic-b5",
+        "center": [
+          900,
+          250
+        ],
+        "kind": "home"
+      },
+      {
+        "id": "synthetic-b6",
+        "center": [
+          1080,
+          500
+        ],
+        "kind": "work"
+      },
+      {
+        "id": "synthetic-b7",
+        "center": [
+          1260,
+          750
+        ],
+        "kind": "home"
+      },
+      {
+        "id": "synthetic-b8",
+        "center": [
+          1440,
+          0
+        ],
+        "kind": "work"
+      },
+      {
+        "id": "synthetic-b9",
+        "center": [
+          1620,
+          250
+        ],
+        "kind": "home"
+      },
+      {
+        "id": "synthetic-b10",
+        "center": [
+          1800,
+          500
+        ],
+        "kind": "work"
+      },
+      {
+        "id": "synthetic-b11",
+        "center": [
+          1980,
+          750
+        ],
+        "kind": "home"
+      },
+      {
+        "id": "synthetic-b12",
+        "center": [
+          2160,
+          0
+        ],
+        "kind": "work"
+      },
+      {
+        "id": "synthetic-b13",
+        "center": [
+          2340,
+          250
+        ],
+        "kind": "home"
+      },
+      {
+        "id": "synthetic-b14",
+        "center": [
+          2520,
+          500
+        ],
+        "kind": "work"
+      },
+      {
+        "id": "synthetic-b15",
+        "center": [
+          2700,
+          750
+        ],
+        "kind": "home"
+      },
+      {
+        "id": "synthetic-b16",
+        "center": [
+          2880,
+          0
+        ],
+        "kind": "work"
+      },
+      {
+        "id": "synthetic-b17",
+        "center": [
+          3060,
+          250
+        ],
+        "kind": "home"
+      },
+      {
+        "id": "synthetic-b18",
+        "center": [
+          3240,
+          500
+        ],
+        "kind": "work"
+      },
+      {
+        "id": "synthetic-b19",
+        "center": [
+          3420,
+          750
+        ],
+        "kind": "home"
+      },
+      {
+        "id": "synthetic-b20",
+        "center": [
+          3600,
+          0
+        ],
+        "kind": "work"
+      },
+      {
+        "id": "synthetic-b21",
+        "center": [
+          3780,
+          250
+        ],
+        "kind": "home"
+      },
+      {
+        "id": "synthetic-b22",
+        "center": [
+          3960,
+          500
+        ],
+        "kind": "work"
+      },
+      {
+        "id": "synthetic-b23",
+        "center": [
+          4140,
+          750
+        ],
+        "kind": "home"
+      },
+      {
+        "id": "synthetic-b24",
+        "center": [
+          4320,
+          0
+        ],
+        "kind": "work"
+      },
+      {
+        "id": "synthetic-b25",
+        "center": [
+          4500,
+          250
+        ],
+        "kind": "home"
+      },
+      {
+        "id": "synthetic-b26",
+        "center": [
+          4680,
+          500
+        ],
+        "kind": "work"
+      },
+      {
+        "id": "synthetic-b27",
+        "center": [
+          4860,
+          750
+        ],
+        "kind": "home"
+      },
+      {
+        "id": "synthetic-b28",
+        "center": [
+          5040,
+          0
+        ],
+        "kind": "work"
+      },
+      {
+        "id": "synthetic-b29",
+        "center": [
+          5220,
+          250
+        ],
+        "kind": "home"
+      }
+    ]
+  },
+  "geographySource": "synthetic grid; not observed map coordinates",
+  "window": {
+    "stepMinutes": 30,
+    "steps": 144,
+    "elapsedModelMinutes": 4320
+  },
+  "wallSeconds": 19.449077666999997,
+  "passed": true,
+  "reports": [
+    {
+      "scenario": "baseline",
+      "config": {
+        "population": 1000,
+        "seed": 42,
+        "representedPopulation": 0,
+        "householdSize": 2.5,
+        "medianIncome": 72000,
+        "incomeSpread": 0.55,
+        "employmentRate": 0.75,
+        "baseRent": 1800,
+        "rentMultiplier": 1,
+        "housingCapacityMultiplier": 1,
+        "wageMultiplier": 1,
+        "transitService": 1,
+        "roadCapacity": 800,
+        "transitCapacity": 600,
+        "carCostPerKm": 0.35,
+        "transitFare": 2.5,
+        "moveThreshold": 0.15,
+        "walkingSpeedKmh": 2.4,
+        "flexibleActivityMinutes": 45,
+        "needDecisionThreshold": 35,
+        "movingCost": 1500,
+        "burdenThreshold": 0.35,
+        "displacementThreshold": 0.6,
+        "initialBufferMonths": 3,
+        "layoffRate": 0.0005,
+        "hiringRate": 0.01,
+        "awarenessRate": 0.08,
+        "businessTax": 0.03,
+        "constructionDisruption": 0,
+        "maxLogEntries": 400,
+        "schoolStartMinute": 510,
+        "teenSchoolStartMinute": 510,
+        "schoolDayMinutes": 390,
+        "schoolRecessMinutes": 20,
+        "childScreenMinutesPerDay": 90,
+        "childSupervisionAge": 12,
+        "childIndependentWalkAge": 8,
+        "childIndependentTransitAge": 12,
+        "childcareCapacity": 200,
+        "childcareHourlyCost": 5,
+        "childcareSubsidyFraction": 0,
+        "summerCampEnabled": 1,
+        "summerCampCapacity": 100,
+        "summerCampDailyCost": 30,
+        "summerStartDay": 170,
+        "summerEndDay": 235,
+        "calendarStartEpochDay": 20759,
+        "workWeekDays": 5,
+        "employerOpenDays": 5,
+        "workShiftStartMinute": 480,
+        "workShiftMinutes": 540,
+        "workMealBreakMinutes": 30,
+        "workCommuteBufferMinutes": 30,
+        "workWeeklyPayRetention": 1,
+        "workPaidSickDays": 0,
+        "workPaidFamilyDays": 0,
+        "workPaidVacationDays": 0,
+        "workLeavePayFraction": 1,
+        "workIllnessDailyProbability": 0.01,
+        "workIllnessDurationDays": 2,
+        "workUnpaidSickAbsenceProbability": 0.25,
+        "workIllProductivityFactor": 0.65,
+        "workFamilyLeaveDailyProbability": 0.001,
+        "workFamilyLeaveDurationDays": 7,
+        "workVacationRequestProbability": 0.005,
+        "workVacationDurationDays": 3,
+        "workPredictableSchedule": 0,
+        "workScheduleNoticeDays": 14,
+        "workShiftChangeProbability": 0.15,
+        "workShiftVolatilityMinutes": 60,
+        "workDisconnect": 0,
+        "workAfterHoursMinutes": 30,
+        "workAfterHoursProbability": 0.2,
+        "workOvertimePayMultiplier": 1.5,
+        "workRemoteShare": 0,
+        "workRemoteEligibleShare": 0.6,
+        "workRemoteProductivityFactor": 1,
+        "workWeekendShare": 0,
+        "workRecruitmentCost": 500,
+        "workTurnoverDailyProbability": 0.001,
+        "workSatisfactionOvertimeWeight": 0.3,
+        "workSatisfactionUnpredictabilityWeight": 0.2,
+        "workSatisfactionUnpaidLeaveWeight": 0.4,
+        "workSatisfactionCommuteWeight": 0.1,
+        "schemaVersion": "population-config.v1",
+        "snapshotId": "illustrative-city.v1",
+        "provenance": {
+          "type": "synthetic",
+          "confidence": "low"
+        },
+        "events": [],
+        "targets": null
+      },
+      "initial": {
+        "schemaVersion": "population-invariants.v1",
+        "modelVersion": "1.3.0",
+        "seed": 2544473784,
+        "minute": 0,
+        "tick": 0,
+        "passed": true,
+        "failures": [],
+        "totals": {
+          "people": 1000,
+          "households": 400,
+          "representedPeople": 1000,
+          "employed": 577,
+          "traveling": 0
+        },
+        "distributions": {
+          "activity": {
+            "HOME": 1000,
+            "WORK": 0,
+            "SCHOOL": 0,
+            "SHOPPING": 0,
+            "ERRAND": 0,
+            "DINING": 0,
+            "RECREATION": 0,
+            "HEALTHCARE": 0,
+            "TRANSIT": 0,
+            "OTHER": 0
+          },
+          "modes": {
+            "none": 1000,
+            "walk": 0,
+            "bike": 0,
+            "car": 0,
+            "bus": 0,
+            "rail": 0
+          },
+          "tripDepartures": {},
+          "income": {
+            "low": 46,
+            "middle": 245,
+            "high": 109
+          }
+        },
+        "provenance": {
+          "type": "synthetic-model-result",
+          "observations": [],
+          "source": "world/population/MODEL_CARD.md",
+          "calibrated": false
+        }
+      },
+      "checkpoints": [
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 720,
+          "tick": 24,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 577,
+            "traveling": 2
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 59,
+              "WORK": 551,
+              "SCHOOL": 105,
+              "SHOPPING": 34,
+              "ERRAND": 0,
+              "DINING": 85,
+              "RECREATION": 103,
+              "HEALTHCARE": 0,
+              "TRANSIT": 2,
+              "OTHER": 61
+            },
+            "modes": {
+              "none": 998,
+              "walk": 2,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "car": 413,
+              "bike": 1056,
+              "walk": 467,
+              "bus": 139
+            },
+            "income": {
+              "low": 46,
+              "middle": 245,
+              "high": 109
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 1440,
+          "tick": 48,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 581,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 1000,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 0
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "car": 1147,
+              "bike": 3046,
+              "walk": 1409,
+              "bus": 379,
+              "rail": 112
+            },
+            "income": {
+              "low": 50,
+              "middle": 242,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 2160,
+          "tick": 72,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 581,
+            "traveling": 4
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 120,
+              "WORK": 560,
+              "SCHOOL": 105,
+              "SHOPPING": 42,
+              "ERRAND": 0,
+              "DINING": 62,
+              "RECREATION": 46,
+              "HEALTHCARE": 0,
+              "TRANSIT": 4,
+              "OTHER": 61
+            },
+            "modes": {
+              "none": 996,
+              "walk": 3,
+              "bike": 0,
+              "car": 1,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "car": 1540,
+              "bike": 4081,
+              "walk": 1857,
+              "bus": 513,
+              "rail": 297
+            },
+            "income": {
+              "low": 50,
+              "middle": 242,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 2880,
+          "tick": 96,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 585,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 1000,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 0
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "car": 2196,
+              "bike": 5900,
+              "walk": 2666,
+              "bus": 720,
+              "rail": 599
+            },
+            "income": {
+              "low": 50,
+              "middle": 242,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 3600,
+          "tick": 120,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 585,
+            "traveling": 3
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 104,
+              "WORK": 554,
+              "SCHOOL": 105,
+              "SHOPPING": 41,
+              "ERRAND": 0,
+              "DINING": 69,
+              "RECREATION": 63,
+              "HEALTHCARE": 0,
+              "TRANSIT": 3,
+              "OTHER": 61
+            },
+            "modes": {
+              "none": 997,
+              "walk": 3,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "car": 2574,
+              "bike": 6960,
+              "walk": 3141,
+              "bus": 837,
+              "rail": 785
+            },
+            "income": {
+              "low": 50,
+              "middle": 242,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 4320,
+          "tick": 144,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 585,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 1000,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 0
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "car": 3185,
+              "bike": 8694,
+              "walk": 3979,
+              "bus": 1028,
+              "rail": 1055
+            },
+            "income": {
+              "low": 51,
+              "middle": 243,
+              "high": 106
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        }
+      ],
+      "failures": [],
+      "stateHash": "b4642cb14410f17efe83b1a6bc99bcffc52858168284c9a694ce2f096937276f",
+      "drift": {
+        "activity": 0,
+        "modes": 0,
+        "tripDepartures": null,
+        "income": 0.012500000000000004
+      },
+      "seedMatchedDrift": {
+        "activity": 0,
+        "modes": 0,
+        "tripDepartures": 0,
+        "income": 0
+      }
+    },
+    {
+      "scenario": "no-transit",
+      "config": {
+        "population": 1000,
+        "seed": 42,
+        "representedPopulation": 0,
+        "householdSize": 2.5,
+        "medianIncome": 72000,
+        "incomeSpread": 0.55,
+        "employmentRate": 0.75,
+        "baseRent": 1800,
+        "rentMultiplier": 1,
+        "housingCapacityMultiplier": 1,
+        "wageMultiplier": 1,
+        "transitService": 0,
+        "roadCapacity": 800,
+        "transitCapacity": 600,
+        "carCostPerKm": 0.35,
+        "transitFare": 2.5,
+        "moveThreshold": 0.15,
+        "walkingSpeedKmh": 2.4,
+        "flexibleActivityMinutes": 45,
+        "needDecisionThreshold": 35,
+        "movingCost": 1500,
+        "burdenThreshold": 0.35,
+        "displacementThreshold": 0.6,
+        "initialBufferMonths": 3,
+        "layoffRate": 0.0005,
+        "hiringRate": 0.01,
+        "awarenessRate": 0.08,
+        "businessTax": 0.03,
+        "constructionDisruption": 0,
+        "maxLogEntries": 400,
+        "schoolStartMinute": 510,
+        "teenSchoolStartMinute": 510,
+        "schoolDayMinutes": 390,
+        "schoolRecessMinutes": 20,
+        "childScreenMinutesPerDay": 90,
+        "childSupervisionAge": 12,
+        "childIndependentWalkAge": 8,
+        "childIndependentTransitAge": 12,
+        "childcareCapacity": 200,
+        "childcareHourlyCost": 5,
+        "childcareSubsidyFraction": 0,
+        "summerCampEnabled": 1,
+        "summerCampCapacity": 100,
+        "summerCampDailyCost": 30,
+        "summerStartDay": 170,
+        "summerEndDay": 235,
+        "calendarStartEpochDay": 20759,
+        "workWeekDays": 5,
+        "employerOpenDays": 5,
+        "workShiftStartMinute": 480,
+        "workShiftMinutes": 540,
+        "workMealBreakMinutes": 30,
+        "workCommuteBufferMinutes": 30,
+        "workWeeklyPayRetention": 1,
+        "workPaidSickDays": 0,
+        "workPaidFamilyDays": 0,
+        "workPaidVacationDays": 0,
+        "workLeavePayFraction": 1,
+        "workIllnessDailyProbability": 0.01,
+        "workIllnessDurationDays": 2,
+        "workUnpaidSickAbsenceProbability": 0.25,
+        "workIllProductivityFactor": 0.65,
+        "workFamilyLeaveDailyProbability": 0.001,
+        "workFamilyLeaveDurationDays": 7,
+        "workVacationRequestProbability": 0.005,
+        "workVacationDurationDays": 3,
+        "workPredictableSchedule": 0,
+        "workScheduleNoticeDays": 14,
+        "workShiftChangeProbability": 0.15,
+        "workShiftVolatilityMinutes": 60,
+        "workDisconnect": 0,
+        "workAfterHoursMinutes": 30,
+        "workAfterHoursProbability": 0.2,
+        "workOvertimePayMultiplier": 1.5,
+        "workRemoteShare": 0,
+        "workRemoteEligibleShare": 0.6,
+        "workRemoteProductivityFactor": 1,
+        "workWeekendShare": 0,
+        "workRecruitmentCost": 500,
+        "workTurnoverDailyProbability": 0.001,
+        "workSatisfactionOvertimeWeight": 0.3,
+        "workSatisfactionUnpredictabilityWeight": 0.2,
+        "workSatisfactionUnpaidLeaveWeight": 0.4,
+        "workSatisfactionCommuteWeight": 0.1,
+        "schemaVersion": "population-config.v1",
+        "snapshotId": "illustrative-city.v1",
+        "provenance": {
+          "type": "synthetic",
+          "confidence": "low"
+        },
+        "events": [],
+        "targets": null
+      },
+      "initial": {
+        "schemaVersion": "population-invariants.v1",
+        "modelVersion": "1.3.0",
+        "seed": 2544473784,
+        "minute": 0,
+        "tick": 0,
+        "passed": true,
+        "failures": [],
+        "totals": {
+          "people": 1000,
+          "households": 400,
+          "representedPeople": 1000,
+          "employed": 577,
+          "traveling": 0
+        },
+        "distributions": {
+          "activity": {
+            "HOME": 1000,
+            "WORK": 0,
+            "SCHOOL": 0,
+            "SHOPPING": 0,
+            "ERRAND": 0,
+            "DINING": 0,
+            "RECREATION": 0,
+            "HEALTHCARE": 0,
+            "TRANSIT": 0,
+            "OTHER": 0
+          },
+          "modes": {
+            "none": 1000,
+            "walk": 0,
+            "bike": 0,
+            "car": 0,
+            "bus": 0,
+            "rail": 0
+          },
+          "tripDepartures": {},
+          "income": {
+            "low": 46,
+            "middle": 245,
+            "high": 109
+          }
+        },
+        "provenance": {
+          "type": "synthetic-model-result",
+          "observations": [],
+          "source": "world/population/MODEL_CARD.md",
+          "calibrated": false
+        }
+      },
+      "checkpoints": [
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 720,
+          "tick": 24,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 577,
+            "traveling": 1
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 64,
+              "WORK": 551,
+              "SCHOOL": 105,
+              "SHOPPING": 36,
+              "ERRAND": 0,
+              "DINING": 81,
+              "RECREATION": 101,
+              "HEALTHCARE": 0,
+              "TRANSIT": 1,
+              "OTHER": 61
+            },
+            "modes": {
+              "none": 999,
+              "walk": 1,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "car": 442,
+              "bike": 1113,
+              "walk": 521
+            },
+            "income": {
+              "low": 46,
+              "middle": 245,
+              "high": 109
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 1440,
+          "tick": 48,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 581,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 1000,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 0
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "car": 1284,
+              "bike": 3253,
+              "walk": 1546
+            },
+            "income": {
+              "low": 49,
+              "middle": 243,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 2160,
+          "tick": 72,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 581,
+            "traveling": 5
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 120,
+              "WORK": 562,
+              "SCHOOL": 105,
+              "SHOPPING": 41,
+              "ERRAND": 0,
+              "DINING": 62,
+              "RECREATION": 44,
+              "HEALTHCARE": 0,
+              "TRANSIT": 5,
+              "OTHER": 61
+            },
+            "modes": {
+              "none": 995,
+              "walk": 4,
+              "bike": 1,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "car": 1757,
+              "bike": 4450,
+              "walk": 2077
+            },
+            "income": {
+              "low": 49,
+              "middle": 243,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 2880,
+          "tick": 96,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 585,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 1000,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 0
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "car": 2532,
+              "bike": 6527,
+              "walk": 3031
+            },
+            "income": {
+              "low": 50,
+              "middle": 242,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 3600,
+          "tick": 120,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 585,
+            "traveling": 4
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 107,
+              "WORK": 558,
+              "SCHOOL": 105,
+              "SHOPPING": 43,
+              "ERRAND": 0,
+              "DINING": 60,
+              "RECREATION": 62,
+              "HEALTHCARE": 0,
+              "TRANSIT": 4,
+              "OTHER": 61
+            },
+            "modes": {
+              "none": 996,
+              "walk": 4,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "car": 2991,
+              "bike": 7713,
+              "walk": 3601
+            },
+            "income": {
+              "low": 50,
+              "middle": 242,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 4320,
+          "tick": 144,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 585,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 1000,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 0
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "car": 3713,
+              "bike": 9697,
+              "walk": 4540
+            },
+            "income": {
+              "low": 52,
+              "middle": 241,
+              "high": 107
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        }
+      ],
+      "failures": [],
+      "stateHash": "1188e0d62b802e921ecd13aa98b779bfe1d96b4281e68e7af7c75681c06829d3",
+      "drift": {
+        "activity": 0,
+        "modes": 0,
+        "tripDepartures": null,
+        "income": 0.015000000000000006
+      },
+      "seedMatchedDrift": {
+        "activity": 0,
+        "modes": 0,
+        "tripDepartures": 0.11610278133883283,
+        "income": 0.0050000000000000044
+      }
+    },
+    {
+      "scenario": "no-employment",
+      "config": {
+        "population": 1000,
+        "seed": 42,
+        "representedPopulation": 0,
+        "householdSize": 2.5,
+        "medianIncome": 72000,
+        "incomeSpread": 0.55,
+        "employmentRate": 0,
+        "baseRent": 1800,
+        "rentMultiplier": 1,
+        "housingCapacityMultiplier": 1,
+        "wageMultiplier": 1,
+        "transitService": 1,
+        "roadCapacity": 800,
+        "transitCapacity": 600,
+        "carCostPerKm": 0.35,
+        "transitFare": 2.5,
+        "moveThreshold": 0.15,
+        "walkingSpeedKmh": 2.4,
+        "flexibleActivityMinutes": 45,
+        "needDecisionThreshold": 35,
+        "movingCost": 1500,
+        "burdenThreshold": 0.35,
+        "displacementThreshold": 0.6,
+        "initialBufferMonths": 3,
+        "layoffRate": 0.0005,
+        "hiringRate": 0.01,
+        "awarenessRate": 0.08,
+        "businessTax": 0.03,
+        "constructionDisruption": 0,
+        "maxLogEntries": 400,
+        "schoolStartMinute": 510,
+        "teenSchoolStartMinute": 510,
+        "schoolDayMinutes": 390,
+        "schoolRecessMinutes": 20,
+        "childScreenMinutesPerDay": 90,
+        "childSupervisionAge": 12,
+        "childIndependentWalkAge": 8,
+        "childIndependentTransitAge": 12,
+        "childcareCapacity": 200,
+        "childcareHourlyCost": 5,
+        "childcareSubsidyFraction": 0,
+        "summerCampEnabled": 1,
+        "summerCampCapacity": 100,
+        "summerCampDailyCost": 30,
+        "summerStartDay": 170,
+        "summerEndDay": 235,
+        "calendarStartEpochDay": 20759,
+        "workWeekDays": 5,
+        "employerOpenDays": 5,
+        "workShiftStartMinute": 480,
+        "workShiftMinutes": 540,
+        "workMealBreakMinutes": 30,
+        "workCommuteBufferMinutes": 30,
+        "workWeeklyPayRetention": 1,
+        "workPaidSickDays": 0,
+        "workPaidFamilyDays": 0,
+        "workPaidVacationDays": 0,
+        "workLeavePayFraction": 1,
+        "workIllnessDailyProbability": 0.01,
+        "workIllnessDurationDays": 2,
+        "workUnpaidSickAbsenceProbability": 0.25,
+        "workIllProductivityFactor": 0.65,
+        "workFamilyLeaveDailyProbability": 0.001,
+        "workFamilyLeaveDurationDays": 7,
+        "workVacationRequestProbability": 0.005,
+        "workVacationDurationDays": 3,
+        "workPredictableSchedule": 0,
+        "workScheduleNoticeDays": 14,
+        "workShiftChangeProbability": 0.15,
+        "workShiftVolatilityMinutes": 60,
+        "workDisconnect": 0,
+        "workAfterHoursMinutes": 30,
+        "workAfterHoursProbability": 0.2,
+        "workOvertimePayMultiplier": 1.5,
+        "workRemoteShare": 0,
+        "workRemoteEligibleShare": 0.6,
+        "workRemoteProductivityFactor": 1,
+        "workWeekendShare": 0,
+        "workRecruitmentCost": 500,
+        "workTurnoverDailyProbability": 0.001,
+        "workSatisfactionOvertimeWeight": 0.3,
+        "workSatisfactionUnpredictabilityWeight": 0.2,
+        "workSatisfactionUnpaidLeaveWeight": 0.4,
+        "workSatisfactionCommuteWeight": 0.1,
+        "schemaVersion": "population-config.v1",
+        "snapshotId": "illustrative-city.v1",
+        "provenance": {
+          "type": "synthetic",
+          "confidence": "low"
+        },
+        "events": [],
+        "targets": null
+      },
+      "initial": {
+        "schemaVersion": "population-invariants.v1",
+        "modelVersion": "1.3.0",
+        "seed": 2544473784,
+        "minute": 0,
+        "tick": 0,
+        "passed": true,
+        "failures": [],
+        "totals": {
+          "people": 1000,
+          "households": 400,
+          "representedPeople": 1000,
+          "employed": 0,
+          "traveling": 0
+        },
+        "distributions": {
+          "activity": {
+            "HOME": 1000,
+            "WORK": 0,
+            "SCHOOL": 0,
+            "SHOPPING": 0,
+            "ERRAND": 0,
+            "DINING": 0,
+            "RECREATION": 0,
+            "HEALTHCARE": 0,
+            "TRANSIT": 0,
+            "OTHER": 0
+          },
+          "modes": {
+            "none": 1000,
+            "walk": 0,
+            "bike": 0,
+            "car": 0,
+            "bus": 0,
+            "rail": 0
+          },
+          "tripDepartures": {},
+          "income": {
+            "low": 46,
+            "middle": 245,
+            "high": 109
+          }
+        },
+        "provenance": {
+          "type": "synthetic-model-result",
+          "observations": [],
+          "source": "world/population/MODEL_CARD.md",
+          "calibrated": false
+        }
+      },
+      "checkpoints": [
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 720,
+          "tick": 24,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 0,
+            "traveling": 11
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 169,
+              "WORK": 0,
+              "SCHOOL": 105,
+              "SHOPPING": 76,
+              "ERRAND": 0,
+              "DINING": 223,
+              "RECREATION": 351,
+              "HEALTHCARE": 0,
+              "TRANSIT": 11,
+              "OTHER": 65
+            },
+            "modes": {
+              "none": 989,
+              "walk": 10,
+              "bike": 0,
+              "car": 0,
+              "bus": 1,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bike": 1752,
+              "car": 683,
+              "walk": 830,
+              "bus": 193
+            },
+            "income": {
+              "low": 46,
+              "middle": 245,
+              "high": 109
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 1440,
+          "tick": 48,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 0,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 1000,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 0
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bike": 4576,
+              "car": 1673,
+              "walk": 2164,
+              "bus": 501,
+              "rail": 79
+            },
+            "income": {
+              "low": 46,
+              "middle": 245,
+              "high": 109
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 2160,
+          "tick": 72,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 0,
+            "traveling": 9
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 365,
+              "WORK": 0,
+              "SCHOOL": 105,
+              "SHOPPING": 126,
+              "ERRAND": 0,
+              "DINING": 139,
+              "RECREATION": 191,
+              "HEALTHCARE": 0,
+              "TRANSIT": 9,
+              "OTHER": 65
+            },
+            "modes": {
+              "none": 991,
+              "walk": 8,
+              "bike": 0,
+              "car": 1,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bike": 6411,
+              "car": 2346,
+              "walk": 3058,
+              "bus": 700,
+              "rail": 371
+            },
+            "income": {
+              "low": 46,
+              "middle": 245,
+              "high": 109
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 2880,
+          "tick": 96,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 0,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 1000,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 0
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bike": 8893,
+              "car": 3146,
+              "walk": 4252,
+              "bus": 953,
+              "rail": 723
+            },
+            "income": {
+              "low": 46,
+              "middle": 245,
+              "high": 109
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 3600,
+          "tick": 120,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 0,
+            "traveling": 12
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 323,
+              "WORK": 0,
+              "SCHOOL": 105,
+              "SHOPPING": 144,
+              "ERRAND": 0,
+              "DINING": 168,
+              "RECREATION": 183,
+              "HEALTHCARE": 0,
+              "TRANSIT": 12,
+              "OTHER": 65
+            },
+            "modes": {
+              "none": 988,
+              "walk": 9,
+              "bike": 0,
+              "car": 0,
+              "bus": 2,
+              "rail": 1
+            },
+            "tripDepartures": {
+              "bike": 10741,
+              "car": 3798,
+              "walk": 5169,
+              "bus": 1133,
+              "rail": 1017
+            },
+            "income": {
+              "low": 46,
+              "middle": 245,
+              "high": 109
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 4320,
+          "tick": 144,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 0,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 1000,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 0
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bike": 13199,
+              "car": 4607,
+              "walk": 6366,
+              "bus": 1393,
+              "rail": 1344
+            },
+            "income": {
+              "low": 46,
+              "middle": 245,
+              "high": 109
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        }
+      ],
+      "failures": [],
+      "stateHash": "19bd090ab10cdfb618694cc182c0fa150686bb4704ee3bef831201f4a6378b7a",
+      "drift": {
+        "activity": 0,
+        "modes": 0,
+        "tripDepartures": null,
+        "income": 0
+      },
+      "seedMatchedDrift": {
+        "activity": 0,
+        "modes": 0,
+        "tripDepartures": 0.020709276718043835,
+        "income": 0.012500000000000004
+      }
+    },
+    {
+      "scenario": "weighted",
+      "config": {
+        "population": 1000,
+        "seed": 42,
+        "representedPopulation": 10000,
+        "householdSize": 2.5,
+        "medianIncome": 72000,
+        "incomeSpread": 0.55,
+        "employmentRate": 0.75,
+        "baseRent": 1800,
+        "rentMultiplier": 1,
+        "housingCapacityMultiplier": 1,
+        "wageMultiplier": 1,
+        "transitService": 1,
+        "roadCapacity": 800,
+        "transitCapacity": 600,
+        "carCostPerKm": 0.35,
+        "transitFare": 2.5,
+        "moveThreshold": 0.15,
+        "walkingSpeedKmh": 2.4,
+        "flexibleActivityMinutes": 45,
+        "needDecisionThreshold": 35,
+        "movingCost": 1500,
+        "burdenThreshold": 0.35,
+        "displacementThreshold": 0.6,
+        "initialBufferMonths": 3,
+        "layoffRate": 0.0005,
+        "hiringRate": 0.01,
+        "awarenessRate": 0.08,
+        "businessTax": 0.03,
+        "constructionDisruption": 0,
+        "maxLogEntries": 400,
+        "schoolStartMinute": 510,
+        "teenSchoolStartMinute": 510,
+        "schoolDayMinutes": 390,
+        "schoolRecessMinutes": 20,
+        "childScreenMinutesPerDay": 90,
+        "childSupervisionAge": 12,
+        "childIndependentWalkAge": 8,
+        "childIndependentTransitAge": 12,
+        "childcareCapacity": 20000,
+        "childcareHourlyCost": 5,
+        "childcareSubsidyFraction": 0,
+        "summerCampEnabled": 1,
+        "summerCampCapacity": 10000,
+        "summerCampDailyCost": 30,
+        "summerStartDay": 170,
+        "summerEndDay": 235,
+        "calendarStartEpochDay": 20759,
+        "workWeekDays": 5,
+        "employerOpenDays": 5,
+        "workShiftStartMinute": 480,
+        "workShiftMinutes": 540,
+        "workMealBreakMinutes": 30,
+        "workCommuteBufferMinutes": 30,
+        "workWeeklyPayRetention": 1,
+        "workPaidSickDays": 0,
+        "workPaidFamilyDays": 0,
+        "workPaidVacationDays": 0,
+        "workLeavePayFraction": 1,
+        "workIllnessDailyProbability": 0.01,
+        "workIllnessDurationDays": 2,
+        "workUnpaidSickAbsenceProbability": 0.25,
+        "workIllProductivityFactor": 0.65,
+        "workFamilyLeaveDailyProbability": 0.001,
+        "workFamilyLeaveDurationDays": 7,
+        "workVacationRequestProbability": 0.005,
+        "workVacationDurationDays": 3,
+        "workPredictableSchedule": 0,
+        "workScheduleNoticeDays": 14,
+        "workShiftChangeProbability": 0.15,
+        "workShiftVolatilityMinutes": 60,
+        "workDisconnect": 0,
+        "workAfterHoursMinutes": 30,
+        "workAfterHoursProbability": 0.2,
+        "workOvertimePayMultiplier": 1.5,
+        "workRemoteShare": 0,
+        "workRemoteEligibleShare": 0.6,
+        "workRemoteProductivityFactor": 1,
+        "workWeekendShare": 0,
+        "workRecruitmentCost": 500,
+        "workTurnoverDailyProbability": 0.001,
+        "workSatisfactionOvertimeWeight": 0.3,
+        "workSatisfactionUnpredictabilityWeight": 0.2,
+        "workSatisfactionUnpaidLeaveWeight": 0.4,
+        "workSatisfactionCommuteWeight": 0.1,
+        "schemaVersion": "population-config.v1",
+        "snapshotId": "illustrative-city.v1",
+        "provenance": {
+          "type": "synthetic",
+          "confidence": "low"
+        },
+        "events": [],
+        "targets": null
+      },
+      "initial": {
+        "schemaVersion": "population-invariants.v1",
+        "modelVersion": "1.3.0",
+        "seed": 2544473784,
+        "minute": 0,
+        "tick": 0,
+        "passed": true,
+        "failures": [],
+        "totals": {
+          "people": 1000,
+          "households": 400,
+          "representedPeople": 10000,
+          "employed": 577,
+          "traveling": 0
+        },
+        "distributions": {
+          "activity": {
+            "HOME": 1000,
+            "WORK": 0,
+            "SCHOOL": 0,
+            "SHOPPING": 0,
+            "ERRAND": 0,
+            "DINING": 0,
+            "RECREATION": 0,
+            "HEALTHCARE": 0,
+            "TRANSIT": 0,
+            "OTHER": 0
+          },
+          "modes": {
+            "none": 1000,
+            "walk": 0,
+            "bike": 0,
+            "car": 0,
+            "bus": 0,
+            "rail": 0
+          },
+          "tripDepartures": {},
+          "income": {
+            "low": 46,
+            "middle": 245,
+            "high": 109
+          }
+        },
+        "provenance": {
+          "type": "synthetic-model-result",
+          "observations": [],
+          "source": "world/population/MODEL_CARD.md",
+          "calibrated": false
+        }
+      },
+      "checkpoints": [
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 720,
+          "tick": 24,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 10000,
+            "employed": 577,
+            "traveling": 2
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 59,
+              "WORK": 551,
+              "SCHOOL": 105,
+              "SHOPPING": 34,
+              "ERRAND": 0,
+              "DINING": 85,
+              "RECREATION": 103,
+              "HEALTHCARE": 0,
+              "TRANSIT": 2,
+              "OTHER": 61
+            },
+            "modes": {
+              "none": 998,
+              "walk": 2,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "car": 413,
+              "bike": 1056,
+              "walk": 467,
+              "bus": 139
+            },
+            "income": {
+              "low": 46,
+              "middle": 245,
+              "high": 109
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 1440,
+          "tick": 48,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 10000,
+            "employed": 581,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 1000,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 0
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "car": 1147,
+              "bike": 3046,
+              "walk": 1409,
+              "bus": 379,
+              "rail": 112
+            },
+            "income": {
+              "low": 50,
+              "middle": 242,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 2160,
+          "tick": 72,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 10000,
+            "employed": 581,
+            "traveling": 4
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 120,
+              "WORK": 560,
+              "SCHOOL": 105,
+              "SHOPPING": 42,
+              "ERRAND": 0,
+              "DINING": 62,
+              "RECREATION": 46,
+              "HEALTHCARE": 0,
+              "TRANSIT": 4,
+              "OTHER": 61
+            },
+            "modes": {
+              "none": 996,
+              "walk": 3,
+              "bike": 0,
+              "car": 1,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "car": 1540,
+              "bike": 4081,
+              "walk": 1857,
+              "bus": 513,
+              "rail": 297
+            },
+            "income": {
+              "low": 50,
+              "middle": 242,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 2880,
+          "tick": 96,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 10000,
+            "employed": 585,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 1000,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 0
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "car": 2196,
+              "bike": 5900,
+              "walk": 2666,
+              "bus": 720,
+              "rail": 599
+            },
+            "income": {
+              "low": 50,
+              "middle": 242,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 3600,
+          "tick": 120,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 10000,
+            "employed": 585,
+            "traveling": 3
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 104,
+              "WORK": 554,
+              "SCHOOL": 105,
+              "SHOPPING": 41,
+              "ERRAND": 0,
+              "DINING": 69,
+              "RECREATION": 63,
+              "HEALTHCARE": 0,
+              "TRANSIT": 3,
+              "OTHER": 61
+            },
+            "modes": {
+              "none": 997,
+              "walk": 3,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "car": 2574,
+              "bike": 6960,
+              "walk": 3141,
+              "bus": 837,
+              "rail": 785
+            },
+            "income": {
+              "low": 50,
+              "middle": 242,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2544473784,
+          "minute": 4320,
+          "tick": 144,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 10000,
+            "employed": 585,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 1000,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 0
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "car": 3185,
+              "bike": 8694,
+              "walk": 3979,
+              "bus": 1028,
+              "rail": 1055
+            },
+            "income": {
+              "low": 51,
+              "middle": 243,
+              "high": 106
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        }
+      ],
+      "failures": [],
+      "stateHash": "ca2e8ebe89581d24ae4140633ce5da25c4ca5421b2aa1a4c7d138671d9459689",
+      "drift": {
+        "activity": 0,
+        "modes": 0,
+        "tripDepartures": null,
+        "income": 0.012500000000000004
+      },
+      "seedMatchedDrift": {
+        "activity": 0,
+        "modes": 0,
+        "tripDepartures": 0,
+        "income": 0
+      }
+    },
+    {
+      "scenario": "baseline",
+      "config": {
+        "population": 1000,
+        "seed": 43,
+        "representedPopulation": 0,
+        "householdSize": 2.5,
+        "medianIncome": 72000,
+        "incomeSpread": 0.55,
+        "employmentRate": 0.75,
+        "baseRent": 1800,
+        "rentMultiplier": 1,
+        "housingCapacityMultiplier": 1,
+        "wageMultiplier": 1,
+        "transitService": 1,
+        "roadCapacity": 800,
+        "transitCapacity": 600,
+        "carCostPerKm": 0.35,
+        "transitFare": 2.5,
+        "moveThreshold": 0.15,
+        "walkingSpeedKmh": 2.4,
+        "flexibleActivityMinutes": 45,
+        "needDecisionThreshold": 35,
+        "movingCost": 1500,
+        "burdenThreshold": 0.35,
+        "displacementThreshold": 0.6,
+        "initialBufferMonths": 3,
+        "layoffRate": 0.0005,
+        "hiringRate": 0.01,
+        "awarenessRate": 0.08,
+        "businessTax": 0.03,
+        "constructionDisruption": 0,
+        "maxLogEntries": 400,
+        "schoolStartMinute": 510,
+        "teenSchoolStartMinute": 510,
+        "schoolDayMinutes": 390,
+        "schoolRecessMinutes": 20,
+        "childScreenMinutesPerDay": 90,
+        "childSupervisionAge": 12,
+        "childIndependentWalkAge": 8,
+        "childIndependentTransitAge": 12,
+        "childcareCapacity": 200,
+        "childcareHourlyCost": 5,
+        "childcareSubsidyFraction": 0,
+        "summerCampEnabled": 1,
+        "summerCampCapacity": 100,
+        "summerCampDailyCost": 30,
+        "summerStartDay": 170,
+        "summerEndDay": 235,
+        "calendarStartEpochDay": 20759,
+        "workWeekDays": 5,
+        "employerOpenDays": 5,
+        "workShiftStartMinute": 480,
+        "workShiftMinutes": 540,
+        "workMealBreakMinutes": 30,
+        "workCommuteBufferMinutes": 30,
+        "workWeeklyPayRetention": 1,
+        "workPaidSickDays": 0,
+        "workPaidFamilyDays": 0,
+        "workPaidVacationDays": 0,
+        "workLeavePayFraction": 1,
+        "workIllnessDailyProbability": 0.01,
+        "workIllnessDurationDays": 2,
+        "workUnpaidSickAbsenceProbability": 0.25,
+        "workIllProductivityFactor": 0.65,
+        "workFamilyLeaveDailyProbability": 0.001,
+        "workFamilyLeaveDurationDays": 7,
+        "workVacationRequestProbability": 0.005,
+        "workVacationDurationDays": 3,
+        "workPredictableSchedule": 0,
+        "workScheduleNoticeDays": 14,
+        "workShiftChangeProbability": 0.15,
+        "workShiftVolatilityMinutes": 60,
+        "workDisconnect": 0,
+        "workAfterHoursMinutes": 30,
+        "workAfterHoursProbability": 0.2,
+        "workOvertimePayMultiplier": 1.5,
+        "workRemoteShare": 0,
+        "workRemoteEligibleShare": 0.6,
+        "workRemoteProductivityFactor": 1,
+        "workWeekendShare": 0,
+        "workRecruitmentCost": 500,
+        "workTurnoverDailyProbability": 0.001,
+        "workSatisfactionOvertimeWeight": 0.3,
+        "workSatisfactionUnpredictabilityWeight": 0.2,
+        "workSatisfactionUnpaidLeaveWeight": 0.4,
+        "workSatisfactionCommuteWeight": 0.1,
+        "schemaVersion": "population-config.v1",
+        "snapshotId": "illustrative-city.v1",
+        "provenance": {
+          "type": "synthetic",
+          "confidence": "low"
+        },
+        "events": [],
+        "targets": null
+      },
+      "initial": {
+        "schemaVersion": "population-invariants.v1",
+        "modelVersion": "1.3.0",
+        "seed": 2561251403,
+        "minute": 0,
+        "tick": 0,
+        "passed": true,
+        "failures": [],
+        "totals": {
+          "people": 1000,
+          "households": 400,
+          "representedPeople": 1000,
+          "employed": 548,
+          "traveling": 0
+        },
+        "distributions": {
+          "activity": {
+            "HOME": 1000,
+            "WORK": 0,
+            "SCHOOL": 0,
+            "SHOPPING": 0,
+            "ERRAND": 0,
+            "DINING": 0,
+            "RECREATION": 0,
+            "HEALTHCARE": 0,
+            "TRANSIT": 0,
+            "OTHER": 0
+          },
+          "modes": {
+            "none": 1000,
+            "walk": 0,
+            "bike": 0,
+            "car": 0,
+            "bus": 0,
+            "rail": 0
+          },
+          "tripDepartures": {},
+          "income": {
+            "low": 57,
+            "middle": 235,
+            "high": 108
+          }
+        },
+        "provenance": {
+          "type": "synthetic-model-result",
+          "observations": [],
+          "source": "world/population/MODEL_CARD.md",
+          "calibrated": false
+        }
+      },
+      "checkpoints": [
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 720,
+          "tick": 24,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 548,
+            "traveling": 3
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 83,
+              "WORK": 529,
+              "SCHOOL": 112,
+              "SHOPPING": 30,
+              "ERRAND": 0,
+              "DINING": 68,
+              "RECREATION": 105,
+              "HEALTHCARE": 0,
+              "TRANSIT": 3,
+              "OTHER": 70
+            },
+            "modes": {
+              "none": 997,
+              "walk": 2,
+              "bike": 0,
+              "car": 0,
+              "bus": 1,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bike": 961,
+              "walk": 488,
+              "car": 455,
+              "bus": 133
+            },
+            "income": {
+              "low": 57,
+              "middle": 235,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 1440,
+          "tick": 48,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 549,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 1000,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 0
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bike": 2832,
+              "walk": 1442,
+              "car": 1226,
+              "bus": 371,
+              "rail": 94
+            },
+            "income": {
+              "low": 59,
+              "middle": 237,
+              "high": 104
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 2160,
+          "tick": 72,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 549,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 125,
+              "WORK": 525,
+              "SCHOOL": 112,
+              "SHOPPING": 35,
+              "ERRAND": 0,
+              "DINING": 68,
+              "RECREATION": 65,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 70
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bike": 3780,
+              "walk": 1897,
+              "car": 1631,
+              "bus": 519,
+              "rail": 274
+            },
+            "income": {
+              "low": 59,
+              "middle": 237,
+              "high": 104
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 2880,
+          "tick": 96,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 552,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 999,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 1
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bike": 5506,
+              "walk": 2708,
+              "car": 2316,
+              "bus": 708,
+              "rail": 583
+            },
+            "income": {
+              "low": 60,
+              "middle": 232,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 3600,
+          "tick": 120,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 552,
+            "traveling": 4
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 116,
+              "WORK": 519,
+              "SCHOOL": 112,
+              "SHOPPING": 40,
+              "ERRAND": 0,
+              "DINING": 75,
+              "RECREATION": 64,
+              "HEALTHCARE": 0,
+              "TRANSIT": 4,
+              "OTHER": 70
+            },
+            "modes": {
+              "none": 996,
+              "walk": 3,
+              "bike": 0,
+              "car": 0,
+              "bus": 1,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bike": 6461,
+              "walk": 3236,
+              "car": 2728,
+              "bus": 823,
+              "rail": 760
+            },
+            "income": {
+              "low": 60,
+              "middle": 232,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 4320,
+          "tick": 144,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 552,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 999,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 1
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bike": 8073,
+              "walk": 4077,
+              "car": 3381,
+              "bus": 998,
+              "rail": 1060
+            },
+            "income": {
+              "low": 59,
+              "middle": 237,
+              "high": 104
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        }
+      ],
+      "failures": [],
+      "stateHash": "7dc3bee8968873a724af7c60e2911fc97e4c3db33816c103cecd65129d394706",
+      "drift": {
+        "activity": 0.0010000000000000005,
+        "modes": 0,
+        "tripDepartures": null,
+        "income": 0.010000000000000009
+      },
+      "seedMatchedDrift": {
+        "activity": 0,
+        "modes": 0,
+        "tripDepartures": 0,
+        "income": 0
+      }
+    },
+    {
+      "scenario": "no-transit",
+      "config": {
+        "population": 1000,
+        "seed": 43,
+        "representedPopulation": 0,
+        "householdSize": 2.5,
+        "medianIncome": 72000,
+        "incomeSpread": 0.55,
+        "employmentRate": 0.75,
+        "baseRent": 1800,
+        "rentMultiplier": 1,
+        "housingCapacityMultiplier": 1,
+        "wageMultiplier": 1,
+        "transitService": 0,
+        "roadCapacity": 800,
+        "transitCapacity": 600,
+        "carCostPerKm": 0.35,
+        "transitFare": 2.5,
+        "moveThreshold": 0.15,
+        "walkingSpeedKmh": 2.4,
+        "flexibleActivityMinutes": 45,
+        "needDecisionThreshold": 35,
+        "movingCost": 1500,
+        "burdenThreshold": 0.35,
+        "displacementThreshold": 0.6,
+        "initialBufferMonths": 3,
+        "layoffRate": 0.0005,
+        "hiringRate": 0.01,
+        "awarenessRate": 0.08,
+        "businessTax": 0.03,
+        "constructionDisruption": 0,
+        "maxLogEntries": 400,
+        "schoolStartMinute": 510,
+        "teenSchoolStartMinute": 510,
+        "schoolDayMinutes": 390,
+        "schoolRecessMinutes": 20,
+        "childScreenMinutesPerDay": 90,
+        "childSupervisionAge": 12,
+        "childIndependentWalkAge": 8,
+        "childIndependentTransitAge": 12,
+        "childcareCapacity": 200,
+        "childcareHourlyCost": 5,
+        "childcareSubsidyFraction": 0,
+        "summerCampEnabled": 1,
+        "summerCampCapacity": 100,
+        "summerCampDailyCost": 30,
+        "summerStartDay": 170,
+        "summerEndDay": 235,
+        "calendarStartEpochDay": 20759,
+        "workWeekDays": 5,
+        "employerOpenDays": 5,
+        "workShiftStartMinute": 480,
+        "workShiftMinutes": 540,
+        "workMealBreakMinutes": 30,
+        "workCommuteBufferMinutes": 30,
+        "workWeeklyPayRetention": 1,
+        "workPaidSickDays": 0,
+        "workPaidFamilyDays": 0,
+        "workPaidVacationDays": 0,
+        "workLeavePayFraction": 1,
+        "workIllnessDailyProbability": 0.01,
+        "workIllnessDurationDays": 2,
+        "workUnpaidSickAbsenceProbability": 0.25,
+        "workIllProductivityFactor": 0.65,
+        "workFamilyLeaveDailyProbability": 0.001,
+        "workFamilyLeaveDurationDays": 7,
+        "workVacationRequestProbability": 0.005,
+        "workVacationDurationDays": 3,
+        "workPredictableSchedule": 0,
+        "workScheduleNoticeDays": 14,
+        "workShiftChangeProbability": 0.15,
+        "workShiftVolatilityMinutes": 60,
+        "workDisconnect": 0,
+        "workAfterHoursMinutes": 30,
+        "workAfterHoursProbability": 0.2,
+        "workOvertimePayMultiplier": 1.5,
+        "workRemoteShare": 0,
+        "workRemoteEligibleShare": 0.6,
+        "workRemoteProductivityFactor": 1,
+        "workWeekendShare": 0,
+        "workRecruitmentCost": 500,
+        "workTurnoverDailyProbability": 0.001,
+        "workSatisfactionOvertimeWeight": 0.3,
+        "workSatisfactionUnpredictabilityWeight": 0.2,
+        "workSatisfactionUnpaidLeaveWeight": 0.4,
+        "workSatisfactionCommuteWeight": 0.1,
+        "schemaVersion": "population-config.v1",
+        "snapshotId": "illustrative-city.v1",
+        "provenance": {
+          "type": "synthetic",
+          "confidence": "low"
+        },
+        "events": [],
+        "targets": null
+      },
+      "initial": {
+        "schemaVersion": "population-invariants.v1",
+        "modelVersion": "1.3.0",
+        "seed": 2561251403,
+        "minute": 0,
+        "tick": 0,
+        "passed": true,
+        "failures": [],
+        "totals": {
+          "people": 1000,
+          "households": 400,
+          "representedPeople": 1000,
+          "employed": 548,
+          "traveling": 0
+        },
+        "distributions": {
+          "activity": {
+            "HOME": 1000,
+            "WORK": 0,
+            "SCHOOL": 0,
+            "SHOPPING": 0,
+            "ERRAND": 0,
+            "DINING": 0,
+            "RECREATION": 0,
+            "HEALTHCARE": 0,
+            "TRANSIT": 0,
+            "OTHER": 0
+          },
+          "modes": {
+            "none": 1000,
+            "walk": 0,
+            "bike": 0,
+            "car": 0,
+            "bus": 0,
+            "rail": 0
+          },
+          "tripDepartures": {},
+          "income": {
+            "low": 57,
+            "middle": 235,
+            "high": 108
+          }
+        },
+        "provenance": {
+          "type": "synthetic-model-result",
+          "observations": [],
+          "source": "world/population/MODEL_CARD.md",
+          "calibrated": false
+        }
+      },
+      "checkpoints": [
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 720,
+          "tick": 24,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 548,
+            "traveling": 5
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 79,
+              "WORK": 529,
+              "SCHOOL": 112,
+              "SHOPPING": 31,
+              "ERRAND": 0,
+              "DINING": 72,
+              "RECREATION": 102,
+              "HEALTHCARE": 0,
+              "TRANSIT": 5,
+              "OTHER": 70
+            },
+            "modes": {
+              "none": 995,
+              "walk": 5,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bike": 1013,
+              "walk": 529,
+              "car": 488
+            },
+            "income": {
+              "low": 57,
+              "middle": 235,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 1440,
+          "tick": 48,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 549,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 1000,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 0
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bike": 3083,
+              "walk": 1571,
+              "car": 1314
+            },
+            "income": {
+              "low": 59,
+              "middle": 237,
+              "high": 104
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 2160,
+          "tick": 72,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 549,
+            "traveling": 4
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 130,
+              "WORK": 526,
+              "SCHOOL": 112,
+              "SHOPPING": 31,
+              "ERRAND": 0,
+              "DINING": 61,
+              "RECREATION": 66,
+              "HEALTHCARE": 0,
+              "TRANSIT": 4,
+              "OTHER": 70
+            },
+            "modes": {
+              "none": 996,
+              "walk": 4,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bike": 4190,
+              "walk": 2118,
+              "car": 1784
+            },
+            "income": {
+              "low": 59,
+              "middle": 237,
+              "high": 104
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 2880,
+          "tick": 96,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 552,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 1000,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 0
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bike": 6158,
+              "walk": 3072,
+              "car": 2579
+            },
+            "income": {
+              "low": 60,
+              "middle": 232,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 3600,
+          "tick": 120,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 552,
+            "traveling": 6
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 117,
+              "WORK": 525,
+              "SCHOOL": 112,
+              "SHOPPING": 37,
+              "ERRAND": 0,
+              "DINING": 64,
+              "RECREATION": 69,
+              "HEALTHCARE": 0,
+              "TRANSIT": 6,
+              "OTHER": 70
+            },
+            "modes": {
+              "none": 994,
+              "walk": 6,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bike": 7250,
+              "walk": 3705,
+              "car": 3038
+            },
+            "income": {
+              "low": 60,
+              "middle": 232,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 4320,
+          "tick": 144,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 552,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 1000,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 0
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bike": 9116,
+              "walk": 4652,
+              "car": 3840
+            },
+            "income": {
+              "low": 59,
+              "middle": 238,
+              "high": 103
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        }
+      ],
+      "failures": [],
+      "stateHash": "cce0138ad2c00dd36abe1ce04713fc2725e50726848e386c5748824e4789e617",
+      "drift": {
+        "activity": 0,
+        "modes": 0,
+        "tripDepartures": null,
+        "income": 0.012499999999999983
+      },
+      "seedMatchedDrift": {
+        "activity": 0.0010000000000000005,
+        "modes": 0,
+        "tripDepartures": 0.11700494627323896,
+        "income": 0.0024999999999999745
+      }
+    },
+    {
+      "scenario": "no-employment",
+      "config": {
+        "population": 1000,
+        "seed": 43,
+        "representedPopulation": 0,
+        "householdSize": 2.5,
+        "medianIncome": 72000,
+        "incomeSpread": 0.55,
+        "employmentRate": 0,
+        "baseRent": 1800,
+        "rentMultiplier": 1,
+        "housingCapacityMultiplier": 1,
+        "wageMultiplier": 1,
+        "transitService": 1,
+        "roadCapacity": 800,
+        "transitCapacity": 600,
+        "carCostPerKm": 0.35,
+        "transitFare": 2.5,
+        "moveThreshold": 0.15,
+        "walkingSpeedKmh": 2.4,
+        "flexibleActivityMinutes": 45,
+        "needDecisionThreshold": 35,
+        "movingCost": 1500,
+        "burdenThreshold": 0.35,
+        "displacementThreshold": 0.6,
+        "initialBufferMonths": 3,
+        "layoffRate": 0.0005,
+        "hiringRate": 0.01,
+        "awarenessRate": 0.08,
+        "businessTax": 0.03,
+        "constructionDisruption": 0,
+        "maxLogEntries": 400,
+        "schoolStartMinute": 510,
+        "teenSchoolStartMinute": 510,
+        "schoolDayMinutes": 390,
+        "schoolRecessMinutes": 20,
+        "childScreenMinutesPerDay": 90,
+        "childSupervisionAge": 12,
+        "childIndependentWalkAge": 8,
+        "childIndependentTransitAge": 12,
+        "childcareCapacity": 200,
+        "childcareHourlyCost": 5,
+        "childcareSubsidyFraction": 0,
+        "summerCampEnabled": 1,
+        "summerCampCapacity": 100,
+        "summerCampDailyCost": 30,
+        "summerStartDay": 170,
+        "summerEndDay": 235,
+        "calendarStartEpochDay": 20759,
+        "workWeekDays": 5,
+        "employerOpenDays": 5,
+        "workShiftStartMinute": 480,
+        "workShiftMinutes": 540,
+        "workMealBreakMinutes": 30,
+        "workCommuteBufferMinutes": 30,
+        "workWeeklyPayRetention": 1,
+        "workPaidSickDays": 0,
+        "workPaidFamilyDays": 0,
+        "workPaidVacationDays": 0,
+        "workLeavePayFraction": 1,
+        "workIllnessDailyProbability": 0.01,
+        "workIllnessDurationDays": 2,
+        "workUnpaidSickAbsenceProbability": 0.25,
+        "workIllProductivityFactor": 0.65,
+        "workFamilyLeaveDailyProbability": 0.001,
+        "workFamilyLeaveDurationDays": 7,
+        "workVacationRequestProbability": 0.005,
+        "workVacationDurationDays": 3,
+        "workPredictableSchedule": 0,
+        "workScheduleNoticeDays": 14,
+        "workShiftChangeProbability": 0.15,
+        "workShiftVolatilityMinutes": 60,
+        "workDisconnect": 0,
+        "workAfterHoursMinutes": 30,
+        "workAfterHoursProbability": 0.2,
+        "workOvertimePayMultiplier": 1.5,
+        "workRemoteShare": 0,
+        "workRemoteEligibleShare": 0.6,
+        "workRemoteProductivityFactor": 1,
+        "workWeekendShare": 0,
+        "workRecruitmentCost": 500,
+        "workTurnoverDailyProbability": 0.001,
+        "workSatisfactionOvertimeWeight": 0.3,
+        "workSatisfactionUnpredictabilityWeight": 0.2,
+        "workSatisfactionUnpaidLeaveWeight": 0.4,
+        "workSatisfactionCommuteWeight": 0.1,
+        "schemaVersion": "population-config.v1",
+        "snapshotId": "illustrative-city.v1",
+        "provenance": {
+          "type": "synthetic",
+          "confidence": "low"
+        },
+        "events": [],
+        "targets": null
+      },
+      "initial": {
+        "schemaVersion": "population-invariants.v1",
+        "modelVersion": "1.3.0",
+        "seed": 2561251403,
+        "minute": 0,
+        "tick": 0,
+        "passed": true,
+        "failures": [],
+        "totals": {
+          "people": 1000,
+          "households": 400,
+          "representedPeople": 1000,
+          "employed": 0,
+          "traveling": 0
+        },
+        "distributions": {
+          "activity": {
+            "HOME": 1000,
+            "WORK": 0,
+            "SCHOOL": 0,
+            "SHOPPING": 0,
+            "ERRAND": 0,
+            "DINING": 0,
+            "RECREATION": 0,
+            "HEALTHCARE": 0,
+            "TRANSIT": 0,
+            "OTHER": 0
+          },
+          "modes": {
+            "none": 1000,
+            "walk": 0,
+            "bike": 0,
+            "car": 0,
+            "bus": 0,
+            "rail": 0
+          },
+          "tripDepartures": {},
+          "income": {
+            "low": 57,
+            "middle": 235,
+            "high": 108
+          }
+        },
+        "provenance": {
+          "type": "synthetic-model-result",
+          "observations": [],
+          "source": "world/population/MODEL_CARD.md",
+          "calibrated": false
+        }
+      },
+      "checkpoints": [
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 720,
+          "tick": 24,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 0,
+            "traveling": 9
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 207,
+              "WORK": 0,
+              "SCHOOL": 112,
+              "SHOPPING": 85,
+              "ERRAND": 0,
+              "DINING": 191,
+              "RECREATION": 324,
+              "HEALTHCARE": 0,
+              "TRANSIT": 9,
+              "OTHER": 72
+            },
+            "modes": {
+              "none": 991,
+              "walk": 6,
+              "bike": 0,
+              "car": 0,
+              "bus": 3,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bus": 189,
+              "bike": 1684,
+              "walk": 827,
+              "car": 687
+            },
+            "income": {
+              "low": 57,
+              "middle": 235,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 1440,
+          "tick": 48,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 0,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 999,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 1
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bus": 516,
+              "bike": 4328,
+              "walk": 2202,
+              "car": 1739,
+              "rail": 66
+            },
+            "income": {
+              "low": 57,
+              "middle": 235,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 2160,
+          "tick": 72,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 0,
+            "traveling": 8
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 355,
+              "WORK": 0,
+              "SCHOOL": 112,
+              "SHOPPING": 115,
+              "ERRAND": 0,
+              "DINING": 126,
+              "RECREATION": 212,
+              "HEALTHCARE": 0,
+              "TRANSIT": 8,
+              "OTHER": 72
+            },
+            "modes": {
+              "none": 992,
+              "walk": 6,
+              "bike": 0,
+              "car": 0,
+              "bus": 2,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bus": 732,
+              "bike": 6056,
+              "walk": 3049,
+              "car": 2403,
+              "rail": 360
+            },
+            "income": {
+              "low": 57,
+              "middle": 235,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 2880,
+          "tick": 96,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 0,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 1000,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 0
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bus": 970,
+              "bike": 8347,
+              "walk": 4318,
+              "car": 3227,
+              "rail": 712
+            },
+            "income": {
+              "low": 57,
+              "middle": 235,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 3600,
+          "tick": 120,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 0,
+            "traveling": 11
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 361,
+              "WORK": 0,
+              "SCHOOL": 112,
+              "SHOPPING": 124,
+              "ERRAND": 0,
+              "DINING": 132,
+              "RECREATION": 188,
+              "HEALTHCARE": 0,
+              "TRANSIT": 11,
+              "OTHER": 72
+            },
+            "modes": {
+              "none": 989,
+              "walk": 9,
+              "bike": 0,
+              "car": 0,
+              "bus": 2,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bus": 1194,
+              "bike": 10032,
+              "walk": 5205,
+              "car": 3906,
+              "rail": 1003
+            },
+            "income": {
+              "low": 57,
+              "middle": 235,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 4320,
+          "tick": 144,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 1000,
+            "employed": 0,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 1000,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 0
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bus": 1430,
+              "bike": 12333,
+              "walk": 6382,
+              "car": 4729,
+              "rail": 1370
+            },
+            "income": {
+              "low": 57,
+              "middle": 235,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        }
+      ],
+      "failures": [],
+      "stateHash": "977af83dca7559d32480317066d3a6460d8883b3a993f7d75d9dd7184423e989",
+      "drift": {
+        "activity": 0,
+        "modes": 0,
+        "tripDepartures": null,
+        "income": 0
+      },
+      "seedMatchedDrift": {
+        "activity": 0.0010000000000000005,
+        "modes": 0,
+        "tripDepartures": 0.022342736761084645,
+        "income": 0.010000000000000009
+      }
+    },
+    {
+      "scenario": "weighted",
+      "config": {
+        "population": 1000,
+        "seed": 43,
+        "representedPopulation": 10000,
+        "householdSize": 2.5,
+        "medianIncome": 72000,
+        "incomeSpread": 0.55,
+        "employmentRate": 0.75,
+        "baseRent": 1800,
+        "rentMultiplier": 1,
+        "housingCapacityMultiplier": 1,
+        "wageMultiplier": 1,
+        "transitService": 1,
+        "roadCapacity": 800,
+        "transitCapacity": 600,
+        "carCostPerKm": 0.35,
+        "transitFare": 2.5,
+        "moveThreshold": 0.15,
+        "walkingSpeedKmh": 2.4,
+        "flexibleActivityMinutes": 45,
+        "needDecisionThreshold": 35,
+        "movingCost": 1500,
+        "burdenThreshold": 0.35,
+        "displacementThreshold": 0.6,
+        "initialBufferMonths": 3,
+        "layoffRate": 0.0005,
+        "hiringRate": 0.01,
+        "awarenessRate": 0.08,
+        "businessTax": 0.03,
+        "constructionDisruption": 0,
+        "maxLogEntries": 400,
+        "schoolStartMinute": 510,
+        "teenSchoolStartMinute": 510,
+        "schoolDayMinutes": 390,
+        "schoolRecessMinutes": 20,
+        "childScreenMinutesPerDay": 90,
+        "childSupervisionAge": 12,
+        "childIndependentWalkAge": 8,
+        "childIndependentTransitAge": 12,
+        "childcareCapacity": 20000,
+        "childcareHourlyCost": 5,
+        "childcareSubsidyFraction": 0,
+        "summerCampEnabled": 1,
+        "summerCampCapacity": 10000,
+        "summerCampDailyCost": 30,
+        "summerStartDay": 170,
+        "summerEndDay": 235,
+        "calendarStartEpochDay": 20759,
+        "workWeekDays": 5,
+        "employerOpenDays": 5,
+        "workShiftStartMinute": 480,
+        "workShiftMinutes": 540,
+        "workMealBreakMinutes": 30,
+        "workCommuteBufferMinutes": 30,
+        "workWeeklyPayRetention": 1,
+        "workPaidSickDays": 0,
+        "workPaidFamilyDays": 0,
+        "workPaidVacationDays": 0,
+        "workLeavePayFraction": 1,
+        "workIllnessDailyProbability": 0.01,
+        "workIllnessDurationDays": 2,
+        "workUnpaidSickAbsenceProbability": 0.25,
+        "workIllProductivityFactor": 0.65,
+        "workFamilyLeaveDailyProbability": 0.001,
+        "workFamilyLeaveDurationDays": 7,
+        "workVacationRequestProbability": 0.005,
+        "workVacationDurationDays": 3,
+        "workPredictableSchedule": 0,
+        "workScheduleNoticeDays": 14,
+        "workShiftChangeProbability": 0.15,
+        "workShiftVolatilityMinutes": 60,
+        "workDisconnect": 0,
+        "workAfterHoursMinutes": 30,
+        "workAfterHoursProbability": 0.2,
+        "workOvertimePayMultiplier": 1.5,
+        "workRemoteShare": 0,
+        "workRemoteEligibleShare": 0.6,
+        "workRemoteProductivityFactor": 1,
+        "workWeekendShare": 0,
+        "workRecruitmentCost": 500,
+        "workTurnoverDailyProbability": 0.001,
+        "workSatisfactionOvertimeWeight": 0.3,
+        "workSatisfactionUnpredictabilityWeight": 0.2,
+        "workSatisfactionUnpaidLeaveWeight": 0.4,
+        "workSatisfactionCommuteWeight": 0.1,
+        "schemaVersion": "population-config.v1",
+        "snapshotId": "illustrative-city.v1",
+        "provenance": {
+          "type": "synthetic",
+          "confidence": "low"
+        },
+        "events": [],
+        "targets": null
+      },
+      "initial": {
+        "schemaVersion": "population-invariants.v1",
+        "modelVersion": "1.3.0",
+        "seed": 2561251403,
+        "minute": 0,
+        "tick": 0,
+        "passed": true,
+        "failures": [],
+        "totals": {
+          "people": 1000,
+          "households": 400,
+          "representedPeople": 10000,
+          "employed": 548,
+          "traveling": 0
+        },
+        "distributions": {
+          "activity": {
+            "HOME": 1000,
+            "WORK": 0,
+            "SCHOOL": 0,
+            "SHOPPING": 0,
+            "ERRAND": 0,
+            "DINING": 0,
+            "RECREATION": 0,
+            "HEALTHCARE": 0,
+            "TRANSIT": 0,
+            "OTHER": 0
+          },
+          "modes": {
+            "none": 1000,
+            "walk": 0,
+            "bike": 0,
+            "car": 0,
+            "bus": 0,
+            "rail": 0
+          },
+          "tripDepartures": {},
+          "income": {
+            "low": 57,
+            "middle": 235,
+            "high": 108
+          }
+        },
+        "provenance": {
+          "type": "synthetic-model-result",
+          "observations": [],
+          "source": "world/population/MODEL_CARD.md",
+          "calibrated": false
+        }
+      },
+      "checkpoints": [
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 720,
+          "tick": 24,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 10000,
+            "employed": 548,
+            "traveling": 3
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 83,
+              "WORK": 529,
+              "SCHOOL": 112,
+              "SHOPPING": 30,
+              "ERRAND": 0,
+              "DINING": 68,
+              "RECREATION": 105,
+              "HEALTHCARE": 0,
+              "TRANSIT": 3,
+              "OTHER": 70
+            },
+            "modes": {
+              "none": 997,
+              "walk": 2,
+              "bike": 0,
+              "car": 0,
+              "bus": 1,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bike": 961,
+              "walk": 488,
+              "car": 455,
+              "bus": 133
+            },
+            "income": {
+              "low": 57,
+              "middle": 235,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 1440,
+          "tick": 48,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 10000,
+            "employed": 549,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 1000,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 0
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bike": 2832,
+              "walk": 1442,
+              "car": 1226,
+              "bus": 371,
+              "rail": 94
+            },
+            "income": {
+              "low": 59,
+              "middle": 237,
+              "high": 104
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 2160,
+          "tick": 72,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 10000,
+            "employed": 549,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 125,
+              "WORK": 525,
+              "SCHOOL": 112,
+              "SHOPPING": 35,
+              "ERRAND": 0,
+              "DINING": 68,
+              "RECREATION": 65,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 70
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bike": 3780,
+              "walk": 1897,
+              "car": 1631,
+              "bus": 519,
+              "rail": 274
+            },
+            "income": {
+              "low": 59,
+              "middle": 237,
+              "high": 104
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 2880,
+          "tick": 96,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 10000,
+            "employed": 552,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 999,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 1
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bike": 5506,
+              "walk": 2708,
+              "car": 2316,
+              "bus": 708,
+              "rail": 583
+            },
+            "income": {
+              "low": 60,
+              "middle": 232,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 3600,
+          "tick": 120,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 10000,
+            "employed": 552,
+            "traveling": 4
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 116,
+              "WORK": 519,
+              "SCHOOL": 112,
+              "SHOPPING": 40,
+              "ERRAND": 0,
+              "DINING": 75,
+              "RECREATION": 64,
+              "HEALTHCARE": 0,
+              "TRANSIT": 4,
+              "OTHER": 70
+            },
+            "modes": {
+              "none": 996,
+              "walk": 3,
+              "bike": 0,
+              "car": 0,
+              "bus": 1,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bike": 6461,
+              "walk": 3236,
+              "car": 2728,
+              "bus": 823,
+              "rail": 760
+            },
+            "income": {
+              "low": 60,
+              "middle": 232,
+              "high": 108
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        },
+        {
+          "schemaVersion": "population-invariants.v1",
+          "modelVersion": "1.3.0",
+          "seed": 2561251403,
+          "minute": 4320,
+          "tick": 144,
+          "passed": true,
+          "failures": [],
+          "totals": {
+            "people": 1000,
+            "households": 400,
+            "representedPeople": 10000,
+            "employed": 552,
+            "traveling": 0
+          },
+          "distributions": {
+            "activity": {
+              "HOME": 999,
+              "WORK": 0,
+              "SCHOOL": 0,
+              "SHOPPING": 0,
+              "ERRAND": 0,
+              "DINING": 0,
+              "RECREATION": 0,
+              "HEALTHCARE": 0,
+              "TRANSIT": 0,
+              "OTHER": 1
+            },
+            "modes": {
+              "none": 1000,
+              "walk": 0,
+              "bike": 0,
+              "car": 0,
+              "bus": 0,
+              "rail": 0
+            },
+            "tripDepartures": {
+              "bike": 8073,
+              "walk": 4077,
+              "car": 3381,
+              "bus": 998,
+              "rail": 1060
+            },
+            "income": {
+              "low": 59,
+              "middle": 237,
+              "high": 104
+            }
+          },
+          "provenance": {
+            "type": "synthetic-model-result",
+            "observations": [],
+            "source": "world/population/MODEL_CARD.md",
+            "calibrated": false
+          }
+        }
+      ],
+      "failures": [],
+      "stateHash": "1b46760d9e02014614ecc320795d51635ae9384eb0a043f241ac8673776d67ce",
+      "drift": {
+        "activity": 0.0010000000000000005,
+        "modes": 0,
+        "tripDepartures": null,
+        "income": 0.010000000000000009
+      },
+      "seedMatchedDrift": {
+        "activity": 0,
+        "modes": 0,
+        "tripDepartures": 0,
+        "income": 0
+      }
+    }
+  ],
+  "limitations": [
+    "Synthetic assumptions only; no observational calibration or external data.",
+    "Drift is descriptive total variation distance, not an empirical acceptance threshold or an effect estimate.",
+    "Activity/mode histograms are end-state stocks; trip counters are cumulative flows; income bins count households.",
+    "Service access is a bounded synthetic district score; no conserved service-demand ledger exists.",
+    "Population 1.3.0 only; scalar oracle, City, Decision Studio and GPU equivalence unverified.",
+    "Three modeled days, two seeds, at most 1000 records; no sustained or million-agent scaling claim."
+  ]
+}

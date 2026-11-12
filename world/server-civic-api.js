@@ -106,7 +106,7 @@ export async function resolveServerRunInput(body = {}, options = {}) {
  */
 export function createServerCivicApiHandler(options = {}) {
   const cityHandler = createCityApi({ root: options.cityRoot });
-  const runManager = options.runManager || new RunJobManager({ cache: options.runCache });
+  const runManager = options.runManager || new RunJobManager({ cache: options.runCache, maxRunning: options.maxRunning, maxQueued: options.maxQueued });
   const runHandler = createRunApiHandler(
     runManager,
     (body) => resolveServerRunInput(body, options),

@@ -241,3 +241,43 @@ The refreshed collector exited0 at `2026-11-12T04:29:48.331Z` with36 expected-st
 local measurements and a matching tool hash. The committed receipt records the
 exported source merge SHA above. Staging remains explicitly unverified; no
 production, CDN, live runtime or approval-label changes occurred.
+
+## SHE-43 workspace reinspection — 2026-11-12
+
+Reinspected source `b963dd353538294cb0fbf5d34d5283fad6e10e68` on
+`mini/SHE-43`. Existing inventory, bounded collector, ballot probes and immutable
+publication proposal already cover the implementation scope; no duplicate feature
+or response-policy change is needed. Shared server/plan ownership remains intact.
+Previous PRs #29 and #39 and the committed HTTP receipt are historical evidence,
+not measurements of this checkout. Source still gives World HTML `no-cache`,
+generated game JS and sampled mutable APIs `no-store`, and root/static assets no
+explicit general cache policy. No verified content-hashed publication manifest
+was established, so the immutable allowlist proposal remains conditional.
+
+Current exact verification commands (credentials stripped as above):
+
+```sh
+bun test test/release-operations-dry-run.test.js test/release-health.test.js test/dependency-browser-audit.test.js test/future-machine-backend.test.js test/static-asset-cache-audit.test.js test/server.test.js test/patch-voting-server.test.js
+bun test test/static-asset-cache-audit.test.js test/server.test.js test/release-health.test.js
+git diff --check
+```
+
+The seven-file run returned **32 pass, 1 skip, 3 fail** (236 assertions).
+The audit integration initially failed because this workspace has no local
+`node_modules`; the other failures were server startup checks. Temporarily linking
+the already installed parent dependencies resolved the audit export/dependency
+failure. The focused rerun then returned **11 pass, 2 fail** (130 assertions),
+with both failures at server startup. A standalone `Bun.serve` probe using
+`hostname: '127.0.0.1', port: 0` also failed with `EADDRINUSE`. Local HTTP
+revalidation is therefore blocked in this execution environment; no claim of a
+new successful header run is made. The temporary dependency link was removed.
+`git diff --check` passed. No lint/typecheck script is defined. Playwright was
+skipped because this documentation-only refresh changes no browser behavior.
+
+Staging origin/app, candidate SHA and edge identity remain unspecified in the
+available issue and repository evidence. Requested those details from the user
+along with authorization for read-only staging checks. Until supplied, retain
+In Progress and the staging gate above; no production fallback, deployment,
+merge, external message or issue-state mutation was performed. Next action is to
+run the bounded staging procedure on the approved build from an environment
+that permits HTTP checks. The existing receipt is deliberately unchanged.

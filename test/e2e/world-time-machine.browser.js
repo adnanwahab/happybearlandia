@@ -15,6 +15,17 @@ test('record, scrub, inspect and reopen a stored city month', async ({ page }) =
   await record.click();
   await expect(page.getByText('Stored month 0 · starting state')).toBeVisible({ timeout: 15000 });
   await expect(page.getByRole('heading', { name: 'District heatmap' })).toBeVisible();
+  const metricEvidence = page.locator('#heatmap .city-heatmap__evidence').first();
+  await expect(metricEvidence.locator('summary')).toHaveText('Assumption-based model');
+  await expect(metricEvidence.locator('summary')).toHaveAttribute('title', /Source: monthly CityState units.rent/);
+  await metricEvidence.locator('summary').focus();
+  await page.keyboard.press('Enter');
+  await expect(metricEvidence.locator('p')).toBeVisible();
+  await expect(metricEvidence.locator('p')).toContainText('empirical confidence not established');
+
+  await page.locator('#inventory button').first().click();
+  await expect(page.getByRole('region', { name: 'Selected month event trail' })).toContainText('No entity transition was recorded for this month');
+
   const heatmapMetric = page.locator('#heatmap').getByRole('combobox', { name: 'Metric' });
   await heatmapMetric.selectOption({ label: 'Occupied share of all housing units' });
   const slider = page.getByRole('slider', { name: 'Simulation month' });
@@ -31,11 +42,27 @@ test('record, scrub, inspect and reopen a stored city month', async ({ page }) =
   await expect(page.getByRole('button', { name: /worker-1 · Changed/ })).toBeVisible();
   await page.getByRole('button', { name: /worker-1 · Changed/ }).click();
   await expect(page.getByRole('tab', { name: 'History' })).toHaveAttribute('aria-selected', 'true');
+  const trail = page.getByRole('region', { name: 'Selected month event trail' });
+  await expect(trail).toContainText('Recorded entity events · month 1');
+  const employment = trail.getByRole('link', { name: /^EMPLOYMENT_MATCHED/ });
+  await expect(employment).toBeVisible();
+  const employmentURL = new URL(await employment.getAttribute('href'));
+  await employment.click();
+  await expect(page.getByRole('heading', { name: 'EMPLOYMENT_MATCHED', exact: true })).toBeVisible();
+  expect(new URL(page.url()).searchParams.get('event')).toBe(employmentURL.searchParams.get('event'));
+  const explained = await page.request.get('/api/causality/explain?' + new URLSearchParams({
+    runId: employmentURL.searchParams.get('runId'), targetId: employmentURL.searchParams.get('event'),
+  }));
+  expect((await explained.json()).nodes.some(node => node.id === employmentURL.searchParams.get('event'))).toBe(true);
+  await page.reload();
+  await expect(trail).toContainText('Recorded entity events · month 1');
   const events = page.getByRole('combobox', { name: 'Jump to an event' });
   const completion = await events.locator('option').filter({ hasText: /· project completed$/ }).first().textContent();
   const month = Number(completion.match(/Month (\d+)/)[1]);
   await events.selectOption({ label: completion });
   await expect(slider).toHaveValue(String(month));
+  await expect(trail).toHaveCount(0); // An event-only selection is not an entity trail.
+
   const newBuilding = page.getByRole('button', { name: /building-.* · Added.*Construction evidence available/ });
   await expect(newBuilding).toBeVisible();
   await newBuilding.click();

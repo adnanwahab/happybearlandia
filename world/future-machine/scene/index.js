@@ -1,11 +1,13 @@
 import { createMediaPreferences } from '../../../shared/media/preferences.js';
+import { assertFrameIntegrity, assertHistoryIntegrity } from '../integrity.js';
 import {createRendererBackend} from './renderer-backend.js';
 import {createCanvasStage,fitCanvasCamera} from './canvas-stage.js';
 import {createVisualEffects, recordedEntityLabel} from './effects.js';
 import {createSpatialMapping} from './mapping.js';
 
 /** Synchronous host API; renderer loading is deferred so fallback remains usable. */
-export function createStage(container, {onSelect,history} = {}) {
+export function createStage(container, {onSelect,history,onCameraInteraction} = {}) {
+  if (history) assertHistoryIntegrity(history);
   const doc = container.ownerDocument;
   const preferences = createMediaPreferences(doc.defaultView);
   let unsubscribeMotion = () => {};
@@ -17,6 +19,30 @@ export function createStage(container, {onSelect,history} = {}) {
   views.style.cssText = 'position:relative;height:clamp(280px,32vw,400px);touch-action:none';
   list.style.cssText='display:flex;gap:12px;max-height:180px;overflow:auto;padding:8px 12px';
   const labels=doc.createElement('div');labels.dataset.nativeCityLabels='true';labels.style.cssText='position:absolute;inset:0;pointer-events:none;overflow:hidden';views.append(labels);root.append(legend,status,views,list); container.append(root);
+  const qualityLabel=doc.createElement('label'), qualitySelect=doc.createElement('select'), qualityNote=doc.createElement('p');
+  qualityLabel.textContent='Rendering quality ';
+  qualityLabel.style.cssText='display:block;margin:8px 12px;font:14px system-ui';
+  qualitySelect.setAttribute('aria-label','Rendering quality');
+  qualitySelect.style.cssText='max-width:100%;min-height:44px';
+  for(const [value,text] of [['standard','Standard'],['power-saving','Power saving · lower resolution']]) {
+    const option=doc.createElement('option');option.value=value;option.textContent=text;qualitySelect.append(option);
+  }
+  qualityNote.textContent='Power saving lowers display resolution. Model results, metrics and receipts stay the same. Switch back to Standard anytime.';
+  qualityNote.style.cssText='margin:8px 12px;font:12px/1.5 system-ui';
+  qualityLabel.append(qualitySelect);root.insertBefore(qualityLabel,views);root.insertBefore(qualityNote,views);
+  let quality='standard';
+  const pixelRatio=(canvas=false)=>Math.min(globalThis.devicePixelRatio||1,quality==='power-saving' ? .75 : canvas ? 2 : 1.5);
+  qualitySelect.onchange=()=>api.setQuality(qualitySelect.value);
+  const cameraBar=doc.createElement('div'), saveView=doc.createElement('button'), restoreView=doc.createElement('button'), bookmarkStatus=doc.createElement('p');
+  cameraBar.style.cssText='display:flex;flex-wrap:wrap;gap:8px;padding:8px 12px';
+  saveView.type=restoreView.type='button';saveView.textContent='Save view';restoreView.textContent='Restore view';
+  saveView.disabled=restoreView.disabled=true;
+  bookmarkStatus.setAttribute('role','status');bookmarkStatus.style.cssText='margin:0 12px 8px;font:12px system-ui';
+  bookmarkStatus.textContent='No view saved. Bookmark lasts until a new comparison or page reload.';
+  cameraBar.append(saveView,restoreView);views.before(cameraBar,bookmarkStatus);
+  let bookmark=null;
+  function refreshBookmarkControls(){saveView.disabled=disposed||!projection||!(canvasStage||renderReady&&renderer);restoreView.disabled=saveView.disabled||!bookmark;}
+  saveView.onclick=()=>api.saveCameraBookmark();restoreView.onclick=()=>api.restoreCameraBookmark();
   const mapping = createSpatialMapping();
   const retained=new Map(), labelNodes=new Map();
   let draws=0;
@@ -149,21 +175,21 @@ export function createStage(container, {onSelect,history} = {}) {
   (canvasSelected?Promise.reject(new Error('Canvas2D selected')):Promise.all([import('three'),import('three/addons/controls/OrbitControls.js')])).then(async ([module,{OrbitControls}])=>{
     clearTimeout(importDeadline);if(disposed||importExpired||canvasStage)return;THREE=module;
     effects=createVisualEffects({THREE,reducedMotion:preferences.get().reducedMotion});
-    const selectedBackend=await createRendererBackend({THREE,forceWebGL:new URLSearchParams(location.search).get('renderer')==='webgl'});if(disposed){selectedBackend.renderer.dispose();return;}renderer=selectedBackend.renderer;renderBackend=selectedBackend.backend;backendReason=selectedBackend.reason;renderer.autoClear=false;renderer.setClearColor(0x10232d,1);renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio||1,1.5));
-    views.append(renderer.domElement);renderer.domElement.style.cssText='display:block;width:100%;height:100%';renderer.domElement.setAttribute('aria-label','City inventory scenes; drag to orbit, scroll to zoom');
+    const selectedBackend=await createRendererBackend({THREE,forceWebGL:new URLSearchParams(location.search).get('renderer')==='webgl'});if(disposed){selectedBackend.renderer.dispose();return;}renderer=selectedBackend.renderer;renderBackend=selectedBackend.backend;backendReason=selectedBackend.reason;renderer.autoClear=false;renderer.setClearColor(0x10232d,1);renderer.setPixelRatio(pixelRatio());
+    renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-keyshortcuts','PageUp PageDown d');views.append(renderer.domElement);renderer.domElement.style.cssText='display:block;width:100%;height:100%';renderer.domElement.setAttribute('aria-label','City inventory scenes; drag to orbit, scroll to zoom');
     scenes=[0,1].map(()=>{const scene=new THREE.Scene();scene.background=renderBackend==='webgpu'?null:new THREE.Color(0x10232d);scene.add(new THREE.HemisphereLight(0xdfeeff,0x425449,2));const sun=new THREE.DirectionalLight(0xffffff,2);sun.position.set(50,100,60);scene.add(sun);const grid=new THREE.GridHelper(600,25,0x456070,0x203746);grid.position.y=-.1;scene.add(grid);return scene;});
     camera=new THREE.PerspectiveCamera(45,1,.1,100000);camera.position.set(100,100,100);
-    controls=new OrbitControls(camera,renderer.domElement);controls.addEventListener('change',draw);controls.enableDamping=false;controls.addEventListener('start',()=>{cameraTransition=null;});
+    controls=new OrbitControls(camera,renderer.domElement);controls.addEventListener('change',draw);controls.enableDamping=false;controls.addEventListener('start',()=>{cameraTransition=null;onCameraInteraction?.();});
     renderer.domElement.addEventListener('webglcontextlost',lost);
     resize();rebuild();fit();if(selected)api.focus(selected);
     if(renderBackend==='webgpu'&&renderer.compileAsync){let timeout;try{await Promise.race([(async()=>{for(const scene of scenes)await renderer.compileAsync(scene,camera);})(),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new Error('GPU shader preparation timed out')),8000);})]);}finally{clearTimeout(timeout);}}
-    if(disposed)return;renderReady=true;draw();resolveReady({backend:renderBackend});
+    if(disposed)return;renderReady=true;refreshBookmarkControls();draw();resolveReady({backend:renderBackend});
     if(renderBackend==='webgpu')renderer.backend?.device?.lost?.then(info=>{if(!disposed)fail(new Error(`WebGPU device lost: ${info.message||info.reason}`));});
     const animate=now=>{if(disposed||canvasStage)return;if(cameraTransition){const t=Math.min(1,(now-cameraTransition.start)/1200),smooth=t*t*(3-2*t);camera.position.lerpVectors(cameraTransition.position,cameraTransition.endPosition,smooth);controls.target.lerpVectors(cameraTransition.target,cameraTransition.endTarget,smooth);controls.update();if(t===1)cameraTransition=null;draw();}if(effects?.tick(now))draw();animation=requestAnimationFrame(animate);};animation=requestAnimationFrame(animate);
     status.textContent=(renderBackend==='webgpu'?'WebGPU · ':'WebGL · ')+(projection?.physicalDifference?'Recorded building differences · wireframe ghosts show presence in the other future.':'No recorded physical building difference at this month.');
   }).catch(reason=>{clearTimeout(importDeadline);fail(reason);});
   function lost(event) {event.preventDefault();fail(new Error('Graphics context lost'));}
-  function fail(reason) {if(disposed||canvasStage)return;error=reason?.message||'Graphics unavailable';status.textContent='Canvas2D low-fidelity view · same recorded City inventory, camera and timeline.';controls?.dispose();effects?.dispose();if(animation)cancelAnimationFrame(animation);releaseMeshes();renderer?.dispose();renderer?.domElement.remove();renderer=null;labels.replaceChildren();labelNodes.clear();try{canvasStage=createCanvasStage(views,{onSelect});canvasStage.setMode(mode);canvasStage.setGhosts(ghosts);if(projection){canvasStage.update(projection,currentDiff);if(fitRows)canvasStage.setCamera(fitCanvasCamera({a:fitRows,b:fitRows},views.clientWidth,views.clientHeight,mode));if(selected)canvasStage.focus(selected);}}catch(fallbackError){canvasStage?.dispose();canvasStage=null;error=`${error}; ${fallbackError.message}`;views.hidden=true;status.textContent='Graphics unavailable. The exact recorded inventory, timeline, outcomes and WHY controls remain available below.';}resolveReady({backend:canvasStage?'canvas2d':'inventory-fallback'});}
+  function fail(reason) {if(disposed||canvasStage)return;bookmark=null;bookmarkStatus.textContent='No view saved. Bookmark lasts until a new comparison or page reload.';error=reason?.message||'Graphics unavailable';status.textContent='Canvas2D low-fidelity view · same recorded City inventory, camera and timeline.';controls?.dispose();effects?.dispose();if(animation)cancelAnimationFrame(animation);releaseMeshes();renderer?.dispose();renderer?.domElement.remove();renderer=null;labels.replaceChildren();labelNodes.clear();try{canvasStage=createCanvasStage(views,{onSelect,onCameraInteraction});canvasStage.setPixelRatio(pixelRatio(true));canvasStage.setMode(mode);canvasStage.setGhosts(ghosts);if(projection){canvasStage.update(projection,currentDiff);if(fitRows)canvasStage.setCamera(fitCanvasCamera({a:fitRows,b:fitRows},views.clientWidth,views.clientHeight,mode));if(selected)canvasStage.focus(selected);}}catch(fallbackError){canvasStage?.dispose();canvasStage=null;error=`${error}; ${fallbackError.message}`;views.hidden=true;status.textContent='Graphics unavailable. The exact recorded inventory, timeline, outcomes and WHY controls remain available below.';}refreshBookmarkControls();resolveReady({backend:canvasStage?'canvas2d':'inventory-fallback'});}
   unsubscribeMotion = preferences.subscribe(state => {
     if (state.reducedMotion && cameraTransition) {
       camera.position.copy(cameraTransition.endPosition);controls.target.copy(cameraTransition.endTarget);controls.update();cameraTransition=null;
@@ -173,21 +199,56 @@ export function createStage(container, {onSelect,history} = {}) {
   });
   const api={
     whenReady:()=>ready,
+    setQuality(value){
+      if(!['standard','power-saving'].includes(value))throw new RangeError('Unknown rendering quality');
+      if(disposed)return;
+      quality=value;qualitySelect.value=value;renderer?.setPixelRatio(pixelRatio());canvasStage?.setPixelRatio(pixelRatio(true));resize();
+    },
     update(frame,diff) {
       if(disposed)return;
-      if(!frame?.baseline?.state||!frame?.plan?.state){projection=null;currentFrame=null;currentDiff=null;selected=null;cameraTransition=null;canvasStage?.update(null,null);releaseMeshes();labels.replaceChildren();labelNodes.clear();list.replaceChildren();legend.textContent='City snapshots unavailable';status.textContent='Both futures are required for a matched scene.';draw();return;}
+      if(!frame?.baseline?.state||!frame?.plan?.state){projection=null;refreshBookmarkControls();currentFrame=null;currentDiff=null;selected=null;cameraTransition=null;canvasStage?.update(null,null);releaseMeshes();labels.replaceChildren();labelNodes.clear();list.replaceChildren();legend.textContent='City snapshots unavailable';status.textContent='Both futures are required for a matched scene.';draw();if(frame)assertFrameIntegrity(frame,history);return;}
+      assertFrameIntegrity(frame,history);
       currentFrame=frame;currentDiff=diff;const first=!projection;projection=mapping.frame(frame.baseline.state,frame.plan.state);
       legend.textContent=`Month ${frame.month} · ${projection.label}`;
       if(!error)status.textContent=renderBackend==='pending'?'Inventory ready · graphics loading in the background.':(renderBackend==='webgpu'?'WebGPU · ':'WebGL · ')+(projection.physicalDifference?'Recorded building differences · wireframe ghosts show presence in the other future.':'No recorded physical building difference at this month.');
-      summary();canvasStage?.update(projection,diff);if(first&&canvasStage&&fitRows)canvasStage.setCamera(fitCanvasCamera({a:fitRows,b:fitRows},views.clientWidth,views.clientHeight,mode));rebuild();if(first)fit();
+      refreshBookmarkControls();summary();canvasStage?.update(projection,diff);if(first&&canvasStage&&fitRows)canvasStage.setCamera(fitCanvasCamera({a:fitRows,b:fitRows},views.clientWidth,views.clientHeight,mode));rebuild();if(first)fit();
     },
     setMode(value){if(!['split','baseline','plan','difference'].includes(value))throw new TypeError('Unknown scene mode');mode=value;canvasStage?.setMode(value);summary();rebuild();draw();},
     setGhosts(value){ghosts=Boolean(value);canvasStage?.setGhosts(ghosts);rebuild();},
-    focus(entity,{animate=false}={}){if(disposed||!projection)return false;const row=[...projection.a,...projection.b].find(r=>r.collection===entity?.collection&&r.id===entity.id);if(!row)return false;selected=entity;canvasStage?.focus(entity);if(camera){cameraTransition=null;const endTarget=new THREE.Vector3(row.x,row.height/2,row.z),endPosition=new THREE.Vector3(row.x+60,row.height+60,row.z+60);if(animate&&!preferences.get().reducedMotion)cameraTransition={start:performance.now(),position:camera.position.clone(),target:controls.target.clone(),endPosition,endTarget};else{controls.target.copy(endTarget);camera.position.copy(endPosition);controls.update();}}rebuild();return true;},
+    cancelCamera(){cameraTransition=null;},
+    focus(entity,{animate=false,scale='building'}={}){if(disposed||!projection)return false;const row=[...projection.a,...projection.b].find(r=>r.collection===entity?.collection&&r.id===entity.id);if(!row)return false;selected=entity;canvasStage?.focus(entity,{scale});if(camera){cameraTransition=null;const endTarget=new THREE.Vector3(row.x,row.height/2,row.z),endPosition=new THREE.Vector3(row.x+(scale==='neighborhood'?180:60),row.height+(scale==='neighborhood'?180:60),row.z+(scale==='neighborhood'?180:60));if(animate&&!preferences.get().reducedMotion)cameraTransition={start:performance.now(),position:camera.position.clone(),target:controls.target.clone(),endPosition,endTarget};else{controls.target.copy(endTarget);camera.position.copy(endPosition);controls.update();}}rebuild();return true;},
     resetCamera(){cameraTransition=null;if(canvasStage&&projection)canvasStage.setCamera(fitCanvasCamera(fitRows?{a:fitRows,b:fitRows}:projection,views.clientWidth,views.clientHeight,mode));fit();draw();},
-    getCamera(){return canvasStage?.getCamera()||{position:camera?.position.toArray()??null,target:controls?.target.toArray()??null};},
-    getStats(){const arms=['split','difference'].includes(mode)?[0,1]:[mode==='plan'?1:0];const segment=width/arms.length;const targets=camera?meshes.filter(m=>m.visible&&!m.userData.ghost&&arms.includes(m.parent===scenes[0]?0:1)).map(m=>{const arm=m.parent===scenes[0]?0:1;const v=m.position.clone().project(camera);return {...m.userData,meshId:m.uuid,height:m.geometry.parameters?.height??null,scaleY:m.scale.y,x:(arms.indexOf(arm)+(v.x+1)/2)*segment,y:(1-v.y)/2*height};}):[];return {...canvasStage?.getStats(),targets,camera:api.getCamera(),mode,disposed,backend:disposed?'disposed':canvasStage?'canvas2d':renderer&&!error?renderBackend:'inventory-fallback',backendReason,objects:canvasStage?canvasStage.getStats().objects:meshes.length,draws,geometries:renderer?.info?.memory?.geometries??null,textures:renderer?.info?.memory?.textures??null,month:projection?.month??null,layoutVersion:mapping.version,error};},
-    dispose(){if(disposed)return;disposed=true;clearTimeout(importDeadline);unsubscribeMotion();preferences.dispose();observer?.disconnect();globalThis.removeEventListener?.('resize',resize);canvasStage?.dispose();effects?.dispose();if(animation)cancelAnimationFrame(animation);views.removeEventListener('click',pick);renderer?.domElement.removeEventListener('webglcontextlost',lost);controls?.dispose();releaseMeshes();for(const scene of scenes)scene.traverse(object=>{if(object.geometry){object.geometry.dispose();if(Array.isArray(object.material))object.material.forEach(material=>material.dispose());else object.material.dispose();}});effects?.dispose();renderer?.dispose();renderer=null;root.remove();resolveReady({backend:'disposed'});},
+    setCamera(value){
+      if(disposed||!value||typeof value!=='object')return false;
+      if(canvasStage){
+        if(!['x','z','zoom'].every(key=>Number.isFinite(value[key]))||Math.abs(value.x)>1000000||Math.abs(value.z)>1000000||value.zoom<.02||value.zoom>32)return false;
+        cameraTransition=null;canvasStage.setCamera(value);return true;
+      }
+      const vector=values=>Array.isArray(values)&&values.length===3&&values.every(v=>Number.isFinite(v)&&Math.abs(v)<=1000000);
+      if(!renderReady||!renderer||!camera||!vector(value.position)||!vector(value.target)||value.position.every((v,i)=>v===value.target[i]))return false;
+      cameraTransition=null;camera.position.fromArray(value.position);controls.target.fromArray(value.target);controls.update();draw();return true;
+    },
+    getCamera(){return canvasStage?.getCamera()||{position:camera?.position.toArray()??null,target:controls?.target.toArray()??null,quaternion:camera?.quaternion.toArray()??null,zoom:camera?.zoom??null};},
+    saveCameraBookmark(){
+      refreshBookmarkControls();if(saveView.disabled)return false;
+      onCameraInteraction?.();cameraTransition=null;
+      bookmark={backend:canvasStage?'canvas2d':'three',pose:structuredClone(api.getCamera())};
+      bookmarkStatus.textContent='View saved for both worlds. Lasts until a new comparison or page reload.';refreshBookmarkControls();return true;
+    },
+    restoreCameraBookmark(){
+      refreshBookmarkControls();if(restoreView.disabled)return false;
+      onCameraInteraction?.();cameraTransition=null;
+      if(bookmark.backend==='canvas2d')canvasStage.setCamera(bookmark.pose);
+      else {
+        controls.target.fromArray(bookmark.pose.target);
+        camera.position.fromArray(bookmark.pose.position);camera.zoom=bookmark.pose.zoom;
+        controls.update();camera.quaternion.fromArray(bookmark.pose.quaternion);
+        camera.updateProjectionMatrix();draw();
+      }
+      bookmarkStatus.textContent='Saved view restored in both worlds.';return true;
+    },
+    getStats(){const arms=['split','difference'].includes(mode)?[0,1]:[mode==='plan'?1:0];const segment=width/arms.length;const targets=camera?meshes.filter(m=>m.visible&&!m.userData.ghost&&arms.includes(m.parent===scenes[0]?0:1)).map(m=>{const arm=m.parent===scenes[0]?0:1;const v=m.position.clone().project(camera);return {...m.userData,meshId:m.uuid,height:m.geometry.parameters?.height??null,scaleY:m.scale.y,x:(arms.indexOf(arm)+(v.x+1)/2)*segment,y:(1-v.y)/2*height};}):[];return {...canvasStage?.getStats(),quality,pixelRatio:pixelRatio(Boolean(canvasStage)),targets,camera:api.getCamera(),mode,disposed,backend:disposed?'disposed':canvasStage?'canvas2d':error?'inventory-fallback':renderReady&&renderer?renderBackend:'pending',backendReason,objects:canvasStage?canvasStage.getStats().objects:meshes.length,draws,geometries:renderer?.info?.memory?.geometries??null,textures:renderer?.info?.memory?.textures??null,month:projection?.month??null,layoutVersion:mapping.version,error};},
+    dispose(){if(disposed)return;disposed=true;bookmark=null;saveView.onclick=restoreView.onclick=null;refreshBookmarkControls();qualitySelect.onchange=null;clearTimeout(importDeadline);unsubscribeMotion();preferences.dispose();observer?.disconnect();globalThis.removeEventListener?.('resize',resize);canvasStage?.dispose();effects?.dispose();if(animation)cancelAnimationFrame(animation);views.removeEventListener('click',pick);renderer?.domElement.removeEventListener('webglcontextlost',lost);controls?.dispose();releaseMeshes();for(const scene of scenes)scene.traverse(object=>{if(object.geometry){object.geometry.dispose();if(Array.isArray(object.material))object.material.forEach(material=>material.dispose());else object.material.dispose();}});effects?.dispose();renderer?.dispose();renderer=null;root.remove();resolveReady({backend:'disposed'});},
   };
   return api;
 }

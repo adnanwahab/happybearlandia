@@ -10,6 +10,15 @@
 </style>
 </head>
 <body class="future-machine-page"><nav><a href="/world/detective.html">Play Detective of Futures</a></nav><div id="app"><section id="boot"><h1>Future Machine</h1><p>Loading the city comparison…</p><p><a href="/">HappyBearLandia home</a></p></section></div>
-<script type="module">import('/world/future-machine/main.js').catch(error=>{const p=document.querySelector('#boot p');if(p)p.textContent=`Unable to load Future Machine: ${error.message}. Refresh to retry.`;console.error(error);});</script>
+<script type="module">
+import {mountDiagnosticReport} from '/world/future-machine/diagnostics.js';
+import('/world/future-machine/main.js').catch(()=>{
+  const app=document.querySelector('#app');
+  const message=document.createElement('p');
+  message.textContent='Unable to load Future Machine. Refresh to retry.';
+  app.replaceChildren(message);
+  mountDiagnosticReport(app).show({errorType:'boot-failure'});
+});
+</script>
 </body>
 </html>

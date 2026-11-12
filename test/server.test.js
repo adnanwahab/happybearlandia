@@ -34,6 +34,9 @@ test('the production server serves the homepage and rejects an unknown route', a
       reader.releaseLock();
     }
     const origin = 'http://127.0.0.1:' + port;
+    const demoReady = await fetch(origin + '/api/demo/ready', { signal: AbortSignal.timeout(3000) });
+    expect(demoReady.status).toBe(200);
+    expect((await demoReady.json()).checks.demoAssets).toBe('ok');
     const home = await fetch(origin, { signal: AbortSignal.timeout(3000) });
     expect(home.status).toBe(200);
     expect(home.headers.get('content-type')).toContain('text/html');

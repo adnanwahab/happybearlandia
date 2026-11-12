@@ -23,7 +23,11 @@ test('three editable questions restore exact persisted scenarios and selected ou
    const reopened=await loadExperiment(challenge.experimentId);
    await verifyChallengeHistory(reopened,challenge);
    expect(reopened.recipe).toEqual(history.recipe);
-   expect(challenge.receipt.outcomeDigests.plan.selected).toBe(await stateHash(history.plan[month]));
+   const {identity,...recorded}=history.plan[month];
+   expect(identity).toEqual({experimentId:history.experimentId,scenarioId:'plan',runIndex:0,runId:'plan-0'});
+   // Receipt v1 covers recorded simulation fields; transport identity is
+   // validated independently so existing shared challenges remain replayable.
+   expect(challenge.receipt.outcomeDigests.plan.selected).toBe(await stateHash(recorded));
    expect(reopened).toEqual(history);
   }
   const url=await createChallengeURL(history,{question:QUESTIONS[0],month:16},'https://example.test/world/future-machine.html');

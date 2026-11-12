@@ -6,6 +6,8 @@ import {createDemoController} from '../world/future-machine/demo-controller.js';
 import {createFirstPlayFunnel,visibleDivergence} from '../world/future-machine/first-play.js';
 import * as sharing from '../world/future-machine/share/index.js';
 import * as recent from '../world/future-machine/recent.js';
+import {createDiscoveryQuest} from '../world/future-machine/ui/discovery-quest.js';
+import {describeModelChange} from '../world/future-machine/story/narration.js';
 
 // Isolate the real coordinator module; renderer/network adapters are controlled
 // at their existing boundaries. Model results have separate actual-engine tests.
@@ -15,15 +17,15 @@ function historyFor(recipe=DEFAULT_RECIPE,id='city_coordinator'){
  const snapshots=()=>Array.from({length:121},(_,month)=>({month,state:{households:[],buildings:[],provenance:{assumptions:[]}},metrics:{},events:[],causalRecords:[],decisions:[]}));
  return {schemaVersion:'future-machine.v1',modelVersion:recipe.modelVersion,seed:recipe.seed,recipe:structuredClone(recipe),experimentId:id,initialHash:'fixture-only',baseline:snapshots(),plan:snapshots(),provenance:{}};
 }
-const diffFor=month=>({month,available:true,changedCount:month>=16?1:0,physicalCount:month>=16?1:0,entities:[],metrics:{housingUnits:{baseline:36,plan:month>=16?60:36,delta:month>=16?24:0,unit:'homes',status:'available'}}});
+const diffFor=month=>({month,available:true,changedCount:month>=16?1:0,physicalCount:month>=16?1:0,entities:month>=16?[{...first.entity,kind:'added',before:null,after:{id:first.entity.id},changedFields:['id'],physical:true}]:[],metrics:{housingUnits:{baseline:36,plan:month>=16?60:36,delta:month>=16?24:0,unit:'homes',status:'available'}}});
 const first={month:16,entity:{collection:'buildings',id:'building-recorded',arm:'plan'}};
 const receipt={future:'plan',month:16,eventId:'event-recorded',entity:first.entity,payload:{units:24},policyId:'policy-recorded'};
 async function boot(options={}){
- let time=0,nextId=1,callbacks,receiptCallbacks,description,storyCallbacks;
- const raf=new Map(),intervals=new Map(),stages=[],updates=[],announcements=[],requests=[],writes=[];
+ let time=0,nextId=1,callbacks,receiptCallbacks,description,storyCallbacks,questCallbacks,questState,diagnostic;
+ const raf=new Map(),intervals=new Map(),stages=[],updates=[],announcements=[],requests=[],writes=[],narrations=[];
  const storage=new Map(options.recent?[[recent.RECENT_KEY,JSON.stringify(options.recent)]]:[]);
  const location=new URL(options.url??'https://example.test/world/future-machine.html?renderer=canvas2d');
- const node=()=>({after(){},prepend(){},replaceChildren(){},remove(){},click(){},querySelector(){return this;}});
+ const node=()=>({after(){},before(){},prepend(){},replaceChildren(){},remove(){},click(){},querySelector(){return this;}});
  const app=node(),document={hidden:false,querySelector:()=>app,createElement:node,addEventListener(){},removeEventListener(){}};
  const navigator={clipboard:{writeText:options.copy??(async()=>{})},share:options.nativeShare??(async()=>{})};
  const window={history:{replaceState(_a,_b,url){location.href=url;writes.push(url);}},localStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},addEventListener(){},removeEventListener(){}};
@@ -36,14 +38,24 @@ async function boot(options={}){
   './ui/index.js':{createUI(_host,events){callbacks=events;return {stageElement:node(),storyElement:node(),update:state=>updates.push(structuredClone(state)),dispose:noop};}},
   './demo-controller.js':{createDemoController:args=>createDemoController({...args,now:()=>time,schedule:fn=>{const id=nextId++;intervals.set(id,fn);return id;},unschedule:id=>intervals.delete(id)})},
   './first-play.js':{createFirstPlayFunnel:args=>{const funnel=createFirstPlayFunnel({...args,now:()=>time});return {...funnel,record:(type,payload,settings)=>funnel.record(type,structuredClone(payload),settings)};},visibleDivergence},
+  './ui/discovery-quest.js':{createDiscoveryQuest,mountDiscoveryQuest(_host,events){questCallbacks=events;return {update:state=>questState=structuredClone(state),dispose:noop};}},
+  './ui/year-shortcuts.js':{bindYearShortcuts:()=>noop},
+  './story/narration.js':{describeModelChange,mountChangeNarration:()=>({announce:text=>narrations.push(text),dispose:noop})},
+  './diagnostics.js':{mountDiagnosticReport:()=>({show:value=>diagnostic=structuredClone(value),clear:()=>diagnostic=null,dispose:noop})},
   './data/index.js':{validateRecipe:sharing.validateRecipe,getFrame:(h,month)=>({month,baseline:h.baseline[month],plan:h.plan[month]}),
    createExperiment:async(recipe,settings)=>{requests.push(['create',structuredClone(recipe)]);return options.create?options.create(recipe,settings):historyFor(recipe,`city_${recipe.seed}`);},
    loadExperiment:async(id,settings)=>{requests.push(['load',id]);return options.load?options.load(id,settings):historyFor(DEFAULT_RECIPE,id);}},
   './diff/index.js':{compareHistory:()=>Array.from({length:121},(_,month)=>diffFor(month)),firstDivergence:()=>first},
-  './scene/index.js':{createStage(_host,{history,onSelect}){
+  './scene/index.js':{createStage(_host,{history,onSelect,onCameraInteraction}){
    const gate=history&&options.graphicsGate?options.graphicsGate:null;
-   let backend=gate?'pending':'canvas2d';
-   const stage={onSelect,history,disposed:false,setMode:noop,setGhosts:noop,resetCamera:noop,update:noop,focus:()=>true,getStats:()=>({backend}),whenReady:()=>gate?gate.promise.then(()=>{backend='canvas2d';}):Promise.resolve(),dispose(){this.disposed=true;}};
+   let backend=gate?'pending':options.renderer??'canvas2d';
+   let camera=structuredClone(options.camera??{x:0,z:0,zoom:1});
+   const stage={onSelect,onCameraInteraction,history,disposed:false,shots:[],restored:[],transition:false,cancellations:0,
+    setMode:noop,setGhosts:noop,resetCamera:noop,update:noop,
+    focus(entity,settings={}){this.shots.push({entity:structuredClone(entity),...settings});this.transition=Boolean(settings.animate);return true;},
+    cancelCamera(){this.transition=false;this.cancellations++;},getCamera:()=>structuredClone(camera),
+    setCamera(value){if(options.compatibleCamera===false)return false;camera=structuredClone(value);this.restored.push(camera);return true;},
+    getStats:()=>({backend}),whenReady:()=>gate?gate.promise.then(()=>{backend=options.renderer??'canvas2d';}):Promise.resolve(),dispose(){this.disposed=true;}};
    stages.push(stage);return stage;
   }},
   './ui/outcome-timeline.js':{createOutcomeTimeline:()=>({update:(month,settings)=>{if(settings?.announce)announcements.push(month);},dispose:noop})},
@@ -64,7 +76,8 @@ async function boot(options={}){
  await main.evaluate();
  const drain=async()=>{for(let i=0;i<16;i++){await Promise.resolve();for(const [id,fn]of [...raf]){raf.delete(id);fn();}}};
  await drain();
- return {window,callbacks,receiptCallbacks,stages,updates,announcements,requests,writes,storage,location,drain,
+ return {window,callbacks,receiptCallbacks,questCallbacks,stages,updates,announcements,requests,writes,storage,location,drain,narrations,
+  get questState(){return questState;},get diagnostic(){return diagnostic;},
   get state(){return window.futureMachine.state;},get description(){return description;},get storyCallbacks(){return storyCallbacks;},
   tick(ms){time+=ms;for(const fn of [...intervals.values()])fn();},dispose:()=>window.futureMachine.dispose()};
 }
@@ -98,7 +111,9 @@ test('strict receipt retry retains its payload and announces the reopened month;
  const app=await boot({reopen:async()=>{if(++attempts===1)throw Error('connection interrupted');return {history:historyFor(),month:73};}});
  try{
   await expect(app.receiptCallbacks.onReopen(input)).rejects.toThrow('connection interrupted');
+  expect(app.diagnostic).toEqual({errorType:'comparison-failure',renderer:'canvas2d'});
   await app.callbacks.onRetry();await app.drain();
+  expect(app.diagnostic).toBeNull();
   expect(app.requests.filter(row=>row[0]==='create')).toHaveLength(0);expect(app.requests.filter(row=>row[0]==='receipt').map(row=>row[1])).toEqual([input,input]);
   expect(app.state.status).toBe('ready');expect(app.state.month).toBe(73);expect(app.announcements.at(-1)).toBe(73);expect(app.storage.size).toBe(0);
   app.callbacks.onRemember();app.callbacks.onConfigure({...DEFAULT_RECIPE,seed:99});app.callbacks.onMonth(74);await app.drain();
@@ -210,5 +225,89 @@ test('retained stage readiness flushes earlier actions even when a newer rerun h
   graphics.resolve();await app.drain();
   expect(app.window.futureMachine.firstPlayEvents.find(row=>row.event.type==='share').event.payload.result).toBe('succeeded');
   expect(app.state.status).toBe('error');expect(app.state.error).toBe('connection interrupted');
+ }finally{app.dispose();}
+});
+
+test('quest inspection returns to its recorded month after a later manual seek',async()=>{
+ const app=await boot();
+ try{
+  await app.callbacks.onRun(DEFAULT_RECIPE);await app.drain();
+  expect(app.questState.completed).toEqual([true,false,false]);
+  app.questCallbacks.onVisit();await app.drain();
+  expect(app.questState.completed).toEqual([true,true,false]);
+  app.callbacks.onMonth(73);app.questCallbacks.onInspect();await app.drain();
+  expect(app.state.month).toBe(16);expect(app.announcements.at(-1)).toBe(16);
+  expect(app.description.entity).toMatchObject({collection:first.entity.collection,id:first.entity.id});
+  expect(app.questState.completed).toEqual([true,true,true]);
+ }finally{app.dispose();}
+});
+
+test('pause and manual camera boundaries cancel shots and prevent later tour reframing',async()=>{
+ const app=await boot();
+ try{
+  await app.callbacks.onDemo();const stage=app.stages.at(-1);app.tick(10000);
+  expect(stage.shots.at(-1).scale).toBe('neighborhood');expect(stage.transition).toBe(true);
+  app.callbacks.onDemoPause();expect(stage.transition).toBe(false);
+  app.callbacks.onDemoPause();app.tick(3000);
+  expect(stage.shots.at(-1).scale).toBe('building');expect(stage.transition).toBe(true);
+  app.callbacks.onDemoManual();expect(stage.transition).toBe(false);expect(app.state.demo.status).toBe('manual');
+  await app.callbacks.onDemo();app.tick(10000);const shots=stage.shots.length;
+  stage.onCameraInteraction();app.tick(3000);
+  expect(stage.transition).toBe(false);expect(app.state.demo.status).toBe('manual');expect(stage.shots).toHaveLength(shots);
+ }finally{app.dispose();}
+});
+
+test('reset retains the page-entry recipe after receipt import without changing displayed history',async()=>{
+ const entry={...DEFAULT_RECIPE,seed:99},imported={...DEFAULT_RECIPE,seed:77};
+ const url=sharing.createShareURL({recipe:entry,experimentId:'city_entry',month:16},'https://example.test/world/future-machine.html');
+ const app=await boot({url,load:id=>historyFor(entry,id),reopen:async()=>({history:historyFor(imported,'city_imported'),month:73})});
+ try{
+  await app.receiptCallbacks.onReopen({checksum:'fixture'});await app.drain();
+  const shown=app.window.futureMachine.history,link=app.state.shareURL,count=app.requests.length;
+  app.callbacks.onConfigure({...DEFAULT_RECIPE,seed:55});app.callbacks.onReset();await app.drain();
+  expect(app.state.recipe).toEqual(entry);expect(app.window.futureMachine.history).toBe(shown);
+  expect(app.state.month).toBe(73);expect(app.state.shareURL).toBe(link);expect(app.requests).toHaveLength(count);
+ }finally{app.dispose();}
+});
+
+test('preview freezes displayed inputs and the v1 perspective pose while direct copy tracks the current month',async()=>{
+ const copied=[],camera={position:[5,10,15],target:[0,0,0],quaternion:[0,0,0,1],zoom:1};
+ const app=await boot({renderer:'webgl',camera,copy:async url=>copied.push(url)});
+ try{
+  await app.callbacks.onRun(DEFAULT_RECIPE);await app.drain();app.callbacks.onMonth(16);
+  app.callbacks.onConfigure({...DEFAULT_RECIPE,seed:99});app.callbacks.onMode('difference');app.callbacks.onGhosts(false);app.callbacks.onPreviewShare();
+  const preview=app.state.sharePreview;
+  expect(preview.context).toMatchObject({recipe:{seed:42},month:16,landing:{version:1,mode:'difference',ghosts:false}});
+  expect(preview.context.landing.camera).toEqual({position:camera.position,target:camera.target});
+  expect(copied).toHaveLength(0);app.callbacks.onMonth(73);await app.callbacks.onCopyShare();
+  expect(copied).toEqual([preview.url]);expect(app.state.sharePreview).toEqual(preview);
+  await app.callbacks.onShare();expect(sharing.parseShareURL(copied[1])).toMatchObject({recipe:{seed:42},month:73});
+  await app.callbacks.onRun({...DEFAULT_RECIPE,seed:99});expect(app.state.sharePreview).toBeNull();
+ }finally{app.dispose();}
+});
+
+test('shared camera waits for graphics readiness and yields to intervening user control',async()=>{
+ const landing={version:1,mode:'difference',ghosts:false,camera:{x:5,z:-8,zoom:2}};
+ const url=sharing.createShareURL({recipe:DEFAULT_RECIPE,experimentId:'city_saved',month:16,landing},'https://example.test/world/future-machine.html');
+ for(const manual of [false,true]){
+  const graphics=deferred(),app=await boot({url,graphicsGate:graphics});
+  try{
+   const stage=app.stages.at(-1);expect(app.state.status).toBe('ready');expect(stage.restored).toHaveLength(0);
+   expect(app.state.mode).toBe('difference');expect(app.state.ghosts).toBe(false);
+   if(manual)stage.onCameraInteraction();graphics.resolve();await app.drain();
+   expect(stage.restored).toEqual(manual?[]:[landing.camera]);expect(app.state.playing).toBe(false);
+   expect(app.state.month).toBe(16);
+  }finally{app.dispose();}
+ }
+});
+
+test('change narration stays quiet during playback and describes the current recorded frame on request',async()=>{
+ const app=await boot();
+ try{
+  await app.callbacks.onRun(DEFAULT_RECIPE);app.callbacks.onMonth(16);app.stages.at(-1).onSelect(first.entity);
+  expect(app.narrations).toHaveLength(0);app.callbacks.onPlay(true);app.tick(200);await app.drain();
+  expect(app.state.month).toBe(17);expect(app.narrations).toHaveLength(0);app.storyCallbacks.onNarrate();
+  expect(app.narrations).toHaveLength(1);expect(app.narrations[0]).toContain('Month 17: buildings building-recorded.');
+  expect(app.narrations[0]).toContain('Present only with plan');expect(app.narrations[0]).toContain(`model ${DEFAULT_RECIPE.modelVersion}; seed 42.`);
  }finally{app.dispose();}
 });
