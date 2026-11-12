@@ -1003,3 +1003,36 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-169 — bounded renderer recovery follow-up
+
+Audit: Future Machine already handles initialized WebGPU/WebGL loss by removing
+the native canvas and labels and drawing the same CPU-authoritative paired City
+records in Canvas2D. This is renderer recovery, not a GPU simulation checkpoint.
+SHE-168 (HBL-1M-041) remains In Progress with PR196; no SHE-169 PR was returned
+by the connected GitHub search. Existing core CI does not run the dedicated loss
+browser configuration.
+
+Next slice: make the visible recovery notice explicitly identify graphics loss
+while retaining the recorded month in the legend, without claiming a durable save. Own
+scene/index.js and the existing loss browser assertions. Acceptance: visible
+loss notice, same month/seed/model/run/recipe/snapshots, no retained native canvas
+or labels, and working recorded WHY and timeline controls. No model changes.
+Risk: native browser/device availability limits fault-injection verification;
+mid-compute GPU checkpoint recovery remains outside this CPU City renderer slice.
+
+Delivered review candidate: accessible recovery status explicitly says graphics
+connection was lost, Canvas2D uses the same recorded inventory/timeline, and no
+simulation rerun is needed. Existing browser loss test now asserts this notice
+alongside its exact provenance and stale-canvas checks.
+
+Verification (2026-11-12): Bun 1.4.2, macOS arm64; focused scene/data/boundary
+suite 19 passed, 0 failed, 106 assertions (8.74s), including deterministic seeds
+0 and 4294967295. `git diff --check` passed. Browser command
+`bunx --no-install playwright test --config test/pipeline-device-loss.browser.config.js`
+failed loading import.meta under CommonJS. A temporary same-directory .mjs copy
+resolved loading, but server startup failed EADDRINUSE on both 39974 and 41969;
+temporary copy removed. No browser/device/seed-42 loss observation from this run
+is claimed. Existing historical loss evidence is separate. Next: run the focused
+browser configuration in a bind-capable environment, integrate SHE-168, and define
+the GPU-compute receipt/checkpoint owner before claiming full issue acceptance.
