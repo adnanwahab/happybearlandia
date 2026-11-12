@@ -1,14 +1,6 @@
 name: Automatic PR merging
 
 on:
-  schedule:
-    - cron: '*/5 * * * *'
-  workflow_dispatch:
-    inputs:
-      dry_run:
-        description: Check eligibility without merging or dispatching CI
-        type: boolean
-        default: true
   pull_request:
     paths:
       - '.github/workflows/auto-merge.yml'
@@ -41,10 +33,9 @@ jobs:
 
   merge:
     needs: verify-merger
-    if: >-
-      github.repository == 'adnanwahab/happybearlandia' &&
-      (github.event_name == 'schedule' ||
-       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'))
+    # Human-review safety hold: autonomous GitHub merges disabled.
+    # Do not re-enable without the repository owner's explicit approval.
+    if: ${{ false }}
     runs-on: ubuntu-24.04
     timeout-minutes: 4
     permissions:
