@@ -7922,3 +7922,31 @@ test/world-user-fixes.test.js still reports 32 homepage carousel sections versus
 33 registered experiences. The identical failure was reproduced using exact
 118aad baseline inputs; this existing catalog mismatch was not changed by PR278.
 No simulation, seed, runtime, gallery, or target-branch changes were made.
+
+## SHE-263 — World HUD collisions
+
+Audit: merged SHE-122 pack (`test/e2e/small-screen-game.e2e.js`) covers
+Future Machine only. Connected-universe navigation already uses a collapsed
+handle in this checkout. Main World still independently positions the build
+panel, shortcuts, graphics and scrapbook controls; explorer has no completion
+state. No model rules or simulation data change.
+
+Slice: reserve HUD lanes, put asynchronous display launchers in one scrolling
+flow toolbar, collapse explorer after both numbered actions, expose minimize
+and dismiss, and retain controls scroll after Storm. At narrow widths expanded
+build and World controls are mutually exclusive. Acceptance: hit testing and
+screenshots at 320/390/768/1280/1520/1920, expanded and collapsed explorer,
+dismissal, and unchanged Storm scroll offset. Risk: optional renderer modules
+mount late; observe child additions so their launchers join the same toolbar.
+
+Local verification: 19 tests / 94 assertions pass across first-run repairs,
+visual panels and quick-demo controller; explorer browser bundle builds;
+`git diff --check` passes. Expanded feedback suite: 25 pass / 1 fail, existing
+`world-visual-feedback.test.js` repeat-prompt lookup expects an h3 absent from
+unchanged `world/first-run-guide.js`. Six new World HUD browser tests discover
+successfully. Execution blocked before Chromium: Bun EADDRINUSE on both 39978
+and 48763, including the real Playwright webServer attempt. No measured HUD
+rectangles, screenshots, approved baselines or collision-free viewport claim.
+The next required action is a browser run on a host permitting local listen,
+visual baseline review, and regression comparison; fix any observed layout
+failures before acceptance. No merge, deployment or simulation changes.

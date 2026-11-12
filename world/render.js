@@ -981,7 +981,12 @@ if (planYearEl) {
   };
 }
 
-$("stormBtn").onclick = () => withClassicWorld(triggerStorm).catch(error => worldFeedback("error",{label:"Storm unavailable",message:error.message}));
+$("stormBtn").onclick = async () => {
+  const panel = $("top"), scrollTop = panel.scrollTop;
+  try { await withClassicWorld(triggerStorm); }
+  catch (error) { worldFeedback("error",{label:"Storm unavailable",message:error.message}); }
+  finally { panel.scrollTop = scrollTop; }
+};
 // A world embedded in the grid only needs its frozen plan, so it skips synthesizing packages.
 if (!loadedExperiment && !(embedMode && realityRunSeed)) {
   if(realityRunSeed)await loadPolicyPackages(); // Frozen reality ordering is unchanged.
