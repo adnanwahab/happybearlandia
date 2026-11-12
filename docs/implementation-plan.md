@@ -558,3 +558,14 @@ manager makes the matched-comparison guide primary and exposes live experiment
 feedback as one companion sheet under More city actions. Both guide APIs remain
 compatible. Verify unit/CI contracts and actual first-run/visual browser journeys
 before merging PR38 into main. Staging/CDN validation remains a separate blocker.
+
+PR38 integration acceptance evidence: workflow unit groups passed 91/68/8 tests
+(167 total, zero failures); focused conflict/cache/guide/catalog tests passed
+27 tests with540 assertions. First-run browser suite passed4 tests, including
+actual storm/weekly simulation and one-visible-guide selection. Desktop visual
+integration passed matched replay, injected worker failure/recovery, inspector
+and Full Demo after preserving nonblocking optional-plan refresh. The first
+pre-correction browser run exposed disabled Full Demo; its failure is retained
+in /private/tmp/hbl-pr38-visual.log. Mobile rerun and hosted browser CI are
+merge gates checked by the coordinator; their final results belong to PR38.
+No live Symphony, staging/CDN approval or deployment is part of this resolution.
