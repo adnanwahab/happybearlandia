@@ -1003,3 +1003,41 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-162 — stable population zoom
+
+Owned slice: `world/population/zoom.js`, City Deck integration, focused unit and
+browser tests. Existing Population snapshots are the authority; no cohort engine,
+worker changes or shared identity contract changes. SHE-144 (Architecture B) is
+still Todo with linked PR169; SHE-129 owns census disaggregation. This independent
+slice uses existing persistent synthetic IDs and never materializes cohort lives.
+
+Acceptance: City Deck opens a frozen Canvas2D snapshot with city/district/resident
+counts, bounded-sample deterministic ID selection, reversible continuous projection,
+reduced motion and text fallback if Canvas2D is absent. Inspect opens the existing
+resident inspector. Freeze time/seed/model provenance and distinguish represented
+weight from actually simulated residents. Tests cover ordering, missing evidence,
+projection continuity/reversibility, snapshot immutability and browser controls.
+Risk: the bounded worker sample depends on view/time; determinism is for identical
+snapshot input, not a universal representative resident. District circles are
+aggregate diagram marks, not inferred density or individual positions. WebGPU host
+entry remains disabled on unsupported hardware; this panel itself needs no GPU.
+
+Delivered local slice: integrated City Deck details panel with 900ms eased
+projection transitions and a continuous scale slider, frozen evidence, real
+resident inspection handoff, explicit unavailable values, reduced-motion handling
+and text-only Canvas-unavailable path. Provenance includes model, seed, run, tick
+and minute. No simulation state or history is created by the adapter.
+
+Verification: `bun test test/population-zoom.test.js test/population-world-view.test.js`
+passed 15 tests / 86 assertions. `git diff --check` passed. Focused Playwright test
+was authored using real worker snapshots and City Deck, including fallback and
+inspector lookup. Execution blocked before browser launch: Bun server listen
+reported EADDRINUSE on ports 3100 and 36162. Therefore before/after screenshots,
+video and browser behavior remain unverified; test requests both screenshots in
+`/private/tmp/she-162-{before,after}.png` and Playwright video when rerun.
+No project lint/typecheck scripts are defined. Review found no worker/model edits.
+This is an aggregate Canvas projection, not a main 3D camera flight or Architecture
+B implementation. Next: run the focused browser test in a host permitting local
+server binding, visually review its recordings, then adapt to verified cohort
+records once SHE-144 lands. No merge or deployment performed.
