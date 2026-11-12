@@ -1,5 +1,33 @@
 # HappyBearLandia implementation plan
 
+## SHE-46 — linkable scenario replay audit
+
+Owned slice on `mini/SHE-46`: new `test/scenario-replay.browser.config.js`,
+`test/e2e/scenario-replay-audit.e2e.js`, `test/scenario-replay-audit.test.js`, this plan entry and a focused audit
+report. No receipt-export, simulation, application or persistence interfaces change.
+SHE-9 prerequisite is recorded Done in the issue. This direct local task does
+not dispatch Symphony or change its Backlog/pilot gates.
+
+Existing overlap: `reality-share.test.js` already covers immutable API records,
+30-day expiry, manifest consistency and replay-proof rejection;
+`reality-share-flow.e2e.js` covers fresh recipients for City and Population.
+Future Machine share reliability separately covers saved/recipe replay, missing
+record fallback, boundary seeds and incompatible links. Reuse those contracts.
+
+Acceptance: create a two-future City experiment through the homepage, share the
+second actual future, reopen in an empty browser context, scrub 0/1/3 and repeat
+boundaries with exact source state/input identity. Missing, expired, incompatible
+model and altered-proof records must show meaningful failure without an entered
+state or enabled scrubber. Keep synthetic disclosure and original record intact.
+Lifecycle fixtures modify only disposable SQLite records; workers and replay
+remain real. Isolated current-checkout server/data prevent testing another branch.
+
+Verification: share API plus new boundary-seed replay suite passed 10 tests/127
+assertions. Dedicated browser run blocked before execution: local Bun server
+reported EADDRINUSE on both 39946 and 39947; no listener appeared in lsof.
+Browser assertions remain unverified. See [audit report](scenario-replay-audit.md)
+for exact commands, coverage and limits. No deployment or production-data changes.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
