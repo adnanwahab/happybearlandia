@@ -63,6 +63,8 @@ class SchedulerTest(unittest.TestCase):
         self.assertEqual(self.services.reads,1)
         self.assertFalse(results[0]['inventoryCache']['hit'])
         self.assertTrue(results[1]['inventoryCache']['hit'])
+        self.assertEqual(results[1]['scheduler']['observation_interval_seconds'],60)
+        self.assertEqual(results[1]['scheduler']['full_scan_interval_seconds'],300)
         self.assertEqual(self.services.calls,[])
 
     def test_one_cycle_respects_actual_worker_limit_and_durable_restart(self):

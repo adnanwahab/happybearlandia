@@ -231,3 +231,19 @@ represented by the pinned source patch and supplemental `lifecycle-spec.patch`.
 host owner's root/hook changes. For this installed run, observation commands must
 use `$HOME/.local/state/hbl-publisher/throughput-runtime/20261111-lifecycle-v2/WORKFLOW.md`
 as `--workflow`; do not restart from the concurrently edited shared template.
+
+The publisher owner subsequently fixed canonical CLI module identity and added an
+actual child-process regression. Its133focused tests and the full installed
+Python3.9suite214tests passed. The original live failure's safe cause was not
+retained, so it is not attributed to authentication. A read-only check using the
+publisher's exact trusted environment confirmed GitHub auth status exit0 and host
+Linear-key presence, without logging credentials. PR40 remains open/draft; no
+second live retry was performed. The repair is separately reviewable in PR42.
+
+Three actual cached-observer cycles completed: first full scan18logicalLinearreads,
+35GitHubcommands/0GitHubretries/35.660seconds; two subsequent complete-inventory
+observations were cachehits (age130.409seconds at the third). Those are avoided
+inventory scans, not measured delivery throughput. Resources/runtime were freshly
+sampled while the queue stayed held. New metrics distinguish60second observation
+interval from300second full-inventory cacheTTL. First-pass CI, issue-completion
+rates and accepted throughput remain unavailable without trustworthy outcome data.

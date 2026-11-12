@@ -561,3 +561,16 @@ If physical resource pressure persists, prove source-only publication with
 retained tested SHE121 output through hostowner; do not claim an actual running
 worker or end-to-end useful throughput absent observation. Pending independent
 readiness/user capacity prerequisites remain explicit in final report.
+
+
+Continuous-slice actual checkpoint: native makeall310/0fail/6skip and100%configured
+coverage;173standalonePython3.9tests;214installed-hosttests. Actualruntimepolicy
+nowonlycanonicalworkspace writableRoots, no implicit.gitexception. Between-turn
+terminalhandoff+hookfailurepark tested; maxturns20 installed withcap1/dualfilter.
+Unknownterminalinterferenceconfirmedbyuser: privatepinnedworkflow/runtimev2 now
+ownsdispatch. Cachedobserveravoided2of3fullscans, keepsfreshapplyauthority. Real
+retainedSHE121outputpublishedasdraft40viahostafter_run; oneexplicitlyapproved
+idempotentretryfailedexit1 andwasnotrepeated; newCLIdiagnosticfixinhostownerPR42.
+SHE83/142 pilotlabels exist butnoclaims/newmodeltokens; resource/cleanclone/25active
+ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
+No live implementation occupancy or delivery-throughput improvement claimed.

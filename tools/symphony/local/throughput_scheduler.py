@@ -244,7 +244,8 @@ def run_loop(services, config_loader, directory, current_limit, runtime_reader, 
             report['inventoryCache'] = captured.snapshot.get('inventoryCache') if isinstance(captured.snapshot, dict) else None
             report['max_workers'] = configured_limit
             report['scheduler'] = {'capacity': capacity, 'watchdog': _unique_alarms(holds + watchdog(runtime, report, resources, now=clock())),
-                                   'review_backlog': review_backlog, 'full_scan_interval_seconds': interval,
+                                   'review_backlog': review_backlog, 'observation_interval_seconds': interval,
+                                   'full_scan_interval_seconds': (report.get('inventoryCache') or {}).get('ttlSeconds', interval),
                                    'cycle_elapsed_seconds': max(0, clock() - started), 'new_grants': len(added),
                                    'apply_requested': apply, 'apply_effective': effective_apply, 'error': None}
             if added:
