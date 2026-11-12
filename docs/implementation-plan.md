@@ -1003,3 +1003,29 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Spatial neighbor lookup experiment — SHE-149 / HBL-1M-022
+
+Completed isolated headless slice on `mini/SHE-149`: hash bins and sorted tile
+bins over up to 1M position indices, independent geometric brute-force oracle,
+CLI with version/seed/machine/hash metadata, tests and measured JSON evidence.
+Prerequisite SHE-142 is Done in Linear but its scalar source is absent here;
+production/scalar snapshot adapters remain explicit follow-on work. Ownership,
+source assumptions, contracts and limitations: [benchmark report](spatial-neighbor-benchmark.md).
+
+Acceptance tasks: (1) seed-matched synthetic 0/1/10% hub snapshots; (2) lossless
+lookup, exact-radius oracle and boundary/overflow tests; (3) fresh-process build,
+query, candidate/match, runtime memory and hot-tile measurements; (4) diff review
+and integrated focused checks. Actual 18 million-index builds completed, 4,752
+oracle queries with zero mismatches, identical candidate/result hashes across
+methods/repeats. With 1% hubs median hash/sorted build 34.62/438.74ms, hub p95
+21.04/19.92µs; no universal production recommendation. Raw evidence is
+`docs/evidence/spatial-neighbors-1m.json`. Empty CLI succeeds and count above 1M
+fails before workload launch. No UI, deployment, publication or production data
+change. Final focused test evidence is recorded below after verification.
+
+Final verification: `bun test test/spatial-neighbor-index.test.js test/agent-counts.test.js`
+passed 11 tests / 7,636 assertions; `git diff --check` passed. Benchmark and oracle
+measurements above are actual executions, not estimates. Package has no lint/type
+script; no browser-facing changes, so Playwright was skipped. Source remains
+local and uncommitted for review; no commit/PR is claimed.
