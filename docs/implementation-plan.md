@@ -1003,3 +1003,32 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-125 — scenario-first onboarding harness
+
+Slice: homepage consent → equal-probability session assignment → direct demo or
+policy inspection choice → identical existing demo URL. Coordinator owns homepage,
+new isolated onboarding module and tests; no City/model interfaces change. Existing
+workspace `mini/SHE-125` is the isolated issue branch. Open PR search for onboarding,
+SHE-125 and scenario-first returned no duplicates on 2026-11-12.
+
+Acceptance: no assignment/storage before opt-in; stable assignment on reload;
+exposure recorded before any start/choice click for both arms; withdrawal erases session data;
+kill switch restores direct routing; both choices use the same demo recipe.
+Risks/limits: local session evidence only, no collection endpoint or population
+inference; consent selection limits generalization. Policy choice is an inspection
+question, not a change to the modeled intervention. Browser storage failure must
+fall back to ordinary demo. Tasks: implement harness; unit and browser verification;
+record results below. No deployment or production writes.
+
+Delivered: opt-in harness, session-stable cryptographic allocation, pre-click
+exposure deduplication, withdrawal, downloadable local JSON and markup kill switch;
+normal demo recipe/URL and all simulation code are unchanged. Documentation:
+`world/onboarding-experiment/README.md`. No independent tasks justified delegation.
+Verification: `bun test test/onboarding-experiment.test.js test/future-machine-data.test.js`
+passes (9 tests), including seed-matched model state equality across variants,
+120-month deterministic replay and persisted City API reopen. `git diff --check`
+passes. Playwright command above attempted with ports 39884 and 39925; both server
+starts failed with EADDRINUSE before browser execution. Browser routing, focus and
+layout remain unverified; rerun the focused browser suite on an available host.
+No repository lint/typecheck script is defined. No commit/PR or deployment created.

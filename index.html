@@ -69,6 +69,17 @@
     <h1>HappyBearLandia</h1>
     <p>Explore living cities, animated worlds, unusual games, and experiments in possible futures.</p>
     <p><a class="flagship-demo" href="/world/future-machine.html?demo=1">Play Demo</a> · One City, Two Futures · a reproducible housing comparison</p>
+    <div id="onboarding-experiment" data-enabled="true" hidden>
+      <label><input type="checkbox"> Join the optional onboarding experiment</label>
+      <p>Compare two ways to start the same synthetic housing demo. Assignment and interaction records stay in this tab for this session; nothing is uploaded.</p>
+      <p role="status" aria-live="polite"></p>
+      <button type="button" data-export hidden>Download session records</button>
+      <div data-choices hidden><h2>Which policy question would you inspect first?</h2>
+        <p>Both choices open the same housing policy comparison, with identical model inputs and results.</p>
+        <button type="button" data-focus="homes">How many homes can the policy add?</button>
+        <button type="button" data-focus="budget">What does the policy cost?</button>
+      </div>
+    </div>
     <nav aria-label="Explore"><a href="/world/future-machine.html">Future Machine · 10 Years, 2 Futures</a> · <a href="/tools/future-journey.html">Try Today’s Features</a> · <a href="/vote-on-patch">Vote on the next patch</a> · <a href="#explore">Explore the worlds</a> · <a href="/world/civilization/">Emergent Civilizations</a> · <a href="/world/laboratory/">Civilization Laboratory</a> · <a href="/world/invention/">City Invention Studio</a> · <a href="/world/hidden-systems/">Hidden Systems</a> · <a href="/world/learning/">Learning Civilization</a> · <a href="/world/storm/">Sculpt a Storm</a> · <a href="/world/storm/response.html">Crisis Control Room</a> · <a href="/world/connected-lives/">Connected Lives</a> · <a href="/tools/simulation-health">Simulation Health</a> · <a href="/routes">Route directory →</a></nav>
   </header>
   <section id="universe-shell" aria-label="Connected universe"></section>
@@ -214,5 +225,6 @@
   </main>
 <script src="/tools/iframe-gallery.js" defer></script>
 <script type="module" src="/world/universe/shell.js"></script>
+<script type="module" src="/world/onboarding-experiment/main.js"></script>
 </body>
 </html>
