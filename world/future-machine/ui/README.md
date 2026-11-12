@@ -45,3 +45,21 @@ Focused browser evidence is component-only: `/tmp/future-machine-ui-semantic-mob
 `onConfigure(recipe)` is additive and receives a detached configured recipe on valid seed changes or policy edits. The visible **Seed for next run** field (`data-testid="future-machine-seed"`) accepts decimal uint32 integers including 0 and 4294967295. Empty, nonnumeric, fractional, negative and out-of-range input remains visible with an error, never becomes zero, never dispatches configuration and blocks Fork City through native validity. `onRun(recipe)` receives the configured recipe, not the displayed run recipe. Busy runs disable seed editing.
 
 Pending edits survive ordinary `update` calls, including repeated old `recipe` values on timeline/inspection updates. A recipe matching valid pending configuration acknowledges it; a changed nonempty experiment ID plus an explicit recipe replaces it for a newly displayed run. The run provenance reads `provenance` or the coordinator's displayed `recipe`, never the pending seed. The coordinator owns validation/persistence and must keep saved history/share URLs tied to the actual run, supplying recipe and experiment ID when switching runs. No main/shared contract changes are included.
+
+## SHE-22 acceptance follow-up (2026-11-12)
+
+The current checkout already contains the integrated diff and interactive UI. This
+bounded follow-up uses the shared `METRIC_UNITS` export and labels both comparison
+arms **Identical starting state** at Month 0 only when an available comparison has
+zero changed entities and finite, equal measurements with zero deltas. Missing or
+divergent comparisons and later months retain the ordinary arm labels.
+
+Acceptance evidence: `bun test test/future-machine-diff.test.js test/future-machine-ui.test.js`
+passed 17 tests / 118 assertions, with one browser-gated test skipped. Seed 42's
+actual engine fixture confirms first physical divergence at Month 16: one building,
+24 homes and 1,000,000 cumulative USD. The explicit browser invocation
+`HBL_FM_BROWSER=1 bun test test/future-machine-diff.test.js test/future-machine-ui.test.js`
+failed before Chromium launch because `Bun.serve({port:0})` returned `EADDRINUSE`
+in this restricted environment. New legend assertions, mobile/keyboard interaction
+and integrated screenshots therefore remain pending browser verification; no new
+screenshot is claimed. Coordinator-owned plan and shared interfaces are unchanged.

@@ -1,7 +1,5 @@
 import {compareCityStates, metricDelta} from './core.js';
-
-// Keys and units match the coordinator's frozen future-machine.v1 contract.
-const METRIC_UNITS = Object.freeze({population:'people',households:'households',housingUnits:'homes',availableUnits:'homes',meanRent:'USD/month',unhoused:'households',employed:'workers',jobs:'jobs',businesses:'businesses',meanTravelMinutes:'minutes/link',balance:'USD',debt:'USD',capitalSpending:'USD cumulative',completedProjects:'projects'});
+import {METRIC_UNITS} from '../contracts.js';
 
 function assertMonth(month) {
   if (!Number.isInteger(month) || month < 0 || month > 120) throw new Error('Month must be an integer from 0 through 120');

@@ -200,6 +200,11 @@ export function createUI(container, callbacks = {}) {
       blink:current.mode==='plan',evidence:current.diff?{month:current.month,experimentId:current.experimentId,changedCount:current.diff.changedCount,physicalCount:current.diff.physicalCount,source:'Monthly City comparison. Select an entity for recorded evidence.'}:null,
     });
     noPhysical.textContent=current.diff ? (current.diff.available===false?'Comparison unavailable for this month.':current.diff.physicalCount===0?'No physical building or link difference recorded at this month.':'Physical changes are recorded; inspect the highlighted entities for evidence.') : '';
+    // Only describe a matched start when a complete comparison supports it.
+    const identicalStart=current.month===0 && current.diff?.available===true && current.diff.changedCount===0 && Object.values(current.diff.metrics || {}).length>0 && Object.values(current.diff.metrics).every(metric=>Number.isFinite(metric.baseline) && Number.isFinite(metric.plan) && metric.baseline===metric.plan && metric.delta===0);
+    const legends=shell.querySelector('.fm-legends');
+    legends.children[0].textContent=`WITHOUT PLAN${identicalStart?' · Identical starting state':''}`;
+    legends.children[1].textContent=`WITH PLAN${identicalStart?' · Identical starting state':''}`;
     difference.disabled=split.disabled=ghosts.disabled=!ready;difference.setAttribute('aria-pressed',String(current.mode==='difference'));split.setAttribute('aria-pressed',String(current.mode==='split'));ghosts.checked=current.ghosts;
     shareLink.hidden=!current.shareURL;
     if(current.shareURL){try{const url=new URL(current.shareURL,doc.baseURI);if(['http:','https:'].includes(url.protocol))shareLink.href=url.href;else{shareLink.removeAttribute('href');shareLink.hidden=true;}}catch{shareLink.removeAttribute('href');shareLink.hidden=true;}}

@@ -50,6 +50,14 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('Chromium controls, loading, failure, k
       ui.update({recipe:{seed:42,months:120,intervention:{type:'housing',amount:24,cost:1000000,districtId:'d1'}},status:'ready',month:0,frame:{baseline:{state:{households:[{id:'h1',savings:0}]}},plan:{state:{households:[{id:'h1',savings:3}]}}},diff:{available:true,metrics:{housingUnits:{baseline:0,plan:5,unit:'homes'},capitalSpending:{baseline:0,plan:1000000,unit:'USD cumulative'}},physicalCount:0,changedCount:1}});
     });
     expect(await page.evaluate(()=>idleDemoEnabled&&calls.some(call=>call[0]==='demo'))).toBe(true);
+    await page.evaluate(()=>ui.update({diff:{available:true,changedCount:0,physicalCount:0,metrics:{housingUnits:{baseline:24,plan:24,delta:0,unit:'homes'}}}}));
+    expect(await page.locator('.fm-legends').textContent()).toBe('WITHOUT PLAN · Identical starting stateWITH PLAN · Identical starting state');
+    await page.evaluate(()=>ui.update({diff:{available:false,changedCount:0,physicalCount:0,metrics:{housingUnits:{baseline:24,plan:null,delta:null,unit:'homes'}}}}));
+    expect(await page.locator('.fm-legends').textContent()).not.toContain('Identical');
+    await page.evaluate(()=>ui.update({diff:{available:true,changedCount:0,physicalCount:0,metrics:{housingUnits:{baseline:24,plan:24,delta:0,unit:'homes'},capitalSpending:{baseline:0,plan:1000000,delta:1000000,unit:'USD cumulative'}}}}));
+    expect(await page.locator('.fm-legends').textContent()).not.toContain('Identical');
+    await page.evaluate(()=>ui.update({month:1}));
+    expect(await page.locator('.fm-legends').textContent()).not.toContain('Identical');
     await page.getByRole('button',{name:'WHY · Homes',exact:true}).click();
     await page.getByRole('button',{name:'WHY · City spending',exact:true}).click();
     expect(await page.evaluate(()=>calls.filter(call=>call[0]==='metric').map(call=>call[1]))).toEqual(['housingUnits','capitalSpending']);
