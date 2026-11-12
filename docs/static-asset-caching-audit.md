@@ -18,8 +18,9 @@ label was added by this work.
 
 [PR #21](https://github.com/adnanwahab/happybearlandia/pull/21) adds ballot HTML and
 voting API routes in `server.js`, plus private voting storage. Its inspected diff
-does not modify `serveFile`/`serveStatic` caching. This audit does not incorporate
-those unmerged routes or certify their privacy/CDN behavior. The broad `/data`,
+does not modify `serveFile`/`serveStatic` caching. The original audit did not incorporate
+those then-unmerged routes. The current-base refresh below adds their local header
+coverage; it does not certify their privacy/CDN behavior. The broad `/data`,
 `/game`, `/tools`, `/visualizations`, `/world` serving roots remain an exposure
 boundary: never place credentials, user saves, or private operational records in
 them. Existing deny rules are route-specific, not a general public-file manifest.
@@ -187,3 +188,56 @@ this refreshed run. All other inventory category counts/bytes remain unchanged.
 `git diff --check` passed again. Staging acceptance remains unverified and no
 publication, merge into sprint, production request, or deployment was executed
 by this issue worker.
+
+
+## Current-base ballot route coverage refresh (2026-11-11)
+
+PR #21 is now merged (merge `bd2943e48053f0aa99b97a2d28e1d58a26f99fea`);
+PR #29 containing the original SHE-43 audit is also merged (merge
+`3fb9652f83d49e2d39d55aee7b31b6593f8c5849`). On current source
+`0d5a529290773d66f293e624bdbf408d07970d2a`, the fixed probe list omitted
+the new ballot page and supported read-only voting endpoint. This scoped refresh
+adds `/vote-on-patch` and `/api/patch-votes` to the collector and regressions,
+without changing voting, server policies, CDN, CI, or runtime configuration.
+
+The regenerated receipt is the current local evidence. At
+`2026-11-12T04:26:55.673Z`, **36 GET/HEAD measurements** matched their expected
+statuses with no request errors. `/vote-on-patch` returns 200 and `no-cache` for
+both methods. `/api/patch-votes` returns GET 200 and HEAD 404, both `no-store`;
+HEAD 404 is the existing handler contract, not an assumed successful method.
+The collector records selected headers and body hashes, never cookie/token values
+or response bodies. Tests confirm neither the source city store nor the source
+private voting store changes; all new local stores live in the disposable export.
+
+The credential-stripped scoped command above passed **13 tests, 0 failures,
+235 assertions, 2.37 seconds**, including real server/release-health integration.
+The standalone local collector exited zero, and its SHA-256 matches the receipt's
+`auditToolSha256`. The receipt exports application source at the base SHA above;
+it cannot self-reference the commit containing its own bytes. Earlier 32-request
+receipts and PR-overlap notes above are historical evidence. Existing missing
+static/error cache-policy findings remain observations, not fixes in this scope.
+
+**Staging remains blocked:** no approved staging origin/app or candidate build
+was supplied. No staging/production measurement, deploy, runtime ownership change,
+or external publication was performed by this worker. The next external action
+is operator approval of the staging target/build and the bounded checks described
+above; this local refresh does not close staging acceptance.
+
+
+## Coordinator current-base verification before draft publication
+
+The host publisher stopped before push when the remote sprint advanced to
+`33e84c3bba954173dcf3f08c17ac6721a6f141dc`. The dedicated issue branch incorporated
+that base through a lossless local merge `0d126fa5b619fe7b038c04db1c710da4ba6855b9`;
+original candidate `3491cd152d7eb78f71014b7624a5c1afbdea275e` is retained.
+The incoming scheduler/workpad paths do not overlap the four audit-owned files.
+No PR or integration branch was merged by this coordinator.
+
+On the combined source, the independent seven-file release/health/dependency/
+backend/cache/server/voting-server command passed **35 tests, 0 failures, one
+existing opt-in browser skip, 349 assertions**, 2.34 seconds. Exact command:
+`bun test test/release-operations-dry-run.test.js test/release-health.test.js test/dependency-browser-audit.test.js test/future-machine-backend.test.js test/static-asset-cache-audit.test.js test/server.test.js test/patch-voting-server.test.js`.
+The refreshed collector exited0 at `2026-11-12T04:29:48.331Z` with36 expected-status
+local measurements and a matching tool hash. The committed receipt records the
+exported source merge SHA above. Staging remains explicitly unverified; no
+production, CDN, live runtime or approval-label changes occurred.
