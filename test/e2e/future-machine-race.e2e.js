@@ -63,3 +63,35 @@ test('cancel/restart keeps latest actual pair and blocks stale demo continuation
  console.log('RACE_EVIDENCE',evidencePath);
  expect(errors).toEqual([]);
 });
+
+test('slow demo supports pause → resume → restart → manual without stale autoplay',async({page},testInfo)=>{
+ await page.goto('/world/future-machine.html?renderer=canvas2d');
+ const gate=await holdNextReplay(page);
+ try{
+  await page.getByRole('button',{name:'Play Demo',exact:true}).click();await gate.seen;
+  await page.getByRole('button',{name:'Pause demo',exact:true}).click();
+  expect(await page.evaluate(()=>window.futureMachine.state.demo)).toMatchObject({status:'preparing',paused:true});
+  await gate.release();await ready(page);
+  expect(await page.evaluate(()=>window.futureMachine.state.demo)).toMatchObject({status:'playing',paused:true,elapsedMs:0});
+  await page.getByRole('button',{name:'Resume demo',exact:true}).click();
+  await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.demo.elapsedMs)).toBeGreaterThan(0);
+  await page.getByRole('button',{name:'Restart Demo',exact:true}).click();
+  await page.getByRole('button',{name:'Take manual control',exact:true}).click();
+  await seek(page,37);await page.waitForTimeout(4600);
+  expect(await page.evaluate(()=>window.futureMachine.state.demo.status)).toBe('manual');
+  expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(37);
+  await page.screenshot({path:testInfo.outputPath('manual-takeover.png'),fullPage:true});
+  // Restart with a different configured pair forces another real asynchronous load.
+  await page.getByRole('combobox',{name:'Plan',exact:true}).selectOption('baseline');
+  await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);
+  const next=await holdNextReplay(page);
+  try{
+   await page.getByRole('button',{name:'Play Demo',exact:true}).click();await next.seen;
+   await page.getByRole('button',{name:'Restart Demo',exact:true}).click();
+   await page.getByRole('button',{name:'Take manual control',exact:true}).click();
+   await next.release();await ready(page);await seek(page,19);await page.waitForTimeout(4600);
+   expect(await page.evaluate(()=>window.futureMachine.state.demo.status)).toBe('manual');
+   expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(19);
+  }finally{await next.release();}
+ }finally{await gate.release();}
+});

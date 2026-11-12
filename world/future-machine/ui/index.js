@@ -157,7 +157,8 @@ export function createUI(container, callbacks = {}) {
   const demo=doc.createElement('button');demo.type='button';demo.className='fm-primary fm-demo-play';demo.textContent='Play Demo';demo.dataset.testid='future-machine-demo';demo.onclick=()=>callbacks.onDemo?.();
   const demoPause=doc.createElement('button');demoPause.type='button';demoPause.textContent='Pause demo';demoPause.onclick=()=>callbacks.onDemoPause?.();demoPause.hidden=true;
   const demoCaption=doc.createElement('p');demoCaption.className='fm-demo-caption';demoCaption.setAttribute('role','status');demoCaption.textContent='A guided 45–60 second comparison. Pause anytime to explore.';
-  demoPanel.append(demo,demoPause,demoCaption);shell.querySelector('.fm-header').after(demoPanel);
+  const demoManual=doc.createElement('button');demoManual.type='button';demoManual.textContent='Take manual control';demoManual.onclick=()=>callbacks.onDemoManual?.();demoManual.hidden=true;
+  demoPanel.append(demo,demoPause,demoManual,demoCaption);shell.querySelector('.fm-header').after(demoPanel);
   const runProvenance=doc.createElement('p');runProvenance.className='fm-run-provenance';runProvenance.setAttribute('aria-label','Simulation provenance');shell.querySelector('.fm-comparison').before(runProvenance);
   const difference=doc.createElement('button');difference.type='button';difference.textContent='Difference-only';difference.onclick=()=>callbacks.onMode?.('difference');actions.append(difference);
   const split=doc.createElement('button');split.type='button';split.textContent='Side by side';split.onclick=()=>callbacks.onMode?.('split');actions.append(split);
@@ -178,8 +179,9 @@ export function createUI(container, callbacks = {}) {
     const busy=['loading','running','queued'].includes(current.status);seedInput.disabled=busy;
     const demoState=current.demo || {};
     const demoActive=['playing','running','paused','preparing','loading'].includes(demoState.status);
-    demo.disabled=busy || !callbacks.onDemo;demo.textContent=demoActive?'Restart Demo':'Play Demo';
-    demoPause.hidden=!demoActive;demoPause.disabled=busy || !callbacks.onDemoPause;demoPause.textContent=demoState.paused?'Resume demo':'Pause demo';demoPause.setAttribute('aria-pressed',String(!!demoState.paused));
+    demo.disabled=!callbacks.onDemo;demo.textContent=demoActive?'Restart Demo':'Play Demo';
+    demoPause.hidden=!demoActive;demoPause.disabled=!callbacks.onDemoPause;demoPause.textContent=demoState.paused?'Resume demo':'Pause demo';demoPause.setAttribute('aria-pressed',String(!!demoState.paused));
+    demoManual.hidden=!demoActive;demoManual.disabled=!callbacks.onDemoManual;
     demoCaption.textContent=demoState.caption || (demoState.status==='complete'?'Demo complete. Scrub the timeline or select a result to explore.':'A guided 45–60 second comparison. Pause anytime to explore.');
     if(Number.isFinite(demoState.elapsedMs))demoCaption.textContent+=` · ${Math.floor(Math.max(0,demoState.elapsedMs)/1000)}s`;
     const provenance=current.provenance || {};
@@ -204,5 +206,5 @@ export function createUI(container, callbacks = {}) {
     shareLink.hidden=!current.shareURL;
     if(current.shareURL){try{const url=new URL(current.shareURL,doc.baseURI);if(['http:','https:'].includes(url.protocol))shareLink.href=url.href;else{shareLink.removeAttribute('href');shareLink.hidden=true;}}catch{shareLink.removeAttribute('href');shareLink.hidden=true;}}
   }
-  return {stageElement:view.stage,storyElement,update,dispose(){seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
+  return {stageElement:view.stage,storyElement,update,dispose(){seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;demoManual.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
 }

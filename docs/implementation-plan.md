@@ -1003,3 +1003,38 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-17 — predictable 50-second tour interruption
+
+Scope/ownership: Future Machine demo-controller.js, main.js, ui/index.js and
+ui/README.md; focused controller and race-browser tests/config; this plan entry.
+Single integrated slice; no delegation or shared model/API changes. Baseline
+already implements the 50-second clock, recorded-month playback, pause/resume,
+restart and some generation guards (including prior cancel/restart race tests).
+The prerequisite paired-run/data infrastructure is present; tracker dispatch
+labels/status were not changed and no separate dependency delivery is claimed.
+
+Delivered: explicit preparing/paused/manual captions; pause intent survives
+async preparation; restart remains available during loading and supersedes older
+requests; explicit manual takeover plus existing navigation invalidates pending
+autoplay. Restart resets month and pause intent. Failure returns to idle demo
+controls. Computation can complete after takeover, but cannot resume the tour.
+Simulation results, recipes, provenance and synthetic disclaimers are untouched.
+
+Acceptance/checks (2026-11-12):
+- `bun test test/two-futures-demo-controller.test.js test/future-machine-ui.test.js`:
+  9 passed, 1 browser-gated skip, 60 assertions.
+- Added actual-API slow-response click sequence play→pause→resume→restart→manual,
+  plus restart/manual during a second held load; screenshot capture is in that
+  test. Existing real-pair cancel/restart regression retained.
+- `bunx playwright test --config test/future-machine-race.browser.config.js`:
+  blocked before tests by Bun listener EADDRINUSE on port 39919.
+- `HBL_FM_RACE_PORT=39927 bunx playwright test --config test/future-machine-race.browser.config.js`:
+  same server startup blocker. Config now supports an alternate port.
+- `HBL_FM_BROWSER=1 bun test test/future-machine-ui.test.js`: 6 passed,
+  browser test failed at Bun.serve port 0 with EADDRINUSE, before launching Chromium.
+  No screenshot or successful browser journey claimed. No lint/typecheck scripts.
+- `git diff --check` passed. No commit/PR, merge, deployment or tracker dispatch.
+Remaining: run the focused race browser suite on a host that permits the local
+listener and review its actual-run manual-takeover screenshot.
+- Final combined regression command: `bun test test/two-futures-demo-controller.test.js test/future-machine-ui.test.js test/future-machine-data.test.js test/future-machine-diff.test.js` passed 25 tests / 178 assertions, with 1 browser-gated skip. Includes deterministic paired history, real in-process City API persistence/replay, cancellation/error paths and Month 16 physical divergence.
