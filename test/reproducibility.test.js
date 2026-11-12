@@ -22,3 +22,8 @@ describe("model registry and reproducibility", () => {
     expect(modelCompatibility(saved, current).compatible).toBe(false);
   });
 });
+
+test("fingerprints survive JSON persistence of optional fields", () => {
+  const input = { a: undefined, b: [{ c: undefined, d: 2 }, undefined] };
+  expect(fingerprint(input)).toBe(fingerprint(JSON.parse(JSON.stringify(input))));
+});

@@ -1003,3 +1003,42 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Experiment Registry — SHE-184
+
+Implemented Civic batch slice: extend the Civic Experiment Lab's saved records and existing
+reproducibility manifest, rather than introducing another simulation runner.
+Prerequisites are the versioned civic model, deterministic world generator,
+IndexedDB records and immutable server snapshot store already in this checkout.
+
+Tasks: capture research metadata and source inputs; expose hypothesis/model/
+intervention filters in the Lab and persistence API; rerun saved built-in civic
+batches against their stored hashes; label result provenance in registry,
+inspection and exports. Acceptance includes durable round-trip replay, changed
+results and unsupported versions failing explicitly, combined filters, and a
+browser save/filter/reopen/replay journey. Legacy snapshots remain readable and
+missing provenance is explicitly unknown. External adapters and other simulation
+clocks require their own replay adapters; a recorded snapshot alone is not a
+verified recomputation. Code release identifiers are retained alongside an
+optional supplied Git revision; unavailable revisions must stay explicit.
+
+Implemented: Civic Lab batch auto-recording, editable research metadata,
+composed local/API filters, inspection and stored-result replay, labeled
+registry/lineage/export projections, and JSON-stable reproducibility hashing.
+Records now include content in their identity so changed metadata or results
+cannot silently reuse the same ID. See [registry contract](experiment-registry.md).
+
+Acceptance evidence: 34 focused Bun tests passed across registry, records,
+reproducibility, persistence/API wiring, adapters, contract, verification, audit
+and Pensieve handoff suites. Browser bundle builds (38 modules); `git diff
+--check` passes. The focused Playwright journey is included as source but its
+execution is blocked here: Bun cannot bind even an ephemeral loopback port
+(`EADDRINUSE`), so browser save/reload rendering remains unverified. No package
+lint or typecheck command exists. No deployment or production changes performed.
+
+Remaining scope: other engines and live-slider previews are not automatically
+registered by this Civic batch slice. External or historical adapter execution
+needs a version-specific adapter. Measured imports retain declared provenance,
+but observation ingestion/validation is not supplied by this slice. Next action:
+run the retained browser journey in a host that permits local listeners before
+extending automatic registration to additional simulation authorities.

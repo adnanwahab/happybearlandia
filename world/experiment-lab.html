@@ -68,6 +68,7 @@
 </head>
 <body>
 <main>
+  <p class="notice" id="result-provenance" role="status">Synthetic model results · exploratory, not measured observations.</p>
   <header>
     <div><h2>Pensieve · HappyBearLandia</h2><h1>Civic Experiment Lab</h1></div>
     <div class="notice">journal → plan → assumptions → futures → critique → revision</div>
@@ -197,6 +198,19 @@
       <button id="load-latest-experiment">Load latest</button>
       <button id="copy-experiment-link" disabled>Copy record link</button>
     </div>
+    <label>Hypothesis <input id="registry-hypothesis" aria-label="Hypothesis"></label>
+    <label>Intended use <input id="registry-use" aria-label="Intended use" value="Explore model behavior; not an empirical forecast."></label>
+    <label>Evaluation criteria <textarea id="registry-criteria" aria-label="Evaluation criteria" placeholder="Metric directions and thresholds"></textarea></label>
+    <h3>Experiment Registry</h3>
+    <p class="notice">Completed simulation batches are recorded automatically in this browser. Filter saved results, inspect a snapshot, and verify a recomputation against its stored evidence.</p>
+    <label>Hypothesis filter <input id="filter-hypothesis"></label>
+    <label>Model version filter <input id="filter-model" placeholder="Exact adapter version"></label>
+    <label>Intervention filter <input id="filter-intervention"></label>
+    <button id="search-registry">Search registry</button>
+    <div id="registry-results"></div>
+    <button id="replay-record" disabled>Verify stored replay</button>
+    <p id="registry-provenance" class="notice">Unknown result provenance</p>
+    <pre id="registry-detail">No record selected.</pre>
     <div id="record-status" class="status">No saved snapshot loaded.</div>
     <pre id="lineage-output">[]</pre>
   </section>

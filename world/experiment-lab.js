@@ -1,3 +1,4 @@
+import { experimentRegistryEntry, replayExperimentRecord } from "./experiment-registry.js";
 import { recordContext } from './decision/continuity.js';
 import { mountContinuity } from './decision/continuity-view.js';
 import { createInspectorState, formatVariableValue, renderAssumptionInspector } from "./assumption-inspector.js";
@@ -190,6 +191,9 @@ function extractExperiment(payload, request = {}) {
 
 function renderExperiment(experiment, provenance = null, initialOverrides = {}) {
   state.experiment = experiment;
+  $("#registry-use").value = "Explore model behavior; not an empirical forecast.";
+  $("#registry-hypothesis").value = experiment.plan?.summary || experiment.plan?.title || "";
+  $("#registry-criteria").value = JSON.stringify(experiment.outcomes?.metricRegistry || [], null, 2);
   updateContinuity();
   const variables = experiment.worldModel?.variables || [];
   const causalEdges = experiment.worldModel?.causalEdges || [];
@@ -572,6 +576,7 @@ runSimulationsButton.addEventListener("click", async () => {
       },
     });
     renderSimulationBatch(state.simulationBatch);
+    await persistCurrentExperiment();
   } catch (error) {
     simulationSummary.textContent = error.message;
   } finally {
@@ -634,6 +639,11 @@ async function restoreRecord(record) {
   state.parentRecordId = record.lineage?.parentRecordId || null;
   renderExperiment(record.experiment, { source: "saved-record", warning: null }, record.overrides || {});
   state.recordId = record.id;
+  const entry = experimentRegistryEntry(record);
+  $("#registry-hypothesis").value = entry.hypothesis;
+  $("#registry-use").value = entry.intendedUse;
+  $("#registry-criteria").value = typeof entry.evaluationCriteria === 'string' ? entry.evaluationCriteria : JSON.stringify(entry.evaluationCriteria, null, 2);
+  showRegistryRecord(record);
   state.parentRecordId = record.lineage?.parentRecordId || null;
   state.worldBatch = record.worldBatch || null;
   if (state.worldBatch) {
@@ -657,12 +667,17 @@ async function restoreRecord(record) {
   await refreshLineageOutput(record.id);
 }
 
-saveExperimentButton.addEventListener("click", async () => {
+async function persistCurrentExperiment() {
   if (!state.experiment) return;
   saveExperimentButton.disabled = true;
   try {
     const record = createExperimentRecord({
       experiment: state.experiment,
+      registry: {
+        hypothesis: $("#registry-hypothesis").value.trim(),
+        intendedUse: $("#registry-use").value.trim(),
+        evaluationCriteria: $("#registry-criteria").value.trim(),
+      },
       overrides: state.overrides,
       worldBatch: state.worldBatch,
       simulationBatch: state.simulationBatch,
@@ -683,13 +698,16 @@ saveExperimentButton.addEventListener("click", async () => {
     const url = new URL(location.href);
     url.searchParams.set("experiment", record.id);
     history.replaceState(null, "", url);
+    showRegistryRecord(record);
+    await searchRegistry();
     await refreshLineageOutput(record.id);
   } catch (error) {
     recordStatus.textContent = `Save failed: ${error?.message || error}`;
   } finally {
     saveExperimentButton.disabled = false;
   }
-});
+}
+saveExperimentButton.addEventListener("click", persistCurrentExperiment);
 
 loadLatestExperimentButton.addEventListener("click", async () => {
   try {
@@ -738,6 +756,11 @@ copyExperimentLinkButton.addEventListener("click", async () => {
 function currentPensieveRecord() {
   return createExperimentRecord({
     experiment: state.experiment,
+    registry: {
+      hypothesis: $("#registry-hypothesis").value.trim(),
+      intendedUse: $("#registry-use").value.trim(),
+      evaluationCriteria: $("#registry-criteria").value.trim(),
+    },
     overrides: state.overrides,
     worldBatch: state.worldBatch,
     simulationBatch: state.simulationBatch,
@@ -859,3 +882,40 @@ async function testImprovement(improvement, button) {
     button.disabled = false;
   }
 }
+
+let selectedRegistryRecord = null;
+function showRegistryRecord(record) {
+  selectedRegistryRecord = record;
+  const entry = experimentRegistryEntry(record);
+  $("#registry-detail").textContent = JSON.stringify(entry, null, 2);
+  $("#registry-provenance").textContent = entry.resultLabel;
+  $("#replay-record").disabled = !record.simulationBatch;
+}
+async function searchRegistry() {
+  const rows = await listExperimentRecords(100, { filters: {
+    hypothesis: $("#filter-hypothesis").value,
+    modelVersion: $("#filter-model").value.trim(),
+    intervention: $("#filter-intervention").value,
+  } });
+  const container = $("#registry-results");
+  container.replaceChildren();
+  if (!rows.length) container.textContent = 'No matching records.';
+  for (const record of rows) {
+    const entry = experimentRegistryEntry(record);
+    const button = document.createElement('button');
+    button.textContent = `${entry.resultLabel} · ${entry.hypothesis} · ${entry.modelVersion || 'unknown model'} · ${record.savedAt}`;
+    button.addEventListener('click', () => restoreRecord(record).catch(error => { recordStatus.textContent = error.message; }));
+    container.append(button);
+  }
+}
+$("#search-registry").addEventListener('click', () => searchRegistry().catch(error => { recordStatus.textContent = error.message; }));
+$("#replay-record").addEventListener('click', async () => {
+  $("#replay-record").disabled = true;
+  recordStatus.textContent = 'Recomputing stored experiment…';
+  try {
+    const report = await replayExperimentRecord(selectedRegistryRecord);
+    recordStatus.textContent = report.exact ? 'Verified: stored worlds and results match recomputation · Synthetic model results' : 'Replay mismatch: stored evidence differs';
+  } catch (error) { recordStatus.textContent = `Replay unavailable: ${error.message}`; }
+  finally { $("#replay-record").disabled = false; }
+});
+searchRegistry().catch(error => { recordStatus.textContent = `Registry unavailable: ${error.message}`; });
