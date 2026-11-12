@@ -458,3 +458,26 @@ installed-host93pass. SHE-126/127/180 reconciliation comments link the draft and
 retain incomplete status. Live pilot and recurring scheduler remain held by
 specific readiness reservations, not silently enabled. Full JSON reports are
 atomically written mode600; publication excludes raw issue comments/descriptions.
+
+
+## Host workpad oversized-update retry-loop repair
+
+Observed42,212-character handoff against40,000-character contract could fail both
+host phases repeatedly without parking. The repair durably preserves exact raw
+JSON, keeps original pending/publisher/history/implementation untouched, removes
+only pilot approval, appends a bounded truthful rejection receipt and returns
+nonzero before publication. A concurrent replacement guard avoids acting on a
+superseded request; retries reuse archive/receipt. No workflow/scheduler, issue
+source, live handoff or publisher-policy edit. Existing publisher runtime is
+versioned unchanged solely as the workpad dependency missing from the repository.
+
+Focused35tests and installed-host106tests passed, including fresh-process shell
+short-circuit, exact40000/40001 boundary,42,212 Unicode/format-preservation,
+API/write/interruption/retry, pressure-label preservation and no lost history.
+Earlier unrelated exact-label assertion failure retained and resolved separately
+by runtime owner. No live issue mutation, recovery command or agent launch here.
+Acceptance/evidence and operator recovery: docs/symphony-workpad-oversize-repair.md.
+
+Fresh clean-package gate:92tests passed; latest installed-host164passed
+(other owners expanded the suite after the earlier106-test pass). Private readback
+`/private/tmp/hbl-workpad-oversize-repair/`; no live hook invocation/issue mutation.
