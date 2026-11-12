@@ -609,3 +609,8 @@ Initial unsafe-software-WebGPU device loss and superseded cleanup/mobile runs
 are retained under /private/tmp/hbl-gi-*.log; failures were fixed/rechecked, not
 waived. No Safari, performance/FPS, path tracing or offscreen-light claim.
 No Symphony activation, automatic merge or deployment. Review through draft PR.
+
+Hosted acceptance caught the narrow saved-future return link beneath the new
+button. Saved-future navigation now reserves its top area while GI stays at the
+bottom; the existing saved Canvas/graphics-error return tests both passed locally
+(2/2,11.1seconds) without changing their assertions. Fresh hosted CI gates review.
