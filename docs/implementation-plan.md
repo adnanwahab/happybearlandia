@@ -1003,3 +1003,22 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-144 — Architecture B cohort spike (readiness audit, 2026-11-12)
+
+Status: implementation pending prerequisite source and runner availability.
+[Audit and next slice](hierarchical-cohort-spike.md) records the isolated
+`mini/SHE-144` worktree, source/PR evidence, scope and acceptance contract.
+SHE-142 is Done in Linear and links PR #50, but its scalar oracle is absent from
+this checkout; structured blocker SHE-171 remains Todo. The existing SHE-141
+energy fixture cannot substitute for movement/household/policy equivalence.
+No replacement rules or million-agent performance claims were introduced.
+
+Next tasks: synchronize reviewed prerequisite source, resolve runner dependency,
+implement weighted hierarchy and seeded inspection adapter, compare distribution
+moments against the actual CPU oracle, and measure mass conservation and zoom
+reversibility. Principal risks are loss of compression under exact contact rules,
+approximation error, double-counted parent/child mass and inspection-dependent
+state. Acceptance evidence remains outstanding. Existing metric tests passed
+8/8 (266 assertions); no browser behavior changed. No commit/PR, dispatch,
+merge or deployment performed for this audit.
