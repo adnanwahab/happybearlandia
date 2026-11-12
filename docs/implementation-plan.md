@@ -1003,3 +1003,37 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## One-minute city challenge — SHE-140
+
+Next slice: extend the existing Living City commute entry point with Begin,
+policy/run, recorded-event inspection and successful receipt-copy milestones.
+SHE-141 is Done (PR34); use its honest bounded-model semantics. Linear overlap
+SHE-131/SHE-118 covers broader allocation/cards. GitHub issue search returned
+no matches; PR search found earlier guided journeys in PR4 and Living City
+entry-point/smoke coverage in PR8. Extend that existing journey rather than
+introducing another simulation. Reuse living-city-commute.v1 recipes and City engine unchanged.
+Exclusive scope: Living City page/markup, focused browser test, this plan.
+Acceptance: one-click begin, no click-only run completion, actual event evidence,
+fresh browser replay of identical version/seed/policy/pair and event. Changing
+policy or pair invalidates later milestones. No million-agent or calibrated
+forecast claims. Risk: clipboard denial must leave a usable manual-copy path
+without falsely claiming completion. Browser timing is a target, not a deadline.
+
+Implemented increment: Begin focuses the policy control; successful worker replay,
+opening a real recorded event, and successful receipt copy advance the guide.
+Policy/pair changes clear later evidence; failed clipboard writes expose the
+manual-copy link without claiming completion. Event evidence includes scenario
+and model versions, scenario and pair seeds, horizon, start month and arm.
+The existing versioned recipe remains the replay authority, with no model changes.
+
+Verification (2026-11-12): `bun test test/living-city-*.test.js` passed 11 tests,
+101 assertions, including 100-pair exact model replay. JavaScript syntax checks
+and `git diff --check` passed. Focused Playwright coverage was added for guided
+completion, fresh-context identical event/measurements, pair/policy invalidation,
+clipboard denial, and comparison failure/retry. It remains unexecuted: the normal
+runner hit an uninitialized local Bun package; a temporary config using installed
+Bun then failed server listen with EADDRINUSE, including a separate PORT=0 probe.
+Temporary config removed. Next: run the two focused Living City browser suites
+in an environment allowing server listen, then dispatch review. No merge or
+deployment performed; one-minute usability timing has not been measured.
