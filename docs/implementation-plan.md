@@ -1003,3 +1003,32 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-173 — bounded renderer readback (review candidate)
+
+Audit: clean issue workspace; City GPUProfiler already uses asynchronous Three.js
+readback with one pending request, but retries at animation cadence and repeats
+cached GPU values in percentile exports. No recurring simulation snapshot transfer
+exists; storm GPU frames are a bounded per-run asynchronous transfer. No matching
+readback PR found in connected GitHub search. Core CI lacks renderer unit coverage.
+Smallest integrated slice: throttle existing timing readback, retain request frame
+and completion timestamps, suppress stale/duplicate statistical samples, expose
+readback on/off and reuse the scripted camera benchmark. No simulation model,
+seed, run authority or checkpoint contract changes. Acceptance: deferred, rejected,
+synchronous-throw, unsupported and disposed requests tested; frame p95 compared
+on/off with device/browser metadata. Actual GPU numbers require a supported device;
+software fallback cannot certify hardware performance. No merge or deployment.
+
+Delivered: one 250-ms request slot, generation-safe toggling/disposal, timestamped
+transfer observations, once-per-transfer GPU statistics, normal host API and URL
+A/B controls, frame-p95 benchmark comparison, focused CI coverage. Installed
+Three.js 0.186 source audit confirmed bounded query pool/last-frame result and
+backend trackTimestamp control; internal failures may return cached values, so
+transfer provenance explicitly does not assert exact source capture time.
+Verification: 30 tests passed / 527 assertions across GPU readback, renderer
+performance, procedural geometry and building renderer. No lint/typecheck scripts
+are configured. Browser smoke was attempted: default runner hit local Bun shim
+postinstall failure; absolute Bun retry failed server listen on both 3198 and
+39173 (EADDRINUSE). Temporary config removed. Browser smoke and actual readback
+on/off p95 numbers remain unverified; this is a review candidate, with hardware
+benchmark acceptance pending. No performance gain, publication or deployment claim.

@@ -44,6 +44,8 @@ jobs:
           test/patch-voting-server.test.js
           test/world-database-path.test.js
           test/overpass-diagnostics.test.js
+      - name: Verify bounded asynchronous renderer readback
+        run: bun test test/gpu-readback.test.js test/render-performance.test.js
       - name: Verify finite agent-count exports and transition evidence
         run: bun test test/agent-counts.test.js
       - name: Verify manifest preflight and replay cancellation regressions

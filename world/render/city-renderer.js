@@ -18,6 +18,8 @@ import { createCityDetails } from './environment/city-details.js';
 export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,facades=[],geometryCache,embed=false}) {
   const params=new URLSearchParams(location.search), quality=new QualityManager(params.get('quality')?.toUpperCase() in PRESETS?params.get('quality').toUpperCase():'BALANCED');
   const stats=new RenderStats(), gpu=new GPUProfiler(renderer), visibility=new CityVisibility(town.buildings), details=createCityDetails(scene,town);
+  gpu.setEnabled(params.get('readback') !== 'off');
+  let consumedGPU = null;
   const geometryDebug=new GeometryDebug(town.buildings), geometryDetail=geometryCache?new GeometryDetailManager(town.buildings,geometryCache):null;
   const grass=createGrass(scene,town),detailAssets=new DetailAssetLibrary(scene);
   const environment=createEnvironmentLight(renderer,scene);
@@ -78,8 +80,9 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
     get cutawayEnabled(){return cutaway.enabled;},
     pickVehicle(raycaster){return details.pickVehicle?.(raycaster)||null;},
     getVehicle(id){return details.getVehicle?.(id)||null;},
-    getPerformanceStats(){return {...cached,backend:mode,quality:quality.preset,settings:quality.settings,features:{...features},geometryError:geometryDetail?.error,recording:!!stats.recording,lastBenchmark:stats.lastReport};},
-    startBenchmark({scripted=false}={}){benchmarkStart=scripted?performance.now():null;stats.start(performance.now(),{backend:mode,preset:quality.preset,features:{...features},url:location.href,userAgent:navigator.userAgent,viewport:[innerWidth,innerHeight],devicePixelRatio,adaptive:false,settings:quality.settings,geometryDetail:geometryDetail?.quality,scripted});},
+    setReadbackEnabled(enabled){gpu.setEnabled(enabled);},
+    getPerformanceStats(){return {...cached,readback:gpu.getSnapshot(),backend:mode,quality:quality.preset,settings:quality.settings,features:{...features},geometryError:geometryDetail?.error,recording:!!stats.recording,lastBenchmark:stats.lastReport};},
+    startBenchmark({scripted=false}={}){benchmarkStart=scripted?performance.now():null;stats.start(performance.now(),{readback:gpu.getSnapshot(),backend:mode,preset:quality.preset,features:{...features},url:location.href,userAgent:navigator.userAgent,viewport:[innerWidth,innerHeight],devicePixelRatio,adaptive:false,settings:quality.settings,geometryDetail:geometryDetail?.quality,scripted});},
     focusBuilding(id){const b=town.buildings.find(b=>String(b.id)===String(id)||b.index===id);if(!b)return false;state.selectedBuilding=b.id;focus={target:new THREE.Vector3(b.center[0],b.height/2,b.center[1]),position:new THREE.Vector3(b.center[0]+b.height*1.8+35,b.height*1.5+30,b.center[1]+b.height*1.8+35)};return true;},
     focusDistrict({x=0,z=0,radius=250}={}){focus={target:new THREE.Vector3(x,0,z),position:new THREE.Vector3(x+radius,radius,z+radius)};},
     enterCity(){active=true;renderer.domElement.style.visibility='';},
@@ -107,18 +110,21 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
       return active;
     },
     afterFrame(now,cpuMs,frameMs){
-      if(disposed)return;frameIndex++;gpu.sample();
+      if(disposed)return;frameIndex++;gpu.sample(now,frameIndex);
+      const readback=gpu.getSnapshot(now), latest=readback.latest;
+      const fresh=latest && latest.requestedAt!==consumedGPU && (!stats.recording || latest.requestedAt>=stats.recording.start);
+      if(latest)consumedGPU=latest.requestedAt;
       const info=renderer.info;
-      const sample={frameMs,cpuMs,gpuMs:gpu.ms,drawCalls:info.render.drawCalls,triangles:info.render.triangles,textures:info.memory.textures,textureBytes:null,renderInstances,...visible};
+      const sample={frameMs,cpuMs,gpuMs:fresh?latest.ms:null,gpuReadback:readback,drawCalls:info.render.drawCalls,triangles:info.render.triangles,textures:info.memory.textures,textureBytes:null,renderInstances,...visible};
       stats.push(sample,now);
       if(document.visibilityState!=='hidden'&&adaptiveEnabled&&!photoPreset&&!stats.recording&&quality.sample(frameMs,gpu.ms,cpuMs))applyQuality();
       if(now-lastOverlay>250){lastOverlay=now;renderInstances=0;scene.traverseVisible(object=>{if(object.isInstancedMesh)renderInstances+=object.count;});cached=stats.current;
-        if(!panel.hidden){const n=v=>v==null?'unavailable':v.toFixed(2);panel.querySelector('pre').textContent=`${mode.toUpperCase()} · ${quality.preset}\nFPS ${n(cached.fps)} · 1% low ${n(cached.onePercentLowFps)}\nCPU ${n(cpuMs)} ms · GPU ${n(gpu.ms)} ms\nFrame p95 ${n(cached.p95FrameMs)} ms\nDraws ${sample.drawCalls} · triangles ${sample.triangles}\nTextures ${sample.textures} · texture bytes unavailable\nInstances ${renderInstances} · HLOD ${visible.instances}\nChunks ${visible.visibleChunks} · buildings ${visible.visibleObjects}\nShadow casters ${visible.shadowCasters}\nGeometry ${(geometryDebug.stats.bytes/1048576).toFixed(1)} MiB · LOD ${geometryDebug.stats.lodCounts.join("/")}\nGrass ${grass.getStats().blades} blades · ${grass.getStats().drawCalls} draw\nScale ${quality.settings.scale.toFixed(2)} · slow frames ${cached.slowFrames}`;
+        if(!panel.hidden){const n=v=>v==null?'unavailable':v.toFixed(2);panel.querySelector('pre').textContent=`${mode.toUpperCase()} · ${quality.preset}\nFPS ${n(cached.fps)} · 1% low ${n(cached.onePercentLowFps)}\nCPU ${n(cpuMs)} ms · GPU latest ${n(gpu.ms)} ms · age ${n(readback.latest?.ageMs)} ms\nFrame p95 ${n(cached.p95FrameMs)} ms\nDraws ${sample.drawCalls} · triangles ${sample.triangles}\nTextures ${sample.textures} · texture bytes unavailable\nInstances ${renderInstances} · HLOD ${visible.instances}\nChunks ${visible.visibleChunks} · buildings ${visible.visibleObjects}\nShadow casters ${visible.shadowCasters}\nGeometry ${(geometryDebug.stats.bytes/1048576).toFixed(1)} MiB · LOD ${geometryDebug.stats.lodCounts.join("/")}\nGrass ${grass.getStats().blades} blades · ${grass.getStats().drawCalls} draw\nScale ${quality.settings.scale.toFixed(2)} · slow frames ${cached.slowFrames}`;
           panel.querySelector('[role=status]').textContent=stats.recording?'Recording… quality held fixed':stats.lastReport?'Recording complete. Export JSON to compare.':'';
         }
       }
     },
-    destroy(){disposed=true;removeEventListener('keydown',hotkey);panel.remove();graphicsButton.remove();details.dispose();lod.dispose();cutaway.dispose();construction.dispose();environment.dispose();grass.dispose();detailAssets.dispose();skyDome.dispose();geometryDebug.dispose();geometryDetail?.dispose();geometryCache?.dispose();},
+    destroy(){disposed=true;gpu.dispose();removeEventListener('keydown',hotkey);panel.remove();graphicsButton.remove();details.dispose();lod.dispose();cutaway.dispose();construction.dispose();environment.dispose();grass.dispose();detailAssets.dispose();skyDome.dispose();geometryDebug.dispose();geometryDetail?.dispose();geometryCache?.dispose();},
   };
   applyQuality();return api;
 }
