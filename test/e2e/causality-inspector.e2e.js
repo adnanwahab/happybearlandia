@@ -120,3 +120,15 @@ test('bounds large responses and keeps empty, tab navigation, and retry states a
   await page.getByRole('button', { name: 'Retry', exact: true }).click();
   await expect(page.getByRole('heading', { name: source.type, exact: true })).toBeVisible();
 });
+
+test('pulses resolve events and entities, and reduced motion disables animation', async ({ page }) => {
+  await page.route(explanation, route => route.fulfill({json:{targetId:target.id,nodes:[source,target],edges:[edge],evidence:[source]}}));
+  await page.goto(inspect(target));
+  const pulse = page.locator('.evidence-graph__pulse');
+  await expect(pulse).toHaveAttribute('data-from-event', source.id);
+  await expect(pulse).toHaveAttribute('data-to-event', target.id);
+  await expect(page.getByText('Entity · project:test:2').first()).toBeVisible();
+  expect(await pulse.evaluate(el=>getComputedStyle(el,'::after').animationName)).toBe('causal-pulse');
+  await page.emulateMedia({reducedMotion:'reduce'});
+  expect(await pulse.evaluate(el=>getComputedStyle(el,'::after').animationName)).toBe('none');
+});

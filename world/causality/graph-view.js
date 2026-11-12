@@ -1,3 +1,4 @@
+import { selectPulses, PULSE_LIMIT } from './pulses.js';
 const NODE_LIMIT = 24;
 const EDGE_LIMIT = 32;
 
@@ -47,6 +48,12 @@ export const graphStyles = `
   .evidence-graph__connector span { display: block; }
   .evidence-graph__connector .evidence-graph__edge-mark { font-size: 1.4rem; line-height: 1; }
   .evidence-graph__connector.is-association { color: #5b4979; }
+  .evidence-graph__pulse { display: block; height: .3rem; margin: .4rem 0;
+    background: #c9ded5; overflow: hidden; border-radius: 1rem; }
+  .evidence-graph__pulse::after { content: ''; display: block; width: 25%; height: 100%;
+    background: #206e52; animation: causal-pulse 2.4s linear 3; }
+  @keyframes causal-pulse { from { transform: translateX(-100%); } to { transform: translateX(400%); } }
+  @media (prefers-reduced-motion: reduce) { .evidence-graph__pulse::after { animation: none; } }
   .evidence-graph__raw { margin-top: .9rem; }
   .evidence-graph__raw summary { cursor: pointer; }
   @media (max-width: 580px) {
@@ -81,6 +88,7 @@ function recordCard(record, { selected = false, heading = false, onSelect }) {
     element(heading ? 'h5' : 'strong', recordLabel(record)),
     element('small', `Provenance · ${record.provenance?.kind || 'unavailable'}`),
     element('small', record.id),
+    ...(record.entityIds ?? []).map(id => element('small', `Entity · ${id}`)),
     button,
   );
   button.onclick = () => onSelect(record);
@@ -157,6 +165,9 @@ export function renderEvidenceGraph(data, selectedId, onSelect) {
     root.append(caveat);
   }
 
+  const pulses = selectPulses([...shown.values()], edges, data.evidence ?? [], selectedId);
+  const pulseIds = new Set(pulses.edges.map(edge => edge.id));
+  root.append(element('p', `Recorded model dependencies pulse from source to outcome; this is not proof of real-world causation. Correlations never pulse. Up to ${PULSE_LIMIT} connections animate for three cycles; reduced motion keeps them static. Showing ${pulses.edges.length} of ${pulses.eligible} eligible connections.`, 'evidence-graph__metadata'));
   let targetButton;
   if (target) {
     root.append(element('h4', 'Selected record'));
@@ -177,8 +188,17 @@ export function renderEvidenceGraph(data, selectedId, onSelect) {
     for (const edge of edges) {
       const row = element('li', undefined, 'evidence-graph__edge');
       row.dataset.relation = edge.relation;
+      if (pulseIds.has(edge.id)) {
+        const pulse = element('span', undefined, 'evidence-graph__pulse');
+        pulse.dataset.fromEvent = edge.fromId;
+        pulse.dataset.toEvent = edge.toId;
+        pulse.dataset.edgeId = edge.id;
+        pulse.setAttribute('aria-label', `Recorded dependency ${edge.fromId} to ${edge.toId}`);
+        row._pulse = pulse;
+      }
       row.append(connectionCard(shown.get(edge.fromId)),
         relationCard(edge, evidenceIds), connectionCard(shown.get(edge.toId)));
+      if (row._pulse) row.querySelector('.evidence-graph__connector').append(row._pulse);
       connections.append(row);
       connected.add(edge.fromId);
       connected.add(edge.toId);

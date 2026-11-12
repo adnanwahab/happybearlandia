@@ -35,3 +35,11 @@ Checks: `bun test test/causality-read.test.js`; component browser checks:
 
 Use `HBL_FULL_SERVER=1 bunx playwright test --config test/causality.browser.config.js`
 to run the same browser check against the complete application.
+
+On record selection the graph pulses up to eight evidence-backed, chronological,
+same-run event connections in deterministic order for three cycles. Each pulse
+exposes `data-edge-id`, `data-from-event` and `data-to-event`; cards retain exact
+entity IDs. Returned citations must all resolve. Correlations never animate.
+These describe recorded model mechanisms, not empirical causation. CSS/DOM
+provides the low-capability view without Canvas/WebGL; reduced-motion disables
+animation while retaining the complete static graph preview and inspection.

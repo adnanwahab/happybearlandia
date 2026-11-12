@@ -1003,3 +1003,27 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-164 — recorded dependency pulses
+
+Independent slice owns `world/causality/pulses.js`, the existing inspector graph,
+focused pulse tests and inspector browser tests. Prerequisite: existing stored
+causal explanation API and monthly City entity selection. Acceptance: animate
+only resolved same-run chronological event dependencies with all cited evidence
+returned; retain event/entity IDs, deterministic selection and a cap of eight
+simultaneous pulses. Associations remain static and labeled. Animation ends
+after three cycles and reduced-motion uses static connectors. No simulation
+state or random streams change. This slice uses the normal city-to-inspector
+entry point; spatial map overlays and arbitrary cross-model identities remain
+unsupported. CSS/DOM is the low-capability path; no WebGL or Canvas is required.
+
+Implemented selection and rendering. Focused plus causal API integration checks:
+6 tests passed, 41 assertions, including actual stored scenario explanation.
+Browser verification status is recorded below. Risks: a bounded explanation may
+omit upstream records; existing evidence coverage warnings remain authoritative.
+The eight-pulse cap applies within the existing 24-node/32-edge graph preview.
+
+Browser run blocked before tests: fixture server failed to bind with EADDRINUSE
+on both 39871 and isolated 39879. Browser assertions are added but unverified;
+no before/after recording was captured. Repeat the inspector Playwright suite
+in an environment allowing the fixture server before marking review complete.
