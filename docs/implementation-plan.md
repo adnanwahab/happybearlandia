@@ -1,5 +1,71 @@
 # HappyBearLandia implementation plan
 
+## SHE-132 — event-specific map hotspots: dependency audit
+
+Status (2026-11-12): implementation blocked on the event-ledger and map/time
+adapter from HBL-1M-018 / SHE-145. No hotspot feature is delivered by this audit.
+Exclusive ownership in isolated branch `mini/SHE-132`: this plan entry only;
+no scheduler, Population runtime, or upstream Architecture C files are changed.
+Checkout audited at `b963dd353538294cb0fbf5d34d5283fad6e10e68`.
+
+Observed prerequisite evidence:
+
+- [SHE-132](https://linear.app/shel-bernstein/issue/SHE-132) explicitly has
+  SHE-145 as a blocking relation. SHE-145 remains Todo in Linear.
+- [Upstream draft PR #173](https://github.com/adnanwahab/happybearlandia/pull/173),
+  head `e26c215063ed2f7b77b32062651bf97eb0a4d906`, is open and unmerged.
+  Its actual patch exports aggregate counts and ordering/state hashes from
+  `runSpatialEvents`; it retains no event trace or event IDs. Contact-attempt
+  counters include rejected attempts; committed energy transfers are counted
+  separately. The documented ring-tile positions and integer time have no
+  Population geographic/identity/civil-time mapping. This source is absent
+  from the current checkout. Benchmark results in that PR were inspected,
+  not independently rerun here.
+- Backlog overlap audit: GitHub PR search for `hotspot OR SHE-132 OR SHE-145`
+  returned #173; GitHub issue search for `hotspot` returned no matches.
+  Linear search for `interaction hotspots` identified SHE-161 (occupancy vs
+  activity), SHE-134 (station interactions), and SHE-219 (interaction ablation).
+  Preserve those scopes; search results are not proof of an exhaustive backlog.
+- Existing `world/population/hotspots.js` counts current visitors separately
+  from proximity-checked conversation receipts. Receipts contain place, minute,
+  participants and text, but no event ID; only the last 120 survive and inspection
+  shows five per place. `hotspots-ui.js` already opens place cards from map
+  markers via `world-view.js`. These are gathering-place controls, not a complete
+  per-slice contact/movement/service ledger. `world/reality/hotspots.js` displays
+  matched field deltas, which are also distinct from event counts.
+
+Next independently verifiable tasks, in dependency order:
+
+1. Upstream owner retains committed events with stable run-scoped IDs, event
+   kind, participants, time, actual location and causal references. Preserve
+   run/model/rules/source versions, seed and scenario inputs. Define retained
+   window/coverage and distinguish attempts, committed contacts, movements and
+   service completions. Supply explicit map-coordinate and clock mappings;
+   ring indices must not be painted onto unrelated real geography.
+2. SHE-132 owner adds a read-only aggregation over that same versioned ledger,
+   grouped by event kind and location for half-open slices `[start, end)`.
+   Count each event once and expose unlocated events and unavailable/expired
+   coverage separately. Rendering and inspection must not advance the model.
+3. Integrate a clickable layer through the normal map entry point. Selecting a
+   hotspot opens the exact contributing event IDs and their provenance, with
+   explicit synthetic-model labels and bounded/paginated details. Reuse map
+   selection infrastructure after the adapter is established. Changing slice
+   or run must clear stale selection and never silently reuse another ledger.
+4. Verify counts against an independent direct ledger filter; test boundaries,
+   empty slices, rejected attempts, missing locations, duplicate IDs, retention
+   gaps and deterministic replay. Verify map-click IDs against retained records
+   in a focused browser journey and ensure render decorations add no events.
+
+Acceptance remains unmet until counts and click-through records agree through
+the application's normal entry point. Principal risks are conflating occupancy
+with interactions, counting attempts as contacts, inventing geographic mappings,
+and reporting truncated history as complete. No substitute events, random
+markers or competing upstream implementation are introduced. Next action:
+complete/review the upstream ledger and mapping contract, then implement tasks
+2–4 on an integrated base. This documentation-only audit needs whitespace/diff
+review; runtime tests and Playwright do not validate the missing feature and
+are inapplicable to this change. No deployment or production changes occurred.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
