@@ -8,7 +8,7 @@ feature. Latest human scope is open PRs only; closed/all browsing is not impleme
 ## Executed
 
 - Focused Bun unit/integration and existing HTML/universe navigation tests passed;
-  34 passed,0failed,293assertions. Command:
+  35 passed,0failed,294assertions. Command:
   `bun test test/github-previews.test.js test/github-local-provider.test.js
   test/github-fly-provider.test.js test/html-navigation.test.js test/universe-shell.test.js`.
   Trusted runtime entrypoints also compiled via Bun.build without executing guests.
