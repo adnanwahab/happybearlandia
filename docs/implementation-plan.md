@@ -1003,3 +1003,28 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-214 — anchored WHY navigation
+
+Bounded slice: separate the evidence anchor (exact collection, ID and recorded
+month) from the viewed frame. Reuse the rendered trail during evidence jumps
+and playback; timeline and outcome-chart scrubbing explicitly re-anchor the
+selected entity. Selection and new experiments replace the anchor. No City
+records, provenance, clock mapping or causal joins change.
+
+Acceptance: from the added building at Month 120, visit policy Month 1 and
+project Month 3 without reselection, mark the exact node current, and Return to
+120 with identical node IDs. Reverse scrub to 0 must hide future completion and
+units. Read-only build diagnostics must remain unchanged during playback.
+Risk: stale future receipts after manual scrubbing; retain the existing missing
+building disclosure and verify both Canvas and inventory fallback paths.
+Implemented in main.js and the trail view; story documentation and regression
+coverage updated. Verification: 20 focused Bun tests pass, 1 existing browser-only
+unit test skips, 0 failures; git diff --check passes. The direct DOM test verifies
+exact policy/project callbacks, current markers, Return and stable node objects
+across 121 viewed months. The revised real browser journey checks uninterrupted
+navigation, identical node IDs, zero additional trail builds during playback,
+and reverse-scrub honesty. Playwright could not start its isolated server:
+EADDRINUSE on ports 39927 and 39929; browser acceptance remains unverified.
+Next action: run test/evidence-trail-real.browser.config.js in an environment
+where the local server can bind. No deployment or production data changes.

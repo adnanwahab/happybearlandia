@@ -9,3 +9,14 @@ The coordinator handles `onJump(stop)` by setting the shared month, updating bot
 Receipts associate events only by exact entity references and the selected month. District events do not become household/building causes. IDs remain scoped by baseline/plan because City event IDs can collide between arms. Receipt payload, model version, and supplied dependencies are preserved; missing dependencies are disclosed, never inferred from temporal proximity. Narration is labeled interpretation separately from recorded events. Household comparisons use exact monthly City household and reciprocal unit assignment IDs; unavailable rent and missing households remain null, including in deltas. No Population or native House identity is inferred.
 
 Verification: `bun test test/future-machine-story.test.js` covers first/large/zero differences, stable ordering, invalid and missing months, absent/ambiguous mappings, missing events, event arm identity and dependencies, exact household IDs, missing observations, text-safe DOM rendering, jump/disposal behavior, and a real seed-matched 120-step City pair with immutable Month 0 and Month 120. Browser entry-point integration belongs to the coordinator; no standalone route is owned by this worker. No interface changes requested.
+
+The visual WHY trail is anchored to `{collection,id,month}` independently of the
+viewed month. Evidence navigation retains its node IDs and records, marks the
+clicked node with `aria-current="step"`, and offers Return to the anchor month.
+The view labels both the viewed month and the month through which the trail was
+recorded. Playback reuses this trail without rebuilding it. Explicit timeline
+or outcome-chart scrubbing re-anchors the selected entity, so earlier frames
+never gain future receipts. Selecting another entity replaces the anchor.
+`renderEvidenceTrail` returns a callable disposer with `update(month,nodeId,
+unlocated)` for presentation-only updates and accepts `onReturn` alongside
+`onJump`; evidence jumps include the exact arm-scoped `nodeId`.
