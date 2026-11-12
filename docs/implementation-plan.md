@@ -329,7 +329,7 @@ Final verification at1d0a488: clean combined139unitpass/3browser-gatedskips/1199
 Accepted working increment complete at application2c9d973: U18 and bounded U02 visible repairs verified in candidate/integrated browser paths, R15 repair infrastructure exercised on actual failed U02. Final combined139units/3skips, canonical13browsers/1recordingskip, responsive3, actualdevice-loss2 and namedrecordingpass52.868sPlay→completion; exact evidence in coordinator-final-status.md/coordinator-final-evidence.json. R13/R14 diagnostic failures remain unintegrated and block release readiness. U03 claimed and released for uncontented resource measurements; U05/U08 READY. No release/main merge/deployment. Scope reconciliation for U02 was committed before owner resume and applied under shared lock before worker edits; original failed SHA/base/attempt1 retained.
 
 
-## Completed Symphony workspace recovery — November 11, 2026
+## Symphony receipt-example subset recovery — November 11, 2026
 
 Recovered SHE-89's six untracked receipt-example files on isolated local branch
 `codex/merge-complete-symphony-20261111`, based on remote sprint `f1174eb9`.
@@ -340,3 +340,10 @@ SHE-179 documentation was already merged remotely as PR #24; incomplete and
 untested workspace work was deferred. No source workspaces retired, remote
 push, release/main merge or deployment. Details, source hashes and limitations:
 [workspace recovery audit](symphony-workspace-integration-2026-11-11.md).
+
+Linear-first follow-up: all 59 In Review issues were matched to workspace and
+workpad evidence; none supplies an additional complete contribution to merge.
+SHE-89 remains In Progress: the recovered existing Future Machine examples are
+a useful tested subset, not completion of its canonical receipt/validator scope.
+SHE-179 is already Done and merged. No tracker status or original workspace
+was changed. Detailed issue-by-issue findings are in the workspace recovery audit.
