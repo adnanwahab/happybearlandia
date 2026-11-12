@@ -88,11 +88,18 @@ async function operation(options, work) {
   const abort = () => controller.abort();
   options.signal?.addEventListener('abort', abort, { once: true });
   if (options.signal?.aborted) abort();
-  const timer = setTimeout(abort, 180000);
+  let timedOut = false;
+  const timer = setTimeout(() => { timedOut = true; abort(); }, options.timeoutMs ?? 180000);
   const request = async (path, body) => {
     checkCancelled(controller.signal);
-    const response = await fetch(path, { signal: controller.signal, ...(body === undefined ? {} : { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }) });
-    const data = await response.json();
+    let response, data;
+    try {
+      response = await fetch(path, { signal: controller.signal, ...(body === undefined ? {} : { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }) });
+      data = await response.json();
+    } catch (error) {
+      if (!controller.signal.aborted && error instanceof TypeError) throw new Error('City data connection interrupted. Check your connection and retry the comparison.');
+      throw error;
+    }
     checkCancelled(controller.signal);
     if (!response.ok) throw new Error(data.error || `City request failed (${response.status})`);
     return data;
@@ -104,6 +111,10 @@ async function operation(options, work) {
     controller.signal.addEventListener('abort', cancelled, { once: true });
   });
   try { return await work(request, pause); }
+  catch (error) {
+    if (timedOut) throw new Error('City data timed out. Check your connection and retry the comparison.');
+    throw error;
+  }
   finally { clearTimeout(timer); options.signal?.removeEventListener('abort', abort); }
 }
 async function load(id, request, pause, onProgress, expectedRecipe) {

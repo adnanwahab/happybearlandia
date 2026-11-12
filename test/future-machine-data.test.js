@@ -108,3 +108,32 @@ test('normalization preserves completion provenance and rejects a missing capita
   delete run.steps[0].state.systems.finance.capitalExpense;
   expect(() => normalizeReplay(initial,run)).toThrow('Missing monthly finance capital ledger');
 });
+
+test('deadline reports actionable timeout and caller abort remains cancellation', async () => {
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (_url, {signal}) => new Promise((_resolve, reject) => {
+    signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), {once:true});
+  });
+  try {
+    await expect(loadExperiment('city_timeout', {timeoutMs:10})).rejects.toThrow('City data timed out');
+    const controller = new AbortController();
+    const pending = loadExperiment('city_cancel', {signal:controller.signal});
+    controller.abort();
+    await expect(pending).rejects.toThrow('Aborted');
+  } finally { globalThis.fetch = realFetch; }
+});
+
+
+test('lost connection is actionable without masking application failures', async () => {
+  const realFetch = globalThis.fetch;
+  try {
+    globalThis.fetch = async () => { throw new TypeError('Failed to fetch'); };
+    await expect(loadExperiment('city_offline')).rejects.toThrow('City data connection interrupted. Check your connection and retry');
+    globalThis.fetch = async () => ({json:async()=>{throw new TypeError('body stream lost');}});
+    await expect(loadExperiment('city_interrupted')).rejects.toThrow('City data connection interrupted');
+    globalThis.fetch = async () => Response.json({error:'Try again later'}, {status:503});
+    await expect(loadExperiment('city_unavailable')).rejects.toThrow('Try again later');
+    globalThis.fetch = async () => Response.json({id:'city_poll',status:'running'});
+    await expect(loadExperiment('city_poll', {onProgress(){throw new TypeError('progress bug');}})).rejects.toThrow('progress bug');
+  } finally { globalThis.fetch = realFetch; }
+});

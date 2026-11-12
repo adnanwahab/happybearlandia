@@ -1003,3 +1003,50 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-57 / HBL-W1-044 — network failure injection
+
+Scope: finish the partial changes already present on `mini/SHE-57`; owned paths
+are Future Machine data/index.js, main.js, ui/index.js, data/README.md,
+test/future-machine-data.test.js, test/e2e/network-demo.e2e.js,
+test/network-demo.browser.config.js and this plan. No parallel workers or shared
+API/model changes. SHE-28 (HBL-W1-015) remains Backlog in Linear; its useful-error,
+preserve-prior-results scope overlaps this pre-existing partial implementation.
+This direct local slice does not grant dispatch labels or claim SHE-28 complete.
+
+Audit: existing operation deadlines, AbortSignal polling, current-request guards,
+immutable normalized paired history, saved recipe identity validation and explicit
+missing-record recomputation already work. Retain those interfaces. Finish
+connection/timeout guidance and an explicit retry preserving the failed saved ID,
+recipe and selected month. Existing completed evidence stays visible and labeled
+when a subsequent request fails. No simulator, seed, model or dataset changes.
+
+Acceptance scenarios use actual City API data (seed 42, model city-systems.1.0.0,
+future-machine-synthetic.v1, 30 households, 120 months): disconnect at first physical
+divergence Month 16; interrupt shared replay; delay/cancel superseded replay;
+expire shared-data deadline; lose network after the share shell loads; hold the
+second replay arm while checking loading/no partial history, then recover. These
+are controlled synthetic network conditions, not observed public-network timing.
+Offline cold navigation cannot load an uncached app shell; no service worker is
+introduced. Client cancellation does not cancel already submitted server jobs.
+
+Verification so far: `bun test test/future-machine-data.test.js
+ test/future-machine-ui.test.js test/future-machine-share.test.js`: 20 pass,
+1 browser-gated skip, 0 fail, 168 assertions. `bun x --no-install playwright test
+--config test/network-demo.browser.config.js` and a retry prefixed with
+`HBL_TWO_FUTURES_PORT=40957` both stop before browser launch: Bun serve reports
+EADDRINUSE on ports 39931 and 40957, with no reachable listener (curl fails and
+lsof shows none). Browser recovery/no-stale-state acceptance and screenshots
+remain unverified in this sandbox. Run the five-scenario suite on a host permitting
+local server startup. No PR, commit, merge, deployment or production mutation.
+
+Final local regression: `bun test test/future-machine-*.test.js` passed 98 tests,
+3 browser-gated skips, 0 failures, 948 assertions across 16 files (25.37s), including
+interrupted response bodies, HTTP 503 message preservation, stale replay aborts,
+manifest validation and boundary seeds. `bun x --no-install playwright test
+--config test/network-demo.browser.config.js --list` discovers all five scenarios.
+`node --check` passes for data/index.js, main.js and ui/index.js;
+`git diff --check` passes. No repository lint/typecheck script is defined.
+Existing untracked test/test-results artifacts were preserved. Screenshots are
+configured per scenario but none were produced by this blocked run. Finish browser
+acceptance before treating SHE-57 as complete; current branch is `mini/SHE-57`.

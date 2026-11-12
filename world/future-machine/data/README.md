@@ -52,3 +52,11 @@ The existing `loadExperiment`/`createExperiment` path validates the completed sa
 The City's existing optional `manifest.title` is the display-name boundary: if supplied, it must be nonblank text within the API's existing 200-code-unit bound, without C0/C1 or bidi override/isolate controls. Printable Unicode and literal markup remain text; values are neither rewritten nor echoed in validation errors. A missing title remains valid for legacy manifests. No new per-scenario `displayName`/`name` field, required metadata, general scenario catalog, API schema or engine was introduced. Unsupported generic scenario manifests are not converted into a Future Machine pair.
 
 `test/future-machine-manifest-validation.test.js` covers corrupt shapes/metadata, unsupported or missing inputs, pre-replay generator rejection, valid/legacy manifests, a zero-control pair and actual SQLite-backed City API creation/reopen. Errors reject the normal adapter promise, which the existing host displays; this increment does not change UI rendering or make server-wide startup-validation claims. Invalid submitted City jobs may already exist on the server; this client preflight prevents replay/rendering, not production job cancellation.
+
+SHE-57 failure injection retains the existing 180-second whole-operation deadline
+(`timeoutMs` may override it for adapter tests). Deadline failures and interrupted
+fetch/body transfers report connection/retry guidance; caller abort remains
+cancellation. The page's Retry comparison repeats the failed recipe, saved ID and
+selected month. Failed loads keep any previously completed pair visibly identified;
+a fresh shared page publishes no history until both arms validate. No network
+failure triggers recipe recomputation: only an explicitly missing saved record does.

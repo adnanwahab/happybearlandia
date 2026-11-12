@@ -162,6 +162,7 @@ export function createUI(container, callbacks = {}) {
   const difference=doc.createElement('button');difference.type='button';difference.textContent='Difference-only';difference.onclick=()=>callbacks.onMode?.('difference');actions.append(difference);
   const split=doc.createElement('button');split.type='button';split.textContent='Side by side';split.onclick=()=>callbacks.onMode?.('split');actions.append(split);
   const ghostsLabel=doc.createElement('label');const ghosts=doc.createElement('input');ghosts.type='checkbox';ghosts.checked=true;ghosts.onchange=()=>callbacks.onGhosts?.(ghosts.checked);ghostsLabel.append(ghosts,doc.createTextNode(' Ghost differences'));actions.append(ghostsLabel);
+  const retry=doc.createElement('button');retry.type='button';retry.textContent='Retry comparison';retry.hidden=true;retry.onclick=()=>callbacks.onRetry?.();shell.querySelector('.fm-setup').append(retry);
   const shareLink=doc.createElement('a');shareLink.textContent='Open comparison link';shareLink.hidden=true;shareLink.className='fm-share-link';shell.append(shareLink);
   const noPhysical=doc.createElement('p');noPhysical.className='fm-detail';shell.querySelector('.fm-metrics').after(noPhysical);
   function update(patch={}) {
@@ -175,6 +176,7 @@ export function createUI(container, callbacks = {}) {
         if(recipe.intervention)defaultIntervention=structuredClone(recipe.intervention);
       }
     }
+    retry.hidden=current.status!=='error' || !callbacks.onRetry || current.canRetry===false;
     const busy=['loading','running','queued'].includes(current.status);seedInput.disabled=busy;
     const demoState=current.demo || {};
     const demoActive=['playing','running','paused','preparing','loading'].includes(demoState.status);
@@ -204,5 +206,5 @@ export function createUI(container, callbacks = {}) {
     shareLink.hidden=!current.shareURL;
     if(current.shareURL){try{const url=new URL(current.shareURL,doc.baseURI);if(['http:','https:'].includes(url.protocol))shareLink.href=url.href;else{shareLink.removeAttribute('href');shareLink.hidden=true;}}catch{shareLink.removeAttribute('href');shareLink.hidden=true;}}
   }
-  return {stageElement:view.stage,storyElement,update,dispose(){seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
+  return {stageElement:view.stage,storyElement,update,dispose(){retry.onclick=null;seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
 }
