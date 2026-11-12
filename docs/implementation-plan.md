@@ -1003,3 +1003,36 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-188 — Uncertainty Explorer
+
+Next integrated slice: extend Experiment Lab's recorded seeded batch with per-outcome
+empirical distributions and Pearson sensitivity rankings, and an assumption Research
+Library backed by the existing evidence records. Report verification, validation,
+and uncertainty separately; preserve snapshot replay and export the same analysis.
+Acceptance: seed/value provenance, missing and constant outcomes, outcome selection,
+confidence/source navigation, deterministic analysis, and normal-route browser smoke.
+Risk: correlated scenario inputs make association non-causal; finite samples do not
+bound structural uncertainty. Missing sources must remain explicitly unsourced.
+
+Implemented locally: `world/uncertainty-explorer.js` computes a versioned empirical
+seed distribution for score and every declared/returned metric, including missing
+counts, percentile interpolation, constant bins, seed/run provenance and per-metric
+Pearson rankings. The Lab mounts outcome selection and a Research Library from
+existing variable evidence; assumption links expose confidence and external sources
+when recorded. The scientific report separates uncertainty, verification and the
+absence of empirical validation. Records and portable bundles retain the same
+analysis; old snapshots regenerate it from their stored batch. No new model or
+cross-model identity mapping was introduced. Null/absent sensitivity values no
+longer become zero. Correlation is screening, not intervention effect attribution.
+
+Acceptance evidence: 48 tests across 14 focused/regression files passed (459
+assertions), including the real civic adapter → seeded batch → record → bundle
+journey and exact replay, missing/nonfinite/constant/insufficient samples, opposite
+metric sensitivities and safe source attribution. Browser entry bundle built with
+Bun (38 modules); `git diff --check` passed. Added normal-route Playwright coverage
+for loading, running, outcome selection, source navigation, snapshot reload and
+self-check. Execution is unverified: local Bun server startup returned EADDRINUSE
+on ports 31918 and 41888 before any browser test ran. Next action is rerun
+`bunx playwright test --config test/uncertainty-explorer.browser.config.js` on a
+host permitting the local server. No deployment or production mutation performed.

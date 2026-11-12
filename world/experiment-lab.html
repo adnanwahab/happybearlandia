@@ -172,6 +172,8 @@
   <section class="panel" style="margin-top:18px">
     <h2>09 · Sensitivity & failure modes</h2>
     <p class="notice">Correlation is diagnostic, not causal proof. Use it to find assumptions worth inspecting and to compare successful vs failed sampled worlds.</p>
+    <h3>Uncertainty Explorer</h3>
+    <div id="uncertainty-explorer">Run simulations first.</div>
     <div id="sensitivity-output"><p class="notice">Run simulations first.</p></div>
   </section>
 
@@ -183,11 +185,18 @@
   </section>
 
   <section class="panel" style="margin-top:18px">
-    <h2>11 · Verification</h2>
+    <h2>11 · Scientific report</h2>
+    <h3>Uncertainty: how much do results depend on assumptions?</h3>
+    <p>Inspect each outcome’s distribution and ranked associations in the Uncertainty Explorer above. Confidence and source records are in the Research Library below.</p>
+    <h3>Validation: does this represent the real world?</h3>
+    <p id="validation-output">No empirical validation recorded. Internal checks do not establish real-world accuracy.</p>
+    <h3>Verification: does the implementation satisfy its checks?</h3>
     <p class="notice">Run a local invariant check: contract validity, deterministic sampling, locked variables, seed sensitivity, finite simulations, and outcome summaries.</p>
     <div class="button-row"><button id="run-verification" disabled>Run self-check</button></div>
     <pre id="verification-output">Load a plan first.</pre>
   </section>
+
+  <section class="panel" style="margin-top:18px"><h2>Research Library · Assumption sources</h2><p>Confidence is a modeling judgment, not an outcome probability. Catalog entries are assumptions unless a source establishes otherwise.</p><div id="research-library"></div></section>
 
   <section class="panel" style="margin-top:18px">
     <h2>12 · Save, replay & lineage</h2>

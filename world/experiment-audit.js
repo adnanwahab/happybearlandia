@@ -1,3 +1,4 @@
+import { buildUncertaintyExplorer } from './uncertainty-explorer.js';
 import { buildReproducibilityManifest } from "./reproducibility.js";
 import { decomposeOutcomeUncertainty, topResearchQuestion } from "./uncertainty-analysis.js";
 
@@ -69,6 +70,7 @@ export function buildExperimentBundle(recordOrSnapshot = {}) {
     audit,
     reproducibility: audit.reproducibility,
     model: record.experiment?.model || null,
+    uncertainty: record.simulationBatch ? buildUncertaintyExplorer(record.simulationBatch, record.experiment) : null,
     researchPriority: uncertainty ? topResearchQuestion(uncertainty) : null,
     snapshot: record,
   };

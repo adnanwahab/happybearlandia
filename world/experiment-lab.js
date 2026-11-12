@@ -1,3 +1,4 @@
+import { buildUncertaintyExplorer, renderUncertaintyExplorer, renderResearchLibrary } from './uncertainty-explorer.js';
 import { recordContext } from './decision/continuity.js';
 import { mountContinuity } from './decision/continuity-view.js';
 import { createInspectorState, formatVariableValue, renderAssumptionInspector } from "./assumption-inspector.js";
@@ -98,6 +99,7 @@ let liveRequest = 0;
 
 function renderLabAssumptions(experiment, initialOverrides = {}) {
   const variables = experiment.worldModel?.variables || [];
+  renderResearchLibrary($("#research-library"), variables);
   const inspectorState = createInspectorState(variables);
   for (const [id, override] of Object.entries(initialOverrides || {})) {
     if (!inspectorState[id]) continue;
@@ -236,6 +238,8 @@ function renderExperiment(experiment, provenance = null, initialOverrides = {}) 
   landscapeSelection.textContent = "Run simulations to populate the landscape.";
   renderRealityInspector(realityInspector, null, experiment);
   state.sensitivity = null;
+  $("#uncertainty-explorer").textContent = "Run simulations first.";
+  $("#validation-output").textContent = "No empirical validation recorded. Internal checks do not establish real-world accuracy.";
   sensitivityOutput.innerHTML = `<p class="notice">Run simulations first.</p>`;
   state.improvements = [];
   improvementOutput.innerHTML = `<p class="notice">Run sensitivity analysis first.</p>`;
@@ -508,6 +512,7 @@ function renderScenarioComparison(comparison) {
 
 function renderSimulationBatch(batch) {
   state.simulationBatch = batch;
+  renderUncertaintyExplorer($("#uncertainty-explorer"), buildUncertaintyExplorer(batch, state.experiment));
   updateContinuity();
   const modelLabel = batch.adapter.predictive
     ? "predictive adapter"

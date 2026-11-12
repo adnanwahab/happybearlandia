@@ -1,3 +1,4 @@
+import { buildUncertaintyExplorer } from './uncertainty-explorer.js';
 import { buildReproducibilityManifest } from "./reproducibility.js";
 function isObject(value) {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -48,6 +49,7 @@ export function createExperimentRecord(input = {}, now = new Date()) {
     simulationBatch: input.simulationBatch || null,
     analyzedExperiment: input.analyzedExperiment || null,
     sensitivity: input.sensitivity || null,
+    uncertainty: input.simulationBatch ? buildUncertaintyExplorer(input.simulationBatch, input.experiment) : null,
     scenarioComparison: input.scenarioComparison || null,
     improvements: input.improvements || [],
     improvementComparison: input.improvementComparison || null,
