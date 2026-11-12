@@ -44,6 +44,7 @@ jobs:
           test/patch-voting-server.test.js
           test/world-database-path.test.js
           test/overpass-diagnostics.test.js
+          test/first-run-guide.test.js
       - name: Verify finite agent-count exports and transition evidence
         run: bun test test/agent-counts.test.js
       - name: Verify manifest preflight and replay cancellation regressions
@@ -79,3 +80,5 @@ jobs:
           path: test-results
           if-no-files-found: ignore
           retention-days: 7
+      - name: First-run World guidance and feedback
+        run: bunx playwright test --config test/first-run.browser.config.js

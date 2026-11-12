@@ -20,6 +20,27 @@ were returned. The report now records that live receipt separately from
 the original offline tests, which passed 8/8 again. CI and dispatcher
 internals remain unverified; publication of this follow-up is a host gate.
 
+## First-run World guidance and feedback (November 11)
+
+Status: **implemented on review branch; automated verification pending**.
+
+This slice improves the existing /world entry point without changing simulation contracts or adding a new simulation authority.
+
+- [x] A first-run coach appears before the 3D world finishes initializing; provides a pinned quick-demo link and three guided experiments (matched weekly plan comparison, storm, 10-year packages), plus inspect-resident.
+- [x] World publishes actual, bounded outcome notifications for configured plans, local storm effects, matched weekly well-being, and the existing 10-year package experiment. Playback reports observational mood/activity changes without representing them as policy effects.
+- [x] A short narrated first-cycle comparison is available through ?demo=1&quick=1&autoplay=1; the original multi-cycle tour remains intact.
+- [x] Advanced plan-year, overlay, seed, source and diagnostic controls are grouped under a native disclosure, preserving IDs and existing functionality.
+- [x] Focused Bun and Playwright tests have been added to the core workflow.
+- [ ] Confirm the branch CI and real /world browser smoke before merging.
+- [ ] Verify performance on the target Mac browser and check that slower devices meet the intended quick-demo duration.
+
+Important limits: the quick reel's model computation may take longer than its caption hold times. In the existing 10-year experience, three plan packages are compared; no unmodeled decade-long no-plan outcome is asserted. On the normal /world page, the classic local storm and weekly comparisons are separate from the default Living Population runtime, so guided actions explicitly switch modes first.
+
+Acceptance path: open /world, inspect the coach before startup completes, select a weekly paired comparison, observe the actual delta in "What changed?", run a local storm, pause/play and inspect the observational mood changes, open the 10-year package report, verify advanced disclosure, reload a minimized guide, and open the short demo via its stable URL. Embed and saved-experiment pages should remain free of the coach.
+
+Verification commands: `bun test test/first-run-guide.test.js` and `bunx playwright test --config test/first-run.browser.config.js`.
+
+
 [Product design](design.md) defines the target experience. [Engineering instructions](../AGENTS.md) describe how to plan, implement, and verify changes. Keep this plan current with task status, dependencies, acceptance evidence, and commit or PR references when available.
 
 ## Playable Life vertical slice
@@ -527,3 +548,13 @@ Acceptance/evidence and operator recovery: docs/symphony-workpad-oversize-repair
 Fresh clean-package gate:92tests passed; latest installed-host164passed
 (other owners expanded the suite after the earlier106-test pass). Private readback
 `/private/tmp/hbl-workpad-oversize-repair/`; no live hook invocation/issue mutation.
+
+## PR38 main integration conflict resolution
+
+Preserve both branches’ CI suites, dynamic gallery count, outcome interpretation,
+activity toggle/retry accessibility, storm feedback/return value and playback facts.
+The early World guide remains available before startup; after startup the panel
+manager makes the matched-comparison guide primary and exposes live experiment
+feedback as one companion sheet under More city actions. Both guide APIs remain
+compatible. Verify unit/CI contracts and actual first-run/visual browser journeys
+before merging PR38 into main. Staging/CDN validation remains a separate blocker.
