@@ -117,6 +117,13 @@ class MetricsTests(unittest.TestCase):
         self.assertEqual([x['stage'] for x in snap['timeline']], ['commit', 'ci_passed'])
         self.assertNotIn('PRIVATE', json.dumps(snap))
 
+    def test_pr_creation_does_not_invent_a_historical_draft_transition(self):
+        p = pr(11)
+        p['draft'] = False
+        snap = self.store.observe(runtime(), report([p]), {}, now=200)
+        self.assertEqual([x['stage'] for x in snap['timeline']], ['pr_opened', 'merged'])
+        self.assertNotIn('draft', [x['stage'] for x in snap['timeline']])
+
     def test_failed_event_transaction_does_not_leave_partial_sample(self):
         before = self.store.snapshot(now=100)['utilization']['samples']
         with patch('throughput_metrics.json.dumps', side_effect=ValueError('fixture crash')):

@@ -22,7 +22,7 @@ SHA = re.compile(r'[a-f0-9]{40}\Z')
 RESOURCE_KEYS = ('available_memory_bytes', 'total_memory_bytes', 'swap_used_bytes',
                  'disk_free_bytes', 'cpu_load_ratio', 'cpu_count', 'sampled_at')
 STAGES = {'running', 'retrying', 'blocked', 'eligible', 'claimed', 'draft', 'merged', 'commit',
-          'ci_passed', 'ci_failed', 'worker_failed'}
+          'ci_passed', 'ci_failed', 'worker_failed', 'pr_opened'}
 
 
 def number(value):
@@ -200,7 +200,7 @@ class MetricsStore:
             issue = identifier(branch.removeprefix('symphony/')) if isinstance(branch, str) and branch.startswith('symphony/') else None
             head_repo = head.get('repo') if isinstance(head.get('repo'), dict) else {}
             source = 'symphony_pr' if issue and head_repo.get('full_name') == REPO else 'repository_pr'
-            for stage, field in [('draft', 'created_at'), ('merged', 'merged_at')]:
+            for stage, field in [('pr_opened', 'created_at'), ('merged', 'merged_at')]:
                 at = timestamp(pr.get(field))
                 if at is not None and at <= now:
                     events.append((f'pr:{n}:{stage}', at, issue, stage, source, n))
@@ -227,7 +227,7 @@ class MetricsStore:
         with self._db() as db:
             raw = db.execute('SELECT at,payload FROM samples WHERE at<=? ORDER BY at DESC LIMIT 1000', (now,)).fetchall()
             recent_events = db.execute('SELECT at,issue,stage,source,pr_number FROM events WHERE at>=? AND at<=? ORDER BY at,key', (now-window, now)).fetchall()
-            prs = db.execute("SELECT pr_number,stage,at FROM events WHERE stage IN ('draft','merged') AND at<=?", (now,)).fetchall()
+            prs = db.execute("SELECT pr_number,stage,at FROM events WHERE stage IN ('pr_opened','merged') AND at<=?", (now,)).fetchall()
         samples = [(at, json.loads(payload)) for at, payload in reversed(raw)]
         latest = samples[-1][1] if samples else {}
         observed, capacity, busy = 0.0, 0.0, 0.0
@@ -252,12 +252,12 @@ class MetricsStore:
         grouped = {}
         for n, stage, at in prs:
             grouped.setdefault(n, {})[stage] = at
-        cycles = sorted(x['merged']-x['draft'] for x in grouped.values() if 'merged' in x and 'draft' in x and x['merged'] >= now-window and x['merged'] >= x['draft'])
+        cycles = sorted(x['merged']-x['pr_opened'] for x in grouped.values() if 'merged' in x and 'pr_opened' in x and x['merged'] >= now-window and x['merged'] >= x['pr_opened'])
         median = (cycles[(len(cycles)-1)//2] + cycles[len(cycles)//2])/2 if cycles else None
         p95 = cycles[math.ceil(.95*len(cycles))-1] if cycles else None
         rates = {name: sum(stage == target and (not symphony or source == 'symphony_pr') for _, _, stage, source, _ in recent_events)
-                 for name, target, symphony in [('prs_opened_per_hour', 'draft', False), ('prs_merged_per_hour', 'merged', False),
-                                                ('symphony_prs_opened_per_hour', 'draft', True), ('symphony_prs_merged_per_hour', 'merged', True)]}
+                 for name, target, symphony in [('prs_opened_per_hour', 'pr_opened', False), ('prs_merged_per_hour', 'merged', False),
+                                                ('symphony_prs_opened_per_hour', 'pr_opened', True), ('symphony_prs_merged_per_hour', 'merged', True)]}
         if not latest.get('pr_inventory_observed'):
             rates = {key: None for key in rates}
         runtime = dict(latest.get('runtime', {'running': None, 'retrying': None, 'blocked': None}))
