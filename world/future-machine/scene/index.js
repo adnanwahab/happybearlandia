@@ -1,3 +1,4 @@
+import { assertFrameIntegrity, assertHistoryIntegrity } from '../integrity.js';
 import {createRendererBackend} from './renderer-backend.js';
 import {createCanvasStage,fitCanvasCamera} from './canvas-stage.js';
 import {createVisualEffects} from './effects.js';
@@ -5,6 +6,7 @@ import {createSpatialMapping} from './mapping.js';
 
 /** Synchronous host API; renderer loading is deferred so fallback remains usable. */
 export function createStage(container, {onSelect,history} = {}) {
+  if (history) assertHistoryIntegrity(history);
   const doc = container.ownerDocument;
   const root = doc.createElement('section');
   root.setAttribute('aria-label', 'Synchronized City comparison');
@@ -129,6 +131,7 @@ export function createStage(container, {onSelect,history} = {}) {
     whenReady:()=>ready,
     update(frame,diff) {
       if(disposed)return;
+      if(frame)assertFrameIntegrity(frame,history);
       if(!frame?.baseline?.state||!frame?.plan?.state){projection=null;releaseMeshes();list.replaceChildren();legend.textContent='City snapshots unavailable';status.textContent='Both futures are required for a matched scene.';draw();return;}
       currentFrame=frame;currentDiff=diff;const first=!projection;projection=mapping.frame(frame.baseline.state,frame.plan.state);
       legend.textContent=`Month ${frame.month} · ${projection.label}`;

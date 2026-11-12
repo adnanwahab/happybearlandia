@@ -84,7 +84,7 @@ export function createCityApi({root,store:providedStore}={}) {
         const scenario=record.manifest.scenarios.find(s=>s.id===scenarioId);if(!scenario)throw new Error('Unknown scenario');
         let initial=record.manifest.initial;for(const intervention of scenario.interventions||[])initial=addIntervention(initial,intervention);
         const token=`replay-${crypto.randomUUID()}`;active.add(token);
-        try {return json(await workerCall('./run.worker.js',{initial,seed:(initial.seed+runIndex)>>>0,months:record.manifest.months,replay:true},60000,{signal:request.signal}));}finally{active.delete(token);}
+        try {const result=await workerCall('./run.worker.js',{initial,seed:(initial.seed+runIndex)>>>0,months:record.manifest.months,replay:true},60000,{signal:request.signal});return json({...result,identity:{experimentId:id,scenarioId,runIndex,runId:`${scenarioId}-${runIndex}`}});}finally{active.delete(token);}
       }
       if(action==='export') {
         if(record.status!=='complete')return json({error:'Export is available after completion'},409);

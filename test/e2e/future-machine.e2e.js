@@ -79,3 +79,18 @@ test('largest supported recipe stays bounded across scrubs and releases scene re
  await page.goto('/world/future-machine.html?fm=invalid&month=121');await page.goBack({waitUntil:'domcontentloaded'});await ready(page);expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);
  await page.evaluate(()=>window.futureMachine.dispose());expect(await page.evaluate(()=>window.futureMachine.stats.scene.objects)).toBe(0);expect(await page.locator('.fm-ui').count()).toBe(0);
 });
+
+test('wrong scenario replay never reaches side-by-side rendering',async({page})=>{
+ await page.route('**/api/city-experiments/*/replay',async route=>{
+  const response=await route.fetch();const body=await response.json();
+  body.identity.scenarioId='baseline';body.identity.runId='baseline-0';
+  await route.fulfill({response,json:body});
+ });
+ await page.goto('/world/future-machine.html');
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();
+ await expect(page.getByText('Replay run identity mismatch',{exact:true})).toBeVisible();
+ expect(await page.evaluate(()=>({history:window.futureMachine.history,month:window.futureMachine.stats.scene.month}))).toEqual({history:null,month:null});
+ await page.unroute('**/api/city-experiments/*/replay');
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);
+ expect(await page.evaluate(()=>window.futureMachine.history.plan[120].identity.runId)).toBe('plan-0');
+});

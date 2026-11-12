@@ -36,6 +36,8 @@ test('strict versions, missing inventory, horizon and frame boundaries', async (
   expect(() => normalizeReplay(initial, {steps:[]})).toThrow('Missing replay');
   const run = replay(initial); run.steps[3].state = null;
   expect(() => normalizeReplay(initial,run)).toThrow('Missing');
+  run.steps[3] = null; expect(() => normalizeReplay(initial,run)).toThrow('Missing or mismatched replay state');
+  delete run.steps[3]; expect(() => normalizeReplay(initial,run)).toThrow('Missing or mismatched replay state');
   expect(() => getFrame({},-1)).toThrow(); expect(() => getFrame({},121)).toThrow();
   expect(getFrame({},0)).toEqual({month:0,baseline:null,plan:null});
   expect(await stateHash({b:2,a:1})).toBe(await stateHash({a:1,b:2}));
@@ -50,7 +52,7 @@ test('API adapter persists paired seeds, normalizes replay and handles cancellat
       manifest = { ...body, version:DEFAULT_RECIPE.modelVersion, modelManifest:createEngine().manifest };
       return Response.json({id:'city_test'});
     }
-    if (url.endsWith('/replay')) return Response.json(replay(manifest.initial,body.scenarioId === 'plan' ? manifest.scenarios[1].interventions[0] : null));
+    if (url.endsWith('/replay')) return Response.json({...replay(manifest.initial,body.scenarioId === 'plan' ? manifest.scenarios[1].interventions[0] : null),identity:{experimentId:'city_test',scenarioId:body.scenarioId,runIndex:0,runId:`${body.scenarioId}-0`}});
     return Response.json({id:'city_test',status:'complete',manifest});
   };
   try {
@@ -58,7 +60,7 @@ test('API adapter persists paired seeds, normalizes replay and handles cancellat
     expect(history.experimentId).toBe('city_test');
     expect(history.initialHash).toHaveLength(64);
     expect(Object.isFrozen(history.baseline[0].state)).toBe(true);
-    expect(history.baseline[0]).toEqual(history.plan[0]);
+    expect(history.baseline[0].state).toEqual(history.plan[0].state);
     expect(history.baseline[120].state.seed).toBe(history.plan[120].state.seed);
     expect(calls).toHaveLength(4);
     const aborted = new AbortController(); aborted.abort();

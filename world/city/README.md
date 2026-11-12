@@ -117,3 +117,9 @@ Each test runs two bounded continuations in a disposable browser worker from exa
 Enter the assumed one-time public cost explicitly. The test requires sufficient saved city cash, subtracts that amount once and records it in the first comparison month's capital ledger. Capacity becomes available next month: this is an immediate-procurement diagnostic, not a simulated construction pipeline for an upgrade. Recurring staffing or procurement costs are not inferred. Spending differences include city-wide feedback during the selected horizon and are not project invoices. Comparisons are capped at 60 months, 120,000 household-months and a 30-second worker timeout; cancellation is available. A project not completed during the horizon is reported as unfinished within that horizon, never as permanently impossible.
 
 Run `bun test test/project-unblock.test.js` for the paired-future and budget checks and `bunx playwright test test/e2e/project-unblock.e2e.js` for the saved-experiment UI flow.
+
+Replay responses include an additive `identity` envelope with `experimentId`,
+`scenarioId`, `runIndex` and `runId` (`scenarioId-runIndex`, scoped to experiment).
+It identifies the validated replay request; Future Machine rejects missing or
+mismatched identity before using response states. This does not authenticate
+response contents or change stored records/model rules.

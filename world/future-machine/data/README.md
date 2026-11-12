@@ -52,3 +52,23 @@ The existing `loadExperiment`/`createExperiment` path validates the completed sa
 The City's existing optional `manifest.title` is the display-name boundary: if supplied, it must be nonblank text within the API's existing 200-code-unit bound, without C0/C1 or bidi override/isolate controls. Printable Unicode and literal markup remain text; values are neither rewritten nor echoed in validation errors. A missing title remains valid for legacy manifests. No new per-scenario `displayName`/`name` field, required metadata, general scenario catalog, API schema or engine was introduced. Unsupported generic scenario manifests are not converted into a Future Machine pair.
 
 `test/future-machine-manifest-validation.test.js` covers corrupt shapes/metadata, unsupported or missing inputs, pre-replay generator rejection, valid/legacy manifests, a zero-control pair and actual SQLite-backed City API creation/reopen. Errors reject the normal adapter promise, which the existing host displays; this increment does not change UI rendering or make server-wide startup-validation claims. Invalid submitted City jobs may already exist on the server; this client preflight prevents replay/rendering, not production job cancellation.
+
+## Snapshot integrity (SHE-86)
+
+City replay responses now add `identity: {experimentId, scenarioId, runIndex,
+runId}`; run IDs retain the City's existing `scenario-index` convention and are
+scoped to the experiment. The adapter requires the exact requested identity and
+copies it onto every normalized snapshot, including the common Month 0 state.
+The two Month 0 **states** remain equal; their arm identities differ.
+`normalizeReplay` remains a pure state-only helper; production histories use the
+identified adapter path. Sparse/null replay steps fail explicitly.
+
+`../integrity.js` checks persisted paired histories before selection, diffing and
+stage construction, and checks frame clocks/paired identities before stage
+updates. Exactly 121 ordered months, matching state clocks/seed/model and exact
+arm/run identity are required. Pure unpersisted diff fixtures can still describe
+missing data as unavailable. Old replay servers without identity fail closed;
+frontend and backend need to be released together. The additive API envelope is
+the only City API change; it does not change storage or model rules. These are
+structural integrity checks, not cryptographic authentication or proof of exact
+checkpoint replay.

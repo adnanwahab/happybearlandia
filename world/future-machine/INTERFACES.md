@@ -73,3 +73,15 @@ The 50-second `demo-controller.js` is a presentation clock, not a simulator. It 
 - `createOutcomeTimeline(container,{history,onMonth}) -> {update(month),dispose()}` consumes the same immutable121snapshots. Point/keyboard selections emit integer recordedmonth through coordinator manualMonth; no independent clock/simulation. Metric units from METRIC_UNITS; unavailable measurements stay gaps.
 - `recordedConstructionProgress(snapshot)` returns recorded stage/work/units and exact model-owned housing-project building identity. Work ratio is not elapsed calendar fraction or completed housing. Actual inventory determines building presence; layoutv2 preserves one schematic slot across supported project completion.
 - `buildEvidenceTrail(history,{collection,id,month})`: arm-scoped nodes/edges contain exact record, first observed month, eventID and unavailable reasons. `renderEvidenceTrail(container,history,selection,{onJump})` presents those records. Completion jumps retain building selection; all evidence jumps stop demo presentation. Independently verified causal dependency traces are explicitly unavailable.
+
+## Snapshot integrity extension (SHE-86)
+
+Persisted adapter snapshots additionally carry `identity: {experimentId,
+scenarioId,runIndex,runId}` verified against the City replay response. The run ID
+is `${scenarioId}-${runIndex}`, scoped to `experimentId`; Future Machine uses
+baseline/plan index 0. Month 0 states are identical with distinct arm identities.
+Persisted histories require all 121 snapshots in order with matching state
+month/seed/model and exact arm identities before rendering. The stage validates
+history at construction and frame identity/clock compatibility at update. Missing
+unpersisted diff inputs remain unavailable. Replay responses without the identity
+envelope are rejected, so frontend/backend releases must be coordinated.

@@ -1003,3 +1003,52 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Snapshot integrity — SHE-86
+
+Slice: reject corrupt Future Machine histories before paired rendering. Existing
+normalization checked 120 steps/seed/model, but replay responses lacked run
+identity and getFrame trusted row position. No completed SHE-86 implementation
+or PR was found in the checkout or GitHub search (2026-11-12).
+
+The City replay API now adds an identity envelope (experiment, scenario, run
+index and the existing scenario-index run ID). The adapter verifies the envelope
+against its request and tags normalized snapshots. Shared integrity guards check
+all 121 ordered months, state clocks, seed/model and each snapshot's arm/run
+before frame selection, persisted-history diffing and stage construction; stage
+updates also validate paired identities. Missing unpersisted diff inputs retain
+the existing unavailable semantics. No model equations or persistence changed.
+This small additive API change is required because client-assigned response
+identity could not detect a wrong server run. Older servers without the envelope
+fail closed; deploy frontend/backend together. Identity checks detect routing
+and data errors, not authenticated provenance or independently verified replay.
+
+Acceptance: corrupt/missing/reordered frames, swapped arms and wrong experiment,
+scenario or run are rejected; valid real persisted pairs reopen deterministically.
+Verification results and reproducible evidence recorded after running checks.
+
+Delivered verification (Bun 1.4.2): `bun test test/future-machine*.test.js
+ test/server-civic-api.test.js` — 103 passed, 3 existing browser-only skips,
+0 failures. `bun test test/future-machine-integrity.test.js
+ test/city-systems.test.js test/project-unblock.test.js` — 22 passed, 0 failures.
+`git diff --check` passed; no lint/typecheck script is configured in package.json.
+Initial runs exposed whole-snapshot equality/hash assertions; fixtures now retain
+full model-state equality while accounting for distinct run provenance.
+
+Reproduce the real persisted/reopened run receipt with
+`HBL_INTEGRITY_ARTIFACT=/private/tmp/she86-integrity.json bun test
+ test/future-machine-integrity.test.js` (single-line command). Recorded output:
+[evidence/she86-integrity.json](evidence/she86-integrity.json). Random experiment
+IDs vary; recipe, initial digest and arm state digests reproduce. This synthetic
+run uses the recipe seed and versioned model manifest; no external observations
+or empirical causal claim are included.
+
+Added Playwright wrong-scenario rejection/retry coverage. Browser execution is
+blocked by local listen failure: configured port 39884 and isolated retry port
+39986 both reported EADDRINUSE; the existing receipt CLI test also fails to bind
+port 0 in this sandbox. A broader receipt run had 3 passing tests and that single
+socket-setup failure. No browser pass is claimed. Next: trusted reviewer runs
+`playwright test --config test/future-machine.browser.config.js --grep
+ 'wrong scenario replay'` where loopback listening is available, then reviews
+frontend/backend coordinated publication. No commit/PR, merge, deployment or
+production mutation was performed in this source-only workspace.
