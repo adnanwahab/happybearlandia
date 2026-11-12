@@ -86,6 +86,24 @@ The same per-experiment suffixes are available under `/api/city-experiments/:id/
 
 Example intervention: `{type:'utility', districtId:'d1', utility:'sewer', amount:500, cost:1000000, delay:2, compliance:0.8}`. Types: housing, transit, utility, school, resilience, upzone. Resilience amount is a protection fraction capped at 0.95. Upzoning changes capacity; it does not instantly complete homes. Utility projects improve only their selected network. Adding 5,000 homes without labor, money and utility reserves can correctly leave projects delayed.
 
+## Disposable worker lifetime and replay cancellation
+
+City operations retain their existing wall-clock deadlines: simulation workers
+use 60 seconds, and query workers use 3 seconds. The shared `workerCall` helper
+settles once, clears its timer, removes abort listeners, detaches handlers and
+terminates its disposable worker after success, failure, timeout or cancellation.
+
+The replay route passes the request's AbortSignal. An already-aborted request
+starts no worker; an abort during replay terminates its worker and releases the
+existing replay capacity token. The established API error contract remains
+HTTP 400 with `{error: "Operation aborted"}` when a response can be returned.
+This does not introduce cancellation for persisted background experiments or
+SQL queries, a queued-job cancellation endpoint, or a global multi-process limit.
+
+`bun test test/city-worker-call.test.js` exercises lifecycle races and cleanup,
+real deterministic short workers, a real nonresponsive worker deadline, and
+normal replay-route cancellation/capacity reuse.
+
 ## Verification snapshot
 
 The engine-only synthetic benchmark `bun scripts/benchmark-city.js 1000 12 30` completed 1,000 twelve-month futures with 30 initial households in 12,728 ms on the development machine. This excludes worker startup, SQLite writes, browser rendering and large-city scaling; it is not a 1,000-future end-to-end latency claim.

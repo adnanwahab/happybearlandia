@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "hbl-she180-package.v2",
+  "issue": "SHE-180",
+  "branch": "codex/she-180-safe-backlog-coordinator",
+  "base": "f794ba25e89ee1db9c1ee3a6bdc562e404ca1965",
+  "originalInstalledHostRun": {
+    "exitCode": 0,
+    "sourceStableDuringTests": true,
+    "files": {
+      "tools/symphony/local/backlog_coordinator.py": "95e9272426e7a3849bcc56e86c18b1f36be7c74ee2a559c7a942f206c216774c",
+      "tools/symphony/local/test_backlog_coordinator.py": "6b11309ee04023d740639e7f23997707c5ccd22efbc43413d91dab8b70772e44",
+      "tools/symphony/local/COORDINATOR.md": "02ecd4be4fabd87429051a935e21ed11f38198a8a967e91abcea48c26561abde",
+      "tools/symphony/local/coordinator-readiness.example.json": "9fa628954242f3bf56aaba43f275cd99dd4d6bd55f65049be6eab8c700d0068e",
+      "tools/symphony/local/README.md": "483711f5088b4385d561f3043f01e56d4e98c428525d683f1fd41bc4ae9d58a1"
+    },
+    "schemaVersion": "hbl-she180-implementation.v1",
+    "issue": "SHE-180",
+    "verifiedAt": "2026-11-12T03:19:02.716811+00:00",
+    "branch": "sprint/one-city-two-futures-20261111",
+    "baseline": "ec408d03a70fdaac90c1eb82263a5740797c36bf",
+    "tests": {
+      "command": "HBL_TEST_CODEX_SANDBOX=0 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tools/symphony/local -p 'test_*.py' -v",
+      "passed": 80,
+      "failed": 0,
+      "newCoordinatorTests": 31,
+      "log": "/private/tmp/hbl-she180-tests-verified.log"
+    },
+    "otherChecks": [
+      "Python AST parse passed",
+      "Disabled evidence JSON parse passed",
+      "git diff --check passed",
+      "CLI dry-run Markdown/full JSON exercised with offline services"
+    ],
+    "scope": [
+      "tools/symphony/local/backlog_coordinator.py",
+      "tools/symphony/local/test_backlog_coordinator.py",
+      "tools/symphony/local/COORDINATOR.md",
+      "tools/symphony/local/coordinator-readiness.example.json",
+      "tools/symphony/local/README.md",
+      "docs/implementation-plan.md"
+    ],
+    "livePilot": "Not executed: issue authorizes planning/implementation only; overlap/activation requires operator review",
+    "remoteWrites": false,
+    "schedulerInstalled": false,
+    "workersLaunched": 0,
+    "commit": null,
+    "limitations": [
+      "Source/test/clean-clone prerequisites use explicit trusted operator evidence pinned to base/issue/review digests.",
+      "Regex captures SHE references conservatively; prose aliases require human canonical mapping.",
+      "One host flock; external writers/multiple hosts are outside the lock.",
+      "Remote GraphQL schema/auth/eventual visibility and actual three-worker publication not exercised.",
+      "Current dispatcher remains concurrency1; approval cap3 does not increase worker concurrency."
+    ]
+  },
+  "packagedRun": {
+    "tests": 44,
+    "failures": 0,
+    "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tools/symphony/local -p 'test_*.py' -v",
+    "log": "docs/evidence/she-180-package-tests.log",
+    "explanation": "Standalone package has31 coordinator tests plus13 sanitized transport tests; broader original80-test host run is attached separately."
+  },
+  "liveReadOnlyAudit": {
+    "projectIssues": 175,
+    "pullRequests": 17,
+    "linearReadRequests": 877,
+    "seconds": 158.9,
+    "base": "f794ba25e89ee1db9c1ee3a6bdc562e404ca1965",
+    "occupied": 30,
+    "approvalCap": 3,
+    "selected": [],
+    "remoteMutations": 0,
+    "publicSummary": "docs/evidence/she-180-live-holds.md",
+    "rawPrivateSnapshot": "/private/tmp/hbl-she180-live-snapshot.json",
+    "rawPrivateReport": "/private/tmp/hbl-she180-live-audit.json"
+  },
+  "livePilot": {
+    "authorizedBy": "User in this chat",
+    "status": "HELD_READINESS",
+    "leasesCreated": 0,
+    "workersLaunched": 0,
+    "draftHandoffsVerified": 0,
+    "reason": "Latest CLI snapshot:28 retained active issues, unknown ownership and unresolved candidate prerequisites; selected none. No bypass."
+  },
+  "recurringScheduling": {
+    "authorizedConditionally": true,
+    "installed": false,
+    "reason": "Requires completed controlled live pilot evidence first"
+  },
+  "files": {
+    "tools/symphony/local/backlog_coordinator.py": "55e75567a04c3923a312764f95d6158778c7694e20992a5c70fdc10666be8b9b",
+    "tools/symphony/local/coordinator_host.py": "1445d4e396d3ba158001ac4615708247804099f7e7ecbf5d027adef9fe8c4835",
+    "tools/symphony/local/test_backlog_coordinator.py": "554b05292a7261803f01b6982f641ff6d82f5e3747f655cf673816387501d70b",
+    "tools/symphony/local/test_coordinator_host.py": "3526ee278bf5b8d28a960e205ddb31cc6573c27db06905786f00649709c966e2",
+    "tools/symphony/local/COORDINATOR.md": "fb9f73ea3c04131d745b3aefe12b2fe9cde02d5907d667eda7d08728006d114f",
+    "tools/symphony/local/coordinator-readiness.example.json": "9fa628954242f3bf56aaba43f275cd99dd4d6bd55f65049be6eab8c700d0068e",
+    "tools/symphony/local/README.md": "12cf6da58f54e956614f548b0509a6126d55f9c9a9f7ab89f92ebd97cce208e4",
+    "docs/symphony-coordinator-reconciliation.md": "c23ecdee8ec528b9ddb8dc2fc42618e5320c7bf2cb794994bb21346660d8d67f"
+  },
+  "liveCliDryRun": {
+    "exitCode": 0,
+    "issues": 175,
+    "pullRequests": 21,
+    "baseSha": "3fb9652f83d49e2d39d55aee7b31b6593f8c5849",
+    "occupied": 28,
+    "cap": 3,
+    "selected": [],
+    "dryRun": true,
+    "leaseFileCreated": false,
+    "jsonReport": "/private/tmp/hbl-she180-host-cli-audit.json",
+    "markdownReport": "/private/tmp/hbl-she180-host-cli-audit.md",
+    "note": "Newer snapshot than the initial service audit; source changes by other coordinators are not overwritten."
+  },
+  "postExtractionInstalledHostRun": {
+    "passed": 93,
+    "failed": 0,
+    "log": "docs/evidence/she-180-installed-host-93-tests.log"
+  },
+  "draftPr": "https://github.com/adnanwahab/happybearlandia/pull/30",
+  "linearReconciliationComments": {
+    "SHE-180": "4a869a76-93ab-4433-98f7-586497afdb5f",
+    "SHE-126": "45383d77-dc82-415b-8092-33e6c2243898",
+    "SHE-127": "dc2f8ab8-eb73-4726-9cd3-a6caea5c1dc7"
+  }
+}

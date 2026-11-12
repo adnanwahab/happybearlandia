@@ -2,7 +2,7 @@
 
 Scope: the existing **One City, Two Futures** journey and reported first-run defects. This queue is executable work, not a request for another plan. Coordinator owns contracts, queue, integration, entry points and final verification. Six existing Codex chats own isolated worktrees; see `one-city-two-futures-workers.json`. No release merge or deployment is authorized.
 
-Audit: `AGENTS.md`, product design, implementation plan, `world/FEATURE_BACKLOG.md`, current source, worker commits and running-browser evidence were read. The 198-ticket historical backlog spans other models; its “Existing/New” labels are evidence to inspect, not proof of this flagship. Current implementation already has deterministic 121-frame histories, split/difference modes, a 50-second guided demo, metric/structure WHY, graphical Canvas, homepage autoplay and share/replay. Do not rebuild them. Last complete integrated suite: nine browser tests passed; 140 focused plus 35 adjacent unit tests passed, one browser-gated skip. A new stress test found a real **390px expanded-controls/shortcut overlap** after bounded GPU fallback. Native WebGPU rendering of this particular flagship is still missing; current native stage uses WebGL. These are the highest-impact open gaps.
+Audit: `AGENTS.md`, product design, implementation plan, `world/FEATURE_BACKLOG.md`, current source, worker commits and running-browser evidence were read. The 198-ticket historical backlog spans other models; its “Existing/New” labels are evidence to inspect, not proof of this flagship. Current implementation already has deterministic 121-frame histories, split/difference modes, a 50-second guided demo, metric/structure WHY, graphical Canvas, homepage autoplay and share/replay. Do not rebuild them. Integrated baseline: nine browser journeys and five existing comparison regressions passed. Subsequent native Apple Metal checks passed seven journeys and ten backend tests (104 assertions). R04 mobile overlap and R10 Canvas keyboard journeys are verified. Native mobile pixel proof exposed clipping; coordinator is correcting framing. See status for current checks.
 
 Complexity: S = a focused change, M = several coordinated behaviors, L = substantial integration. Initial READY bootstrap has twelve independently verifiable tasks. Dependencies mean verified prerequisites; a task may be dispatched only with exclusive ownership. Mark RUNNING when dispatched, REVIEW when delivered, VERIFIED only after coordinator checks the integrated result. Replenish READY work from approved objectives and actual failures; never manufacture new product scope merely to keep workers busy.
 
@@ -10,18 +10,18 @@ Complexity: S = a focused change, M = several coordinated behaviors, L = substan
 
 | ID | Priority / complexity / status | Executable task and acceptance | Dependencies | Exclusive owner / files | Verification |
 | --- | --- | --- | --- | --- | --- |
-| R01 | P0 / M / READY | Add an actual native WebGPU renderer factory with bounded WebGL fallback; return the measured backend, preserve same scene/camera and disposal. No fake “WebGPU” badge. | Existing stage API | Worker 3: new `scene/renderer-backend.js`, backend tests; coordinator alone wires stage/import map | `bun test test/future-machine-backend.test.js`; real browser backend diagnostic |
-| R02 | P1 / S / READY | Make KPI styling semantic: zero/missing neutral, costs disclosed, negative rent not a universal welfare claim. Keep exact recorded values and units. | Existing UI metrics | Worker 2: `future-machine/ui/`, UI tests only | `bun test test/future-machine-ui.test.js`; integrated zero/nonzero screenshot |
-| R03 | P1 / S / READY | Audit paired replay at seed 0 and uint32 maximum; detect stale/mismatched inputs and prove no mutation or hidden horizon reduction. Fix demonstrated adapter issues only. | Existing actual City API | Worker 1: `future-machine/data/`, new uniquely named boundary test | Focused data tests; actual seed-matched digest evidence |
-| R04 | P0 / S / READY | Repair observed 390px expanded World-controls/shortcut overlap; clear stale owned disabled-control explanations after re-enable. Preserve keyboard focus and one-sheet behavior. | Reproduced `stalled GPU` test | Worker 4: `first-run-guide.css`, `onboarding/first-run-repairs.{js,css}`, focused helper tests; no `render.js` edits | Actual 390px bounding boxes, Activity/quick comparison, focused tests |
-| R05 | P1 / S / READY | Harden Canvas camera/selection for empty data, pointer cancellation and invalid dimensions; inspect context failures and report wrapper requirements. Never invent substitute entities. | Existing Canvas stage | Worker 5: `scene/canvas-stage.js`, Canvas tests only | `bun test test/future-machine-canvas.test.js`; actual no-GPU click/zoom |
-| R06 | P0 / M / READY | Extend real browser proof to native backend, Month 16 screenshot, exact schema and console errors; retain uncut recording and deterministic replay tests. | Existing nine passing journeys; integrate R01/R04 before final run | Worker 6: new follow-up browser test/config only; do not edit canonical suites owned by coordinator | Real app tests and metadata with scenario/seed/event/KPIs |
-| R07 | P1 / S / READY | Gracefully retain accessible recorded inventory if both GPU and Canvas contexts fail; no unhandled promise or false backend claim. | Existing fallback contract | Coordinator: `scene/index.js`, focused failure browser case | Force all contexts unavailable; controls/metrics/WHY remain usable |
-| R08 | P1 / S / READY | Verify same stable schematic IDs and camera across reverse scrub, split/difference and renderer choice; no future inventory appears at Month 0. | Recorded history and existing mapping | Worker 1 after R03: distinct projection/replay regression test only | Real history Month 0/16/120 then reverse; exact ID assertions |
-| R09 | P1 / S / READY | Exercise bounded provenance asset failure and independent definitions before slow graphics; expose a useful error and preserve simulation controls. | Early metadata initialization already implemented | Worker 4 after R04: helper regression; coordinator owns runtime wiring | Deadline unit test and graphics-only failure injection browser test |
-| R10 | P1 / S / READY | Verify keyboard-only split/timeline/WHY and Canvas focus without trapping hidden controls at 320px/landscape. | Existing UI semantics | Worker 5 after R05: new Canvas keyboard browser case, no shared config edits | Actual keyboard journey and reduced-motion screenshot |
-| R11 | P0 / S / READY | Consolidate actual Month 0 / first divergence / Month 120 / WHY / Canvas images and per-run evidence into one delivery manifest. Never label fixture images as acceptance. | Completed real runs | Coordinator: delivery manifest/report only | Inspect PNGs, JSON identity, playable recording duration |
-| R12 | P1 / S / READY | Execute named recording command and audit final candidate diff/commands/resource disposal; publish exact pass/fail and next work. | Final working slice, R01–R11 as applicable | Coordinator: status/plan/report and final integration | `bun scripts/record-one-city-two-futures.mjs`; canonical suites; `git diff --check` |
+| R01 | P0 / M / VERIFIED | Add an actual native WebGPU renderer factory with bounded WebGL fallback; return the measured backend, preserve same scene/camera and disposal. No fake “WebGPU” badge. | Existing stage API | Worker 3: new `scene/renderer-backend.js`, backend tests; coordinator alone wires stage/import map | `bun test test/future-machine-backend.test.js`; real browser backend diagnostic |
+| R02 | P1 / S / VERIFIED | Make KPI styling semantic: zero/missing neutral, costs disclosed, negative rent not a universal welfare claim. Keep exact recorded values and units. | Existing UI metrics | Worker 2: `future-machine/ui/`, UI tests only | `bun test test/future-machine-ui.test.js`; integrated zero/nonzero screenshot |
+| R03 | P1 / S / VERIFIED | Audit paired replay at seed 0 and uint32 maximum; detect stale/mismatched inputs and prove no mutation or hidden horizon reduction. Fix demonstrated adapter issues only. | Existing actual City API | Worker 1: `future-machine/data/`, new uniquely named boundary test | Focused data tests; actual seed-matched digest evidence |
+| R04 | P0 / S / VERIFIED | Repair observed 390px expanded World-controls/shortcut overlap; clear stale owned disabled-control explanations after re-enable. Preserve keyboard focus and one-sheet behavior. | Reproduced `stalled GPU` test | Worker 4: `first-run-guide.css`, `onboarding/first-run-repairs.{js,css}`, focused helper tests; no `render.js` edits | Actual 390px bounding boxes, Activity/quick comparison, focused tests |
+| R05 | P1 / S / VERIFIED | Harden Canvas camera/selection for empty data, pointer cancellation and invalid dimensions; inspect context failures and report wrapper requirements. Never invent substitute entities. | Existing Canvas stage | Worker 5: `scene/canvas-stage.js`, Canvas tests only | `bun test test/future-machine-canvas.test.js`; actual no-GPU click/zoom |
+| R06 | P0 / M / VERIFIED | Extend real browser proof to native backend, Month 16 screenshot, exact schema and console errors; retain uncut recording and deterministic replay tests. | Existing nine passing journeys; integrate R01/R04 before final run | Worker 6: new follow-up browser test/config only; do not edit canonical suites owned by coordinator | Real app tests and metadata with scenario/seed/event/KPIs |
+| R07 | P1 / S / VERIFIED | Gracefully retain accessible recorded inventory if both GPU and Canvas contexts fail; no unhandled promise or false backend claim. | Existing fallback contract | Coordinator: `scene/index.js`, focused failure browser case | Force all contexts unavailable; controls/metrics/WHY remain usable |
+| R08 | P1 / S / VERIFIED | Verify same stable schematic IDs and camera across reverse scrub, split/difference and renderer choice; no future inventory appears at Month 0. | Recorded history and existing mapping | Worker 1 after R03: distinct projection/replay regression test only | Real history Month 0/16/120 then reverse; exact ID assertions |
+| R09 | P1 / S / VERIFIED | Exercise bounded provenance asset failure and independent definitions before slow graphics; expose a useful error and preserve simulation controls. | Early metadata initialization already implemented | Worker 4 after R04: helper regression; coordinator owns runtime wiring | Deadline unit test and graphics-only failure injection browser test |
+| R10 | P1 / S / VERIFIED | Verify keyboard-only split/timeline/WHY and Canvas focus without trapping hidden controls at 320px/landscape. | Existing UI semantics | Worker 5 after R05: new Canvas keyboard browser case, no shared config edits | Actual keyboard journey and reduced-motion screenshot |
+| R11 | P0 / S / VERIFIED | Consolidate actual Month 0 / first divergence / Month 120 / WHY / Canvas images and per-run evidence into one delivery manifest. Never label fixture images as acceptance. | Completed real runs | Coordinator: delivery manifest/report only | Inspect PNGs, JSON identity, playable recording duration |
+| R12 | P1 / S / VERIFIED | Execute named recording command and audit final candidate diff/commands/resource disposal; publish exact pass/fail and next work. | Final working slice, R01–R11 as applicable | Coordinator: status/plan/report and final integration | `bun scripts/record-one-city-two-futures.mjs`; canonical suites; `git diff --check` |
 
 ## Prioritized upcoming work
 
@@ -29,22 +29,32 @@ These are decompositions of the approved demo/compatibility goals, not newly pro
 
 | ID | Priority / complexity / status | Task, acceptance and verification | Dependencies / intended owner |
 | --- | --- | --- | --- |
-| U01 | P1 / S / UPCOMING | Native backend failure before/after init selects truthful fallback without leaked half-renderer. Factory rejection/disposal tests plus browser context failure. | R01 / Worker 3 |
-| U02 | P1 / S / UPCOMING | Native renderer resize preserves both viewport scales and camera; no clipped changed building. Desktop→390px browser screenshot. | R01 / Worker 3 |
-| U03 | P1 / S / UPCOMING | Compare repeated scrub/focus/dispose memory and object counts after native integration; report measured values, not target FPS. | R01 / Worker 6 |
-| U04 | P1 / S / UPCOMING | Stop/restart default guided demo while a changed recipe is loading; stale response cannot resume another recipe. Real API cancellation browser check. | R03 / Coordinator |
-| U05 | P1 / S / UPCOMING | Neutral KPI styles agree with zero-control, missing metric and negative delta semantics. Renderer-independent UI behavior test plus browser assertion. | R02 / Worker 2 |
-| U06 | P1 / S / UPCOMING | Make household before/after rent/savings units and new-inventory caveat readable without expanding raw JSON; exact identity only. | R02 / Worker 2 |
-| U07 | P1 / S / UPCOMING | Show selected recorded construction stage/progress, never animate an uncompleted building as finished. Inspect actual project months and tests. | R01 / Worker 3 |
-| U08 | P1 / S / UPCOMING | Ensure reduced-motion disables animated pulses but keeps selected entity and measured change visible. Real media preference toggle test. | R01/R05 / Worker 5 |
-| U09 | P1 / S / UPCOMING | Validate share reopen after saved record missing, model mismatch and recipe corruption after latest UI/backend integration. Existing browser regression suite. | R01/R03 / Worker 1 |
-| U10 | P2 / S / UPCOMING | Audit narrative receipt deduplication and historical-month labels after repeated selection; preserve exact arm-scoped IDs. | R11 / Coordinator |
-| U11 | P1 / S / UPCOMING | Ordinary World Canvas current resident selection and Activity filter/export retain the daily authority and seed; actual runtime only. | R04/R05 / Worker 4 |
-| U12 | P1 / S / UPCOMING | Check no-GPU default Living mode separately from legacy demo; explicitly report unsupported paths, never silently substitute a model. | R05 / Worker 5 |
-| U13 | P2 / S / UPCOMING | Audit browser engines installed locally; run only available engines, report missing Safari/Firefox without claiming support. | R06 / Worker 6 |
-| U14 | P2 / S / UPCOMING | Compare gallery/registry unique routes and navigation safety after every added verified entry; preserve the original catalog. Registry + actual homepage tests. | R04 / Worker 4 |
+| U01 | P1 / S / VERIFIED | Native backend failure before/after init selects truthful fallback without leaked half-renderer. Factory rejection/disposal tests plus browser context failure. | R01 / Worker 3 |
+| U02 | P1 / S / VERIFIED | Native renderer resize preserves both viewport scales and camera; no clipped changed building. Desktop→390px browser screenshot. | R01 / Worker 3 |
+| U03 | P1 / S / RUNNING | Compare repeated scrub/focus/dispose memory and object counts after native integration; report measured values, not target FPS. | R01 / Worker 6 |
+| U04 | P1 / S / VERIFIED | Stop/restart default guided demo while a changed recipe is loading; stale response cannot resume another recipe. Real API cancellation browser check. | R03 / Coordinator |
+| U05 | P1 / S / READY | Neutral KPI styles agree with zero-control, missing metric and negative delta semantics. Renderer-independent UI behavior test plus browser assertion. | R02 / Worker 2 |
+| U06 | P1 / S / VERIFIED | Make household before/after rent/savings units and new-inventory caveat readable without expanding raw JSON; exact identity only. | R02 / Worker 2 |
+| U07 | P1 / S / VERIFIED | Show selected recorded construction stage/progress, never animate an uncompleted building as finished. Inspect actual project months and tests. | R01 / Worker 3 |
+| U08 | P1 / S / READY | Ensure reduced-motion disables animated pulses but keeps selected entity and measured change visible. Real media preference toggle test. | R01/R05 / Worker 5 |
+| U09 | P1 / S / VERIFIED | Validate share reopen after saved record missing, model mismatch and recipe corruption after latest UI/backend integration. Existing browser regression suite. | R01/R03 / Worker 1 |
+| U10 | P2 / S / VERIFIED | Audit narrative receipt deduplication and historical-month labels after repeated selection; preserve exact arm-scoped IDs. | R11 / Coordinator |
+| U11 | P1 / S / VERIFIED | Ordinary World Canvas current resident selection and Activity filter/export retain the daily authority and seed; actual runtime only. | R04/R05 / Worker 4 |
+| U12 | P1 / S / VERIFIED | Check no-GPU default Living mode separately from legacy demo; explicitly report unsupported paths, never silently substitute a model. | R05 / Worker 5 |
+| U13 | P2 / S / VERIFIED | Audit browser engines installed locally; run only available engines, report missing Safari/Firefox without claiming support. | R06 / Worker 6 |
+| U14 | P2 / S / VERIFIED | Compare gallery/registry unique routes and navigation safety after every added verified entry; preserve the original catalog. Registry + actual homepage tests. | R04 / Worker 4 |
 | U15 | P1 / S / UPCOMING | Review external suggestions from `docs/reviews/` only for architecture-compatible, testable approved objectives. Record accepted/rejected/deferred reasons; do not wait for reviews. | Any review arrives / Coordinator |
-| U16 | P0 / S / UPCOMING | Final frozen-scope pass: all accepted changes, screenshots, video, commands, commit/worktree references and remaining release blockers agree. | Final candidate / Coordinator |
+| U16 | P0 / S / VERIFIED | Final frozen-scope pass: all accepted changes, screenshots, video, commands, commit/worktree references and remaining release blockers agree. | Final candidate / Coordinator |
+
+## Additional approved decompositions
+
+- U17 (P1/S, RUNNING → integration review): expose existing uint32 next-run seed input, keep displayed provenance/share attached to the actual run, preserve pending configuration across scrubs, then rerun seed0/default through actual API. Owner Worker2 UI; coordinator authorizes optional `onConfigure(recipe)` and owns runtime wiring. No new simulation/model.
+
+## Evidence updates
+
+- R03/R08: worker ea4c5a7 integrated as01d55e8; coordinator12test/264assertion rerun passed. Boundaryseed0/4294967295 retain immutable originals, exacthorizons, +24homes and supportedphysicalMonth16.
+- R02: semantic UI4f0955f integrated as130b1c4; actualpaired-run browserpassed and asserts one cost-tonedcapitalcard.
+- R07: real browser test `all graphics contexts unavailable preserves recorded comparison controls without page errors` passed against the production route with actual City API output. At Month 120 the inventory and WHY still show the added building/completion event and +24 homes. No page errors. Artifacts: `/tmp/hbl-all-contexts-proof/`.
 
 ## Proposed intake: 30 neighborhood/grid tasks (2026-11-11)
 
@@ -128,3 +138,107 @@ After the current P0 fixes and active worktree ownership are checked, the coordi
 Integrate each reviewed worker commit in dependency order. A delivered worker receives the next eligible READY task; verify its previous result before handoff. Maintain at least six eligible tasks while meaningful approved work remains. If a task is already correct, record the audit/test evidence and move forward rather than rewriting it. External Claude/Gemini files are proposals: no new model, cross-model mapping, empirical claim, infrastructure spend, release merge or deployment becomes authorized by a review file.
 
 Feature freeze applies to the final verification/recording phase. During freeze, execute only integration, correctness fixes, compatibility, visual clarity, regression and evidence tasks. The success gate is the actual homepage→Play Demo→matched divergence→timeline→measured outcomes→exact WHY journey; a queue entry, plan or passing fixture alone is not completion.
+
+## Approved decisions — implementation assignments
+
+| ID | Priority / complexity / status | Exclusive ownership and interface | Acceptance / verification |
+| --- | --- | --- | --- |
+| D01 | P0 / M / VERIFIED | Coordinator: demo-controller.js, scene/index.js, main.js; optional stage.focus(entity,{animate}) | Actual first physical stop held six seconds; shared camera eases1200ms, reduced motion immediate. Clock2passed/13assertions; actual timed browser2passed32s, seed42 Month16 +24. Mobile pixel fit remains in review. |
+| D02 | P1 / M / VERIFIED | Worker2: new ui/outcome-timeline.js + dedicated tests. createOutcomeTimeline(container,{history,onMonth})→update(month),dispose(). Coordinator existingUI wiring. | Exact121 matched snapshots; metric selector, baseline/plan/delta, units/missing; click synchronizes both scenes/KPIs. Focused units + real320/390 browser. |
+| D03 / U07 | P1 / M / VERIFIED | Worker3: new scene/construction-progress.js, mapping.js if required, dedicated tests; coordinator stage integration. | Only recorded stage/progress, exact model-owned building mapping, completion16, reverse0/15/16 correct; no fabricated floors. |
+| D04 | P1 / M / VERIFIED | Worker1: new story/evidence-trail.js + dedicated tests. buildEvidenceTrail(history,{collection,id,month}); coordinator rendering/wiring. | Actual policy/project/completion/housing chain; missing links unavailable, no future leakage; event16-0 jumps16. |
+| D05 | P0 / M / VERIFIED | R04/R10 VERIFIED prerequisites. Worker6 new approved-demo-responsive browser files; coordinator camera polish. Existing Canvas worker U12 continues. | Desktop390/320 actual Canvas journeys, controls/timeline/KPIs/WHY usable. Native390 pixel clipping must be resolved separately. |
+
+Additional current regression: U11 actual Activity filter/export passes behavior but exported authority seed is missing. Worker4 owns narrow export repair, preserving actual string authority seed; no substitution of City seed42. New features do not interrupt U12.
+
+### Integrated follow-up evidence
+
+- D01 native timed actual browser normal/reduced motion:2passed32.0s; after D02/D03/D04 integration combined paired-run + timed demo3passed32.7s. Replay resets the synchronized camera; evidence jumps stop presentation playback.
+- D03 adapter/mapping integrated `bacfa28`, D04 adapter `49a764a`, D02 chart `b43f6a1`; coordinator rendering/wiring now present. Actual screenshot `/tmp/hbl-integrated-decisions-proof/.../cinematic-month-16.png` shows24-home structure and evidence trail. D02 delta-series/compact refinement RUNNING; independent D03/D04 interaction proofs RUNNING.
+- D05 combined Canvas1440/390/320:3passed17.8s; nativeMetal1440/390 pixel proof:2passed13.0s. Fixes include bounded FOV, per-viewport label clamping, static universe navigation. Test selectors now identify the primary timeline and exclude collapsed evidence controls from visible overlap assertions.
+- Activity actual export seed repair integrated `a8973b1`, tests `fb7657f`: independent3browserpassed4.0s; visible and exported authority seed both `29.7286,-95.4746`; zero browser errors. Living Canvas six-case worker proof integrated `a15ccc7`; FPS mobile overlap repair remains assigned.
+- Focused integrated suite:98passed,3browser-gatedskips,815assertions across18files. Actual browser checks execute separately; build25modules and diffcheck pass.
+
+Next eligible READY verification tasks: compact delta chart interaction; native/Canvas construction reverse scrub; evidence completion jump; final50srecording; current-branch artifactmanifest; main overlap audit. Owners remain those in D01–D05; no new productscope.
+
+### Accepted D01–D05 delivery
+
+All five approved decisions are integrated. Code checkpoint `1b19358`; latest compact chart `52f565d`, construction proof `53ae405`, WHY interaction/regression `04600df`/`a2db60a`, FPS repair `13a554d`. Inspector now refreshes when scrubbing; no Month16 receipts remain atMonth0 without reselection.
+
+Coordinator actual checks: delta chart1passed3s (all121deltas); construction native/Canvas2passed6.9s; exactWHYclick/reverse0 1passed3.4s; Activity3passed4s; LivingCanvas6passed36.8s; namednative recording1passed59.5s, playable56.84s, selected120,seed42. Canonical sweep11passed/2old-harnessfailures/1recordingskip; corrected primaryslider and totalGPUabsence checks2passed3.9s. No claim of one clean full-sweep summary. Artifact audit2actualrunrecords/1video passes. See demo-evidence-manifest.json (hashes, paths, snapshots/metrics/runidentity).
+
+New features frozen. Next READY assignments are reliability/preservation only: U09 saved-share missing/corrupt replay (Worker1 RUNNING); U08 live reduced-motion preference regression (Worker5); U10 repeated receipt/month-label dedup (coordinator); U02 resize to390 afterfocus acrossallrenderers (Worker3); R13 preserve main-only routes/catalogunion32 in a local reconciliation candidate, no release merge (Worker4); R14 regression of main's nonblockinglocalplay and import-failureprovenance against currentstartup (Worker6). R13/R14 derive from concrete branch audit, not newproductrequirements. Keep exclusiveproductionownership until coordinator assigns these tasks; READY is not permission for conflicting edits.
+
+U09 follow-up `3fbb894` plus coordinator `ad3902c`: visible missing-record recomputation disclosure survives graphics readiness; worker3actualbrowserpassed10.4s (exact full-historydigests, saved16/WHY, missingrecord120, mismatch/corrupt/retry). Coordinator rerun underway. Finalcompact responsiveCanvas1440/390/3203passed8s.
+
+U09 coordinator independent3browserpassed8.9s; accepted. Additional test-only boundaryshares seed0/4294967295 worker2passed6.6s, no newmodelbehavior. All approved D01–D05 delivery gates have actual evidence. Release reconciliation stays READY, not deployed or merged.
+
+Inventory-only WHY follow-up `71ffeb7`: coordinator actual browser1passed4.2s with every graphics context unavailable, exactcompletion16-0 jump to16/+24homes and reverse0 clearsfutureevidence. Artifacts `/tmp/hbl-inventory-why-final/`. No productioncodechange.
+
+## Pipeline execution overlay (authoritative current scheduling, 2026-11-11)
+
+Historical evidence above is retained. This overlay corrects stale scheduling prose; it does not rebuild delivered features. U07/D03, U11, U12 and U17 are already verified by the recorded construction, Activity, Living Canvas and seed journeys. U10 is claimed by `receipts-worker`, exclusively `test/pipeline-receipts.test.js`, for the actual pipeline demonstration. No NB intake scope is claimed here; its independent candidate awaits integration review.
+
+The following eight approved reliability/preservation tasks become READY after the verified prerequisites below. They are focused regression/evidence increments; a discovered production defect requires a separately bounded repair assignment. All file scopes are exclusive new files; existing shared APIs remain coordinator-owned. Execution commands and reservations are in `scripts/pipeline/tasks.json`.
+
+| ID | Priority / complexity / status | User-visible outcome and acceptance | Dependencies | Exclusive ownership | Verification |
+| --- | --- | --- | --- | --- | --- |
+| R13 | P1 / S / BLOCKED | Preserve main-only catalog/route behavior in a local reconciliation candidate: compare actual catalogs, name missing routes, prove current flagship retained; report concrete failing preservation test before any repair. No main merge. | R11 | catalog worker: new test/pipeline-catalog-preservation.test.js only | bun test test/pipeline-catalog-preservation.test.js |
+| R14 | P1 / S / BLOCKED | Prove local Play remains usable during optional plan/provenance failure. Exercise actual loading failure and report precise bounded repair if broken. | R04, R09 | compatibility worker: new test/e2e/pipeline-local-play.e2e.js + test/pipeline-local-play.browser.config.js only | bunx playwright test --config test/pipeline-local-play.browser.config.js |
+
+Execution refinements for existing IDs (same approved outcomes; status overrides historical UPCOMING only when dependencies verified):
+
+- U01 READY: actual post-initialization GPU loss selects truthful fallback, no stale graphics or lost seed/month; R01 verified; own new `test/e2e/pipeline-device-loss.e2e.js`, `test/pipeline-device-loss.browser.config.js`; run named config plus backend unit suite.
+- U02 READY: focus changed structure, desktop→390→320→desktop with same recorded frame and shared camera; no clipped selected label; R01 verified; own new `test/e2e/pipeline-resize.e2e.js`, `test/pipeline-resize.browser.config.js`; run named config plus scene unit suite.
+- U03 READY: repeated real scrub/focus/dispose has stable measured object counts and no retained canvas; report measured counters, no guessed FPS; R01 verified; own new `test/e2e/pipeline-resources.e2e.js`, `test/pipeline-resources.browser.config.js`; run named config plus Canvas unit suite.
+- U05 READY: zero-control, missing KPI and negative rent styling remain semantically explicit; R02 verified; own new `test/pipeline-kpi-semantics.test.js`; run that test and existing UI suite.
+- U08 READY: switch reduced-motion preference live; stop pulses while retaining selected entity and actual delta; R01/R05 verified; own new `test/e2e/pipeline-reduced-motion.e2e.js`, `test/pipeline-reduced-motion.browser.config.js`; run named config plus effects unit suite.
+- U16 READY: reconcile final accepted source/PNG/JSON/video identity and report unavailable artifacts, without inventing screenshots; R12 verified; own new `test/pipeline-evidence-manifest.test.js`; run named test and artifact verifier on retained recording.
+
+These reservations are dispatch metadata, not a claim workers are launched. Capacity is three; pending verification above two stops dispatch. Actual completion requires independent candidate and integrated checks, review evidence, and an integration SHA. Existing externally active NB assignments remain untouched.
+
+### Pipeline acceptance and next repair automation
+
+U10 independently VERIFIED through the interactive pipeline at `779c360`: actualinternalCodexworker, candidate12tests/89assertions pass, localcherry-pick, integrated12tests/89assertions pass. Reviewedactualseed42/+24homes/event16-0/month16/121frames invariants; no visual or simulation changes. Evidence and exactcommandexits retained in Gitcommon `demo-pipeline/interactive.json` and exported pipeline-status evidence. Only one codingworker was launched for this demonstration; no claim of three workers running.
+
+| ID | Priority / complexity / status | User-visible outcome and acceptance | Dependencies | Exclusive ownership | Verification |
+| --- | --- | --- | --- | --- | --- |
+| R15 | P1 / S / VERIFIED | Resume a bounded repair through the interactive pipeline after a failed check, retaining failed candidate and logs. Maximum two total attempts; no reset or silent retry. Atomic transition and ownership tests must prove third attempt rejected. | U10 | pipeline coordinator: scripts/pipeline-coordinator.mjs and new test/pipeline-repair.test.js; interface interactive-claims | bun test test/pipeline-repair.test.js test/pipeline-coordinator.test.js |
+
+U16 independently VERIFIED through the same pipeline: candidate15tests/200assertions and integrated15tests/200assertions pass; twelve retained artifact hashes match, actualseed42 simulation reproduces full finalmetrics and firstphysicalMonth16. Exact integrationSHA and per-phasecommandoutput are in engineering-pipeline-status and committed pipeline evidence. U06/U14 legacy rows reconciled to prior semantic-household and actualcatalog tests; R13 remains the separate main-preservation task.
+
+| ID | Priority / complexity / status | User-visible outcome and acceptance | Dependencies | Exclusive ownership | Verification |
+| --- | --- | --- | --- | --- | --- |
+| U17 | P1 / S / VERIFIED | Existing uint32 next-run seed field preserves actual saved-run provenance across scrub/share and realrerun; structured status reconciles historical narrative only. | R03 | Delivered UI/main implementation, no new assignment | Existing configured-seed actual browser journey passed; see sprint status |
+
+
+## Continuous coordinator reliability execution
+
+Authoritative execution update after source audit1de9fd8. R15 accepted on sprint atd548153 after independent candidate12pass/66assertions and integrated12pass/66assertions; broader combined37pass/202assertions. R13/R14 were checked independently and deliberately not cherry-picked. Full command exits, stdout/stderr, reviews and timestamps: coordinator-resume-evidence.json.
+
+| ID | Priority / complexity / status | Outcome / next acceptance | Dependencies | Exclusive ownership | Verification |
+| --- | --- | --- | --- | --- | --- |
+| `R13` | P1 / S / REPAIR | Candidate67aed30 retains Future Machine but proves missing HoustonBars catalog, ten missing directory entries and atlas wiring. Requires separately scoped preservation implementation; no runtime edit authorized by its test-only claim. | R11 | catalog-worker; test/pipeline-catalog-preservation.test.js | Independent2pass/3fail; candidate retained, no integration |
+| `R14` | P1 / S / REPAIR | Candidatea1aa70d: optional-plan pending/error paths pass. Aborting required simulation-observations module blocks renderer and disclosure initialization. This is a core module failure, not isolated optional metadata failure; acceptance must distinguish these cases. | R04, R09 | browser-proof-r14; assigned browser test/config | Independent8unitpass; browser2pass/1fail23.2s; not integrated |
+| `R15` | P1 / S / VERIFIED | Owner-only explicit repair, two total verification attempts, failed-evidence retention, racing resume protection and occupied REVIEW/REPAIR reservations. Integrated failures require manual reconciliation; no reset/repeated cherry-pick. | U10 | coordinator; scripts/pipeline-coordinator.mjs + test/pipeline-repair.test.js | d548153; candidate/integrated gates pass |
+
+Next compatible reliability dispatch U01 was sent to the existing native-renderer worker. A message is not a durable claim; confirm runtime status before treating it as RUNNING. Two external NB candidates remain REVIEW; no new product surfaces accepted. Failed contributions reserve ownership until explicit reconciliation.
+
+
+### Observed loss-overlay repair
+
+U01 actual loss tests integrated345d4c7: candidate and integrated backend9pass/1opt-inbrowserSkip plus2actualbrowserloss tests each. Visual review identified retained native label spans over Canvas: no stale canvas, but stale graphics remain. U01 is mechanism proof only until U18 repairs and verifies the full visible fallback acceptance.
+
+| ID | Priority / complexity / status | Executable acceptance | Dependencies | Exclusive ownership | Verification |
+| --- | --- | --- | --- | --- | --- |
+| U18 | P0 / S / VERIFIED | Clear native overlay labels on actual GPU/WebGL failure before creating Canvas. Preserve recorded state, inventory, Canvas labels and controls. Extend existing actual-loss tests to require native labels before loss and no stale native labels after loss/scrub. No renderer/City redesign. | R01 | Coordinator isolated repair: world/future-machine/scene/index.js; test/e2e/pipeline-device-loss.e2e.js | Backend/Canvas/scene units + actual native/WebGL loss browser config and visually inspected fallback PNG |
+
+
+U18 accepted1d0a488 after real-loss regression first failedbothbackends (7stale spans), then candidate/integrated units26pass1browser-gatedskip and actualnative/WebGLbrowser2pass each. Clears only native overlay; Canvas labels and recorded inventory retained.
+
+U02 candidatee30a1c0 exposed Canvas focused-ID overflow at390/320 and footer overlap, native resize passes. Bounded repair scope explicitly extended by coordinator to scene/canvas-stage.js plus its existing test/config. Same owner, baseline and two-attempt limit; original failing commit/logs retained. Explicit shared-lock scope reconciliation must precede repair resume. Fit ID text within its arm viewport and above44px footer without changing camera or outcomes; second candidate and integrated checks must pass. No other production ownership transferred.
+
+
+U02 bounded repair accepted2c9d973 on attempt2: first candidate failure retained; owner-only repair/scope reconciliation; candidate and integrated17unitpass plus native/Canvas resize2pass each. Exact IDs fit390/320 viewport and remain abovefooter; offscreen pan does not draw stray edge IDs. No frame/seed/camera/metric change. No third attempt authorized. Metadata now classifies the delivered runtime repair as feature/userFacing with existing browser evidence.
+
+U03 actualclaimRUNNING in fresh isolated resource-proof worktree; browser measurements held until final proof jobs finish, to avoid resource contention. U05/U08 remain READY. R13/R14 remain BLOCKED in approved source and REPAIR with ownership/evidence retained in runtime state. Two externalNB REVIEW candidates remain outside frozen feature scope.

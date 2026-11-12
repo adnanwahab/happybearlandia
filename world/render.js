@@ -114,9 +114,9 @@ const startup = window.hblWorldStartup = { startedAt:performance.now(), firstFra
 const startupAbort = new AbortController();
 // Read model definitions before graphics initialization; a GPU failure must not
 // leave this separate disclosure claiming to load simulation evidence forever.
-window.hblSimulationModel={status:'loading',authority:'legacy-authoritative compatibility model'};
+window.hblSimulationModel={status:'loading',authority:'legacy daily parameter definitions (separate simulation authority)'};
 const metadataDefinitions=withMetadataDeadline(Promise.all([import('./simulation-parameters.js'),import('./simulation-observations.js')]));
-void metadataDefinitions.then(()=>{window.hblSimulationModel={status:'definitions-ready',authority:'legacy-authoritative compatibility model',configuredParameters:null};const panel=$('simulationModelMetadata');if(panel)panel.textContent='Model definitions loaded. Runtime parameter values become available when the scene is ready.';}).catch(error=>{window.hblSimulationModel={status:'unavailable',error:error.message};const panel=$('simulationModelMetadata');if(panel)panel.textContent=`Model metadata unavailable: ${error.message}`;});
+void metadataDefinitions.then(()=>{window.hblSimulationModel={status:'definitions-ready',authority:'legacy daily parameter definitions (separate simulation authority)',configuredParameters:null};const panel=$('simulationModelMetadata');if(panel)panel.textContent='Model definitions loaded. Runtime parameter values become available when the scene is ready.';}).catch(error=>{window.hblSimulationModel={status:'unavailable',error:error.message};const panel=$('simulationModelMetadata');if(panel)panel.textContent=`Model metadata unavailable: ${error.message}`;});
 
 let policyPending=false;
 const startupDisabled=new Map([...document.querySelectorAll('#stormBtn,#runExperimentBtn,#runCycleBtn,#demoBtn,#policy')].map(node=>[node,node.disabled]));
@@ -236,12 +236,12 @@ if(legacyJournalRecorder)void legacyJournalRecorder.flush(true);
 void metadataDefinitions.then(([parameters,observations])=>{
  const parameterData=Object.fromEntries(Object.entries(parameters).filter(([,value])=>typeof value!=='function'));
  const observed=observations.createSimulationObservationCollector().result().observations;
- const metadata={status:'ready',authority:'legacy-authoritative compatibility model',parameters:parameterData,configuredParameters:structuredClone(world.parameters),observations:{schemaVersion:observed.schemaVersion,methods:observed.methods,limitations:observed.limitations},limits:['Daily legacy residents, living population and monthly Constitution forecasts remain separate simulation authorities.','Representative five-day annual samples carry state forward; unsampled days do not accrue economic or demographic changes.']};
+ const metadata={status:'ready',authority:'legacy daily parameter definitions (separate simulation authority)',parameters:parameterData,configuredParameters:structuredClone(world.parameters),observations:{schemaVersion:observed.schemaVersion,methods:observed.methods,limitations:observed.limitations},limits:['Daily legacy residents, living population and monthly Constitution forecasts remain separate simulation authorities.','Representative five-day annual samples carry state forward; unsampled days do not accrue economic or demographic changes.']};
  window.hblSimulationModel=metadata;
  const container=$('simulationModelMetadata');if(!container)return;container.replaceChildren();
- const note=document.createElement('p');note.textContent='Registered synthetic assumptions and observation definitions. No second model is advanced by this disclosure.';container.append(note);
+ const note=document.createElement('p');note.textContent='Registered legacy daily assumptions and observation definitions. These are separate from the active Living runtime configuration. No second model is advanced by this disclosure.';container.append(note);
  for(const[key,value]of Object.entries({parameters:metadata.parameters,observationMethods:metadata.observations.methods,limitations:[...metadata.observations.limitations,...metadata.limits]})){const detail=document.createElement('details'),summary=document.createElement('summary'),pre=document.createElement('pre');summary.textContent=key;pre.style.whiteSpace='pre-wrap';pre.style.overflowWrap='anywhere';pre.textContent=JSON.stringify(value,null,2);detail.append(summary,pre);container.append(detail);}
-}).catch(error=>{window.hblSimulationModel={status:'unavailable',authority:'legacy-authoritative compatibility model',error:error.message};const container=$('simulationModelMetadata');if(container)container.textContent=`Model metadata unavailable: ${error.message}`;});
+}).catch(error=>{window.hblSimulationModel={status:'unavailable',authority:'legacy daily parameter definitions (separate simulation authority)',error:error.message};const container=$('simulationModelMetadata');if(container)container.textContent=`Model metadata unavailable: ${error.message}`;});
 const isHarrisCountyTile = origin.lat >= 29.3 && origin.lat <= 30.25 && origin.lng >= -95.95 && origin.lng <= -94.9;
 let measuredOutcomesLatest = {};
 const geoProj = projector(origin);
@@ -2383,7 +2383,11 @@ if(loadedExperiment){
      link.href=journeyURL(surface,exact,location.search);
      navigation.append(link);
    }
-   $('top').querySelector('summary').after(navigation);
+   // Resident selection collapses World controls. Saved-checkpoint exits must
+   // remain reachable independently of that foreground panel and GPU backend.
+   navigation.classList.add('panel');
+   navigation.style.cssText='position:fixed;top:calc(var(--world-top,12px) + 104px);left:12px;max-width:clamp(200px,calc(100vw - 430px),420px);padding:8px 12px;z-index:89';
+   document.body.append(navigation);
  }else if(saved.view.selection){if(saved.mode==='living')await livingWorld.selectPerson(saved.view.selection.id);else select(saved.view.selection);}
  if(saved.view.policyPackages)PLAN_PACKAGES=structuredClone(saved.view.policyPackages);activePolicyId=saved.view.policy??'none';policyYear=saved.view.planYear??0;if($('policy'))$('policy').value=activePolicyId;if(planYearEl)planYearEl.value=String(policyYear);
  const settings=saved.view.playback;if(settings){playback.setSpeed(settings.speed);settings.paused||params.has('person')?playback.pause():playback.resume();}

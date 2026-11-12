@@ -1,5 +1,25 @@
 # HappyBearLandia implementation plan
 
+## Symphony pilot — SHE-179
+
+Documentation slice: [verification report](symphony-pilot-verification.md).
+Target absence, clean isolated issue branch, local sprint base and no Linear
+blocking relations were confirmed before editing. This worker owns only that
+report and this status entry; the trusted host owns publication interfaces.
+Acceptance: distinguish observed execution from offline tests and pending live
+publication, pass whitespace checks, and commit locally on `symphony/SHE-179`.
+Offline Symphony tests passed 8/8 and the one-worker Linear dry-run exited 0.
+No browser behavior changed, so app launch, Playwright and media are inapplicable.
+Final commit/check evidence is handed off through `.git/hbl-workpad.json`;
+GitHub draft publication and remote-base freshness remain host gates after the
+session. On resume, read-only Linear and GitHub checks confirmed the host
+published commit `cc9d10afc7c0d543eae6d4f37e8b461d4eba3b57` as open
+[draft PR #24](https://github.com/adnanwahab/happybearlandia/pull/24), with
+the correct sprint base and issue branch; no comments or review threads
+were returned. The report now records that live receipt separately from
+the original offline tests, which passed 8/8 again. CI and dispatcher
+internals remain unverified; publication of this follow-up is a host gate.
+
 [Product design](design.md) defines the target experience. [Engineering instructions](../AGENTS.md) describe how to plan, implement, and verify changes. Keep this plan current with task status, dependencies, acceptance evidence, and commit or PR references when available.
 
 ## Playable Life vertical slice
@@ -262,3 +282,166 @@ Status: homepage/default cinematic demo, split/difference/blink, camera fit over
 Verification: 140 focused tests plus 35 adjacent tests passed, one browser-gated skip; existing comparison browser suite 5 passed; expanded integrated suite 9 passed, with before/after images, actual API metrics and a 55.760-second playable recording. Additional bounded-GPU-failure and exact recording-command checks are recorded in the live sprint status. Two native browser-entry bundles and whitespace checks passed. Scope is frozen for final verification/reporting; no release merge, PR creation, push, deployment or production mutation performed. A later GitHub audit found PR11/12 externally merged; stale handoff statuses are not treated as current facts.
 
 Full acceptance mapping, scenario measurements, commands, artifacts, limits and follow-on release gates: [sprint evidence report](one-city-two-futures-sprint.md). Current review route: `http://localhost:39960/world/future-machine.html`. Safari, Firefox, physical phones and actual WebGPU hardware remain unverified. The separate World–Worldline cross-model housing roadmap remains pending; this slice intentionally retains monthly City authority.
+
+### Approved D01–D05 follow-up (2026-11-11)
+
+Continue the functioning flagship. Coordinator owns director/shared camera integration; existing isolated workers own recorded charts, construction progress and evidence-chain modules under the contracts in demo-backlog.md. R04/R10 prerequisites verified before polish. D01 six-second actual first-divergence hold is implemented: clock2tests/13assertions and actual native timed browser normal/reducedmotion2passed32s. Screenshot/evidence `/tmp/hbl-cinematic-hold-proof/`. Mobile native framing and Activity authority-seed export are active observed regressions; new modules pending integration. Main divergence50/26 requires overlap review before any release proposal. No release merge/deployment.
+
+D01–D05 accepted follow-up: integrated code `1b19358`, compact delta `52f565d`, exactconstruction proof `53ae405`, WHY jump/reverse0 regression `a2db60a`, mobileFPS `13a554d`. Actual recordeddelta1browserpass, construction2pass, trail1pass; responsive/native and test caveats in status/manifest. Named native recording59.5s test passed,56.84s playable video. Stale inspector corrected; Activity exportedseedverified. Main branch preservation risks audited without merge. Next verification is U09 visible recomputationdisclosure; no new feature scope.
+
+## Bounded local Codex pipeline
+
+In progress: build a dependency-aware, persisted dispatcher for approved `demo-backlog.md` tasks. Acceptance: atomic repository-wide claims, three-worker default with exclusive file/interface reservations, sandboxed workers/checks, commit/evidence gates, serialized local integration, deadline/freeze, interruption recovery, dry-run and focused scheduler/lifecycle tests. Backlog remains authoritative; explicit execution metadata supplies ownership and commands without adding product scope. Existing external assignments are not adopted automatically. No push, deployment, main merge or production writes. Risk: nested OS sandbox or unavailable CLI authentication can block the live demonstration; report actual execution only.
+
+Delivered: `scripts/demo-pipeline.mjs`, reviewed U10 execution metadata, operational README, Markdown/JSON status and lifecycle tests. Actual checks: dispatcher 11 passed / 53 assertions; existing story/data regression 14 passed / 82 assertions; dry-run selected only U10; conflict fixture selected one of two overlapping tasks without launching workers. Real temporary Git tests verified isolated commits, ordered integration, one repair retry, preserved branches and interrupted-lease recovery. No browser behavior changed; Playwright skipped. Local live sandbox probe exited 71 (`sandbox-exec: sandbox_apply: Operation not permitted`); shared Git directory writes are also outside this chat's sandbox. Consequently no live coding worker or full sprint was launched, and no two-hour execution is claimed. Next: run from a host with working Codex OS sandbox and Git worktree write permission using the README's exact 120-minute command. Other approved objectives require explicit file/interface ownership and reviewed check argv before dispatch; narrative-only assignments remain blocked rather than silently approved.
+
+## Engineering pipeline working slice
+
+Audit found manual chat assignments, historicalstatus contradictions and a separately implemented CLIrunner whose native sandboxpreflight is unavailable on thishost. Reused dispatcher95b63be; added interactiveCodexbridge d99e112 with repository-wideatomicclaims, exactfile/interfacemutexes, capacitythree, >2verificationbackpressure, immutablehandoff, independentcandidate/integratedtests and retainedREPAIRstate. Pipeline tests17pass/76assertions. ActualapprovedU10 dispatched tooneisolatedinternalworker, reviewed and integrated779c360; both phases12pass/89assertions usingrealCityseed42. No browserbehaviorchanged, so no new visualclaim or unnecessaryPlaywright. Existingflagshipproof remains in demo-evidence-manifest.json. Current pipeline report: engineering-pipeline-status.md. Eight further approvedreliabilityscopes plus boundedrepairautomation are planned; NBcandidate remains separately queued, notclaimedintegrated. No mainmerge/deployment.
+
+Pipeline acceptance follow-up: existingexternalNBcandidates are now in verificationqueue and count towardbackpressure; real thirdpendingcontribution blockednewdispatch. U16 nexttask independentlyintegratedbb277fd, candidate15pass/200assertions thenintegrated15pass/200assertions. Actual12artifacthashes and modelmetrics reproduced. EightREADYtaskpool maintained; twoNBcandidates remainunverified. No browser-facing sourcechanges in pipelineincrement. Runtime is on-demand internalCodex, not a falselyclaimed daemon or workingexternalCLI sandbox. Final evidence engineering-pipeline-evidence.json.
+
+
+### Continuous coordinator audit — November 11, baseline 1de9fd8
+
+Current worktree is clean detached source matching the requested sprint tip; do not change the branch checked out in another worktree. R01/R04/R06/R11/R12 already delivered: resume reliability queue rather than duplicate implementation. Next isolated dispatch contracts: [coordinator-next-dispatch.json](coordinator-next-dispatch.json). R13 catalog preservation precedes release reconciliation; R14 verifies optional-loading failures; R15 adds bounded repair. Eight READY scopes, zero confirmed running original sprint workers, two external NB candidates in REVIEW. Keep NB source changes outside the frozen flagship reliability increment.
+
+Acceptance for this audit: rerun deterministic/boundary and pipeline tests, canonical actual-browser journeys, responsive 390/320 checks, native Metal pixel proof, named recording and artifact validation. Record exact results and current source hashes in coordinator-audit-20261111.md and coordinator-audit-evidence.json. No release merge or deployment. Existing historical evidence remains separately identified.
+
+
+### Reliability queue resumed — R13/R14/R15
+
+All three tasks acquired actual repository-wide claims at baseline1de9fd8 in separate managed worktrees. Existing catalog/first-run chat owns R13, existing browser-proof chat owns R14, coordinator isolated agent owns R15. Dependencies R11, R04/R09 and U10 already verified. Exclusive paths remain scripts/pipeline/tasks.json scopes; shared runtime source remains coordinator-owned. Acceptance: R13 names concrete main preservation failures without runtime edits; R14 injects actual optional-loading failures and records browser outcome; R15 permits one explicit owned repair after failed verification, preserves failed evidence, rejects third total attempt/racing resume. Failed integrated checks must require explicit reconciliation. Candidate and integrated checks required before VERIFIED. No browser rerun for pipeline-only changes; R14 requires actual normal-route browser proof. No main/release merge or deployment.
+
+
+R15 accepted atd548153: candidate/integrated12pass each, combined37pass. R13/R14 independently failed and remain retained repair candidates; no production changes from them entered the sprint. R13 needs bounded catalog/directory/atlas preservation. R14 acceptance must distinguish optional metadata failure from missing required simulation module; preserve useful independent disclosure during renderer import failure without pretending an unavailable simulation can run. Exact evidence and timing: coordinator-resume-evidence.json. Next compatible U01 continuation requested after verification drain, subject to normal durable ownership/capacity.
+
+
+Observed follow-up U18: actual U01 screenshots expose stale native label spans above the Canvas fallback, despite the old canvas being removed. Next bounded slice clears the native overlay at fallback transition and adds a live-loss regression assertion. Acceptance requires real native/WebGL loss with one Canvas, no retained native labels, identical recorded month/seed/KPIs, working WHY/scrub and screenshot inspection. Own scene/index.js and existing device-loss browser test only. Shared City data is unchanged.
+
+
+U02 actual resize proof exposed Canvas ID-label right overflow and44px footer overlap at390/320 after focus. Native resize passes and both preserve actual frame/seed/metrics. Authorize one bounded repair by the current U02 owner in canvas-stage.js only, plus existing assigned test/config. Preserve first candidatee30a1c0 and independent failing gate under the same claim; record scope reconciliation under shared lock before owner repair resume. Require text bounds within arm/abovefooter and unchanged recorded state across desktop→390→320→desktop.
+
+
+Final verification at1d0a488: clean combined139unitpass/3browser-gatedskips/1199assertions after correcting stale hardcoded dispatcher batch expectation. Native2pass, responsive3pass, share/missing/corrupt/boundary5pass, namednative recordingpass (actualPlay→complete54.289s), artifactverifier2records/1video. Concurrent canonical sweep12pass/1recordingskip/1hold-testfailure: full-history/screenshot capture consumed the unpaused hold, then Pause observedmonth77. Retain trace; move Pause before heavy artifact IO after observing the actual hold, then rerun focused and canonical checks. This test correction preserves clock assertions and does not change demo timing. U02 mobilelabelrepair still pending; earlier recordings are pre-U02-repair source evidence.
+
+
+Accepted working increment complete at application2c9d973: U18 and bounded U02 visible repairs verified in candidate/integrated browser paths, R15 repair infrastructure exercised on actual failed U02. Final combined139units/3skips, canonical13browsers/1recordingskip, responsive3, actualdevice-loss2 and namedrecordingpass52.868sPlay→completion; exact evidence in coordinator-final-status.md/coordinator-final-evidence.json. R13/R14 diagnostic failures remain unintegrated and block release readiness. U03 claimed and released for uncontented resource measurements; U05/U08 READY. No release/main merge/deployment. Scope reconciliation for U02 was committed before owner resume and applied under shared lock before worker edits; original failed SHA/base/attempt1 retained.
+
+
+## Symphony receipt-example subset recovery — November 11, 2026
+
+Recovered SHE-89's six untracked receipt-example files on isolated local branch
+`codex/merge-complete-symphony-20261111`, based on remote sprint `f1174eb9`.
+The existing monthly City engine regenerates both pinned synthetic receipts.
+Integrated receipt/data/diff/share checks: 25 tests passed, 218 assertions;
+explicit fixture regeneration check passed. Browser behavior is unchanged.
+SHE-179 documentation was already merged remotely as PR #24; incomplete and
+untested workspace work was deferred. No source workspaces retired, remote
+push, release/main merge or deployment. Details, source hashes and limitations:
+[workspace recovery audit](symphony-workspace-integration-2026-11-11.md).
+
+Linear-first follow-up: all 59 In Review issues were matched to workspace and
+workpad evidence; none supplies an additional complete contribution to merge.
+SHE-89 remains In Progress: the recovered existing Future Machine examples are
+a useful tested subset, not completion of its canonical receipt/validator scope.
+SHE-179 is already Done and merged. No tracker status or original workspace
+was changed. Detailed issue-by-issue findings are in the workspace recovery audit.
+
+## Unblock audited Symphony tasks — November 11, 2026
+
+User authorized parallel unblocking after the Linear-first audit. Complete the
+following small integrated slice before widening the 59-task review queue:
+
+| Owner / slice | Prerequisites and acceptance | Status |
+| --- | --- | --- |
+| SHE-79 manifest load boundary | Preserve existing paired recipe/manifests; reject unsupported IDs, versions, missing seeds and invalid optional display names with actionable diagnostics before replay; valid saved fixtures load unchanged. Own data module and focused tests. | Locally integrated and independently verified |
+| SHE-115 bounded worker lifecycle | Recover old WIP without changing its workspace; verify timeout, abort before/during work, cleanup/termination, single settlement and isolated successful work through current API. Own City worker helper/API and focused tests. | Locally integrated and independently verified |
+| Shared operational blockers | Check actual current isolated-clone policy and manual procedures, run disposable real Git sandbox proof and offline host tests; preserve current dispatcher, workspaces and credentials. | Existing repair verified; no host changes required |
+| Coordinator integration | Independently review commits, combine nonoverlapping slices on this local branch, run relevant regressions, retain source provenance and report exact remaining external gates. | 68 combined tests / 629 assertions and two browser checks passed |
+
+Risks: the older receipt/validator chain remains a distinct contract decision;
+SHE-79 is not a general receipt import implementation. Active host repair sources
+are uncommitted in the primary checkout and will not be swept into this branch.
+No task is marked Done or bulk relabeled based on stale workpad claims. No main
+merge, deployment, production data change or unrestricted sandbox is authorized.
+
+Delivered increment on local `codex/merge-complete-symphony-20261111`:
+SHE-115 worker commit `060c26e` integrated as `8c40ed6`; SHE-79 worker commit
+`01bf424` integrated as `81690ca`. The latter validates the existing completed
+Future Machine manifest boundary, not a new server-wide scenario catalog.
+Coordinator reviewed both diffs, ran the combined 68-test backend/data/receipt
+suite (629 assertions) and two real normal-entry browser checks (7.7 seconds).
+Valid seed-42 month-16 replay/WHY still shows +24 homes; deliberately malformed
+display metadata produces a visible safe error before any replay request.
+
+Operational verification: 49 offline host tests, 55 cached workspace/config
+ExUnit tests, and one real OS-sandbox Git fixture passed. Fresh independent
+clones contain their Git metadata and use the existing stable manual procedures.
+Old linked workspaces remain preserved and are not automatically reusable.
+SHE-79 and SHE-115 were moved from blocked-review handoffs to In Progress during
+implementation; no ready/pilot dispatch labels or Done states were applied.
+They await publication/review of this local branch. SHE-83/SHE-84 canonical
+receipt work, other task-specific prerequisites, participant evidence and media
+access remain separate scope. No bulk requeue, dispatcher restart, push, main
+merge or deployment was performed.
+
+## Publication gate for the unblock slice — November 11, 2026
+
+User authorized publication/review for Symphony consumption. Published branch
+`codex/merge-complete-symphony-20261111` as PR #26 against the sprint branch;
+independent review found no actionable runtime issues (19 focused tests / 264
+assertions). CI now runs the 68-test unblock regression and two normal-entry
+browser checks and retains browser artifacts.
+
+First hosted run `43146419857` passed existing unit contracts, all new unblock
+regressions and Chromium installation, then failed three older release-browser
+expectations: catalog count 29 versus registered 31, saved navigation inside
+collapsed World controls, and an error expectation superseded by working Canvas
+fallback. Required gates remain enabled. Targeted harness repairs preserve all
+registered IDs and exact saved checkpoint/House/fork/replay assertions while
+exercising the actual controls and renderer fallback. Full hosted verification
+must pass before merge; current publication/merge status is authoritative at
+https://github.com/adnanwahab/happybearlandia/pull/26.
+
+## Symphony recovery prerequisite slice — November 11, 2026
+
+Recovery mission: prove operational prerequisites before the first new dispatch.
+Own new `ops/symphony/workspace_preflight.py` and its focused tests plus the
+recovery note; preserve active peer ownership of installed hooks/coordinator and
+throughput work. Acceptance: contained disposable clone, real sandbox local
+commit, approved sprint fetch, locked dependencies/imports, sanitized auth/error
+checks and cleanup. No label, merge, deployment or scheduler side effects.
+
+Eleven focused regression tests and19 total ops tests pass, including shared metadata, alternates,
+symlinks, disk, permission denial, secret sanitization, credential-file refusal
+and timeout descendant cleanup. Initial real host probe passed all checks at
+sprint870c0ca. Two further full clones hit180second timeouts; the copied-object
+cache path passed all9 real checks against0d115ec in5.9seconds, including the
+corrected credential guard, remote fetch and actual sandbox commit/imports.
+Browser behavior is unchanged. Hook installation and continuous queue proof are
+separate operational gates, not implied by preflight success. See
+[recovery evidence and candidate ownership](symphony-recovery-preflight.md).
+
+
+## SHE-180 safe backlog coordinator package and activation
+
+Package the standalone coordinator and minimal extracted host adapter without
+changing the existing Symphony workflow, sandbox, publisher or unrelated source.
+Original installed-host80-test evidence is retained separately from the clean
+package test run. Requirements/gaps for SHE-126/127 are explicitly mapped in
+docs/symphony-coordinator-reconciliation.md; neither issue is marked Done.
+
+Actual live read-only audit succeeded on175issues/17PRs. It found30reserved active
+issues and incomplete ownership; no safe three-issue batch is approved by this
+snapshot. Do not weaken these gates, bulk-reset statuses or infer stopped claims
+from an idle dispatcher. User-authorized live pilot remains conditional on real
+candidate readiness. Publish this working package as draft only; no merge/deploy.
+Acceptance and exact test/audit evidence: docs/she-180-coordinator-evidence.json.
+
+Published draft PR #30, first package commit f4072a0. Actual CLI dry-run exit0,
+175issues/21PRs/28reserved/0selected; no lease file. Standalone44pass and post-extraction
+installed-host93pass. SHE-126/127/180 reconciliation comments link the draft and
+retain incomplete status. Live pilot and recurring scheduler remain held by
+specific readiness reservations, not silently enabled. Full JSON reports are
+atomically written mode600; publication excludes raw issue comments/descriptions.

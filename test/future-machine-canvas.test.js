@@ -48,3 +48,23 @@ test('click reports exact IDs and arm, dragging and pinch update one camera, dis
  f.emit('keydown',{key:'ArrowRight'});f.emit('wheel',{deltaY:-100});expect(changes.length).toBeGreaterThan(2);
  stage.dispose();stage.dispose();expect(f.handlers.size).toBe(0);expect(f.removed).toBe(true);expect(f.canvas.width).toBe(0);expect(stage.getStats().objects).toBe(0);expect(stage.focus({collection:'buildings',id:'a'})).toBe(false);
 });
+
+test('cancel, lost capture, right click and distant release never select or poison camera',()=>{
+ const f=fixture(),selections=[],stage=createCanvasStage(f.container,{onSelect:e=>selections.push(e)});stage.update(projection(),diff);stage.setCamera({x:0,z:0,zoom:2});
+ for(const end of ['pointercancel','lostpointercapture']){f.emit('pointerdown',{pointerId:1,clientX:648,clientY:200});f.emit(end,{pointerId:1,clientX:648,clientY:200});f.emit('pointerup',{pointerId:1,clientX:648,clientY:200});}
+ f.emit('pointerdown',{pointerId:1,clientX:600,clientY:200});f.emit('pointerup',{pointerId:1,clientX:648,clientY:200});
+ f.emit('pointerdown',{pointerId:1,button:2,clientX:648,clientY:200});f.emit('pointerup',{pointerId:1,clientX:648,clientY:200});
+ expect(selections).toEqual([]);f.emit('wheel',{deltaY:NaN});expect(stage.getCamera()).toEqual({x:0,z:0,zoom:2});
+ f.emit('pointerdown',{pointerId:1,clientX:648,clientY:200});stage.update(projection(),diff);f.emit('pointerup',{pointerId:1,clientX:648,clientY:200});expect(selections).toEqual([]);stage.dispose();
+});
+test('missing projections and invalid layout dimensions remain finite with bounded keyboard zoom',()=>{
+ const f=fixture();f.container.clientWidth=Infinity;f.container.clientHeight=NaN;const stage=createCanvasStage(f.container);stage.update({a:[]},diff);expect(stage.getStats().objects).toBe(0);stage.update(projection(),diff);
+ expect(Object.values(stage.getCamera()).every(Number.isFinite)).toBe(true);for(let i=0;i<100;i++)f.emit('keydown',{key:'+'});expect(stage.getCamera().zoom).toBe(32);for(let i=0;i<100;i++)f.emit('keydown',{key:'-'});expect(stage.getCamera().zoom).toBe(.02);
+ f.canvas.getBoundingClientRect=()=>({left:0,top:0,width:0,height:0});f.emit('pointerdown',{pointerId:1,clientX:10,clientY:10});f.emit('pointermove',{pointerId:1,clientX:40,clientY:40});expect(Object.values(stage.getCamera()).every(Number.isFinite)).toBe(true);
+ expect(canvasViewports(Infinity,-1,'split')[0].width).toBe(320);expect(Object.values(fitCanvasCamera(projection(),NaN,Infinity)).every(Number.isFinite)).toBe(true);stage.dispose();
+});
+test('context and initial draw exceptions release every owned node and listener',()=>{
+ for(const getContext of [()=>null,()=>{throw Error('context denied');},()=>({setTransform(){throw Error('draw denied');}})]){
+  const f=fixture();f.canvas.getContext=getContext;expect(()=>createCanvasStage(f.container)).toThrow();expect(f.removed).toBe(true);expect(f.handlers.size).toBe(0);
+ }
+});

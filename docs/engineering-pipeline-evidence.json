@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "hbl-engineering-pipeline-evidence.v1",
+  "baseline": "bb277fd4bcfef703c2967395da340fc3e0becc48",
+  "branch": "sprint/one-city-two-futures-20261111",
+  "ready": [
+    "U01",
+    "U02",
+    "U03",
+    "U05",
+    "U08",
+    "R13",
+    "R14",
+    "R15"
+  ],
+  "externalVerification": [
+    {
+      "id": "NB-district-candidate",
+      "owner": "backlog-triage",
+      "commit": "c4cbfa22dfb1d034d3eee072d42058552e89a8cc",
+      "status": "REVIEW"
+    },
+    {
+      "id": "NB-grid-fixture",
+      "owner": "backlog-triage",
+      "commit": "c789517f12fc4ab8177b0d4865fbc3ea53f49857",
+      "status": "REVIEW"
+    }
+  ],
+  "actualWorkersLaunched": 1,
+  "workerExecution": "Internal Codex agent, isolated managed worktree; reused sequentially for U10 then U16. CLI runner not launched.",
+  "backpressureProof": "Backpressure: integrate pending contributions first",
+  "integrated": [
+    {
+      "id": "U10",
+      "candidate": "641c6dd86d5a4495f9294b1867f5a307b98c2f64",
+      "claimedBase": "95b63be80301c4c88d9c9230507d990fa1af4de6",
+      "integrated": "779c3600bf67081da88f52b9a635961759a2614d",
+      "files": [
+        "test/pipeline-receipts.test.js"
+      ],
+      "review": {
+        "reviewedBy": "coordinator",
+        "notes": "Reviewed the one-file diff against U10. Actual monthly City histories test repeated selection and historical receipt labels; no renderer or simulation changes. No new visual behavior claimed.",
+        "modelChecks": "Seed42 exact121matchedsnapshots, +24homes atMonth16, event16-0 scoped per future, immutable returnedpayload/history, reverse0 no future evidence. Browser not required for a test-only increment.",
+        "screenshots": []
+      },
+      "checks": [
+        {
+          "phase": "candidate",
+          "argv": [
+            "bun",
+            "test",
+            "test/pipeline-receipts.test.js",
+            "test/future-machine-story.test.js"
+          ],
+          "exitCode": 0,
+          "actualOutputTail": "remain distinct from historical completion time on reverse scrub [35.75ms]\n(pass) the same actual event ID in two futures remains two arm-scoped records [31.19ms]\n\n 12 pass\n 0 fail\n 89 expect() calls\nRan 12 tests across 2 files. [527.00ms]\n"
+        },
+        {
+          "phase": "integrated",
+          "argv": [
+            "bun",
+            "test",
+            "test/pipeline-receipts.test.js",
+            "test/future-machine-story.test.js"
+          ],
+          "exitCode": 0,
+          "actualOutputTail": "remain distinct from historical completion time on reverse scrub [34.96ms]\n(pass) the same actual event ID in two futures remains two arm-scoped records [28.72ms]\n\n 12 pass\n 0 fail\n 89 expect() calls\nRan 12 tests across 2 files. [525.00ms]\n"
+        }
+      ]
+    },
+    {
+      "id": "U16",
+      "candidate": "9cb053bfd47fd561829f937ca952276e38e06f29",
+      "claimedBase": "d0525fe8758b27e3390214a28512094592fe6dd3",
+      "integrated": "bb277fd4bcfef703c2967395da340fc3e0becc48",
+      "files": [
+        "test/pipeline-evidence-manifest.test.js"
+      ],
+      "review": {
+        "reviewedBy": "coordinator",
+        "notes": "Reviewed the test-only U16 diff: no product/manifest mutation, no generated screenshots. Validates retained actual artifacts and explicitly labels missing local evidence unavailable. Progressive-capture and browser limitations remain qualified.",
+        "modelChecks": "Recomputes originalhash, exact121matchedCityframes seed42, firstphysicalMonth16 and all finalmetricvalues/units from actual model; checks12 artifactSHA256s and PNGheaders; recording browser-record identities checked.",
+        "screenshots": []
+      },
+      "checks": [
+        {
+          "phase": "candidate",
+          "argv": [
+            "bun",
+            "test",
+            "test/pipeline-evidence-manifest.test.js"
+          ],
+          "exitCode": 0,
+          "actualOutputTail": "roved-final-recording/one-city-two-futures.mp4 [2.66ms]\n(pass) artifact integrity: recordingAudit \u2014 /tmp/hbl-approved-final-recording/artifact-audit.json [0.23ms]\n\n 15 pass\n 0 fail\n 200 expect() calls\nRan 15 tests across 1 file. [242.00ms]\n"
+        },
+        {
+          "phase": "integrated",
+          "argv": [
+            "bun",
+            "test",
+            "test/pipeline-evidence-manifest.test.js"
+          ],
+          "exitCode": 0,
+          "actualOutputTail": "roved-final-recording/one-city-two-futures.mp4 [1.14ms]\n(pass) artifact integrity: recordingAudit \u2014 /tmp/hbl-approved-final-recording/artifact-audit.json [0.12ms]\n\n 15 pass\n 0 fail\n 200 expect() calls\nRan 15 tests across 1 file. [238.00ms]\n"
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Nested external Codex CLI sandbox preflight is unsupported on thishost; no unsafe fallback used.",
+    "Bridge is on-demand for internal Codex dispatch, not a background daemon.",
+    "NB district/grid candidates remain unverified and unmerged in this integration branch.",
+    "Pipeline changes and delivered tasks are test-only; no new visual behavior claimed. Existing City model/rendering remains unchanged."
+  ],
+  "finalTests": {
+    "command": "bun test test/pipeline-coordinator.test.js test/demo-pipeline.test.js test/pipeline-receipts.test.js test/future-machine-story.test.js test/pipeline-evidence-manifest.test.js",
+    "passed": 45,
+    "failed": 0,
+    "assertions": 370,
+    "durationSeconds": 5.86,
+    "actualLog": "/tmp/hbl-pipeline-delivery-tests.log",
+    "logSHA256": "62ceac5c4c99465c2c4da878398bc252715722aaa1af49556ae5d52c06a43874"
+  }
+}

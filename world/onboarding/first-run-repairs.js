@@ -23,10 +23,30 @@ export async function withMetadataDeadline(promise, milliseconds=10000) {
 export function mountControlReadiness(document,getReason) {
  const root=document.getElementById('top');if(!root)return {dispose(){}};
  const note=document.createElement('p');note.id='world-control-readiness';note.setAttribute('role','status');root.append(note);
- function update(){const controls=[...root.querySelectorAll('button:disabled,select:disabled,input:disabled')].filter(node=>!node.hidden);const reasons=[];
-  for(const control of controls){const reason=getReason(control);control.title=reason;control.setAttribute('aria-description',reason);if(!reasons.includes(reason))reasons.push(reason);}
-  note.textContent=reasons.join(' ');const hidden=!reasons.length;if(note.hidden!==hidden)note.hidden=hidden;
+ const owned=new Map();
+ function restore(control,record){
+  for(const name of ['title','aria-description'])if(control.getAttribute(name)===record.applied){
+   const original=record.original[name];if(original===null)control.removeAttribute(name);else control.setAttribute(name,original);
+  }
  }
- const observer=new MutationObserver(update);observer.observe(root,{subtree:true,attributes:true,attributeFilter:['disabled','hidden']});update();
- return {dispose(){observer.disconnect();note.remove();}};
+ function update(){
+  const controls=[...root.querySelectorAll('button:disabled,select:disabled,input:disabled')].filter(node=>!node.hidden),active=new Set(controls),reasons=[];
+  for(const [control,record] of owned)if(!active.has(control)){restore(control,record);owned.delete(control);}
+  for(const control of controls){
+   const reason=getReason(control);if(!reason){const record=owned.get(control);if(record){restore(control,record);owned.delete(control);}continue;}
+   let record=owned.get(control);
+   if(!record){record={original:{title:control.getAttribute('title'),'aria-description':control.getAttribute('aria-description')},applied:null};owned.set(control,record);}
+   for(const name of ['title','aria-description']){
+    const current=control.getAttribute(name);
+    if(record.applied!==null&&current!==record.applied)record.original[name]=current;
+    if(current!==reason)control.setAttribute(name,reason);
+   }
+   record.applied=reason;if(!reasons.includes(reason))reasons.push(reason);
+  }
+  const text=reasons.join(' ');if(note.textContent!==text)note.textContent=text;
+  const hidden=!reasons.length;if(note.hidden!==hidden)note.hidden=hidden;
+ }
+ const Observer=document.defaultView?.MutationObserver??globalThis.MutationObserver;
+ const observer=new Observer(update);observer.observe(root,{subtree:true,attributes:true,attributeFilter:['disabled','hidden']});update();
+ return {dispose(){observer.disconnect();for(const [control,record]of owned)restore(control,record);owned.clear();note.remove();}};
 }

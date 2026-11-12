@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 const ready=async page=>expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.status),{timeout:90000}).toBe('ready');
-async function seek(page,month){await page.getByRole('slider').fill(String(month));await page.getByRole('slider').dispatchEvent('input');await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.month)).toBe(month);}
+async function seek(page,month){await page.getByTestId('future-machine-timeline').fill(String(month));await page.getByTestId('future-machine-timeline').dispatchEvent('input');await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.month)).toBe(month);}
 
 test('fork → run → scrub → blink → inspect → share → refresh with matched monthly City evidence',async({page},testInfo)=>{
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
@@ -57,7 +57,7 @@ test('40-second demo tour',async({page},testInfo)=>{
  const started=Date.now();
  const hold=async target=>{const ms=target-(Date.now()-started);if(ms>0)await page.waitForTimeout(ms);};
  await hold(4000);await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);await hold(7000);
- await page.getByRole('slider').scrollIntoViewIfNeeded();
+ await page.getByTestId('future-machine-timeline').scrollIntoViewIfNeeded();
  for(let month=0;month<=120;month+=6){await seek(page,month);await page.waitForTimeout(350);}
  await page.locator('.fm-stage').scrollIntoViewIfNeeded();
  for(let i=0;i<4;i++){await page.getByRole('button',{name:/^Blink: Future/}).click();await page.waitForTimeout(700);}

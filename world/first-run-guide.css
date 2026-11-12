@@ -31,7 +31,8 @@ body[data-world-active-panel]:not([data-world-active-panel="none"]) #feed, body[
 html.embed #world-quick-toolbar, html.embed #firstRunGuide { display: none !important; }
 @media (max-width: 640px) {
   #top { min-width: 0; max-width: 140px; }
-  #top[open] { max-width: calc(100vw - 24px); }
+  /* Expanded controls occupy a separate row below shortcuts and playback facts. */
+  #top[open] { top: calc(var(--world-top) + 88px); max-width: calc(100vw - 24px); max-height: min(68dvh, calc(100dvh - var(--world-top) - 112px)); }
   #world-quick-toolbar { gap: 4px; }
   #world-quick-toolbar button { font-size: 12px; padding: 7px 8px; }
   #firstRunGuide, [data-world-panel], :root #inspect[data-world-panel], :root #inspect[data-inspector-focused][data-world-panel], :root section.living-person[data-world-panel], :root .activity-dashboard[data-world-panel], :root #cyclePanel[data-world-panel], :root #experimentPanel[data-world-panel] { left: max(8px, env(safe-area-inset-left)); right: max(8px, env(safe-area-inset-right)); bottom: max(8px, env(safe-area-inset-bottom)); width: auto; max-width: none; max-height: 52dvh; padding: 12px; }
