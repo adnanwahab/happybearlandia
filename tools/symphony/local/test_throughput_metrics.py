@@ -106,6 +106,13 @@ class MetricsTests(unittest.TestCase):
         self.assertEqual(known_empty['queue']['ready'], 0)
         self.assertEqual(known_empty['rates']['prs_opened_per_hour'], 0)
 
+    def test_cached_inventory_age_is_separate_from_authoritative_scan_counts(self):
+        r=report(); r['inventoryCache']={'hit': True, 'ageSeconds': 120, 'ttlSeconds': 300, 'observationOnly': True, 'raw': 'PRIVATE'}
+        snapshot=self.store.observe(runtime(),r,{},now=200)
+        self.assertEqual(snapshot['inventory'], {'cache_hit':True,'age_seconds':120,'ttl_seconds':300,'observation_only':True})
+        self.assertEqual(snapshot['api']['linear_reads'],4)
+        self.assertNotIn('PRIVATE',json.dumps(snapshot))
+
     def test_failed_inventory_is_unknown_instead_of_empty(self):
         failure = {'issues': None, 'pullRequests': None, 'scheduler': {'error': 'upstream-unavailable'}}
         snapshot = self.store.observe(runtime(), failure, {}, now=200)
