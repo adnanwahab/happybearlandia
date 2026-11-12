@@ -1003,3 +1003,19 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-147 — Architecture E progressive shard spike
+
+Delivered bounded synthetic ring tiles on real local module Workers, tick barriers,
+progress callbacks, scalar comparison before commit, failure cleanup and a normal
+benchmark CLI. Scope/ownership, prerequisites and privacy gates are recorded in
+[spike report](progressive-shard-spike.md); machine-readable measurements in
+[evidence](evidence/she-147-shards.json). Acceptance evidence: 11 focused tests,
+298 assertions; all 1/2/4/8-worker and 5 ms emulation runs match hash cfb82fbc,
+zero dropped dependencies and equal task assignment. Timings are single Bun cold
+microbenchmarks, not browser or production scaling evidence. Existing Population
+and City authorities remain separate. SHE-142 is Done but oracle source is absent
+here: next slice needs that source and an explicit adapter, browser measurement,
+imbalance and remote trust/consent validation. No remote/peer compute, deployment
+or production data changes. This is an implemented mechanics spike with remaining
+production/browser acceptance work, not completed distributed-city integration.
