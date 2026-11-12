@@ -79,3 +79,32 @@ test('largest supported recipe stays bounded across scrubs and releases scene re
  await page.goto('/world/future-machine.html?fm=invalid&month=121');await page.goBack({waitUntil:'domcontentloaded'});await ready(page);expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);
  await page.evaluate(()=>window.futureMachine.dispose());expect(await page.evaluate(()=>window.futureMachine.stats.scene.objects)).toBe(0);expect(await page.locator('.fm-ui').count()).toBe(0);
 });
+
+test('player inspects, copies and strictly reopens a replay receipt',async({page,context},testInfo)=>{
+ await context.grantPermissions(['clipboard-read','clipboard-write']);
+ await page.goto('/world/future-machine.html');
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);await seek(page,16);
+ await page.getByText('Replay receipt',{exact:true}).click();
+ await page.getByRole('button',{name:'Inspect current receipt',exact:true}).click();
+ const output=page.getByRole('textbox',{name:'Current replay receipt',exact:true});
+ await expect(output).not.toHaveValue('');const text=await output.inputValue(),receipt=JSON.parse(text);
+ expect(receipt.evidence.month).toBe(16);expect(receipt.evidence.recipe.intervention.type).toBeTruthy();
+ expect(receipt.evidence.observations.plan.events.length).toBeGreaterThan(0);
+ await page.getByRole('button',{name:'Copy receipt',exact:true}).click();
+ expect(await page.evaluate(()=>navigator.clipboard.readText())).toBe(text);
+ const paste=page.getByRole('textbox',{name:'Paste replay receipt',exact:true});
+ await seek(page,0);await expect(output).toHaveValue('');await paste.fill(text);
+ await page.getByRole('button',{name:'Reopen receipt',exact:true}).click();
+ await expect(page.getByText('Receipt verified and reopened at its recorded month.',{exact:true})).toBeVisible();
+ expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(16);
+ expect(await page.evaluate(()=>window.futureMachine.history.experimentId)).toBe(receipt.evidence.experimentId);
+ for(const broken of ['{',JSON.stringify({...receipt,schemaVersion:'unknown'}),JSON.stringify({...receipt,checksum:'0'.repeat(64)})]){
+   await paste.fill(broken);await page.getByRole('button',{name:'Reopen receipt',exact:true}).click();
+   await expect(page.getByText(/^Receipt could not be reopened:/)).toBeVisible();
+   expect(await page.evaluate(()=>window.futureMachine.history.experimentId)).toBe(receipt.evidence.experimentId);
+ }
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);
+ await seek(page,16);await page.getByRole('button',{name:'Inspect current receipt',exact:true}).click();await expect(output).not.toHaveValue('');
+ await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.screenshot({path:testInfo.outputPath('replay-receipt-mobile.png'),fullPage:true});
+});

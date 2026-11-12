@@ -1003,3 +1003,46 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-37 — inspectable player replay receipt
+
+Local slice on `mini/SHE-37`. Ownership: `world/future-machine/main.js`, new
+`ui/replay-receipt.js`, the existing Future Machine browser suite, this entry
+and `docs/run-receipt.md`. No deployment, merge or Linear dispatch changes.
+The HBL-W1-019 prerequisite (SHE-32) remains Backlog in Linear; source inspection
+finds existing `direct`/`jump`/`entityDescription` navigation and recorded
+construction provenance, so this slice does not implement entity navigation.
+Canonical receipts, validation, saved-run replay and CLI already exist; only
+player access was missing. No independent delegation is useful for this small,
+coupled UI/integration slice.
+
+Implemented: expandable receipt inspection for the displayed run/month, formatted
+JSON, clipboard copy with manual-selection fallback, paste/reopen through
+`replayRunReceipt`. The existing validator checks versions, checksum, identity,
+initial-state digest and selected/terminal outcomes before presentation. No
+missing-record fallback is allowed for receipt replay. Export invalidates when
+the run/month changes. Existing share links and evidence downloads remain.
+Only bounded synthetic City evidence is exported; no account, URL, clipboard
+contents beyond explicit pasted input, or private user records are collected.
+The retained canonical contract requires a saved experiment on the same service;
+its checksum is not authentication and replay is manifest recomputation, not
+independently retained checkpoint proof.
+
+Acceptance evidence (2026-11-12):
+- `bun test test/run-receipt.test.js test/future-machine-share.test.js test/future-machine-ui.test.js`:
+  16 passed, 1 skipped, 1 failed. Existing CLI loopback test failed at Bun server
+  bind (`EADDRINUSE`, port 0), before CLI assertions.
+- `bunx playwright test --config test/future-machine.browser.config.js -g 'player inspects'`:
+  blocked at local server bind (`EADDRINUSE`, port 39884). No screenshot or UI
+  pass is claimed. Committed browser coverage exercises real Month 16 inspection,
+  clipboard, selected-month restoration, corrupt/version rejection and mobile
+  overflow. Next action: run it in an environment permitting local server startup.
+- Final focused check results are recorded in the accompanying handoff.
+
+No commit or PR created in this workspace. Remaining review gate: integrated
+browser execution and coordinator reconciliation of the dependency's Linear state.
+
+Final checks: `bun test test/run-receipt.test.js -t 'real persisted|seed boundaries|invalid fields'`
+passed 3/3 (53 assertions). `bun test test/future-machine-share.test.js test/future-machine-ui.test.js test/future-machine-data.test.js`
+passed 18, skipped the opt-in Chromium component test, failed 0 (164 assertions).
+`git diff --check` passed. No lint/typecheck script is declared in package.json.
