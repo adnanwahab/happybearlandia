@@ -1003,3 +1003,25 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-105 — WebGPU adapter rejection
+
+Bounded World startup slice: retain the actual adapter initialization error,
+let the existing host choose WebGL2 then Canvas2D, and show the downgrade reason
+in the persistent source notice. Native startup disables Three's implicit
+fallback so the original rejection reaches the host. Partial initialization
+cleanup releases the backend without Three r186's dispose-triggered init retry;
+cleanup failures cannot suppress the original rejection. Model inputs, seed,
+geometry and simulation authority are unchanged. No matching SHE-105 PR was
+returned by the connected GitHub search (2026-11-12).
+
+Acceptance tests added to `test/e2e/city-renderer.e2e.js` reject requestAdapter
+and exercise both WebGL2 and Canvas2D through the normal World route. They
+require visible canvas, model readiness, generated geometry, playback facts,
+backend and rejection reason, with no page errors. Browser execution remains
+unverified: the existing renderer config failed to bind port 3198 and an isolated
+33105 retry also returned EADDRINUSE before tests ran. Temporary config removed.
+Actual focused unit verification: `bun test test/world-canvas-renderer.test.js
+test/future-machine-backend.test.js` — 11 passed, 1 opt-in browser test skipped.
+Next action: run the two adapter-rejection Playwright cases where local server
+startup is available. No deployment, production mutation or publication.

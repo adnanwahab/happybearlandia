@@ -61,3 +61,9 @@ Permanent routes:
 The 60 FPS target has not been certified on an 8-core M4 Air or Safari. Headless Chromium here selects WebGL2 and exposes no timestamp queries; its performance must not be treated as an M4 GPU benchmark. Features are toggleable for hardware A/B acceptance.
 
 This implementation does not complete the full 12-week backlog. Remaining work includes actual streamed district resource eviction, production KTX2/Basis assets (the loader/cache boundary exists), full asset vehicle/tree LOD libraries, skinned near pedestrians, water, SSR, AO/bloom/post pipeline comparisons, compute experiments, richer construction equipment, utility/bridge infrastructure, and Safari/WebGPU hardware regression baselines. The procedural environment map supplies HDR reflections; authored HDR sky assets and local probes can be added later.
+
+World startup probes native initialization rather than relying on `navigator.gpu`
+alone. Adapter rejection selects WebGL2, then Canvas2D when WebGL2 is unavailable.
+The persistent source notice includes the startup failure reason. Both fallbacks
+retain the normal town geometry and simulation state; Canvas2D is a projected
+low-fidelity view. Focused rejection checks live in `city-renderer.e2e.js`.
