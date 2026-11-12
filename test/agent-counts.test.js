@@ -22,6 +22,19 @@ test('CPU oracle conserves energy and follows every recorded dependency', () => 
   expect([...energy.values()].reduce((a, b) => a + b, 0)).toBe(1280);
   expect(validateRun(run)).toEqual(run.final);
 });
+test('positive durations cannot silently serialize overflow as unavailable throughput', () => {
+  expect(() => report(runFixture({ residents: 2, ticks: 1 }), { wallSeconds: Number.MIN_VALUE }))
+    .toThrow('nonfinite throughput');
+  // A run without interactions still has a tick rate that must remain finite.
+  expect(() => report(runFixture({ residents: 0, ticks: 1 }), { wallSeconds: Number.MIN_VALUE }))
+    .toThrow('nonfinite throughput');
+  const empty = report(runFixture({ residents: 0, ticks: 0 }), { wallSeconds: Number.MIN_VALUE });
+  expect(JSON.parse(JSON.stringify(empty)).rates).toEqual({ interactionsPerSecond: 0,
+    simulationTicksPerSecond: 0, renderFPS: null });
+  const finite = report(runFixture({ residents: 2, ticks: 1 }), { wallSeconds: 2 / Number.MAX_VALUE });
+  expect(Number.isFinite(finite.rates.interactionsPerSecond)).toBe(true);
+  expect(JSON.parse(JSON.stringify(finite)).rates.interactionsPerSecond).toBe(finite.rates.interactionsPerSecond);
+});
 test('rejects no-op, forged, missing and reordered transition evidence', () => {
   for (const mutate of [r => { r.events[0].after = r.events[0].before; },
     r => { r.events[0].source = 'unsourced'; }, r => { delete r.initial; },

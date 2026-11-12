@@ -67,7 +67,12 @@ export function exportAgentCounts(run, { wallSeconds, visibleAvatars = 0, aggreg
   if (visibleAvatars !== 0 || renderedFrames !== null || renderWallSeconds !== null)
     throw new Error('Headless adapter has no rendering evidence');
   const active = new Set(run.events.flatMap(event => [event.from, event.to])).size;
-  const rate = count => wallSeconds > 0 ? count / wallSeconds : null;
+  const rate = count => {
+    if (wallSeconds === 0) return null;
+    const value = count / wallSeconds;
+    if (!Number.isFinite(value)) throw new Error('Wall duration produces nonfinite throughput');
+    return value;
+  };
   return {
     schemaVersion: 'agent-counts.v1', model: run.model, rules: run.rules, seed: run.seed,
     source: SOURCE, adapter: 'bounded-cpu-reference.v1', adapterLimits: LIMITS,
