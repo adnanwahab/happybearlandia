@@ -33,3 +33,7 @@ Private assignment, before-policy backup, source fingerprints, durable transacti
 ## Operational limits
 
 This completes a recovered real-worker-to-draft path, not a new unattended model execution. Native runtime owner handles actual generated sandbox policy, terminal hook parking, resource hold and private workflow pinning after external edits to shared concurrency/label settings. Do not raise concurrency or approve further tickets from this evidence alone. No blanket approval, main/sprint commit, force push, merge or deployment.
+
+Publication provenance was reconciled from the actual runtime log by its owner:22:46:57.155local SHE-121 start; before_run22:46:57.246 rejected a completed retained handoff; trusted after_run22:46:57.246–22:47:08.020 published it; claim removed22:47:18.139 after the pilot label disappeared. Zero model tokens. This was an existing runtime finalizer recovering an approved handoff, not a new worker implementation or a manually attributed authenticated command.
+
+Resource snapshot:42GiB disk free;21.2GiB swap in use of22GiB allocated; memory_pressure37percent system-wide free. Runtime owner stopped the externally replaced dispatcher losslessly and is pinning the workflow privately before restart. No concurrency increase or resource-based dispatch authorization follows from this snapshot.
