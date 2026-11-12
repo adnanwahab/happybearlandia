@@ -1003,3 +1003,37 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-16 — disabled and loading control explanations (2026-11-12)
+
+Scoped source slice on `mini/SHE-16`: onboarding readiness helper, storm page,
+plan page, Future Machine UI, focused browser tests and this plan entry. SHE-9
+(HBL-W1-004) is Done per Linear readback. Existing first-run repairs already
+explain World/Reality prerequisites; reuse that helper rather than replace them.
+No model, seed, result contract or synthetic-data disclaimer changed. No dispatch
+labels, production state, merge or deployment changed.
+
+Delivered: visible deduplicated status reasons plus accessible descriptions and
+native titles for disabled actions; restore original attributes on re-enable,
+exclude hidden/inert sections, and update dynamically inserted controls. Plan
+explains missing links and active computation, with a retry action on failure.
+Storm explains draft/result prerequisites and ensemble waits; editing and playback
+are locked during recomputation, and failed runs leave playback unavailable until
+a successful retry. Future Machine explains loading, absent replay/household
+records and unsupported actions, and refreshes reasons on each state update.
+
+Verification: `bun test test/world-first-run-repairs.test.js
+ test/future-machine-ui.test.js test/control-readiness.browser.test.js
+ test/storm-scenario.test.js test/storm-physics.test.js test/storm-impacts.test.js
+ test/storm-recovery.test.js test/storm-treaty.test.js` passed 25 tests / 703
+assertions, with 2 opt-in browser tests skipped. `git diff --check` passed.
+Browser attempt: `HBL_FM_BROWSER=1
+ HBL_PLAYWRIGHT_MODULE=/Users/wahabma/happybearlandia/node_modules/@playwright/test/index.mjs
+ bun test test/control-readiness.browser.test.js test/future-machine-ui.test.js`
+failed before browser launch: both local Bun servers reported EADDRINUSE on
+port 0 in this sandbox. This is an environment blocker, not passing UI evidence.
+The new browser regression exercises missing plan, loading, re-enable, service
+failure/retry and storm draft/completion hint cleanup, and writes a screenshot to
+`/private/tmp/she-16-disabled-storm.png` when runnable. No screenshot was produced.
+Next: run both opt-in browser tests in a host permitting loopback server binding,
+inspect the screenshot and verify actual route layout. No PR created here.

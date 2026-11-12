@@ -1,3 +1,4 @@
+import {mountControlReadiness} from '../../onboarding/first-run-repairs.js';
 import {DEFAULT_RECIPE} from '../contracts.js';
 import {calendarLabel, clampMonth, metricPresentation, metricSemantics, householdObservation, householdSummary} from './model.js';
 
@@ -59,6 +60,13 @@ export function mountFutureMachineUI(root, options = {}) {
   const footer=node('footer',undefined,'fm-actions');
   const share=button('Share comparison',()=>action(options.onShare)); const exportButton=button('Export evidence',()=>action(options.onExport));
   footer.append(share,exportButton); shell.append(footer); root.append(shell);
+  const readiness=mountControlReadiness(doc, control => {
+    if(state.busy)return 'Loading or running matched futures. Wait for completion or cancel the run.';
+    if(control===fork)return 'Choose an available city and supported plan to run a comparison.';
+    if(control===household)return 'No household observations are recorded for this month. Select another month.';
+    if(!state.ready)return 'Run a comparison or reopen a saved replay to explore recorded months and evidence.';
+    return 'This action has no recorded data or supported handler in this view. Select another month or outcome.';
+  },shell);
   async function action(callback, ...args) {
     if (!callback) return;
     try { await callback(...args); } catch (failure) { if(!destroyed) update({error:failure?.message || String(failure)}); }
@@ -109,10 +117,11 @@ export function mountFutureMachineUI(root, options = {}) {
     if(!evidence.textContent)evidence.textContent='No recorded evidence selected.';
     if(!householdBody.textContent)renderHousehold();
     share.disabled=!state.ready || state.busy || !options.onShare;exportButton.disabled=!state.ready || state.busy || !options.onExport;
+    readiness.update();
     if(old.month!==state.month)options.onRenderMonth?.(state.month);
   }
   update(state);
-  return {stage,update,getState:()=>({...state}),pause,destroy(){destroyed=true;generation++;pause();listeners.forEach(remove=>remove());shell.remove();}};
+  return {stage,update,getState:()=>({...state}),pause,destroy(){readiness.dispose();destroyed=true;generation++;pause();listeners.forEach(remove=>remove());shell.remove();}};
 }
 
 /** Frozen interface v1 adapter. The coordinator owns simulation, playback, and scene rendering. */

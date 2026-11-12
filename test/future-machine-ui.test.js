@@ -32,7 +32,7 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('Chromium controls, loading, failure, k
   const server=Bun.serve({port:0,fetch(request){
     const path=new URL(request.url).pathname;
     if(path==='/')return new Response('<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/world/future-machine/ui/styles.css"><body style="margin:0">',{headers:{'content-type':'text/html'}});
-    if(!path.startsWith('/world/future-machine/ui/')&&!['/world/future-machine/contracts.js','/world/city/contracts.js'].includes(path))return new Response('',{status:404});
+    if(path!=='/world/onboarding/first-run-repairs.js'&&!path.startsWith('/world/future-machine/ui/')&&!['/world/future-machine/contracts.js','/world/city/contracts.js'].includes(path))return new Response('',{status:404});
     return new Response(Bun.file(root+path));
   }});
   let browser;

@@ -78,7 +78,7 @@
       <button id="run" class="primary">Simulate</button>
     </div>
     <div class="progress" id="progress" hidden><i></i></div>
-    <div class="muted" id="status" style="margin-top:8px"></div>
+    <div role="status" class="muted" id="status" style="margin-top:8px"></div>
   </section>
 
   <section class="card" id="futuresCard" hidden>
@@ -121,6 +121,7 @@
 </main>
 
 <script type="module">
+import { mountControlReadiness } from './onboarding/first-run-repairs.js';
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -149,6 +150,8 @@ function planBody() {
   if (packageName) return { package: packageName };
   return null;
 }
+
+mountControlReadiness(document, () => planBody() ? 'Simulating paired futures. Wait for results before running again.' : 'Choose a plan in Dear Congress, then open its simulation link.', document.querySelector('.card'));
 
 if (!planBody()) {
   $("status").innerHTML = 'No plan in the link. Open this page from Dear Congress, or add <code>?proposals=t_bus,f_drainage</code>.';
@@ -287,7 +290,7 @@ async function run() {
       }
     }
   } catch (err) {
-    $("status").innerHTML = `<span class="error">${esc(err.message || err)}</span>`;
+    $("status").innerHTML = `<span class="error">${esc(err.message || err)} Select Simulate to retry.</span>`;
   } finally {
     $("run").disabled = false;
     $("progress").hidden = true;
