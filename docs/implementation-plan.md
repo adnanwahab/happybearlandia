@@ -1,5 +1,62 @@
 # HappyBearLandia implementation plan
 
+## World Experiment Marketplace — SHE-197
+
+Readiness audit (2026-11-12): pending prerequisites; marketplace implementation
+and its acceptance criteria remain incomplete. The full Linear issue explicitly
+places this in a later phase and lists SHE-47 and SHE-48 as blockers. Both are
+currently Backlog. SHE-184 (Experiment Registry) is also Backlog and defines the
+evaluation criteria that this marketplace must reuse. No Experiment Registry
+evaluation contract was found in this checkout. Existing challenge rules must
+not be described as Registry-equivalent without that integration.
+
+Reusable code and observed limits:
+
+- `world/challenges/contract.js` freezes complete CityState inputs, seed, engine
+  version, action menu, reference selection, budget and metric definitions. It
+  recomputes both plans and applies a Pareto comparison with explicit guards,
+  tolerances and missing-metric handling. These are synthetic city game rules,
+  not empirical measurements or a Registry scoring interface.
+- `world/challenges/transport.js` round-trips bounded frozen challenge recipes
+  through share-link payloads. This provides transport, not public publication,
+  ownership, authenticated results or a shared browseable catalog.
+- `world/experiment-record.js` and `world/server-experiment-store.js` provide
+  civic experiment records and immutable snapshots with lineage. Their presence
+  does not establish the Registry's required filtering, deterministic rerun or
+  shared evaluation criteria. Population checkpoint persistence under
+  `world/experiments/` is a separate model and must not be treated as CityState.
+
+Next end-to-end slice, after prerequisites:
+
+1. Establish SHE-184's versioned evaluation interface and supported replay model.
+   Pin evaluation criteria, model/code versions, source inputs and seed in each
+   published immutable scenario. Reuse existing replay and persistence paths.
+2. Add explicit publication and catalog reads, then open a published scenario
+   from the application's normal entry point and replay its pinned inputs.
+   Define ownership, write authority, retention and workload limits before
+   accepting shared submissions; saved snapshots alone imply no publication.
+3. Accept only supported strategy edits for a challenge, recompute results with
+   the Registry evaluator and preserve reference/candidate provenance. Display
+   measured/synthetic classification on every result and comparison; synthetic
+   engine observations remain synthetic even when computed from recorded state.
+4. Verify publish → browse → replay → challenge → compare with seed-matched
+   evidence, immutable parent checks, unsupported versions, tampered inputs,
+   missing observations, equal outcomes, failed sharing and persistence restart.
+
+Material risks: independently inventing marketplace scoring would violate shared
+Registry criteria; mixing model clocks/identities would undermine replay;
+caller-submitted scores or labels would not establish empirical validity.
+No marketplace routes, public writes, deployment or Linear status changes were
+made during this audit.
+
+Acceptance evidence: `bun test test/challenge-contract.test.js
+test/challenge-ui.test.js test/experiment-record.test.js
+test/server-experiment-store.test.js` passed 16 tests (72 assertions). These
+verify existing reusable behavior only, not marketplace acceptance. No browser
+behavior changed, so Playwright was skipped. Next action: finish the Registry
+evaluation contract and verify SHE-47/SHE-48 against source before implementing
+the publication slice. No commit or PR was created by this audit.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
