@@ -1,5 +1,32 @@
 # HappyBearLandia implementation plan
 
+## SHE-12 — homepage value proposition clarity research
+
+November 12, 2026: inspected issue SHE-12, product design, homepage source,
+Future Machine documentation and existing compatibility browser tests at
+`b963dd353538294cb0fbf5d34d5283fad6e10e68` on `mini/SHE-12`.
+The pre-existing untracked [research draft](homepage-value-propositions.md)
+already contains exactly three candidates, a common synthetic-data disclaimer,
+counterbalanced first-time-reader protocol, response template and decision rule.
+Preserve that draft; this turn adds only this plan entry. The homepage Play Demo,
+matched comparison and WHY interactions already have implementation and test
+coverage in source; those tests were inspected, not executed this turn.
+
+Acceptance remains incomplete: zero supplied participant responses, no measured
+clarity winner, and prerequisite SHE-6 / HBL-W1-001 still Backlog on the live
+Linear read. A is only the draft's editorial hypothesis. Do not claim a tested
+recommendation or conversion lift. Next slice: obtain the completed live baseline
+and actual anonymous first-time-reader responses, score the three candidates
+using the recorded rubric, then recommend one with supporting quotes or report
+inconclusive. Any homepage implementation follows that evaluation and coordinator
+ownership/dispatch clearance; neither is implied by this research preparation.
+
+No runtime, simulation, seed, result or homepage edits. No issue mutations,
+participant outreach, deployment, merge, commit or PR. Verification:
+`git diff --check` and `git diff -- docs/implementation-plan.md`; research
+candidate count checked separately. Browser tests, screenshots and runtime
+lint/type checks skipped because browser behavior is unchanged.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
