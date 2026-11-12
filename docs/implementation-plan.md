@@ -1003,3 +1003,29 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-222 — Mechanism Microscope
+
+Bounded product follow-on to the frozen sprint: rent WHY consumes the same selected
+monthly City snapshots and recorded mean-rent delta. No model or replay contract
+changes. The exact shift-share identity separates existing-stock rent change from
+plan-only housing-project inventory composition using `housingProjectBuildingId`.
+All unit records, including vacancies, remain in the cityMetrics denominator.
+Acceptance: reconcile within 1e-6 at every month; Month 0 zero; show 36 existing,
+24 new, denominator 60 at seed 42 Month 120; preserve month navigation and existing
+WHY evidence. Missing snapshots, displaced/unmatched stock, unknown new inventory,
+and inconsistent metrics must show unavailable rather than fabricate attribution.
+Delivered the calculation, accessible signed stacked bar, counts, denominator,
+formula, missing-data state and month-following inspector. Added deterministic
+all-month seed42/7 checks, matched control, malformed/missing data, nonmutation and
+DOM rendering checks. Integration command: `bun test test/rent-decomposition.test.js
+test/future-machine-story.test.js test/two-futures-evidence.test.js
+test/future-machine-diff.test.js test/future-machine-data.test.js` — 30 passed.
+Browser entry bundle and `git diff --check` pass. No lint/typecheck script exists.
+Added Playwright normal-entry/mobile/month-refresh coverage; execution blocked
+before browser launch by local server EADDRINUSE on both39931 and39982. Actual
+browser layout/navigation remain unverified here. Next action: run the focused
+`rent microscope` browser test when a local test server can bind. Referenced
+research source is absent in this checkout; full Linear acceptance and sprint
+model documentation supplied the method. No model change, deployment or issue
+status mutation.

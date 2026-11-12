@@ -61,3 +61,24 @@ for(const reducedMotion of ['no-preference','reduce'])test(`cinematic recorded d
  await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('24');
  await seek(page,0);expect(await page.evaluate(()=>window.futureMachine.history.plan[0].state.buildings.some(b=>b.id==='building-project-policy-1-0'))).toBe(false);
 });
+
+test('rent microscope follows recorded month and exposes counts and signed components',async({page})=>{
+ const errors=[];page.on('pageerror',error=>errors.push(error.message));
+ await page.goto(route+'?renderer=canvas2d');await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);
+ await page.getByRole('button',{name:'WHY · Mean unit rent',exact:true}).click();
+ const microscope=page.locator('.fm-rent-decomposition');
+ await expect(microscope).toContainText('Month 0');await expect(microscope).toContainText('new units: 0');
+ await expect(microscope).toContainText('total: 0.000000 USD/month');
+ await seek(page,120);await expect(microscope).toContainText('Month 120');
+ await expect(microscope).toContainText('Existing units: 36; new units: 24; denominator: 60');
+ const components=await page.locator('.fm-rent-stack span').evaluateAll(nodes=>nodes.map(n=>Number(n.title.match(/: ([-\d.]+)/)[1])));
+ const delta=await page.evaluate(()=>window.futureMachine.state.diff.metrics.meanRent.delta);
+ expect(Math.abs(components[0]+components[1]-delta)).toBeLessThanOrEqual(1e-6);
+ await expect(page.getByRole('img',{name:/Existing-unit rent change:/})).toBeVisible();
+ await page.setViewportSize({width:320,height:900});
+ expect(await microscope.evaluate(node=>node.getBoundingClientRect().right)).toBeLessThanOrEqual(320);
+ await seek(page,15);await expect(microscope).toContainText('new units: 0');
+ await seek(page,16);await expect(microscope).toContainText('new units: 24');
+ await page.getByRole('button',{name:'WHY · Homes',exact:true}).click();await expect(microscope).toHaveCount(0);
+ expect(errors).toEqual([]);
+});
