@@ -1003,3 +1003,27 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Event-referenced resident dialogue — SHE-258
+
+Next slice: use the existing House resident type and its retained Story event log
+from the Population checkpoint. Add scripted recollections in the normal household
+Activity drawer. Require a unique nonempty event ID, an actual participant who is
+still in the inspected household, and a record at or before the displayed minute.
+Clicking a line opens that exact record. No new events or generated dialogue.
+Acceptance: render seed-42 real completed-action records, reject missing/unknown
+or ambiguous IDs, and compare fresh runs plus checkpoint restore. This is the
+Population/House clock only; no monthly City or drainage identity mapping.
+Risk: retained logs are bounded, so expired records must suppress their lines.
+
+Delivered: `world/house/event-dialogue.js` and Activity drawer integration;
+contract in `world/house/story-contract.md`, focused regression and browser test.
+48 focused Bun tests passed (262 assertions), including real seed-42 completed
+rest actions, independent rerun, checkpoint restore and fail-closed citations.
+Browser execution remains unverified: configured servers failed to bind on both
+3100 and isolated 39158; a server-free Playwright attempt also failed because
+macOS sandbox denied Chromium MachPortRendezvous bootstrap registration. The
+committed browser test covers displayed IDs, source click, refresh and missing-ID
+suppression and must run on a browser-capable host. A recording-DOM integration
+test also verified the production renderer attaches exact retained IDs and removes
+uncited records. No deployment or data change.
