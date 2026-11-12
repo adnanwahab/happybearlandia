@@ -1003,3 +1003,26 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Per-route startup smoke — SHE-109
+
+Implemented a bounded local Playwright slice via `bun run test:startup`:
+flagship home, pinned synthetic World, idle Future Machine, Saved Future Journey,
+Simulation Health and Route directory. Each route independently reports HTTP
+status, visible key DOM nodes, uncaught startup errors and disabled controls in
+an attached `startup-report` JSON record. Home checks advertised target links;
+World must reach its actual startup-ready marker, Future Machine must enable
+Fork City while its unrun timeline remains disabled, Journey must enable its
+demo action, and Health must finish with available/ready responses. No action
+creates a simulation or saved demo. Temporary storage and a dedicated server
+isolate the check from existing local data. Existing production release smoke
+and deeper model journeys remain separate gates.
+
+Verification: six tests discovered by `bunx playwright test --config
+test/startup-smoke.config.js --list`; diff whitespace check passed. Browser run
+blocked before tests: Bun server listen returned EADDRINUSE at both 39961 and
+41109 in the restricted workspace. No browser pass claimed. Next gate: run
+`HBL_STARTUP_SMOKE_PORT=<free-port> bun run test:startup` on a host that permits
+local listeners and inspect `test-results/startup-smoke-results.json` and the
+per-test attachments. No configured repository-wide lint/typecheck script.
+See [startup smoke usage](startup-smoke.md) for scope and reporting limitations.

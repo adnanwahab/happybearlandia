@@ -17,7 +17,8 @@
     "test:advanced:e2e": "playwright test test/e2e/advanced-",
     "record:demo": "HBL_RECORD_DEMO=1 playwright test test/e2e/advanced-loop.e2e.js",
     "test:city": "bun test --timeout 15000 test/city-systems.test.js test/project-unblock.test.js test/server-civic-api.test.js",
-    "test:city:e2e": "playwright test test/e2e/city-systems.e2e.js test/e2e/project-unblock.e2e.js"
+    "test:city:e2e": "playwright test test/e2e/city-systems.e2e.js test/e2e/project-unblock.e2e.js",
+    "test:startup": "playwright test --config test/startup-smoke.config.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1136.0",
