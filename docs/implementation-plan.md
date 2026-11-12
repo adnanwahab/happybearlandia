@@ -1,5 +1,45 @@
 # HappyBearLandia implementation plan
 
+## Architecture shootout — SHE-151
+
+Status: preflight implemented; measurements blocked. The isolated worktree is
+`workspaces/SHE-151`, branch `mini/SHE-151`, audited base
+`b963dd353538294cb0fbf5d34d5283fad6e10e68`. Owned files are the shootout metric
+manifest, preflight CLI, focused test, evidence and this documentation entry.
+No agents dispatched, merges or deployments performed.
+
+The next end-to-end slice is a common versioned workload implemented by all five
+candidate adapters, checked against an independent CPU oracle, then measured at
+10k/100k/1M with render OFF/ON. Prerequisites SHE-143–SHE-147 (architectures A–E)
+were all Todo in the Linear audit. The current bounded CPU fixture and
+independent-future worker benchmark cannot substitute for these adapters.
+Acceptance requires actual changed-state and interaction evidence, p50/p95
+completed simulation steps, presented-frame FPS, peak memory with explicit scope,
+device/browser/version, validation results and retained artifacts for every case.
+Risks: cohorts lack persistent individual identity, parallel updates may diverge,
+and browser memory instrumentation may not include GPU or whole-device memory.
+
+Delivered: `bun scripts/preflight-architecture-shootout.js` emits all 30 blocked
+cases with unavailable metrics as null and exits 2. Raw audit environment and
+manifest are in [preflight evidence](evidence/she-151-shootout-preflight.json).
+This command performs no simulation; it is not benchmark evidence. Seed 42 is
+reserved in the plan; model/rules/adapter versions and workload remain unset
+until a common contract exists. No empirical or performance result is claimed.
+
+Verification: `bun test test/architecture-shootout.test.js test/agent-counts.test.js`
+passed 10 tests / 403 assertions. Existing CPU tests include independent-oracle,
+replay, missing-event and boundary checks; cross-backend tests remain blocked by
+missing adapters. Browser behavior is unchanged, so Playwright was skipped.
+No package lint/typecheck scripts exist. GitHub CLI PR audit failed to connect to
+api.github.com. Connector search for open architecture PRs found
+[draft PR #163](https://github.com/adnanwahab/happybearlandia/pull/163) for SHE-146;
+its body explicitly says tests and acceptance still require review. That candidate
+is absent from this checkout and is pending review/integration, not a verified
+backend. The search is not a complete remote code review.
+Next: integrate the five prerequisite adapters, agree workload/time/identity and
+fidelity semantics, implement measurement instrumentation, and execute the matrix.
+SHE-151 acceptance remains unmet until those measurements exist.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
