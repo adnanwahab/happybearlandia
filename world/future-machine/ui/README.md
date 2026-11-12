@@ -45,3 +45,22 @@ Focused browser evidence is component-only: `/tmp/future-machine-ui-semantic-mob
 `onConfigure(recipe)` is additive and receives a detached configured recipe on valid seed changes or policy edits. The visible **Seed for next run** field (`data-testid="future-machine-seed"`) accepts decimal uint32 integers including 0 and 4294967295. Empty, nonnumeric, fractional, negative and out-of-range input remains visible with an error, never becomes zero, never dispatches configuration and blocks Fork City through native validity. `onRun(recipe)` receives the configured recipe, not the displayed run recipe. Busy runs disable seed editing.
 
 Pending edits survive ordinary `update` calls, including repeated old `recipe` values on timeline/inspection updates. A recipe matching valid pending configuration acknowledges it; a changed nonempty experiment ID plus an explicit recipe replaces it for a newly displayed run. The run provenance reads `provenance` or the coordinator's displayed `recipe`, never the pending seed. The coordinator owns validation/persistence and must keep saved history/share URLs tied to the actual run, supplying recipe and experiment ID when switching runs. No main/shared contract changes are included.
+
+## Curated City recipes (SHE-49)
+
+The normal Future Machine page includes **Three playable what-if recipes**.
+Each link uses the existing versioned share contract, preserves the selected
+renderer, and starts a saved paired City experiment at Month 120. Small infill,
+District expansion, and Housing after a wait vary supported housing scale,
+district, cost and delay. The common seed is 42. Catalog assumptions and limits
+are visible with each link; these are authored synthetic inputs, not forecasts.
+The saved manifest and evidence export retain the actual recipe, generator,
+model manifest, initial digest and replay limitations. Catalog metadata and local
+recorded completion evidence are in `docs/evidence/she49-recipes.json`.
+
+`bun test test/future-machine-recipes.test.js` checks deterministic replay,
+immutable matched starts, share round trips and distinct completion records.
+`bunx playwright test --config playwright.recipes.config.js` exercises each
+normal catalog link on forced Canvas, timeline/blink, evidence download and
+saved share/reload using an isolated temporary City store. Browser acceptance
+remains pending if the local server cannot bind.

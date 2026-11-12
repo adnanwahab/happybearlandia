@@ -1,3 +1,5 @@
+import {PLAYABLE_RECIPES} from '../recipes.js';
+import {createShareURL} from '../share/index.js';
 import {DEFAULT_RECIPE} from '../contracts.js';
 import {calendarLabel, clampMonth, metricPresentation, metricSemantics, householdObservation, householdSummary} from './model.js';
 
@@ -135,6 +137,17 @@ export function createUI(container, callbacks = {}) {
   let defaultIntervention=structuredClone(DEFAULT_RECIPE.intervention);
   const doc=container.ownerDocument;
   const shell=view.stage.closest('.fm-ui');
+  const catalog=doc.createElement('details');
+  const summary=doc.createElement('summary');summary.textContent='Three playable what-if recipes';catalog.append(summary);
+  for(const entry of PLAYABLE_RECIPES){
+    const item=doc.createElement('article'),link=doc.createElement('a'),description=doc.createElement('p'),limits=doc.createElement('p');
+    link.textContent=entry.title;link.href=createShareURL({recipe:entry.recipe,month:120},doc.location.href);
+    description.textContent=entry.description;
+    limits.textContent=`${entry.source} ${entry.limitations} Seed ${entry.recipe.seed} · ${entry.recipe.modelVersion} · ${entry.datasetVersion} · ${entry.catalogVersion}. Recomputed from this versioned recipe; export evidence after running.`;
+    item.append(link,description,limits);catalog.append(item);
+  }
+  shell.querySelector('.fm-setup').before(catalog);
+
   const seedLabel=doc.createElement('label');seedLabel.textContent='Seed for next run';seedLabel.className='fm-seed-label';
   const seedInput=doc.createElement('input');seedInput.type='text';seedInput.setAttribute('aria-label','Seed for next run');seedInput.inputMode='numeric';seedInput.pattern='[0-9]+';seedInput.required=true;seedInput.value=String(recipe.seed);seedInput.dataset.testid='future-machine-seed';
   const seedError=doc.createElement('p');seedError.className='fm-error fm-seed-error';seedError.setAttribute('role','alert');seedError.hidden=true;
