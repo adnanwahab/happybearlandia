@@ -1003,3 +1003,41 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-117 — guided housing versus drainage comparison
+
+Next integrated slice: City Lab offers a fixed, versioned synthetic recipe with
+baseline, six-home construction (USD 840,000), and drainage represented by the
+existing resilience project (+0.4 protection, USD 200,000). All arms use the same
+starting inventory, five matched seeds (42–46), 36 months, and Riverside flood
+(month 24, duration 3, severity 0.7). The existing API owns persistence and replay.
+No shared engine/API contract changes or parallel implementation are needed.
+
+Acceptance: real funded projects and completion gates, distinct measured outcomes,
+immutable baseline, deterministic replay, retained recipe/model provenance, and
+an accessible normal-entry-point journey through saved comparison and replay.
+Show flood-event damage alongside final housing/rent/budget metrics; avoid claims
+of calibrated drainage hydraulics or guaranteed improvements. A 12-home trial
+remained utility-constrained; six homes is the bounded supported recipe selected
+for verification. Existing imported/custom experiments must retain their behavior.
+Delivered: guided entry point, fixed recipe/model provenance, saved three-arm
+comparison, observed flood-event damage query, and ordinary replay integration.
+The existing partial source edits were retained and completed in this isolated
+issue checkout; no engine or shared API changes were necessary. Open GitHub PR
+search for housing/drainage returned no duplicate. No parallel work was needed.
+
+Acceptance evidence: all five seed pairs complete both funded projects before
+month 24, housing adds six units, drainage lowers flood-event damage, initial
+inputs remain unchanged, and independently regenerated monthly evidence matches.
+The normal API stores all 15 futures, seeds 42–46 per arm, five observed flood
+events per arm, recipe provenance, and replay metrics identical to stored values.
+Focused recipe tests: 3 passed. Combined City/recipe/unblock/server regression
+suite: 24 passed. Whitespace check passed; no repository-wide lint/type script
+exists for this JavaScript module.
+
+Browser regression added for the guided click, saved reload, lineage and drainage
+month-24 replay. Playwright could not start its app server: EADDRINUSE at default
+3100 and alternate 34117; browser assertions and visual layout remain unverified.
+No deployment, production changes, dispatch approval labels, commit or PR were
+made. Next action: run the focused browser test in an environment that permits
+its local servers, then review/publish the diff through the normal host process.
