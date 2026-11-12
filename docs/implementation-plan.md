@@ -1,5 +1,31 @@
 # HappyBearLandia implementation plan
 
+## Ethical first-100-to-1000-player launch preparation — SHE-68
+
+Prepared [launch experiment](launch-experiment.md), protocol `launch-v1`:
+one adult city-building audience, one permission-based community thread, an
+opt-in invitation, and the existing standalone Riverside Bakery journey.
+Owned scope is the brief and this plan entry; no gameplay, homepage, collector,
+deployment or production changes. Audit found working versioned comparison and
+recipe replay, but no launch funnel collector in the bakery page. Reuse those
+contracts and start with consented facilitated observations, explicitly separating
+clicks, verified completion, useful feedback, assistance and unknowns.
+
+Acceptance delivered: hypotheses, $0 cash/eight-hour effort ceilings, staged
+10/100/250/500/1000 gates, abort rules, privacy/retention procedure, ledger schema,
+synthetic rules/version/seed provenance and exact verification commands.
+`bun test test/bakery-journey.test.js test/bakery-scenario.test.js`: 6 passed,
+0 failed, 26 assertions. `git diff --check` passed. Documentation-only scope;
+Playwright/screenshots skipped. Baseline branch `mini/SHE-68` at `b963dd3`;
+no commit or PR created here.
+
+Recruitment remains held: November 12 Linear inspection found SHE-12/W1-007
+In Progress and SHE-52/W1-039 In Review. Require actual clarity evidence,
+integrated consent/submit/error/opt-out verification, a named launch owner,
+moderator permission, candidate route/replay/capacity checks and two excluded
+rehearsals before invitations. Scaling requires verified measurement capacity
+and stage approval; no participant results or launch authorization are claimed.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
