@@ -1003,3 +1003,33 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Scientific Data Export — SHE-193
+
+Slice: export the existing validated Future Machine canonical receipt through a
+local CLI into a new dataset directory. Prerequisites: supported synthetic v1
+provenance and receipt checksums; Python/PyArrow for Parquet. Acceptance: typed
+paired metric rows, JSON/CSV/Parquet, manifest/source/license classification,
+full machine-readable provenance, schema and dictionary; deterministic text
+files; reject malformed input and existing destinations. Keep other model
+adapters out of this slice. Risks: no source dataset license is declared;
+report NOASSERTION rather than invent permission. Source units may be unknown.
+
+Implemented `shared/scientific-export/` and `scripts/export-scientific-data.js`
+with explicit JSON/CSV-only mode and default Parquet encoding/readback. Source
+receipt remains unchanged and retained in full. Tests exercise actual City
+receipts, uint32 seed, paired zero results, invalid values/checksum, publication,
+overwrite protection and independent Python JSON/CSV/checksum reads. Parquet
+schema/round-trip integration is conditional on PyArrow availability.
+
+Verification on this sandbox: new JSON/CSV tests pass; PyArrow is absent and pip
+cannot resolve pypi.org, so Parquet/notebook PyArrow validation remains pending.
+Existing receipt tests: three pass; CLI server test cannot bind local port 0
+(EADDRINUSE). No browser behavior changed, so Playwright is not applicable.
+No deployment, production writes, commit or PR. Next gate: install the recorded
+PyArrow dependency and run the Parquet integration test in a network-enabled
+Python environment. Coverage is selected-month Future Machine metrics only;
+other simulation authorities and public FAIR catalog hosting remain future work.
+Final focused gate: 5 passed, 1 PyArrow skip, 0 failures, 81 assertions
+(includes three receipt regressions; excludes the separately observed socket-bound
+CLI case). Python encoder compiles and `git diff --check` passes.
