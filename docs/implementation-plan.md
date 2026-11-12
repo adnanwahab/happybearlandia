@@ -1,5 +1,24 @@
 # HappyBearLandia implementation plan
 
+## SHE-210 review follow-up triage — November 12, 2026
+
+Coordinator audit recorded in [the triage report](reviews/she-210-triage.md).
+Read the full parent and six child Linear issues and inspected their current
+application paths at `b963dd3`. The referenced original `claude.md` review is
+missing; current source confirms the reported integration patterns. Recommended
+serial shared-file sequence: SHE-213 URL reliability, SHE-218 data readiness,
+SHE-215 director/selection, then SHE-214 anchored WHY. SHE-217 is a separate UI
+slice; SHE-216 renderer retention requires U03 resource evidence first. The
+report records prerequisites, affected interfaces, risks and child acceptance
+gates. D05 remains accepted/deferred; I3 remains with SHE-182.
+
+Actual baseline: 48 focused tests passed, 1 browser-dependent test skipped,
+0 failed, 285 assertions across eight files. No application code changed and
+Playwright was skipped for this documentation slice. Browser acceptance,
+physical iPhone verification and implementation remain pending. No dispatch
+labels or live issue statuses changed; this audit does not close the parent or
+authorize Symphony execution.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
