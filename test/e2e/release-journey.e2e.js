@@ -1,5 +1,13 @@
 import { expect, test } from '@playwright/test';
 
+async function savedFutureNavigation(page) {
+  // Saved exits remain usable while resident selection keeps controls collapsed.
+  await expect(page.locator('#top')).not.toHaveAttribute('open', '');
+  const navigation = page.getByRole('navigation', { name: 'Saved future', exact: true });
+  await expect(navigation).toBeVisible({ timeout: 45000 });
+  return navigation;
+}
+
 test('an exact Living World future survives World, House, replay and a matched fork', async ({ page, request }) => {
   test.setTimeout(180000);
   await page.setViewportSize({ width: 900, height: 600 });
@@ -23,16 +31,15 @@ test('an exact Living World future survives World, House, replay and a matched f
   await expect(page.locator('#view canvas')).toBeVisible();
   await expect(page.locator('#source')).toContainText('1 buildings from saved synthetic geometry');
   await expect(page.locator('#source')).toContainText('WEBGL2');
-  await expect(page.locator('#top')).not.toHaveAttribute('open', '');
-  await expect(page.getByRole('navigation', { name: 'Saved future', exact: true })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Return to Worldline' })).toBeVisible({ timeout: 45000 });
+  const navigation = await savedFutureNavigation(page);
+  await expect(navigation.getByRole('link', { name: 'Return to Worldline' })).toBeVisible();
   expect(new URL(page.url()).searchParams.get('entityId')).toBe('person:population:' + person);
-  await page.getByRole('link', { name: 'Open exact household in House Simulator' }).click();
+  await navigation.getByRole('link', { name: 'Open exact household in House Simulator' }).click();
   await expect(page.getByRole('heading', { name: 'Live a day as Alex Rivera' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Return to Worldline' })).toHaveAttribute('href', new RegExp('experiment=' + parent));
   await page.goBack();
   await expect(page.locator('#view canvas')).toBeVisible();
-  await page.getByRole('link', { name: 'Return to Worldline' }).click();
+  await (await savedFutureNavigation(page)).getByRole('link', { name: 'Return to Worldline' }).click();
   await expect(page.locator('#clock')).toContainText('Minute 360');
   expect(new URL(page.url()).searchParams.get('person')).toBe(person);
 
@@ -69,13 +76,15 @@ test('invalid IDs and missing saved checkpoints are visible', async ({ page }) =
   await expect(page.getByRole('status').filter({ hasText: 'Saved checkpoint is missing.' })).toBeVisible();
 });
 
-test('saved World retains its exact return link through Canvas2D fallback on a phone', async ({ page }) => {
+test('saved World retains the exact checkpoint and return link through real Canvas fallback on a phone', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/tools/future-journey.html');
   await page.getByRole('button', { name: 'Create a guided demo checkpoint' }).click();
   await expect(page.locator('#clock')).toContainText('Minute 360');
   const parent = new URL(page.url()).searchParams.get('experiment');
   const person = new URL(page.url()).searchParams.get('person');
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
   await page.addInitScript(() => {
     if (!/^\/world\/?$/.test(location.pathname)) return;
     Object.defineProperty(navigator, 'gpu', { value: undefined });
@@ -87,11 +96,30 @@ test('saved World retains its exact return link through Canvas2D fallback on a p
   });
   await page.getByRole('link', { name: 'Enter this future in 3D World' }).click();
   await expect(page.locator('#view canvas[data-renderer="canvas2d"]')).toBeVisible();
+  await expect(page.locator('#source')).toContainText('1 buildings from saved synthetic geometry');
   await expect(page.locator('#source')).toContainText('CANVAS2D');
-  await expect(page.locator('#top')).not.toHaveAttribute('open', '');
-  const navigation = page.getByRole('navigation', { name: 'Saved future', exact: true });
-  await expect(navigation).toBeVisible();
+  await expect.poll(() => page.evaluate(() => window.hblWorldStartup?.firstFrameMs ?? 0)).toBeGreaterThan(0);
+  await expect.poll(() => page.evaluate(() => window.hblWorldStartup?.readyMs ?? 0)).toBeGreaterThan(0);
+  const navigation = await savedFutureNavigation(page);
+  expect(new URL(page.url()).searchParams.get('experiment')).toBe(parent);
+  expect(new URL(page.url()).searchParams.get('entityId')).toBe('person:population:' + person);
+  await expect(navigation.getByRole('link', { name: 'Open exact household in House Simulator' })).toHaveAttribute('href', new RegExp('experiment=' + parent));
+  const snapshot = await page.evaluate(() => window.hblLivingWorld.getSnapshot());
+  expect(snapshot.config.seed).toBe(42);
+  expect(snapshot.runtime.paused).toBe(true);
+  expect(snapshot.minute).toBe(360);
+  expect(await page.evaluate(() => window.hblWorldStartup.restoreError ?? null)).toBeNull();
+  expect(errors).toEqual([]);
+  const evidence = await page.evaluate(() => ({
+    source: document.querySelector('#source').textContent,
+    renderer: document.querySelector('#view canvas').dataset.renderer,
+    startup: window.hblWorldStartup,
+    selection: window.hblLivingWorld.getSelection(),
+    snapshot: window.hblLivingWorld.getSnapshot(),
+  }));
+  await testInfo.attach('saved-world-canvas-fallback', { body: JSON.stringify({ parent, person, evidence, errors }, null, 2), contentType: 'application/json' });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: testInfo.outputPath('saved-world-canvas-fallback.png') });
   await page.screenshot({ path: '/tmp/hbl-saved-future-canvas-phone.png' });
   await navigation.getByRole('link', { name: 'Return to Worldline' }).click();
   expect(new URL(page.url()).searchParams.get('experiment')).toBe(parent);

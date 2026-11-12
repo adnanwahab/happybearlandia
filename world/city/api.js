@@ -2,6 +2,7 @@ import {CityStore,validateReadQuery} from './storage.js';
 import {createCity} from './seed.js';
 import {createEngine,addIntervention,scheduleShock} from './engine.js';
 import {VERSION,validateState} from './contracts.js';
+import {workerCall} from './worker-call.js';
 const json=(body,status=200)=>Response.json(body,{status,headers:{'cache-control':'no-store'}});
 export const SAVED_QUERIES={
   'Construction bottlenecks':"SELECT event_type, geography_id, COUNT(*) AS events FROM system_events WHERE system = 'construction' GROUP BY event_type, geography_id ORDER BY events DESC",
@@ -12,14 +13,6 @@ export const SAVED_QUERIES={
   'Compare plans':'SELECT r.scenario_id, m.metric_id, AVG(m.value) AS mean_value, MIN(m.value) AS minimum, MAX(m.value) AS maximum FROM runs r JOIN run_metrics m ON r.run_id = m.run_id GROUP BY r.scenario_id, m.metric_id',
   'Causal events':'SELECT simulation_time, system, event_type, geography_id, payload_json FROM system_events ORDER BY event_id',
 };
-function workerCall(file,data,timeout=60000) {
-  return new Promise((resolve,reject)=>{
-    const worker=new Worker(new URL(file,import.meta.url).href),timer=setTimeout(()=>{worker.terminate();reject(new Error('Operation time limit exceeded'));},timeout);
-    const end=()=>{clearTimeout(timer);worker.terminate();};
-    worker.onmessage=({data})=>{end();data.error?reject(new Error(data.error)):resolve(data.result);};
-    worker.onerror=event=>{end();reject(new Error(event.message||'Worker failed'));};worker.postMessage(data);
-  });
-}
 export function normalizeExperiment(body={}) {
   if(!body||typeof body!=='object')throw new Error('Experiment object required');
   let initial=body.initial?structuredClone(body.initial):createCity(body.city||{});
@@ -91,7 +84,7 @@ export function createCityApi({root,store:providedStore}={}) {
         const scenario=record.manifest.scenarios.find(s=>s.id===scenarioId);if(!scenario)throw new Error('Unknown scenario');
         let initial=record.manifest.initial;for(const intervention of scenario.interventions||[])initial=addIntervention(initial,intervention);
         const token=`replay-${crypto.randomUUID()}`;active.add(token);
-        try {return json(await workerCall('./run.worker.js',{initial,seed:(initial.seed+runIndex)>>>0,months:record.manifest.months,replay:true},60000));}finally{active.delete(token);}
+        try {return json(await workerCall('./run.worker.js',{initial,seed:(initial.seed+runIndex)>>>0,months:record.manifest.months,replay:true},60000,{signal:request.signal}));}finally{active.delete(token);}
       }
       if(action==='export') {
         if(record.status!=='complete')return json({error:'Export is available after completion'},409);
