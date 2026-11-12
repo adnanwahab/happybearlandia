@@ -551,3 +551,25 @@ Implement admission inside the existing backlog coordinator: persist reviewed ex
 Delivered permanent assignment slice: existing coordinator now persists exact reviewed assignment and admission journal before labels, repairs only authorized orphans, and renews only explicit standing grants through safe maintenance. Receipt-backed handoff release, host ownership/freshness checks and launchd bootstrap/templates implemented without activating a second service.215source tests and238installed tests pass; disposable plists pass plutil; review-driven renewal/revocation regressions verified. Installed12files with private checksum backups and preserved deployed cache adapter. Live captured178issue/34PR audit plus fresh local state:0selected/28reserved; existing83human policy preserved,83/142staged reviews stale/ownership unresolved,165scope unreviewed.0live assignments created;0workers/0retries, concurrency1 unchanged. Memory/swap and missing approvals block actual worker validation/scaling; no live execution success claimed. Exactfiles, commands, supervision instructions and limits in docs/symphony-assignment-lifecycle.md and local/ASSIGNMENTS.md. No service activated, merge, deploy or source cleanup.
 
 Final integration acceptance supersedes intermediate counts: source220pass/27.869s; installed243pass/20.145s. Added shared publisher validator (100files/64KiB/canonical ID/stable failure codes), held issue lock and final policy validation through remote label addition, and durable supervisor budget across launchd invocations. Redacted status distinguishes trusted admission vs execution labels and leaves review decisions unknown. Both final plists lint; no services/assignments/labels/runtime activation. Existing observer remains read-only/older version pending operator handoff. Feature6c506a0 provided to coordinating integration owner; detailed final evidence in docs/symphony-assignment-lifecycle.md.
+
+## SHE-252 — three-repository Symphony intake
+
+Extend existing host coordinator/publisher on assignment-lifecycle integration
+baseline. Owned scope: source intake/state/outbox/tests, explicit operator-owned
+routing in assignment/clone/publication, coordinator opt-in inventory, and versioned
+SHE-251 public contract. Preserve installed runtime, gates and concurrency1.
+Acceptance: three paginated queues excluding PRs, qualified identity/revisions,
+durable receipts/leases/outbox, existing mirror/PR recovery, reviewed target-repo
+workspaces, bounded retries and visible blockers, malicious-input isolation,
+regression tests and read-only live inventory. No app deployment/merge/live pilot.
+
+Delivered in the isolated SHE-252 branch: source identity/state/webhook receipt,
+three-queue reconciliation, reviewed target routing in existing coordinator and
+source-only publisher, durable bot-comment outbox, fair source ordering, scheduler
+hook, and SHE-251 contract/fixture. Verification: 246 local Symphony tests passed
+(11.776s), git diff --check clean. Executed read-only inventory found 0 Dear Congress,
+0 Digital Pensieve and 9 HBL open issues, with complete paginated reads. Evidence:
+docs/evidence/she-252-validation.json and she-252-source-inventory.json. Live runtime
+installation, prompt migration and the explicitly enabled three-repo pilot remain
+operator rollout work; no runtime, concurrency, label, merge or app deployment
+was changed. Parent acceptance must not be marked complete merely from mocks.

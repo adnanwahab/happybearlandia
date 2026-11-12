@@ -244,8 +244,14 @@ def plan(snapshot, config, state, inventory, issue, now=None):
     lease = retained['leases'].pop(issue['id'], None)
     cfg = copy.deepcopy(config)
     cfg['reviews'][issue['id']] = effective
+    adjusted['baseSha'] = snapshot.get('baseShas', {}).get(issue.get('_repository', host.REPO), snapshot['baseSha'])
     row = next(r for r in c.classify(adjusted, cfg, retained, now) if r['id'] == issue['id'])
     reasons = list(row['reasons'])
+    from repository_routes import reviewed_source
+    try:
+        reviewed_source(issue, effective)
+    except ValueError:
+        reasons.append('Known intake source requires matching immutable operator source binding')
     if lease and lease.get('status') == 'released':
         reasons.append('released task requires explicit new review, never automatic re-admission')
     if not all(host_git.safe_name(n) for n in effective.get('files', [])):
@@ -260,11 +266,17 @@ def plan(snapshot, config, state, inventory, issue, now=None):
         allow_running = bool(lease and lease.get('status') == 'active' and own and
                              owns_policy(lease, own))
         reasons.extend(conflicts(inventory, config, issue, effective, now, allow_running))
-    policy = {'version': 1, 'issue': issue['identifier'], 'repository': host.REPO, 'base': host.BASE,
-              'baseCommit': snapshot['baseSha'], 'files': sorted(effective.get('files', [])),
+    policy = {'version': 1, 'issue': issue['identifier'], 'repository': issue.get('_repository', host.REPO), 'base': issue.get('_base', host.BASE),
+              'baseCommit': snapshot.get('baseShas', {}).get(issue.get('_repository', host.REPO), snapshot['baseSha']), 'files': sorted(effective.get('files', [])),
               'interfaces': effective.get('interfaces', []), 'reviewedBy': effective.get('reviewedBy'),
               'expiresAt': effective.get('expiresAt'), 'publishEnabled': False,
               'reviewDigest': c.review_digest(review), 'issueDigest': c.digest(issue)}
+    if effective.get('source'):
+        policy['source'] = copy.deepcopy(effective['source'])
+        if isinstance(issue.get('url'), str) and issue['url'].startswith('https://linear.app/'):
+            policy['linearUrl'] = issue['url']
+        else:
+            reasons.append('source task requires a verified Linear ticket URL')
     try:
         validate_policy(policy, issue['identifier'])
     except host.PublicationError as error:

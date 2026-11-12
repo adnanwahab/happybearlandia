@@ -47,6 +47,15 @@ class SchedulerTest(unittest.TestCase):
                      current_limit=1,runtime_reader=runtime,resource_reader=resources,apply=True,
                      refresh=lambda:self.refreshes.append(1),sleep=lambda _:None)
 
+    def test_source_intake_runs_inside_existing_scheduler_without_new_worker(self):
+        from unittest.mock import patch
+        self.config['sourceIntake']={'enabled':True,'pilotSources':[]}
+        with patch('source_intake.tick',return_value={'version':1,'operations':0}) as intake:
+            report=s.run_loop(**self.kw)[0]
+        self.assertEqual(intake.call_count,1)
+        self.assertEqual(report['sourceIntake']['operations'],0)
+        self.assertEqual(self.services.calls,['id-1'])
+        self.assertEqual(report['scheduler']['new_grants'],1)
     def test_one_cycle_respects_actual_worker_limit_and_durable_restart(self):
         metrics=FakeMetrics()
         report=s.run_loop(**self.kw,metrics=metrics)[0]

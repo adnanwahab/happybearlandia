@@ -264,6 +264,13 @@ def run_loop(services, config_loader, directory, current_limit, runtime_reader, 
                     # The remote additive approval is already durable; never retry it here.
                     report['scheduler']['refresh_accepted'] = False
                     report['scheduler']['watchdog'].append({'code': 'runtime-refresh-unavailable', 'severity': 'notice'})
+            if config.get('sourceIntake', {}).get('enabled') is True:
+                from source_intake import tick
+                with c.locked(directory):
+                    if config_loader() != config:
+                        raise host.PublicationError('Source intake policy changed; hold remote mutations', retryable=False)
+                    report['sourceIntake'] = tick(services, directory, config['sourceIntake'], report,
+                        apply=apply and not stop.is_set(), now=clock())
             consecutive_errors = 0
         except Exception as error:
             consecutive_errors += 1

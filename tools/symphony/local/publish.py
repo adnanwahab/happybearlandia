@@ -293,12 +293,16 @@ def publish(path, root=ROOT):
         return publish_commit(git, gh, ghbin, issue, sha, body, gitdir, recheck=recheck)
 
 
-def publish_commit(git, gh, ghbin, issue, sha, body, gitdir, recheck=lambda: None, artifacts=()):
+def publish_commit(git, gh, ghbin, issue, sha, body, gitdir, recheck=lambda: None, artifacts=(), repository=REPO, base_branch=BASE):
+    from repository_routes import approved_route
+    route = approved_route(repository, STATE)
+    if route["base"] != base_branch:
+        raise PublicationError("Publication route differs from private operator policy")
     branch = f'symphony/{issue}'
     def prs():
-        return json.loads(gh('pr', 'list', '--repo', REPO, '--head', branch, '--state', 'all', '--json', 'url,state,isDraft,baseRefName,headRefOid,isCrossRepository'))
+        return json.loads(gh('pr', 'list', '--repo', repository, '--head', branch, '--state', 'all', '--json', 'url,state,isDraft,baseRefName,headRefOid,isCrossRepository'))
     def check(items):
-        if len(items) > 1 or any(p['state'] != 'OPEN' or not p['isDraft'] or p['baseRefName'] != BASE or p['isCrossRepository'] for p in items):
+        if len(items) > 1 or any(p['state'] != 'OPEN' or not p['isDraft'] or p['baseRefName'] != base_branch or p['isCrossRepository'] for p in items):
             raise PublicationError('Existing PR is closed, merged, non-draft, duplicated or wrong-base; operator reconciliation required')
     items = prs()
     check(items)
@@ -306,8 +310,8 @@ def publish_commit(git, gh, ghbin, issue, sha, body, gitdir, recheck=lambda: Non
     recheck()
     if not current:
         workpad(issue)  # Approval required before every push.
-        base = json.loads(gh('api', f'repos/{REPO}/git/ref/heads/{BASE}'))['object']['sha']
-        git('-c', 'credential.helper=', '-c', f'credential.helper=!{shlex.quote(ghbin)} auth git-credential', 'fetch', '--no-tags', 'https://github.com/' + REPO + '.git', BASE)
+        base = json.loads(gh('api', f'repos/{repository}/git/ref/heads/{base_branch}'))['object']['sha']
+        git('-c', 'credential.helper=', '-c', f'credential.helper=!{shlex.quote(ghbin)} auth git-credential', 'fetch', '--no-tags', 'https://github.com/' + repository + '.git', base_branch)
         if git('rev-parse', 'FETCH_HEAD') != base:
             raise PublicationError('Base changed during validation; retry')
         git('merge-base', '--is-ancestor', base, sha)
@@ -316,23 +320,23 @@ def publish_commit(git, gh, ghbin, issue, sha, body, gitdir, recheck=lambda: Non
         # Explicit SHA/refspec, no force, hooks, local remotes or local helpers.
         recheck()
         git('-c', 'credential.helper=', '-c', f'credential.helper=!{shlex.quote(ghbin)} auth git-credential',
-            '-c', 'core.hooksPath=/dev/null', 'push', 'https://github.com/' + REPO + '.git', f'{sha}:refs/heads/{branch}')
+            '-c', 'core.hooksPath=/dev/null', 'push', 'https://github.com/' + repository + '.git', f'{sha}:refs/heads/{branch}')
     # The worker cannot predict a host commit. Resolve uploaded media only after
     # push, verify GitHub's exact blob identity, then append the actual URL.
     for name in artifacts:
         recheck()
-        remote = json.loads(gh('api', f'repos/{REPO}/contents/{quote(name, safe="/")}?ref={sha}'))
+        remote = json.loads(gh('api', f'repos/{repository}/contents/{quote(name, safe="/")}?ref={sha}'))
         if remote.get('sha') != git('rev-parse', sha + ':' + name):
             raise PublicationError('Uploaded artifact identity not yet verified; preserve draft handoff and retry')
-        body += f'\n\nVerified committed artifact: https://github.com/{REPO}/blob/{sha}/{quote(name, safe="/")}?raw=true'
+        body += f'\n\nVerified committed artifact: https://github.com/{repository}/blob/{sha}/{quote(name, safe="/")}?raw=true'
     bodyfile = Path(gitdir) / 'pr-body.txt'
     bodyfile.write_text(body)
     recheck()
     if items and not current:
-        gh('pr', 'edit', items[0]['url'], '--repo', REPO, '--body-file', str(bodyfile))
+        gh('pr', 'edit', items[0]['url'], '--repo', repository, '--body-file', str(bodyfile))
     if not items:
         try:
-            gh('pr', 'create', '--repo', REPO, '--draft', '--base', BASE, '--head', branch,
+            gh('pr', 'create', '--repo', repository, '--draft', '--base', base_branch, '--head', branch,
                '--title', f'{issue}: Symphony pilot', '--body-file', str(bodyfile))
         except PublicationError:
             # A timeout may mean GitHub accepted the create. Reconcile before retry.

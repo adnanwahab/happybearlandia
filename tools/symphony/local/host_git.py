@@ -80,10 +80,15 @@ def validate_assignment(value, issue, now=None):
         bounded = len((json.dumps(value, sort_keys=True, indent=2)+'\n').encode()) <= 65536
     except (TypeError, ValueError):
         bounded = False
+    from repository_routes import approved_route
+    try:
+        route = approved_route(value.get('repository') if isinstance(value, dict) else None, p.STATE)
+    except Exception:
+        raise p.PublicationError('ASSIGNMENT_UNSAFE: repository routing needs private operator approval') from None
     files = value.get('files') if isinstance(value, dict) else None
     if (not isinstance(issue, str) or not re.fullmatch(r'SHE-[1-9][0-9]*', issue) or
             not bounded or not isinstance(value, dict) or type(value.get('version')) is not int or value['version'] != 1 or
-            value.get('issue') != issue or value.get('repository') != p.REPO or value.get('base') != p.BASE or
+            value.get('issue') != issue or value.get('repository') != route['repository'] or value.get('base') != route['base'] or
             not SHA.fullmatch(str(value.get('baseCommit', ''))) or
             not isinstance(files, list) or not files or len(files) > 100 or
             any(not isinstance(f, str) or not safe_name(f) for f in files) or len(set(files)) != len(files) or
@@ -139,7 +144,7 @@ class Repository:
 
     def fetch_base(self, ghbin):
         self.git('-c', 'credential.helper=', '-c', 'credential.helper=!' + shlex.quote(ghbin) + ' auth git-credential',
-                 'fetch', '--no-tags', 'https://github.com/' + p.REPO + '.git', p.BASE)
+                 'fetch', '--no-tags', 'https://github.com/' + self.policy['repository'] + '.git', self.policy['base'])
         if self.git('rev-parse', 'FETCH_HEAD') != self.policy['baseCommit']:
             raise p.PublicationError('Approved sprint baseline advanced; preserve worker changes and obtain reviewed revalidation')
 
@@ -269,8 +274,12 @@ class Repository:
 
 def publish_source(path, request, root=p.ROOT):
     issue = p.validate(path, root)
-    if (request.get('version') != 2 or request.get('issue') != issue or request.get('repository') != p.REPO or
-            request.get('base') != p.BASE or request.get('branch') != 'symphony/' + issue or
+    from repository_routes import ALLOWLIST
+    if not isinstance(request, dict) or request.get('version') != 2 or request.get('issue') != issue or request.get('repository') not in ALLOWLIST:
+        raise p.PublicationError('Invalid source-only handoff identity or body')
+    policy = assignment(issue)
+    if (request.get('version') != 2 or request.get('issue') != issue or request.get('repository') != policy['repository'] or
+            request.get('base') != policy['base'] or request.get('branch') != 'symphony/' + issue or
             not isinstance(request.get('body'), str) or not 0 < len(request['body']) <= 60000):
         raise p.PublicationError('Invalid source-only handoff identity or body')
     artifacts = request.get('artifacts', [])
@@ -285,11 +294,11 @@ def publish_source(path, request, root=p.ROOT):
     repo.recheck()
     p.command([ghbin, 'auth', 'status'], repo.root, repo.env)
     known = repo.known_commit(request)
-    items = json.loads(p.command([ghbin, 'pr', 'list', '--repo', p.REPO, '--head', 'symphony/' + issue,
+    items = json.loads(p.command([ghbin, 'pr', 'list', '--repo', policy['repository'], '--head', 'symphony/' + issue,
                                  '--state', 'all', '--json', 'url,state,isDraft,baseRefName,headRefOid,isCrossRepository'], repo.root, repo.env))
     recovering = bool(known and len(items) == 1 and items[0].get('headRefOid') == known and
                       items[0].get('state') == 'OPEN' and items[0].get('isDraft') is True and
-                      items[0].get('baseRefName') == p.BASE and not items[0].get('isCrossRepository'))
+                      items[0].get('baseRefName') == policy['base'] and not items[0].get('isCrossRepository'))
     if recovering:
         sha = repo.capture(request, existing_commit=known)
     else:
@@ -299,7 +308,20 @@ def publish_source(path, request, root=p.ROOT):
         repo.fetch_base(ghbin)
         repo.recheck()
         sha = repo.capture(request)
+    def recheck_source():
+        from repository_routes import verify_source
+        repo.recheck()
+        try:
+            verify_source(policy, lambda endpoint: json.loads(p.command([ghbin, 'api', endpoint], repo.root, repo.env)))
+        except Exception:
+            raise p.PublicationError('Source revision/identity could not be revalidated; preserve tested handoff') from None
+    recheck_source()
+    if policy.get('source'):
+        request = dict(request, body=request['body'] + '\n\nSymphony source: https://github.com/' + policy['repository'] + '/issues/' + str(policy['source']['number']) + '\nLinear work: ' + policy.get('linearUrl', ''))
     result = p.publish_commit(repo.git, lambda *args: p.command([ghbin, *args], repo.root, repo.env), ghbin,
-                              issue, sha, request['body'], repo.gitdir, recheck=repo.recheck, artifacts=artifacts)
+                              issue, sha, request['body'], repo.gitdir, recheck=recheck_source, artifacts=artifacts, repository=policy['repository'], base_branch=policy['base'])
+    result.update(repository=policy['repository'], issue=issue)
+    if policy.get('source'):
+        result['sourceRevision'] = policy['source']['revision']
     atomic(repo.root / 'receipt.json', result)
     return result
