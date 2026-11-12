@@ -67,3 +67,7 @@ The constraint inspector below an entered world supports monthly city projects, 
 Choose one shared capacity/interest-rate input, a selected business's operating cost, or its household's current home rent, and compare two deterministic continuations from that same saved state. The result shows actual completion months (or a censored “not completed” result), city spending and entity outcomes. Other bottlenecks can make a proposed change ineffective. Cancel or select another source to terminate the isolated worker; neither continuation mutates the saved world.
 
 Cost/rent changes are exogenous what-if inputs, not enacted regulations or funded subsidies. Shared capacity expansion has no staffing purchase ledger; the displayed city spending is model output, not the implementation price of that expansion. Population-lane futures explicitly report that this city-ledger inspector is unavailable. Tests cover actual permit/labor bottlenecks, deterministic completion, entity-level inputs, saved-state preservation and the real browser worker/UI flow.
+
+## Local weekly retention
+
+Opt in and inspect session-cohort definitions at `/world/analytics/index.html`. Only completed comparison and successful shared-replay observations are recorded. Collection is local, bounded and disabled by default; no visitor identity, URL, link identifier or simulation payload is recorded. This is not site-wide analytics. Model clocks and random seeds are not used: these are wall-clock UTC observations under `hbl-retention.v1`.

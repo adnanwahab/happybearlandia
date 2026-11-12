@@ -1003,3 +1003,31 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-124 — explicit weekly retention denominators
+
+Scope decision: browser-local, opt-in Reality Compiler session-cohort observations.
+There was no analytics collection or matching open PR in the read-only GitHub
+audit on 2026-11-12. This issue workspace is isolated on `mini/SHE-124`.
+The analytics module owns its storage contract and dashboard; the only application
+integration is completed comparison / successful shared-replay callbacks. No
+simulation authority, model seed or run provenance changes.
+
+Acceptance: distinct sessions after 30-minute inactivity, deduplicated callbacks,
+separate play/shared denominators, Monday UTC half-open weeks, next-week return
+windows, withheld immature rates and empty-cohort handling. Dashboard states
+local scope, bot heuristics, storage limits and anonymous-session rather than
+user counts. Collection excludes automation and browser privacy signals and
+records no URLs, link IDs or simulation payloads.
+
+Limitations: local session-cohort proxy; a later play session in this browser
+qualifies earlier cohort sessions. Browser storage clearing and capacity eviction
+cause missing observations; bots cannot be perfectly identified. Concurrent
+localStorage writes can lose observations. Site-wide reporting needs a separately
+reviewed collection, consent, storage and access-control contract.
+
+Verification: `bun test test/weekly-retention.test.js test/reality-workflow.test.js test/reality-share.test.js` passed 17 tests / 99 assertions; `git diff --check` passed.
+Attempted a Chromium dashboard smoke, but Bun could not bind the local ephemeral
+server (`EADDRINUSE`); browser rendering and the full application journey remain
+unverified. No merge, deployment, production change or Symphony dispatch
+approval occurred. Site-wide reporting remains follow-on work.
