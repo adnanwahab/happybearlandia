@@ -1003,3 +1003,24 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-13 — truthful sprint evidence manifest (November 12, 2026)
+
+Delivered bounded documentation slice: [versioned report](she-13-sprint-evidence.md)
+and [availability/checksum snapshot](evidence/she-13-sprint-manifest.json).
+Exclusive ownership for this slice: those two new paths and this status entry;
+no runtime, dispatcher or simulation-contract edits. Reused existing demo
+manifest, deterministic metric tests and executable recording/verifier commands.
+Prerequisites HBL-W1-001/004/006 are not certified complete; inspection of
+existing work does not grant dispatch or release authorization.
+
+Acceptance: consolidate route, audit branch/SHA, historical capture provenance,
+seed/model/hash, all metrics, screenshots/video, browser attribution, commands
+and limitations. Audit baseline b963dd353538294cb0fbf5d34d5283fad6e10e68 on
+mini/SHE-13; no PR receipt yet. Actual `bun test test/pipeline-evidence-manifest.test.js` exited 0:
+14 passed, 1 missing-artifact skip, 0 failed, 195 assertions; both histories and
+all metrics reproduced, 11 artifact hashes matched. Missing 320px delta image
+is explicit. Browser code unchanged; no new Playwright or visual acceptance
+claim. `git diff --check` passed. Remaining external delivery: durable media
+hosting, missing-image recovery and eventual PR linkage. Historical R13/R14
+release risks remain open; no main merge or production deployment.
