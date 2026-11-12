@@ -1003,3 +1003,31 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-157 cross-scale divergence shot
+
+Next slice: reuse the first renderable recorded building divergence and six-second
+hold; frame its schematic neighborhood, then the exact building, with one shared
+camera. Add an optional automatic camera control; reduced motion uses immediate
+framing. Preserve City month/entity and event receipts, and never add effects for
+unchanged state. Canvas2D receives the same framing stages. Neighborhood means a
+schematic wider view, not a claimed geographic boundary. Verify deterministic
+clock phases, zero-change behavior, scene/UI regressions, and browser availability.
+Owned integration files: demo-controller, main, scene focus, UI and focused tests.
+
+Implemented: city overview → wider schematic context → exact building close-up
+on the held first physical divergence; receipts use the same month/entity. Demo
+camera reset and shots are optional, active transitions cancel on opt-out, native
+reduced motion remains immediate, and Canvas has matching shared framing.
+Reused tested firstPhysicalStop rather than the coordinator's duplicate selector.
+Delayed ticks cannot frame a different month. No simulation or shader changes.
+
+Acceptance evidence: six focused Bun files: 43 pass, 1 browser-gated skip,
+223 assertions; browser entry bundle succeeds (25 modules); diff whitespace clean.
+Real deterministic City fixture still selects Month 16, exact building
+building-project-policy-1-0, +24 homes. Playwright attempted with recording enabled
+on ports 39931 and 41757; both isolated servers failed at listen with EADDRINUSE.
+Consequently new before/after recordings and graphical normal/reduced-motion
+verification remain pending; no visual completion claim. Next: run focused guided
+controls and cinematic hold browser cases on a host permitting the local server,
+review framing and capture before/after evidence. No merge or deployment.

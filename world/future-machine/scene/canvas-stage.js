@@ -127,7 +127,7 @@ export function createCanvasStage(container,{onSelect,onCameraChange}={}) {
     update(next,nextDiff){if(disposed)return;projection=validProjection(next);diff=nextDiff;pointers.clear();gesture=null;if(!fitted&&projection&&(projection.a.length||projection.b.length)){camera=fitCanvasCamera(projection,width,height,mode);fitted=true;}draw();},
     setMode(next){if(!MODES.includes(next))throw new TypeError('Unknown scene mode');if(disposed)return;mode=next;draw();},
     setGhosts(value){if(disposed)return;ghosts=Boolean(value);draw();},
-    focus(entity){if(disposed)return false;const row=[...(projection?.a||[]),...(projection?.b||[])].find(r=>identity(r)===identity(entity||{}));if(!row)return false;selected={collection:row.collection,id:row.id};camera={...camera,x:row.x,z:row.z};changed();return true;},
+    focus(entity,{scale}={}){if(disposed)return false;const row=[...(projection?.a||[]),...(projection?.b||[])].find(r=>identity(r)===identity(entity||{}));if(!row)return false;selected={collection:row.collection,id:row.id};camera={...camera,x:row.x,z:row.z,...(scale?{zoom:Math.min(width/(mode==='split'?2:1),height)/(scale==='neighborhood'?400:150)}:{})};changed();return true;},
     getCamera(){return {...camera};},
     setCamera(next){if(!next||!Number.isFinite(next.x)||!Number.isFinite(next.z)||!Number.isFinite(next.zoom)||next.zoom<=0)throw new TypeError('Camera requires finite x, z and positive zoom');if(disposed)return;camera={x:next.x,z:next.z,zoom:clamp(next.zoom,.02,32)};fitted=true;draw();},
     getStats(){return {backend:'canvas2d',objects:disposed?0:drawn,canvases:disposed?0:1,month:projection?.month??null,mode,ghosts,disposed,animationFrames:0,layoutVersion:'future-machine-layout.v1'};},

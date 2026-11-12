@@ -73,3 +73,16 @@ The 50-second `demo-controller.js` is a presentation clock, not a simulator. It 
 - `createOutcomeTimeline(container,{history,onMonth}) -> {update(month),dispose()}` consumes the same immutable121snapshots. Point/keyboard selections emit integer recordedmonth through coordinator manualMonth; no independent clock/simulation. Metric units from METRIC_UNITS; unavailable measurements stay gaps.
 - `recordedConstructionProgress(snapshot)` returns recorded stage/work/units and exact model-owned housing-project building identity. Work ratio is not elapsed calendar fraction or completed housing. Actual inventory determines building presence; layoutv2 preserves one schematic slot across supported project completion.
 - `buildEvidenceTrail(history,{collection,id,month})`: arm-scoped nodes/edges contain exact record, first observed month, eventID and unavailable reasons. `renderEvidenceTrail(container,history,selection,{onJump})` presents those records. Completion jumps retain building selection; all evidence jumps stop demo presentation. Independently verified causal dependency traces are explicitly unavailable.
+
+### SHE-157 cross-scale shot
+
+The director emits `onShot({month,entity,scale})` at the first physical divergence:
+`neighborhood` at reveal and `building` three presentation seconds later. Both
+use the held exact monthly frame; skipped holds do not emit shots at a later month.
+`focus(entity,{animate,scale})` frames the same exact entity with wider schematic
+context or a building close-up; both arms share the camera. Neighborhood framing
+is presentation context, not geographic evidence. Canvas uses immediate shared
+orthographic framing; reduced-motion native rendering also moves immediately.
+The Automatic camera checkbox suppresses demo camera reset and both shots and
+cancels an active transition. Evidence inspection still runs when it is disabled.
+No shader/effect changes or new simulation state are introduced.

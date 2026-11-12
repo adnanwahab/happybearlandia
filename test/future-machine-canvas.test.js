@@ -68,3 +68,12 @@ test('context and initial draw exceptions release every owned node and listener'
   const f=fixture();f.canvas.getContext=getContext;expect(()=>createCanvasStage(f.container)).toThrow();expect(f.removed).toBe(true);expect(f.handlers.size).toBe(0);
  }
 });
+
+test('cross-scale focus widens then closes around the same exact shared entity',()=>{
+ const f=fixture(),stage=createCanvasStage(f.container);stage.update(projection(),diff);
+ const entity={collection:'buildings',id:'b'};
+ expect(stage.focus(entity,{scale:'neighborhood'})).toBe(true);const wide=stage.getCamera();
+ expect(stage.focus(entity,{scale:'building'})).toBe(true);const close=stage.getCamera();
+ expect(close.x).toBe(wide.x);expect(close.z).toBe(wide.z);expect(close.zoom).toBeGreaterThan(wide.zoom);
+ expect(stage.focus({collection:'buildings',id:'missing'},{scale:'building'})).toBe(false);expect(stage.getCamera()).toEqual(close);stage.dispose();
+});

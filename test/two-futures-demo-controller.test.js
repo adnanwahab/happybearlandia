@@ -17,3 +17,20 @@ test('recorded divergence holds six seconds and replay preserves the same month 
  expect(months).toEqual([0,0,15,16,16,16,16,120]);expect(highlights).toEqual([stop]);
  c.start(stop);time+=10000;tick();expect(months.at(-1)).toBe(16);expect(highlights).toHaveLength(2);c.dispose();
 });
+
+test('cross-scale shot uses the exact held record once per scale, replays and stops',()=>{
+ let time=0,tick;const shots=[],months=[];
+ const c=createDemoController({now:()=>time,schedule:f=>(tick=f,1),unschedule:()=>{},onMonth:m=>months.push(m),onShot:s=>shots.push({...s,displayed:months.at(-1)})});
+ const stop={month:16,entity:{collection:'buildings',id:'exact'}};
+ c.start(stop);time=10000;tick();time=12999;tick();time=13000;tick();time=15999;tick();
+ expect(shots).toEqual(['neighborhood','building'].map(scale=>({...stop,scale,displayed:16})));
+ c.stop();time=14000;tick();expect(shots).toHaveLength(2);
+ c.start(stop);time=24000;tick();expect(shots.at(-1).scale).toBe('neighborhood');
+ c.dispose();
+});
+
+test('zero change and delayed ticks never shoot a different month',()=>{
+ let time=0,tick;const shots=[];const c=createDemoController({now:()=>time,schedule:f=>(tick=f,1),unschedule:()=>{},onShot:s=>shots.push(s)});
+ c.start(null);time=13000;tick();expect(shots).toEqual([]);
+ c.start({month:16,entity:{collection:'buildings',id:'exact'}});time=51000;tick();expect(shots).toEqual([]);c.dispose();
+});
