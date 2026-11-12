@@ -13,10 +13,15 @@ import tempfile
 import urllib.request
 import urllib.error
 import time
+import handoff
+import hashlib
+from urllib.parse import quote
+
+TRUSTED_PATH = '/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin'
 
 REPO = 'adnanwahab/happybearlandia'
 BASE = 'sprint/one-city-two-futures-20261111'
-ROOT = Path.home() / 'code/symphony-pilot-isolated'
+ROOT = Path.home() / 'code/symphony-source-only'
 STATE = Path.home() / '.local/state/hbl-publisher'
 
 
@@ -27,6 +32,8 @@ class PublicationError(Exception):
 
 
 def command(args, cwd, env=None):
+    if args[0] == 'git':
+        args = ['/usr/bin/git', *args[1:]]
     result = subprocess.run(args, cwd=cwd, env=env, capture_output=True, text=True, timeout=120)
     if result.returncode:
         # Do not persist command output: Git/gh errors can contain credentials.
@@ -142,8 +149,23 @@ def workpad(issue, require_approval=True):
     return pad
 
 
+def archive_workpad(issue, body):
+    """Retain exact prior evidence before replacing a current-status section."""
+    from coordinator_host import private_directory
+    from host_git import atomic
+    private_directory(STATE)
+    private_directory(STATE / 'workpad-history')
+    directory = STATE / 'workpad-history' / issue
+    private_directory(directory)
+    checksum = hashlib.sha256(body.encode()).hexdigest()
+    target = directory / (checksum + '.json')
+    if not target.exists():
+        atomic(target, {'issue': issue, 'body': body, 'sha256': checksum})
+
+
 def link(issue, url, sha):
     pad = workpad(issue, require_approval=False)  # Refresh, preserving agent updates on retries.
+    archive_workpad(issue, pad['body'])
     marker = f'\n\n### Host GitHub publication\nDraft PR: {url}\nPublished commit: `{sha}`'
     previous = re.sub(r'\n\n### Host GitHub publication\n.*?(?=\n\n### |\Z)', '', pad['body'], flags=re.S)
     body = previous + marker
@@ -177,10 +199,24 @@ def validate(path, root=ROOT):
 def publish(path, root=ROOT):
     issue = validate(path, root)
     # Model-authored handoff is data, never shell or a source of repository policy.
-    request_path = path / '.git/hbl-publish.json'
+    request_path = handoff.pending(path, 'publish')
     if not request_path.exists():
+        status_path = STATE / 'workpad-status' / (issue + '.json')
+        if status_path.exists() and handoff.read(status_path).get('status') == 'handoff':
+            receipt = STATE / 'host-git' / issue / 'receipt.json'
+            if receipt.exists():
+                result = handoff.read(receipt)
+                if result.get('status') == 'published' and re.fullmatch('[0-9a-f]{40}', str(result.get('commit', ''))):
+                    return result
+            raise PublicationError('Terminal handoff has no publication artifact or completed receipt; park, never repeat implementation')
         return {'status': 'no-request'}
-    request = json.loads(request_path.read_text())
+    request = handoff.read(request_path)
+    if request.get('version') == 2:
+        status_path = STATE / 'workpad-status' / (issue + '.json')
+        if not status_path.exists() or handoff.read(status_path).get('status') != 'handoff':
+            raise PublicationError('Source publication requires a successfully synchronized terminal handoff workpad')
+        from host_git import publish_source
+        return publish_source(path, request, root)
     sha = request.get('commit', '')
     branch = f'symphony/{issue}'
     if (request.get('issue') != issue or request.get('branch') != branch or
@@ -193,10 +229,15 @@ def publish(path, root=ROOT):
     # Never load workspace Git configuration on the authenticated host. Only read
     # validated object storage through a disposable, host-owned bare repository.
     with tempfile.TemporaryDirectory(prefix='hbl-publisher-') as tmp:
-        env = {k: v for k, v in os.environ.items() if not k.startswith(('GIT_', 'GH_', 'GITHUB_'))}
+        env = {k: v for k, v in os.environ.items() if not k.startswith(('GIT_', 'GH_', 'GITHUB_', 'LINEAR_'))}
         env.update(GIT_CONFIG_NOSYSTEM='1', GIT_CONFIG_GLOBAL='/dev/null', GIT_TERMINAL_PROMPT='0')
+        env['PATH'] = TRUSTED_PATH
         command(['git', 'init', '--bare', tmp], tmp, env)
         gitdir = Path(tmp)
+        (gitdir / 'worker-excludes').write_text('.hbl-handoff/\n')
+        env['GIT_CONFIG_COUNT'] = '2'
+        env['GIT_CONFIG_KEY_0'], env['GIT_CONFIG_VALUE_0'] = 'core.hooksPath', '/dev/null'
+        env['GIT_CONFIG_KEY_1'], env['GIT_CONFIG_VALUE_1'] = 'core.excludesFile', str(gitdir / 'worker-excludes')
         (gitdir / 'objects/info/alternates').write_text(str(path / '.git/objects') + '\n')
         def git(*args):
             return command(['git', *args], tmp, env)
@@ -210,6 +251,30 @@ def publish(path, root=ROOT):
             raise PublicationError('Requested commit must match local issue HEAD (loose ref required)')
         if git('cat-file', '-t', sha) != 'commit':
             raise PublicationError('Handoff SHA must identify a commit object')
+        from host_git import assignment, SECRET, MAX_FILE
+        policy = assignment(issue)
+        if policy.get('publishEnabled') is not True:
+            raise PublicationError('Legacy publication held by trusted assignment; source preserved')
+        git('merge-base', '--is-ancestor', policy['baseCommit'], sha)
+        names = git('diff', '--no-renames', '--name-only', '-z', policy['baseCommit'], sha, '--').split('\0')
+        for name in filter(None, names):
+            if name not in policy['files']:
+                raise PublicationError('Legacy commit exceeds trusted assigned file scope')
+            ignored = subprocess.run(['/usr/bin/git', 'check-ignore', '--no-index', '--', name], cwd=tmp, env=env,
+                                     capture_output=True, timeout=120)
+            if ignored.returncode != 1:
+                raise PublicationError('Legacy assigned file is ignored or ignore check failed; nothing published')
+            entry = git('ls-tree', sha, '--', name)
+            if not entry:
+                continue
+            if entry.split()[0] not in ('100644', '100755'):
+                raise PublicationError('Legacy publication refuses symlinks and submodules')
+            if int(git('cat-file', '-s', sha + ':' + name)) > MAX_FILE:
+                raise PublicationError('Legacy assigned file exceeds size bound')
+            blob = subprocess.run(['/usr/bin/git', 'cat-file', 'blob', sha + ':' + name], cwd=tmp, env=env,
+                                  capture_output=True, timeout=120)
+            if blob.returncode or SECRET.search(blob.stdout):
+                raise PublicationError('Legacy file unreadable or potential credential; no content logged')
         tree = git('write-tree')
         if tree != git('rev-parse', sha + '^{tree}') or git('diff-files', '--name-only') or git('ls-files', '--others', '--exclude-standard'):
             raise PublicationError('Workspace/index must be clean and fully committed')
@@ -217,48 +282,70 @@ def publish(path, root=ROOT):
         origin = command(['git', 'config', '--file', str(path / '.git/config'), '--no-includes', '--get', 'remote.origin.url'], tmp, env)
         if origin not in allowed:
             raise PublicationError('Workspace origin is not the allowed repository')
-        ghbin = shutil.which('gh')
+        ghbin = shutil.which('gh', path=TRUSTED_PATH)
         if not ghbin:
             raise PublicationError('Install authenticated host GitHub CLI')
         def gh(*args):
             return command([ghbin, *args], tmp, env)
-        def prs():
-            return json.loads(gh('pr', 'list', '--repo', REPO, '--head', branch, '--state', 'all', '--json', 'url,state,isDraft,baseRefName,headRefOid,isCrossRepository'))
-        def check(items):
-            if len(items) > 1 or any(p['state'] != 'OPEN' or not p['isDraft'] or p['baseRefName'] != BASE or p['isCrossRepository'] for p in items):
-                raise PublicationError('Existing PR is closed, merged, non-draft, duplicated or wrong-base; operator reconciliation required')
-        items = prs()
-        check(items)
-        current = bool(items and items[0]['headRefOid'] == sha)
-        if not current:
-            workpad(issue)  # Approval required before every push.
-            base = json.loads(gh('api', f'repos/{REPO}/git/ref/heads/{BASE}'))['object']['sha']
-            git('-c', 'credential.helper=', '-c', f'credential.helper=!{shlex.quote(ghbin)} auth git-credential', 'fetch', '--no-tags', 'https://github.com/' + REPO + '.git', BASE)
-            if git('rev-parse', 'FETCH_HEAD') != base:
-                raise PublicationError('Base changed during validation; retry')
-            git('merge-base', '--is-ancestor', base, sha)
-            if sha == base:
-                raise PublicationError('No issue commit beyond base')
-            # Explicit SHA/refspec, no force, hooks, local remotes or local helpers.
-            git('-c', 'credential.helper=', '-c', f'credential.helper=!{shlex.quote(ghbin)} auth git-credential',
-                '-c', 'core.hooksPath=/dev/null', 'push', 'https://github.com/' + REPO + '.git', f'{sha}:refs/heads/{branch}')
-        if not items:
-            bodyfile = gitdir / 'pr-body.txt'
-            bodyfile.write_text(body)
-            try:
-                gh('pr', 'create', '--repo', REPO, '--draft', '--base', BASE, '--head', branch,
-                   '--title', f'{issue}: Symphony pilot', '--body-file', str(bodyfile))
-            except PublicationError:
-                # A timeout may mean GitHub accepted the create. Reconcile before retry.
-                items = prs()
-                if not items:
-                    raise
-        items = prs()
-        check(items)
-        if len(items) != 1 or items[0]['headRefOid'] != sha:
-            raise PublicationError('PR HEAD not yet current; retry to reconcile')
-        link(issue, items[0]['url'], sha)
-        return {'status': 'published', 'commit': sha, 'url': items[0]['url']}
+        def recheck():
+            if assignment(issue) != policy:
+                raise PublicationError('Host assignment changed during publication; preserve and reconcile')
+        return publish_commit(git, gh, ghbin, issue, sha, body, gitdir, recheck=recheck)
+
+
+def publish_commit(git, gh, ghbin, issue, sha, body, gitdir, recheck=lambda: None, artifacts=()):
+    branch = f'symphony/{issue}'
+    def prs():
+        return json.loads(gh('pr', 'list', '--repo', REPO, '--head', branch, '--state', 'all', '--json', 'url,state,isDraft,baseRefName,headRefOid,isCrossRepository'))
+    def check(items):
+        if len(items) > 1 or any(p['state'] != 'OPEN' or not p['isDraft'] or p['baseRefName'] != BASE or p['isCrossRepository'] for p in items):
+            raise PublicationError('Existing PR is closed, merged, non-draft, duplicated or wrong-base; operator reconciliation required')
+    items = prs()
+    check(items)
+    current = bool(items and items[0]['headRefOid'] == sha)
+    recheck()
+    if not current:
+        workpad(issue)  # Approval required before every push.
+        base = json.loads(gh('api', f'repos/{REPO}/git/ref/heads/{BASE}'))['object']['sha']
+        git('-c', 'credential.helper=', '-c', f'credential.helper=!{shlex.quote(ghbin)} auth git-credential', 'fetch', '--no-tags', 'https://github.com/' + REPO + '.git', BASE)
+        if git('rev-parse', 'FETCH_HEAD') != base:
+            raise PublicationError('Base changed during validation; retry')
+        git('merge-base', '--is-ancestor', base, sha)
+        if sha == base:
+            raise PublicationError('No issue commit beyond base')
+        # Explicit SHA/refspec, no force, hooks, local remotes or local helpers.
+        recheck()
+        git('-c', 'credential.helper=', '-c', f'credential.helper=!{shlex.quote(ghbin)} auth git-credential',
+            '-c', 'core.hooksPath=/dev/null', 'push', 'https://github.com/' + REPO + '.git', f'{sha}:refs/heads/{branch}')
+    # The worker cannot predict a host commit. Resolve uploaded media only after
+    # push, verify GitHub's exact blob identity, then append the actual URL.
+    for name in artifacts:
+        recheck()
+        remote = json.loads(gh('api', f'repos/{REPO}/contents/{quote(name, safe="/")}?ref={sha}'))
+        if remote.get('sha') != git('rev-parse', sha + ':' + name):
+            raise PublicationError('Uploaded artifact identity not yet verified; preserve draft handoff and retry')
+        body += f'\n\nVerified committed artifact: https://github.com/{REPO}/blob/{sha}/{quote(name, safe="/")}?raw=true'
+    bodyfile = Path(gitdir) / 'pr-body.txt'
+    bodyfile.write_text(body)
+    recheck()
+    if items and not current:
+        gh('pr', 'edit', items[0]['url'], '--repo', REPO, '--body-file', str(bodyfile))
+    if not items:
+        try:
+            gh('pr', 'create', '--repo', REPO, '--draft', '--base', BASE, '--head', branch,
+               '--title', f'{issue}: Symphony pilot', '--body-file', str(bodyfile))
+        except PublicationError:
+            # A timeout may mean GitHub accepted the create. Reconcile before retry.
+            items = prs()
+            if not items:
+                raise
+    items = prs()
+    check(items)
+    if len(items) != 1 or items[0]['headRefOid'] != sha:
+        raise PublicationError('PR HEAD not yet current; retry to reconcile')
+    recheck()
+    link(issue, items[0]['url'], sha)
+    return {'status': 'published', 'commit': sha, 'url': items[0]['url']}
 
 
 def main():
@@ -281,4 +368,8 @@ def main():
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    # host_git/workpad import publish by its canonical name. Run that same
+    # module's entry point so its safe PublicationError class is shared, rather
+    # than hiding expected rejections behind a second __main__ class identity.
+    from publish import main as cli_main
+    sys.exit(cli_main())
