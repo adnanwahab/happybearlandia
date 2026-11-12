@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -83,3 +84,4 @@ jobs:
           retention-days: 7
       - name: First-run World guidance and feedback
         run: bunx playwright test --config test/first-run.browser.config.js
+

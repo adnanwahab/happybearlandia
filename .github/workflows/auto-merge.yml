@@ -1,0 +1,68 @@
+name: Automatic PR merging
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Check eligibility without merging or dispatching CI
+        type: boolean
+        default: true
+  pull_request:
+    paths:
+      - '.github/workflows/auto-merge.yml'
+      - '.github/scripts/auto-merge.cjs'
+      - 'test/auto-merge.test.cjs'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/auto-merge.yml'
+      - '.github/scripts/auto-merge.cjs'
+      - 'test/auto-merge.test.cjs'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: auto-merge-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.event_name == 'push' && 'tests' || 'scheduled' }}
+  cancel-in-progress: false
+
+jobs:
+  verify-merger:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify merge eligibility and failure handling
+        run: node --test test/auto-merge.test.cjs
+
+  merge:
+    needs: verify-merger
+    if: >-
+      github.repository == 'adnanwahab/happybearlandia' &&
+      (github.event_name == 'schedule' ||
+       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: read
+      checks: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Merge the oldest eligible PR
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { run } = require('./.github/scripts/auto-merge.cjs');
+            const dryRun = context.eventName === 'workflow_dispatch' &&
+              context.payload.inputs?.dry_run !== 'false';
+            await run({ github, context, core, dryRun });

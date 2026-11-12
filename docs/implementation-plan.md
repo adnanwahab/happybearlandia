@@ -1,5 +1,16 @@
 # HappyBearLandia implementation plan
 
+## Five-minute GitHub merge checks — November 12, 2026
+
+Requested slice: move the hourly ChatGPT merge task to GitHub Actions with a five-minute schedule. Use the repository GITHUB_TOKEN, the current main and Symphony sprint targets, existing CI, current review state, and explicit holds. Ordinary ready PRs need no extra label or new approval requirement. This is deterministic CI/review-based merging; it does not run an AI semantic code review.
+
+Acceptance: paginate candidates and review evidence; skip drafts, forks, conflicting/unknown merges, holds, unresolved findings, workflow/policy edits, missing or failing CI, stale heads and stale integration bases; bind merges to the checked head SHA; merge at most one PR per pass. Recheck current main CI after every main merge. Add workflow_dispatch to core journeys because a merge made with GITHUB_TOKEN does not trigger its ordinary push event. Allow an explicit manual dry run and publish an Actions summary. Preserve existing targets, branch protections, application code, and deployment behavior.
+
+Implementation: .github/workflows/auto-merge.yml, .github/scripts/auto-merge.cjs, test/auto-merge.test.cjs, and docs/auto-merge.md. No application/browser behavior changes; focused mocked-API tests verify scheduler decisions and failure paths. Live activation and verification are recorded in the implementation PR and workflow run; retire the hourly ChatGPT merger only after the new schedule is active.
+
+Local verification: 79 tests/subtests passed with `node --test --test-reporter=spec test/auto-merge.test.cjs`; zero failures. Both workflow YAML files parsed successfully. The five-minute cron, read-only default token scope, explicit merge-job permissions, manual dry-run default, and core workflow dispatch trigger were checked. No live merges were used as tests.
+
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
