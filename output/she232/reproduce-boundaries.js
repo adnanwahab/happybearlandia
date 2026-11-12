@@ -1,0 +1,20 @@
+import {readFileSync} from 'node:fs';
+import {join,normalize,relative,extname} from 'node:path';
+const root=process.cwd();
+const {createDecisionClient}=await import(root+'/world/decision/client.js');
+const client=createDecisionClient({fetcher:async()=>new Response('<html>fallback</html>',{status:200})});
+console.log('malformed-json-success',JSON.stringify(await client.results('demo')));
+const source=readFileSync(root+'/server.js','utf8');
+const serveStatic=source.slice(source.indexOf('async function serveStatic('),source.indexOf('// Does this path belong'));
+const gate=source.slice(source.indexOf('      let decodedWorldPath;'),source.indexOf('\n    }',source.indexOf('      let decodedWorldPath;')));
+const route=new Function('normalize','decodeURIComponent','notFound','serveStatic',`return async function(pathname){${gate}}`)(normalize,decodeURIComponent,()=>new Response(null,{status:404}),new Function('normalize','decodeURIComponent','join','relative','Bun','withUniverseNavigation','notFound','extname','serveFile',serveStatic+';return serveStatic;')(normalize,decodeURIComponent,join,relative,Bun,r=>r,()=>new Response(null,{status:404}),extname,()=>new Response(null,{status:404})));
+for(const path of ['/world/api.js','/world/%61pi.js','/world/city/api.js','/world/city/%61pi.js']){const res=await route(path);console.log('server-gate',path,res.status);}
+const {createConstitutionRuntime}=await import(root+'/world/constitution-city/runtime.js');
+const {createCity}=await import(root+'/world/city/seed.js');
+const {normalizeDearCongressPlan}=await import(root+'/world/constitution-city/plan.js');
+const plan=normalizeDearCongressPlan(JSON.parse(readFileSync(root+'/world/constitution-city/dear-congress-plan.json')));
+let terminations=0,adds=0,removes=0;
+const c=new AbortController(),s=c.signal,add=s.addEventListener.bind(s),remove=s.removeEventListener.bind(s);
+s.addEventListener=(...a)=>{adds++;return add(...a)};s.removeEventListener=(...a)=>{removes++;return remove(...a)};
+const runtime=createConstitutionRuntime({initial:createCity({households:3}),plan,workerFactory:()=>({terminate(){terminations++},postMessage(){throw new Error('dispatch failed')}})});
+try{await runtime.run({scenarios:[{id:'current',label:'Current',clauseIds:[]}],runs:1,months:0,signal:s});}catch(e){console.log('constitution-dispatch',JSON.stringify({error:e.message,terminations,adds,removes}));}runtime.destroy();console.log('after-destroy',JSON.stringify({terminations,adds,removes}));
