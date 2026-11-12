@@ -7922,3 +7922,30 @@ test/world-user-fixes.test.js still reports 32 homepage carousel sections versus
 33 registered experiences. The identical failure was reproduced using exact
 118aad baseline inputs; this existing catalog mismatch was not changed by PR278.
 No simulation, seed, runtime, gallery, or target-branch changes were made.
+
+## SHE-233 r2 — Road Not Taken design review (2026-11-12)
+
+Delivered [design and acceptance audit](reviews/SHE-233-r2.md): exactly fifteen
+proposed interactions, each separating observed model events, causal evidence,
+correlations and speculation. Selected #1 Empty Footprint, #6 Ripple with a Missing
+Stone and #15 Receipt at the Crossroads for later functional demos, with normal
+entry points, prerequisites, success/failure acceptance and explicit model boundaries.
+Scope is design only; no runtime or model changes. Ownership: report and this entry.
+
+Audited remote sprint SHA matching local HEAD 53090035, live SHE-90/SHE-37 and
+merged PRs 197/127, existing architecture/correctness worker reports and current
+source/tests. Both requested Linear readiness/approval labels already exist.
+The separate original uploaded paired-experiments document was not located;
+SHE-221 confirms child prompts are full copies and SHE-233 supplies experiment 4.
+
+Fresh focused checks: 15 passed, 1 failed, 860 assertions across entity trail,
+World causal adapter, causal reads, canonical receipt and paired-future suites.
+CLI receipt test failed on local port-0 bind EADDRINUSE; in-process persisted
+receipt roundtrip, full deterministic pair and missing-evidence checks passed.
+Whitespace, local links, fifteen-design count and four evidence lanes checked.
+Playwright skipped: documentation-only change. No package lint/typecheck scripts.
+No commit/PR created. Material risks: different runs' edges cannot be combined,
+unsupported identities/geography, uncalibrated rules and confusion of seed spread
+with empirical probability. See report for exact evidence and demo failure gates.
+Next: review the three proposed demos, then a separate implementation slice;
+no functional demo implementation or usability validation is claimed here.
