@@ -1003,3 +1003,32 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+
+## SHE-241 — known production build release gate
+
+Slice: explicitly validate both live health build IDs in the production smoke,
+independently of the browser journey, while retaining expected-commit equality
+and readiness checks. Preserve liveness/readiness response contracts: production
+without a valid build argument continues to report `unknown`; the release gate
+rejects that report. Prerequisites: Bun and installed Playwright dependencies.
+Acceptance: valid local production build passes the API smoke; omitted build ID
+fails; production normalization tests cover invalid and valid IDs. Risk: releases
+without the build argument are blocked until rebuilt with the candidate commit.
+
+Read-only production discovery: `fly releases -a happybearlandia --json` was
+blocked attempting to create a permissions file under `~/.fly`; the public
+readiness URL was inaccessible through the web tool. Current image build args
+remain unconfirmed. The issue records `unknown` on 2026-11-11; this is historical
+evidence, not a fresh observation. No deployment or configuration change made.
+Validation: `bun test test/release-health.test.js` passed 18 tests (56
+assertions). `git diff --check` passed. The local production-server smoke attempt
+was blocked: Bun could not bind port 31841 (`EADDRINUSE`) and localhost HTTP was
+denied with `Operation not permitted`. Neither known-ID pass nor missing-ID
+failure is claimed as end-to-end verified. Rerun both API smoke cases on an
+unrestricted host using `--grep "known build ID"`; run the full smoke there for
+browser coverage. Local expected observations are `abcdef123` with the argument
+and `unknown` without it; these are covered by handler/unit tests, not fresh live
+observations. The checklist retains the exact build/deploy command and clarifies
+that the expected SHA must come from the reviewed candidate. No PR published;
+production provenance discovery and host smoke verification remain outstanding.

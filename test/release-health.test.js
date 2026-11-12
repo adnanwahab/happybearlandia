@@ -168,3 +168,16 @@ test('Decision preflight accepts an initializable path without creating it and r
     fixture.cleanup();
   }
 });
+
+
+test.each([undefined, '', 'unknown', 'development', 'abc123', 'g'.repeat(40), 'a'.repeat(65), '/secret/config'])(
+  'production build identity stays unknown for invalid input %j', async value => {
+    expect(publicBuildId(value, true)).toBe('unknown');
+    const handler = createReleaseHealthHandler({ env: { NODE_ENV: 'production', HBL_BUILD_ID: value } });
+    expect((await handler(request('/api/health')).json()).buildId).toBe('unknown');
+  },
+);
+
+test.each(['ABCDEF1', 'a'.repeat(40), 'f'.repeat(64)])('production accepts commit identity %s', value => {
+  expect(publicBuildId(value, true)).toBe(value.toLowerCase());
+});
