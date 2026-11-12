@@ -1003,3 +1003,26 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Automatic model validation — SHE-189
+
+Slice: connect existing calibration/backtest contracts and SHE-59's full replay
+seed matrix to a read-only CI job, with a reviewed housing diagnostic error
+baseline, named failures and retained reports. Prerequisites: Bun 1.4.2 and
+existing City/housing APIs. Acceptance: simulator changes always trigger the job;
+accuracy regressions and invariant violations fail with rule diagnostics; no
+merge/deploy automation; invariant catalog in model documentation.
+
+Implemented workflow, numerical runner, pinned diagnostic fixture, failure-path
+tests and model catalogs. SHE-111 is in review and its proposed hash fixtures
+are absent locally; reuse the landed SHE-59 matrix now. Risk: Houston overlapping
+ACS vintages are descriptive, not independent forward validation. Baseline
+updates require human review; branch protection remains repository-admin scope.
+Verification: targeted CI test command passed 64 tests / 2,741 assertions on Bun
+1.4.2. Full numerical acceptance passed: Houston error matched the pinned baseline and
+106/106 replay cases passed with zero mismatches (50,880 monthly steps).
+`git diff --check` passed; the two failure-path tests also passed after report
+metadata/progress additions. Local JSON evidence is in the ignored
+`test-results/model-validation/report.json`.
+No browser behavior changed, so Playwright is inapplicable. No lint/type-check
+script exists. CI execution on GitHub remains unverified until publication.
