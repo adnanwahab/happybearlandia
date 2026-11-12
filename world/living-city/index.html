@@ -43,6 +43,13 @@
         <p id="proposal"></p>
         <label for="investment">Transit capacity investment</label>
         <select id="investment"></select>
+        <details id="council-scene">
+          <summary>Join the neighborhood council (optional)</summary>
+          <p>Riverside asks for a shorter commute. Choose a transit capacity investment above, then test one seed-matched future. Council positions are illustrative rules, not resident consent. You can revise the choice or leave at any time.</p>
+          <button id="council-test" type="button">Test one council decision</button>
+          <p>Results appear below and in Living City Council. One synthetic pair cannot establish how often an outcome occurs.</p>
+          <button id="council-leave" type="button">Leave council</button>
+        </details>
         <button id="test" type="button">Compare 100 paired futures</button>
         <p id="progress" role="status"></p>
         <div id="results" hidden>
@@ -84,6 +91,7 @@
     <section id="builder" class="panel" aria-label="World Builder and Time Travel"></section>
     <div id="network" class="panel"></div>
     <div id="council" class="panel"></div>
+    <p id="council-provenance" class="note"></p>
   </div>
 </main>
 <script type="module" src="./page.js"></script>

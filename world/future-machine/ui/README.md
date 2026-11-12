@@ -292,3 +292,41 @@ label. The panel does not compute outcomes or use pending configuration as run
 provenance. Native summary keyboard behavior and wrapping are covered by the
 opt-in Chromium test; this workspace could not execute that test because its
 local server bind was rejected (EADDRINUSE).
+
+
+## Initial snapshot preview (SHE-166 integration)
+
+Initial startup supplies `preview:true` and a real model-generated Month 0 frame.
+Each arm has its explicit Month 0 snapshot tag and the same seed/model inventory;
+neither arm claims a saved experiment, recorded future, or treatment effect.
+The preview stays available during the first pending request and after failure
+or cancellation. Buildings and household records remain inspectable; seed,
+policy, housing amount, reset, and Fork City remain usable. Submitting Fork City
+replaces the earlier request through the coordinator's abort and stale-result
+guards. Timeline, future metrics, event receipts, exports, and sharing remain
+unavailable until a validated completed history clears `preview`.
+
+The initial frame follows the current renderer's integrity checks without
+inventing persisted run identities. Preview inspection is a manual camera
+takeover, so a slow guided demo cannot start moving the view after the user has
+chosen an entity. Once a completed comparison exists, failures preserve that
+comparison and its exact share/replay identity instead of replacing it with an
+initial preview.
+## SHE-139 household timeline
+
+The outcome timeline composes `createHouseholdTimeline(container,{history,onMonth})`.
+It reads the same paired monthly City history; `update(month)` follows the shared
+clock and navigation emits `onMonth(month)` to stop playback and select both arms.
+A native household selector, previous/next controls and expandable change table
+expose exact City household/home IDs, run, seed, version and monetary units.
+Changes are field differences between adjacent observed months within each arm,
+not causal event claims. Gaps, duplicate household identities and absent households
+remain unavailable. Duplicate times or mismatched state month/seed/model fail
+explicitly. No Population or House identity mapping is implied. Dispose with the
+parent outcome timeline when replacing a run.
+
+Integrated household values update on every shared month, while live announcements
+follow `update(month,{announce:true})` only for manual selection. Autoplay does
+not announce each household frame; household navigation and selector changes
+announce the requested observation. The retained chart keeps its existing cursor
+and manual-only summary behavior.

@@ -156,6 +156,7 @@ function setProposal() {
   if (currentPair && activeExperiment.amount === option.amount) {
     updateCouncil({ before: currentPair.baseline, after: currentPair.intervention, proposal: option });
   } else {
+    find('council-provenance').textContent = '';
     const before = { ...cityMetrics(starting.state), commuteMinutes: starting.participant.commuteMinutes };
     updateCouncil({ before, after: null, proposal: option });
   }
@@ -236,6 +237,8 @@ async function openPair(index) {
       ? `Proposed investment · ${currency.format(proposal.cost)} modeled USD` : 'Proposed investment unavailable.';
     find('pair-scorecard').hidden = false;
     updateCouncil({ before: baseline, after: intervention, proposal });
+    find('council-provenance').textContent =
+      `Synthetic modeled comparison · ${recipeVersion} · Starting seed ${seed} · Pair ${index + 1} · Paired seed ${pair.seed} · Month ${baseline.state.month}. Policy: transit · district ${starting.participant.districtId} · amount ${amount} · cost ${proposal.cost}. Matched baseline and intervention; no real-world forecast or inferred resident votes.`;
     showSnapshot();
     const url = new URL(location.href);
     url.searchParams.set('challenge', encodeChallenge({ version: recipeVersion, seed, amount, index }));
@@ -250,7 +253,7 @@ async function openPair(index) {
   }
 }
 
-async function compare({ amount, index, seed }) {
+async function compare({ amount, index, seed, samples = sampleCount }) {
   replayRevision++;
   activeExperiment = { seed, amount };
   enteredSnapshot = null;
@@ -258,14 +261,16 @@ async function compare({ amount, index, seed }) {
   resetEvidence();
   find('view').value = 'starting';
   find('test').disabled = true;
+  find('council-test').disabled = true;
   find('investment').disabled = true;
   find('results').hidden = true;
   find('share').value = '';
+  find('council-provenance').textContent = '';
   setProposal();
   showSnapshot();
-  find('progress').textContent = `Simulating ${sampleCount} seed-matched pairs…`;
+  find('progress').textContent = `Simulating ${samples} seed-matched pair(s)…`;
   try {
-    const ensemble = await simulate('compare', { seed, amount, samples: sampleCount, months });
+    const ensemble = await simulate('compare', { seed, amount, samples, months });
     showSummary(ensemble);
     const cost = COMMUTE_OPTIONS.find(option => option.amount === amount).cost;
     find('progress').textContent =
@@ -276,6 +281,7 @@ async function compare({ amount, index, seed }) {
     find('progress').textContent = `The comparison could not run. ${error.message}`;
   } finally {
     find('test').disabled = false;
+    find('council-test').disabled = false;
     find('investment').disabled = false;
   }
 }
@@ -310,6 +316,11 @@ find('investment').onchange = () => {
   setProposal();
 };
 find('test').onclick = () => compare({ seed: starting.seed, amount: Number(find('investment').value) });
+find('council-test').onclick = () => compare({ seed: starting.seed, amount: Number(find('investment').value), samples: 1 });
+find('council-leave').onclick = () => {
+  find('council-scene').open = false;
+  find('council-scene').querySelector('summary').focus();
+};
 find('sample').onchange = () => openPair(Number(find('sample').value));
 find('view').onchange = () => { enteredSnapshot = null; showSnapshot(); };
 find('copy').onclick = async () => {

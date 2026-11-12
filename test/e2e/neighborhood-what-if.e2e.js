@@ -23,6 +23,16 @@ test('place an addition, compare paired days, inspect residents, cancel and clea
  await expect(panel.locator('[data-impact-excluded]')).toContainText('Excluded neighborhoods:');
  await expect(panel.locator('[data-impact-caption]')).toContainText('access');
  await panel.getByRole('button',{name:'Housing burden',exact:true}).click();await expect(panel.locator('[data-impact-caption]')).toContainText('burden');await expect(panel.locator('[data-explanation]')).toContainText('improved');
+ await expect(panel.locator('[data-pair-context]')).toContainText('seed 42 in both arms');
+ await expect(panel.locator('[data-pair-output] table')).toHaveCount(2);
+ const firstId=await panel.getByRole('textbox',{name:'First resident ID'}).inputValue();
+ await panel.getByRole('textbox',{name:'Second resident ID'}).fill('missing-resident');
+ await panel.getByRole('button',{name:'Compare residents',exact:true}).click();
+ await expect(panel.locator('[data-pair-output]')).toContainText('Resident unavailable');
+ await expect(panel.locator('[data-pair-output] table')).toHaveCount(1);
+ await panel.getByRole('textbox',{name:'Second resident ID'}).fill(firstId);
+ await panel.getByRole('button',{name:'Compare residents',exact:true}).click();
+ await expect(panel.locator('[data-pair-output] table')).toHaveCount(2);
  await panel.getByRole('button',{name:'Average commute',exact:true}).click();
  const resident=panel.locator('[data-residents] button').first();if(await resident.count()){await resident.click();await expect(panel.locator('[data-status]')).toContainText('Comparison resident');}
  await page.screenshot({path:'/private/tmp/hbl-neighborhood-what-if.png'});

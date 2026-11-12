@@ -87,8 +87,10 @@ jobs:
           test/patch-voting-server.test.js
           test/world-database-path.test.js
           test/overpass-diagnostics.test.js
+      - name: Verify bounded asynchronous renderer readback
+        run: bun test test/gpu-readback.test.js test/render-performance.test.js
       - name: Verify finite agent-count exports and transition evidence
-        run: bun test test/agent-counts.test.js test/million-release.test.js test/population-memory-pressure.test.js
+        run: bun test test/agent-counts.test.js test/million-release.test.js test/population-memory-pressure.test.js test/population-scheduling.test.js
       - name: Verify manifest preflight and replay cancellation regressions
         run: >
           bun test --timeout 15000
@@ -107,8 +109,14 @@ jobs:
           bun test test/storm-execution.test.js test/storm-physics.test.js
           test/storm-scenario.test.js test/storm-impacts.test.js
           test/storm-recovery.test.js test/storm-treaty.test.js
+      - name: Reject invalid and oversized public run inputs
+        run: bun test --timeout 15000 test/run-input-security.test.js test/run-job-manager.test.js test/server-civic-api.test.js
+      - name: Verify bounded network and comparison recovery
+        run: bun test test/map-streamer.test.js test/world-quick-demo-controller.test.js test/world-first-run-repairs.test.js
       - name: Install browser engines for canonical journeys
         run: bunx playwright install --with-deps chromium firefox webkit
+      - name: Verify adaptive Population scheduling in Chromium
+        run: bunx playwright test test/e2e/population-scheduling.e2e.js --workers=1
       - name: Verify visible GPU, worker, and Canvas2D fallbacks
         run: bun --bun x playwright test --config test/webgpu-limits.browser.config.mjs
       - name: Universe shell, sprint experiences, and saved future journey

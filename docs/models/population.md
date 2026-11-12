@@ -46,3 +46,37 @@ Neighborhood bounds use inclusive current world x/z positions and count full ind
 
 
 Current snapshots also expose [a current-position density aggregate](../../world/population/density.js): a 32×32 grid over model location bounds plus origin and a one-world-unit margin. Each finite in-bounds individual contributes once; weighted values multiply those counts by the run's declared represented-population weight. Missing and outside positions remain separate and are never clamped into a tile. These are counts per tile, not people per square kilometre or counts of residents who changed state in the last step. Rendering, grid formation and neighborhood inspection do not advance time or draw random numbers. The [density read contract](../../world/population/DATA_FORMATS.md#current-position-density-population-densityv1) specifies scope and unavailable snapshots.
+
+
+The separate [city heatmap](../../world/population/city-heatmap.js) projects all
+resident records onto assigned homes, while its interaction view counts only
+retained hotspot encounter records in the preceding 30 model minutes. The
+120-record citywide encounter cap can make those counts incomplete; encounters
+are neither population-weighted nor a count of distinct changed residents. This
+projection leaves RNG, choices, time and current-position density unchanged.
+See [the heatmap read contract](../../world/population/DATA_FORMATS.md#assigned-home-occupancy-and-retained-encounters-city-heatmapv1)
+for normalization and missingness. Verify with `bun test test/city-heatmap.test.js
+test/population-density.test.js test/neighborhood-selection.test.js`.
+
+
+### Adaptive wall-clock admission
+
+The live runtime's [scheduling guard](../../world/population/scheduling-guard.js)
+measures successful automatic commit duration on the host, including worker
+queue/transport and snapshot acceptance. At 100 ms or more it admits subsequent
+automatic steps no sooner than 400 ms after the previous completion; eight
+consecutive measurements at or below 40 ms restore normal admission. These are
+illustrative presentation thresholds. Cooldown time is discarded by the existing
+busy-clock path, rather than accumulated into a catch-up burst. Explicit steps,
+replay and household observation keep their existing fixed-step schedule.
+
+This policy changes how many ticks fit in elapsed wall time, not model entities,
+seed, RNG consumption, fixed-step duration or command order. Compare the same
+modeled ticks and command timeline, not equal wall time. Session diagnostics
+retain at most 64 transitions across resets and are not authoritative checkpoint
+state. The receiving runtime retains its device policy on checkpoint restore.
+Allocation failure and explicit smaller-population recovery remain separate
+from slow commits. Failed or cancelled commits produce no successful timing
+sample. The guard cannot preempt a single expensive tick or promise a frame-rate
+bound. See [the runtime policy](../../world/workers/README.md#adaptive-live-population-scheduling-she-174).
+Verify with `bun test test/population-scheduling.test.js test/population-memory-pressure.test.js`.

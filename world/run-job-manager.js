@@ -1,3 +1,4 @@
+import { readRunInput } from "./run-input.js";
 import { fingerprint } from "./reproducibility.js";
 import { simulateExperiment } from "./simulation-adapter.js";
 
@@ -197,7 +198,7 @@ export function createRunApiHandler(manager, resolveRunInput) {
       return Response.json(manager.metrics(), { headers: { "cache-control": "no-store" } });
     }
     if (!id && request.method === "POST") {
-      const body = await request.json();
+      const body = await readRunInput(request);
       const input = await resolveRunInput(body);
       try {
         return Response.json(manager.createJob(input), { status: 202 });

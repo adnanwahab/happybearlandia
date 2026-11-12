@@ -5,6 +5,8 @@ export async function withHistoryDeadline(work,milliseconds=8000){
  try{return await Promise.race([Promise.resolve().then(work),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('History request timed out. Apply filters or reopen Activity to retry.')),milliseconds);})]);}
  finally{clearTimeout(timer);}
 }
+// The reconciled first-run API shares the existing bounded history contract.
+export { withHistoryDeadline as activityRequest };
 const PALETTE=['#5398d9','#e9ad48','#65b99b','#c478b7','#db766b','#8b94d8','#90a751','#70b8c9'];
 export function mountActivityDashboard({container,getSnapshot,getHistory,subscribe,onSelectPerson}={}){
  if(!container||typeof getHistory!=='function')throw new Error('Activity dashboard needs a container and getHistory(query).');

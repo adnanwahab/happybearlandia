@@ -11,6 +11,38 @@ async function evidence(page,testInfo,name){
 }
 function assertPair(record){expect(record.seed).toBe(42);expect(record.modelVersion).toBeTruthy();expect(record.experimentId).toBeTruthy();expect(record.initialHash).toBeTruthy();expect(record.scenario.intervention).toMatchObject({type:'housing',amount:24,cost:1000000,delay:0});expect(record.baseline.month).toBe(record.selectedMonth);expect(record.plan.month).toBe(record.selectedMonth);}
 
+test('automated month zero and actual first divergence screenshot evidence',async({page},info)=>{
+ await page.emulateMedia({reducedMotion:'reduce'});await fork(page);
+ const report=await page.evaluate(async()=>{
+  const {captureEvidencePlan}=await import('/world/future-machine/capture-evidence.js');
+  return captureEvidencePlan(window.futureMachine.history);
+ });
+ expect(report.status).toBe('diverged');expect(report.divergenceMonth).toBeGreaterThan(0);
+ const comparison=page.locator('.fm-comparison');await comparison.scrollIntoViewIfNeeded();
+ // A complete model history can precede asynchronous graphics readiness.
+ // Freeze the actual camera only after a graphics backend has rendered it.
+ await expect.poll(()=>page.evaluate(()=>window.futureMachine.stats.scene?.backend)).toMatch(/^(webgpu|webgl|canvas2d)$/);
+ await expect.poll(()=>page.evaluate(()=>Boolean(window.futureMachine.stats.scene?.camera))).toBe(true);
+ const camera=await page.evaluate(()=>window.futureMachine.stats.scene.camera);
+ const captures=[];
+ for(const month of report.captureMonths){
+  await seek(page,month);
+  await expect.poll(()=>page.evaluate(()=>window.futureMachine.stats.scene?.month)).toBe(month);
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  expect(await page.evaluate(()=>window.futureMachine.stats.scene.camera)).toEqual(camera);
+  const record=await evidence(page,info,`capture-month-${month}`);assertPair(record);
+  expect(record.seed).toBe(report.seed);expect(record.initialHash).toBe(report.initialHash);
+  if(month===0){expect(record.baseline.state).toEqual(record.plan.state);expect(record.diff.physicalCount).toBe(0);}
+  else expect(record.diff.physicalCount).toBeGreaterThan(0);
+  const screenshot=`scene-month-${month}.png`;
+  await comparison.screenshot({path:info.outputPath(screenshot),animations:'disabled'});
+  captures.push({month,screenshot,evidence:`capture-month-${month}.json`,camera:record.camera,backend:record.scene.backend,viewport:page.viewportSize()});
+ }
+ expect(captures[1].backend).toBe(captures[0].backend);
+ await writeFile(info.outputPath('capture-manifest.json'),JSON.stringify({...report,captures},null,2));
+ await info.attach('capture manifest',{path:info.outputPath('capture-manifest.json'),contentType:'application/json'});
+});
+
 test('real paired runs: matched start, physical divergence, metrics, timeline and deterministic refresh',async({page},testInfo)=>{
  const errors=[];page.on('pageerror',error=>errors.push(error.message));await fork(page);
  const start=await evidence(page,testInfo,'before-month-0');assertPair(start);expect(start.baseline.state).toEqual(start.plan.state);expect(start.diff.physicalCount).toBe(0);

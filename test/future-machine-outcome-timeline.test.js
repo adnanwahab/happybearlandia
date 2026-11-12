@@ -17,7 +17,7 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('renderer-independent outcome timeline 
 
   let browser;
   try{
-    browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:320,height:720},reducedMotion:'reduce'});page.setDefaultTimeout(5000);
+    browser=await chromium.launch({headless:true,...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH}:{})});const page=await browser.newPage({viewport:{width:320,height:720},reducedMotion:'reduce'});page.setDefaultTimeout(5000);
     await page.route('http://outcomes.test/**',async route=>{
       const path=new URL(route.request().url()).pathname;
       if(path==='/')return route.fulfill({contentType:'text/html',body:'<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><body style="margin:0;background:#091522">'});
@@ -27,8 +27,22 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('renderer-independent outcome timeline 
     await page.evaluate(async()=>{
       const {createOutcomeTimeline}=await import('/world/future-machine/ui/outcome-timeline.js');window.months=[];
       const arm=plan=>Array.from({length:121},(_,month)=>({month,metrics:{housingUnits:month===4?null:30+(plan&&month>=16?24:0),meanRent:plan?999.123456789:1000,capitalSpending:plan?1000000:0}}));
-      window.timeline=createOutcomeTimeline(document.body,{history:{baseline:arm(false),plan:arm(true)},onMonth:month=>months.push(month)});
+      const households=arm=>arm.map(snapshot=>({...snapshot,state:snapshot.month===2?undefined:{month:snapshot.month,version:'v1',seed:42,households:[{id:'h1',income:2000,savings:snapshot.month}],units:[]}}));
+      window.timeline=createOutcomeTimeline(document.body,{history:{seed:42,modelVersion:'v1',baseline:households(arm(false)),plan:households(arm(true))},onMonth:month=>months.push(month)});
     });
+    const household=page.getByRole('region',{name:'Household change timeline'});
+    await household.getByRole('button',{name:'Next household change',exact:true}).click();
+    expect(await page.evaluate(()=>months.at(-1))).toBe(1);
+    await page.evaluate(()=>timeline.update(2));
+    expect(await household.textContent()).toContain('Unavailable');
+    expect(await page.evaluate(async()=>{
+      const live=document.querySelector('[data-household-announcement]');let announcements=0;
+      const observer=new MutationObserver(records=>announcements+=records.length);observer.observe(live,{childList:true});
+      for(let month=0;month<=120;month++)timeline.update(month);
+      await Promise.resolve();observer.disconnect();return announcements;
+    })).toBe(0);
+    await page.evaluate(()=>timeline.update(3,{announce:true}));
+    expect(await page.locator('[data-household-announcement]').textContent()).toContain('Month 3');
     expect(await page.locator('canvas').count()).toBe(0);
     expect(await page.evaluate(()=>{const point=document.querySelector('svg circle');timeline.update(0);return point===document.querySelector('svg circle');})).toBe(true);
     await page.getByRole('combobox',{name:'Outcome series mode'}).selectOption('delta');

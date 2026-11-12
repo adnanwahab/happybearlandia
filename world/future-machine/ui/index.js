@@ -101,7 +101,7 @@ export function mountFutureMachineUI(root, options = {}) {
   listen(policy,'change',()=>{state.policyId=policy.value;renderPolicy();options.onPolicyChange?.(policy.value);});
   listen(household,'change',()=>{state.householdId=household.value;renderHousehold();options.onHouseholdChange?.(household.value);});
   listen(form,'submit',async event=>{
-    event.preventDefault(); if(state.busy || !options.onFork)return;
+    event.preventDefault(); if((state.busy && !state.preview) || !options.onFork)return;
     pause();const current=++generation;update({busy:true,error:null,status:'Running matched 120-month futures…',progress:null});
     try {await options.onFork({cityId:city.value,policyId:policy.value});if(current===generation&&!destroyed)update({busy:false});}
     catch(failure){if(current===generation&&!destroyed)update({busy:false,error:failure?.message || String(failure),status:'Run failed. Try again.'});}
@@ -117,8 +117,8 @@ export function mountFutureMachineUI(root, options = {}) {
     if('cityId' in patch)city.value=state.cityId;
     if('policyId' in patch)policy.value=state.policyId;
     renderPolicy();
-    city.disabled=policy.disabled=state.busy;
-    fork.disabled=state.busy || !state.cities.length || !state.policies.length || !options.onFork;
+    city.disabled=policy.disabled=state.busy && !state.preview;
+    fork.disabled=(state.busy && !state.preview) || !state.cities.length || !state.policies.length || !options.onFork;
     cancel.hidden=!state.busy || !options.onCancel;progress.hidden=!state.busy;
     if(typeof state.progress==='number'&&Number.isFinite(state.progress))progress.value=Math.min(1,Math.max(0,state.progress));else progress.removeAttribute('value');
     if(state.status)status.textContent=state.status;
@@ -277,9 +277,9 @@ export function createUI(container, callbacks = {}) {
       }
     }
     retry.hidden=current.status!=='error' || !callbacks.onRetry || current.canRetry===false;
-    const busy=['loading','running','queued'].includes(current.status);seedInput.disabled=busy;amountInput.disabled=busy || recipe.intervention?.type!=='housing';
+    const busy=['loading','running','queued'].includes(current.status),configurationBusy=busy && !current.preview;seedInput.disabled=configurationBusy;amountInput.disabled=configurationBusy || recipe.intervention?.type!=='housing';
     autoCamera.checked=current.autoCamera!==false;
-    reset.disabled=busy || !callbacks.onReset;
+    reset.disabled=configurationBusy || !callbacks.onReset;
     const demoState=current.demo || {};
     const demoActive=['playing','running','paused','preparing','loading'].includes(demoState.status);
     demo.disabled=!callbacks.onDemo;demo.textContent=demoActive?'Restart Demo':demoState.status==='complete'?'Replay Demo':'Play Demo';demoSkip.hidden=!demoActive;demoSkip.disabled=busy || demoState.status==='preparing' || !callbacks.onDemoSkip;
@@ -289,7 +289,7 @@ export function createUI(container, callbacks = {}) {
     if(demoCaption.textContent!==caption)demoCaption.textContent=caption;
     demoSeconds.textContent=Number.isFinite(demoState.elapsedMs)?`${Math.floor(Math.max(0,demoState.elapsedMs)/1000)}s`:'';
     const provenance=current.provenance || {};
-    runProvenance.textContent=`MONTH ${current.month} / 120 · SEED ${provenance.seed ?? current.recipe?.seed ?? 'Unavailable'} · MODEL ${provenance.modelVersion ?? current.recipe?.modelVersion ?? 'Unavailable'} · RUN ${provenance.experimentId ?? current.experimentId ?? 'Not run yet'}`;
+    runProvenance.textContent=(current.preview?'INITIAL SNAPSHOT · Synthetic model inventory · Future results unavailable · ':'')+`MONTH ${current.month} / 120 · SEED ${provenance.seed ?? current.recipe?.seed ?? 'Unavailable'} · MODEL ${provenance.modelVersion ?? current.recipe?.modelVersion ?? 'Unavailable'} · RUN ${provenance.experimentId ?? current.experimentId ?? 'Not run yet'}`;
     const displayed=current.comparisonRecipe;
     const initialHouseholds=current.comparisonInitial?.households;
     const people=initialHouseholds?.every(row=>Number.isFinite(row.size)) ? initialHouseholds.reduce((sum,row)=>sum+row.size,0) : null;
@@ -299,18 +299,18 @@ export function createUI(container, callbacks = {}) {
       const policy=!displayed?'Policy: Unavailable':index===0 || !intervention?'Policy: no intervention · 0 added homes · 0 USD intervention cost':`Policy: ${intervention.type} · district ${intervention.districtId} · ${value(intervention.amount,' proposed homes')} · ${value(intervention.cost,' illustrative USD')} · delay ${value(intervention.delay,' months')} · compliance ${value(intervention.compliance)}`;
       box.textContent=`Seed ${value(displayed?.seed)} · Horizon ${value(displayed?.months,' months')} · Starting population ${value(people,' people')} (${value(displayed?.households,' households')}) · ${policy}`;
     }
-    const ready=!!current.frame && !busy;
+    const ready=!!current.frame && !busy && !current.preview;
     remember.disabled=!ready || current.status!=='ready' || !callbacks.onRemember;remember.textContent=current.remembering?'Local continuation enabled':'Remember this comparison';remember.setAttribute('aria-pressed',String(!!current.remembering));
     clear.disabled=!callbacks.onClearRecent;recentStatus.textContent=current.recentMessage || 'Local continuation is off.';
     const metrics={};
     for(const [key,source] of [['homes','housingUnits'],['rent','meanRent'],['spending','capitalSpending']]){
-      const metric=current.diff?.metrics?.[source];
+      const metric=current.preview?null:current.diff?.metrics?.[source];
       metrics[key]=metric?{provenance:MONTHLY_CITY_PROVENANCE,...comparisonMetric(metric),note:key==='rent'?'All recorded units, including new inventory; not incumbent rent savings.':key==='spending'?'Cumulative capital spending in USD; cost is not a welfare gain.':undefined}:null;
     }
     const a=current.frame?.baseline?.state?.households||[],b=current.frame?.plan?.state?.households||[];
     const ids=[...new Set([...a,...b].map(row=>row.id))].sort();
     const households=ids.map(id=>({id,label:`City household ${id}`,baseline:a.find(row=>row.id===id)??null,plan:b.find(row=>row.id===id)??null,baselineHousing:householdObservation(a.find(row=>row.id===id),current.frame?.baseline?.state?.units),planHousing:householdObservation(b.find(row=>row.id===id),current.frame?.plan?.state?.units)}));
-    view.update({busy,ready,month:current.month,playing:current.playing,status:current.message,error:current.error,metrics,households,
+    view.update({busy,ready,preview:current.preview,month:current.month,playing:current.playing,status:current.message,error:current.error,metrics,households,
       cities:[{id:'synthetic',label:'Riverside · Synthetic City'}],
       policies:policyChoices(recipe.intervention),
       policyId:policyId(recipe.intervention),spatialLabel:'Synthetic schematic layout · Monthly City model · January 2026–January 2036 · Uncalibrated assumptions. No real-world geometry inferred. Private parcel capacity 0; utility capacity 200 per district/network; annual growth 0.',

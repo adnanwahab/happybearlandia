@@ -11,10 +11,10 @@ export function metricChangeStops(history, diff, metricKey) {
     })));
 }
 /** Exact model-owned building/project mapping, never a spatial or cross-model join. */
-export function constructionReceipts(history,{collection,id},throughMonth) {
+export function constructionReceipts(history,{collection,id,arm: selectedArm},throughMonth) {
   if(collection!=='buildings')return [];
   const receipts=[];
-  for(const arm of ['baseline','plan'])for(const snapshot of history?.[arm]||[]) {
+  for(const arm of ['baseline','plan'].filter(arm=>!selectedArm||arm===selectedArm))for(const snapshot of history?.[arm]||[]) {
     if(snapshot.month>throughMonth)continue;
     const project=snapshot.state?.projects?.find(p=>p.type==='housing'&&housingProjectBuildingId(p.id)===id);
     if(!project||!snapshot.state.buildings.some(b=>b.id===id))continue;

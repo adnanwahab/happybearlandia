@@ -9,6 +9,9 @@ test('WebGL2 fallback exposes quality, cutaway, feature toggles and benchmark st
  expect(await page.evaluate(()=>window.hblCityRenderer.timeOfDay)).toBeUndefined();
  await page.getByLabel('Scene lighting',{exact:true}).selectOption('14');
  const result=await page.evaluate(()=>{const api=window.hblCityRenderer;api.setQuality('LOW');api.setWeather('rain');api.setTimeOfDay(22);api.setFeature('traffic',false);api.setCutaway(true);api.focusBuilding(0);return api.getPerformanceStats();});
+ expect(result.readback.latest).toBeNull();
+ const readback=await page.evaluate(()=>{window.hblCityRenderer.setReadbackEnabled(false);return window.hblCityRenderer.getPerformanceStats().readback;});
+ expect(readback.enabled).toBe(false);expect(readback.latest).toBeNull();
  expect(result.backend).toBe('webgl2');expect(result.quality).toBe('LOW');expect(result.features.traffic).toBe(false);
  await page.getByLabel('Geometry detail',{exact:true}).selectOption('HIGH');
  await page.getByLabel('Geometry debug',{exact:true}).selectOption('lod');

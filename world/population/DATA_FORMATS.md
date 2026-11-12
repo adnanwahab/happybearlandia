@@ -84,3 +84,24 @@ Units are counts per tile, not area-normalized density. Color scale is linear
 zero-to-current-maximum per selected mode and tick; colors across ticks are not
 fixed-scale comparisons. The overview Canvas2D legend reports its scale and totals.
 Older snapshots without density show unavailable, never reconstructed estimates.
+
+
+### Assigned-home occupancy and retained encounters (`city-heatmap.v1`)
+
+Population snapshots additionally expose `cityHeatmap` with seed, tick, minute,
+`fromMinute`, `occupancy`, `activity`, `unmapped` and `retentionLimit`. Occupancy
+counts every simulated resident at their assigned home location (or home district
+if that location is absent); `representedCount` is that count multiplied by the
+run's population weight. It is distinct from the current-position `density` grid
+and the last-step changed-state `selectionActivity` diagnostic.
+
+Activity counts retained hotspot encounters whose recorded minute is in the
+open/closed window `(minute - 30, minute]`. The displayed lower bound is clipped
+to zero for a freshly initialized run. Each record counts once, without resident
+weighting; missing locations contribute to `unmapped`, not a guessed map point.
+The existing hotspot buffer retains at most 120 encounters citywide, so this is
+not a complete interaction history or a count of distinct active residents.
+Coordinates are model x/z; circle intensity is count divided by the largest count
+for the selected measure at this timestamp. There is no area normalization or
+fixed color scale across ticks. Older snapshots without this projection show
+unavailable. Both panels clear with the authoritative snapshot on reset.

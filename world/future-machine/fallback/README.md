@@ -53,3 +53,10 @@ neither browser server started. Test fixture months 0/16/17 are synthetic inputs
 
 Final review: only the allowed six files are included; no shared interfaces,
 HTML, scene wrapper, simulation engine or application data are changed.
+
+Fourth-batch compatibility: the snapshot adapter validates explicit frame/snapshot
+months and tagged arm identity through the shared integrity boundary before
+rendering. Missing paired snapshots clear graphics; unavailable canonical metrics
+remain labeled with their contract units. Canvas creation or drawing failure
+retains the accessible exact inventory, metrics and events, so the older worker's
+startup-throw expectation does not replace the integrated recovery behavior.

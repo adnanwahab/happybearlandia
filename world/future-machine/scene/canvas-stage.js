@@ -22,6 +22,7 @@ export function canvasRows(projection, diff, arm, mode='split', ghosts=true) {
   const present = new Set(own.map(identity));
   const rows = own.map(row => ({...row,arm,ghost:false,change:changes.get(identity(row)) || null}));
   if (ghosts || mode === 'difference') for (const row of other) if (!present.has(identity(row))) rows.push({...row,arm,ghost:true,change:changes.get(identity(row)) || null});
+  if(ghosts)for(const row of projection.constructionGhosts?.[arm]||[])rows.push({...row,arm,ghost:true,change:'construction-preview'});
   return mode === 'difference' ? rows.filter(row => row.change) : rows;
 }
 function polygon(row) { return row.polygon || [[row.x-7,row.z-7],[row.x+7,row.z-7],[row.x+7,row.z+7],[row.x-7,row.z+7]]; }
@@ -106,7 +107,9 @@ export function createCanvasStage(container,{onSelect,onCameraChange,onCameraInt
     if(mode==='split'){ctx.fillStyle='#a4c6d8';ctx.fillRect(width/2-1,0,2,height);}
     ctx.fillStyle='#10232de8';ctx.fillRect(0,height-44,width,44);ctx.fillStyle='#eaf7fa';ctx.font='11px system-ui';
     ctx.fillText(width<500?'Low fidelity · unlocated data uses synthetic layout':'Low fidelity · Synthetic layout for unlocated City inventory · sourced footprints where available',12,height-27,Math.max(1,width-24));
-    ctx.fillText(width<500?'Green: recorded change · dashed: other-future ghost':'Green: recorded change · dashed: other-future ghost · drag / arrows: pan · scroll / pinch / ±: zoom',12,height-10,Math.max(1,width-24));
+    const previews=ghosts&&Object.values(projection?.constructionGhosts??{}).some(rows=>rows.length);
+    const legend=previews?'Dashed: next-month preview / other-future ghost':'Green: recorded change · dashed: other-future ghost';
+    ctx.fillText(width<500?legend:`${legend} · drag / arrows: pan · scroll / pinch / ±: zoom`,12,height-10,Math.max(1,width-24));
   }
   function changed(){draw();onCameraChange?.({...camera});}
   function resize(){if(disposed)return;width=dimension(container.clientWidth,640);height=Math.max(280,dimension(container.clientHeight,400));const ratio=pixelRatio??Math.min(dimension(globalThis.devicePixelRatio,1),2);canvas.width=Math.round(width*ratio);canvas.height=Math.round(height*ratio);ctx.setTransform(ratio,0,0,ratio,0,0);if(!fitted&&projection&&(projection.a.length||projection.b.length)){camera=fitCanvasCamera(projection,width,height,mode);fitted=true;}draw();}

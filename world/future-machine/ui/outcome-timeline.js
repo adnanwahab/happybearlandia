@@ -1,3 +1,4 @@
+import {createHouseholdTimeline} from './household-timeline.js';
 import {provenancePresentation, MONTHLY_CITY_PROVENANCE} from './provenance.js';
 import {METRIC_UNITS, MONTHS, assertMonth} from '../contracts.js';
 
@@ -44,6 +45,7 @@ export function createOutcomeTimeline(container,{history,onMonth}={}) {
   const note=node('p');note.className='fm-outcome-note';
   const details=node('details'),scroll=node('div'),table=node('table');scroll.className='fm-outcome-scroll';details.append(node('summary','Exact recorded values and month selection'),scroll);scroll.append(table);
   shell.append(style,node('h2','How outcomes diverge'),label,modeLabel,legend,chart,summary,note,details);container.append(shell);
+  const household=createHouseholdTimeline(shell,{history,onMonth});
   function choose(next){if(disposed)return;const row=series.get(key)[next];if(!row || (row.baseline===null&&row.plan===null))return;update(next,{announce:true});onMonth?.(next);}
   let cursor,highlight,highlightTitle,position;
   function renderChart(rows){
@@ -72,6 +74,7 @@ export function createOutcomeTimeline(container,{history,onMonth}={}) {
   function update(next,{announce=false,rebuild=false}={}){
     if(disposed)return;assertMonth(next);
     const changed=next!==month;month=next;
+    household.update(next,{announce});
     const rows=series.get(key),row=rows[month];
     if(rebuild||!position){
       legend.textContent=mode==='delta'?'DELTA (WITH − WITHOUT) · pale blue · dashed zero axis · gaps mean unavailable':'WITHOUT PLAN — blue · WITH PLAN – – amber · gaps mean unavailable';
@@ -102,5 +105,5 @@ export function createOutcomeTimeline(container,{history,onMonth}={}) {
   const tableClick=event=>{const point=event.target.closest?.('[data-month]');if(point)choose(Number(point.dataset.month));};
   chart.addEventListener('click',chartClick);table.addEventListener('click',tableClick);
   renderTable(series.get(key));update(0,{announce:true});
-  return {update,dispose(){if(disposed)return;disposed=true;select.onchange=modeSelect.onchange=null;chart.removeEventListener('click',chartClick);table.removeEventListener('click',tableClick);shell.remove();}};
+  return {update,dispose(){if(disposed)return;disposed=true;household.dispose();select.onchange=modeSelect.onchange=null;chart.removeEventListener('click',chartClick);table.removeEventListener('click',tableClick);shell.remove();}};
 }
