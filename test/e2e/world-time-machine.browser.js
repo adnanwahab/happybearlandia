@@ -15,6 +15,13 @@ test('record, scrub, inspect and reopen a stored city month', async ({ page }) =
   await record.click();
   await expect(page.getByText('Stored month 0 · starting state')).toBeVisible({ timeout: 15000 });
   await expect(page.getByRole('heading', { name: 'District heatmap' })).toBeVisible();
+  const metricEvidence = page.locator('#heatmap .city-heatmap__evidence').first();
+  await expect(metricEvidence.locator('summary')).toHaveText('Assumption-based model');
+  await expect(metricEvidence.locator('summary')).toHaveAttribute('title', /Source: monthly CityState units.rent/);
+  await metricEvidence.locator('summary').focus();
+  await page.keyboard.press('Enter');
+  await expect(metricEvidence.locator('p')).toBeVisible();
+  await expect(metricEvidence.locator('p')).toContainText('empirical confidence not established');
   const heatmapMetric = page.locator('#heatmap').getByRole('combobox', { name: 'Metric' });
   await heatmapMetric.selectOption({ label: 'Occupied share of all housing units' });
   const slider = page.getByRole('slider', { name: 'Simulation month' });

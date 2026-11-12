@@ -1003,3 +1003,25 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-96 — neighborhood metric evidence
+
+Next integrated slice: monthly World Time Machine district heatmap. Preserve
+numeric zero, exclude absent/invalid samples (including occupancy status), and
+show each value's synthetic model basis, confidence limits, source and coverage
+in a keyboard-accessible tooltip. Reuse stored CityState provenance; do not infer
+empirical verification from OSM geometry or invent confidence percentages.
+Acceptance: targeted aggregation regressions and browser rendering check.
+Scope excludes the separate Population and Decision Studio clocks/models.
+
+Delivered: per-district disclosure with checkpoint dataset/revision/month,
+available/eligible coverage, synthetic assumptions and empirical confidence
+limitations; native expandable labels support keyboard/touch as well as title
+tooltips. Unknown/absent occupancy status is excluded instead of counting as zero;
+absent inventories remain missing. Existing numeric/bin contract is unchanged.
+Verification: `bun test test/time-machine-heatmap.test.js test/world-causal-adapter.test.js`
+passed 9 tests, 272 assertions; `git diff --check` passed. Added disclosure assertions
+to the existing Time Machine browser journey, but did not run it: local
+`node_modules/@playwright/test` is absent. Browser layout/interaction remains
+unverified. No empirical confidence score or verified-data label is invented for
+this synthetic monthly model. Other neighborhood surfaces remain separate scope.
