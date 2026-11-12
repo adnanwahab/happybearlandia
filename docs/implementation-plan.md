@@ -1003,3 +1003,40 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-18 narrow-mobile collision audit — November 12, 2026
+
+Status: verification prepared; implementation acceptance remains unresolved.
+Branch: `mini/SHE-18`; no PR created, merge or deployment performed. Ownership
+for this local slice is limited to `test/e2e/narrow-mobile.e2e.js`,
+`test/narrow-mobile.browser.config.js`, and this plan entry. No source files
+were modified. The checkout started clean. Prior integration audit
+(`docs/symphony-workspace-integration-2026-11-11.md`) records no completed
+SHE-18 implementation. Existing first-run guide CSS already supplies compact
+controls, mobile sheets, landscape rules and focus outlines; panel-manager tests
+already cover exclusive sheets and Escape restoration. Reuse these contracts.
+
+Next end-to-end slice: measure actual World navigation and panel bounds at
+320x640, 390x844, 844x390 and 1440x1000; repair only demonstrated collisions
+in World presentation styles; rerun and retain screenshots and measurements.
+Prerequisite: a browser-capable runner that can bind loopback and launch Chromium.
+Acceptance: primary shortcuts, expanded Pause/summary and Activity Close remain
+inside the viewport, uncovered at three horizontal sample points and visibly
+outlined with keyboard modality; no horizontal overflow. Existing simulation
+seed/data authority and synthetic disclaimers must remain unchanged.
+
+Prepared focused Playwright coverage with real app navigation, JSON bounding-box
+attachments and screenshots for all four sizes. Exact command:
+`PATH=/Users/wahabma/.bun/bin:$PATH /Users/wahabma/.bun/bin/bun node_modules/@playwright/test/cli.js test --config test/narrow-mobile.browser.config.js`.
+Attempted run cannot start the local server: Bun reports EADDRINUSE at both
+41924 and 41978. An independent `Bun.serve` probe using port 0 and 127.0.0.1
+also fails. Direct Chromium launch independently aborts with
+`bootstrap_check_in ... Permission denied (1100)`. No viewport measurements or
+screenshots were produced; no collision repair is claimed. Do not infer a pass
+from test collection or existing unit coverage. No separate lint/type scripts
+exist in package.json.
+
+Actual check: `bun test test/world-visual-accessibility.test.js
+test/world-visual-panels.test.js test/world-first-run-repairs.test.js`:
+12 passed, 0 failed, 59 assertions. Browser acceptance and measured CSS repair
+remain pending; this is a verification increment, not a completed issue.
