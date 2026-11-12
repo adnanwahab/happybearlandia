@@ -1,5 +1,22 @@
 # HappyBearLandia implementation plan
 
+## SHE-39 repeated renderer disposal
+
+Next isolated slice: reuse existing truthful backend selection and stage API;
+exercise one warm-up plus 30 same-document create/split/focus/scrub/dispose cycles
+for Canvas, WebGL and auto. Own new disposal test/config and evidence report only.
+Acceptance: stable live objects/geometries/textures, no listener/observer/RAF
+growth after GC, cleared stage nodes, console/loss evidence with versioned replay
+provenance. Risk: browser/GPU availability and nonportable heap measurements.
+
+Coverage implemented; 32 focused unit tests pass (one browser-gated skip), three
+stress tests discovered, whitespace check passes. Actual browser run is blocked
+by local server bind failure; measured growth and GPU results remain unresolved.
+SHE-38 backend prerequisite exists in source despite its Backlog metadata. See
+[exact commands, overlap and limitations](renderer-disposal-stress.md). No runtime
+change, production action or PR. Next action: execute browser stress on a host
+with localhost access and inspect its resource/console attachments.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
