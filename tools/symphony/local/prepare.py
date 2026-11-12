@@ -40,11 +40,13 @@ def prepare(path, root=p.ROOT):
     if not gh:
         raise p.PublicationError('Missing trusted GitHub authentication tool')
     p.command([gh, 'auth', 'status'], repo.root, repo.env)
+    from repository_routes import verify_source
+    verify_source(repo.policy, lambda endpoint: json.loads(p.command([gh, 'api', endpoint], repo.root, repo.env)))
     repo.fetch_base(gh)
     repo.changes()  # Reject unrelated tracked/untracked edits without deleting them.
     directory = handoff.directory(path)
     handoff.snapshot(directory, 'base.json', json.dumps({'issue': issue, 'baseCommit': repo.policy['baseCommit'],
-                                                       'files': repo.policy['files'], 'branch': branch, 'base': p.BASE}) + '\n')
+                                                       'files': repo.policy['files'], 'branch': branch, 'base': repo.policy['base'], 'repository': repo.policy['repository']}) + '\n')
     # Host-only metadata edit; model writes remain protected by workspace-write.
     excludes = path / '.git/info/exclude'
     old = excludes.read_text() if excludes.exists() else ''
@@ -55,7 +57,13 @@ def prepare(path, root=p.ROOT):
 
 if __name__ == '__main__':
     try:
-        print(clone_check(Path.cwd()) if sys.argv[1:] == ['--clone-check'] else prepare(Path.cwd()))
+        if sys.argv[1:] == ['--clone-route']:
+            clone_check(Path.cwd())
+            policy = h.assignment(Path.cwd().name)
+            print('https://github.com/' + policy['repository'] + '.git')
+            print(policy['base'])
+        else:
+            print(clone_check(Path.cwd()) if sys.argv[1:] == ['--clone-check'] else prepare(Path.cwd()))
     except Exception as error:
         print(str(error) if isinstance(error, p.PublicationError) else 'Host preflight failed; preserve workspace and reconcile', file=sys.stderr)
         sys.exit(1)

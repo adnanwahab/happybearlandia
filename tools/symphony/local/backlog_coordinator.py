@@ -72,8 +72,33 @@ class Services:
         ('attachments', 'id url title'),
     )
 
-    def __init__(self):
+    def __init__(self, route=None):
+        from repository_routes import validate_route
+        self.explicit_route = route is not None
+        self.route = validate_route(route) if route is not None else {'repository': host.REPO, 'base': host.BASE, 'projectId': PROJECT}
+        self.project_id = self.route.get('projectId', PROJECT)
         self.scan_metrics = {}
+
+    def configure_source_routes(self, config, directory=None):
+        from repository_routes import approved_route
+        import publish
+        self.source_reviews = {}
+        self.source_bindings = config.get('reviews', {})
+        self.known_sources = {}
+        if directory is not None and (Path(directory) / 'source-intake.sqlite').exists():
+            from source_intake import Store
+            store = Store(Path(directory) / 'source-intake.sqlite')
+            try:
+                for row in store.db.execute('SELECT * FROM sources WHERE linear_id IS NOT NULL'):
+                    if row['linear_id'] in self.known_sources:
+                        raise host.PublicationError('Shared Linear mirror has multiple source identities; reconcile ownership')
+                    self.known_sources[row['linear_id']] = {'repository':row['repository'],'repositoryId':row['repo_id'],'issueId':row['issue_id'],'number':row['number']}
+            finally: store.db.close()
+        for ident, review in config.get('reviews', {}).items():
+            if 'repository' not in review:
+                continue
+            route = approved_route(review['repository'], publish.STATE)
+            self.source_reviews[ident] = dict(route)
 
     def linear(self, query, variables):
         self.scan_metrics['linearQueryCalls'] = self.scan_metrics.get('linearQueryCalls', 0) + 1
@@ -91,9 +116,9 @@ class Services:
             '} pageInfo{hasNextPage endCursor}}' for field, selection in self.connection_fields)
         query = ('query($project:ID!,$after:String){issues(first:' + str(self.issue_page_size) +
                  ',after:$after,includeArchived:true,filter:{project:{id:{eq:$project}}}){nodes{' +
-                 'id identifier title description priority updatedAt archivedAt state{name} team{id} ' +
+                 'id identifier url title description priority updatedAt createdAt archivedAt state{name} team{id} ' +
                  connections + '} pageInfo{hasNextPage endCursor}}}')
-        issues = self.connection(query, {'project': PROJECT}, 'issues')
+        issues = self.connection(query, {'project': self.project_id}, 'issues')
         if len({i['id'] for i in issues}) != len(issues) or len({i['identifier'] for i in issues}) != len(issues):
             raise host.PublicationError('Coordinator: duplicate issue inventory; retry complete scan')
         for issue in issues:
@@ -114,16 +139,50 @@ class Services:
             issue['state'] = issue['state']['name']
             issue['blockedBy'] = [x['issue'] for x in issue.pop('inverseRelations') if x['type'] == 'blocks']
             issue['labels'] = {x['name']: x['id'] for x in issue['labels']}
-        prs = self.github_pages(f'repos/{host.REPO}/pulls?state=all&per_page=100')
+        for issue in issues if self.explicit_route else []:
+            issue['_repository'] = self.route['repository']
+            issue['_base'] = self.route['base']
+        prs = self.github_pages(f'repos/{self.route["repository"]}/pulls?state=all&per_page=100')
         for pr in prs:
-            pr['files'] = [x['filename'] for x in self.github_pages(f'repos/{host.REPO}/pulls/{pr["number"]}/files?per_page=100')]
+            pr['files'] = [x['filename'] for x in self.github_pages(f'repos/{self.route["repository"]}/pulls/{pr["number"]}/files?per_page=100')]
             # GitHub caps pull-request files at 3000; incomplete evidence is a hold.
             if len(pr['files']) >= 3000:
                 raise host.PublicationError('Coordinator: GitHub PR file limit reached; reconcile manually')
-        base = self.github(f'repos/{host.REPO}/git/ref/heads/{host.BASE}')['object']['sha']
+        base = self.github(f'repos/{self.route["repository"]}/git/ref/heads/{self.route["base"]}')['object']['sha']
+        base_shas = {self.route['repository']: base}
+        for repository in sorted({r['repository'] for r in getattr(self, 'source_reviews', {}).values()} - {self.route['repository']}):
+            route = next(r for r in self.source_reviews.values() if r['repository'] == repository)
+            extra = self.github_pages(f'repos/{repository}/pulls?state=all&per_page=100')
+            for pr in extra:
+                pr['files'] = [x['filename'] for x in self.github_pages(f'repos/{repository}/pulls/{pr["number"]}/files?per_page=100')]
+                if len(pr['files']) >= 3000:
+                    raise host.PublicationError('Incomplete routed PR file inventory')
+            prs.extend(extra)
+            base_shas[repository] = self.github(f'repos/{repository}/git/ref/heads/{route["base"]}')['object']['sha']
+        for issue in issues:
+            route = getattr(self, 'source_reviews', {}).get(issue['id'])
+            source = re.search(r'(?m)^Symphony source: https://github.com/(adnanwahab/(?:dear_congress|happybearlandia|digital_pensieve))/issues/([1-9][0-9]*)$', issue.get('description') or '')
+            if route:
+                issue['_repository'], issue['_base'] = route['repository'], route['base']
+                if source and source[1] != route['repository']:
+                    issue['_routingHold'] = 'operator route differs from original GitHub source'
+            elif source and source[1] != self.route['repository']:
+                issue['_routingHold'] = 'target repository requires explicit private operator routing review'
+            known = getattr(self, 'known_sources', {}).get(issue['id'])
+            if known: issue['_sourceOrigin'] = known
+            if source or known:
+                from repository_routes import reviewed_source, verify_source
+                try:
+                    binding = reviewed_source(issue, getattr(self, 'source_bindings', {}).get(issue['id'], {}))
+                    verify_source(binding, self.github)
+                except Exception:
+                    issue['_routingHold'] = 'original GitHub source binding is missing, changed, closed or unverifiable; re-review required'
+
         self.scan_metrics['elapsedSeconds'] = time.monotonic() - started
-        return {'issues': issues, 'prs': prs, 'baseSha': base, 'scannedAt': time.time(),
+        result = {'issues': issues, 'prs': prs, 'baseSha': base, 'scannedAt': time.time(),
                 'scanMetrics': dict(self.scan_metrics)}
+        if getattr(self, 'source_reviews', {}): result['baseShas'] = base_shas
+        return result
 
     def github(self, endpoint, pages=False):
         env = {k: v for k, v in os.environ.items() if not k.startswith(('GIT_', 'GH_', 'GITHUB_', 'LINEAR_'))}
@@ -147,6 +206,34 @@ class Services:
         if not isinstance(pages, list) or any(not isinstance(p, list) for p in pages):
             raise host.PublicationError('Coordinator: incomplete GitHub pagination')
         return [row for page in pages for row in page]
+
+    def github_write(self, endpoint, payload, method):
+        from repository_routes import ALLOWLIST
+        prefixes = tuple('repos/' + repo + '/issues/' for repo in ALLOWLIST)
+        if not endpoint.startswith(prefixes) or method not in {'POST', 'PATCH'} or not isinstance(payload, dict) or set(payload) != {'body'} or len(payload['body']) > 12000:
+            raise host.PublicationError('Invalid source status delivery request')
+        env = {k: v for k, v in os.environ.items() if not k.startswith(('GIT_', 'GH_', 'GITHUB_', 'LINEAR_'))}
+        result = subprocess.run(['gh','api',endpoint,'--method',method,'--input','-'], input=json.dumps(payload),
+                                cwd=tempfile.gettempdir(),env=env,capture_output=True,text=True,timeout=30)
+        if result.returncode:
+            raise host.PublicationError('GitHub status receipt unavailable; reconcile before retry')
+        return json.loads(result.stdout)
+
+    def find_mirrors(self, url, route, desired):
+        # Paginate the configured project, including native attachments; never assume
+        # no existing mirror just because a search index has not caught up yet.
+        query = 'query($project:ID!,$after:String){issues(first:50,after:$after,includeArchived:true,filter:{project:{id:{eq:$project}}}){nodes{id url description attachments(first:100){nodes{url} pageInfo{hasNextPage}}} pageInfo{hasNextPage endCursor}}}'
+        issues = self.connection(query, {'project':route['projectId']}, 'issues')
+        if any(i['attachments']['pageInfo']['hasNextPage'] for i in issues):
+            raise host.PublicationError('Incomplete source mirror attachment inventory; no create')
+        return [i for i in issues if i['id']==desired or ('Symphony source: '+url) in (i.get('description') or '').splitlines() or any(a['url']==url for a in i['attachments']['nodes'])]
+
+    def create_mirror(self, value):
+        # UUID is persisted before the call; subsequent retries query it first.
+        result = host.linear('mutation($input:IssueCreateInput!){issueCreate(input:$input){success issue{id url}}}', {'input':value}, attempts=1)
+        if not result['issueCreate']['success']:
+            raise host.PublicationError('Proposed Linear mirror receipt unavailable')
+        return result['issueCreate']['issue']
 
     def approve(self, issue):
         self.verify_assignment_maintenance()
@@ -183,6 +270,8 @@ def references(issue):
 
 def linked(pr, issue):
     # Native issue branch is authoritative; prose references are conservative.
+    if issue.get('_repository') and ((pr.get('base') or {}).get('repo') or {}).get('full_name') != issue['_repository']:
+        return False
     return ((pr.get('head') or {}).get('ref') == 'symphony/' + issue['identifier'] or
             issue['identifier'] in {x.upper() for x in ISSUE_REF.findall((pr.get('title') or '') + '\n' + (pr.get('body') or ''))} or
             any(a['url'].rstrip('/') == pr['html_url'].rstrip('/') for a in issue['attachments']))
@@ -192,9 +281,9 @@ def delivered(pr, issue):
     """Only the exact repository issue branch can release an execution lease."""
     return (pr['state'] == 'open' and pr.get('draft') is True and
             (pr.get('head') or {}).get('ref') == 'symphony/' + issue['identifier'] and
-            ((pr.get('head') or {}).get('repo') or {}).get('full_name') == host.REPO and
-            pr['base']['ref'] == host.BASE and
-            pr['base'].get('repo', {}).get('full_name') == host.REPO and
+            ((pr.get('head') or {}).get('repo') or {}).get('full_name') == issue.get('_repository', host.REPO) and
+            pr['base']['ref'] == issue.get('_base', host.BASE) and
+            pr['base'].get('repo', {}).get('full_name') == issue.get('_repository', host.REPO) and
             bool(SHA.fullmatch(str(pr['head'].get('sha', '')))))
 
 
@@ -233,7 +322,8 @@ def classify(snapshot, config, state, now=None):
     for issue in issues:
         ref = issue['identifier']
         review = reviews.get(issue['id'], {})
-        reasons = []
+        base_sha = snapshot.get('baseShas', {}).get(issue.get('_repository', host.REPO), snapshot['baseSha'])
+        reasons = [issue['_routingHold']] if issue.get('_routingHold') else []
         text_refs = references(issue)
         dependencies = {d['identifier'] for d in issue['blockedBy']} | set(text_refs)
         if issue.get('archivedAt'):
@@ -247,7 +337,7 @@ def classify(snapshot, config, state, now=None):
         lease = state['leases'].get(issue['id'])
         if lease and not (lease['status'] == 'pending' and lease['digest'] == digest(issue) and
                           lease['files'] == scope(review) and lease['interfaces'] == review.get('interfaces') and
-                          lease['baseSha'] == snapshot['baseSha'] and
+                          lease['baseSha'] == base_sha and
                           lease.get('reviewDigest') == review_digest(review)):
             reasons.append('prior approval lease retained; no automatic reapproval')
         if not review:
@@ -255,7 +345,7 @@ def classify(snapshot, config, state, now=None):
         else:
             if review.get('issueDigest') != digest(issue):
                 reasons.append('stale issue/comment/blocker/attachment review')
-            if review.get('baseSha') != snapshot['baseSha'] or not SHA.fullmatch(str(review.get('baseSha', ''))):
+            if review.get('baseSha') != base_sha or not SHA.fullmatch(str(review.get('baseSha', ''))):
                 reasons.append('base SHA missing or stale')
             if review.get('branch') != 'symphony/' + ref:
                 reasons.append('wrong or missing isolated issue branch')
@@ -402,12 +492,14 @@ def occupied(snapshot, state):
 
 def cycle(services, config, directory, apply=False, maintain=False):
     """Caller holds the host lock throughout read/reconcile/persist/mutate."""
-    if config.get('version') != 1 or config.get('projectId') != PROJECT:
+    if config.get('version') != 1 or config.get('projectId') != getattr(services, 'project_id', PROJECT):
         raise host.PublicationError('Coordinator: wrong readiness evidence version/project')
     cap = config.get('cap', 3)
     if type(cap) is not int or not 1 <= cap <= 12:
         raise host.PublicationError('Coordinator: cap must be 1–12')
     state = load_state(directory)
+    if hasattr(services, 'configure_source_routes'):
+        services.configure_source_routes(config, directory)
     snapshot = services.scan()  # Any incomplete inventory aborts before writes.
     if cap > 3:
         proof = config.get('concurrentDraftProof', [])
@@ -499,7 +591,11 @@ def cycle(services, config, directory, apply=False, maintain=False):
     selected = []
     # Durable history, not poll count, advances weighted lanes at capacity one.
     rank_config = dict(config, schedulingCursor=len(state['leases']))
-    for row in rank_rows([row for row in rows if row["eligible"]], rank_config):
+    ranked = rank_rows([row for row in rows if row["eligible"]], rank_config)
+    if config.get('sourceIntake', {}).get('enabled') is True:
+        from source_intake import fair_order
+        ranked = fair_order(ranked, snapshot['issues'], len(state['leases']))
+    for row in ranked:
         if not row['eligible']:
             continue
         if len(occupied_ids | {r['id'] for r in selected} | {row['id']}) > cap:
@@ -519,7 +615,7 @@ def cycle(services, config, directory, apply=False, maintain=False):
              'awaiting_review': None,  # review decisions are not supplied by the PR inventory
              'open_draft_prs': sum(pr['state'] == 'open' and pr.get('draft') is True for pr in snapshot['prs']),
              'held_by_code': held_by_code}
-    report = {'dryRun': not apply, 'projectId': PROJECT, 'baseSha': snapshot['baseSha'],
+    report = {'dryRun': not apply, 'projectId': config['projectId'], 'baseSha': snapshot['baseSha'],
               'scannedAt': snapshot['scannedAt'], 'scanMetrics': snapshot.get('scanMetrics', {}), 'cap': cap, 'occupied': len(occupied_ids),
               'queue': queue, 'assignmentMaintenanceEnabled': bool(apply or maintain), 'assignmentMaintenance': maintenance, 'issues': rows, 'selected': [r['identifier'] for r in selected], 'leases': state['leases'], 'pullRequests': snapshot['prs']}
     if not apply:
@@ -585,11 +681,20 @@ def main(argv=None):
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--dry-run', action='store_true')
     mode.add_argument('--apply', action='store_true')
-    parser.add_argument('--evidence', required=True, type=Path, help='Host-private operator evidence JSON; data, never commands')
+    parser.add_argument('--source-inventory', action='store_true', help='Read-only paginated inventory of the three GitHub source queues; no dispatch or comments')
+    parser.add_argument('--evidence', required=False, type=Path, help='Host-private operator evidence JSON; data, never commands')
     parser.add_argument('--json-report', type=Path, help='Optional complete local audit snapshot')
     parser.add_argument('--report', type=Path, help='Optional local Markdown report')
     args = parser.parse_args(argv)
     try:
+        if args.source_inventory:
+            if args.apply:
+                raise host.PublicationError('Source inventory is read-only')
+            from source_intake import run_inventory
+            print(json.dumps(run_inventory(Services(), args.json_report), indent=2))
+            return 0
+        if args.evidence is None:
+            raise host.PublicationError('Private evidence is required for coordinator admission')
         if args.evidence.absolute().parent != STATE.absolute() or args.evidence.is_symlink():
             raise host.PublicationError('Coordinator: evidence must be a direct host-private state file; never load workspace approval policy')
         config = read_private(args.evidence)

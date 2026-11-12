@@ -200,3 +200,7 @@ HBL_TEST_CODEX_SANDBOX=0 PYTHONDONTWRITEBYTECODE=1 \
 ```
 
 No browser behavior changes; browser tests are unnecessary for this coordinator.
+
+## Three-repository GitHub intake
+
+See [SOURCE_INTAKE.md](SOURCE_INTAKE.md) for the disabled-by-default SHE-252 extension, source inventory command, shared UI contract, routing, recovery and bounded pilot. Existing assignment/resource gates remain authoritative.

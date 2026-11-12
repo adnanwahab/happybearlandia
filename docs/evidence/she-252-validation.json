@@ -1,0 +1,17 @@
+{
+  "issue": "SHE-252",
+  "validation": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tools/symphony/local -p 'test_*.py'",
+    "result": "passed",
+    "tests": 246,
+    "elapsedSeconds": 11.776
+  },
+  "sourceInventory": "she-252-source-inventory.json",
+  "remoteWritesDuringInventory": false,
+  "livePilotExecuted": false,
+  "runtimeInstalled": false,
+  "concurrencyChanged": false,
+  "mergeOrDeploymentExecuted": false,
+  "browserTesting": "not applicable: host orchestration only",
+  "independentReview": "Starvation, source-binding, marker formatting, authentication retry budget and assessment-retention findings fixed with regression tests"
+}
