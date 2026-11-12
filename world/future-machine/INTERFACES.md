@@ -73,3 +73,18 @@ The 50-second `demo-controller.js` is a presentation clock, not a simulator. It 
 - `createOutcomeTimeline(container,{history,onMonth}) -> {update(month),dispose()}` consumes the same immutable121snapshots. Point/keyboard selections emit integer recordedmonth through coordinator manualMonth; no independent clock/simulation. Metric units from METRIC_UNITS; unavailable measurements stay gaps.
 - `recordedConstructionProgress(snapshot)` returns recorded stage/work/units and exact model-owned housing-project building identity. Work ratio is not elapsed calendar fraction or completed housing. Actual inventory determines building presence; layoutv2 preserves one schematic slot across supported project completion.
 - `buildEvidenceTrail(history,{collection,id,month})`: arm-scoped nodes/edges contain exact record, first observed month, eventID and unavailable reasons. `renderEvidenceTrail(container,history,selection,{onJump})` presents those records. Completion jumps retain building selection; all evidence jumps stop demo presentation. Independently verified causal dependency traces are explicitly unavailable.
+
+## Optional first-play diagnostics (SHE-103)
+
+`diagnostics.js` owns the release constant `APP_VERSION` and the strict
+`hbl.first-play-diagnostic.v1` allowlist. Update that constant when shipping a
+new app revision. Bundle fields are schemaVersion, appVersion, renderer,
+errorType and traceId only. Renderer is a measured backend enum (unknown at
+boot); error type is a call-site category, never an exception name or message.
+Trace IDs are random local 128-bit IDs and have no server correlation contract.
+No URLs, stack traces, recipes, input, timestamps, device strings or remote
+collection. Preview is read-only; checkbox consent gates clipboard writes and
+resets on each failure/retry. Clipboard denial selects the report for manual
+copy. Entry points cover boot import/initialization, comparison and invalid
+share failures. Module download failure before diagnostics loads still requires
+browser refresh; successful renderer fallback is not an application failure.

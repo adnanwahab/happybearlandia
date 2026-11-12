@@ -1003,3 +1003,35 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-103 — first-play diagnostic report
+
+Next integrated slice: Future Machine (homepage Play Demo destination) boot and
+comparison failures expose an optional local diagnostic preview and copy action.
+Prerequisites audited: existing retry flow, renderer stats, UI lifecycle and
+share contracts; GitHub search found no matching SHE-103/diagnostic PR.
+Ownership is limited to the diagnostic module, entry points, focused tests and
+documentation. No server collection or persistence is required.
+Acceptance: fixed versioned fields for app version, renderer, error category and
+random trace ID; exclude all exception text, URLs, stack traces and player inputs.
+Require explicit consent before clipboard writes, provide manual copy fallback,
+and reproduce a mock failure with fixed trace ID. Verify privacy adversarially
+and exercise boot/run entry points in a browser where setup permits.
+Risk: trace IDs identify only this local report; they do not imply server tracing.
+
+Implemented: strict bundle builder and consented local preview/copy with manual
+fallback; Future Machine boot, comparison and invalid-share entry points.
+Release-owned version constant and local-only trace semantics are documented in
+`world/future-machine/INTERFACES.md`. Deterministic synthetic artifact:
+`test/fixtures/first-play-diagnostic.json` (fixed trace ID; no observed player data).
+Verification: 20 unit/regression tests passed, 1 pre-existing browser-placeholder
+skip, 0 failures (150 assertions before adding fixture equality); whitespace clean.
+Added four Playwright cases for homepage mock failure, boot failure/clipboard
+denial, invalid-share privacy and fixed-trace reproducibility/lifecycle.
+Browser execution remains unverified: local server startup returned EADDRINUSE
+on both canonical port39884 and isolated port39963 before any browser launched.
+No lint/type scripts exist in package.json. No PR, deployment or production
+mutation was performed. Next verification: rerun
+`bun x playwright test --config test/first-play-diagnostics.browser.config.js`
+in a host that permits local server startup; review/publish through the normal
+host workflow. Report does not cover a failure to download diagnostics.js itself.
