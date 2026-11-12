@@ -574,3 +574,9 @@ Hosted browser CI caught the main renderer-entry bypassing saved checkpoint
 restoration on GPU failure. Saved experiment URLs now retain render.js and its
 checkpoint-aware Canvas fallback/error return view, rather than starting a new
 low-fidelity simulation. Both saved-World failure-path regressions gate merge.
+
+Final local browser gates passed: mobile WebGL/reduced-motion comparison at
+320/390/768/844 widths (one panel, no overflow); saved checkpoint Canvas fallback
+and all-graphics-unavailable exact return2/2. First-frame timing now records the
+first successful normal render too, since synchronous saved restoration may finish
+before the scheduled startup frame runs. Desktop replay/recovery passed1/1.

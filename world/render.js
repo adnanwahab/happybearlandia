@@ -2330,7 +2330,7 @@ function frame(now) {
   gpuParticleMenu?.update();
   const drawCity=cityRenderer.beforeFrame(now,dt,daylight,selected?.type==='building'?selected.id:null,buildingBridge?.worldVisuals,{now:simulationFrame.simulationNow/10,dt:simulationFrame.deltaMs/10000});
   if(livingWorld?.active)livingWorld.applyBuildingOccupancy?.();
-  if(drawCity){renderer.render(scene,camera);if(scrapbook&&scrapbookSource)void scrapbook.afterRender(renderer.domElement,scrapbookSource);}
+  if(drawCity){renderer.render(scene,camera);startup.firstFrameMs??=performance.now();if(scrapbook&&scrapbookSource)void scrapbook.afterRender(renderer.domElement,scrapbookSource);}
   cityRenderer.afterFrame(now, performance.now() - cpuStart, frameMs);
   visualCamera?.update(now);
   visualSpotlight?.update(now);
