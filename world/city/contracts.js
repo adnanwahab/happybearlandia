@@ -1,6 +1,7 @@
 /** All coefficients are illustrative assumptions, not calibrated city forecasts. */
 export const VERSION = 'city-systems.1.0.0';
 export const CONTRACTS = Object.freeze(Object.fromEntries(['CityState','SystemState','MarketProposal','MarketResolution','CapacityConstraint','ResourceFlow','CityObservation','SystemEvent'].map(id => [id, `${id}.v1`])));
+export const housingProjectBuildingId = projectId => `building-${projectId}`;
 export const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
 export const sum = (rows, fn) => rows.reduce((n, row) => n + fn(row), 0);
 export function draw(seed, ...keys) {

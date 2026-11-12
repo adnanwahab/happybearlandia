@@ -1,0 +1,38 @@
+.citizen-assembly {
+  --assembly-rule: color-mix(in srgb, currentColor 26%, transparent);
+  --assembly-card: color-mix(in srgb, currentColor 5%, transparent);
+  min-width: 0;
+}
+.citizen-assembly form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .65rem;
+  align-items: end;
+}
+.citizen-assembly label {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: .25rem;
+  max-width: 100%;
+}
+.citizen-assembly select, .citizen-assembly button {
+  min-width: 0;
+  max-width: 100%;
+  font: inherit;
+}
+.citizen-assembly .assembly-seats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: .6rem;
+  list-style: none;
+  padding: 0;
+}
+.citizen-assembly .assembly-seats li {
+  padding: .65rem .8rem;
+  border: 1px solid var(--assembly-rule);
+  border-radius: .45rem;
+  background: var(--assembly-card);
+  overflow-wrap: anywhere;
+}
+.citizen-assembly .assembly-seats p { margin: .35rem 0 0; }
+.citizen-assembly [role="status"] { font-weight: 650; }

@@ -1,5 +1,5 @@
 /** Added activities share the existing household people, clock and need meters. */
-export const HOUSE_SCREEN_ACTIONS=Object.freeze(['practiceProgramming','writeProgram','watchTVFromSeat','watchTV','watchMovie','computerPlay','computerBrowse','computerStudy']);
+export const HOUSE_SCREEN_ACTIONS=Object.freeze(['noticeMovie','practiceProgramming','writeProgram','watchTVFromSeat','watchTV','watchMovie','computerPlay','computerBrowse','computerStudy']);
 export const HOUSE_ADDITIONAL_ACTIONS=Object.freeze({
  conversation:{durationMinutes:30,minAge:0,roomId:'living',requires:['exactly two actual home residents','both available or explicitly interrupted'],mechanism:'Both residents commit actual conversation minutes; social need changes over time and the existing relationship engine records a completion memory without an instant need bonus.'},
  watchTV:{durationMinutes:30,minAge:2,roomId:'living',requires:['installed TV','free viewing capacity','remaining child screen allowance'],mechanism:'Elapsed screen viewing replenishes fun with actual child screen minutes and room conditions; no happiness offset.'},

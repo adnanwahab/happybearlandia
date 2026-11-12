@@ -1,3 +1,12 @@
+import {createGlobalIllumination} from './render/global-illumination.js';
+import {mountPlaybackFacts,withMetadataDeadline,mountControlReadiness} from './onboarding/first-run-repairs.js';
+import {createQuickDemoController} from './onboarding/quick-demo-controller.js';
+import {mountFirstRunGuide} from './first-run-guide.js';
+import {createFeedbackAdapter,stormFeedback} from './onboarding/feedback-adapter.js';
+import {createPanelManager} from './onboarding/panel-manager.js';
+import {createCameraDirector} from './onboarding/camera-director.js';
+import {createSpotlight} from './onboarding/spotlight.js';
+import {mountWorldAccessibility} from './onboarding/accessibility.js';
 import {mountAPIGeometryDetails} from './geometry-inspector.js';
 import {journalCity} from './journals/presets.js';
 import {createJournalRecorder,mountCharacterJournal} from './journals/client.js';
@@ -25,6 +34,7 @@ import { generateBuildingGeometry } from "./render/geometry/building-generator.j
 import { GeometryCache, toBufferGeometry } from "./render/geometry/geometry-cache.js";
 import { benchmarkScene, configureBenchmark } from "./render/bench/scenes.js";
 import { mountWorldBuildingBridge } from "./buildings/world-bridge.js";
+import { mountNeighborhoodWhatIf } from "./what-if/panel.js";
 import { mountBusinessMode } from "./business-mode.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { createCityRenderer } from "./render/renderer/webgpu-renderer.js";
@@ -77,7 +87,8 @@ const origin = {
   lat: loadedExperiment?.save.view.origin.lat??parseCoord(params.get("lat"), 29.7286),
   lng: loadedExperiment?.save.view.origin.lng??parseCoord(params.get("lng"), -95.4746),
 };
-const requestedPeople = Number(loadedExperiment?.save.view.maxPeople??loadedExperiment?.save.checkpoint.people?.length??params.get("people") ?? 2000);
+const savedSyntheticHome = loadedExperiment?.save.mode === "living" && loadedExperiment.save.geometry.area.source === "synthetic";
+const requestedPeople = Number(loadedExperiment?.save.view.maxPeople??loadedExperiment?.save.checkpoint.people?.length??params.get("people") ?? (savedSyntheticHome ? 1 : 2000));
 const maxPeople = Number.isFinite(requestedPeople) ? Math.max(1, Math.min(3000, Math.floor(requestedPeople))) : 2000;
 const $ = (id) => document.getElementById(id);
 if(!embedMode){const routesLink=document.createElement('a');routesLink.href='/routes';routesLink.textContent='All routes';routesLink.style.cssText='display:inline-block;margin:4px 8px';$('top').append(routesLink);}
@@ -99,11 +110,20 @@ $("goto").onsubmit = (e) => {
 $("preset").onchange = (e) => { if (e.target.value) { const [a, b] = e.target.value.split(",").map(Number); go(a, b); } };
 $("here").onclick = () => navigator.geolocation?.getCurrentPosition((p) => go(p.coords.latitude, p.coords.longitude));
 
+let visualCamera=null, visualSpotlight=null, visualPanels=null, visualComparisonResult=null, visualComparisonView='withPlan';
 const startup = window.hblWorldStartup = { startedAt:performance.now(), firstFrameMs:null, mapReadyMs:null, placeholdersReadyMs:null, geometryReadyMs:null, readyMs:null, geometry:null, cancelled:false };
 const startupAbort = new AbortController();
+// Read model definitions before graphics initialization; a GPU failure must not
+// leave this separate disclosure claiming to load simulation evidence forever.
+window.hblSimulationModel={status:'loading',authority:'legacy daily parameter definitions (separate simulation authority)'};
+const metadataDefinitions=withMetadataDeadline(Promise.all([import('./simulation-parameters.js'),import('./simulation-observations.js')]));
+void metadataDefinitions.then(()=>{window.hblSimulationModel={status:'definitions-ready',authority:'legacy daily parameter definitions (separate simulation authority)',configuredParameters:null};const panel=$('simulationModelMetadata');if(panel)panel.textContent='Model definitions loaded. Runtime parameter values become available when the scene is ready.';}).catch(error=>{window.hblSimulationModel={status:'unavailable',error:error.message};const panel=$('simulationModelMetadata');if(panel)panel.textContent=`Model metadata unavailable: ${error.message}`;});
+
 let policyPending=false;
 const startupDisabled=new Map([...document.querySelectorAll('#stormBtn,#runExperimentBtn,#runCycleBtn,#demoBtn,#policy')].map(node=>[node,node.disabled]));
 for(const node of startupDisabled.keys())node.disabled=true;
+const controlReadiness=mountControlReadiness(document,()=>!startup.readyMs?'Waiting for the city scene to finish loading.':policyPending?'Loading supported plan packages; current local policy is unchanged.':livingWorld?.active?'This control belongs to the separate legacy daily model; switch to that model to use it.':'A simulation job is active. Wait for its recorded results or stop the demo before starting another run.');
+addEventListener('pagehide',()=>controlReadiness.dispose(),{once:true});
 let buildingDateBridge=null,buildingDatePanel=null,buildingDateLastRefresh=0;
 let startupCityRenderer=null,startupLastFrame=null;
 let startupActive=true,startupRAF=null,manualPanRequested=false,streamingEnabled=false;
@@ -117,7 +137,38 @@ const initialAreaRequest=(async()=>{
   }catch(error){return {source:"none",error:`area request failed: ${error.message}`};}
 })();
 
-const { renderer, mode: rendererMode } = await createCityRenderer({ forceWebGL: params.get("renderer") === "webgl", antialias: !embedMode });
+const forceWebGL = params.get("renderer") === "webgl" || (loadedExperiment?.save.mode === "living" && !navigator.gpu);
+const useMainWorldGPU = loadedExperiment?.save.mode !== "living" && !forceWebGL && !params.has("living") && !businessMode && !embedMode;
+async function boundedGraphics(factory,milliseconds=8000){
+ let timer,expired=false;const work=Promise.resolve().then(factory);
+ work.then(value=>{if(expired)value?.renderer?.dispose?.();}).catch(()=>{});
+ try{return await Promise.race([work,new Promise((_,reject)=>{timer=setTimeout(()=>{expired=true;reject(new Error('Graphics initialization timed out; switching to a supported renderer.'));},milliseconds);})]);}finally{clearTimeout(timer);}
+}
+let graphics;
+const canUseWebGL=()=>{const probe=document.createElement('canvas').getContext('webgl2');if(!probe)return false;probe.getExtension('WEBGL_lose_context')?.loseContext();return true;};
+try {
+  graphics = await boundedGraphics(async()=> (['canvas','canvas2d'].includes(params.get('renderer'))||forceWebGL&&!canUseWebGL()) ? (await import('./render/renderer/canvas-renderer.js')).createCanvasRenderer() : useMainWorldGPU
+    ? await (await import("./world-gpu.js")).createWorldGPU({ antialias: !embedMode })
+    : await createCityRenderer({ forceWebGL, antialias: !embedMode }));
+} catch (error) {
+  try {
+    if(!useMainWorldGPU||!canUseWebGL())throw error;
+    graphics=await boundedGraphics(()=>createCityRenderer({forceWebGL:true,antialias:!embedMode}),4000);
+    const loading=$('loading');loading.replaceChildren();loading.removeAttribute('role');loading.textContent='Starting World with WebGL2…';
+    startup.graphicsFallback='WebGPU unavailable; using WebGL2';
+  } catch (fallbackError) {
+    try{graphics=(await import('./render/renderer/canvas-renderer.js')).createCanvasRenderer();startup.graphicsFallback='GPU unavailable; Canvas2D projected geometry';}catch(canvasError){
+    const loading=$('loading');loading.replaceChildren();loading.setAttribute('role','alert');
+    loading.textContent='3D World could not start. Check that WebGL2 and hardware acceleration are available. ';
+    const retry=document.createElement('button');retry.type='button';retry.textContent='Try again';retry.onclick=()=>location.reload();loading.append(retry);
+    const home=document.createElement('a');home.href='/';home.textContent=' Return home';loading.append(home);
+    if(loadedExperiment&&params.has('person')){const link=document.createElement('a');link.href='/tools/future-journey.html?'+params;link.textContent=' Return to Worldline';loading.append(link);}
+    startup.graphicsError=fallbackError.message;
+    throw canvasError;
+    }
+  }
+}
+const { renderer, mode: rendererMode } = graphics;
 renderer.setSize(innerWidth, innerHeight);
 $("view").appendChild(renderer.domElement);
 
@@ -125,6 +176,9 @@ $("view").appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 1, 5000);
 camera.position.set(320, 125, 450);
+const globalIllumination=createGlobalIllumination({renderer,scene,camera,mode:rendererMode,button:$('global-illumination-button')});
+window.hblGlobalIllumination=globalIllumination;
+addEventListener('pagehide',()=>{globalIllumination.dispose();delete window.hblGlobalIllumination;},{once:true});
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 30, 0);
 controls.maxPolarAngle = Math.PI * 0.47;
@@ -162,7 +216,7 @@ scene.add(ground);
 
 
 scene.background=new THREE.Color(0xbcd3df);
-function drawStartupFrame(now){if(!startupActive||startupAbort.signal.aborted)return;const started=performance.now(),frameMs=startupLastFrame===null?0:now-startupLastFrame;startupLastFrame=now;mapControls.update(now);fpsMeter.update(now);controls.update();startupCityRenderer?.beforeFrame(now,0,1,null,{}, {now:0,dt:0});renderer.render(scene,camera);if(frameMs>0)startupCityRenderer?.afterFrame(now,performance.now()-started,frameMs);startup.firstFrameMs??=performance.now();startupRAF=requestAnimationFrame(drawStartupFrame);}
+function drawStartupFrame(now){if(!startupActive||startupAbort.signal.aborted)return;const started=performance.now(),frameMs=startupLastFrame===null?0:now-startupLastFrame;startupLastFrame=now;mapControls.update(now);fpsMeter.update(now);controls.update();startupCityRenderer?.beforeFrame(now,0,1,null,{}, {now:0,dt:0});globalIllumination.render();if(frameMs>0)startupCityRenderer?.afterFrame(now,performance.now()-started,frameMs);startup.firstFrameMs??=performance.now();startupRAF=requestAnimationFrame(drawStartupFrame);}
 requestAnimationFrame(drawStartupFrame);
 addEventListener("pagehide",()=>{startup.cancelled=true;startupAbort.abort();startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);removeEventListener("resize",resizeWorldView);},{once:true});
 
@@ -175,7 +229,7 @@ addEventListener("pagehide",()=>{startup.cancelled=true;startupAbort.abort();sta
 let area = await initialAreaRequest;
 const originalAreaGeometry=structuredClone(area);
 startup.mapReadyMs=performance.now();
-const town = buildTown(origin, area, { maxPeople });
+const town = buildTown(origin, area, { maxPeople, savedGeometry: savedSyntheticHome });
 mountConstitutionComparison({ THREE, scene, camera, controls, town, params });
 const world = createWorld(town, { journalsEnabled:!embedMode&&!realityRunSeed&&Boolean(journalCity(origin)),recordHistory:!embedMode, ...(realityRunSeed ? { runSeed:realityRunSeed } : {}) });
 const legacyJournalCity=journalCity(origin),legacyJournalRun=`legacy:${crypto.randomUUID()}`;
@@ -183,16 +237,15 @@ const legacyJournalRecorder=world.journals?createJournalRecorder({city:legacyJou
 if(legacyJournalRecorder)void legacyJournalRecorder.flush(true);
 
 // Metadata is read-only; loading it never starts another simulation.
-window.hblSimulationModel={status:'loading',authority:'legacy-authoritative compatibility model'};
-void Promise.all([import('./simulation-parameters.js'),import('./simulation-observations.js')]).then(([parameters,observations])=>{
+void metadataDefinitions.then(([parameters,observations])=>{
  const parameterData=Object.fromEntries(Object.entries(parameters).filter(([,value])=>typeof value!=='function'));
  const observed=observations.createSimulationObservationCollector().result().observations;
- const metadata={status:'ready',authority:'legacy-authoritative compatibility model',parameters:parameterData,configuredParameters:structuredClone(world.parameters),observations:{schemaVersion:observed.schemaVersion,methods:observed.methods,limitations:observed.limitations},limits:['Daily legacy residents, living population and monthly Constitution forecasts remain separate simulation authorities.','Representative five-day annual samples carry state forward; unsampled days do not accrue economic or demographic changes.']};
+ const metadata={status:'ready',authority:'legacy daily parameter definitions (separate simulation authority)',parameters:parameterData,configuredParameters:structuredClone(world.parameters),observations:{schemaVersion:observed.schemaVersion,methods:observed.methods,limitations:observed.limitations},limits:['Daily legacy residents, living population and monthly Constitution forecasts remain separate simulation authorities.','Representative five-day annual samples carry state forward; unsampled days do not accrue economic or demographic changes.']};
  window.hblSimulationModel=metadata;
  const container=$('simulationModelMetadata');if(!container)return;container.replaceChildren();
- const note=document.createElement('p');note.textContent='Registered synthetic assumptions and observation definitions. No second model is advanced by this disclosure.';container.append(note);
+ const note=document.createElement('p');note.textContent='Registered legacy daily assumptions and observation definitions. These are separate from the active Living runtime configuration. No second model is advanced by this disclosure.';container.append(note);
  for(const[key,value]of Object.entries({parameters:metadata.parameters,observationMethods:metadata.observations.methods,limitations:[...metadata.observations.limitations,...metadata.limits]})){const detail=document.createElement('details'),summary=document.createElement('summary'),pre=document.createElement('pre');summary.textContent=key;pre.style.whiteSpace='pre-wrap';pre.style.overflowWrap='anywhere';pre.textContent=JSON.stringify(value,null,2);detail.append(summary,pre);container.append(detail);}
-}).catch(error=>{window.hblSimulationModel={status:'unavailable',authority:'legacy-authoritative compatibility model',error:error.message};const container=$('simulationModelMetadata');if(container)container.textContent=`Model metadata unavailable: ${error.message}`;});
+}).catch(error=>{window.hblSimulationModel={status:'unavailable',authority:'legacy daily parameter definitions (separate simulation authority)',error:error.message};const container=$('simulationModelMetadata');if(container)container.textContent=`Model metadata unavailable: ${error.message}`;});
 const isHarrisCountyTile = origin.lat >= 29.3 && origin.lat <= 30.25 && origin.lng >= -95.95 && origin.lng <= -94.9;
 let measuredOutcomesLatest = {};
 const geoProj = projector(origin);
@@ -205,7 +258,9 @@ const floodSourceTxt = area.floodZonesStatus === "pending" ? "FEMA flood zones l
   ? `FEMA NFHL flood zones loaded (${(area.floodZones || []).length} polygons)`
   : `FEMA flood zones unavailable (${area.floodZonesError || "request failed"}); using local lowland fallback.`;
 
-$("source").textContent = town.source === "osm"
+$("source").textContent = town.source === "synthetic"
+  ? `${town.buildings.length} buildings from saved synthetic geometry`
+  : town.source === "osm"
   ? `${town.buildings.length} real buildings (${town.attribution}) · ${town.people.length} synthetic residents · ${floodSourceTxt}`
   : area.error
     ? `Couldn't load map data (${area.error}), so this is a procedural town · ${town.people.length} synthetic residents · ${floodSourceTxt}`
@@ -438,6 +493,14 @@ scene.add(ring);
 /* ---------------------------------------------------------------- */
 /* Interaction                                                       */
 /* ---------------------------------------------------------------- */
+// First-run feedback only describes actual recorded or currently observed model values.
+function worldFeedback(type, detail = {}) {
+  window.dispatchEvent(new CustomEvent('hbl:world-feedback', {detail:{type,...detail}}));
+}
+async function withClassicWorld(action) {
+  if (livingWorld?.active) await livingWorld.setActive(false);
+  return action();
+}
 let speed = Math.max(1, Math.min(100, Number(params.get("speed")) || 1)); // game minutes per real second
 let selected = null; // { type: "person"|"building"|"journal", id }
 let follow = false;
@@ -452,27 +515,33 @@ const activityListeners=new Set();let activityRuntimeUnsubscribe=null,activityDa
 function notifyActivity(){if(!activityListeners.size||!window.hblWorldActivity)return;const snapshot=window.hblWorldActivity.getSnapshot();for(const listener of activityListeners)listener(snapshot);}
 function bindActivityRuntime(runtime){if(activityRuntimeUnsubscribe)return;activityRuntimeUnsubscribe=runtime.subscribe(frame=>{physicalPolicySnapshot=frame;if(livingWorld?.active)notifyActivity();});}
 const legacyActivityUnsubscribe=world.subscribeActivity(()=>{if(!livingWorld?.active)notifyActivity();});
-const playback=createSimulationPlayback({initialSpeed:speed,onChange:state=>{speed=state.paused?0:state.speed;const runtime=livingWorld?.active?livingWorld.getRuntime():null;if(runtime){runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();}for(const button of $("speeds").children)button.classList.toggle("on",Number(button.dataset.s)===(state.paused?0:state.speed));if(selected?.type==="person")renderInspector();}});
+const playback=createSimulationPlayback({initialSpeed:speed,onChange:state=>{speed=state.paused?0:state.speed;const runtime=livingWorld?.active?livingWorld.getRuntime():null;if(runtime){runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();}for(const button of $("speeds").children)button.classList.toggle("on",Number(button.dataset.s)===(state.paused?0:state.speed));if(selected?.type==="person")renderInspector();if(window.hblGuidedActions)worldFeedback("playback",{paused:state.paused,speed:state.speed});}});
 window.hblSimulationPlayback=playback;
-livingWorld=!embedMode?mountLivingWorld({container:document.body,scene,camera,controls,THREE,town,renderer,autoActivate:loadedExperiment?false:!businessMode&&!simulationId&&!demoMode&&!renderBenchmark,initialMinute:loadedExperiment?0:6*60,onRuntimeReady:runtime=>{bindActivityRuntime(runtime);const state=playback.getState();runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();if(!livingPlaybackUnsubscribe)livingPlaybackUnsubscribe=runtime.subscribe(frame=>{if(!livingWorld?.active||!frame?.runtime)return;if(Number.isFinite(frame.runtime.speed)&&frame.runtime.speed!==playback.getState().speed)playback.setSpeed(frame.runtime.speed);frame.runtime.paused?playback.pause():playback.resume();});return true;},onModeChange:active=>{people.visible=!active;follow=false;selected=null;document.documentElement.classList.remove("person-selected");$("inspect").removeAttribute("data-person-selected");$("inspect").style.display="none";cityRenderer.setFeature('traffic',active?false:originalTrafficEnabled);cityRenderer.updateCity({trafficDensity:active?0:1});document.body.classList.toggle('living-active',active);notifyActivity();const fastest=$('speeds').lastElementChild;fastest.dataset.s=active?'32':'60';fastest.textContent=active?'32×':'60×';if(active&&playback.getState().speed>32)playback.setSpeed(32);}}):null;
+livingWorld=!embedMode?mountLivingWorld({container:document.body,scene,camera,controls,THREE,town,renderer,autoActivate:loadedExperiment?false:!businessMode&&!simulationId&&!demoMode&&!renderBenchmark,initialMinute:loadedExperiment?0:6*60,onRuntimeReady:runtime=>{bindActivityRuntime(runtime);const state=playback.getState();runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();if(!livingPlaybackUnsubscribe)livingPlaybackUnsubscribe=runtime.subscribe(frame=>{if(!livingWorld?.active||!frame?.runtime)return;if(Number.isFinite(frame.runtime.speed)&&frame.runtime.speed!==playback.getState().speed)playback.setSpeed(frame.runtime.speed);frame.runtime.paused?playback.pause():playback.resume();});return true;},onModeChange:active=>{if(active){window.hblVisualPass?.controller.stop();visualCamera?.cancel();visualSpotlight?.clear();}people.visible=!active;follow=false;selected=null;document.documentElement.classList.remove("person-selected");$("inspect").removeAttribute("data-person-selected");$("inspect").style.display="none";cityRenderer.setFeature('traffic',active?false:originalTrafficEnabled);cityRenderer.updateCity({trafficDensity:active?0:1});document.body.classList.toggle('living-active',active);notifyActivity();const fastest=$('speeds').lastElementChild;fastest.dataset.s=active?'32':'60';fastest.textContent=active?'32×':'60×';if(active&&playback.getState().speed>32)playback.setSpeed(32);}}):null;
 window.hblLivingWorld=livingWorld;
+const neighborhoodWhatIf = !embedMode ? mountNeighborhoodWhatIf({scene,camera,controls,renderer,THREE,getContext:()=>livingWorld.getContext()}) : null;
+addEventListener('pagehide',()=>neighborhoodWhatIf?.destroy(),{once:true});
 window.hblWorldActivity={
  getSnapshot(){const snapshot=livingWorld?.active?livingWorld.getSnapshot():null;return livingWorld?.active?(snapshot?{...snapshot,mode:'living',peopleCount:snapshot.metrics?.syntheticPopulation??snapshot.population,people:snapshot.visibleAgents,runId:`${snapshot.runtime?.id}:${snapshot.runtime?.revision}`}:{mode:'living',peopleCount:null,minute:null,historyAvailable:false,runId:'living:resetting'}):world.getActivitySnapshot();},
  async getHistory(query={}){const source=window.hblWorldActivity.getSnapshot(),identity=source.runId;if(livingWorld?.active){const runtime=livingWorld.getRuntime();if(!runtime?.getActivityHistory)throw Error('Living history is not ready.');const history=await runtime.getActivityHistory(query);if(!livingWorld?.active||window.hblWorldActivity.getSnapshot().runId!==identity)throw Error('Activity source changed while history was loading; refresh the current run.');return {...history,runId:identity};}if(query.actorId)world.trackActivityPerson(query.actorId);const history=world.getActivityHistory(query);if(livingWorld?.active)throw Error('Activity source changed while history was loading.');return {...history,runId:identity};},
  subscribe(listener){activityListeners.add(listener);return()=>activityListeners.delete(listener);},
  selectPerson(id){if(livingWorld?.active)return livingWorld.selectPerson(String(id));const index=town.people.findIndex(person=>String(person.id)===String(id));if(index>=0)select({type:'person',id:index});}
 };
+const playbackFacts=mountPlaybackFacts(document);
+playbackFacts.update({mood:world.summary().mood,seed:town.seedKey});
 const activityButton=$('activity-dashboard-button');
-async function openActivityDashboard(){try{
+async function openActivityDashboard(){activityButton.textContent='Loading activity…';activityButton.disabled=true;try{
  if(!activityDashboardPromise)activityDashboardPromise=import('./activity-dashboard.js').then(({mountActivityDashboard})=>{
   if(activityDisposed)return;activityDashboard=mountActivityDashboard({container:document.body,...window.hblWorldActivity,onSelectPerson:id=>window.hblWorldActivity.selectPerson(id)});
-  const panel=document.querySelector('.activity-dashboard');panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.tabIndex=-1;
+  const panel=document.querySelector('.activity-dashboard');visualPanels?.register('activity',panel,{addClose:false,onClose:()=>{activityDashboard.close();mapControls.setEnabled(true);}});panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.tabIndex=-1;
   panel.addEventListener('keydown',event=>{event.stopPropagation();if(event.key==='Escape'){event.preventDefault();activityDashboard.close();activityButton.focus();}if(event.key==='Tab'){const items=[...panel.querySelectorAll('button,input,select,[tabindex="0"]')].filter(node=>!node.disabled&&node.getClientRects().length);const first=items[0],last=items.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}});
   activityObserver=new MutationObserver(()=>{const opened=!panel.hidden;mapControls.setEnabled(!opened);activityButton.setAttribute('aria-expanded',String(opened));if(!opened)activityButton.focus();});activityObserver.observe(panel,{attributes:true,attributeFilter:['hidden']});
   return activityDashboard;
  });
- const dashboard=await activityDashboardPromise;if(!dashboard||activityDisposed)return;dashboard.open();mapControls.setEnabled(false);document.querySelector('.activity-dashboard button')?.focus();
- }catch(error){activityDashboardPromise=null;activityButton.title=error.message;console.error('Activity dashboard unavailable',error);}}
+ const dashboard=await activityDashboardPromise;if(!dashboard||activityDisposed)return;if(dashboard.isOpen()){dashboard.close();visualPanels?.close('activity');activityButton.setAttribute('aria-expanded','false');return;}await dashboard.open();activityButton.setAttribute('aria-expanded','true');visualPanels?.open('activity',{trigger:activityButton});mapControls.setEnabled(false);document.querySelector('.activity-dashboard button')?.focus();
+ }catch(error){activityDashboardPromise=null;activityButton.title=error.message;activityButton.setAttribute('aria-description',`Activity history unavailable: ${error.message}. Click to retry.`);console.error('Activity dashboard unavailable',error);}finally{if(!activityDisposed){activityButton.disabled=false;activityButton.textContent='Activity';}}}
+activityButton.setAttribute('aria-expanded','false');
+activityButton.setAttribute('aria-controls','world-activity-dashboard');
 activityButton.addEventListener('click',openActivityDashboard);
 addEventListener('pagehide',()=>{activityDisposed=true;legacyActivityUnsubscribe?.();activityRuntimeUnsubscribe?.();activityObserver?.disconnect();activityDashboard?.destroy();activityListeners.clear();activityButton.removeEventListener('click',openActivityDashboard);},{once:true});
 
@@ -668,7 +737,16 @@ function applyPolicy(id, year = policyYear) {
     : "";
 
   const simNote = BALANCED_SIM_NOTE ? ` · ${BALANCED_SIM_NOTE}` : "";
-  $("policyNote").textContent = `${p.label} · year ${year} · transit ×${staged.effects.speedMult.toFixed(2)} · flood mitigation ${Math.round(staged.effects.floodMitigation * 100)}% · housing growth ${Math.round(staged.effects.housingGrowth * 100)}% · vouchers $${staged.effects.voucherMonthly.toFixed(0)}/mo${staged.effects.groceryDelivery > 0 ? ` · grocery delivery ${Math.round(staged.effects.groceryDelivery * 100)}%` : ""} · source: ${src}${pendingTxt}${simNote}`;
+  $("policyNote").textContent = `${p.label} · year ${year} · transit ×${staged.effects.speedMult.toFixed(2)} · flood mitigation ${Math.round(staged.effects.floodMitigation * 100)}% · housing growth ${Math.round(staged.effects.housingGrowth * 100)}% · vouchers ${staged.effects.voucherMonthly.toFixed(0)}/mo${staged.effects.groceryDelivery > 0 ? ` · grocery delivery ${Math.round(staged.effects.groceryDelivery * 100)}%` : ""} · source: ${src}${pendingTxt}${simNote}`;
+  if (window.hblGuidedActions) worldFeedback('policy', {
+    label: 'Plan configured',
+    message: p.label + ' at plan year ' + year + '. These are configured mechanisms; run a paired experiment to measure outcomes.',
+    metrics: [
+      {label:'Transit time multiplier',value:staged.effects.speedMult.toFixed(2) + '×'},
+      {label:'Flood mitigation',value:Math.round(staged.effects.floodMitigation * 100) + '%'},
+      {label:'Housing growth',value:Math.round(staged.effects.housingGrowth * 100) + '%'},
+    ],
+  });
 }
 
 async function loadPolicyPackages() {
@@ -714,7 +792,7 @@ async function loadPolicyPackages() {
       }
       if (!n) continue;
 
-      PLAN_PACKAGES = next;
+      PLAN_PACKAGES = {...BASE_POLICY_PACKAGES,...next};
       PLAN_COMPARE_DIFF = compareDiffById;
       const balancedId = Object.keys(next).find((k) => /balanced/i.test(next[k]?.label || ""));
       const d = balancedId ? PLAN_COMPARE_DIFF[balancedId] : null;
@@ -801,8 +879,8 @@ function updateOverlayLegend() {
   } else if (overlayMode === "wellbeing") {
     overlayLegendEl.textContent = "residents: red = struggling → green = doing well (live)";
   } else if (overlayMode === "cycle") {
-    const label = { before: "before the plan", noPlan: "a week later, no plan", withPlan: "a week later, with plan" }[cycleView];
-    overlayLegendEl.textContent = cycleResult ? `residents colored by well-being ${label}` : "run a cycle first";
+    const label = { before: "before the plan", noPlan: "a week later, no plan", withPlan: "a week later, with plan" }[visualComparisonResult?visualComparisonView:cycleView];
+    overlayLegendEl.textContent = (visualComparisonResult||cycleResult) ? `residents colored by well-being ${label}` : "run a cycle first";
   } else {
     overlayLegendEl.textContent = "";
   }
@@ -874,6 +952,19 @@ function triggerStorm() {
   world.policy.floodedNow = floodedNow;
   world.policy.displaced = displaced;
   world.log(`Storm hit: ${floodedNow} parcels flooded, ${displaced} residents displaced`, "storm");
+  overlayMode = 'flood';
+  if (overlayEl) overlayEl.value = 'flood';
+  updateOverlayLegend();
+  worldFeedback('storm', {
+    label:'Storm result',
+    message:'A synthetic storm has affected the classic town. The highlighted flooded parcels and relocated residents come from the simulation.',
+    metrics:[
+      {label:'Flooded parcels',value:String(floodedNow)},
+      {label:'Residents displaced',value:String(displaced)},
+      {label:'Selected plan',value:String(world.policy?.label || 'No plan')},
+    ],
+  });
+  return {floodedNow,displaced};
 }
 
 $("policy").onchange = (e) => {
@@ -890,14 +981,26 @@ if (planYearEl) {
   };
 }
 
-$("stormBtn").onclick = () => triggerStorm();
+$("stormBtn").onclick = () => withClassicWorld(triggerStorm).catch(error => worldFeedback("error",{label:"Storm unavailable",message:error.message}));
 // A world embedded in the grid only needs its frozen plan, so it skips synthesizing packages.
 if (!loadedExperiment && !(embedMode && realityRunSeed)) {
   if(realityRunSeed)await loadPolicyPackages(); // Frozen reality ordering is unchanged.
   else {
     policyPending=true;startup.policyStatus='loading';refreshPolicySelect(activePolicyId);
-    for(const id of ['policy','runExperimentBtn','runCycleBtn','demoBtn'])if($(id))$(id).disabled=true;
-    loadPolicyPackages().then(ok=>{if(startupAbort.signal.aborted)return;policyPending=false;startup.policyStatus=ok?'ready':'local-fallback';if($("policyNote"))$("policyNote").textContent=$("policyNote").textContent.replace(' · remote plan packages loading; current local policy unchanged','')+(ok?'':' · using local presets; remote packages unavailable');for(const id of ['policy','runExperimentBtn','runCycleBtn','demoBtn'])if($(id))$(id).disabled=startupDisabled.get($(id))||false;});
+    // Local presets are immediately usable after scene startup. The remote
+    // plan catalog is optional; slow Overpass/plan endpoints never gate play.
+    const planStatus=$("planLoadingStatus");
+    if(planStatus)planStatus.textContent='Local presets ready · checking optional plan updates…';
+    loadPolicyPackages().then(ok=>{
+      if(startupAbort.signal.aborted)return;
+      policyPending=false;startup.policyStatus=ok?'ready':'local-fallback';
+      if(planStatus)planStatus.textContent=ok?'Plan catalog updated. Local presets remain available.':'Using local plan presets. Remote plans are unavailable.';
+      if($("policyNote"))$("policyNote").textContent=$("policyNote").textContent.replace(' · remote plan packages loading; current local policy unchanged','')+(ok?'':' · using local presets; remote packages unavailable');
+    }).catch(error=>{
+      policyPending=false;startup.policyStatus='local-fallback';
+      if(planStatus)planStatus.textContent='Using local presets. Optional plan updates could not be loaded.';
+      console.warn('[world] Optional plan fetch failed; local presets remain playable:',error);
+    });
   }
 }
 activePolicyId = $("policy").value || "none";
@@ -919,7 +1022,7 @@ if (realityRunSeed) {
   }
 }
 applyPolicy(activePolicyId, policyYear);
-if(policyPending)$("policyNote").textContent += " · remote plan packages loading; current local policy unchanged";
+if(policyPending)$("policyNote").textContent += " · checking optional plan updates; local presets work now";
 
 // ?person=<id> (from "why this reality"): select that resident and follow them.
 if (params.get("person") != null) followResident(Number(params.get("person")));
@@ -1221,6 +1324,7 @@ async function readStateEntryCount() {
 }
 
 function runExperiment10Years() {
+  visualComparisonResult=null;
   if (experimentWorker) return;
   const btn = $("runExperimentBtn");
   if (btn) btn.disabled = true;
@@ -1246,6 +1350,7 @@ function runExperiment10Years() {
     }
     if (msg.type === "error") {
       setExperimentStatus(`Experiment failed: ${msg.error}`);
+      worldFeedback('error',{label:'10-year experiment failed',message:String(msg.error)});
       if (btn) btn.disabled = false;
       setExperimentControlsDisabled(false);
       experimentWorker?.terminate();
@@ -1256,6 +1361,17 @@ function runExperiment10Years() {
       const results = msg.results || {};
       renderExperimentResults(results);
       renderExperimentComparison(experimentSeed, results);
+      const chosen = results['Balanced']?.history?.find(row=>row.year===10) || results['Balanced']?.history?.at(-1);
+      const comparison = results['Minimal change']?.history?.find(row=>row.year===10) || results['Minimal change']?.history?.at(-1);
+      const comparisonMetrics = [];
+      for(const [label,key] of [['Average mood','avgMood'],['Flooded parcels','floodedParcels'],['Displaced residents','displacedResidents']]) {
+        const a = comparison?.outcomes?.[key], b = chosen?.outcomes?.[key];
+        if(Number.isFinite(a) && Number.isFinite(b)) comparisonMetrics.push({label:label+' (Balanced − Minimal)',value:(b>=a?'+':'')+(b-a).toFixed(1)});
+      }
+      worldFeedback('longitudinal',{label:'10-year results',
+        message:'Three plan packages have been simulated. These deltas compare Balanced with Minimal change, not with a no-plan branch.',
+        metrics:comparisonMetrics,resultId:'experimentPanel',
+      });
       const before = await beforeStatePromise;
       const after = await readStateEntryCount();
       const stateMsg = before != null && after != null
@@ -1282,7 +1398,7 @@ function runExperiment10Years() {
   });
 }
 
-$("runExperimentBtn")?.addEventListener("click", runExperiment10Years);
+$("runExperimentBtn")?.addEventListener("click", () => withClassicWorld(runExperiment10Years).catch(error=>worldFeedback("error",{label:"Experiment unavailable",message:error.message})));
 
 /* ---------------------------------------------------------------- */
 /* Run cycle: one week of the selected plan vs. no plan, same seed.  */
@@ -1341,6 +1457,7 @@ function startCycleWorker() {
     if (msg.type === "progress") { status.textContent = `${msg.stage}…`; return; }
     if (msg.type === "error") {
       status.textContent = `Cycle failed: ${msg.error}`;
+      worldFeedback('error',{label:'Weekly comparison failed',message:String(msg.error)});
       setCycleBusy(false);
       cycleWaiter?.reject(new Error(msg.error));
       cycleWaiter = null;
@@ -1351,6 +1468,7 @@ function startCycleWorker() {
 }
 
 function runCycle() {
+  visualComparisonResult=null;
   if (cycleBusy) return;
   const requestedId = cyclePackageId();
   const pkg = PLAN_PACKAGES[requestedId]
@@ -1429,6 +1547,18 @@ function onCycleDone(result) {
   setCycleBusy(false);
   renderCyclePanel();
   $("cyclePanel").scrollTop = 0;
+  worldFeedback('cycle',{
+    label:n===1?'Paired weekly result':'Civic cycle '+n,
+    message:n===1 ? 'Same starting town and seed: '+label+' versus no plan. These are synthetic matched-model results.' : 'Same-seed comparison with keeping plan '+(n-1)+'. Synthetic model results.',
+    metrics:[
+      {label:n===1?'No plan':'Keeping previous plan',value:fmt(r.avg.noPlan)},
+      {label:'With selected plan',value:fmt(r.avg.withPlan)},
+      {label:'Well-being difference',value:signed(d)},
+      {label:'Residents better off',value:String(r.improved)},
+      {label:'Residents worse off',value:String(r.worse)},
+    ],
+    resultId:'cyclePanel',
+  });
   followResident(n > 1 && r.followUp ? r.followUp.index : r.best.index);
   cycleWaiter?.resolve(r);
   cycleWaiter = null;
@@ -1458,6 +1588,7 @@ function showCycle(i) {
 }
 
 function renderCyclePanel() {
+  visualComparisonResult=null;
   const r = cycleResult;
   const el = $("cyclePanel");
   if (!r) { el.style.display = "none"; return; }
@@ -1577,7 +1708,7 @@ function renderCyclePanel() {
   };
 }
 
-$("runCycleBtn")?.addEventListener("click", runCycle);
+$("runCycleBtn")?.addEventListener("click", () => withClassicWorld(runCycle).catch(error=>worldFeedback("error",{label:"Weekly comparison unavailable",message:error.message})));
 /* ---------------------------------------------------------------- */
 /* Demo mode: three cycles hands-free, with captions and follow-cam.  */
 /* ---------------------------------------------------------------- */
@@ -1585,7 +1716,8 @@ $("runCycleBtn")?.addEventListener("click", runCycle);
 // cycles use. The blended view counts synthetic journals the world has published
 // over time (including grocery complaints), which would make cycle 1 unpredictable.
 const DEMO_URL = "/world/?lat=29.7286&lng=-95.4746&people=500&demo=1&synthetic=0";
-const DEMO_HOLD_MS = 8000; // how long each caption stays up
+const QUICK_DEMO = params.get('quick') === '1';
+const DEMO_HOLD_MS = QUICK_DEMO ? 1700 : 8000; // short highlight or original full tour
 const demo = { running: false, paused: false, skip: false, stopped: false };
 
 class DemoStopped extends Error {}
@@ -1640,7 +1772,7 @@ async function playDemo() {
     overlayMode = "wellbeing";
     if (overlayEl) overlayEl.value = "wellbeing";
     demoCaption("The town", `${town.people.length} simulated residents. Each one journals about their day. Red means struggling, green means doing well.`);
-    await demoHold(7000);
+    await demoHold(QUICK_DEMO ? 750 : 7000);
 
     // Cycle 1: the Balanced plan vs. an identical town with no plan.
     activePolicyId = balancedPackageId();
@@ -1652,7 +1784,7 @@ async function playDemo() {
     deltas.push({ n: 1, text: signed(r1.avg.withPlan - r1.avg.noPlan) });
     demoShow("noPlan");
     demoCaption("Cycle 1", `A week with no plan: average well-being ${fmt(r1.avg.noPlan)}.`);
-    await demoHold(5000);
+    await demoHold(QUICK_DEMO ? 1300 : 5000);
     demoShow("withPlan");
     followResident(r1.best.index);
     demoCaption("Cycle 1", `With the ${plan1Label} plan: ${fmt(r1.avg.withPlan)} (${deltas[0].text}). ${r1.improved} residents are better off, mostly from shorter commutes.`);
@@ -1664,6 +1796,7 @@ async function playDemo() {
       await demoHold();
     }
 
+    if (!QUICK_DEMO) {
     // Then let residents' journals drive the plan until two more changes land.
     // With dear-congress live, a change can take two cycles: it leans first, then adopts.
     let changes = 0;
@@ -1699,7 +1832,8 @@ async function playDemo() {
       }
     }
 
-    demoCaption("Recap", `${deltas.map((x) => `Cycle ${x.n}: ${x.text}`).join(" · ")}. Each number compares against an identical town on the same seed, so it's the plan's effect, not luck.`);
+    }
+    demoCaption("Recap", `${deltas.map((x) => `Cycle ${x.n}: ${x.text}`).join(" · ")}. Both futures share the same starting town and seed. Differences are synthetic model results.`);
   } catch (err) {
     if (!(err instanceof DemoStopped)) demoCaption("Demo stopped", `Something went wrong: ${err?.message || err}`);
   } finally {
@@ -2010,6 +2144,7 @@ function emitLegacyPersonContext(event,index){const person=town.people[index];re
 renderer.domElement.addEventListener('contextmenu',event=>{if(livingWorld?.active||event.defaultPrevented)return;const bounds=renderer.domElement.getBoundingClientRect();ptr.set((event.clientX-bounds.left)/bounds.width*2-1,-(event.clientY-bounds.top)/bounds.height*2+1);ray.setFromCamera(ptr,camera);const hit=humanPeople.pick(ray),building=ray.intersectObjects(meshes)[0];if(hit&&(!building||hit.distance<building.distance)){event.preventDefault();emitLegacyPersonContext(event,hit.index);}});
 function select(s) {
   selected = s;
+  if(s?.type==='building'){const building=town.buildings[s.id];if(building)window.dispatchEvent(new CustomEvent('world:building-selected',{detail:{id:String(building.id)}}));}
   $('inspect').toggleAttribute('data-inspector-focused',Boolean(s));
   if(s?.type==="person")world.trackActivityPerson(String(town.people[s.id]?.id??s.id));
   document.documentElement.classList.toggle("person-selected",s?.type === "person");
@@ -2018,6 +2153,7 @@ function select(s) {
   $("inspect").toggleAttribute("data-person-selected",s?.type === "person");
   $("inspect").style.display = s ? "block" : "none";
   renderInspector();
+  if(s)visualPanels?.open('inspect');else if(visualPanels?.getActive()==='inspect')visualPanels.close('inspect');
 }
 
 function needBars(p) {
@@ -2137,8 +2273,9 @@ function frame(now) {
 
   // People
   // In the well-being and cycle overlays everyone is shown (indoors too), colored red→green.
-  const wbOverlay = overlayMode === "wellbeing" || (overlayMode === "cycle" && cycleResult);
-  const cycleScores = overlayMode === "cycle" && cycleResult ? cycleResult.scores[cycleView] : null;
+  const recordedCycle=visualComparisonResult||cycleResult,recordedView=visualComparisonResult?visualComparisonView:cycleView;
+  const wbOverlay = overlayMode === "wellbeing" || (overlayMode === "cycle" && recordedCycle);
+  const cycleScores = overlayMode === "cycle" && recordedCycle ? recordedCycle.scores[recordedView] : null;
   for (let i = 0; !livingWorld?.active && i < town.people.length; i++) {
     const p = town.people[i];
     const s = smooth[i];
@@ -2197,8 +2334,10 @@ function frame(now) {
   gpuParticleMenu?.update();
   const drawCity=cityRenderer.beforeFrame(now,dt,daylight,selected?.type==='building'?selected.id:null,buildingBridge?.worldVisuals,{now:simulationFrame.simulationNow/10,dt:simulationFrame.deltaMs/10000});
   if(livingWorld?.active)livingWorld.applyBuildingOccupancy?.();
-  if(drawCity){renderer.render(scene,camera);if(scrapbook&&scrapbookSource)void scrapbook.afterRender(renderer.domElement,scrapbookSource);}
+  if(drawCity){globalIllumination.render();startup.firstFrameMs??=performance.now();if(scrapbook&&scrapbookSource)void scrapbook.afterRender(renderer.domElement,scrapbookSource);}
   cityRenderer.afterFrame(now, performance.now() - cpuStart, frameMs);
+  visualCamera?.update(now);
+  visualSpotlight?.update(now);
   requestAnimationFrame(frame);
 }
 
@@ -2247,6 +2386,7 @@ function updateBuildings(daylight) {
   }
 }
 
+let lastFirstRunSampleMs = -Infinity;
 function updateHud() {
   const livingSnapshot=livingWorld?.active?livingWorld.getSnapshot():null;
   $("clock").textContent = livingSnapshot?clock(livingSnapshot.minute):clock(world.t);
@@ -2260,10 +2400,21 @@ function updateHud() {
   }
   const s = livingSnapshot?{mood:100*(livingSnapshot.metrics?.modeledUtility??0),doing:Object.fromEntries(Object.entries(livingSnapshot.activityCounts||{}).map(([key,value])=>[{HOME:"at home",WORK:"working",SCHOOL:"at school",TRANSIT:"traveling",DINING:"eating",RECREATION:"recreation",SHOPPING:"shopping"}[key]||key.toLowerCase(),value]))}:world.summary();
   $("mood").style.width = `${s.mood}%`;
-  $("moodN").textContent = s.mood.toFixed(0);
+  $("moodN").textContent = s.mood.toFixed(0)+" / 100";
+  $("moodMeter")?.setAttribute("aria-valuenow",String(Math.max(0,Math.min(100,Math.round(s.mood)))));
+  playbackFacts.update({mood:s.mood,seed:livingSnapshot?.config?.seed??town.seedKey,living:!!livingSnapshot});
   const top = Object.entries(s.doing).sort((a, b) => b[1] - a[1]).slice(0, 4);
   const status = world.policy.floodedNow ? ` · ${world.policy.floodedNow} flooded parcels · ${world.policy.displaced} displaced` : "";
   $("counts").textContent = top.map(([k, v]) => `${v} ${k}`).join(" · ") + status;
+  const firstRunNow = performance.now();
+  if(window.hblGuidedActions && firstRunNow-lastFirstRunSampleMs>=1100) {
+    lastFirstRunSampleMs=firstRunNow;
+    worldFeedback('snapshot',{
+      mode:livingSnapshot?'living':'legacy',mood:s.mood,minute:livingSnapshot?.minute ?? world.t,
+      clock:$("clock").textContent,
+      activity:top.slice(0,2).map(([kind,count])=>count+' '+kind).join(' · '),
+    });
+  }
   const rc = $("realConditions");
   if (rc) {
     if (!isHarrisCountyTile) {
@@ -2302,9 +2453,30 @@ if(loadedExperiment){
  const saved=loadedExperiment.save;
  try{playback.pause();if(saved.mode==='living'){await livingWorld.setActive(true);const runtime=livingWorld.getRuntime();runtime.pause();await runtime.restoreCheckpoint(saved.checkpoint);if(saved.view.livingCulture)livingWorld.getCultureSimulation()?.restore(saved.view.livingCulture);}else{await livingWorld?.setActive(false);world.restoreCheckpoint(saved.checkpoint);}
  if(saved.view.camera?.position?.length===3&&saved.view.camera?.target?.length===3){camera.position.fromArray(saved.view.camera.position);controls.target.fromArray(saved.view.camera.target);controls.update();}
- if(saved.view.graphics){const graphics=saved.view.graphics;if(graphics.quality)cityRenderer.setQuality(graphics.quality);if(graphics.settings?.targetFPS)cityRenderer.setTargetFPS(graphics.settings.targetFPS);for(const [name,value] of Object.entries(graphics.features??{}))cityRenderer.setFeature(name,value);}if(saved.view.selection){if(saved.mode==='living')await livingWorld.selectPerson(saved.view.selection.id);else select(saved.view.selection);}
+ if(saved.view.graphics){const graphics=saved.view.graphics;if(graphics.quality)cityRenderer.setQuality(graphics.quality);if(graphics.settings?.targetFPS)cityRenderer.setTargetFPS(graphics.settings.targetFPS);for(const [name,value] of Object.entries(graphics.features??{}))cityRenderer.setFeature(name,value);}if(saved.mode==='living' && params.has('person')){
+   const personId=params.get('person');const runtime=livingWorld.getRuntime();
+   if(!await runtime.inspectPerson(personId))throw Error('That resident is absent from this checkpoint.');
+   await livingWorld.selectPerson(personId);
+   const {journeyURL}=await import('./future-journey/navigation.js');
+   const {inspectFuture}=await import('./future-journey/model.js');
+   const {readPopulationCheckpoint}=await import('./population/checkpoint.js');
+   const exact=inspectFuture({record:loadedExperiment,state:readPopulationCheckpoint(saved.checkpoint)},personId);
+   const navigation=document.createElement('nav');
+   navigation.className='saved-future-navigation';
+   navigation.setAttribute('aria-label','Saved future');
+   for(const [surface,label] of [['worldline','Return to Worldline'],['house','Open exact household in House Simulator']]){
+     const link=document.createElement('a');link.textContent=label;
+     link.href=journeyURL(surface,exact,location.search);
+     navigation.append(link);
+   }
+   // Resident selection collapses World controls. Saved-checkpoint exits must
+   // remain reachable independently of that foreground panel and GPU backend.
+   navigation.classList.add('panel');
+   navigation.style.cssText='position:fixed;top:calc(var(--world-top,12px) + 104px);left:12px;max-width:clamp(200px,calc(100vw - 430px),420px);padding:8px 12px;z-index:89';
+   document.body.append(navigation);
+ }else if(saved.view.selection){if(saved.mode==='living')await livingWorld.selectPerson(saved.view.selection.id);else select(saved.view.selection);}
  if(saved.view.policyPackages)PLAN_PACKAGES=structuredClone(saved.view.policyPackages);activePolicyId=saved.view.policy??'none';policyYear=saved.view.planYear??0;if($('policy'))$('policy').value=activePolicyId;if(planYearEl)planYearEl.value=String(policyYear);
- const settings=saved.view.playback;if(settings){playback.setSpeed(settings.speed);settings.paused?playback.pause():playback.resume();}
+ const settings=saved.view.playback;if(settings){playback.setSpeed(settings.speed);settings.paused||params.has('person')?playback.pause():playback.resume();}
  if(saved.view.buildingWorkspace){if(!buildingBridge?.restoreCheckpoint)throw Error('Construction checkpoint adapter unavailable');await buildingBridge.ready;buildingBridge.restoreCheckpoint(saved.view.buildingWorkspace);}
  experimentRestored=true;
  }catch(error){playback.pause();startup.restoreError=error.message;const notice=document.createElement('p');notice.style.cssText='position:fixed;top:80px;left:20px;z-index:999;background:#641f28;color:white;padding:16px';notice.textContent='Saved experiment restoration failed; playback paused: '+error.message;document.body.append(notice);}
@@ -2329,5 +2501,136 @@ addEventListener('pagehide',()=>{houseEntryDisposed=true;houseEntryControls?.des
 addEventListener('pagehide',()=>{persistenceDisposed=true;persistencePanel?.destroy();},{once:true});
 
 if(!loadedExperiment)world.log(`Welcome to ${origin.lat.toFixed(3)}, ${origin.lng.toFixed(3)}. Click a person or building.`, "info");
-startup.readyMs=performance.now();for(const [node,disabled] of startupDisabled)node.disabled=policyPending&&['policy','runExperimentBtn','runCycleBtn','demoBtn'].includes(node.id)?true:disabled;startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);
+// The guide becomes actionable only after the actual World scene is ready.
+if (!embedMode && !businessMode && !simulationId && !loadedExperiment) {
+  window.hblGuidedActions = {
+    week: () => withClassicWorld(async()=>{if(cycleBusy)throw new Error("A cycle is already running.");const completed=nextCycleResult();runCycle();return completed;}),
+    storm: () => withClassicWorld(triggerStorm),
+    tenYear: () => withClassicWorld(runExperiment10Years),
+    resident: () => withClassicWorld(() => {
+      if (!town.people.length) throw new Error("No simulated residents are available.");
+      followResident(0);
+      worldFeedback('resident',{label:'Resident selected',message:'The camera is following a synthetic resident. Their current needs and activities are shown in the inspector.'});
+    }),
+  };
+  window.dispatchEvent(new CustomEvent('hbl:world-ready'));
+  addEventListener('pagehide',()=>{delete window.hblGuidedActions;},{once:true});
+}
+startup.readyMs=performance.now();for(const [node,disabled] of startupDisabled)node.disabled=disabled;startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);
 requestAnimationFrame(frame);
+
+
+// First-run presentation uses the legacy scene authority explicitly. Its detached
+// comparison owns a worker; stopping it cannot cancel the full civic experiment.
+if(!embedMode&&!businessMode&&!simulationId&&!loadedExperiment&&!renderBenchmark){
+  const integrationStyles=document.createElement('link');integrationStyles.rel='stylesheet';integrationStyles.href=new URL('./onboarding/integration.css',import.meta.url).href;document.head.append(integrationStyles);
+  const feedbackAdapter=createFeedbackAdapter();
+  const reducedMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const residentById=id=>town.people.find(p=>String(p.id)===String(id));
+  const residentPosition=id=>{if(livingWorld?.active)return null;const p=residentById(id);return p&&Number.isFinite(p.x)&&Number.isFinite(p.z)?{x:p.x,y:0,z:p.z}:null;};
+  visualPanels=createPanelManager({document,onChange:({active,previous})=>{if(!active&&previous)queueMicrotask(()=>{if(document.activeElement===document.body||!document.activeElement?.getClientRects().length)$('world-guide-button')?.focus();});}});
+  for(const [id,element] of [['inspect',$('inspect')],['cycle',$('cyclePanel')],['experiment',$('experimentPanel')]])if(element)visualPanels.register(id,element);
+  for(const [index,element] of [...document.querySelectorAll('section.living-city')].entries())visualPanels.register('population-panel-'+index,element);
+  // One visible onboarding sheet: preserve the early live-feedback guide as an
+  // explicit companion to the ready-state matched-comparison guide.
+  const liveFeedbackGuide=$('world-first-run-guide');
+  if(liveFeedbackGuide)visualPanels.register('live-feedback',liveFeedbackGuide);
+  visualCamera=createCameraDirector({camera,controls,reducedMotion,getResidentPosition:residentPosition,now:()=>performance.now()});
+  visualSpotlight=createSpotlight({THREE,scene,getResidentPosition:residentPosition,reducedMotion});
+  let configurationSummary=null;
+  let guide,controller,observation=null,measured=null,configuration=null,focusId=null,workerTimings=null;
+  let comparisonWorker=null;
+  // Freeze a supported local recipe, independent of remote plan loading; replay uses exact inputs.
+  let recipe=null;
+  const readRecipe=()=>{
+    if(recipe)return recipe;
+    const pkg=BASE_POLICY_PACKAGES.balanced;
+    recipe=structuredClone({origin,area,maxPeople,proposalIds:pkg?.proposalIds||[],label:pkg?.label||'No plan',source:pkg?.source||'local',year:3,days:7});
+    return recipe;
+  };
+  const provenance=()=>({authority:'legacy-world',modelVersion:world.modelVersion||null,modelSource:'world/sim.js',rulesSource:'world/policy.js',rulesVersion:null,seed:town.seedKey,origin:{...origin},days:7,year:3,proposalIds:[...(recipe?.proposalIds||[])],limitations:['Detached matched week, not a continuation of the live resident clock. Legacy resident indexes share deterministic buildTown inputs only; Population and monthly City are not mapped.']});
+  const state=()=>({...controller?.getState(),ready:true,observation,feedback:measured,configuration,workerTimings,provenance:provenance()});
+  const refresh=()=>{const value=state();guide?.update(value);$('firstRunGuide')?.toggleAttribute('data-demo-engaged',Boolean(observation||measured));$('firstRunGuide')?.toggleAttribute('data-demo-complete',value.status==='completed');if(configurationSummary)configurationSummary.textContent='Detached comparison: '+(configuration?.text||'Quick demo tests the local Balanced plan in a detached matched week.')+(measured?.unsupported?.length?' Unsupported proposals: '+measured.unsupported.map(item=>typeof item==='string'?item:item.id||item.label||'Unidentified proposal').join(', ')+'.':'')+' The ring marks an actual resident position, including indoors; it does not indicate a new building or measured policy effect.';return value;};
+  const inspectResident=()=>{
+    const p=residentById(focusId);if(!p)return false;
+    followResident(town.people.indexOf(p));visualPanels.open('inspect',{trigger:document.activeElement});return true;
+  };
+  controller=createQuickDemoController({
+    waitForReady:()=>{if(cycleBusy||demo.running||experimentWorker)throw Error('Finish the active civic comparison or ten-year experiment before starting the quick demo.');},
+    observeResident:async({signal})=>{
+      await livingWorld?.setActive(false);if(signal.aborted)return;
+      measured=null;visualComparisonResult=null;workerTimings=null;visualPanels.closeAll();
+      const p=town.people.find(person=>person.mode==='moving')||town.people[0];
+      if(!p)throw Error('This town has no resident to observe.');
+      focusId=String(p.id);overlayMode='wellbeing';if(overlayEl)overlayEl.value='wellbeing';
+      // Select without opening the inspector, leaving the scene and guide visible.
+      selected={type:'person',id:town.people.indexOf(p)};follow=false;cityRenderer.updateCity({selectedBuilding:null});world.trackActivityPerson(String(p.id));
+      document.documentElement.classList.add('person-selected');
+      visualCamera.focusResident(focusId);visualSpotlight.showResident(focusId);
+      const marker=scene.getObjectByName('world-onboarding-entity-highlight');if(marker){marker.material.depthTest=false;marker.renderOrder=999;}
+      observation=feedbackAdapter.observed({authority:'legacy-world',seed:town.seedKey,residentId:focusId,name:p.name,minute:world.t,activity:p.doing||p.action||p.mode,mood:p.mood,needs:{...p.needs},position:residentPosition(focusId)});
+      configuration=feedbackAdapter.configured({...readRecipe(),authority:'legacy-world',scope:'detached matched week'});
+      guide.show();refresh();
+      await new Promise(requestAnimationFrame);
+      return observation;
+    },
+    runComparison:({signal,onProgress})=>new Promise((resolve,reject)=>{
+      const started=performance.now();let firstMessage=null,settled=false;
+      const worker=createTrackedWorker(new URL('./cycle.worker.js',import.meta.url),{type:'module'},{type:'Quick demo',ownership:{system:'visual-pass'}});comparisonWorker=worker;
+      const cleanup=()=>{worker.terminate();if(comparisonWorker===worker)comparisonWorker=null;signal.removeEventListener('abort',abort);};
+      const fail=error=>{if(settled)return;settled=true;cleanup();reject(error);};
+      const abort=()=>fail(new DOMException('Quick demo stopped','AbortError'));
+      signal.addEventListener('abort',abort,{once:true});if(signal.aborted){abort();return;}
+      worker.onerror=event=>{event.preventDefault?.();fail(Error(event.message||'Comparison worker failed'));};
+      worker.onmessage=event=>{
+        if(settled||signal.aborted)return;
+        const msg=event.data||{},now=performance.now();
+        firstMessage??=now;
+        if(msg.type==='progress'){onProgress({stage:msg.stage,fraction:msg.frac});return;}
+        if(msg.type==='error'){fail(Error(msg.error||'Comparison failed'));return;}
+        if(msg.type==='done'){
+          settled=true;workerTimings={workerStartupMs:firstMessage-started,computationMs:now-firstMessage,workerTotalMs:now-started,startupDefinition:'Time to first worker progress includes module startup and initial simulation work; no worker-ready handshake exists.'};
+          const result=structuredClone(msg.result);
+          const freeze=value=>{if(value&&typeof value==='object'){Object.values(value).forEach(freeze);Object.freeze(value);}return value;};
+          onProgress({stage:'Matched week complete',fraction:1,workerStartupMs:workerTimings.workerStartupMs,computationMs:workerTimings.computationMs});
+          cleanup();resolve(freeze(result));
+        }
+      };
+      worker.postMessage({type:'run',payload:readRecipe()});
+    }),
+    revealComparison:async(result,{signal})=>{
+      if(signal.aborted)return;
+      measured=feedbackAdapter.measured(result,provenance());
+      // The score overlay is a recorded comparison, not the current live mood.
+      visualComparisonResult=result;visualComparisonView='noPlan';overlayMode='cycle';const cycleOption=overlayEl?.querySelector('option[value=cycle]');if(cycleOption)cycleOption.disabled=false;if(overlayEl)overlayEl.value='cycle';
+      refresh();await new Promise(requestAnimationFrame);if(signal.aborted)return;
+      visualComparisonView='withPlan';
+      const index=result.best?.index;if(Number.isInteger(index)&&town.people[index]){focusId=String(town.people[index].id);visualCamera.focusResident(focusId);visualSpotlight.showResident(focusId);}
+      guide.show();refresh();
+    },
+    onState:value=>{if(value.status==='waiting'){observation=null;measured=null;workerTimings=null;visualComparisonResult=null;}if(['stopped','error'].includes(value.status)){visualComparisonResult=null;visualCamera.cancel();visualSpotlight.clear();if(overlayMode==='cycle'){overlayMode='wellbeing';if(overlayEl)overlayEl.value='wellbeing';}}refresh();},
+    now:()=>performance.now()
+  });
+  guide=mountFirstRunGuide({container:document.body,panelManager:visualPanels,
+    onQuickDemo:()=>controller.start({recipeVersion:1}),onStop:()=>controller.stop(),onReplay:()=>controller.getState().runId===null?controller.start({recipeVersion:1}):controller.replay(),onInspect:inspectResident,
+    onCompare:()=>controller.start({recipeVersion:1}),onStorm:async()=>{controller.stop();await livingWorld?.setActive(false);const record=triggerStorm();visualComparisonResult=null;measured=stormFeedback(record,{minute:world.t,seed:town.seedKey});overlayMode='flood';if(overlayEl)overlayEl.value='flood';guide.show();refresh();},
+    onTour:()=>{controller.stop();guide.hide();playDemo();},onExperiment:()=>{controller.stop();guide.hide();runExperiment10Years();}
+  });
+  const guideActions=$('firstRunGuide').querySelector('.first-run-actions');
+  const moreActions=document.createElement('details'),moreSummary=document.createElement('summary');moreSummary.textContent='More city actions';moreActions.append(moreSummary);
+  for(const button of [...guideActions.children].slice(4))moreActions.append(button);$('firstRunGuide').append(moreActions);
+  if(liveFeedbackGuide){const liveButton=document.createElement('button');liveButton.type='button';liveButton.textContent='Live experiment feedback';liveButton.dataset.testid='live-experiment-feedback';liveButton.addEventListener('click',()=>visualPanels.open('live-feedback',{trigger:liveButton}));moreActions.append(liveButton);}
+  const accessibility=mountWorldAccessibility({document,panelManager:visualPanels,getActivePanel:()=>visualPanels.getActiveElement(),onDismiss:()=>visualPanels.closeAll()});
+  const interruptCamera=()=>{visualCamera.cancel();follow=false;};
+  renderer.domElement.addEventListener('pointerdown',interruptCamera);renderer.domElement.addEventListener('wheel',interruptCamera,{passive:true});
+  for(const id of ['demoBtn','runCycleBtn','runExperimentBtn'])$(id)?.addEventListener('click',()=>{controller.stop();guide.hide();});
+  window.hblVisualPass={controller,getState:state,inspectResident,panels:visualPanels,ready:true};
+  configurationSummary=document.createElement('p');configurationSummary.dataset.testid='quick-demo-configuration';configurationSummary.textContent='Configured comparison: local Balanced plan, implementation year 3, matched 7-day horizon. Live playback is separate.';$('firstRunGuide').append(configurationSummary);
+  const switcher=document.createElement('div');switcher.className='first-run-actions';switcher.setAttribute('aria-label','Recorded matched-week overlay');
+  for(const [view,label] of [['noPlan','View no plan'],['withPlan','View plan']]){const button=document.createElement('button');button.type='button';button.textContent=label;button.dataset.testid='quick-demo-'+view;button.addEventListener('click',()=>{if(measured?.kind!=='matched')return;visualComparisonView=view;overlayMode='cycle';if(overlayEl)overlayEl.value='cycle';for(const peer of switcher.children)peer.setAttribute('aria-pressed',String(peer===button));});switcher.append(button);}
+  $('firstRunGuide').append(switcher);
+  const syncComparisonControls=()=>{for(const button of switcher.children){button.disabled=measured?.kind!=='matched';button.setAttribute('aria-pressed',String(button.dataset.testid==='quick-demo-'+visualComparisonView&&measured?.kind==='matched'));}};
+  syncComparisonControls();const comparisonControlsTimer=setInterval(syncComparisonControls,200);
+  guide.update(state());guide.show();
+  addEventListener('pagehide',()=>{clearInterval(comparisonControlsTimer);controller.dispose();comparisonWorker?.terminate();visualCamera.dispose();visualSpotlight.dispose();accessibility.dispose();guide.dispose();visualPanels.dispose();renderer.domElement.removeEventListener('pointerdown',interruptCamera);renderer.domElement.removeEventListener('wheel',interruptCamera);},{once:true});
+}

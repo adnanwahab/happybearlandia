@@ -1,0 +1,2 @@
+export const PROJECTS={sofa:{label:'The Great Sofa Delivery',object:'couch',activity:'houseBoardGame',prop:'boardGame'},reading:{label:'A shared reading nook',object:'books',activity:'read'},garden:{label:'A garden for gathering',object:'plant',activity:'garden'},nursery:{label:'A welcoming bedroom',object:'bed',activity:'rest'},music:{label:'Our music corner',object:'music',activity:'music'},play:{label:'A family play corner',object:'boardGame',activity:'houseBoardGame'}};
+export const PROP_KINDS=['plate','tray','cup','gift','book','speaker','tools','toy','cushion'];

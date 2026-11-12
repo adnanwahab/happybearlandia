@@ -1,0 +1,15 @@
+:root {
+  color-scheme: light;
+  background: #f1f4ed;
+  color: #253d34;
+  font: 1rem/1.55 "Instrument Sans", system-ui, sans-serif;
+}
+body { margin: 0; }
+main { box-sizing: border-box; max-width: 48rem; margin: auto; padding: 2rem clamp(1rem, 5vw, 4rem); }
+a { color: #25674e; text-underline-offset: .2em; }
+h1 { margin: 1.5rem 0 .5rem; font: 700 clamp(2.5rem, 8vw, 4.5rem)/1 "Cormorant Garamond", Georgia, serif; }
+button { border: 1px solid #2e604a; border-radius: .35rem; padding: .4rem .7rem; font: inherit; color: #fff; background: #2e604a; cursor: pointer; }
+button:disabled { opacity: .75; cursor: wait; }
+:focus-visible { outline: 3px solid #a76626; outline-offset: 3px; }
+dl > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .55rem; padding: .65rem 0; border-block-start: 1px solid #a9b9aa; }
+dd { margin: 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }

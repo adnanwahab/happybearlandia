@@ -1,0 +1,7 @@
+/** Sustained-frame hysteresis ignores loading, hidden tabs and paused scenes.
+ * Resolution affects only the 3D buffer; DOM controls retain native sharpness. */
+export function createHouseFrameBudget({onChange=()=>{}}={}){
+ const tiers=[{pixelRatio:1,shadowHz:10},{pixelRatio:.8,shadowHz:5},{pixelRatio:.6,shadowHz:2}];let tier=0,last=null,start=null,samples=[],slowSince=null,fastSince=null,lastChange=-Infinity,frames=0,p95=0,median=0,cpu=0;
+ function reset(){last=start=null;samples=[];slowSince=fastSince=null;}
+ return{sample(now,cpuMs=0){cpu=cpu*.9+cpuMs*.1;if(last===null){last=start=now;return;}const dt=now-last;last=now;if(dt<=0||dt>1000){reset();return;}samples.push(dt);if(samples.length>120)samples.shift();frames++;if(now-start<2000||samples.length<15)return;const sorted=[...samples].sort((a,b)=>a-b);median=sorted[Math.floor(sorted.length*.5)];p95=sorted[Math.floor(sorted.length*.95)];if(median>35){slowSince??=now;fastSince=null;}else if(median<19){fastSince??=now;slowSince=null;}else slowSince=fastSince=null;let next=tier;if(slowSince!==null&&now-slowSince>=2000&&now-lastChange>=4000)next=Math.min(tiers.length-1,tier+1);else if(fastSince!==null&&now-fastSince>=15000&&now-lastChange>=15000)next=Math.max(0,tier-1);if(next!==tier){tier=next;lastChange=now;slowSince=fastSince=null;samples=[];start=now;onChange({...tiers[tier],tier});}},reset,get:()=>({...tiers[tier],tier,frames,medianFrameMs:median,p95FrameMs:p95,cpuFrameMs:cpu})};
+}

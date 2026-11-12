@@ -1,3 +1,8 @@
+import {traditionActivityBonus} from './neighborhood-traditions.js';
+import {populationTraditionPlan,recordCityTraditionInterval} from '../relationships/city-traditions.js';
+import {populationPromisePlan} from '../relationships/promises.js';
+import {settleMoneyHistory,recordMovingPayment} from './money-history.js';
+import {hotspotDestination} from './hotspots.js';
 import {homeStayPlan} from '../house/stay-home.js';
 import {dateActivityPlan,dateNeedRates,recordDateInterval,inspectPersonDate} from '../house/date-system.js';
 import {householdMembers} from './household-members.js';
@@ -67,6 +72,7 @@ function activityDestination(model,i,activity,effects){
 }
 function destinationFor(model,i,activity,effects,onsite=false){
  const p=model.people;if(onsite)return{district:p.current[i],x:p.x[i],z:p.z[i],location:p.currentLocation[i]};
+ const hotspot=hotspotDestination(model,i,activity);if(hotspot)return hotspot;
  const district=activityDestination(model,i,activity,effects),d=model.districts[district];
  if(activity===0)return{district,x:p.homeX[i],z:p.homeZ[i],location:p.homeLocation[i]};
  if(activity===1||activity===2)return{district,x:p.workX[i],z:p.workZ[i],location:p.workLocation[i]};
@@ -82,7 +88,10 @@ function chooseActivity(model,i,minute,effects){
  const homeStay=homeStayPlan(model,i,minute);if(homeStay)return homeStay;
  const manual=model.manualWalks?.[i];if(manual){if(minute<manual.until&&(manual.home||!parentCareConstraint(model,i,minute)))return{activity:manual.home?0:9,until:Math.min(manual.until,nextFamilyBoundary(model,i,minute)),mandatory:true,destination:manual.destination,reason:'Player requested walk; brief arrival pause'};delete model.manualWalks[i];}
  const schedule=scheduleAt(model,i,minute);
+ if(schedule.mandatory&&schedule.activity===5&&schedule.onsite&&!schedule.childKind){const lunch=populationTraditionPlan(model,i,minute,{mealBreak:true});if(lunch)return{...lunch,until:Math.min(lunch.until,schedule.until,nextFamilyBoundary(model,i,minute))};}
  if(schedule.mandatory)return{...schedule,until:Math.min(schedule.until,nextFamilyBoundary(model,i,minute)),destination:schedule.destination??destinationFor(model,i,schedule.activity,effects,schedule.onsite)};
+ const promise=populationPromisePlan(model,i,minute);if(promise)return{...promise,until:Math.min(promise.until,schedule.until,nextFamilyBoundary(model,i,minute))};
+ const tradition=populationTraditionPlan(model,i,minute);if(tradition)return{...tradition,until:Math.min(tradition.until,schedule.until,nextFamilyBoundary(model,i,minute))};
  // A committed destination/activity survives substeps and tick endpoints.
  if(p.planUntil[i]>minute&&p.activity[i]!==8&&!(p.activity[i]===6&&(weatherInput(model).parkComfort??1)<=.1))return{activity:p.activity[i],until:Math.min(p.planUntil[i],schedule.until),destination:{district:p.current[i],x:p.x[i],z:p.z[i],location:p.currentLocation[i]},committed:true};
  const fatigue=(100-p.energy[i])/100,hunger=(100-p.hunger[i])/100,leisure=(200-p.fun[i]-p.social[i])/200;
@@ -106,7 +115,7 @@ function chooseActivity(model,i,minute,effects){
  if(p.hunger[i]<threshold)alternatives[1].score+=1;
  if(p.energy[i]<threshold)alternatives[0].score+=1;
  if(p.fun[i]<threshold||p.social[i]<threshold)alternatives[2].score+=.7;
- for(const row of alternatives){row.destination=destinationFor(model,i,row.activity,effects);if(row.activity!==0){const service=effects[row.destination.district].services;row.components.serviceAccess=(service-1)*POPULATION_WEATHER_ASSUMPTIONS.serviceAccessUtilityWeight;row.score+=row.components.serviceAccess;if(service<=0){row.available=false;row.rejectedReason="SERVICE_ACCESS_UNAVAILABLE";}}const distance=Math.hypot(row.destination.x-p.x[i],row.destination.z-p.z[i])/1000;
+ for(const row of alternatives){const eventBonus=traditionActivityBonus(model,i,row.activity);if(eventBonus){row.components.neighborhoodTradition=eventBonus;row.score+=eventBonus;}row.destination=destinationFor(model,i,row.activity,effects);if(row.activity!==0){const service=effects[row.destination.district].services;row.components.serviceAccess=(service-1)*POPULATION_WEATHER_ASSUMPTIONS.serviceAccessUtilityWeight;row.score+=row.components.serviceAccess;if(service<=0){row.available=false;row.rejectedReason="SERVICE_ACCESS_UNAVAILABLE";}}const distance=Math.hypot(row.destination.x-p.x[i],row.destination.z-p.z[i])/1000;
    if(row.activity!==0&&distance/Math.max(1,c.walkingSpeedKmh)*60+15>schedule.until-minute){row.available=false;row.rejectedReason="Insufficient time before next mandatory schedule";}}
  const decision=seededChoice(alternatives,{draw:draw(model.seed,i,Math.floor(minute*1000),62),temperature:.18});
  const selected=alternatives.find(row=>row.id===decision.chosen)||alternatives[0];
@@ -119,6 +128,7 @@ function chooseActivity(model,i,minute,effects){
 function semanticEvent(model,i,type,minute,detail){const personId=`${model.prefix}-p${i}`;model.eventCounts[type]=(model.eventCounts[type]||0)+1;if(model.activityHistory)recordHistoryEvent(model.activityHistory,{type,minute,personId,householdId:`${model.prefix}-h${model.people.household[i]}`,districtId:model.districts[model.people.current[i]].id,weight:model.weight,...detail});}
 function applyInterval(model,i,activity,start,duration){
  if(!(duration>0))return;const p=model.people;
+ recordCityTraditionInterval(model,i,activity,start,duration);
  if(model.journals)recordJournalInterval(model.journals,`${model.prefix}-p${i}`,`Resident ${i+1}`,houseActivityLabel(model,i,start)??populationJournalActivity(model,i,ACTIVITIES[activity],start),start,start+duration);
  recordFamilyActivityInterval(model,i,activity,start,duration);recordEmploymentInterval(model,i,activity,start,duration);
  const rates=personNeedEffects(model,i,{minute:start,activity}).needRates,means={};
@@ -193,7 +203,7 @@ export function scoreHousing(model,h,d,effects){const hh=model.households,c=mode
 export function householdDecisions(model,effects){const hh=model.households,c=model.config,p=model.people;for(let h=0;h<hh.size.length;h++){
   const home=hh.home[h],row=model.districts[home];hh.rent[h]=row.rent*c.rentMultiplier*effects[home].rent;let wages=0;for(const i of householdMembers(model,h))wages+=p.income[i]*(p.employed[i]?c.workWeeklyPayRetention*employmentIncomeFraction(model,i):.35);hh.income[h]=Math.max(0,hh.nonWage[h]+wages)*c.wageMultiplier;
   const monthlyIncome=hh.income[h]/12,food=180+hh.size[h]*140,utilities=150,other=monthlyIncome*.12,transport=hh.transport[h];const care=consumeChildcareCosts(model,h),outflow=(hh.rent[h]+food+utilities+other)/30+transport+care.householdCost;hh.lastChildcareCost??=new Float64Array(hh.size.length);hh.childcarePaidTotal??=new Float64Array(hh.size.length);hh.lastChildcareCost[h]=care.householdCost;hh.childcarePaidTotal[h]+=care.householdCost;
-  const earned=consumeEmploymentPay(model,h),dailyIncome=hh.nonWage[h]*c.wageMultiplier/employmentCalendar(model,model.minute-1).daysInYear+earned.wages+earned.benefits;hh.savings[h]+=dailyIncome-outflow;hh.spending[h]+=outflow;hh.transport[h]=0;model.totals.spending+=outflow;
+  const openingSavings=hh.savings[h],earned=consumeEmploymentPay(model,h),dailyIncome=hh.nonWage[h]*c.wageMultiplier/employmentCalendar(model,model.minute-1).daysInYear+earned.wages+earned.benefits;hh.savings[h]+=dailyIncome-outflow;hh.spending[h]+=outflow;hh.transport[h]=0;model.totals.spending+=outflow;settleMoneyHistory(model,h,{openingSavings,dailyIncome,earned,food,utilities,other,transport,childcare:care.householdCost});
   const burden=hh.rent[h]/Math.max(1,monthlyIncome);hh.stress[h]=clamp(hh.stress[h]+Math.max(0,burden-c.burdenThreshold)*.1-(burden<c.burdenThreshold?.01:0),0,1);
   if(Math.floor(model.minute/1440)%30!==h%30)continue;if(!(hh.stress[h]>.08||hh.savings[h]<0||draw(model.seed,h,Math.floor(model.minute/1440),33)<.002))continue;
   const alternatives=model.districts.map((_,d)=>scoreHousing(model,h,d,effects)),stay=alternatives[home];for(const row of alternatives)if(row.districtIndex!==home&&(row.score-stay.score<=c.moveThreshold||hh.savings[h]<c.movingCost)){row.available=false;row.rejectedReason="Move threshold or savings constraint";}const choice=seededChoice(alternatives,{draw:draw(model.seed,h,Math.floor(model.minute/1440),57),temperature:.2}),best=alternatives.find(row=>row.id===choice.chosen);model.decisionCounts.HOUSING_SEARCH=(model.decisionCounts.HOUSING_SEARCH||0)+1;
@@ -201,5 +211,5 @@ export function householdDecisions(model,effects){const hh=model.households,c=mo
   const move=best&&best.districtIndex!==home&&best.score-stay.score>c.moveThreshold&&hh.savings[h]>=c.movingCost;
   recordTrace(model,"household",h,{tick:model.tick,minute:model.minute,type:"HOUSING_SEARCH",inputs:{income:hh.income[h],rent:hh.rent[h],burden,stress:hh.stress[h],savings:hh.savings[h],moveThreshold:c.moveThreshold},alternatives:choice.alternatives,randomDraw:choice.randomDraw,reasonCodes:["SEEDED_UTILITY_CHOICE",...(burden>c.burdenThreshold?["HOUSING_COST_BURDEN"]:[])],chosen:move?best.id:stay.id,reason:move?"Candidate utility exceeds stay plus moving threshold":forced?"Severe burden, no affordable local alternative and exhausted savings: displacement risk state":"Stay: gain, affordability or savings constraint"});
   if(forced&&!hh.displaced[h]){hh.displaced[h]=1;row.displaced++;model.totals.displacements++;recordEvent(model,"HOUSEHOLD_DISPLACEMENT_RISK",{householdId:`${model.prefix}-h${h}`,districtId:row.id,definition:"Severe burden + no affordable available local district + nonpositive savings; no fictional destination assigned"});}
-  if(move){row.households--;row.population-=hh.size[h];row.movesOut++;const to=model.districts[best.districtIndex];to.households++;to.population+=hh.size[h];to.movesIn++;hh.home[h]=best.districtIndex;hh.rent[h]=best.rent;hh.savings[h]-=c.movingCost;hh.moves[h]++;model.totals.moves++;const anchor=to.anchors[Math.floor(draw(model.seed,h,Math.floor(model.minute),58)*to.anchors.length)];for(const i of householdMembers(model,h)){p.home[i]=best.districtIndex;p.homeX[i]=anchor[0];p.homeZ[i]=anchor[1];p.homeLocation[i]=to.anchorLocations[Math.floor(draw(model.seed,h,Math.floor(model.minute),58)*to.anchors.length)];}recordEvent(model,"HOUSEHOLD_MOVED",{householdId:`${model.prefix}-h${h}`,from:row.id,to:to.id,previousRent:stay.rent,newRent:best.rent,previousCommute:stay.commute,newCommute:best.commute,utilityGain:best.score-stay.score,reason:"Scored voluntary housing choice",displacement:false});}
+  if(move){row.households--;row.population-=hh.size[h];row.movesOut++;const to=model.districts[best.districtIndex];to.households++;to.population+=hh.size[h];to.movesIn++;hh.home[h]=best.districtIndex;hh.rent[h]=best.rent;hh.savings[h]-=c.movingCost;recordMovingPayment(model,h,c.movingCost);hh.moves[h]++;model.totals.moves++;const anchor=to.anchors[Math.floor(draw(model.seed,h,Math.floor(model.minute),58)*to.anchors.length)];for(const i of householdMembers(model,h)){p.home[i]=best.districtIndex;p.homeX[i]=anchor[0];p.homeZ[i]=anchor[1];p.homeLocation[i]=to.anchorLocations[Math.floor(draw(model.seed,h,Math.floor(model.minute),58)*to.anchors.length)];}recordEvent(model,"HOUSEHOLD_MOVED",{householdId:`${model.prefix}-h${h}`,from:row.id,to:to.id,previousRent:stay.rent,newRent:best.rent,previousCommute:stay.commute,newCommute:best.commute,utilityGain:best.score-stay.score,reason:"Scored voluntary housing choice",displacement:false});}
  }}

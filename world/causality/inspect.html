@@ -1,0 +1,7 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Causal inspector · HappyBearLandia</title><body style="max-width:1100px;margin:32px auto;padding:16px;background:#eaf2ee"><main><a href="/">HappyBearLandia</a><causal-inspector></causal-inspector></main><script type="module">
+import './inspector.js';
+import {contextFromURL,contextURL} from '../universe/navigation.js';
+const inspector=document.querySelector('causal-inspector');
+try{inspector.context={...contextFromURL(location.href),targetId:new URLSearchParams(location.search).get('targetId')};}catch(error){const alert=document.createElement('p');alert.setAttribute('role','alert');alert.textContent='Invalid inspector link: '+error.message;document.querySelector('main').prepend(alert);}
+inspector.addEventListener('inspector-navigate',({detail})=>{const {targetId,...context}=detail;const clean=Object.fromEntries(Object.entries(context).filter(([,v])=>v!==null&&v!==''&&v!==undefined).map(([k,v])=>[k,k==='tick'?Number(v):v]));try{const url=new URL(contextURL(location.pathname,clean),location.origin);if(targetId)url.searchParams.set('targetId',targetId);history.replaceState(null,'',url);}catch{/* Invalid edits are reported by the records API. */}});
+</script></body></html>

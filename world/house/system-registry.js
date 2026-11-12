@@ -14,3 +14,9 @@ export function completeSystemAction(model,home,action,minute){for(const s of sy
 export function systemNeedRates(model,home,action,i,minute,activity,rates){let result=rates;for(const s of systems.values()){const next=s.needRates?.(model,home,action,i,minute,activity,result);if(next)result=next;}return result;}
 export function prepareHouseholdSystems(model){for(const home of Object.values(model.houses?.homes??{}))for(const s of systems.values())s.prepare?.(model,home,{minute:model.minute});}
 export function advanceHouseholdSystems(model,startMinute,endMinute){for(const home of Object.values(model.houses?.homes??{}))for(const s of systems.values())s.advance?.(model,home,{startMinute,endMinute});}
+
+/** Project interruptible system state for action validation; never mutate the live model. */
+export function projectSystemNeedInterruption(model,request){let draft=null;for(const system of systems.values()){const next=system.projectNeedInterruption?.(draft??model,request);if(next)draft=next;}return draft;}
+
+/** Split shared simulation intervals at explicitly scheduled household events. */
+export function nextHouseholdSystemBoundary(model,start,end){let next=end;for(const home of Object.values(model.houses?.homes??{}))for(const system of systems.values()){const minute=system.nextBoundary?.(model,home,start);if(Number.isFinite(minute)&&minute>start)next=Math.min(next,minute);}return next;}

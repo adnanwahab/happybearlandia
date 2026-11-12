@@ -1,0 +1,26 @@
+#universe-shell { margin: 0 auto 28px; width: min(1500px, calc(100% - 40px)); padding: 24px; border: 1px solid #49627f; border-radius: 18px; background: radial-gradient(ellipse at top right,#204557,#101d2f 70%); }
+#universe-shell h2 { font-size: clamp(24px,4vw,40px); letter-spacing: -.04em; }
+#universe-shell .universe-kicker { color:#a9ead2; text-transform:uppercase; letter-spacing:.12em; font-size:12px; }
+#universe-shell nav, .universe-context, .universe-actions { display:flex; flex-wrap:wrap; gap:12px; margin:16px 0; }
+#universe-shell input[type="search"] { font:inherit; color:inherit; background:#08111f; border:1px solid #49627f; border-radius:8px; padding:12px; width:100%; }
+#universe-shell input:focus-visible { outline:3px solid #f1d37c; }
+#universe-shell .universe-context { font:12px ui-monospace,monospace; overflow-wrap:anywhere; }
+#universe-shell .universe-context span { padding:5px 9px; background:#08111f; border-radius:6px; }
+.universe-results { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr)); gap:12px; margin-top:16px; max-height:430px; overflow:auto; }
+.universe-card { border:1px solid #38516c; border-radius:10px; padding:14px; background:#0c192a; }
+.universe-card h3 { margin:0; font-size:16px; }
+.universe-card p { font-size:13px; margin:8px 0; }
+.universe-card small { color:#a9ead2; }
+.universe-card a { display:inline-block; margin:8px 12px 0 0; }
+#universe-stage:empty { display:none; }
+#universe-stage { margin-top:20px; }
+#universe-stage iframe { height:75vh; min-height:420px; border:1px solid #49627f; border-radius:10px; }
+#universe-shell .universe-status { font-size:13px; }
+@media(max-width:600px) { #universe-shell { width:calc(100% - 20px); padding:16px; } }
+@media(prefers-reduced-motion:reduce) { #universe-shell *,#universe-shell *::before { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+
+.universe-missions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: .75rem; margin: 1rem 0; }
+.universe-missions article { padding: 1rem; border: 1px solid #52736b; border-radius: .5rem; background: #132e29; color: #eff8ef; }
+.universe-missions h4 { margin: .35rem 0; font-size: 1.15rem; }
+.universe-missions small { color: #bcd4b5; }
+.universe-missions a { display: inline-block; padding-block: .25rem; }

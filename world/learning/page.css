@@ -1,0 +1,4 @@
+main { max-width: 76rem; }
+#round > section { margin-top: 1.6rem; padding-top: .3rem; border-top: 1px solid var(--border); }
+#settings input { width: min(100%, 11rem); }
+.provenance { margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1rem; }

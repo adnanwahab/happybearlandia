@@ -1,0 +1,41 @@
+:root {
+  color-scheme: light;
+  color: #162d2b;
+  background: #edf3ee;
+  font: 100%/1.55 "Instrument Sans", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { width: min(67rem, 100%); margin: auto; padding: 1.3rem clamp(1rem, 4vw, 3.4rem) 3rem; }
+nav { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem .85rem; }
+header nav { padding-bottom: .8rem; border-bottom: 1px solid #a9bdb4; }
+a { color: #175a48; text-underline-offset: .2em; }
+:focus-visible { outline: 2px solid #207350; outline-offset: 3px; }
+h1, h2, h3 { font-family: "DM Serif Text", Georgia, serif; line-height: 1.06; margin: 0; }
+h1 { font-size: clamp(2.75rem, 8vw, 5.1rem); margin-top: 1.4rem; letter-spacing: -.045em; }
+h2 { font-size: clamp(1.65rem, 4vw, 2.5rem); }
+h3 { margin-top: 1rem; }
+form { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; }
+form label { font-weight: 650; }
+input, button { min-width: 0; max-width: 100%; padding: .4rem .65rem; font: inherit; }
+button { cursor: pointer; border: 1px solid #5f8b7b; border-radius: .35rem; color: #184c40; background: #eff7ef; }
+button:hover { background: #dfece1; }
+#status:empty, #list-status:empty, #description:empty { display: none; }
+#identity { overflow-wrap: anywhere; font-size: .85rem; color: #395b52; margin-top: 1.3rem; }
+#breadcrumbs { margin-bottom: .65rem; }
+#breadcrumbs button { padding: .24rem .45rem; font-size: .85rem; }
+#breadcrumbs [aria-current] { font-weight: 700; }
+#scale { border: 1px solid #a9bdb4; border-radius: .65rem; overflow: hidden; background: #f9fcf8; }
+#picture { display: block; width: 100%; height: min(38vw, 20rem); object-fit: contain; background: #18353b; }
+#details { padding: clamp(1rem, 4vw, 1.6rem); overflow-wrap: anywhere; }
+#content .open-world { display: inline-block; margin-left: .85rem; }
+.choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: .45rem; padding: 0; list-style: none; }
+.choices li { display: grid; gap: .25rem; align-content: start; }
+.choices button { text-align: left; }
+.choices small { padding-inline: .35rem; color: #45655c; }
+dl { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: .3rem .7rem; }
+dt { font-weight: 650; }
+dd { margin: 0; }
+details { padding: .45rem 0; border-bottom: 1px solid #a9bdb4; }
+summary { cursor: pointer; font-weight: 600; }

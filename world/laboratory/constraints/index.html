@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Constraint Detective · HappyBearLandia</title>
+  <link rel="stylesheet" href="./constraints.css">
+  <script type="module" src="./page.js"></script>
+</head>
+<body>
+  <main>
+    <nav aria-label="World navigation">
+      <a href="/world/laboratory/">Civilization Laboratory</a>
+      <a href="/world/causal.html">World Time Machine</a>
+    </nav>
+    <header>
+      <h1>Constraint Detective</h1>
+      <p>See which limits the city model recorded, then inspect the source event and replay its month.</p>
+    </header>
+    <label id="month-field" hidden>Stored month <select id="month"></select></label>
+    <p id="status" role="status">Reading saved city records…</p>
+    <p id="record" hidden><a href="/world/causal.html">Open the Time Machine to record or choose a city run</a></p>
+    <button id="retry" type="button" hidden>Try again</button>
+    <section id="report" aria-labelledby="month-title" hidden>
+      <header>
+        <h2 id="month-title"></h2>
+        <p id="provenance"></p>
+        <p>Counts cover supported retained event records. A zero means no matching event was recorded in this month.</p>
+      </header>
+      <dl id="counts"></dl>
+      <p id="empty" hidden>No supported constraint events were recorded for this month.</p>
+      <div id="events"></div>
+    </section>
+  </main>
+</body>
+</html>

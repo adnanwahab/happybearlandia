@@ -61,10 +61,12 @@ for(const focusKind of['canonical cinema','Notice & talk'])test('WASD leaves '+f
  const f=await openStoriesDate(page);try{
  await page.getByRole('button',{name:'Memories',exact:true}).click();
  const dialog=page.getByRole('dialog',{name:'Scene dialogue',exact:true});await expect(dialog).toBeVisible();
- const close=dialog.locator('button').first();await close.evaluate(button=>button.addEventListener('keydown',event=>event.stopPropagation()));await close.focus();
+ const close=dialog.locator('button').first();await close.evaluate(button=>button.addEventListener('keydown',event=>{event.preventDefault();event.stopPropagation();}));await close.focus();
  const seq=systems(await read(page)).dates.active.movementSequence??0;
- await page.keyboard.press('w');await expect(dialog).toBeHidden();await expect(page.locator('.house-date-panel')).toHaveAttribute('open','');await page.keyboard.down('w');
+ await page.keyboard.down('w');await expect(dialog).toBeHidden();await expect(page.locator('.house-date-panel')).toHaveAttribute('open','');
  await expect.poll(async()=>systems(await read(page)).dates.active.movementSequence??0,{timeout:15000}).toBeGreaterThan(seq);await page.keyboard.up('w');
  expect(f.errors).toEqual([]);
  }finally{await page.keyboard.up('w').catch(()=>{});await f.close();}
  });
+
+test('explicit walking controls focus the scene and held direction buttons move the actual resident',async({page})=>{const f=await openStoriesDate(page);try{await page.getByRole('button',{name:'Enable WASD walking',exact:true}).click();await expect(page.getByRole('button',{name:'Walking ready · WASD',exact:true})).toBeVisible();const before=systems(await read(page)).dates.active,origin=structuredClone(before.worldPositions[f.ids[0]]);const button=page.getByRole('button',{name:'Walk right',exact:true}),box=await button.boundingBox();await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();await expect.poll(async()=>{const p=systems(await read(page)).dates.active.worldPositions[f.ids[0]];return Math.hypot(p.x-origin.x,p.z-origin.z);},{timeout:15000}).toBeGreaterThan(5);await page.mouse.up();await expect.poll(async()=>(await read(page)).scene.movement.held.length).toBe(0);expect(f.errors).toEqual([]);}finally{await page.mouse.up().catch(()=>{});await f.close();}});

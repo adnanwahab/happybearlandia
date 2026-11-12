@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AgentGraph — observe and debug AI agent organizations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0c10;--panel:#10131a;--panel2:#151a23;--line:#222937;--line2:#2c3444;
+  --text:#dfe3ea;--muted:#7f889a;--dim:#4d5567;
+  --agent:#7aa2ff;--llm:#b892ff;--tool:#3fd0c0;--wait:#6b7385;--err:#ff6470;--warn:#f2b350;--good:#4ad68a;
+  --lw:260px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--text);font:13px/1.45 Inter,system-ui,sans-serif;overflow:hidden}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+button,select,input,textarea{font:inherit;color:inherit}
+.btn{background:#1d2330;border:1px solid var(--line2);border-radius:7px;padding:6px 12px;cursor:pointer;font-weight:500;white-space:nowrap}
+.btn:hover{background:#252c3b;border-color:#3a4458}
+.btn.primary{background:#2b3d6b;border-color:#3d5594}
+.btn.primary:hover{background:#33498a}
+.btn.ghost{background:transparent}
+select{background:#1a1f2a;border:1px solid var(--line2);border-radius:7px;padding:5px 8px;cursor:pointer}
+header{height:52px;display:flex;align-items:center;gap:14px;padding:0 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+.logo{display:flex;align-items:center;gap:9px;font-size:15px;letter-spacing:-.01em}
+.logo small{color:var(--muted);font-weight:400;font-size:12px;margin-left:4px}
+.tabs{display:flex;gap:2px;background:#0c0f14;border:1px solid var(--line);border-radius:8px;padding:2px;margin-left:12px}
+.tabs button{background:none;border:0;padding:5px 12px;border-radius:6px;cursor:pointer;color:var(--muted);font-weight:500}
+.tabs button.on{background:#1f2533;color:var(--text)}
+.sp{flex:1}
+.fld{display:flex;align-items:center;gap:7px;color:var(--muted)}
+#replay{display:grid;grid-template-columns:minmax(0,1fr) 370px;grid-template-rows:minmax(0,1fr) 300px;height:calc(100vh - 52px)}
+#graphPane{grid-column:1;grid-row:1;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 40%,#11151d 0,#0a0c10 70%)}
+#graphPane:before{content:"";position:absolute;inset:0;background-image:radial-gradient(#1a1f29 1px,transparent 1px);background-size:22px 22px;opacity:.6;pointer-events:none}
+#graph{position:absolute;inset:58px 0 26px 0;width:100%;height:calc(100% - 84px)}
+.chips{position:absolute;top:12px;left:14px;display:flex;gap:8px;z-index:2;flex-wrap:wrap;right:330px}
+.chip{background:rgba(21,26,35,.9);border:1px solid var(--line);border-radius:8px;padding:5px 10px;display:flex;flex-direction:column;min-width:74px}
+.chip span{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em}
+.chip b{font-weight:600;font-size:14px;font-family:'JetBrains Mono',monospace}
+.chip.bad b{color:var(--err)}
+.gctl{position:absolute;top:12px;right:14px;z-index:2;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.seg{display:flex;background:#0c0f14;border:1px solid var(--line);border-radius:8px;padding:2px}
+.seg button{background:none;border:0;padding:4px 9px;border-radius:6px;cursor:pointer;color:var(--muted);font-size:12px}
+.seg button.on{background:#1f2533;color:var(--text)}
+.legend{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:11px}
+.legend i{width:90px;height:6px;border-radius:3px;background:linear-gradient(90deg,#34405a,#f2b350,#ff6470)}
+.hint{position:absolute;bottom:8px;left:14px;color:var(--dim);font-size:11.5px}
+/* graph */
+.node{cursor:pointer;transition:opacity .25s}
+.node .bg{fill:#151a23;stroke:#34405a;stroke-width:1.5;transition:stroke-width .15s}
+.node .nm{fill:var(--text);font:600 12.5px Inter,sans-serif}
+.node .st{fill:var(--muted);font:10.5px 'JetBrains Mono',monospace}
+.node .dot{fill:var(--agent)}
+.node.tool .dot{fill:var(--tool)}
+.node.future{opacity:.25}
+.node.waiting .dot{animation:blink 1.1s infinite}
+.node.active .bg{stroke-width:3;filter:url(#glow)}
+.node.active .dot{fill:#fff}
+.node.err .bg{stroke:var(--err)!important}
+.node.sel .bg{stroke:#fff!important;stroke-width:2.5}
+.node:hover .bg{stroke-width:2.5}
+.badge circle{fill:var(--err)}
+.badge text{fill:#fff;font:700 10px Inter,sans-serif;text-anchor:middle}
+.edge path{fill:none;stroke:#2b3343;stroke-width:1.6;transition:opacity .25s}
+.edge text{fill:var(--dim);font:10px 'JetBrains Mono',monospace}
+.edge.future{opacity:.2}
+.edge.active path{stroke:var(--agent);stroke-width:2.4;stroke-dasharray:7 5;animation:flow .45s linear infinite}
+.edge.tool.active path{stroke:var(--tool)}
+.edge.erract path{stroke:var(--err)}
+.edge.hl path{stroke:#8d98b0}
+@keyframes flow{to{stroke-dashoffset:-12}}
+@keyframes blink{50%{opacity:.25}}
+/* timeline */
+#timeline{grid-column:1;grid-row:2;border-top:1px solid var(--line);display:flex;flex-direction:column;background:var(--panel);min-height:0}
+.tlbar{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line)}
+#play{width:34px;padding:5px 0;text-align:center}
+#scrub{flex:1;accent-color:var(--agent);min-width:120px}
+#clock{color:var(--muted);font-size:12px;min-width:112px}
+.chk{display:flex;align-items:center;gap:5px;color:var(--muted);white-space:nowrap;cursor:pointer}
+.lg{display:flex;align-items:center;gap:5px;color:var(--muted);font-size:11px;white-space:nowrap}
+.lg i{display:inline-block;width:12px;height:8px;border-radius:2px;margin-left:6px}
+#wf{flex:1;overflow:auto;min-height:0}
+#wfin{position:relative;min-height:100%}
+.row{display:flex;height:20px;align-items:center;cursor:pointer}
+.row:hover{background:#151a23}
+.row.sel{background:#1b2232}
+.row.hl{background:#191f2c}
+.row.hl .lbl{color:var(--text)}
+.lbl{width:var(--lw);flex:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:11px 'JetBrains Mono',monospace;color:#aab2c2;padding-right:8px;border-right:1px solid var(--line)}
+.lbl .k{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.track{position:relative;flex:1;height:100%}
+.bar{position:absolute;top:5px;height:10px;border-radius:3px;min-width:2px}
+.bt{position:absolute;top:3px;font:9.5px 'JetBrains Mono',monospace;color:var(--dim);white-space:nowrap;pointer-events:none}
+.b-agent{background:rgba(122,162,255,.22);border:1px solid rgba(122,162,255,.55)}
+.b-llm{background:var(--llm)}
+.b-tool{background:var(--tool)}
+.b-wait{background:repeating-linear-gradient(135deg,#6b7385 0 3px,#3a404c 3px 6px)}
+.b-error{background:var(--err)}
+.bar.oncp{box-shadow:0 0 0 1.5px var(--warn)}
+.oncp-l{border:1.5px solid var(--warn);background:transparent!important}
+.k-agent{background:var(--agent)}.k-llm{background:var(--llm)}.k-tool{background:var(--tool)}.k-wait{background:var(--wait)}.k-error{background:var(--err)}
+.row.cp .lbl:after{content:"";}
+.axis{position:sticky;top:0;z-index:3;display:flex;height:20px;background:var(--panel);border-bottom:1px solid var(--line)}
+.axis .track span{position:absolute;top:3px;font:10px 'JetBrains Mono',monospace;color:var(--dim);transform:translateX(-50%)}
+.axis .track span:before{content:"";position:absolute;left:50%;top:14px;height:4px;border-left:1px solid var(--line2)}
+#ph{position:absolute;top:0;bottom:0;width:0;border-left:1.5px solid #fff;pointer-events:none;z-index:4;box-shadow:0 0 8px rgba(255,255,255,.5)}
+#ph:before{content:"";position:absolute;top:0;left:-5px;border:4.5px solid transparent;border-top:6px solid #fff}
+/* inspector */
+#inspector{grid-column:2;grid-row:1/3;border-left:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;min-height:0}
+.itabs{display:flex;border-bottom:1px solid var(--line);padding:0 8px}
+.itabs button{background:none;border:0;border-bottom:2px solid transparent;padding:11px 10px 9px;cursor:pointer;color:var(--muted);font-weight:500}
+.itabs button.on{color:var(--text);border-bottom-color:var(--agent)}
+#ibody{flex:1;overflow:auto;padding:14px}
+.ins{border:1px solid var(--line);border-left:3px solid var(--dim);border-radius:8px;padding:10px 12px;margin-bottom:10px;cursor:pointer;background:var(--panel2)}
+.ins:hover{border-color:#36405a}
+.ins.on{background:#1a2131;border-color:#3d4a68}
+.ins.high{border-left-color:var(--err)}.ins.med{border-left-color:var(--warn)}.ins.low{border-left-color:var(--agent)}
+.ins .tt{font-weight:600;margin-bottom:3px}
+.ins .bd{color:var(--muted);font-size:12.5px}
+.ins .tg{display:inline-block;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px}
+.sect{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:4px 0 10px}
+.feed .ev{display:grid;grid-template-columns:56px 1fr;gap:8px;padding:7px 8px;border-radius:7px;cursor:pointer;border-left:2px solid transparent;margin-bottom:2px;transition:opacity .2s}
+.feed .ev:hover{background:#171c26}
+.feed .ev.future{opacity:.3}
+.feed .ev.now{background:#1b2232;border-left-color:#fff}
+.feed .ev.k-error .what{color:var(--err)}
+.feed .ev.k-wait .what{color:var(--warn)}
+.feed .tm{color:var(--dim);font-size:11px;padding-top:1px}
+.feed .who{font-weight:600;font-size:12px}
+.feed .what{color:#b6bdcb;font-size:12.5px}
+.muted{color:var(--muted);font-weight:400}
+.pill{display:inline-block;font-size:10.5px;padding:2px 7px;border-radius:10px;margin-right:5px;color:#0a0c10;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.pill.err{background:var(--err)}.pill.cp{background:var(--warn)}
+h3{margin:8px 0 2px;font-size:16px}
+.sub{color:var(--muted);margin-bottom:12px}
+.sub a,a.lnk{color:var(--agent);cursor:pointer;text-decoration:none}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:5px 10px;margin:0 0 14px}
+.kv dt{color:var(--muted)}.kv dd{margin:0;font-family:'JetBrains Mono',monospace;font-size:12px}
+.blk{background:#0c0f14;border:1px solid var(--line);border-radius:8px;padding:9px 11px;margin-bottom:10px}
+.blk .bl{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px}
+.blk.err{border-color:#5a2a31}
+.blk pre{margin:0;white-space:pre-wrap;font:11.5px 'JetBrains Mono',monospace;color:#c3c9d6}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+.stat span{display:block;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.stat b{font-family:'JetBrains Mono',monospace;font-size:13.5px;font-weight:500}
+.slist .it{display:grid;grid-template-columns:8px 1fr auto auto;gap:8px;align-items:center;padding:5px 6px;border-radius:6px;cursor:pointer;font-size:12px}
+.slist .it:hover{background:#171c26}
+.slist .it i{width:7px;height:7px;border-radius:50%}
+.slist .it .v{font-family:'JetBrains Mono',monospace;color:var(--muted);font-size:11px}
+.empty{color:var(--muted);padding:20px 4px}
+/* compare */
+#compare{display:none;height:calc(100vh - 52px);overflow:auto;padding:22px 28px 60px}
+.cmphead{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.cmphead h2{margin:0;font-size:18px;margin-right:10px}
+.vs{color:var(--dim);font-weight:600}
+.tagA,.tagB{display:inline-block;width:18px;height:18px;border-radius:5px;text-align:center;font:700 11px/18px Inter;color:#0a0c10}
+.tagA{background:#8b96ad}.tagB{background:var(--agent)}
+.cards{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-bottom:24px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.card .l{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.07em}
+.card .ab{display:flex;align-items:baseline;gap:8px;margin:6px 0 2px;font-family:'JetBrains Mono',monospace}
+.card .ab .a{color:var(--muted);font-size:13px}
+.card .ab .b{font-size:19px;font-weight:500}
+.dl{font-size:12px;font-weight:600;font-family:'JetBrains Mono',monospace}
+.dl.good{color:var(--good)}.dl.bad{color:var(--err)}.dl.flat{color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:22px}
+.panel h4{margin:0 0 4px;font-size:14px}
+.panel .ds{color:var(--muted);margin:0 0 12px;font-size:12.5px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;color:var(--muted);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:6px 8px;border-bottom:1px solid #191e28;font-size:12.5px}
+td.n{font-family:'JetBrains Mono',monospace;font-size:12px;text-align:right}
+th.n{text-align:right}
+.pb{width:220px}
+.pb div{height:6px;border-radius:3px;margin:2px 0}
+.pb .pa{background:#8b96ad}.pb .pbb{background:var(--agent)}
+.dv{display:grid;grid-template-columns:40px 1fr 1fr;gap:0;font-size:12.5px}
+.dv>div{padding:6px 10px;border-bottom:1px solid #191e28}
+.dv .h{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.dv .x{background:rgba(242,179,80,.09)}
+.dv .ix{color:var(--dim);font-family:'JetBrains Mono',monospace;font-size:11px}
+.dv .e{color:var(--err)}
+.callout{border-left:3px solid var(--warn);padding:8px 12px;background:#15130d;border-radius:6px;margin-bottom:12px;color:#e6d6b5}
+/* modal & toast */
+.modal{position:fixed;inset:0;background:rgba(5,6,9,.7);display:flex;align-items:center;justify-content:center;z-index:20}
+.modal.hidden{display:none}
+.mbox{width:min(620px,92vw);background:var(--panel);border:1px solid var(--line2);border-radius:12px;padding:20px 22px}
+.mbox h3{margin:0 0 6px}
+.mbox p,.mbox li{color:var(--muted);font-size:12.5px}
+.mbox ul{margin:6px 0 12px;padding-left:18px}
+.mbox code{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#c3c9d6;background:#0c0f14;padding:1px 4px;border-radius:4px}
+.drop{border:1.5px dashed var(--line2);border-radius:10px;padding:18px;text-align:center;color:var(--muted);margin-bottom:10px}
+.drop.over{border-color:var(--agent);background:#121a2b}
+textarea{width:100%;height:110px;background:#0c0f14;border:1px solid var(--line2);border-radius:8px;padding:8px;font:11.5px 'JetBrains Mono',monospace;resize:vertical}
+.mrow{display:flex;gap:8px;margin-top:12px;align-items:center}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(20px);background:#1d2330;border:1px solid var(--line2);border-radius:8px;padding:9px 14px;opacity:0;transition:.25s;z-index:30;pointer-events:none;max-width:80vw}
+#toast.show{opacity:1;transform:translateX(-50%)}
+#toast.bad{border-color:#6b2b33;color:#ffb3b9}
+#dropAll{position:fixed;inset:0;background:rgba(18,26,43,.75);border:2px dashed var(--agent);display:none;align-items:center;justify-content:center;font-size:18px;z-index:25;pointer-events:none}
+@media (max-width:1100px){#replay{grid-template-columns:minmax(0,1fr) 310px}.cards{grid-template-columns:repeat(3,1fr)}.lg{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="5" cy="12" r="3" fill="#7aa2ff"/><circle cx="19" cy="5" r="2.6" fill="#3fd0c0"/><circle cx="19" cy="19" r="2.6" fill="#b892ff"/><path d="M8 11 16.5 6M8 13l8.5 5" stroke="#4d5567" stroke-width="1.6"/></svg>
+    <b>AgentGraph</b><small>prototype</small>
+  </div>
+  <nav class="tabs" id="viewTabs"><button data-v="replay" class="on">Replay</button><button data-v="compare">Compare runs</button></nav>
+  <div class="sp"></div>
+  <label class="fld" id="runFld">Run <select id="runSel"></select></label>
+  <button class="btn primary" id="importBtn">Import traces</button>
+  <input type="file" id="file" accept=".json,application/json" multiple hidden>
+</header>
+
+<main id="replay">
+  <section id="graphPane">
+    <div class="chips" id="chips"></div>
+    <div class="gctl">
+      <div class="seg" id="heatSeg"><button data-h="latency" class="on">Latency</button><button data-h="cost">Cost</button><button data-h="errors">Errors</button><button data-h="cp">Critical path</button></div>
+      <div class="legend"><span>low</span><i></i><span>high</span></div>
+    </div>
+    <svg id="graph" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="hint">Click an agent or tool to inspect it · edges show delegations and tool calls · drop trace JSON anywhere to import</div>
+  </section>
+
+  <section id="timeline">
+    <div class="tlbar">
+      <button class="btn" id="play" title="Play / pause (space)">▶</button>
+      <select id="speed"><option value="1">1×</option><option value="2">2×</option><option value="4" selected>4×</option><option value="8">8×</option></select>
+      <input type="range" id="scrub" min="0" max="1000" value="0">
+      <span id="clock" class="mono"></span>
+      <label class="chk"><input type="checkbox" id="cpOnly"> Critical path only</label>
+      <div class="lg"><i class="b-agent"></i>agent<i class="b-llm"></i>LLM<i class="b-tool"></i>tool<i class="b-wait"></i>backoff<i class="b-error"></i>error<i class="oncp-l"></i>critical path</div>
+    </div>
+    <div id="wf"><div id="wfin"></div></div>
+  </section>
+
+  <aside id="inspector">
+    <div class="itabs" id="itabs"><button data-t="insights" class="on">Bottlenecks</button><button data-t="decisions">Decision log</button><button data-t="details">Details</button></div>
+    <div id="ibody"></div>
+  </aside>
+</main>
+
+<main id="compare"></main>
+
+<div class="modal hidden" id="modal">
+  <div class="mbox">
+    <h3>Import agent execution traces</h3>
+    <p>AgentGraph reads any of these JSON shapes:</p>
+    <ul>
+      <li>AgentGraph runs: <code>{"runs":[{"name","spans":[…]}]}</code> or a single <code>{"spans":[…]}</code></li>
+      <li>Spans: <code>id, parent_id, agent, kind (agent|llm|tool|wait), start, end, model, tokens_in, tokens_out, cost, status, decision</code>; times can be seconds, ms, ns or ISO strings</li>
+      <li>OpenTelemetry OTLP/JSON (<code>resourceSpans</code>) with GenAI semantic conventions. Each <code>traceId</code> becomes a run</li>
+    </ul>
+    <div class="drop" id="drop">Drop .json files here, or <button class="btn" id="chooseBtn">choose files</button></div>
+    <textarea id="paste" placeholder="…or paste trace JSON here"></textarea>
+    <div class="mrow">
+      <button class="btn ghost" id="copySample">Copy sample run JSON</button>
+      <span class="sp"></span>
+      <button class="btn ghost" id="mClose">Close</button>
+      <button class="btn primary" id="pasteGo">Import pasted JSON</button>
+    </div>
+  </div>
+</div>
+<div id="dropAll">Drop trace JSON to import</div>
+<div id="toast"></div>
+
+<script>
+/* ---------- utils ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fs=v=>v<1?Math.round(v*1000)+'ms':v<60?v.toFixed(1)+'s':Math.floor(v/60)+'m '+Math.round(v%60)+'s';
+const f$=v=>v>=1?'$'+v.toFixed(2):v>=0.01?'$'+v.toFixed(3):'$'+v.toFixed(4);
+const fk=v=>v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?(v/1e3).toFixed(1)+'k':String(Math.round(v));
+const trunc=(s,n)=>s.length>n?s.slice(0,n-1)+'…':s;
+function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+let toastT;
+function toast(msg,bad){const t=$('#toast');t.textContent=msg;t.className='show'+(bad?' bad':'');clearTimeout(toastT);toastT=setTimeout(()=>t.className='',3200);}
+
+/* ---------- pricing ($ per 1M tokens in/out, tokens/sec) ---------- */
+const PRICE={'claude-haiku':[0.8,4,240],'claude-sonnet':[3,15,120],'gpt-4.1':[2,8,110],'claude-opus':[15,75,60]};
+function priceFor(m){m=String(m).toLowerCase();if(m.includes('haiku'))return PRICE['claude-haiku'];if(m.includes('sonnet'))return PRICE['claude-sonnet'];if(m.includes('opus'))return PRICE['claude-opus'];if(m.includes('gpt-4.1'))return PRICE['gpt-4.1'];if(m.includes('gpt-4o'))return[2.5,10];return null;}
+
+/* ---------- synthetic trace generator ---------- */
+const REASONS=['missing citations for revenue figures','competitor table contradicts the Financials brief','regulatory risk section is too thin'];
+const FIXES=['add sourced citations','reconcile competitor figures','expand regulatory risks'];
+function genRun(cfg){
+  const R=rng(cfg.seed),r=(a,b)=>a+(b-a)*R(),ri=(a,b)=>Math.floor(r(a,b+1));
+  const spans=[];let n=0;
+  const add=o=>{o.id=cfg.id+'.'+String(++n).padStart(3,'0');o.status=o.status||'ok';spans.push(o);return o;};
+  const agent=(p,name,start,decision)=>add({parent_id:p?p.id:null,agent:name,kind:'agent',name:'invoke '+name,start,end:start,decision});
+  const llm=(p,model,start,tin,tout,decision,io={})=>{const[pi,po,tps]=PRICE[model];tin=Math.round(tin);tout=Math.round(tout);
+    return add({parent_id:p.id,agent:p.agent,kind:'llm',name:model,model,start,end:start+0.3+r(0,.35)+tout/tps,tokens_in:tin,tokens_out:tout,cost:(tin*pi+tout*po)/1e6,decision,input:io.input||`system prompt + ${fk(tin)} tokens of context`,output:io.output||decision});};
+  const tool=(p,name,start,dur,o={})=>add(Object.assign({parent_id:p.id,agent:name,kind:'tool',name,start,end:start+dur},o));
+  const wait=(p,start,dur,why)=>add({parent_id:p.id,agent:p.agent,kind:'wait',name:'retry backoff',start,end:start+dur,decision:why});
+  const close=s=>{let e=s.start;for(const c of spans)if(c.parent_id===s.id&&c.end>e)e=c.end;s.end=e+0.02;return s.end;};
+  const S=cfg.subject;
+  const root=agent(null,'Orchestrator',0,`Received request: “${cfg.task}”`);
+  let t=llm(root,'claude-sonnet',0.04,2400,320,'Plan: research → analyze → draft → review. Delegate research to Planner.',{input:cfg.task}).end;
+  const planner=agent(root,'Planner',t+0.03,'Accepted research delegation from Orchestrator');
+  t=llm(planner,'claude-sonnet',planner.start+0.02,3100,520,`Split research into ${cfg.topics.length} parallel tracks: ${cfg.topics.join(', ')}`).end;
+  for(const topic of cfg.topics){
+    const a=agent(planner,'Researcher·'+topic,t+0.04+r(0,.25),`Research ${topic.toLowerCase()} for ${S}`);
+    let u=llm(a,'claude-haiku',a.start+0.02,900,140,`Generate ${ri(2,5)} search queries`).end;
+    const q=`"${S} ${topic.toLowerCase()} 2026"`;let k=0;
+    while(k<4&&R()<cfg.errorRate){
+      const e=tool(a,'web_search',u,r(.15,.45),{status:'error',error:'429 Too Many Requests',input:'q='+q,decision:'web_search failed: 429 rate limited'});
+      const b=1.0*Math.pow(2,k)*r(.85,1.25);u=wait(a,e.end,b,`Backoff ${b.toFixed(1)}s, then retry #${k+1}`).end;k++;
+    }
+    u=tool(a,'web_search',u,r(1,3.2),{input:'q='+q,output:`${ri(8,20)} results`,decision:`Fetched ${ri(8,20)} sources`}).end;
+    const hit=cfg.cache&&R()>.15;
+    u=tool(a,'vector_store',u,hit?r(.06,.18):r(.9,1.9),{decision:hit?'Embedding cache hit: reuse index':`Cache miss: embed & index ${ri(40,110)} chunks`}).end;
+    llm(a,'claude-sonnet',u,r(7000,15000),r(450,800),`Brief: ${topic.toLowerCase()} findings (confidence ${(0.62+R()*.33).toFixed(2)})`);
+    close(a);
+  }
+  t=close(planner);
+  const an=agent(root,'Analyst',t+0.03,`Reconcile ${cfg.topics.length} research briefs into a valuation model`);
+  let u=tool(an,'sql_db',an.start+0.02,r(.6,1.5),{input:'SELECT * FROM filings WHERE company = $1',output:`${ri(120,900)} rows`,decision:'Pulled historical filings'}).end;
+  if(R()<cfg.errorRate*0.9){
+    u=tool(an,'code_exec',u,r(.4,.9),{status:'error',error:"KeyError: 'revenue_2025'",decision:"code_exec failed: KeyError 'revenue_2025'"}).end;
+    u=llm(an,'claude-haiku',u,2200,260,'Patch script: map revenue_FY25 → revenue_2025').end;
+  }
+  u=tool(an,'code_exec',u,r(.8,1.8),{output:'DCF + comps table',decision:'Ran valuation script'}).end;
+  llm(an,'gpt-4.1',u,r(18000,26000),r(700,1000),`Valuation range $${ri(380,520)}M–$${ri(560,740)}M; flag ${ri(2,4)} key risks`);
+  t=close(an);
+  const w=agent(root,'Writer',t+0.03,'Draft investment memo');
+  llm(w,'claude-sonnet',w.start+0.02,r(9000,12000),r(1500,2000),`Draft v1 (${ri(1100,1600)} words)`);
+  t=close(w);
+  for(let i=0;i<=cfg.revisions;i++){
+    const c=agent(root,'Critic',t+0.03,`Review draft v${i+1}`);
+    const rej=i<cfg.revisions;
+    const ce=llm(c,cfg.criticModel,c.start+0.02,r(6000,9000),r(220,380),rej?`Reject: ${REASONS[i%3]}`:`Approve draft v${i+1}`).end;
+    if(rej){const w2=agent(c,'Writer',ce+0.03,`Revise to v${i+2}`);llm(w2,'claude-sonnet',w2.start+0.02,r(11000,14000),r(900,1500),`Revision v${i+2}: ${FIXES[i%3]}`);close(w2);}
+    t=close(c);
+  }
+  llm(root,'claude-haiku',t+0.03,4000,200,'Deliver final memo to requester');
+  close(root);
+  return{id:cfg.id,name:cfg.name,spans};
+}
+const BASE={task:'Prepare an investment memo on Northwind Robotics',subject:'Northwind Robotics',topics:['Market','Competitors','Financials','Regulatory']};
+const SAMPLE_CFG=[
+  {...BASE,id:'run-0412',name:'run-0412 · baseline',seed:7,errorRate:.38,cache:false,revisions:2,criticModel:'claude-opus'},
+  {...BASE,id:'run-0413',name:'run-0413 · cache + haiku critic',seed:7,errorRate:.08,cache:true,revisions:1,criticModel:'claude-haiku'},
+  {...BASE,id:'run-0414',name:'run-0414 · regression (5 tracks)',seed:23,errorRate:.55,cache:true,revisions:3,criticModel:'claude-opus',topics:[...BASE.topics,'Supply chain']},
+];
+
+/* ---------- analysis ---------- */
+function prep(run){
+  const S=run.spans,by=new Map();
+  S.forEach(s=>{s.children=[];by.set(s.id,s);});
+  const roots=[];
+  S.forEach(s=>{const p=s.parent_id!=null&&s.parent_id!==s.id&&by.get(s.parent_id);if(p){s.parent=p;p.children.push(s);}else{s.parent=null;roots.push(s);}});
+  const t0=Math.min(...S.map(s=>s.start));
+  S.forEach(s=>{s.start-=t0;s.end-=t0;if(s.end<s.start)s.end=s.start;s.dur=s.end-s.start;s.children.sort((a,b)=>a.start-b.start);});
+  roots.sort((a,b)=>a.start-b.start);
+  run.byId=by;run.roots=roots;
+  run.duration=Math.max(...S.map(s=>s.end))||1;
+  run.order=[];
+  const walk=(s,d)=>{s.depth=d;run.order.push(s);s.children.forEach(c=>walk(c,d+1));};
+  roots.forEach(r=>walk(r,0));
+  // critical path
+  const cp=s=>{s.cp=true;let t=s.end+1e-9;const ch=[...s.children].sort((a,b)=>b.end-a.end);for(const c of ch){if(c.end<=t){cp(c);t=c.start+1e-9;}}};
+  run.rootSpan=roots.reduce((a,b)=>b.end>a.end?b:a);
+  cp(run.rootSpan);
+  // agents & edges
+  const agents=new Map(),cpOwners=new Map(),edges=new Map();
+  const getA=n=>{if(!agents.has(n))agents.set(n,{name:n,isTool:false,spans:[],calls:0,llm:0,busy:0,cost:0,tokens:0,errors:0,cp:0,first:Infinity});return agents.get(n);};
+  for(const s of S){
+    const A=getA(s.agent);A.spans.push(s);A.first=Math.min(A.first,s.start);
+    if(s.kind==='tool')A.isTool=true;
+    if(s.kind!=='agent'){A.busy+=s.dur;A.calls++;}
+    if(s.kind==='llm')A.llm++;
+    A.cost+=s.cost||0;A.tokens+=(s.tokens_in||0)+(s.tokens_out||0);
+    if(s.status==='error')A.errors++;
+    if(s.cp&&!s.children.length){
+      A.cp+=s.dur;
+      const own=s.kind==='tool'&&s.parent?s.parent.agent:s.agent;
+      if(!cpOwners.has(own))cpOwners.set(own,{t:0,by:{},spans:[]});
+      const o=cpOwners.get(own);o.t+=s.dur;o.by[s.name]=(o.by[s.name]||0)+s.dur;o.spans.push(s.id);
+    }
+    if(s.parent&&s.parent.agent!==s.agent){
+      const k=s.parent.agent+'→'+s.agent;
+      if(!edges.has(k))edges.set(k,{from:s.parent.agent,to:s.agent,count:0,spans:[],first:Infinity});
+      const e=edges.get(k);e.count++;e.spans.push(s);e.first=Math.min(e.first,s.start);
+    }
+  }
+  run.agents=agents;run.edges=[...edges.values()];run.cpOwners=cpOwners;
+  run.totals={cost:0,tokens:0,llm:0,tool:0,errors:0};
+  S.forEach(s=>{run.totals.cost+=s.cost||0;run.totals.tokens+=(s.tokens_in||0)+(s.tokens_out||0);if(s.kind==='llm')run.totals.llm++;if(s.kind==='tool')run.totals.tool++;if(s.status==='error')run.totals.errors++;});
+  S.forEach(s=>{if(!s.decision&&s.status==='error')s.decision=`${s.kind==='tool'?s.agent:s.name} failed${s.error?': '+s.error:''}`;});
+  run.decisions=run.order.filter(s=>s.decision).slice().sort((a,b)=>a.start-b.start);
+  run.insights=buildInsights(run);
+  return run;
+}
+function subtreeCost(s){return(s.cost||0)+s.children.reduce((a,c)=>a+subtreeCost(c),0);}
+function buildInsights(run){
+  const out=[],D=run.duration;
+  [...run.cpOwners.entries()].sort((a,b)=>b[1].t-a[1].t).slice(0,2).forEach(([name,o])=>{
+    const share=o.t/D;
+    const parts=Object.entries(o.by).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,v])=>`${k} ${fs(v)}`).join(' · ');
+    out.push({sev:share>.25?'high':'med',tag:'latency',title:`${name} holds ${fs(o.t)} of the critical path`,body:`${Math.round(share*100)}% of wall-clock time. Breakdown: ${parts}.`,spans:o.spans});
+  });
+  run.spans.forEach(s=>{
+    const kids=s.children.filter(c=>c.kind==='agent');if(kids.length<2)return;
+    const par=kids.filter(c=>kids.some(o=>o!==c&&o.start<c.end&&c.start<o.end));if(par.length<2)return;
+    const slow=par.reduce((a,b)=>a.end>b.end?a:b),fast=par.reduce((a,b)=>a.end<b.end?a:b);
+    const slack=slow.end-fast.end;if(slack<1)return;
+    out.push({sev:slack>D*.12?'high':'med',tag:'fan-out',title:`Fan-out imbalance under ${s.agent}`,body:`${par.length} parallel workers. ${fast.agent} finished ${fs(slack)} before ${slow.agent}, and everything downstream waits on the slowest branch.`,spans:[slow.id,fast.id]});
+  });
+  const errs=run.spans.filter(s=>s.status==='error'),waits=run.spans.filter(s=>s.kind==='wait');
+  if(errs.length){
+    const all=[...errs,...waits],lost=all.reduce((a,s)=>a+s.dur,0),onCp=all.filter(s=>s.cp).reduce((a,s)=>a+s.dur,0);
+    const g={};errs.forEach(s=>{const k=`${s.name} (${s.error||'error'})`;g[k]=(g[k]||0)+1;});
+    out.push({sev:onCp>D*.1?'high':'med',tag:'errors',title:`${errs.length} failed call${errs.length>1?'s':''}: ${fs(lost)} spent on failures and retries`,body:Object.entries(g).map(([k,v])=>`${v}× ${k}`).join('; ')+`. ${fs(onCp)} of it sits on the critical path.`,spans:all.map(s=>s.id)});
+  }
+  const ag=[...run.agents.values()].filter(a=>a.cost>0).sort((a,b)=>b.cost-a.cost);
+  if(ag.length&&run.totals.cost>0){
+    const a=ag[0],share=a.cost/run.totals.cost,m={};
+    a.spans.filter(s=>s.kind==='llm').forEach(s=>{const k=s.model||s.name;m[k]=(m[k]||0)+1;});
+    out.push({sev:share>.35?'high':'med',tag:'cost',title:`${a.name} drives ${Math.round(share*100)}% of spend`,body:`${f$(a.cost)} of ${f$(run.totals.cost)} across ${a.llm} LLM call${a.llm!==1?'s':''} (${Object.entries(m).map(([k,c])=>`${c}× ${k}`).join(', ')}).`,spans:a.spans.filter(s=>s.kind==='llm').map(s=>s.id)});
+  }
+  const rej=run.spans.filter(s=>/^reject/i.test(s.decision||''));
+  if(rej.length){
+    const loops=rej.map(s=>s.parent).filter(Boolean),t=loops.reduce((a,s)=>a+s.dur,0),c=loops.reduce((a,s)=>a+subtreeCost(s),0);
+    out.push({sev:rej.length>=2?'high':'med',tag:'loop',title:`${rej.length} review rejection${rej.length>1?'s':''}: Critic ⇄ Writer loop`,body:`Revision loops added ${fs(t)} and ${f$(c)}. Reasons: ${rej.map(s=>s.decision.replace(/^reject:\s*/i,'')).join('; ')}.`,spans:rej.map(s=>s.id)});
+  }
+  const miss=run.spans.filter(s=>/cache miss/i.test(s.decision||''));
+  if(miss.length){const t=miss.reduce((a,s)=>a+s.dur,0);out.push({sev:'low',tag:'cache',title:`${miss.length} embedding cache miss${miss.length>1?'es':''}`,body:`Re-embedding took ${fs(t)} of tool time. Sharing the embedding cache across runs would remove most of it.`,spans:miss.map(s=>s.id)});}
+  const rank={high:0,med:1,low:2};
+  return out.sort((a,b)=>rank[a.sev]-rank[b.sev]);
+}
+
+/* ---------- import ---------- */
+function attrsOf(s){const a={};if(Array.isArray(s.attributes))s.attributes.forEach(kv=>{const v=kv.value||{};a[kv.key]=v.stringValue??v.intValue??v.doubleValue??v.boolValue;});else if(s.attributes&&typeof s.attributes==='object')Object.assign(a,s.attributes);return a;}
+function toSec(v){if(v==null||v==='')return NaN;if(typeof v==='string'){if(/^\d+(\.\d+)?$/.test(v))v=+v;else return Date.parse(v)/1000;}if(v>1e17)return v/1e9;if(v>1e14)return v/1e6;if(v>1e11)return v/1e3;return+v;}
+function normSpan(s,i){
+  const a=attrsOf(s),op=a['gen_ai.operation.name'];
+  const start=toSec(s.start??s.start_time??s.startTime??s.startTimeUnixNano),end=toSec(s.end??s.end_time??s.endTime??s.endTimeUnixNano);
+  if(!isFinite(start)||!isFinite(end))return null;
+  let kind=s.kind;
+  if(!['agent','llm','tool','wait'].includes(kind))kind=(op==='execute_tool'||a['gen_ai.tool.name'])?'tool':(op==='invoke_agent'||op==='create_agent')?'agent':(op||a['gen_ai.request.model']||s.model)?'llm':'agent';
+  const model=s.model||a['gen_ai.request.model']||a['gen_ai.response.model'];
+  const tin=+(s.tokens_in??a['gen_ai.usage.input_tokens']??0)||0,tout=+(s.tokens_out??a['gen_ai.usage.output_tokens']??0)||0;
+  let agent=s.agent||s.agent_name||a['agent.name']||a['gen_ai.agent.name'];
+  if(kind==='tool')agent=s.tool||a['gen_ai.tool.name']||agent||s.name;
+  const inferred=!agent;
+  agent=agent||s.service||s.name||'unknown';
+  let cost=s.cost??a['gen_ai.usage.cost']??a['llm.cost'];
+  if(cost==null){const p=model&&priceFor(model);cost=p?(tin*p[0]+tout*p[1])/1e6:0;}
+  const st=s.status,err=st==='error'||st==='ERROR'||(st&&typeof st==='object'&&(st.code===2||st.code==='STATUS_CODE_ERROR'))||!!s.error;
+  return{id:String(s.id??s.span_id??s.spanId??('span'+i)),parent_id:(s.parent_id??s.parentSpanId??s.parent_span_id)||null,agent:String(agent),_inf:inferred,kind,name:String(s.name||model||agent),model,start,end,tokens_in:tin,tokens_out:tout,cost:+cost||0,status:err?'error':'ok',error:s.error||(st&&st.message)||undefined,decision:s.decision||a['agent.decision']||undefined,input:typeof s.input==='string'?s.input:s.input?JSON.stringify(s.input):undefined,output:typeof s.output==='string'?s.output:s.output?JSON.stringify(s.output):undefined};
+}
+function fromOTLP(o){const byT=new Map();o.resourceSpans.forEach(rs=>{const svc=attrsOf(rs.resource||{})['service.name'];(rs.scopeSpans||rs.instrumentationLibrarySpans||[]).forEach(ss=>(ss.spans||[]).forEach(sp=>{const k=sp.traceId||'trace';if(!byT.has(k))byT.set(k,[]);byT.get(k).push({...sp,service:svc});}));});return[...byT.entries()].map(([k,spans])=>({id:'trace-'+String(k).slice(0,8),spans}));}
+function normalizeImport(obj,fname){
+  let raw;
+  if(obj&&obj.resourceSpans)raw=fromOTLP(obj);
+  else if(Array.isArray(obj))raw=obj.length&&obj[0]&&Array.isArray(obj[0].spans)?obj:[{spans:obj}];
+  else if(obj&&Array.isArray(obj.runs))raw=obj.runs;
+  else if(obj&&Array.isArray(obj.spans))raw=[obj];
+  else throw new Error('expected {spans:[…]}, {runs:[…]}, an array of spans, or OTLP JSON');
+  return raw.map((r,i)=>{
+    const spans=r.spans.map(normSpan).filter(Boolean);
+    if(!spans.length)throw new Error('no spans with start/end times');
+    const by=new Map(spans.map(s=>[s.id,s]));
+    spans.slice().sort((a,b)=>a.start-b.start).forEach(s=>{const p=by.get(s.parent_id);if(s._inf&&s.kind!=='agent'&&s.kind!=='tool'&&p)s.agent=p.agent;delete s._inf;});
+    const base=fname.replace(/\.json$/i,'');
+    const id=r.id||r.run_id||(base+(raw.length>1?'#'+(i+1):''));
+    return{id,name:r.name||id,spans,imported:true};
+  });
+}
+async function importFiles(files){
+  const added=[];
+  for(const f of files){try{const rs=normalizeImport(JSON.parse(await f.text()),f.name);rs.forEach(r=>{prep(r);runs.push(r);added.push(r);});}catch(e){toast(`Couldn't import ${f.name}: ${e.message}`,true);}}
+  finishImport(added);
+}
+function finishImport(added){
+  if(!added.length)return;
+  fillSelects();closeModal();
+  if(view!=='replay')setView('replay');
+  setRun(runs.indexOf(added[0]));
+  toast(`Imported ${added.length} run${added.length>1?'s':''} · ${added.reduce((a,r)=>a+r.spans.length,0)} spans`);
+}
+function sampleJSON(){
+  const r=runs[0];
+  return JSON.stringify({runs:[{id:r.id,name:r.name,spans:r.spans.map(s=>{const o={id:s.id,parent_id:s.parent_id,agent:s.agent,kind:s.kind,name:s.name,start:+s.start.toFixed(3),end:+s.end.toFixed(3),status:s.status};
+    ['model','tokens_in','tokens_out','error','decision'].forEach(k=>{if(s[k]!=null)o[k]=s[k];});if(s.cost)o.cost=+s.cost.toFixed(6);return o;})}]},null,1);
+}
+
+/* ---------- state ---------- */
+let runs=SAMPLE_CFG.map(c=>prep(genRun(c)));
+let cur,ri=0,t=0,playing=false,speed=4,heatMode='latency',sel=null,hl=new Set(),cpOnly=false,insTab='insights',activeIns=-1,view='replay';
+let nodeEls=new Map(),edgeEls=[],rowEls=new Map(),feedEls=[],lastFeed=-2;
+let cmpA=0,cmpB=1;
+
+/* ---------- graph ---------- */
+const NW=180,NH=56;
+function layout(run){
+  const names=[...run.agents.keys()],adj=new Map(names.map(n=>[n,[]]));
+  run.edges.forEach(e=>adj.get(e.from).push(e.to));
+  const rootName=run.rootSpan.agent,depth=new Map([[rootName,0]]),q=[rootName];
+  while(q.length){const n=q.shift();for(const m of adj.get(n))if(!depth.has(m)&&!run.agents.get(m).isTool){depth.set(m,depth.get(n)+1);q.push(m);}}
+  let maxD=0;depth.forEach(v=>maxD=Math.max(maxD,v));
+  names.forEach(n=>{if(!depth.has(n))depth.set(n,maxD+1);});
+  const cols=new Map();names.forEach(n=>{const d=depth.get(n);if(!cols.has(d))cols.set(d,[]);cols.get(d).push(n);});
+  const ds=[...cols.keys()].sort((a,b)=>a-b);
+  ds.forEach(d=>cols.get(d).sort((a,b)=>run.agents.get(a).first-run.agents.get(b).first));
+  const colGap=100,rowGap=18,pad=30,left=70;
+  const maxRows=Math.max(...ds.map(d=>cols.get(d).length));
+  const H0=pad*2+maxRows*NH+(maxRows-1)*rowGap,W0=left+pad+ds.length*(NW+colGap)-colGap;
+  const W=Math.max(W0,1100),H=Math.max(H0,420),ox=(W-W0)/2;
+  const pos={};
+  ds.forEach((d,ci)=>{const c=cols.get(d),h=c.length*NH+(c.length-1)*rowGap;c.forEach((n,i)=>{pos[n]={x:ox+left+ci*(NW+colGap),y:(H-h)/2+i*(NH+rowGap),tool:run.agents.get(n).isTool};});});
+  return{W,H,pos};
+}
+function heatColor(v){
+  const st=[[0,[52,64,90]],[.5,[242,179,80]],[1,[255,100,112]]];v=Math.max(0,Math.min(1,v));
+  for(let i=1;i<st.length;i++)if(v<=st[i][0]){const[a,ca]=st[i-1],[b,cb]=st[i],f=(v-a)/(b-a);return ca.map((x,j)=>Math.round(x+(cb[j]-x)*f));}
+  return st[2][1];
+}
+const metric=A=>heatMode==='cost'?A.cost:heatMode==='errors'?A.errors:heatMode==='cp'?A.cp:A.busy;
+function renderGraph(){
+  const run=cur,L=layout(run),svg=$('#graph');
+  svg.setAttribute('viewBox',`0 0 ${L.W} ${L.H}`);
+  let h=`<defs><filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#4d5567"/></marker></defs>`;
+  run.edges.forEach((e,i)=>{
+    const a=L.pos[e.from],b=L.pos[e.to];let d,lx,ly;
+    const y1=a.y+NH/2,y2=b.y+NH/2;
+    if(b.x>a.x+NW){const x1=a.x+NW,x2=b.x-2,mx=(x1+x2)/2;d=`M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`;lx=mx;ly=(y1+y2)/2-5;}
+    else{const off=56;d=`M${a.x},${y1} C${a.x-off},${y1} ${b.x-off},${y2} ${b.x-2},${y2}`;lx=Math.min(a.x,b.x)-off*.78-8;ly=(y1+y2)/2+3;}
+    h+=`<g class="edge${b.tool?' tool':''}" data-e="${i}"><path d="${d}" marker-end="url(#arr)"/>${e.count>1?`<text x="${lx}" y="${ly}" text-anchor="middle">×${e.count}</text>`:''}</g>`;
+  });
+  for(const[n,p]of Object.entries(L.pos)){
+    const A=run.agents.get(n);
+    const stat=A.isTool?`${A.calls} call${A.calls!==1?'s':''} · ${fs(A.busy)}`:`${A.llm} LLM · ${fs(A.busy)} · ${f$(A.cost)}`;
+    h+=`<g class="node ${A.isTool?'tool':'agent'}" data-a="${esc(n)}" transform="translate(${p.x},${p.y})">
+      <rect class="bg" width="${NW}" height="${NH}" rx="${A.isTool?NH/2:10}"/>
+      <circle class="dot" cx="${A.isTool?20:15}" cy="20" r="4"/>
+      <text class="nm" x="${A.isTool?30:25}" y="24">${esc(trunc(n,21))}</text>
+      <text class="st" x="${A.isTool?20:12}" y="42">${esc(stat)}</text>
+      ${A.errors?`<g class="badge"><circle cx="${NW-6}" cy="6" r="9"/><text x="${NW-6}" y="9.5">${A.errors}</text></g>`:''}
+      <title>${esc(n)}</title></g>`;
+  }
+  svg.innerHTML=h;
+  nodeEls=new Map([...svg.querySelectorAll('.node')].map(el=>[el.dataset.a,el]));
+  edgeEls=[...svg.querySelectorAll('.edge')];
+  applyHeat();
+}
+function applyHeat(){
+  const vals=[...cur.agents.values()].map(metric),mx=Math.max(...vals,1e-9);
+  for(const[n,el]of nodeEls){const v=metric(cur.agents.get(n))/mx,c=heatColor(v);const rect=el.querySelector('.bg');
+    rect.style.stroke=`rgb(${c})`;rect.style.fill=`rgba(${c},${0.06+v*0.16})`;}
+}
+function updGraph(){
+  for(const[n,el]of nodeEls){
+    const A=cur.agents.get(n);let act=false,wt=false,er=false;
+    for(const s of A.spans)if(s.start<=t&&t<s.end){if(s.kind==='agent')wt=true;else act=true;if(s.status==='error')er=true;}
+    el.classList.toggle('future',A.first>t);el.classList.toggle('active',act);el.classList.toggle('waiting',wt&&!act);el.classList.toggle('err',er);
+  }
+  edgeEls.forEach((el,i)=>{
+    const e=cur.edges[i];let act=false,er=false;
+    for(const s of e.spans)if(s.start<=t&&t<s.end){act=true;if(s.status==='error')er=true;}
+    el.classList.toggle('future',e.first>t);el.classList.toggle('active',act);el.classList.toggle('erract',er);
+  });
+}
+function updSel(){
+  const selAgent=sel?(sel.type==='agent'?sel.name:cur.byId.get(sel.id)?.agent):null;
+  for(const[n,el]of nodeEls)el.classList.toggle('sel',n===selAgent);
+  edgeEls.forEach((el,i)=>{const e=cur.edges[i];el.classList.toggle('hl',!!selAgent&&(e.from===selAgent||e.to===selAgent));});
+  for(const[id,el]of rowEls){el.classList.toggle('sel',sel&&sel.type==='span'&&sel.id===id);el.classList.toggle('hl',hl.has(id));}
+}
+
+/* ---------- waterfall ---------- */
+function niceStep(D){const raw=D/8;for(const s of[.25,.5,1,2,5,10,15,30,60,120,300,600])if(s>=raw)return s;return Math.ceil(raw/600)*600;}
+function rowLabel(s){return s.kind==='agent'||s.kind==='tool'?s.agent:s.kind==='llm'?(s.model||s.name):s.name;}
+function renderWaterfall(){
+  const D=cur.duration,rows=cpOnly?cur.order.filter(s=>s.cp):cur.order,step=niceStep(D);
+  let ticks='';for(let v=0;v<=D+1e-9;v+=step)ticks+=`<span style="left:${v/D*100}%">${+v.toFixed(2)}s</span>`;
+  let h=`<div class="axis"><div class="lbl"></div><div class="track">${ticks}</div></div>`;
+  for(const s of rows){
+    const cls=s.status==='error'?'error':s.kind,endPct=s.end/D*100;
+    h+=`<div class="row" data-id="${esc(s.id)}"><div class="lbl" style="padding-left:${8+(cpOnly?0:s.depth*12)}px" title="${esc(rowLabel(s)+(s.decision?' — '+s.decision:''))}"><span class="k k-${cls}"></span>${esc(rowLabel(s))}</div>
+      <div class="track"><div class="bar b-${cls}${s.cp?' oncp':''}" style="left:${s.start/D*100}%;width:${Math.max(s.dur/D*100,.2)}%"></div>${endPct<92?`<span class="bt" style="left:calc(${endPct}% + 4px)">${fs(s.dur)}${s.cost>0.0005?' · '+f$(s.cost):''}</span>`:''}</div></div>`;
+  }
+  $('#wfin').innerHTML=h+'<div id="ph"></div>';
+  rowEls=new Map([...$('#wfin').querySelectorAll('.row')].map(el=>[el.dataset.id,el]));
+  updSel();updPlayhead();
+}
+function updPlayhead(){
+  const f=t/cur.duration,ph=$('#ph');
+  if(ph)ph.style.left=`calc(var(--lw) + (100% - var(--lw)) * ${f})`;
+  $('#scrub').value=Math.round(f*1000);
+  $('#clock').textContent=`${t.toFixed(2)}s / ${cur.duration.toFixed(2)}s`;
+}
+
+/* ---------- inspector ---------- */
+function setInsTab(tab){insTab=tab;document.querySelectorAll('#itabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));renderInspector();}
+function renderInspector(){
+  const B=$('#ibody');
+  if(insTab==='insights'){
+    B.innerHTML=`<div class="sect">${cur.insights.length} findings · click to highlight</div>`+(cur.insights.length?cur.insights.map((x,i)=>`<div class="ins ${x.sev}${i===activeIns?' on':''}" data-ins="${i}"><span class="tg">${x.sev==='high'?'High':x.sev==='med'?'Medium':'Low'} · ${x.tag}</span><div class="tt">${esc(x.title)}</div><div class="bd">${esc(x.body)}</div></div>`).join(''):'<div class="empty">No bottlenecks detected.</div>');
+  }else if(insTab==='decisions'){
+    B.innerHTML=`<div class="sect">${cur.decisions.length} decisions & events · follows the playhead</div><div class="feed">`+cur.decisions.map((s,i)=>`<div class="ev k-${s.status==='error'?'error':s.kind}" data-span="${esc(s.id)}" data-i="${i}"><span class="tm mono">${s.start.toFixed(2)}s</span><div><div class="who">${esc(s.agent)}${s.kind!=='agent'?` <span class="muted">· ${esc(rowLabel(s))}</span>`:''}</div><div class="what">${esc(s.decision)}</div></div></div>`).join('')+'</div>';
+    feedEls=[...B.querySelectorAll('.ev')];lastFeed=-2;updFeed(true);
+  }else{
+    if(!sel){B.innerHTML='<div class="empty">Select an agent in the graph or a span in the timeline to see its details.</div>';return;}
+    B.innerHTML=sel.type==='agent'?agentDetails(sel.name):spanDetails(sel.id);
+  }
+}
+function updFeed(force){
+  if(insTab!=='decisions')return;
+  let c=-1;feedEls.forEach((el,i)=>{const past=cur.decisions[i].start<=t+1e-6;el.classList.toggle('future',!past);if(past)c=i;});
+  if(c!==lastFeed||force){feedEls.forEach(e=>e.classList.remove('now'));if(c>=0){feedEls[c].classList.add('now');if(playing)feedEls[c].scrollIntoView({block:'nearest'});}lastFeed=c;}
+}
+function spanDetails(id){
+  const s=cur.byId.get(id);if(!s)return'<div class="empty">Span not found.</div>';
+  const kv=[['Agent',`<a class="lnk" data-agent="${esc(s.agent)}">${esc(s.agent)}</a>`],['Start',s.start.toFixed(3)+'s'],['End',s.end.toFixed(3)+'s'],['Duration',fs(s.dur)]];
+  if(s.model)kv.push(['Model',esc(s.model)]);
+  if(s.tokens_in||s.tokens_out)kv.push(['Tokens',`${fk(s.tokens_in||0)} in · ${fk(s.tokens_out||0)} out`]);
+  const sc=subtreeCost(s);if(sc)kv.push(['Cost',f$(s.cost||0)+(s.children.length&&sc!==s.cost?` (subtree ${f$(sc)})`:'')]);
+  if(s.children.length)kv.push(['Children',s.children.length]);
+  kv.push(['Span ID',esc(s.id)]);
+  return`<div><span class="pill k-${s.kind}">${s.kind}</span>${s.status==='error'?'<span class="pill err">error</span>':''}${s.cp?'<span class="pill cp">critical path</span>':''}</div>
+  <h3>${esc(rowLabel(s))}</h3><div class="sub">${s.parent?`called by <a data-span="${esc(s.parent.id)}">${esc(s.parent.agent)} · ${esc(rowLabel(s.parent))}</a>`:'root span'}</div>
+  <dl class="kv">${kv.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
+  ${s.decision?`<div class="blk"><div class="bl">Decision</div>${esc(s.decision)}</div>`:''}
+  ${s.error?`<div class="blk err"><div class="bl">Error</div><pre>${esc(s.error)}</pre></div>`:''}
+  ${s.input?`<div class="blk"><div class="bl">Input</div><pre>${esc(trunc(s.input,1200))}</pre></div>`:''}
+  ${s.output&&s.output!==s.decision?`<div class="blk"><div class="bl">Output</div><pre>${esc(trunc(s.output,1200))}</pre></div>`:''}
+  ${s.children.length?`<div class="sect" style="margin-top:14px">Children</div><div class="slist">${s.children.map(itemRow).join('')}</div>`:''}
+  <div style="margin-top:12px"><button class="btn" data-seek="${s.start}">Replay from here</button></div>`;
+}
+function itemRow(s){const cls=s.status==='error'?'error':s.kind;return`<div class="it" data-span="${esc(s.id)}"><i class="k-${cls}"></i><span>${esc(s.kind==='agent'?s.agent:rowLabel(s))}${s.decision?` <span class="muted">· ${esc(trunc(s.decision,44))}</span>`:''}</span><span class="v">${fs(s.dur)}</span><span class="v">${s.cost?f$(s.cost):''}</span></div>`;}
+function agentDetails(name){
+  const A=cur.agents.get(name);if(!A)return'<div class="empty">Agent not found.</div>';
+  const inE=cur.edges.filter(e=>e.to===name),outE=cur.edges.filter(e=>e.from===name);
+  const leaf=A.spans.filter(s=>s.kind!=='agent');
+  return`<div><span class="pill ${A.isTool?'k-tool':'k-agent'}">${A.isTool?'tool':'agent'}</span>${A.errors?`<span class="pill err">${A.errors} error${A.errors>1?'s':''}</span>`:''}</div>
+  <h3>${esc(name)}</h3><div class="sub">${inE.length?'called by '+inE.map(e=>`<a data-agent="${esc(e.from)}">${esc(e.from)}</a> ×${e.count}`).join(', '):'entry point'}</div>
+  <div class="stats">
+    <div class="stat"><span>Calls</span><b>${A.calls}</b></div><div class="stat"><span>Busy</span><b>${fs(A.busy)}</b></div><div class="stat"><span>Crit. path</span><b>${fs(A.cp)}</b></div>
+    <div class="stat"><span>Cost</span><b>${f$(A.cost)}</b></div><div class="stat"><span>Tokens</span><b>${fk(A.tokens)}</b></div><div class="stat"><span>Share of $</span><b>${cur.totals.cost?Math.round(A.cost/cur.totals.cost*100):0}%</b></div>
+  </div>
+  ${outE.length?`<div class="sect">Delegates to</div><div style="margin-bottom:14px">${outE.map(e=>`<a class="lnk" data-agent="${esc(e.to)}">${esc(e.to)}</a> <span class="muted">×${e.count}</span>`).join(' &nbsp; ')}</div>`:''}
+  <div class="sect">${leaf.length?'Calls':'Spans'} (${(leaf.length?leaf:A.spans).length})</div><div class="slist">${(leaf.length?leaf:A.spans).map(itemRow).join('')}</div>`;
+}
+
+/* ---------- selection & playback ---------- */
+function selectSpan(id,{tab=true,scroll=true}={}){
+  sel={type:'span',id};hl=new Set([id]);activeIns=-1;
+  if(tab)setInsTab('details');else renderInspectorKeepScroll();
+  updSel();if(scroll)rowEls.get(id)?.scrollIntoView({block:'nearest'});
+}
+function selectAgent(name){sel={type:'agent',name};hl=new Set(cur.agents.get(name).spans.map(s=>s.id));activeIns=-1;setInsTab('details');updSel();const f=cur.agents.get(name).spans[0];if(f)rowEls.get(f.id)?.scrollIntoView({block:'nearest'});}
+function renderInspectorKeepScroll(){const B=$('#ibody'),st=B.scrollTop;if(insTab==='details')renderInspector();B.scrollTop=st;}
+function seek(x){t=Math.max(0,Math.min(cur.duration,x));update();}
+function update(){updGraph();updPlayhead();updFeed();}
+function setPlaying(p){playing=p;if(p&&t>=cur.duration-1e-6)t=0;$('#play').textContent=p?'❚❚':'▶';}
+let lastTs=0;
+function frame(ts){const dt=Math.min(0.1,(ts-lastTs)/1000);lastTs=ts;
+  if(playing&&view==='replay'){t=Math.min(cur.duration,t+dt*speed);if(t>=cur.duration)setPlaying(false);update();}
+  requestAnimationFrame(frame);}
+
+function renderChips(){
+  const T=cur.totals;
+  $('#chips').innerHTML=[['Wall-clock',fs(cur.duration)],['Cost',f$(T.cost)],['Tokens',fk(T.tokens)],['LLM calls',T.llm],['Tool calls',T.tool],['Agents',[...cur.agents.values()].filter(a=>!a.isTool).length],['Errors',T.errors,T.errors?'bad':'']]
+    .map(([l,v,c])=>`<div class="chip ${c||''}"><span>${l}</span><b>${v}</b></div>`).join('');
+}
+function setRun(i){
+  ri=i;cur=runs[i];$('#runSel').value=String(i);sel=null;hl=new Set();activeIns=-1;t=0;
+  renderChips();renderGraph();renderWaterfall();setInsTab(insTab==='details'?'insights':insTab);update();setPlaying(true);
+}
+function fillSelects(){
+  const opts=runs.map((r,i)=>`<option value="${i}">${esc(r.name)}${r.imported?' (imported)':''}</option>`).join('');
+  $('#runSel').innerHTML=opts;$('#runSel').value=String(ri);
+  if(view==='compare')renderCompare();
+}
+
+/* ---------- compare ---------- */
+function renderCompare(){
+  const A=runs[cmpA],B=runs[cmpB];
+  const opts=sel=>runs.map((r,i)=>`<option value="${i}"${i===sel?' selected':''}>${esc(r.name)}</option>`).join('');
+  const delta=(a,b)=>{if(a===b)return'<span class="dl flat">±0</span>';if(!a)return`<span class="dl ${b>a?'bad':'good'}">new</span>`;const p=(b-a)/a*100;return`<span class="dl ${p<0?'good':'bad'}">${p>0?'+':''}${p.toFixed(0)}%</span>`;};
+  const M=[['Wall-clock',r=>r.duration,fs],['Cost',r=>r.totals.cost,f$],['Tokens',r=>r.totals.tokens,fk],['LLM calls',r=>r.totals.llm,String],['Tool calls',r=>r.totals.tool,String],['Errors',r=>r.totals.errors,String]];
+  const cards=M.map(([l,g,f])=>`<div class="card"><div class="l">${l}</div><div class="ab"><span class="a">${f(g(A))} →</span><span class="b">${f(g(B))}</span></div>${delta(g(A),g(B))}</div>`).join('');
+  const names=[...new Set([...A.agents.keys(),...B.agents.keys()])];
+  const z={busy:0,cost:0,errors:0,calls:0,cp:0};
+  const rows=names.map(n=>({n,a:A.agents.get(n)||z,b:B.agents.get(n)||z,tool:(A.agents.get(n)||B.agents.get(n)).isTool})).sort((x,y)=>Math.max(y.a.busy,y.b.busy)-Math.max(x.a.busy,x.b.busy));
+  const mx=Math.max(...rows.map(r=>Math.max(r.a.busy,r.b.busy)),1e-9);
+  const tbl=`<table><thead><tr><th>Agent / tool</th><th class="n">Busy <span class="tagA">A</span></th><th class="n">Busy <span class="tagB">B</span></th><th></th><th class="n">Δ</th><th class="n">Crit. path A → B</th><th class="n">Cost A → B</th><th class="n">Δ</th><th class="n">Errors</th></tr></thead><tbody>${rows.map(r=>`<tr><td><span class="lbl" style="border:0;padding:0;width:auto;display:inline"><span class="k ${r.tool?'k-tool':'k-agent'}"></span></span>${esc(r.n)}</td>
+    <td class="n">${fs(r.a.busy)}</td><td class="n">${fs(r.b.busy)}</td>
+    <td class="pb"><div class="pa" style="width:${r.a.busy/mx*100}%"></div><div class="pbb" style="width:${r.b.busy/mx*100}%"></div></td>
+    <td class="n">${delta(r.a.busy,r.b.busy)}</td><td class="n">${fs(r.a.cp)} → ${fs(r.b.cp)}</td><td class="n">${f$(r.a.cost)} → ${f$(r.b.cost)}</td><td class="n">${r.a.cost||r.b.cost?delta(r.a.cost,r.b.cost):''}</td>
+    <td class="n" style="color:${r.b.errors>r.a.errors?'var(--err)':r.b.errors<r.a.errors?'var(--good)':'inherit'}">${r.a.errors} → ${r.b.errors}</td></tr>`).join('')}</tbody></table>`;
+  // decision divergence
+  const cmpSib=(a,b)=>a.kind==='agent'&&b.kind==='agent'&&Math.abs(a.start-b.start)<1?a.agent.localeCompare(b.agent):a.start-b.start;
+  const canon=r=>{const o=[];const w=s=>{o.push(s);[...s.children].sort(cmpSib).forEach(w);};[...r.roots].sort(cmpSib).forEach(w);return o;};
+  const seq=r=>canon(r).filter(s=>!s.children.length||s.kind!=='agent').map(s=>({s,k:`${s.agent}|${s.kind}|${s.kind==='llm'?(s.model||''):s.name}|${s.status}`}));
+  const sa=seq(A),sb=seq(B);let d=-1;
+  for(let i=0;i<Math.max(sa.length,sb.length);i++){if(!sa[i]||!sb[i]||sa[i].k!==sb[i].k){d=i;break;}}
+  const cell=x=>x?`<div class="${x.s.status==='error'?'e':''}"><b>${esc(x.s.agent)}</b> <span class="muted">· ${esc(rowLabel(x.s))}</span><br><span class="${x.s.status==='error'?'e':'muted'}">${esc(x.s.decision||x.s.status)}</span></div>`:'<div class="muted">— (run ended)</div>';
+  let dv;
+  if(d<0)dv=`<div class="callout" style="border-color:var(--good);background:#0f1712;color:#bfe6cc">Both runs made the same sequence of calls. Differences are in timing and cost only.</div>`;
+  else{
+    const lo=Math.max(0,d-2),hi=d+6;let g='<div class="dv"><div class="h">#</div><div class="h"><span class="tagA">A</span> '+esc(A.name)+'</div><div class="h"><span class="tagB">B</span> '+esc(B.name)+'</div>';
+    for(let i=lo;i<hi&&(sa[i]||sb[i]);i++){const x=i===d?' x':'';g+=`<div class="ix${x}">${i+1}</div>${cell(sa[i]).replace('<div class="','<div class="'+x.trim()+' ')}${cell(sb[i]).replace('<div class="','<div class="'+x.trim()+' ')}`;}
+    g+='</div>';
+    const a=sa[d],b=sb[d];
+    dv=`<div class="callout">The runs diverge at step ${d+1} of ${Math.max(sa.length,sb.length)}: ${a?`A → <b>${esc(a.s.agent)}</b> ${esc(a.s.decision||rowLabel(a.s))}`:'A had already finished'}; ${b?`B → <b>${esc(b.s.agent)}</b> ${esc(b.s.decision||rowLabel(b.s))}`:'B had already finished'}.</div>${g}`;
+  }
+  const insA=new Set(A.insights.map(x=>x.tag)),insB=new Set(B.insights.map(x=>x.tag));
+  const fixed=[...insA].filter(x=>!insB.has(x)),newer=[...insB].filter(x=>!insA.has(x));
+  $('#compare').innerHTML=`<div class="cmphead"><h2>Compare runs</h2><span class="tagA">A</span><select id="cA">${opts(cmpA)}</select><span class="vs">vs</span><span class="tagB">B</span><select id="cB">${opts(cmpB)}</select><button class="btn ghost" id="swap">⇄ Swap</button><span class="sp"></span><button class="btn" id="openA">Replay A</button><button class="btn" id="openB">Replay B</button></div>
+    <div class="cards">${cards}</div>
+    <div class="panel"><h4>Where the time and money went</h4><p class="ds">Per agent and tool: busy time (LLM, tool and backoff work), time on the critical path, and spend. Green means B improved on A.</p>${tbl}</div>
+    <div class="panel"><h4>Decision divergence</h4><p class="ds">The first point where the two runs took different actions, aligned call by call.</p>${dv}</div>
+    <div class="panel"><h4>Bottleneck classes</h4><p class="ds">Bottleneck types detected in each run.</p>
+      <div style="display:flex;gap:30px;flex-wrap:wrap"><div><div class="sect">Resolved in B</div>${fixed.length?fixed.map(x=>`<div style="color:var(--good)">✓ ${x}</div>`).join(''):'<div class="muted">none</div>'}</div>
+      <div><div class="sect">New in B</div>${newer.length?newer.map(x=>`<div style="color:var(--err)">! ${x}</div>`).join(''):'<div class="muted">none</div>'}</div>
+      <div><div class="sect">Still present</div>${[...insB].filter(x=>insA.has(x)).map(x=>`<div class="muted">• ${x}</div>`).join('')||'<div class="muted">none</div>'}</div></div></div>`;
+  $('#cA').onchange=e=>{cmpA=+e.target.value;renderCompare();};
+  $('#cB').onchange=e=>{cmpB=+e.target.value;renderCompare();};
+  $('#swap').onclick=()=>{[cmpA,cmpB]=[cmpB,cmpA];renderCompare();};
+  $('#openA').onclick=()=>{setView('replay');setRun(cmpA);};
+  $('#openB').onclick=()=>{setView('replay');setRun(cmpB);};
+}
+function setView(v){
+  view=v;document.querySelectorAll('#viewTabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  $('#replay').style.display=v==='replay'?'grid':'none';$('#compare').style.display=v==='compare'?'block':'none';
+  $('#runFld').style.visibility=v==='replay'?'visible':'hidden';
+  if(v==='compare'){setPlaying(false);renderCompare();}
+  try{history.replaceState(null,'','#'+v);}catch(e){}
+}
+
+/* ---------- modal ---------- */
+function openModal(){$('#modal').classList.remove('hidden');}
+function closeModal(){$('#modal').classList.add('hidden');}
+
+/* ---------- events ---------- */
+$('#viewTabs').onclick=e=>{const b=e.target.closest('button');if(b)setView(b.dataset.v);};
+$('#runSel').onchange=e=>setRun(+e.target.value);
+$('#heatSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;heatMode=b.dataset.h;document.querySelectorAll('#heatSeg button').forEach(x=>x.classList.toggle('on',x===b));applyHeat();};
+$('#play').onclick=()=>setPlaying(!playing);
+$('#speed').onchange=e=>speed=+e.target.value;
+$('#scrub').oninput=e=>{setPlaying(false);seek(e.target.value/1000*cur.duration);};
+$('#cpOnly').onchange=e=>{cpOnly=e.target.checked;renderWaterfall();};
+$('#itabs').onclick=e=>{const b=e.target.closest('button');if(b)setInsTab(b.dataset.t);};
+$('#graph').onclick=e=>{const n=e.target.closest('.node');if(n)selectAgent(n.dataset.a);};
+$('#wfin').onclick=e=>{
+  const row=e.target.closest('.row');
+  if(e.target.closest('.track')&&!e.target.closest('.bar')){const tr=e.target.closest('.track').getBoundingClientRect();setPlaying(false);seek((e.clientX-tr.left)/tr.width*cur.duration);if(!row)return;}
+  if(row)selectSpan(row.dataset.id);
+};
+$('#ibody').onclick=e=>{
+  const ins=e.target.closest('[data-ins]');
+  if(ins){const i=+ins.dataset.ins,x=cur.insights[i];activeIns=i;hl=new Set(x.spans);const s0=cur.byId.get(x.spans[0]);sel=s0?{type:'agent',name:s0.kind==='tool'&&s0.parent?s0.parent.agent:s0.agent}:null;
+    document.querySelectorAll('.ins').forEach(el=>el.classList.toggle('on',el===ins));updSel();if(s0){rowEls.get(s0.id)?.scrollIntoView({block:'center'});setPlaying(false);seek(s0.start);}return;}
+  const sk=e.target.closest('[data-seek]');if(sk){setPlaying(false);seek(+sk.dataset.seek);setPlaying(true);return;}
+  const ag=e.target.closest('[data-agent]');if(ag){selectAgent(ag.dataset.agent);return;}
+  const sp=e.target.closest('[data-span]');
+  if(sp){const id=sp.dataset.span,s=cur.byId.get(id);if(insTab==='decisions'){setPlaying(false);seek(s.start+1e-6);selectSpan(id,{tab:false});}else selectSpan(id);}
+};
+$('#importBtn').onclick=openModal;
+$('#mClose').onclick=closeModal;
+$('#modal').onclick=e=>{if(e.target.id==='modal')closeModal();};
+$('#chooseBtn').onclick=()=>$('#file').click();
+$('#file').onchange=e=>{importFiles([...e.target.files]);e.target.value='';};
+$('#pasteGo').onclick=()=>{const txt=$('#paste').value.trim();if(!txt)return toast('Paste some JSON first',true);
+  try{const rs=normalizeImport(JSON.parse(txt),'pasted');rs.forEach(prep);runs.push(...rs);$('#paste').value='';finishImport(rs);}catch(e){toast("Couldn't import: "+e.message,true);}};
+$('#copySample').onclick=()=>{const j=sampleJSON();
+  navigator.clipboard.writeText(j).then(()=>toast('Sample run JSON copied: edit it and paste it back to import')).catch(()=>{$('#paste').value=j;toast('Clipboard blocked, so the sample is in the paste box');});};
+const drop=$('#drop');
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over');}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,()=>drop.classList.remove('over')));
+let dragDepth=0;
+window.addEventListener('dragenter',e=>{if(e.dataTransfer?.types?.includes('Files')){dragDepth++;if($('#modal').classList.contains('hidden'))$('#dropAll').style.display='flex';}});
+window.addEventListener('dragleave',()=>{if(--dragDepth<=0){dragDepth=0;$('#dropAll').style.display='none';}});
+window.addEventListener('dragover',e=>e.preventDefault());
+window.addEventListener('drop',e=>{e.preventDefault();dragDepth=0;$('#dropAll').style.display='none';const f=[...(e.dataTransfer?.files||[])];if(f.length)importFiles(f);});
+window.addEventListener('keydown',e=>{if(e.target.matches('input,textarea,select'))return;
+  if(e.code==='Space'&&view==='replay'){e.preventDefault();setPlaying(!playing);}
+  if(e.key==='Escape')closeModal();
+  if(e.key==='ArrowRight'&&view==='replay'){setPlaying(false);seek(t+cur.duration/100);}
+  if(e.key==='ArrowLeft'&&view==='replay'){setPlaying(false);seek(t-cur.duration/100);}});
+window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if((h==='compare'||h==='replay')&&h!==view)setView(h);});
+
+/* ---------- boot ---------- */
+fillSelects();
+setRun(0);
+if(location.hash==='#compare')setView('compare');
+requestAnimationFrame(ts=>{lastTs=ts;requestAnimationFrame(frame);});
+</script>
+</body>
+</html>

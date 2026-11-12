@@ -1,3 +1,5 @@
+import { mountContinuity } from './continuity-view.js';
+import { decisionSnapshot, localContextId } from './continuity.js';
 import { housingModel, compileHousingPlan, createHousingScenarios, stressPresets, validateHousingParameters, resolveHousingModel } from '../models/housing/index.js';
 import { mountBuildingWorld, buildingStateAtMonth, previewBuildingWorld } from '../buildings/renderer.js';
 import { mountAdvancedStudio, setDraftParameter, setDraftUncertainty, configuredUncertaintyCurve, deleteDecisionScenario, resetScenarioAssumptions } from './advanced-studio.js';
@@ -10,10 +12,13 @@ import { createDecisionClient, createRunTraceCache, mergeRunTrace, parseParamete
 import { mountDiagnostics } from './diagnostics.js';
 import { mountPilotRequest } from './onboarding.js';
 
+const continuity = mountContinuity();
 const initialQuery = new URLSearchParams(location.search);
 const $ = selector => document.querySelector(selector);
 const clone = value => structuredClone(value);
 const client = createDecisionClient();
+let continuityJob = null;
+addEventListener('decision:optimization', event => { continuityJob = event.detail; continuity.update(decisionSnapshot({ ...(state.results || {}), selectedRun: state.selectedRun, job: continuityJob })); });
 const runTraces = createRunTraceCache({loadRun:(experimentId,runId)=>client.run(experimentId,runId)});
 const LOCAL_KEY = 'hbl.decision.projects.v1';
 const EXAMPLE = 'Allow higher-density housing near transit stations, reduce permitting delays from 18 months to 6 months, provide $2B annually for affordable construction, and increase housing vouchers.';
@@ -68,7 +73,7 @@ function currentInput({ runs = Number($('#run-count').value), preview = false } 
     schemaVersion: 'decision-experiment.v1', name: $('#project-name').value.trim() || 'Untitled decision',
     decision: $('#decision-text').value.trim(), modelId: activeModel.id, modelVersion: activeModel.version,
     seed: Number($('#run-seed').value), runs, years: Number($('#run-years').value),
-    scenarios: clone(state.scenarios), metadata: { ...clone(state.metadata), evidence: clone(collectedEvidence()), preview },
+    scenarios: clone(state.scenarios), metadata: { ...clone(state.metadata), continuity: continuity.getContext(), evidence: clone(collectedEvidence()), preview },
   };
 }
 
@@ -277,6 +282,7 @@ function renderResults(result) {
   const summaryRows = successfulRuns(result.runs);
   const data = { ...result, experiment: state.experiment, runs: summaryRows.map(row=>mergeRunTrace(row,runTraces.peek(state.experiment.id,row.id))), previousResults: state.previousResults, model: result.model || resolveHousingModel(state.experiment?.modelVersion || activeModel.version).model, readOnly: state.readonly, evidence: state.evidence, apiErrors: state.errors };
   state.summaryResults = {...data,runs:summaryRows,previousResults:undefined};
+  continuity.update(decisionSnapshot({ ...data, job: continuityJob, selectedRun: state.selectedRun }), { namespace: 'decision', experimentId: state.experiment?.id });
   state.results = data; visuals.update(data); trust.update(data); diagnostics.update(data);
   syncConstructionWorld(); worldTools?.update(); updateAdvancedStudio();
   const experiment = state.experiment;
@@ -359,6 +365,7 @@ async function reopenExperiment(id, readonly = false) {
   }
 }
 function loadInput(input) {
+  if (input.metadata?.continuity) { try { continuity.restoreContext(input.metadata.continuity); } catch (error) { status(`Saved world context unavailable: ${error.message}`); } }
   const resolvedModel = resolveHousingModel(input.modelVersion || housingModel.version).model;
   input = normalizeDecisionInput(input, resolvedModel); activeModel = resolvedModel;
   $('#legacy-model-banner').hidden = activeModel.version === housingModel.version;
@@ -403,6 +410,7 @@ async function applyWorldRevision(input, { rerun = false } = {}) {
   else status(mathChanged ? 'World revision approved. Run the experiment when ready; previous results remain unchanged.' : 'Appearance updated through an approved revision. Simulation mathematics were not changed.');
 }
 function syncConstructionWorld() {
+  if (state.experiment?.id) continuity.update(decisionSnapshot({ ...(state.results || {}), job: continuityJob, selectedRun: constructionRun }), { namespace: 'decision', experimentId: state.experiment.id, runId: constructionRun?.id, scenarioId: constructionRun?.scenarioId, branchId: constructionRun?.lineage?.branchId, tick: Math.max(0, Math.floor(constructionMonth)) });
   if (!constructionView) return;
   const current = scenario(); if (!current) return;
   $('#open-neighborhood-world').href = state.experiment?.id ? `/world?decisionExperiment=${encodeURIComponent(state.experiment.id)}` : '/world';
@@ -688,8 +696,8 @@ window.hblDecisionStudio = { state, currentInput, runExperiment, reopenExperimen
 renderScenarios(); refreshLocalProjects(); resetResults();
 refreshExperiments().catch(error => status(`Experiment library unavailable: ${error.message}. Local editing and saving remain available.`, true));
 async function initialize(params) {
-  const id = params.get('experiment') || params.get('share');
-  if (id) { await reopenExperiment(id, params.get('readonly') === '1' || Boolean(params.get('share'))); if (params.get('run')) { const run=state.results?.runs.find(row=>row.id===params.get('run')); if(run) { selectRun(run); constructionMonth=Number(params.get('month'))||0;syncConstructionWorld(); if(location.hash!=='#futures')enterFuture(run,{month:constructionMonth}); } } }
+  const id = params.get('experiment') || params.get('share') || localContextId(continuity.getContext()?.experimentId, 'experiment', 'decision');
+  if (id) { await reopenExperiment(id, params.get('readonly') === '1' || Boolean(params.get('share'))); if (params.get('run') || continuity.getContext()?.runId) { const run=state.results?.runs.find(row=>row.id===(params.get('run') || localContextId(continuity.getContext()?.runId, 'run', 'decision'))); if(run) { selectRun(run); constructionMonth=Number(params.get('month'))||0;syncConstructionWorld(); if(location.hash!=='#futures')enterFuture(run,{month:constructionMonth}); } } }
   else if (params.get('demo') === '1') { useExample(); await runExperiment(); }
 }
 

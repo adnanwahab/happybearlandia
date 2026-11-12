@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Living City · HappyBearLandia</title>
+  <link rel="stylesheet" href="./city.css">
+  <link rel="stylesheet" href="./network.css">
+  <link rel="stylesheet" href="./council.css">
+</head>
+<body>
+<main>
+  <header class="masthead">
+    <a href="/world/causal.html">HappyBearLandia / Time Machine</a>
+    <span>Synthetic city · Monthly simulation</span>
+  </header>
+  <header class="intro">
+    <h1>Living City</h1>
+    <p>Meet a resident, inspect their route, and test how a transit investment changes the trip.</p>
+  </header>
+  <p id="opening" role="status">Loading the city…</p>
+  <div id="city" hidden>
+    <div class="workspace">
+      <section class="panel quest" aria-labelledby="quest-title">
+        <label for="quest">City requests</label>
+        <select id="quest"></select>
+        <h2 id="quest-title"></h2>
+        <p id="request"></p>
+        <dl id="quest-evidence"></dl>
+        <button id="visit" type="button" aria-controls="home" aria-expanded="false">Visit the resident’s home</button>
+        <div id="home" hidden></div>
+      </section>
+      <section class="panel experiment" aria-labelledby="experiment-title">
+        <h2 id="experiment-title">Test a transit proposal</h2>
+        <p id="proposal"></p>
+        <label for="investment">Transit capacity investment</label>
+        <select id="investment"></select>
+        <button id="test" type="button">Compare 100 paired futures</button>
+        <p id="progress" role="status"></p>
+        <div id="results" hidden>
+          <dl id="summary" class="measurements"></dl>
+          <label for="sample">Choose a paired future</label>
+          <select id="sample"></select>
+          <p id="pair-status" role="status"></p>
+          <p id="pair-shock" class="note"></p>
+          <dl id="pair" class="measurements"></dl>
+          <section id="pair-scorecard" class="pair-scorecard" aria-labelledby="scorecard-title" hidden>
+            <h3 id="scorecard-title">Same-seed commute scorecard</h3>
+            <p id="pair-difference"></p>
+            <div class="pair-bar" aria-hidden="true"><span id="pair-bar"></span></div>
+            <p id="pair-cost"></p>
+          </section>
+          <label for="view">Network timeline</label>
+          <select id="view">
+            <option value="starting">Starting city</option>
+            <option value="baseline">Baseline future</option>
+            <option value="intervention">Transit future</option>
+          </select>
+          <details id="interview">
+            <summary>Ask the resident what changed</summary>
+            <p id="answer"></p>
+            <p class="note">The interview text describes the selected pair’s simulated records.</p>
+          </details>
+          <div class="share">
+            <label for="share">Share this challenge</label>
+            <input id="share" type="url" readonly>
+            <button id="copy" type="button">Copy</button>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div id="network" class="panel"></div>
+    <div id="council" class="panel"></div>
+  </div>
+</main>
+<script type="module" src="./page.js"></script>
+</body>
+</html>

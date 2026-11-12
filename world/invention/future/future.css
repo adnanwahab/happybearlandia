@@ -1,0 +1,7 @@
+.metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: .65rem; }
+.metric-grid div { padding: .75rem; border: 1px solid var(--border); border-radius: .4rem; }
+.metric-grid dt { color: var(--muted); }
+.metric-grid dd { margin: .25rem 0 0; font-weight: 650; font-size: 1.2rem; }
+.table-scroll { overflow-x: auto; margin-bottom: 1.5rem; }
+.table-scroll table { min-width: 28rem; }
+#events li { margin: .65rem 0; overflow-wrap: anywhere; }

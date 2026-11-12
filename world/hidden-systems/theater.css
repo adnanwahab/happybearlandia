@@ -1,0 +1,44 @@
+.construction-theater { margin: 0; overflow: hidden; border: 1px solid #708b7d; border-radius: .65rem; }
+.construction-theater [hidden] { display: none !important; }
+.construction-theater__viewport {
+  position: relative;
+  height: clamp(15rem, 42vw, 29rem);
+  overflow: hidden;
+  background: #152b2a;
+}
+.construction-theater__canvas, .construction-theater__fallback { position: absolute; inset: 0; width: 100%; height: 100%; }
+.construction-theater__canvas { display: block; }
+.construction-theater__fallback {
+  background:
+    linear-gradient(0deg, #415f56 0 20%, transparent 20%),
+    repeating-linear-gradient(90deg, transparent 0 1.9rem, #344f482d 1.9rem 2rem),
+    repeating-linear-gradient(0deg, #203934 0 1.9rem, #344f48 1.9rem 2rem);
+}
+.construction-theater__tower {
+  --construction-progress: 0;
+  position: absolute;
+  left: 27%;
+  bottom: 20%;
+  width: 46%;
+  height: calc(var(--construction-progress) * 57%);
+  min-height: .4rem;
+  border: 1px solid #e6b758;
+  border-bottom: .35rem solid #e6b758;
+  background: repeating-linear-gradient(0deg, #bcb08e 0 1.55rem, #7d795f 1.55rem 1.7rem);
+}
+.construction-theater__fallback[data-stage="empty"] .construction-theater__tower { display: none; }
+.construction-theater__fallback[data-stage="completion"] .construction-theater__tower {
+  border: 1px solid #cae4d4;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 13%, #bad2be 13% 20%),
+    repeating-linear-gradient(0deg, #bad2be 0 .55rem, #2d5348 .55rem 1.45rem, #bad2be 1.45rem 1.7rem);
+}
+.construction-theater__fallback[data-housing="false"] .construction-theater__tower { height: .55rem; }
+.construction-theater__camera { position: absolute; right: .65rem; bottom: .65rem; display: flex; flex-wrap: wrap; gap: .4rem; }
+.construction-theater__camera button { font: inherit; padding: .4rem .65rem; border: 1px solid #91b1a3; border-radius: .35rem; color: #f6fbf6; background: #193d37; cursor: pointer; }
+.construction-theater__camera button:focus-visible { outline: 2px solid #ffdb79; outline-offset: 3px; }
+.construction-theater__caption { padding: .8rem 1rem; overflow-wrap: anywhere; }
+.construction-theater__caption p { margin: .35rem 0; }
+.construction-theater__caption progress { width: min(100%, 16rem); accent-color: #457d68; }
+.construction-theater__delay { font-weight: 650; }
+.construction-theater__note { font-size: .85rem; }

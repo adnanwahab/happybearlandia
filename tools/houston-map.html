@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Houston Neighborhood Map · HappyBearLandia</title>
+  <link rel="stylesheet" href="/tools/houston-map.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/deck.gl@9.2.2/dist.min.js"
+    integrity="sha384-o2I39EOKuYxJxhZlc4H28v5v3IPJu8zKB2BNYqr/wCBPv41bmCxisFTK14Aw/XeY"
+    crossorigin="anonymous"></script>
+  <script type="module" src="/tools/houston-map.js"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Houston Neighborhood Map</h1>
+      <p>Drag to pan. Scroll to zoom. Shift-drag to rotate.</p>
+    </header>
+    <section id="map" aria-label="Interactive neighborhood map">
+      <p id="status" role="status">Loading the neighborhood map…</p>
+      <noscript>Enable JavaScript to explore the map.</noscript>
+    </section>
+    <footer>
+      <ul aria-label="Map legend">
+        <li class="buildings">Buildings</li>
+        <li class="roads">Streets</li>
+        <li class="parks">Parks</li>
+      </ul>
+      <div class="controls">
+        <button id="flat" type="button" aria-pressed="false" disabled>2D view</button>
+        <button id="reset" type="button" disabled>Reset view</button>
+      </div>
+      <p>Illustrative heights · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></p>
+    </footer>
+  </main>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Policy Impact Receipt · HappyBearLandia</title>
+  <link rel="stylesheet" href="./receipt.css">
+  <script type="module" src="./page.js"></script>
+</head>
+<body>
+  <main>
+    <nav aria-label="Living City navigation"><a href="/world/living-city/">Living City quest</a></nav>
+    <h1>Policy Impact Receipt</h1>
+    <p class="intro">The Riverside commute · Transit capacity proposal</p>
+    <form>
+      <label>Scenario seed <input name="seed" type="number" min="0" max="4294967295" step="1" value="2911" required></label>
+      <label>Capacity proposal <select name="amount"></select></label>
+      <button>Run comparison</button>
+    </form>
+    <p id="status" role="status"></p>
+    <section id="receipt" hidden aria-label="Policy impact results">
+      <h2>The promise</h2>
+      <p>Shorten the recorded commute for the quest resident from Riverside to Center, compared with a matched baseline at the end of 12 simulated months.</p>
+      <dl id="proposal"></dl>
+      <h2>Did the promise hold?</h2>
+      <dl id="distribution" class="distribution"></dl>
+      <p>Each count is one seed-matched pair for the same modeled resident. Pairs missing a commute in either arm are unevaluated.</p>
+      <dl id="uncertainty"></dl>
+      <p>The range shows variation across the simulated pairs. The receipt covers this resident’s commute and the city’s modeled balance.</p>
+      <h2>Inspect a pair</h2>
+      <label>Matched pair <select id="pair"></select></label>
+      <dl id="evidence"></dl>
+      <a id="open-pair">Replay this exact pair in Living City ↗</a>
+    </section>
+  </main>
+</body>
+</html>

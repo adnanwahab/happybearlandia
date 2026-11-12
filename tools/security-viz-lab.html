@@ -1,0 +1,2031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Security Viz Lab — six WebGPU prototypes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090d; --panel:#0d1117; --panel2:#111722; --line:#1c2431; --line2:#263142;
+  --text:#d5dde8; --muted:#7c8899; --dim:#4f5a69;
+  --cyan:#5ec8ff; --teal:#3ddbb0; --amber:#ffb547; --red:#ff5d5d; --violet:#a98bff; --pink:#ff7ac6;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace; --sans:'IBM Plex Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.45 var(--sans);overflow:hidden}
+.top{display:flex;align-items:center;gap:20px;padding:10px 16px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#0b0f15,#080a0f);height:56px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand b{font-weight:600;letter-spacing:.2px;font-size:14px}
+.brand small{display:block;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:42vw}
+.mark{width:22px;height:22px;border-radius:5px;background:conic-gradient(from 210deg,var(--cyan),var(--teal),var(--amber),var(--red),var(--cyan));box-shadow:0 0 18px rgba(94,200,255,.35);flex:none}
+nav{display:flex;gap:2px;margin-left:auto;overflow-x:auto}
+nav a{display:flex;gap:7px;align-items:baseline;padding:7px 11px;border-radius:7px;color:var(--muted);text-decoration:none;white-space:nowrap;font-size:12.5px;border:1px solid transparent}
+nav a i{font:500 10.5px var(--mono);color:var(--dim);font-style:normal}
+nav a:hover{color:var(--text);background:#0f141c}
+nav a.on{color:var(--text);background:var(--panel2);border-color:var(--line2)}
+nav a.on i{color:var(--cyan)}
+.intro{display:flex;gap:18px;align-items:center;padding:8px 16px;border-bottom:1px solid var(--line);background:var(--panel);height:40px;color:var(--muted);font-size:12.5px;white-space:nowrap;overflow:hidden}
+.intro b{color:var(--text);font-weight:600}
+.intro .how{margin-left:auto;font:11px var(--mono);color:var(--dim);overflow:hidden;text-overflow:ellipsis}
+.intro .how kbd{font:inherit;color:var(--text);background:#151b26;border:1px solid var(--line2);border-radius:4px;padding:0 4px}
+main{position:absolute;top:96px;left:0;right:0;bottom:0}
+.proto{position:absolute;inset:0;display:none}
+.proto.on{display:block}
+.loading{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font:12px var(--mono);z-index:5;background:var(--bg)}
+.loading span::after{content:'';display:inline-block;width:10px;animation:dots 1s steps(4) infinite;text-align:left}
+@keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
+.view{position:relative;overflow:hidden;background:#090c11}
+.view canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.view canvas.ov{touch-action:none;cursor:crosshair}
+.grid{position:absolute;inset:0;display:grid;gap:1px;background:var(--line);grid-template-rows:minmax(0,1fr)}
+.pane{position:relative;background:var(--panel);min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.pane>.view{flex:1}
+.ph{display:flex;align-items:center;gap:8px;height:30px;padding:0 10px;border-bottom:1px solid var(--line);font:500 10.5px var(--mono);letter-spacing:.6px;text-transform:uppercase;color:var(--muted);flex:none;background:#0b0f15}
+.ph .r{margin-left:auto;display:flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0}
+.scroll{overflow:auto;flex:1;min-height:0}
+.side{padding:10px 12px;display:flex;flex-direction:column;gap:12px;overflow:auto;flex:1}
+.side h4{margin:0 0 6px;font:500 10.5px var(--mono);letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border:1px solid var(--line2);border-radius:999px;font-size:11.5px;color:var(--text);background:#0f141c;cursor:pointer;user-select:none}
+.chip.off{opacity:.38}
+.chip .sw{width:8px;height:8px;border-radius:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+button,.btn{font:500 11.5px var(--sans);color:var(--text);background:#141b26;border:1px solid var(--line2);border-radius:6px;padding:5px 10px;cursor:pointer}
+button:hover{border-color:#3a4a62;background:#18212f}
+button.pri{background:#123047;border-color:#1f5577;color:#cdeeff}
+table.t{width:100%;border-collapse:collapse;font:11.5px var(--mono)}
+table.t th{position:sticky;top:0;background:#0b0f15;color:var(--dim);font-weight:500;text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);z-index:1}
+table.t td{padding:3px 8px;border-bottom:1px solid #121925;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:340px}
+table.t tr{cursor:pointer}
+table.t tbody tr:hover td{background:#121a26}
+table.t tr.sel td{background:#14304a}
+.sev{display:inline-block;padding:0 6px;border-radius:4px;font-size:10.5px}
+.sev.critical{background:rgba(255,93,93,.18);color:#ff8f8f}
+.sev.high{background:rgba(255,140,80,.16);color:#ffab7a}
+.sev.medium{background:rgba(255,181,71,.15);color:#ffc977}
+.sev.low{background:rgba(94,200,255,.12);color:#8fd7ff}
+.sev.info{background:rgba(124,136,153,.14);color:var(--muted)}
+.list{display:flex;flex-direction:column;gap:2px}
+.li{display:flex;gap:8px;align-items:center;padding:5px 7px;border-radius:6px;cursor:pointer;font-size:12px;border:1px solid transparent}
+.li:hover{background:#121a26}
+.li.sel{background:#13283b;border-color:#1f4a6b}
+.li .m{margin-left:auto;font:11px var(--mono);color:var(--muted)}
+.bar{height:5px;background:#1a2230;border-radius:3px;overflow:hidden;flex:1}
+.bar>div{height:100%;border-radius:3px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font:11.5px var(--mono)}
+.kv span:nth-child(odd){color:var(--muted)}
+.tip{position:absolute;pointer-events:none;z-index:4;background:rgba(9,12,17,.94);border:1px solid var(--line2);border-radius:6px;padding:6px 8px;font:11px var(--mono);color:var(--text);max-width:360px;white-space:pre-wrap;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.note{color:var(--muted);font-size:11.5px}
+.empty{color:var(--dim);font:11.5px var(--mono);padding:10px}
+.story{display:flex;flex-direction:column;gap:6px}
+.story .s{border-left:2px solid var(--amber);padding:4px 8px;background:#0f141c;border-radius:0 6px 6px 0;font-size:12px;position:relative}
+.story .s small{display:block;color:var(--muted);font:10.5px var(--mono)}
+.story .s .x{position:absolute;right:6px;top:3px;color:var(--dim);cursor:pointer}
+pre.hex{margin:0;font:11.5px/1.5 var(--mono);color:#b8c4d4;padding:8px 10px;white-space:pre}
+pre.hex .o{color:var(--dim)} pre.hex .h{background:#3a2a10;color:#ffd38a}
+.big{font:500 28px var(--mono);color:var(--text);letter-spacing:-.5px}
+.lost,.nogpu{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--panel);border:1px solid var(--line2);border-radius:12px;padding:24px 28px;max-width:520px;z-index:20;display:none}
+.nogpu:not([hidden]){display:block}
+.nogpu h2{margin:0 0 8px;font-size:18px}
+.nogpu p{color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:9px;height:9px;border-radius:50%;display:inline-block}
+input[type=range]{accent-color:var(--cyan);width:100%}
+label.cb{display:flex;gap:6px;align-items:center;font-size:11.5px;color:var(--muted);cursor:pointer}
+.soc{position:absolute;inset:0;background:radial-gradient(ellipse at 40% 50%,#0c1624 0%,#05070b 70%)}
+.soc .view{position:absolute;inset:0;background:transparent}
+.socp{position:absolute;background:rgba(10,14,20,.72);border:1px solid rgba(60,80,110,.35);border-radius:10px;padding:12px 14px;backdrop-filter:blur(6px)}
+.socp h4{margin:0 0 8px;font:500 10.5px var(--mono);letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
+.ticker{display:flex;flex-direction:column;gap:3px;font:11px var(--mono)}
+.ticker div{display:flex;gap:8px;white-space:nowrap;overflow:hidden;animation:tin .4s ease-out}
+@keyframes tin{from{opacity:0;transform:translateY(-4px)}to{opacity:1}}
+
+
+.top{height:76px;padding:14px 22px;gap:16px}.brand b{font-size:18px}.brand small{max-width:340px}.mark{width:30px;height:30px;border-radius:9px}nav a{padding:10px 12px}main{top:126px}.intro{height:50px;padding:8px 22px}.intro>span:first-child{overflow:hidden;text-overflow:ellipsis}.intro .how{display:none}
+.lab-actions{display:flex;gap:8px;flex:none}.lab-actions button{padding:9px 12px}.lab-dialog{color:var(--text);background:#0d1420;border:1px solid #34445c;border-radius:18px;width:min(940px,94vw);max-height:88vh;padding:26px;box-shadow:0 30px 100px #0009}.lab-dialog::backdrop{background:#030811c9;backdrop-filter:blur(8px)}.lab-dialog h2{font-size:26px;margin:8px 0}.lab-dialog p{color:#a5b4c8;line-height:1.7}.lab-eyebrow{color:var(--teal);font:11px var(--mono);letter-spacing:2px}.lab-close{float:right}.lab-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px}.lab-card{text-align:left;padding:18px;background:linear-gradient(140deg,#152338,#0d1522);border-radius:12px;display:flex;flex-direction:column;gap:12px;min-height:175px}.lab-card:hover{border-color:var(--cyan);transform:translateY(-2px)}.lab-card strong{font-size:17px}.lab-card small{color:#a5b4c8;line-height:1.6;font-size:12px}.lab-card span{color:var(--cyan);font:11px var(--mono)}.lab-help{font-size:14px}.lab-help kbd{background:#24334a;border-radius:4px;padding:3px 6px}.lab-foot{border-top:1px solid var(--line2);padding-top:14px;margin-top:20px;color:var(--muted);font-size:12px}:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+@media(max-width:1100px){.top{flex-wrap:wrap;height:120px;gap:8px}.brand{flex:1}nav{order:3;width:100%;margin:0}.brand small{max-width:55vw}main{top:176px}.intro{height:56px;white-space:normal}.intro>span:first-child{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.lab-cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.top{padding:10px 12px}.brand small{font-size:10px}.lab-actions button{font-size:11px;padding:8px}.brand b{font-size:16px}.mark{display:none}.lab-cards{grid-template-columns:1fr}.lab-dialog{padding:18px}.grid{overflow:auto;min-width:850px}.proto{overflow:auto}.soc{min-width:1000px}.intro{padding:8px 12px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="mark"></span><div><b>Security Viz Lab</b><small>six WebGPU prototypes · synthetic data · everything runs on your GPU, nothing leaves the tab</small></div></div>
+  <nav id="tabs" aria-label="Security experiments"></nav><div class="lab-actions"><button id="lab-explore">Experiments</button><button id="lab-guide" aria-label="Open investigation guide">Guide ↗</button></div>
+</header>
+<div id="intro" class="intro"></div>
+<main id="stage"></main>
+<div id="gpu-lost" class="lost"></div>
+<div id="nogpu" class="nogpu" hidden>
+  <h2>WebGPU isn't available here</h2>
+  <p id="nogpu-msg"></p>
+  <p>These prototypes need a browser with WebGPU turned on: current Chrome or Edge on desktop, Safari 26+ (macOS, iOS, iPadOS), or Firefox 141+ on Windows. Open this page in one of those to see the visualizations.</p><button id="gpu-browse">Browse experiment guides</button><button onclick="location.reload()">Retry GPU connection</button>
+</div>
+<dialog id="lab-dialog" class="lab-dialog" aria-labelledby="lab-heading"><button class="lab-close" aria-label="Close dialog">Close ✕</button><div id="lab-content"></div></dialog>
+<script>
+// ===== Shared WebGPU core =====
+const SV = { protos: [] };
+
+SV.rng = function (seed) {
+  let a = seed >>> 0;
+  const r = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  r.int = (n) => Math.floor(r() * n);
+  r.pick = (arr) => arr[Math.floor(r() * arr.length)];
+  r.normal = () => { let u = 0, v = 0; while (u === 0) u = r(); while (v === 0) v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+  return r;
+};
+SV.col = function (hex, a = 1) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return (r | (g << 8) | (b << 16) | (Math.round(a * 255) << 24)) >>> 0;
+};
+SV.fmtBytes = (b) => { const u = ['B', 'KB', 'MB', 'GB', 'TB']; let i = 0; while (b >= 1024 && i < 4) { b /= 1024; i++; } return b.toFixed(b < 10 && i ? 1 : 0) + ' ' + u[i]; };
+SV.esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+SV.el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+
+SV.initGPU = async function () {
+  if (!navigator.gpu) throw new Error('This browser does not expose WebGPU (navigator.gpu is missing).');
+  const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+  if (!adapter) throw new Error('No WebGPU adapter is available on this device.');
+  const want = 256 * 1024 * 1024;
+  const device = await adapter.requestDevice({
+    requiredLimits: {
+      maxStorageBufferBindingSize: Math.min(want, adapter.limits.maxStorageBufferBindingSize),
+      maxBufferSize: Math.min(want, adapter.limits.maxBufferSize),
+    }
+  });
+  device.addEventListener('uncapturederror', (e) => console.error('WebGPU:', e.error.message));
+  device.lost.then((info) => { console.error('LOST', info.reason, info.message, Math.round(performance.now())); const b = document.getElementById('gpu-lost'); if (b) { b.textContent = 'GPU device lost: ' + info.message; b.style.display = 'block'; } });
+  SV.device = device;
+  SV.format = navigator.gpu.getPreferredCanvasFormat();
+  SV.limits = device.limits;
+  return device;
+};
+
+SV.buffer = function (data, usage) {
+  const size = Math.max(16, Math.ceil(data.byteLength / 4) * 4);
+  const b = SV.device.createBuffer({ size, usage: usage | GPUBufferUsage.COPY_DST });
+  SV.device.queue.writeBuffer(b, 0, data.buffer || data, data.byteOffset || 0, data.byteLength);
+  return b;
+};
+SV.STORAGE = 0x0080; // GPUBufferUsage.STORAGE (resolved lazily below)
+
+SV.blend = {
+  alpha: { color: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' }, alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' } },
+  add: { color: { srcFactor: 'one', dstFactor: 'one', operation: 'add' }, alpha: { srcFactor: 'one', dstFactor: 'one', operation: 'add' } },
+};
+
+// Uniform layout shared by every 2D view (64 bytes)
+SV.U_WGSL = /* wgsl */`
+struct U { scale: vec2f, offset: vec2f, vp: vec2f, time: f32, mode: f32, hi: vec4f, mask: u32, sel: u32, boost: f32, p1: u32 };
+fn clipOf(px: vec2f, vp: vec2f) -> vec4f { return vec4f(px.x / vp.x * 2.0 - 1.0, 1.0 - px.y / vp.y * 2.0, 0.0, 1.0); }
+fn quad(v: u32) -> vec2f {
+  var q = array<vec2f, 6>(vec2f(0., 0.), vec2f(1., 0.), vec2f(0., 1.), vec2f(0., 1.), vec2f(1., 0.), vec2f(1., 1.));
+  return q[v];
+}
+fn ramp(t0: f32) -> vec3f { // inferno-ish
+  let t = clamp(t0, 0.0, 1.0);
+  let c0 = vec3f(0.0002, 0.0016, -0.0194); let c1 = vec3f(0.1065, 0.5639, 3.9327); let c2 = vec3f(11.6024, -3.9728, -15.9423);
+  let c3 = vec3f(-41.7039, 17.4363, 44.3541); let c4 = vec3f(77.1629, -33.4023, -81.8073); let c5 = vec3f(-71.3194, 32.6260, 73.2095); let c6 = vec3f(25.1311, -12.2426, -23.0703);
+  return clamp(c0 + t * (c1 + t * (c2 + t * (c3 + t * (c4 + t * (c5 + t * c6))))), vec3f(0.0), vec3f(1.0));
+}
+`;
+
+// Generic instanced shapes
+SV.SHAPES_WGSL = SV.U_WGSL + /* wgsl */`
+struct I { a: vec4f, col: u32, size: f32, flag: u32, extra: f32 };
+@group(0) @binding(0) var<uniform> u: U;
+@group(0) @binding(1) var<storage, read> ins: array<I>;
+struct VO { @builtin(position) pos: vec4f, @location(0) c: vec4f, @location(1) uv: vec2f };
+fn w2p(w: vec2f) -> vec2f { return (w - u.offset) * u.scale; }
+fn hidden() -> VO { var o: VO; o.pos = vec4f(2., 2., 2., 1.); o.c = vec4f(0.); o.uv = vec2f(0.); return o; }
+fn visible(i: I) -> bool { let cat = (i.flag >> 8u) & 31u; return ((u.mask >> cat) & 1u) == 1u; }
+fn shade(i: I) -> vec4f {
+  var c = unpack4x8unorm(i.col);
+  var lit = true;
+  if (u.mode == 1.0) { lit = i.a.x >= u.hi.x && i.a.x <= u.hi.y; }
+  if (u.mode == 2.0) { lit = (i.flag & 1u) == 1u; }
+  c = vec4f(c.rgb, min(1.0, c.a * max(u.boost, 1.0)));
+  if (!lit) { c = vec4f(c.rgb * 0.6, c.a * 0.15); }
+  return c;
+}
+@vertex fn vs_rect(@builtin(vertex_index) v: u32, @builtin(instance_index) k: u32) -> VO {
+  let i = ins[k]; if (!visible(i)) { return hidden(); }
+  let q = quad(v); let p0 = w2p(i.a.xy); let sz = max(i.a.zw * u.scale, vec2f(i.size, i.size));
+  var o: VO; o.pos = clipOf(p0 + q * sz, u.vp); o.c = shade(i); o.uv = q; return o;
+}
+@vertex fn vs_point(@builtin(vertex_index) v: u32, @builtin(instance_index) k: u32) -> VO {
+  let i = ins[k]; if (!visible(i)) { return hidden(); }
+  let q = quad(v); var s = i.size;
+  if ((i.flag & 2u) != 0u) { s = s * (1.25 + 0.35 * sin(u.time * 5.0)); }
+  var o: VO; o.pos = clipOf(w2p(i.a.xy) + (q - 0.5) * s, u.vp); o.c = shade(i); o.uv = (q - 0.5) * 2.0; return o;
+}
+@vertex fn vs_line(@builtin(vertex_index) v: u32, @builtin(instance_index) k: u32) -> VO {
+  let i = ins[k]; if (!visible(i)) { return hidden(); }
+  let q = quad(v); let p0 = w2p(i.a.xy); let p1 = w2p(i.a.zw);
+  let d = p1 - p0; let l = max(length(d), 0.001); let n = vec2f(-d.y, d.x) / l;
+  var o: VO; o.pos = clipOf(p0 + d * q.x + n * (q.y - 0.5) * i.size, u.vp); o.c = shade(i); o.uv = vec2f(q.x, q.y * 2.0 - 1.0); return o;
+}
+// flows: extra = start time; hi.z = window seconds; mode 3 = show all faintly; sel = pair+1
+fn flowSel(i: I) -> bool { return u.sel > 0u && (i.flag >> 12u) == u.sel - 1u; }
+@vertex fn vs_flow(@builtin(vertex_index) v: u32, @builtin(instance_index) k: u32) -> VO {
+  let i = ins[k]; if (!visible(i)) { return hidden(); }
+  let age = u.time - i.extra; var c = unpack4x8unorm(i.col); var w = i.size;
+  if (u.mode == 3.0) { c = vec4f(c.rgb, c.a * 0.06); }
+  else { if (age < 0.0 || age > u.hi.z) { if (!flowSel(i)) { return hidden(); } c = vec4f(c.rgb, 0.10); } else { c = vec4f(c.rgb, c.a * (1.0 - age / u.hi.z)); } }
+  if (flowSel(i)) { c = vec4f(1.0, 1.0, 1.0, max(c.a, 0.5)); w = w + 1.5; }
+  let q = quad(v); let p0 = w2p(i.a.xy); let p1 = w2p(i.a.zw);
+  let d = p1 - p0; let l = max(length(d), 0.001); let n = vec2f(-d.y, d.x) / l;
+  var o: VO; o.pos = clipOf(p0 + d * q.x + n * (q.y - 0.5) * w, u.vp); o.c = c; o.uv = vec2f(q.x, q.y * 2.0 - 1.0); return o;
+}
+@vertex fn vs_flowdot(@builtin(vertex_index) v: u32, @builtin(instance_index) k: u32) -> VO {
+  let i = ins[k]; if (!visible(i)) { return hidden(); }
+  let age = u.time - i.extra; let travel = u.hi.z * 0.35;
+  if (u.mode == 3.0 || age < 0.0 || age > travel) { return hidden(); }
+  let t = age / travel; let p = mix(w2p(i.a.xy), w2p(i.a.zw), t);
+  var c = unpack4x8unorm(i.col); c = vec4f(mix(c.rgb, vec3f(1.0), 0.5), 1.0);
+  let s = i.size * 2.0 + 3.0; let q = quad(v);
+  var o: VO; o.pos = clipOf(p + (q - 0.5) * s, u.vp); o.c = c; o.uv = (q - 0.5) * 2.0; return o;
+}
+@fragment fn fs_solid(f: VO) -> @location(0) vec4f { return vec4f(f.c.rgb * f.c.a, f.c.a); }
+@fragment fn fs_circle(f: VO) -> @location(0) vec4f {
+  let d = length(f.uv); if (d > 1.0) { discard; }
+  let a = f.c.a * (1.0 - smoothstep(0.7, 1.0, d)); return vec4f(f.c.rgb * a, a);
+}
+@fragment fn fs_glow(f: VO) -> @location(0) vec4f {
+  let d = length(f.uv); if (d > 1.0) { discard; }
+  let a = f.c.a * exp(-d * d * 4.0); return vec4f(f.c.rgb * a, a);
+}
+@fragment fn fs_ring(f: VO) -> @location(0) vec4f {
+  let d = length(f.uv); if (d > 1.0) { discard; }
+  let a = f.c.a * smoothstep(0.65, 0.8, d) * (1.0 - smoothstep(0.9, 1.0, d)); return vec4f(f.c.rgb * a, a);
+}
+@fragment fn fs_line(f: VO) -> @location(0) vec4f {
+  let a = f.c.a * (1.0 - smoothstep(0.4, 1.0, abs(f.uv.y))); return vec4f(f.c.rgb * a, a);
+}
+`;
+
+SV._cache = {};
+SV.shapesLayout = function () {
+  if (SV._shapesBGL) return SV._shapesBGL;
+  const d = SV.device;
+  SV._shapesBGL = d.createBindGroupLayout({
+    entries: [
+      { binding: 0, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
+      { binding: 1, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } },
+    ]
+  });
+  SV._shapesModule = d.createShaderModule({ code: SV.SHAPES_WGSL });
+  return SV._shapesBGL;
+};
+SV.KINDS = {
+  rect: ['vs_rect', 'fs_solid'], point: ['vs_point', 'fs_circle'], glow: ['vs_point', 'fs_glow'], ring: ['vs_point', 'fs_ring'],
+  line: ['vs_line', 'fs_line'], flow: ['vs_flow', 'fs_line'], flowdot: ['vs_flowdot', 'fs_glow'],
+};
+SV.shapePipeline = function (kind, blend) {
+  const key = kind + ':' + blend;
+  if (SV._cache[key]) return SV._cache[key];
+  const bgl = SV.shapesLayout(); const [vs, fs] = SV.KINDS[kind];
+  const p = SV.device.createRenderPipeline({
+    layout: SV.device.createPipelineLayout({ bindGroupLayouts: [bgl] }),
+    vertex: { module: SV._shapesModule, entryPoint: vs },
+    fragment: { module: SV._shapesModule, entryPoint: fs, targets: [{ format: SV.format, blend: SV.blend[blend] }] },
+    primitive: { topology: 'triangle-list' },
+  });
+  SV._cache[key] = p; return p;
+};
+
+// Pack instances: 8 words each [x,y,w,h, col, size, flag, extra]
+SV.Packer = class {
+  constructor(n) { this.n = n; this.buf = new ArrayBuffer(Math.max(1, n) * 32); this.f = new Float32Array(this.buf); this.u = new Uint32Array(this.buf); this.count = 0; }
+  push(x, y, w, h, col, size, flag = 0, extra = 0) {
+    const o = this.count * 8; const f = this.f, u = this.u;
+    f[o] = x; f[o + 1] = y; f[o + 2] = w; f[o + 3] = h; u[o + 4] = col; f[o + 5] = size; u[o + 6] = flag; f[o + 7] = extra;
+    this.count++; return this.count - 1;
+  }
+};
+
+SV.ShapeLayer = class {
+  constructor(view, kind, blend = 'alpha') { this.view = view; this.kind = kind; this.blend = blend; this.count = 0; this.visible = true; this.gbuf = null; this.cap = 0; view.layers.push(this); }
+  set(packer) {
+    const bytes = Math.max(32, packer.count * 32);
+    if (!this.gbuf || this.cap < bytes) {
+      if (this.gbuf) this.gbuf.destroy();
+      this.gbuf = SV.device.createBuffer({ size: bytes, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+      this.cap = bytes;
+      this.bg = SV.device.createBindGroup({ layout: SV.shapesLayout(), entries: [{ binding: 0, resource: { buffer: this.view.ubuf } }, { binding: 1, resource: { buffer: this.gbuf } }] });
+    }
+    if (packer.count) SV.device.queue.writeBuffer(this.gbuf, 0, packer.buf, 0, packer.count * 32);
+    this.count = packer.count; this.view.dirty = true;
+  }
+  draw(pass) {
+    if (!this.visible || !this.count) return;
+    pass.setPipeline(SV.shapePipeline(this.kind, this.blend)); pass.setBindGroup(0, this.bg); pass.draw(6, this.count);
+  }
+};
+
+// A 2D view: WebGPU canvas + 2D overlay + pan/zoom camera
+SV.View = class {
+  constructor(host, opts = {}) {
+    this.host = host; this.opts = Object.assign({ panX: true, panY: true, zoomX: true, zoomY: true, clear: [0.035, 0.043, 0.058, 1] }, opts);
+    host.classList.add('view');
+    this.canvas = document.createElement('canvas'); this.canvas.className = 'gpu';
+    this.overlay = document.createElement('canvas'); this.overlay.className = 'ov';
+    host.appendChild(this.canvas); host.appendChild(this.overlay);
+    if (SV.TEST) { this.tctx = this.canvas.getContext('2d'); }
+    else { this.ctx = this.canvas.getContext('webgpu'); this.ctx.configure({ device: SV.device, format: SV.format, alphaMode: 'premultiplied' }); }
+    this.g2 = this.overlay.getContext('2d');
+    this.scale = [1, 1]; this.offset = [0, 0]; this.vp = [1, 1];
+    this.mode = 0; this.hi = [0, 0, 0, 0]; this.mask = 0xffffffff; this.sel = 0; this.time = 0;
+    this.layers = []; this.custom = []; this.dirty = true;
+    this.ubuf = SV.device.createBuffer({ size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    this.uArr = new ArrayBuffer(64); this.uf = new Float32Array(this.uArr); this.uu = new Uint32Array(this.uArr);
+    this.ro = new ResizeObserver(() => this.resize()); this.ro.observe(host);
+    this.resize();
+    this._bindInput();
+  }
+  resize() {
+    const w = Math.max(1, this.host.clientWidth), h = Math.max(1, this.host.clientHeight), dpr = Math.min(2, window.devicePixelRatio || 1);
+    const pw = this.vp[0], ph = this.vp[1];
+    this.vp = [w, h]; this.dpr = dpr;
+    for (const c of [this.canvas, this.overlay]) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
+    if (this.onResize) this.onResize(pw, ph);
+    this.dirty = true;
+  }
+  fit(x0, y0, x1, y1, pad = 20, keepAspect = false) {
+    const [w, h] = this.vp; let sx = (w - 2 * pad) / Math.max(1e-9, x1 - x0), sy = (h - 2 * pad) / Math.max(1e-9, y1 - y0);
+    if (keepAspect) { sx = sy = Math.min(sx, sy); }
+    this.scale = [sx, sy];
+    this.offset = [(x0 + x1) / 2 - w / 2 / sx, (y0 + y1) / 2 - h / 2 / sy];
+    this.dirty = true;
+  }
+  w2s(x, y) { return [(x - this.offset[0]) * this.scale[0], (y - this.offset[1]) * this.scale[1]]; }
+  s2w(px, py) { return [px / this.scale[0] + this.offset[0], py / this.scale[1] + this.offset[1]]; }
+  _pos(e) { const r = this.overlay.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
+  _bindInput() {
+    const el = this.overlay; let drag = null;
+    el.addEventListener('pointerdown', (e) => {
+      const p = this._pos(e); el.setPointerCapture(e.pointerId);
+      const brush = this.opts.onBrush && (e.shiftKey || this.opts.brushDefault);
+      drag = { p0: p, last: p, brush, moved: false, off0: this.offset.slice() };
+    });
+    el.addEventListener('pointermove', (e) => {
+      const p = this._pos(e);
+      if (!drag) { if (this.opts.onHover) this.opts.onHover(p, this.s2w(p[0], p[1])); return; }
+      const dx = p[0] - drag.p0[0], dy = p[1] - drag.p0[1];
+      if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
+      if (drag.brush) { this.brushRect = [drag.p0[0], p[0]]; this.opts.onBrush(this.s2w(Math.min(drag.p0[0], p[0]), 0)[0], this.s2w(Math.max(drag.p0[0], p[0]), 0)[0], false); }
+      else {
+        if (this.opts.panX) this.offset[0] = drag.off0[0] - dx / this.scale[0];
+        if (this.opts.panY) this.offset[1] = drag.off0[1] - dy / this.scale[1];
+        if (this.onCamera) this.onCamera();
+      }
+      this.dirty = true;
+    });
+    el.addEventListener('pointerup', (e) => {
+      const p = this._pos(e);
+      if (drag) {
+        if (drag.brush && drag.moved) this.opts.onBrush(this.s2w(Math.min(drag.p0[0], p[0]), 0)[0], this.s2w(Math.max(drag.p0[0], p[0]), 0)[0], true);
+        else if (!drag.moved && this.opts.onClick) this.opts.onClick(p, this.s2w(p[0], p[1]), e);
+        if (!drag.brush && drag.moved && this.onCameraEnd) this.onCameraEnd();
+      }
+      drag = null; this.brushRect = null; this.dirty = true;
+    });
+    el.addEventListener('pointerleave', () => { if (this.opts.onHover) this.opts.onHover(null, null); });
+    el.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const p = this._pos(e); const k = Math.exp(-e.deltaY * 0.0015);
+      const [wx, wy] = this.s2w(p[0], p[1]);
+      if (this.opts.zoomX) this.scale[0] *= k;
+      if (this.opts.zoomY) this.scale[1] *= k;
+      if (this.clampScale) this.clampScale();
+      this.offset[0] = wx - p[0] / this.scale[0]; this.offset[1] = wy - p[1] / this.scale[1];
+      if (this.onCamera) this.onCamera();
+      clearTimeout(this._wt); this._wt = setTimeout(() => this.onCameraEnd && this.onCameraEnd(), 160);
+      this.dirty = true;
+    }, { passive: false });
+    if (this.opts.onDblClick) el.addEventListener('dblclick', (e) => this.opts.onDblClick(this._pos(e)));
+  }
+  render() {
+    const f = this.uf, u = this.uu;
+    f[0] = this.scale[0]; f[1] = this.scale[1]; f[2] = this.offset[0]; f[3] = this.offset[1]; f[4] = this.vp[0]; f[5] = this.vp[1];
+    f[6] = this.time; f[7] = this.mode; f[8] = this.hi[0]; f[9] = this.hi[1]; f[10] = this.hi[2]; f[11] = this.hi[3];
+    u[12] = this.mask >>> 0; u[13] = this.sel >>> 0; f[14] = this.boost || 0;
+    const dev = SV.device; dev.queue.writeBuffer(this.ubuf, 0, this.uArr);
+    const enc = dev.createCommandEncoder();
+    if (this.beforeRender) this.beforeRender(enc);
+    const [r, g, b, a] = this.opts.clear;
+    let target;
+    if (SV.TEST) {
+      const W = this.canvas.width, H = this.canvas.height;
+      if (!this.ttex || this.ttex.width !== W || this.ttex.height !== H) {
+        this.ttex = SV.device.createTexture({ size: [W, H], format: SV.format, usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC });
+        this.tbpr = Math.ceil(W * 4 / 256) * 256; this.tbuf = SV.device.createBuffer({ size: this.tbpr * H, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+      }
+      target = this.ttex.createView();
+    } else target = this.ctx.getCurrentTexture().createView();
+    const pass = enc.beginRenderPass({ colorAttachments: [{ view: target, clearValue: { r, g, b, a }, loadOp: 'clear', storeOp: 'store' }] });
+    for (const c of this.custom) if (c.before) c.before(pass);
+    for (const l of this.layers) l.draw(pass);
+    for (const c of this.custom) if (c.after) c.after(pass);
+    pass.end();
+    const doCopy = SV.TEST && !this.tpending;
+    if (doCopy) { enc.copyTextureToBuffer({ texture: this.ttex }, { buffer: this.tbuf, bytesPerRow: this.tbpr }, [this.ttex.width, this.ttex.height]); this.tpending = true; }
+    dev.queue.submit([enc.finish()]);
+    if (doCopy) { const tb = this.tbuf, W = this.ttex.width, H = this.ttex.height, bpr = this.tbpr; tb.mapAsync(GPUMapMode.READ).then(() => {
+      const src = new Uint8Array(tb.getMappedRange()); const img = new ImageData(W, H); const d = img.data;
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const o = y * bpr + x * 4, q = (y * W + x) * 4; const bg = SV.format.startsWith('bgra'); d[q] = src[o + (bg ? 2 : 0)]; d[q + 1] = src[o + 1]; d[q + 2] = src[o + (bg ? 0 : 2)]; d[q + 3] = 255; }
+      tb.unmap(); this.tctx.putImageData(img, 0, 0); this.tpending = false; }).catch(() => { this.tpending = false; }); }
+    const g2 = this.g2; g2.setTransform(this.dpr, 0, 0, this.dpr, 0, 0); g2.clearRect(0, 0, this.vp[0], this.vp[1]);
+    if (this.draw2D) this.draw2D(g2);
+    if (this.brushRect) { g2.fillStyle = 'rgba(94,200,255,0.12)'; g2.strokeStyle = 'rgba(94,200,255,0.8)'; const [a0, a1] = this.brushRect; g2.fillRect(Math.min(a0, a1), 0, Math.abs(a1 - a0), this.vp[1]); g2.strokeRect(Math.min(a0, a1) + 0.5, 0.5, Math.abs(a1 - a0), this.vp[1] - 1); }
+    this.dirty = false;
+  }
+  frame() { if (SV.TEST && this.tpending) return; if (this.dirty || this.animate) this.render(); }
+};
+
+// ===== GPU force-directed graph (n-body repulsion + CSR springs in a compute shader) =====
+SV.GRAPH_WGSL = SV.U_WGSL + /* wgsl */`
+struct P { n: u32, iters: u32, rep: f32, len: f32, k: f32, grav: f32, alpha: f32, damp: f32 };
+struct N { col: u32, size: f32, flag: u32, pin: f32 };
+@group(0) @binding(0) var<uniform> prm: P;
+@group(0) @binding(1) var<storage, read> src: array<vec4f>;
+@group(0) @binding(2) var<storage, read_write> dst: array<vec4f>;
+@group(0) @binding(3) var<storage, read> off: array<u32>;
+@group(0) @binding(4) var<storage, read> adj: array<u32>;
+@group(0) @binding(5) var<storage, read> info: array<N>;
+var<workgroup> tile: array<vec2f, 64>;
+@compute @workgroup_size(64) fn step(@builtin(global_invocation_id) gid: vec3u, @builtin(local_invocation_id) lid: vec3u) {
+  let i = gid.x; let valid = i < prm.n;
+  var s = vec4f(0.); if (valid) { s = src[i]; }
+  let p = s.xy; var v = s.zw; var f = vec2f(0.);
+  let tiles = (prm.n + 63u) / 64u;
+  for (var t = 0u; t < tiles; t++) {
+    let j = t * 64u + lid.x;
+    if (j < prm.n) { tile[lid.x] = src[j].xy; } else { tile[lid.x] = vec2f(1e9, 1e9); }
+    workgroupBarrier();
+    for (var m = 0u; m < 64u; m++) {
+      let d = p - tile[m]; let d2 = dot(d, d);
+      if (d2 > 1e-6 && d2 < 1e12) { f += d * (prm.rep / max(d2, 1.0)); }
+    }
+    workgroupBarrier();
+  }
+  if (!valid) { return; }
+  for (var e = off[i]; e < off[i + 1u]; e++) {
+    let q = src[adj[e]].xy; let d = q - p; let l = max(length(d), 0.001);
+    f += d / l * (l - prm.len) * prm.k;
+  }
+  f -= p * prm.grav;
+  v = (v + f * prm.alpha) * prm.damp;
+  let sp = length(v); if (sp > 30.0) { v = v / sp * 30.0; }
+  if (info[i].pin > 0.5) { v = vec2f(0.); }
+  dst[i] = vec4f(p + v, v);
+}
+`;
+SV.GRAPH_DRAW_WGSL = SV.U_WGSL + /* wgsl */`
+struct N { col: u32, size: f32, flag: u32, pin: f32 };
+@group(0) @binding(0) var<uniform> u: U;
+@group(0) @binding(1) var<storage, read> st: array<vec4f>;
+@group(0) @binding(2) var<storage, read> info: array<N>;
+@group(0) @binding(3) var<storage, read> edges: array<vec2u>;
+struct VO { @builtin(position) pos: vec4f, @location(0) c: vec4f, @location(1) uv: vec2f };
+fn w2p(w: vec2f) -> vec2f { return (w - u.offset) * u.scale; }
+fn lit(i: u32) -> bool { return u.mode != 2.0 || (info[i].flag & 1u) == 1u; }
+@vertex fn vs_edge(@builtin(vertex_index) v: u32, @builtin(instance_index) k: u32) -> VO {
+  let e = edges[k]; let p0 = w2p(st[e.x].xy); let p1 = w2p(st[e.y].xy);
+  let q = quad(v); let d = p1 - p0; let l = max(length(d), 0.001); let n = vec2f(-d.y, d.x) / l;
+  var c = vec4f(0.55, 0.62, 0.72, 0.22); var w = 1.0;
+  if (u.mode == 2.0) { if (lit(e.x) && lit(e.y)) { c = vec4f(1.0, 0.45, 0.4, 0.75); w = 1.6; } else { c = vec4f(0.5, 0.55, 0.6, 0.07); } }
+  var o: VO; o.pos = clipOf(p0 + d * q.x + n * (q.y - 0.5) * w, u.vp); o.c = c; o.uv = vec2f(q.x, q.y * 2.0 - 1.0); return o;
+}
+@vertex fn vs_node(@builtin(vertex_index) v: u32, @builtin(instance_index) k: u32) -> VO {
+  let nd = info[k]; let q = quad(v); var c = unpack4x8unorm(nd.col); var s = nd.size;
+  if (!lit(k)) { c = vec4f(c.rgb * 0.5, 0.25); }
+  if ((nd.flag & 2u) != 0u) { s = s + 4.0 + 2.0 * sin(u.time * 5.0); }
+  var o: VO; o.pos = clipOf(w2p(st[k].xy) + (q - 0.5) * s, u.vp); o.c = c; o.uv = (q - 0.5) * 2.0;
+  if ((nd.flag & 2u) != 0u) { o.uv = o.uv * 1.0; }
+  return o;
+}
+@fragment fn fs_edge(f: VO) -> @location(0) vec4f { let a = f.c.a * (1.0 - smoothstep(0.4, 1.0, abs(f.uv.y))); return vec4f(f.c.rgb * a, a); }
+@fragment fn fs_node(f: VO) -> @location(0) vec4f {
+  let d = length(f.uv); if (d > 1.0) { discard; }
+  var c = f.c.rgb; if (d > 0.72) { c = mix(c, vec3f(0.04, 0.05, 0.07), 0.7); }
+  let a = f.c.a * (1.0 - smoothstep(0.86, 1.0, d)); return vec4f(c * a, a);
+}
+`;
+
+SV.ForceGraph = class {
+  // nodes: [{col, size, flag?, x?, y?}], edges: [[a,b],...]
+  constructor(view, nodes, edges, prm = {}) {
+    const d = SV.device; this.view = view; this.n = nodes.length; this.e = edges.length;
+    this.prm = Object.assign({ rep: 900, len: 26, k: 0.04, grav: 0.004, damp: 0.82 }, prm);
+    const r = SV.rng(7);
+    const st = new Float32Array(this.n * 4);
+    nodes.forEach((nd, i) => { st[i * 4] = nd.x ?? (r() - 0.5) * 300; st[i * 4 + 1] = nd.y ?? (r() - 0.5) * 300; });
+    this.pos = new Float32Array(this.n * 2); for (let i = 0; i < this.n; i++) { this.pos[i * 2] = st[i * 4]; this.pos[i * 2 + 1] = st[i * 4 + 1]; }
+    const U = GPUBufferUsage;
+    this.sA = SV.buffer(st, U.STORAGE | U.COPY_SRC); this.sB = SV.buffer(st, U.STORAGE | U.COPY_SRC);
+    // CSR
+    const deg = new Uint32Array(this.n + 1);
+    for (const [a, b] of edges) { deg[a + 1]++; deg[b + 1]++; }
+    for (let i = 0; i < this.n; i++) deg[i + 1] += deg[i];
+    const adj = new Uint32Array(Math.max(1, deg[this.n])); const fill = deg.slice();
+    for (const [a, b] of edges) { adj[fill[a]++] = b; adj[fill[b]++] = a; }
+    this.offB = SV.buffer(deg, U.STORAGE); this.adjB = SV.buffer(adj, U.STORAGE);
+    this.infoArr = new ArrayBuffer(this.n * 16); this.infoF = new Float32Array(this.infoArr); this.infoU = new Uint32Array(this.infoArr);
+    nodes.forEach((nd, i) => { this.infoU[i * 4] = nd.col; this.infoF[i * 4 + 1] = nd.size || 6; this.infoU[i * 4 + 2] = nd.flag || 0; this.infoF[i * 4 + 3] = 0; });
+    this.infoB = SV.buffer(new Uint8Array(this.infoArr), U.STORAGE);
+    const ed = new Uint32Array(Math.max(2, this.e * 2)); edges.forEach(([a, b], i) => { ed[i * 2] = a; ed[i * 2 + 1] = b; });
+    this.edgeB = SV.buffer(ed, U.STORAGE);
+    this.prmB = d.createBuffer({ size: 32, usage: U.UNIFORM | U.COPY_DST });
+    this.readB = d.createBuffer({ size: this.n * 16, usage: U.MAP_READ | U.COPY_DST });
+    const cm = d.createShaderModule({ code: SV.GRAPH_WGSL });
+    this.cpipe = d.createComputePipeline({ layout: 'auto', compute: { module: cm, entryPoint: 'step' } });
+    const cbg = (a, b) => d.createBindGroup({ layout: this.cpipe.getBindGroupLayout(0), entries: [this.prmB, a, b, this.offB, this.adjB, this.infoB].map((buf, i) => ({ binding: i, resource: { buffer: buf } })) });
+    this.cbgs = [cbg(this.sA, this.sB), cbg(this.sB, this.sA)];
+    const rm = d.createShaderModule({ code: SV.GRAPH_DRAW_WGSL });
+    const mk = (vs, fs) => d.createRenderPipeline({ layout: 'auto', vertex: { module: rm, entryPoint: vs }, fragment: { module: rm, entryPoint: fs, targets: [{ format: SV.format, blend: SV.blend.alpha }] }, primitive: { topology: 'triangle-list' } });
+    this.pEdge = mk('vs_edge', 'fs_edge'); this.pNode = mk('vs_node', 'fs_node');
+    const rbg = (p, s, withEdges) => d.createBindGroup({ layout: p.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: view.ubuf } }, { binding: 1, resource: { buffer: s } }, { binding: 2, resource: { buffer: this.infoB } }].concat(withEdges ? [{ binding: 3, resource: { buffer: this.edgeB } }] : []) });
+    this.rbgE = [rbg(this.pEdge, this.sA, true), rbg(this.pEdge, this.sB, true)];
+    this.rbgN = [rbg(this.pNode, this.sA, false), rbg(this.pNode, this.sB, false)];
+    this.cur = 0; this.alpha = 1; this.frameNo = 0; this.reading = false;
+    view.custom.push({ before: (pass) => this.draw(pass) });
+    const prev = view.beforeRender; view.beforeRender = (enc) => { if (prev) prev(enc); this.step(enc); };
+  }
+  setFlags(fn) { for (let i = 0; i < this.n; i++) this.infoU[i * 4 + 2] = fn(i); SV.device.queue.writeBuffer(this.infoB, 0, this.infoArr); this.view.dirty = true; }
+  reheat(a = 0.6) { this.alpha = Math.max(this.alpha, a); }
+  get active() { return this.alpha > 0.01; }
+  step(enc) {
+    if (!this.active) return;
+    const p = this.prm; const buf = new ArrayBuffer(32); const u = new Uint32Array(buf), f = new Float32Array(buf);
+    u[0] = this.n; u[1] = 1; f[2] = p.rep; f[3] = p.len; f[4] = p.k; f[5] = p.grav; f[6] = this.alpha; f[7] = p.damp;
+    SV.device.queue.writeBuffer(this.prmB, 0, buf);
+    const pass = enc.beginComputePass(); pass.setPipeline(this.cpipe); pass.setBindGroup(0, this.cbgs[this.cur]); pass.dispatchWorkgroups(Math.ceil(this.n / 64)); pass.end();
+    this.cur ^= 1; this.alpha *= 0.985; this.frameNo++;
+    if (!this.reading && (this.frameNo % 8 === 0 || !this.active)) {
+      this.reading = true; enc.copyBufferToBuffer(this.cur ? this.sB : this.sA, 0, this.readB, 0, this.n * 16);
+      this._pendingRead = true;
+    }
+    this.view.dirty = true;
+  }
+  afterSubmit() {
+    if (!this._pendingRead) return; this._pendingRead = false;
+    this.readB.mapAsync(GPUMapMode.READ).then(() => {
+      const a = new Float32Array(this.readB.getMappedRange());
+      for (let i = 0; i < this.n; i++) { this.pos[i * 2] = a[i * 4]; this.pos[i * 2 + 1] = a[i * 4 + 1]; }
+      this.readB.unmap(); this.reading = false; if (this.onPositions) this.onPositions();
+    }).catch(() => { this.reading = false; });
+  }
+  draw(pass) {
+    pass.setPipeline(this.pEdge); pass.setBindGroup(0, this.rbgE[this.cur]); pass.draw(6, this.e);
+    pass.setPipeline(this.pNode); pass.setBindGroup(0, this.rbgN[this.cur]); pass.draw(6, this.n);
+  }
+  pick(px, py, rad = 10) {
+    let best = -1, bd = rad * rad;
+    for (let i = 0; i < this.n; i++) { const [sx, sy] = this.view.w2s(this.pos[i * 2], this.pos[i * 2 + 1]); const d = (sx - px) ** 2 + (sy - py) ** 2; if (d < bd) { bd = d; best = i; } }
+    return best;
+  }
+  bounds() { let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (let i = 0; i < this.n; i++) { const x = this.pos[i * 2], y = this.pos[i * 2 + 1]; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); } return [x0, y0, x1, y1]; }
+};
+// The view must call graph.afterSubmit after render; wrap render.
+SV.attachGraph = function (view, graph) {
+  const r = view.render.bind(view);
+  view.render = () => { r(); graph.afterSubmit(); };
+};
+
+SV.TEST = /[?&]test/.test(location.search);
+SV.SCALE = (() => { try { return parseFloat(new URLSearchParams(location.search).get('scale')) || 1; } catch (e) { return 1; } })();
+SV.tip = function (host) {
+  const t = SV.el('div', 'tip'); host.appendChild(t);
+  return {
+    show(x, y, html) { t.innerHTML = html; t.style.display = 'block'; const hw = host.clientWidth, hh = host.clientHeight; const w = t.offsetWidth, h = t.offsetHeight; t.style.left = Math.min(hw - w - 6, x + 14) + 'px'; t.style.top = Math.min(hh - h - 6, y + 14) + 'px'; },
+    hide() { t.style.display = 'none'; }
+  };
+};
+SV.copy = async function (text, btn) {
+  try { await navigator.clipboard.writeText(text); if (btn) { const o = btn.textContent; btn.textContent = 'Copied'; setTimeout(() => btn.textContent = o, 1200); } }
+  catch (e) { if (btn) { const o = btn.textContent; btn.textContent = 'Clipboard blocked'; setTimeout(() => btn.textContent = o, 1600); } }
+};
+
+// ===== 01 · Incident response timeline explorer =====
+SV.protos.push({
+  id: 'timeline', title: 'IR timeline', dataLabel: '1.2M log events across 25 hosts, users and cloud accounts',
+  blurb: 'one week of Windows event logs, Zeek, CloudTrail and Okta on one GPU timeline, with Sigma-style detections and a linked entity graph.',
+  how: '<kbd>drag</kbd> pan · <kbd>wheel</kbd> zoom · <kbd>shift+drag</kbd> brush a time range · <kbd>dblclick</kbd> clear · click rows to build the story',
+  async build(root) {
+    const r = SV.rng(42);
+    const DAY = 86400, T = 7 * DAY, EPOCH = Date.UTC(2026, 9, 26);
+    const SRC = [
+      { name: 'Windows EVTX', hex: '#5ec8ff' }, { name: 'Zeek', hex: '#3ddbb0' },
+      { name: 'CloudTrail', hex: '#a98bff' }, { name: 'Okta', hex: '#ff7ac6' },
+    ];
+    const SEV = { critical: '#ff5d5d', high: '#ff8c50', medium: '#ffb547', low: '#7fcfff' };
+    const users = ['j.chen', 'm.alvarez', 's.patel', 'r.okafor', 'k.nguyen', 'a.berg'];
+    const LANES = [];
+    users.forEach(u => LANES.push({ name: 'okta · ' + u, kind: 'okta' }));
+    for (let i = 1; i <= 12; i++) LANES.push({ name: 'WS-' + String(i).padStart(2, '0'), kind: 'ws' });
+    ['SRV-FILE01', 'SRV-DC01', 'SRV-SQL01', 'SRV-WEB01'].forEach(n => LANES.push({ name: n, kind: 'srv' }));
+    ['aws:prod', 'aws:data', 'aws:dev'].forEach(n => LANES.push({ name: n, kind: 'aws' }));
+    const L = Object.fromEntries(LANES.map((l, i) => [l.name, i]));
+    const TYPES = [
+      [0, '4624 Logon', 40], [0, '4634 Logoff', 25], [0, '4688 Process create', 30], [0, '4672 Special privileges', 3], [0, '4625 Failed logon', 2],
+      [1, 'conn', 50], [1, 'dns', 30], [1, 'ssl', 15], [1, 'http', 5],
+      [2, 'GetObject', 40], [2, 'ListObjects', 15], [2, 'AssumeRole', 10], [2, 'DescribeInstances', 25], [2, 'PutObject', 10],
+      [3, 'user.session.start', 30], [3, 'user.authentication.sso', 50], [3, 'user.authentication.auth_via_mfa', 20],
+    ];
+    const typesBySrc = [0, 1, 2, 3].map(s => TYPES.map((t, i) => [i, t]).filter(([, t]) => t[0] === s));
+    const pickType = (s) => { const arr = typesBySrc[s]; let tot = 0; for (const [, t] of arr) tot += t[2]; let x = r() * tot; for (const [i, t] of arr) { x -= t[2]; if (x <= 0) return i; } return arr[0][0]; };
+    const at = (d, h, m, s = 0) => d * DAY + h * 3600 + m * 60 + s;
+
+    // ---- attack scenario (flagged events with entities) ----
+    const A = [];
+    const ev = (t, lane, src, type, desc, rule, sev, ents) => A.push({ t, lane: L[lane], src, type, desc, rule, sev, ents });
+    for (let k = 0; k < 9; k++) ev(at(2, 14, 2 + k, r.int(50)), 'okta · s.patel', 3, 'user.authentication.auth_via_mfa', 'Okta Verify push DENIED (from 185.220.101.47)', 'MFA push fatigue', 'medium', ['user:s.patel', 'ip:185.220.101.47']);
+    ev(at(2, 14, 12), 'okta · s.patel', 3, 'user.session.start', 'Session start from 185.220.101.47 (anonymizing ASN, new country)', 'Okta login from anonymizing ASN', 'high', ['user:s.patel', 'ip:185.220.101.47']);
+    ev(at(2, 14, 14), 'okta · s.patel', 3, 'user.mfa.factor.activate', 'New MFA device enrolled: "Pixel 7"', 'MFA factor added after risky login', 'high', ['user:s.patel', 'ip:185.220.101.47']);
+    ev(at(2, 14, 31), 'WS-07', 0, '4688 Process create', 'outlook.exe → powershell.exe -nop -w hidden -enc JABzAD0A…', 'Encoded PowerShell from Office', 'high', ['user:s.patel', 'host:WS-07', 'proc:outlook.exe', 'proc:powershell.exe']);
+    ev(at(2, 14, 32), 'WS-07', 1, 'http', 'GET http://45.137.21.9/s2.bin (application/octet-stream, 412 KB)', 'Executable download from rare IP', 'high', ['host:WS-07', 'proc:powershell.exe', 'ip:45.137.21.9']);
+    ev(at(2, 14, 40), 'WS-07', 0, '4688 Process create', 'powershell.exe → rundll32.exe C:\\Users\\Public\\s2.dll,Start', 'Rundll32 from public directory', 'high', ['host:WS-07', 'proc:powershell.exe', 'proc:rundll32.exe']);
+    for (let t = at(2, 14, 41); t < at(4, 6, 0); t += 300 + r.int(9) - 4) ev(t, 'WS-07', 1, 'conn', 'WS-07 → 45.137.21.9:443 · 1.2 KB · 0.4s', 'Periodic outbound (beacon)', 'low', ['host:WS-07', 'proc:rundll32.exe', 'ip:45.137.21.9']);
+    ev(at(2, 15, 2), 'WS-07', 0, '4688 Process create', 'rundll32.exe → procdump64.exe -accepteula -ma lsass.exe C:\\Users\\Public\\l.dmp', 'LSASS memory dump', 'critical', ['host:WS-07', 'proc:rundll32.exe', 'proc:procdump64.exe']);
+    ev(at(2, 15, 28), 'SRV-FILE01', 0, '4624 Logon', 'Logon type 3 · CORP\\svc_backup from WS-07 (10.20.3.44)', 'Service account logon from workstation', 'medium', ['user:svc_backup', 'host:WS-07', 'host:SRV-FILE01']);
+    ev(at(2, 15, 29), 'SRV-FILE01', 0, '7045 Service installed', 'Service installed: PSEXESVC (C:\\Windows\\PSEXESVC.exe)', 'PsExec service install', 'critical', ['user:svc_backup', 'host:SRV-FILE01', 'proc:PSEXESVC.exe']);
+    ev(at(2, 15, 30), 'SRV-FILE01', 0, '4688 Process create', 'PSEXESVC.exe → cmd.exe /c whoami /all & net group "domain admins" /dom', 'Recon via PsExec', 'high', ['host:SRV-FILE01', 'proc:PSEXESVC.exe', 'proc:cmd.exe']);
+    ev(at(2, 16, 5), 'SRV-DC01', 0, '4624 Logon', 'Logon type 3 · CORP\\svc_backup from SRV-FILE01', 'Service account logon to DC', 'medium', ['user:svc_backup', 'host:SRV-FILE01', 'host:SRV-DC01']);
+    ev(at(2, 16, 6), 'SRV-DC01', 0, '4672 Special privileges', 'SeBackupPrivilege, SeDebugPrivilege assigned · svc_backup', 'Sensitive privileges on DC', 'high', ['user:svc_backup', 'host:SRV-DC01']);
+    ev(at(2, 16, 9), 'SRV-DC01', 0, '4688 Process create', 'cmd.exe → ntdsutil.exe "ac i ntds" "ifm" "create full c:\\temp\\x" q q', 'NTDS.dit extraction', 'critical', ['host:SRV-DC01', 'proc:cmd.exe', 'proc:ntdsutil.exe']);
+    ev(at(2, 16, 44), 'SRV-DC01', 0, '4720 User created', 'User account created: CORP\\helpdesk_tmp (by svc_backup)', 'Account created by service account', 'high', ['user:svc_backup', 'host:SRV-DC01', 'user:helpdesk_tmp']);
+    ev(at(2, 16, 45), 'SRV-DC01', 0, '4732 Group member added', 'helpdesk_tmp added to Domain Admins', 'Privileged group change', 'critical', ['user:helpdesk_tmp', 'host:SRV-DC01']);
+    ev(at(3, 2, 11), 'aws:prod', 2, 'CreateAccessKey', 'CreateAccessKey · IAM user deploy-bot · sourceIP 185.220.101.47', 'Access key created from anonymizing IP', 'high', ['iam:deploy-bot', 'ip:185.220.101.47', 'aws:prod']);
+    ev(at(3, 2, 14), 'aws:data', 2, 'AssumeRole', 'AssumeRole DataEngineerRole · by deploy-bot (cross-account)', 'Unusual cross-account AssumeRole', 'medium', ['iam:deploy-bot', 'role:DataEngineerRole', 'aws:data']);
+    for (let k = 0; k < 420; k++) ev(at(3, 2, 16) + k * 6 + r.int(5), 'aws:data', 2, 'GetObject', `GetObject s3://cust-pii-exports/2026/10/part-${String(k).padStart(4, '0')}.parquet`, 'Bulk S3 reads from PII bucket', 'medium', ['role:DataEngineerRole', 's3:cust-pii-exports']);
+    ev(at(3, 3, 12), 'SRV-FILE01', 1, 'conn', 'SRV-FILE01 → 91.215.85.12:443 · 4.1 GB out · 52 min', 'Large outbound transfer', 'critical', ['host:SRV-FILE01', 'ip:91.215.85.12']);
+    ev(at(3, 3, 40), 'aws:prod', 2, 'StopLogging', 'StopLogging · trail org-audit · by deploy-bot', 'CloudTrail logging disabled', 'critical', ['iam:deploy-bot', 'aws:prod']);
+    ev(at(3, 3, 41), 'SRV-DC01', 0, '1102 Log cleared', 'The audit log was cleared · CORP\\helpdesk_tmp', 'Audit log cleared', 'critical', ['user:helpdesk_tmp', 'host:SRV-DC01']);
+
+    // ---- background events ----
+    const NB = Math.round(1200000 * SV.SCALE), N = NB;
+    const tA = new Float32Array(N), laneA = new Uint8Array(N), srcA = new Uint8Array(N), typeA = new Uint8Array(N), fpA = new Uint8Array(N);
+    const laneW = LANES.map(l => ({ okta: 0.8, ws: 2.0, srv: 3.0, aws: 2.5 }[l.kind])); const lw = laneW.reduce((a, b) => a + b, 0);
+    const pickLane = () => { let x = r() * lw; for (let i = 0; i < laneW.length; i++) { x -= laneW[i]; if (x <= 0) return i; } return 0; };
+    const intensity = (kind, t) => {
+      const d = Math.floor(t / DAY), h = (t % DAY) / 3600, weekend = d >= 5, work = !weekend && h > 8 && h < 18.5;
+      if (kind === 'srv' || kind === 'aws') return 0.45 + (work ? 0.55 : 0);
+      return work ? 1 : 0.05;
+    };
+    for (let i = 0; i < N;) {
+      const lane = pickLane(), kind = LANES[lane].kind, t = r() * T;
+      if (r() > intensity(kind, t)) continue;
+      const src = kind === 'okta' ? 3 : kind === 'aws' ? 2 : (r() < 0.68 ? 0 : 1);
+      tA[i] = t; laneA[i] = lane; srcA[i] = src; const ty = pickType(src); typeA[i] = ty;
+      if (TYPES[ty][1] === '4625 Failed logon' && r() < 0.008) fpA[i] = 1;
+      i++;
+    }
+    const FP = []; for (let i = 0; i < N; i++) if (fpA[i]) FP.push({ t: tA[i], lane: laneA[i], src: srcA[i], type: '4625 Failed logon', desc: 'Failed logon · bad password (×' + (3 + r.int(6)) + ')', rule: 'Failed logon burst', sev: 'low', ents: [], fp: true });
+    const FLAG = A.concat(FP).sort((a, b) => a.t - b.t);
+    FLAG.forEach((e, i) => e.id = i);
+
+    // ---- layout ----
+    root.innerHTML = '';
+    const grid = SV.el('div', 'grid'); grid.style.gridTemplateColumns = '1fr 310px'; grid.style.gridTemplateRows = '56% 44%'; root.appendChild(grid);
+    const tlPane = SV.el('div', 'pane'); tlPane.style.gridColumn = '1'; grid.appendChild(tlPane);
+    const side = SV.el('div', 'pane'); side.style.gridRow = '1 / 3'; side.style.gridColumn = '2'; grid.appendChild(side);
+    const bottom = SV.el('div', 'grid'); bottom.style.position = 'relative'; bottom.style.gridTemplateColumns = '40% 60%'; bottom.style.gridColumn = '1'; grid.appendChild(bottom);
+    const gPane = SV.el('div', 'pane'); bottom.appendChild(gPane);
+    const tPane = SV.el('div', 'pane'); bottom.appendChild(tPane);
+    tlPane.innerHTML = `<div class="ph">Timeline · ${(N + A.length).toLocaleString()} events · UTC<span class="r"><span class="note" id="tl-range"></span><button id="tl-brush">Brush mode: off</button><button id="tl-fit">Fit week</button></span></div>`;
+    gPane.innerHTML = '<div class="ph">Entity graph<span class="r note" id="g-note">click a node to filter</span></div>';
+    tPane.innerHTML = '<div class="ph">Events<span class="r"><label class="cb"><input type="checkbox" id="t-flag" checked> detections only</label><span class="note" id="t-count"></span></span></div><div class="scroll" id="t-scroll"><table class="t" style="table-layout:fixed"><colgroup><col style="width:128px"><col style="width:96px"><col style="width:118px"><col><col style="width:230px"></colgroup><thead><tr><th>time (UTC)</th><th>where</th><th>source</th><th>event</th><th>detection</th></tr></thead><tbody></tbody></table></div>';
+    side.innerHTML = `<div class="ph">Investigation</div><div class="side">
+      <div><h4>Sources</h4><div class="chips" id="s-src"></div></div>
+      <div><h4>Detections (Sigma-style rules)</h4><div class="list" id="s-rules"></div></div>
+      <div><h4>Attack story <span style="float:right"><button id="s-copy">Copy as Markdown</button></span></h4><div class="story" id="s-story"><div class="empty">Click event rows to pin them here, in time order.</div></div></div>
+    </div>`;
+    const tlHost = SV.el('div'); tlPane.appendChild(tlHost);
+    const gHost = SV.el('div'); gPane.appendChild(gHost);
+    const tip = SV.tip(root);
+    const $ = (s) => root.querySelector(s);
+
+    // ---- timeline view ----
+    const AXIS = 26;
+    let brush = null, brushMode = false, entFilter = null;
+    const view = new SV.View(tlHost, {
+      panY: false, zoomY: false,
+      onBrush: (a, b, done) => { setBrush(a, b); if (done) refreshTable(); },
+      onDblClick: () => { setBrush(null); refreshTable(); },
+      onHover: (p) => hoverTL(p),
+      onClick: (p) => { const e = nearestFlag(p); if (e) { pin(e); } },
+    });
+    view.onResize = () => { view.scale[1] = (view.vp[1] - AXIS) / LANES.length; view.offset[1] = -AXIS / view.scale[1]; };
+    view.onResize();
+    view.clampScale = () => { const mn = view.vp[0] / T * 0.95, mx = view.vp[0] / 120; view.scale[0] = Math.min(mx, Math.max(mn, view.scale[0])); };
+    const fitWeek = () => { view.scale[0] = view.vp[0] / T * 0.995; view.offset[0] = -T * 0.0025; view.dirty = true; };
+    fitWeek();
+    // background layer: additive 1px rects
+    const pk = new SV.Packer(N);
+    const srcCol = SRC.map(s => SV.col(s.hex, Math.min(0.2, 0.032 / Math.sqrt(SV.SCALE))));
+    for (let i = 0; i < N; i++) pk.push(tA[i], laneA[i] + 0.14, 0, 0.72, srcCol[srcA[i]], 1, srcA[i] << 8, 0);
+    const bgLayer = new SV.ShapeLayer(view, 'rect', 'add'); bgLayer.set(pk);
+    const fpk = new SV.Packer(FLAG.length);
+    FLAG.forEach(e => fpk.push(e.t, e.lane + 0.5, 0, 0, SV.col(SEV[e.sev], e.fp ? 0.6 : 0.95), e.sev === 'critical' ? 9 : e.fp ? 5 : 7, (e.src << 8), 0));
+    const flagLayer = new SV.ShapeLayer(view, 'point', 'alpha'); flagLayer.set(fpk);
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const fmt = (t, withDay = true) => { const d = new Date(EPOCH + t * 1000); const hh = String(d.getUTCHours()).padStart(2, '0'), mm = String(d.getUTCMinutes()).padStart(2, '0'), ss = String(d.getUTCSeconds()).padStart(2, '0'); return (withDay ? dayNames[Math.floor(t / DAY)] + ' ' + d.getUTCDate() + ' ' : '') + hh + ':' + mm + ':' + ss; };
+    view.draw2D = (g) => {
+      const [w, h] = view.vp; const lh = view.scale[1];
+      // axis
+      g.fillStyle = '#0b0f15'; g.fillRect(0, 0, w, AXIS); g.strokeStyle = '#1c2431'; g.beginPath(); g.moveTo(0, AXIS - 0.5); g.lineTo(w, AXIS - 0.5); g.stroke();
+      const [t0] = view.s2w(0, 0), [t1] = view.s2w(w, 0); const span = t1 - t0;
+      const steps = [60, 300, 900, 3600, 3 * 3600, 6 * 3600, 12 * 3600, DAY]; let step = steps.find(s => span / s < w / 90) || DAY;
+      g.font = '10.5px JetBrains Mono, monospace'; g.textBaseline = 'middle';
+      for (let t = Math.ceil(t0 / step) * step; t < t1; t += step) {
+        const [x] = view.w2s(t, 0); const isDay = t % DAY === 0;
+        g.strokeStyle = isDay ? 'rgba(160,180,210,0.25)' : 'rgba(120,140,170,0.08)'; g.beginPath(); g.moveTo(x + 0.5, AXIS); g.lineTo(x + 0.5, h); g.stroke();
+        g.fillStyle = isDay ? '#c9d3df' : '#6b7889';
+        const d = new Date(EPOCH + t * 1000);
+        g.fillText(isDay || step >= DAY ? dayNames[Math.floor(t / DAY)] + ' ' + d.getUTCDate() + ' Oct' : fmt(t, false).slice(0, 5), x + 4, AXIS / 2);
+      }
+      // lane separators + labels
+      for (let i = 0; i < LANES.length; i++) {
+        const y = AXIS + i * lh;
+        if (i && LANES[i].kind !== LANES[i - 1].kind) { g.strokeStyle = 'rgba(160,180,210,0.18)'; g.beginPath(); g.moveTo(0, y + 0.5); g.lineTo(w, y + 0.5); g.stroke(); }
+        const name = LANES[i].name; g.font = '10.5px JetBrains Mono, monospace';
+        const tw = g.measureText(name).width; g.fillStyle = 'rgba(7,9,13,0.78)'; g.fillRect(0, y + lh / 2 - 7, tw + 12, 14);
+        g.fillStyle = name === 'WS-07' || name.includes('s.patel') ? '#ffd38a' : '#9aa7b8'; g.fillText(name, 6, y + lh / 2);
+      }
+      if (brush) { const [x0] = view.w2s(brush[0], 0), [x1] = view.w2s(brush[1], 0); g.strokeStyle = 'rgba(94,200,255,0.7)'; g.setLineDash([4, 3]); g.strokeRect(x0 + 0.5, AXIS + 0.5, x1 - x0, h - AXIS - 1); g.setLineDash([]); }
+    };
+    function nearestFlag(p) {
+      if (!p) return null; let best = null, bd = 100;
+      for (const e of FLAG) { if (!((view.mask >> e.src) & 1)) continue; const [x, y] = view.w2s(e.t, e.lane + 0.5); const d = (x - p[0]) ** 2 + (y - p[1]) ** 2; if (d < bd) { bd = d; best = e; } }
+      return best;
+    }
+    function hoverTL(p) {
+      const e = nearestFlag(p);
+      if (!e) { tip.hide(); return; }
+      const r0 = tlHost.getBoundingClientRect(), rr = root.getBoundingClientRect();
+      tip.show(p[0] + r0.left - rr.left, p[1] + r0.top - rr.top, `<b>${fmt(e.t)}</b>  ${SV.esc(LANES[e.lane].name)}\n${SV.esc(e.desc)}\n<span class="sev ${e.sev}">${e.sev}</span> ${SV.esc(e.rule)}\n<span style="color:#7c8899">click to pin to the story</span>`);
+    }
+    function setBrush(a, b) {
+      brush = a == null ? null : [a, b];
+      view.mode = brush ? 1 : 0; view.hi = brush ? [a, b, 0, 0] : [0, 0, 0, 0]; view.dirty = true;
+      $('#tl-range').textContent = brush ? fmt(a) + ' → ' + fmt(b) : '';
+      updateGraphLit();
+    }
+    $('#tl-fit').onclick = () => { fitWeek(); };
+    $('#tl-brush').onclick = (e) => { brushMode = !brushMode; view.opts.brushDefault = brushMode; e.target.textContent = 'Brush mode: ' + (brushMode ? 'on' : 'off'); e.target.classList.toggle('pri', brushMode); };
+
+    // ---- source chips ----
+    const srcBox = $('#s-src');
+    SRC.forEach((s, i) => {
+      const c = SV.el('span', 'chip', `<span class="sw" style="background:${s.hex}"></span>${s.name}`);
+      c.onclick = () => { view.mask ^= (1 << i); c.classList.toggle('off', !((view.mask >> i) & 1)); view.dirty = true; refreshTable(); };
+      srcBox.appendChild(c);
+    });
+
+    // ---- rule list ----
+    const rules = {}; FLAG.forEach(e => { (rules[e.rule] ||= { rule: e.rule, sev: e.sev, n: 0, t0: e.t, t1: e.t }); const R = rules[e.rule]; R.n++; R.t1 = Math.max(R.t1, e.t); });
+    const sevRank = { critical: 0, high: 1, medium: 2, low: 3 };
+    const rl = Object.values(rules).sort((a, b) => sevRank[a.sev] - sevRank[b.sev] || a.t0 - b.t0);
+    const rulesBox = $('#s-rules');
+    rl.forEach(R => {
+      const li = SV.el('div', 'li', `<span class="sev ${R.sev}">${R.sev.slice(0, 4)}</span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${SV.esc(R.rule)}</span><span class="m">${R.n}</span>`);
+      li.title = 'Zoom to these events';
+      li.onclick = () => {
+        const pad = Math.max(1800, (R.t1 - R.t0) * 0.3); const a = R.t0 - pad, b = R.t1 + pad;
+        view.scale[0] = view.vp[0] / (b - a); view.clampScale(); view.offset[0] = (a + b) / 2 - view.vp[0] / 2 / view.scale[0];
+        setBrush(R.t0 - 60, R.t1 + 60); refreshTable(); view.dirty = true;
+      };
+      rulesBox.appendChild(li);
+    });
+
+    // ---- entity graph ----
+    const entSet = new Map(); const gEdges = new Set();
+    const ent = (id) => { if (!entSet.has(id)) entSet.set(id, entSet.size); return entSet.get(id); };
+    const link = (a, b) => { const x = ent(a), y = ent(b); if (x !== y) gEdges.add(x < y ? x + ',' + y : y + ',' + x); };
+    A.forEach(e => { e.ents.forEach(ent); for (let i = 1; i < e.ents.length; i++) link(e.ents[i - 1], e.ents[i]); });
+    users.forEach((u, i) => { const ws = 'host:WS-' + String(i * 2 + 1).padStart(2, '0'); link('user:' + u, ws); });
+    for (let i = 1; i <= 12; i++) {
+      const ws = 'host:WS-' + String(i).padStart(2, '0');
+      ['proc:chrome.exe', 'proc:teams.exe', 'proc:outlook.exe'].forEach(p => { if (r() < 0.8) link(ws, p); });
+      link(ws, 'host:SRV-FILE01'); if (r() < 0.4) link(ws, 'host:SRV-WEB01');
+      for (let k = 0; k < 2; k++) link(ws, 'ip:' + r.pick(['142.250.72.14', '52.96.165.18', '13.107.42.14', '104.18.32.7', '151.101.1.69', '20.190.151.6']));
+    }
+    link('user:s.patel', 'host:WS-07');
+    ['host:SRV-FILE01', 'host:SRV-SQL01', 'host:SRV-WEB01'].forEach(h => link(h, 'host:SRV-DC01'));
+    link('host:SRV-WEB01', 'host:SRV-SQL01'); link('host:SRV-SQL01', 'proc:sqlservr.exe'); link('host:SRV-WEB01', 'proc:w3wp.exe'); link('host:SRV-DC01', 'proc:lsass.exe');
+    link('aws:prod', 'iam:ci-runner'); link('aws:data', 'role:DataEngineerRole'); link('aws:data', 's3:analytics-lake'); link('role:DataEngineerRole', 's3:analytics-lake'); link('aws:dev', 'iam:ci-runner'); link('aws:prod', 'iam:deploy-bot');
+    const entIds = [...entSet.keys()];
+    const typeCol = { user: '#ff7ac6', host: '#5ec8ff', proc: '#3ddbb0', ip: '#ffb547', aws: '#a98bff', iam: '#a98bff', role: '#a98bff', s3: '#a98bff' };
+    const gNodes = entIds.map(id => ({ col: SV.col(typeCol[id.split(':')[0]] || '#9aa7b8'), size: id.startsWith('host') ? 11 : id.startsWith('user') || id.startsWith('iam') ? 10 : 8 }));
+    const gview = new SV.View(gHost, {
+      onHover: (p) => { if (!p) { tip.hide(); return; } const i = graph.pick(p[0], p[1], 9); if (i < 0) { tip.hide(); return; } const r0 = gHost.getBoundingClientRect(), rr = root.getBoundingClientRect(); tip.show(p[0] + r0.left - rr.left, p[1] + r0.top - rr.top, SV.esc(entIds[i])); },
+      onClick: (p) => { const i = graph.pick(p[0], p[1], 9); entFilter = i < 0 ? null : entIds[i]; $('#g-note').textContent = entFilter ? 'filter: ' + entFilter + ' (click empty space to clear)' : 'click a node to filter'; refreshTable(); },
+    });
+    const graph = new SV.ForceGraph(gview, gNodes, [...gEdges].map(s => s.split(',').map(Number)), { rep: 1600, len: 42, k: 0.05, grav: 0.005 });
+    SV.attachGraph(gview, graph);
+    let fitted = false;
+    graph.onPositions = () => { if (!fitted || graph.active) { const [x0, y0, x1, y1] = graph.bounds(); gview.fit(x0, y0, x1, y1, 26, true); if (!graph.active) fitted = true; } };
+    gview.draw2D = (g) => {
+      g.font = '10px JetBrains Mono, monospace'; g.textBaseline = 'middle';
+      for (let i = 0; i < graph.n; i++) {
+        const id = entIds[i]; const lit = !brush || litSet.has(i);
+        if (!lit || !(id.startsWith('host') || id.startsWith('user') || id.startsWith('ip:4') || id.startsWith('ip:9') || id.startsWith('ip:18') || id.startsWith('iam') || id.startsWith('role') || id.startsWith('s3') || graph.infoU[i * 4 + 2] & 1)) continue;
+        const [x, y] = gview.w2s(graph.pos[i * 2], graph.pos[i * 2 + 1]);
+        g.fillStyle = brush ? '#e6edf5' : '#8794a6'; g.fillText(id.split(':')[1], x + 8, y);
+      }
+    };
+    let litSet = new Set();
+    function updateGraphLit() {
+      litSet = new Set();
+      if (brush) for (const e of A) if (e.t >= brush[0] && e.t <= brush[1]) e.ents.forEach(x => litSet.add(entSet.get(x)));
+      gview.mode = brush ? 2 : 0;
+      graph.setFlags(i => (litSet.has(i) ? 1 : 0) | (hoverEnts.has(i) ? 2 : 0));
+    }
+    let hoverEnts = new Set();
+
+    // ---- table ----
+    const tbody = $('#t-scroll tbody');
+    let rows = [];
+    function refreshTable() {
+      const onlyFlag = $('#t-flag').checked; const lim = 600; rows = [];
+      const inR = (t) => !brush || (t >= brush[0] && t <= brush[1]);
+      for (const e of FLAG) { if (rows.length >= lim) break; if (!((view.mask >> e.src) & 1) || !inR(e.t)) continue; if (entFilter && !e.ents.includes(entFilter)) continue; rows.push(e); }
+      let total = rows.length;
+      if (!onlyFlag && brush && !entFilter) {
+        const idx = []; for (let i = 0; i < N; i++) { const t = tA[i]; if (t >= brush[0] && t <= brush[1] && ((view.mask >> srcA[i]) & 1)) idx.push(i); }
+        total += idx.length; idx.sort((a, b) => tA[a] - tA[b]);
+        for (const i of idx.slice(0, lim)) rows.push({ t: tA[i], lane: laneA[i], src: srcA[i], type: TYPES[typeA[i]][1], desc: TYPES[typeA[i]][1], rule: '', sev: '', bg: true });
+        rows.sort((a, b) => a.t - b.t); rows = rows.slice(0, lim);
+      }
+      if (!onlyFlag && !brush) $('#t-count').textContent = 'brush a range to list raw events'; else $('#t-count').textContent = total.toLocaleString() + ' rows' + (total > rows.length ? ' (showing ' + rows.length + ')' : '');
+      tbody.innerHTML = rows.map((e, i) => `<tr data-i="${i}"><td>${fmt(e.t)}</td><td>${SV.esc(LANES[e.lane].name)}</td><td><span style="color:${SRC[e.src].hex}">●</span> ${SRC[e.src].name}</td><td title="${SV.esc(e.desc)}">${SV.esc(e.desc)}</td><td>${e.sev ? `<span class="sev ${e.sev}">${e.sev}</span> ${SV.esc(e.rule)}` : '<span style="color:#4f5a69">—</span>'}</td></tr>`).join('');
+    }
+    tbody.onclick = (ev) => { const tr = ev.target.closest('tr'); if (!tr) return; const e = rows[+tr.dataset.i]; if (e && !e.bg) pin(e); };
+    tbody.onmouseover = (ev) => { const tr = ev.target.closest('tr'); if (!tr) return; const e = rows[+tr.dataset.i]; hoverEnts = new Set(e && e.ents ? e.ents.map(x => entSet.get(x)) : []); updateGraphLit(); };
+    $('#t-flag').onchange = refreshTable;
+
+    // ---- story ----
+    const story = new Map();
+    function pin(e) { if (e.bg) return; story.set(e.id, e); renderStory(); }
+    function renderStory() {
+      const box = $('#s-story'); const arr = [...story.values()].sort((a, b) => a.t - b.t);
+      if (!arr.length) { box.innerHTML = '<div class="empty">Click event rows to pin them here, in time order.</div>'; return; }
+      box.innerHTML = arr.map(e => `<div class="s" style="border-color:${SEV[e.sev]}"><small>${fmt(e.t)} · ${SV.esc(LANES[e.lane].name)}</small>${SV.esc(e.rule)}<span class="x" data-id="${e.id}">✕</span></div>`).join('');
+    }
+    $('#s-story').onclick = (ev) => { const x = ev.target.closest('.x'); if (x) { story.delete(+x.dataset.id); renderStory(); } };
+    $('#s-copy').onclick = (ev) => {
+      const arr = [...story.values()].sort((a, b) => a.t - b.t);
+      const md = '# Incident timeline\n\n| Time (UTC) | Where | Source | What happened | Detection |\n|---|---|---|---|---|\n' + arr.map(e => `| ${fmt(e.t)} | ${LANES[e.lane].name} | ${SRC[e.src].name} | ${e.desc.replace(/\|/g, '\\|')} | ${e.sev}: ${e.rule} |`).join('\n') + '\n';
+      SV.copy(md, ev.target);
+    };
+    refreshTable();
+    return {
+      activate() { view.dirty = true; gview.dirty = true; },
+      frame(t) { view.time = t; view.boost = Math.min(18, Math.sqrt(view.scale[0] / (view.vp[0] / T))); view.frame(); if (graph.active || hoverEnts.size) gview.dirty = true; gview.time = t; gview.frame(); },
+    };
+  }
+});
+
+// ===== 02 · Cloud IAM blast radius =====
+SV.protos.push({
+  id: 'iam', title: 'IAM blast radius', dataLabel: 'an AWS-style IAM graph: 3,000+ identities, policies and resources',
+  blurb: 'click any identity and a GPU breadth-first search lights up everything it can reach — users → groups → roles → policies → resources.',
+  how: '<kbd>click</kbd> a node to run reachability · <kbd>drag</kbd> pan · <kbd>wheel</kbd> zoom · pick a crown jewel to see the exact path',
+  async build(root) {
+    const r = SV.rng(1337);
+    const TEAMS = ['payments', 'data', 'platform', 'web', 'mobile', 'security', 'finance', 'sales'];
+    const RT = [ // resource subtypes
+      { k: 's3', n: 500, hex: '#5ec8ff' }, { k: 'ec2', n: 700, hex: '#7f8ea3' }, { k: 'lambda', n: 500, hex: '#3ddbb0' },
+      { k: 'rds', n: 200, hex: '#a98bff' }, { k: 'kms', n: 200, hex: '#ffb547' }, { k: 'secret', n: 300, hex: '#ff7ac6' },
+    ];
+    const TYPE = ['user', 'group', 'role', 'policy', 'resource'];
+    const TCOL = ['#ff7ac6', '#ffd166', '#5ec8ff', '#3ddbb0', '#7f8ea3'];
+    const nodes = []; // {name, type, team, sub, crown}
+    const add = (o) => { o.id = nodes.length; nodes.push(o); return o.id; };
+    const first = ['ana', 'ben', 'chen', 'dev', 'eli', 'fay', 'gus', 'hana', 'ivan', 'jo', 'kai', 'lena', 'mo', 'nia', 'omar', 'pia', 'raj', 'sam', 'tess', 'uma', 'vic', 'wen', 'yara', 'zed'];
+    const last = ['adams', 'berg', 'cruz', 'diaz', 'evans', 'fox', 'gray', 'hill', 'ito', 'jain', 'khan', 'lee', 'moss', 'nash', 'ortiz', 'park', 'quinn', 'rossi', 'shah', 'tran'];
+    const byType = [[], [], [], [], []];
+    const usersByTeam = {}, groupsByTeam = {}, rolesByTeam = {}, polByTeam = {}, resByTeam = {};
+    TEAMS.forEach(t => { usersByTeam[t] = []; groupsByTeam[t] = []; rolesByTeam[t] = []; polByTeam[t] = []; resByTeam[t] = []; });
+    const used = new Set();
+    for (let i = 0; i < 300; i++) {
+      const team = TEAMS[i % 8]; let nm; do { nm = r.pick(first) + '.' + r.pick(last); } while (used.has(nm)); used.add(nm);
+      const id = add({ name: nm, type: 0, team }); usersByTeam[team].push(id); byType[0].push(id);
+    }
+    const contractors = []; for (let i = 0; i < 18; i++) { const id = add({ name: 'contractor-' + String(i + 1).padStart(2, '0'), type: 0, team: 'external' }); contractors.push(id); byType[0].push(id); }
+    TEAMS.forEach(t => ['devs', 'leads', 'oncall', 'readers'].forEach(g => { const id = add({ name: t + '-' + g, type: 1, team: t }); groupsByTeam[t].push(id); byType[1].push(id); }));
+    const gAdmins = add({ name: 'cloud-admins', type: 1, team: 'platform' }), gContract = add({ name: 'contractors', type: 1, team: 'external' }), gRead = add({ name: 'org-readonly', type: 1, team: 'platform' });
+    byType[1].push(gAdmins, gContract, gRead);
+    const roleWords = ['Deploy', 'ReadOnly', 'Lambda', 'Batch', 'Etl', 'Support', 'Ops', 'Ci', 'Backup', 'Analytics', 'Admin', 'Migration', 'Monitor', 'Release', 'Debug', 'Sync', 'Report'];
+    TEAMS.forEach(t => { for (let i = 0; i < 16; i++) { const id = add({ name: t[0].toUpperCase() + t.slice(1) + roleWords[i] + 'Role', type: 2, team: t }); rolesByTeam[t].push(id); byType[2].push(id); } });
+    const rAdmin = add({ name: 'OrgAdminRole', type: 2, team: 'platform' }), rCi = add({ name: 'ci-deployer', type: 2, team: 'platform' }), rBreak = add({ name: 'BreakGlassRole', type: 2, team: 'security' });
+    byType[2].push(rAdmin, rCi, rBreak);
+    RT.forEach((rt, si) => { for (let i = 0; i < rt.n; i++) {
+      const team = TEAMS[r.int(8)]; const prod = r() < 0.5;
+      let name = { s3: `s3://${team}-${r.pick(['logs', 'exports', 'assets', 'backups', 'pii', 'reports', 'lake', 'tmp'])}-${i}`, ec2: `i-${(r() * 1e8 | 0).toString(16)} (${team})`, lambda: `${team}-${r.pick(['ingest', 'notify', 'resize', 'billing', 'sync', 'auth'])}-${i}`, rds: `${team}-${prod ? 'prod' : 'staging'}-db-${i}`, kms: `kms/${team}/${prod ? 'prod' : 'dev'}-key-${i}`, secret: `secret/${prod ? 'prod' : 'dev'}/${team}/${r.pick(['db-password', 'api-key', 'stripe-key', 'oauth-client', 'signing-key'])}-${i}` }[rt.k];
+      const crown = rt.k === 'kms' || rt.k === 'secret' ? prod : rt.k === 'rds' ? prod : rt.k === 's3' ? /pii|backups/.test(name) : false;
+      const id = add({ name, type: 4, team, sub: si, crown }); resByTeam[team].push(id); byType[4].push(id);
+    } });
+    const E = [], ELBL = [];
+    const edge = (a, b, l) => { E.push([a, b]); ELBL.push(l); };
+    // policies
+    const mkPol = (name, team) => { const id = add({ name, type: 3, team }); byType[3].push(id); if (polByTeam[team]) polByTeam[team].push(id); return id; };
+    TEAMS.forEach(t => {
+      for (let i = 0; i < 22; i++) {
+        const acc = r.pick(['read', 'write', 'full']); const sub = r.int(6);
+        const p = mkPol(`${t}-${RT[sub].k}-${acc}-${i}`, t);
+        const pool = resByTeam[t].filter(x => nodes[x].sub === sub || r() < 0.12); const k = 3 + r.int(Math.min(40, pool.length));
+        for (let j = 0; j < k; j++) edge(p, r.pick(pool), acc === 'read' ? 'read' : acc === 'write' ? 'write' : 'full access');
+        if (r() < 0.1) { const ot = r.pick(TEAMS); edge(p, r.pick(rolesByTeam[ot]), 'sts:AssumeRole'); }
+      }
+    });
+    const pAdmin = mkPol('AdministratorAccess', 'platform'), pPower = mkPol('PowerUserAccess', 'platform'), pS3 = mkPol('AmazonS3FullAccess', 'data'), pLegacy = mkPol('legacy-ci-policy', 'platform'), pSecrets = mkPol('secrets-reader-2019', 'security'), pRead = mkPol('ViewOnlyAccess', 'platform');
+    byType[4].forEach(x => { edge(pAdmin, x, 'full access (*)'); if (RT[nodes[x].sub].k !== 'kms' && r() < 0.92) edge(pPower, x, 'full access (*)'); if (RT[nodes[x].sub].k === 's3') edge(pS3, x, 's3:*'); if (RT[nodes[x].sub].k === 'secret') edge(pSecrets, x, 'GetSecretValue'); if (RT[nodes[x].sub].k === 'ec2' && r() < 0.5) edge(pRead, x, 'Describe*'); });
+    edge(pLegacy, rCi, 'sts:AssumeRole on ci-deployer'); edge(pLegacy, rBreak, 'sts:AssumeRole (wildcard)');
+    // groups → policies
+    TEAMS.forEach(t => groupsByTeam[t].forEach((g, gi) => { const n = gi === 1 ? 5 : gi === 3 ? 2 : 3 + r.int(3); for (let j = 0; j < n; j++) edge(g, r.pick(polByTeam[t]), 'attached'); }));
+    edge(gAdmins, pAdmin, 'attached'); edge(gContract, pLegacy, 'attached'); edge(gContract, pRead, 'attached'); edge(gRead, pRead, 'attached');
+    // roles → policies, role → role
+    TEAMS.forEach(t => rolesByTeam[t].forEach(ro => { const n = 1 + r.int(3); for (let j = 0; j < n; j++) edge(ro, r.pick(polByTeam[t]), 'attached'); if (r() < 0.1) edge(ro, r.pick(rolesByTeam[r.pick(TEAMS)]), 'can assume'); }));
+    edge(rAdmin, pAdmin, 'attached'); edge(rCi, pPower, 'attached'); edge(rBreak, pAdmin, 'attached'); edge(rolesByTeam.data[9], pS3, 'attached'); edge(rolesByTeam.security[8], pSecrets, 'attached');
+    // users → groups/roles
+    TEAMS.forEach(t => usersByTeam[t].forEach((u, i) => {
+      edge(u, groupsByTeam[t][i % 3 === 0 ? 1 : 0], 'member of'); if (r() < 0.35) edge(u, groupsByTeam[t][2], 'member of'); if (r() < 0.2) edge(u, groupsByTeam[t][3], 'member of');
+      if (r() < 0.25) edge(u, gRead, 'member of'); if (r() < 0.2) edge(u, r.pick(rolesByTeam[t]), 'can assume');
+    }));
+    for (let i = 0; i < 5; i++) edge(usersByTeam.platform[i], gAdmins, 'member of');
+    edge(usersByTeam.platform[5], rAdmin, 'can assume'); edge(usersByTeam.security[0], rBreak, 'can assume');
+    contractors.forEach(c => edge(c, gContract, 'member of'));
+    const NN = nodes.length, NE = E.length;
+    // adjacency
+    const adj = Array.from({ length: NN }, () => []), radj = Array.from({ length: NN }, () => []);
+    E.forEach(([a, b], i) => { adj[a].push(i); radj[b].push(i); });
+    const cpuBfs = (s) => { const lv = new Int32Array(NN).fill(-1); lv[s] = 0; let fr = [s]; while (fr.length) { const nx = []; for (const x of fr) for (const ei of adj[x]) { const y = E[ei][1]; if (lv[y] < 0) { lv[y] = lv[x] + 1; nx.push(y); } } fr = nx; } return lv; };
+    const risk = [];
+    for (const id of byType[0].concat(byType[2])) { const lv = cpuBfs(id); let c = 0, n = 0; for (const x of byType[4]) if (lv[x] >= 0) { n++; if (nodes[x].crown) c++; } risk.push({ id, crown: c, res: n }); }
+    risk.sort((a, b) => b.crown - a.crown || b.res - a.res);
+
+    // ---- positions ----
+    const COLX = [0, 300, 600, 900]; const H = 1100;
+    const pos = new Float32Array(NN * 2);
+    const ord = (arr) => arr.slice().sort((a, b) => (nodes[a].team > nodes[b].team ? 1 : nodes[a].team < nodes[b].team ? -1 : a - b));
+    [0, 1, 2, 3].forEach(t => { const arr = ord(byType[t]); arr.forEach((id, i) => { pos[id * 2] = COLX[t] + (t === 0 ? (i % 2) * 14 : 0); pos[id * 2 + 1] = (i + 0.5) / arr.length * H; }); });
+    RT.forEach((rt, si) => { const arr = ord(byType[4].filter(x => nodes[x].sub === si)); const cols = 2; arr.forEach((id, i) => { pos[id * 2] = 1220 + si * 70 + (i % cols) * 18; pos[id * 2 + 1] = (Math.floor(i / cols) + 0.5) / Math.ceil(arr.length / cols) * H; }); });
+
+    // ---- layout ----
+    root.innerHTML = '';
+    const grid = SV.el('div', 'grid'); grid.style.gridTemplateColumns = '1fr 330px'; root.appendChild(grid);
+    const mainP = SV.el('div', 'pane'); grid.appendChild(mainP);
+    const side = SV.el('div', 'pane'); grid.appendChild(side);
+    mainP.innerHTML = `<div class="ph">Permission graph · ${NN.toLocaleString()} nodes · ${NE.toLocaleString()} edges<span class="r"><span class="note" id="i-gpu"></span><button id="i-clear">Clear</button><button id="i-fit">Fit</button></span></div>`;
+    side.innerHTML = `<div class="ph">Blast radius</div><div class="side">
+      <div class="legend">${TYPE.map((t, i) => `<span><i style="background:${TCOL[i]}"></i>${t === "policy" ? "policies" : t + "s"}</span>`).join('')}<span><i style="background:#ff5d5d"></i>crown jewel</span></div>
+      <div id="i-sel"><h4>Selected identity</h4><div class="empty">Click a user or role on the graph, or pick one below.</div></div>
+      <div id="i-crown"></div>
+      <div><h4>Riskiest identities (crown jewels reachable)</h4><div class="list" id="i-risk"></div></div>
+    </div>`;
+    const host = SV.el('div'); mainP.appendChild(host);
+    const tip = SV.tip(root); const $ = (s) => root.querySelector(s);
+    const view = new SV.View(host, {
+      onClick: (p) => { const i = pick(p); if (i >= 0) select(i); },
+      onHover: (p) => { if (!p) { tip.hide(); return; } const i = pick(p); if (i < 0) { tip.hide(); return; } const n = nodes[i]; const rr = root.getBoundingClientRect(), hr = host.getBoundingClientRect();
+        tip.show(p[0] + hr.left - rr.left, p[1] + hr.top - rr.top, `<b>${SV.esc(n.name)}</b>\n${TYPE[n.type]}${n.sub != null ? ' · ' + RT[n.sub].k : ''} · team ${n.team}${n.crown ? '\n<span style="color:#ff8f8f">crown jewel</span>' : ''}${levels && levels[i] !== 0xffffffff ? '\nreachable in ' + levels[i] + ' hop' + (levels[i] === 1 ? '' : 's') : ''}`); },
+    });
+    view.fit(-40, -40, 1640, H + 20, 20);
+    const pick = (p) => { let best = -1, bd = 100; for (let i = 0; i < NN; i++) { const [x, y] = view.w2s(pos[i * 2], pos[i * 2 + 1]); const d = (x - p[0]) ** 2 + (y - p[1]) ** 2; if (d < bd) { bd = d; best = i; } } return best; };
+
+    // ---- GPU buffers + shaders ----
+    const U = GPUBufferUsage, dev = SV.device;
+    const posB = SV.buffer(pos, U.STORAGE);
+    const info = new Uint32Array(NN * 2); nodes.forEach((n, i) => { info[i * 2] = SV.col(n.type === 4 ? RT[n.sub].hex : TCOL[n.type]); info[i * 2 + 1] = n.type | (n.crown ? 16 : 0); });
+    const infoB = SV.buffer(info, U.STORAGE);
+    const ed = new Uint32Array(NE * 2); E.forEach(([a, b], i) => { ed[i * 2] = a; ed[i * 2 + 1] = b; });
+    const edgeB = SV.buffer(ed, U.STORAGE);
+    const INF = 0xffffffff; const lvInit = new Uint32Array(NN).fill(INF);
+    const levelB = SV.buffer(lvInit, U.STORAGE | U.COPY_SRC);
+    const readB = dev.createBuffer({ size: NN * 4, usage: U.MAP_READ | U.COPY_DST });
+    const BFS = `struct BP { k: u32, e: u32, a: u32, b: u32 };
+      @group(0) @binding(0) var<uniform> bp: BP;
+      @group(0) @binding(1) var<storage, read> edges: array<vec2u>;
+      @group(0) @binding(2) var<storage, read_write> level: array<atomic<u32>>;
+      @compute @workgroup_size(256) fn main(@builtin(global_invocation_id) g: vec3u) {
+        let i = g.x; if (i >= bp.e) { return; }
+        let e = edges[i]; if (atomicLoad(&level[e.x]) == bp.k) { atomicMin(&level[e.y], bp.k + 1u); }
+      }`;
+    const bfsPipe = dev.createComputePipeline({ layout: 'auto', compute: { module: dev.createShaderModule({ code: BFS }), entryPoint: 'main' } });
+    const MAXD = 12; const bfsBGs = [];
+    for (let k = 0; k < MAXD; k++) { const ub = SV.buffer(new Uint32Array([k, NE, 0, 0]), U.UNIFORM); bfsBGs.push(dev.createBindGroup({ layout: bfsPipe.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: ub } }, { binding: 1, resource: { buffer: edgeB } }, { binding: 2, resource: { buffer: levelB } }] })); }
+    const DRAW = SV.U_WGSL + `
+      @group(0) @binding(0) var<uniform> u: U;
+      @group(0) @binding(1) var<storage, read> pos: array<vec2f>;
+      @group(0) @binding(2) var<storage, read> info: array<vec2u>;
+      @group(0) @binding(3) var<storage, read> edges: array<vec2u>;
+      @group(0) @binding(4) var<storage, read> level: array<u32>;
+      struct VO { @builtin(position) p: vec4f, @location(0) c: vec4f, @location(1) uv: vec2f };
+      fn w2p(w: vec2f) -> vec2f { return (w - u.offset) * u.scale; }
+      const INF = 0xffffffffu;
+      @vertex fn vs_edge(@builtin(vertex_index) v: u32, @builtin(instance_index) k: u32) -> VO {
+        let e = edges[k]; let p0 = w2p(pos[e.x]); let p1 = w2p(pos[e.y]); let q = quad(v);
+        var c = vec4f(0.55, 0.62, 0.72, 0.022); var w = 1.0;
+        if (u.mode == 2.0) {
+          let la = level[e.x]; let lb = level[e.y];
+          if (la != INF && lb != INF && lb == la + 1u) { c = vec4f(1.0, 0.72, 0.35, 0.16); if ((info[e.y].y & 16u) != 0u) { c = vec4f(1.0, 0.36, 0.36, 0.3); } w = 1.2; }
+          else { c = vec4f(0.5, 0.55, 0.62, 0.008); }
+        }
+        let d = p1 - p0; let l = max(length(d), 0.001); let n = vec2f(-d.y, d.x) / l;
+        var o: VO; o.p = clipOf(p0 + d * q.x + n * (q.y - 0.5) * w, u.vp); o.c = c; o.uv = vec2f(q.x, q.y * 2.0 - 1.0); return o;
+      }
+      @vertex fn vs_node(@builtin(vertex_index) v: u32, @builtin(instance_index) k: u32) -> VO {
+        let q = quad(v); let inf = info[k]; let ty = inf.y & 15u; let crown = (inf.y & 16u) != 0u;
+        var c = unpack4x8unorm(inf.x); var s = select(select(select(select(3.5, 5.5, ty == 3u), 6.5, ty == 2u), 7.5, ty == 1u), 4.5, ty == 0u);
+        if (u.mode == 2.0) {
+          if (level[k] == INF) { c = vec4f(c.rgb * 0.5, 0.16); }
+          else { c = vec4f(c.rgb, 1.0); if (crown) { c = vec4f(1.0, 0.36, 0.36, 1.0); s = s + 3.0; } }
+        } else if (crown && ty == 4u) { c = vec4f(mix(c.rgb, vec3f(1.0, 0.36, 0.36), 0.5), c.a); }
+        if (u.sel > 0u && k == u.sel - 1u) { s = 16.0 + 3.0 * sin(u.time * 5.0); c = vec4f(1.0, 1.0, 1.0, 1.0); }
+        var o: VO; o.p = clipOf(w2p(pos[k]) + (q - 0.5) * s, u.vp); o.c = c; o.uv = (q - 0.5) * 2.0; return o;
+      }
+      @fragment fn fs_edge(f: VO) -> @location(0) vec4f { let a = f.c.a * (1.0 - smoothstep(0.3, 1.0, abs(f.uv.y))); return vec4f(f.c.rgb * a, a); }
+      @fragment fn fs_node(f: VO) -> @location(0) vec4f { let d = length(f.uv); if (d > 1.0) { discard; } let a = f.c.a * (1.0 - smoothstep(0.75, 1.0, d)); return vec4f(f.c.rgb * a, a); }`;
+    const dm = dev.createShaderModule({ code: DRAW });
+    const mk = (vs, fs, blend) => dev.createRenderPipeline({ layout: 'auto', vertex: { module: dm, entryPoint: vs }, fragment: { module: dm, entryPoint: fs, targets: [{ format: SV.format, blend: SV.blend[blend] }] }, primitive: { topology: 'triangle-list' } });
+    const pE = mk('vs_edge', 'fs_edge', 'add'), pN = mk('vs_node', 'fs_node', 'alpha');
+    const bgE = dev.createBindGroup({ layout: pE.getBindGroupLayout(0), entries: [view.ubuf, posB, infoB, edgeB, levelB].map((b, i) => ({ binding: i, resource: { buffer: b } })) });
+    const bgN = dev.createBindGroup({ layout: pN.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: view.ubuf } }, { binding: 1, resource: { buffer: posB } }, { binding: 2, resource: { buffer: infoB } }, { binding: 4, resource: { buffer: levelB } }] });
+    view.custom.push({ before: (pass) => { pass.setPipeline(pE); pass.setBindGroup(0, bgE); pass.draw(6, NE); pass.setPipeline(pN); pass.setBindGroup(0, bgN); pass.draw(6, NN); } });
+    const pathLayer = new SV.ShapeLayer(view, 'line', 'alpha');
+    const pathDots = new SV.ShapeLayer(view, 'ring', 'alpha');
+    let levels = null, selId = -1, pathIds = [];
+    view.draw2D = (g) => {
+      g.font = '500 10.5px JetBrains Mono, monospace'; g.fillStyle = '#7c8899'; g.textAlign = 'center';
+      ['USERS', 'GROUPS', 'ROLES', 'POLICIES'].forEach((t, i) => { const [x, y] = view.w2s(COLX[i], -18); g.fillText(t, x, y); });
+      RT.forEach((rt, si) => { const [x, y] = view.w2s(1229 + si * 70, -18); g.fillText(rt.k.toUpperCase(), x, y); });
+      g.textAlign = 'left';
+      const lbl = (id, col) => { const [x, y] = view.w2s(pos[id * 2], pos[id * 2 + 1]); const t = nodes[id].name; g.font = '11px JetBrains Mono, monospace'; const w = g.measureText(t).width; g.fillStyle = 'rgba(7,9,13,0.85)'; g.fillRect(x + 9, y - 8, w + 8, 16); g.fillStyle = col; g.fillText(t, x + 13, y + 4); };
+      if (selId >= 0) lbl(selId, '#ffffff');
+      pathIds.slice(1).forEach(id => lbl(id, nodes[id].crown ? '#ff8f8f' : '#ffd38a'));
+    };
+
+    let busy = false, queued = -1;
+    async function select(id) {
+      if (busy) { queued = id; return; }
+      busy = true;
+      try { await doSelect(id); } finally { busy = false; }
+      if (queued >= 0) { const q = queued; queued = -1; select(q); }
+    }
+    async function doSelect(id) {
+      selId = id; pathIds = []; pathLayer.set(new SV.Packer(0)); pathDots.set(new SV.Packer(0));
+      const t0 = performance.now();
+      const lv = new Uint32Array(NN).fill(INF); lv[id] = 0; dev.queue.writeBuffer(levelB, 0, lv);
+      const enc = dev.createCommandEncoder();
+      for (let k = 0; k < MAXD; k++) { const p = enc.beginComputePass(); p.setPipeline(bfsPipe); p.setBindGroup(0, bfsBGs[k]); p.dispatchWorkgroups(Math.ceil(NE / 256)); p.end(); }
+      enc.copyBufferToBuffer(levelB, 0, readB, 0, NN * 4);
+      dev.queue.submit([enc.finish()]);
+      view.mode = 2; view.sel = id + 1; view.dirty = true;
+      await readB.mapAsync(GPUMapMode.READ); levels = new Uint32Array(readB.getMappedRange().slice(0)); readB.unmap();
+      if (selId !== id) return;
+      $('#i-gpu').textContent = `GPU reachability: ${MAXD} BFS passes over ${NE.toLocaleString()} edges · ${(performance.now() - t0).toFixed(1)} ms incl. readback`;
+      renderSel();
+    }
+    function renderSel() {
+      const n = nodes[selId]; const cnt = [0, 0, 0, 0, 0]; const sub = RT.map(() => 0); const jewels = []; let maxd = 0;
+      for (let i = 0; i < NN; i++) { if (levels[i] === INF || i === selId) continue; cnt[nodes[i].type]++; maxd = Math.max(maxd, levels[i]); if (nodes[i].type === 4) { sub[nodes[i].sub]++; if (nodes[i].crown) jewels.push(i); } }
+      jewels.sort((a, b) => levels[a] - levels[b]);
+      $('#i-sel').innerHTML = `<h4>Selected identity</h4><div style="font:600 14px var(--mono);margin-bottom:6px">${SV.esc(n.name)}</div>
+        <div class="kv"><span>type</span><span>${TYPE[n.type]} · team ${n.team}</span><span>groups</span><span>${cnt[1]}</span><span>roles</span><span>${cnt[2]}</span><span>policies</span><span>${cnt[3]}</span><span>resources</span><span>${cnt[4].toLocaleString()} of ${byType[4].length.toLocaleString()}</span>
+        ${RT.map((rt, i) => `<span>  ${rt.k}</span><span>${sub[i]}</span>`).join('')}<span>max depth</span><span>${maxd} hops</span></div>`;
+      $('#i-crown').innerHTML = `<h4>Crown jewels reachable · ${jewels.length}</h4>` + (jewels.length ? `<div class="list">${jewels.slice(0, 40).map(j => `<div class="li" data-j="${j}"><span style="color:#ff8f8f">●</span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${SV.esc(nodes[j].name)}</span><span class="m">${levels[j]} hops</span></div>`).join('')}</div>${jewels.length > 40 ? `<div class="note">+${jewels.length - 40} more</div>` : ''}<div id="i-path"></div>` : '<div class="empty">None. This identity cannot reach anything sensitive.</div>');
+      root.querySelectorAll('#i-crown .li').forEach(li => li.onclick = () => { root.querySelectorAll('#i-crown .li').forEach(x => x.classList.toggle('sel', x === li)); showPath(+li.dataset.j); });
+    }
+    function showPath(target) {
+      const path = [target], lbls = []; let cur = target;
+      while (cur !== selId) { const L = levels[cur]; let found = -1; for (const ei of radj[cur]) { const a = E[ei][0]; if (levels[a] === L - 1) { found = ei; break; } } if (found < 0) break; lbls.unshift(ELBL[found]); cur = E[found][0]; path.unshift(cur); }
+      pathIds = path;
+      const pk = new SV.Packer(path.length), dk = new SV.Packer(path.length);
+      for (let i = 1; i < path.length; i++) pk.push(pos[path[i - 1] * 2], pos[path[i - 1] * 2 + 1], pos[path[i] * 2], pos[path[i] * 2 + 1], SV.col('#ffd38a', 0.95), 3.5);
+      path.forEach(id => dk.push(pos[id * 2], pos[id * 2 + 1], 0, 0, SV.col(nodes[id].crown ? '#ff5d5d' : '#ffd38a'), 18));
+      pathLayer.set(pk); pathDots.set(dk);
+      $('#i-path').innerHTML = '<h4 style="margin-top:12px">Why: the exact path</h4><div class="story">' + path.map((id, i) => `<div class="s" style="border-color:${nodes[id].crown ? '#ff5d5d' : '#ffd38a'}"><small>${TYPE[nodes[id].type]}${i < lbls.length ? ' — ' + SV.esc(lbls[i]) + ' ↓' : ''}</small>${SV.esc(nodes[id].name)}</div>`).join('') + '</div>';
+    }
+    const rbox = $('#i-risk');
+    risk.slice(0, 14).forEach(x => { const li = SV.el('div', 'li', `<span style="color:${TCOL[nodes[x.id].type]}">●</span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${SV.esc(nodes[x.id].name)}</span><span class="m">${x.crown} · ${x.res.toLocaleString()} res</span>`); li.onclick = () => select(x.id); rbox.appendChild(li); });
+    $('#i-clear').onclick = () => { selId = -1; pathIds = []; levels = null; view.mode = 0; view.sel = 0; pathLayer.set(new SV.Packer(0)); pathDots.set(new SV.Packer(0)); $('#i-sel').innerHTML = '<h4>Selected identity</h4><div class="empty">Click a user or role on the graph, or pick one below.</div>'; $('#i-crown').innerHTML = ''; view.dirty = true; };
+    $('#i-fit').onclick = () => view.fit(-40, -40, 1640, H + 20, 20);
+    return {
+      activate() { view.dirty = true; },
+      frame(t) { view.time = t; view.animate = selId >= 0; view.frame(); },
+    };
+  }
+});
+
+// ===== 03 · Network flow galaxy =====
+SV.protos.push({
+  id: 'flows', title: 'Flow galaxy', dataLabel: '300k network flows across 500 hosts and 1,600 external IPs',
+  blurb: '24 hours of NetFlow/Zeek replayed as a galaxy. A compute shader scores every host pair for periodicity, so beacons surface on their own.',
+  how: '<kbd>space</kbd> play/pause · <kbd>drag</kbd> pan · <kbd>wheel</kbd> zoom · click a detection to isolate it',
+  async build(root) {
+    const r = SV.rng(99);
+    const DAY = 86400;
+    const SUBNETS = ['10.20.1 servers', '10.20.2 dev', '10.20.3 sales WS', '10.20.4 eng WS', '10.20.5 finance', '10.20.6 support', '10.20.7 lab', '10.20.8 wifi', '10.20.9 VDI', '10.20.10 OT/IoT'];
+    const SUBHEX = ['#5ec8ff', '#3ddbb0', '#ff7ac6', '#a98bff', '#ffd166', '#7fe08a', '#ff9f6b', '#9ab0ff', '#62e6e6', '#d9a0ff'];
+    const REGIONS = ['Cloud A', 'Cloud B', 'CDN', 'SaaS', 'Email', 'Ad-tech', 'Hosting', 'ISP EU', 'ISP APAC', 'VPN / anonymizers', 'Mobile', 'Gov / edu'];
+    const hosts = []; // {name, x, y, ext, sub/region, ip}
+    const perSub = SUBNETS.map(() => 0);
+    for (let i = 0; i < 500; i++) {
+      const s = i < 40 ? 0 : 1 + r.int(9); const k = perSub[s]++;
+      const base = s / 10 * Math.PI * 2, rad = 60 + k * 5.6 + r() * 6, th = base + rad * 0.0065 + r.normal() * 0.035;
+      hosts.push({ ip: SUBNETS[s].split(' ')[0] + '.' + (k + 10), x: Math.cos(th) * rad, y: Math.sin(th) * rad, ext: false, g: s });
+    }
+    const NI = hosts.length;
+    for (let i = 0; i < 1600; i++) {
+      const g = r.int(12); const a = (g + 0.1 + r() * 0.8) / 12 * Math.PI * 2, rad = 560 + r() * 110;
+      hosts.push({ ip: `${20 + r.int(200)}.${r.int(256)}.${r.int(256)}.${r.int(256)}`, x: Math.cos(a) * rad, y: Math.sin(a) * rad, ext: true, g });
+    }
+    const placeExt = (ip, g) => { const a = (g + 0.2 + r() * 0.6) / 12 * Math.PI * 2, rad = 600 + r() * 60; hosts.push({ ip, x: Math.cos(a) * rad, y: Math.sin(a) * rad, ext: true, g }); return hosts.length - 1; };
+    const hostByIp = (ip) => hosts.findIndex(h => h.ip === ip);
+    // make sure named hosts exist with right subnet
+    const findIn = (s, n) => hosts.findIndex((h, i) => i < NI && h.g === s && (n-- === 0));
+    const fileSrv = findIn(0, 5); hosts[fileSrv].ip = '10.20.1.15';
+    const sales = findIn(2, 7); hosts[sales].ip = '10.20.3.44';
+    const sup = findIn(5, 3); hosts[sup].ip = '10.20.6.18';
+    const eng = findIn(3, 9); hosts[eng].ip = '10.20.4.9';
+    const C2a = placeExt('45.137.21.9', 6), C2b = placeExt('193.42.33.7', 9), C2c = placeExt('23.94.12.5', 6), EXF = placeExt('91.215.85.12', 9);
+    const NTP = placeExt('162.159.200.1', 2), MSU = placeExt('13.107.4.50', 1);
+    const NH = hosts.length;
+    // popularity for externals
+    const extIdx = []; for (let i = NI; i < NI + 1600; i++) extIdx.push(i);
+    const pop = extIdx.map((_, k) => 1 / Math.pow(k + 1, 1.05)); const popSum = pop.reduce((a, b) => a + b, 0);
+    const cum = []; let acc = 0; for (const p of pop) { acc += p / popSum; cum.push(acc); }
+    const pickExt = () => { const x = r(); let lo = 0, hi = cum.length - 1; while (lo < hi) { const m = (lo + hi) >> 1; if (cum[m] < x) lo = m + 1; else hi = m; } return extIdx[lo]; };
+    const act = hosts.slice(0, NI).map((h, i) => (h.g === 0 ? 4 : 1) * (0.3 + r() * 1.4));
+    const actSum = act.reduce((a, b) => a + b, 0);
+    const pickInt = () => { let x = r() * actSum; for (let i = 0; i < NI; i++) { x -= act[i]; if (x <= 0) return i; } return 0; };
+    const diurnal = (t) => { const h = t / 3600; return 0.12 + 0.88 * Math.max(0, Math.sin((h - 7) / 12 * Math.PI)) ** 0.7; };
+    // flows
+    const F = []; // [src,dst,t,bytes]
+    const NF = Math.round(300000 * SV.SCALE);
+    while (F.length < NF) { const t = r() * DAY; if (r() > diurnal(t)) continue; const s = pickInt(); let d; if (r() < 0.75) d = pickExt(); else { d = r.int(40); if (d === s) continue; } F.push([s, d, t, Math.exp(9 + r.normal() * 1.9)]); }
+    const truth = {};
+    const periodic = (s, d, every, jit, a, b, bytes, tag) => { for (let t = a + r() * every; t < b; t += every + (r() * 2 - 1) * jit) F.push([s, d, t, bytes * (0.8 + r() * 0.4)]); truth[s + ':' + d] = tag; };
+    periodic(sales, C2a, 300, 4, 0, DAY, 1200, null);
+    periodic(sup, C2b, 60, 1, 9 * 3600, 17.5 * 3600, 900, null);
+    periodic(eng, C2c, 3600, 90, 0, DAY, 2400, null);
+    for (let k = 0; k < 3; k++) periodic(k, NTP, 1024, 0.5, 0, DAY, 90, 'known: NTP');
+    for (let k = 3; k < 6; k++) periodic(k, MSU, 3600, 30, 0, DAY, 5200, 'known: OS update check');
+    F.push([fileSrv, EXF, 3 * 3600 + 12 * 60, 4.4e9]);
+    F.sort((a, b) => a[2] - b[2]);
+    // pairs
+    const pairMap = new Map(); const pairs = [];
+    F.forEach((f, i) => { const k = f[0] * 4096 + f[1]; let p = pairMap.get(k); if (p === undefined) { p = pairs.length; pairMap.set(k, p); pairs.push({ s: f[0], d: f[1], ts: [] }); } pairs[p].ts.push(f[2]); f.push(p); });
+    // CSR for GPU periodicity scoring (timestamps already sorted)
+    const NP = pairs.length; const off = new Uint32Array(NP + 1); pairs.forEach((p, i) => off[i + 1] = off[i] + p.ts.length);
+    const tsArr = new Float32Array(off[NP]); pairs.forEach((p, i) => tsArr.set(p.ts, off[i]));
+
+    // ---- layout ----
+    root.innerHTML = '';
+    const grid = SV.el('div', 'grid'); grid.style.gridTemplateColumns = '1fr 340px'; root.appendChild(grid);
+    const mainP = SV.el('div', 'pane'); grid.appendChild(mainP);
+    const side = SV.el('div', 'pane'); grid.appendChild(side);
+    mainP.innerHTML = `<div class="ph">${F.length.toLocaleString()} flows · ${NP.toLocaleString()} host pairs · Thu 29 Oct (UTC)<span class="r"><label class="cb"><input type="checkbox" id="f-all"> show all 24h</label><button id="f-play" class="pri">Pause</button></span></div>`;
+    const host = SV.el('div'); mainP.appendChild(host);
+    const ctl = SV.el('div', '', `<div style="display:flex;gap:10px;align-items:center;padding:8px 12px;border-top:1px solid var(--line);background:#0b0f15"><span class="note" style="font-family:var(--mono)">00:00</span><input type="range" id="f-time" min="0" max="86400" step="1" value="0"><span class="note" style="font-family:var(--mono)">24:00</span><span class="note">speed</span><select id="f-speed" style="background:#141b26;color:var(--text);border:1px solid var(--line2);border-radius:6px;padding:3px"><option value="120">2 min/s</option><option value="600" selected>10 min/s</option><option value="1800">30 min/s</option><option value="3600">1 h/s</option></select></div>`);
+    mainP.appendChild(ctl);
+    side.innerHTML = `<div class="ph">Detections</div><div class="side">
+      <div class="note">Every host pair with 6+ connections is scored on the GPU for regularity (1 − coefficient of variation of the gaps between connections). Beacons call home on a timer, so they score near 1.</div>
+      <div><h4>Beaconing candidates <span class="note" id="f-gpu" style="text-transform:none;letter-spacing:0"></span></h4><div class="list" id="f-beacons"></div></div>
+      <div id="f-detail"></div>
+      <div><h4>Largest outbound transfers</h4><div class="list" id="f-big"></div></div>
+      <div><h4>Subnets</h4><div class="legend">${SUBNETS.map((s, i) => `<span><i style="background:${SUBHEX[i]}"></i>${s}</span>`).join('')}</div></div>
+    </div>`;
+    const tip = SV.tip(root); const $ = (s) => root.querySelector(s);
+    const view = new SV.View(host, {
+      onHover: (p) => { if (!p) { tip.hide(); return; } let best = -1, bd = 64; for (let i = 0; i < NH; i++) { const [x, y] = view.w2s(hosts[i].x, hosts[i].y); const d = (x - p[0]) ** 2 + (y - p[1]) ** 2; if (d < bd) { bd = d; best = i; } } if (best < 0) { tip.hide(); return; } const h = hosts[best]; const rr = root.getBoundingClientRect(), hr = host.getBoundingClientRect(); tip.show(p[0] + hr.left - rr.left, p[1] + hr.top - rr.top, `<b>${h.ip}</b>\n${h.ext ? 'external · ' + REGIONS[h.g] : 'internal · ' + SUBNETS[h.g]}`); },
+      clear: [0.02, 0.025, 0.04, 1],
+    });
+    view.onResize = () => view.fit(-700, -700, 700, 700, 10, true);
+    view.onResize();
+    // hosts
+    const hp = new SV.Packer(NH);
+    hosts.forEach((h, i) => hp.push(h.x, h.y, 0, 0, h.ext ? SV.col('#8aa0c0', 0.55) : SV.col(SUBHEX[h.g], 0.95), h.ext ? 5 : (h.g === 0 ? 9 : 6), 0, 0));
+    const hostLayer = new SV.ShapeLayer(view, 'glow', 'add'); hostLayer.set(hp);
+    // flows
+    const fp = new SV.Packer(F.length);
+    F.forEach(f => { const a = hosts[f[0]], b = hosts[f[1]]; const ext = b.ext; const w = 0.7 + Math.max(0, Math.log10(f[3]) - 3) * 0.55; fp.push(a.x, a.y, b.x, b.y, ext ? SV.col('#5ec8ff', 0.75) : SV.col('#3ddbb0', 0.65), w + 0.3, ((ext ? 0 : 1) << 8) | (f[4] << 12), f[2]); });
+    const flowLayer = new SV.ShapeLayer(view, 'flow', 'add'); flowLayer.set(fp);
+    const dotLayer = new SV.ShapeLayer(view, 'flowdot', 'add'); dotLayer.set(fp);
+    const ringLayer = new SV.ShapeLayer(view, 'ring', 'alpha');
+    view.hi = [0, 0, 900, 0];
+    let T = 0, playing = true, speed = 600;
+    const fmt = (t) => { const h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60); return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'); };
+    // active flow count per window for the clock readout
+    const tsSorted = F.map(f => f[2]);
+    const countIn = (a, b) => { let lo = 0, hi = tsSorted.length; while (lo < hi) { const m = (lo + hi) >> 1; if (tsSorted[m] < a) lo = m + 1; else hi = m; } let lo2 = lo, hi2 = tsSorted.length; while (lo2 < hi2) { const m = (lo2 + hi2) >> 1; if (tsSorted[m] < b) lo2 = m + 1; else hi2 = m; } return lo2 - lo; };
+    let selPair = -1;
+    view.draw2D = (g) => {
+      g.font = '500 30px JetBrains Mono, monospace'; g.fillStyle = '#e6edf5'; g.textAlign = 'left'; g.textBaseline = 'top';
+      g.fillText(fmt(T), 16, 14); g.font = '11px JetBrains Mono, monospace'; g.fillStyle = '#7c8899';
+      g.fillText($('#f-all').checked ? 'all flows, 24h' : countIn(T - 900, T).toLocaleString() + ' flows in last 15 min', 18, 52);
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      SUBNETS.forEach((s, i) => { const a = i / 10 * Math.PI * 2 + 360 * 0.0065, rad = 380; const [x, y] = view.w2s(Math.cos(a) * rad, Math.sin(a) * rad); g.fillStyle = SUBHEX[i]; g.globalAlpha = 0.8; g.fillText(s, x, y); });
+      REGIONS.forEach((s, i) => { const a = (i + 0.5) / 12 * Math.PI * 2, rad = 700; const [x, y] = view.w2s(Math.cos(a) * rad, Math.sin(a) * rad); g.fillStyle = '#6b7889'; g.fillText(s, x, y); });
+      g.globalAlpha = 1;
+      if (selPair >= 0) { const p = pairs[selPair]; [p.s, p.d].forEach(i => { const [x, y] = view.w2s(hosts[i].x, hosts[i].y); g.font = '11px JetBrains Mono, monospace'; const t = hosts[i].ip; const w = g.measureText(t).width; g.fillStyle = 'rgba(7,9,13,0.85)'; g.fillRect(x + 10, y - 8, w + 8, 16); g.fillStyle = '#fff'; g.textAlign = 'left'; g.fillText(t, x + 14, y); g.textAlign = 'center'; }); }
+    };
+    // ---- GPU periodicity scoring ----
+    const dev = SV.device, U = GPUBufferUsage;
+    const offB = SV.buffer(off, U.STORAGE), tsB = SV.buffer(tsArr, U.STORAGE);
+    const outB = dev.createBuffer({ size: NP * 16, usage: U.STORAGE | U.COPY_SRC }), rdB = dev.createBuffer({ size: NP * 16, usage: U.MAP_READ | U.COPY_DST });
+    const prmB = SV.buffer(new Uint32Array([NP, 6, 0, 0]), U.UNIFORM);
+    const CS = `struct P { n: u32, minc: u32, a: u32, b: u32 };
+      @group(0) @binding(0) var<uniform> P0: P;
+      @group(0) @binding(1) var<storage, read> off: array<u32>;
+      @group(0) @binding(2) var<storage, read> ts: array<f32>;
+      @group(0) @binding(3) var<storage, read_write> outp: array<vec4f>;
+      @compute @workgroup_size(128) fn main(@builtin(global_invocation_id) g: vec3u) {
+        let i = g.x; if (i >= P0.n) { return; }
+        let a = off[i]; let b = off[i + 1u]; let c = b - a;
+        if (c < P0.minc) { outp[i] = vec4f(0.0, 0.0, f32(c), 0.0); return; }
+        var s = 0.0; var s2 = 0.0;
+        for (var k = a + 1u; k < b; k++) { let d = ts[k] - ts[k - 1u]; s += d; s2 += d * d; }
+        let n = f32(c - 1u); let mean = s / n; let varc = max(s2 / n - mean * mean, 0.0);
+        let cv = sqrt(varc) / max(mean, 1e-3);
+        outp[i] = vec4f(clamp(1.0 - cv, 0.0, 1.0), mean, f32(c), cv);
+      }`;
+    const cp = dev.createComputePipeline({ layout: 'auto', compute: { module: dev.createShaderModule({ code: CS }), entryPoint: 'main' } });
+    const cbg = dev.createBindGroup({ layout: cp.getBindGroupLayout(0), entries: [prmB, offB, tsB, outB].map((b, i) => ({ binding: i, resource: { buffer: b } })) });
+    const t0 = performance.now();
+    const enc = dev.createCommandEncoder(); const pass = enc.beginComputePass(); pass.setPipeline(cp); pass.setBindGroup(0, cbg); pass.dispatchWorkgroups(Math.ceil(NP / 128)); pass.end();
+    enc.copyBufferToBuffer(outB, 0, rdB, 0, NP * 16); dev.queue.submit([enc.finish()]);
+    await rdB.mapAsync(GPUMapMode.READ); const sc = new Float32Array(rdB.getMappedRange().slice(0)); rdB.unmap();
+    const ms = performance.now() - t0;
+    const cands = []; for (let i = 0; i < NP; i++) if (sc[i * 4 + 2] >= 6 && sc[i * 4] > 0.9) cands.push({ p: i, score: sc[i * 4], mean: sc[i * 4 + 1], n: sc[i * 4 + 2] });
+    cands.forEach(c => c.known = !!truth[pairs[c.p].s + ':' + pairs[c.p].d]); cands.sort((a, b) => (a.known - b.known) || (b.score - a.score));
+    $('#f-gpu').textContent = `· ${NP.toLocaleString()} pairs scored in ${ms.toFixed(1)} ms`;
+    const fmtI = (s) => s >= 3600 ? (s / 3600).toFixed(1) + 'h' : s >= 60 ? (s / 60).toFixed(1) + 'm' : s.toFixed(0) + 's';
+    const bbox = $('#f-beacons');
+    cands.slice(0, 9).forEach(c => {
+      const p = pairs[c.p]; const tag = truth[p.s + ':' + p.d];
+      const li = SV.el('div', 'li', `<span class="sev ${tag ? 'info' : c.score > 0.9 ? 'high' : 'medium'}">${c.score.toFixed(2)}</span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:11.5px var(--mono)">${hosts[p.s].ip} → ${hosts[p.d].ip}</span><span class="m">${fmtI(c.mean)}</span>`);
+      if (tag) { li.style.opacity = '0.55'; li.querySelector('.sev').textContent = 'known'; }
+      li.title = tag || 'unexplained periodic traffic';
+      li.onclick = () => { root.querySelectorAll('#f-beacons .li, #f-big .li').forEach(x => x.classList.toggle('sel', x === li)); selectPair(c.p, c, tag); };
+      bbox.appendChild(li);
+    });
+    const big = F.filter(f => hosts[f[1]].ext).sort((a, b) => b[3] - a[3]).slice(0, 5);
+    big.forEach(f => {
+      const li = SV.el('div', 'li', `<span class="sev ${f[3] > 1e9 ? 'critical' : 'info'}">${SV.fmtBytes(f[3])}</span><span style="font:11.5px var(--mono);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${hosts[f[0]].ip} → ${hosts[f[1]].ip}</span><span class="m">${fmt(f[2])}</span>`);
+      li.onclick = () => { root.querySelectorAll('#f-beacons .li, #f-big .li').forEach(x => x.classList.toggle('sel', x === li)); selectPair(f[4], null, null); T = Math.max(0, f[2] - 60); };
+      $('#f-big').appendChild(li);
+    });
+    function selectPair(pi, c, tag) {
+      selPair = pi; view.sel = pi + 1; const p = pairs[pi];
+      const rk = new SV.Packer(2); rk.push(hosts[p.s].x, hosts[p.s].y, 0, 0, SV.col('#ffffff', 0.9), 22, 0); rk.push(hosts[p.d].x, hosts[p.d].y, 0, 0, SV.col('#ff5d5d', 0.95), 22, 0); ringLayer.set(rk);
+      if (c) T = Math.max(0, p.ts.find(t => t > T) ?? p.ts[0]);
+      const d = $('#f-detail');
+      d.innerHTML = `<h4>${hosts[p.s].ip} → ${hosts[p.d].ip}</h4><div class="kv"><span>connections</span><span>${p.ts.length}</span>${c ? `<span>mean gap</span><span>${fmtI(c.mean)}</span><span>regularity</span><span>${c.score.toFixed(3)}</span>` : ''}<span>verdict</span><span>${tag ? tag : c ? '<span style="color:#ff8f8f">unexplained — investigate</span>' : 'one-off bulk transfer'}</span></div><canvas id="f-spark" style="width:100%;height:46px;margin-top:8px;display:block"></canvas><div class="note" style="display:flex;justify-content:space-between;font-family:var(--mono)"><span>00:00</span><span>each tick = one connection</span><span>24:00</span></div>`;
+      const cv = d.querySelector('#f-spark'); const W = cv.clientWidth, H = cv.clientHeight, dpr = devicePixelRatio || 1; cv.width = W * dpr; cv.height = H * dpr; const g = cv.getContext('2d'); g.scale(dpr, dpr);
+      g.fillStyle = '#0f141c'; g.fillRect(0, 0, W, H); g.strokeStyle = tag ? '#7c8899' : '#ff8f8f'; g.globalAlpha = 0.8;
+      p.ts.forEach(t => { const x = t / DAY * W; g.beginPath(); g.moveTo(x + 0.5, 8); g.lineTo(x + 0.5, H - 8); g.stroke(); });
+      view.dirty = true;
+    }
+    $('#f-play').onclick = () => { playing = !playing; $('#f-play').textContent = playing ? 'Pause' : 'Play'; };
+    $('#f-time').oninput = (e) => { T = +e.target.value; view.dirty = true; };
+    $('#f-speed').onchange = (e) => { speed = +e.target.value; };
+    $('#f-all').onchange = (e) => { view.mode = e.target.checked ? 3 : 0; view.dirty = true; };
+    const onKey = (e) => { if (e.code === 'Space' && root.classList.contains('on') && e.target.tagName !== 'INPUT') { e.preventDefault(); $('#f-play').click(); } };
+    window.addEventListener('keydown', onKey);
+    return {
+      activate() { view.dirty = true; },
+      frame(t, dt) {
+        if (playing) { T = (T + dt * speed) % DAY; $('#f-time').value = T; }
+        view.time = T; view.animate = true; view.frame();
+      },
+    };
+  }
+});
+
+// ===== 04 · Packet capture at scale =====
+SV.protos.push({
+  id: 'pcap', title: 'PCAP explorer', dataLabel: 'a 1-hour, 3-million-packet capture',
+  blurb: 'every packet of a 1-hour capture binned on the GPU into two heatmaps (time × port, time × size), re-binned live as you zoom, with drill-down to bytes.',
+  how: '<kbd>wheel</kbd> zoom time · <kbd>drag</kbd> pan · click a conversation, then a packet · try the hints on the right',
+  async build(root) {
+    const r = SV.rng(2024);
+    const DUR = 3600;
+    const PROTO = [
+      { n: 'TCP', hex: '#7f8ea3' }, { n: 'TLS', hex: '#5ec8ff' }, { n: 'HTTP', hex: '#3ddbb0' }, { n: 'DNS', hex: '#ffd166' }, { n: 'SSH', hex: '#a98bff' },
+      { n: 'SMB', hex: '#ff9f6b' }, { n: 'ICMP', hex: '#ff7ac6' }, { n: 'NTP', hex: '#9ab0ff' }, { n: 'RDP', hex: '#7fe08a' }, { n: 'QUIC', hex: '#62e6e6' },
+    ];
+    const KIND = [ // proto, port, weight, logPkts mean, sd
+      [1, 443, 45, 3.4, 1.3], [9, 443, 8, 3.8, 1.1], [3, 53, 22, 0.6, 0.2], [2, 80, 6, 2.6, 1.0], [5, 445, 5, 4.2, 1.4], [4, 22, 2, 4.0, 1.2],
+      [6, 0, 2, 1.2, 0.5], [7, 123, 3, 0.6, 0.1], [8, 3389, 2, 4.5, 1.0], [0, 8080, 3, 2.5, 1.0], [0, -1, 2, 2.2, 1.0],
+    ];
+    const kw = KIND.reduce((a, k) => a + k[2], 0);
+    const NPK = Math.round(3000000 * SV.SCALE);
+    const ptime = new Float32Array(NPK + 60000), pword = new Uint32Array(NPK + 60000), pdir = new Uint8Array(NPK + 60000);
+    const convs = []; let np = 0;
+    const ip = (a, b) => `10.0.${a}.${b}`;
+    const extIp = () => `${r.pick([13, 20, 23, 34, 52, 104, 142, 151, 172, 185])}.${r.int(256)}.${r.int(256)}.${r.int(256)}`;
+    const lenFor = (proto, k, dir) => {
+      switch (proto) {
+        case 1: return k === 0 ? 583 : dir ? (r() < 0.75 ? 1514 : 120 + r.int(900)) : (r() < 0.8 ? 66 : 100 + r.int(400));
+        case 9: return dir ? 1250 + r.int(100) : 60 + r.int(60);
+        case 3: return dir ? 90 + r.int(120) : 70 + r.int(40);
+        case 2: return k === 0 ? 420 + r.int(200) : dir ? 1514 : 66;
+        case 5: return dir ? (r() < 0.85 ? 1514 : 200 + r.int(600)) : 66 + r.int(200);
+        case 4: return 90 + r.int(160);
+        case 6: return 98;
+        case 7: return 90;
+        case 8: return dir ? 300 + r.int(1200) : 70 + r.int(120);
+        default: return 66 + (r() < 0.4 ? r.int(1448) : 0);
+      }
+    };
+    const addConv = (c, times, portFn, lenFn, dirFn) => {
+      c.first = np; c.count = times.length; c.bytes = 0;
+      for (let k = 0; k < times.length; k++) {
+        if (np >= ptime.length) break;
+        const dir = dirFn ? dirFn(k) : (k % 2 ? 1 : 0); const len = Math.min(1514, lenFn(k, dir)); const port = portFn ? portFn(k) : c.dport;
+        ptime[np] = times[k]; pword[np] = (port & 0xffff) | ((len & 0x7ff) << 16) | ((c.proto & 31) << 27); pdir[np] = dir; c.bytes += len; np++;
+      }
+      c.count = np - c.first; c.id = convs.length; convs.push(c);
+    };
+    while (np < NPK) {
+      let x = r() * kw, K = KIND[0]; for (const k of KIND) { x -= k[2]; if (x <= 0) { K = k; break; } }
+      const [proto, port0, , mu, sd] = K;
+      const n = Math.max(1, Math.round(Math.exp(mu + r.normal() * sd)));
+      const start = r() * DUR; const dur = Math.min(DUR - start, n * (0.01 + r() * (proto === 4 || proto === 8 ? 4 : 0.2)));
+      const internal = proto === 5 || proto === 8 || r() < 0.15;
+      const c = { src: ip(1 + r.int(9), 10 + r.int(200)), dst: internal ? ip(1, 10 + r.int(20)) : extIp(), sport: 49152 + r.int(16000), dport: port0 < 0 ? 1024 + r.int(60000) : port0, proto };
+      const times = []; for (let k = 0; k < n; k++) times.push(start + (n === 1 ? 0 : dur * k / (n - 1)) + r() * 0.002);
+      addConv(c, times, null, (k, dir) => lenFor(proto, k, dir));
+    }
+    // injected: port scan
+    { const ports = []; for (let p = 1; p <= 10000; p++) ports.push(p); for (let i = ports.length - 1; i > 0; i--) { const j = r.int(i + 1); [ports[i], ports[j]] = [ports[j], ports[i]]; }
+      const times = ports.map((_, k) => 1200 + k * 0.006); addConv({ src: '10.0.5.66', dst: '10.0.1.10', sport: 51515, dport: 0, proto: 0, note: 'scan' }, times, (k) => ports[k], () => 60, () => 0); }
+    // injected: DNS tunneling
+    { const times = []; for (let t = 1800; t < 3000; t += 0.05 + r() * 0.05) times.push(t); addConv({ src: '10.0.3.21', dst: '8.8.8.8', sport: 53001, dport: 53, proto: 3, note: 'tunnel' }, times, null, (k, dir) => dir ? 230 + r.int(60) : 190 + r.int(60)); }
+    // injected: heartbeat
+    { const times = []; for (let t = 5; t < DUR; t += 30 + r() * 0.4) { times.push(t, t + 0.03); } addConv({ src: '10.0.2.9', dst: '45.137.21.9', sport: 50777, dport: 443, proto: 1, note: 'beacon' }, times, null, (k, dir) => dir ? 162 : 141); }
+    const NP = np;
+    const portRow = (p) => Math.min(255, Math.floor(Math.log2(p + 1) * 16));
+
+    // ---- layout ----
+    root.innerHTML = '';
+    const grid = SV.el('div', 'grid'); grid.style.gridTemplateColumns = '1fr 470px'; root.appendChild(grid);
+    const left = SV.el('div', 'pane'); grid.appendChild(left);
+    const right = SV.el('div', 'grid'); right.style.position = 'relative'; right.style.gridTemplateRows = 'minmax(0,34fr) minmax(0,30fr) minmax(0,36fr)'; grid.appendChild(right);
+    left.innerHTML = `<div class="ph">${NP.toLocaleString()} packets · ${convs.length.toLocaleString()} conversations<span class="r"><span class="note" id="x-gpu"></span><button id="x-reset">Full hour</button></span></div><div style="padding:8px 10px;border-bottom:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="note" style="margin-right:4px">protocols</span><span class="chips" id="x-proto"></span></div>`;
+    const stack = SV.el('div'); stack.style.cssText = 'flex:1;display:grid;grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:1px;background:var(--line);min-height:0'; left.appendChild(stack);
+    const hA = SV.el('div'), hB = SV.el('div'); stack.appendChild(hA); stack.appendChild(hB);
+    const cPane = SV.el('div', 'pane'), kPane = SV.el('div', 'pane'), xPane = SV.el('div', 'pane'); right.appendChild(cPane); right.appendChild(kPane); right.appendChild(xPane);
+    cPane.innerHTML = '<div class="ph">Conversations in view<span class="r note" id="x-ccount"></span></div><div class="scroll"><table class="t"><thead><tr><th>src → dst</th><th>proto</th><th>pkts</th><th>bytes</th></tr></thead><tbody id="x-conv"></tbody></table></div>';
+    kPane.innerHTML = '<div class="ph">Packets<span class="r note" id="x-pnote">pick a conversation</span></div><div class="scroll"><table class="t"><thead><tr><th>#</th><th>time</th><th>dir</th><th>len</th><th>dport</th><th>info</th></tr></thead><tbody id="x-pk"></tbody></table></div>';
+    xPane.innerHTML = '<div class="ph">Bytes<span class="r note" id="x-hnote"></span></div><div class="scroll" id="x-hex"><div class="empty">Pick a packet to see its bytes.</div></div>';
+    const $ = (s) => root.querySelector(s); const tip = SV.tip(root);
+
+    // ---- GPU: packet buffer + binning compute + heatmap render ----
+    const dev = SV.device, U = GPUBufferUsage;
+    const XB = 768, RA = 256, RB = 128, GUT = 70;
+    const pk = new Uint32Array(NP * 2); const pf = new Float32Array(pk.buffer);
+    for (let i = 0; i < NP; i++) { pf[i * 2] = ptime[i]; pk[i * 2 + 1] = pword[i]; }
+    const pkB = SV.buffer(pk, U.STORAGE);
+    const histA = dev.createBuffer({ size: RA * XB * 4, usage: U.STORAGE | U.COPY_DST | U.COPY_SRC }), histB = dev.createBuffer({ size: RB * XB * 4, usage: U.STORAGE | U.COPY_DST | U.COPY_SRC });
+    const mxB = dev.createBuffer({ size: 16, usage: U.STORAGE | U.COPY_DST | U.COPY_SRC });
+    const rdA = dev.createBuffer({ size: RA * XB * 4 + RB * XB * 4 + 16, usage: U.MAP_READ | U.COPY_DST });
+    const prmB = dev.createBuffer({ size: 16, usage: U.UNIFORM | U.COPY_DST });
+    const CS = `struct P { t0: f32, t1: f32, n: u32, mask: u32 };
+      struct Pk { t: f32, w: u32 };
+      @group(0) @binding(0) var<uniform> P0: P;
+      @group(0) @binding(1) var<storage, read> pk: array<Pk>;
+      @group(0) @binding(2) var<storage, read_write> ha: array<atomic<u32>>;
+      @group(0) @binding(3) var<storage, read_write> hb: array<atomic<u32>>;
+      @group(0) @binding(4) var<storage, read_write> mx: array<atomic<u32>, 4>;
+      fn portRow(p: u32) -> u32 { return min(255u, u32(floor(log2(f32(p) + 1.0) * 16.0))); }
+      @compute @workgroup_size(256) fn main(@builtin(global_invocation_id) g: vec3u) {
+        let i = g.y * 65535u * 256u + g.x; if (i >= P0.n) { return; }
+        let p = pk[i]; if (p.t < P0.t0 || p.t >= P0.t1) { return; }
+        let proto = p.w >> 27u; if (((P0.mask >> proto) & 1u) == 0u) { return; }
+        let x = min(${XB - 1}u, u32((p.t - P0.t0) / (P0.t1 - P0.t0) * ${XB}.0));
+        let len = (p.w >> 16u) & 0x7ffu; let port = p.w & 0xffffu;
+        let a = atomicAdd(&ha[portRow(port) * ${XB}u + x], 1u) + 1u; atomicMax(&mx[0], a);
+        let b = atomicAdd(&hb[min(${RB - 1}u, len / 12u) * ${XB}u + x], 1u) + 1u; atomicMax(&mx[1], b);
+      }`;
+    const cp = dev.createComputePipeline({ layout: 'auto', compute: { module: dev.createShaderModule({ code: CS }), entryPoint: 'main' } });
+    const cbg = dev.createBindGroup({ layout: cp.getBindGroupLayout(0), entries: [prmB, pkB, histA, histB, mxB].map((b, i) => ({ binding: i, resource: { buffer: b } })) });
+    const FS = SV.U_WGSL + `
+      @group(0) @binding(0) var<uniform> u: U;
+      @group(0) @binding(1) var<storage, read> h: array<u32>;
+      @group(0) @binding(2) var<storage, read> mx: array<u32, 4>;
+      @vertex fn vs(@builtin(vertex_index) v: u32) -> @builtin(position) vec4f { var p = array<vec2f, 3>(vec2f(-1., -1.), vec2f(3., -1.), vec2f(-1., 3.)); return vec4f(p[v], 0., 1.); }
+      @fragment fn fs(@builtin(position) fp: vec4f) -> @location(0) vec4f {
+        let css = fp.xy / u.hi.w; let gut = u.hi.x; let rows = u.hi.y; let bot = u.hi.z;
+        if (css.x < gut || css.y > u.vp.y - bot) { return vec4f(0.035, 0.043, 0.058, 1.0); }
+        let fx = (css.x - gut) / (u.vp.x - gut); let fy = 1.0 - css.y / (u.vp.y - bot);
+        let x = min(${XB - 1}u, u32(fx * ${XB}.0)); let y = min(u32(rows) - 1u, u32(fy * rows));
+        let c = f32(h[y * ${XB}u + x]); let m = f32(max(mx[u.mask], 1u));
+        if (c < 0.5) { return vec4f(0.035, 0.043, 0.058, 1.0); }
+        let t = 0.18 + 0.82 * log(1.0 + c) / log(1.0 + m);
+        return vec4f(ramp(t), 1.0);
+      }`;
+    const fm = dev.createShaderModule({ code: FS });
+    const rp = dev.createRenderPipeline({ layout: 'auto', vertex: { module: fm, entryPoint: 'vs' }, fragment: { module: fm, entryPoint: 'fs', targets: [{ format: SV.format }] }, primitive: { topology: 'triangle-list' } });
+    let t0 = 0, t1 = DUR, mask = 0xffff, hist = null, needCompute = true, computing = false, lastMs = 0;
+    const mkView = (hostEl, which, rows, bot) => {
+      const v = new SV.View(hostEl, {
+        panY: false, zoomY: false,
+        onHover: (p) => hover(v, which, rows, bot, p),
+        onClick: () => { },
+      });
+      v.mask = which; v.hi = [GUT, rows, bot, 1];
+      v.onResize = () => { v.hi[3] = v.dpr; setCam(v); };
+      v.onCamera = () => { const [a] = v.s2w(GUT, 0), [b] = v.s2w(v.vp[0], 0); let A = Math.max(0, a), B = Math.min(DUR, b); if (B - A < 2) { B = A + 2; } t0 = A; t1 = B; needCompute = true; for (const o of views) if (o !== v) setCam(o); };
+      v.onCameraEnd = () => refreshConvs();
+      v.clampScale = () => { const w = v.vp[0] - GUT; v.scale[0] = Math.min(w / 2, Math.max(w / DUR, v.scale[0])); };
+      const bg = dev.createBindGroup({ layout: rp.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: v.ubuf } }, { binding: 1, resource: { buffer: which ? histB : histA } }, { binding: 2, resource: { buffer: mxB } }] });
+      v.custom.push({ before: (pass) => { pass.setPipeline(rp); pass.setBindGroup(0, bg); pass.draw(3); } });
+      return v;
+    };
+    const setCam = (v) => { const w = v.vp[0] - GUT; v.scale[0] = w / (t1 - t0); v.offset[0] = t0 - GUT / v.scale[0]; v.dirty = true; };
+    const vA = mkView(hA, 0, RA, 0), vB = mkView(hB, 1, RB, 22); const views = [vA, vB];
+    views.forEach(setCam);
+    const fmtT = (t) => { const m = Math.floor(t / 60), s = t - m * 60; return String(m).padStart(2, '0') + ':' + (s < 10 ? '0' : '') + s.toFixed(t1 - t0 < 20 ? 2 : 0); };
+    const portLabels = [[0, 'icmp 0'], [22, 'ssh 22'], [53, 'dns 53'], [80, 'http 80'], [123, 'ntp 123'], [444, '443/445'], [1024, '1024'], [3389, 'rdp 3389'], [8080, '8080'], [16384, '16k'], [65535, '64k']];
+    vA.draw2D = (g) => {
+      const [w, h] = vA.vp; g.font = '10.5px JetBrains Mono, monospace'; g.textBaseline = 'middle'; g.textAlign = 'right';
+      for (const [p, l] of portLabels) { const y = h - (portRow(p) + 0.5) / RA * h; g.fillStyle = '#7c8899'; g.fillText(l, GUT - 6, y); g.fillStyle = 'rgba(160,180,210,0.12)'; g.fillRect(GUT, Math.round(y), w - GUT, 1); }
+      g.textAlign = 'left'; g.fillStyle = '#c9d3df'; g.font = '500 10.5px JetBrains Mono, monospace'; g.fillText('DESTINATION PORT × TIME', GUT + 8, 12);
+    };
+    vB.draw2D = (g) => {
+      const [w, h] = vB.vp; const H = h - 22; g.font = '10.5px JetBrains Mono, monospace'; g.textBaseline = 'middle'; g.textAlign = 'right';
+      for (const L of [64, 256, 512, 1024, 1400]) { const y = H - (Math.floor(L / 12) + 0.5) / RB * H; g.fillStyle = '#7c8899'; g.fillText(L + ' B', GUT - 6, y); g.fillStyle = 'rgba(160,180,210,0.12)'; g.fillRect(GUT, Math.round(y), w - GUT, 1); }
+      g.textAlign = 'center'; const span = t1 - t0; const steps = [0.1, 0.5, 1, 5, 10, 30, 60, 300, 600]; const st = steps.find(s => span / s < (w - GUT) / 80) || 600;
+      for (let t = Math.ceil(t0 / st) * st; t < t1; t += st) { const x = GUT + (t - t0) / span * (w - GUT); g.fillStyle = '#7c8899'; g.fillText(fmtT(t), x, h - 10); g.fillRect(x, H, 1, 4); }
+      g.textAlign = 'left'; g.fillStyle = '#c9d3df'; g.font = '500 10.5px JetBrains Mono, monospace'; g.fillText('PACKET SIZE × TIME', GUT + 8, 12);
+    };
+    function hover(v, which, rows, bot, p) {
+      if (!p || !hist || p[0] < GUT || p[1] > v.vp[1] - bot) { tip.hide(); return; }
+      const x = Math.min(XB - 1, Math.floor((p[0] - GUT) / (v.vp[0] - GUT) * XB)), y = Math.min(rows - 1, Math.floor((1 - p[1] / (v.vp[1] - bot)) * rows));
+      const c = which ? hist.b[y * XB + x] : hist.a[y * XB + x];
+      const ta = t0 + x / XB * (t1 - t0), tb = t0 + (x + 1) / XB * (t1 - t0);
+      let rl; if (which) rl = `${y * 12}–${y * 12 + 11} bytes`; else { const lo = Math.ceil(Math.pow(2, y / 16) - 1), hi = Math.max(lo, Math.ceil(Math.pow(2, (y + 1) / 16) - 1) - 1); rl = lo === hi ? `port ${lo}` : `ports ${lo}–${hi}`; }
+      const rr = root.getBoundingClientRect(), hr = v.host.getBoundingClientRect();
+      tip.show(p[0] + hr.left - rr.left, p[1] + hr.top - rr.top, `<b>${c.toLocaleString()} packets</b>\n${rl}\n${fmtT(ta)} – ${fmtT(tb)}`);
+    }
+    async function compute() {
+      computing = true; needCompute = false; const st = performance.now();
+      const pb = new ArrayBuffer(16); new Float32Array(pb, 0, 2).set([t0, t1]); new Uint32Array(pb, 8, 2).set([NP, mask]); dev.queue.writeBuffer(prmB, 0, pb);
+      const enc = dev.createCommandEncoder(); enc.clearBuffer(histA); enc.clearBuffer(histB); enc.clearBuffer(mxB);
+      const p = enc.beginComputePass(); p.setPipeline(cp); p.setBindGroup(0, cbg); const wg = Math.ceil(NP / 256); p.dispatchWorkgroups(Math.min(wg, 65535), Math.ceil(wg / 65535)); p.end();
+      enc.copyBufferToBuffer(histA, 0, rdA, 0, RA * XB * 4); enc.copyBufferToBuffer(histB, 0, rdA, RA * XB * 4, RB * XB * 4); enc.copyBufferToBuffer(mxB, 0, rdA, (RA + RB) * XB * 4, 16);
+      dev.queue.submit([enc.finish()]); views.forEach(v => v.dirty = true);
+      await rdA.mapAsync(GPUMapMode.READ); const all = new Uint32Array(rdA.getMappedRange().slice(0)); rdA.unmap();
+      hist = { a: all.subarray(0, RA * XB), b: all.subarray(RA * XB, (RA + RB) * XB) };
+      lastMs = performance.now() - st; $('#x-gpu').textContent = `GPU binned ${NP.toLocaleString()} packets in ${lastMs.toFixed(1)} ms`;
+      computing = false;
+    }
+    // ---- protocol chips ----
+    PROTO.forEach((p, i) => { const c = SV.el('span', 'chip', `<span class="sw" style="background:${p.hex}"></span>${p.n}`); c.onclick = () => { mask ^= (1 << i); c.classList.toggle('off', !((mask >> i) & 1)); needCompute = true; refreshConvs(); }; $('#x-proto').appendChild(c); });
+    const setProtos = (list) => { mask = 0; list.forEach(i => mask |= 1 << i); root.querySelectorAll('#x-proto .chip').forEach((c, i) => c.classList.toggle('off', !((mask >> i) & 1))); needCompute = true; };
+    const zoomTo = (a, b) => { t0 = a; t1 = b; views.forEach(setCam); needCompute = true; refreshConvs(); };
+    $('#x-reset').onclick = () => { setProtos(PROTO.map((_, i) => i)); zoomTo(0, DUR); };
+    // hints
+    const hints = SV.el('div', '', `<div style="padding:8px 10px;border-top:1px solid var(--line);display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="note">What to look for:</span><button data-h="scan">a port scan</button><button data-h="tunnel">DNS tunneling</button><button data-h="beacon">a 30-second heartbeat</button></div>`);
+    left.appendChild(hints);
+    hints.onclick = (e) => {
+      const h = e.target.dataset.h; if (!h) return;
+      if (h === 'scan') { setProtos(PROTO.map((_, i) => i)); zoomTo(1100, 1360); }
+      if (h === 'tunnel') { setProtos([3]); zoomTo(0, DUR); }
+      if (h === 'beacon') { setProtos([1]); zoomTo(0, 300); }
+    };
+    // ---- conversation + packet tables ----
+    const lower = (a, lo, hi, t) => { while (lo < hi) { const m = (lo + hi) >> 1; if (ptime[m] < t) lo = m + 1; else hi = m; } return lo; };
+    let convRows = [], selConv = null, pkRows = [];
+    function refreshConvs() {
+      const res = [];
+      for (const c of convs) { if (!((mask >> c.proto) & 1)) continue; const a = lower(ptime, c.first, c.first + c.count, t0), b = lower(ptime, c.first, c.first + c.count, t1); if (b > a) res.push({ c, n: b - a }); }
+      res.sort((x, y) => y.n - x.n); convRows = res.slice(0, 200);
+      $('#x-ccount').textContent = res.length.toLocaleString() + ' active';
+      $('#x-conv').innerHTML = convRows.map((x, i) => `<tr data-i="${i}" class="${selConv === x.c ? 'sel' : ''}"><td>${x.c.src} → ${x.c.dst}${x.c.note === 'scan' ? ':*' : ':' + x.c.dport}</td><td><span style="color:${PROTO[x.c.proto].hex}">●</span> ${PROTO[x.c.proto].n}</td><td>${x.n.toLocaleString()}</td><td>${SV.fmtBytes(x.c.bytes * x.n / x.c.count)}</td></tr>`).join('');
+    }
+    $('#x-conv').onclick = (e) => { const tr = e.target.closest('tr'); if (!tr) return; selConv = convRows[+tr.dataset.i].c; root.querySelectorAll('#x-conv tr').forEach(x => x.classList.toggle('sel', x === tr)); showPackets(); };
+    const info = (c, i, k) => {
+      const len = (pword[i] >> 16) & 0x7ff, port = pword[i] & 0xffff, d = pdir[i];
+      switch (c.proto) {
+        case 1: return k === 0 ? 'Client Hello' : d ? 'Application Data' : (len <= 66 ? '[ACK]' : 'Application Data');
+        case 3: return c.note === 'tunnel' ? (d ? 'Standard query response TXT' : 'Standard query TXT ' + tunnelName(i)) : (d ? 'Standard query response A' : 'Standard query A ' + r.pick(['api.example.com', 'cdn.example.net', 'login.example.org']));
+        case 2: return k === 0 ? 'GET /assets/app.js HTTP/1.1' : d ? 'HTTP/1.1 200 OK (continuation)' : '[ACK]';
+        case 0: return c.note === 'scan' ? `[SYN] → port ${port}` : (len <= 66 ? '[ACK]' : '[PSH, ACK]');
+        case 6: return d ? 'Echo (ping) reply' : 'Echo (ping) request';
+        default: return PROTO[c.proto].n + (d ? ' ← ' : ' → ') + len + ' bytes';
+      }
+    };
+    const tunnelName = (i) => { const q = SV.rng(i); const a = 'abcdefghijklmnopqrstuvwxyz234567'; let s = ''; for (let k = 0; k < 52; k++) s += a[q.int(32)]; return s.slice(0, 26) + '.' + s.slice(26) + '.t.cdn-sync.net'; };
+    function showPackets() {
+      const c = selConv; const a = lower(ptime, c.first, c.first + c.count, t0), b = lower(ptime, c.first, c.first + c.count, t1);
+      pkRows = []; for (let i = a; i < b && pkRows.length < 400; i++) pkRows.push(i);
+      $('#x-pnote').textContent = `${c.src} → ${c.dst} · ${(b - a).toLocaleString()} in view${b - a > 400 ? ' (first 400)' : ''}`;
+      $('#x-pk').innerHTML = pkRows.map((i, k) => `<tr data-k="${k}"><td>${i - c.first + 1}</td><td>${(Math.floor(ptime[i] / 60) + ':' + (ptime[i] % 60).toFixed(3).padStart(6, '0'))}</td><td>${pdir[i] ? '←' : '→'}</td><td>${(pword[i] >> 16) & 0x7ff}</td><td>${pword[i] & 0xffff}</td><td>${SV.esc(info(c, i, i - c.first))}</td></tr>`).join('');
+    }
+    $('#x-pk').onclick = (e) => { const tr = e.target.closest('tr'); if (!tr) return; root.querySelectorAll('#x-pk tr').forEach(x => x.classList.toggle('sel', x === tr)); showHex(pkRows[+tr.dataset.k]); };
+    function showHex(i) {
+      const c = selConv, q = SV.rng(i * 7 + 1), len = (pword[i] >> 16) & 0x7ff, d = pdir[i], port = pword[i] & 0xffff;
+      const b = new Uint8Array(len); const ipb = (s) => s.split('.').map(Number);
+      const [sip, dip] = d ? [ipb(c.dst), ipb(c.src)] : [ipb(c.src), ipb(c.dst)];
+      b.set([0x00, 0x1c, 0x42, q.int(256), q.int(256), q.int(256), 0x3c, 0x22, 0xfb, q.int(256), q.int(256), q.int(256), 0x08, 0x00]);
+      const udp = c.proto === 3 || c.proto === 7 || c.proto === 9, icmp = c.proto === 6;
+      b.set([0x45, 0, (len - 14) >> 8, (len - 14) & 255, q.int(256), q.int(256), 0x40, 0, 64, icmp ? 1 : udp ? 17 : 6, q.int(256), q.int(256), ...sip, ...dip], 14);
+      const sp = d ? port || c.dport : c.sport, dp = d ? c.sport : port;
+      let o = 34;
+      if (icmp) { b.set([d ? 0 : 8, 0, q.int(256), q.int(256), 0, 1, 0, 1], o); o += 8; }
+      else if (udp) { b.set([sp >> 8, sp & 255, dp >> 8, dp & 255, (len - 34) >> 8, (len - 34) & 255, q.int(256), q.int(256)], o); o += 8; }
+      else { b.set([sp >> 8, sp & 255, dp >> 8, dp & 255, q.int(256), q.int(256), q.int(256), q.int(256), q.int(256), q.int(256), q.int(256), q.int(256), 0x50, c.note === 'scan' ? 0x02 : 0x18, 0xfa, 0xf0, q.int(256), q.int(256), 0, 0], o); o += 20; }
+      const hdrEnd = o;
+      let pay = [];
+      const txt = (s) => [...s].map(ch => ch.charCodeAt(0));
+      if (c.proto === 3) { pay = [q.int(256), q.int(256), d ? 0x81 : 0x01, d ? 0x80 : 0x00, 0, 1, 0, d ? 1 : 0, 0, 0, 0, 0]; const nm = c.note === 'tunnel' ? tunnelName(i) : 'api.example.com'; nm.split('.').forEach(l => { pay.push(l.length, ...txt(l)); }); pay.push(0, 0, c.note === 'tunnel' ? 16 : 1, 0, 1); }
+      else if (c.proto === 2 && i === c.first) pay = txt('GET /assets/app.js HTTP/1.1\r\nHost: shop.example.com\r\nUser-Agent: Mozilla/5.0\r\nAccept: */*\r\n\r\n');
+      else if (c.proto === 1) pay = i === c.first ? [0x16, 0x03, 0x01, 0x02, 0x00, 0x01, 0x00, 0x01, 0xfc, 0x03, 0x03] : [0x17, 0x03, 0x03, (len - o - 5) >> 8, (len - o - 5) & 255];
+      else if (c.proto === 4 && i === c.first) pay = txt('SSH-2.0-OpenSSH_9.6\r\n');
+      else if (c.proto === 5) pay = [0, 0, 0, 0x40, 0xfe, 0x53, 0x4d, 0x42, 0x40, 0];
+      for (let k = 0; k < pay.length && o < len; k++) b[o++] = pay[k];
+      while (o < len) b[o++] = c.proto === 2 ? 32 + q.int(90) : q.int(256);
+      let s = '';
+      for (let off = 0; off < len; off += 16) {
+        let hx = '', as = '';
+        for (let k = 0; k < 16; k++) { const j = off + k; if (j < len) { const v = b[j]; const hh = v.toString(16).padStart(2, '0'); hx += (j >= hdrEnd && j < hdrEnd + pay.length ? `<span class="h">${hh}</span>` : hh) + ' '; as += v >= 32 && v < 127 ? SV.esc(String.fromCharCode(v)) : '.'; } else { hx += '   '; } if (k === 7) hx += ' '; }
+        s += `<span class="o">${off.toString(16).padStart(4, '0')}</span>  ${hx} ${as}\n`;
+      }
+      $('#x-hnote').textContent = `${len} bytes · eth / ipv4 / ${icmp ? 'icmp' : udp ? 'udp' : 'tcp'} · payload highlighted`;
+      $('#x-hex').innerHTML = `<pre class="hex">${s}</pre>`;
+    }
+    refreshConvs();
+    return {
+      activate() { views.forEach(v => v.dirty = true); },
+      frame() { if (needCompute && !computing) compute(); vA.frame(); vB.frame(); },
+    };
+  }
+});
+
+// ===== 05 · Binary & malware visualization =====
+SV.protos.push({
+  id: 'binary', title: 'Binary explorer', dataLabel: '2,000 executable samples',
+  blurb: 'executables drawn as Hilbert-curve byte maps with GPU-computed entropy, beside a similarity map of 2,000 samples. Packed and encrypted regions jump out.',
+  how: '<kbd>click</kbd> a sample on the left · <kbd>hover</kbd> the byte map for offsets and hex · <kbd>wheel</kbd> zoom the map',
+  async build(root) {
+    const SIZE = 262144, SIDE = 512;
+    const FAM = [
+      { n: 'Native app (benign)', hex: '#5ec8ff', secs: [['.text', 0.42, 'code'], ['.rdata', 0.18, 'str'], ['.data', 0.1, 'sparse'], ['.rsrc', 0.16, 'icon'], ['pad', 0.14, 'zero']] },
+      { n: 'Packed (UPX-style)', hex: '#ff9f6b', secs: [['UPX0', 0.06, 'zero'], ['UPX1', 0.82, 'rand'], ['.rsrc', 0.06, 'icon'], ['pad', 0.06, 'zero']] },
+      { n: 'Loader + encrypted resource', hex: '#ff5d5d', secs: [['.text', 0.22, 'code'], ['.rdata', 0.1, 'str'], ['.data', 0.06, 'sparse'], ['.rsrc', 0.56, 'rand'], ['pad', 0.06, 'zero']] },
+      { n: 'Go binary', hex: '#3ddbb0', secs: [['.text', 0.5, 'code'], ['.rodata', 0.2, 'str'], ['.gopclntab', 0.2, 'table'], ['.data', 0.1, 'sparse']] },
+      { n: '.NET assembly', hex: '#a98bff', secs: [['.text (IL)', 0.3, 'il'], ['#Strings', 0.2, 'str'], ['#US', 0.25, 'utf16'], ['.rsrc', 0.15, 'icon'], ['pad', 0.1, 'zero']] },
+      { n: 'Installer + compressed overlay', hex: '#ffd166', secs: [['.text', 0.16, 'code'], ['.rdata', 0.08, 'str'], ['.rsrc', 0.1, 'icon'], ['overlay', 0.66, 'zip']] },
+      { n: 'Script-heavy dropper', hex: '#7fe08a', secs: [['.text', 0.1, 'code'], ['.rdata', 0.06, 'str'], ['.data (script)', 0.6, 'b64'], ['pad', 0.24, 'zero']] },
+      { n: 'Crypto-heavy (ransomware-like)', hex: '#ff7ac6', secs: [['.text', 0.4, 'code'], ['.rdata', 0.16, 'sbox'], ['.rdata2', 0.14, 'str'], ['.data', 0.1, 'sparse'], ['pad', 0.2, 'zero']] },
+    ];
+    const r0 = SV.rng(5);
+    const NS = 2000; const samples = [];
+    const centers = FAM.map((f, i) => { const a = i / FAM.length * Math.PI * 2 + 0.3; return [Math.cos(a) * (i === 0 ? 0.2 : 1), Math.sin(a) * (i === 0 ? 0.2 : 1)]; });
+    for (let i = 0; i < NS; i++) {
+      const novel = i % 50 === 49; const f = novel ? r0.int(FAM.length) : (r0() < 0.35 ? 0 : r0.int(FAM.length));
+      const [cx, cy] = centers[f]; const sp = novel ? 0.9 : 0.16;
+      let h = ''; for (let k = 0; k < 16; k++) h += r0.int(16).toString(16);
+      samples.push({ i, f, novel, x: cx + r0.normal() * sp, y: cy + r0.normal() * sp, sha: h, seed: 1000 + i, jit: r0.normal() * 0.04 });
+    }
+    const CODE = [0x48, 0x89, 0x8b, 0xe8, 0xff, 0x0f, 0x85, 0x84, 0xc3, 0x55, 0x5d, 0x83, 0xc4, 0xec, 0x24, 0x45, 0x8d, 0x4c, 0x00, 0x00, 0x00, 0x74, 0x75, 0xeb, 0x31, 0xc0, 0x41, 0x50, 0x10, 0x08, 0x20, 0x01];
+    const WORDS = ['GetProcAddress', 'LoadLibraryA', 'kernel32.dll', 'VirtualAlloc', 'CreateFileW', 'ReadFile', 'WriteFile', 'RegOpenKeyExW', 'user32.dll', 'MessageBoxW', 'advapi32.dll', 'CryptEncrypt', 'InternetOpenA', 'HttpSendRequestA', 'C:\\Windows\\System32\\', 'Software\\Microsoft\\Windows\\CurrentVersion', 'runtime.main', 'fmt.Println', 'System.IO', 'System.Net.Http', 'mscorlib', 'Copyright (c) Example Corp', '1.0.4.2', 'README_RESTORE.txt', '.locked', 'http://', 'Mozilla/5.0'];
+    const SBOX = [0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76, 0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0];
+    function gen(s) {
+      const q = SV.rng(s.seed); const b = new Uint8Array(SIZE); const fam = FAM[s.f];
+      // header
+      const hdr = [0x4d, 0x5a, 0x90, 0, 3, 0, 0, 0, 4, 0, 0, 0, 0xff, 0xff, 0, 0, 0xb8]; b.set(hdr, 0);
+      for (let k = 0x40; k < 0x80; k++) b[k] = 'This program cannot be run in DOS mode.'.charCodeAt(k - 0x40) || 0;
+      b.set([0x50, 0x45, 0, 0, 0x64, 0x86], 0x80);
+      const secs = [{ n: 'headers', a: 0, b: 1024, k: 'hdr' }]; let pos = 1024;
+      const parts = fam.secs.map(([n, frac, k]) => [n, Math.max(0.02, frac + (s.novel ? q.normal() * 0.12 : s.jit)), k]);
+      const tot = parts.reduce((a, p) => a + p[1], 0);
+      parts.forEach(([n, frac, k], idx) => { const len = idx === parts.length - 1 ? SIZE - pos : Math.floor((SIZE - 1024) * frac / tot / 256) * 256; secs.push({ n, a: pos, b: pos + len, k }); pos += len; });
+      for (const sc of secs.slice(1)) {
+        const { a, b: e, k } = sc;
+        if (k === 'zero') continue;
+        if (k === 'rand') { for (let j = a; j < e; j++) b[j] = q.int(256); continue; }
+        if (k === 'code') { for (let j = a; j < e; j++) b[j] = q() < 0.62 ? CODE[q.int(CODE.length)] : q.int(256); continue; }
+        if (k === 'il') { for (let j = a; j < e; j++) b[j] = q() < 0.7 ? q.int(0x30) : q.int(256); continue; }
+        if (k === 'str') { let j = a; while (j < e) { const w = WORDS[q.int(WORDS.length)]; for (let c = 0; c < w.length && j < e; c++) b[j++] = w.charCodeAt(c); if (j < e) b[j++] = 0; } continue; }
+        if (k === 'utf16') { let j = a; while (j < e - 1) { const w = WORDS[q.int(WORDS.length)]; for (let c = 0; c < w.length && j < e - 1; c++) { b[j++] = w.charCodeAt(c); b[j++] = 0; } j += 2; } continue; }
+        if (k === 'sparse') { for (let j = a; j < e; j += 4 + q.int(12)) b[j] = q.int(256); continue; }
+        if (k === 'icon') { for (let j = a; j < e; j += 4) { const t = (j - a) / 4; const x = t % 64, y = (t / 64 | 0) % 64; b[j] = x * 4; b[j + 1] = y * 4; b[j + 2] = (x + y) * 2; b[j + 3] = 255; } continue; }
+        if (k === 'table') { for (let j = a; j < e; j += 8) { const v = (j - a) >> 3; b[j] = v & 255; b[j + 1] = (v >> 8) & 255; b[j + 2] = (v >> 16) & 255; b[j + 4] = q.int(64); } continue; }
+        if (k === 'b64') { const A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'; const pre = 'powershell -nop -w hidden -enc '; let j = a; for (let c = 0; c < pre.length; c++) b[j++] = pre.charCodeAt(c); for (; j < e; j++) b[j] = (j - a) % 77 === 76 ? 10 : A.charCodeAt(q.int(64)); continue; }
+        if (k === 'zip') { for (let j = a; j < e; j++) b[j] = q.int(256); for (let j = a; j < e - 30; j += 2048 + q.int(6000)) { b.set([0x50, 0x4b, 3, 4, 20, 0, 0, 0, 8, 0], j); } continue; }
+        if (k === 'sbox') { for (let j = a; j < e; j++) b[j] = q() < 0.5 ? SBOX[(j - a) % 32] ^ ((j - a) >> 5 & 255) : (q() < 0.5 ? 0 : q.int(256)); continue; }
+      }
+      return { bytes: b, secs };
+    }
+
+    // ---- layout ----
+    root.innerHTML = '';
+    const grid = SV.el('div', 'grid'); grid.style.gridTemplateColumns = '360px 1fr 360px'; root.appendChild(grid);
+    const L = SV.el('div', 'pane'), M = SV.el('div', 'pane'), R = SV.el('div', 'pane'); grid.append(L, M, R);
+    L.innerHTML = `<div class="ph">Similarity map · ${NS.toLocaleString()} samples</div>`;
+    const sHost = SV.el('div'); L.appendChild(sHost);
+    L.appendChild(SV.el('div', 'side', `<div class="legend" style="flex-direction:column;gap:4px">${FAM.map(f => `<span><i style="background:${f.hex}"></i>${f.n}</span>`).join('')}<span><i style="background:#fff;outline:1px dashed #777"></i>hollow ring = doesn't fit any family</span></div><div class="note">Positions come from synthetic structural features (section layout + entropy profile), the way a real tool would cluster on byte histograms or fuzzy hashes.</div>`)).style.flex = 'none';
+    M.innerHTML = `<div class="ph">Byte map · Hilbert curve, 1 pixel = 1 byte<span class="r"><span class="note" id="b-gpu"></span><button id="b-m0" class="pri">Byte class</button><button id="b-m1">Entropy</button></span></div>`;
+    const hHost = SV.el('div'); M.appendChild(hHost);
+    const strip = SV.el('div', '', '<canvas id="b-strip" style="width:100%;height:84px;display:block"></canvas>'); strip.style.cssText = 'border-top:1px solid var(--line);flex:none;background:#0b0f15'; M.appendChild(strip);
+    R.innerHTML = `<div class="ph">Sample</div><div class="side"><div id="b-info"></div><div><h4>Sections (entropy, bits/byte)</h4><div id="b-secs"></div></div><div><h4>Bytes at cursor</h4><pre class="hex" id="b-hex" style="padding:0">hover the byte map</pre></div><div class="legend" id="b-leg"></div></div>`;
+    const $ = (s) => root.querySelector(s);
+    const tip = SV.tip(root);
+
+    // ---- similarity scatter ----
+    const sv = new SV.View(sHost, {
+      onClick: (p) => { const i = pickS(p); if (i >= 0) select(i); },
+      onHover: (p) => { if (!p) { tip.hide(); return; } const i = pickS(p); if (i < 0) { tip.hide(); return; } const s = samples[i]; const rr = root.getBoundingClientRect(), hr = sHost.getBoundingClientRect(); tip.show(p[0] + hr.left - rr.left, p[1] + hr.top - rr.top, `<b>${s.sha}…</b>\n${s.novel ? 'unclustered (nearest: ' + FAM[s.f].n + ')' : FAM[s.f].n}`); },
+    });
+    sv.onResize = () => sv.fit(-1.6, -1.6, 1.6, 1.6, 12, true); sv.onResize();
+    const pickS = (p) => { let best = -1, bd = 64; samples.forEach((s, i) => { const [x, y] = sv.w2s(s.x, s.y); const d = (x - p[0]) ** 2 + (y - p[1]) ** 2; if (d < bd) { bd = d; best = i; } }); return best; };
+    const sp = new SV.Packer(NS); samples.forEach(s => sp.push(s.x, s.y, 0, 0, SV.col(s.novel ? '#ffffff' : FAM[s.f].hex, s.novel ? 0.9 : 0.75), s.novel ? 9 : 5.5, 0, 0));
+    const sLayer = new SV.ShapeLayer(sv, 'point', 'alpha'); sLayer.set(sp);
+    const novelP = new SV.Packer(NS); samples.filter(s => s.novel).forEach(s => novelP.push(s.x, s.y, 0, 0, SV.col('#ffffff', 0.9), 13, 0, 0));
+    const nLayer = new SV.ShapeLayer(sv, 'ring', 'alpha'); nLayer.set(novelP);
+    const selLayer = new SV.ShapeLayer(sv, 'ring', 'alpha');
+
+    // ---- GPU: bytes + entropy + Hilbert render ----
+    const dev = SV.device, U = GPUBufferUsage;
+    const byteB = dev.createBuffer({ size: SIZE, usage: U.STORAGE | U.COPY_DST });
+    const NB = SIZE / 64;
+    const entB = dev.createBuffer({ size: NB * 4, usage: U.STORAGE | U.COPY_SRC });
+    const entR = dev.createBuffer({ size: NB * 4, usage: U.MAP_READ | U.COPY_DST });
+    const CS = `@group(0) @binding(0) var<storage, read> bytes: array<u32>;
+      @group(0) @binding(1) var<storage, read_write> ent: array<f32>;
+      var<workgroup> hist: array<atomic<u32>, 256>;
+      var<workgroup> part: array<f32, 64>;
+      fn byteAt(i: u32) -> u32 { return (bytes[i >> 2u] >> ((i & 3u) * 8u)) & 255u; }
+      @compute @workgroup_size(64) fn main(@builtin(workgroup_id) wg: vec3u, @builtin(local_invocation_id) l: vec3u) {
+        let blk = wg.x; let t = l.x;
+        for (var k = 0u; k < 4u; k++) { atomicStore(&hist[t * 4u + k], 0u); }
+        workgroupBarrier();
+        // 256-byte window centred on this 64-byte block
+        let start = i32(blk * 64u) - 96;
+        let s = u32(clamp(start, 0, ${SIZE - 256}));
+        for (var k = 0u; k < 4u; k++) { atomicAdd(&hist[byteAt(s + t * 4u + k)], 1u); }
+        workgroupBarrier();
+        var h = 0.0;
+        for (var k = 0u; k < 4u; k++) { let c = f32(atomicLoad(&hist[t * 4u + k])); if (c > 0.0) { let p = c / 256.0; h -= p * log2(p); } }
+        part[t] = h;
+        workgroupBarrier();
+        if (t == 0u) { var sum = 0.0; for (var k = 0u; k < 64u; k++) { sum += part[k]; } ent[blk] = sum; }
+      }`;
+    const cp = dev.createComputePipeline({ layout: 'auto', compute: { module: dev.createShaderModule({ code: CS }), entryPoint: 'main' } });
+    const cbg = dev.createBindGroup({ layout: cp.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: byteB } }, { binding: 1, resource: { buffer: entB } }] });
+    const FSH = SV.U_WGSL + `
+      @group(0) @binding(0) var<uniform> u: U;
+      @group(0) @binding(1) var<storage, read> bytes: array<u32>;
+      @group(0) @binding(2) var<storage, read> ent: array<f32>;
+      fn byteAt(i: u32) -> u32 { return (bytes[i >> 2u] >> ((i & 3u) * 8u)) & 255u; }
+      fn xy2d(px: u32, py: u32) -> u32 {
+        var x = px; var y = py; var d = 0u; var s = ${SIDE / 2}u;
+        loop { if (s == 0u) { break; }
+          let rx = select(0u, 1u, (x & s) > 0u); let ry = select(0u, 1u, (y & s) > 0u);
+          d += s * s * ((3u * rx) ^ ry);
+          if (ry == 0u) { if (rx == 1u) { x = ${SIDE - 1}u - x; y = ${SIDE - 1}u - y; } let t = x; x = y; y = t; }
+          s = s / 2u; }
+        return d;
+      }
+      @vertex fn vs(@builtin(vertex_index) v: u32) -> @builtin(position) vec4f { var p = array<vec2f, 3>(vec2f(-1., -1.), vec2f(3., -1.), vec2f(-1., 3.)); return vec4f(p[v], 0., 1.); }
+      @fragment fn fs(@builtin(position) fp: vec4f) -> @location(0) vec4f {
+        let css = fp.xy / u.hi.w; let w = css / u.scale + u.offset;
+        if (w.x < 0.0 || w.y < 0.0 || w.x >= ${SIDE}.0 || w.y >= ${SIDE}.0) { return vec4f(0.035, 0.043, 0.058, 1.0); }
+        let d = xy2d(u32(w.x), u32(w.y)); let b = byteAt(d);
+        var c: vec3f;
+        if (u.mode == 1.0) { c = ramp(ent[d / 64u] / 8.0); }
+        else {
+          if (b == 0u) { c = vec3f(0.02, 0.025, 0.035); } else if (b == 255u) { c = vec3f(0.95, 0.96, 0.98); }
+          else if (b >= 32u && b < 127u) { c = vec3f(0.30, 0.66, 1.0); } else if (b < 32u) { c = vec3f(0.20, 0.80, 0.55); } else { c = vec3f(0.95, 0.33, 0.33); }
+          c = c * (0.55 + 0.45 * f32(b) / 255.0);
+        }
+        if (u.sel > 0u) { let hs = u.sel - 1u; if (d >= hs && d < hs + 64u) { c = mix(c, vec3f(1.0, 0.85, 0.4), 0.6); } }
+        return vec4f(c, 1.0);
+      }`;
+    const fm = dev.createShaderModule({ code: FSH });
+    const rp = dev.createRenderPipeline({ layout: 'auto', vertex: { module: fm, entryPoint: 'vs' }, fragment: { module: fm, entryPoint: 'fs', targets: [{ format: SV.format }] }, primitive: { topology: 'triangle-list' } });
+    const hv = new SV.View(hHost, { onHover: (p) => hoverMap(p) });
+    hv.onResize = () => { hv.hi[3] = hv.dpr; hv.fit(0, 0, SIDE, SIDE, 14, true); }; hv.onResize();
+    hv.clampScale = () => { const mn = Math.min(hv.vp[0], hv.vp[1]) / SIDE * 0.5; hv.scale[0] = hv.scale[1] = Math.min(40, Math.max(mn, hv.scale[0])); };
+    const rbg = dev.createBindGroup({ layout: rp.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: hv.ubuf } }, { binding: 1, resource: { buffer: byteB } }, { binding: 2, resource: { buffer: entB } }] });
+    hv.custom.push({ before: (pass) => { pass.setPipeline(rp); pass.setBindGroup(0, rbg); pass.draw(3); } });
+    let cur = null, ent = null;
+    const xy2d = (px, py) => { let x = px, y = py, d = 0; for (let s = SIDE / 2; s > 0; s >>= 1) { const rx = (x & s) > 0 ? 1 : 0, ry = (y & s) > 0 ? 1 : 0; d += s * s * ((3 * rx) ^ ry); if (ry === 0) { if (rx === 1) { x = SIDE - 1 - x; y = SIDE - 1 - y; } const t = x; x = y; y = t; } } return d; };
+    function hoverMap(p) {
+      if (!p || !cur) { tip.hide(); hv.sel = 0; hv.dirty = true; return; }
+      const [wx, wy] = hv.s2w(p[0], p[1]); if (wx < 0 || wy < 0 || wx >= SIDE || wy >= SIDE) { tip.hide(); hv.sel = 0; hv.dirty = true; return; }
+      const d = xy2d(wx | 0, wy | 0); const sec = cur.secs.find(s => d >= s.a && d < s.b);
+      const blk = d & ~63; hv.sel = blk + 1; hv.dirty = true;
+      const rr = root.getBoundingClientRect(), hr = hHost.getBoundingClientRect();
+      tip.show(p[0] + hr.left - rr.left, p[1] + hr.top - rr.top, `offset 0x${d.toString(16).padStart(5, '0')}\nsection ${sec ? sec.n : '?'}\nentropy ${ent ? ent[d >> 6].toFixed(2) : '…'} bits/byte`);
+      let s = ''; const b = cur.bytes;
+      for (let o = blk; o < blk + 64; o += 16) { let hx = '', as = ''; for (let k = 0; k < 16; k++) { const v = b[o + k]; hx += v.toString(16).padStart(2, '0') + (k === 7 ? '  ' : ' '); as += v >= 32 && v < 127 ? SV.esc(String.fromCharCode(v)) : '.'; } s += `<span class="o">${o.toString(16).padStart(5, '0')}</span> ${hx} ${as}\n`; }
+      $('#b-hex').innerHTML = s;
+    }
+    async function select(i) {
+      const s = samples[i]; const t0 = performance.now();
+      cur = gen(s); dev.queue.writeBuffer(byteB, 0, cur.bytes);
+      const enc = dev.createCommandEncoder(); const p = enc.beginComputePass(); p.setPipeline(cp); p.setBindGroup(0, cbg); p.dispatchWorkgroups(NB); p.end();
+      enc.copyBufferToBuffer(entB, 0, entR, 0, NB * 4); dev.queue.submit([enc.finish()]); hv.dirty = true;
+      const k = new SV.Packer(1); k.push(s.x, s.y, 0, 0, SV.col('#ffffff'), 20, 0, 0); selLayer.set(k);
+      await entR.mapAsync(GPUMapMode.READ); ent = new Float32Array(entR.getMappedRange().slice(0)); entR.unmap();
+      $('#b-gpu').textContent = `entropy for ${NB.toLocaleString()} windows on GPU · ${(performance.now() - t0).toFixed(1)} ms`;
+      const secE = cur.secs.map(sc => { let sum = 0, n = 0; for (let j = sc.a >> 6; j < sc.b >> 6; j++) { sum += ent[j]; n++; } return n ? sum / n : 0; });
+      const mean = ent.reduce((a, b) => a + b, 0) / ent.length;
+      const hiFrac = ent.filter(e => e > 6.9).length / ent.length;
+      const verdict = hiFrac > 0.45 ? ['high', 'Mostly high-entropy: likely packed or carrying an encrypted payload'] : hiFrac > 0.15 ? ['medium', 'Contains a large high-entropy region (compressed or encrypted data)'] : ['low', 'Entropy profile looks like ordinary compiled code and data'];
+      $('#b-info').innerHTML = `<h4>Selected sample</h4><div style="font:500 13px var(--mono);margin-bottom:6px">sha256 ${s.sha}…</div><div class="kv"><span>family</span><span style="color:${FAM[s.f].hex}">${s.novel ? 'unclustered · nearest ' + FAM[s.f].n : FAM[s.f].n}</span><span>size</span><span>${(SIZE / 1024)} KB</span><span>mean entropy</span><span>${mean.toFixed(2)} bits/byte</span><span>&gt;6.9 bits</span><span>${(hiFrac * 100).toFixed(0)}% of file</span></div><div style="margin-top:8px"><span class="sev ${verdict[0]}">${verdict[0] === 'low' ? 'normal' : 'look closer'}</span> <span class="note">${verdict[1]}</span></div>`;
+      $('#b-secs').innerHTML = cur.secs.map((sc, j) => `<div class="li" style="cursor:default"><span style="font:11.5px var(--mono);width:110px;flex:none;overflow:hidden;text-overflow:ellipsis">${sc.n}</span><div class="bar"><div style="width:${secE[j] / 8 * 100}%;background:${secE[j] > 6.9 ? '#ff5d5d' : secE[j] > 5.5 ? '#ffb547' : '#5ec8ff'}"></div></div><span class="m" style="width:36px;text-align:right">${secE[j].toFixed(2)}</span></div>`).join('');
+      drawStrip();
+    }
+    function drawStrip() {
+      const cv = $('#b-strip'); const W = cv.clientWidth, H = cv.clientHeight, dpr = devicePixelRatio || 1; cv.width = W * dpr; cv.height = H * dpr; const g = cv.getContext('2d'); g.scale(dpr, dpr);
+      g.clearRect(0, 0, W, H); const pad = 10, top = 18, h = H - top - 16;
+      cur.secs.forEach((sc, j) => { const x0 = pad + sc.a / SIZE * (W - 2 * pad), x1 = pad + sc.b / SIZE * (W - 2 * pad); g.fillStyle = j % 2 ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)'; g.fillRect(x0, top, x1 - x0, h); g.fillStyle = '#6b7889'; g.font = '10px JetBrains Mono, monospace'; if (x1 - x0 > 40) g.fillText(sc.n, x0 + 3, H - 4); });
+      g.beginPath(); for (let i = 0; i < ent.length; i++) { const x = pad + i / ent.length * (W - 2 * pad), y = top + h - ent[i] / 8 * h; i ? g.lineTo(x, y) : g.moveTo(x, y); } g.strokeStyle = '#ffb547'; g.lineWidth = 1.2; g.stroke();
+      g.setLineDash([3, 3]); g.strokeStyle = 'rgba(255,93,93,0.6)'; const y72 = top + h - 6.9 / 8 * h; g.beginPath(); g.moveTo(pad, y72); g.lineTo(W - pad, y72); g.stroke(); g.setLineDash([]);
+      g.fillStyle = '#7c8899'; g.fillText('ENTROPY ACROSS THE FILE (0–8 bits/byte) · dashed line = 6.9 (random or encrypted data scores ≈7.2 in a 256-byte window)', pad, 12);
+    }
+    const setMode = (m) => { hv.mode = m; $('#b-m0').classList.toggle('pri', m === 0); $('#b-m1').classList.toggle('pri', m === 1); hv.dirty = true; legend(); };
+    const legend = () => { $('#b-leg').innerHTML = hv.mode === 0 ? '<span><i style="background:#06080c;outline:1px solid #333"></i>0x00</span><span><i style="background:#4ca8ff"></i>printable ASCII</span><span><i style="background:#33cc8c"></i>control</span><span><i style="background:#f25454"></i>high bytes</span><span><i style="background:#f2f4f8"></i>0xFF</span>' : '<span><i style="background:#1b0c41"></i>low entropy</span><span><i style="background:#bc3754"></i>medium</span><span><i style="background:#fcffa4"></i>high (≈8 bits)</span>'; };
+    $('#b-m0').onclick = () => setMode(0); $('#b-m1').onclick = () => setMode(1);
+    legend();
+    await select(samples.findIndex(s => s.f === 2 && !s.novel));
+    return {
+      activate() { sv.dirty = true; hv.dirty = true; if (cur) drawStrip(); },
+      frame() { sv.frame(); hv.frame(); },
+    };
+  }
+});
+
+// ===== 06 · SOC wall display =====
+SV.protos.push({
+  id: 'soc', title: 'SOC wall', dataLabel: 'a live (simulated) alert stream',
+  blurb: 'a big-screen view of a simulated alert stream: attacks arc across a rotating GPU globe toward your offices, with live counters, techniques and a ticker.',
+  how: 'alerts are simulated at ~5/second with occasional campaigns · <kbd>drag</kbd> to spin the globe',
+  async build(root) {
+    const r = SV.rng(77);
+    const OFFICES = [['Houston HQ', 29.76, -95.37], ['London', 51.5, -0.12], ['Frankfurt', 50.1, 8.68], ['Singapore', 1.35, 103.8], ['São Paulo', -23.55, -46.63], ['Sydney', -33.87, 151.2], ['Tokyo', 35.68, 139.69]];
+    const BLOBS = [ // lat, lon, rlat, rlon, region
+      [48, -100, 14, 28, 'North America'], [60, -110, 10, 30, 'North America'], [20, -100, 8, 10, 'Central America'], [-12, -58, 16, 13, 'South America'], [-35, -66, 10, 6, 'South America'],
+      [50, 12, 9, 18, 'Europe'], [62, 20, 7, 14, 'Europe'], [8, 20, 15, 18, 'Africa'], [-18, 26, 14, 12, 'Africa'], [25, 10, 9, 22, 'Africa'],
+      [50, 85, 12, 40, 'Asia'], [62, 100, 9, 45, 'Asia'], [28, 80, 8, 12, 'South Asia'], [32, 110, 10, 14, 'East Asia'], [36, 138, 4, 4, 'East Asia'], [5, 110, 6, 14, 'Southeast Asia'],
+      [-25, 134, 9, 15, 'Oceania'], [25, 45, 8, 10, 'Middle East'], [65, -42, 7, 12, 'Greenland'],
+    ];
+    const v3 = (lat, lon) => { const a = lat * Math.PI / 180, b = lon * Math.PI / 180; return [Math.cos(a) * Math.sin(b), Math.sin(a), Math.cos(a) * Math.cos(b)]; };
+    const landOf = (lat, lon) => { let best = null, bd = 1; for (const B of BLOBS) { let dl = lon - B[1]; if (dl > 180) dl -= 360; if (dl < -180) dl += 360; const d = ((lat - B[0]) / B[2]) ** 2 + (dl / B[3]) ** 2; if (d < bd) { bd = d; best = B[4]; } } return best; };
+    const N = 26000; const dots = []; const land = [];
+    for (let i = 0; i < N; i++) {
+      const y = 1 - (i + 0.5) / N * 2, th = i * 2.399963229728653;
+      const lat = Math.asin(y) * 180 / Math.PI, lon = ((th * 180 / Math.PI) % 360) - 180;
+      const reg = landOf(lat + Math.sin(lon * 0.2) * 2, lon + Math.cos(lat * 0.3) * 3);
+      const P = v3(lat, lon);
+      if (reg) { dots.push([P[0], P[1], P[2], 1]); land.push([lat, lon, reg]); }
+      else if (i % 9 === 0) dots.push([P[0], P[1], P[2], 0]);
+    }
+    OFFICES.forEach(o => { const p = v3(o[1], o[2]); dots.push([p[0], p[1], p[2], 2]); });
+    const ND = dots.length;
+    const SEV = [['info', '#6b7889', 0.45], ['low', '#7fcfff', 0.3], ['medium', '#ffb547', 0.17], ['high', '#ff8c50', 0.065], ['critical', '#ff5d5d', 0.015]];
+    const TECH = [['T1110', 'Brute Force', 22], ['T1566', 'Phishing', 14], ['T1190', 'Exploit Public-Facing App', 10], ['T1078', 'Valid Accounts', 8], ['T1059', 'Command & Scripting Interpreter', 9], ['T1071', 'Application Layer Protocol (C2)', 7], ['T1046', 'Network Service Discovery', 12], ['T1048', 'Exfiltration Over Alt Protocol', 3], ['T1486', 'Data Encrypted for Impact', 1], ['T1595', 'Active Scanning', 18]];
+    const techW = TECH.reduce((a, t) => a + t[2], 0);
+    // ---- DOM ----
+    root.innerHTML = '';
+    const wrap = SV.el('div', 'soc'); root.appendChild(wrap);
+    const gHost = SV.el('div'); gHost.style.cssText = 'position:absolute;inset:0'; wrap.appendChild(gHost);
+    wrap.insertAdjacentHTML('beforeend', `
+      <div class="socp" style="left:18px;top:16px;width:300px"><h4>Global threat activity · simulated</h4><div class="big" id="w-clock">--:--:--</div><div class="note" id="w-date"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px"><div><div class="note">alerts / min</div><div class="big" id="w-rate" style="font-size:24px">0</div></div><div><div class="note">critical · 10 min</div><div class="big" id="w-crit" style="font-size:24px;color:#ff8f8f">0</div></div></div></div>
+      <div class="socp" style="left:18px;bottom:16px;width:300px"><h4>Severity · last 5 min</h4><div id="w-sev" style="display:flex;flex-direction:column;gap:6px"></div></div>
+      <div class="socp" style="right:18px;top:16px;width:340px"><h4>Top ATT&amp;CK techniques · last 5 min</h4><div id="w-tech" style="display:flex;flex-direction:column;gap:6px"></div></div>
+      <div class="socp" style="right:18px;bottom:16px;width:440px"><h4>Live alerts</h4><div class="ticker" id="w-tick"></div></div>
+      <div class="socp" style="left:50%;transform:translateX(-50%);bottom:16px;width:min(420px,30vw)"><h4>Alerts per second · last 2 min</h4><canvas id="w-spark" style="width:100%;height:44px;display:block"></canvas></div>
+      <div class="socp" style="left:50%;transform:translateX(-50%);top:16px;padding:8px 12px" id="w-off"></div>`);
+    const $ = (s) => root.querySelector(s);
+    $('#w-off').innerHTML = '<div class="legend">' + OFFICES.map(o => `<span><i style="background:#5ec8ff"></i>${o[0]}</span>`).join('') + '</div>';
+    // ---- GPU ----
+    const dev = SV.device, U = GPUBufferUsage;
+    const canvas = document.createElement('canvas'); canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:none'; gHost.appendChild(canvas);
+    let ctx = null, tctx = null; if (SV.TEST) tctx = canvas.getContext('2d'); else { ctx = canvas.getContext('webgpu'); ctx.configure({ device: dev, format: SV.format, alphaMode: 'premultiplied' }); }
+    const dotArr = new Float32Array(ND * 4); dots.forEach((d, i) => dotArr.set(d, i * 4));
+    const dotB = SV.buffer(dotArr, U.STORAGE);
+    const MAXA = 1600; const arcArr = new Float32Array(MAXA * 12); const arcB = SV.buffer(arcArr, U.STORAGE);
+    const uB = dev.createBuffer({ size: 80, usage: U.UNIFORM | U.COPY_DST });
+    const SH = `
+      struct G { m0: vec4f, m1: vec4f, m2: vec4f, p: vec4f, vp: vec4f };
+      struct Arc { a: vec4f, b: vec4f, c: vec4f };
+      @group(0) @binding(0) var<uniform> g: G;
+      @group(0) @binding(1) var<storage, read> dots: array<vec4f>;
+      @group(0) @binding(2) var<storage, read> arcs: array<Arc>;
+      struct VO { @builtin(position) pos: vec4f, @location(0) c: vec4f, @location(1) uv: vec2f };
+      fn rot(v: vec3f) -> vec3f { return vec3f(dot(g.m0.xyz, v), dot(g.m1.xyz, v), dot(g.m2.xyz, v)); }
+      fn proj(v: vec3f) -> vec2f { return vec2f(v.x * g.p.x, v.y * g.p.y); }
+      fn quad(v: u32) -> vec2f { var q = array<vec2f, 6>(vec2f(-1., -1.), vec2f(1., -1.), vec2f(-1., 1.), vec2f(-1., 1.), vec2f(1., -1.), vec2f(1., 1.)); return q[v]; }
+      @vertex fn vs_dot(@builtin(vertex_index) v: u32, @builtin(instance_index) k: u32) -> VO {
+        let d = dots[k]; let w = rot(d.xyz); let q = quad(v);
+        var sz = 1.6; var c = vec4f(0.35, 0.55, 0.8, 0.55);
+        if (d.w == 0.0) { sz = 1.0; c = vec4f(0.25, 0.35, 0.5, 0.25); }
+        if (d.w == 2.0) { sz = 5.0 + 1.5 * sin(g.p.z * 3.0); c = vec4f(0.37, 0.85, 1.0, 1.0); }
+        let front = w.z;
+        if (front < 0.0) { c = vec4f(c.rgb, c.a * 0.12); }
+        else { c = vec4f(c.rgb, c.a * (0.35 + 0.65 * front)); }
+        let px = sz * g.vp.z * 2.0 / g.vp.xy;
+        var o: VO; o.pos = vec4f(proj(w) + q * px, 0.0, 1.0); o.c = c; o.uv = q; return o;
+      }
+      fn arcPoint(a: vec3f, b: vec3f, t: f32) -> vec3f {
+        let om = acos(clamp(dot(a, b), -1.0, 1.0)); var p: vec3f;
+        if (om < 0.001) { p = a; } else { p = (sin((1.0 - t) * om) * a + sin(t * om) * b) / sin(om); }
+        return normalize(p) * (1.0 + (0.06 + om * 0.16) * sin(3.14159 * t));
+      }
+      const SEG = 40u;
+      @vertex fn vs_arc(@builtin(vertex_index) v: u32, @builtin(instance_index) k: u32) -> VO {
+        let A = arcs[k]; let age = g.p.z - A.a.w; let dur = A.b.w;
+        var o: VO; o.uv = vec2f(0.); o.c = vec4f(0.);
+        if (dur <= 0.0 || age < 0.0 || age > dur * 1.6) { o.pos = vec4f(2., 2., 2., 1.); return o; }
+        let seg = v / 2u; let s0 = f32(seg) / f32(SEG); let s1 = f32(seg + 1u) / f32(SEG);
+        let head = clamp(age / dur, 0.0, 1.0); let tail = head - 0.45 - max(0.0, age - dur) / dur * 0.9;
+        if (s0 >= head || s1 <= tail) { o.pos = vec4f(2., 2., 2., 1.); return o; }
+        let t = clamp(f32(seg + (v % 2u)) / f32(SEG), max(tail, 0.0), head);
+        let w = rot(arcPoint(A.a.xyz, A.b.xyz, t));
+        let f = clamp((t - tail) / max(head - tail, 0.001), 0.0, 1.0);
+        var al = f * f * A.c.a; if (w.z < 0.0) { al = al * 0.15; }
+        o.pos = vec4f(proj(w), 0.0, 1.0); o.c = vec4f(A.c.rgb, al); return o;
+      }
+      @vertex fn vs_hit(@builtin(vertex_index) v: u32, @builtin(instance_index) k: u32) -> VO {
+        let A = arcs[k]; let age = g.p.z - A.a.w - A.b.w; var o: VO; o.c = vec4f(0.); o.uv = vec2f(0.);
+        if (A.b.w <= 0.0 || age < 0.0 || age > 1.4) { o.pos = vec4f(2., 2., 2., 1.); return o; }
+        let w = rot(A.b.xyz); if (w.z < 0.0) { o.pos = vec4f(2., 2., 2., 1.); return o; }
+        let q = quad(v); let sz = (4.0 + age * 22.0) * g.vp.z * 2.0 / g.vp.xy;
+        o.pos = vec4f(proj(w) + q * sz, 0.0, 1.0); o.c = vec4f(A.c.rgb, A.c.a * (1.0 - age / 1.4)); o.uv = q; return o;
+      }
+      @fragment fn fs_dot(f: VO) -> @location(0) vec4f { let d = length(f.uv); if (d > 1.0) { discard; } let a = f.c.a * (1.0 - smoothstep(0.5, 1.0, d)); return vec4f(f.c.rgb * a, a); }
+      @fragment fn fs_arc(f: VO) -> @location(0) vec4f { return vec4f(f.c.rgb * f.c.a, f.c.a); }
+      @fragment fn fs_hit(f: VO) -> @location(0) vec4f { let d = length(f.uv); if (d > 1.0) { discard; } let a = f.c.a * smoothstep(0.7, 0.92, d) * (1.0 - smoothstep(0.92, 1.0, d)); return vec4f(f.c.rgb * a, a); }`;
+    const sm = dev.createShaderModule({ code: SH });
+    const bgl = dev.createBindGroupLayout({ entries: [{ binding: 0, visibility: GPUShaderStage.VERTEX, buffer: { type: 'uniform' } }, { binding: 1, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } }, { binding: 2, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } }] });
+    const pl = dev.createPipelineLayout({ bindGroupLayouts: [bgl] });
+    const mk = (vs, fs, topo) => dev.createRenderPipeline({ layout: pl, vertex: { module: sm, entryPoint: vs }, fragment: { module: sm, entryPoint: fs, targets: [{ format: SV.format, blend: SV.blend.add }] }, primitive: { topology: topo } });
+    const pDot = mk('vs_dot', 'fs_dot', 'triangle-list'), pArc = mk('vs_arc', 'fs_arc', 'line-list'), pHit = mk('vs_hit', 'fs_hit', 'triangle-list');
+    const bg = dev.createBindGroup({ layout: bgl, entries: [uB, dotB, arcB].map((b, i) => ({ binding: i, resource: { buffer: b } })) });
+    let W = 1, H = 1, dpr = 1, tex = null, rbuf = null, bpr = 0, pending = false;
+    const ro = new ResizeObserver(() => { W = Math.max(1, gHost.clientWidth); H = Math.max(1, gHost.clientHeight); dpr = Math.min(2, devicePixelRatio || 1); canvas.width = W * dpr; canvas.height = H * dpr; });
+    ro.observe(gHost);
+    // drag to spin
+    let yaw = 0, tilt = 0.38, spin = 0.07, drag = null;
+    canvas.addEventListener('pointerdown', (e) => { drag = [e.clientX, e.clientY, yaw, tilt]; canvas.setPointerCapture(e.pointerId); canvas.style.cursor = 'grabbing'; });
+    canvas.addEventListener('pointermove', (e) => { if (!drag) return; yaw = drag[2] + (e.clientX - drag[0]) * 0.006; tilt = Math.max(-1.2, Math.min(1.2, drag[3] + (e.clientY - drag[1]) * 0.006)); });
+    canvas.addEventListener('pointerup', () => { drag = null; canvas.style.cursor = 'grab'; });
+    // ---- alert simulation ----
+    let slot = 0, simT = 0; const alerts = []; const perSec = new Array(120).fill(0); let lastSec = 0;
+    const sevPick = () => { let x = r(); for (let i = 0; i < SEV.length; i++) { x -= SEV[i][2]; if (x <= 0) return i; } return 0; };
+    const techPick = () => { let x = r() * techW; for (const t of TECH) { x -= t[2]; if (x <= 0) return t; } return TECH[0]; };
+    const fmtClock = (d) => d.toISOString().slice(11, 19);
+    function emit(t, src, office, sev, tech) {
+      const a = v3(src[0], src[1]), b = v3(OFFICES[office][1], OFFICES[office][2]);
+      const om = Math.acos(Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2])));
+      const col = SV.SEV_RGB[sev]; const o = slot * 12;
+      arcArr.set([a[0], a[1], a[2], t, b[0], b[1], b[2], 1.2 + om * 0.9, col[0], col[1], col[2], sev === 0 ? 0.25 : sev >= 3 ? 1 : 0.7], o);
+      dev.queue.writeBuffer(arcB, o * 4, arcArr, o, 12);
+      slot = (slot + 1) % MAXA;
+      const now = new Date();
+      alerts.push({ t, wall: now, sev, tech, reg: src[2], office });
+    }
+    SV.SEV_RGB = SEV.map(s => { const n = parseInt(s[1].slice(1), 16); return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]; });
+    let nextCampaign = 8 + r() * 10, campaign = null;
+    function simulate(dt) {
+      simT += dt;
+      const rate = 5 + 2 * Math.sin(simT * 0.15);
+      let n = 0; let p = rate * dt; while (r() < p) { n++; p -= 1; }
+      for (let k = 0; k < n; k++) { const src = land[r.int(land.length)]; emit(simT, src, r.int(OFFICES.length), sevPick(), techPick()); }
+      if (simT > nextCampaign && !campaign) { const src = land[r.int(land.length)]; campaign = { src, office: r.int(OFFICES.length), until: simT + 4 + r() * 4, tech: r() < 0.6 ? TECH[0] : TECH[9] }; nextCampaign = simT + 25 + r() * 25; }
+      if (campaign) { if (simT > campaign.until) campaign = null; else if (r() < dt * 14) { const s = campaign.src; emit(simT, [s[0] + r.normal() * 1.5, s[1] + r.normal() * 1.5, s[2]], campaign.office, r() < 0.15 ? 3 : 2, campaign.tech); } }
+      const sec = Math.floor(simT); while (lastSec < sec) { lastSec++; perSec.shift(); perSec.push(0); }
+      perSec[perSec.length - 1] += 0;
+    }
+    let lastUi = 0, lastTickN = 0;
+    function ui() {
+      const now = new Date(); $('#w-clock').textContent = fmtClock(now) + ' UTC'; $('#w-date').textContent = now.toUTCString().slice(0, 16);
+      while (alerts.length && simT - alerts[0].t > 600) alerts.shift();
+      const c60 = alerts.filter(a => simT - a.t < 60).length; $('#w-rate').textContent = c60.toLocaleString();
+      $('#w-crit').textContent = alerts.filter(a => a.sev === 4).length;
+      const last5 = alerts.filter(a => simT - a.t < 300);
+      const sevC = SEV.map((_, i) => last5.filter(a => a.sev === i).length); const sm = Math.max(1, ...sevC);
+      $('#w-sev').innerHTML = SEV.slice().reverse().map((s, j) => { const i = SEV.length - 1 - j; return `<div style="display:flex;gap:8px;align-items:center;font:11.5px var(--mono)"><span style="width:62px;color:${s[1]}">${s[0]}</span><div class="bar" style="height:7px"><div style="width:${sevC[i] / sm * 100}%;background:${s[1]}"></div></div><span style="width:44px;text-align:right;color:var(--muted)">${sevC[i]}</span></div>`; }).join('');
+      const tc = {}; last5.forEach(a => tc[a.tech[0]] = (tc[a.tech[0]] || 0) + 1);
+      const tl = TECH.map(t => [t, tc[t[0]] || 0]).sort((a, b) => b[1] - a[1]).slice(0, 7); const tm = Math.max(1, ...tl.map(x => x[1]));
+      $('#w-tech').innerHTML = tl.map(([t, c]) => `<div style="display:flex;gap:8px;align-items:center;font-size:12px"><span style="width:52px;font:11px var(--mono);color:var(--muted)">${t[0]}</span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t[1]}</span><div class="bar" style="flex:none;width:80px;height:6px"><div style="width:${c / tm * 100}%;background:#5ec8ff"></div></div><span style="width:34px;text-align:right;font:11px var(--mono);color:var(--muted)">${c}</span></div>`).join('');
+      const fresh = alerts.filter(a => a.sev >= 1).slice(-13).reverse();
+      $('#w-tick').innerHTML = fresh.map(a => `<div><span style="color:var(--dim)">${fmtClock(a.wall)}</span><span class="sev ${SEV[a.sev][0]}" style="width:58px;text-align:center">${SEV[a.sev][0]}</span><span style="color:var(--muted)">${a.tech[0]}</span><span style="overflow:hidden;text-overflow:ellipsis">${a.tech[1]} · ${a.reg} → ${OFFICES[a.office][0]}</span></div>`).join('');
+      // sparkline
+      const cv = $('#w-spark'); const w = cv.clientWidth, h = cv.clientHeight; cv.width = w * dpr; cv.height = h * dpr; const g = cv.getContext('2d'); g.scale(dpr, dpr);
+      const buckets = new Array(120).fill(0); alerts.forEach(a => { const k = Math.floor(simT - a.t); if (k < 120) buckets[119 - k]++; }); const bm = Math.max(4, ...buckets);
+      g.fillStyle = 'rgba(94,200,255,0.75)'; buckets.forEach((v, i) => { const bh = v / bm * (h - 4); g.fillRect(i / 120 * w, h - bh, w / 120 - 1, bh); });
+    }
+    const uArr = new Float32Array(20);
+    function render(t) {
+      if (SV.TEST && pending) return;
+      const cy = Math.cos(yaw), sy = Math.sin(yaw), cx = Math.cos(tilt), sx = Math.sin(tilt);
+      // R = Rx(tilt) * Ry(yaw), rows
+      const m0 = [cy, 0, sy], m1 = [sx * sy, cx, -sx * cy], m2 = [-cx * sy, sx, cx * cy];
+      const R = Math.min(W, H) * 0.39; const scx = R / W * 2, scy = R / H * 2;
+      uArr.set([...m0, 0, ...m1, 0, ...m2, 0, scx, scy, simT, 0, W, H, dpr, 0]);
+      dev.queue.writeBuffer(uB, 0, uArr);
+      const enc = dev.createCommandEncoder();
+      let view;
+      if (SV.TEST) { const Wp = canvas.width, Hp = canvas.height; if (!tex || tex.width !== Wp || tex.height !== Hp) { tex = dev.createTexture({ size: [Wp, Hp], format: SV.format, usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC }); bpr = Math.ceil(Wp * 4 / 256) * 256; rbuf = dev.createBuffer({ size: bpr * Hp, usage: U.COPY_DST | U.MAP_READ }); } view = tex.createView(); }
+      else view = ctx.getCurrentTexture().createView();
+      const pass = enc.beginRenderPass({ colorAttachments: [{ view, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }] });
+      pass.setBindGroup(0, bg);
+      pass.setPipeline(pDot); pass.draw(6, ND);
+      pass.setPipeline(pArc); pass.draw(80, MAXA);
+      pass.setPipeline(pHit); pass.draw(6, MAXA);
+      pass.end();
+      const doCopy = SV.TEST && !pending; if (doCopy) { enc.copyTextureToBuffer({ texture: tex }, { buffer: rbuf, bytesPerRow: bpr }, [tex.width, tex.height]); pending = true; }
+      dev.queue.submit([enc.finish()]);
+      if (doCopy) { const Wp = tex.width, Hp = tex.height, rb = rbuf; rb.mapAsync(GPUMapMode.READ).then(() => { const s = new Uint8Array(rb.getMappedRange()); const img = new ImageData(Wp, Hp); const bgr = SV.format.startsWith('bgra'); for (let y = 0; y < Hp; y++) for (let x = 0; x < Wp; x++) { const o = y * bpr + x * 4, q = (y * Wp + x) * 4; img.data[q] = s[o + (bgr ? 2 : 0)]; img.data[q + 1] = s[o + 1]; img.data[q + 2] = s[o + (bgr ? 0 : 2)]; img.data[q + 3] = 255; } rb.unmap(); tctx.putImageData(img, 0, 0); pending = false; }).catch(() => { pending = false; }); }
+    }
+    // warm up so the wall isn't empty on first view
+    for (let k = 0; k < 600; k++) simulate(0.1);
+    return {
+      activate() { },
+      frame(t, dt) { if (!drag) yaw += spin * dt; simulate(dt); render(t); if (t - lastUi > 0.5) { lastUi = t; ui(); } },
+    };
+  }
+});
+
+// Investigation guide and experiment directory use the registered prototype metadata.
+const labDialog = document.getElementById('lab-dialog');
+const missions = [
+ 'Reconstruct an incident. Brush a suspicious time range, inspect linked entities, and collect evidence into a story.',
+ 'Trace privilege escalation. Select an identity, then choose a crown jewel to inspect its access path.',
+ 'Hunt a beacon. Follow a periodicity detection and isolate the host pair behind the signal.',
+ 'Inspect suspicious traffic. Narrow the heatmap, choose a conversation, then drill into individual packet bytes.',
+ 'Find concealed payloads. Compare samples and inspect high-entropy regions in the byte map.',
+ 'Monitor the bigger picture. Watch campaign bursts and compare severity with the leading ATT&CK techniques.'
+];
+function openLab(guide = false) {
+ const current = SV.protos.find(p => location.hash === '#' + p.id) || SV.protos[0];
+ document.getElementById('lab-content').innerHTML = guide
+ ? `<div class="lab-eyebrow">INVESTIGATION FIELD GUIDE</div><h2 id="lab-heading">${current.title}</h2><p class="lab-help">${missions[SV.protos.indexOf(current)]}</p><p>${current.blurb}</p><div class="lab-help">${current.how}</div><div class="lab-foot">Dataset: ${current.dataLabel}. All activity is synthetic; no production telemetry is connected.</div>`
+ : `<div class="lab-eyebrow">SECURITY VIZ / EXPERIMENT DIRECTORY</div><h2 id="lab-heading">Follow the signal.</h2><p>Six ways to explore security data. Choose an investigation and turn dense telemetry into a clearer picture.</p><div class="lab-cards">${SV.protos.map((p,i) => `<button class="lab-card" data-experiment="${p.id}"><span>0${i+1} / INVESTIGATE</span><strong>${p.title}</strong><small>${missions[i]}</small></button>`).join('')}</div><div class="lab-foot">Synthetic datasets · Local GPU processing · Select Guide anytime for controls and a starting point.</div>`;
+ labDialog.showModal();
+}
+document.getElementById('gpu-browse').onclick = () => { document.getElementById('nogpu').hidden = true; openLab(); };
+document.getElementById('lab-explore').onclick = () => openLab();
+document.getElementById('lab-guide').onclick = () => openLab(true);
+labDialog.querySelector('.lab-close').onclick = () => labDialog.close();
+labDialog.addEventListener('click', e => { const card=e.target.closest('[data-experiment]'); if(card){location.hash=card.dataset.experiment;labDialog.close();} });
+
+// ===== App shell: tabs, hash routing, render loop =====
+(async function () {
+  const tabs = document.getElementById('tabs'), stage = document.getElementById('stage'), intro = document.getElementById('intro');
+  try { await SV.initGPU(); }
+  catch (e) { document.getElementById('nogpu-msg').textContent = e.message; document.getElementById('nogpu').hidden = false; }
+  const state = {};
+  SV.protos.forEach((p, i) => {
+    const a = SV.el('a', '', `<i>0${i + 1}</i>${p.title}`); a.href = '#' + p.id; tabs.appendChild(a); p.tab = a;
+    const root = SV.el('div', 'proto'); root.id = 'p-' + p.id; stage.appendChild(root); p.root = root;
+  });
+  let active = null;
+  async function show(id) {
+    const p = SV.protos.find(x => x.id === id) || SV.protos[0];
+    if (active === p) return;
+    if (active) { active.root.classList.remove('on'); active.tab.classList.remove('on'); active.inst && active.inst.deactivate && active.inst.deactivate(); }
+    active = p; p.root.classList.add('on'); p.tab.classList.add('on');
+    tabs.querySelectorAll('a').forEach(a => a.removeAttribute('aria-current')); p.tab.setAttribute('aria-current', 'page');
+    intro.innerHTML = `<span><b>${p.title}</b> — ${p.blurb}</span><span class="how">${p.how}</span>`;
+    if (!SV.device) {
+      p.root.innerHTML = `<div style="max-width:680px;margin:8vh auto;padding:28px"><div class="lab-eyebrow">GPU CONNECTION REQUIRED</div><h1>${p.title}</h1><p style="font-size:16px;color:var(--muted)">${p.blurb}</p><p>${missions[SV.protos.indexOf(p)]}</p><p class="lab-foot">This experiment requires WebGPU. No WebGL fallback is used.</p><button onclick="openLab(true)">Read investigation guide</button> <button onclick="location.reload()">Retry connection</button></div>`;
+      return;
+    }
+    if (!p.inst && !p.building) {
+      p.building = true;
+      const ld = SV.el('div', 'loading', `<span>generating ${p.dataLabel}</span>`); p.root.appendChild(ld);
+      await new Promise(r => setTimeout(r, 30));
+      try { p.inst = await p.build(p.root); }
+      catch (e) { console.error(e); ld.innerHTML = '<span style="color:#ff8f8f">Failed to build: ' + SV.esc(e.message) + '</span>'; return; }
+      ld.remove();
+    }
+    p.inst && p.inst.activate && p.inst.activate();
+  }
+  window.addEventListener('hashchange', () => show(location.hash.slice(1)));
+  show(location.hash.slice(1));
+  let t0 = performance.now(), last = t0;
+  function loop(now) {
+    const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    if (active && active.inst && !document.hidden) { try { active.inst.frame((now - t0) / 1000, dt); } catch (e) { console.error(e); } }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+
+</script>
+<script type="module" src="/world/research/panel.js" data-research-app="security-viz-lab"></script></body>
+</html>

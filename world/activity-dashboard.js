@@ -3,7 +3,7 @@ const PALETTE=['#5398d9','#e9ad48','#65b99b','#c478b7','#db766b','#8b94d8','#90a
 export function mountActivityDashboard({container,getSnapshot,getHistory,subscribe,onSelectPerson}={}){
  if(!container||typeof getHistory!=='function')throw new Error('Activity dashboard needs a container and getHistory(query).');
  const doc=container.ownerDocument,win=doc.defaultView;let visible=false,destroyed=false,serial=0,timer=null,latestSnapshot=null,history=null,historyContext=null,analysis=null,districtComparison=null,activeQueries=0,queryDirty=false,unsubscribe=null,lifecycle=0;
- const root=doc.createElement('section');root.className='activity-dashboard';root.hidden=true;root.setAttribute('aria-label','Activity history dashboard');container.append(root);
+ const root=doc.createElement('section');root.className='activity-dashboard';root.id='world-activity-dashboard';root.hidden=true;root.setAttribute('aria-label','Activity history dashboard');container.append(root);
  const style=doc.createElement('link');style.rel='stylesheet';style.href=new URL('./activity-dashboard.css',import.meta.url).href;(doc.head||container).append(style);
  const el=(tag,text,parent=root)=>{const n=doc.createElement(tag);if(text!==undefined)n.textContent=text;parent.append(n);return n;};
  const button=(label,fn,parent=root)=>{const n=el('button',label,parent);n.type='button';n.addEventListener('click',()=>Promise.resolve().then(fn).catch(fail));return n;};
@@ -74,5 +74,5 @@ export function mountActivityDashboard({container,getSnapshot,getHistory,subscri
   try{const snapshot=await Promise.resolve(getSnapshot?.()||latestSnapshot||{});if(destroyed||!visible||generation!==lifecycle)return;update(snapshot);clearTimeout(timer);timer=null;unsubscribe=subscribe?.(update)||null;clearTimeout(timer);timer=null;await refresh();}catch(error){if(!destroyed&&visible&&generation===lifecycle)fail(error);}
  }
  function close(){visible=false;root.hidden=true;lifecycle++;serial++;queryDirty=false;clearTimeout(timer);timer=null;unsubscribe?.();unsubscribe=null;}
- return{open,close,update,destroy(){destroyed=true;close();root.remove();style.remove();}};
+ return{open,close,update,isOpen:()=>visible&&!destroyed,destroy(){destroyed=true;close();root.remove();style.remove();}};
 }

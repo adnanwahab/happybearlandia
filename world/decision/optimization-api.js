@@ -4,7 +4,7 @@
  * flagship; summaries retain inputs/seeds, not every monthly screen replay.
  */
 import { join } from "node:path";
-import { createDecisionStore } from "./store.js";
+import { createDecisionStore, DECISION_OPTIMIZATION_DIRECTORY } from "./store.js";
 import { normalizeOptimizationInput, executeOptimizationJob, OPTIMIZATION_LIMITS } from "./optimization.js";
 import { clone, validId, DecisionValidationError, isTerminal, DECISION_ENGINE_VERSION } from "./contracts.js";
 const base = "/api/decision-optimizations";
@@ -18,7 +18,7 @@ async function body(request) {
 }
 export function createOptimizationApiHandler(options = {}) {
   const baseStore = options.store || createDecisionStore(options);
-  const store = options.optimizationStore || createDecisionStore({ directory: join(baseStore.directory || process.env.TMPDIR || "/tmp", "decision-optimizations") });
+  const store = options.optimizationStore || createDecisionStore({ directory: join(baseStore.directory || process.env.TMPDIR || "/tmp", DECISION_OPTIMIZATION_DIRECTORY) });
   const active = new Map(); const cache = new Map(); const writes = new Map();
   const save = (job) => { const previous = writes.get(job.id) || Promise.resolve(); const snapshot = clone(job); const next = previous.catch(() => {}).then(() => store.save({ experiment: snapshot, runs: [] })); writes.set(job.id, next); return next; };
   const load = async (id) => { let job = cache.get(id) || (await store.load(id))?.experiment; if (!job) return null; if (job.status === "running" && !active.has(id)) { job.status = "failed"; job.error = "Server restarted during optimization; stored completed candidate summaries remain available."; await save(job); } cache.set(id, job); return job; };

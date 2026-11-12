@@ -1,0 +1,294 @@
+{
+  "version": 1,
+  "workerTimeoutMinutes": 15,
+  "tasks": {
+    "U10": {
+      "kind": "verification",
+      "dependencies": [
+        "R11"
+      ],
+      "files": [
+        "test/pipeline-receipts.test.js"
+      ],
+      "interfaces": [
+        "story-receipt-contract"
+      ],
+      "userFacing": false,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/pipeline-receipts.test.js",
+          "test/future-machine-story.test.js"
+        ]
+      ],
+      "browserTests": []
+    },
+    "U01": {
+      "kind": "verification",
+      "dependencies": [
+        "R01"
+      ],
+      "files": [
+        "test/e2e/pipeline-device-loss.e2e.js",
+        "test/pipeline-device-loss.browser.config.js"
+      ],
+      "interfaces": [],
+      "userFacing": false,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/future-machine-backend.test.js"
+        ]
+      ],
+      "browserTests": [
+        [
+          "bunx",
+          "playwright",
+          "test",
+          "--config",
+          "test/pipeline-device-loss.browser.config.js"
+        ]
+      ]
+    },
+    "U02": {
+      "kind": "feature",
+      "dependencies": [
+        "R01"
+      ],
+      "files": [
+        "test/e2e/pipeline-resize.e2e.js",
+        "test/pipeline-resize.browser.config.js",
+        "world/future-machine/scene/canvas-stage.js"
+      ],
+      "interfaces": [
+        "canvas-label-layout"
+      ],
+      "userFacing": true,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/future-machine-scene.test.js",
+          "test/future-machine-canvas.test.js"
+        ]
+      ],
+      "browserTests": [
+        [
+          "bunx",
+          "playwright",
+          "test",
+          "--config",
+          "test/pipeline-resize.browser.config.js"
+        ]
+      ]
+    },
+    "U03": {
+      "kind": "verification",
+      "dependencies": [
+        "R01"
+      ],
+      "files": [
+        "test/e2e/pipeline-resources.e2e.js",
+        "test/pipeline-resources.browser.config.js"
+      ],
+      "interfaces": [],
+      "userFacing": false,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/future-machine-canvas.test.js"
+        ]
+      ],
+      "browserTests": [
+        [
+          "bunx",
+          "playwright",
+          "test",
+          "--config",
+          "test/pipeline-resources.browser.config.js"
+        ]
+      ]
+    },
+    "U08": {
+      "kind": "verification",
+      "dependencies": [
+        "R01",
+        "R05"
+      ],
+      "files": [
+        "test/e2e/pipeline-reduced-motion.e2e.js",
+        "test/pipeline-reduced-motion.browser.config.js"
+      ],
+      "interfaces": [],
+      "userFacing": false,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/future-machine-effects.test.js"
+        ]
+      ],
+      "browserTests": [
+        [
+          "bunx",
+          "playwright",
+          "test",
+          "--config",
+          "test/pipeline-reduced-motion.browser.config.js"
+        ]
+      ]
+    },
+    "R14": {
+      "kind": "verification",
+      "dependencies": [
+        "R04",
+        "R09"
+      ],
+      "files": [
+        "test/e2e/pipeline-local-play.e2e.js",
+        "test/pipeline-local-play.browser.config.js"
+      ],
+      "interfaces": [],
+      "userFacing": false,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/future-machine-canvas.test.js"
+        ]
+      ],
+      "browserTests": [
+        [
+          "bunx",
+          "playwright",
+          "test",
+          "--config",
+          "test/pipeline-local-play.browser.config.js"
+        ]
+      ]
+    },
+    "U05": {
+      "kind": "verification",
+      "dependencies": [
+        "R02"
+      ],
+      "files": [
+        "test/pipeline-kpi-semantics.test.js"
+      ],
+      "interfaces": [],
+      "userFacing": false,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/pipeline-kpi-semantics.test.js"
+        ]
+      ],
+      "browserTests": []
+    },
+    "U16": {
+      "kind": "verification",
+      "dependencies": [
+        "R12"
+      ],
+      "files": [
+        "test/pipeline-evidence-manifest.test.js"
+      ],
+      "interfaces": [],
+      "userFacing": false,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/pipeline-evidence-manifest.test.js"
+        ]
+      ],
+      "browserTests": []
+    },
+    "R13": {
+      "kind": "verification",
+      "dependencies": [
+        "R11"
+      ],
+      "files": [
+        "test/pipeline-catalog-preservation.test.js"
+      ],
+      "interfaces": [],
+      "userFacing": false,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/pipeline-catalog-preservation.test.js"
+        ]
+      ],
+      "browserTests": []
+    },
+    "R15": {
+      "kind": "verification",
+      "dependencies": [
+        "U10"
+      ],
+      "files": [
+        "scripts/pipeline-coordinator.mjs",
+        "test/pipeline-repair.test.js"
+      ],
+      "interfaces": [
+        "interactive-claims"
+      ],
+      "userFacing": false,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/pipeline-repair.test.js",
+          "test/pipeline-coordinator.test.js"
+        ]
+      ],
+      "browserTests": []
+    },
+    "U18": {
+      "kind": "feature",
+      "dependencies": [
+        "R01"
+      ],
+      "files": [
+        "world/future-machine/scene/index.js",
+        "test/e2e/pipeline-device-loss.e2e.js"
+      ],
+      "interfaces": [
+        "scene-fallback-lifecycle"
+      ],
+      "userFacing": true,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/future-machine-backend.test.js",
+          "test/future-machine-canvas.test.js",
+          "test/future-machine-scene.test.js"
+        ]
+      ],
+      "browserTests": [
+        [
+          "bunx",
+          "playwright",
+          "test",
+          "--config",
+          "test/pipeline-device-loss.browser.config.js"
+        ]
+      ]
+    }
+  },
+  "regressionTests": [
+    [
+      "bun",
+      "test",
+      "test/future-machine-story.test.js",
+      "test/future-machine-data.test.js"
+    ]
+  ]
+}

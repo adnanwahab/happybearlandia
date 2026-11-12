@@ -1,0 +1,2 @@
+export const PANCAKE_RECIPES=Object.freeze({simple:{label:'Simple pancakes',minutes:30,level:1,extraCost:0,bonus:0},berry:{label:'Berry pancakes',minutes:45,level:2,extraCost:8,bonus:10},signature:{label:'Signature pancakes',minutes:60,level:3,extraCost:12,bonus:20}});
+export const PANCAKE_ROLES=Object.freeze({cook:{label:'Cook',minAge:12},server:{label:'Server',minAge:12},host:{label:'Seating host',minAge:6},cleaner:{label:'Cleanup helper',minAge:6}});

@@ -1,7 +1,8 @@
 import {test,expect} from 'bun:test';
 import {createPopulationModel,stepPopulation,inspectHousehold,serializePopulation,restorePopulation,inspectPerson} from '../population/model.js';
 import {applyHouseholdSystemCommand} from './system-command.js';
-import {applyHouseholdAction} from './model.js';
+import {applyHouseholdAction,inspectHouseholdActionAvailability} from './model.js';
+import {queueHouseholdTask} from './task-queue.js';
 import {applyWalkCommand} from '../population/walk-command.js';
 import {inviteGuest} from './visits.js';
 import {dateVenues,inspectDateSystem} from './date-system.js';
@@ -19,3 +20,46 @@ test('public runtime date survives its suggested duration and checkpoint restora
 test('a new invitation pauses shared attendance without silently completing the outing',()=>{const f=fixture({venues:false}),m=f.m;start(f);const target=Array.from(m.people.household).find((h,i)=>h!==0&&h!==1&&m.people.homeX[i]===m.people.homeX[0])??2;inviteGuest(m,{householdId:m.prefix+'-h'+target,personId:f.ids[0]});stepPopulation(m,{minutes:1});expect(m.houses.homes[0].systems.dates.active.openEnded).toBe(true);expect(m.houses.homes[0].systems.dates.active.attendance.available).toBe(false);expect(m.houses.homes[0].systems.dates.history).toHaveLength(0);expect(m.visits.active[0].household).toBe(target);expect(m.visits.active[0].phase).toBe('visiting');expect(m.dateAssignments[0]).toBe(0);expect(m.houses.homes[0].systems.dates.active.completedActivities).toHaveLength(0);});
 
 test('consenting eligible adults can start a date with zero friendship and romance; entry grants no scores',()=>{const f=fixture({status:'none'}),tie=f.m.social.ties[JSON.stringify(f.ids)];tie.friendship=0;tie.romance=0;tie.tension=0;expect(start(f).accepted).toBe(true);expect(tie.friendship).toBe(0);expect(tie.romance).toBe(0);expect(tie.dating).toBe(false);stepPopulation(f.m,{minutes:30});expect(f.m.social.ties[JSON.stringify(f.ids)].memories[0].event).toBe('first-date');expect(f.m.social.ties[JSON.stringify(f.ids)].dating).toBe(true);});
+
+test('survival requests leave dates only after successful validation; inspection and rejection preserve the outing',()=>{
+ const f=fixture(),m=f.m;start(f);m.people.bladder[0]=10;
+ const home=inspectHousehold(m,0).house,toilet=home.objects.find(o=>o.type==='toilet');
+ const request={householdId:f.h,type:'toilet',personId:f.ids[0],objectId:toilet.id,roomId:toilet.roomId};
+ const before=serializePopulation(m);
+ expect(inspectHouseholdActionAvailability(m,request).available).toBe(true);
+ expect(serializePopulation(m)).toEqual(before);
+ expect(()=>applyHouseholdAction(m,{...request,objectId:'missing-toilet'})).toThrow('objectId');
+ expect(serializePopulation(m)).toEqual(before);
+ expect(()=>applyHouseholdAction(m,{...request,type:'eat',objectId:undefined,roomId:'kitchen'})).toThrow('prepared serving');
+ expect(serializePopulation(m)).toEqual(before);
+ expect(applyHouseholdAction(m,request).accepted).toBe(true);
+ expect(m.houses.homes[0].systems.dates.active).toBeNull();
+ expect(m.houses.homes[0].systems.dates.history.at(-1).reason).toContain('toilet');
+ expect(m.people.bladder[0]).toBe(10);
+ for(const i of [0,4]){expect(m.dateAssignments[i]).toBeUndefined();expect(m.people.x[i]).toBe(m.people.homeX[i]);}
+ stepPopulation(m,{minutes:5});expect(m.people.bladder[0]).toBeGreaterThan(25);
+ expect(()=>restorePopulation(serializePopulation(m))).not.toThrow();
+});
+test('an overdue blocked neighborhood walk is cancelled without expiring the open-ended date',()=>{
+ const f=fixture();start(f);const date=f.m.houses.homes[0].systems.dates.active;
+ command(f,{type:'move',dateId:date.id,x:100,z:20,follow:true});
+ f.m.people.x[0]+=100;
+ stepPopulation(f.m,{minutes:60});
+ const current=f.m.houses.homes[0].systems.dates.active;
+ expect(current).not.toBeNull();expect(current.localMovement).toBeNull();
+ expect(current.interruptedMoves.at(-1).noCompletionGranted).toBe(true);
+ expect(current.interruptedMoves.at(-1).reason).toContain('Walking stopped');
+ expect(()=>restorePopulation(serializePopulation(f.m))).not.toThrow();
+});
+test('an overdue unresolved journey returns participants home instead of trapping them',()=>{
+ const f=fixture();start(f,{travelMode:'drive'});const date=f.m.houses.homes[0].systems.dates.active;
+ expect(date.travel).toBeTruthy();f.m.people.x[0]+=100;
+ stepPopulation(f.m,{minutes:100});
+ expect(f.m.houses.homes[0].systems.dates.active).toBeNull();
+ expect(f.m.houses.homes[0].systems.dates.history.at(-1).reason).toContain('journey did not finish');
+ expect(f.m.dateAssignments[0]).toBeUndefined();
+ expect(()=>restorePopulation(serializePopulation(f.m))).not.toThrow();
+});
+
+test('critical needs interrupt an outing automatically and retain a checkpoint-restorable return home',()=>{const f=fixture();start(f);f.m.people.bladder[0]=10;stepPopulation(f.m,{minutes:1});expect(f.m.houses.homes[0].systems.dates.active).toBeNull();expect(f.m.houses.homes[0].systems.dates.history.at(-1).reason).toBe('Returned home for urgent basic needs');expect(f.m.dateAssignments[0]).toBeUndefined();expect(f.m.people.x[0]).toBe(f.m.people.homeX[0]);expect(()=>restorePopulation(serializePopulation(f.m))).not.toThrow();});
+test('a queued survival request keeps its active queue reference when it interrupts a date',()=>{const f=fixture();start(f);const task=queueHouseholdTask(f.m,{householdId:f.h,personId:f.ids[0],type:'toilet'}).task;stepPopulation(f.m,{minutes:5});expect(f.m.houseTasks.byPerson[0][0]).toMatchObject({id:task.id,status:'active'});expect(f.m.houses.homes[0].systems.dates.active).toBeNull();expect(()=>restorePopulation(serializePopulation(f.m))).not.toThrow();stepPopulation(f.m,{minutes:15});expect(f.m.houseTasks.history.some(row=>row.id===task.id&&row.status==='completed')).toBe(true);});

@@ -1,0 +1,1 @@
+export const CHARACTER_FOCUSES=Object.freeze([['balanced','Balanced'],['love','Love'],['learning','Learning'],['creativity','Creativity'],['career','Career'],['friendship','Friendship'],['home','Home & Garden'],['relaxation','Relaxation'],['fitness','Fitness']]);

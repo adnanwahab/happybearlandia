@@ -1,0 +1,33 @@
+import {test,expect} from '@playwright/test';
+test('saved Inner Lives identity travels to Game and party with private fictional references',async({page})=>{
+ await page.goto('/tools/inner-lives.html');
+ await page.evaluate(()=>localStorage.setItem('inner-lives-saved','[3]'));
+ await page.locator('#meet').click();
+ const panel=page.getByTestId('social-journey');await panel.locator('summary').first().click();
+ await expect(panel.locator('h3')).toBeVisible();
+ const person=await panel.locator('code').textContent();
+ const game=await panel.getByRole('link',{name:'Game',exact:true}).getAttribute('href');
+ await page.goto(game.replace('/game?','/game/index.html?'));
+ await page.getByTestId('social-journey').locator('summary').first().click();
+ await expect(page.getByTestId('social-journey').locator('code')).toHaveText(person);
+ await page.getByTestId('social-journey').locator('textarea').fill('I remember an imaginary visit to the bakery.');
+ await page.getByRole('button',{name:'Record fictional memory'}).click();
+ await expect(page.getByTestId('social-journey')).toContainText('1 narrative references · no simulation effects');
+ const party=await page.getByTestId('social-journey').getByRole('link',{name:/Everybody/}).getAttribute('href');
+ await page.goto(party.replace('/world/party/act-normal?','/world/party/act-normal.html?'));await page.getByTestId('social-journey').locator('summary').first().click();
+ await page.getByRole('button',{name:'Use name in party lobby'}).click();
+ await expect(page.locator('[data-name]')).not.toHaveValue('');
+ await expect(page.getByTestId('social-journey')).toContainText('imaginary visit');
+ expect(await page.evaluate(()=>localStorage.getItem('inner-lives-saved'))).toBe('[3]');
+});
+test('Living City snapshot keeps explicit mappings, schedule, and selected branch and tick',async({page})=>{
+ await page.goto('/tools/inner-lives.html?branchId=branch%3Atest%3Aprivate&runId=run%3Atest%3Aone&tick=4');
+ await page.evaluate(()=>dispatchEvent(new CustomEvent('hbl:social-person',{detail:{source:'living-city',tick:14,person:{personId:'p9',name:'Worker Nine',householdId:'h3',homeId:'b2',locationId:'b5',employment:{jobId:'bakery-assignment9'},schedule:{template:'worker'},social:{ties:[]},commuteMinutes:27}}})));
+ const panel=page.getByTestId('social-journey');await panel.locator('summary').first().click();await expect(panel).toContainText('Worker Nine');await expect(panel).toContainText('tick 14');await expect(panel).toContainText('Saved schedule');
+ const talk=await panel.getByRole('link',{name:'World Line Talk',exact:true}).getAttribute('href');
+ expect(talk).toContain('branchId=branch%3Atest%3Aprivate');expect(talk).toContain('tick=14');
+ await page.goto(talk.replace('/tools/world-line-talk?','/tools/world-line-talk.html?'));await page.getByTestId('social-journey').locator('summary').first().click();
+ await expect(page.getByTestId('social-journey')).toContainText('Worker Nine');
+ await page.evaluate(()=>dispatchEvent(new CustomEvent('hbl:social-narrative',{detail:{text:'Conversation choice: hello. Reply: welcome.'}})));
+ await expect(page.getByTestId('social-journey')).toContainText('Conversation choice: hello');
+});

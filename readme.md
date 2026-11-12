@@ -1,5 +1,5 @@
 # Peoplebox - HappyBearHouse
-
+- [ ] local AI setup ?
 
 # Grattitude game
 # HappyBearLandia - VR/AR Game Studio for Education

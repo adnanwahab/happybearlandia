@@ -11,7 +11,7 @@ If you prefer to bypass React JSX bundling entirely, Observable Framework native
 
 
 ```js
-import * as THREE from "npm:three";
+import * as THREE from "npm:three/webgpu";
 
 const container = document.createElement("div");
 container.style.width = "100%";
@@ -24,7 +24,19 @@ const camera = new THREE.PerspectiveCamera(60, 800 / 500, 0.1, 1000);
 camera.position.set(0, 12, 15);
 camera.lookAt(0, 0, 0);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new THREE.WebGPURenderer({ antialias: true });
+renderer._getFallback = null;
+let gpuReady = false;
+try {
+  if (!navigator.gpu) throw new Error("WebGPU is unavailable.");
+  await renderer.init();
+  gpuReady = renderer.backend.isWebGPUBackend;
+} catch (error) {
+  const notice = document.createElement("p");
+  notice.setAttribute("role", "alert");
+  notice.textContent = `This demo requires WebGPU. Use a WebGPU-enabled browser with hardware acceleration over HTTPS or localhost, then reload. ${error.message}`;
+  container.append(notice);
+}
 renderer.setSize(container.clientWidth || 800, 500);
 renderer.shadowMap.enabled = true;
 container.appendChild(renderer.domElement);
@@ -44,10 +56,33 @@ tabletop.receiveShadow = true;
 scene.add(tabletop);
 
 function animate() {
-  requestAnimationFrame(animate);
   renderer.render(scene, camera);
 }
-animate();
+if (gpuReady) {
+  await renderer.setAnimationLoop(animate);
+  renderer.backend.device.lost.then(info => {
+    renderer.setAnimationLoop(null);
+    const notice = document.createElement("p");
+    notice.setAttribute("role", "alert");
+    notice.textContent = `The WebGPU device was lost. Reload to reconnect. ${info.message || ""}`;
+    container.append(notice);
+  });
+}
+const resize = () => {
+  const width = container.clientWidth || 800;
+  camera.aspect = width / 500;
+  camera.updateProjectionMatrix();
+  renderer.setSize(width, 500);
+};
+const observer = new ResizeObserver(resize);
+observer.observe(container);
+invalidation.then(() => {
+  observer.disconnect();
+  renderer.setAnimationLoop(null);
+  geometry.dispose();
+  material.dispose();
+  renderer.dispose();
+});
 
 display(container);
 

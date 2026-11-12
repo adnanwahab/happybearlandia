@@ -1,4 +1,4 @@
-import {VERSION, clamp, sum} from './contracts.js';
+import {VERSION, clamp, housingProjectBuildingId, sum} from './contracts.js';
 const pack=(id,dependencies,resolve,{cadence=1,proposeStep=()=>({})}={})=>({id,version:VERSION,cadence,dependencies,
   initialize(s){s.systems[id]||={schemaVersion:'SystemState.v1',modelVersion:VERSION};},proposeStep,
   resolve,commit(s,result){s.systems[id]={schemaVersion:'SystemState.v1',modelVersion:VERSION,...result};},
@@ -125,10 +125,11 @@ export function createSystemPacks() {return [
       if(previousProgress<x.duration*.7&&x.progress>=x.duration*.7)c.event('construction','TOPPED_OUT',x.districtId,{projectId:x.id});
       if(x.progress<x.duration-1e-9)continue;
       x.stage='completion';completed++;
+      c.record?.({system:'construction',type:'PROJECT_COMPLETED',entity:['projects',x.id],inputs:{policyId:x.policyId??null,previousProgress,fraction,duration:x.duration,demands,utilityHeadroom:x.type==='housing'?['electric','water','sewer','stormwater'].map(resource=>c.registry.query({resource,districtId:x.districtId,time:c.time})):[]},outputs:{stage:x.stage,progress:x.progress}});
       const d=s.districts.find(d=>d.id===x.districtId);
       if(x.type==='housing') {
         s.units=s.units.filter(u=>!x.displacedUnits.includes(u.id));
-        const buildingId=`building-${x.id}`;s.buildings.push({id:buildingId,districtId:x.districtId,parcelId:x.parcelId||null,floors:Math.ceil(x.units/10)});
+        const buildingId=housingProjectBuildingId(x.id);s.buildings.push({id:buildingId,districtId:x.districtId,parcelId:x.parcelId||null,floors:Math.ceil(x.units/10)});
         const rents=local(old.units,x.districtId),rent=rents.length?sum(rents,u=>u.rent)/rents.length:1000;
         for(let i=0;i<x.units;i++)s.units.push({id:`${x.id}-unit-${i}`,buildingId,districtId:x.districtId,bedrooms:1+i%3,floorArea:70,quality:1,rent,tenure:'rental',status:'available',householdId:null,daysVacant:0});
         c.flow('housing units',x.id,x.districtId,x.units,'construction');
@@ -142,7 +143,7 @@ export function createSystemPacks() {return [
     return {completed,delays,queued:s.projects.filter(x=>x.stage!=='completion').length};
   }),
   pack('transport',['construction'],(old,p,s,c)=>{
-    for(const l of s.links){l.flow=0;l.closed=s.activeShocks.some(x=>x.type==='flood'&&x.districtId===l.from&&x.severity>.6);l.travelTime=l.closed?240:l.freeTime;}
+    for(const l of s.links){const previousClosed=l.closed??false;l.flow=0;l.closed=s.activeShocks.some(x=>x.type==='flood'&&x.districtId===l.from&&x.severity>.6);l.travelTime=l.closed?240:l.freeTime;if(previousClosed!==l.closed)c.record?.({system:'transport',type:'LINK_AVAILABILITY_CHANGED',entity:['links',l.id],inputs:{previousClosed,from:l.from,activeFloods:s.activeShocks.filter(x=>x.type==='flood'&&x.districtId===l.from)},outputs:{closed:l.closed}});}
     // Bounded all-pairs shortest paths; district OD demand, not microscopic traffic.
     const paths=(origin,destination,mode)=>{
       if(origin===destination)return {minutes:8,links:[]};
@@ -207,7 +208,7 @@ export function createSystemPacks() {return [
     for(const j of s.jobs.filter(j=>!j.workerId).sort((a,b)=>a.id.localeCompare(b.id))) {
       const eligible=seekers.filter(w=>!w.jobId&&w.occupation===j.occupation&&(s.accessibility.find(a=>a.from===w.districtId&&a.to===j.districtId)?.minutes??999)<=60);
       eligible.sort((a,b)=>c.random(j.id,a.id)-c.random(j.id,b.id)||a.id.localeCompare(b.id));
-      const w=eligible[0];if(w){w.jobId=j.id;j.workerId=w.id;matches++;c.decision('jobs',w.id,'job-match',j.id,'Eligible occupation and commute; seeded vacancy allocation');c.flow('jobs',j.id,w.id,1,'jobs');}
+      const w=eligible[0];if(w){c.record?.({system:'jobs',type:'EMPLOYMENT_MATCHED',entity:['workers',w.id],inputs:{jobId:j.id,occupation:w.occupation,eligibleWorkerIds:eligible.map(w=>w.id),commuteMinutes:s.accessibility.find(a=>a.from===w.districtId&&a.to===j.districtId)?.minutes??999,seed:s.seed},outputs:{jobId:j.id}});w.jobId=j.id;j.workerId=w.id;matches++;c.decision('jobs',w.id,'job-match',j.id,'Eligible occupation and commute; seeded vacancy allocation');c.flow('jobs',j.id,w.id,1,'jobs');}
     }
     const unemployment=s.workers.filter(w=>w.available&&!w.jobId).length/Math.max(1,s.workers.filter(w=>w.available).length),vacancy=s.jobs.filter(j=>!j.workerId).length/Math.max(1,s.jobs.length);
     for(const j of s.jobs)j.wage=clamp(j.wage*(1+clamp((vacancy-unemployment)*.02,-.02,.02)),500,50000);
@@ -234,6 +235,7 @@ export function createSystemPacks() {return [
       u.householdId=h.id;u.status='occupied';u.daysVacant=0;h.unitId=u.id;h.districtId=u.districtId;h.leaseUntil=c.time+12;
       for(const w of s.workers.filter(w=>w.householdId===h.id))w.districtId=h.districtId;
       assigned.add(h.id);taken.add(u.id);matches++;
+      c.record?.({system:'housing',type:'HOUSEHOLD_RELOCATED',entity:['households',h.id],inputs:{previousUnitId:previous?.id??null,originDistrict:origin,income:h.income,bedrooms:h.bedrooms,alternatives:reasons.get(h.id).alternatives,seed:s.seed},outputs:{unitId:u.id,districtId:h.districtId,rent:u.rent}});
       c.moves.push({householdId:h.id,simulationTime:c.time,originDistrict:origin,destinationDistrict:h.districtId,previousCost:previous?.rent||0,newCost:u.rent,modeledDisplacement:!previous,primaryReason:previous?'lease turnover':'unhoused search'});
       c.decision('housing',h.id,'housing-match',u.id,'Utility ranking and seeded conflict resolution',reasons.get(h.id).alternatives);
       c.flow('people',origin,h.districtId,h.size,'housing');

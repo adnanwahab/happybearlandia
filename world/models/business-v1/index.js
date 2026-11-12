@@ -1,3 +1,4 @@
+import { advanceBusinessChallenge } from './challenges.js';
 import { ARCHETYPES, EVENTS } from './content.js';
 import { copy, clamp, requireApproved } from './schema.js';
 import { deriveSeed } from '../../world-generator.js';
@@ -48,6 +49,14 @@ export function simulatePeriod(input, plan, options = {}) {
   if (input.bankrupt) throw new Error('This company is bankrupt. Start a new company or enter another future.');
   const s = copy(input), d = s.def, adapter = ARCHETYPES[d.archetype], period = s.period + 1;
   const random = rng(s, period, 'customers'), market = rng(s, period, 'market'), supply = rng(s, period, 'supply');
+  const external = options.externalInputs || {};
+  for (const key of ['deliveryDelayDays', 'deliveredSupplyFraction', 'customerDemandMultiplier', 'availableWorkerHours']) {
+    if (external[key] !== undefined && (!Number.isFinite(external[key]) || external[key] < 0 || (key === 'deliveredSupplyFraction' && external[key] > 1))) throw new Error(`Invalid external input: ${key}`);
+  }
+  const requestedWorkerHours = plan.staff * d.production.hours;
+  const workerHours = Math.min(requestedWorkerHours, external.availableWorkerHours ?? requestedWorkerHours);
+  const laborFraction = workerHours / Math.max(1e-9, requestedWorkerHours);
+  const operatingHours = d.production.hours * laborFraction;
   const predicted = options.forecast || forecast(s, 1)[0];
   const actual = { ...predicted, temperature: predicted.temperature + Math.round((market() - .5) * 8) };
   const priceNoise = market(), demandNoise = market(), rivalNoise = market(), retentionNoise = market(); // fixed exogenous draws
@@ -69,8 +78,9 @@ export function simulatePeriod(input, plan, options = {}) {
   const inventoryBased = adapter.constraint === 'inventory';
   const productionLimit = Math.min(d.capacity, d.production.hours * 60 / d.production.minutes * d.production.batchSize);
   const purchases = inventoryBased ? Math.floor(Math.min(plan.production, productionLimit * (1 + s.equipment * .15)) / d.production.batchSize) * d.production.batchSize : 0;
-  const stockCost = purchases * costPerUnit;
-  if (purchases && delivered) s.pipeline.push({ due: period + d.leadTime, qty: purchases, value: stockCost });
+  const deliveredPurchases = Math.floor(purchases * (external.deliveredSupplyFraction ?? 1));
+  const stockCost = deliveredPurchases * costPerUnit;
+  if (purchases && delivered) s.pipeline.push({ due: period + d.leadTime + Math.ceil((external.deliveryDelayDays ?? 0) / (d.scale === 'month' ? 30 : 1)), qty: deliveredPurchases, value: stockCost });
   // An unreliable supplier refunds the undelivered order rather than charging it.
   const inputCash = delivered ? stockCost : 0;
   s.pipeline = s.pipeline.filter(batch => { if (batch.due > period) return true; s.inventory += batch.qty; s.inventoryValue += batch.value; return false; });
@@ -90,7 +100,7 @@ export function simulatePeriod(input, plan, options = {}) {
   const trafficMean = Math.min(100000, d.baseTraffic * (1 + d.growth) ** Math.min(120, period) * d.demand.seasonality[seasonIndex] * (shock?.traffic || 1) * (d.scale === 'day' ? weather : 1) * (1 + .25 * (plan.location - 1)) * (1 + .5 * s.reputation) * (.75 + .5 * demandNoise));
   const ticks = d.scale === 'day' ? 480 : 1;
   const arrivalsRandom = rng(s, period, 'arrivals');
-  const expected = Math.min(100000, trafficMean * (.5 + s.awareness) + visitsFromMarketing);
+  const expected = Math.min(100000, (trafficMean * (.5 + s.awareness) + visitsFromMarketing) * (external.customerDemandMultiplier ?? 1));
   let remainingArrivals = 100000;
   const arrivalsByTick = Array.from({ length: ticks }, (_, tick) => {
     const hourly = d.scale === 'day' ? .5 + Math.sin(Math.PI * (tick + .5) / ticks) ** 2 : 1;
@@ -101,14 +111,15 @@ export function simulatePeriod(input, plan, options = {}) {
   const outcomes = { bought: 0, 'too expensive': 0, "didn't like it": 0, 'sold out': 0, 'line too long': 0, 'not interested': 0, 'chose rival': 0 };
   const trace = [], segmentSales = Object.fromEntries(d.segments.map(x => [x.id, 0]));
   let revenue = 0, cogs = 0, serviceUsed = 0, satTotal = 0, backlog = 0;
-  const laborCapacity = Math.floor(productionLimit * plan.staff * (1 + s.equipment * .15));
+  const laborCapacity = Math.floor(productionLimit * plan.staff * laborFraction * (1 + s.equipment * .15));
   const capacity = adapter.constraint === 'sellers' ? Math.min(d.capacity, plan.sellers * 20) : adapter.constraint === 'support' ? laborCapacity : adapter.constraint === 'attention' ? d.capacity : laborCapacity;
+  const effectiveCapacity = Math.floor(capacity * (adapter.constraint === 'sellers' || adapter.constraint === 'attention' ? laborFraction : 1));
   // Subscription renewal happens before acquisition; support capacity constrains total active customers.
   let churned = 0;
   if (adapter.recurring) {
     churned = Math.min(s.customers, Math.round(s.customers * clamp(d.churnRate * (1.5 - quality / 100) * (.8 + .4 * retentionNoise), 0, 1)));
     s.customers -= churned;
-    const renewals = Math.min(s.customers, capacity);
+    const renewals = Math.min(s.customers, effectiveCapacity);
     churned += s.customers - renewals; s.customers = renewals;
     revenue += renewals * plan.price; cogs += renewals * costPerUnit; serviceUsed += renewals;
   }
@@ -131,10 +142,10 @@ export function simulatePeriod(input, plan, options = {}) {
       else if (willingness > purchaseProbability(ours)) reason = "didn't like it";
       else if (draws[4] > oursWeight / (oursWeight + rivalWeight)) reason = 'chose rival';
       else if (inventoryBased && s.inventory < 1) reason = 'sold out';
-      else if (serviceUsed >= capacity || (d.scale === 'day' && nextFree - tick > segment.patience)) { reason = 'line too long'; backlog++; }
+      else if (serviceUsed >= effectiveCapacity || (d.scale === 'day' && nextFree - tick > segment.patience)) { reason = 'line too long'; backlog++; }
       else {
         reason = 'bought'; serviceUsed++; segmentSales[segment.id]++;
-        nextFree = Math.max(tick, nextFree) + ticks / Math.max(1, capacity);
+        nextFree = Math.max(tick, nextFree) + ticks / Math.max(1, effectiveCapacity);
         const effectivePrice = plan.price * (adapter.constraint === 'sellers' ? d.takeRate : 1);
         revenue += effectivePrice;
         if (inventoryBased) { const averageCost = s.inventoryValue / Math.max(1, s.inventory); s.inventory--; s.inventoryValue = Math.max(0, s.inventoryValue - averageCost); cogs += averageCost; }
@@ -152,7 +163,7 @@ export function simulatePeriod(input, plan, options = {}) {
   const spoiled = inventoryBased ? Math.floor(s.inventory * d.perishability.rate / (1 + s.equipment * .3)) : 0;
   const spoilageCost = spoiled * s.inventoryValue / Math.max(1,s.inventory);
   s.inventory -= spoiled; s.inventoryValue = Math.max(0, s.inventoryValue - spoilageCost);
-  const rent = d.rent * plan.location, wages = d.wage * plan.staff, interest = s.debt * (d.scale === 'day' ? .0005 : .015);
+  const rent = d.rent * plan.location, wages = d.wage * plan.staff * laborFraction, interest = s.debt * (d.scale === 'day' ? .0005 : .015);
   const expenses = cogs + spoilageCost + rent + wages + marketingCost + interest;
   const profit = revenue - expenses;
   const cashOut = inputCash + (inventoryBased ? 0 : cogs) + rent + wages + marketingCost + interest + equipmentPurchase + tierCost;
@@ -167,10 +178,14 @@ export function simulatePeriod(input, plan, options = {}) {
   let remaining = outcomes.bought;
   for (const c of channelCards) { c.customers = Math.min(remaining, Math.round(outcomes.bought * c.visitors / Math.max(1,totalArrivals))); remaining -= c.customers; c.cac = c.customers ? c.spend / c.customers : null; }
   const recurringRevenue = adapter.recurring ? s.customers * plan.price : 0;
-  const report = { period, defVersion: d.version, seed: s.seed, weather: actual, rivals, arrivals: totalArrivals, outcomes, traceCount: trace.length, segmentSales, revenue, cogs, spoilageCost, spoiled, rent, wages, marketingCost, interest, equipmentPurchase, tierCost, inputCash, profit, cashBefore, cash: s.cash, cashChange: revenue - cashOut, availableCredit, inventory: s.inventory, reputation: s.reputation, satisfaction, channelCards, share: outcomes.bought / Math.max(1,totalArrivals), capacity, used: serviceUsed, backlog, churned, mrr: recurringRevenue, arr: recurringRevenue * 12, utilization: serviceUsed / Math.max(1,capacity), supplierDelivered: delivered, forecast: predicted, bankrupt: s.bankrupt };
+  const report = { period, defVersion: d.version, seed: s.seed, weather: actual, rivals, arrivals: totalArrivals, outcomes, traceCount: trace.length, segmentSales, revenue, cogs, spoilageCost, spoiled, rent, wages, marketingCost, interest, equipmentPurchase, tierCost, inputCash, profit, cashBefore, cash: s.cash, cashChange: revenue - cashOut, availableCredit, inventory: s.inventory, reputation: s.reputation, satisfaction, channelCards, share: outcomes.bought / Math.max(1,totalArrivals), capacity: effectiveCapacity, used: serviceUsed, backlog, churned, mrr: recurringRevenue, arr: recurringRevenue * 12, utilization: serviceUsed / Math.max(1,effectiveCapacity), supplierDelivered: delivered, forecast: predicted, bankrupt: s.bankrupt };
+  report.externalInputs = copy(external);
+  report.operatingHours = operatingHours;
+  report.employment = { schemaVersion: 'business-employment.v1', period, workerHours, requestedWorkerHours, wages, employedWorkers: plan.staff * laborFraction, hourlyWage: d.wage / d.production.hours };
+  s.employment = copy(report.employment);
   s.logs = [...s.logs, report].slice(-48);
   s.history = [...s.history, { period, cash: s.cash, revenue, profit }].slice(-120);
-  return { state: s, report, trace };
+  return { state: advanceBusinessChallenge(s), report, trace };
 }
 
 export function metricsFor(s) { return { cash: s.cash, profit: s.totalProfit, revenue: s.totalRevenue, reputation: s.reputation, survival: s.bankrupt ? 0 : 1, customers: s.totalSales }; }

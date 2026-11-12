@@ -1,18 +1,42 @@
-import { mkdir, readdir, readFile, writeFile, rename, stat, unlink, open } from "node:fs/promises";
-import { join, resolve, relative } from "node:path";
-import { tmpdir } from "node:os";
+import { mkdir, readdir, readFile, writeFile, rename, stat, unlink, open, realpath } from "node:fs/promises";
+import { join, resolve, relative, isAbsolute, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 import { clone, validId, DECISION_LIMITS } from "./contracts.js";
 
-/** Atomic JSON snapshots, outside all served directories, with owner-only access.
- * Set DECISION_STORE_DIR to a durable mounted directory for hosted persistence.
- * Default survives server restarts but remains subject to OS temp cleanup.
- */
+export const DECISION_OPTIMIZATION_DIRECTORY = "decision-optimizations";
+export const DEFAULT_DECISION_STORE_DIR = fileURLToPath(
+  new URL("../../.data/decision-experiments", import.meta.url),
+);
+
+function isWithin(parent, child) {
+  const path = relative(parent, child);
+  return path !== ".." && !path.startsWith(".." + sep) && !isAbsolute(path);
+}
+
+function requirePrivateDirectory(root, publicRoots) {
+  if (publicRoots.some(path => isWithin(path, root))) {
+    throw new Error("Decision store must be outside publicly served directories");
+  }
+}
+
+/** Atomic JSON snapshots in a private state directory or an explicit mounted volume. */
 export function createDecisionStore({ directory, root: configuredRoot } = {}) {
-  const root = resolve(directory || configuredRoot || process.env.DECISION_STORE_DIR || join(tmpdir(), "happybearlandia-decision-experiments"));
-  const publicRoots = ["world", "data", "game", "tools", "blog"].map((path) => resolve(path));
-  if (publicRoots.some((path) => !relative(path, root).startsWith("..") && !relative(path, root).startsWith("/"))) throw new Error("Decision store must be outside publicly served directories");
+  const root = resolve(directory || configuredRoot || process.env.DECISION_STORE_DIR || DEFAULT_DECISION_STORE_DIR);
+  const publicRoots = ["world", "data", "game", "tools", "blog", "visualizations"].map(path => resolve(path));
+  requirePrivateDirectory(root, publicRoots);
   let initialized;
-  const ready = () => initialized ||= mkdir(root, { recursive: true, mode: 0o700 });
+  async function initialize() {
+    await mkdir(root, { recursive: true, mode: 0o700 });
+    const canonicalRoots = await Promise.all(publicRoots.map(async path => {
+      try { return await realpath(path); }
+      catch (error) { if (error.code === "ENOENT") return path; throw error; }
+    }));
+    requirePrivateDirectory(await realpath(root), canonicalRoots);
+  }
+  const ready = () => initialized ||= initialize().catch(error => {
+    initialized = undefined;
+    throw error;
+  });
   const pathFor = (id) => { if (!validId(id)) throw new Error("Invalid experiment ID"); return join(root, `${id}.json`); };
   return {
     directory: root,

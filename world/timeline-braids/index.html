@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Timeline Braids · HappyBearLandia</title>
+  <link rel="stylesheet" href="/world/civilization/civilization.css">
+  <link rel="stylesheet" href="./braids.css">
+  <script type="module" src="./page.js"></script>
+</head>
+<body>
+<main>
+  <nav><a href="/world/connected-lives/">Connected Lives</a> <a href="/world?living=1">Living World</a> <a href="/world/civilization-zoom/">Civilization Zoom</a></nav>
+  <header>
+    <h1>Timeline Braids</h1>
+    <p>Follow one resident across saved Living World futures. Open a checkpoint to see the city at that recorded minute.</p>
+  </header>
+  <form>
+    <label>Starting checkpoint <select name="root" required></select></label>
+    <label>Resident ID (optional) <input name="person" maxlength="160"></label>
+    <button type="submit">Open timelines</button>
+  </form>
+  <p id="status" role="status"></p>
+  <section id="result" hidden aria-labelledby="braid-title">
+    <h2 id="braid-title">Saved timelines</h2>
+    <p id="coverage"></p>
+    <div id="braid" aria-label="Checkpoint branches"></div>
+    <div class="toolbar" id="comparison">
+      <label>First branch <select id="left"></select></label>
+      <label>Second branch <select id="right"></select></label>
+    </div>
+    <p id="difference"></p>
+    <ol id="branches"></ol>
+    <section aria-labelledby="snapshot-title">
+      <h2 id="snapshot-title">Selected checkpoint</h2>
+      <p id="snapshot"></p>
+      <p><a id="world">Open World checkpoint</a> · <a id="house">Open resident in Playable Life</a> · <a id="zoom">Zoom into this resident</a></p>
+    </section>
+    <ul id="notices"></ul>
+  </section>
+</main>
+</body>
+</html>

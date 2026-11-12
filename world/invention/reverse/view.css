@@ -1,0 +1,54 @@
+:root {
+  color-scheme: dark;
+  background: #172020;
+  color: #f5f4e9;
+  font: 100%/1.5 "Instrument Sans", system-ui, sans-serif;
+  --muted: #c3cfbf;
+  --rule: #526056;
+  --accent: #d1eeaa;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 74rem; padding: 1.3rem clamp(1rem, 4vw, 3rem) 4rem; margin: auto; }
+nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .55rem 1rem; }
+a { color: var(--accent); text-underline-offset: .2em; }
+header { padding: clamp(2rem, 6vw, 4rem) 0 1.25rem; }
+h1 { margin: 0; font: 600 clamp(2.9rem, 8vw, 6rem)/1 "Instrument Serif", Georgia, serif; }
+h2, h3 { margin: 0 0 .65rem; line-height: 1.2; }
+p { margin: .5rem 0; }
+header p, details p, caption, .plan-meta { color: var(--muted); }
+section { padding: 1.25rem 0; border-top: 1px solid var(--rule); }
+.goal-inputs, #interventions, .actions { display: flex; flex-wrap: wrap; gap: .7rem 1.25rem; }
+.goal-inputs label { display: grid; gap: .3rem; }
+.goal-inputs input { width: 100%; }
+fieldset { min-inline-size: 0; margin: .9rem 0; padding: .65rem .8rem; border: 1px solid var(--rule); }
+legend { padding-inline: .25rem; }
+input, select, button {
+  font: inherit;
+  background: #202c29;
+  color: inherit;
+  border: 1px solid #829083;
+  border-radius: .35rem;
+  padding: .4rem .65rem;
+}
+input[type="checkbox"], progress { accent-color: var(--accent); }
+button { background: var(--accent); color: #162620; cursor: pointer; }
+.secondary { color: inherit; background: #202c29; }
+button:disabled { opacity: .55; cursor: default; }
+details { margin: .8rem 0; }
+summary { cursor: pointer; }
+details .goal-inputs { margin: .6rem 0; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+progress { width: min(22rem, 100%); }
+[hidden] { display: none !important; }
+#results-title { color: var(--accent); }
+#frontier { margin-top: 1.25rem; }
+.table-frame { overflow: auto; margin: .8rem 0; }
+table { border-collapse: collapse; min-width: 100%; text-align: right; }
+caption { text-align: left; }
+th, td { padding: .5rem; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+th:first-child { min-width: 17rem; text-align: left; }
+tbody th { white-space: normal; vertical-align: top; font-weight: normal; }
+.plan-title { display: block; font-weight: 700; }
+.plan-meta { display: block; margin: .3rem 0; font-size: .86rem; }
+.plan-links { display: flex; flex-wrap: wrap; gap: .2rem .65rem; font-size: .88rem; }

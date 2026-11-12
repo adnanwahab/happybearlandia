@@ -53,8 +53,30 @@ function errorText(err) {
   try { return JSON.stringify(err); } catch { return String(err); }
 }
 
+export function publicProviderOrigin(endpoint) {
+  try {
+    const url = new URL(endpoint);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.origin : null;
+  } catch {
+    return null;
+  }
+}
+
 function endpointLabel(endpoint) {
-  try { return new URL(endpoint).host; } catch { return endpoint; }
+  const origin = publicProviderOrigin(endpoint);
+  return origin ? new URL(origin).host : "invalid provider endpoint";
+}
+
+// Fetch failures and upstream messages can include private URL components.
+// Emit only known categories, and never the provider's original error text.
+function providerFailure(message) {
+  const status = /^(?:NFHL HTTP )?([1-5]\d{2})$/.exec(message);
+  if (status) return `HTTP ${status[1]}`;
+  if (/timed out/i.test(message)) return "timed out";
+  if (isConnectivityFailure(message)) return "network unavailable";
+  if (/\bmaintenance\b/i.test(message)) return "provider maintenance";
+  if (message === "Invalid Overpass response" || message === "Incomplete NFHL response") return message;
+  return "provider request failed";
 }
 
 function boundedTask(task, timeoutMs, parentSignal) {
@@ -83,29 +105,37 @@ async function overpass(endpoint, query, timeoutMs = OVERPASS_TIMEOUT_MS, fetchI
   }, timeoutMs, signal);
 }
 
-async function queryOverpass(query, timeoutMs = OVERPASS_TIMEOUT_MS, { fetchImpl = fetch, endpoints = OVERPASS_ENDPOINTS } = {}) {
+export async function queryOverpass(query, timeoutMs = OVERPASS_TIMEOUT_MS, { fetchImpl = fetch, endpoints = OVERPASS_ENDPOINTS } = {}) {
   // Return the first valid mirror, rather than waiting for slow failed mirrors.
   // Abort losers to avoid wasting public service capacity. Every attempt has a
   // hard deadline even if an injected fetch ignores AbortSignal in a test.
   const controller = new AbortController();
   const attempts = endpoints.map((endpoint) => overpass(endpoint, query, timeoutMs, fetchImpl, controller.signal)
-    .catch((error) => { throw new Error(`${endpointLabel(endpoint)} ${errorText(error)}`); }));
+    .catch((error) => {
+      const host = endpointLabel(endpoint), message = errorText(error);
+      throw Object.assign(new Error(`${host} ${providerFailure(message)}`), {
+        connectivityFailure: isConnectivityFailure(`${host} ${message}`),
+      });
+    }));
   try { return await Promise.any(attempts); }
   catch (error) {
-    const errors = (error.errors || [error]).map(errorText);
-    throw new Error(`Overpass failed: ${errors.join("; ")}`);
+    const failures = error.errors || [];
+    throw Object.assign(new Error(`Overpass failed: ${failures.map(failure => failure.message).join("; ")}`), {
+      connectivityFailure: failures.some(failure => failure.connectivityFailure),
+    });
   } finally { controller.abort(); }
 }
 
-async function probeOverpass(endpoint) {
+async function probeOverpass(endpoint, fetchImpl) {
   const host = endpointLabel(endpoint);
+  const origin = publicProviderOrigin(endpoint);
   const t0 = Date.now();
   const timeout = Math.max(2000, Math.min(6000, OVERPASS_TIMEOUT_MS));
   const probeQuery = "[out:json][timeout:5];node(0,0,0,0);out 1;";
   const body = "data=" + encodeURIComponent(probeQuery);
 
   try {
-    let res = await fetch(endpoint, {
+    let res = await fetchImpl(endpoint, {
       method: "POST",
       headers: {
         "content-type": "application/x-www-form-urlencoded",
@@ -118,7 +148,7 @@ async function probeOverpass(endpoint) {
 
     if (res.status === 406 || res.status === 405 || res.status === 415) {
       const q = endpoint + (endpoint.includes("?") ? "&" : "?") + body;
-      res = await fetch(q, {
+      res = await fetchImpl(q, {
         method: "GET",
         headers: { "user-agent": USER_AGENT, accept: "application/json" },
         signal: AbortSignal.timeout(timeout),
@@ -126,7 +156,7 @@ async function probeOverpass(endpoint) {
     }
 
     return {
-      endpoint,
+      endpoint: origin,
       host,
       ok: res.ok,
       status: res.status,
@@ -134,9 +164,9 @@ async function probeOverpass(endpoint) {
       error: res.ok ? null : `HTTP ${res.status}`,
     };
   } catch (err) {
-    const reason = err?.name === "TimeoutError" ? "timed out" : errorText(err);
+    const reason = err?.name === "TimeoutError" ? "timed out" : providerFailure(errorText(err));
     return {
-      endpoint,
+      endpoint: origin,
       host,
       ok: false,
       status: null,
@@ -270,7 +300,7 @@ export function createAreaService({ fetchImpl = fetch, now = Date.now, endpoints
       const region = `${s},${w},${n},${e}`;
       const query = `[out:json][timeout:25];(way["building"](${region});way["leisure"~"^(park|playground)$"](${region});way["highway"~"^(motorway|trunk|primary|secondary|tertiary|residential|unclassified|living_street|pedestrian|footway|path|steps|track|cycleway)$"](${region});node["shop"](${region});node["amenity"~"^(restaurant|cafe|fast_food|bar|pub|school)$"](${region}););out tags geom;`;
       try { json = await queryOverpass(query, Math.max(1,Math.min(overpassTimeoutMs,remaining)), { fetchImpl,endpoints }); usedRadius = radius; break; }
-      catch (error) { const message = errorText(error); tries.push(`${radius}m: ${message}`); if (isConnectivityFailure(message)) break; }
+      catch (error) { tries.push(`${radius}m: ${error.message}`); if (error.connectivityFailure) break; }
     }
     const buildings = [], roads = [], pois = [];
     for (const element of json?.elements || []) {
@@ -322,7 +352,7 @@ export function createAreaService({ fetchImpl = fetch, now = Date.now, endpoints
       } catch(error) {
         const snapshot = saved(lat,lng,radiusM);
         const prior = hit?.body?.floodZonesSource==="fema-nfhl" ? hit.body : snapshot?.floodZonesSource==="fema-nfhl" && snapshot.floodZones?.length ? snapshot : null;
-        body = {source:"area-enrichment",areaKey:key,origin:{lat,lng},radiusM,bbox:region,floodZones:prior?.floodZones||[],floodZonesSource:prior?"fema-nfhl":"unavailable",floodZonesStatus:prior?"stale":"error",floodZonesError:errorText(error),stale:Boolean(prior),fetchedAt:prior?.floodZonesFetchedAt||prior?.fetchedAt||null,cacheStatus:"miss",retryAfterMs:failureTtlMs};
+        body = {source:"area-enrichment",areaKey:key,origin:{lat,lng},radiusM,bbox:region,floodZones:prior?.floodZones||[],floodZonesSource:prior?"fema-nfhl":"unavailable",floodZonesStatus:prior?"stale":"error",floodZonesError:providerFailure(errorText(error)),stale:Boolean(prior),fetchedAt:prior?.floodZonesFetchedAt||prior?.fetchedAt||null,cacheStatus:"miss",retryAfterMs:failureTtlMs};
         put(enrichmentCache,key,{at:now(),ttl:failureTtlMs,body});
       }
       return body;
@@ -350,21 +380,21 @@ function areaRequest(url) {
 export async function handleArea(url) {
   const request=areaRequest(url); if(request.error) return Response.json({error:request.error},{status:400});
   try { return Response.json(await defaultAreaService.getArea(request.lat,request.lng,request.radiusM,{core:url.searchParams.get("core")==="1"}),{headers:{"cache-control":"no-store"}}); }
-  catch(error) { return Response.json({source:"none",error:errorText(error),floodZones:[],floodZonesSource:"unavailable",floodZonesStatus:"error",floodZonesError:errorText(error)},{headers:{"cache-control":"no-store"}}); }
+  catch(error) { const message = providerFailure(errorText(error)); return Response.json({source:"none",error:message,floodZones:[],floodZonesSource:"unavailable",floodZonesStatus:"error",floodZonesError:message},{headers:{"cache-control":"no-store"}}); }
 }
 export async function handleAreaEnrichment(url) {
   const request=areaRequest(url); if(request.error) return Response.json({error:request.error},{status:400});
   return Response.json(await defaultAreaService.getEnrichment(request.lat,request.lng,request.radiusM),{headers:{"cache-control":"no-store"}});
 }
 
-export async function handleOverpassHealth() {
-  const results = await Promise.all(OVERPASS_ENDPOINTS.map((endpoint) => probeOverpass(endpoint)));
+export async function handleOverpassHealth({ endpoints = OVERPASS_ENDPOINTS, fetchImpl = fetch } = {}) {
+  const results = await Promise.all(endpoints.map(endpoint => probeOverpass(endpoint, fetchImpl)));
   const ok = results.filter((r) => r.ok).length;
   return Response.json({
     source: "overpass-health",
     generatedAt: new Date().toISOString(),
     timeoutMs: Math.max(2000, Math.min(6000, OVERPASS_TIMEOUT_MS)),
-    endpoints: OVERPASS_ENDPOINTS,
+    endpoints: endpoints.map(publicProviderOrigin),
     summary: { reachable: ok, total: results.length },
     results,
   });

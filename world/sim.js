@@ -1,3 +1,6 @@
+import {driveLegacyTraditionRoutines} from './relationships/city-traditions.js';
+import {legacySocial} from './relationships/model.js';
+import {driveLegacyPromiseRoutines} from './relationships/promises.js';
 import {installLegacyPersonCommands} from './person-commands.js';
 import {captureLegacyCheckpoint,restoreLegacyCheckpoint} from './legacy-checkpoint.js';
 import {ensureJournal,recordJournalInterval,recordJournalMoment} from './journals/model.js';
@@ -671,7 +674,11 @@ export function createWorld(town, opts = {}) {
   w.step = (gameMinutes) => {
     if(!Number.isInteger(gameMinutes)||gameMinutes<0)throw new RangeError("Neighborhood steps require nonnegative whole modeled minutes");
     for (let i = 0; i < gameMinutes; i++) {
+      if(w.social?.cityTraditions?.some(t=>t.enabled)){legacySocial(w).prepareTraditions();driveLegacyTraditionRoutines(w);}
+      if(w.social?.promises?.some(p=>p.status==='scheduled'))driveLegacyPromiseRoutines(w);
       minute();
+      if(w.social?.cityTraditions?.some(t=>t.current))legacySocial(w).stepTraditions();
+      if(w.social?.promises?.some(p=>p.status==='scheduled'))legacySocial(w).stepPromises();
       w.cultureSnapshot=w.culture?.stepTo(w.t)??null;
       w.refreshWeatherEffects(w.weather?.stepTo(w.t)??null);
     }
@@ -685,7 +692,7 @@ export function createWorld(town, opts = {}) {
   };
   w.trackActivityPerson = id => {if(!w.people.some(p=>personId(p)===String(id)))throw new Error("Unknown legacy person");};
   w.subscribeActivity = callback => {historyListeners.add(callback);return()=>historyListeners.delete(callback);};
-  w.getActivitySnapshot = () => ({mode:"legacy",minute:w.t,peopleCount:w.people.length,modelVersion:w.modelVersion,runId:activityRunId,historyAvailable:!!activityHistory,stats:{...w.stats},metrics:{population:w.people.length,earned:w.stats.earned,spent:w.stats.spent,...w.summary().avg},people:w.people.map(p=>({id:personId(p),name:p.name,householdId:p.householdId,activity:activityOf(p),districtId:placeOf(p),needs:{...p.needs},doing:p.doing,decisionTrace:p.decisionHistory||[]})),districtLabel:"Place type",districts:[...new Set(w.buildings.map(b=>b.kind)),"travel"].map(id=>({id,label:id}))});
+  w.getActivitySnapshot = () => ({mode:"legacy",seed:town.seedKey,minute:w.t,peopleCount:w.people.length,modelVersion:w.modelVersion,runId:activityRunId,historyAvailable:!!activityHistory,stats:{...w.stats},metrics:{population:w.people.length,earned:w.stats.earned,spent:w.stats.spent,...w.summary().avg},people:w.people.map(p=>({id:personId(p),name:p.name,householdId:p.householdId,activity:activityOf(p),districtId:placeOf(p),needs:{...p.needs},doing:p.doing,decisionTrace:p.decisionHistory||[]})),districtLabel:"Place type",districts:[...new Set(w.buildings.map(b=>b.kind)),"travel"].map(id=>({id,label:id}))});
 
   w.summary = () => {
     const n = w.people.length || 1;

@@ -1,0 +1,350 @@
+{
+  "schemaVersion": 1,
+  "baseline": "d548153489964c776fef34d28e2b39739c6a4bbd",
+  "branch": "sprint/one-city-two-futures-20261111",
+  "tasks": [
+    {
+      "id": "R13",
+      "priority": "P1",
+      "sourceStatus": "READY",
+      "acceptance": "Preserve main-only catalog/route behavior in a local reconciliation candidate: compare actual catalogs, name missing routes, prove current flagship retained; report concrete failing preservation test before any repair. No main merge.",
+      "sourceDependencies": "R11",
+      "kind": "verification",
+      "dependencies": [
+        "R11"
+      ],
+      "files": [
+        "test/pipeline-catalog-preservation.test.js"
+      ],
+      "interfaces": [],
+      "userFacing": false,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/pipeline-catalog-preservation.test.js"
+        ]
+      ],
+      "browserTests": [],
+      "status": "REPAIR",
+      "attempts": 1,
+      "claimedOwner": null,
+      "owner": "catalog-worker",
+      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-catalog-r13/happybearlandia",
+      "base": "1de9fd877631f4e094f9ab42606f79d85c6287ef",
+      "commit": "67aed30c5382739f39fadf54e6faf328478a8fcd",
+      "changed": [
+        "test/pipeline-catalog-preservation.test.js"
+      ],
+      "checks": [
+        {
+          "attempt": 1,
+          "phase": "candidate",
+          "argv": [
+            "bun",
+            "test",
+            "test/pipeline-catalog-preservation.test.js"
+          ],
+          "exitCode": 1,
+          "stdout": "bun test v1.4.2 (744846f84)\nCATALOG_PRESERVATION {\"main\":\"78c3c5145a23a1300c1919fd70effc843052a3af\",\"sprint\":\"1de9fd877631f4e094f9ab42606f79d85c6287ef\",\"mainCount\":31,\"sprintCount\":31,\"requiredUnion\":32,\"missingCatalog\":[{\"id\":\"houston-bars\",\"route\":\"/world/bars/\"}],\"canonicalDirectory\":false,\"missingDirectory\":[{\"id\":\"houston-map\",\"route\":\"/tools/houston-map\"},{\"id\":\"particles\",\"route\":\"/tools/webgpu/particle-simulations.html\"},{\"id\":\"molecular-docking\",\"route\":\"/tools/webgpu/molecular-docking.html\"},{\"id\":\"astronomy\",\"route\":\"/tools/webgpu/astronomy-signal-search.html\"},{\"id\":\"epidemics\",\"route\":\"/tools/webgpu/epidemic-ensembles.html\"},{\"id\":\"evolution\",\"route\":\"/tools/webgpu/evolutionary-algorithms.html\"},{\"id\":\"climate\",\"route\":\"/tools/webgpu/climate-ensembles.html\"},{\"id\":\"monte-carlo\",\"route\":\"/tools/webgpu/monte-carlo.html\"},{\"id\":\"houston-bars\",\"route\":\"/world/bars/\"},{\"id\":\"future-machine\",\"route\":\"/world/future-machine.html\"}]}\n",
+          "stderr": "\ntest/pipeline-catalog-preservation.test.js:\n(pass) pinned local catalogs establish the actual 32-entry union without duplicating IDs or replacing the flagship [42.69ms]\n(pass) candidate retains the actual Future Machine catalog identity, entry point and homepage action [0.58ms]\n56 |  expect(source('index.html')).toContain('/world/future-machine.html');\n57 |  expect(existsSync(new URL('../world/future-machine/main.js',import.meta.url))).toBe(true);\n58 | });\n59 | \n60 | test('candidate catalog preserves every pinned-main route as well as the sprint flagship',()=>{\n61 |  expect(missing,'Main catalog entries lost by the candidate; do not keep count 31 by deleting an experience').toEqual([]);\n                                                                                                                   ^\nerror: Main catalog entries lost by the candidate; do not keep count 31 by deleting an experience\n\n- []\n+ [\n+   {\n+     \"id\": \"houston-bars\",\n+     \"route\": \"/world/bars/\",\n+   },\n+ ]\n\n- Expected  - 1\n+ Received  + 6\n\n      at <anonymous> (/Users/wahabma/.codex/worktrees/pipeline-catalog-r13/happybearlandia/test/pipeline-catalog-preservation.test.js:61:111)\n(fail) candidate catalog preserves every pinned-main route as well as the sprint flagship [0.32ms]\n63 |  for(const row of required)expect(actual.get(row.id)?.route,`Preserve ${row.id} \u2192 ${row.route}`).toBe(row.route);\n64 |  expect(actual.size).toBe(EXPERIENCES.length);\n65 | });\n66 | \n67 | test('candidate /routes exposes the canonical union instead of the stale hardcoded directory',()=>{\n68 |  expect(absentDirectory,'Missing /routes entries compared with pinned main plus Future Machine').toEqual([]);\n                                                                                                      ^\nerror: Missing /routes entries compared with pinned main plus Future Machine\n\n- []\n+ [\n+   {\n+     \"id\": \"houston-map\",\n+     \"route\": \"/tools/houston-map\",\n+   },\n+   {\n+     \"id\": \"particles\",\n+     \"route\": \"/tools/webgpu/particle-simulations.html\",\n+   },\n+   {\n+     \"id\": \"molecular-docking\",\n+     \"route\": \"/tools/webgpu/molecular-docking.html\",\n+   },\n+   {\n+     \"id\": \"astronomy\",\n+     \"route\": \"/tools/webgpu/astronomy-signal-search.html\",\n+   },\n+   {\n+     \"id\": \"epidemics\",\n+     \"route\": \"/tools/webgpu/epidemic-ensembles.html\",\n+   },\n+   {\n+     \"id\": \"evolution\",\n+     \"route\": \"/tools/webgpu/evolutionary-algorithms.html\",\n+   },\n+   {\n+     \"id\": \"climate\",\n+     \"route\": \"/tools/webgpu/climate-ensembles.html\",\n+   },\n+   {\n+     \"id\": \"monte-carlo\",\n+     \"route\": \"/tools/webgpu/monte-carlo.html\",\n+   },\n+   {\n+     \"id\": \"houston-bars\",\n+     \"route\": \"/world/bars/\",\n+   },\n+   {\n+     \"id\": \"future-machine\",\n+     \"route\": \"/world/future-machine.html\",\n+   },\n+ ]\n\n- Expected  - 1\n+ Received  + 42\n\n      at <anonymous> (/Users/wahabma/.codex/worktrees/pipeline-catalog-r13/happybearlandia/test/pipeline-catalog-preservation.test.js:68:98)\n(fail) candidate /routes exposes the canonical union instead of the stale hardcoded directory [0.06ms]\n77 |   ...(!server.includes('/api/houston-bars')?['GET /api/houston-bars']:[]),\n78 |   ...(!server.includes('/world/bars/')?['/world/bars/']:[]),\n79 |   ...(!server.includes('createHoustonBarCatalogHandler')?['createHoustonBarCatalogHandler import/handler']:[]),\n80 |   ...(!/export\\s+async\\s+function\\s+queryOverpass\\b/.test(source('world/api.js'))?['exported queryOverpass dependency']:[]),\n81 |  ];\n82 |  expect({absentFiles,absentWiring},'Main atlas preservation gaps; source wiring only, no live Overpass or HTTP claim').toEqual({absentFiles:[],absentWiring:[]});\n                                                                                                                            ^\nerror: Main atlas preservation gaps; source wiring only, no live Overpass or HTTP claim\n\n  {\n-   \"absentFiles\": [],\n-   \"absentWiring\": [],\n+   \"absentFiles\": [\n+     \"world/bar/houston-catalog.js\",\n+     \"world/bars/index.html\",\n+     \"world/bars/app.js\",\n+     \"world/bars/scene.js\",\n+   ],\n+   \"absentWiring\": [\n+     \"GET /api/houston-bars\",\n+     \"/world/bars/\",\n+     \"createHoustonBarCatalogHandler import/handler\",\n+     \"exported queryOverpass dependency\",\n+   ],\n  }\n\n- Expected  - 2\n+ Received  + 12\n\n      at <anonymous> (/Users/wahabma/.codex/worktrees/pipeline-catalog-r13/happybearlandia/test/pipeline-catalog-preservation.test.js:82:120)\n(fail) candidate preserves the main-only atlas route/API source wiring, not just a catalog label [0.47ms]\n\n 2 pass\n 3 fail\n 18 expect() calls\nRan 5 tests across 1 file. [107.00ms]\n"
+        }
+      ],
+      "failure": "candidate check failed: bun test test/pipeline-catalog-preservation.test.js",
+      "failures": [
+        {
+          "attempt": 1,
+          "commit": "67aed30c5382739f39fadf54e6faf328478a8fcd",
+          "integratedCommit": null,
+          "reason": "candidate check failed: bun test test/pipeline-catalog-preservation.test.js",
+          "reviewedBy": "continuous-coordinator",
+          "evidence": {
+            "reviewedBy": "continuous-coordinator",
+            "notes": "Reviewed test-only R13 commit67aed30. Actual pinned registry modules, normalized route coverage, explicit absent atlas wiring. Independently reproduced two pass/three failures. Run verification to retain precise release-blocking evidence; do not cherry-pick failing candidate.",
+            "modelChecks": "No model/runtime mutation; Future Machine identity retained. Static preservation evidence only, no browser/provider claim."
+          },
+          "checks": [
+            {
+              "attempt": 1,
+              "phase": "candidate",
+              "argv": [
+                "bun",
+                "test",
+                "test/pipeline-catalog-preservation.test.js"
+              ],
+              "exitCode": 1,
+              "stdout": "bun test v1.4.2 (744846f84)\nCATALOG_PRESERVATION {\"main\":\"78c3c5145a23a1300c1919fd70effc843052a3af\",\"sprint\":\"1de9fd877631f4e094f9ab42606f79d85c6287ef\",\"mainCount\":31,\"sprintCount\":31,\"requiredUnion\":32,\"missingCatalog\":[{\"id\":\"houston-bars\",\"route\":\"/world/bars/\"}],\"canonicalDirectory\":false,\"missingDirectory\":[{\"id\":\"houston-map\",\"route\":\"/tools/houston-map\"},{\"id\":\"particles\",\"route\":\"/tools/webgpu/particle-simulations.html\"},{\"id\":\"molecular-docking\",\"route\":\"/tools/webgpu/molecular-docking.html\"},{\"id\":\"astronomy\",\"route\":\"/tools/webgpu/astronomy-signal-search.html\"},{\"id\":\"epidemics\",\"route\":\"/tools/webgpu/epidemic-ensembles.html\"},{\"id\":\"evolution\",\"route\":\"/tools/webgpu/evolutionary-algorithms.html\"},{\"id\":\"climate\",\"route\":\"/tools/webgpu/climate-ensembles.html\"},{\"id\":\"monte-carlo\",\"route\":\"/tools/webgpu/monte-carlo.html\"},{\"id\":\"houston-bars\",\"route\":\"/world/bars/\"},{\"id\":\"future-machine\",\"route\":\"/world/future-machine.html\"}]}\n",
+              "stderr": "\ntest/pipeline-catalog-preservation.test.js:\n(pass) pinned local catalogs establish the actual 32-entry union without duplicating IDs or replacing the flagship [42.69ms]\n(pass) candidate retains the actual Future Machine catalog identity, entry point and homepage action [0.58ms]\n56 |  expect(source('index.html')).toContain('/world/future-machine.html');\n57 |  expect(existsSync(new URL('../world/future-machine/main.js',import.meta.url))).toBe(true);\n58 | });\n59 | \n60 | test('candidate catalog preserves every pinned-main route as well as the sprint flagship',()=>{\n61 |  expect(missing,'Main catalog entries lost by the candidate; do not keep count 31 by deleting an experience').toEqual([]);\n                                                                                                                   ^\nerror: Main catalog entries lost by the candidate; do not keep count 31 by deleting an experience\n\n- []\n+ [\n+   {\n+     \"id\": \"houston-bars\",\n+     \"route\": \"/world/bars/\",\n+   },\n+ ]\n\n- Expected  - 1\n+ Received  + 6\n\n      at <anonymous> (/Users/wahabma/.codex/worktrees/pipeline-catalog-r13/happybearlandia/test/pipeline-catalog-preservation.test.js:61:111)\n(fail) candidate catalog preserves every pinned-main route as well as the sprint flagship [0.32ms]\n63 |  for(const row of required)expect(actual.get(row.id)?.route,`Preserve ${row.id} \u2192 ${row.route}`).toBe(row.route);\n64 |  expect(actual.size).toBe(EXPERIENCES.length);\n65 | });\n66 | \n67 | test('candidate /routes exposes the canonical union instead of the stale hardcoded directory',()=>{\n68 |  expect(absentDirectory,'Missing /routes entries compared with pinned main plus Future Machine').toEqual([]);\n                                                                                                      ^\nerror: Missing /routes entries compared with pinned main plus Future Machine\n\n- []\n+ [\n+   {\n+     \"id\": \"houston-map\",\n+     \"route\": \"/tools/houston-map\",\n+   },\n+   {\n+     \"id\": \"particles\",\n+     \"route\": \"/tools/webgpu/particle-simulations.html\",\n+   },\n+   {\n+     \"id\": \"molecular-docking\",\n+     \"route\": \"/tools/webgpu/molecular-docking.html\",\n+   },\n+   {\n+     \"id\": \"astronomy\",\n+     \"route\": \"/tools/webgpu/astronomy-signal-search.html\",\n+   },\n+   {\n+     \"id\": \"epidemics\",\n+     \"route\": \"/tools/webgpu/epidemic-ensembles.html\",\n+   },\n+   {\n+     \"id\": \"evolution\",\n+     \"route\": \"/tools/webgpu/evolutionary-algorithms.html\",\n+   },\n+   {\n+     \"id\": \"climate\",\n+     \"route\": \"/tools/webgpu/climate-ensembles.html\",\n+   },\n+   {\n+     \"id\": \"monte-carlo\",\n+     \"route\": \"/tools/webgpu/monte-carlo.html\",\n+   },\n+   {\n+     \"id\": \"houston-bars\",\n+     \"route\": \"/world/bars/\",\n+   },\n+   {\n+     \"id\": \"future-machine\",\n+     \"route\": \"/world/future-machine.html\",\n+   },\n+ ]\n\n- Expected  - 1\n+ Received  + 42\n\n      at <anonymous> (/Users/wahabma/.codex/worktrees/pipeline-catalog-r13/happybearlandia/test/pipeline-catalog-preservation.test.js:68:98)\n(fail) candidate /routes exposes the canonical union instead of the stale hardcoded directory [0.06ms]\n77 |   ...(!server.includes('/api/houston-bars')?['GET /api/houston-bars']:[]),\n78 |   ...(!server.includes('/world/bars/')?['/world/bars/']:[]),\n79 |   ...(!server.includes('createHoustonBarCatalogHandler')?['createHoustonBarCatalogHandler import/handler']:[]),\n80 |   ...(!/export\\s+async\\s+function\\s+queryOverpass\\b/.test(source('world/api.js'))?['exported queryOverpass dependency']:[]),\n81 |  ];\n82 |  expect({absentFiles,absentWiring},'Main atlas preservation gaps; source wiring only, no live Overpass or HTTP claim').toEqual({absentFiles:[],absentWiring:[]});\n                                                                                                                            ^\nerror: Main atlas preservation gaps; source wiring only, no live Overpass or HTTP claim\n\n  {\n-   \"absentFiles\": [],\n-   \"absentWiring\": [],\n+   \"absentFiles\": [\n+     \"world/bar/houston-catalog.js\",\n+     \"world/bars/index.html\",\n+     \"world/bars/app.js\",\n+     \"world/bars/scene.js\",\n+   ],\n+   \"absentWiring\": [\n+     \"GET /api/houston-bars\",\n+     \"/world/bars/\",\n+     \"createHoustonBarCatalogHandler import/handler\",\n+     \"exported queryOverpass dependency\",\n+   ],\n  }\n\n- Expected  - 2\n+ Received  + 12\n\n      at <anonymous> (/Users/wahabma/.codex/worktrees/pipeline-catalog-r13/happybearlandia/test/pipeline-catalog-preservation.test.js:82:120)\n(fail) candidate preserves the main-only atlas route/API source wiring, not just a catalog label [0.47ms]\n\n 2 pass\n 3 fail\n 18 expect() calls\nRan 5 tests across 1 file. [107.00ms]\n"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "R14",
+      "priority": "P1",
+      "sourceStatus": "READY",
+      "acceptance": "Prove local Play remains usable during optional plan/provenance failure. Exercise actual loading failure and report precise bounded repair if broken.",
+      "sourceDependencies": "R04, R09",
+      "kind": "verification",
+      "dependencies": [
+        "R04",
+        "R09"
+      ],
+      "files": [
+        "test/e2e/pipeline-local-play.e2e.js",
+        "test/pipeline-local-play.browser.config.js"
+      ],
+      "interfaces": [],
+      "userFacing": false,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/future-machine-canvas.test.js"
+        ]
+      ],
+      "browserTests": [
+        [
+          "bunx",
+          "playwright",
+          "test",
+          "--config",
+          "test/pipeline-local-play.browser.config.js"
+        ]
+      ],
+      "status": "REPAIR",
+      "attempts": 1,
+      "claimedOwner": null,
+      "owner": "browser-proof-r14",
+      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-local-play-r14/happybearlandia",
+      "base": "1de9fd877631f4e094f9ab42606f79d85c6287ef",
+      "commit": "a1aa70d543929f2b0441671d798738a8b625dbfa",
+      "changed": [
+        "test/e2e/pipeline-local-play.e2e.js",
+        "test/pipeline-local-play.browser.config.js"
+      ],
+      "checks": [
+        {
+          "attempt": 1,
+          "phase": "candidate",
+          "argv": [
+            "bun",
+            "test",
+            "test/future-machine-canvas.test.js"
+          ],
+          "exitCode": 0,
+          "stdout": "bun test v1.4.2 (744846f84)\n",
+          "stderr": "\ntest/future-machine-canvas.test.js:\n(pass) pure projection helpers preserve exact identities and recorded month [0.74ms]\n(pass) hit testing uses the same shared camera in both halves and ignores ghosts [0.28ms]\n(pass) fit handles empty data and sourced footprints, mode is bounded [0.13ms]\n(pass) stage preserves camera across time/mode and synchronously draws with no motion loop [0.71ms]\n(pass) click reports exact IDs and arm, dragging and pinch update one camera, disposal removes resources [0.60ms]\n(pass) cancel, lost capture, right click and distant release never select or poison camera [0.25ms]\n(pass) missing projections and invalid layout dimensions remain finite with bounded keyboard zoom [3.13ms]\n(pass) context and initial draw exceptions release every owned node and listener [0.88ms]\n\n 8 pass\n 0 fail\n 53 expect() calls\nRan 8 tests across 1 file. [26.00ms]\n"
+        },
+        {
+          "attempt": 1,
+          "phase": "candidate",
+          "argv": [
+            "bunx",
+            "playwright",
+            "test",
+            "--config",
+            "test/pipeline-local-play.browser.config.js"
+          ],
+          "exitCode": 1,
+          "stdout": "\nRunning 3 tests using 1 worker\n\n  \u2713  1 test/e2e/pipeline-local-play.e2e.js:27:0 \u203a local Play completes real worker comparison while optional plan requests are still pending (4.2s)\n  \u2713  2 test/e2e/pipeline-local-play.e2e.js:42:0 \u203a local Play and playback remain usable after all optional plan sources return errors (4.1s)\n  \u2718  3 test/e2e/pipeline-local-play.e2e.js:56:0 \u203a provenance import failure leaves a useful unavailable disclosure and local Play usable (14.6s)\n\n\n  1) test/e2e/pipeline-local-play.e2e.js:56:0 \u203a provenance import failure leaves a useful unavailable disclosure and local Play usable \n\n    Error: expect(received).toBe(expected) // Object.is equality\n\n    Expected: \"unavailable\"\n    Received: undefined\n\n    Call Log:\n    - Timeout 15000ms exceeded while waiting on the predicate\n\n      62 |  await page.goto(route);\n      63 |  try{\n    > 64 |   await expect.poll(()=>page.evaluate(()=>window.hblSimulationModel?.status),{timeout:15000}).toBe('unavailable');\n         |                                                                                              ^\n      65 |   await expect(page.locator('#simulationModelMetadata')).toContainText(/unavailable|did not load/i);\n      66 |   await quickPlay(page);\n      67 |  }finally{await capture(page,info,'provenance-import-failure',evidence);}\n        at /Users/wahabma/.codex/worktrees/pipeline-local-play-r14/happybearlandia/test/e2e/pipeline-local-play.e2e.js:64:94\n\n    attachment #1: screenshot (image/png) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    test-results/pipeline-local-play/pipeline-local-play.e2e.js-aa07e-osure-and-local-Play-usable/test-failed-1.png\n    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n    Error Context: test-results/pipeline-local-play/pipeline-local-play.e2e.js-aa07e-osure-and-local-Play-usable/error-context.md\n\n    attachment #3: trace (application/zip) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    test-results/pipeline-local-play/pipeline-local-play.e2e.js-aa07e-osure-and-local-Play-usable/trace.zip\n    Usage:\n\n        npx playwright show-trace test-results/pipeline-local-play/pipeline-local-play.e2e.js-aa07e-osure-and-local-Play-usable/trace.zip\n\n    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n  1 failed\n    test/e2e/pipeline-local-play.e2e.js:56:0 \u203a provenance import failure leaves a useful unavailable disclosure and local Play usable \n  2 passed (23.2s)\n",
+          "stderr": ""
+        }
+      ],
+      "failure": "candidate check failed: bunx playwright test --config test/pipeline-local-play.browser.config.js",
+      "failures": [
+        {
+          "attempt": 1,
+          "commit": "a1aa70d543929f2b0441671d798738a8b625dbfa",
+          "integratedCommit": null,
+          "reason": "candidate check failed: bunx playwright test --config test/pipeline-local-play.browser.config.js",
+          "reviewedBy": "continuous-coordinator",
+          "evidence": {
+            "reviewedBy": "continuous-coordinator",
+            "notes": "Reviewed exact two-file R14 browser/config diff a1aa70d. Real optional plan503/pending injection; real worker completion and playback checks; separate simulation-observations module abort exposes required render dependency. No fabricated model responses. Candidate expected to retain required-import failure, so do not cherry-pick on failing gate.",
+            "modelChecks": "Legacy World authority/seed retained and explicitly distinct from monthly City; no production or simulation edits."
+          },
+          "checks": [
+            {
+              "attempt": 1,
+              "phase": "candidate",
+              "argv": [
+                "bun",
+                "test",
+                "test/future-machine-canvas.test.js"
+              ],
+              "exitCode": 0,
+              "stdout": "bun test v1.4.2 (744846f84)\n",
+              "stderr": "\ntest/future-machine-canvas.test.js:\n(pass) pure projection helpers preserve exact identities and recorded month [0.74ms]\n(pass) hit testing uses the same shared camera in both halves and ignores ghosts [0.28ms]\n(pass) fit handles empty data and sourced footprints, mode is bounded [0.13ms]\n(pass) stage preserves camera across time/mode and synchronously draws with no motion loop [0.71ms]\n(pass) click reports exact IDs and arm, dragging and pinch update one camera, disposal removes resources [0.60ms]\n(pass) cancel, lost capture, right click and distant release never select or poison camera [0.25ms]\n(pass) missing projections and invalid layout dimensions remain finite with bounded keyboard zoom [3.13ms]\n(pass) context and initial draw exceptions release every owned node and listener [0.88ms]\n\n 8 pass\n 0 fail\n 53 expect() calls\nRan 8 tests across 1 file. [26.00ms]\n"
+            },
+            {
+              "attempt": 1,
+              "phase": "candidate",
+              "argv": [
+                "bunx",
+                "playwright",
+                "test",
+                "--config",
+                "test/pipeline-local-play.browser.config.js"
+              ],
+              "exitCode": 1,
+              "stdout": "\nRunning 3 tests using 1 worker\n\n  \u2713  1 test/e2e/pipeline-local-play.e2e.js:27:0 \u203a local Play completes real worker comparison while optional plan requests are still pending (4.2s)\n  \u2713  2 test/e2e/pipeline-local-play.e2e.js:42:0 \u203a local Play and playback remain usable after all optional plan sources return errors (4.1s)\n  \u2718  3 test/e2e/pipeline-local-play.e2e.js:56:0 \u203a provenance import failure leaves a useful unavailable disclosure and local Play usable (14.6s)\n\n\n  1) test/e2e/pipeline-local-play.e2e.js:56:0 \u203a provenance import failure leaves a useful unavailable disclosure and local Play usable \n\n    Error: expect(received).toBe(expected) // Object.is equality\n\n    Expected: \"unavailable\"\n    Received: undefined\n\n    Call Log:\n    - Timeout 15000ms exceeded while waiting on the predicate\n\n      62 |  await page.goto(route);\n      63 |  try{\n    > 64 |   await expect.poll(()=>page.evaluate(()=>window.hblSimulationModel?.status),{timeout:15000}).toBe('unavailable');\n         |                                                                                              ^\n      65 |   await expect(page.locator('#simulationModelMetadata')).toContainText(/unavailable|did not load/i);\n      66 |   await quickPlay(page);\n      67 |  }finally{await capture(page,info,'provenance-import-failure',evidence);}\n        at /Users/wahabma/.codex/worktrees/pipeline-local-play-r14/happybearlandia/test/e2e/pipeline-local-play.e2e.js:64:94\n\n    attachment #1: screenshot (image/png) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    test-results/pipeline-local-play/pipeline-local-play.e2e.js-aa07e-osure-and-local-Play-usable/test-failed-1.png\n    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n    Error Context: test-results/pipeline-local-play/pipeline-local-play.e2e.js-aa07e-osure-and-local-Play-usable/error-context.md\n\n    attachment #3: trace (application/zip) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n    test-results/pipeline-local-play/pipeline-local-play.e2e.js-aa07e-osure-and-local-Play-usable/trace.zip\n    Usage:\n\n        npx playwright show-trace test-results/pipeline-local-play/pipeline-local-play.e2e.js-aa07e-osure-and-local-Play-usable/trace.zip\n\n    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n  1 failed\n    test/e2e/pipeline-local-play.e2e.js:56:0 \u203a provenance import failure leaves a useful unavailable disclosure and local Play usable \n  2 passed (23.2s)\n",
+              "stderr": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "R15",
+      "priority": "P1",
+      "sourceStatus": "READY",
+      "acceptance": "Resume a bounded repair through the interactive pipeline after a failed check, retaining failed candidate and logs. Maximum two total attempts; no reset or silent retry. Atomic transition and ownership tests must prove third attempt rejected.",
+      "sourceDependencies": "U10",
+      "kind": "verification",
+      "dependencies": [
+        "U10"
+      ],
+      "files": [
+        "scripts/pipeline-coordinator.mjs",
+        "test/pipeline-repair.test.js"
+      ],
+      "interfaces": [
+        "interactive-claims"
+      ],
+      "userFacing": false,
+      "tests": [
+        [
+          "bun",
+          "test",
+          "test/pipeline-repair.test.js",
+          "test/pipeline-coordinator.test.js"
+        ]
+      ],
+      "browserTests": [],
+      "status": "VERIFIED",
+      "attempts": 0,
+      "claimedOwner": null,
+      "owner": "continuous-coordinator",
+      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-bounded-repair/happybearlandia",
+      "base": "1de9fd877631f4e094f9ab42606f79d85c6287ef",
+      "commit": "8f20c6a53e12ff0337a33eb77c407a2af54b1d08",
+      "changed": [
+        "scripts/pipeline-coordinator.mjs",
+        "test/pipeline-repair.test.js"
+      ],
+      "checks": [
+        {
+          "phase": "candidate",
+          "argv": [
+            "bun",
+            "test",
+            "test/pipeline-repair.test.js",
+            "test/pipeline-coordinator.test.js"
+          ],
+          "exitCode": 0,
+          "stdout": "bun test v1.4.2 (744846f84)\n",
+          "stderr": "\ntest/pipeline-repair.test.js:\n(pass) explicit owner repair succeeds on second attempt and retains failed candidate and logs [987.55ms]\n(pass) third attempt is rejected durably, including after refresh, without resetting failed evidence [964.50ms]\n(pass) racing real repair processes authorize exactly one resume and preserve reservations [680.79ms]\n(pass) post-integration failure refuses replay and new dispatch until explicit reconciliation [662.66ms]\n(pass) legacy full capacity cannot resume a fourth worker [397.57ms]\n\ntest/pipeline-coordinator.test.js:\n(pass) two real processes racing one task produce exactly one durable claim [381.50ms]\n(pass) capacity three, approval revocation, reservations and verification backpressure fail closed [514.78ms]\n(pass) submission requires owner, clean single commit and exclusive changed paths [433.17ms]\n(pass) candidate and integrated checks are independently recorded before VERIFIED [542.40ms]\n(pass) failed verification retains contribution and records bounded repair, never DONE [560.68ms]\n(pass) CLI and interactive dispatch refuse each others durable active assignments [369.92ms]\n(pass) external deliveries enter verification and count toward backpressure without becoming DONE [341.09ms]\n\n 12 pass\n 0 fail\n 66 expect() calls\nRan 12 tests across 2 files. [6.85s]\n"
+        },
+        {
+          "phase": "integrated",
+          "argv": [
+            "bun",
+            "test",
+            "test/pipeline-repair.test.js",
+            "test/pipeline-coordinator.test.js"
+          ],
+          "exitCode": 0,
+          "stdout": "bun test v1.4.2 (744846f84)\n",
+          "stderr": "\ntest/pipeline-repair.test.js:\n(pass) explicit owner repair succeeds on second attempt and retains failed candidate and logs [813.05ms]\n(pass) third attempt is rejected durably, including after refresh, without resetting failed evidence [857.18ms]\n(pass) racing real repair processes authorize exactly one resume and preserve reservations [536.77ms]\n(pass) post-integration failure refuses replay and new dispatch until explicit reconciliation [422.39ms]\n(pass) legacy full capacity cannot resume a fourth worker [744.81ms]\n\ntest/pipeline-coordinator.test.js:\n(pass) two real processes racing one task produce exactly one durable claim [783.01ms]\n(pass) capacity three, approval revocation, reservations and verification backpressure fail closed [550.66ms]\n(pass) submission requires owner, clean single commit and exclusive changed paths [418.80ms]\n(pass) candidate and integrated checks are independently recorded before VERIFIED [581.72ms]\n(pass) failed verification retains contribution and records bounded repair, never DONE [501.87ms]\n(pass) CLI and interactive dispatch refuse each others durable active assignments [284.32ms]\n(pass) external deliveries enter verification and count toward backpressure without becoming DONE [270.82ms]\n\n 12 pass\n 0 fail\n 66 expect() calls\nRan 12 tests across 2 files. [6.79s]\n"
+        }
+      ],
+      "integratedCommit": "d548153489964c776fef34d28e2b39739c6a4bbd",
+      "evidence": {
+        "reviewedBy": "continuous-coordinator",
+        "notes": "Reviewed exact two-file R15 diff. Owner-only explicit repair, two total attempts, immutable failed candidate/check/evidence history, race and capacity tests, REVIEW/REPAIR reservations. Candidate failure repair is bounded; integrated failure blocks replay and dispatch until manual reconciliation. Coordinator independent focused run passed12tests/66assertions before final next-message consistency refinement; final manifest checks rerun both phases. No product behavior changed.",
+        "modelChecks": "No City simulation, recipe, seed, metric, renderer or UI changes. Existing model contracts retained."
+      }
+    }
+  ],
+  "events": [
+    {
+      "type": "CLAIM",
+      "id": "R15",
+      "at": "2026-11-11T15:48:49.561Z",
+      "owner": "continuous-coordinator",
+      "base": "1de9fd877631f4e094f9ab42606f79d85c6287ef",
+      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-bounded-repair/happybearlandia"
+    },
+    {
+      "type": "CLAIM",
+      "id": "R13",
+      "at": "2026-11-11T15:48:56.121Z",
+      "owner": "catalog-worker",
+      "base": "1de9fd877631f4e094f9ab42606f79d85c6287ef",
+      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-catalog-r13/happybearlandia"
+    },
+    {
+      "type": "CLAIM",
+      "id": "R14",
+      "at": "2026-11-11T15:49:11.715Z",
+      "owner": "browser-proof-r14",
+      "base": "1de9fd877631f4e094f9ab42606f79d85c6287ef",
+      "worktree": "/Users/wahabma/.codex/worktrees/pipeline-local-play-r14/happybearlandia"
+    },
+    {
+      "type": "SUBMIT",
+      "id": "R13",
+      "at": "2026-11-11T15:50:13.148Z",
+      "commit": "67aed30c5382739f39fadf54e6faf328478a8fcd"
+    },
+    {
+      "type": "SUBMIT",
+      "id": "R15",
+      "at": "2026-11-11T15:51:12.180Z",
+      "commit": "8f20c6a53e12ff0337a33eb77c407a2af54b1d08"
+    },
+    {
+      "type": "VERIFIED",
+      "id": "R15",
+      "at": "2026-11-11T15:51:35.900Z",
+      "integratedCommit": "d548153489964c776fef34d28e2b39739c6a4bbd",
+      "reviewer": "continuous-coordinator"
+    },
+    {
+      "type": "SUBMIT",
+      "id": "R14",
+      "at": "2026-11-11T15:51:43.464Z",
+      "commit": "a1aa70d543929f2b0441671d798738a8b625dbfa"
+    },
+    {
+      "type": "REPAIR",
+      "id": "R13",
+      "at": "2026-11-11T15:51:54.867Z",
+      "reason": "candidate check failed: bun test test/pipeline-catalog-preservation.test.js",
+      "attempt": 1,
+      "commit": "67aed30c5382739f39fadf54e6faf328478a8fcd"
+    },
+    {
+      "type": "REPAIR",
+      "id": "R14",
+      "at": "2026-11-11T15:52:52.539Z",
+      "reason": "candidate check failed: bunx playwright test --config test/pipeline-local-play.browser.config.js",
+      "attempt": 1,
+      "commit": "a1aa70d543929f2b0441671d798738a8b625dbfa"
+    }
+  ],
+  "reviewToVerifiedSeconds": {
+    "R15": 23.72
+  },
+  "combinedCheck": {
+    "command": "bun test test/pipeline-repair.test.js test/pipeline-coordinator.test.js test/demo-pipeline.test.js test/future-machine-data.test.js test/future-machine-story.test.js",
+    "passed": 37,
+    "failed": 0,
+    "assertions": 202,
+    "durationSeconds": 10.78,
+    "log": "/tmp/hbl-r15-combined.log"
+  },
+  "browserScope": "R15 changes pipeline only; existing 1de9fd8 product browser evidence remains applicable. R14 actual browser candidate independently failed and was not integrated."
+}

@@ -26,7 +26,7 @@ test('public clauses drive actual paired workers, exact city replay and bounded 
  await expect.poll(()=>page.evaluate(()=>window.hblConstitutionCity.studio.getState().selected?.seed)).toBe(result.runs.find(r=>r.scenarioId==='proposal-a'&&r.runIndex===1).seed);
  await ui.scrollIntoViewIfNeeded();await page.screenshot({path:'/private/tmp/hbl-constitution-city.png',fullPage:true});
  const last=await page.evaluate(()=>window.hblConstitutionCity.studio.getState().runId);
- await ui.locator('[data-cc-month]').focus();await ui.locator('[data-cc-month]').press('End');await expect(ui.locator('[data-cc-status]')).toContainText('not evaluated');
+ await ui.locator('[data-cc-month]').focus();await ui.locator('[data-cc-month]').press('End');await expect(ui.locator('[data-cc-month]')).toHaveAttribute('max','12');
  expect(await page.evaluate(()=>window.hblConstitutionCity.studio.getState().runId)).toBe(last);expect(await page.evaluate(()=>window.hblConstitutionCity.studio.getState().month)).toBe(12);
  await page.evaluate(()=>window.hblConstitutionCity.studio.selectFuture(window.hblConstitutionCity.studio.getState().runId,12));
  await ui.locator('[data-cc-question]').fill('Why did housing change?');await ui.locator('[data-cc-ask]').click();await expect(ui.locator('[data-cc-answer]')).not.toBeEmpty();

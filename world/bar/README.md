@@ -75,3 +75,16 @@ reduced motion preferences.
 
 The implementation was built against `main` commit
 `3f7c5de1bbc9efe1b7a7210ea5454dd075fc5e8d`.
+
+## Main integration recheck (PR5)
+
+The canonical experience registry now includes one `social-bear` entry; the
+searchable Routes directory and Universe navigation reuse it. The HTML mapping
+identifies `world/bar/index.html` for both bar route spellings. Existing House
+controls remain intact alongside the independent Bar night link.
+
+Focused browser smoke: start a disposable normal application server on port3395
+and run `bun test/bar.browser-smoke.mjs` (or set `HBL_BAR_SMOKE_URL`). It checks
+normal routes, directory discovery, mobile play, actual local-save persistence,
+group listener replies and household return context with WebGL disabled. This
+is fallback verification, not new native-GPU performance evidence.

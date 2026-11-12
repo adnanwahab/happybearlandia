@@ -1,0 +1,11 @@
+/** One visible board per canonical item currently held by this household. */
+export function createLendingLibraryProps(THREE,scene,interior){
+ const root=new THREE.Group();root.name='Neighborhood lending games';scene.add(root);const entries=new Map();let debug=[];
+ function box(group,w,h,d,color,x,y,z){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color,roughness:.85}));mesh.position.set(x,y,z);mesh.castShadow=true;group.add(mesh);return mesh;}
+ function make(item){const group=new THREE.Group();group.name=item.id;root.add(group);const board=box(group,.5,.055,.38,'#6a8b6b',0,0,0);for(const x of [-.13,.13])for(const z of [-.1,.1])box(group,.11,.008,.08,'#e7d9ae',x,.032,z);const dice=[box(group,.065,.065,.065,'#f7ead0',-.15,.07,0),box(group,.065,.065,.065,'#c99579',.1,.07,.09)];return{group,board,dice};}
+ function remove(e){e.group.traverse(n=>{n.geometry?.dispose();n.material?.dispose();});e.group.removeFromParent();}
+ return{update(data){const s=data.home?.systems?.['lending-library'],householdId=data.home?.householdId,held=[...(s?.items??[]).filter(item=>!item.loan),...(s?.borrowed??[]).filter(item=>item.loan?.householdId===householdId)],live=new Set(),table=[...interior.objects.values()].find(o=>o.record.type==='coffeeTable')??[...interior.objects.values()].find(o=>o.record.type==='diningTable'),room=interior.rooms.get('living');debug=[];
+  for(const [i,item]of held.entries()){if(live.has(item.id))continue;live.add(item.id);let e=entries.get(item.id);if(!e){e=make(item);entries.set(item.id,e);}const x=table?.x??room?.x??0,z=table?.z??room?.z??0,y=table?(table.record.type==='coffeeTable'?.68:1.08):.25;e.group.position.set(x,y+i*.065,z);e.group.visible=interior.pointHasFloor({x,z});e.board.material.color.set(item.condition==='good'?'#6a8b6b':item.condition==='worn'?'#9b8767':'#a07666');e.dice[1].visible=item.condition!=='damaged';debug.push({id:item.id,ownerId:item.ownerId,borrowed:item.ownerHouseholdId!==householdId,visible:e.group.visible});}
+  for(const [id,e]of entries)if(!live.has(id)){remove(e);entries.delete(id);}
+ },getDebug:()=>structuredClone(debug),destroy(){for(const e of entries.values())remove(e);entries.clear();root.removeFromParent();}};
+}

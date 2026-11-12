@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hidden Systems · HappyBearLandia</title>
+  <link rel="stylesheet" href="/world/civilization/civilization.css">
+  <link rel="stylesheet" href="./page.css">
+  <link rel="stylesheet" href="./queues.css">
+  <link rel="stylesheet" href="./theater.css">
+  <link rel="stylesheet" href="./household.css">
+  <script type="module" src="./page.js"></script>
+</head>
+<body>
+  <main>
+    <nav aria-label="World navigation"><a href="/">HappyBearLandia</a> <a href="/world/city-lab.html">Coupled City Lab</a></nav>
+    <header>
+      <h1>Hidden Systems</h1>
+      <p>Follow a family waiting for a home. Change permit staffing, labor, and materials, then see what actually moves through the city.</p>
+    </header>
+
+    <section aria-labelledby="setup-title">
+      <h2 id="setup-title">Compare construction capacity</h2>
+      <p id="baseline"></p>
+      <form id="setup">
+        <label>Seed <input name="seed" type="number" min="0" max="4294967295" step="1" required></label>
+        <label>Months <input name="months" type="number" min="1" max="60" step="1" required></label>
+        <label>Permits per month <input name="permits" type="number" min="1" max="6" step="1" required></label>
+        <label>Monthly labor capacity <input name="labor" type="number" min="0.5" max="8" step="0.5" required></label>
+        <label>Monthly material capacity <input name="materials" type="number" min="0.5" max="8" step="0.5" required></label>
+        <button type="submit">Run matched futures</button>
+      </form>
+      <p id="status" role="status">Opening the city comparison…</p>
+    </section>
+
+    <div id="comparison" hidden>
+      <section class="timeline" aria-label="Simulation timeline">
+        <div class="toolbar">
+          <button id="play" type="button">Play timeline</button>
+          <label>Simulation month <input id="month" type="range" min="0" value="0"></label>
+          <output id="month-label" for="month"></output>
+        </div>
+        <div class="toolbar jumps">
+          <button id="bottleneck" type="button">Jump to first baseline delay</button>
+          <button id="move" type="button">Jump to adjusted move-in</button>
+          <a id="share">Open shareable replay</a>
+        </div>
+        <p id="outcome"></p>
+      </section>
+
+      <section aria-labelledby="queue-title">
+        <h2 id="queue-title">Queue City</h2>
+        <div id="queues"></div>
+      </section>
+      <section aria-labelledby="theater-title">
+        <h2 id="theater-title">Construction Theater</h2>
+        <div class="toolbar">
+          <label>Future <select id="future"><option value="adjusted">Adjusted</option><option value="baseline">Baseline</option></select></label>
+          <label>Project <select id="project"></select></label>
+        </div>
+        <div id="theater"></div>
+        <details>
+          <summary>Project event history</summary>
+          <ol id="project-events"></ol>
+        </details>
+      </section>
+      <section aria-labelledby="family-title">
+        <h2 id="family-title">The family waiting for a home</h2>
+        <div id="family"></div>
+      </section>
+      <details class="assumptions">
+        <summary>Scenario assumptions and source</summary>
+        <p>Both futures start with the same synthetic CityState, seed, housing shortage, and six public housing proposals. Monthly permits, labor, and materials are available from the first step. The City engine assigns construction capacity in its deterministic project order. Added capacity has no separate procurement or staffing cost in this demonstration.</p>
+        <p>Queue counts and construction events come from the City engine. Labor and materials are model capacity units. The 3D buildings are schematic. Household observations use the City model’s monthly clock and modeled USD.</p>
+        <p id="version"></p>
+      </details>
+    </div>
+  </main>
+</body>
+</html>

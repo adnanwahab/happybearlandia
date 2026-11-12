@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Living Newspaper · HappyBearLandia</title>
+  <link rel="stylesheet" href="/world/newspaper/newspaper.css">
+  <script type="module" src="/world/newspaper/page.js"></script>
+</head>
+<body>
+  <main class="paper">
+    <header>
+      <nav aria-label="World navigation">
+        <a href="/world/">HappyBearLandia World</a>
+        <a href="/world/causal.html">Monthly causal demo</a>
+      </nav>
+      <h1>The Living Newspaper</h1>
+      <p class="tagline">An illustrated archive of the monthly city simulation</p>
+      <figure>
+        <img src="/world/newspaper/city-engraving.jpg" width="1200" height="360" alt="">
+        <figcaption>Illustration of a fictional city</figcaption>
+      </figure>
+    </header>
+
+    <p id="status" role="status">Looking for the recorded demo…</p>
+    <p id="record-demo" hidden><a href="/world/causal.html">Open the demo to record a run</a></p>
+    <button id="retry" type="button" hidden>Try again</button>
+
+    <section id="archive" hidden aria-labelledby="edition-title">
+      <div class="edition-bar">
+        <h2 id="edition-title"></h2>
+        <label>Browse editions <select id="editions"></select></label>
+      </div>
+      <p class="source" id="source"></p>
+      <div id="stories" class="stories"></div>
+    </section>
+  </main>
+
+  <template id="story">
+    <article>
+      <p class="byline"></p>
+      <h3></h3>
+      <p class="copy"></p>
+      <a class="record-link">Open recorded event <span aria-hidden="true">↗</span></a>
+      <a class="month-link">Jump to month</a>
+      <details>
+        <summary>Provenance</summary>
+        <dl>
+          <dt>Kind</dt><dd class="kind"></dd>
+          <dt>Source</dt><dd class="origin"></dd>
+          <dt>Model</dt><dd class="model"></dd>
+          <dt>Event ID</dt><dd class="event-id"></dd>
+        </dl>
+      </details>
+    </article>
+  </template>
+</body>
+</html>

@@ -1,0 +1,40 @@
+:root {
+  color-scheme: light;
+  font-family: "Instrument Sans", system-ui, sans-serif;
+  color: #1d2c26;
+  background: #eef4ef;
+  line-height: 1.5;
+}
+body { margin: 0; }
+main { max-width: 54rem; margin: auto; padding: 2rem clamp(1rem, 5vw, 3rem) 4rem; }
+nav, .controls { display: flex; flex-wrap: wrap; gap: .75rem 1.25rem; align-items: center; }
+a { color: #19563f; }
+h1 { margin: 2rem 0 .5rem; font-size: clamp(2rem, 6vw, 3.4rem); line-height: 1.1; }
+form, main > details, section { margin-top: 1.5rem; }
+label, dt { display: block; font-weight: 650; }
+.controls { margin-top: .35rem; }
+input, button, select {
+  color: inherit;
+  font: inherit;
+  padding: .45rem .7rem;
+  border: 1px solid #62766a;
+  border-radius: .35rem;
+  background: white;
+}
+input { flex: 1 1 16rem; min-width: 0; }
+button { background: #174b37; color: white; cursor: pointer; }
+summary { cursor: pointer; }
+dd { margin: 0 0 .5rem; }
+#status { overflow-wrap: anywhere; }
+#findings { list-style: none; padding: 0; }
+.finding { padding: 1rem; margin-bottom: .75rem; border: 1px solid #acbcb0; border-radius: .5rem; background: #fff; overflow-wrap: anywhere; }
+.finding h2 { font-size: 1.12rem; margin: 0; }
+.finding p { margin: .35rem 0; }
+.evidence { padding-inline-start: 1.5rem; }
+.evidence li { margin-top: .5rem; }
+.evidence small { display: block; }
+
+#atlas { display: flex; flex-wrap: wrap; gap: .45rem; margin-block: .7rem; }
+#atlas button { border: 1px solid #799888; min-height: 2.5rem; color: #f2f9ee; background: linear-gradient(90deg, #345c4c var(--atlas-count), #19312a var(--atlas-count)); }
+#atlas button[aria-pressed="true"] { outline: 2px solid #a9eabc; }
+#atlas button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }

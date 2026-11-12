@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Worldline — run possible futures</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --surface-2: #f3f2ee;
+  --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10);
+  --plan: #2a78d6; --base: #898781; --new: #eb6834; --park: #008300; --transit: #6250d6;
+  --pos: #e34948; --neg: #2a78d6; --good: #006300;
+  --seq-0: #f3f2ee; --seq-1: #cde2fb; --seq-2: #9ec5f4; --seq-3: #6da7ec; --seq-4: #3987e5; --seq-5: #256abf; --seq-6: #184f95; --seq-7: #0d366b;
+  --cong: #e34948;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --surface-2: #232321;
+    --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+    --plan: #3987e5; --base: #898781; --new: #d95926; --park: #008300; --transit: #9085e9;
+    --pos: #e66767; --neg: #3987e5; --good: #0ca30c;
+    --seq-0: #232321; --seq-1: #162538; --seq-2: #173a63; --seq-3: #184f95; --seq-4: #256abf; --seq-5: #3987e5; --seq-6: #5598e7; --seq-7: #9ec5f4;
+    --cong: #e66767;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+.wrap { max-width: 1320px; margin: 0 auto; padding: 28px 24px 60px; }
+header { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+.brand { font-weight: 700; font-size: 22px; letter-spacing: -0.02em; }
+.brand span { color: var(--plan); }
+.tagline { color: var(--ink-2); font-size: 15px; }
+.note { margin-left: auto; color: var(--muted); font-size: 12px; }
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; }
+.prompt-row { display: flex; gap: 10px; }
+.prompt-row input { flex: 1; font: inherit; font-size: 18px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--axis); background: var(--page); color: var(--ink); min-width: 0; }
+.prompt-row input:focus { outline: 2px solid var(--plan); outline-offset: 1px; }
+button { font: inherit; cursor: pointer; }
+.run { background: var(--ink); color: var(--surface); border: 0; border-radius: 10px; padding: 0 20px; font-weight: 600; white-space: nowrap; }
+.run:disabled { opacity: .5; cursor: progress; }
+.label-sm { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; }
+.chip { border: 1px solid var(--border); background: var(--surface-2); color: var(--ink-2); border-radius: 999px; padding: 4px 11px; font-size: 13px; }
+.chip:hover { color: var(--ink); border-color: var(--axis); }
+.plan-line { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+.pchip { border-radius: 8px; padding: 4px 10px; font-size: 13px; background: var(--surface-2); border-left: 3px solid var(--new); color: var(--ink); }
+.warn { color: var(--ink-2); font-size: 13px; }
+.controls { display: flex; gap: 18px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
+.controls select { font: inherit; padding: 4px 6px; border-radius: 6px; border: 1px solid var(--axis); background: var(--page); color: var(--ink); }
+details.assume summary { cursor: pointer; color: var(--ink-2); }
+.assume-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 8px 22px; margin-top: 12px; }
+.arow { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.arow span.n { flex: 1; color: var(--ink-2); }
+.arow input { width: 64px; font: inherit; font-size: 13px; padding: 3px 5px; border-radius: 6px; border: 1px solid var(--axis); background: var(--page); color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
+.progress { height: 3px; background: var(--grid); border-radius: 2px; margin-top: 14px; overflow: hidden; }
+.progress div { height: 100%; width: 0; background: var(--plan); transition: width .1s; }
+h2 { font-size: 15px; margin: 0; font-weight: 650; }
+.section-head { display: flex; align-items: baseline; gap: 12px; margin: 26px 0 10px; flex-wrap: wrap; }
+.section-head .sub { color: var(--ink-2); font-size: 13px; }
+.legend { display: flex; gap: 14px; font-size: 12px; color: var(--ink-2); align-items: center; flex-wrap: wrap; }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+@media (max-width: 1050px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .cards { grid-template-columns: 1fr; } }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px 10px; }
+.card .t { font-weight: 650; }
+.card .s { color: var(--muted); font-size: 12px; }
+.hero { font-size: 26px; font-weight: 650; letter-spacing: -0.02em; margin-top: 8px; }
+.hero small { font-size: 13px; font-weight: 500; color: var(--ink-2); letter-spacing: 0; }
+.odds { font-size: 13px; color: var(--ink-2); margin-top: 2px; min-height: 19px; }
+.odds b { color: var(--ink); }
+.card svg { width: 100%; height: auto; display: block; margin-top: 6px; }
+.main { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 14px; margin-top: 14px; }
+@media (max-width: 980px) { .main { grid-template-columns: 1fr; } }
+.stack { display: flex; flex-direction: column; gap: 14px; }
+.panel svg { display: block; width: 100%; height: auto; }
+.tabs { display: inline-flex; background: var(--surface-2); border-radius: 8px; padding: 2px; gap: 2px; }
+.tabs button { border: 0; background: transparent; color: var(--ink-2); padding: 4px 10px; border-radius: 6px; font-size: 13px; }
+.tabs button.on { background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--border); font-weight: 600; }
+.why-list { margin: 10px 0 0; padding: 0; list-style: none; font-size: 13.5px; }
+.why-list li { padding: 7px 0; border-top: 1px solid var(--grid); color: var(--ink-2); }
+.why-list li b { color: var(--ink); font-weight: 600; }
+.world-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: space-between; }
+#worldWrap { position: relative; margin-top: 10px; }
+#world { width: 100%; display: block; border-radius: 10px; cursor: crosshair; }
+.inspector { margin-top: 10px; font-size: 13px; color: var(--ink-2); min-height: 40px; background: var(--surface-2); border-radius: 8px; padding: 8px 12px; }
+.inspector b { color: var(--ink); }
+#tip { position: fixed; pointer-events: none; background: var(--surface); color: var(--ink); border: 1px solid var(--border); box-shadow: 0 6px 20px rgba(0,0,0,.14); border-radius: 8px; padding: 7px 10px; font-size: 12.5px; z-index: 50; display: none; max-width: 280px; line-height: 1.4; }
+#tip .k { color: var(--muted); }
+table.data { border-collapse: collapse; width: 100%; font-size: 12.5px; margin-top: 10px; font-variant-numeric: tabular-nums; }
+table.data th, table.data td { text-align: right; padding: 5px 8px; border-bottom: 1px solid var(--grid); }
+table.data th:first-child, table.data td:first-child { text-align: left; }
+table.data th { color: var(--muted); font-weight: 600; }
+.foot { margin-top: 28px; color: var(--muted); font-size: 12px; max-width: 900px; }
+.sel-badge { font-size: 12px; color: var(--ink-2); }
+.sel-badge b { color: var(--ink); }
+.btn-ghost { border: 1px solid var(--border); background: var(--surface-2); color: var(--ink-2); border-radius: 8px; padding: 4px 10px; font-size: 13px; }
+
+/* Worldline studio: route-local presentation */
+:root { --page:#f1f4f6; --surface:#fff; --surface-2:#edf2f5; --ink:#152d3a; --ink-2:#526773; --muted:#6b7f89; --plan:#087f8c; --border:#dbe4e9; }
+body { background:radial-gradient(ellipse at 90% 0%,#d8ecea 0,transparent 40%),var(--page); }
+.wrap { max-width:1400px; padding:24px 36px 64px; }
+header { border-bottom:1px solid var(--border); padding-bottom:20px; margin-bottom:30px; align-items:center; }
+.brand { font-size:23px; }.tagline { display:none; }.note { font-size:11px; letter-spacing:.03em; }
+.home-link { color:var(--ink-2); text-decoration:none; font-size:12px; margin-right:12px; }
+.intro { display:flex; align-items:end; justify-content:space-between; gap:30px; margin-bottom:26px; }
+.eyebrow { font-size:11px; letter-spacing:.16em; text-transform:uppercase; font-weight:750; color:var(--plan); }
+h1 { font-size:clamp(34px,4vw,54px); line-height:1.08; letter-spacing:-.05em; margin:12px 0; max-width:720px; font-weight:650; }
+.intro p { color:var(--ink-2); max-width:600px; font-size:16px; line-height:1.65; margin:0; }
+.model-stamp { border-left:2px solid var(--plan); padding-left:18px; min-width:180px; color:var(--ink-2); font-size:12px; line-height:1.8; }.model-stamp b { display:block; font-size:24px; color:var(--ink); }
+.panel { box-shadow:0 4px 20px #152d3a04; border-radius:16px; padding:22px; }
+.prompt-row input { background:var(--surface); padding:16px; font-size:18px; }.run { background:var(--plan); color:white; padding:14px 24px; }
+.chips { gap:8px; margin-top:14px; }.chip { padding:7px 12px; font-size:12px; background:var(--surface); }.chip:hover { background:var(--surface-2); border-color:var(--plan); }
+.controls { border-top:1px solid var(--border); padding-top:16px; }.controls select { padding:6px; }.assume { flex:1; }.arow input { padding:6px; }
+.section-head { margin-top:32px; }h2 { font-size:16px; letter-spacing:-.02em; }.section-head .sub { flex:1; min-width:250px; font-size:12px; }
+.card { padding:19px; position:relative; border-top:3px solid var(--plan); box-shadow:0 4px 18px #152d3a04; }.card .t { font-size:14px; }.hero { font-size:29px; margin:14px 0 5px; }.hero small { display:block; font-size:11px; margin-top:2px; }.odds { font-size:11px; min-height:34px; }.card svg { margin-top:14px; }
+.main { gap:18px; margin-top:24px; }.stack { gap:18px; }.tabs { flex-wrap:wrap; }.tabs button,.btn-ghost { min-height:34px; }.tabs button.on { color:var(--plan); }
+.result-brief { display:flex; gap:20px; align-items:center; justify-content:space-between; margin-top:22px; padding:18px 22px; background:var(--ink); color:white; border-radius:14px; }.result-brief p { margin:4px 0 0; font-size:13px; color:#d0e1e5; }.result-brief .btn-ghost { color:white; border-color:#ffffff50; background:transparent; white-space:nowrap; }
+.run-status { display:flex; justify-content:space-between; gap:14px; margin-top:12px; color:var(--ink-2); font-size:12px; }.progress { height:5px; margin-top:9px; }.future-tools { display:flex; gap:7px; flex-wrap:wrap; margin:12px 0; }.future-tools button { flex:1; }.future-picker { display:flex; align-items:center; gap:8px; margin:12px 0; font-size:12px; color:var(--ink-2); }.future-picker input { width:80px; padding:7px; border:1px solid var(--axis); border-radius:6px; background:var(--surface); color:var(--ink); }
+#tableWrap { overflow-x:auto; }#worldWrap { border:1px solid var(--border); border-radius:12px; overflow:hidden; }.foot { border-top:1px solid var(--border); padding-top:20px; line-height:1.8; }
+button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible { outline:3px solid var(--plan); outline-offset:3px; }button:hover { filter:brightness(.96); }button:disabled { cursor:wait; opacity:.5; }
+@media(prefers-color-scheme:dark) { :root:where(:not([data-theme="light"])) { --page:#11212b; --surface:#182e3a; --surface-2:#203b48; --ink:#e3eef0; --ink-2:#b2c7cf; --muted:#95aeb8; --border:#314a57; --plan:#55c5c3; } body { background:var(--page); }.result-brief { background:#254653; }.run { color:#102e37; } }
+@media(max-width:700px) { .wrap { padding:20px 16px 40px; }.intro { display:block; }.model-stamp { display:none; }.note { width:100%; margin:0; }.prompt-row { flex-direction:column; }.panel { padding:16px; }.controls { align-items:start; flex-direction:column; }.assume { width:100%; }.assume-grid { grid-template-columns:1fr; }.result-brief { align-items:start; flex-direction:column; }.main { grid-template-columns:1fr; }.world-head { align-items:start; }.cards { gap:10px; }.hero { font-size:26px; }.arow { font-size:12px; } }
+@media(prefers-reduced-motion:reduce) { * { scroll-behavior:auto!important; transition:none!important; } }
+</style>
+</head>
+<body>
+<style>body:not(.worldline-demo) > .wrap {display:none} body:not(.worldline-demo) > #connected-worldline {display:block} #connected-worldline a {margin-right:16px} #connected-worldline select {max-width:100%;padding:8px}</style>
+<script>if(new URLSearchParams(location.search).get("demo")==="1")document.body.classList.add("worldline-demo")</script>
+<section id="connected-worldline" class="wrap"></section>
+<script type="module" src="/tools/paired-comparison.js"></script>
+<script type="module" src="/tools/worldline-connected.js"></script>
+<div class="wrap">
+  <header>
+    <a class="home-link" href="/">← Happybearlandia</a><div class="brand">World<span>line</span></div>
+    <div class="tagline">Don't just look at what happened. Change something and see what could happen next.</div>
+    <div class="note">Prototype · synthetic city of 200,000 households · illustrative model</div>
+  </header>
+
+  <div class="intro"><div><div class="eyebrow">The possible futures studio</div><h1>One change.<br>A thousand possible futures.</h1><p>Test a city idea. See the tradeoffs in housing, travel and quality of life — then step inside a future to understand why.</p></div><div class="model-stamp">A synthetic city of<b>200,000 households</b>10-year horizon · paired simulations<br>Illustrative, not a forecast</div></div>
+  <section class="panel">
+    <div class="label-sm" style="margin-bottom:8px">1 · Describe a change</div>
+    <form class="prompt-row" id="form">
+      <input id="prompt" value="Build 10,000 new homes" autocomplete="off" aria-label="Describe a change">
+      <button class="run" id="runBtn" type="submit">Run 1,000 futures</button>
+    </form>
+    <div class="chips" id="presets"><span class="label-sm" style="margin-right:4px">Try</span></div>
+    <div class="plan-line" id="planLine"></div>
+    <div class="controls">
+      <label>Futures <select id="nRuns"><option>200</option><option>500</option><option selected>1000</option><option>2000</option></select></label>
+      <details class="assume" id="assume"><summary>2 · Assumptions each future samples from (ranges)</summary><div class="assume-grid" id="assumeGrid"></div></details>
+    </div>
+    <div class="run-status"><span id="runStatus" role="status" aria-live="polite">Preparing your futures…</span><span>Same assumptions. Two possible cities.</span></div><div class="progress" role="progressbar" aria-label="Simulation progress" aria-valuemin="0" aria-valuemax="100" id="progress"><div id="prog"></div></div>
+  </section>
+
+  <section class="result-brief"><div><b id="briefTitle">Exploring the possibilities</b><p id="briefText">Your paired simulations will reveal where the tradeoffs are.</p></div><button id="exportBtn" class="btn-ghost" disabled>Download futures ↓</button></section>
+  <div class="section-head">
+    <h2>3 · Compare outcomes</h2>
+    <span class="sub" id="cmpSub">Middle 80% of futures (thin line), middle 50% (bar), median (dot). Each future runs the baseline and the change under identical assumptions.</span>
+    <span class="legend" style="margin-left:auto"><span><span class="sw" style="background:var(--base)"></span>Baseline (no change)</span><span><span class="sw" style="background:var(--plan)"></span>With the change</span></span>
+  </div>
+  <div class="cards" id="cards"></div>
+  <details style="margin-top:8px"><summary class="sub" style="cursor:pointer;color:var(--ink-2);font-size:13px">View outcomes as a table</summary><div id="tableWrap"></div></details>
+
+  <div class="main">
+    <div class="stack">
+      <div class="panel">
+        <div class="world-head"><h2>Every future, one dot</h2><span class="sel-badge" id="selBadge"></span></div>
+        <div class="sub" style="color:var(--ink-2);font-size:13px;margin-top:2px">Effect of the change in each future. Click a dot to enter that future.</div>
+        <div class="future-tools"><button type="button" class="btn-ghost" id="typicalBtn" disabled>Typical future</button><button type="button" class="btn-ghost" id="bestBtn" disabled>Lowest commute Δ</button><button type="button" class="btn-ghost" id="worstBtn" disabled>Highest commute Δ</button></div><form id="futureForm" class="future-picker"><label for="futureNumber">Enter future #</label><input id="futureNumber" type="number" min="1" value="1" disabled><button class="btn-ghost" id="futureGo" disabled>Explore →</button></form><svg id="scatter" viewBox="0 0 460 330" role="img" aria-label="Scatter of change in commute versus change in home prices across futures"></svg>
+      </div>
+      <div class="panel">
+        <div class="world-head"><h2>4 · Why it changed</h2>
+          <div class="tabs" id="whyTabs"></div></div>
+        <div class="sub" style="color:var(--ink-2);font-size:13px;margin-top:4px">Which assumptions move the size of the effect, across all futures (correlation with Δ).</div>
+        <svg id="tornado" viewBox="0 0 460 250" role="img" aria-label="Assumption sensitivity"></svg>
+        <div class="label-sm" style="margin-top:12px">In the selected future</div>
+        <ul class="why-list" id="whyList"></ul>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="world-head">
+        <h2>5 · Enter a future</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div class="tabs" id="scenTabs"><button data-v="base">Baseline</button><button data-v="plan" class="on">With change</button></div>
+          <div class="tabs" id="layerTabs"><button data-v="homes" class="on">Homes</button><button data-v="cong">Congestion</button></div>
+          <button class="btn-ghost" id="pauseBtn">Pause</button>
+        </div>
+      </div>
+      <div class="legend" style="margin-top:10px" id="worldLegend"></div>
+      <div id="worldWrap"><canvas id="world" aria-label="Simulated city map with commuting households"></canvas></div>
+      <div class="inspector" id="inspector">Click any moving household to follow it. Hover the map to inspect a block.</div>
+    </div>
+  </div>
+
+  <p class="foot">How this works: each future draws 9 assumptions from the ranges above, then simulates 2,000 sampled households (each standing for ~100 real ones) choosing where to work and whether to drive or take transit. Road delay comes from a congestion curve on 9 corridors, resolved over several rounds so drivers react to each other. Home prices respond to demand versus supply. The baseline and the change share each future's random draws, so the difference between them is the effect of the change, not noise. The city, coefficients and costs are invented for the prototype and are not calibrated to any real place.</p>
+</div>
+<div id="tip"></div>
+
+<script>// Worldline simulation engine — synthetic city, paired Monte Carlo futures.
+const Sim = (() => {
+  const G = 48, KM = 0.5, CX = 24, CY = 24, NC = G * G, NODES_SIDE = 8, NN = 64;
+  const H0 = 200000, J0 = 210000;
+  const ZONE_NAMES = ['East', 'Northeast', 'North', 'Northwest', 'West', 'Southwest', 'South', 'Southeast', 'Core'];
+  const DIRS = {
+    east: [1, 0], northeast: [0.7071, -0.7071], north: [0, -1], northwest: [-0.7071, -0.7071],
+    west: [-1, 0], southwest: [-0.7071, 0.7071], south: [0, 1], southeast: [0.7071, 0.7071], downtown: [0, 0]
+  };
+  const DIR_ZONE = { east: 0, northeast: 1, north: 2, northwest: 3, west: 4, southwest: 5, south: 6, southeast: 7, downtown: 8 };
+  const HUB = [36, 21];
+  const BASE_PARKS = [[15, 14, 2.2], [31, 31, 2.0], [12, 33, 2.5], [33, 11, 1.8], [24, 40, 1.6]];
+  const BASE_LINES = [
+    { a: [24, 3], b: [24, 45], type: 'rail', name: 'Red Line', isNew: false },
+    { a: [24, 24], b: [38, 21], type: 'rail', name: 'Blue Line', isNew: false }
+  ];
+  const LINE_SPEC = { rail: { speed: 32, wait: 5, costKm: 130 }, brt: { speed: 21, wait: 6, costKm: 30 } };
+
+  const ASSUMPTIONS = [
+    { key: 'growth', label: 'Population growth, 10 yr', min: 0.03, max: 0.14, unit: 'pct' },
+    { key: 'remote', label: 'Remote-work share', min: 0.10, max: 0.35, unit: 'pct' },
+    { key: 'transitPref', label: 'Transit preference', min: -1.2, max: 0.4, unit: 'num' },
+    { key: 'alpha', label: 'Congestion sensitivity', min: 0.15, max: 0.6, unit: 'num' },
+    { key: 'priceSens', label: 'Price sensitivity to shortage', min: 1.2, max: 3.2, unit: 'num' },
+    { key: 'infra', label: 'Infrastructure cost per home ($k)', min: 25, max: 55, unit: 'int' },
+    { key: 'inflation', label: 'Construction cost multiplier', min: 0.85, max: 1.6, unit: 'x' },
+    { key: 'completion', label: 'Homes delivered within horizon', min: 0.6, max: 1.0, unit: 'pct' },
+    { key: 'hubShare', label: 'New jobs landing in East hub', min: 0.2, max: 0.7, unit: 'pct' }
+  ];
+
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      let t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  const cx = i => (i % G) + 0.5, cy = i => Math.floor(i / G) + 0.5;
+  function zoneAt(x, y) {
+    const dx = x - CX, dy = y - CY;
+    if (Math.hypot(dx, dy) < 4) return 8;
+    const s = Math.round(Math.atan2(-dy, dx) / (Math.PI / 4));
+    return ((s % 8) + 8) % 8;
+  }
+  function segDist(px, py, a, b) {
+    const vx = b[0] - a[0], vy = b[1] - a[1];
+    const t = Math.max(0, Math.min(1, ((px - a[0]) * vx + (py - a[1]) * vy) / (vx * vx + vy * vy)));
+    return Math.hypot(px - a[0] - t * vx, py - a[1] - t * vy);
+  }
+  const gauss = (x, y, c, s) => Math.exp(-((x - c[0]) ** 2 + (y - c[1]) ** 2) / (2 * s * s));
+
+  // ---------- static city ----------
+  const cellZone = new Uint8Array(NC);
+  const baseHomeW = new Float64Array(NC), jobCbd = new Float64Array(NC), jobHub = new Float64Array(NC);
+  for (let i = 0; i < NC; i++) {
+    const x = cx(i), y = cy(i), r = Math.hypot(x - CX, y - CY);
+    cellZone[i] = zoneAt(x, y);
+    let w = Math.exp(-r * KM / 4.5) + 0.5 * gauss(x, y, HUB, 3);
+    if (r > 21) w *= 0.25;
+    baseHomeW[i] = w;
+    jobCbd[i] = gauss(x, y, [CX, CY], 3);
+    jobHub[i] = gauss(x, y, HUB, 2.5);
+  }
+  const normalize = (arr, total) => { let s = 0; for (const v of arr) s += v; for (let i = 0; i < arr.length; i++) arr[i] *= total / s; return arr; };
+  normalize(jobCbd, 1); normalize(jobHub, 1);
+  const homeShare = normalize(Float64Array.from(baseHomeW), 1);
+  const baseJobs = new Float64Array(NC);
+  for (let i = 0; i < NC; i++) baseJobs[i] = J0 * (0.5 * jobCbd[i] + 0.22 * jobHub[i] + 0.28 * homeShare[i]);
+
+  // job nodes: 8x8 blocks
+  const nodeX = new Float64Array(NN), nodeY = new Float64Array(NN), nodeBase = new Float64Array(NN),
+    nodeCbd = new Float64Array(NN), nodeHub = new Float64Array(NN), nodeZone = new Uint8Array(NN);
+  {
+    const bs = G / NODES_SIDE;
+    for (let i = 0; i < NC; i++) {
+      const n = Math.floor(Math.floor(i / G) / bs) * NODES_SIDE + Math.floor((i % G) / bs);
+      nodeBase[n] += baseJobs[i]; nodeCbd[n] += jobCbd[i]; nodeHub[n] += jobHub[i];
+      nodeX[n] += baseJobs[i] * cx(i); nodeY[n] += baseJobs[i] * cy(i);
+    }
+    for (let n = 0; n < NN; n++) { nodeX[n] /= nodeBase[n]; nodeY[n] /= nodeBase[n]; nodeZone[n] = zoneAt(nodeX[n], nodeY[n]); }
+  }
+  const decay = new Float32Array(NC * NN), distKm = new Float32Array(NC * NN);
+  for (let i = 0; i < NC; i++) for (let n = 0; n < NN; n++) {
+    const d = Math.hypot(cx(i) - nodeX[n], cy(i) - nodeY[n]) * KM;
+    distKm[i * NN + n] = d; decay[i * NN + n] = Math.exp(-d / 7);
+  }
+
+  // ---------- plan parsing ----------
+  function parseNumber(s) {
+    const m = s.match(/(\d[\d,]*(?:\.\d+)?)\s*(k|thousand|m|million)?/i);
+    if (!m) return null;
+    let v = parseFloat(m[1].replace(/,/g, ''));
+    const u = (m[2] || '').toLowerCase();
+    if (u === 'k' || u === 'thousand') v *= 1000;
+    if (u === 'm' || u === 'million') v *= 1e6;
+    return v;
+  }
+  function findDir(s) {
+    const order = [['northeast', /north[- ]?east|\bne\b/], ['northwest', /north[- ]?west|\bnw\b/], ['southeast', /south[- ]?east|\bse\b/],
+      ['southwest', /south[- ]?west|\bsw\b/], ['north', /north/], ['south', /south/], ['east', /east|hub/], ['west', /west/],
+      ['downtown', /downtown|center|centre|core|cbd|urban core|infill/]];
+    for (const [k, re] of order) if (re.test(s)) return k;
+    return null;
+  }
+  function parsePlan(text) {
+    const actions = [], notes = [];
+    const clauses = text.toLowerCase().split(/\band\b|,(?!\d{3})|;|\+|\bthen\b|\bplus\b|\balso\b/).map(s => s.trim()).filter(Boolean);
+    let lastDir = null;
+    for (const c of clauses) {
+      let dir = findDir(c);
+      const edge = /edge|suburb|outskirt|greenfield|exurb|periphery|fringe/.test(c);
+      if (!dir && /\b(it|there|them)\b/.test(c)) dir = lastDir;
+      if (/home|house|housing|apartment|unit|dwelling|upzone|condo|townhome|residen/.test(c)) {
+        const n = Math.round(Math.min(60000, Math.max(500, parseNumber(c) || 10000)));
+        const d = dir || 'west';
+        actions.push({ type: 'homes', n, dir: d, edge: d === 'downtown' ? false : (edge || !dir) });
+        lastDir = d;
+      } else if (/brt|bus/.test(c)) {
+        const d = dir || lastDir || 'west';
+        actions.push({ type: 'line', mode: 'brt', dir: d === 'downtown' ? 'west' : d }); lastDir = d;
+      } else if (/rail|train|metro|subway|tram|transit|line/.test(c)) {
+        const d = dir || lastDir || 'west';
+        actions.push({ type: 'line', mode: 'rail', dir: d === 'downtown' ? 'west' : d }); lastDir = d;
+      } else if (/widen|lane|highway|freeway|road|motorway|interstate/.test(c)) {
+        const d = dir || lastDir || 'west';
+        actions.push({ type: 'road', dir: d }); lastDir = d;
+      } else if (/park|green ?space|greenway|forest|nature/.test(c)) {
+        const d = dir || lastDir || 'northeast';
+        actions.push({ type: 'park', dir: d }); lastDir = d;
+      } else if (c.length > 2) notes.push(c);
+    }
+    return { actions, unparsed: notes };
+  }
+  const DIR_LABEL = d => d === 'downtown' ? 'Downtown' : d[0].toUpperCase() + d.slice(1);
+  function describeAction(a) {
+    if (a.type === 'homes') return `+${a.n.toLocaleString('en-US')} homes · ${DIR_LABEL(a.dir)}${a.edge ? ' edge (greenfield)' : a.dir === 'downtown' ? ' (infill)' : ' (inner ring)'}`;
+    if (a.type === 'line') return `New ${a.mode === 'rail' ? 'rail' : 'BRT'} line · Core → ${DIR_LABEL(a.dir)}`;
+    if (a.type === 'road') return `Widen ${DIR_LABEL(a.dir)} corridor (+35% capacity)`;
+    if (a.type === 'park') return `New park · ${DIR_LABEL(a.dir)} (replaces homes)`;
+    return '';
+  }
+
+  // ---------- scenarios ----------
+  let BASE_CAP = new Float64Array(9).fill(1e9);
+  function buildScenario(actions) {
+    const parks = BASE_PARKS.map(p => ({ x: p[0], y: p[1], r: p[2], isNew: false }));
+    const lines = BASE_LINES.map(l => ({ ...l }));
+    const capMult = new Float64Array(9).fill(1);
+    const newHomes = new Float64Array(NC);
+    let fixedCost = 0, infraUnits = 0;
+    const costItems = [];
+    for (const a of actions) {
+      const v = DIRS[a.dir];
+      if (a.type === 'park') {
+        const R = a.dir === 'downtown' ? 0 : 12;
+        parks.push({ x: CX + v[0] * R, y: CY + v[1] * R, r: 2.6, isNew: true });
+      } else if (a.type === 'line') {
+        const end = [CX + v[0] * 21, CY + v[1] * 21];
+        lines.push({ a: [CX, CY], b: end, type: a.mode, name: `${DIR_LABEL(a.dir)} ${a.mode === 'rail' ? 'Rail' : 'BRT'}`, isNew: true });
+        const c = 21 * KM * LINE_SPEC[a.mode].costKm; fixedCost += c; costItems.push([`${a.mode === 'rail' ? 'Rail' : 'BRT'} line`, c]);
+      } else if (a.type === 'road') {
+        capMult[DIR_ZONE[a.dir]] *= 1.35; const c = 10 * 22; fixedCost += c; costItems.push(['Road widening', c]);
+      }
+    }
+    const isPark = new Uint8Array(NC), parkDist = new Float32Array(NC);
+    for (let i = 0; i < NC; i++) {
+      let best = 1e9;
+      for (const p of parks) { const d = Math.hypot(cx(i) - p.x, cy(i) - p.y) - p.r; if (d < 0) isPark[i] = 1; best = Math.min(best, Math.max(0, d)); }
+      parkDist[i] = best * KM;
+    }
+    // homes actions placed after parks so homes avoid park cells
+    for (const a of actions) if (a.type === 'homes') {
+      const v = DIRS[a.dir]; const R = a.dir === 'downtown' ? 0 : (a.edge ? 19 : 11);
+      const c = [CX + v[0] * R, CY + v[1] * R];
+      const w = new Float64Array(NC); let s = 0;
+      for (let i = 0; i < NC; i++) { if (isPark[i]) continue; const d = Math.hypot(cx(i) - c[0], cy(i) - c[1]); if (d < 3.6) { w[i] = gauss(cx(i), cy(i), c, 1.7); s += w[i]; } }
+      for (let i = 0; i < NC; i++) if (w[i]) {
+        const h = a.n * w[i] / s; newHomes[i] += h;
+        const r = Math.hypot(cx(i) - CX, cy(i) - CY);
+        infraUnits += h * (r < 6 ? 0.7 : r < 15 ? 1.0 : 1.6);
+      }
+    }
+    const homesBase = new Float64Array(NC); let removed = 0;
+    for (let i = 0; i < NC; i++) {
+      const h = H0 * homeShare[i];
+      const parkBefore = BASE_PARKS.some(p => Math.hypot(cx(i) - p[0], cy(i) - p[1]) < p[2]);
+      if (isPark[i]) { if (!parkBefore) removed += h; homesBase[i] = 0; } else homesBase[i] = h;
+    }
+    // re-normalize so base parks don't remove stock: base city total = H0
+    const baseTotal = (() => { let s = 0; for (let i = 0; i < NC; i++) if (!BASE_PARKS.some(p => Math.hypot(cx(i) - p[0], cy(i) - p[1]) < p[2])) s += H0 * homeShare[i]; return s; })();
+    for (let i = 0; i < NC; i++) homesBase[i] *= H0 / baseTotal;
+    removed *= H0 / baseTotal;
+    if (removed > 0) { const c = removed * 0.3 + 40; fixedCost += c; costItems.push(['Park land', c]); }
+    // transit access per cell and node
+    const accCell = new Float32Array(NC), lineCell = new Int8Array(NC), accNode = new Float32Array(NN), lineNode = new Int8Array(NN);
+    const nearest = (x, y) => { let bd = 1e9, bi = 0; lines.forEach((l, k) => { const d = segDist(x, y, l.a, l.b); if (d < bd) { bd = d; bi = k; } }); return [bd * KM, bi]; };
+    for (let i = 0; i < NC; i++) [accCell[i], lineCell[i]] = nearest(cx(i), cy(i));
+    for (let n = 0; n < NN; n++) [accNode[n], lineNode[n]] = nearest(nodeX[n], nodeY[n]);
+    return { actions, parks, lines, capMult, newHomes, homesBase, isPark, parkDist, removed, fixedCost, infraUnits, costItems, accCell, lineCell, accNode, lineNode };
+  }
+
+  // ---------- one future ----------
+  function simulate(sc, p, seed, A, keep) {
+    const rng = mulberry32(seed);
+    const homes = new Float64Array(NC); let S = 0;
+    for (let i = 0; i < NC; i++) { homes[i] = sc.homesBase[i] + sc.newHomes[i] * p.completion; S += homes[i]; }
+    const D = H0 * (1 + p.growth), housed = Math.min(D, S), shortfall = Math.max(0, D - S);
+    const cdf = new Float64Array(NC); let acc = 0;
+    for (let i = 0; i < NC; i++) { acc += homes[i]; cdf[i] = acc; }
+    const nodeW = new Float64Array(NN);
+    for (let n = 0; n < NN; n++) nodeW[n] = nodeBase[n] + J0 * p.growth * (p.hubShare * nodeHub[n] + (1 - p.hubShare) * nodeCbd[n]);
+    const w = housed / A;
+    const hc = new Int32Array(A), jn = new Int8Array(A), remote = new Uint8Array(A), u4 = new Float32Array(A),
+      free = new Float32Array(A), trBase = new Float32Array(A), busFlag = new Uint8Array(A), zA = new Int8Array(A), zB = new Int8Array(A), zC = new Int8Array(A),
+      jx = new Float32Array(A), jy = new Float32Array(A), hx = new Float32Array(A), hy = new Float32Array(A);
+    const cw = new Float64Array(NN);
+    for (let a = 0; a < A; a++) {
+      const u1 = rng(), u2 = rng(), u3 = rng(), uu4 = rng(), u5 = rng(), u6 = rng();
+      // home
+      let t = u1 * S, lo = 0, hi = NC - 1;
+      while (lo < hi) { const m = (lo + hi) >> 1; if (cdf[m] < t) lo = m + 1; else hi = m; }
+      const c = lo; hc[a] = c;
+      hx[a] = (c % G) + u5; hy[a] = Math.floor(c / G) + u6;
+      // job (gravity)
+      let s = 0; const base = c * NN;
+      for (let n = 0; n < NN; n++) { s += nodeW[n] * decay[base + n]; cw[n] = s; }
+      let tj = u2 * s, n = 0; while (n < NN - 1 && cw[n] < tj) n++;
+      jn[a] = n; jx[a] = nodeX[n] + (u6 - 0.5) * 4; jy[a] = nodeY[n] + (u5 - 0.5) * 4;
+      remote[a] = u3 < p.remote ? 1 : 0; u4[a] = uu4;
+      const d = distKm[base + n];
+      free[a] = 4 + d * 1.3 / 36 * 60;
+      const zo = cellZone[c], zd = nodeZone[n];
+      zA[a] = zo; zB[a] = zd !== zo ? zd : -1;
+      const opposite = zo < 8 && zd < 8 && Math.min((zo - zd + 8) % 8, (zd - zo + 8) % 8) >= 2;
+      zC[a] = opposite ? 8 : -1;
+      const ah = sc.accCell[c], aj = sc.accNode[n];
+      if (ah <= 2.5 && aj <= 2.5) {
+        const lh = sc.lines[sc.lineCell[c]], lj = sc.lines[sc.lineNode[n]];
+        const spec = LINE_SPEC[lh.type], spec2 = LINE_SPEC[lj.type];
+        const speed = Math.min(spec.speed, spec2.speed);
+        trBase[a] = 6 + (ah + aj) / 14 * 60 + Math.max(spec.wait, spec2.wait) + d * 1.25 / speed * 60 + (sc.lineCell[c] !== sc.lineNode[n] ? 6 : 0);
+        busFlag[a] = 0;
+      } else { trBase[a] = 6 + 9 + d * 1.35 / 15 * 60; busFlag[a] = 1; }
+    }
+    const cap = new Float64Array(9); for (let z = 0; z < 9; z++) cap[z] = BASE_CAP[z] * sc.capMult[z];
+    let mult = new Float64Array(9).fill(1);
+    const mode = new Uint8Array(A), time = new Float32Array(A);
+    let vol = new Float64Array(9);
+    const asc = 0.1 - p.transitPref;
+    for (let it = 0; it < 6; it++) {
+      vol = new Float64Array(9);
+      for (let a = 0; a < A; a++) {
+        if (remote[a]) { mode[a] = 2; time[a] = 0; continue; }
+        let m = mult[zA[a]], k = 1;
+        if (zB[a] >= 0) { m += mult[zB[a]]; k++; }
+        if (zC[a] >= 0) { m += mult[zC[a]]; k++; }
+        m /= k;
+        const tc = free[a] * m;
+        const tt = busFlag[a] ? trBase[a] * (1 + 0.5 * (m - 1)) : trBase[a];
+        const pT = 1 / (1 + Math.exp(0.09 * (tt - tc) + asc));
+        if (u4[a] < pT) { mode[a] = 1; time[a] = tt; }
+        else {
+          mode[a] = 0; time[a] = tc;
+          vol[zA[a]] += w; if (zB[a] >= 0) vol[zB[a]] += w; if (zC[a] >= 0) vol[zC[a]] += w;
+        }
+      }
+      for (let z = 0; z < 9; z++) {
+        const nm = 1 + p.alpha * Math.pow(vol[z] / cap[z], 4);
+        mult[z] = it === 0 ? nm : 0.5 * mult[z] + 0.5 * nm;
+      }
+    }
+    let sumT = 0, nC = 0, nT = 0, q = 0;
+    for (let a = 0; a < A; a++) {
+      if (mode[a] !== 2) { sumT += time[a]; nC++; if (mode[a] === 1) nT++; }
+      q += 72 - 0.5 * ((mode[a] === 2 ? 0 : time[a]) - 22) + 9 * Math.exp(-sc.parkDist[hc[a]] / 0.7);
+    }
+    const commute = sumT / nC;
+    const price = 100 * Math.pow(D / S, p.priceSens);
+    const qol = q / A - 0.12 * (price - 100) - 40 * shortfall / D;
+    const homesCost = sc.infraUnits * p.infra * 1000 / 1e6 * p.completion;
+    const cost = (sc.fixedCost + homesCost) * p.inflation;
+    const vc = Array.from(vol, (v, z) => v / cap[z]);
+    const out = { commute, price, qol, cost, shortfall, S, D, transitShare: nT / nC, mult: Array.from(mult), vc, vol: Array.from(vol), delivered: S - H0 + sc.removed, homesCost: homesCost * p.inflation };
+    if (keep) out.agents = { hx, hy, jx, jy, mode, time, hc, jn };
+    return out;
+  }
+
+  function sampleParams(seed, ranges) {
+    const r = mulberry32(seed ^ 0x9E3779B9);
+    const p = {};
+    for (const a of ASSUMPTIONS) { const rg = ranges[a.key]; p[a.key] = rg[0] + (rg[1] - rg[0]) * r(); }
+    return p;
+  }
+  function medianParams(ranges) { const p = {}; for (const a of ASSUMPTIONS) p[a.key] = (ranges[a.key][0] + ranges[a.key][1]) / 2; return p; }
+  function defaultRanges() { const r = {}; for (const a of ASSUMPTIONS) r[a.key] = [a.min, a.max]; return r; }
+
+  // calibrate road capacity so the median baseline runs near capacity
+  (function calibrate() {
+    const sc = buildScenario([]);
+    const out = simulate(sc, medianParams(defaultRanges()), 12345, 6000, false);
+    BASE_CAP = Float64Array.from(out.vol, v => Math.max(v, 1000) / 0.95);
+  })();
+
+  return { G, KM, CX, CY, NC, NN, H0, HUB, ZONE_NAMES, DIRS, ASSUMPTIONS, cellZone, nodeX, nodeY, baseJobs,
+    parsePlan, describeAction, buildScenario, simulate, sampleParams, medianParams, defaultRanges, mulberry32 };
+})();
+if (typeof module !== 'undefined') module.exports = Sim;
+</script>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const tip = $('tip');
+function showTip(html, e) { tip.innerHTML = html; tip.style.display = 'block'; const r = tip.getBoundingClientRect(); let x = e.clientX + 14, y = e.clientY + 14; if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14; if (y + r.height > innerHeight - 8) y = e.clientY - r.height - 14; tip.style.left = x + 'px'; tip.style.top = y + 'px'; }
+const hideTip = () => tip.style.display = 'none';
+const NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs = {}, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+
+const PRESETS = ['Build 10,000 new homes', 'Build 10,000 new homes downtown', 'Build 10,000 homes in the west and a rail line to the west',
+  'Build 10,000 homes on the western edge and widen the west highway', 'Build 15,000 homes in the east and a BRT line to it', 'Turn the northeast into a park'];
+const METRICS = [
+  { key: 'cost', label: 'Costs', sub: 'Public capital cost, $M', better: -1, f: v => '$' + Math.round(v).toLocaleString('en-US') + 'M', df: v => (v >= 0 ? '+$' : '−$') + Math.abs(Math.round(v)).toLocaleString('en-US') + 'M', short: 'cost' },
+  { key: 'commute', label: 'Travel time', sub: 'Average commute, minutes', better: -1, f: v => v.toFixed(1) + ' min', df: v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + ' min', short: 'commute' },
+  { key: 'price', label: 'Housing', sub: 'Home price index, today = 100', better: -1, f: v => v.toFixed(0), df: v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + ' pts', short: 'home prices' },
+  { key: 'qol', label: 'Quality of life', sub: 'Index, higher is better', better: 1, f: v => v.toFixed(1), df: v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + ' pts', short: 'quality of life' }
+];
+const A = Sim.ASSUMPTIONS;
+const fmtA = (a, v) => a.unit === 'pct' ? (v * 100).toFixed(0) + '%' : a.unit === 'int' ? Math.round(v) : a.unit === 'x' ? v.toFixed(2) + '×' : v.toFixed(2);
+const ranges = Sim.defaultRanges();
+const AGENTS = 2000;
+
+// ---------- presets & assumptions ----------
+for (const p of PRESETS) { const b = document.createElement('button'); b.className = 'chip'; b.type = 'button'; b.textContent = p; b.onclick = () => { $('prompt').value = p; start(); }; $('presets').appendChild(b); }
+const toDisp = (a, v) => a.unit === 'pct' ? +(v * 100).toFixed(1) : +v.toFixed(2);
+const fromDisp = (a, v) => a.unit === 'pct' ? v / 100 : v;
+for (const a of A) {
+  const row = document.createElement('div'); row.className = 'arow';
+  row.innerHTML = `<span class="n">${a.label}${a.unit === 'pct' ? ' (%)' : ''}</span>`;
+  for (const k of [0, 1]) {
+    const inp = document.createElement('input'); inp.type = 'number'; inp.step = 'any'; inp.value = toDisp(a, ranges[a.key][k]);
+    inp.setAttribute('aria-label', `${a.label} ${k ? 'max' : 'min'}`);
+    inp.onchange = () => { const v = fromDisp(a, parseFloat(inp.value)); if (isFinite(v)) ranges[a.key][k] = v; if (ranges[a.key][0] > ranges[a.key][1]) ranges[a.key].reverse(); };
+    row.appendChild(inp); if (!k) row.appendChild(Object.assign(document.createElement('span'), { textContent: '–', style: 'color:var(--muted)' }));
+  }
+  $('assumeGrid').appendChild(row);
+}
+$('nRuns').onchange = () => $('runBtn').textContent = `Run ${(+$('nRuns').value).toLocaleString('en-US')} futures`;
+
+// ---------- state ----------
+let runs = [], baseSc = Sim.buildScenario([]), planSc = null, sel = null, whyMetric = 'commute', running = false, runToken = 0;
+let corr = {}, typical = null, completedPrompt = '', completedRanges = null;
+const exploreControls = ['typicalBtn','bestBtn','worstBtn','futureNumber','futureGo','exportBtn'];
+function setExploreEnabled(enabled) { exploreControls.forEach(id => $(id).disabled = !enabled); }
+
+function quant(arr, q) { const a = Float64Array.from(arr).sort(); const i = (a.length - 1) * q, lo = Math.floor(i), hi = Math.ceil(i); return a[lo] + (a[hi] - a[lo]) * (i - lo); }
+function pearson(x, y) { const n = x.length; let mx = 0, my = 0; for (let i = 0; i < n; i++) { mx += x[i]; my += y[i]; } mx /= n; my /= n; let sxy = 0, sx = 0, sy = 0; for (let i = 0; i < n; i++) { const a = x[i] - mx, b = y[i] - my; sxy += a * b; sx += a * a; sy += b * b; } return sx && sy ? sxy / Math.sqrt(sx * sy) : 0; }
+
+function start() {
+  const text = $('prompt').value;
+  if (running) return;
+  const parsed = Sim.parsePlan(text);
+  const pl = $('planLine'); pl.innerHTML = '<span class="label-sm">Understood as</span>';
+  if (!parsed.actions.length) {
+    pl.innerHTML += `<span class="warn">Couldn't find a change in that. Try homes, a rail or BRT line, widening a highway, or a park, with a direction (north, west, downtown…).</span>`;
+    return;
+  }
+  for (const a of parsed.actions) pl.innerHTML += `<span class="pchip">${Sim.describeAction(a)}</span>`;
+  if (parsed.unparsed.length) pl.innerHTML += `<span class="warn">Ignored: “${parsed.unparsed.join('”, “').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}”</span>`;
+  completedPrompt = text; completedRanges = JSON.parse(JSON.stringify(ranges)); setExploreEnabled(false); agentsView = null; pickedAgent = -1;
+  $('briefTitle').textContent = 'Testing your idea'; $('briefText').textContent = 'Sampling assumptions and comparing each future with its baseline.';
+  planSc = Sim.buildScenario(parsed.actions);
+  const N = +$('nRuns').value, token = ++runToken;
+  runs = []; sel = null; running = true; $('runBtn').disabled = true;
+  document.querySelectorAll('#prompt, #nRuns, #assumeGrid input, #presets button').forEach(e => e.disabled = true);
+  const seed0 = 7 + Math.floor(Math.random() * 1e6);
+  let i = 0;
+  function chunk() {
+    if (token !== runToken) return;
+    const t0 = performance.now();
+    while (i < N && performance.now() - t0 < 30) {
+      const seed = seed0 + i * 7919, p = Sim.sampleParams(seed, ranges);
+      const b = Sim.simulate(baseSc, p, seed, AGENTS, false), q = Sim.simulate(planSc, p, seed, AGENTS, false);
+      runs.push({ i, seed, p, b, q }); i++;
+    }
+    $('prog').style.width = (100 * i / N) + '%';
+    $('progress').setAttribute('aria-valuenow', Math.round(100 * i / N));
+    $('runStatus').textContent = `Simulating ${i.toLocaleString()} of ${N.toLocaleString()} futures…`;
+    if (i % 100 < 10 || i === N) renderResults(i === N);
+    if (i < N) requestAnimationFrame(chunk);
+    else { running = false; $('runBtn').disabled = false; document.querySelectorAll('#prompt, #nRuns, #assumeGrid input, #presets button').forEach(e => e.disabled = false); finish(); }
+  }
+  requestAnimationFrame(chunk);
+}
+function finish() {
+  corr = {};
+  for (const m of METRICS) { const d = runs.map(r => r.q[m.key] - r.b[m.key]); corr[m.key] = A.map(a => pearson(runs.map(r => r.p[a.key]), d)); }
+  // default selection: the future closest to the median effect on commute and price
+  const mc = quant(runs.map(r => r.q.commute - r.b.commute), .5), mp = quant(runs.map(r => r.q.price - r.b.price), .5);
+  const sc = runs.map(r => r.q.commute - r.b.commute), sp = runs.map(r => r.q.price - r.b.price);
+  const rc = (quant(sc, .9) - quant(sc, .1)) || 1, rp = (quant(sp, .9) - quant(sp, .1)) || 1;
+  let best = runs[0], bd = 1e9; for (const r of runs) { const d = ((r.q.commute - r.b.commute - mc) / rc) ** 2 + ((r.q.price - r.b.price - mp) / rp) ** 2; if (d < bd) { bd = d; best = r; } }
+  typical = best; renderResults(true); select(best); setExploreEnabled(true);
+  $('futureNumber').max = runs.length;
+  $('runStatus').textContent = `${runs.length.toLocaleString()} futures ready · explore the results below`;
+  $('briefTitle').textContent = 'Your idea, across many possible futures';
+  const wins = runs.filter(r => r.q.commute < r.b.commute && r.q.price < r.b.price).length;
+  $('briefText').textContent = `Both shorter commutes and lower housing prices in ${Math.round(wins / runs.length * 100)}% of futures. Median public cost: ${METRICS[0].f(quant(runs.map(r => r.q.cost), .5))}. Explore the full range below.`;
+}
+
+// ---------- outcome cards ----------
+function renderResults(final) {
+  const cards = $('cards'); cards.innerHTML = '';
+  if (!runs.length) return;
+  for (const m of METRICS) {
+    const bv = runs.map(r => r.b[m.key]), qv = runs.map(r => r.q[m.key]), dv = runs.map(r => r.q[m.key] - r.b[m.key]);
+    const dMed = quant(dv, .5), d10 = quant(dv, .1), d90 = quant(dv, .9);
+    const better = dv.filter(d => d * m.better > 1e-9).length / dv.length;
+    const card = document.createElement('div'); card.className = 'card';
+    const deltaTxt = m.key === 'cost' ? m.f(quant(qv, .5)) : m.df(dMed);
+    const odds = m.key === 'cost' ? `<b>${m.f(quant(qv, .1))}–${m.f(quant(qv, .9))}</b> in 80% of futures`
+      : `Better in <b>${Math.round(better * 100)}%</b> of futures · Δ ${m.df(d10)} to ${m.df(d90)}`;
+    card.innerHTML = `<div class="t">${m.label}</div><div class="s">${m.sub}</div><div class="hero">${deltaTxt} <small>${m.key === 'cost' ? 'median' : 'median effect'}</small></div><div class="odds">${odds}</div>`;
+    const svg = el('svg', { viewBox: '0 0 300 74' }); card.appendChild(svg);
+    const all = bv.concat(qv); let lo = quant(all, .02), hi = quant(all, .98); if (hi - lo < 1e-6) { hi = lo + 1; }
+    const pad = (hi - lo) * .06; lo -= pad; hi += pad;
+    const X = v => 8 + 284 * (Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo);
+    const rows = [['Baseline', bv, css('--base'), 22], ['With change', qv, css('--plan'), 52]];
+    for (const [name, vals, col, y] of rows) {
+      const [p10, p25, p50, p75, p90] = [.1, .25, .5, .75, .9].map(q => quant(vals, q));
+      el('text', { x: 8, y: y - 9, 'font-size': 10.5, fill: css('--ink-2') }, svg).textContent = name;
+      el('line', { x1: X(p10), x2: X(p90), y1: y, y2: y, stroke: col, 'stroke-width': 2, 'stroke-linecap': 'round' }, svg);
+      el('rect', { x: X(p25), y: y - 4, width: Math.max(2, X(p75) - X(p25)), height: 8, rx: 4, fill: col }, svg);
+      el('circle', { cx: X(p50), cy: y, r: 5, fill: col, stroke: css('--surface'), 'stroke-width': 2 }, svg);
+      const hit = el('rect', { x: 0, y: y - 14, width: 300, height: 26, fill: 'transparent' }, svg);
+      hit.addEventListener('mousemove', e => showTip(`<b>${m.label} · ${name}</b><br><span class="k">10th pct</span> ${m.f(p10)}<br><span class="k">Median</span> ${m.f(p50)}<br><span class="k">90th pct</span> ${m.f(p90)}`, e));
+      hit.addEventListener('mouseleave', hideTip);
+    }
+    if (sel && final) { const sx = X(sel.q[m.key]); el('line', { x1: sx, x2: sx, y1: 44, y2: 60, stroke: css('--ink'), 'stroke-width': 1.5 }, svg); }
+    el('line', { x1: 8, x2: 292, y1: 68, y2: 68, stroke: css('--axis'), 'stroke-width': 1 }, svg);
+    el('text', { x: 8, y: 74, 'font-size': 9.5, fill: css('--muted') }, svg).textContent = m.f(lo + pad);
+    el('text', { x: 292, y: 74, 'font-size': 9.5, fill: css('--muted'), 'text-anchor': 'end' }, svg).textContent = m.f(hi - pad);
+    cards.appendChild(card);
+  }
+  // table
+  let t = '<table class="data"><tr><th>Outcome</th><th>Baseline p10</th><th>Baseline median</th><th>Baseline p90</th><th>Change p10</th><th>Change median</th><th>Change p90</th><th>Median Δ</th></tr>';
+  for (const m of METRICS) { const bv = runs.map(r => r.b[m.key]), qv = runs.map(r => r.q[m.key]), dv = runs.map(r => r.q[m.key] - r.b[m.key]); t += `<tr><td>${m.label}</td>${[bv, bv, bv, qv, qv, qv].map((v, k) => `<td>${m.f(quant(v, [.1, .5, .9][k % 3]))}</td>`).join('')}<td>${m.df(quant(dv, .5))}</td></tr>`; }
+  $('tableWrap').innerHTML = t + '</table>';
+  $('cmpSub').textContent = `${runs.length.toLocaleString('en-US')} futures. Thin line: middle 80%, bar: middle 50%, dot: median. Each future runs the baseline and the change under identical assumptions.`;
+  renderScatter();
+}
+
+// ---------- scatter ----------
+let scatterPts = [];
+function renderScatter() {
+  const svg = $('scatter'); svg.innerHTML = '';
+  if (!runs.length) return;
+  const W = 460, H = 330, L = 52, R = 14, T = 14, B = 44;
+  const xs = runs.map(r => r.q.commute - r.b.commute), ys = runs.map(r => r.q.price - r.b.price);
+  const ext = (v) => { let lo = Math.min(0, quant(v, .005)), hi = Math.max(0, quant(v, .995)); const p = (hi - lo) * .08 || 1; return [lo - p, hi + p]; };
+  const [x0, x1] = ext(xs), [y0, y1] = ext(ys);
+  const X = v => L + (W - L - R) * (v - x0) / (x1 - x0), Y = v => T + (H - T - B) * (1 - (v - y0) / (y1 - y0));
+  const ticks = (a, b, n) => { const step = Math.pow(10, Math.floor(Math.log10((b - a) / n))); const s = [1, 2, 5, 10].map(k => k * step).find(k => (b - a) / k <= n); const out = []; for (let v = Math.ceil(a / s) * s; v <= b; v += s) out.push(+v.toFixed(6)); return out; };
+  for (const v of ticks(x0, x1, 6)) { el('line', { x1: X(v), x2: X(v), y1: T, y2: H - B, stroke: css('--grid') }, svg); el('text', { x: X(v), y: H - B + 15, 'font-size': 10.5, fill: css('--muted'), 'text-anchor': 'middle' }, svg).textContent = (v > 0 ? '+' : '') + v; }
+  for (const v of ticks(y0, y1, 5)) { el('line', { x1: L, x2: W - R, y1: Y(v), y2: Y(v), stroke: css('--grid') }, svg); el('text', { x: L - 6, y: Y(v) + 3.5, 'font-size': 10.5, fill: css('--muted'), 'text-anchor': 'end' }, svg).textContent = (v > 0 ? '+' : '') + v; }
+  el('line', { x1: X(0), x2: X(0), y1: T, y2: H - B, stroke: css('--axis'), 'stroke-width': 1.5 }, svg);
+  el('line', { x1: L, x2: W - R, y1: Y(0), y2: Y(0), stroke: css('--axis'), 'stroke-width': 1.5 }, svg);
+  el('text', { x: (L + W - R) / 2, y: H - 8, 'font-size': 11, fill: css('--ink-2'), 'text-anchor': 'middle' }, svg).textContent = '← shorter commutes    Δ average commute (min)    longer →';
+  const yl = el('text', { x: 13, y: (T + H - B) / 2, 'font-size': 11, fill: css('--ink-2'), 'text-anchor': 'middle', transform: `rotate(-90 13 ${(T + H - B) / 2})` }, svg); yl.textContent = '← cheaper   Δ home price index   pricier →';
+  const g = el('g', {}, svg);
+  scatterPts = runs.map((r, k) => ({ r, x: X(xs[k]), y: Y(ys[k]) }));
+  const col = css('--plan'), surf = css('--surface');
+  for (const p of scatterPts) if (p.r !== sel) el('circle', { cx: p.x, cy: p.y, r: 3.2, fill: col, 'fill-opacity': .45 }, g);
+  if (sel) { const p = scatterPts.find(p => p.r === sel); if (p) { el('circle', { cx: p.x, cy: p.y, r: 6.5, fill: col, stroke: surf, 'stroke-width': 2 }, g); el('circle', { cx: p.x, cy: p.y, r: 9.5, fill: 'none', stroke: css('--ink'), 'stroke-width': 1.5 }, g); } }
+  const hov = el('circle', { r: 6, fill: 'none', stroke: css('--ink'), 'stroke-width': 1.5, visibility: 'hidden' }, svg);
+  const toLocal = e => { const b = svg.getBoundingClientRect(); return [(e.clientX - b.left) * W / b.width, (e.clientY - b.top) * H / b.height]; };
+  const nearest = e => { const [mx, my] = toLocal(e); let best = null, bd = 144; for (const p of scatterPts) { const d = (p.x - mx) ** 2 + (p.y - my) ** 2; if (d < bd) { bd = d; best = p; } } return best; };
+  svg.onmousemove = e => { const p = nearest(e); if (!p) { hov.setAttribute('visibility', 'hidden'); hideTip(); svg.style.cursor = 'default'; return; } svg.style.cursor = 'pointer'; hov.setAttribute('cx', p.x); hov.setAttribute('cy', p.y); hov.setAttribute('visibility', 'visible');
+    const r = p.r; showTip(`<b>Future #${r.i + 1}</b><br><span class="k">Commute</span> ${METRICS[1].df(r.q.commute - r.b.commute)}<br><span class="k">Home prices</span> ${METRICS[2].df(r.q.price - r.b.price)}<br><span class="k">Quality of life</span> ${METRICS[3].df(r.q.qol - r.b.qol)}<br><span class="k">Cost</span> ${METRICS[0].f(r.q.cost)}<br><span class="k">Growth ${fmtA(A[0], r.p.growth)} · remote ${fmtA(A[1], r.p.remote)}</span><br><i class="k">Click to enter</i>`, e); };
+  svg.onmouseleave = () => { hov.setAttribute('visibility', 'hidden'); hideTip(); };
+  svg.onclick = e => { const p = nearest(e); if (p && !running) select(p.r); };
+}
+
+// ---------- why ----------
+for (const m of METRICS) { const b = document.createElement('button'); b.textContent = m.label; b.dataset.k = m.key; if (m.key === whyMetric) b.className = 'on'; b.onclick = () => { whyMetric = m.key; [...$('whyTabs').children].forEach(c => c.classList.toggle('on', c.dataset.k === m.key)); renderWhy(); }; $('whyTabs').appendChild(b); }
+function pctRank(key, v) { let n = 0; for (const r of runs) if (r.p[key] < v) n++; return n / runs.length; }
+function ord(n) { const s = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
+function renderWhy() {
+  const svg = $('tornado'); svg.innerHTML = '';
+  if (!sel || !corr[whyMetric]) return;
+  const m = METRICS.find(m => m.key === whyMetric);
+  const c = corr[whyMetric], idx = A.map((a, k) => k).sort((a, b) => Math.abs(c[b]) - Math.abs(c[a]));
+  const W = 460, L = 196, R = 98, rowH = 25, T = 22, mid = L + (W - L - R) / 2, half = (W - L - R) / 2;
+  el('text', { x: mid - 4, y: 12, 'font-size': 10, fill: css('--muted'), 'text-anchor': 'end' }, svg).textContent = `shrinks Δ ${m.short}`;
+  el('text', { x: mid + 4, y: 12, 'font-size': 10, fill: css('--muted') }, svg).textContent = `grows Δ ${m.short}`;
+  el('text', { x: W - 4, y: 12, 'font-size': 10, fill: css('--muted'), 'text-anchor': 'end' }, svg).textContent = 'this future';
+  idx.forEach((k, row) => {
+    const a = A[k], v = c[k], y = T + row * rowH;
+    el('text', { x: L - 8, y: y + 12, 'font-size': 11.5, fill: css('--ink-2'), 'text-anchor': 'end' }, svg).textContent = a.label;
+    const w = Math.abs(v) * (half - 30); const x = v >= 0 ? mid : mid - w;
+    if (w > 0.5) el('rect', { x, y: y + 4, width: w, height: 12, rx: 3, fill: v >= 0 ? css('--pos') : css('--neg') }, svg);
+    el('text', { x: v >= 0 ? mid + w + 4 : mid - w - 4, y: y + 13.5, 'font-size': 10.5, fill: css('--ink-2'), 'text-anchor': v >= 0 ? 'start' : 'end' }, svg).textContent = (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2);
+    const pr = Math.round(pctRank(a.key, sel.p[a.key]) * 100);
+    el('text', { x: W - 4, y: y + 13.5, 'font-size': 11, fill: css('--ink'), 'text-anchor': 'end' }, svg).textContent = `${fmtA(a, sel.p[a.key])} · ${ord(pr)}`;
+    const hit = el('rect', { x: 0, y, width: W, height: rowH, fill: 'transparent' }, svg);
+    hit.addEventListener('mousemove', e => showTip(`<b>${a.label}</b><br>Correlation with Δ ${m.short}: ${v.toFixed(2)}<br><span class="k">Range sampled</span> ${fmtA(a, completedRanges[a.key][0])}–${fmtA(a, completedRanges[a.key][1])}<br><span class="k">This future</span> ${fmtA(a, sel.p[a.key])} (${ord(pr)} percentile)`, e));
+    hit.addEventListener('mouseleave', hideTip);
+  });
+  el('line', { x1: mid, x2: mid, y1: T, y2: T + A.length * rowH, stroke: css('--axis'), 'stroke-width': 1.5 }, svg);
+  svg.setAttribute('viewBox', `0 0 ${W} ${T + A.length * rowH + 4}`);
+  renderWhyList();
+}
+function renderWhyList() {
+  const r = sel, b = r.b, q = r.q, list = $('whyList'); list.innerHTML = '';
+  const li = h => { const e = document.createElement('li'); e.innerHTML = h; list.appendChild(e); };
+  // biggest corridor change
+  let zi = 0, zd = -1; for (let z = 0; z < 9; z++) { const d = Math.abs(q.mult[z] - b.mult[z]); if (d > zd) { zd = d; zi = z; } }
+  li(`<b>Travel time ${METRICS[1].f(b.commute)} → ${METRICS[1].f(q.commute)}.</b> Transit share ${(b.transitShare * 100).toFixed(1)}% → ${(q.transitShare * 100).toFixed(1)}%. Biggest corridor shift: <b>${Sim.ZONE_NAMES[zi]}</b>, rush-hour delay ${b.mult[zi].toFixed(2)}× → ${q.mult[zi].toFixed(2)}× free-flow time.`);
+  const dlv = Math.round(q.S - b.S);
+  li(`<b>Housing index ${b.price.toFixed(0)} → ${q.price.toFixed(0)}.</b> ${dlv >= 0 ? (dlv.toLocaleString('en-US') + ' homes added') : (Math.abs(dlv).toLocaleString('en-US') + ' homes removed')} (${fmtA(A[7], r.p.completion)} of planned delivered). Demand ${Math.round(q.D).toLocaleString('en-US')} households vs supply ${Math.round(q.S).toLocaleString('en-US')}; shortfall ${Math.round(b.shortfall).toLocaleString('en-US')} → ${Math.round(q.shortfall).toLocaleString('en-US')}.`);
+  const items = planSc.costItems.map(([n, c]) => `${n} $${Math.round(c * r.p.inflation).toLocaleString('en-US')}M`);
+  if (q.homesCost > 0) items.unshift(`home infrastructure $${Math.round(q.homesCost).toLocaleString('en-US')}M`);
+  li(`<b>Cost ${METRICS[0].f(q.cost)}</b>${items.length ? ': ' + items.join(', ') : ''}. Cost multiplier in this future: ${fmtA(A[6], r.p.inflation)}.`);
+  const c = corr[whyMetric]; const m = METRICS.find(m => m.key === whyMetric);
+  const unusual = A.map((a, k) => ({ a, k, pr: pctRank(a.key, r.p[a.key]), w: Math.abs(c[k]) })).filter(o => o.w > 0.1 && Math.abs(o.pr - .5) > .15).map(o => ({ ...o, s: o.w * Math.abs(o.pr - .5) })).sort((x, y) => y.s - x.s).slice(0, 3);
+  if (unusual.length) li(`<b>What made this future's ${m.short} effect what it was:</b> ` + unusual.map(o => `${o.a.label.toLowerCase()} ${o.pr > .5 ? 'high' : 'low'} at ${fmtA(o.a, r.p[o.a.key])} (${ord(Math.round(o.pr * 100))} pct), which ${(c[o.k] > 0) === (o.pr > .5) ? 'grows' : 'shrinks'} the effect`).join('; ') + '.');
+}
+
+// ---------- world ----------
+const canvas = $('world'), ctx = canvas.getContext('2d');
+let worldScen = 'plan', layer = 'homes', paused = matchMedia('(prefers-reduced-motion: reduce)').matches, agentsView = null, size = 600, phases = null, hoverAgent = -1, pickedAgent = -1, hoverCell = -1;
+const NAG = 1400;
+function select(r) {
+  sel = r; $('futureNumber').value = r.i + 1; renderResults(true); renderWhy();
+  $('selBadge').innerHTML = `Selected: <b>future #${r.i + 1}</b>`;
+  const b = Sim.simulate(baseSc, r.p, r.seed, AGENTS, true), q = Sim.simulate(planSc, r.p, r.seed, AGENTS, true);
+  agentsView = { base: b, plan: q };
+  phases = new Float32Array(AGENTS); const rr = Sim.mulberry32(r.seed); for (let i = 0; i < AGENTS; i++) phases[i] = rr();
+  pickedAgent = -1; updateInspector();
+}
+function resize() { const w = $('worldWrap').clientWidth; size = Math.min(w, 760); const d = devicePixelRatio || 1; canvas.width = size * d; canvas.height = size * d; canvas.style.width = size + 'px'; canvas.style.height = size + 'px'; ctx.setTransform(d, 0, 0, d, 0, 0); }
+new ResizeObserver(resize).observe($('worldWrap'));
+const tabs = (id, fn) => [...$(id).children].forEach(b => b.onclick = () => { [...$(id).children].forEach(c => c.classList.toggle('on', c === b)); fn(b.dataset.v); });
+tabs('scenTabs', v => { worldScen = v; pickedAgent = -1; updateInspector(); });
+tabs('layerTabs', v => { layer = v; legendWorld(); });
+$('pauseBtn').onclick = () => { paused = !paused; $('pauseBtn').textContent = paused ? 'Play' : 'Pause'; };
+function legendWorld() {
+  const sq = (c, t, round) => `<span><span class="sw" style="background:${c};${round ? 'border-radius:50%' : ''}"></span>${t}</span>`;
+  $('worldLegend').innerHTML = sq('var(--ink)', 'Drives', 1) + sq('var(--transit)', 'Takes transit', 1) + sq('var(--new)', 'New in this change') + sq('var(--park)', 'Park') +
+    (layer === 'homes' ? `<span>Homes per block <span class="sw" style="background:var(--seq-1);margin:0 0 0 4px;border-radius:2px 0 0 2px"></span><span class="sw" style="background:var(--seq-2);margin:0;border-radius:0"></span><span class="sw" style="background:var(--seq-4);margin:0;border-radius:0"></span><span class="sw" style="background:var(--seq-5);margin:0 4px 0 0;border-radius:0 2px 2px 0"></span>more</span>` : `<span>Corridor rush-hour delay, × free-flow</span>`);
+}
+legendWorld();
+const SEQ = () => [1, 2, 3, 4, 5, 6, 7].map(k => css('--seq-' + k));
+function zoneCenter(z) { if (z === 8) return [24, 24]; const ang = z * Math.PI / 4; return [24 + Math.cos(ang) * 14, 24 - Math.sin(ang) * 14]; }
+let last = performance.now();
+function draw(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  requestAnimationFrame(draw);
+  if (!planSc) return;
+  const sc = worldScen === 'plan' ? planSc : baseSc, s = size, k = s / Sim.G;
+  const out = agentsView ? agentsView[worldScen] : null, p = sel ? sel.p : Sim.medianParams(ranges);
+  ctx.fillStyle = css('--surface'); ctx.fillRect(0, 0, s, s);
+  const seq = SEQ();
+  // blocks
+  for (let i = 0; i < Sim.NC; i++) {
+    const x = (i % Sim.G) * k, y = Math.floor(i / Sim.G) * k;
+    if (sc.isPark[i]) { ctx.fillStyle = css('--park'); ctx.globalAlpha = .38; ctx.fillRect(x, y, k, k); ctx.globalAlpha = 1; continue; }
+    if (layer === 'homes') {
+      const h = sc.homesBase[i] + sc.newHomes[i] * p.completion;
+      if (h < 40) continue;
+      const lv = Math.min(4, Math.floor(Math.pow(h / 600, 0.7) * 5));
+      ctx.fillStyle = seq[lv]; ctx.fillRect(x + .5, y + .5, k - 1, k - 1);
+    } else if (out) {
+      const z = Sim.cellZone[i], mlt = out.mult[z];
+      ctx.fillStyle = css('--cong'); ctx.globalAlpha = Math.min(.75, Math.max(0.04, (mlt - 1) * 1.1)); ctx.fillRect(x + .5, y + .5, k - 1, k - 1); ctx.globalAlpha = 1;
+    }
+  }
+  // new development outline
+  if (worldScen === 'plan') { ctx.strokeStyle = css('--new'); ctx.lineWidth = 1.5; for (let i = 0; i < Sim.NC; i++) if (sc.newHomes[i] > 150) ctx.strokeRect((i % Sim.G) * k + 1, Math.floor(i / Sim.G) * k + 1, k - 2, k - 2); for (const pk of sc.parks) if (pk.isNew) { ctx.beginPath(); ctx.arc(pk.x * k, pk.y * k, pk.r * k, 0, 7); ctx.setLineDash([4, 3]); ctx.stroke(); ctx.setLineDash([]); } }
+  // lines
+  for (const l of sc.lines) { ctx.strokeStyle = l.isNew ? css('--new') : css('--ink-2'); ctx.lineWidth = l.type === 'rail' ? 3.5 : 2.5; if (l.type === 'brt') ctx.setLineDash([7, 4]); ctx.beginPath(); ctx.moveTo(l.a[0] * k, l.a[1] * k); ctx.lineTo(l.b[0] * k, l.b[1] * k); ctx.stroke(); ctx.setLineDash([]); }
+  // hubs
+  ctx.font = '600 11px system-ui, sans-serif'; ctx.textAlign = 'center';
+  for (const [hx, hy, name] of [[24, 24, 'Downtown'], [Sim.HUB[0], Sim.HUB[1], 'East hub']]) { ctx.fillStyle = css('--surface'); ctx.strokeStyle = css('--ink'); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(hx * k, hy * k - 7); ctx.lineTo(hx * k + 7, hy * k); ctx.lineTo(hx * k, hy * k + 7); ctx.lineTo(hx * k - 7, hy * k); ctx.closePath(); ctx.fill(); ctx.stroke(); halo(name, hx * k, hy * k - 12); }
+  // agents
+  if (out && out.agents) {
+    const ag = out.agents, ink = css('--ink'), tr = css('--transit'), surf = css('--surface');
+    for (let a = 0; a < Math.min(NAG, AGENTS); a++) {
+      if (ag.mode[a] === 2) continue;
+      if (!paused) phases[a] = (phases[a] + dt * 9 / Math.max(6, ag.time[a])) % 2;
+      const f = phases[a] < 1 ? phases[a] : 2 - phases[a];
+      const x = (ag.hx[a] + (ag.jx[a] - ag.hx[a]) * f) * k, y = (ag.hy[a] + (ag.jy[a] - ag.hy[a]) * f) * k;
+      ctx.beginPath(); ctx.arc(x, y, ag.mode[a] === 1 ? 2.6 : 2, 0, 7);
+      ctx.fillStyle = ag.mode[a] === 1 ? tr : ink; ctx.fill(); ctx.lineWidth = 0.8; ctx.strokeStyle = surf; ctx.stroke();
+    }
+    const focus = pickedAgent >= 0 ? pickedAgent : hoverAgent;
+    if (focus >= 0 && ag.mode[focus] !== 2) {
+      const f = phases[focus] < 1 ? phases[focus] : 2 - phases[focus];
+      ctx.strokeStyle = ink; ctx.lineWidth = 1; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(ag.hx[focus] * k, ag.hy[focus] * k); ctx.lineTo(ag.jx[focus] * k, ag.jy[focus] * k); ctx.stroke(); ctx.setLineDash([]);
+      const x = (ag.hx[focus] + (ag.jx[focus] - ag.hx[focus]) * f) * k, y = (ag.hy[focus] + (ag.jy[focus] - ag.hy[focus]) * f) * k;
+      ctx.beginPath(); ctx.arc(x, y, 6, 0, 7); ctx.lineWidth = 2; ctx.stroke();
+    }
+  }
+  if (layer === 'cong' && out) { ctx.font = '600 12px system-ui, sans-serif'; for (let z = 0; z < 9; z++) { const [zx, zy] = zoneCenter(z); halo(`${Sim.ZONE_NAMES[z]} ${out.mult[z].toFixed(2)}×`, zx * k, zy * k + (z === 8 ? 22 : 0)); } }
+  if (hoverCell >= 0 && pickedAgent < 0 && hoverAgent < 0) { ctx.strokeStyle = css('--ink'); ctx.lineWidth = 1.5; ctx.strokeRect((hoverCell % Sim.G) * k, Math.floor(hoverCell / Sim.G) * k, k, k); }
+  if (pickedAgent >= 0) updateInspector(true);
+}
+function halo(t, x, y) { ctx.lineWidth = 3.5; ctx.strokeStyle = css('--surface'); ctx.lineJoin = 'round'; ctx.strokeText(t, x, y); ctx.fillStyle = css('--ink'); ctx.fillText(t, x, y); }
+function agentAt(mx, my) {
+  if (!agentsView) return -1; const ag = agentsView[worldScen].agents, k = size / Sim.G; let best = -1, bd = 64;
+  for (let a = 0; a < Math.min(NAG, AGENTS); a++) { if (ag.mode[a] === 2) continue; const f = phases[a] < 1 ? phases[a] : 2 - phases[a]; const x = (ag.hx[a] + (ag.jx[a] - ag.hx[a]) * f) * k, y = (ag.hy[a] + (ag.jy[a] - ag.hy[a]) * f) * k; const d = (x - mx) ** 2 + (y - my) ** 2; if (d < bd) { bd = d; best = a; } }
+  return best;
+}
+canvas.addEventListener('mousemove', e => {
+  const b = canvas.getBoundingClientRect(), mx = e.clientX - b.left, my = e.clientY - b.top, k = size / Sim.G;
+  hoverAgent = agentAt(mx, my);
+  const cxi = Math.floor(mx / k), cyi = Math.floor(my / k); hoverCell = (cxi >= 0 && cyi >= 0 && cxi < Sim.G && cyi < Sim.G) ? cyi * Sim.G + cxi : -1;
+  if (hoverAgent >= 0) { showTip(agentHtml(hoverAgent) + '<br><i class="k">Click to follow</i>', e); return; }
+  if (hoverCell < 0 || !planSc) { hideTip(); return; }
+  const sc = worldScen === 'plan' ? planSc : baseSc, p = sel ? sel.p : Sim.medianParams(ranges), i = hoverCell, out = agentsView ? agentsView[worldScen] : null;
+  const z = Sim.cellZone[i], h = sc.homesBase[i] + sc.newHomes[i] * p.completion;
+  showTip(`<b>${Sim.ZONE_NAMES[z]} zone block</b><br>${sc.isPark[i] ? 'Park' : `<span class="k">Homes</span> ${Math.round(h).toLocaleString('en-US')}${sc.newHomes[i] > 1 && worldScen === 'plan' ? ` <span class="k">(${Math.round(sc.newHomes[i] * p.completion).toLocaleString('en-US')} new)</span>` : ''}`}<br><span class="k">Nearest park</span> ${sc.parkDist[i].toFixed(1)} km<br><span class="k">Nearest rapid transit</span> ${sc.accCell[i].toFixed(1)} km${out ? `<br><span class="k">Corridor delay</span> ${out.mult[z].toFixed(2)}×` : ''}`, e);
+});
+canvas.addEventListener('mouseleave', () => { hoverAgent = -1; hoverCell = -1; hideTip(); });
+canvas.addEventListener('click', e => { const b = canvas.getBoundingClientRect(); pickedAgent = agentAt(e.clientX - b.left, e.clientY - b.top); updateInspector(); });
+function agentHtml(a) {
+  const out = agentsView[worldScen], ag = out.agents, sc = worldScen === 'plan' ? planSc : baseSc;
+  const zh = Sim.ZONE_NAMES[Sim.cellZone[ag.hc[a]]], zj = Sim.ZONE_NAMES[Sim.cellZone[Math.floor(ag.jy[a]) * Sim.G + Math.floor(ag.jx[a])] ?? 8];
+  const isNew = worldScen === 'plan' && sc.newHomes[ag.hc[a]] > 150;
+  return `<b>Household ${a + 1}</b>${isNew ? ' · <span style="color:var(--new)">lives in new development</span>' : ''}<br>Lives in <b>${zh}</b>, works in <b>${zj}</b><br>${ag.mode[a] === 1 ? 'Takes transit' : 'Drives'} · <b>${ag.time[a].toFixed(0)} min</b> each way · corridor delay ${out.mult[Sim.cellZone[ag.hc[a]]].toFixed(2)}×<br><span class="k">Nearest park ${sc.parkDist[ag.hc[a]].toFixed(1)} km · rapid transit ${sc.accCell[ag.hc[a]].toFixed(1)} km away</span>`;
+}
+let lastInspect = 0;
+function updateInspector(throttle) {
+  if (throttle && performance.now() - lastInspect < 500) return; lastInspect = performance.now();
+  if (pickedAgent >= 0 && agentsView) $('inspector').innerHTML = agentHtml(pickedAgent) + ' · <a href="#" id="unpick" style="color:var(--ink-2)">stop following</a>';
+  else $('inspector').innerHTML = sel ? `Future #${sel.i + 1} · ${worldScen === 'plan' ? 'with the change' : 'baseline'}. Dots are sampled households commuting; dot speed reflects their trip time. Click one to follow it.` : 'Running futures…';
+  const u = $('unpick'); if (u) u.onclick = ev => { ev.preventDefault(); pickedAgent = -1; updateInspector(); };
+}
+requestAnimationFrame(draw);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (runs.length) { renderResults(true); renderWhy(); } legendWorld(); });
+
+$('pauseBtn').textContent = paused ? 'Play' : 'Pause';
+$('typicalBtn').onclick = () => select(typical);
+$('bestBtn').onclick = () => select(runs.reduce((a,b) => b.q.commute-b.b.commute < a.q.commute-a.b.commute ? b : a));
+$('worstBtn').onclick = () => select(runs.reduce((a,b) => b.q.commute-b.b.commute > a.q.commute-a.b.commute ? b : a));
+$('futureForm').onsubmit = e => { e.preventDefault(); const n = +$('futureNumber').value; if (!running && Number.isInteger(n) && runs[n-1]) select(runs[n-1]); };
+$('exportBtn').onclick = () => {
+  const data = { model:'Worldline synthetic city · illustrative, not a forecast', proposal:completedPrompt, assumptions:completedRanges, futures:runs.map(r => ({future:r.i+1,seed:r.seed,assumptions:r.p,baseline:Object.fromEntries(METRICS.map(m=>[m.key,r.b[m.key]])),withChange:Object.fromEntries(METRICS.map(m=>[m.key,r.q[m.key]]))})) };
+  const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  const a=document.createElement('a'); a.href=url; a.download='worldline-futures.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+$('form').onsubmit = e => { e.preventDefault(); if (!running) start(); };
+start();
+})();
+</script>
+</body>
+</html>

@@ -1,14 +1,7 @@
 <!doctype html>
 <html lang="en">
   <head>
-      <script type="importmap">
-              {
-                  "imports": {
-                      "three": "https://unpkg.com/three@0.173.0/build/three.module.js",
-                      "three/addons/": "https://unpkg.com/three@0.173.0/examples/jsm/"
-                  }
-              }
-          </script>
+      <script type="importmap">{"imports":{"three":"/vendor/three/three.webgpu.js","three/webgpu":"/vendor/three/three.webgpu.js","three/tsl":"/vendor/three/three.tsl.js","three/addons/":"/vendor/three/addons/"}}</script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Scene Editor</title>
@@ -135,8 +128,11 @@
     </div>
 
     <script type="module">
-      import * as THREE from 'https://unpkg.com/three@0.173.0/build/three.module.js';
-      import { OrbitControls } from 'https://unpkg.com/three@0.173.0/examples/jsm/controls/OrbitControls.js';
+      import * as THREE from 'three';
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { createWebGPUDemoRenderer, showWebGPUError, manageWebGPUDemo } from "/tools/webgpu-demo-runtime.js";
+try {
+
 
       const pathParts = window.location.pathname.split('/').filter(Boolean);
       const sceneId = (pathParts[0] === 'edit' || pathParts[0] === 'edit-game') && pathParts[1]
@@ -300,7 +296,7 @@
         }
       }
 
-      function initPreview() {
+      async function initPreview() {
         previewScene = new THREE.Scene();
         previewScene.background = new THREE.Color(0x0b0e13);
 
@@ -310,7 +306,7 @@
         camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 3000);
         camera.position.set(35, 25, 35);
 
-        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer = await createWebGPUDemoRenderer(THREE, { antialias: true });
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(width, height);
         previewEl.appendChild(renderer.domElement);
@@ -333,12 +329,12 @@
         previewScene.add(sceneObjectsGroup);
 
         function animate() {
-          requestAnimationFrame(animate);
           controls.update();
           renderer.render(previewScene, camera);
         }
 
-        animate();
+        manageWebGPUDemo(renderer, previewScene, controls);
+        await renderer.setAnimationLoop(animate);
 
         window.addEventListener('resize', () => {
           const newWidth = previewEl.clientWidth;
@@ -481,7 +477,7 @@
         setStatus('Loading...');
         setError('');
 
-        initPreview();
+        await initPreview();
 
         try {
           const response = await fetch(sceneApiUrl);
@@ -499,7 +495,9 @@
         }
       }
 
-      boot();
-    </script>
+      await boot();
+
+} catch (error) { showWebGPUError(error); }
+</script>
   </body>
 </html>

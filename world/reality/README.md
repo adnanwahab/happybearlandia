@@ -59,3 +59,11 @@ Geometry without matching modeled state is a coverage gap, not zero impact. Scan
 Additional branch semantic tests passed3tests/14assertions. Tests use actual worker modules and production transitions, with deliberately bounded fixtures and no fabricated successful-run counters. No paid inference, commits, deployments, GitHub changes or authority cutovers were performed. QA uses isolated port3146 and stops its server after each run.
 
 Later child-agent gameplay additions require separate checks for actual parent/household links, child work constraints, school/sleep schedules, affordable care and parent work availability, seasonal camp capacity, permissions and deterministic restore. They are not certified by the Reality Compiler tests above.
+
+## What’s causing this?
+
+The constraint inspector below an entered world supports monthly city projects, businesses and households. Selecting an entity, or clicking its city marker, observes the chosen branch's exact saved month. A fresh worker simulates the next month to expose recorded delay reasons, entity fields and shared capacity usage; it does not invent a cause when none is recorded.
+
+Choose one shared capacity/interest-rate input, a selected business's operating cost, or its household's current home rent, and compare two deterministic continuations from that same saved state. The result shows actual completion months (or a censored “not completed” result), city spending and entity outcomes. Other bottlenecks can make a proposed change ineffective. Cancel or select another source to terminate the isolated worker; neither continuation mutates the saved world.
+
+Cost/rent changes are exogenous what-if inputs, not enacted regulations or funded subsidies. Shared capacity expansion has no staffing purchase ledger; the displayed city spending is model output, not the implementation price of that expansion. Population-lane futures explicitly report that this city-ledger inspector is unavailable. Tests cover actual permit/labor bottlenecks, deterministic completion, entity-level inputs, saved-state preservation and the real browser worker/UI flow.

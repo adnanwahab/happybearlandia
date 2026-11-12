@@ -1,16 +1,19 @@
+import { mountConstitutionTimeline } from './constitution-timeline.js';
 import { resolveConstitutionPlan, constitutionGeometry } from './constitution-visuals.js';
 import {mountLawLibrary} from './laws/library.js';
 const $=id=>document.getElementById(id);
-let frozenPlan=null;
+let frozenPlan=null,generation=0;
 const lawLibrary=mountLawLibrary($('law-library'),{onSelect:law=>{
   $('idea').value=law.text;
   $('idea').dispatchEvent(new Event('input',{bubbles:true}));
-  $('results').hidden=true;
+  timeline.reset();
   $('status').textContent=`Law ${law.number} selected. Choose Compare worlds to evaluate this plan. ${law.supported?'A reviewed model mapping is available in the law explorer.':'This proposal does not yet have a reviewed simulation mechanism; modeled effects may be unavailable.'}`;
   $('idea').focus({preventScroll:true});
   $('form').scrollIntoView({behavior:'smooth',block:'start'});
 }});
 addEventListener('pagehide',()=>lawLibrary.destroy(),{once:true});
+const timeline=mountConstitutionTimeline($('results'));
+$('idea').addEventListener('input',()=>{generation++;timeline.reset();frozenPlan=null;$('run').disabled=false;});
 const frames=[$('baseline'),$('proposed')];
 addEventListener('message',event=>{
   if(event.origin!==location.origin || !frames.some(f=>f.contentWindow===event.source))return;
@@ -19,13 +22,14 @@ addEventListener('message',event=>{
 });
 async function api(url,body){const response=await fetch(url,{...(body?{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(20000)});const value=await response.json();if(!response.ok)throw new Error(value.error||`HTTP ${response.status}`);return value;}
 $('form').onsubmit=async event=>{
-  event.preventDefault();$('run').disabled=true;$('results').hidden=true;frozenPlan=null;
+  event.preventDefault();const serial=++generation;$('run').disabled=true;timeline.reset();frozenPlan=null;
   $('proposed').contentWindow.postMessage({type:'constitution-plan',plan:{proposalIds:[]}},location.origin);
   try{
     const text=$('idea').value.trim();if(!text)throw new Error('Enter a plan idea.');
     $('status').textContent='Synthesizing a read-only Dear Congress what-if…';
     let payload=null,upstreamError=null;
     try{payload=await api('/api/plan',{includeSynthetic:false,extraEntries:[{text,author:'HBL what-if',createdAt:new Date().toISOString()}]});}catch(error){upstreamError=error;}
+    if(serial!==generation)return;
     const resolved=resolveConstitutionPlan(payload,text);frozenPlan=structuredClone(resolved.plan);
     $('plan').textContent=`Frozen proposals: ${frozenPlan.actions.map(a=>a.proposalId).join(', ')}. Unsupported: ${frozenPlan.unsupported.join(', ')||'none'}.${resolved.fallback?' Using the local drainage mapping; Dear Congress did not resolve a package.':''}${upstreamError?' Synthesis unavailable: '+upstreamError.message:''}`;
     const shapes=constitutionGeometry(frozenPlan);
@@ -35,19 +39,23 @@ $('form').onsubmit=async event=>{
     const job=await api('/api/world/experiments',{plan:frozenPlan,seeds:Number($('seeds').value),years:Number($('years').value),maxPeople:80,baseSeed:'constitution',procedural:true});
     const deadline=Date.now()+10*60*1000;
     for(;;){
+      if(serial!==generation)return;
       if(Date.now()>deadline)throw new Error('Comparison timed out. The server may still be running the experiment.');
       await new Promise(r=>setTimeout(r,1000));const status=await api(job.statusUrl);
+      if(serial!==generation)return;
       $('status').textContent=`${status.status}: ${status.progress?.step||0}/${status.progress?.totalSteps||'?'} paired checkpoints`;
       if(status.status==='error')throw new Error(status.error);
       if(status.status!=='done')continue;
       const result=status.result;
-      $('split').textContent=`${result.meta.metrics[result.futures.metric].label}: ${result.futures.positive} better · ${result.futures.neutral} neutral · ${result.futures.negative} worse (neutral band ±${result.futures.neutralBand}).`;
-      $('metrics').replaceChildren(...Object.entries(result.final).map(([key,m])=>{const div=document.createElement('div');div.className='metric';const title=document.createElement('strong');title.textContent=result.meta.metrics[key].label;const p=document.createElement('p');p.textContent=`Baseline ${m.baseline.mean} · Plan ${m.plan.mean} · Δ ${m.delta.mean}. Paired p10–p90: ${m.delta.p10} to ${m.delta.p90}.`;div.append(title,p);return div;}));
-      const compact={meta:{seeds:result.meta.seeds},final:result.final,futures:{year:result.futures.year}};
-      const {localConstitutionSummary,compactConstitutionResult}=await import('./constitution-summary.js');
-      let summary=localConstitutionSummary(compactConstitutionResult(compact));
-      try{summary=(await api('/api/constitution-summary',compact)).summary;}catch{}
-      $('summary').textContent=summary;$('results').hidden=false;$('status').textContent='Comparison complete. Same town, years, residents and paired random seeds.';break;
+      const view=timeline.show(result);
+      $('status').textContent='Comparison complete. Same town, years, residents and paired random seeds.';
+      // The timeline stays usable while an optional provider summary is pending.
+      // A delayed response can update only the checkpoint that requested it.
+      const compact={meta:{seeds:result.meta.seeds},final:view.checkpoint.final,futures:{year:view.checkpoint.futures.year}};
+      api('/api/constitution-summary',compact).then(value=>{
+        if(serial===generation)view.setSummary(value.summary);
+      }).catch(()=>{});
+      break;
     }
-  }catch(error){$('status').textContent=error.message;}finally{$('run').disabled=false;}
+  }catch(error){if(serial===generation)$('status').textContent=error.message;}finally{if(serial===generation)$('run').disabled=false;}
 };

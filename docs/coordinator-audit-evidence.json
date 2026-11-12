@@ -1,0 +1,345 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "1de9fd8",
+  "sourceQualification": "Same committed application source for all audit runs; only coordinator documentation subsequently changed.",
+  "checks": [
+    {
+      "command": "bun test test/future-machine*.test.js test/two-futures*.test.js test/world-readiness-regression.test.js test/pipeline-coordinator.test.js test/pipeline-evidence-manifest.test.js",
+      "passed": 120,
+      "skipped": 3,
+      "failed": 0,
+      "assertions": 1042,
+      "log": "/tmp/hbl-coordinator-unit.log"
+    },
+    {
+      "config": "test/two-futures-sprint.browser.config.js",
+      "passed": 13,
+      "skipped": 1,
+      "failed": 0
+    },
+    {
+      "config": "test/approved-demo-responsive.browser.config.js",
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "config": "test/native-presentation-proof.browser.config.js",
+      "passed": 2,
+      "failed": 0,
+      "environment": "Chromium native Apple Metal WebGPU"
+    },
+    {
+      "command": "HBL_NATIVE_WEBGPU=1 HBL_BACKEND_ANGLE=metal bun scripts/record-one-city-two-futures.mjs --output /tmp/hbl-coordinator-recording-20261111 --port 41875",
+      "passed": 1,
+      "failed": 0,
+      "durationSeconds": 55.3
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "/tmp/hbl-coordinator-audit-20261111/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45
+    },
+    {
+      "path": "/tmp/hbl-coordinator-audit-20261111/two-futures-compatibility.-02733-xplicit-in-actual-worker-UI/reality-nonpassing-explained.png",
+      "sha256": "f3245574f449f23ac6e2c13278d64f207148a8cc00578043148c395482e4a71c",
+      "bytes": 813184
+    },
+    {
+      "path": "/tmp/hbl-coordinator-audit-20261111/two-futures-compatibility.-85822-acts-and-provenance-resolve/world-canvas-activity.png",
+      "sha256": "ad6b6786e76da354f437cea47425fd284ed281f4e607c94dbf7372b531bc6fee",
+      "bytes": 228602
+    },
+    {
+      "path": "/tmp/hbl-coordinator-audit-20261111/two-futures-compatibility.-85822-acts-and-provenance-resolve/world-canvas-real-week.png",
+      "sha256": "5c4346f6d2fbbc1e4fdb47314cc23971624e0faec4a1836b88ca5ae70ce76359",
+      "bytes": 180664
+    },
+    {
+      "path": "/tmp/hbl-coordinator-audit-20261111/two-futures-compatibility.-de69e-cs-and-WHY-without-overflow/mobile-320-canvas-why.png",
+      "sha256": "7204f53af2c4c4bc023f8fc019763e3e226069d2a217e64f60555f193d818be5",
+      "bytes": 794705
+    },
+    {
+      "path": "/tmp/hbl-coordinator-audit-20261111/two-futures-sprint.e2e.js--0b5a2-rgence-hold-respects-reduce/cinematic-month-16.json",
+      "sha256": "76dace84a8ba1b11b74f33d2a83f9e0ef75ca9d87c2996f7de86c31b7233ed8e",
+      "bytes": 352641
+    },
+    {
+      "path": "/tmp/hbl-coordinator-audit-20261111/two-futures-sprint.e2e.js--0b5a2-rgence-hold-respects-reduce/cinematic-month-16.png",
+      "sha256": "6d46b13b6677ff8888bb1c9e4b80d0537b240660462618ca37b99439addd4c46",
+      "bytes": 1027803
+    },
+    {
+      "path": "/tmp/hbl-coordinator-audit-20261111/two-futures-sprint.e2e.js--16be4-ired-evidence-and-selection/webgl-unavailable.json",
+      "sha256": "af5b4d58ed8f16a56ddd4a928ca5ed24412e8898785eff6a4bd96af5ab923aaf",
+      "bytes": 496543
+    },
+    {
+      "path": "/tmp/hbl-coordinator-audit-20261111/two-futures-sprint.e2e.js--16be4-ired-evidence-and-selection/webgl-unavailable.png",
+      "sha256": "a57bff29fb30519b2627b15a9a90fce100e0916bd60ba82e5e6706973a400d2e",
+      "bytes": 1014517
+    },
+    {
+      "path": "/tmp/hbl-coordinator-audit-20261111/two-futures-sprint.e2e.js--2e7e6-hold-respects-no-preference/cinematic-month-16.json",
+      "sha256": "83d6a08776727f8ce78f2a2cfbb5510af0cf00392b1b182e8c39e5dde04ef9e0",
+      "bytes": 352641
+    },
+    {
+      "path": "/tmp/hbl-coordinator-audit-20261111/two-futures-sprint.e2e.js--2e7e6-hold-respects-no-preference/cinematic-month-16.png",
+      "sha256": "33ae883e581f7c1d07f557e8aa895c1d9c101d0e333f827ead6351f5b04807b1",
+      "bytes": 1026541
+    },
+    {
+      "path": "/tmp/hbl-coordinator-audit-20261111/two-futures-sprint.e2e.js--3acb9-ference-only-and-metric-WHY/interactive-why-month-120.json",
+      "sha256": "c2826e5b3c8a40132fc448eeaa30bb19361f6d21aa35d323e5e1a006654dc145",
+      "bytes": 497973
+    },
+    {
+      "path": "/tmp/hbl-coordinator-audit-20261111/two-futures-sprint.e2e.js--3acb9-ference-only-and-metric-WHY/interactive-why-month-120.png",
+      "sha256": "e1590464ac4f1b0efd05fb08598dd15836cb6ba26a761b8df683ebd63707e9bf",
+      "bytes": 1130346
+    },
+    {
+      "path": "/tmp/hbl-coordinator-audit-20261111/two-futures-sprint.e2e.js--f2369-e-and-deterministic-refresh/after-month-120.json",
+      "sha256": "2961d23c874aeb9dd08219300831c077ae5f4e962aa135a4ffbaeb29306d5a4a",
+      "bytes": 498019
+    },
+    {
+      "path": "/tmp/hbl-coordinator-audit-20261111/two-futures-sprint.e2e.js--f2369-e-and-deterministic-refresh/after-month-120.png",
+      "sha256": "593c52f2d9886ffd7940a2c9be5409f333b4808dcd0b51830b011bc44fb61492",
+      "bytes": 1071260
+    },
+    {
+      "path": "/tmp/hbl-coordinator-audit-20261111/two-futures-sprint.e2e.js--f2369-e-and-deterministic-refresh/before-month-0.json",
+      "sha256": "fa5b6b4ff36ef88f8b7ae3af2855cc75d9742aaa2556e03e58c41e45e4438e78",
+      "bytes": 163503
+    },
+    {
+      "path": "/tmp/hbl-coordinator-audit-20261111/two-futures-sprint.e2e.js--f2369-e-and-deterministic-refresh/before-month-0.png",
+      "sha256": "a67a2a110dd8cb070413df38d2c70370f7c715174710dbf07e55b5c6e58d30ac",
+      "bytes": 1034436
+    },
+    {
+      "path": "/tmp/hbl-coordinator-responsive-20261111/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45
+    },
+    {
+      "path": "/tmp/hbl-coordinator-responsive-20261111/approved-demo-responsive.e-6c630-ced-motion-journey-at-390px/390-matched-0.json",
+      "sha256": "ebef8884b116ac204360c4adeaebdd72a91dc6f452e1cb24a1c33a37913b0a1e",
+      "bytes": 4247
+    },
+    {
+      "path": "/tmp/hbl-coordinator-responsive-20261111/approved-demo-responsive.e-6c630-ced-motion-journey-at-390px/390-matched-0.png",
+      "sha256": "62d81600d756f65c2c6bb54bdbf5d461096e8704553c2096d9ffe75fb586e4aa",
+      "bytes": 815638
+    },
+    {
+      "path": "/tmp/hbl-coordinator-responsive-20261111/approved-demo-responsive.e-6c630-ced-motion-journey-at-390px/390-month-16-why.json",
+      "sha256": "b975678743e6c92904cd7a6efedfb22fff5c24891e7c08250f90f364e6fd5173",
+      "bytes": 146120
+    },
+    {
+      "path": "/tmp/hbl-coordinator-responsive-20261111/approved-demo-responsive.e-6c630-ced-motion-journey-at-390px/390-month-16-why.png",
+      "sha256": "582f8f246dd5192cf55fbd16a313c176e0ca36cbe8b9cd425c47595b01960601",
+      "bytes": 841155
+    },
+    {
+      "path": "/tmp/hbl-coordinator-responsive-20261111/approved-demo-responsive.e-6c630-ced-motion-journey-at-390px/390-reverse-0.json",
+      "sha256": "ebef8884b116ac204360c4adeaebdd72a91dc6f452e1cb24a1c33a37913b0a1e",
+      "bytes": 4247
+    },
+    {
+      "path": "/tmp/hbl-coordinator-responsive-20261111/approved-demo-responsive.e-6c630-ced-motion-journey-at-390px/390-reverse-0.png",
+      "sha256": "f16962e62a9ca20fc554e6db6d591c01339736d8fa5b822e1131f8ab2ad48777",
+      "bytes": 725988
+    },
+    {
+      "path": "/tmp/hbl-coordinator-responsive-20261111/approved-demo-responsive.e-94179-ced-motion-journey-at-320px/320-matched-0.json",
+      "sha256": "38447b64a06dae6bc43013c7c09f01241f422e81701fdae8b60c972ce18c7051",
+      "bytes": 4262
+    },
+    {
+      "path": "/tmp/hbl-coordinator-responsive-20261111/approved-demo-responsive.e-94179-ced-motion-journey-at-320px/320-matched-0.png",
+      "sha256": "6b9a81e665e852e67afb1318763ac785c91366f9bca80ae6a7f8d78484c75c63",
+      "bytes": 830216
+    },
+    {
+      "path": "/tmp/hbl-coordinator-responsive-20261111/approved-demo-responsive.e-94179-ced-motion-journey-at-320px/320-month-16-why.json",
+      "sha256": "9ba4a9744e31821cc44239c69bb13ebbff1fdd63930bce0b4f03264d3afe3cb5",
+      "bytes": 146135
+    },
+    {
+      "path": "/tmp/hbl-coordinator-responsive-20261111/approved-demo-responsive.e-94179-ced-motion-journey-at-320px/320-month-16-why.png",
+      "sha256": "fd39ec95e60757557829983cb2f328fce249813bcd722cc81db019c199cfaf98",
+      "bytes": 827890
+    },
+    {
+      "path": "/tmp/hbl-coordinator-responsive-20261111/approved-demo-responsive.e-94179-ced-motion-journey-at-320px/320-reverse-0.json",
+      "sha256": "38447b64a06dae6bc43013c7c09f01241f422e81701fdae8b60c972ce18c7051",
+      "bytes": 4262
+    },
+    {
+      "path": "/tmp/hbl-coordinator-responsive-20261111/approved-demo-responsive.e-94179-ced-motion-journey-at-320px/320-reverse-0.png",
+      "sha256": "ba190a7b3575a515a2bf7015b81702b297556238d13e216f5aa616161bca8c8b",
+      "bytes": 684632
+    },
+    {
+      "path": "/tmp/hbl-coordinator-responsive-20261111/approved-demo-responsive.e-fc771-ed-motion-journey-at-1440px/1440-matched-0.json",
+      "sha256": "a0ab0e3243c6884b2cb436d95fb5e86323b5d578c9c0c7bb28e832d498addc30",
+      "bytes": 4262
+    },
+    {
+      "path": "/tmp/hbl-coordinator-responsive-20261111/approved-demo-responsive.e-fc771-ed-motion-journey-at-1440px/1440-matched-0.png",
+      "sha256": "d68aa852c7d35de6ce109ddc67154eb71df8ad60693c4e1d55b6ca711c190c74",
+      "bytes": 1045856
+    },
+    {
+      "path": "/tmp/hbl-coordinator-responsive-20261111/approved-demo-responsive.e-fc771-ed-motion-journey-at-1440px/1440-month-16-why.json",
+      "sha256": "06ee0f4bbaf12bc05afe9ffc0c5665d01c496f56c9a08cff3573a82cce4771a4",
+      "bytes": 146135
+    },
+    {
+      "path": "/tmp/hbl-coordinator-responsive-20261111/approved-demo-responsive.e-fc771-ed-motion-journey-at-1440px/1440-month-16-why.png",
+      "sha256": "c0c2ca99d119aa9b6c8b36556293e34d819e6c00985678d10f51b9b00e9e711a",
+      "bytes": 1117096
+    },
+    {
+      "path": "/tmp/hbl-coordinator-responsive-20261111/approved-demo-responsive.e-fc771-ed-motion-journey-at-1440px/1440-reverse-0.json",
+      "sha256": "a0ab0e3243c6884b2cb436d95fb5e86323b5d578c9c0c7bb28e832d498addc30",
+      "bytes": 4262
+    },
+    {
+      "path": "/tmp/hbl-coordinator-responsive-20261111/approved-demo-responsive.e-fc771-ed-motion-journey-at-1440px/1440-reverse-0.png",
+      "sha256": "8e065b7050dca0518877f4a1e638ba4ba3cff160324af504299a848b6515d48e",
+      "bytes": 930205
+    },
+    {
+      "path": "/tmp/hbl-coordinator-recording-20261111/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45
+    },
+    {
+      "path": "/tmp/hbl-coordinator-recording-20261111/artifact-audit.json",
+      "sha256": "24d0dc48681ebedb15a5061e8f5660dafc22a7c00a9195c52141779906f83c32",
+      "bytes": 7762
+    },
+    {
+      "path": "/tmp/hbl-coordinator-recording-20261111/two-futures-sprint.e2e.js--d6b33--second-one-click-Play-Demo/demo-complete.json",
+      "sha256": "99df6098de6203eaaf020ad12f04d0bd197cdf55aeaff5284278fe7ddfb080f8",
+      "bytes": 497931
+    },
+    {
+      "path": "/tmp/hbl-coordinator-recording-20261111/two-futures-sprint.e2e.js--d6b33--second-one-click-Play-Demo/demo-complete.png",
+      "sha256": "606f5d0b00804cbdc557dd6ee25b24338eeec0d92b29ae742e49e38ef23a5b80",
+      "bytes": 1082911
+    },
+    {
+      "path": "/tmp/hbl-coordinator-recording-20261111/two-futures-sprint.e2e.js--d6b33--second-one-click-Play-Demo/demo-start.json",
+      "sha256": "af35b555f9bde2f44f4ba946b304e4ed8b0af185d5a58e411032654ac11a742d",
+      "bytes": 163461
+    },
+    {
+      "path": "/tmp/hbl-coordinator-recording-20261111/two-futures-sprint.e2e.js--d6b33--second-one-click-Play-Demo/demo-start.png",
+      "sha256": "5b4216ad6eb8448eae2d922fa7ace8c44ae74ac9b2b1055b629608284dcf0266",
+      "bytes": 1016196
+    },
+    {
+      "path": "/tmp/hbl-coordinator-recording-20261111/two-futures-sprint.e2e.js--d6b33--second-one-click-Play-Demo/demo-timing.json",
+      "sha256": "a84fa33418b7ff121de344bf822f31923af0ae2890a869fbaadff5ae835f3748",
+      "bytes": 386
+    },
+    {
+      "path": "/tmp/hbl-coordinator-recording-20261111/two-futures-sprint.e2e.js--d6b33--second-one-click-Play-Demo/demo-why-completion-event.png",
+      "sha256": "dfdd10dab0bbd8af0b90d81b39a54b4f7e3ba4a3629f9ab388d7e198790ea202",
+      "bytes": 186564
+    },
+    {
+      "path": "/tmp/hbl-coordinator-recording-20261111/two-futures-sprint.e2e.js--d6b33--second-one-click-Play-Demo/video.webm",
+      "sha256": "c73858c7d9339b350498211d75a285a4a76ea558053f6f6b08613d205f2004b1",
+      "bytes": 4022769
+    },
+    {
+      "path": "/Users/wahabma/.codex/worktrees/d36e/happybearlandia/test-results/native-presentation-proof/.last-run.json",
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903",
+      "bytes": 45
+    },
+    {
+      "path": "/Users/wahabma/.codex/worktrees/d36e/happybearlandia/test-results/native-presentation-proof/native-presentation-proof.-4f3b5-calized-Month-16-difference/1440-layout-console.json",
+      "sha256": "3ec2a596d003249311dee90d9f035e0536142e5a1102aba30b33bc4dbbe3715d",
+      "bytes": 709
+    },
+    {
+      "path": "/Users/wahabma/.codex/worktrees/d36e/happybearlandia/test-results/native-presentation-proof/native-presentation-proof.-4f3b5-calized-Month-16-difference/1440-month-0-canvas.png",
+      "sha256": "2bbea9e03e26e2c395a534ef0c8b5748b9bc82d9f8524637614c1d91de7f9314",
+      "bytes": 75426
+    },
+    {
+      "path": "/Users/wahabma/.codex/worktrees/d36e/happybearlandia/test-results/native-presentation-proof/native-presentation-proof.-4f3b5-calized-Month-16-difference/1440-month-0-page.png",
+      "sha256": "67ab131fa21f4acc997166846ce6870aa29c1326aafe7a21fbbcdae415b18115",
+      "bytes": 1013293
+    },
+    {
+      "path": "/Users/wahabma/.codex/worktrees/d36e/happybearlandia/test-results/native-presentation-proof/native-presentation-proof.-4f3b5-calized-Month-16-difference/1440-month-0.json",
+      "sha256": "2d83e8f794b3cb9a952ff1cd7da7f0917d3f103f64c5a2fdde575a1beaf9499d",
+      "bytes": 108154
+    },
+    {
+      "path": "/Users/wahabma/.codex/worktrees/d36e/happybearlandia/test-results/native-presentation-proof/native-presentation-proof.-4f3b5-calized-Month-16-difference/1440-month-16-canvas.png",
+      "sha256": "41f5080c2284037610ebbfbb5a4a47869f8be73df93943c9d3af5fb4ccd53a6e",
+      "bytes": 93021
+    },
+    {
+      "path": "/Users/wahabma/.codex/worktrees/d36e/happybearlandia/test-results/native-presentation-proof/native-presentation-proof.-4f3b5-calized-Month-16-difference/1440-month-16-page.png",
+      "sha256": "78c8c496dce48fe7b73835c284cfdf89f30f0b6ecac0cbb6f6e5cd1344191fd9",
+      "bytes": 1047166
+    },
+    {
+      "path": "/Users/wahabma/.codex/worktrees/d36e/happybearlandia/test-results/native-presentation-proof/native-presentation-proof.-4f3b5-calized-Month-16-difference/1440-month-16.json",
+      "sha256": "0dba5b04a6c78cfa56ad4b4b3c70dac10d8831d3dc86b10b9228745dc1e94ee7",
+      "bytes": 399923
+    },
+    {
+      "path": "/Users/wahabma/.codex/worktrees/d36e/happybearlandia/test-results/native-presentation-proof/native-presentation-proof.-5e7b7-calized-Month-16-difference/390-layout-console.json",
+      "sha256": "8baec98a34dae187af12b2ccc434768c2fb9bb658b4284b0798cb167558f57d8",
+      "bytes": 706
+    },
+    {
+      "path": "/Users/wahabma/.codex/worktrees/d36e/happybearlandia/test-results/native-presentation-proof/native-presentation-proof.-5e7b7-calized-Month-16-difference/390-month-0-canvas.png",
+      "sha256": "63386321e55490925602ee0df5cec334150b109560f61427c6ad66c62ff77400",
+      "bytes": 13033
+    },
+    {
+      "path": "/Users/wahabma/.codex/worktrees/d36e/happybearlandia/test-results/native-presentation-proof/native-presentation-proof.-5e7b7-calized-Month-16-difference/390-month-0-page.png",
+      "sha256": "042beadabd81e6533342fa0818c0b64cdd8b27ebfc35939eed4d0953e853db89",
+      "bytes": 762932
+    },
+    {
+      "path": "/Users/wahabma/.codex/worktrees/d36e/happybearlandia/test-results/native-presentation-proof/native-presentation-proof.-5e7b7-calized-Month-16-difference/390-month-0.json",
+      "sha256": "782800d42755406735af27a60359c3a714432a841422a5261eecbd8e3cc915f2",
+      "bytes": 108034
+    },
+    {
+      "path": "/Users/wahabma/.codex/worktrees/d36e/happybearlandia/test-results/native-presentation-proof/native-presentation-proof.-5e7b7-calized-Month-16-difference/390-month-16-canvas.png",
+      "sha256": "aea7d7171bd59d4499024e5f0a44024b117f2400238c78b542c94c90369a1dbd",
+      "bytes": 19096
+    },
+    {
+      "path": "/Users/wahabma/.codex/worktrees/d36e/happybearlandia/test-results/native-presentation-proof/native-presentation-proof.-5e7b7-calized-Month-16-difference/390-month-16-page.png",
+      "sha256": "cfc3d5ad9bc4894993c4bc14618bbb34442285df2ab4d0c10ca753f1bc5b3c26",
+      "bytes": 786989
+    },
+    {
+      "path": "/Users/wahabma/.codex/worktrees/d36e/happybearlandia/test-results/native-presentation-proof/native-presentation-proof.-5e7b7-calized-Month-16-difference/390-month-16.json",
+      "sha256": "23734f717d69d9ed4373d88fb2f6b70db483890658a387995bc8ce0f03bf7533",
+      "bytes": 399898
+    }
+  ],
+  "limitations": [
+    "Artifacts are local and not bundled; hashes do not establish visual correctness.",
+    "No Safari, Firefox or physical-phone acceptance.",
+    "No release merge, deployment, new worker launch or candidate integration."
+  ]
+}

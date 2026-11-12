@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Crisis Control Room · HappyBearLandia</title>
+  <link rel="stylesheet" href="/world/civilization/civilization.css">
+  <link rel="stylesheet" href="./storm.css">
+  <link rel="stylesheet" href="./treaty.css">
+  <script type="module" src="./response.js"></script>
+</head>
+<body>
+<main>
+  <nav><a id="storm-link" href="/world/storm/">Sculpt a Storm</a> <a href="/">HappyBearLandia</a></nav>
+  <header>
+    <h1>Crisis Control Room</h1>
+    <p>Take over after the last storm step. Reopen routes, restore facilities, and get households to shelter.</p>
+  </header>
+  <p id="scope"></p>
+  <section id="treaty" aria-label="Treaty Room"></section>
+  <section aria-labelledby="dispatch-title">
+    <h2 id="dispatch-title">Dispatch order</h2>
+    <form id="dispatch">
+      <label for="action">Response action</label><select id="action"></select>
+      <button type="submit">Add to dispatch</button>
+    </form>
+    <ol id="order"></ol>
+    <p id="cost"></p>
+    <button id="run" type="button">Run response</button>
+    <p id="status" role="status"></p>
+  </section>
+  <section id="results" hidden aria-labelledby="result-title">
+    <h2 id="result-title">Recovery comparison</h2>
+    <label>Response shift <input id="shift" type="range" min="0" step="1"></label>
+    <output id="shift-label" for="shift"></output>
+    <table>
+      <thead><tr><th scope="col">Measure</th><th scope="col">No response</th><th scope="col">Dispatch plan</th></tr></thead>
+      <tbody id="measures"></tbody>
+    </table>
+    <h3>Dispatch log through this shift</h3>
+    <ul id="events"></ul>
+    <p id="pending"></p>
+    <a id="share">Open shareable response</a>
+  </section>
+  <details>
+    <summary>Response model rules</summary>
+    <p>Recovery starts at the storm’s final snapshot and holds the hazard fixed. Pumping and clearing restores modeled road access. Facility repairs restore operations when the facility also has an open route to the depot. Repairs leave the original water depths and exposure records intact.</p>
+    <p>One local crew is available. Crews take reachable jobs in dispatch order, and each job occupies one crew until completion. The protected depot shelter has 12 household places. These are synthetic response shifts and modeled costs.</p>
+  </details>
+</main>
+</body>
+</html>

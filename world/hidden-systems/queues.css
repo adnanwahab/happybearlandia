@@ -1,0 +1,73 @@
+.queues-city {
+  --queues-baseline: #3974af;
+  --queues-adjusted: #328868;
+  --queues-rule: color-mix(in srgb, currentColor 22%, transparent);
+  --queues-track: color-mix(in srgb, currentColor 11%, transparent);
+  min-width: 0;
+}
+
+.queues-city p { margin: .45rem 0 .8rem; }
+
+.queues-city .queues-table {
+  width: 100%;
+  margin: .9rem 0;
+  border-collapse: collapse;
+  text-align: start;
+  font-variant-numeric: tabular-nums;
+  table-layout: fixed;
+}
+
+.queues-table caption {
+  text-align: start;
+  font-size: 1.2rem;
+  font-weight: 750;
+  margin-bottom: .35rem;
+}
+
+.queues-table th, .queues-table td {
+  border-bottom: 1px solid var(--queues-rule);
+  padding: .4rem .5rem;
+  text-align: start;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.queues-table th:first-child { width: 40%; }
+.queues-table thead th:nth-child(2) { box-shadow: inset 0 -3px var(--queues-baseline); }
+.queues-table thead th:nth-child(3) { box-shadow: inset 0 -3px var(--queues-adjusted); }
+.queues-table small { display: block; margin-top: .25rem; line-height: 1.25; }
+
+.queues-track {
+  height: .42rem;
+  margin: .25rem 0 .15rem;
+  background: var(--queues-track);
+  border-radius: .3rem;
+  overflow: hidden;
+}
+
+.queues-bar { height: 100%; }
+.queues-bar--baseline { background: var(--queues-baseline); }
+.queues-bar--adjusted { background: var(--queues-adjusted); }
+
+.queues-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .65rem;
+  margin: .5rem 0;
+}
+
+.queues-details details {
+  border: 1px solid var(--queues-rule);
+  border-radius: .4rem;
+  padding: .55rem .65rem;
+  overflow-wrap: anywhere;
+}
+
+.queues-details summary { cursor: pointer; font-weight: 650; }
+.queues-details summary:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.queues-details ul { margin: .4rem 0 0; padding-inline-start: 1.35rem; }
+
+@media (max-width: 33rem) {
+  .queues-details { grid-template-columns: 1fr; }
+  .queues-table th, .queues-table td { font-size: .9rem; padding: .35rem .3rem; }
+}

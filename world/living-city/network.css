@@ -1,0 +1,114 @@
+.living-network__filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .55rem;
+  font-weight: 650;
+}
+
+.living-network__filter select {
+  font: inherit;
+  color: inherit;
+  background: var(--living-network-surface, #fff);
+  border: 1px solid var(--living-network-border, #9bb6a9);
+  border-radius: .4rem;
+  padding: .35rem .55rem;
+}
+
+.living-network__description,
+.living-network__summary {
+  font-size: .9rem;
+}
+
+.living-network__graph {
+  display: block;
+  width: 100%;
+  max-height: 25rem;
+  background: var(--living-network-surface, #f3f8f4);
+  border-radius: .55rem;
+  color: var(--living-network-text, #1d3d31);
+}
+
+.living-network__graph text {
+  dominant-baseline: middle;
+  fill: currentColor;
+  font-family: inherit;
+  font-size: 15px;
+  pointer-events: none;
+}
+
+.living-network__line {
+  fill: none;
+  stroke: var(--living-network-muted, #698f7f);
+  stroke-width: 2.5;
+  cursor: pointer;
+  opacity: .6;
+}
+
+.living-network__line[data-flowing="true"] {
+  stroke: var(--living-network-accent, #267760);
+  stroke-dasharray: 8 4;
+  animation: living-network-flow 1.6s linear infinite;
+}
+
+.living-network__line[data-closed="true"] {
+  stroke: var(--living-network-closed, #a04e38);
+  stroke-dasharray: 2 4;
+}
+
+.living-network__line[data-worker="true"] {
+  stroke: var(--living-network-worker, #365d9f);
+  stroke-width: 4;
+  opacity: 1;
+}
+
+.living-network__line[data-active="true"] {
+  stroke-width: 5;
+  opacity: 1;
+}
+
+@keyframes living-network-flow {
+  to { stroke-dashoffset: -24; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .living-network__line[data-flowing="true"] { animation: none; }
+}
+
+.living-network__edges {
+  display: grid;
+  gap: .3rem;
+  list-style: none;
+  padding: 0;
+  max-height: 13rem;
+  overflow-y: auto;
+}
+
+.living-network__edges button {
+  width: 100%;
+  text-align: start;
+  font: inherit;
+  color: inherit;
+  background: var(--living-network-surface, #fff);
+  border: 1px solid var(--living-network-border, #9bb6a9);
+  border-radius: .4rem;
+  padding: .45rem .6rem;
+  cursor: pointer;
+}
+
+.living-network__edges button[aria-pressed="true"] {
+  border-color: var(--living-network-accent, #267760);
+  box-shadow: inset 3px 0 var(--living-network-accent, #267760);
+}
+
+.living-network__detail {
+  overflow-wrap: anywhere;
+}
+
+.living-network__detail p {
+  margin-block: .4rem;
+}
+
+.living-network__evidence {
+  font-size: .875rem;
+}

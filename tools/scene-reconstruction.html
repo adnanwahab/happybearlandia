@@ -37,20 +37,16 @@
     Drag: orbit &nbsp; • &nbsp; Wheel: zoom &nbsp; • &nbsp; Right-drag: pan
   </div>
 
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://unpkg.com/three@0.180.0/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.180.0/examples/jsm/"
-    }
-  }
-  </script>
+  <script type="importmap">{"imports":{"three":"/vendor/three/three.webgpu.js","three/webgpu":"/vendor/three/three.webgpu.js","three/tsl":"/vendor/three/three.tsl.js","three/addons/":"/vendor/three/addons/"}}</script>
 
   <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
     import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
+import { createWebGPUDemoRenderer, showWebGPUError, manageWebGPUDemo } from "/tools/webgpu-demo-runtime.js";
+try {
+
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x171717);
@@ -64,11 +60,11 @@
 
     camera.position.set(2.8, -3.4, 2.3);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = await createWebGPUDemoRenderer(THREE, { antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.15;
@@ -182,12 +178,15 @@
     window.addEventListener('resize', resize);
 
     function animate() {
-      requestAnimationFrame(animate);
       controls.update();
       renderer.render(scene, camera);
     }
 
-    animate();
-  </script>
+    manageWebGPUDemo(renderer, scene, controls);
+
+    await renderer.setAnimationLoop(animate);
+
+} catch (error) { showWebGPUError(error); }
+</script>
 </body>
 </html>

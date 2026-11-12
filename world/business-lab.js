@@ -1,3 +1,5 @@
+import { beginBusinessChallenge, advanceBusinessChallenge, challengeDefinition, getBusinessChallenge, recordBusinessChallengeBest } from './models/business-v1/challenges.js';
+import { renderBusinessChallengeBanner, renderBusinessChallengeCatalog, challengeReviewNotice } from './business-challenge-ui.js';
 import {entrepreneurMilestones} from './entrepreneur-mode.js';
 import {createTrackedWorker} from "./workers/worker-registry.js";
 import { ARCHETYPES, EXAMPLES, createDefinition } from './models/business-v1/content.js';
@@ -7,24 +9,31 @@ import { createBusinessState, defaultPlan, simulatePeriod, forecast, financeActi
 import { replayFuture, suggestedPlan, searchPlans, paretoFrontier } from './models/business-v1/futures.js';
 
 const entrepreneurMode=new URLSearchParams(location.search).get('mode')!=='lab';
+const CHALLENGE_RECORDS = 'hbl-business-challenges.v1';
 const STORAGE = 'hbl-business-lab.v1', $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
 const money = value => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: Math.abs(value) < 100 ? 2 : 0 }).format(value);
 const pct = value => `${(value * 100).toFixed(1)}%`;
 const num = value => Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 });
-const screens = entrepreneurMode?['Start a company','Operating plan','Trade','Results','Grow company','Possible futures','Business assumptions','Product studio']:['Describe','Plan','Run','Review','Business hub','Futures','Edit Business','Product Editor'];
-let screen = 0, state = null, plan = null, draft = null, provenance = {}, warnings = [], source = '', providers = [{ id:'demo', label:'Local parser · not AI', configured:true }], provider = 'demo', futures = null, worker = null, run = null, timer = null, speed = 1, paused = false, editing = false, selectedFuture = null;
+const screens = entrepreneurMode?['Start a company','Operating plan','Trade','Results','Grow company','Possible futures','Business assumptions','Product studio','Challenges']:['Describe','Plan','Run','Review','Business hub','Futures','Edit Business','Product Editor','Challenges'];
+let screen = 0, state = null, plan = null, draft = null, provenance = {}, warnings = [], source = '', providers = [{ id:'demo', label:'Local parser · not AI', configured:true }], provider = 'demo', futures = null, worker = null, run = null, timer = null, speed = 1, paused = false, editing = false, selectedFuture = null, pendingChallenge = null;
 function notice(text, error = false) { $('notice').hidden = !text; $('notice').textContent = text; $('notice').className = error ? 'error' : ''; }
+let challengeRecords = {};
+try { const stored = JSON.parse(localStorage.getItem(CHALLENGE_RECORDS) || '{}'); if (stored && typeof stored === 'object' && !Array.isArray(stored)) challengeRecords = stored; } catch {}
 function save() {
   if (!state) return;
-  try { localStorage.setItem(STORAGE, JSON.stringify({ schemaVersion: 'business-save.v1', state, plan })); } catch { notice('This browser could not save your company. Export a snapshot to keep it.'); }
+  try {
+    localStorage.setItem(STORAGE, JSON.stringify({ schemaVersion: 'business-save.v1', state, plan }));
+    const updated = recordBusinessChallengeBest(challengeRecords, state);
+    if (updated !== challengeRecords) { localStorage.setItem(CHALLENGE_RECORDS, JSON.stringify(updated)); challengeRecords = updated; }
+  } catch { notice('This browser could not save your company. Export a snapshot to keep it.'); }
 }
 try {
   const saved = JSON.parse(localStorage.getItem(STORAGE) || 'null');
   if (saved?.schemaVersion === 'business-save.v1' && saved.state) {
     requireApproved(saved.state.def);
     if (!Number.isFinite(saved.state.cash) || !Number.isInteger(saved.state.period) || !Array.isArray(saved.state.history) || !Array.isArray(saved.state.logs)) throw new Error('Invalid save');
-    state = saved.state; plan = saved.plan || defaultPlan(state.def);
+    state = advanceBusinessChallenge(saved.state); plan = saved.plan || defaultPlan(state.def);
     if (validatePlan(plan).length) throw new Error('Invalid saved plan');
     screen = 1;
   }
@@ -34,6 +43,7 @@ function exportJson(name, data) {
   const a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 function renderChrome() {
+  renderBusinessChallengeBanner($('businessChallengeProgress'), state, () => { if (run || worker) return; screen = 8; notice(''); render(); }, { busy: !!run || !!worker });
   $('businessModeLabel').textContent=entrepreneurMode?'/ Entrepreneur Mode':'/ Business Lab';$('businessModePill').textContent=entrepreneurMode?'Founder · business-v1':'business-v1';
   const founder=$('founderProgress');founder.hidden=!entrepreneurMode;founder.innerHTML=entrepreneurMode?`<div class="card"><div class="eyebrow">ENTREPRENEUR MODE</div><strong>Build a company. Serve customers. Keep it alive.</strong><p class="muted">You control prices, staffing, suppliers, inventory, marketing and financing. This uses your existing company ledger and saved progress; government policy is outside this mode.</p><div class="row">${entrepreneurMilestones(state).map(goal=>`<span class="pill" data-founder-goal="${goal.id}" aria-label="${esc(goal.label)}: ${goal.complete?'achieved':'not achieved'}">${goal.complete?'✓':'○'} ${esc(goal.label)}</span>`).join('')}</div><p class="muted margin-top">Milestones use actual approved state, cash and cumulative profit. Illustrative business assumptions are not a real-market forecast. <a href="?mode=${entrepreneurMode?'lab':'entrepreneur'}">${entrepreneurMode?'Open classic Business Lab':'Enter Entrepreneur Mode'}</a></p></div>`:'';
   $('navigation').innerHTML = screens.map((name,i) => `<button data-screen="${i}" class="${screen === i ? 'active' : ''}" ${(!state && i > 0 && i < 7) || run || worker ? 'disabled' : ''}><span>0${i+1}</span>${name}</button>`).join('');
@@ -60,7 +70,7 @@ async function propose(text, definition = null) {
   const checked = validateDefinition(result.def); if (!checked.valid) throw new Error(checked.errors.join(' '));
   return result;
 }
-function setDraft(result, isEdit = false) { draft = copy(result.def); delete draft.approved; delete draft.version; provenance = result.provenance || {}; warnings = result.warnings || []; source = result.source; editing = isEdit; }
+function setDraft(result, isEdit = false) { draft = copy(result.def); delete draft.approved; delete draft.version; provenance = result.provenance || {}; warnings = result.warnings || []; source = result.source; editing = isEdit; pendingChallenge = result.challengeId || null; }
 function renderDescribe() {
   $('screen').innerHTML = `<div class="hero-grid"><div>${heading('A playable business laboratory','An idea.<br>A company.<br><em>500 possible futures.</em>','Start with a sentence. Review the assumptions, run the business, then find out which decisions help it survive.')}<div class="card featured"><label for="description">What business do you want to build?</label><textarea id="description" maxlength="4000" placeholder="A premium sparkling yuzu drink for gamers, sold online in 12-packs for $28.">${esc(draft?.description || EXAMPLES[0].text)}</textarea><div class="examples">${EXAMPLES.map((e,i) => `<button data-example="${i}">${e.name}</button>`).join('')}</div><div class="row between"><label>Compiler<select id="compilerProvider">${providerOptions()}</select></label><button class="primary" id="compile">Review business model →</button></div><p class="muted margin-top">Local parser works without an API key. Configured AI providers receive only your description and editable model; they return data, never simulation code.</p></div></div><div class="card"><div class="eyebrow">FROM IDEA TO INSIGHT</div><div class="steps"><div><section><b>Make assumptions visible</b><p>Costs, customers and capacity are editable estimates, not forecasts.</p></section></div><div><section><b>Operate one timeline</b><p>Plan a day at a stand or a month inside a company.</p></section></div><div><section><b>Understand every outcome</b><p>Read the P&L and see why customers walked away.</p></section></div><div><section><b>Test the same 500 futures</b><p>Compare strategies on shared seeds. Enter any future to replay it.</p></section></div></div><div class="divider"></div><a href="/world?business_mode=true">Place your company in the neighborhood ↗</a></div></div><div id="assumptions"></div>`;
   document.querySelectorAll('[data-example]').forEach(b => b.onclick = () => { $('description').value = EXAMPLES[Number(b.dataset.example)].text; });
@@ -74,14 +84,14 @@ function renderDescribe() {
 }
 function renderAssumptions(target = 'assumptions') {
   const base = state?.def;
-  $(target).innerHTML = `<div class="divider"></div><div class="row between"><div><div class="eyebrow">REVIEW BEFORE RUNNING</div><h2>${editing ? `Proposed definition v${base.version+1}` : 'Your business, made inspectable.'}</h2></div><span class="pill">${esc(source || 'Manual content pack')}</span></div>${warnings.map(w => `<p class="muted">${esc(w)}</p>`).join('')}
+  $(target).innerHTML = `<div class="divider"></div><div class="row between"><div><div class="eyebrow">REVIEW BEFORE RUNNING</div><h2>${editing ? `Proposed definition v${base.version+1}` : 'Your business, made inspectable.'}</h2></div><span class="pill">${esc(source || 'Manual content pack')}</span></div>${challengeReviewNotice(pendingChallenge)}${warnings.map(w => `<p class="muted">${esc(w)}</p>`).join('')}
   ${editing ? `<div class="card table-wrap"><h3>Proposed changes</h3><table><thead><tr><th>Field</th><th>Before</th><th>After</th></tr></thead><tbody>${Object.keys(draft).filter(k => JSON.stringify(draft[k]) !== JSON.stringify(base[k]) && !['approved','version'].includes(k)).map(k => `<tr><td>${esc(k)}</td><td>${esc(typeof base[k] === 'object' ? JSON.stringify(base[k]).slice(0,100) : base[k])}</td><td>${esc(typeof draft[k] === 'object' ? JSON.stringify(draft[k]).slice(0,100) : draft[k])}</td></tr>`).join('') || '<tr><td colspan="3">No changes proposed.</td></tr>'}</tbody></table></div>` : ''}
-  <form id="assumptionForm"><div class="grid two"><label>Company name <span class="badge inferred">editable assumption</span><input id="defName" maxlength="100" value="${esc(draft.name)}" required></label><label>Archetype <span class="badge inferred">inferred</span><select id="defArchetype" ${editing ? 'disabled' : ''}>${Object.entries(ARCHETYPES).map(([id,a]) => `<option value="${id}" ${id === draft.archetype ? 'selected' : ''}>${a.label}</option>`).join('')}</select></label><label>Period<select id="defScale" ${editing ? 'disabled' : ''}><option value="day" ${draft.scale === 'day' ? 'selected' : ''}>Stand · one day</option><option value="month" ${draft.scale === 'month' ? 'selected' : ''}>Company · one month</option></select><small>Changing scale does not rescale costs automatically; review per-period assumptions.</small></label><label>Unit sold<input id="defUnit" maxlength="100" value="${esc(draft.unit)}" required></label></div><div class="review-fields margin-top">${FIELDS.map(([id,label,min,max,unit]) => `<label class="field"><span class="row"><span>${label}</span><span class="badge ${provenance[id] || 'inferred'}" id="tag-${id}">${provenance[id] || 'inferred'}</span></span><input data-def="${id}" type="number" min="${min}" max="${max}" step="${id === 'leadTime' ? '1' : 'any'}" value="${draft[id]}" required><small>${unit}</small></label>`).join('')}</div><details><summary>All eight definition blocks · editable JSON</summary><p class="muted">Inputs, recipe, production, perishability, reference price, demand, segments and unlocks. Advanced changes are validated before approval.</p><textarea id="defAdvanced" class="mono" spellcheck="false">${esc(JSON.stringify(Object.fromEntries(['inputs','recipe','production','perishability','referencePrice','demand','segments','channels','unlock'].map(k => [k,draft[k]])), null, 2))}</textarea></details>${!editing ? '<label>Simulation seed<input id="defSeed" type="number" min="0" max="4294967295" step="1" value="42" required></label>' : ''}<label class="row margin-top"><input type="checkbox" id="approveCheck" required style="width:auto"> I reviewed these illustrative assumptions and approve this version.</label><div class="actions"><button class="primary" type="submit">${editing ? 'Approve new version' : 'Approve & start company'} →</button><button type="button" id="rejectDraft" class="quiet">Reject proposal</button></div></form>`;
+  <form id="assumptionForm"><div class="grid two"><label>Company name <span class="badge inferred">editable assumption</span><input id="defName" maxlength="100" value="${esc(draft.name)}" required></label><label>Archetype <span class="badge inferred">inferred</span><select id="defArchetype" ${editing || pendingChallenge ? 'disabled' : ''}>${Object.entries(ARCHETYPES).map(([id,a]) => `<option value="${id}" ${id === draft.archetype ? 'selected' : ''}>${a.label}</option>`).join('')}</select></label><label>Period<select id="defScale" ${editing || pendingChallenge ? 'disabled' : ''}><option value="day" ${draft.scale === 'day' ? 'selected' : ''}>Stand · one day</option><option value="month" ${draft.scale === 'month' ? 'selected' : ''}>Company · one month</option></select><small>Changing scale does not rescale costs automatically; review per-period assumptions.</small></label><label>Unit sold<input id="defUnit" maxlength="100" value="${esc(draft.unit)}" required></label></div><div class="review-fields margin-top">${FIELDS.map(([id,label,min,max,unit]) => `<label class="field"><span class="row"><span>${label}</span><span class="badge ${provenance[id] || 'inferred'}" id="tag-${id}">${provenance[id] || 'inferred'}</span></span><input data-def="${id}" type="number" min="${min}" max="${max}" step="${id === 'leadTime' ? '1' : 'any'}" value="${draft[id]}" required><small>${unit}</small></label>`).join('')}</div><details><summary>All eight definition blocks · editable JSON</summary><p class="muted">Inputs, recipe, production, perishability, reference price, demand, segments and unlocks. Advanced changes are validated before approval.</p><textarea id="defAdvanced" class="mono" spellcheck="false">${esc(JSON.stringify(Object.fromEntries(['inputs','recipe','production','perishability','referencePrice','demand','segments','channels','unlock'].map(k => [k,draft[k]])), null, 2))}</textarea></details>${!editing ? `<label>Simulation seed<input id="defSeed" type="number" min="0" max="4294967295" step="1" value="${getBusinessChallenge(pendingChallenge)?.seed ?? 42}" ${pendingChallenge ? 'readonly' : ''} required></label>` : ''}<label class="row margin-top"><input type="checkbox" id="approveCheck" required style="width:auto"> I reviewed these illustrative assumptions and approve this version.</label><div class="actions"><button class="primary" type="submit">${editing ? 'Approve new version' : 'Approve & start company'} →</button><button type="button" id="rejectDraft" class="quiet">Reject proposal</button></div></form>`;
   document.querySelectorAll('[data-def]').forEach(el => el.oninput = () => { const tag = $(`tag-${el.dataset.def}`); tag.textContent = 'player-set'; tag.className = 'badge player-set'; provenance[el.dataset.def] = 'player-set'; });
   $('defArchetype').onchange = e => {
     const old = draft; draft = createDefinition(e.target.value, { name:old.name, description:old.description }); provenance = {}; warnings = ['Archetype changed: costs, scale, price and capacity reset to category defaults. Review again.']; renderAssumptions(target);
   };
-  $('rejectDraft').onclick = () => { draft = null; editing = false; notice('Proposal rejected. The approved company is unchanged.'); render(); };
+  $('rejectDraft').onclick = () => { draft = null; pendingChallenge = null; editing = false; notice('Proposal rejected. The approved company is unchanged.'); render(); };
   $('assumptionForm').onsubmit = e => {
     e.preventDefault();
     try {
@@ -93,9 +103,12 @@ function renderAssumptions(target = 'assumptions') {
       next.inputs[0].cost = next.unitCost;
       if (editing && (next.archetype !== state.def.archetype || next.scale !== state.scale)) throw new Error('Changing the archetype or period requires a new company.');
       const approved = approveDefinition(next, editing ? state.def.version+1 : 1);
-      if (editing) { state.def = approved; plan.price = approved.price; plan.quality = approved.quality; }
-      else { if (state) { try { localStorage.setItem(`${STORAGE}.previous`, JSON.stringify({state,plan})); } catch {} } state = createBusinessState(approved, Number($('defSeed').value)); plan = defaultPlan(approved); }
-      draft = null; editing = false; futures = null; selectedFuture = null; screen = 1; save(); render(); notice('Assumptions approved. Plan your next period; the simulation is paused.');
+      if (editing) { state.def = approved; state = advanceBusinessChallenge(state); plan.price = approved.price; plan.quality = approved.quality; }
+      else { let fresh = createBusinessState(approved, Number($('defSeed').value));
+        if (pendingChallenge) fresh = beginBusinessChallenge(fresh, pendingChallenge);
+        if (state) { try { localStorage.setItem(`${STORAGE}.previous`, JSON.stringify({state,plan})); } catch {} }
+        state = fresh; plan = defaultPlan(approved); }
+      draft = null; pendingChallenge = null; editing = false; futures = null; selectedFuture = null; screen = 1; save(); render(); notice('Assumptions approved. Plan your next period; the simulation is paused.');
     } catch(e) { notice(e.message,true); }
   };
 }
@@ -122,7 +135,7 @@ function renderPlan() {
   $('planForm').onsubmit = e => { e.preventDefault(); try { plan = readPlan(); startPeriod(); } catch(e) { notice(e.message,true); } };
 }
 function startPeriod() {
-  const result = simulatePeriod(state, plan);
+  const result = simulatePeriod(state, plan, { externalInputs: state.externalInputs || {} });
   run = { ...result, progress:0 }; paused = false; speed = 1; futures = null; screen = 2; notice(''); render();
   timer = setInterval(() => { if (!paused && run) { run.progress = Math.min(1,run.progress+.0125*speed); updateRun(); if (run.progress >= 1) finishPeriod(); } },80);
 }
@@ -220,8 +233,16 @@ function renderEditor() {
   $('exportProduct').onclick=()=>{try{const def=JSON.parse($('productJson').value);const checked=validateDefinition(def);if(!checked.valid)throw new Error(checked.errors.join(' '));delete def.approved;delete def.version;exportJson('business-content-pack.json',def);}catch(e){notice(e.message,true);}};
   $('reviewProduct').onclick=()=>{try{const def=JSON.parse($('productJson').value);const checked=validateDefinition(def);if(!checked.valid)throw new Error(checked.errors.join(' '));setDraft({def,source:'Imported / manual pack',warnings:['All content-pack assumptions require review.']});screen=0;render();$('assumptions').scrollIntoView({behavior:'smooth'});}catch(e){notice(e.message,true);}};
 }
-function render() {window.scrollTo(0,0);renderChrome();[renderDescribe,renderPlan,renderRun,renderReview,renderHub,renderFutures,renderEdit,renderEditor][screen]();const query=new URLSearchParams(location.search);for(const anchor of document.querySelectorAll('a[href^="/world?business_mode"]')){const url=new URL(anchor.href);for(const key of ['lat','lng']){const value=query.get(key);if(value!==null&&Number.isFinite(Number(value)))url.searchParams.set(key,value);}anchor.href=url.pathname+url.search;}}
-$('newCompany').onclick=()=>{if(state){try{localStorage.setItem(`${STORAGE}.previous`,JSON.stringify({state,plan}));localStorage.removeItem(STORAGE);}catch{}}state=null;plan=null;draft=null;futures=null;screen=0;editing=false;render();notice('Ready for a new idea. Your previous company is saved as a recovery snapshot.');};
+function renderChallenges() {
+  renderBusinessChallengeCatalog($('screen'), { state, records: challengeRecords, hasPrevious: !$('restorePrevious').hidden, onRestore: () => $('restorePrevious').onclick(), onStart: id => {
+    if (run || worker) return;
+    setDraft({ def: challengeDefinition(id), challengeId: id, source: 'Curated challenge · fixed starting assumptions', warnings: [] });
+    screen = 0; notice('Review the challenge assumptions. Your current company stays saved until you approve the new run.'); render();
+    $('assumptions').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, onContinue: () => { screen = 1; render(); } });
+}
+function render() {window.scrollTo(0,0);renderChrome();[renderDescribe,renderPlan,renderRun,renderReview,renderHub,renderFutures,renderEdit,renderEditor,renderChallenges][screen]();const query=new URLSearchParams(location.search);for(const anchor of document.querySelectorAll('a[href^="/world?business_mode"]')){const url=new URL(anchor.href);for(const key of ['lat','lng']){const value=query.get(key);if(value!==null&&Number.isFinite(Number(value)))url.searchParams.set(key,value);}anchor.href=url.pathname+url.search;}}
+$('newCompany').onclick=()=>{if(state){try{localStorage.setItem(`${STORAGE}.previous`,JSON.stringify({state,plan}));localStorage.removeItem(STORAGE);}catch{}}state=null;plan=null;draft=null;pendingChallenge=null;futures=null;screen=0;editing=false;render();notice('Ready for a new idea. Your previous company is saved as a recovery snapshot.');};
 $('restorePrevious').onclick = () => {
   try {
     const previous = JSON.parse(localStorage.getItem(`${STORAGE}.previous`) || 'null');
@@ -229,9 +250,10 @@ $('restorePrevious').onclick = () => {
     requireApproved(previous.state.def);
     if (validatePlan(previous.plan).length) throw new Error('The recovery plan is invalid.');
     if (state) localStorage.setItem(`${STORAGE}.previous`, JSON.stringify({state,plan}));
-    state = previous.state; plan = previous.plan; draft = null; futures = null; screen = 1; save(); render(); notice('Previous company restored.');
+    state = advanceBusinessChallenge(previous.state); plan = previous.plan; draft = null; pendingChallenge = null; futures = null; screen = 1; save(); render(); notice('Previous company restored.');
   } catch(e) { notice(e.message,true); }
 };
+if (new URLSearchParams(location.search).get('view') === 'challenges') screen = 8;
 const incomingIdea=new URLSearchParams(location.search).get('idea');if(incomingIdea&&incomingIdea.length<=4000){setDraft(compileLocal(incomingIdea));screen=0;notice('Founder draft loaded. Review and approve its assumptions; existing saved company remains unchanged until approval.');}
 render();
 fetch('/api/business/providers').then(r=>r.json()).then(result=>{if(Array.isArray(result.providers)){providers=result.providers;const select=$('compilerProvider')||$('editProvider');if(select)select.innerHTML=providerOptions();}}).catch(()=>{});
