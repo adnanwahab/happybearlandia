@@ -1003,3 +1003,36 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-135 — bounded resident social network
+
+Next slice: project only persisted `social.ties` through the existing resident
+social inspector and panel; no second graph authority or generated backstory.
+Own `world/relationships/network.js`, its UI, model/panel integration and focused
+tests/docs on isolated branch `mini/SHE-135`. No independent implementation tasks
+justify delegation. Acceptance: depth 0–3, finite node/edge limits, stable IDs,
+synthetic labels, cycle/isolate handling, deterministic restore, worker/UI proof.
+Risks: existing relationship lists include inferred seeded ties, so they must
+never be traversed. Ledger presence proves saved modeled state, not a historical
+encounter or real-world relationship. No cross-model identity is assumed.
+
+Prerequisite audit: Linear SHE-142 is Done and links PR #50; its scalar oracle
+files are absent here and its contract explicitly lacks production mapping.
+Use the existing Population/legacy social ledger without claiming oracle parity.
+Linear relationship-network and GitHub social-network searches found related
+Playable Life/social features but no bounded ledger projection to duplicate.
+Verification and final status follow below.
+
+Delivered locally: ledger-only projection and shared resident panel integration,
+0–3 depth control, schematic plus accessible lists, synthetic labels and original
+IDs, snapshot provenance and explicit 80-node/160-edge truncation. Contract and
+limits: `world/relationships/NETWORK.md`. No scalar-oracle mapping or new state.
+Final focused gate: 49 tests pass, 0 fail, 605 assertions (Bun 1.4.2); covers
+cycles, isolates, boundaries, dense budgets, alias rejection, no name/memory
+copying, immutable projection and seed-matched Population save/restore. Existing
+House/social/promise/tradition regressions pass. `git diff --check` passes.
+No package lint/type-check commands exist. Browser checks attempted twice but
+server startup is blocked by sandbox loopback EPERM (Bun reports EADDRINUSE);
+no browser assertions ran. New `test/e2e/social-network.e2e.js` awaits a socket-
+capable environment. Next action: run the documented focused browser gate and
+review the local diff. No merge, deployment or production change performed.
