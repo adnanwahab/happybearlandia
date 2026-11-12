@@ -4,6 +4,12 @@ Regenerated on 2026-11-12 using the unchanged formula and thirteen-collection sc
 
 The [current machine-readable report](evidence/why-receipt-coverage.json) retains exact model manifests, recipes, selected source digests, initial/terminal state and ledger hashes, per-type counts and uncovered examples. [Original City 1.0.0 results](why-receipt-coverage-results-city-1.0.0.md) and their [original artifact](evidence/why-receipt-coverage-city-1.0.0.json) remain available; do not relabel those historical measurements as current.
 
+Refreshed after third-batch UI integration through `455961e`. Snapshot integrity
+and explicit change narration update the data/story source digests. All six run
+counts, model manifests, initial/terminal digests and receipt-ledger digests are
+unchanged. The offline coverage, story and diff gate passes 23 tests / 162
+assertions; the original City 1.0.0 artifacts remain byte-for-byte unchanged.
+
 | Seed | Arm | Entities with receipt / changed | Entity coverage | Transitions with receipt / changed | Transition coverage |
 | --- | --- | --- | --- | --- | --- |
 | 42 | baseline | 95/345 | 27.54% | 4100/7798 | 52.58% |

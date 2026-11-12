@@ -30,3 +30,25 @@ rows, the page clears that selection, shows a notice, and keeps the stored month
 An unavailable event falls back to the requested month and entity; an unavailable
 run retains the existing explicit error and retry action. Links depend on the
 server retaining that run, and do not embed or upload checkpoint data.
+
+### District metric evidence
+
+District heatmaps aggregate finite monthly checkpoint values. Missing fields,
+unknown occupancy statuses and absent inventories remain “No data”; genuine
+numeric zero stays zero. Rent covers rental units only; occupancy recognizes
+occupied, available, under-renovation and under-construction model statuses.
+Each value shows an assumption-based, partial, or missing-data label. Hover for
+provenance and limitations, or focus/expand the label for keyboard/touch access.
+Coverage counts usable versus eligible records. Dataset/revision/month and stored
+assumptions come from the same checkpoint. These model outputs have no established
+empirical confidence; OSM geometry does not verify housing or income values.
+
+### Selected-month entity trail
+
+Selecting an inventory entity also shows its exact selected-month event trail,
+with recorded event IDs and run/model/seed context. Links open the existing
+stored explanation and survive reload. Only explicit entity references and the
+model-owned construction mapping are included. Shared month or district does
+not establish causation. When no matching event exists, the trail says so;
+checkpoint differences alone do not supply missing causes. Coverage remains
+limited to the transitions instrumented by the monthly City model.

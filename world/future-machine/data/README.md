@@ -60,3 +60,23 @@ cancellation. The page's Retry comparison repeats the failed recipe, saved ID an
 selected month. Failed loads keep any previously completed pair visibly identified;
 a fresh shared page publishes no history until both arms validate. No network
 failure triggers recipe recomputation: only an explicitly missing saved record does.
+
+## Snapshot integrity (SHE-86)
+
+City replay responses now add `identity: {experimentId, scenarioId, runIndex,
+runId}`; run IDs retain the City's existing `scenario-index` convention and are
+scoped to the experiment. The adapter requires the exact requested identity and
+copies it onto every normalized snapshot, including the common Month 0 state.
+The two Month 0 **states** remain equal; their arm identities differ.
+`normalizeReplay` remains a pure state-only helper; production histories use the
+identified adapter path. Sparse/null replay steps fail explicitly.
+
+`../integrity.js` checks persisted paired histories before selection, diffing and
+stage construction, and checks frame clocks/paired identities before stage
+updates. Exactly 121 ordered months, matching state clocks/seed/model and exact
+arm/run identity are required. Pure unpersisted diff fixtures can still describe
+missing data as unavailable. Old replay servers without identity fail closed;
+frontend and backend need to be released together. The additive API envelope is
+the only City API change; it does not change storage or model rules. These are
+structural integrity checks, not cryptographic authentication or proof of exact
+checkpoint replay.

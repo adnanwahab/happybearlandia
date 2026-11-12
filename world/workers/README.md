@@ -18,6 +18,14 @@ crash; retry/restart counts and deadlines are bounded. Pool actions through the
 registry require explicit developer authorization. A task error is not silently
 retried as a crash. Normal inspector controls remain read-only.
 
+Canceling a queued task rejects its promise with `Task cancelled` and immediately
+releases its queue slot. Canceling active work terminates its worker. Late events
+from retired workers cannot settle replacement tasks or trigger crash recovery.
+The Population Studio runner invalidates pending replacements and rejects late
+results after cancellation/supersession, preserving the caller's retained result.
+Reproducible cancellation checks: `bun test test/queued-simulation-cancel.test.js
+test/worker-platform.test.js test/population-studio.test.js`.
+
 Future initialization enforces the model validation gate. Rejected targets produce
 failed rows with the actual validation errors, not fabricated forecasts. Live
 state remains inspectable with its gate warnings.

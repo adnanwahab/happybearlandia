@@ -1,3 +1,4 @@
+import { assertFrameIntegrity, assertHistoryIntegrity } from '../integrity.js';
 import {compareCityStates, metricDelta} from './core.js';
 import {METRIC_UNITS} from '../contracts.js';
 
@@ -17,7 +18,7 @@ function stableState(value) {
 /** Compare a pair of read-only monthly snapshots. Metrics come from the snapshots,
  * including cumulative spending; absent measurements are never recomputed as zero. */
 export function compareFrame(frame) {
-  assertMonth(frame?.month);
+  assertFrameIntegrity(frame);
   const {month, baseline, plan} = frame;
   for (const snapshot of [baseline, plan]) {
     if (snapshot && (snapshot.month !== month || snapshot.state?.month !== month)) throw new Error('Snapshot month does not match frame');
@@ -39,6 +40,7 @@ export function compareFrame(frame) {
 
 /** Exactly 121 frame results, keyed by their recorded month rather than row order. */
 export function compareHistory(history) {
+  if (history?.experimentId) assertHistoryIntegrity(history);
   if (!history || !Array.isArray(history.baseline) || !Array.isArray(history.plan)) throw new Error('Two monthly histories required');
   function months(snapshots) {
     if (snapshots.length > 121) throw new Error('History exceeds 120 monthly steps');

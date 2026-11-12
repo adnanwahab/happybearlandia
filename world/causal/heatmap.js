@@ -29,7 +29,7 @@ const metrics = {
     label: 'Occupied share of all housing units',
     unit: 'Percent of units',
     source: 'units',
-    sample: unit => Number(unit.status === 'occupied'),
+    sample: unit => ['occupied', 'available', 'under renovation', 'under construction'].includes(unit.status) ? Number(unit.status === 'occupied') : null,
     thresholds: [.25, .5, .75, .9],
     format: value => percentage.format(value),
   },
@@ -38,7 +38,7 @@ const metrics = {
 export function districtHeatmap(state, metricId) {
   const metric = metrics[metricId];
   const totals = new Map(state.districts.map(({ id }) => [id, { sum: 0, count: 0 }]));
-  for (const row of state[metric.source]) {
+  for (const row of state[metric.source] ?? []) {
     const total = totals.get(row.districtId);
     const sample = metric.sample(row);
     if (!total || !Number.isFinite(sample)) continue;
@@ -51,6 +51,26 @@ export function districtHeatmap(state, metricId) {
     const bin = value === null ? 'missing' : metric.thresholds.filter(threshold => value >= threshold).length;
     return { id, name: name ?? id, value, bin, count };
   });
+}
+
+// These aggregates describe monthly synthetic CityState, even with OSM geometry.
+export function districtMetricEvidence(state, metricId, row) {
+  const metric = metrics[metricId];
+  const inventory = (state[metric.source] ?? []).filter(item => item.districtId === row.id);
+  const eligible = metricId === 'rent' ? inventory.filter(item => item.tenure === 'rental') : inventory;
+  const missing = eligible.length - row.count;
+  const label = row.value === null ? 'Missing data' : missing ? 'Partial model data' : 'Assumption-based model';
+  const provenance = state.provenance ?? {};
+  const details = [
+    label + '.',
+    `Source: monthly CityState ${metric.source}.${metricId === 'occupancy' ? 'status' : metricId === 'rent' ? 'rent' : 'income'}.`,
+    `Dataset: ${provenance.datasetVersion ?? 'not recorded'}; revision: ${provenance.worldRevision ?? 'not recorded'}; month: ${state.month ?? 'not recorded'}.`,
+    `Coverage: ${row.count} of ${eligible.length} eligible records; ${missing} missing or invalid.`,
+    'Confidence: empirical confidence not established. Synthetic inputs and assumed equations; OSM geometry does not verify these values.',
+    row.value === null ? 'No usable samples; no value is estimated.' : 'Available-record aggregate; missing records are excluded, never treated as zero.',
+    ...(Array.isArray(provenance.assumptions) ? provenance.assumptions.filter(item => typeof item === 'string') : []),
+  ].join(' ');
+  return { label, details };
 }
 
 function element(tag, className, text) {
@@ -93,10 +113,16 @@ export function mountCityHeatmap(host) {
     unit.textContent = metric.unit;
     districts.replaceChildren(...districtHeatmap(state, picker.value).map(row => {
       const item = element('li', 'city-heatmap__district');
+      const evidence = districtMetricEvidence(state, picker.value, row);
+      const disclosure = element('details', 'city-heatmap__evidence');
+      const summary = element('summary', '', evidence.label);
+      summary.title = evidence.details;
+      disclosure.append(summary, element('p', '', evidence.details));
       item.append(
         swatch(row.bin),
         element('strong', 'city-heatmap__name', row.name),
         element('span', 'city-heatmap__value', row.value === null ? 'No data' : metric.format(row.value)),
+        disclosure,
       );
       return item;
     }));

@@ -86,3 +86,12 @@ export function indexConstructionEvidence(events, worldId) {
 export function hasInventoryEntity(rows, entityId) {
   return Object.values(rows).some(items => items.some(row => row.id === entityId));
 }
+
+// Event membership is evidence of a recorded association, never a new edge.
+export function entityMonthEvents(events, context, month, entityId) {
+  const scoped = events.filter(event => event.context.runId === context.runId &&
+    event.context.worldId === context.worldId && event.context.tick === month);
+  const constructionId = indexConstructionEvidence(scoped, context.worldId)(month, entityId);
+  return scoped.filter(event => event.entityIds.includes(entityId) || event.id === constructionId)
+    .sort((a, b) => a.sequence - b.sequence);
+}

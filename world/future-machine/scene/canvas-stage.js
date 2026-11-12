@@ -47,9 +47,9 @@ export function fitCanvasCamera(projection, width, height, mode='split') {
   const minX=Math.min(...xs),maxX=Math.max(...xs),minZ=Math.min(...zs),maxZ=Math.max(...zs);
   return {x:(minX+maxX)/2,z:(minZ+maxZ)/2,zoom:clamp(Math.min((width/(mode==='split'?2:1)-48)/Math.max(40,maxX-minX),(height-100)/Math.max(40,maxZ-minZ)),.02,16)};
 }
-export function createCanvasStage(container,{onSelect,onCameraChange}={}) {
+export function createCanvasStage(container,{onSelect,onCameraChange,onCameraInteraction}={}) {
   const doc=container.ownerDocument, canvas=doc.createElement('canvas');
-  canvas.tabIndex=0;
+  canvas.tabIndex=0;canvas.setAttribute('aria-keyshortcuts','PageUp PageDown d');
   canvas.setAttribute('aria-label','Low fidelity City map. Drag or arrow keys to pan; scroll, pinch, plus or minus to zoom. Click a building or project to inspect.');
   canvas.style.cssText='display:block;width:100%;height:100%;min-height:280px;touch-action:none;outline-offset:-3px';
   container.append(canvas);
@@ -57,6 +57,7 @@ export function createCanvasStage(container,{onSelect,onCameraChange}={}) {
   try {ctx=canvas.getContext('2d');} catch(error) {canvas.remove();throw error;}
   if (!ctx) {canvas.remove();throw new Error('Canvas2D unavailable');}
   let projection=null,diff=null,mode='split',ghosts=true,selected=null,disposed=false,fitted=false;
+  let pixelRatio=null;
   let width=1,height=1,camera={x:0,z:0,zoom:1},drawn=0;
   const pointers=new Map(), listeners=[];
   let gesture=null;
@@ -108,18 +109,18 @@ export function createCanvasStage(container,{onSelect,onCameraChange}={}) {
     ctx.fillText(width<500?'Green: recorded change · dashed: other-future ghost':'Green: recorded change · dashed: other-future ghost · drag / arrows: pan · scroll / pinch / ±: zoom',12,height-10,Math.max(1,width-24));
   }
   function changed(){draw();onCameraChange?.({...camera});}
-  function resize(){if(disposed)return;width=dimension(container.clientWidth,640);height=Math.max(280,dimension(container.clientHeight,400));const ratio=Math.min(dimension(globalThis.devicePixelRatio,1),2);canvas.width=Math.round(width*ratio);canvas.height=Math.round(height*ratio);ctx.setTransform(ratio,0,0,ratio,0,0);if(!fitted&&projection&&(projection.a.length||projection.b.length)){camera=fitCanvasCamera(projection,width,height,mode);fitted=true;}draw();}
+  function resize(){if(disposed)return;width=dimension(container.clientWidth,640);height=Math.max(280,dimension(container.clientHeight,400));const ratio=pixelRatio??Math.min(dimension(globalThis.devicePixelRatio,1),2);canvas.width=Math.round(width*ratio);canvas.height=Math.round(height*ratio);ctx.setTransform(ratio,0,0,ratio,0,0);if(!fitted&&projection&&(projection.a.length||projection.b.length)){camera=fitCanvasCamera(projection,width,height,mode);fitted=true;}draw();}
   function local(e){const box=canvas.getBoundingClientRect();if(!Number.isFinite(box.width)||!Number.isFinite(box.height)||box.width<=0||box.height<=0||!Number.isFinite(e.clientX)||!Number.isFinite(e.clientY))return null;return {x:(e.clientX-box.left)*width/box.width,y:(e.clientY-box.top)*height/box.height};}
   function distance(){const p=[...pointers.values()];return p.length>1?Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y):0;}
   function startGesture(){const p=[...pointers.values()];gesture={start:{...p[0]},camera:{...camera},distance:distance(),moved:false};}
   let observer=null;
   try {
-  listen(canvas,'pointerdown',e=>{if(e.button!==undefined&&e.button!==0)return;const point=local(e);if(!point)return;canvas.focus();pointers.set(e.pointerId,point);canvas.setPointerCapture?.(e.pointerId);startGesture();});
+  listen(canvas,'pointerdown',e=>{if(e.button!==undefined&&e.button!==0)return;const point=local(e);if(!point)return;onCameraInteraction?.();canvas.focus();pointers.set(e.pointerId,point);canvas.setPointerCapture?.(e.pointerId);startGesture();});
   listen(canvas,'pointermove',e=>{if(!pointers.has(e.pointerId)||!gesture)return;const point=local(e);if(!point)return;pointers.set(e.pointerId,point);const p=[...pointers.values()][0];const dx=p.x-gesture.start.x,dy=p.y-gesture.start.y;if(Math.hypot(dx,dy)>3||pointers.size>1)gesture.moved=true;camera={x:gesture.camera.x-dx/gesture.camera.zoom,z:gesture.camera.z-dy/gesture.camera.zoom,zoom:clamp(gesture.camera.zoom*(gesture.distance?distance()/gesture.distance:1),.02,32)};changed();});
   function end(e){if(!pointers.has(e.pointerId))return;const point=local(e), click=point&&gesture&&!gesture.moved&&pointers.size===1&&Math.hypot(point.x-gesture.start.x,point.y-gesture.start.y)<=3;pointers.delete(e.pointerId);if(click&&e.type==='pointerup'){for(const view of canvasViewports(width,height,mode)){const hit=hitTestCanvas(canvasRows(projection,diff,view.arm,mode,ghosts),point.x,point.y,camera,view);if(hit){selected=hit;draw();onSelect?.({collection:hit.collection,id:hit.id,arm:view.arm});break;}}}if(pointers.size){startGesture();gesture.moved=true;}else gesture=null;}
   listen(canvas,'pointerup',end);listen(canvas,'pointercancel',end);listen(canvas,'lostpointercapture',end);
-  listen(canvas,'wheel',e=>{if(!Number.isFinite(e.deltaY))return;e.preventDefault();camera.zoom=clamp(camera.zoom*Math.exp(-clamp(e.deltaY,-200,200)*.003),.02,32);changed();},{passive:false});
-  listen(canvas,'keydown',e=>{const delta=30/camera.zoom;switch(e.key){case 'ArrowLeft':camera.x-=delta;break;case 'ArrowRight':camera.x+=delta;break;case 'ArrowUp':camera.z-=delta;break;case 'ArrowDown':camera.z+=delta;break;case '+':case '=':camera.zoom=clamp(camera.zoom*1.2,.02,32);break;case '-':camera.zoom=clamp(camera.zoom/1.2,.02,32);break;case 'Home':camera=fitCanvasCamera(projection,width,height,mode);break;default:return;}e.preventDefault();changed();});
+  listen(canvas,'wheel',e=>{if(!Number.isFinite(e.deltaY))return;onCameraInteraction?.();e.preventDefault();camera.zoom=clamp(camera.zoom*Math.exp(-clamp(e.deltaY,-200,200)*.003),.02,32);changed();},{passive:false});
+  listen(canvas,'keydown',e=>{const delta=30/camera.zoom;switch(e.key){case 'ArrowLeft':camera.x-=delta;break;case 'ArrowRight':camera.x+=delta;break;case 'ArrowUp':camera.z-=delta;break;case 'ArrowDown':camera.z+=delta;break;case '+':case '=':camera.zoom=clamp(camera.zoom*1.2,.02,32);break;case '-':camera.zoom=clamp(camera.zoom/1.2,.02,32);break;case 'Home':camera=fitCanvasCamera(projection,width,height,mode);break;default:return;}onCameraInteraction?.();e.preventDefault();changed();});
   observer=globalThis.ResizeObserver?new ResizeObserver(resize):null;observer?.observe(container);
   if(globalThis.addEventListener)listen(globalThis,'resize',resize);
   resize();
@@ -128,7 +129,8 @@ export function createCanvasStage(container,{onSelect,onCameraChange}={}) {
     update(next,nextDiff){if(disposed)return;projection=validProjection(next);diff=nextDiff;pointers.clear();gesture=null;if(!fitted&&projection&&(projection.a.length||projection.b.length)){camera=fitCanvasCamera(projection,width,height,mode);fitted=true;}draw();},
     setMode(next){if(!MODES.includes(next))throw new TypeError('Unknown scene mode');if(disposed)return;mode=next;draw();},
     setGhosts(value){if(disposed)return;ghosts=Boolean(value);draw();},
-    focus(entity){if(disposed)return false;const row=[...(projection?.a||[]),...(projection?.b||[])].find(r=>identity(r)===identity(entity||{}));if(!row)return false;selected={collection:row.collection,id:row.id};camera={...camera,x:row.x,z:row.z};changed();return true;},
+    focus(entity,{scale}={}){if(disposed)return false;const row=[...(projection?.a||[]),...(projection?.b||[])].find(r=>identity(r)===identity(entity||{}));if(!row)return false;selected={collection:row.collection,id:row.id};camera={...camera,x:row.x,z:row.z,...(scale?{zoom:Math.min(width/(mode==='split'?2:1),height)/(scale==='neighborhood'?400:150)}:{})};changed();return true;},
+    setPixelRatio(value){if(!Number.isFinite(value)||value<=0||value>2)throw new RangeError('Pixel ratio must be positive and at most 2');pixelRatio=value;resize();},
     getCamera(){return {...camera};},
     setCamera(next){if(!next||!Number.isFinite(next.x)||!Number.isFinite(next.z)||!Number.isFinite(next.zoom)||next.zoom<=0)throw new TypeError('Camera requires finite x, z and positive zoom');if(disposed)return;camera={x:next.x,z:next.z,zoom:clamp(next.zoom,.02,32)};fitted=true;draw();},
     getStats(){return {backend:'canvas2d',objects:disposed?0:drawn,canvases:disposed?0:1,month:projection?.month??null,mode,ghosts,disposed,animationFrames:0,layoutVersion:LAYOUT_VERSION};},

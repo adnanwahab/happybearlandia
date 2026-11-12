@@ -2,6 +2,7 @@ import { createMediaPipeline, validateEmbeddedGLB, validateAnimationClips } from
 import { createMediaPreferences, mountMediaControls } from '../shared/media/preferences.js';
 import { loadScene, loadSceneConversations } from './scene-loader.js';
 import { DebugRecorder } from './debug-recorder.js';
+import { createHoneyTrailView } from './honey-trail-view.js';
 import initJolt from 'jolt-physics/wasm-compat';
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
@@ -3643,6 +3644,10 @@ if (!isGalleryRoute()) {
     Jolt,
     null
   );
+
+  const honeyTrail = sceneIdFromRoute() === '1' ? createHoneyTrailView(scene, {
+    getReducedMotion: () => mediaPreferences?.get().reducedMotion ?? false,
+  }) : null;
 
   const characterHeightStanding =
     2;
@@ -7301,6 +7306,8 @@ if (!isGalleryRoute()) {
     prePhysicsUpdate(
       deltaTime
     );
+
+    honeyTrail?.update(threeCharacter.position, isInteractionDialogOpen ? 0 : deltaTime, time);
 
     if (
       playerAnimationMixer &&

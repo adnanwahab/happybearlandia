@@ -75,6 +75,10 @@
     .intro > details { border-top: 1px solid #2b3b51; padding-top: 18px; }
     .intro summary { cursor: pointer; color: #94dbe9; padding: 8px 0; }
     @media (max-width: 760px) { .launch { grid-template-columns: 1fr; gap: 24px; } .launch img { height: 300px; } }
+    .simulation-faq { padding: clamp(16px, 3vw, 28px); scroll-margin-top: 20px; }
+    .simulation-faq h2 { font-size: 24px; }
+    .simulation-faq h3 { font-size: 18px; line-height: 1.4; margin: 22px 0 6px; }
+    .simulation-faq p { max-width: 72ch; font-size: 16px; line-height: 1.6; }
 </style>
   <link rel="stylesheet" href="/world/universe/shell.css">
 </head>
@@ -99,12 +103,38 @@
         <figcaption>Actual demo capture · Month 120 · seed 42 · city-systems.1.0.0. Synthetic schematic; building heights are illustrative. Preview shows the comparison area of a retained demo screenshot.</figcaption>
       </figure>
     </div>
+    <div id="onboarding-experiment" data-enabled="true" hidden>
+      <label><input type="checkbox"> Join the optional onboarding experiment</label>
+      <p>Compare two ways to start the same synthetic housing demo. Assignment and interaction records stay in this tab for this session; nothing is uploaded.</p>
+      <p role="status" aria-live="polite"></p>
+      <button type="button" data-export hidden>Download session records</button>
+      <div data-choices hidden><h2>Which policy question would you inspect first?</h2>
+        <p>Both choices open the same housing policy comparison, with identical model inputs and results.</p>
+        <button type="button" data-focus="homes">How many homes can the policy add?</button>
+        <button type="button" data-focus="budget">What does the policy cost?</button>
+      </div>
+    </div>
     <details><summary>More worlds and tools</summary>
-    <nav aria-label="Explore"><a href="/world/future-machine.html">Future Machine · 10 Years, 2 Futures</a> · <a href="/tools/future-journey.html">Try Today’s Features</a> · <a href="/vote-on-patch">Vote on the next patch</a> · <a href="#explore">Explore the worlds</a> · <a href="/world/civilization/">Emergent Civilizations</a> · <a href="/world/laboratory/">Civilization Laboratory</a> · <a href="/world/invention/">City Invention Studio</a> · <a href="/world/hidden-systems/">Hidden Systems</a> · <a href="/world/learning/">Learning Civilization</a> · <a href="/world/storm/">Sculpt a Storm</a> · <a href="/world/storm/response.html">Crisis Control Room</a> · <a href="/world/connected-lives/">Connected Lives</a> · <a href="/tools/simulation-health">Simulation Health</a> · <a href="/tools/operations-observatory/">Operations Observatory</a> · <a href="/routes">Route directory →</a></nav>
+    <nav aria-label="Explore"><a href="/world/future-machine.html">Future Machine · 10 Years, 2 Futures</a> · <a href="/tools/future-journey.html">Try Today’s Features</a> · <a href="/vote-on-patch">Vote on the next patch</a> · <a href="#simulation-faq">Simulation FAQ</a> · <a href="#explore">Explore the worlds</a> · <a href="/world/civilization/">Emergent Civilizations</a> · <a href="/world/laboratory/">Civilization Laboratory</a> · <a href="/world/invention/">City Invention Studio</a> · <a href="/world/hidden-systems/">Hidden Systems</a> · <a href="/world/learning/">Learning Civilization</a> · <a href="/world/storm/">Sculpt a Storm</a> · <a href="/world/storm/response.html">Crisis Control Room</a> · <a href="/world/connected-lives/">Connected Lives</a> · <a href="/tools/simulation-health">Simulation Health</a> · <a href="/tools/operations-observatory/">Operations Observatory</a> · <a href="/routes">Route directory →</a></nav>
     </details>
   </header>
   <section id="universe-shell" aria-label="Connected universe"></section>
   <main aria-label="Route previews">
+<section class="simulation-faq" id="simulation-faq" aria-labelledby="simulation-faq-heading">
+  <h2 id="simulation-faq-heading">Future simulations: questions &amp; limits</h2>
+  <h3>Can this predict what will actually happen?</h3>
+  <p>Use these simulations to explore “what if?” questions under stated rules and assumptions. The Future Machine housing demo uses illustrative, uncalibrated city rules. Its results are modeled possibilities, not reliable forecasts of a real city or person.</p>
+  <h3>What does deterministic mean?</h3>
+  <p>In a deterministic simulation, the same starting state, model and rules versions, inputs, and random seed reproduce the same result. A seed fixes the random choices. Repeatability helps you check a result; it does not prove the assumptions are accurate. This does not apply to every live experience on this site.</p>
+  <h3>Where does uncertainty show up?</h3>
+  <p>Different seeds and assumptions can produce different outcomes. Decision Studio can compare multiple runs; any displayed spread describes those sampled model outcomes, not the odds of a real event. The Future Machine demo compares one matched seed, so it does not measure a range of uncertainty. Missing data and mechanisms remain limits even after many runs.</p>
+  <h3>Are the places and people real?</h3>
+  <p>The Future Machine Riverside preset uses synthetic households, inventory, and a schematic layout. These are not observations of actual residents or building locations. Other views may use sourced geography; a real map does not make the simulated behavior real. Check each view’s sources and assumptions.</p>
+  <h3>Does a better result prove a policy works?</h3>
+  <p>A matched comparison starts alternatives from the same state and seed to explore a supported change. The difference describes what happened inside that model. It does not by itself establish real-world causality, account for every trade-off, or predict an individual’s choices.</p>
+  <h3>How can I check a result?</h3>
+  <p>In <a href="/world/future-machine.html?demo=1">Future Machine</a>, inspect the selected month, entities, and available event evidence, then export the evidence or share the versioned recipe. Check the seed, model version, inputs, units, and limitations. Replay recomputes from the saved manifest; equivalence to independently retained checkpoints has not been verified. Missing records or incompatible versions cannot support an exact replay claim.</p>
+</section>
 <section class="carousel" id="explore" aria-roledescription="carousel" aria-label="Interactive worlds and experiments">
   <header><div><h2 id="experience-count">Interactive Worlds &amp; Experiments</h2><p>Start with a world. Follow your curiosity. Each preview opens a different possibility.</p></div><div class="carousel-controls"><button type="button" id="carousel-prev" aria-label="Previous preview">←</button><span id="carousel-status" aria-live="polite"></span><button type="button" id="carousel-next" aria-label="Next preview">→</button></div></header>
   <div class="gallery-toolbar"><label for="carousel-category">Category</label><select id="carousel-category"><option value="all">All experiences</option><option value="worlds">3D Worlds</option><option value="living">Living Simulations</option><option value="science">GPU Science</option><option value="games">Games</option><option value="tools">Tools</option></select><label for="carousel-jump">Jump to a preview</label><select id="carousel-jump"></select><span>Choose Interact to take control of a live preview.</span></div>
@@ -246,5 +276,6 @@
   </main>
 <script src="/tools/iframe-gallery.js" defer></script>
 <script type="module" src="/world/universe/shell.js"></script>
+<script type="module" src="/world/onboarding-experiment/main.js"></script>
 </body>
 </html>

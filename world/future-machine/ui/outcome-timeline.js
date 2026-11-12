@@ -1,3 +1,4 @@
+import {provenancePresentation, MONTHLY_CITY_PROVENANCE} from './provenance.js';
 import {METRIC_UNITS, MONTHS, assertMonth} from '../contracts.js';
 
 const LABELS={housingUnits:'Homes',meanRent:'Mean unit rent',capitalSpending:'Capital spending',meanTravelMinutes:'Mean link travel time',availableUnits:'Available homes',completedProjects:'Completed projects'};
@@ -44,7 +45,7 @@ export function createOutcomeTimeline(container,{history,onMonth}={}) {
   const details=node('details'),scroll=node('div'),table=node('table');scroll.className='fm-outcome-scroll';details.append(node('summary','Exact recorded values and month selection'),scroll);scroll.append(table);
   shell.append(style,node('h2','How outcomes diverge'),label,modeLabel,legend,chart,summary,note,details);container.append(shell);
   function choose(next){if(disposed)return;const row=series.get(key)[next];if(!row || (row.baseline===null&&row.plan===null))return;update(next,{announce:true});onMonth?.(next);}
-  let cursor,highlight,position;
+  let cursor,highlight,highlightTitle,position;
   function renderChart(rows){
     chart.replaceChildren();const values=(mode==='delta'?rows.map(row=>row.delta):rows.flatMap(row=>[row.baseline,row.plan])).filter(value=>value!==null);if(mode==='delta')values.push(0);
     let min=values.length?Math.min(...values):0,max=values.length?Math.max(...values):1;if(min===max){min-=1;max+=1;}
@@ -61,7 +62,7 @@ export function createOutcomeTimeline(container,{history,onMonth}={}) {
     cursor=doc.createElementNS(ns,'line');
     for(const [attr,value] of Object.entries({y1:20,y2:150,stroke:'#eaf2f8','stroke-dasharray':'2 3','pointer-events':'none'}))cursor.setAttribute(attr,value);
     cursor.dataset.cursor='true';chart.append(cursor);
-    highlight=doc.createElementNS(ns,'circle');highlight.setAttribute('r','5');highlight.setAttribute('fill','#d6eaff');highlight.setAttribute('pointer-events','none');chart.append(highlight);
+    highlight=doc.createElementNS(ns,'circle');highlight.setAttribute('r','5');highlight.setAttribute('fill','#d6eaff');highlightTitle=doc.createElementNS(ns,'title');highlight.append(highlightTitle);chart.append(highlight);
 
   }
   function renderTable(rows){
@@ -74,7 +75,7 @@ export function createOutcomeTimeline(container,{history,onMonth}={}) {
     const rows=series.get(key),row=rows[month];
     if(rebuild||!position){
       legend.textContent=mode==='delta'?'DELTA (WITH − WITHOUT) · pale blue · dashed zero axis · gaps mean unavailable':'WITHOUT PLAN — blue · WITH PLAN – – amber · gaps mean unavailable';
-      note.textContent='Recorded monthly model measurements; lines connect adjacent recorded months only. '+(key==='meanRent'?'Whole-stock mean includes new inventory; not incumbent rent savings.':key==='capitalSpending'?'Cumulative capital cost; an increase is spending, not a welfare gain.':'A difference alone does not establish a causal explanation.');
+      note.textContent=provenancePresentation(MONTHLY_CITY_PROVENANCE).description+' · '+'Recorded monthly model measurements; lines connect adjacent recorded months only. '+(key==='meanRent'?'Whole-stock mean includes new inventory; not incumbent rent savings.':key==='capitalSpending'?'Cumulative capital cost; an increase is spending, not a welfare gain.':'A difference alone does not establish a causal explanation.');
       chart.setAttribute('aria-label',mode==='delta'?'Recorded plan minus baseline differences with zero axis. Select a month on the chart, shared month slider or exact-values table.':'Without plan and with plan recorded values. Select a month on the chart, shared month slider or exact-values table.');
       renderChart(rows);
     }
@@ -85,6 +86,7 @@ export function createOutcomeTimeline(container,{history,onMonth}={}) {
       highlight.setAttribute('cx',position.x(month));
       if(value!==null)highlight.setAttribute('cy',position.y(value));
       highlight.dataset.month=String(month);
+      highlightTitle.textContent=provenancePresentation(MONTHLY_CITY_PROVENANCE).description+` · Month ${month} · WITHOUT PLAN ${exact(row.baseline,row.unit)} · WITH PLAN ${exact(row.plan,row.unit)} · DELTA ${exact(row.delta,row.unit)}`;
     }
     if(announce){
       const text=`Month ${month}\nWITHOUT PLAN: ${exact(row.baseline,row.unit)}\nWITH PLAN: ${exact(row.plan,row.unit)}\nDelta (WITH − WITHOUT): ${exact(row.delta,row.unit)}`;

@@ -83,3 +83,27 @@ Coordinator should capture month 0 and month 16 on the normal application route,
 click the changed structure through WHY, and verify missing-frame clearing in
 both native and forced `renderer=canvas2d` modes. Existing historical evidence
 above is not a measurement of this follow-up. No release or deployment occurred.
+
+## Comparison camera bookmark (SHE-94)
+
+The stage exposes native **Save view** and **Restore view** controls. Both arms
+render through the same camera, so restoring applies the same target, orbit
+position, rotation quaternion and zoom to both 3D panels. Canvas restores its
+shared x/z target and zoom; its orientation is fixed. Camera bookmarks do not
+change the selected month, comparison mode, run data or share URL.
+
+`saveCameraBookmark()` / `restoreCameraBookmark()` return false when unavailable.
+`getCamera()` returns a detached snapshot; 3D snapshots now also include
+`quaternion` and `zoom`. Optional `onCameraInteraction()` lets the coordinator
+stop its guided tour/playback before either bookmark action. Saving freezes an
+active focus transition at the current pose; restoring cancels that transition.
+One bookmark lives in the current stage only, is replaced by another save, and
+clears on a new comparison, reload, disposal or GPU-to-Canvas fallback. Inventory
+fallback has no camera bookmark. Controls announce save/restore status and are
+disabled before graphics/frame readiness or before a first save.
+
+`bun test test/future-machine-bookmark.test.js` exercises the real stage with a
+DOM/Canvas adapter, including replacement, detached state, timeline/mode changes,
+missing frames, disposal and inventory fallback. The route-level Playwright test
+is `test/e2e/future-machine-bookmark.e2e.js` (Canvas and WebGL); execution requires
+a host that can bind the application servers.

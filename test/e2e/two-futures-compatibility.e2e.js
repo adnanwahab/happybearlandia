@@ -98,3 +98,32 @@ test('configured seed remains distinct until real rerun and survives exact share
  await seed.fill('42');await page.getByRole('button',{name:'Fork City',exact:true}).click();await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.status)).toBe('ready');
  expect(await page.evaluate(()=>window.futureMachine.history.initialHash)).toBe(original.hash);
 });
+
+test('mobile power saving changes display cost and preserves recorded results and receipts',async({page},testInfo)=>{
+ await page.setViewportSize({width:320,height:640});
+ await page.goto('/world/future-machine.html?renderer=canvas2d');
+ await page.getByRole('button',{name:'Play Demo',exact:true}).click();
+ await expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.status)).toBe('ready');
+ await page.getByRole('button',{name:'Pause demo',exact:true}).click();
+ const slider=page.getByTestId('future-machine-timeline');await slider.fill('120');await slider.dispatchEvent('input');
+ await expect.poll(()=>page.evaluate(()=>window.futureMachine.stats.scene.backend)).toBe('canvas2d');
+ const snapshot=()=>page.evaluate(async()=>{
+   const fm=window.futureMachine;
+   const {createEvidenceReport}=await import('/world/future-machine/share/index.js');
+   const {compareFrame}=await import('/world/future-machine/diff/index.js');
+   const {getFrame}=await import('/world/future-machine/data/index.js');
+   return {history:fm.history,month:fm.state.month,report:createEvidenceReport(fm.history,{month:fm.state.month,diff:compareFrame(getFrame(fm.history,fm.state.month))}),metrics:document.querySelector('[data-testid="future-machine-metrics"]').textContent,camera:fm.stats.scene.camera,objects:fm.stats.scene.objects};
+ });
+ const before=await snapshot();
+ const canvas=page.getByTestId('future-machine-stage').locator('canvas');
+ const originalWidth=await canvas.evaluate(n=>n.width);
+ const quality=page.getByRole('combobox',{name:'Rendering quality',exact:true});
+ await expect(quality).toBeVisible();await quality.selectOption('power-saving');
+ expect(await snapshot()).toEqual(before);
+ expect(await canvas.evaluate(n=>n.width)).toBeLessThan(originalWidth);
+ expect(await page.evaluate(()=>window.futureMachine.stats.scene.quality)).toBe('power-saving');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.screenshot({path:testInfo.outputPath('mobile-power-saving.png'),fullPage:true});
+ await quality.selectOption('standard');expect(await snapshot()).toEqual(before);
+ expect(await canvas.evaluate(n=>n.width)).toBe(originalWidth);
+});

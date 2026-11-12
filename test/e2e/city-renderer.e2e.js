@@ -61,3 +61,27 @@ for (const backend of ['webgl2', 'canvas2d']) test(`detected ${backend} label su
  expect(stats.backend).toBe(backend);expect(stats.quality).toBe('LOW');
  await page.screenshot({path:info.outputPath(`detected-${backend}.png`)});
 });
+
+for (const fallback of ['webgl2', 'canvas2d']) {
+ test(`adapter rejection retains model-backed World through ${fallback}`,async({page},testInfo)=>{
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  await page.addInitScript(({fallback})=>{
+   Object.defineProperty(navigator,'gpu',{configurable:true,value:{requestAdapter:async()=>{throw new Error('SHE-105 simulated adapter rejection');}}});
+   if(fallback==='canvas2d'){
+    const original=HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext=function(type,...args){return /webgl/i.test(type)?null:original.call(this,type,...args);};
+   }
+  },{fallback});
+  await page.goto('/world/?demo=1&synthetic=1&people=20');
+  await expect.poll(()=>page.evaluate(()=>window.hblVisualPass?.ready),{timeout:90000}).toBe(true);
+  await expect.poll(()=>page.evaluate(()=>window.hblSimulationModel?.status)).toBe('ready');
+  await expect(page.locator('#source')).toContainText('SHE-105 simulated adapter rejection');
+  await expect(page.locator('#source')).toContainText(`renderer ${fallback.toUpperCase()}`);
+  await expect(page.locator('#view canvas')).toBeVisible();
+  const stats=await page.evaluate(()=>window.hblCityRenderer.getGeometryStats());
+  expect(stats.bytes).toBeGreaterThan(0);
+  await expect(page.locator('#world-playback-facts')).toContainText(/Mood: \d+ \/ 100 · Seed: .+/);
+  await page.screenshot({path:testInfo.outputPath(`adapter-rejection-${fallback}.png`)});
+  expect(errors).toEqual([]);
+ });
+}

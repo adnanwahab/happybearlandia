@@ -70,3 +70,25 @@ receipts with exact City identity, arm and valid month offer an Inspect event
 button through the existing `onJump` callback. The coordinator retains the
 selected receipt and arm while changing the shared month and focusing that
 exact entity. A failed spatial lookup leaves the camera unchanged.
+
+
+## Selected-change assistive narration (SHE-123)
+
+The normal Future Machine entity inspector offers **Describe selected change**.
+The coordinator uses the current frame and diff, with the displayed run ID, model
+version and seed. `describeModelChange` describes the A/B contrast at the selected
+month, not a change between two dates. It reports up to four exact scalar fields
+(including zero and null), household income/savings units, or inventory presence.
+Additional and structured fields refer to the exact inspector records; no causal
+claim or cross-model identity is generated. Strings are bounded and rendered as text.
+
+`renderStory` accepts additive `onNarrate`; the persistent `mountChangeNarration`
+region is initially empty, polite and atomic. Only the native button invokes it.
+Selection, playback and story rerenders never write the region. Identical consecutive
+requests are deduplicated; the last requested description stays visible with its month
+until another request. Disposal removes handlers and the region.
+
+Verification: `bun test test/assistive-narration.test.js test/future-machine-story.test.js test/future-machine-diff.test.js`.
+The opt-in Chromium check uses `HBL_FM_BROWSER=1 bun test test/assistive-narration.test.js`
+and covers keyboard activation, live-region mutations, duplicate suppression, silent
+month changes and cleanup. Actual screen-reader speech needs manual verification.

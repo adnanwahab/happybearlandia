@@ -3,7 +3,7 @@ import { VERSION } from '../city/contracts.js';
 import { demoRunId } from './demo.js';
 import { mountCityHeatmap } from './heatmap.js';
 import { mountLivingNetwork } from '../living-city/network.js';
-import { cityInventory, compareInventory, indexConstructionEvidence, hasInventoryEntity } from './history.js';
+import { cityInventory, compareInventory, indexConstructionEvidence, hasInventoryEntity, entityMonthEvents } from './history.js';
 
 const find = id => document.getElementById(id);
 const runButton = find('run');
@@ -242,7 +242,44 @@ function inspect(month, entityId, eventId) {
   const inspector = document.createElement('causal-inspector');
   inspector.tab = eventId ? 'Why' : 'History';
   inspector.context = { runId: selectedRun.context.runId, tick: month, entityId, targetId: eventId };
-  inspectorHost.replaceChildren(inspector);
+  if (!entityId) {
+    inspectorHost.replaceChildren(inspector);
+    return;
+  }
+  const trail = document.createElement('section');
+  trail.setAttribute('aria-label', 'Selected month event trail');
+  const heading = document.createElement('h3');
+  heading.textContent = `Recorded entity events · month ${month}`;
+  const provenance = document.createElement('p');
+  const context = selectedRun.context;
+  provenance.textContent = `Run ${context.runId} · model ${context.modelVersion} · seed ${context.seed}`;
+  trail.append(heading, provenance);
+  const events = entityMonthEvents([...selectedRun.events.values()], context, month, entityId);
+  const note = document.createElement('p');
+  note.textContent = events.length
+    ? 'These records reference this entity or its recorded construction transition. Follow an event to inspect stored model inputs and dependencies; membership alone does not establish a cause.'
+    : 'No entity transition was recorded for this month. A checkpoint difference does not identify its cause. Earlier records remain available in History.';
+  trail.append(note);
+  const list = document.createElement('ul');
+  for (const event of events) {
+    const item = document.createElement('li');
+    const link = document.createElement('a');
+    const url = new URL(location.href);
+    url.searchParams.set('event', event.id);
+    link.href = url.href;
+    link.textContent = `${event.type} · ${event.id}`;
+    link.onclick = click => {
+      click.preventDefault();
+      eventPicker.value = event.id;
+      pausePlayback(playing ? 'Playback paused.' : '');
+      updateURL(month, event.id, entityId);
+      inspect(month, entityId, event.id);
+    };
+    item.append(link);
+    list.append(item);
+  }
+  trail.append(list);
+  inspectorHost.replaceChildren(trail, inspector);
 }
 
 function renderInventory(rows, month) {

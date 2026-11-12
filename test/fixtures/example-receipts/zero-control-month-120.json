@@ -1,1269 +1,4761 @@
 {
-  "schemaVersion": "future-machine-evidence.v1",
-  "authority": "monthly City",
-  "recipe": {
-    "schemaVersion": "future-machine.v1",
-    "modelVersion": "city-systems.1.0.0",
-    "seed": 7,
-    "households": 30,
-    "months": 120,
-    "intervention": null
-  },
-  "experimentId": null,
-  "initialHash": "2b5285afcd34a95999401d90f0e120d1b36682c8249f9a503123dd2ca5987e3e",
-  "modelVersion": "city-systems.1.0.0",
-  "seed": 7,
-  "month": 120,
-  "horizon": {
-    "firstMonth": 0,
-    "lastMonth": 120,
-    "steps": 120
-  },
-  "provenance": {
-    "type": "synthetic-assumption",
-    "datasetVersion": "future-machine-synthetic.v1",
-    "populationSnapshot": "synthetic-7-30",
-    "worldRevision": "seed.v1",
-    "confidence": "low",
-    "assumptions": [
-      "Synthetic City inventory; no geographic coordinates.",
-      "Private parcel capacity is zero; utilities have capacity 200 per district/network; annual growth is zero.",
-      "Illustrative monthly equations, not an empirical forecast."
+  "checksum": "3d5c2102e8ce6b0a54f9f2616415c3c33e524ed25aeacd5fa6f00f88da5384b4",
+  "evidence": {
+    "authority": "monthly City",
+    "evidenceKind": "manifest-recomputation",
+    "experimentId": null,
+    "horizon": {
+      "firstMonth": 0,
+      "lastMonth": 120,
+      "steps": 120
+    },
+    "initialHash": "35012a1e380d7d675e7c44fd24c392ef68d0034a38df1e80e3a4f4a6ce0dc643",
+    "limitations": [
+      "Modeled results from illustrative, uncalibrated monthly City rules are not empirical forecasts.",
+      "Synthetic inventory and schematic layout are assumptions, not real geographic building locations.",
+      "Replay recomputes the recorded manifest; equivalence to independently retained checkpoints has not been verified.",
+      "A single matched seed is not an uncertainty distribution. Differences alone do not establish real-world causality.",
+      "Entity identities are scoped to monthly City; no House or Population identity mapping is asserted."
     ],
-    "modelManifest": [
-      {
-        "id": "environment",
-        "version": "city-systems.1.0.0",
-        "cadence": 1,
-        "dependencies": []
+    "modelVersion": "city-systems.1.1.0",
+    "modeledComparison": null,
+    "month": 120,
+    "narrativeInterpretation": null,
+    "observations": {
+      "baseline": {
+        "causalRecords": [],
+        "decisions": [
+          {
+            "actorId": "household-5",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.49982035568181
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.5188024649473733
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.5101975592171457
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.4179608696067179
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.708516583459288
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.681357907796227
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          },
+          {
+            "actorId": "household-8",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.3980456903139058
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.4208902074971546
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.4105344080407138
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.299529745110339
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.6085113936829434
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.5758265732460157
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          },
+          {
+            "actorId": "household-11",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.7076631924226606
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.7263476614590425
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.5178776809933259
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.427087266349
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.5162230630022904
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.4894902364551275
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          },
+          {
+            "actorId": "household-17",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.5306801760057183
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.5484911370889072
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.7404171323014817
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.653871213399106
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.538839868500809
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.5133568145083176
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          },
+          {
+            "actorId": "household-23",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.6300224774476184
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.651653456906514
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.441847774277031
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.3367398586915251
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.4399322257159928
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.4089836758378063
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          },
+          {
+            "actorId": "household-29",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.3564788146222393
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.3809008189846854
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.3698299183623135
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.2511600274387567
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.56766720837486
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.5327253962589216
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          }
+        ],
+        "events": [
+          {
+            "eventType": "BUSINESS_CLOSED",
+            "geographyId": "d0",
+            "id": "120-0",
+            "modelId": "businesses",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "businessId": "business-d0-72",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.businesses",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              },
+              "viability": -1378.078514360046
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "businesses"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d0",
+            "id": "120-1",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "householdId": "household-3",
+              "income": 1321.693341457285,
+              "rent": 1002.2339250111208,
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.housing",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              },
+              "savings": 52391.46015553216
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-2",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "householdId": "household-5",
+              "income": 1887.3256038408726,
+              "rent": 1225.257899427083,
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.housing",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              },
+              "savings": 105648.06867892365
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d1",
+            "id": "120-3",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "householdId": "household-6",
+              "income": 1590.3202305547893,
+              "rent": 968.3896968619877,
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.housing",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              },
+              "savings": 170480.08567721254
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-4",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "householdId": "household-7",
+              "income": 1195.6164503702894,
+              "rent": 1091.556634787141,
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.housing",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              },
+              "savings": 26341.976407852224
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-5",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "householdId": "household-8",
+              "income": 1568.2284087873995,
+              "rent": 1050.0594406601265,
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.housing",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              },
+              "savings": 101296.6382060406
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-6",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "householdId": "household-9",
+              "income": 1143.1962395785376,
+              "rent": 1091.3424099192396,
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.housing",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              },
+              "savings": 29260.98461587535
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-7",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "householdId": "household-15",
+              "income": 1273.7662823405117,
+              "rent": 1085.192098588831,
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.housing",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              },
+              "savings": 44768.954362954566
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d1",
+            "id": "120-8",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "householdId": "household-16",
+              "income": 1437.887855549343,
+              "rent": 928.2217765558181,
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.housing",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              },
+              "savings": 136271.84517331803
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-9",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "householdId": "household-29",
+              "income": 1466.932046203874,
+              "rent": 1240.6885459222221,
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.housing",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              },
+              "savings": 20230.91237780436
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "PARK_OVERCROWDING",
+            "geographyId": "d2",
+            "id": "120-10",
+            "modelId": "services",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "capacity": 30,
+              "demand": 33,
+              "facilityId": "park-d2",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.services",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "services"
+          },
+          {
+            "eventType": "HEALTHCARE_CAPACITY_STRESS",
+            "geographyId": "d2",
+            "id": "120-11",
+            "modelId": "services",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "capacity": 30,
+              "demand": 33,
+              "facilityId": "healthcare-d2",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.services",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "services"
+          },
+          {
+            "eventType": "EMERGENCY_RESPONSE_DEGRADED",
+            "geographyId": "d2",
+            "id": "120-12",
+            "modelId": "services",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "capacity": 30,
+              "demand": 33,
+              "facilityId": "emergency-d2",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.services",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "services"
+          },
+          {
+            "eventType": "COMMUNITY_SERVICE_STRESS",
+            "geographyId": "d2",
+            "id": "120-13",
+            "modelId": "services",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "capacity": 30,
+              "demand": 33,
+              "facilityId": "library-d2",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.services",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "services"
+          },
+          {
+            "eventType": "ANNUAL_POPULATION_UPDATE",
+            "geographyId": null,
+            "id": "120-14",
+            "modelId": "demographics",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "departed": 0,
+              "formed": 0,
+              "growth": -0.000666666666666667,
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.demographics",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "demographics"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d1",
+            "id": "120-15",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 53.172278547831844,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 53.172278547831844,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-3",
+                "120-8"
+              ],
+              "householdId": "household-0",
+              "inputs": {
+                "housingBurden": 0.46827721452168153,
+                "unitId": "unit-d1-9",
+                "workerId": "worker-0"
+              },
+              "residentId": "resident-worker-0",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d1",
+            "id": "120-16",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d2-117-1",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 84.43178413985997,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d2-117-1",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 84.54504044457985,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-3",
+                "120-8"
+              ],
+              "householdId": "household-1",
+              "inputs": {
+                "housingBurden": 0.15568215860140022,
+                "unitId": "unit-d1-4",
+                "workerId": "worker-1"
+              },
+              "residentId": "resident-worker-1",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d0",
+            "id": "120-17",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 60.565932835498934,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 60.565932835498934,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-0",
+                "120-1"
+              ],
+              "householdId": "household-2",
+              "inputs": {
+                "housingBurden": 0.3943406716450106,
+                "unitId": "unit-d0-3",
+                "workerId": "worker-2"
+              },
+              "residentId": "resident-worker-2",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d0",
+            "id": "120-18",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 24.170464238999013,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 24.170464238999013,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-0",
+                "120-1"
+              ],
+              "householdId": "household-3",
+              "inputs": {
+                "housingBurden": 0.7582953576100099,
+                "unitId": "unit-d0-11",
+                "workerId": "worker-3"
+              },
+              "residentId": "resident-worker-3",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d1",
+            "id": "120-19",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 53.533399416457826,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 53.533399416457826,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-3",
+                "120-8"
+              ],
+              "householdId": "household-4",
+              "inputs": {
+                "housingBurden": 0.4646660058354218,
+                "unitId": "unit-d1-6",
+                "workerId": "worker-4"
+              },
+              "residentId": "resident-worker-4",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d2",
+            "id": "120-20",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 35.07967586866961,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 35.07967586866961,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-2",
+                "120-4",
+                "120-5",
+                "120-6",
+                "120-7",
+                "120-9",
+                "120-10",
+                "120-11",
+                "120-12",
+                "120-13"
+              ],
+              "householdId": "household-5",
+              "inputs": {
+                "housingBurden": 0.6492032413133039,
+                "unitId": "unit-d2-4",
+                "workerId": "worker-5"
+              },
+              "residentId": "resident-worker-5",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d1",
+            "id": "120-21",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 39.107251592708394,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d0-72-2",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 71.71869178074466,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-3",
+                "120-8"
+              ],
+              "householdId": "household-6",
+              "inputs": {
+                "housingBurden": 0.6089274840729161,
+                "unitId": "unit-d1-1",
+                "workerId": "worker-6"
+              },
+              "residentId": "resident-worker-6",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d2",
+            "id": "120-22",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 8.703444616450396,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 8.703444616450396,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-2",
+                "120-4",
+                "120-5",
+                "120-6",
+                "120-7",
+                "120-9",
+                "120-10",
+                "120-11",
+                "120-12",
+                "120-13"
+              ],
+              "householdId": "household-7",
+              "inputs": {
+                "housingBurden": 0.912965553835496,
+                "unitId": "unit-d2-2",
+                "workerId": "worker-7"
+              },
+              "residentId": "resident-worker-7",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d2",
+            "id": "120-23",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 33.04167717047905,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 33.04167717047905,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-2",
+                "120-4",
+                "120-5",
+                "120-6",
+                "120-7",
+                "120-9",
+                "120-10",
+                "120-11",
+                "120-12",
+                "120-13"
+              ],
+              "householdId": "household-8",
+              "inputs": {
+                "housingBurden": 0.6695832282952096,
+                "unitId": "unit-d2-6",
+                "workerId": "worker-8"
+              },
+              "residentId": "resident-worker-8",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d2",
+            "id": "120-24",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 4.535864260576561,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 4.535864260576561,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-2",
+                "120-4",
+                "120-5",
+                "120-6",
+                "120-7",
+                "120-9",
+                "120-10",
+                "120-11",
+                "120-12",
+                "120-13"
+              ],
+              "householdId": "household-9",
+              "inputs": {
+                "housingBurden": 0.9546413573942344,
+                "unitId": "unit-d2-7",
+                "workerId": "worker-9"
+              },
+              "residentId": "resident-worker-9",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d1",
+            "id": "120-25",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d1-117-2",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 82.1398435692878,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d1-117-2",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 82.29008284235546,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-3",
+                "120-8"
+              ],
+              "householdId": "household-10",
+              "inputs": {
+                "housingBurden": 0.1786015643071219,
+                "unitId": "unit-d1-0",
+                "workerId": "worker-10"
+              },
+              "residentId": "resident-worker-10",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d0",
+            "id": "120-26",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 52.78062759834232,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d0-72-0",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 75.86428707597227,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-0",
+                "120-1"
+              ],
+              "householdId": "household-11",
+              "inputs": {
+                "housingBurden": 0.4721937240165768,
+                "unitId": "unit-d0-1",
+                "workerId": "worker-11"
+              },
+              "residentId": "resident-worker-11",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d0",
+            "id": "120-27",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 56.82141597048472,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 56.82141597048472,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-0",
+                "120-1"
+              ],
+              "householdId": "household-12",
+              "inputs": {
+                "housingBurden": 0.43178584029515277,
+                "unitId": "unit-d0-7",
+                "workerId": "worker-12"
+              },
+              "residentId": "resident-worker-12",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d1",
+            "id": "120-28",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d1-21-0",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 68.61539309165097,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d1-21-0",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 68.73231485307043,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-3",
+                "120-8"
+              ],
+              "householdId": "household-13",
+              "inputs": {
+                "housingBurden": 0.3138460690834902,
+                "unitId": "unit-d1-2",
+                "workerId": "worker-13"
+              },
+              "residentId": "resident-worker-13",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d2",
+            "id": "120-29",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d2-117-2",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 82.13692532194415,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d2-117-2",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 82.28891892010313,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-2",
+                "120-4",
+                "120-5",
+                "120-6",
+                "120-7",
+                "120-9",
+                "120-10",
+                "120-11",
+                "120-12",
+                "120-13"
+              ],
+              "householdId": "household-14",
+              "inputs": {
+                "housingBurden": 0.17863074678055862,
+                "unitId": "unit-d2-0",
+                "workerId": "worker-14"
+              },
+              "residentId": "resident-worker-14",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d2",
+            "id": "120-30",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 14.804457172879527,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 14.804457172879527,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-2",
+                "120-4",
+                "120-5",
+                "120-6",
+                "120-7",
+                "120-9",
+                "120-10",
+                "120-11",
+                "120-12",
+                "120-13"
+              ],
+              "householdId": "household-15",
+              "inputs": {
+                "housingBurden": 0.8519554282712047,
+                "unitId": "unit-d2-10",
+                "workerId": "worker-15"
+              },
+              "residentId": "resident-worker-15",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d1",
+            "id": "120-31",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 35.4454679498498,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d0-72-1",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 71.62877068012006,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-3",
+                "120-8"
+              ],
+              "householdId": "household-16",
+              "inputs": {
+                "housingBurden": 0.645545320501502,
+                "unitId": "unit-d1-10",
+                "workerId": "worker-16"
+              },
+              "residentId": "resident-worker-16",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d1",
+            "id": "120-32",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 52.16150606186557,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 52.16150606186557,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-3",
+                "120-8"
+              ],
+              "householdId": "household-17",
+              "inputs": {
+                "housingBurden": 0.4783849393813443,
+                "unitId": "unit-d1-11",
+                "workerId": "worker-17"
+              },
+              "residentId": "resident-worker-17",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d0",
+            "id": "120-33",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d1-21-1",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 63.686703993672445,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d1-21-1",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 63.84194501464007,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-0",
+                "120-1"
+              ],
+              "householdId": "household-18",
+              "inputs": {
+                "housingBurden": 0.3631329600632755,
+                "unitId": "unit-d0-8",
+                "workerId": "worker-18"
+              },
+              "residentId": "resident-worker-18",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d2",
+            "id": "120-34",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 60.19968393671742,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 60.19968393671742,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-2",
+                "120-4",
+                "120-5",
+                "120-6",
+                "120-7",
+                "120-9",
+                "120-10",
+                "120-11",
+                "120-12",
+                "120-13"
+              ],
+              "householdId": "household-19",
+              "inputs": {
+                "housingBurden": 0.39800316063282587,
+                "unitId": "unit-d2-8",
+                "workerId": "worker-19"
+              },
+              "residentId": "resident-worker-19",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d2",
+            "id": "120-35",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d1-117-0",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 79.6732672734547,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d1-117-0",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 79.85777911816841,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-2",
+                "120-4",
+                "120-5",
+                "120-6",
+                "120-7",
+                "120-9",
+                "120-10",
+                "120-11",
+                "120-12",
+                "120-13"
+              ],
+              "householdId": "household-20",
+              "inputs": {
+                "housingBurden": 0.20326732726545307,
+                "unitId": "unit-d2-5",
+                "workerId": "worker-20"
+              },
+              "residentId": "resident-worker-20",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d0",
+            "id": "120-36",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d0-114-0",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 83.38359654165822,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d0-114-0",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 83.50249250290918,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-0",
+                "120-1"
+              ],
+              "householdId": "household-21",
+              "inputs": {
+                "housingBurden": 0.16616403458341777,
+                "unitId": "unit-d0-10",
+                "workerId": "worker-21"
+              },
+              "residentId": "resident-worker-21",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d1",
+            "id": "120-37",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d1-117-1",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 84.69503010809257,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d1-117-1",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 84.80582348225995,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-3",
+                "120-8"
+              ],
+              "householdId": "household-22",
+              "inputs": {
+                "housingBurden": 0.15304969891907433,
+                "unitId": "unit-d1-3",
+                "workerId": "worker-22"
+              },
+              "residentId": "resident-worker-22",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d0",
+            "id": "120-38",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 43.64865275736525,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 43.64865275736525,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-0",
+                "120-1"
+              ],
+              "householdId": "household-23",
+              "inputs": {
+                "housingBurden": 0.5635134724263475,
+                "unitId": "unit-d0-4",
+                "workerId": "worker-23"
+              },
+              "residentId": "resident-worker-23",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d0",
+            "id": "120-39",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d0-114-1",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 84.17870091016704,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d0-114-1",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 84.2927003615532,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-0",
+                "120-1"
+              ],
+              "householdId": "household-24",
+              "inputs": {
+                "housingBurden": 0.1582129908983297,
+                "unitId": "unit-d0-6",
+                "workerId": "worker-24"
+              },
+              "residentId": "resident-worker-24",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d2",
+            "id": "120-40",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 42.94639742619775,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 42.94639742619775,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-2",
+                "120-4",
+                "120-5",
+                "120-6",
+                "120-7",
+                "120-9",
+                "120-10",
+                "120-11",
+                "120-12",
+                "120-13"
+              ],
+              "householdId": "household-25",
+              "inputs": {
+                "housingBurden": 0.5705360257380225,
+                "unitId": "unit-d2-11",
+                "workerId": "worker-25"
+              },
+              "residentId": "resident-worker-25",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d0",
+            "id": "120-41",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d1-21-2",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 64.28950735633946,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d1-21-2",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 64.44506194520916,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-0",
+                "120-1"
+              ],
+              "householdId": "household-26",
+              "inputs": {
+                "housingBurden": 0.3571049264366054,
+                "unitId": "unit-d0-9",
+                "workerId": "worker-26"
+              },
+              "residentId": "resident-worker-26",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d1",
+            "id": "120-42",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d2-117-0",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 81.42177829278599,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d2-117-0",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 81.56713543734865,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-3",
+                "120-8"
+              ],
+              "householdId": "household-27",
+              "inputs": {
+                "housingBurden": 0.18578221707214013,
+                "unitId": "unit-d1-8",
+                "workerId": "worker-27"
+              },
+              "residentId": "resident-worker-27",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d0",
+            "id": "120-43",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d0-114-2",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 79.94078778906095,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d0-114-2",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 80.09944286124556,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-0",
+                "120-1"
+              ],
+              "householdId": "household-28",
+              "inputs": {
+                "housingBurden": 0.20059212210939048,
+                "unitId": "unit-d0-2",
+                "workerId": "worker-28"
+              },
+              "residentId": "resident-worker-28",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d2",
+            "id": "120-44",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 15.422902571876095,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 15.422902571876095,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-2",
+                "120-4",
+                "120-5",
+                "120-6",
+                "120-7",
+                "120-9",
+                "120-10",
+                "120-11",
+                "120-12",
+                "120-13"
+              ],
+              "householdId": "household-29",
+              "inputs": {
+                "housingBurden": 0.845770974281239,
+                "unitId": "unit-d2-1",
+                "workerId": "worker-29"
+              },
+              "residentId": "resident-worker-29",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          }
+        ],
+        "metrics": {
+          "availableUnits": 6,
+          "balance": 14251141.674091721,
+          "businesses": 4,
+          "capitalSpending": 0,
+          "completedProjects": 0,
+          "debt": 0,
+          "employed": 12,
+          "households": 30,
+          "housingUnits": 36,
+          "jobs": 12,
+          "meanRent": 964.8342201475191,
+          "meanTravelMinutes": 15.000083783111114,
+          "overloadedServices": 4,
+          "population": 90,
+          "unhoused": 0,
+          "utilityFailures": 0
+        },
+        "month": 120
       },
-      {
-        "id": "governance",
-        "version": "city-systems.1.0.0",
-        "cadence": 1,
-        "dependencies": [
-          "environment"
-        ]
-      },
-      {
-        "id": "utilities",
-        "version": "city-systems.1.0.0",
-        "cadence": 1,
-        "dependencies": [
-          "governance"
-        ]
-      },
-      {
-        "id": "development",
-        "version": "city-systems.1.0.0",
-        "cadence": 3,
-        "dependencies": [
-          "utilities"
-        ]
-      },
-      {
-        "id": "construction",
-        "version": "city-systems.1.0.0",
-        "cadence": 1,
-        "dependencies": [
-          "development"
-        ]
-      },
-      {
-        "id": "transport",
-        "version": "city-systems.1.0.0",
-        "cadence": 1,
-        "dependencies": [
-          "construction"
-        ]
-      },
-      {
-        "id": "businesses",
-        "version": "city-systems.1.0.0",
-        "cadence": 1,
-        "dependencies": [
-          "transport"
-        ]
-      },
-      {
-        "id": "jobs",
-        "version": "city-systems.1.0.0",
-        "cadence": 1,
-        "dependencies": [
-          "businesses"
-        ]
-      },
-      {
-        "id": "housing",
-        "version": "city-systems.1.0.0",
-        "cadence": 1,
-        "dependencies": [
-          "jobs"
-        ]
-      },
-      {
-        "id": "services",
-        "version": "city-systems.1.0.0",
-        "cadence": 1,
-        "dependencies": [
-          "housing"
-        ]
-      },
-      {
-        "id": "demographics",
-        "version": "city-systems.1.0.0",
-        "cadence": 12,
-        "dependencies": [
-          "services"
-        ]
-      },
-      {
-        "id": "finance",
-        "version": "city-systems.1.0.0",
-        "cadence": 1,
-        "dependencies": [
-          "demographics"
-        ]
+      "plan": {
+        "causalRecords": [],
+        "decisions": [
+          {
+            "actorId": "household-5",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.49982035568181
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.5188024649473733
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.5101975592171457
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.4179608696067179
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.708516583459288
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.681357907796227
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          },
+          {
+            "actorId": "household-8",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.3980456903139058
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.4208902074971546
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.4105344080407138
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.299529745110339
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.6085113936829434
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.5758265732460157
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          },
+          {
+            "actorId": "household-11",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.7076631924226606
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.7263476614590425
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.5178776809933259
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.427087266349
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.5162230630022904
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.4894902364551275
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          },
+          {
+            "actorId": "household-17",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.5306801760057183
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.5484911370889072
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.7404171323014817
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.653871213399106
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.538839868500809
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.5133568145083176
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          },
+          {
+            "actorId": "household-23",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.6300224774476184
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.651653456906514
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.441847774277031
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.3367398586915251
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.4399322257159928
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.4089836758378063
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          },
+          {
+            "actorId": "household-29",
+            "actorType": "housing",
+            "alternatives": [
+              {
+                "eligible": false,
+                "id": "unit-d0-0",
+                "rejectionReason": "budget too low",
+                "utility": 1.3564788146222393
+              },
+              {
+                "eligible": false,
+                "id": "unit-d0-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.3809008189846854
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-5",
+                "rejectionReason": "budget too low",
+                "utility": 1.3698299183623135
+              },
+              {
+                "eligible": false,
+                "id": "unit-d1-7",
+                "rejectionReason": "budget too low",
+                "utility": 1.2511600274387567
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-3",
+                "rejectionReason": "budget too low",
+                "utility": 1.56766720837486
+              },
+              {
+                "eligible": false,
+                "id": "unit-d2-9",
+                "rejectionReason": "budget too low",
+                "utility": 1.5327253962589216
+              }
+            ],
+            "chosenOption": "stay",
+            "decisionType": "housing-search",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "primaryReason": "budget too low",
+            "simulationTime": 120
+          }
+        ],
+        "events": [
+          {
+            "eventType": "BUSINESS_CLOSED",
+            "geographyId": "d0",
+            "id": "120-0",
+            "modelId": "businesses",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "businessId": "business-d0-72",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.businesses",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              },
+              "viability": -1378.078514360046
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "businesses"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d0",
+            "id": "120-1",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "householdId": "household-3",
+              "income": 1321.693341457285,
+              "rent": 1002.2339250111208,
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.housing",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              },
+              "savings": 52391.46015553216
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-2",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "householdId": "household-5",
+              "income": 1887.3256038408726,
+              "rent": 1225.257899427083,
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.housing",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              },
+              "savings": 105648.06867892365
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d1",
+            "id": "120-3",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "householdId": "household-6",
+              "income": 1590.3202305547893,
+              "rent": 968.3896968619877,
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.housing",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              },
+              "savings": 170480.08567721254
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-4",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "householdId": "household-7",
+              "income": 1195.6164503702894,
+              "rent": 1091.556634787141,
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.housing",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              },
+              "savings": 26341.976407852224
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-5",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "householdId": "household-8",
+              "income": 1568.2284087873995,
+              "rent": 1050.0594406601265,
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.housing",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              },
+              "savings": 101296.6382060406
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-6",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "householdId": "household-9",
+              "income": 1143.1962395785376,
+              "rent": 1091.3424099192396,
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.housing",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              },
+              "savings": 29260.98461587535
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-7",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "householdId": "household-15",
+              "income": 1273.7662823405117,
+              "rent": 1085.192098588831,
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.housing",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              },
+              "savings": 44768.954362954566
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d1",
+            "id": "120-8",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "householdId": "household-16",
+              "income": 1437.887855549343,
+              "rent": 928.2217765558181,
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.housing",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              },
+              "savings": 136271.84517331803
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "HOUSEHOLD_BUDGET_STRESS",
+            "geographyId": "d2",
+            "id": "120-9",
+            "modelId": "housing",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "householdId": "household-29",
+              "income": 1466.932046203874,
+              "rent": 1240.6885459222221,
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.housing",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              },
+              "savings": 20230.91237780436
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "housing"
+          },
+          {
+            "eventType": "PARK_OVERCROWDING",
+            "geographyId": "d2",
+            "id": "120-10",
+            "modelId": "services",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "capacity": 30,
+              "demand": 33,
+              "facilityId": "park-d2",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.services",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "services"
+          },
+          {
+            "eventType": "HEALTHCARE_CAPACITY_STRESS",
+            "geographyId": "d2",
+            "id": "120-11",
+            "modelId": "services",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "capacity": 30,
+              "demand": 33,
+              "facilityId": "healthcare-d2",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.services",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "services"
+          },
+          {
+            "eventType": "EMERGENCY_RESPONSE_DEGRADED",
+            "geographyId": "d2",
+            "id": "120-12",
+            "modelId": "services",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "capacity": 30,
+              "demand": 33,
+              "facilityId": "emergency-d2",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.services",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "services"
+          },
+          {
+            "eventType": "COMMUNITY_SERVICE_STRESS",
+            "geographyId": "d2",
+            "id": "120-13",
+            "modelId": "services",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "capacity": 30,
+              "demand": 33,
+              "facilityId": "library-d2",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.services",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "services"
+          },
+          {
+            "eventType": "ANNUAL_POPULATION_UPDATE",
+            "geographyId": null,
+            "id": "120-14",
+            "modelId": "demographics",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "departed": 0,
+              "formed": 0,
+              "growth": -0.000666666666666667,
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.demographics",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "demographics"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d1",
+            "id": "120-15",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 53.172278547831844,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 53.172278547831844,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-3",
+                "120-8"
+              ],
+              "householdId": "household-0",
+              "inputs": {
+                "housingBurden": 0.46827721452168153,
+                "unitId": "unit-d1-9",
+                "workerId": "worker-0"
+              },
+              "residentId": "resident-worker-0",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d1",
+            "id": "120-16",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d2-117-1",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 84.43178413985997,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d2-117-1",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 84.54504044457985,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-3",
+                "120-8"
+              ],
+              "householdId": "household-1",
+              "inputs": {
+                "housingBurden": 0.15568215860140022,
+                "unitId": "unit-d1-4",
+                "workerId": "worker-1"
+              },
+              "residentId": "resident-worker-1",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d0",
+            "id": "120-17",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 60.565932835498934,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 60.565932835498934,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-0",
+                "120-1"
+              ],
+              "householdId": "household-2",
+              "inputs": {
+                "housingBurden": 0.3943406716450106,
+                "unitId": "unit-d0-3",
+                "workerId": "worker-2"
+              },
+              "residentId": "resident-worker-2",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d0",
+            "id": "120-18",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 24.170464238999013,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 24.170464238999013,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-0",
+                "120-1"
+              ],
+              "householdId": "household-3",
+              "inputs": {
+                "housingBurden": 0.7582953576100099,
+                "unitId": "unit-d0-11",
+                "workerId": "worker-3"
+              },
+              "residentId": "resident-worker-3",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d1",
+            "id": "120-19",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 53.533399416457826,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 53.533399416457826,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-3",
+                "120-8"
+              ],
+              "householdId": "household-4",
+              "inputs": {
+                "housingBurden": 0.4646660058354218,
+                "unitId": "unit-d1-6",
+                "workerId": "worker-4"
+              },
+              "residentId": "resident-worker-4",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d2",
+            "id": "120-20",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 35.07967586866961,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 35.07967586866961,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-2",
+                "120-4",
+                "120-5",
+                "120-6",
+                "120-7",
+                "120-9",
+                "120-10",
+                "120-11",
+                "120-12",
+                "120-13"
+              ],
+              "householdId": "household-5",
+              "inputs": {
+                "housingBurden": 0.6492032413133039,
+                "unitId": "unit-d2-4",
+                "workerId": "worker-5"
+              },
+              "residentId": "resident-worker-5",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d1",
+            "id": "120-21",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 39.107251592708394,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d0-72-2",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 71.71869178074466,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-3",
+                "120-8"
+              ],
+              "householdId": "household-6",
+              "inputs": {
+                "housingBurden": 0.6089274840729161,
+                "unitId": "unit-d1-1",
+                "workerId": "worker-6"
+              },
+              "residentId": "resident-worker-6",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d2",
+            "id": "120-22",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 8.703444616450396,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 8.703444616450396,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-2",
+                "120-4",
+                "120-5",
+                "120-6",
+                "120-7",
+                "120-9",
+                "120-10",
+                "120-11",
+                "120-12",
+                "120-13"
+              ],
+              "householdId": "household-7",
+              "inputs": {
+                "housingBurden": 0.912965553835496,
+                "unitId": "unit-d2-2",
+                "workerId": "worker-7"
+              },
+              "residentId": "resident-worker-7",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d2",
+            "id": "120-23",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 33.04167717047905,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 33.04167717047905,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-2",
+                "120-4",
+                "120-5",
+                "120-6",
+                "120-7",
+                "120-9",
+                "120-10",
+                "120-11",
+                "120-12",
+                "120-13"
+              ],
+              "householdId": "household-8",
+              "inputs": {
+                "housingBurden": 0.6695832282952096,
+                "unitId": "unit-d2-6",
+                "workerId": "worker-8"
+              },
+              "residentId": "resident-worker-8",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d2",
+            "id": "120-24",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 4.535864260576561,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 4.535864260576561,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-2",
+                "120-4",
+                "120-5",
+                "120-6",
+                "120-7",
+                "120-9",
+                "120-10",
+                "120-11",
+                "120-12",
+                "120-13"
+              ],
+              "householdId": "household-9",
+              "inputs": {
+                "housingBurden": 0.9546413573942344,
+                "unitId": "unit-d2-7",
+                "workerId": "worker-9"
+              },
+              "residentId": "resident-worker-9",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d1",
+            "id": "120-25",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d1-117-2",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 82.1398435692878,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d1-117-2",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 82.29008284235546,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-3",
+                "120-8"
+              ],
+              "householdId": "household-10",
+              "inputs": {
+                "housingBurden": 0.1786015643071219,
+                "unitId": "unit-d1-0",
+                "workerId": "worker-10"
+              },
+              "residentId": "resident-worker-10",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d0",
+            "id": "120-26",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 52.78062759834232,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d0-72-0",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 75.86428707597227,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-0",
+                "120-1"
+              ],
+              "householdId": "household-11",
+              "inputs": {
+                "housingBurden": 0.4721937240165768,
+                "unitId": "unit-d0-1",
+                "workerId": "worker-11"
+              },
+              "residentId": "resident-worker-11",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d0",
+            "id": "120-27",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 56.82141597048472,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 56.82141597048472,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-0",
+                "120-1"
+              ],
+              "householdId": "household-12",
+              "inputs": {
+                "housingBurden": 0.43178584029515277,
+                "unitId": "unit-d0-7",
+                "workerId": "worker-12"
+              },
+              "residentId": "resident-worker-12",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d1",
+            "id": "120-28",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d1-21-0",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 68.61539309165097,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d1-21-0",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 68.73231485307043,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-3",
+                "120-8"
+              ],
+              "householdId": "household-13",
+              "inputs": {
+                "housingBurden": 0.3138460690834902,
+                "unitId": "unit-d1-2",
+                "workerId": "worker-13"
+              },
+              "residentId": "resident-worker-13",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d2",
+            "id": "120-29",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d2-117-2",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 82.13692532194415,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d2-117-2",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 82.28891892010313,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-2",
+                "120-4",
+                "120-5",
+                "120-6",
+                "120-7",
+                "120-9",
+                "120-10",
+                "120-11",
+                "120-12",
+                "120-13"
+              ],
+              "householdId": "household-14",
+              "inputs": {
+                "housingBurden": 0.17863074678055862,
+                "unitId": "unit-d2-0",
+                "workerId": "worker-14"
+              },
+              "residentId": "resident-worker-14",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d2",
+            "id": "120-30",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 14.804457172879527,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 14.804457172879527,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-2",
+                "120-4",
+                "120-5",
+                "120-6",
+                "120-7",
+                "120-9",
+                "120-10",
+                "120-11",
+                "120-12",
+                "120-13"
+              ],
+              "householdId": "household-15",
+              "inputs": {
+                "housingBurden": 0.8519554282712047,
+                "unitId": "unit-d2-10",
+                "workerId": "worker-15"
+              },
+              "residentId": "resident-worker-15",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d1",
+            "id": "120-31",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 35.4454679498498,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d0-72-1",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 71.62877068012006,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-3",
+                "120-8"
+              ],
+              "householdId": "household-16",
+              "inputs": {
+                "housingBurden": 0.645545320501502,
+                "unitId": "unit-d1-10",
+                "workerId": "worker-16"
+              },
+              "residentId": "resident-worker-16",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d1",
+            "id": "120-32",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 52.16150606186557,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 52.16150606186557,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-3",
+                "120-8"
+              ],
+              "householdId": "household-17",
+              "inputs": {
+                "housingBurden": 0.4783849393813443,
+                "unitId": "unit-d1-11",
+                "workerId": "worker-17"
+              },
+              "residentId": "resident-worker-17",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d0",
+            "id": "120-33",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d1-21-1",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 63.686703993672445,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d1-21-1",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 63.84194501464007,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-0",
+                "120-1"
+              ],
+              "householdId": "household-18",
+              "inputs": {
+                "housingBurden": 0.3631329600632755,
+                "unitId": "unit-d0-8",
+                "workerId": "worker-18"
+              },
+              "residentId": "resident-worker-18",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d2",
+            "id": "120-34",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 60.19968393671742,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 60.19968393671742,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-2",
+                "120-4",
+                "120-5",
+                "120-6",
+                "120-7",
+                "120-9",
+                "120-10",
+                "120-11",
+                "120-12",
+                "120-13"
+              ],
+              "householdId": "household-19",
+              "inputs": {
+                "housingBurden": 0.39800316063282587,
+                "unitId": "unit-d2-8",
+                "workerId": "worker-19"
+              },
+              "residentId": "resident-worker-19",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d2",
+            "id": "120-35",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d1-117-0",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 79.6732672734547,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d1-117-0",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 79.85777911816841,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-2",
+                "120-4",
+                "120-5",
+                "120-6",
+                "120-7",
+                "120-9",
+                "120-10",
+                "120-11",
+                "120-12",
+                "120-13"
+              ],
+              "householdId": "household-20",
+              "inputs": {
+                "housingBurden": 0.20326732726545307,
+                "unitId": "unit-d2-5",
+                "workerId": "worker-20"
+              },
+              "residentId": "resident-worker-20",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d0",
+            "id": "120-36",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d0-114-0",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 83.38359654165822,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d0-114-0",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 83.50249250290918,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-0",
+                "120-1"
+              ],
+              "householdId": "household-21",
+              "inputs": {
+                "housingBurden": 0.16616403458341777,
+                "unitId": "unit-d0-10",
+                "workerId": "worker-21"
+              },
+              "residentId": "resident-worker-21",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d1",
+            "id": "120-37",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d1-117-1",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 84.69503010809257,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d1-117-1",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 84.80582348225995,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-3",
+                "120-8"
+              ],
+              "householdId": "household-22",
+              "inputs": {
+                "housingBurden": 0.15304969891907433,
+                "unitId": "unit-d1-3",
+                "workerId": "worker-22"
+              },
+              "residentId": "resident-worker-22",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d0",
+            "id": "120-38",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 43.64865275736525,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 43.64865275736525,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-0",
+                "120-1"
+              ],
+              "householdId": "household-23",
+              "inputs": {
+                "housingBurden": 0.5635134724263475,
+                "unitId": "unit-d0-4",
+                "workerId": "worker-23"
+              },
+              "residentId": "resident-worker-23",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d0",
+            "id": "120-39",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d0-114-1",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 84.17870091016704,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d0-114-1",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 84.2927003615532,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-0",
+                "120-1"
+              ],
+              "householdId": "household-24",
+              "inputs": {
+                "housingBurden": 0.1582129908983297,
+                "unitId": "unit-d0-6",
+                "workerId": "worker-24"
+              },
+              "residentId": "resident-worker-24",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d2",
+            "id": "120-40",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 42.94639742619775,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 42.94639742619775,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-2",
+                "120-4",
+                "120-5",
+                "120-6",
+                "120-7",
+                "120-9",
+                "120-10",
+                "120-11",
+                "120-12",
+                "120-13"
+              ],
+              "householdId": "household-25",
+              "inputs": {
+                "housingBurden": 0.5705360257380225,
+                "unitId": "unit-d2-11",
+                "workerId": "worker-25"
+              },
+              "residentId": "resident-worker-25",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d0",
+            "id": "120-41",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d1-21-2",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 64.28950735633946,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d1-21-2",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 64.44506194520916,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-0",
+                "120-1"
+              ],
+              "householdId": "household-26",
+              "inputs": {
+                "housingBurden": 0.3571049264366054,
+                "unitId": "unit-d0-9",
+                "workerId": "worker-26"
+              },
+              "residentId": "resident-worker-26",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d1",
+            "id": "120-42",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d2-117-0",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 81.42177829278599,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d2-117-0",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 81.56713543734865,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-3",
+                "120-8"
+              ],
+              "householdId": "household-27",
+              "inputs": {
+                "housingBurden": 0.18578221707214013,
+                "unitId": "unit-d1-8",
+                "workerId": "worker-27"
+              },
+              "residentId": "resident-worker-27",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d0",
+            "id": "120-43",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": "job-business-d0-114-2",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 79.94078778906095,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "before": {
+                "jobId": "job-business-d0-114-2",
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 80.09944286124556,
+                  "social": 100
+                },
+                "routine": "home-work-home",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-0",
+                "120-1"
+              ],
+              "householdId": "household-28",
+              "inputs": {
+                "housingBurden": 0.20059212210939048,
+                "unitId": "unit-d0-2",
+                "workerId": "worker-28"
+              },
+              "residentId": "resident-worker-28",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          },
+          {
+            "eventType": "RESIDENT_MONTH",
+            "geographyId": "d2",
+            "id": "120-44",
+            "modelId": "residents",
+            "modelVersion": "city-systems.1.1.0",
+            "payload": {
+              "after": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 15.422902571876095,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "before": {
+                "jobId": null,
+                "needs": {
+                  "housing": 100,
+                  "livelihood": 15.422902571876095,
+                  "social": 100
+                },
+                "routine": "home-job-search",
+                "status": "active"
+              },
+              "contextEventIds": [
+                "120-2",
+                "120-4",
+                "120-5",
+                "120-6",
+                "120-7",
+                "120-9",
+                "120-10",
+                "120-11",
+                "120-12",
+                "120-13"
+              ],
+              "householdId": "household-29",
+              "inputs": {
+                "housingBurden": 0.845770974281239,
+                "unitId": "unit-d2-1",
+                "workerId": "worker-29"
+              },
+              "residentId": "resident-worker-29",
+              "rule": {
+                "evidenceType": "synthetic-assumption",
+                "id": "city.residents",
+                "source": "world/city/README.md",
+                "version": "city-systems.1.1.0"
+              }
+            },
+            "schemaVersion": "SystemEvent.v1",
+            "severity": 1,
+            "simulationTime": 120,
+            "system": "residents"
+          }
+        ],
+        "metrics": {
+          "availableUnits": 6,
+          "balance": 14251141.674091721,
+          "businesses": 4,
+          "capitalSpending": 0,
+          "completedProjects": 0,
+          "debt": 0,
+          "employed": 12,
+          "households": 30,
+          "housingUnits": 36,
+          "jobs": 12,
+          "meanRent": 964.8342201475191,
+          "meanTravelMinutes": 15.000083783111114,
+          "overloadedServices": 4,
+          "population": 90,
+          "unhoused": 0,
+          "utilityFailures": 0
+        },
+        "month": 120
       }
-    ],
-    "initialHash": "2b5285afcd34a95999401d90f0e120d1b36682c8249f9a503123dd2ca5987e3e",
-    "replay": "Local recipe recomputation; no independently recorded checkpoints.",
-    "authority": "monthly City only"
-  },
-  "evidenceKind": "manifest-recomputation",
-  "observations": {
-    "baseline": {
-      "month": 120,
-      "metrics": {
-        "population": 90,
-        "households": 30,
-        "housingUnits": 36,
-        "availableUnits": 6,
-        "meanRent": 964.8342201475191,
-        "unhoused": 0,
-        "employed": 12,
-        "jobs": 12,
-        "businesses": 4,
-        "meanTravelMinutes": 15.000083783111114,
-        "overloadedServices": 4,
-        "utilityFailures": 0,
-        "balance": 14251141.674091721,
-        "debt": 0,
-        "completedProjects": 0,
-        "capitalSpending": 0
-      },
-      "events": [
+    },
+    "provenance": {
+      "assumptions": [
+        "Synthetic City inventory; no geographic coordinates.",
+        "Private parcel capacity is zero; utilities have capacity 200 per district/network; annual growth is zero.",
+        "Illustrative monthly equations, not an empirical forecast."
+      ],
+      "authority": "monthly City only",
+      "confidence": "low",
+      "datasetVersion": "future-machine-synthetic.v1",
+      "initialHash": "35012a1e380d7d675e7c44fd24c392ef68d0034a38df1e80e3a4f4a6ce0dc643",
+      "modelManifest": [
         {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-0",
-          "simulationTime": 120,
-          "system": "businesses",
-          "eventType": "BUSINESS_CLOSED",
-          "geographyId": "d0",
-          "severity": 1,
-          "payload": {
-            "businessId": "business-d0-72",
-            "viability": -1378.078514360046
-          },
-          "modelId": "businesses",
-          "modelVersion": "city-systems.1.0.0"
+          "cadence": 1,
+          "dependencies": [],
+          "id": "environment",
+          "version": "city-systems.1.1.0"
         },
         {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-1",
-          "simulationTime": 120,
-          "system": "housing",
-          "eventType": "HOUSEHOLD_BUDGET_STRESS",
-          "geographyId": "d0",
-          "severity": 1,
-          "payload": {
-            "householdId": "household-3",
-            "rent": 1002.2339250111208,
-            "income": 1321.693341457285,
-            "savings": 52391.46015553216
-          },
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
+          "cadence": 1,
+          "dependencies": [
+            "environment"
+          ],
+          "id": "governance",
+          "version": "city-systems.1.1.0"
         },
         {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-2",
-          "simulationTime": 120,
-          "system": "housing",
-          "eventType": "HOUSEHOLD_BUDGET_STRESS",
-          "geographyId": "d2",
-          "severity": 1,
-          "payload": {
-            "householdId": "household-5",
-            "rent": 1225.257899427083,
-            "income": 1887.3256038408726,
-            "savings": 105648.06867892365
-          },
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
+          "cadence": 1,
+          "dependencies": [
+            "governance"
+          ],
+          "id": "utilities",
+          "version": "city-systems.1.1.0"
         },
         {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-3",
-          "simulationTime": 120,
-          "system": "housing",
-          "eventType": "HOUSEHOLD_BUDGET_STRESS",
-          "geographyId": "d1",
-          "severity": 1,
-          "payload": {
-            "householdId": "household-6",
-            "rent": 968.3896968619877,
-            "income": 1590.3202305547893,
-            "savings": 170480.08567721254
-          },
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
+          "cadence": 3,
+          "dependencies": [
+            "utilities"
+          ],
+          "id": "development",
+          "version": "city-systems.1.1.0"
         },
         {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-4",
-          "simulationTime": 120,
-          "system": "housing",
-          "eventType": "HOUSEHOLD_BUDGET_STRESS",
-          "geographyId": "d2",
-          "severity": 1,
-          "payload": {
-            "householdId": "household-7",
-            "rent": 1091.556634787141,
-            "income": 1195.6164503702894,
-            "savings": 26341.976407852224
-          },
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
+          "cadence": 1,
+          "dependencies": [
+            "development"
+          ],
+          "id": "construction",
+          "version": "city-systems.1.1.0"
         },
         {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-5",
-          "simulationTime": 120,
-          "system": "housing",
-          "eventType": "HOUSEHOLD_BUDGET_STRESS",
-          "geographyId": "d2",
-          "severity": 1,
-          "payload": {
-            "householdId": "household-8",
-            "rent": 1050.0594406601265,
-            "income": 1568.2284087873995,
-            "savings": 101296.6382060406
-          },
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
+          "cadence": 1,
+          "dependencies": [
+            "construction"
+          ],
+          "id": "transport",
+          "version": "city-systems.1.1.0"
         },
         {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-6",
-          "simulationTime": 120,
-          "system": "housing",
-          "eventType": "HOUSEHOLD_BUDGET_STRESS",
-          "geographyId": "d2",
-          "severity": 1,
-          "payload": {
-            "householdId": "household-9",
-            "rent": 1091.3424099192396,
-            "income": 1143.1962395785376,
-            "savings": 29260.98461587535
-          },
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
+          "cadence": 1,
+          "dependencies": [
+            "transport"
+          ],
+          "id": "businesses",
+          "version": "city-systems.1.1.0"
         },
         {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-7",
-          "simulationTime": 120,
-          "system": "housing",
-          "eventType": "HOUSEHOLD_BUDGET_STRESS",
-          "geographyId": "d2",
-          "severity": 1,
-          "payload": {
-            "householdId": "household-15",
-            "rent": 1085.192098588831,
-            "income": 1273.7662823405117,
-            "savings": 44768.954362954566
-          },
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
+          "cadence": 1,
+          "dependencies": [
+            "businesses"
+          ],
+          "id": "jobs",
+          "version": "city-systems.1.1.0"
         },
         {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-8",
-          "simulationTime": 120,
-          "system": "housing",
-          "eventType": "HOUSEHOLD_BUDGET_STRESS",
-          "geographyId": "d1",
-          "severity": 1,
-          "payload": {
-            "householdId": "household-16",
-            "rent": 928.2217765558181,
-            "income": 1437.887855549343,
-            "savings": 136271.84517331803
-          },
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
+          "cadence": 1,
+          "dependencies": [
+            "jobs"
+          ],
+          "id": "housing",
+          "version": "city-systems.1.1.0"
         },
         {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-9",
-          "simulationTime": 120,
-          "system": "housing",
-          "eventType": "HOUSEHOLD_BUDGET_STRESS",
-          "geographyId": "d2",
-          "severity": 1,
-          "payload": {
-            "householdId": "household-29",
-            "rent": 1240.6885459222221,
-            "income": 1466.932046203874,
-            "savings": 20230.91237780436
-          },
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
+          "cadence": 1,
+          "dependencies": [
+            "housing"
+          ],
+          "id": "services",
+          "version": "city-systems.1.1.0"
         },
         {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-10",
-          "simulationTime": 120,
-          "system": "services",
-          "eventType": "PARK_OVERCROWDING",
-          "geographyId": "d2",
-          "severity": 1,
-          "payload": {
-            "facilityId": "park-d2",
-            "demand": 33,
-            "capacity": 30
-          },
-          "modelId": "services",
-          "modelVersion": "city-systems.1.0.0"
+          "cadence": 12,
+          "dependencies": [
+            "services"
+          ],
+          "id": "demographics",
+          "version": "city-systems.1.1.0"
         },
         {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-11",
-          "simulationTime": 120,
-          "system": "services",
-          "eventType": "HEALTHCARE_CAPACITY_STRESS",
-          "geographyId": "d2",
-          "severity": 1,
-          "payload": {
-            "facilityId": "healthcare-d2",
-            "demand": 33,
-            "capacity": 30
-          },
-          "modelId": "services",
-          "modelVersion": "city-systems.1.0.0"
+          "cadence": 1,
+          "dependencies": [
+            "demographics"
+          ],
+          "id": "finance",
+          "version": "city-systems.1.1.0"
         },
         {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-12",
-          "simulationTime": 120,
-          "system": "services",
-          "eventType": "EMERGENCY_RESPONSE_DEGRADED",
-          "geographyId": "d2",
-          "severity": 1,
-          "payload": {
-            "facilityId": "emergency-d2",
-            "demand": 33,
-            "capacity": 30
-          },
-          "modelId": "services",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-13",
-          "simulationTime": 120,
-          "system": "services",
-          "eventType": "COMMUNITY_SERVICE_STRESS",
-          "geographyId": "d2",
-          "severity": 1,
-          "payload": {
-            "facilityId": "library-d2",
-            "demand": 33,
-            "capacity": 30
-          },
-          "modelId": "services",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-14",
-          "simulationTime": 120,
-          "system": "demographics",
-          "eventType": "ANNUAL_POPULATION_UPDATE",
-          "geographyId": null,
-          "severity": 1,
-          "payload": {
-            "formed": 0,
-            "departed": 0,
-            "growth": -0.000666666666666667
-          },
-          "modelId": "demographics",
-          "modelVersion": "city-systems.1.0.0"
+          "cadence": 1,
+          "dependencies": [
+            "finance"
+          ],
+          "id": "residents",
+          "version": "city-systems.1.1.0"
         }
       ],
-      "causalRecords": [],
-      "decisions": [
-        {
-          "simulationTime": 120,
-          "actorType": "housing",
-          "actorId": "household-5",
-          "decisionType": "housing-search",
-          "chosenOption": "stay",
-          "primaryReason": "budget too low",
-          "alternatives": [
-            {
-              "id": "unit-d0-0",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.49982035568181
-            },
-            {
-              "id": "unit-d0-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.5188024649473733
-            },
-            {
-              "id": "unit-d1-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.5101975592171457
-            },
-            {
-              "id": "unit-d1-7",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.4179608696067179
-            },
-            {
-              "id": "unit-d2-3",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.708516583459288
-            },
-            {
-              "id": "unit-d2-9",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.681357907796227
-            }
-          ],
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "simulationTime": 120,
-          "actorType": "housing",
-          "actorId": "household-8",
-          "decisionType": "housing-search",
-          "chosenOption": "stay",
-          "primaryReason": "budget too low",
-          "alternatives": [
-            {
-              "id": "unit-d0-0",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.3980456903139058
-            },
-            {
-              "id": "unit-d0-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.4208902074971546
-            },
-            {
-              "id": "unit-d1-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.4105344080407138
-            },
-            {
-              "id": "unit-d1-7",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.299529745110339
-            },
-            {
-              "id": "unit-d2-3",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.6085113936829434
-            },
-            {
-              "id": "unit-d2-9",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.5758265732460157
-            }
-          ],
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "simulationTime": 120,
-          "actorType": "housing",
-          "actorId": "household-11",
-          "decisionType": "housing-search",
-          "chosenOption": "stay",
-          "primaryReason": "budget too low",
-          "alternatives": [
-            {
-              "id": "unit-d0-0",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.7076631924226606
-            },
-            {
-              "id": "unit-d0-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.7263476614590425
-            },
-            {
-              "id": "unit-d1-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.5178776809933259
-            },
-            {
-              "id": "unit-d1-7",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.427087266349
-            },
-            {
-              "id": "unit-d2-3",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.5162230630022904
-            },
-            {
-              "id": "unit-d2-9",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.4894902364551275
-            }
-          ],
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "simulationTime": 120,
-          "actorType": "housing",
-          "actorId": "household-17",
-          "decisionType": "housing-search",
-          "chosenOption": "stay",
-          "primaryReason": "budget too low",
-          "alternatives": [
-            {
-              "id": "unit-d0-0",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.5306801760057183
-            },
-            {
-              "id": "unit-d0-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.5484911370889072
-            },
-            {
-              "id": "unit-d1-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.7404171323014817
-            },
-            {
-              "id": "unit-d1-7",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.653871213399106
-            },
-            {
-              "id": "unit-d2-3",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.538839868500809
-            },
-            {
-              "id": "unit-d2-9",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.5133568145083176
-            }
-          ],
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "simulationTime": 120,
-          "actorType": "housing",
-          "actorId": "household-23",
-          "decisionType": "housing-search",
-          "chosenOption": "stay",
-          "primaryReason": "budget too low",
-          "alternatives": [
-            {
-              "id": "unit-d0-0",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.6300224774476184
-            },
-            {
-              "id": "unit-d0-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.651653456906514
-            },
-            {
-              "id": "unit-d1-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.441847774277031
-            },
-            {
-              "id": "unit-d1-7",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.3367398586915251
-            },
-            {
-              "id": "unit-d2-3",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.4399322257159928
-            },
-            {
-              "id": "unit-d2-9",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.4089836758378063
-            }
-          ],
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "simulationTime": 120,
-          "actorType": "housing",
-          "actorId": "household-29",
-          "decisionType": "housing-search",
-          "chosenOption": "stay",
-          "primaryReason": "budget too low",
-          "alternatives": [
-            {
-              "id": "unit-d0-0",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.3564788146222393
-            },
-            {
-              "id": "unit-d0-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.3809008189846854
-            },
-            {
-              "id": "unit-d1-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.3698299183623135
-            },
-            {
-              "id": "unit-d1-7",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.2511600274387567
-            },
-            {
-              "id": "unit-d2-3",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.56766720837486
-            },
-            {
-              "id": "unit-d2-9",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.5327253962589216
-            }
-          ],
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
-        }
-      ]
+      "populationSnapshot": "synthetic-7-30",
+      "replay": "Local recipe recomputation; no independently recorded checkpoints.",
+      "type": "synthetic-assumption",
+      "worldRevision": "seed.v1"
+    },
+    "recipe": {
+      "households": 30,
+      "intervention": null,
+      "modelVersion": "city-systems.1.1.0",
+      "months": 120,
+      "schemaVersion": "future-machine.v1",
+      "seed": 7
+    },
+    "schemaVersion": "future-machine-evidence.v1",
+    "seed": 7
+  },
+  "outcomeDigests": {
+    "baseline": {
+      "selected": "16f05f07baed55193752edcb36e886da7bfac4b3768c2e4d5229aa982d21a62a",
+      "terminal": "16f05f07baed55193752edcb36e886da7bfac4b3768c2e4d5229aa982d21a62a"
     },
     "plan": {
-      "month": 120,
-      "metrics": {
-        "population": 90,
-        "households": 30,
-        "housingUnits": 36,
-        "availableUnits": 6,
-        "meanRent": 964.8342201475191,
-        "unhoused": 0,
-        "employed": 12,
-        "jobs": 12,
-        "businesses": 4,
-        "meanTravelMinutes": 15.000083783111114,
-        "overloadedServices": 4,
-        "utilityFailures": 0,
-        "balance": 14251141.674091721,
-        "debt": 0,
-        "completedProjects": 0,
-        "capitalSpending": 0
-      },
-      "events": [
-        {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-0",
-          "simulationTime": 120,
-          "system": "businesses",
-          "eventType": "BUSINESS_CLOSED",
-          "geographyId": "d0",
-          "severity": 1,
-          "payload": {
-            "businessId": "business-d0-72",
-            "viability": -1378.078514360046
-          },
-          "modelId": "businesses",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-1",
-          "simulationTime": 120,
-          "system": "housing",
-          "eventType": "HOUSEHOLD_BUDGET_STRESS",
-          "geographyId": "d0",
-          "severity": 1,
-          "payload": {
-            "householdId": "household-3",
-            "rent": 1002.2339250111208,
-            "income": 1321.693341457285,
-            "savings": 52391.46015553216
-          },
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-2",
-          "simulationTime": 120,
-          "system": "housing",
-          "eventType": "HOUSEHOLD_BUDGET_STRESS",
-          "geographyId": "d2",
-          "severity": 1,
-          "payload": {
-            "householdId": "household-5",
-            "rent": 1225.257899427083,
-            "income": 1887.3256038408726,
-            "savings": 105648.06867892365
-          },
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-3",
-          "simulationTime": 120,
-          "system": "housing",
-          "eventType": "HOUSEHOLD_BUDGET_STRESS",
-          "geographyId": "d1",
-          "severity": 1,
-          "payload": {
-            "householdId": "household-6",
-            "rent": 968.3896968619877,
-            "income": 1590.3202305547893,
-            "savings": 170480.08567721254
-          },
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-4",
-          "simulationTime": 120,
-          "system": "housing",
-          "eventType": "HOUSEHOLD_BUDGET_STRESS",
-          "geographyId": "d2",
-          "severity": 1,
-          "payload": {
-            "householdId": "household-7",
-            "rent": 1091.556634787141,
-            "income": 1195.6164503702894,
-            "savings": 26341.976407852224
-          },
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-5",
-          "simulationTime": 120,
-          "system": "housing",
-          "eventType": "HOUSEHOLD_BUDGET_STRESS",
-          "geographyId": "d2",
-          "severity": 1,
-          "payload": {
-            "householdId": "household-8",
-            "rent": 1050.0594406601265,
-            "income": 1568.2284087873995,
-            "savings": 101296.6382060406
-          },
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-6",
-          "simulationTime": 120,
-          "system": "housing",
-          "eventType": "HOUSEHOLD_BUDGET_STRESS",
-          "geographyId": "d2",
-          "severity": 1,
-          "payload": {
-            "householdId": "household-9",
-            "rent": 1091.3424099192396,
-            "income": 1143.1962395785376,
-            "savings": 29260.98461587535
-          },
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-7",
-          "simulationTime": 120,
-          "system": "housing",
-          "eventType": "HOUSEHOLD_BUDGET_STRESS",
-          "geographyId": "d2",
-          "severity": 1,
-          "payload": {
-            "householdId": "household-15",
-            "rent": 1085.192098588831,
-            "income": 1273.7662823405117,
-            "savings": 44768.954362954566
-          },
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-8",
-          "simulationTime": 120,
-          "system": "housing",
-          "eventType": "HOUSEHOLD_BUDGET_STRESS",
-          "geographyId": "d1",
-          "severity": 1,
-          "payload": {
-            "householdId": "household-16",
-            "rent": 928.2217765558181,
-            "income": 1437.887855549343,
-            "savings": 136271.84517331803
-          },
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-9",
-          "simulationTime": 120,
-          "system": "housing",
-          "eventType": "HOUSEHOLD_BUDGET_STRESS",
-          "geographyId": "d2",
-          "severity": 1,
-          "payload": {
-            "householdId": "household-29",
-            "rent": 1240.6885459222221,
-            "income": 1466.932046203874,
-            "savings": 20230.91237780436
-          },
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-10",
-          "simulationTime": 120,
-          "system": "services",
-          "eventType": "PARK_OVERCROWDING",
-          "geographyId": "d2",
-          "severity": 1,
-          "payload": {
-            "facilityId": "park-d2",
-            "demand": 33,
-            "capacity": 30
-          },
-          "modelId": "services",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-11",
-          "simulationTime": 120,
-          "system": "services",
-          "eventType": "HEALTHCARE_CAPACITY_STRESS",
-          "geographyId": "d2",
-          "severity": 1,
-          "payload": {
-            "facilityId": "healthcare-d2",
-            "demand": 33,
-            "capacity": 30
-          },
-          "modelId": "services",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-12",
-          "simulationTime": 120,
-          "system": "services",
-          "eventType": "EMERGENCY_RESPONSE_DEGRADED",
-          "geographyId": "d2",
-          "severity": 1,
-          "payload": {
-            "facilityId": "emergency-d2",
-            "demand": 33,
-            "capacity": 30
-          },
-          "modelId": "services",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-13",
-          "simulationTime": 120,
-          "system": "services",
-          "eventType": "COMMUNITY_SERVICE_STRESS",
-          "geographyId": "d2",
-          "severity": 1,
-          "payload": {
-            "facilityId": "library-d2",
-            "demand": 33,
-            "capacity": 30
-          },
-          "modelId": "services",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "schemaVersion": "SystemEvent.v1",
-          "id": "120-14",
-          "simulationTime": 120,
-          "system": "demographics",
-          "eventType": "ANNUAL_POPULATION_UPDATE",
-          "geographyId": null,
-          "severity": 1,
-          "payload": {
-            "formed": 0,
-            "departed": 0,
-            "growth": -0.000666666666666667
-          },
-          "modelId": "demographics",
-          "modelVersion": "city-systems.1.0.0"
-        }
-      ],
-      "causalRecords": [],
-      "decisions": [
-        {
-          "simulationTime": 120,
-          "actorType": "housing",
-          "actorId": "household-5",
-          "decisionType": "housing-search",
-          "chosenOption": "stay",
-          "primaryReason": "budget too low",
-          "alternatives": [
-            {
-              "id": "unit-d0-0",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.49982035568181
-            },
-            {
-              "id": "unit-d0-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.5188024649473733
-            },
-            {
-              "id": "unit-d1-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.5101975592171457
-            },
-            {
-              "id": "unit-d1-7",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.4179608696067179
-            },
-            {
-              "id": "unit-d2-3",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.708516583459288
-            },
-            {
-              "id": "unit-d2-9",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.681357907796227
-            }
-          ],
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "simulationTime": 120,
-          "actorType": "housing",
-          "actorId": "household-8",
-          "decisionType": "housing-search",
-          "chosenOption": "stay",
-          "primaryReason": "budget too low",
-          "alternatives": [
-            {
-              "id": "unit-d0-0",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.3980456903139058
-            },
-            {
-              "id": "unit-d0-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.4208902074971546
-            },
-            {
-              "id": "unit-d1-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.4105344080407138
-            },
-            {
-              "id": "unit-d1-7",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.299529745110339
-            },
-            {
-              "id": "unit-d2-3",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.6085113936829434
-            },
-            {
-              "id": "unit-d2-9",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.5758265732460157
-            }
-          ],
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "simulationTime": 120,
-          "actorType": "housing",
-          "actorId": "household-11",
-          "decisionType": "housing-search",
-          "chosenOption": "stay",
-          "primaryReason": "budget too low",
-          "alternatives": [
-            {
-              "id": "unit-d0-0",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.7076631924226606
-            },
-            {
-              "id": "unit-d0-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.7263476614590425
-            },
-            {
-              "id": "unit-d1-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.5178776809933259
-            },
-            {
-              "id": "unit-d1-7",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.427087266349
-            },
-            {
-              "id": "unit-d2-3",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.5162230630022904
-            },
-            {
-              "id": "unit-d2-9",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.4894902364551275
-            }
-          ],
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "simulationTime": 120,
-          "actorType": "housing",
-          "actorId": "household-17",
-          "decisionType": "housing-search",
-          "chosenOption": "stay",
-          "primaryReason": "budget too low",
-          "alternatives": [
-            {
-              "id": "unit-d0-0",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.5306801760057183
-            },
-            {
-              "id": "unit-d0-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.5484911370889072
-            },
-            {
-              "id": "unit-d1-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.7404171323014817
-            },
-            {
-              "id": "unit-d1-7",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.653871213399106
-            },
-            {
-              "id": "unit-d2-3",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.538839868500809
-            },
-            {
-              "id": "unit-d2-9",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.5133568145083176
-            }
-          ],
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "simulationTime": 120,
-          "actorType": "housing",
-          "actorId": "household-23",
-          "decisionType": "housing-search",
-          "chosenOption": "stay",
-          "primaryReason": "budget too low",
-          "alternatives": [
-            {
-              "id": "unit-d0-0",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.6300224774476184
-            },
-            {
-              "id": "unit-d0-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.651653456906514
-            },
-            {
-              "id": "unit-d1-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.441847774277031
-            },
-            {
-              "id": "unit-d1-7",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.3367398586915251
-            },
-            {
-              "id": "unit-d2-3",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.4399322257159928
-            },
-            {
-              "id": "unit-d2-9",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.4089836758378063
-            }
-          ],
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
-        },
-        {
-          "simulationTime": 120,
-          "actorType": "housing",
-          "actorId": "household-29",
-          "decisionType": "housing-search",
-          "chosenOption": "stay",
-          "primaryReason": "budget too low",
-          "alternatives": [
-            {
-              "id": "unit-d0-0",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.3564788146222393
-            },
-            {
-              "id": "unit-d0-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.3809008189846854
-            },
-            {
-              "id": "unit-d1-5",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.3698299183623135
-            },
-            {
-              "id": "unit-d1-7",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.2511600274387567
-            },
-            {
-              "id": "unit-d2-3",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.56766720837486
-            },
-            {
-              "id": "unit-d2-9",
-              "eligible": false,
-              "rejectionReason": "budget too low",
-              "utility": 1.5327253962589216
-            }
-          ],
-          "modelId": "housing",
-          "modelVersion": "city-systems.1.0.0"
-        }
-      ]
+      "selected": "16f05f07baed55193752edcb36e886da7bfac4b3768c2e4d5229aa982d21a62a",
+      "terminal": "16f05f07baed55193752edcb36e886da7bfac4b3768c2e4d5229aa982d21a62a"
     }
   },
-  "modeledComparison": null,
-  "narrativeInterpretation": null,
-  "limitations": [
-    "Modeled results from illustrative, uncalibrated monthly City rules are not empirical forecasts.",
-    "Synthetic inventory and schematic layout are assumptions, not real geographic building locations.",
-    "Replay recomputes the recorded manifest; equivalence to independently retained checkpoints has not been verified.",
-    "A single matched seed is not an uncertainty distribution. Differences alone do not establish real-world causality.",
-    "Entity identities are scoped to monthly City; no House or Population identity mapping is asserted."
-  ]
+  "rulesRevision": [
+    {
+      "cadence": 1,
+      "dependencies": [],
+      "id": "environment",
+      "version": "city-systems.1.1.0"
+    },
+    {
+      "cadence": 1,
+      "dependencies": [
+        "environment"
+      ],
+      "id": "governance",
+      "version": "city-systems.1.1.0"
+    },
+    {
+      "cadence": 1,
+      "dependencies": [
+        "governance"
+      ],
+      "id": "utilities",
+      "version": "city-systems.1.1.0"
+    },
+    {
+      "cadence": 3,
+      "dependencies": [
+        "utilities"
+      ],
+      "id": "development",
+      "version": "city-systems.1.1.0"
+    },
+    {
+      "cadence": 1,
+      "dependencies": [
+        "development"
+      ],
+      "id": "construction",
+      "version": "city-systems.1.1.0"
+    },
+    {
+      "cadence": 1,
+      "dependencies": [
+        "construction"
+      ],
+      "id": "transport",
+      "version": "city-systems.1.1.0"
+    },
+    {
+      "cadence": 1,
+      "dependencies": [
+        "transport"
+      ],
+      "id": "businesses",
+      "version": "city-systems.1.1.0"
+    },
+    {
+      "cadence": 1,
+      "dependencies": [
+        "businesses"
+      ],
+      "id": "jobs",
+      "version": "city-systems.1.1.0"
+    },
+    {
+      "cadence": 1,
+      "dependencies": [
+        "jobs"
+      ],
+      "id": "housing",
+      "version": "city-systems.1.1.0"
+    },
+    {
+      "cadence": 1,
+      "dependencies": [
+        "housing"
+      ],
+      "id": "services",
+      "version": "city-systems.1.1.0"
+    },
+    {
+      "cadence": 12,
+      "dependencies": [
+        "services"
+      ],
+      "id": "demographics",
+      "version": "city-systems.1.1.0"
+    },
+    {
+      "cadence": 1,
+      "dependencies": [
+        "demographics"
+      ],
+      "id": "finance",
+      "version": "city-systems.1.1.0"
+    },
+    {
+      "cadence": 1,
+      "dependencies": [
+        "finance"
+      ],
+      "id": "residents",
+      "version": "city-systems.1.1.0"
+    }
+  ],
+  "scenarioIds": {
+    "baseline": "baseline",
+    "plan": "plan"
+  },
+  "schemaVersion": "canonical-run-receipt.v1",
+  "timeRange": {
+    "firstDate": "2026-01",
+    "firstMonth": 0,
+    "lastDate": "2036-01",
+    "lastMonth": 120
+  },
+  "units": {
+    "availableUnits": "homes",
+    "balance": "USD",
+    "businesses": "businesses",
+    "capitalSpending": "USD cumulative",
+    "completedProjects": "projects",
+    "debt": "USD",
+    "employed": "workers",
+    "households": "households",
+    "housingUnits": "homes",
+    "jobs": "jobs",
+    "meanRent": "USD/month",
+    "meanTravelMinutes": "minutes/link",
+    "population": "people",
+    "unhoused": "households"
+  }
 }

@@ -1,3 +1,4 @@
+import { assertHistoryIntegrity } from '../integrity.js';
 import { DEFAULT_RECIPE, CONTRACT_VERSION, MODEL_VERSION, MONTHS, assertMonth } from '../contracts.js';
 import { addIntervention, createEngine } from '../../city/engine.js';
 import { createCity } from '../../city/seed.js';
@@ -38,7 +39,7 @@ export function normalizeReplay(initial, replay) {
   let spending = 0;
   const result = [snapshot(structuredClone(initial), null, 0)];
   for (const [index, step] of replay.steps.entries()) {
-    if (!step.state || step.state.month !== index + 1 || step.state.seed !== initial.seed || step.state.version !== MODEL_VERSION) throw new Error('Missing or mismatched replay state');
+    if (!step?.state || step.state.month !== index + 1 || step.state.seed !== initial.seed || step.state.version !== MODEL_VERSION) throw new Error('Missing or mismatched replay state');
     // Validate assignments as well as clock; missing inventory must never become zero.
     checkReplayState(step.state);
     const capital = step.state.systems.finance?.capitalExpense;
@@ -56,9 +57,16 @@ function checkReplayState(state) {
 async function historyFrom(record, baselineReplay, planReplay, recipe, initialHash) {
   const { manifest } = record;
   const initial = manifest.initial;
-  return freeze({ schemaVersion: CONTRACT_VERSION, recipe, experimentId: record.id, initialHash, modelVersion: MODEL_VERSION, seed: initial.seed,
-    baseline: normalizeReplay(initial, baselineReplay), plan: normalizeReplay(initial, planReplay),
-    provenance: { ...structuredClone(initial.provenance), modelManifest: manifest.modelManifest, initialHash, replay: 'Recomputed from saved City manifest; not independently verified recorded checkpoints.', assumptions: manifest.assumptions, authority: 'monthly City only' } });
+  for (const [arm, replay] of [['baseline', baselineReplay], ['plan', planReplay]]) {
+    const expected = {experimentId:record.id, scenarioId:arm, runIndex:0, runId:`${arm}-0`};
+    if (!replay?.identity || Object.entries(expected).some(([key,value]) => replay.identity[key] !== value)) throw new Error('Replay run identity mismatch');
+  }
+  const tagged = (replay) => normalizeReplay(initial, replay).map(snapshot => ({...snapshot, identity:{...replay.identity}}));
+  const history = { schemaVersion: CONTRACT_VERSION, recipe, experimentId: record.id, initialHash, modelVersion: MODEL_VERSION, seed: initial.seed,
+    baseline: tagged(baselineReplay), plan: tagged(planReplay),
+    provenance: { ...structuredClone(initial.provenance), modelManifest: manifest.modelManifest, initialHash, replay: 'Recomputed from saved City manifest; not independently verified recorded checkpoints.', assumptions: manifest.assumptions, authority: 'monthly City only' } };
+  assertHistoryIntegrity(history);
+  return freeze(history);
 }
 function recipeFromManifest(manifest) {
   if (!manifest || Array.isArray(manifest) || typeof manifest !== 'object' || manifest.version !== MODEL_VERSION || manifest.months !== MONTHS || manifest.runs !== 1) throw new Error('Unsupported saved experiment version or horizon');
@@ -152,5 +160,6 @@ export function loadExperiment(id, options = {}) {
 }
 export function getFrame(history, month) {
   assertMonth(month);
+  if (history?.experimentId) assertHistoryIntegrity(history);
   return { month, baseline: history?.baseline?.[month] ?? null, plan: history?.plan?.[month] ?? null };
 }

@@ -66,3 +66,9 @@ Per-route absolute load/frame/heap checks and retained CPU profiles are availabl
 with `bun run profile:performance`; see [budget scope and commands](../../docs/performance-budgets.md).
 
 Backend diagnostics use the completed renderer initialization result: the World source line displays `renderer WEBGPU`, `renderer WEBGL2`, or `renderer CANVAS2D`, and `getPerformanceStats().backend` exposes the corresponding lowercase identifier. API presence alone does not establish WebGPU success. `?renderer=canvas2d` selects the projected-geometry fallback explicitly. The `detected` cases in `test/e2e/city-renderer.e2e.js` deny WebGPU adapters (and optionally WebGL contexts) to check fallback labels and usable graphics controls.
+
+World startup probes native initialization rather than relying on `navigator.gpu`
+alone. Adapter rejection selects WebGL2, then Canvas2D when WebGL2 is unavailable.
+The persistent source notice includes the startup failure reason. Both fallbacks
+retain the normal town geometry and simulation state; Canvas2D is a projected
+low-fidelity view. Focused rejection checks live in `city-renderer.e2e.js`.

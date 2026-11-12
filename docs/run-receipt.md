@@ -1,8 +1,12 @@
 # Canonical monthly City run receipt
 
 `world/future-machine/share/run-receipt.js` owns the new
-`canonical-run-receipt.v1` interface. Existing evidence, example receipts, City
-storage, replay, URL sharing and browser behavior are unchanged.
+`canonical-run-receipt.v1` interface. Existing evidence, City storage, replay, URL sharing and browser behavior are
+unchanged. Checked-in [synthetic example receipts](../test/fixtures/example-receipts/README.md)
+use this canonical contract and can be validated and regenerated without a server.
+The examples directory also retains explicitly versioned historical receipts.
+Those original bytes are evidence of their old model version, not inputs accepted
+by the current model's strict replay validator.
 
 ```js
 import {
@@ -34,7 +38,7 @@ The receipt contains:
 | `scenarioIds` | Existing ordered monthly City `baseline` and `plan` pair |
 | `timeRange` | Months 0–120; illustrative January 2026–January 2036 |
 | `units` | Existing `METRIC_UNITS`, including cumulative capital USD and minutes/link |
-| `outcomeDigests` | SHA-256 of each full normalized selected and terminal snapshot, including state, metrics and recorded events |
+| `outcomeDigests` | SHA-256 of each normalized selected and terminal simulation snapshot, including all state, metrics and recorded events; the later-added top-level transport `identity` is validated separately |
 | `checksum` | SHA-256 of every other receipt field, using existing `stateHash` canonicalization |
 
 Canonical JSON sorts every object key lexicographically, preserves array order,
@@ -51,6 +55,15 @@ checksum mismatch and initial digest mismatch with the versioned synthetic
 generator. Housing retains the data adapter's stricter 120-home limit. Snapshot
 outcome digests and saved identity are verified against the real replay after
 loading. A missing saved record or a changed outcome fails explicitly.
+
+Snapshot transport identity was added after this v1 contract. To preserve
+existing City 1.1 receipts, only that top-level `identity` property is excluded
+from snapshot outcome hashes. Any history containing identity tags must pass
+the complete 121-month integrity check before export: matching experiment,
+scenario, run index/run ID, month, seed and model. Untagged legacy or local
+histories retain their original digest semantics. No state field, nested value,
+metric, event, decision or causal record is excluded, and saved replay still
+requires the strict City saved-outcome and complete regenerated-receipt checks.
 
 Provenance is copied from the source history, never invented. A missing rules
 manifest is an error. Synthetic assumptions and recomputation limits remain in

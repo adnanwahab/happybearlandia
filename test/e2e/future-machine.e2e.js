@@ -228,3 +228,69 @@ test('KPI WHY selects exact historical completion and discloses unsupported aggr
  expect(await story.getByRole('button',{name:/Recorded housing completion|Inspect event/}).count()).toBe(0);
  await page.screenshot({path:testInfo.outputPath('she-32-unsupported-causality.png'),fullPage:true});
 });
+
+test('canvas year shortcuts preserve input editing and select recorded divergence',async({page})=>{
+ await page.goto('/world/future-machine.html?renderer=canvas');
+ await expect(page.getByText(/Page Up advances one year/)).toBeVisible();
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);
+ const canvas=page.locator('.fm-stage canvas');await canvas.focus();
+ await canvas.press('PageUp');await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.month)).toBe(12);
+ await canvas.press('PageDown');await canvas.press('PageDown');await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.month)).toBe(0);
+ await seek(page,115);await canvas.focus();await canvas.press('PageUp');await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.month)).toBe(120);
+ await canvas.press('Control+PageDown');await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.month)).toBe(120);
+ const {compareHistory}=await import('../../world/future-machine/diff/index.js');
+ const history=await page.evaluate(()=>window.futureMachine.history);const first=compareHistory(history).find(d=>d.available!==false&&d.changedCount>0).month;
+ await canvas.press('d');await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.month)).toBe(first);
+ expect(new URL(page.url()).searchParams.get('month')).toBe(String(first));
+ const seed=page.getByTestId('future-machine-seed');await seed.focus();await seed.press('PageUp');await seed.press('d');
+ expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(first);
+ await page.getByRole('combobox',{name:'Plan',exact:true}).selectOption('baseline');
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);
+ await seek(page,24);await canvas.focus();await canvas.press('d');
+ await expect(page.locator('.fm-status')).toContainText('No recorded divergence');
+ expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(24);
+});
+
+test('reset restores entry recipe, preserves prior receipt, and reruns only on demand',async({page},testInfo)=>{
+ await page.goto('/world/future-machine.html?renderer=canvas2d');
+ const seed=page.getByTestId('future-machine-seed'),reset=page.getByTestId('future-machine-reset');
+ const fork=page.getByRole('button',{name:'Fork City',exact:true});
+ await seed.fill('99');await page.getByRole('combobox',{name:'Plan',exact:true}).selectOption('baseline');
+ await fork.click();await ready(page);
+ const prior=await page.evaluate(()=>({id:futureMachine.history.experimentId,recipe:structuredClone(futureMachine.history.recipe),url:location.href}));
+ await seed.fill('invalid');await reset.click();
+ await expect(seed).toHaveValue('42');await expect(seed).toHaveAttribute('aria-invalid','false');
+ await expect(page.getByRole('combobox',{name:'Plan',exact:true})).toHaveValue('housing');
+ expect(await page.evaluate(()=>({id:futureMachine.history.experimentId,recipe:futureMachine.history.recipe,url:location.href}))).toEqual(prior);
+ await page.getByRole('button',{name:'Copy comparison link',exact:true}).click();
+ const downloadEvent=page.waitForEvent('download');await page.getByRole('button',{name:'Export evidence',exact:true}).click();
+ const download=await downloadEvent;await download.saveAs(testInfo.outputPath('prior-experiment-receipt.json'));
+ await fork.click();await ready(page);
+ expect(await page.evaluate(()=>futureMachine.history.recipe)).toEqual((await import('../../world/future-machine/contracts.js')).DEFAULT_RECIPE);
+ expect(await page.evaluate(()=>futureMachine.history.experimentId)).not.toBe(prior.id);
+ const defaultMetrics=await page.evaluate(()=>futureMachine.history.plan[120].metrics);
+ await seed.fill('123');await reset.click();await fork.click();await ready(page);
+ expect(await page.evaluate(()=>futureMachine.history.plan[120].metrics)).toEqual(defaultMetrics);
+ // A shared custom recipe becomes this page's original, including a null policy.
+ await page.goto(prior.url);await ready(page);await seed.fill('0');
+ await page.getByRole('combobox',{name:'Plan',exact:true}).selectOption('housing');await fork.click();await ready(page);
+ await reset.click();await expect(seed).toHaveValue('99');
+ await expect(page.getByRole('combobox',{name:'Plan',exact:true})).toHaveValue('baseline');
+ expect(await page.evaluate(()=>futureMachine.state.recipe)).toEqual(prior.recipe);
+ await testInfo.attach('reset-recipe-evidence',{body:JSON.stringify({prior,restored:await page.evaluate(()=>futureMachine.state.recipe),defaultMetrics},null,2),contentType:'application/json'});
+});
+
+test('wrong scenario replay never reaches side-by-side rendering',async({page})=>{
+ await page.route('**/api/city-experiments/*/replay',async route=>{
+  const response=await route.fetch();const body=await response.json();
+  body.identity.scenarioId='baseline';body.identity.runId='baseline-0';
+  await route.fulfill({response,json:body});
+ });
+ await page.goto('/world/future-machine.html');
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();
+ await expect(page.getByText('Replay run identity mismatch',{exact:true})).toBeVisible();
+ expect(await page.evaluate(()=>({history:window.futureMachine.history,month:window.futureMachine.stats.scene.month}))).toEqual({history:null,month:null});
+ await page.unroute('**/api/city-experiments/*/replay');
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);
+ expect(await page.evaluate(()=>window.futureMachine.history.plan[120].identity.runId)).toBe('plan-0');
+});
