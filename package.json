@@ -5,6 +5,7 @@
   },
   "scripts": {
     "start": "bun run server.js",
+    "compare:local-ideas": "bun scripts/compare-local-ideas.js",
     "test:e2e": "playwright test",
     "screenshot:index": "bun scripts/screenshot-index.js",
     "seed:supabase:conversations": "bun scripts/seed-supabase-conversations.js",

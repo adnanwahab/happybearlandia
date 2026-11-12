@@ -1003,3 +1003,25 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+
+## SHE-254 — bounded local idea sharing v0
+
+Slice: one drainage-policy idea on an explicit synthetic spatial peer graph,
+parent-linked hop evidence, deterministic replay and a matched no-sharing
+ablation via a normal Bun command. Reused Population's seeded draw function;
+kept the existing saved-conversation overlay and agent-count adapter unchanged.
+Dependencies: resident positions and origin are explicit inputs; no cross-model
+identity or clock mapping is claimed. Tick means one synchronous contact round.
+Acceptance tasks completed: bounded validated inputs and radius graph; immutable
+origin/hop records; paired curves; CLI report and regression verification.
+Risks/limits: static synthetic positions, assumed 0.65 adoption probability,
+canonical-ID tie breaking, quadratic peer construction; no live Population
+integration, browser changes, empirical calibration or million-resident claim.
+
+Verification: 13 tests passed, 311 assertions across local-ideas,
+idea-diffusion and agent-counts suites. CLI seed42/25residents/12rounds produced
+25 informed versus 1 in control (24 additional), saturating at round9.
+Full replayable paired evidence: `docs/evidence/local-ideas-v0.json`.
+Browser smoke/Playwright inapplicable: this slice changes only headless behavior.
+No lint/typecheck scripts exist. No deployment or production writes performed.
