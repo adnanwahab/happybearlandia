@@ -99,3 +99,16 @@ The next priority after Playable Life is idea diffusion, followed by generationa
 - Which snapshots must be retained for exact replay when model versions change, and which scenarios can be rebuilt from a pinned recipe?
 - What evidence and thresholds make a modeled change meaningful to a player, and what does a first-time player need to complete the guided journey?
 - Which authorization and retention contracts are required before public submissions, persistent shared state, and multiplayer decisions?
+
+## Storm hazard fields
+
+Sculpt a Storm includes a Canvas2D depth/drainage inspector using the same
+selected arm, grid cell and recorded step as its terrain view. Depth is in
+metres; compiled drainage capacity is in metres per model step, not measured
+outflow. Fixed colour bands show source values, with zero distinct from missing
+or invalid values. Crosses identify unknown tiles, diagonal marks identify
+sampled estimates when supplied, and dots identify unquantified structural
+model uncertainty. Current single-run frames are modeled values, not sampled
+probabilities. No calibrated uncertainty interval is available. Selection shows
+recipe/model versions, backend, seed, arm, step, rain input and synthetic-source
+limitations. With Canvas2D unavailable, the textual selected-cell reading remains.

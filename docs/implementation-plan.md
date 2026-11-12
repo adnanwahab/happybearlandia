@@ -1003,3 +1003,33 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-160 hazard field inspection
+
+Owned slice: `world/storm/hazard-field.js`, storm page integration and focused
+hazard-field tests. Reuse storm frames and compiled drain capacities, without
+changing solvers or shared scene rendering. Dependency SHE-150 is a broader
+invariant audit, not evidence that these synthetic results are calibrated.
+Acceptance: deterministic source-value colours, sampled/unknown/uncertain
+patterns, selected-cell provenance, same arm/step as the existing scene, and
+Canvas2D operation without WebGL. Missing data must never become zero depth.
+Risk: no calibrated uncertainty intervals or geographic flood probability exist;
+label this structural model uncertainty rather than inventing estimates.
+
+Delivered: source-only `hazard-field.js` adapter, normal storm-page integration,
+fixed field legend, tile selection shared with terrain, and provenance reading.
+The inspector remains Canvas2D regardless of WebGL/WebGPU availability; if 2D
+itself is unavailable, selected-cell text remains. Current runs do not supply
+sampled spatial estimates; the adapter tests the explicit sampled state without
+inventing samples. Uncertainty means unquantified model structure, not an interval.
+Verification: 14 tests / 637 assertions pass across hazard fields, storm scenario,
+physics, impacts and recovery; `git diff --check` passes. Browser integration test
+added with before/after drainage screenshots and video recording configured.
+Both actual Playwright attempts failed before tests at server listen (3100 and
+3196 report EADDRINUSE); an independent loopback ephemeral-port Bun probe also
+fails with EADDRINUSE. No browser pass, screenshots or recordings claimed.
+Next action: run hazard-field and sculpt-a-storm E2E tests in a bind-capable
+host, inspect recorded frames, and review before dispatch/publication.
+Read-only related-PR search found open PR106/SHE242 owning storm/core CI;
+this slice does not modify its workflow files. SHE150/HBL-1M-023 was read as
+the planning dependency and remains separate from this rendering adapter.

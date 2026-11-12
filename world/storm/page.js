@@ -1,3 +1,4 @@
+import { mountHazardField } from './hazard-field.js';
 import { consequences, impactMetrics } from './compare.js';
 import { simulateWaterGPU } from './gpu.js';
 import { mountStormScene } from './scene.js';
@@ -31,6 +32,8 @@ const scene = mountStormScene(find('scene'), { onCell(index) {
   selected = index;
   renderScene();
 } });
+
+const hazard = mountHazardField(find('hazard-field'), index => { selected = index; renderScene(); });
 
 function element(tag, text) {
   const node = document.createElement(tag);
@@ -122,6 +125,8 @@ function renderScene() {
   const depth = arm.water.frames[tick];
   const { terrain } = arm.input;
   scene.render({ size: SIZE, terrain, depth, buildings, roads, selected });
+  hazard.render({ size: SIZE, depth, drains: arm.input.drains, selected,
+    provenance: `${comparison.recipe.version} · ${arm.water.modelVersion} · ${arm.water.backend} solver · seed ${comparison.recipe.seed} · ${armPicker.value} · step ${tick} · rain ${comparison.recipe.rainRate} m per step · synthetic terrain and drain inputs; closed edges, illustrative runoff rules` });
   const entity = buildings.find(row => row.cells.includes(selected)) ?? roads.find(row => row.cells.includes(selected));
   find('selection').textContent = `Selected ${cellLabel(selected)}${entity ? ' · ' + entity.name : ''} · Depth ${number.format(depth[selected])} m`;
   find('step-label').value = `Step ${tick} of ${comparison.recipe.steps}`;
