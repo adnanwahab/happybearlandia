@@ -45,7 +45,7 @@ jobs:
           test/world-database-path.test.js
           test/overpass-diagnostics.test.js
       - name: Verify finite agent-count exports and transition evidence
-        run: bun test test/agent-counts.test.js
+        run: bun test test/agent-counts.test.js test/population-scheduling.test.js
       - name: Verify manifest preflight and replay cancellation regressions
         run: >
           bun test --timeout 15000
@@ -61,6 +61,8 @@ jobs:
           test/example-receipts.test.js
       - name: Install Chromium for browser journeys
         run: bunx playwright install --with-deps chromium
+      - name: Verify adaptive Population scheduling in Chromium
+        run: bunx playwright test test/e2e/population-scheduling.e2e.js --workers=1
       - name: Universe shell, sprint experiences, and saved future journey
         run: bunx playwright test --config test/release-browser.config.js
       - name: Time Machine recording and playback with a fresh store

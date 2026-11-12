@@ -1003,3 +1003,46 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-174 — adaptive Population scheduling guard
+
+Next integrated slice: measure completed live clock commits and reduce automatic
+update frequency under pressure. Existing fixed-step clock and authoritative
+worker are prerequisites; SHE-141 metric contract is present in this checkout.
+Owned paths: Population scheduling guard/runtime, focused tests, worker contract,
+and this plan. Acceptance: bounded observable transitions, hysteretic recovery,
+invalid-sample handling, no catch-up burst, and identical full model state after
+equal fixed ticks with the same seed/inputs. A single expensive tick remains
+non-preemptible; no claim of a maximum hitch or production performance.
+
+Review candidate implemented: `world/population/scheduling-guard.js` and live
+runtime integration; contract in `world/workers/README.md`; focused Bun and
+Chromium tests plus existing core-journeys CI wiring. Open GitHub PR search for
+“adaptive scheduling” returned no matches before implementation; local CI,
+Population contracts, fixed-step clock, worker pool and checkpoint code audited.
+Existing isolated branch is `mini/SHE-174`; no Git metadata writes or publication.
+
+Acceptance evidence (2026-11-12, Darwin arm64, Bun 1.4.2): injected 120 ms worker
+reply delay, synthetic population 20/seed 42/current Population model version;
+normal runtime transitions to reduced, admits no tick during cooldown, and full
+decoded authoritative model agrees with an unthrottled run at equal modeled tick.
+Four focused tests pass, including threshold/recovery boundaries, detached bounded
+logs, discarded cooldown backlog, invalid samples and failed-commit rollback.
+Device policy is runtime-only diagnostics, outside saved deterministic provenance.
+
+Verification limits: Playwright test added but local server startup failed with
+EADDRINUSE at both 3100 and 43174; no browser result claimed. Existing full
+checkpoint suite: 21 pass/1 timeout (30 s). The exact failing checkpoint test also
+timed out at 30 s against an unmodified HEAD runtime in a temporary baseline
+module; wrapper terminated it at 40 s and removed both temporary files. The
+model suite initially hit its default 5 s timeout; the 60 s allowance used by core
+CI passed that case. No standalone lint/typecheck script exists. Thresholds are
+synthetic policy assumptions; no production hitch/throughput claim or deployment.
+Next action: review candidate and run the attached Chromium test on a host that
+can bind a server; investigate the pre-existing checkpoint timeout separately.
+
+Final combined relevant check: `bun test --timeout 60000
+ test/population-scheduling.test.js test/population-studio.test.js
+ test/population-weather-input.test.js test/population-model.test.js
+ test/agent-counts.test.js` — 40 passed, 0 failed, 554 assertions, 11.11 s.
+`git diff --check` passed. Browser remains unverified as described above.
