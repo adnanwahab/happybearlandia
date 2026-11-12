@@ -21,6 +21,22 @@ ISSUE = re.compile(r'SHE-[1-9][0-9]*\Z')
 SHA = re.compile(r'[a-f0-9]{40}\Z')
 RESOURCE_KEYS = ('available_memory_bytes', 'total_memory_bytes', 'swap_used_bytes',
                  'disk_free_bytes', 'cpu_load_ratio', 'cpu_count', 'sampled_at')
+WATCHDOG_CODES = {key: key for key in ('orphaned_worker', 'expired_lease', 'unresponsive_session',
+    'missing_draft', 'authentication', 'disk_pressure', 'memory_pressure', 'eligible_idle',
+    'stalled_ci', 'unknown_resources')}
+WATCHDOG_CODES.update({
+    'stale-runtime': 'stale_runtime', 'runtime-time-unavailable': 'runtime_time_unavailable',
+    'retained-lease-needs-reconciliation': 'retained_lease_needs_reconciliation',
+    'worker-unobserved-or-publication-missing': 'worker_unobserved_or_publication_missing',
+    'commit-without-draft-pr': 'missing_draft', 'stalled-ci': 'stalled_ci',
+    'runtime-refresh-unavailable': 'runtime_refresh_unavailable',
+    'upstream-or-auth-failure': 'upstream_or_auth_failure', 'resource-pressure': 'resource_pressure',
+    'approval-policy-disabled': 'approval_policy_disabled',
+    'eligible-work-awaiting-dispatch': 'eligible_idle',
+})
+API_KEYS = ('linear_reads', 'github_reads', 'errors', 'throttles', 'retries', 'scan_seconds',
+            'github_retries', 'linear_retries', 'nested_continuation_calls')
+
 STAGES = {'running', 'retrying', 'blocked', 'eligible', 'claimed', 'draft', 'merged', 'commit',
           'ci_passed', 'ci_failed', 'worker_failed', 'pr_opened'}
 
@@ -176,7 +192,13 @@ class MetricsStore:
         totals = runtime.get('codex_totals') if isinstance(runtime.get('codex_totals'), dict) else {}
         scan = report.get('scanMetrics') if isinstance(report.get('scanMetrics'), dict) else report.get('scan_metrics', {})
         scan = scan if isinstance(scan, dict) else {}
-        api = {key: number(scan.get(key)) for key in ('linear_reads', 'github_reads', 'errors', 'throttles', 'retries', 'scan_seconds')}
+        aliases = {'linear_reads': 'linearQueryCalls', 'github_reads': 'githubCommandCalls',
+                   'scan_seconds': 'elapsedSeconds', 'github_retries': 'githubRetries',
+                   'nested_continuation_calls': 'nestedContinuationCalls'}
+        api = {key: number(scan.get(key, scan.get(aliases.get(key)))) for key in API_KEYS}
+        # Logical query calls are measured; hidden Linear transport retries and
+        # HTTP throttles are not inferred from successful logical calls.
+        api['read_counter_scope'] = 'logical_transport_calls'
         payload = {'runtime': {stage: number(counts.get(stage)) for stage in ('running', 'retrying', 'blocked')},
                    'workers': workers, 'max_workers': number(report.get('max_workers', runtime.get('max_workers'))),
                    'queue': {'ready': ready if isinstance(report.get('issues'), list) else None, 'blocked': sum(bool(r.get('reasons')) for r in rows if isinstance(r, dict)) if isinstance(report.get('issues'), list) else None,
@@ -187,8 +209,14 @@ class MetricsStore:
         scheduler = report.get('scheduler') if isinstance(report.get('scheduler'), dict) else {}
         watchdog = report.get('watchdog', scheduler.get('watchdog', []))
         for row in watchdog if isinstance(watchdog, list) else []:
-            if isinstance(row, dict) and row.get('code') in {'orphaned_worker', 'expired_lease', 'unresponsive_session', 'missing_draft', 'authentication', 'disk_pressure', 'memory_pressure', 'eligible_idle', 'stalled_ci', 'unknown_resources'}:
-                payload['watchdog'].append({'code': row['code'], 'severity': 'warning', 'issue': identifier(row.get('issue'))})
+            if isinstance(row, dict) and isinstance(row.get('code'), str) and row['code'] in WATCHDOG_CODES:
+                severity = row.get('severity')
+                alarm = {'code': WATCHDOG_CODES[row['code']],
+                         'severity': severity if isinstance(severity, str) and severity in {'notice', 'warning', 'hold', 'error'} else 'warning',
+                         'issue': identifier(row.get('issue'))}
+                if type(row.get('pr')) is int and row['pr'] > 0:
+                    alarm['pr_number'] = row['pr']
+                payload['watchdog'].append(alarm)
         for pr in report.get('pullRequests', []) if isinstance(report.get('pullRequests'), list) else []:
             if not isinstance(pr, dict) or type(pr.get('number')) is not int or pr['number'] <= 0:
                 continue
@@ -211,7 +239,8 @@ class MetricsStore:
                 continue
             issue, at = identifier(event.get('issue')), timestamp(event.get('at'))
             stage, source = event.get('stage'), event.get('source')
-            if issue and at is not None and at <= now and stage in STAGES and source in {'symphony_log', 'git', 'github', 'coordinator'}:
+            if (issue and at is not None and at <= now and isinstance(stage, str) and stage in STAGES
+                    and isinstance(source, str) and source in {'symphony_log', 'git', 'github', 'coordinator'}):
                 events.append((f'host:{issue}:{stage}:{source}:{at}', at, issue, stage, source, None))
         with self._db() as db:
             # One transaction atomically retains the sample and lifecycle discoveries.
@@ -270,7 +299,7 @@ class MetricsStore:
                 'utilization': {'fraction': busy/capacity if capacity else None, 'idle_fraction': 1-busy/capacity if capacity else None,
                                 'observed_seconds': observed, 'capacity_seconds': capacity, 'samples': len(samples)},
                 'resources': latest.get('resources', {key: None for key in RESOURCE_KEYS}), 'tokens': token_data,
-                'api': latest.get('api', {key: None for key in ('linear_reads', 'github_reads', 'errors', 'throttles', 'retries', 'scan_seconds')}),
+                'api': latest.get('api', {key: None for key in API_KEYS}),
                 'quality': {'first_pass_ci_success_rate': None, 'retry_rate': None, 'failure_rate': None,
                             'reason': 'CI attempt and worker outcome history not supplied by current sources'},
                 'watchdog': latest.get('watchdog', []),

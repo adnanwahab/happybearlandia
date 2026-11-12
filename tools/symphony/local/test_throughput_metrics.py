@@ -1,5 +1,6 @@
 """Durable observation tests; no integrations, model, process inventory or approval."""
 import json
+from contextlib import closing
 import os
 from pathlib import Path
 import sqlite3
@@ -124,6 +125,35 @@ class MetricsTests(unittest.TestCase):
         self.assertEqual([x['stage'] for x in snap['timeline']], ['pr_opened', 'merged'])
         self.assertNotIn('draft', [x['stage'] for x in snap['timeline']])
 
+    def test_real_scanner_metric_names_and_scheduler_hold_alarms_integrate(self):
+        r = report()
+        r['scanMetrics'] = {'linearQueryCalls': 19, 'githubCommandCalls': 22,
+                            'githubRetries': 2, 'nestedContinuationCalls': 1, 'elapsedSeconds': 3.5}
+        r['scheduler'] = {'watchdog': [
+            {'code': 'stale-runtime', 'severity': 'hold', 'message': 'PRIVATE ERROR'},
+            {'code': 'retained-lease-needs-reconciliation', 'severity': 'hold', 'issue': 'SHE-11'},
+            {'code': 'commit-without-draft-pr', 'severity': 'hold', 'issue': 'SHE-12'},
+            {'code': 'stalled-ci', 'severity': 'notice', 'pr': 31},
+            {'code': 'upstream-or-auth-failure', 'severity': 'hold'},
+            {'code': 'runtime-refresh-unavailable', 'severity': 'notice'},
+        ]}
+        snap = self.store.observe(runtime(), r, {}, now=200)
+        self.assertEqual(snap['api']['linear_reads'], 19)
+        self.assertEqual(snap['api']['github_reads'], 22)
+        self.assertEqual(snap['api']['github_retries'], 2)
+        self.assertEqual(snap['api']['nested_continuation_calls'], 1)
+        self.assertEqual(snap['api']['scan_seconds'], 3.5)
+        for key in ('linear_retries', 'throttles', 'retries'):
+            self.assertIsNone(snap['api'][key])
+        self.assertEqual(snap['watchdog'][0]['code'], 'stale_runtime')
+        self.assertEqual(snap['watchdog'][0]['severity'], 'hold')
+        self.assertEqual(snap['watchdog'][2]['code'], 'missing_draft')
+        self.assertEqual(snap['watchdog'][3]['pr_number'], 31)
+        self.assertEqual(snap['watchdog'][3]['severity'], 'notice')
+        self.assertEqual(snap['watchdog'][4]['code'], 'upstream_or_auth_failure')
+        self.assertNotIn('PRIVATE', json.dumps(snap))
+        self.assertNotIn(b'PRIVATE', self.store.path.read_bytes())
+
     def test_failed_event_transaction_does_not_leave_partial_sample(self):
         before = self.store.snapshot(now=100)['utilization']['samples']
         with patch('throughput_metrics.json.dumps', side_effect=ValueError('fixture crash')):
@@ -149,10 +179,10 @@ class MetricsTests(unittest.TestCase):
             with self.assertRaises(ValueError): MetricsStore(path)
 
     def test_unknown_schema_preserves_database_instead_of_resetting(self):
-        with sqlite3.connect(self.store.path) as db:
+        with closing(sqlite3.connect(self.store.path)) as db, db:
             db.execute('UPDATE meta SET version=99')
         with self.assertRaises(ValueError): MetricsStore(self.root)
-        with sqlite3.connect(self.store.path) as db:
+        with closing(sqlite3.connect(self.store.path)) as db, db:
             self.assertEqual(db.execute('SELECT version FROM meta').fetchone()[0], 99)
 
     def test_resource_unavailability_does_not_claim_zero_memory_or_swap(self):
