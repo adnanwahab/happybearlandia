@@ -16,7 +16,11 @@ if(link){
   link.href=url.pathname+url.search+url.hash;
   link.textContent=canvasMode?'Try 3D rendering':'Use 2D low-fidelity mode';
 }
-if(canvasMode||(!navigator.gpu&&!hasWebGL2())){
+// Saved checkpoints require the restoring renderer and its own Canvas2D fallback.
+// The standalone low-fidelity scene cannot reconstruct Living Population saves.
+if(params.has('experiment')){
+  import('./render.js').catch(error=>console.warn('[world] Saved renderer unavailable; retain its recovery view:',error));
+}else if(canvasMode||(!navigator.gpu&&!hasWebGL2())){
   fallback().catch(error=>{const el=document.getElementById('loading');if(el)el.textContent='2D World could not start: '+error.message;});
 }else{
   import('./render.js').catch(error=>{

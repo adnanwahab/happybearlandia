@@ -569,3 +569,8 @@ pre-correction browser run exposed disabled Full Demo; its failure is retained
 in /private/tmp/hbl-pr38-visual.log. Mobile rerun and hosted browser CI are
 merge gates checked by the coordinator; their final results belong to PR38.
 No live Symphony, staging/CDN approval or deployment is part of this resolution.
+
+Hosted browser CI caught the main renderer-entry bypassing saved checkpoint
+restoration on GPU failure. Saved experiment URLs now retain render.js and its
+checkpoint-aware Canvas fallback/error return view, rather than starting a new
+low-fidelity simulation. Both saved-World failure-path regressions gate merge.
