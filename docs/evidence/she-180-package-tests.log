@@ -44,6 +44,6 @@ test_success_returns_data (test_coordinator_host.LinearTransportTest.test_succes
 test_unrecognized_error_messages_and_codes_are_not_echoed (test_coordinator_host.LinearTransportTest.test_unrecognized_error_messages_and_codes_are_not_echoed) ... ok
 
 ----------------------------------------------------------------------
-Ran 44 tests in 0.450s
+Ran 44 tests in 0.652s
 
 OK

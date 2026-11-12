@@ -58,3 +58,12 @@ Next: owners explicitly reconcile retained active claims, verify prerequisites,
 and supply three current independent candidate reviews. Then re-run dry-run at the
 fresh remote base before any additive approvals. Recurring scheduling remains
 conditional on actual pilot evidence, not offline test success.
+
+
+Actual CLI follow-up completed with exit0:175issues,21PRs, base 3fb9652f83d49e2d39d55aee7b31b6593f8c5849,
+28reserved active issues, no selected candidates and no lease file. This is a newer
+snapshot than the initial30-reservation service audit. A public per-issue summary
+is docs/evidence/she-180-cli-live-holds.md; raw full JSON remains host-local mode600.
+Fresh standalone44tests pass; broader installed-host93tests pass after adapter
+extraction. Existing no-Done/no-bypass status remains. User authorization is
+recorded; the remaining activation dependency is verified readiness/ownership.

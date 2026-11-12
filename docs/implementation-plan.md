@@ -419,3 +419,10 @@ snapshot. Do not weaken these gates, bulk-reset statuses or infer stopped claims
 from an idle dispatcher. User-authorized live pilot remains conditional on real
 candidate readiness. Publish this working package as draft only; no merge/deploy.
 Acceptance and exact test/audit evidence: docs/she-180-coordinator-evidence.json.
+
+Published draft PR #30, first package commit f4072a0. Actual CLI dry-run exit0,
+175issues/21PRs/28reserved/0selected; no lease file. Standalone44pass and post-extraction
+installed-host93pass. SHE-126/127/180 reconciliation comments link the draft and
+retain incomplete status. Live pilot and recurring scheduler remain held by
+specific readiness reservations, not silently enabled. Full JSON reports are
+atomically written mode600; publication excludes raw issue comments/descriptions.
