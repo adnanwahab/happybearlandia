@@ -368,4 +368,8 @@ def main():
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    # host_git/workpad import publish by its canonical name. Run that same
+    # module's entry point so its safe PublicationError class is shared, rather
+    # than hiding expected rejections behind a second __main__ class identity.
+    from publish import main as cli_main
+    sys.exit(cli_main())

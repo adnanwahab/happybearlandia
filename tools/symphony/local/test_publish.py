@@ -7,11 +7,30 @@ import subprocess
 import tempfile
 import unittest
 import time
+import sys
 from unittest.mock import patch
 import publish as p
 
 
 class PublisherTest(unittest.TestCase):
+    def test_actual_cli_preserves_safe_cross_module_rejection(self):
+        with tempfile.TemporaryDirectory() as directory:
+            home = Path(directory).resolve()
+            workspace = home / 'code/symphony-source-only/SHE-123'
+            (workspace / '.git').mkdir(parents=True)
+            (workspace / '.hbl-handoff').mkdir()
+            (workspace / '.hbl-handoff/publish.json').write_text('{"version":2}')
+            status = home / '.local/state/hbl-publisher/workpad-status'
+            status.mkdir(parents=True)
+            (status / 'SHE-123.json').write_text('{"status":"handoff"}')
+            result = subprocess.run([sys.executable, str(Path(p.__file__).resolve())],
+                                    cwd=workspace, env=dict(os.environ, HOME=str(home),
+                                                           PYTHONDONTWRITEBYTECODE='1'),
+                                    capture_output=True, text=True, timeout=15)
+            self.assertEqual(result.returncode, 1, result.stderr)
+            self.assertEqual(json.loads(result.stdout), {
+                'status': 'error', 'action': 'Invalid source-only handoff identity or body'})
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
