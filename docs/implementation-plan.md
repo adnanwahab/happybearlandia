@@ -601,7 +601,7 @@ sheet. Existing WebGL/Canvas paths stay available with GI disabled.
 Actual verification:28 renderer/lifecycle tests passed,137 assertions (five GI
 regressions cover lazy reuse, unsupported paths, import/render failure, disposal
 during loading and off-during-loading). Native Metal Chromium acceptance passed
-3/3 in22.7seconds: actual World GI pixel difference, identical paused simulation
+3/3 in24.4seconds: actual World GI pixel difference, identical paused simulation
 snapshot, resize/320px click, WebGL unavailable, and Canvas2D unavailable. GI
 module bundle succeeded; full application bundling remains blocked by an existing
 absolute /vendor/three import in world/buildings/renderer.js, unrelated to GI.
