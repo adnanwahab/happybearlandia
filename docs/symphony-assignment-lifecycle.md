@@ -52,7 +52,7 @@ dependency stores. No repository Git filters/hooks are executed for that audit.
 ## Tests and installation
 
 Actual system Python3.9 source suite:220tests pass/27.869seconds, including all
-existing publisher/coordinator tests. Installed package:238tests pass/9.191seconds,
+existing publisher/coordinator tests. Final installed package:243tests pass/20.145seconds,
 including separately deployed cache/overlay integration. Regression fixtures
 cover before/after policy replacement and label-response crashes, repeated
 reconciliation without duplicate writes, authorized renewal, expired/revoked or
@@ -127,4 +127,10 @@ Independent integration repros are covered: admission and publisher share the ex
 
 Supervisor restart attempts now persist across wrapper/launchd invocations. A tested second invocation creates no new failed child after the durable budget reaches3. Selective KeepAlive does not restart a normal HELD exit. Only an observed300second healthy service or explicit operator-reviewed config generation can reset the budget; credential/config failure is a terminal hold. Clean bounded coordinator cycles continue under the same wrapper. Existing coordinator/watch processes are held, not duplicated.
 
-Scheduler-status now includes redacted assignmentMaintenance closed codes and actual queue observations. Execution-label count is separate from current trusted-admission approval count. awaiting_review is null because actual review decisions are absent, with open_draft_prs reported separately. No raw review, source, pending policy or comments are projected. Latest source220pass and22focused lifecycle tests pass; final installed check follows checksum-preserving deployment.
+Scheduler-status now includes redacted assignmentMaintenance closed codes and actual queue observations. Execution-label count is separate from current trusted-admission approval count. awaiting_review is null because actual review decisions are absent, with open_draft_prs reported separately. No raw review, source, pending policy or comments are projected. Latest source220pass and22focused lifecycle tests pass; final installed243tests pass after checksum-preserving deployment.
+
+## Final installed acceptance
+
+After the integration hardening, final installed Python3.9 suite:243tests pass/20.145seconds (`/private/tmp/hbl-assignment-installed-final.log`). Both deployed cache tests and the observation adapter are retained. Final backup/checksum manifest: `~/.local/state/hbl-publisher/backups/assignment-final-1794461535/manifest.json`; local copy `/private/tmp/hbl-assignment-final-install-manifest.json`. Latest disposable selective-KeepAlive plists both pass actual plutil lint under `/private/tmp/hbl-launchd-final-4wkctdzd`; no job installed or process started. Source feature commit6c506a0 on codex/symphony-assignment-lifecycle is supplied to the existing coordinating chat for integration instead of a duplicate independent dispatcher or authority.
+
+No live assignments were created or renewed; original83policy and all prior source remain. Existing versioned read-only observer remains inactive for apply and has not been replaced. Its older status projection can remain unknown until an explicitly reviewed deployment/handoff uses the new package; installed code alone is not claimed as active continuous supervision.
