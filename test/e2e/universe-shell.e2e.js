@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { EXPERIENCES } from '../../world/universe/registry.js';
 const query='universeId=universe%3Atest%3Amain&worldId=world%3Atest%3Acity&scenarioId=scenario%3Atest%3Abaseline&experimentId=experiment%3Atest%3Aone&runId=run%3Atest%3Aone&branchId=branch%3Atest%3Afork&tick=17&entityId=person%3Atest%3Aada';
 test.beforeEach(async({page})=>{
  // Deterministic app fixtures avoid GPU/network work unrelated to shell behavior.
@@ -12,7 +13,8 @@ test('directory, contextual transitions, iframe selection and history preserve s
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
  await page.goto('/?'+query);
  const shell=page.locator('#universe-shell');
- await expect(shell.locator('.universe-card')).toHaveCount(29);
+ await expect(shell.locator('.universe-card')).toHaveCount(EXPERIENCES.length);
+ expect((await shell.locator('.universe-card [data-app]').evaluateAll(links=>links.map(link=>link.dataset.app))).sort()).toEqual(EXPERIENCES.map(app=>app.id).sort());
  await shell.getByRole('searchbox').fill('/world/house');
  await expect(shell.locator('.universe-card')).toHaveCount(1);
  const standalone=shell.getByRole('link',{name:'Standalone ↗'});
