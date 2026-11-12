@@ -73,3 +73,13 @@ The 50-second `demo-controller.js` is a presentation clock, not a simulator. It 
 - `createOutcomeTimeline(container,{history,onMonth}) -> {update(month),dispose()}` consumes the same immutable121snapshots. Point/keyboard selections emit integer recordedmonth through coordinator manualMonth; no independent clock/simulation. Metric units from METRIC_UNITS; unavailable measurements stay gaps.
 - `recordedConstructionProgress(snapshot)` returns recorded stage/work/units and exact model-owned housing-project building identity. Work ratio is not elapsed calendar fraction or completed housing. Actual inventory determines building presence; layoutv2 preserves one schematic slot across supported project completion.
 - `buildEvidenceTrail(history,{collection,id,month})`: arm-scoped nodes/edges contain exact record, first observed month, eventID and unavailable reasons. `renderEvidenceTrail(container,history,selection,{onJump})` presents those records. Completion jumps retain building selection; all evidence jumps stop demo presentation. Independently verified causal dependency traces are explicitly unavailable.
+
+Optional follow-up: `follow-up.js` offers one housing revision per page session
+when a ready replay reaches Month 120. `followUpRecipe(recipe)` validates inputs
+and returns a recipe with 12 more proposed homes and proportional rounded budget,
+or null when unsupported/out of bounds. It preserves every other recipe field.
+`createFollowUp(root,{onAccept})` owns accept/dismiss controls and disposal; main
+reruns via the existing paired API. Both added and total illustrative costs and
+synthetic scaling assumptions are visible. Dismissal lasts for the loaded result;
+reload can offer again. Acceptance consumes the page-session offer. The existing
+saved result is immutable. No recipe schema or multiple-policy support is added.

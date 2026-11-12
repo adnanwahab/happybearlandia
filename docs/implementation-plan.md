@@ -1003,3 +1003,32 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-101 — optional follow-up after replay
+
+Slice: Future Machine offers one compatible housing revision at Month 120 after
+replay. Prerequisites: existing validated single-policy recipe, saved paired City
+API and synchronized replay. Keep that contract: increase the current housing
+proposal by 12 homes (up to 120), scale its illustrative budget by the current
+cost per home, and rerun from the same original generator/seed/horizon. This is
+an authored synthetic assumption, not a recommended real-world policy cost.
+No concurrent policy or checkpoint branching interface is introduced.
+
+Acceptance: dismiss preserves the run; accept changes only housing amount/cost;
+identical initial hash and baseline metrics; show added/total cost and constraints;
+no offer before Month 120, for absent policy or when the revision exceeds bounds.
+Owned implementation: future-machine/follow-up.js and main.js integration.
+Focused recipe/data checks passed 7 tests / 46 assertions. Browser acceptance
+and final diff review pending. Risk: dismissal is local to the loaded result and
+resets on reload; revised results compare to the unchanged baseline, not a third
+simultaneous arm. The old saved run remains available through its existing URL.
+
+Final verification: 7 focused recipe/data tests passed (46 assertions). Browser
+journey is committed but unverified: both default port 39931 and isolated port
+40187 failed server startup with EADDRINUSE in this sandbox. No application
+browser result is claimed. Existing issue branch is mini/SHE-101, clean before
+this slice; GitHub search returned no SHE-101 PR. No deployment, issue transition,
+Git metadata writes, readiness labels or external messages performed.
+Final expanded check: recipe/data/UI suite passed 13 tests / 87 assertions, with
+one opt-in Chromium fixture skipped; whitespace check passed. The new focused
+Playwright journey still requires execution where local server binding works.
