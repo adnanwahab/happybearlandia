@@ -20,6 +20,13 @@ Basic principles: bounded needs and constrained utility choices, with analyst co
 
 ## 5. Initialization
 
+Ordinary World visits defer this model until a Population toolbar action. Explicit
+`living=1` links still initialize on entry; saved Living runs restore their recorded
+checkpoint. Deferral changes allocation timing only, not the generator, seed,
+initial model minute or configured resident count. The legacy preview has its own
+model identity and is not a partially initialized Population run.
+
+
 [createPopulationModel](../../world/population/model.js) normalizes config, calls [generatePopulation](../../world/population/generator.js), initializes needs, employment, economy and histories and aggregates. A fresh initialMinute is within day one; it supplies no prehistory. Save full config, context, initialMinute/tick and optional subsystem configuration, or use the [checkpoint codec](../../world/population/checkpoint.js) for continuation. Keep the recorded POPULATION_VERSION from contracts.js rather than assuming the latest version.
 
 ## 6. Input data
