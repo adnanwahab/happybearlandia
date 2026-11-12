@@ -121,3 +121,16 @@ export function createVisualEffects({THREE, reducedMotion = false} = {}) {
     },
   };
 }
+
+/** Localized evidence describes B−A inventory, never an inferred completion. */
+export function recordedEntityLabel(row, count, diff, arm) {
+  const change = changes(diff).find(change => key(change) === key(row));
+  const suffix = change?.kind === 'added' ? (arm === 'plan' ? 'added in plan' : null)
+    : change?.kind === 'removed' ? (arm === 'baseline' ? 'absent in plan' : null)
+    : change ? 'recorded change' : null;
+  if (row.collection === 'buildings') {
+    const inventory = Number.isInteger(count) && count > 0 ? `${count} homes` : 'Building';
+    return [inventory, suffix].filter(Boolean).join(' · ');
+  }
+  return `Project · ${row.construction?.stage ?? 'stage unavailable'} · ${row.construction?.progressRatio == null ? 'progress unavailable' : Math.round(row.construction.progressRatio * 100) + '% work'}`;
+}

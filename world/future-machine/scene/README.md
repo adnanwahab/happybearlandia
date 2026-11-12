@@ -21,3 +21,40 @@ A temporary localhost harness exercised the module in Chromium with the installe
 ## Remaining integration checks
 
 Coordinator should run the real route with City replay data and verify UI-to-stage wiring, responsive framing, director focus, and 120-month playback. Large imported geometries and Safari/device performance are unmeasured. Current integration uses bounded native WebGPU→WebGL→Canvas rendering, then accessible inventory if all contexts fail. AppleMetal native and desktop390/320 Canvas journeys are verified in the sprint status; Safari/device performance remains unmeasured.
+
+## SHE-23 follow-up (2026-11-12)
+
+The supplied workspace already contains the integrated paired renderer rather
+than only the pinned coordinator skeleton. This bounded follow-up preserves that
+implementation and the frozen contracts. Scene ownership excludes the shared
+implementation plan, so the work record and integration handoff live here.
+
+Acceptance slice: label recorded building changes accurately, explicitly mark
+schematic entities unlocated, clear native overlays and Canvas inventory when
+snapshots disappear, and deliver only exact entity identities from mesh picks.
+Raycasting ignores decorative child edges and construction gauges; inventory
+buttons retain keyboard access. No City simulation or metric contract changed.
+
+Verification: `bun test test/future-machine-scene.test.js
+ test/building-renderer.test.js test/future-machine-effects.test.js` passes
+25 tests / 100 assertions. Includes matched month-zero geometry, stable slots,
+zero-change effects, reduced motion, material cleanup, missing snapshots,
+exact inventory selection, idempotent disposal, and changed/removed label cases.
+`git diff --check` passes. The new stage lifecycle test uses a DOM double;
+it does not verify browser pixels, Canvas clearing, resize, or GPU picking.
+
+Reproduced synthetic recipe:
+```json
+{"schemaVersion":"future-machine.v1","modelVersion":"city-systems.1.0.0","seed":42,"households":30,"months":120,"intervention":{"type":"housing","districtId":"d1","amount":24,"cost":1000000,"delay":0,"compliance":1}}
+```
+The actual engine test finds first physical divergence at month 16, building
+`building-project-policy-1-0`, and +24 homes / 1,000,000 illustrative USD
+cumulative capital expense at month 120. These are modeled results.
+
+Browser handoff remains pending: both attempted local server launches (ports
+39823 and 41873) failed with `EADDRINUSE`. No new screenshots, browser WHY click,
+resize check, measured FPS or GPU memory readings were obtained in this run.
+Coordinator should capture month 0 and month 16 on the normal application route,
+click the changed structure through WHY, and verify missing-frame clearing in
+both native and forced `renderer=canvas2d` modes. Existing historical evidence
+above is not a measurement of this follow-up. No release or deployment occurred.

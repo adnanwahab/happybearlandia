@@ -15,3 +15,35 @@ describe('Future Machine City scene projection',()=>{
  test('missing collections, duplicate IDs and mismatched months fail explicitly',()=>{const m=createSpatialMapping();expect(()=>m.frame({},{})).toThrow();expect(()=>m.frame(state(),state([],[],1))).toThrow();expect(()=>m.frame(state([building('a'),building('a')]),state())).toThrow();});
  test('unsupported holes are schematic rather than misrendered sourced footprints',()=>{const b=sourced('a');b.geometry.coordinates.push(b.geometry.coordinates[0]);expect(createSpatialMapping().frame(state([b]),state([b])).a[0].mapping).toBe('synthetic-layout');});
 });
+
+import {recordedEntityLabel} from '../world/future-machine/scene/effects.js';
+test('localized building evidence distinguishes added, changed and removed inventory',()=>{
+ const row={collection:'buildings',id:'b'};
+ const diff=kind=>({entities:[{...row,kind}]});
+ expect(recordedEntityLabel(row,24,diff('added'),'plan')).toBe('24 homes · added in plan');
+ expect(recordedEntityLabel(row,24,diff('changed'),'plan')).toBe('24 homes · recorded change');
+ expect(recordedEntityLabel(row,24,diff('removed'),'baseline')).toBe('24 homes · absent in plan');
+ expect(recordedEntityLabel(row,0,null,'plan')).toBe('Building');
+ expect(recordedEntityLabel(row,24,{entities:[{collection:'projects',id:'b',kind:'added'}]},'plan')).toBe('24 homes');
+});
+
+test('stage inventory selects exact IDs and missing snapshots clear selection and labels',()=>{
+ const elements=[];
+ const doc={createElement(tag){const node={tag,children:[],style:{},dataset:{},clientWidth:640,clientHeight:320,
+  setAttribute(){},append(...children){this.children.push(...children);},replaceChildren(...children){this.children=children;},
+  addEventListener(){},removeEventListener(){},remove(){this.removed=true;},ownerDocument:doc};elements.push(node);return node;}};
+ const container=doc.createElement('div'), selections=[];
+ const stage=createStage(container,{onSelect:selection=>selections.push(selection)});
+ try{
+  const s=state([building('a')]);stage.update({month:0,baseline:{state:s},plan:{state:s}},{entities:[]});
+  const button=elements.find(node=>node.tag==='button');
+  expect(button.textContent).toContain('schematic · unlocated');button.onclick();
+  expect(selections).toEqual([{collection:'buildings',id:'a',arm:'baseline'}]);
+  expect(stage.focus({collection:'buildings',id:'a'})).toBe(true);
+  stage.update({month:1,baseline:null,plan:null},null);
+  expect(stage.focus({collection:'buildings',id:'a'})).toBe(false);
+  expect(stage.getStats().objects).toBe(0);expect(stage.getStats().month).toBe(null);
+  expect(elements.find(node=>node.dataset.nativeCityLabels).children).toEqual([]);
+ }finally{stage.dispose();stage.dispose();}
+ expect(stage.getStats().disposed).toBe(true);
+});
