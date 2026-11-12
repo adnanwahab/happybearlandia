@@ -1,5 +1,18 @@
 # HappyBearLandia implementation plan
 
+## SHE-256 concurrency decision gate — 2026-11-12
+
+Delivered documentation increment: [decision gate](symphony-concurrency-gate.md)
+with explicit unmeasured 4/6/8/12 table, proposed matched disposable experiment,
+pass criteria, evidence requirements and rollback. Scope is a decision ticket;
+no dispatch or workflow/approval/label changes. Next slice requires an agreed
+compute/cost/PR budget and disposable Linear project/GitHub repo, then observed
+occupancy, publication, conflict, check and timing evidence for each candidate.
+Risk: configured concurrency and synthetic policy tests do not establish real
+capacity. Acceptance remains incomplete; no highest passing candidate exists.
+Verification: eight focused throughput-policy tests passed; diff whitespace
+check passed. Browser checks skipped because this changes documentation only.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
