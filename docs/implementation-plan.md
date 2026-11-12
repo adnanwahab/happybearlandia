@@ -347,3 +347,41 @@ SHE-89 remains In Progress: the recovered existing Future Machine examples are
 a useful tested subset, not completion of its canonical receipt/validator scope.
 SHE-179 is already Done and merged. No tracker status or original workspace
 was changed. Detailed issue-by-issue findings are in the workspace recovery audit.
+
+## Unblock audited Symphony tasks — November 11, 2026
+
+User authorized parallel unblocking after the Linear-first audit. Complete the
+following small integrated slice before widening the 59-task review queue:
+
+| Owner / slice | Prerequisites and acceptance | Status |
+| --- | --- | --- |
+| SHE-79 manifest load boundary | Preserve existing paired recipe/manifests; reject unsupported IDs, versions, missing seeds and invalid optional display names with actionable diagnostics before replay; valid saved fixtures load unchanged. Own data module and focused tests. | Locally integrated and independently verified |
+| SHE-115 bounded worker lifecycle | Recover old WIP without changing its workspace; verify timeout, abort before/during work, cleanup/termination, single settlement and isolated successful work through current API. Own City worker helper/API and focused tests. | Locally integrated and independently verified |
+| Shared operational blockers | Check actual current isolated-clone policy and manual procedures, run disposable real Git sandbox proof and offline host tests; preserve current dispatcher, workspaces and credentials. | Existing repair verified; no host changes required |
+| Coordinator integration | Independently review commits, combine nonoverlapping slices on this local branch, run relevant regressions, retain source provenance and report exact remaining external gates. | 68 combined tests / 629 assertions and two browser checks passed |
+
+Risks: the older receipt/validator chain remains a distinct contract decision;
+SHE-79 is not a general receipt import implementation. Active host repair sources
+are uncommitted in the primary checkout and will not be swept into this branch.
+No task is marked Done or bulk relabeled based on stale workpad claims. No main
+merge, deployment, production data change or unrestricted sandbox is authorized.
+
+Delivered increment on local `codex/merge-complete-symphony-20261111`:
+SHE-115 worker commit `060c26e` integrated as `8c40ed6`; SHE-79 worker commit
+`01bf424` integrated as `81690ca`. The latter validates the existing completed
+Future Machine manifest boundary, not a new server-wide scenario catalog.
+Coordinator reviewed both diffs, ran the combined 68-test backend/data/receipt
+suite (629 assertions) and two real normal-entry browser checks (7.7 seconds).
+Valid seed-42 month-16 replay/WHY still shows +24 homes; deliberately malformed
+display metadata produces a visible safe error before any replay request.
+
+Operational verification: 49 offline host tests, 55 cached workspace/config
+ExUnit tests, and one real OS-sandbox Git fixture passed. Fresh independent
+clones contain their Git metadata and use the existing stable manual procedures.
+Old linked workspaces remain preserved and are not automatically reusable.
+SHE-79 and SHE-115 were moved from blocked-review handoffs to In Progress during
+implementation; no ready/pilot dispatch labels or Done states were applied.
+They await publication/review of this local branch. SHE-83/SHE-84 canonical
+receipt work, other task-specific prerequisites, participant evidence and media
+access remain separate scope. No bulk requeue, dispatcher restart, push, main
+merge or deployment was performed.

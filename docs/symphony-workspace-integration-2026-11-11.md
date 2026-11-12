@@ -122,3 +122,77 @@ Typical legacy paths below are `~/code/symphony-workspaces/SHE-ID`, clean at `ec
 | [SHE-169](https://linear.app/shel-bernstein/issue/SHE-169/hbl-1m-042-recover-game-state-from-webgpu-device-loss-without-invented) — [HBL-1M-042] Recover game state from WebGPU device loss without invented outcomes | In Review | Latest handoff blocked/incomplete; no completed implementation commit or PR. |
 
 Next useful action is to review the eight already-integrated scopes against their task acceptance and resolve the documented dispatch/ownership/prerequisite blockers. SHE-70 and SHE-115 require a separate tested completion slice; they should not be merged as finished work merely because Linear says In Review. No workspaces are certified for deletion.
+
+
+## Authorized unblocking increment — November 11, 2026
+
+After the audit, the user authorized parallel unblocking. Three agents handled
+independent manifest, worker-lifecycle and operational-proof tracks. Ownership
+was exclusive; new source work used managed isolated worktrees from `c7113b0`.
+Original workspaces, dirty primary-checkout changes and the shared bare Git
+repository were preserved.
+
+### Implemented and integrated locally
+
+- **SHE-115:** `060c26ef8fddb7eeac4f1717efe8e8cbda33cbcb` → integration
+  `8c40ed6`. Added a disposable City worker lifecycle helper and forwarded replay
+  request cancellation. Pre/during abort, timeout, malformed replies, errors and
+  settlement races clean up and terminate once. Real replay tests show capacity
+  reuse, exact seed/state parity and immutable inputs. Existing HTTP 400 errors
+  and background persisted experiments remain compatible.
+- **SHE-79:** `01bf4243c7f6043701a69eb3b5c0d6543976f988` → integration
+  `81690ca`. Hardened the existing completed Future Machine manifest load
+  boundary: scenario structure/IDs, intervention arrays/objects, optional bounded
+  display title, versions/seeds, and common-initial generator integrity. Invalid
+  metadata/state now fails before expensive replay; omitted legacy titles and
+  valid Unicode/text titles still work. No invented display-name schema,
+  server-wide startup registry, or general receipt import contract is claimed.
+
+Independent coordinator verification after combining both commits:
+
+```sh
+bun test --timeout 15000 test/city-worker-call.test.js test/city-systems.test.js test/project-unblock.test.js test/server-civic-api.test.js test/future-machine-manifest-validation.test.js test/future-machine-data.test.js test/future-machine-boundaries.test.js test/future-machine-share.test.js test/future-machine-diff.test.js test/example-receipts.test.js
+bunx playwright test --config test/symphony-unblock.browser.config.js
+```
+
+Results: **68 passed / 629 assertions**, then **two browser checks passed in
+7.7 seconds**. The normal Fork City → month 16 → WHY journey used actual API
+workers and retained +24 homes. A deliberately corrupted display title in a real
+completed API response produced a visible actionable error, echoed no input and
+issued zero replay requests; the database and model outcomes were not fabricated.
+Screenshots were inspected. Runtime source tested was `81690ca`.
+
+Browser artifacts:
+`/private/var/folders/xg/07bxfbg503v0hglrq2y8b8700000gn/T/hbl-symphony-unblock/`.
+The negative fixture is explicitly test-injected metadata, not a real model
+observation. No new browser cancellation claim is inferred from the worker tests.
+
+### Existing shared infrastructure was proved, not rewritten
+
+The operational reviewer executed 49 offline host tests, 55 cached ExUnit
+workspace/config tests, one real OS-sandbox Git fixture (clone/fetch/merge/add/
+commit), shell syntax checks and the plaintext-credential guard. All passed.
+Fresh independent pilot clones keep `.git` inside their own writable roots;
+legacy shared linked metadata is correctly refused. The active workflow uses
+stable `PROCEDURES.md` replacements for absent manual skills and a trusted host
+workpad/publisher. This is consistent with the explicit workspace sandbox policy
+in [official App Server documentation](https://learn.chatgpt.com/docs/app-server).
+No unrestricted sandbox or shared bare Git write permission was introduced.
+
+The reviewer observed dispatcher PID 35041 on port 43111, max concurrency four,
+zero running/retrying/blocked jobs, active states Todo/In Progress/Rework and the
+`symphony-pilot` label gate. The 59 old In Review handoffs will not automatically
+resume. Host transport mocks do not prove current remote write scopes. The old
+SHE-179 publisher receipt says error despite its PR already being merged; it was
+preserved, not retried or rewritten into a success claim.
+
+### Remaining gates
+
+Only SHE-79 and SHE-115 moved to **In Progress** for actual scoped work. No
+comments, Done states, dispatch labels, bulk requeue, publication, automatic
+merge or deployment were applied. The tested branch is local and requires
+publication/review before the remote Symphony source can consume these changes.
+The existing fixture subset still does not complete SHE-83/SHE-84/SHE-89 canonical
+receipt acceptance. Other task-specific ownership, prerequisite, human-study and
+media-upload requirements remain. These results remove concrete implementation
+and historical infrastructure concerns; they do not certify all 59 tasks ready.
