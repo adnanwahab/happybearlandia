@@ -1,5 +1,5 @@
 import {test,expect} from 'bun:test';
-import {clampMonth,calendarLabel,formatMeasurement,metricPresentation,metricSemantics,householdObservation,householdSummary} from '../world/future-machine/ui/model.js';
+import {clampMonth,calendarLabel,formatMeasurement,metricPresentation,metricSemantics,householdObservation,householdSummary,comparisonMetric} from '../world/future-machine/ui/model.js';
 test('shared calendar includes exact Month 0 and Month 120',()=>{expect(calendarLabel(0)).toBe('Jan 2026');expect(calendarLabel(60)).toBe('Jan 2031');expect(calendarLabel(120)).toBe('Jan 2036');expect(calendarLabel(11)).toBe('Dec 2026');});
 test('timeline clamps invalid and out of range input',()=>{expect(clampMonth(-1)).toBe(0);expect(clampMonth(121)).toBe(120);expect(clampMonth(NaN)).toBe(0);expect(clampMonth(1.7)).toBe(2);});
 test('measurements preserve zero and units, never coerce missing data to zero',()=>{expect(formatMeasurement(0,'homes')).toBe('0 homes');for(const value of [null,undefined,NaN,Infinity,'4'])expect(formatMeasurement(value)).toBe('Unavailable');});
@@ -24,6 +24,13 @@ test('household rent and burden require an exact reciprocal occupied-unit identi
   expect(householdObservation(h,[{...u,rent:0}]).rent).toBe(0);
   const text=householdSummary({id:'h1',baseline:h,plan:null,baselineHousing:householdObservation(h,[u])});
   expect(text).toContain('missing from one future');expect(text).toContain('500 USD/month');expect(text).toContain('25 %');expect(text).toContain('savings 0 USD');expect(text).toContain('rent Unavailable');
+});
+
+test('negative cost and overflow deltas retain truthful direction and availability',()=>{
+  expect(metricSemantics('spending',{baseline:100,intervention:0})).toEqual({tone:'cost',label:'Lower capital spending; service benefit not established'});
+  const overflow={baseline:-Number.MAX_VALUE,intervention:Number.MAX_VALUE,unit:'USD'};
+  expect(metricPresentation(overflow).delta).toBe('Unavailable');
+  expect(metricSemantics('spending',overflow).tone).toBe('unavailable');
 });
 
 test.skipIf(!process.env.HBL_FM_BROWSER)('Chromium controls, loading, failure, keyboard, mobile and cleanup',async()=>{
@@ -109,6 +116,7 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('Chromium controls, loading, failure, k
     expect(await page.locator('.fm-inspectors').textContent()).toContain('rent 500 USD/month');
     expect(await page.locator('.fm-inspectors').textContent()).toContain('rent Unavailable');
     expect(await page.locator('.fm-card').evaluateAll(cards=>getComputedStyle(cards[0].querySelector('strong')).color!==getComputedStyle(cards[2].querySelector('strong')).color)).toBe(true);
+    expect(await page.locator('.fm-metric-limits').textContent()).toContain('not an uncertainty interval');
     await page.screenshot({path:'/tmp/future-machine-ui-semantic-mobile.png',fullPage:true});
     await page.setViewportSize({width:1440,height:1000});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
@@ -116,6 +124,22 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('Chromium controls, loading, failure, k
     await page.evaluate(()=>ui.update({diff:{available:true,metrics:{housingUnits:{baseline:0,plan:null,unit:'homes'}},physicalCount:0,changedCount:0}}));
     expect(await page.locator('.fm-card').first().getAttribute('data-tone')).toBe('unavailable');
     expect(await page.getByRole('button',{name:'WHY · Homes',exact:true}).isDisabled()).toBe(true);
+    await page.evaluate(()=>ui.update({diff:{available:false,metrics:{housingUnits:{baseline:36,plan:60,unit:'homes',status:'available'},meanRent:{baseline:100,plan:90,unit:'USD/month',status:'missing',reason:'Rent observation missing'},capitalSpending:{baseline:0,plan:100,unit:'USD cumulative',available:false,reason:'Cost record unavailable'}},physicalCount:1,changedCount:1}}));
+    expect(await page.locator('.fm-card').first().textContent()).toContain('+24 homes');
+    expect(await page.locator('.fm-card').nth(1).textContent()).toContain('Rent observation missing');
+    expect(await page.locator('.fm-card').nth(2).textContent()).toContain('Cost record unavailable');
+    expect(await page.getByRole('button',{name:'WHY · City spending',exact:true}).isDisabled()).toBe(true);
     await page.evaluate(()=>ui.dispose());expect(await page.locator('.fm-ui').count()).toBe(0);
   }finally{await browser?.close();server.stop(true);}
 },30000);
+
+test('recorded metric adapter preserves missing status, reason, zero and signed cost',()=>{
+  for(const unavailable of [{status:'missing'},{available:false}]) {
+    const metric=comparisonMetric({baseline:0,plan:100,unit:'USD cumulative',reason:'Ledger unavailable',...unavailable});
+    expect(metricPresentation(metric).delta).toBe('Unavailable');
+    expect(metricPresentation(metric).detail).toBe('Ledger unavailable');
+    expect(metricSemantics('spending',metric).tone).toBe('unavailable');
+  }
+  expect(metricPresentation(comparisonMetric({baseline:36,plan:36,unit:'homes',status:'available'})).delta).toBe('0 homes');
+  expect(metricPresentation(comparisonMetric({baseline:100,plan:0,unit:'USD cumulative',status:'available'})).delta).toBe('-100 USD total');
+});

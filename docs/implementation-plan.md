@@ -1003,3 +1003,39 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-36 — costs and tradeoffs
+
+Local branch `mini/SHE-36`; exclusive slice: `world/future-machine/ui/{index.js,model.js,README.md}`,
+`test/future-machine-ui.test.js`, and this plan entry. Baseline audit found the
+integrated monthly City cards already display recorded homes, whole-stock mean
+rent and cumulative capital cost with neutral/change/cost direction semantics.
+Existing synthetic assumptions, seed/model/run provenance, exact household joins,
+and tiny nonzero values are retained. SHE-32/HBL-W1-019 remains Backlog in Linear,
+but its prerequisite event-to-entity path exists in `main.js` (`jump`, `select`,
+`explainMetric`) and the integrated browser journey; no duplicate implementation
+or dispatch-label change is needed for this local slice.
+
+Acceptance: preserve per-metric unavailable status/reason, reject nonfinite
+deltas, show comparison direction and uncertainty limits without a welfare claim,
+and verify zero, missing, negative, cost-only and first physical divergence.
+A partial comparison must retain supported individual metrics. No simulation,
+recipe, seed, data or shared contract changes. Single paired-run variation is
+not a confidence interval; empirical/parameter uncertainty is not estimated.
+Verification results follow below. No deployment or main merge authorized.
+
+Actual verification (2026-11-12):
+`bun test test/future-machine-ui.test.js test/future-machine-diff.test.js test/future-machine-story.test.js test/future-machine-evidence-trail.test.js test/future-machine-data.test.js`
+passed 37 tests / 245 assertions, 1 browser-gated skip, 0 failures (5.55s).
+Includes real seed-42 Month-16 first physical divergence (+24 units), deterministic
+120-month rerun, zero/missing/negative metrics and capital cost semantics.
+`bun build world/future-machine/ui/index.js --target browser --outdir /tmp/she36-ui-build`
+and `git diff --check` passed. Package has no lint/typecheck scripts.
+Browser attempt:
+`HBL_FM_BROWSER=1 HBL_PLAYWRIGHT_MODULE=/Users/wahabma/happybearlandia/node_modules/@playwright/test/index.mjs bun test test/future-machine-ui.test.js`
+failed before Chromium startup at `Bun.serve({port:0})`, EADDRINUSE in this
+restricted environment (6 unit tests passed in that initial attempt). New browser
+assertions are included in the working diff but remain unexecuted; no fresh UI
+screenshot or integrated browser pass is claimed. Next action: rerun that command
+on a host permitting local listening and capture the built-in mobile/desktop
+screenshots. Local working diff only; no commit/PR, Linear mutation or deployment.

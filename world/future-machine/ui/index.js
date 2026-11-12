@@ -1,5 +1,5 @@
 import {DEFAULT_RECIPE} from '../contracts.js';
-import {calendarLabel, clampMonth, metricPresentation, metricSemantics, householdObservation, householdSummary} from './model.js';
+import {calendarLabel, clampMonth, metricPresentation, metricSemantics, householdObservation, householdSummary, comparisonMetric} from './model.js';
 
 /** Mount a renderer-independent view. Call update with recorded data; see README. */
 export function mountFutureMachineUI(root, options = {}) {
@@ -49,7 +49,7 @@ export function mountFutureMachineUI(root, options = {}) {
     const why=button(`WHY · ${label}`,()=>action(options.onMetric,key)); why.className='fm-metric-why'; why.disabled=true;
     card.append(node('h2',label),delta,values,detail,why); cards.append(card); metricNodes[key]={card,delta,values,detail,why};
   }
-  shell.append(cards);
+  shell.append(cards,node('p','Differences are WITH PLAN − WITHOUT PLAN at the selected month. Capital spending is cumulative cost, not a welfare gain; homes count recorded housing units. One paired synthetic run uses a shared seed, not an uncertainty interval. Uncalibrated assumptions and seed variation can change results; these values are not an empirical forecast.','fm-detail fm-metric-limits'));
   const inspectors=node('section',undefined,'fm-inspectors');
   const householdPanel=node('section'), household=node('select'), householdBody=node('pre');
   const householdSummaryNode=node('p',undefined,'fm-household-summary'),householdRaw=node('details');householdRaw.append(node('summary','Inspect exact household records'),householdBody); household.setAttribute('aria-label','Monthly City household');
@@ -188,7 +188,7 @@ export function createUI(container, callbacks = {}) {
     const metrics={};
     for(const [key,source] of [['homes','housingUnits'],['rent','meanRent'],['spending','capitalSpending']]){
       const metric=current.diff?.metrics?.[source];
-      metrics[key]=metric?{baseline:metric.baseline,intervention:metric.plan,unit:metric.unit,note:key==='rent'?'All recorded units, including new inventory; not incumbent rent savings.':key==='spending'?'Cumulative capital spending in USD; cost is not a welfare gain.':undefined}:null;
+      metrics[key]=metric?{...comparisonMetric(metric),note:key==='rent'?'All recorded units, including new inventory; not incumbent rent savings.':key==='spending'?'Cumulative capital spending in USD; cost is not a welfare gain.':undefined}:null;
     }
     const a=current.frame?.baseline?.state?.households||[],b=current.frame?.plan?.state?.households||[];
     const ids=[...new Set([...a,...b].map(row=>row.id))].sort();
