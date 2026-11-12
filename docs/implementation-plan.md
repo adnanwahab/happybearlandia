@@ -1,5 +1,33 @@
 # HappyBearLandia implementation plan
 
+## Civilization and storm CI observation — SHE-242
+
+Scope: add one independent, bounded observation job to core journeys using the
+existing Ubuntu 24.04 / Bun / Chromium setup established by browser reliability
+work. Run the five `test/storm-*.test.js` files and the unchanged civilization
+browser config on every existing pull-request and main-push trigger (including
+all `world/` and `test/` changes). Preserve the existing gated job verbatim.
+Both new suite steps use `continue-on-error`; gating is a follow-up decision.
+No test content, GPU requirement, production behavior or model contract changes.
+
+Acceptance evidence: local storm suite passed 14 tests / 646 assertions across
+five files. The exact requested local browser command exited 1 before discovery:
+Playwright loaded the config as CommonJS and rejected `import.meta` with
+`SyntaxError: Cannot use 'import.meta' outside a module`. No browser tests ran;
+fixing that failure is outside this ticket's scope. CI may differ after its
+frozen dependency install, so this local result is not a hosted-run result.
+
+The new job records raw step outcomes (including tolerated failures) and a run
+URL in the Actions summary and retains browser failure evidence for seven days.
+Remaining completion work: publish the workflow PR, link its first hosted run
+from that PR, compare hosted and local outcomes, and file a separate ticket for
+each observed failure plus the gating decision. Ten-run flake measurement is
+pending hosted runs. Hosted execution and PR publication are not established
+by local checks.
+Local workflow validation passed: YAML parses, triggers and the parsed gated job
+match HEAD, both suite steps are non-blocking and bounded, and `git diff --check`
+is clean. No repository lint/type-check command applies to this YAML/docs change.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).

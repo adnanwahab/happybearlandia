@@ -9,6 +9,49 @@ permissions:
   contents: read
 
 jobs:
+  civilization-storm:
+    # Observe these suites before deciding on gating in a follow-up issue.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Storm model contracts (observational)
+        id: storm
+        continue-on-error: true
+        timeout-minutes: 5
+        run: bun test test/storm-*.test.js
+      - name: Install Chromium for civilization journeys
+        run: bunx playwright install --with-deps chromium
+      - name: Civilization browser journeys (observational)
+        id: civilization
+        continue-on-error: true
+        timeout-minutes: 12
+        run: bunx playwright test --config test/civilization.browser.config.js
+      - name: Record observational suite outcomes
+        if: always()
+        env:
+          STORM_OUTCOME: ${{ steps.storm.outcome }}
+          CIVILIZATION_OUTCOME: ${{ steps.civilization.outcome }}
+        run: |
+          {
+            echo '### Civilization and storm observation (SHE-242)'
+            echo "- Storm Bun suite: ${STORM_OUTCOME}"
+            echo "- Civilization browser suite: ${CIVILIZATION_OUTCOME}"
+            echo "- Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo 'These suites are non-blocking pending a follow-up gating decision.'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain civilization browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: civilization-browser-evidence
+          path: test-results
+          if-no-files-found: ignore
+          retention-days: 7
+
   verify:
     # Keep browser dependencies on an explicit Playwright-supported Ubuntu release.
     runs-on: ubuntu-24.04
