@@ -1003,3 +1003,45 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Safe WebGPU negotiation — SHE-168 (review candidate)
+
+Owned slice: storm paired solver (`world/storm/`) and focused tests. The clean
+`mini/SHE-168` workspace has no prior edits; issue/PR audit found no matching PR.
+Planning dependency SHE-141 is Done. Architecture document is absent. Existing
+CI uses Bun unit tests and Chromium journeys; storm coverage is in the civilization
+browser suite. No shared interfaces or independent implementation tasks require delegation.
+
+Acceptance: inspect adapter and device storage binding, allocation, binding count,
+workgroup and dispatch limits before creating resources; request no raised limits.
+Fallback from GPU to a bounded worker to the existing CPU reference, with visible
+reasons and unchanged recipe/model/frames. Terminate failed/timed-out workers.
+Exercise missing GPU, low limits, successful GPU selection and worker failures;
+verify existing Canvas2D visualization fallback. Risk: software/headless adapters
+cannot establish physical hardware performance or cross-device numerical parity.
+
+Delivered: adapter and per-run device limit checks before resource allocation,
+no raised requiredLimits, paired backend selection and visible reasons, worker
+startup/error/message/timeout cleanup, bounded CPU reference recovery. Existing
+Canvas2D scene fallback remains the visualization path. This slice covers the
+storm compute entry point, not all Three.js renderers or million-agent execution.
+CI now includes the focused contracts and visible fallback journeys.
+
+Actual verification (2026-11-12, Darwin arm64, Bun 1.4.2): 19 tests passed,
+700 assertions across six storm suites. Synthetic unit inputs use 3×3 grids,
+4 steps and rainfall 0.125/0.1; limit-boundary fixture uses 128×128, 240 steps.
+Solver has no random draws; seeded scenario regressions retain their recipes.
+Adapter tests inject limits, including 1-byte storage/allocation limits, and
+prove zero unsupported device requests; no physical GPU measurements claimed.
+Default browser scenario is the existing versioned synthetic storm recipe.
+
+Browser verification remains pending: the original config under Node fails on
+import.meta; Bun loads it but server startup reports EADDRINUSE on 54388.
+The focused .mjs config also reports EADDRINUSE on 54468 before Chromium launch.
+No browser/device/Canvas2D result was observed in this sandbox. Added missing-GPU,
+low-storage and failed-worker journeys check status, unchanged flood outcomes,
+Canvas2D visibility and replay controls. Run `TMPDIR=/private/tmp bun --bun x
+playwright test --config test/webgpu-limits.browser.config.mjs` in a host that can
+bind a test server. No repository lint/type-check script exists. Review candidate;
+no commit, publication, merge or deployment performed. Physical-device GPU parity
+and performance remain unmeasured. Next action: run the focused browser gate.

@@ -1,5 +1,5 @@
 import { consequences, impactMetrics } from './compare.js';
-import { simulateWaterGPU } from './gpu.js';
+import { runStormPair } from './execution.js';
 import { mountStormScene } from './scene.js';
 import {
   buildings, compileStorm, CROSSING_CELL, CROSSING_DRAINS, EDITS, normalizeStorm, readStorm, roads, SIZE, stormCost,
@@ -158,22 +158,6 @@ function show(recipe, inputs, runs, step, selectedArm) {
   renderScene();
 }
 
-function workerResult(data) {
-  return new Promise((resolve, reject) => {
-    const worker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
-    worker.onmessage = ({ data }) => {
-      worker.terminate();
-      if (data.error) reject(new Error(data.error));
-      else resolve(data.result);
-    };
-    worker.onerror = () => {
-      worker.terminate();
-      reject(new Error('The storm worker could not run.'));
-    };
-    worker.postMessage(data);
-  });
-}
-
 async function run(recipe, step, arm) {
   if (submit.disabled) return;
   stop();
@@ -188,15 +172,12 @@ async function run(recipe, step, arm) {
   find('run-status').textContent = 'Computing matched water simulations…';
   const inputs = { baseline: compileStorm({ ...recipe, edits: [] }), adjusted: compileStorm(recipe) };
   try {
-    let runs;
-    try {
-      runs = [await simulateWaterGPU(inputs.baseline), await simulateWaterGPU(inputs.adjusted)];
-    } catch {
-      runs = await workerResult({ type: 'storm', ...inputs });
-    }
+    const { runs, path, reasons } = await runStormPair(inputs, {
+      onFallback: status => { find('run-status').textContent = status; },
+    });
     show(recipe, inputs, runs, step, arm);
     completed = true;
-    find('run-status').textContent = `Matched storms ready · ${runs[0].backend} water solver`;
+    find('run-status').textContent = `Matched storms ready · ${runs[0].backend} water solver${reasons.length ? ` · Fallback: ${path} · ${reasons.join(' ')}` : ''}`;
   } catch (error) {
     find('run-status').textContent = error.message;
   } finally {
