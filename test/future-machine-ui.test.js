@@ -1,5 +1,15 @@
 import {test,expect} from 'bun:test';
 import {clampMonth,calendarLabel,formatMeasurement,metricPresentation,metricSemantics,householdObservation,householdSummary} from '../world/future-machine/ui/model.js';
+import {metricDelta} from '../world/future-machine/diff/core.js';
+
+test('overflowing paired measurements remain unavailable rather than displaying Infinity',()=>{
+  const comparison=metricDelta(-Number.MAX_VALUE,Number.MAX_VALUE,'USD');
+  expect(comparison.status).toBe('missing');
+  expect(comparison.delta).toBeNull();
+  const metric={baseline:comparison.baseline,intervention:comparison.plan,unit:comparison.unit};
+  expect(metricPresentation(metric).delta).toBe('Unavailable');
+  expect(metricSemantics('spending',metric).tone).toBe('unavailable');
+});
 test('shared calendar includes exact Month 0 and Month 120',()=>{expect(calendarLabel(0)).toBe('Jan 2026');expect(calendarLabel(60)).toBe('Jan 2031');expect(calendarLabel(120)).toBe('Jan 2036');expect(calendarLabel(11)).toBe('Dec 2026');});
 test('timeline clamps invalid and out of range input',()=>{expect(clampMonth(-1)).toBe(0);expect(clampMonth(121)).toBe(120);expect(clampMonth(NaN)).toBe(0);expect(clampMonth(1.7)).toBe(2);});
 test('measurements preserve zero and units, never coerce missing data to zero',()=>{expect(formatMeasurement(0,'homes')).toBe('0 homes');for(const value of [null,undefined,NaN,Infinity,'4'])expect(formatMeasurement(value)).toBe('Unavailable');});

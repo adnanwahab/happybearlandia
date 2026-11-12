@@ -10,6 +10,17 @@ The optional `callbacks.onCancel()` extension exposes Cancel run during loading.
 
 ## Acceptance and verification
 
+SHE-75 follow-up (2026-11-12): the adapter preserves a diff metric's missing
+status. Presentation also rejects a nonfinite B−A result even when both arm
+values are finite, keeping the card unavailable and its WHY control disabled.
+The focused diff/UI suites passed 18 tests, with one browser-gated skip.
+An explicit browser run failed before Chromium launch because `Bun.serve`
+could not bind its local port (`EADDRINUSE`); no fresh integrated screenshot
+or mobile interaction evidence was collected in this follow-up. Earlier
+browser evidence below is historical. The coordinator-owned implementation
+plan remains unchanged under this worker's file scope; the remaining handoff
+is to rerun browser acceptance in an environment that permits local listening.
+
 - `bun test test/future-machine-ui.test.js`: calendar endpoints, input bounds, zero/missing/nonfinite measurements, signed and zero deltas.
 - `HBL_FM_BROWSER=1 bun test test/future-machine-ui.test.js` runs the committed Chromium test (with installed `@playwright/test`); `HBL_PLAYWRIGHT_MODULE` can point to an existing module installation. The full run passed 5 tests / 28 assertions.
 - Chromium smoke exercised native range End to Month 120, delegated play/blink/director/share/export, Fork City, loading disablement, error announcement, unsafe share URL rejection, disposal, and 390px/1440px layouts with no horizontal overflow. This smoke used injected recorded-shape fixtures; it did not exercise the unfinished combined application or real API runs.

@@ -188,7 +188,7 @@ export function createUI(container, callbacks = {}) {
     const metrics={};
     for(const [key,source] of [['homes','housingUnits'],['rent','meanRent'],['spending','capitalSpending']]){
       const metric=current.diff?.metrics?.[source];
-      metrics[key]=metric?{baseline:metric.baseline,intervention:metric.plan,unit:metric.unit,note:key==='rent'?'All recorded units, including new inventory; not incumbent rent savings.':key==='spending'?'Cumulative capital spending in USD; cost is not a welfare gain.':undefined}:null;
+      metrics[key]=metric?{baseline:metric.baseline,intervention:metric.plan,unit:metric.unit,available:metric.status!=='missing',note:key==='rent'?'All recorded units, including new inventory; not incumbent rent savings.':key==='spending'?'Cumulative capital spending in USD; cost is not a welfare gain.':undefined}:null;
     }
     const a=current.frame?.baseline?.state?.households||[],b=current.frame?.plan?.state?.households||[];
     const ids=[...new Set([...a,...b].map(row=>row.id))].sort();
