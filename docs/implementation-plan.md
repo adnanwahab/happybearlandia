@@ -385,3 +385,21 @@ They await publication/review of this local branch. SHE-83/SHE-84 canonical
 receipt work, other task-specific prerequisites, participant evidence and media
 access remain separate scope. No bulk requeue, dispatcher restart, push, main
 merge or deployment was performed.
+
+## Publication gate for the unblock slice — November 11, 2026
+
+User authorized publication/review for Symphony consumption. Published branch
+`codex/merge-complete-symphony-20261111` as PR #26 against the sprint branch;
+independent review found no actionable runtime issues (19 focused tests / 264
+assertions). CI now runs the 68-test unblock regression and two normal-entry
+browser checks and retains browser artifacts.
+
+First hosted run `43146419857` passed existing unit contracts, all new unblock
+regressions and Chromium installation, then failed three older release-browser
+expectations: catalog count 29 versus registered 31, saved navigation inside
+collapsed World controls, and an error expectation superseded by working Canvas
+fallback. Required gates remain enabled. Targeted harness repairs preserve all
+registered IDs and exact saved checkpoint/House/fork/replay assertions while
+exercising the actual controls and renderer fallback. Full hosted verification
+must pass before merge; current publication/merge status is authoritative at
+https://github.com/adnanwahab/happybearlandia/pull/26.

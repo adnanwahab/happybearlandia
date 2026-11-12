@@ -70,6 +70,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: symphony-unblock-evidence
-          path: test-results/symphony-unblock
+          path: test-results
           if-no-files-found: ignore
           retention-days: 7
