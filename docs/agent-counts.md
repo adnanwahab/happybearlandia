@@ -29,7 +29,9 @@ with no eligible pair. A tick is a discrete step with no physical-time calibrati
 `interactionsPerSecond` is validated pair events divided by monotonic elapsed
 wall seconds for the same execution window. `simulationTicksPerSecond` uses
 completed ticks over that same duration. Both are null for zero duration;
-negative, nonfinite and missing duration are errors. These are wall throughput,
+negative, nonfinite and missing duration are errors. Positive durations that
+overflow either derived rate are also errors, so JSON cannot silently convert an
+infinite rate to an unavailable/null measurement. These are wall throughput,
 not events per modeled second. `renderFPS` requires observed presented frames
 over a separate render wall window; it is null here. Rendering inputs are rejected
 by this headless adapter. GPU submissions or simulation ticks are not frames.
