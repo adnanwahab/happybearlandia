@@ -273,6 +273,34 @@ Final 320px post-layout smoke passed: actual completed comparison, visible measu
 
 ## One City, Two Futures flagship sprint
 
+### SHE-20 current-checkout acceptance audit — November 12, 2026
+
+The Linear issue still reports Todo and references missing skeleton modules, but
+the clean `mini/SHE-20` checkout at `b963dd353538294cb0fbf5d34d5283fad6e10e68`
+already contains the integrated slice below. Preserve that implementation rather
+than redispatching its completed workers. This audit owns documentation only;
+no integration ref, shared interface, runtime or release configuration changed.
+
+Fresh verification: `bun test test/future-machine-*.test.js
+test/two-futures-*.test.js test/paired-future-comparison.test.js` passed 109 tests,
+with 3 browser-only skips, 0 failures and 984 assertions across 19 files.
+Actual engine/API tests verified common initial state, deterministic replay,
+zero control, missing-data/error handling, exact recorded WHY relationships,
+reverse scrubbing, and Month 16 construction of one building containing 24 homes.
+`git diff --check` passed. No package lint/typecheck commands are defined.
+
+Fresh browser acceptance remains blocked: the recording-enabled canonical
+Playwright suite could not start its isolated server on ports 39973 or 41827.
+Bun reported EADDRINUSE; an independent Python loopback bind to port 0 returned
+`PermissionError: [Errno 1] Operation not permitted`, confirming this session
+cannot open a listener. No browser test or new recording completed. Existing
+`/tmp/hbl-two-futures-delivery/` screenshots, JSON, WebM and MP4 are present but
+are historical evidence, not a fresh current-head browser pass. Next action:
+rerun the evidence report's canonical recording-enabled suite in a host session
+that permits local listeners, then reconcile issue completion against that
+result. Main merge, Fly deployment and production database changes still
+require user approval; none was performed during this audit.
+
 The next integrated slice is delivered on `sprint/one-city-two-futures-20261111`: homepage Play Demo → immutable matched Month 0 → recorded monthly divergence → first physical building at Month 16 → measured KPIs → exact project/policy completion receipt → pause/resume/manual exploration/share/replay. Six isolated Codex worker worktrees plus the coordinator supplied the slice; current ownership and commits are in `docs/one-city-two-futures-workers.json`.
 
 Acceptance: seed 42, model `city-systems.1.0.0`, 30 starting households, exactly 120 steps per arm. At Month 16 and 120, homes are 36 without versus 60 with the housing plan; cumulative capital spending differs by 1,000,000 illustrative USD. One three-floor structure contains the 24 units. Both scene halves use one camera and time; no geographic parcel or cross-model resident mapping is invented. Mean unit rent is labeled as including new inventory, not incumbent savings. Physical structure selection and KPI WHY show event `16-0`, recorded project and policy, selected month, model, seed and run; missing causal edges remain explicit.
