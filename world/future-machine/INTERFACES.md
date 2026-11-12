@@ -73,3 +73,23 @@ The 50-second `demo-controller.js` is a presentation clock, not a simulator. It 
 - `createOutcomeTimeline(container,{history,onMonth}) -> {update(month),dispose()}` consumes the same immutable121snapshots. Point/keyboard selections emit integer recordedmonth through coordinator manualMonth; no independent clock/simulation. Metric units from METRIC_UNITS; unavailable measurements stay gaps.
 - `recordedConstructionProgress(snapshot)` returns recorded stage/work/units and exact model-owned housing-project building identity. Work ratio is not elapsed calendar fraction or completed housing. Actual inventory determines building presence; layoutv2 preserves one schematic slot across supported project completion.
 - `buildEvidenceTrail(history,{collection,id,month})`: arm-scoped nodes/edges contain exact record, first observed month, eventID and unavailable reasons. `renderEvidenceTrail(container,history,selection,{onJump})` presents those records. Completion jumps retain building selection; all evidence jumps stop demo presentation. Independently verified causal dependency traces are explicitly unavailable.
+
+## Opt-in local continuation
+
+`recent.js` reuses strict share validation and owns only
+`hbl.future-machine.recent.v1` in browser localStorage. Its `readRecent`,
+`saveRecent`, and `clearRecent` functions accept a Storage object and propagate
+storage/validation errors for visible feedback. The JSON contains exactly
+`{recipe,experimentId,month}`. No full URL, account, resident, observation,
+result, or private text is retained. Recipes remain the bounded synthetic v1
+contract. There is no time-based expiry; incompatible versions fail explicitly.
+
+`createUI` adds `onRemember()` and `onClearRecent()` callbacks, plus
+`remembering` and `recentMessage` state. Remember is available after a completed
+comparison. That choice enables subsequent completed-run/month updates on this
+browser. Unrun input edits do not change the saved recipe. Bare entry resumes
+local context; explicit comparison links take precedence and update the recent
+reference if consent is already active. Missing records follow existing labeled
+recipe recomputation. Clear removes only the local reference, disables further
+writes, and leaves the displayed comparison and server records available.
+Storage errors are announced; failed removal does not falsely claim success.

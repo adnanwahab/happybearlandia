@@ -1,3 +1,4 @@
+import {readRecent, saveRecent, clearRecent} from './recent.js';
 import {renderEvidenceTrail} from './story/evidence-trail-view.js';
 import { constructionReceipts } from './evidence.js';
 import { createDemoController } from './demo-controller.js';
@@ -14,9 +15,10 @@ const app=document.querySelector('#app');
 let inspectorEntity=null,outcomeTimeline=null;
 let history=null,diffs=[],story=null,stage=null,storyDispose=()=>{},request=null,playTimer=null,disposed=false;
 let state={status:'idle',message:'Fork the same city. Change one decision. Watch ten modeled years.',recipe:structuredClone(DEFAULT_RECIPE),month:0,playing:false,mode:'split',ghosts:true,experimentId:null,shareURL:null,error:null};
+let remembering=false;
 const stats={startedAt:performance.now(),readyMs:null,runMs:null};
 app.replaceChildren();
-const ui=createUI(app,{onRun:run,onConfigure:configure,onCancel:cancel,onMonth:manualMonth,onPlay:manualPlay,onDemo:playDemo,onDemoPause:()=>director.togglePause(),onMetric:explainMetric,onMode(mode){state.mode=mode;stage?.setMode(mode);update();},onGhosts(value){state.ghosts=value;stage?.setGhosts(value);update();},onDirector:direct,onShare:share,onExport:exportReport});
+const ui=createUI(app,{onRun:run,onConfigure:configure,onCancel:cancel,onMonth:manualMonth,onPlay:manualPlay,onDemo:playDemo,onDemoPause:()=>director.togglePause(),onMetric:explainMetric,onMode(mode){state.mode=mode;stage?.setMode(mode);update();},onGhosts(value){state.ghosts=value;stage?.setGhosts(value);update();},onDirector:direct,onShare:share,onExport:exportReport,onRemember:remember,onClearRecent:resetRecent});
 const outcomeHost=document.createElement("div");ui.stageElement.after(outcomeHost);
 stage=createStage(ui.stageElement,{onSelect:select});
 stage.setMode(state.mode);stage.setGhosts(state.ghosts);
@@ -37,7 +39,21 @@ function update(){if(!disposed){ui.update(state);outcomeTimeline?.update(state.m
 function cancel(){demoGeneration++;director.stop();request?.abort();request=null;setPlaying(false);state.status=history?'ready':'idle';state.error=null;state.message='Run cancelled. Any completed comparison remains available.';update();}
 function frame(){return history?getFrame(history,state.month):null;}
 function showStory(description){storyDispose();const clean=renderStory(ui.storyElement,description,{onJump:jump})||(()=>{});const entity=description.entity;inspectorEntity=entity??null;const trailClean=history&&entity?.id?renderEvidenceTrail(ui.storyElement,history,{...entity,month:state.month},{onJump:jump}):()=>{};storyDispose=()=>{clean();trailClean();};}
-function updateURL(){if(!history)return;state.shareURL=createShareURL({recipe:history.recipe,experimentId:history.experimentId,month:state.month},location.href);window.history.replaceState(null,'',state.shareURL);}
+function recentFailure(error){state.recentMessage=`Local continuation unavailable: ${error.message}. Clear the saved comparison or start a new run.`;}
+function persistRecent(){
+  if(!remembering||!history)return;
+  try{saveRecent(window.localStorage,{recipe:history.recipe,experimentId:history.experimentId,month:state.month});state.recentMessage='Continuing is enabled on this browser. Recipe and selected month saved locally.';}
+  catch(error){remembering=false;recentFailure(error);}
+  state.remembering=remembering;
+}
+function remember(){if(!history||state.status!=='ready')return;remembering=true;persistRecent();update();}
+function resetRecent(){
+  remembering=false;state.remembering=false;
+  try{clearRecent(window.localStorage);state.recentMessage='Saved comparison cleared. Local continuation is off.';}
+  catch(error){state.recentMessage=`Could not clear local continuation: ${error.message}. Browser storage must be available to remove the saved reference. Continuing is off for this visit.`;}
+  update();
+}
+function updateURL(){if(!history)return;state.shareURL=createShareURL({recipe:history.recipe,experimentId:history.experimentId,month:state.month},location.href);window.history.replaceState(null,'',state.shareURL);persistRecent();}
 function setMonth(month){try{state.month=assertMonth(Number(month));if(history){state.frame=frame();state.diff=diffs[state.month];stage.update(state.frame,state.diff);updateURL();if(inspectorEntity)showStory(withContext(entityDescription(inspectorEntity)));}update();}catch(error){state.error=error.message;update();}}
 function setPlaying(value){clearInterval(playTimer);playTimer=null;state.playing=Boolean(value&&history);if(state.playing){if(state.month===MONTHS)setMonth(0);playTimer=setInterval(()=>{if(state.month>=MONTHS)return setPlaying(false);setMonth(state.month+1);},200);}update();}
 function select(entity){if(!history)return;director.stop();setPlaying(false);stage.focus(entity);showStory(withContext(entityDescription(entity)));}
@@ -69,4 +85,10 @@ window.addEventListener('pageshow',event=>{if(event.persisted&&disposed)location
 // Read-only diagnostics for local resource measurements and integration checks.
 window.futureMachine={get history(){return history;},get state(){return {...state};},get stats(){return {...stats,scene:stage?.getStats?.()};},dispose};
 update();
-try{const context=parseShareURL(location.href);if(context)void run(context.recipe,context.experimentId,context.month);else if(new URLSearchParams(location.search).get('demo')==='1')void playDemo();}catch(error){state.status='error';state.error=`Invalid shared comparison: ${error.message}`;state.message='Use Fork City to start a valid bounded comparison.';update();}
+try{
+  let recent=null;
+  try{recent=readRecent(window.localStorage);remembering=!!recent;state.remembering=remembering;if(recent)state.recentMessage='Opening your locally saved comparison…';}
+  catch(error){recentFailure(error);}
+  const context=parseShareURL(location.href);
+  update();
+  if(context)void run(context.recipe,context.experimentId,context.month);else if(recent)void run(recent.recipe,recent.experimentId,recent.month);else if(new URLSearchParams(location.search).get('demo')==='1')void playDemo();}catch(error){state.status='error';state.error=`Invalid shared comparison: ${error.message}`;state.message='Use Fork City to start a valid bounded comparison.';update();}

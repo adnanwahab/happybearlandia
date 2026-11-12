@@ -158,6 +158,12 @@ export function createUI(container, callbacks = {}) {
   const demoPause=doc.createElement('button');demoPause.type='button';demoPause.textContent='Pause demo';demoPause.onclick=()=>callbacks.onDemoPause?.();demoPause.hidden=true;
   const demoCaption=doc.createElement('p');demoCaption.className='fm-demo-caption';demoCaption.setAttribute('role','status');demoCaption.textContent='A guided 45–60 second comparison. Pause anytime to explore.';
   demoPanel.append(demo,demoPause,demoCaption);shell.querySelector('.fm-header').after(demoPanel);
+  const recentPanel=doc.createElement('section');recentPanel.className='fm-demo';recentPanel.setAttribute('aria-label','Local continuation');
+  const remember=doc.createElement('button');remember.type='button';remember.textContent='Remember this comparison';remember.onclick=()=>callbacks.onRemember?.();
+  const clear=doc.createElement('button');clear.type='button';clear.textContent='Clear saved comparison';clear.onclick=()=>callbacks.onClearRecent?.();
+  const recentHelp=doc.createElement('p');recentHelp.textContent='Opt in to continue where you left off on this browser. Saves only the synthetic recipe, run reference and selected month; no private user details.';
+  const recentStatus=doc.createElement('p');recentStatus.setAttribute('role','status');
+  recentPanel.append(remember,clear,recentHelp,recentStatus);demoPanel.after(recentPanel);
   const runProvenance=doc.createElement('p');runProvenance.className='fm-run-provenance';runProvenance.setAttribute('aria-label','Simulation provenance');shell.querySelector('.fm-comparison').before(runProvenance);
   const difference=doc.createElement('button');difference.type='button';difference.textContent='Difference-only';difference.onclick=()=>callbacks.onMode?.('difference');actions.append(difference);
   const split=doc.createElement('button');split.type='button';split.textContent='Side by side';split.onclick=()=>callbacks.onMode?.('split');actions.append(split);
@@ -185,6 +191,8 @@ export function createUI(container, callbacks = {}) {
     const provenance=current.provenance || {};
     runProvenance.textContent=`MONTH ${current.month} / 120 · SEED ${provenance.seed ?? current.recipe?.seed ?? 'Unavailable'} · MODEL ${provenance.modelVersion ?? current.recipe?.modelVersion ?? 'Unavailable'} · RUN ${provenance.experimentId ?? current.experimentId ?? 'Not run yet'}`;
     const ready=!!current.frame && !busy;
+    remember.disabled=!ready || current.status!=='ready' || !callbacks.onRemember;remember.textContent=current.remembering?'Local continuation enabled':'Remember this comparison';remember.setAttribute('aria-pressed',String(!!current.remembering));
+    clear.disabled=!callbacks.onClearRecent;recentStatus.textContent=current.recentMessage || 'Local continuation is off.';
     const metrics={};
     for(const [key,source] of [['homes','housingUnits'],['rent','meanRent'],['spending','capitalSpending']]){
       const metric=current.diff?.metrics?.[source];
@@ -204,5 +212,5 @@ export function createUI(container, callbacks = {}) {
     shareLink.hidden=!current.shareURL;
     if(current.shareURL){try{const url=new URL(current.shareURL,doc.baseURI);if(['http:','https:'].includes(url.protocol))shareLink.href=url.href;else{shareLink.removeAttribute('href');shareLink.hidden=true;}}catch{shareLink.removeAttribute('href');shareLink.hidden=true;}}
   }
-  return {stageElement:view.stage,storyElement,update,dispose(){seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
+  return {stageElement:view.stage,storyElement,update,dispose(){remember.onclick=null;clear.onclick=null;seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
 }

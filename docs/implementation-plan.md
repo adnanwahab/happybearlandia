@@ -1,5 +1,42 @@
 # HappyBearLandia implementation plan
 
+## Opt-in local continuation — SHE-50
+
+Owned slice on `mini/SHE-50`: `world/future-machine/recent.js`, coordinator
+`main.js`, UI adapter, matching tests/browser config and interface/plan docs.
+No parallel writers or deployment. Prerequisite HBL-W1-033 / SHE-46 remains
+Backlog; source already provides strict recipe/identity validation, missing-record
+recomputation and share-reliability tests. Reuse those contracts rather than
+replace replay. No existing local continuation was found.
+
+Acceptance: no local write before explicit choice; remember only the validated
+synthetic recipe, saved experiment ID and month; bare-route reload resumes that
+context, while explicit links take precedence. Reset removes the key and revokes
+further writes. Invalid/incompatible data and denied storage must be explained;
+missing saved records retain the existing visible recomputation disclaimer.
+Risks: browser storage can be unavailable or cleared; saved runs can disappear;
+model upgrades cannot silently upgrade recipes. Verify privacy allowlist, failure
+paths, exact seed/month reload, reset and shared-link precedence through the app.
+Delivered: explicit Remember and Clear controls, strict allowlisted local record,
+bare-entry resume, explicit-link precedence, and visible storage/version errors.
+Simulation authority, recipe versions and synthetic-data disclaimers are unchanged.
+
+Verification: `bun test test/future-machine-recent.test.js
+test/future-machine-share.test.js test/future-machine-ui.test.js
+test/future-machine-data.test.js` passed 21 tests / 183 assertions; one existing
+opt-in Chromium component test skipped. Includes real City API persistence/reopen,
+deterministic recipe replay, privacy rejection, invalid versions and storage errors.
+`bun /Users/wahabma/happybearlandia/node_modules/@playwright/test/cli.js test
+--config test/future-machine-recent.browser.config.js` could not start the local
+server on either 39884 or 39950. Bun reported EADDRINUSE; direct Python socket
+bind to an ephemeral localhost port returned PermissionError(1), establishing the
+sandbox bind restriction. Browser journeys are committed but unexecuted; no
+screenshot is claimed. Rerun that config in a host permitting localhost binding
+for exact context reload/reset, missing records, explicit links and denied storage.
+No package lint/typecheck scripts exist. Final whitespace and syntax checks are
+recorded below. Branch `mini/SHE-50`; no commit/PR, merge or deployment performed.
+SHE-46 remains Backlog; this local slice does not grant dispatch readiness.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
@@ -1003,3 +1040,7 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+SHE-50 final static verification: browser-target Bun bundle succeeded (30 modules);
+`node --check` passed for coordinator, recent store and UI adapter;
+`git diff --check` passed. Browser execution remains blocked as recorded above.
