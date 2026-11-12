@@ -61,3 +61,49 @@ Permanent routes:
 The 60 FPS target has not been certified on an 8-core M4 Air or Safari. Headless Chromium here selects WebGL2 and exposes no timestamp queries; its performance must not be treated as an M4 GPU benchmark. Features are toggleable for hardware A/B acceptance.
 
 This implementation does not complete the full 12-week backlog. Remaining work includes actual streamed district resource eviction, production KTX2/Basis assets (the loader/cache boundary exists), full asset vehicle/tree LOD libraries, skinned near pedestrians, water, SSR, AO/bloom/post pipeline comparisons, compute experiments, richer construction equipment, utility/bridge infrastructure, and Safari/WebGPU hardware regression baselines. The procedural environment map supplies HDR reflections; authored HDR sky assets and local probes can be added later.
+
+## Progressive startup and streamed geometry allowance (SHE-170)
+
+`progressive-loader.js` shares one **4 ms** allowance across resident startup and
+all streamed tile loaders in the same JS module context. Native RAF timestamps
+identify a frame. A chunk is one attachment including its failure fallback;
+worker generation stays outside this allowance. No further chunk starts once
+4 ms has been spent. A synchronous chunk cannot be preempted, so the bound is
+4 ms plus the final chunk's duration, not a hard 4 ms browser blocking guarantee.
+Each loader also keeps its local time/count limits and 2–4 outstanding results.
+Other render, model initialization, observer hooks, sorting and GPU work are
+outside this attachment allowance.
+
+`getProgress()` (also exposed by `hblWorldStartup.geometry` and streamed tile
+progress) adds `maxChunkMs`, `maxBatchMs`, `budgetOverruns` (local batches over
+budget), and `budgetDeferrals` (shared allowance unavailable). These are elapsed
+wall times; an async attachment's wait is conservatively included, not measured
+CPU blocking. Async chunks serialize across loaders; cancellation releases their
+allowance immediately and rejects late attachment counts as before. Separate
+module contexts do not share an allowance. Custom frame drivers should deliver
+the same timestamp to callbacks in a frame and can inject a shared
+`createFrameAllowance()` through `frameAllowance` for isolated deterministic tests.
+Normal browser entry points use the default automatically.
+
+Reproduce checks:
+
+```sh
+bun test test/progressive-loader.test.js test/map-streamer.test.js test/procedural-geometry.test.js test/worker-platform.test.js --timeout 30000
+bunx --no-install playwright test test/e2e/world-progressive-controls.e2e.js --workers=1
+```
+
+Local evidence: Darwin arm64, Bun 1.4.2; 42 tests / 6640 assertions passed.
+The scheduler stress fixture is **synthetic**, seed 42, LCG input rule
+`(imul(index + seed, 1664525) + 1013904223) >>> 0`, nine competing loaders,
+1000 queued items each, 600 simulated RAF frames, 1 ms modeled attachment cost.
+It verifies <=4 attachments per frame, bounded ready/inflight work, progress,
+independent frame callbacks and immediate cancellation with no late attachment.
+The separate 5 ms chunk fixture verifies overrun reporting. These simulated
+clocks are correctness evidence, not measured hardware throughput or camera FPS.
+Existing real-worker tests verify fixed-step replay, actual futures cancellation
+and validation gates without changing model versions, seeds or run manifests.
+
+Chromium 1.63.0 Playwright startup was attempted on ports 3100 and 3370; both app
+server binds failed with EADDRINUSE before any browser test ran. Sustained live
+camera/cancel responsiveness and actual main-thread long-task measurements remain
+unverified. Review candidate only; do not infer million-agent performance.

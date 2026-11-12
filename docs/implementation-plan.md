@@ -1003,3 +1003,30 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-170 — shared progressive geometry frame allowance
+
+Review candidate in isolated `mini/SHE-170` worktree. Prerequisite SHE-141 is
+Done (metric contract PR34); read-only PR audit found no SHE-170 implementation.
+Existing worker geometry and progressive attachments are retained. Current gap:
+resident and streamed tile loaders each spend a separate 4 ms allowance.
+Owned slice: share a 4 ms attachment allowance across those loaders, publish
+measured chunk/frame overruns, test deterministic competing loaders and abort/
+failure paths, then run focused browser stress checks when setup permits.
+Acceptance: no new chunk starts after the shared allowance is consumed; ready
+work remains bounded and cancellation settles immediately. One synchronous
+attachment cannot be preempted: budget plus the final chunk is the bound, and
+overruns must remain visible. This is geometry scheduling, not a million-agent
+model or a total browser frame-time guarantee. No merge/deployment.
+
+Delivered: default shared frame allowance in progressive-loader, cancellation-safe
+release, strict finite local budgets, additive chunk/batch/overrun telemetry and
+scheduler documentation. No model/run provenance or geometry output changed.
+Verification: 42 tests, 6640 assertions passed across progressive loader, map
+streamer, procedural geometry and real worker platform; whitespace clean. Includes
+seed42 synthetic nine-loader/600-frame stress, oversized chunks, failure recovery,
+late results and cancellation of a stalled attachment. No lint/type script exists.
+Browser setup failed before launch with EADDRINUSE on3100 and3370; no camera FPS
+or observed blocking claim. Remaining acceptance: rerun the documented browser
+check and sustained device/browser stress with actual chunk/long-task timings.
+Review candidate; full issue acceptance remains pending live browser evidence.
