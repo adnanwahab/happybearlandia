@@ -88,6 +88,13 @@ class MetricsTests(unittest.TestCase):
         self.assertEqual(known_empty['queue']['ready'], 0)
         self.assertEqual(known_empty['rates']['prs_opened_per_hour'], 0)
 
+    def test_failed_inventory_is_unknown_instead_of_empty(self):
+        failure = {'issues': None, 'pullRequests': None, 'scheduler': {'error': 'upstream-unavailable'}}
+        snapshot = self.store.observe(runtime(), failure, {}, now=200)
+        self.assertIsNone(snapshot['queue']['ready'])
+        self.assertIsNone(snapshot['queue']['remaining_estimate'])
+        self.assertIsNone(snapshot['rates']['prs_opened_per_hour'])
+
     def test_untrusted_pr_origins_invalid_times_and_future_observations_are_excluded(self):
         wrong = pr(28)
         wrong['html_url'] = 'https://evil.invalid/private'

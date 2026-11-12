@@ -16,6 +16,7 @@ import tempfile
 import time
 
 import coordinator_host as host
+from throughput_policy import rank_rows
 
 REVIEW_LABEL = 'hbl-symphony-queue'
 APPROVAL_LABEL = 'symphony-pilot'
@@ -305,7 +306,7 @@ def classify(snapshot, config, state, now=None):
         for pr in prs:
             if pr['state'] == 'open' and overlaps(scope(review), pr['files']):
                 reasons.append(f'open conflicting PR: {pr["number"]}')
-        rows.append({'id': issue['id'], 'identifier': ref, 'state': issue['state'], 'digest': digest(issue),
+        rows.append({'id': issue['id'], 'identifier': ref, 'state': issue['state'], 'priority': issue.get('priority'), 'digest': digest(issue),
                      'proseReferences': text_refs, 'nativeBlockedBy': issue['blockedBy'],
                      'nativeRelations': issue.get('relations', []),
                      'description': issue['description'], 'title': issue['title'],
@@ -423,7 +424,9 @@ def cycle(services, config, directory, apply=False):
     occupied_ids = occupied(snapshot, state)
     occupied_ids.update(k for k, v in state['leases'].items() if v['status'] != 'released')
     selected = []
-    for row in sorted(rows, key=lambda r: (next(i.get('priority') or 5 for i in snapshot['issues'] if i['id'] == r['id']), r['identifier'])):
+    # Durable history, not poll count, advances weighted lanes at capacity one.
+    rank_config = dict(config, schedulingCursor=len(state['leases']))
+    for row in rank_rows([row for row in rows if row["eligible"]], rank_config):
         if not row['eligible']:
             continue
         if len(occupied_ids | {r['id'] for r in selected} | {row['id']}) > cap:

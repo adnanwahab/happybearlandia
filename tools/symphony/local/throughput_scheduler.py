@@ -168,6 +168,8 @@ def run_loop(services, config_loader, directory, current_limit, runtime_reader, 
                 if isinstance(captured.snapshot, dict) and 'publication_receipts' in captured.snapshot:
                     report['publication_receipts'] = captured.snapshot['publication_receipts']
                 holds = watchdog(runtime, report, resources, now=clock())
+                if capacity['hold_new_grants']:
+                    holds.append({'code': 'resource-pressure', 'severity': 'hold'})
                 review_backlog = sum(pr.get('state') == 'open' for pr in report.get('pullRequests', []))
                 if review_backlog > 2:
                     holds.append({'code': 'review-capacity-reserved', 'severity': 'hold'})
@@ -215,8 +217,8 @@ def run_loop(services, config_loader, directory, current_limit, runtime_reader, 
             if isinstance(error, urllib.error.HTTPError):
                 error.close()
             stopped = stop.is_set()
-            report = {'dryRun': not apply, 'max_workers': configured_limit, 'issues': [], 'selected': [],
-                      'leases': {}, 'pullRequests': [], 'scheduler': {'error': None if stopped else 'upstream-unavailable' if retryable else 'invalid-or-deterministic-input',
+            report = {'dryRun': not apply, 'max_workers': configured_limit, 'issues': None, 'selected': [],
+                      'leases': {}, 'pullRequests': None, 'scheduler': {'error': None if stopped else 'upstream-unavailable' if retryable else 'invalid-or-deterministic-input',
                       'stopped': stopped,
                       'retryable': retryable, 'consecutive_errors': consecutive_errors,
                       'watchdog': [{'code': 'scheduler-stopped' if stopped else 'upstream-or-auth-failure',
