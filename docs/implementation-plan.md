@@ -1003,3 +1003,26 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## WHY receipt coverage — SHE-255
+
+Next bounded slice: offline audit of all thirteen monthly City inventory types
+using existing WHY receipt matchers; no simulation or explanation changes.
+Prerequisites inspected: Future Machine generator/default recipe, City engine,
+entity comparator, story matcher and exact construction mapping. No architecture
+file exists. Protocol and formula are fixed before running measurements in
+[why-receipt-coverage.md](why-receipt-coverage.md). Acceptance: six independent
+120-step runs (seeds 42/7/2911, baseline/plan), per-type coverage, uncovered types,
+provenance and deterministic replay tests. Main risk: unique-entity coverage can
+hide unexplained recurring changes; publish transition coverage alongside it.
+Gate is a human-reviewed proposal only. No deployment or production writes.
+
+Delivered: `scripts/why-receipt-coverage.js`, fixed protocol, six-run JSON and
+[results with per-type counts](why-receipt-coverage-results.md), plus focused
+regressions. Seed42 plan:99/416 entities (23.80%),1083/10643 transitions (10.18%).
+23 tests pass/0 fail/158 assertions across audit, story and diff suites, including
+exact rerun equality, artifact reproducibility, receipt16-0, missing collections,
+wrong month/entity and zero denominators. Review preserves engine and UI behavior;
+no browser test needed. Proposed100% gate remains disabled, pending human choice.
+No commit/PR or production operation performed. Coverage concerns receipt presence
+only and excludes nonentity finance/system summaries as fixed before measurement.
