@@ -1003,3 +1003,49 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-41 — paired-run responsiveness
+
+Owned slice: `world/experiment.js`, `world/paired.js`, `world/paired.test.js`,
+and focused responsiveness evidence/tests. Existing quick-demo worker and
+Population worker pool already isolate their computation; preserve them.
+Legacy paired API jobs yield only after two complete representative weeks,
+so asynchronous function signatures alone do not keep the event loop responsive.
+Use cooperative yields inside the existing whole-minute stepping boundary,
+with cancellation checks in both arms. Keep seed order, storm timing, observation
+boundaries, data contracts and synthetic disclaimers unchanged.
+Acceptance: compare all fixed-seed outputs (excluding elapsed time) against the
+unchunked path, and process a timer cancellation before first pair completion.
+Risk: world creation and one modeled minute remain synchronous; this is not a
+hard frame-time guarantee. No dispatcher labels, deployment or merge changes.
+
+Verification on branch `mini/SHE-41` (2026-11-12):
+`bun test world/paired.test.js` passed 9/9 tests (28 assertions, 39.92s).
+The `responsive-pairs` synthetic fixture uses 40 residents, two seeds and
+checkpoints 0 and 6 with bus/drainage proposals. Complete result JSON excluding
+only elapsed time matches the unchunked model path, SHA-256
+`aad2e1f7b7a3d7fdde6150a591ad1c64744754a1f52a9f67b1f6778a9a966d98`.
+A separate annual sample compares end state, people, journals and observation
+provenance. A requested 500-resident/100-seed stress run is cancelled by a real
+timer before the first pair completes; treatment-arm cancellation also publishes
+no partial pair. These are synthetic model checks, not measured production UI
+latencies. Existing renderer quick-demo/ten-year Workers and Population runtime
+remain unchanged; the API continues to call the existing paired runner.
+
+`bunx playwright test test/e2e/paired-responsiveness.e2e.js` could not start
+the application server (`EADDRINUSE` on 3100); retry with
+`HBL_PLAYWRIGHT_PORT=3189 HBL_PLAYWRIGHT_PARTY_PORT=3289` also failed on 3189.
+The focused browser test uses isolated pause/navigation controls with the actual
+model module; it has not passed here and is not a normal application UI test.
+No screenshots or browser latency claims are available. No production deployment,
+main merge, issue dispatch change or PR publication was performed.
+
+Regression command:
+`bun test --timeout 60000 world/experiment.test.js world/experiment-longitudinal.test.js world/experiments-api.test.js test/world-quick-demo-controller.test.js`
+passed 27/27 tests (120 assertions, 117.33s), including the real runner through
+the existing API, replay fallback, state threading and quick-demo cancellation.
+The optional external Dear Congress test returned early because its sibling
+checkout was absent; its production integration was not exercised.
+`git diff --check` passed. No repository-wide lint/type-check script is defined
+in the root package. Remaining verification: run the focused browser smoke test
+and normal application pause/navigation checks on a host that can start servers.
