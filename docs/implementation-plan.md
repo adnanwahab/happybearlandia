@@ -1003,3 +1003,30 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-171 reproducible headless benchmark — review candidate
+
+Audit: existing bounded metric fixture (PR34), scalar oracle (PR50), people
+benchmark and renderer benchmark have distinct models and cannot certify a
+million-agent production run. Existing core CI installs Chromium; full-scale
+benchmark remains opt-in. Isolated issue branch mini/SHE-171 starts clean.
+Slice: dedicated synthetic typed-state transfer workload, fixed uint32 seed,
+10k/100k/1M records; isolated headless Chromium compute/render/combined phases.
+Acceptance: deterministic state/count replay, honest zero/unavailable metrics,
+source hashes and device metadata, bounded inputs, machine-readable failure,
+and actual browser smoke. Rendering uses a dedicated WebGL point workload,
+not the city renderer. Memory is sampled JS heap when supported, not process/GPU
+peak memory; that limitation must accompany every report. No production claim,
+merge or deployment. Independent oracle/production equivalence remains outside
+this runner. Tasks: kernel + phase harness; CLI lifecycle/export; tests/docs.
+
+Delivered: `scripts/benchmark-million.js`, versioned kernel/browser harness,
+focused tests, manual-only workflow and `docs/million-benchmark.md`. No production
+model limits changed. Playwright intercepts module requests, avoiding any server
+or external network. Every combined run must match its compute-only final state;
+energy/sample/timing invariants fail closed. Browser launch failure exported
+status=failed/records=0 and exit1; macOS sandbox denied Chromium MachPort startup.
+Actual render/combined measurements and true process/GPU peak memory remain
+unverified/unavailable; operator browser-capable run is the next acceptance gate.
+Focused final validation:14tests/316assertions passed, including fresh-process
+invalid CLI; `git diff --check` passed. No lint/typecheck scripts configured.
