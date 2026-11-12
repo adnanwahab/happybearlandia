@@ -1003,3 +1003,21 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-40 — first-interaction performance budgets
+
+Next slice: measure homepage → Play Demo → Month 16 under declared mobile/laptop
+emulation; derive budgets from three cold samples with a documented 25% allowance.
+Owned files are the dedicated performance harness/config/JSON, calibration module,
+unit test, CI workflow, and [performance report](first-interaction-performance.md).
+No runtime interfaces or simulation contracts change. SHE-11 cold-start evidence
+remains a prerequisite for broader renderer/device claims and is still Backlog.
+
+Implemented: reproducible CI reports with host/browser/profile/commit and simulation
+provenance, budget proposal generation, and fail-closed uncalibrated enforcement.
+Acceptance pending: successful baseline CI, reviewed numeric limits and a fixed-limit
+browser run. Local unit checks pass (2 tests, 10 assertions); browser execution is
+blocked by sandbox socket EPERM. Memory measures sampled main-page JS heap only;
+total peak memory and physical devices remain unsupported. Branch `mini/SHE-40`;
+no PR, merge or deployment. See the report for exact reproduction commands and
+limitations. Do not mark the issue complete based on calibration infrastructure.
