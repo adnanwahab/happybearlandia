@@ -62,3 +62,9 @@ test('CLI rejects an execution request and leaves repository config unchanged', 
   expect(result.stderr.toString()).toContain('No execution mode exists');
   expect(readFileSync(new URL('../fly.toml', import.meta.url), 'utf8')).toBe(before);
 });
+
+test('malformed incident records are rejected without treating them as complete', () => {
+  for (const record of [null, [], 'not a record']) {
+    expect(() => reviewRollbackRecord(record)).toThrow('Expected an incident record object');
+  }
+});

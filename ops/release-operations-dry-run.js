@@ -14,6 +14,7 @@ export function inspectReleaseConfig(config) {
 
 // Assertions are operator-provided evidence references, never proof from this dry run.
 export function reviewRollbackRecord(record) {
+  if (!record || typeof record !== 'object' || Array.isArray(record)) throw Error('Expected an incident record object.');
   const blockers = [];
   const required = ['incidentId', 'incidentCommander', 'rollbackOperator', 'humanApproval',
     'previousConfig', 'backupEvidence', 'restoreEvidence', 'savedRecordEvidence',
@@ -53,7 +54,9 @@ if (import.meta.main) {
   try {
     const args = process.argv.slice(2);
     if (args.length === 0) {
-      console.log(JSON.stringify(inspectReleaseConfig(Bun.TOML.parse(readFileSync(new URL('../fly.toml', import.meta.url), 'utf8'))), null, 2));
+      const report = inspectReleaseConfig(Bun.TOML.parse(readFileSync(new URL('../fly.toml', import.meta.url), 'utf8')));
+      console.log(JSON.stringify(report, null, 2));
+      if (report.problems.length) process.exitCode = 1;
     } else if (args.length === 2 && args[0] === '--record') {
       const result = reviewRollbackRecord(JSON.parse(readFileSync(args[1], 'utf8')));
       console.log(JSON.stringify(result, null, 2));
