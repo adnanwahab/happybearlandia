@@ -1,0 +1,33 @@
+import { test, expect } from '@playwright/test';
+import { buildCivicExperiment } from '../../world/civic-experiment.js';
+
+test('completed batch is recorded, filtered, reopened and independently replayed', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  const experiment = buildCivicExperiment({ packages: [{ title: 'Housing permits', items: [{ proposal: { title: 'Streamline housing permits' } }] }] }, { seed: 42, runs: 4, years: 2 });
+  await page.goto('/world/experiment-lab.html');
+  await page.locator('#json-input').fill(JSON.stringify({ civicExperiment: experiment }));
+  await page.locator('#load-json').click();
+  await expect(page.locator('#status')).toContainText(experiment.id);
+  await page.locator('#registry-hypothesis').fill('Permits improve housing');
+  await page.locator('#generate-worlds').click();
+  await page.locator('#run-simulations').click();
+  await expect(page.locator('#record-status')).toContainText('Saved record_');
+  const savedURL = page.url();
+  await page.reload();
+  await expect(page.locator('#record-status')).toContainText('Loaded record_');
+  await expect(page.locator('#result-provenance')).toHaveText('Synthetic model results');
+  await page.locator('#filter-hypothesis').fill('absent');
+  await page.locator('#search-registry').click();
+  await expect(page.locator('#registry-results')).toHaveText('No matching records.');
+  await page.locator('#filter-hypothesis').fill('permits');
+  await page.locator('#filter-model').fill('hbl-civic-dynamics.v2');
+  await page.locator('#filter-intervention').fill('permits');
+  await page.locator('#search-registry').click();
+  await page.locator('#registry-results button').click();
+  await expect(page.locator('#registry-detail')).toContainText('Permits improve housing');
+  await page.locator('#replay-record').click();
+  await expect(page.locator('#record-status')).toContainText('Verified: stored worlds and results match');
+  expect(page.url()).toBe(savedURL);
+  expect(errors).toEqual([]);
+});

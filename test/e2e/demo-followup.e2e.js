@@ -7,8 +7,9 @@ async function seek(page,month){const slider=page.getByRole('slider').first();aw
 function watchErrors(page){const errors={page:[],console:[]};page.on('pageerror',e=>errors.page.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.console.push(m.text());});return errors;}
 async function save(info,name,value){await writeFile(info.outputPath(`${name}.json`),JSON.stringify(value,null,2));}
 async function record(page,info,name,extra={}){
- const data=await page.evaluate(()=>{const api=window.futureMachine,h=api.history,s=api.state;let firstDivergence=null;
-  for(let month=0;month<h.plan.length;month++){const a=h.baseline[month].state.buildings,b=h.plan[month].state.buildings,added=b.find(row=>!a.some(before=>before.id===row.id));if(added){firstDivergence={month,collection:'buildings',id:added.id,building:added};break;}}
+ const data=await page.evaluate(async()=>{const api=window.futureMachine,h=api.history,s=api.state;
+  const {firstDivergence:find,compareHistory}=await import('/world/future-machine/diff/index.js');
+  const stop=find(h,compareHistory(h));const firstDivergence=stop?{month:stop.month,...stop.entity,building:h.plan[stop.month].state.buildings.find(row=>row.id===stop.entity.id)}:null;
   return {schemaVersion:'demo-followup-browser-evidence.v1',route:location.pathname+location.search,selectedMonth:s.month,recipe:h.recipe,seed:h.seed,modelVersion:h.modelVersion,initialHash:h.initialHash,runId:h.experimentId,firstDivergence,metrics:s.diff.metrics,evidence:h.plan.slice(0,s.month+1).flatMap(snapshot=>snapshot.events.map(event=>({arm:'plan',snapshotMonth:snapshot.month,...event}))),baseline:h.baseline[s.month],plan:h.plan[s.month],provenance:h.provenance,scene:api.stats.scene,camera:api.stats.scene.camera};});
  await save(info,name,{...data,...extra});await page.screenshot({path:info.outputPath(`${name}.png`),fullPage:true});return data;
 }

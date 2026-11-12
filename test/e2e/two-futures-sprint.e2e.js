@@ -6,7 +6,7 @@ const ready=page=>expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.
 async function seek(page,month){const slider=page.getByRole('slider').first();await slider.fill(String(month));await slider.dispatchEvent('input');await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.month)).toBe(month);}
 async function fork(page){await page.goto(route);await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);}
 async function evidence(page,testInfo,name){
- const record=await page.evaluate(()=>{const api=window.futureMachine,h=api.history,s=api.state,m=s.month;return {schemaVersion:'two-futures-browser-evidence.v1',selectedMonth:m,seed:h.seed,modelVersion:h.modelVersion,experimentId:h.experimentId,initialHash:h.initialHash,recipe:h.recipe,scenario:h.recipe,firstDivergence:(()=>{for(let month=0;month<=120;month++){const a=h.baseline[month].state.buildings,b=h.plan[month].state.buildings;const added=b.find(row=>!a.some(other=>other.id===row.id));if(added)return {month,collection:'buildings',id:added.id};}return null;})(),metrics:Object.entries(s.diff.metrics).map(([metricId,row])=>({metricId,...row})),evidenceRecords:h.plan.slice(0,m+1).flatMap(snapshot=>snapshot.events.filter(event=>event.eventType==='PROJECT_COMPLETE').map(event=>({arm:'plan',...event}))),provenance:h.provenance,baseline:h.baseline[m],plan:h.plan[m],diff:s.diff,scene:api.stats.scene,camera:api.stats.scene?.camera??null};});
+ const record=await page.evaluate(async()=>{const {firstDivergence,compareHistory}=await import('/world/future-machine/diff/index.js');const api=window.futureMachine,h=api.history,s=api.state,m=s.month;return {schemaVersion:'two-futures-browser-evidence.v1',selectedMonth:m,seed:h.seed,modelVersion:h.modelVersion,experimentId:h.experimentId,initialHash:h.initialHash,recipe:h.recipe,scenario:h.recipe,firstDivergence:(()=>{const stop=firstDivergence(h,compareHistory(h));return stop?{month:stop.month,...stop.entity}:null;})(),metrics:Object.entries(s.diff.metrics).map(([metricId,row])=>({metricId,...row})),evidenceRecords:h.plan.slice(0,m+1).flatMap(snapshot=>snapshot.events.filter(event=>event.eventType==='PROJECT_COMPLETE').map(event=>({arm:'plan',...event}))),provenance:h.provenance,baseline:h.baseline[m],plan:h.plan[m],diff:s.diff,scene:api.stats.scene,camera:api.stats.scene?.camera??null};});
  await writeFile(testInfo.outputPath(`${name}.json`),JSON.stringify(record,null,2));await page.screenshot({path:testInfo.outputPath(`${name}.png`),fullPage:true});return record;
 }
 function assertPair(record){expect(record.seed).toBe(42);expect(record.modelVersion).toBeTruthy();expect(record.experimentId).toBeTruthy();expect(record.initialHash).toBeTruthy();expect(record.scenario.intervention).toMatchObject({type:'housing',amount:24,cost:1000000,delay:0});expect(record.baseline.month).toBe(record.selectedMonth);expect(record.plan.month).toBe(record.selectedMonth);}
@@ -60,4 +60,25 @@ for(const reducedMotion of ['no-preference','reduce'])test(`cinematic recorded d
  const first=await evidence(page,info,'cinematic-month-16');assertPair(first);expect(first.metrics.find(m=>m.metricId==='housingUnits').delta).toBe(24);
  await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('24');
  await seek(page,0);expect(await page.evaluate(()=>window.futureMachine.history.plan[0].state.buildings.some(b=>b.id==='building-project-policy-1-0'))).toBe(false);
+});
+
+test('rent microscope follows recorded month and exposes counts and signed components',async({page})=>{
+ const errors=[];page.on('pageerror',error=>errors.push(error.message));
+ await page.goto(route+'?renderer=canvas2d');await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);
+ await page.getByRole('button',{name:'WHY · Mean unit rent',exact:true}).click();
+ const microscope=page.locator('.fm-rent-decomposition');
+ await expect(microscope).toContainText('Month 0');await expect(microscope).toContainText('new units: 0');
+ await expect(microscope).toContainText('total: 0.000000 USD/month');
+ await seek(page,120);await expect(microscope).toContainText('Month 120');
+ await expect(microscope).toContainText('Existing units: 36; new units: 24; denominator: 60');
+ const components=await page.locator('.fm-rent-stack span').evaluateAll(nodes=>nodes.map(n=>Number(n.title.match(/: ([-\d.]+)/)[1])));
+ const delta=await page.evaluate(()=>window.futureMachine.state.diff.metrics.meanRent.delta);
+ expect(Math.abs(components[0]+components[1]-delta)).toBeLessThanOrEqual(1e-6);
+ await expect(page.getByRole('img',{name:/Existing-unit rent change:/})).toBeVisible();
+ await page.setViewportSize({width:320,height:900});
+ expect(await microscope.evaluate(node=>node.getBoundingClientRect().right)).toBeLessThanOrEqual(320);
+ await seek(page,15);await expect(microscope).toContainText('new units: 0');
+ await seek(page,16);await expect(microscope).toContainText('new units: 24');
+ await page.getByRole('button',{name:'WHY · Homes',exact:true}).click();await expect(microscope).toHaveCount(0);
+ expect(errors).toEqual([]);
 });

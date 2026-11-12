@@ -2,7 +2,8 @@ import { expect, test } from '@playwright/test';
 
 for (const days of [30, 90]) {
   test('a resident day advances and persists an exact ' + days + '-day follow-up', async ({ page, request }) => {
-    test.setTimeout(120_000);
+    const followUpTimeout = days === 90 ? 300_000 : 120_000;
+    test.setTimeout(followUpTimeout + 30_000);
     await page.goto('/world/government/index.html');
     const fixture = await page.evaluate(async () => {
       const { createCustomHouseholdSave } = await import('/world/house/creator-model.js');
@@ -75,7 +76,7 @@ for (const days of [30, 90]) {
 
     const savedResponse = page.waitForResponse(response =>
       new URL(response.url()).pathname === '/api/world-experiments' && response.request().method() === 'POST',
-      { timeout: 90_000 });
+      { timeout: followUpTimeout });
     await page.getByRole('combobox', { name: 'Autonomous follow-up duration' }).selectOption(String(days));
     await page.getByRole('button', { name: 'End the day and observe ' + days + ' days' }).click();
     await expect(page.getByRole('combobox', { name: 'Autonomous follow-up duration' })).toBeDisabled();
@@ -87,6 +88,10 @@ for (const days of [30, 90]) {
     const { id: followUpId } = await saved.json();
     expect(followUpId).not.toBe(startId);
     await expect(page.getByRole('heading', { name: 'Resident changes' })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'with your action', exact: true })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'matched control', exact: true })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'Difference', exact: true })).toBeVisible();
+    await expect(page.getByText(/Seed .* · Population model/)).toBeVisible();
     const reviewURL = house + '?' + new URLSearchParams({
       experiment: followUpId, person: fixture.personId, lifeReview: '1',
     });
@@ -100,6 +105,12 @@ for (const days of [30, 90]) {
     expect(persisted.status()).toBe(200);
     const record = await persisted.json();
     expect(record.parentId).toBe(startId);
+    const report = record.save.view.playableLife;
+    expect(report.arm).toMatchObject({
+      runId: startId, entityId: fixture.personId,
+      startTick: fixture.tick, endTick: fixture.tick + (days + 1) * 96,
+    });
+    expect(report.matchedControl).toMatchObject({ ...report.arm, actions: [] });
     expect(record.save.view.playableLife.actions.map(receipt => [receipt.action, receipt.minute])).toEqual([
       ['rest', fixture.minute],
       ['purchase', fixture.minute + 60],
@@ -135,7 +146,21 @@ for (const days of [30, 90]) {
     await page.getByText('Inspect recorded events and decisions', { exact: true }).click();
     await expect(page.getByText(new RegExp('Minute ' + fixture.minute + ' · Rest'))).toBeVisible();
     await expect(page.getByText(new RegExp('Minute ' + (fixture.minute + 60) + ' · Buy a plant'))).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'matched control', exact: true })).toBeVisible();
     expect(reviewWrites).toEqual([]);
+    await page.evaluate(async ({ record, fixture }) => {
+      const { mountPlayableLife } = await import('/world/house/playable-life.js');
+      delete record.save.view.playableLife.matchedControl;
+      const after = record.save.view.playableLife.after;
+      await mountPlayableLife(document.body, {
+        record, entry: { householdId: fixture.householdId, members: [fixture.personId] },
+        runtime: { pause() {}, destroy() {},
+          async inspectPerson() { return { name: after.name, needs: after.needs }; },
+          async inspectHousehold() { return { savings: after.savings }; } },
+      }, fixture.personId, { review: true });
+    }, { record, fixture });
+    await expect(page.getByRole('heading', { name: 'observational', exact: true })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'Difference', exact: true })).toHaveCount(0);
   });
 
 }

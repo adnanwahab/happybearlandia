@@ -38,7 +38,7 @@ Exact stable IDs, additions/removals, finite measurements, missing data; determi
 - `createUI(container,callbacks={}) -> ui` creates controls, stage and story mounting containers. `ui.stageElement`, `ui.storyElement` DOM nodes.
 - callbacks `onRun(recipe)`, `onMonth(month)`, `onPlay(boolean)`, `onMode(mode)`, `onGhosts(boolean)`, `onDirector()`, `onShare()`, `onExport()`.
 - `ui.update({status,message,recipe,month,playing,mode,ghosts,frame,diff,experimentId,shareURL,error})`; `ui.dispose()`.
-Partial updates allowed. Run button text Fork City; timeline label Month; accessible native controls. Controls disabled while loading, cancel/retry error clear. UI owns CSS in ui/. Show units, synthetic assumptions, unavailable metrics, no physical difference. Coordinator handles playback timer. Share link visible when shareURL provided.
+Partial updates allowed. Run button text Fork City; timeline label Month; accessible native controls. Controls disabled while data is loading, cancel/retry error clear. Data-ready comparisons remain usable while graphics load; the guided demo waits for stage readiness. UI owns CSS in ui/. Show units, synthetic assumptions, unavailable metrics, no physical difference. Coordinator handles playback timer. Share link visible when shareURL provided.
 
 ## story/index.js
 
@@ -73,3 +73,16 @@ The 50-second `demo-controller.js` is a presentation clock, not a simulator. It 
 - `createOutcomeTimeline(container,{history,onMonth}) -> {update(month),dispose()}` consumes the same immutable121snapshots. Point/keyboard selections emit integer recordedmonth through coordinator manualMonth; no independent clock/simulation. Metric units from METRIC_UNITS; unavailable measurements stay gaps.
 - `recordedConstructionProgress(snapshot)` returns recorded stage/work/units and exact model-owned housing-project building identity. Work ratio is not elapsed calendar fraction or completed housing. Actual inventory determines building presence; layoutv2 preserves one schematic slot across supported project completion.
 - `buildEvidenceTrail(history,{collection,id,month})`: arm-scoped nodes/edges contain exact record, first observed month, eventID and unavailable reasons. `renderEvidenceTrail(container,history,selection,{onJump})` presents those records. Completion jumps retain building selection; all evidence jumps stop demo presentation. Independently verified causal dependency traces are explicitly unavailable.
+
+Address-bar synchronization occurs on initial load, manual seeks, pause/stop,
+completion and share, never on automated monthly frames. Share computes its URL
+from the current displayed frame. Browser history failures leave rendering and
+inspection usable. Explicit renderer=canvas or canvas2d bypasses Three and
+OrbitControls loading entirely.
+
+SHE-215: `diff/index.js` exports `firstDivergence(history,diffs) ->
+{month,entity:{collection:'buildings',id}}|null`. It uses the scene's exact mapping,
+earliest paired month and exact ID ordering. Demo and first physical story stop
+share it. The director exposes `setHidden(boolean)` to exclude hidden-tab time
+while retaining manual pause. Caption text and elapsed seconds are separate DOM
+nodes; only caption text belongs to the live region.

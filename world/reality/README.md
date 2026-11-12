@@ -67,3 +67,21 @@ The constraint inspector below an entered world supports monthly city projects, 
 Choose one shared capacity/interest-rate input, a selected business's operating cost, or its household's current home rent, and compare two deterministic continuations from that same saved state. The result shows actual completion months (or a censored “not completed” result), city spending and entity outcomes. Other bottlenecks can make a proposed change ineffective. Cancel or select another source to terminate the isolated worker; neither continuation mutates the saved world.
 
 Cost/rent changes are exogenous what-if inputs, not enacted regulations or funded subsidies. Shared capacity expansion has no staffing purchase ledger; the displayed city spending is model output, not the implementation price of that expansion. Population-lane futures explicitly report that this city-ledger inspector is unavailable. Tests cover actual permit/labor bottlenecks, deterministic completion, entity-level inputs, saved-state preservation and the real browser worker/UI flow.
+
+## Probability clouds (SHE-224)
+
+In an entered future, expand Probability clouds and enable presence frequency as
+opacity. The overlay uses every located modeled structure in the selected arm
+at one shared checkpoint, across up to 100 actual completed replays. The legend
+states the denominator and seeds; individual records retain contributor IDs.
+Opacity is exactly present futures / selected futures: zero is omitted and one
+is opaque. WebGL uses RGBA vertex attributes in the existing two batches; the
+existing SVG fallback groups exact counts instead of rounding into color bins.
+`drawEnsembleCanvas` is also available to Canvas hosts with a caller-owned
+transform and clearing. The current population view continues to use SVG.
+
+These are synthetic scenario frequencies, not calibrated probabilities. Unmodeled
+or unlocated structures remain coverage gaps. Overlapping strokes composite;
+pixel brightness is not itself a frequency. Geometry is a footprint or anchor,
+with no invented building heights. City-scale readability and the five-person
+comprehension test remain product research gates.

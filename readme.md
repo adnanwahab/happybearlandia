@@ -126,3 +126,5 @@ Preserve seeds, model and rules versions, inputs, provenance, and parent-run his
 For deployment and persistence work, use the [release checklist](docs/release-checklist.md) and [release operations](docs/release-operations.md). Local test success is only one part of release readiness.
 
 Earlier sketches and references are preserved in the [original README notes](docs/original-readme-notes.md). These are historical ideas, not current feature documentation.
+
+Social simulation rules and reproduction boundaries are documented in the [ODD model inventory](docs/models/README.md). Model changes require code-to-description review before approval.

@@ -1,3 +1,4 @@
+import { assumptionAnchor } from './uncertainty-explorer.js';
 const CATEGORY_ORDER = [
   "implementation",
   "government",
@@ -185,7 +186,10 @@ export function renderAssumptionInspector(container, variables = [], options = {
       lock.type = "checkbox";
       lock.checked = Boolean(state[variable.id]?.locked);
       lockLabel.append(lock, document.createTextNode(" lock"));
-      meta.append(reason, lockLabel);
+      const source = document.createElement("a");
+      source.href = `#${assumptionAnchor(variable.id)}`;
+      source.textContent = `Confidence: ${typeof (variable.provenance?.confidence ?? variable.confidence) === "number" ? Math.round((variable.provenance?.confidence ?? variable.confidence) * 100) + "%" : "unknown"} · Research Library`;
+      meta.append(reason, source, lockLabel);
 
       input.addEventListener("input", () => {
         state = updateInspectorState(state, variable, { baseline: input.value });

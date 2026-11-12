@@ -5,7 +5,11 @@
   },
   "scripts": {
     "start": "bun run server.js",
+    "compare:local-ideas": "bun scripts/compare-local-ideas.js",
     "test:e2e": "playwright test",
+    "test:player-lab": "bun test test/player-lab.test.js test/bakery-journey.test.js test/bakery-scenario.test.js",
+    "player-lab": "bun tools/player-lab/run.js",
+    "player-lab:triage": "bun tools/player-lab/triage.js",
     "screenshot:index": "bun scripts/screenshot-index.js",
     "seed:supabase:conversations": "bun scripts/seed-supabase-conversations.js",
     "demo": "bun run server.js",
@@ -17,7 +21,10 @@
     "test:advanced:e2e": "playwright test test/e2e/advanced-",
     "record:demo": "HBL_RECORD_DEMO=1 playwright test test/e2e/advanced-loop.e2e.js",
     "test:city": "bun test --timeout 15000 test/city-systems.test.js test/project-unblock.test.js test/server-civic-api.test.js",
-    "test:city:e2e": "playwright test test/e2e/city-systems.e2e.js test/e2e/project-unblock.e2e.js"
+    "test:city:e2e": "playwright test test/e2e/city-systems.e2e.js test/e2e/project-unblock.e2e.js",
+    "test:performance": "bun test test/performance-budgets.test.js",
+    "profile:performance": "bun scripts/performance/run.js",
+    "test:models": "bun scripts/validate-models.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1136.0",

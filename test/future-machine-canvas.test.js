@@ -1,3 +1,4 @@
+import {LAYOUT_VERSION} from '../world/future-machine/scene/mapping.js';
 import {test,expect} from 'bun:test';
 import {createSpatialMapping} from '../world/future-machine/scene/mapping.js';
 import {createCanvasStage,canvasRows,canvasPoint,canvasViewports,hitTestCanvas,fitCanvasCamera} from '../world/future-machine/scene/canvas-stage.js';
@@ -33,7 +34,7 @@ test('fit handles empty data and sourced footprints, mode is bounded',()=>{
  expect(hitTestCanvas([row],209,209,{x:0,z:0,zoom:1},{x:0,width:400,height:400})).toBe(null);
 });
 test('stage preserves camera across time/mode and synchronously draws with no motion loop',()=>{
- const f=fixture(),stage=createCanvasStage(f.container);stage.update(projection(),diff);expect(f.fills).toBeGreaterThan(0);
+ const f=fixture(),stage=createCanvasStage(f.container);stage.update(projection(),diff);expect(stage.getStats().layoutVersion).toBe(LAYOUT_VERSION);expect(f.fills).toBeGreaterThan(0);
  stage.setCamera({x:10,z:20,zoom:2});stage.setMode('difference');stage.setGhosts(false);
  const p=projection();p.month=120;stage.update(p,diff);expect(stage.getCamera()).toEqual({x:10,z:20,zoom:2});expect(stage.getStats().month).toBe(120);expect(stage.getStats().animationFrames).toBe(0);expect(stage.getStats().objects).toBe(1);
  expect(()=>stage.setCamera({x:0,z:NaN,zoom:1})).toThrow();expect(()=>stage.setMode('bad')).toThrow();

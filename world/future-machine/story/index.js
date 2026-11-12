@@ -1,3 +1,4 @@
+import {firstDivergence} from '../diff/index.js';
 /** Deterministic interpretation of recorded monthly City comparisons. No simulation. */
 const compare = (a, b) => a < b ? -1 : a > b ? 1 : 0;
 const clone = value => structuredClone(value);
@@ -102,11 +103,13 @@ function description(frame, entity) {
 
 export function buildStory(history, diffs) {
   const selected = selectChanges(normalizedDiffs(diffs));
-  const stops = selected.stops.map((change, index) => {
+  const first = firstDivergence(history, diffs);
+  const ordered = first ? [{month:first.month, collection:first.entity.collection, entityId:first.entity.id}, ...selected.stops.filter(row => row.month !== first.month || row.collection !== first.entity.collection || row.entityId !== first.entity.id)].slice(0,6) : selected.stops;
+  const stops = ordered.map((change, index) => {
     const entity = {collection: change.collection, id: change.entityId};
     const frame = {month: change.month, baseline: history.baseline.find(row => row.month === change.month), plan: history.plan.find(row => row.month === change.month)};
     const detail = description(frame, entity);
-    return {month: change.month, title: `${index === 0 ? 'First divergence' : 'Significant change'} · ${entity.collection} ${entity.id}`, summary: detail.summary, entity, evidence: detail.evidence, limitations: detail.limitations};
+    return {month: change.month, title: `${index === 0 && first ? 'First divergence' : 'Significant change'} · ${entity.collection} ${entity.id}`, summary: detail.summary, entity, evidence: detail.evidence, limitations: detail.limitations};
   });
   return {stops, summary: selected.status === 'no-change' ? 'No recorded differences in available paired months.' : `${stops.length} selected modeled changes. ${selected.physicalStatus === 'no-physical-change' ? 'No physical building or link change was recorded.' : 'Building or link differences are available for inspection.'}`,
     limitations: [...limits, 'Significance ranks physical additions/removals first, then other additions/removals and changed-field count; repeated entity/kind changes are deduplicated; ties use month and exact ID; it is an editorial rule, not a causal or welfare score.', ...(diffs.some(row => !row.available) ? ['Some paired months are unavailable; first divergence is only among available months.'] : [])]};

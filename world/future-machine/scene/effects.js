@@ -12,27 +12,6 @@ export function changedEntityKeys(diff) {
   return new Set(changes(diff).filter(row => typeof row.id === 'string' && typeof row.collection === 'string').map(key));
 }
 
-/** First recorded, renderable building divergence, never a project/policy proxy. */
-export function firstPhysicalStop(history, diffs) {
-  const mapping = createSpatialMapping();
-  for (const diff of [...(diffs || [])].sort((a, b) => a.month - b.month)) {
-    const month = diff.month;
-    const a = history?.baseline?.find(s => (s.month ?? s.state?.month) === month)?.state;
-    const b = history?.plan?.find(s => (s.month ?? s.state?.month) === month)?.state;
-    if (!a || !b) continue;
-    const projected = mapping.frame(a, b);
-    const candidates = changes(diff).filter(row => row.collection === 'buildings' &&
-      (row.physical === true || (!Object.hasOwn(row, 'physical') &&
-        (['added', 'removed'].includes(row.kind) || (row.changedFields || []).some(f => ['floors', 'height', 'geometry', 'bbox', 'parcelId'].includes(f))))));
-    for (const row of candidates.sort((a, b) => a.id.localeCompare(b.id))) {
-      if ([...projected.a, ...projected.b].some(mapped => key(mapped) === key(row))) {
-        return {month, entity: {collection: 'buildings', id: row.id}};
-      }
-    }
-  }
-  return null;
-}
-
 /**
  * Presentation only: changed must come from the current diff. Each mesh owns its
  * cloned materials until dispose(). Reuse a mesh across recorded rows to tween
@@ -75,6 +54,21 @@ export function createVisualEffects({THREE, reducedMotion = false} = {}) {
         entries.set(mesh, entry);
       }
       const previous = entry.row;
+      const sameShape=previous&&key(previous)===key(row)&&previous.polygon===Boolean(row.polygon)&&previous.height===row.height;
+      if(sameShape){
+        // Retained meshes may currently be partway through a height tween.
+        // A highlight change must keep the recorded target origin and clock.
+        entry.position.x=mesh.position.x;entry.position.z=mesh.position.z;
+        const unchanged=entry.changed===Boolean(changed)&&entry.selected===Boolean(selected)&&entry.ghost===Boolean(ghost);
+        if(unchanged)return;
+        entry.changed=Boolean(changed);entry.selected=Boolean(selected);entry.ghost=Boolean(ghost);
+        if(reducedMotion||ghost||!changed){
+          entry.active=false;
+          mesh.scale.copy(entry.scale);mesh.position.copy(entry.position);
+        }
+        paint(entry);
+        return;
+      }
       // The stage updates geometry/position to this recorded row before apply.
       entry.position.copy(mesh.position);
       const next = {collection: row.collection, id: row.id, height: row.height, polygon: Boolean(row.polygon)};
@@ -109,9 +103,12 @@ export function createVisualEffects({THREE, reducedMotion = false} = {}) {
         if (!entry.row.polygon) entry.mesh.position.y = entry.position.y + entry.row.height * (ratio - 1) / 2;
         paint(entry, Math.sin(Math.PI * t));
         entry.active = t < 1;
-        needsMoreFrames ||= entry.active;
+        needsMoreFrames = true; // Include the final settled frame.
       }
       return needsMoreFrames;
+    },
+    remove(mesh) {
+      const entry=entries.get(mesh);if(entry){restore(entry);entries.delete(mesh);}
     },
     dispose() {
       if (disposed) return;
