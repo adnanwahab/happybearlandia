@@ -1003,3 +1003,39 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-223 — Butterfly Ledger prototype
+
+Slice: open the default recipe's selected metric/month from WHY, run four
+single-input ablation pairs sequentially through the existing City API, rank
+full-minus-ablated contrasts, and link each to its persisted replay with seed,
+model and canonical recipe hash. No engine, API or frozen contracts change.
+Acceptance: matched original/control and recipe identities; exact reconciliation
+in integer thousandths at displayed precision; missing measurements fail;
+explicit model attribution and residual-dominance warning; cancel on inspector
+replacement. Residual includes interactions, reference/omitted effects and
+rounding, so it is not a pure interaction estimate. The four contrasts are not
+Shapley values. Separate pairs repeat baseline computation to reuse the validated
+existing adapter and replay/share contract. Research source cited in the issue
+is absent here; full Linear acceptance is the scope authority. User research and
+kill-criterion decision remain pending actual use.
+
+Delivered: `butterfly-ledger.js`, WHY composition and bounded receipt layout,
+focused model/API tests and a browser acceptance journey. Actual seed-42
+Month-120 mean-rent results (USD/month): amount −148.575, compliance −148.575,
+delay −54.378, cost 0.000, residual −389.241; sum −740.769. Residual exceeds
+every individual contribution and 50% of the observed delta, so the prototype
+explicitly warns that it may not identify a useful dominant input. This is
+modeled evidence relevant to the kill criterion, not a user-success claim.
+Verification: 26 Bun tests / 245 assertions passed across ledger, data, diff and
+share, including real persisted City API execution of all ablations and replay.
+Playwright attempted on ports 39931 and 39947; both test server launches failed
+with EADDRINUSE before browser execution. Browser behavior remains unverified.
+Run `bunx playwright test --config test/butterfly-ledger.browser.config.js` when
+local server binding is available. No deployment or production data changes.
+Next: assess whether the large residual warrants abandoning this attribution
+method before expanding beyond the default recipe or conducting user testing.
+Additional regression gate: UI measurements, persisted boundary seeds,
+cancellation/stale responses and reverse scrub identity passed 13 tests /
+264 assertions; one existing Chromium placeholder test skipped. Whitespace
+check passed. Method and entry instructions: [Butterfly Ledger](../world/future-machine/BUTTERFLY-LEDGER.md).

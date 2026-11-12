@@ -12,3 +12,6 @@
 .fm-card[data-tone=neutral] strong,.fm-card[data-tone=unavailable] strong{color:#adbed0}.fm-card[data-tone=cost] strong{color:#ffd29b}.fm-card[data-tone=change] strong{color:#d6eaff}.fm-card[data-tone=unavailable]{background:#10202e}.fm-inspectors>section>p{line-height:1.8}
 .fm-household-summary{white-space:pre-line}
 .fm-seed-label input{font:inherit;color:inherit;background:#182a3c;border:1px solid var(--fm-line);border-radius:9px;padding:11px 15px;min-height:46px;width:100%;min-width:0}.fm-seed-label small{font-size:11px;font-weight:400;color:var(--fm-muted);max-width:270px}.fm-seed-error{grid-column:1/-1}.fm-seed-label input[aria-invalid=true]{border-color:#ff9797}.fm-setup{grid-template-columns:1fr 1.3fr 1fr auto auto}@media(max-width:760px){.fm-setup{grid-template-columns:1fr 1fr}}
+
+.fm-ledger { overflow-wrap:anywhere; margin-block:1rem; }
+.fm-ledger meter { width:8rem; max-width:100%; }
