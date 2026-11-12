@@ -61,3 +61,17 @@ Permanent routes:
 The 60 FPS target has not been certified on an 8-core M4 Air or Safari. Headless Chromium here selects WebGL2 and exposes no timestamp queries; its performance must not be treated as an M4 GPU benchmark. Features are toggleable for hardware A/B acceptance.
 
 This implementation does not complete the full 12-week backlog. Remaining work includes actual streamed district resource eviction, production KTX2/Basis assets (the loader/cache boundary exists), full asset vehicle/tree LOD libraries, skinned near pedestrians, water, SSR, AO/bloom/post pipeline comparisons, compute experiments, richer construction equipment, utility/bridge infrastructure, and Safari/WebGPU hardware regression baselines. The procedural environment map supplies HDR reflections; authored HDR sky assets and local probes can be added later.
+
+## Global illumination (GitHub44 / SHE-250)
+
+The GLOBAL ILLUMINATION button opts into local Three.js SSGI on WebGPU. It starts
+off; off bypasses the scene/GI passes entirely. This screen-space approximation
+adds indirect lighting and occlusion using visible color, diffuse color, normal
+and depth buffers. It cannot see offscreen light or replace path tracing. The
+bounded24-sample preset has additional GPU cost and no temporal filter. Targets
+follow renderer size/pixel ratio; page exit disposes pipeline, GI and scene pass.
+WebGL2/Canvas2D show UNAVAILABLE and retain direct rendering. Initialization or
+render failure disables GI and restores the direct path. Simulation inputs,
+clocks, saved state and hashes are never read or written by this presentation
+control. `window.hblGlobalIllumination.getState()` reports the current capability
+and toggle state for diagnostics.

@@ -8,6 +8,7 @@ function hasWebGL2(){
 }
 const fallback=()=>{
   document.documentElement.dataset.renderer='canvas2d';
+  const gi=document.getElementById('global-illumination-button');if(gi){gi.dataset.state='UNAVAILABLE';gi.title='Requires WebGPU. Direct lighting remains available.';}
   return import('./canvas2d-world.js');
 };
 const link=document.getElementById('world-lite-link');
