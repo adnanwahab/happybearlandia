@@ -1,7 +1,10 @@
+import {mountCityTiles} from './spatial-tiles-view.js';
 import {mountProjectUnblock} from './unblock-view.js';
 import {createCityFromArea} from './seed.js';
 const $=id=>document.getElementById(id);
 const unblock=mountProjectUnblock($('project-unblock'));
+const cityTiles=mountCityTiles($('city-tiles'));cityTiles.update(null);
+addEventListener('pagehide',()=>cityTiles.destroy(),{once:true});
 let replaySource=null;
 let selected=null,pollTimer=null,imported=null,replay=null,requestGeneration=0;
 const n=value=>typeof value==='number'?Number(value.toFixed(2)).toLocaleString():typeof value==='object'?JSON.stringify(value):String(value??'');
@@ -20,7 +23,7 @@ function status(message,error=false){$('status').textContent=message;$('status')
 function options(target,rows,value,label){$(target).replaceChildren(...rows.map(row=>{const el=document.createElement('option');el.value=value(row);el.textContent=label(row);return el;}));}
 async function saved(){const {experiments}=await api('/api/city-experiments');$('saved').replaceChildren(...experiments.map(e=>{const button=document.createElement('button');button.textContent=`${e.experiment_id.slice(0,16)} · ${e.status}`;button.onclick=()=>select(e.experiment_id);return button;}));}
 async function select(id) {
-  selected=id;replay=null;replaySource=null;unblock.update(null);$('replay-summary').replaceChildren();$('replay-events').replaceChildren();$('replay-decisions').replaceChildren();$('replay-flows').replaceChildren();
+  selected=id;replay=null;replaySource=null;unblock.update(null);cityTiles.update(null);$('replay-summary').replaceChildren();$('replay-events').replaceChildren();$('replay-decisions').replaceChildren();$('replay-flows').replaceChildren();
   const generation=++requestGeneration;clearTimeout(pollTimer);history.replaceState(null,'',`?experiment=${id}`);
   try {
     const tables=await api(`/api/experiments/${id}/tables`);if(generation!==requestGeneration)return;
@@ -62,10 +65,10 @@ function updateCSV() {if(selected)$('csv').href=`/api/experiments/${selected}/ex
 $('tables').onchange=()=>{$('sql').value=`SELECT * FROM ${$('tables').value}`;updateCSV();};
 $('query').onclick=async()=>{if(!selected)return status('Select an experiment first.',true);$('query').disabled=true;try{const result=await api(`/api/experiments/${selected}/query`,{sql:$('sql').value});table('results',result.rows);$('query-status').textContent=`${result.rows.length} rows${result.truncated?' · preview truncated':''}`;}catch(error){$('query-status').textContent=error.message;}finally{$('query').disabled=false;}};
 $('replay').onclick=async()=>{
-  if(!selected)return status('Select an experiment first.',true);$('replay').disabled=true;replay=null;replaySource=null;unblock.update(null);const generation=requestGeneration;const id=selected;const scenarioId=$('replay-scenario').value,runIndex=Number($('replay-index').value);
+  if(!selected)return status('Select an experiment first.',true);$('replay').disabled=true;replay=null;replaySource=null;unblock.update(null);cityTiles.update(null);const generation=requestGeneration;const id=selected;const scenarioId=$('replay-scenario').value,runIndex=Number($('replay-index').value);
   try {status('Recomputing future from recorded inputs…');const result=await api(`/api/experiments/${id}/replay`,{scenarioId,runIndex});if(id!==selected||generation!==requestGeneration)return;replay=result;replaySource={experimentId:id,scenarioId,runIndex};$('timeline').min=result.steps[0].state.month;$('timeline').max=result.state.month;$('timeline').value=result.steps[0].state.month;renderReplay();status('Future regenerated. Inspect each month below.');}catch(error){status(error.message,true);}finally{$('replay').disabled=false;}
 };
-function renderReplay(){if(!replay)return;const step=replay.steps.find(s=>s.state.month===Number($('timeline').value));if(!step)return;unblock.update(step.state,{...replaySource,month:step.state.month});$('month').textContent=`Month ${step.state.month}`;$('replay-summary').textContent=step.diagnostics.map(d=>d.message).join(' · ')||'No stability diagnostics this month.';table('replay-events',step.events.map(e=>({system:e.system,event:e.eventType,district:e.geographyId,payload:e.payload})));table('replay-decisions',step.decisions.slice(0,100).map(d=>({actor:d.actorId,decision:d.decisionType,chosen:d.chosenOption,reason:d.primaryReason,alternatives:d.alternatives})));table('replay-flows',step.flows);}
+function renderReplay(){if(!replay)return;const step=replay.steps.find(s=>s.state.month===Number($('timeline').value));if(!step)return;unblock.update(step.state,{...replaySource,month:step.state.month});cityTiles.update(step.state,replaySource);$('month').textContent=`Month ${step.state.month}`;$('replay-summary').textContent=step.diagnostics.map(d=>d.message).join(' · ')||'No stability diagnostics this month.';table('replay-events',step.events.map(e=>({system:e.system,event:e.eventType,district:e.geographyId,payload:e.payload})));table('replay-decisions',step.decisions.slice(0,100).map(d=>({actor:d.actorId,decision:d.decisionType,chosen:d.chosenOption,reason:d.primaryReason,alternatives:d.alternatives})));table('replay-flows',step.flows);}
 $('timeline').oninput=renderReplay;
 saved().catch(error=>status(error.message,true));const initialId=new URL(location.href).searchParams.get('experiment');if(initialId)select(initialId);
 

@@ -117,3 +117,37 @@ Each test runs two bounded continuations in a disposable browser worker from exa
 Enter the assumed one-time public cost explicitly. The test requires sufficient saved city cash, subtracts that amount once and records it in the first comparison month's capital ledger. Capacity becomes available next month: this is an immediate-procurement diagnostic, not a simulated construction pipeline for an upgrade. Recurring staffing or procurement costs are not inferred. Spending differences include city-wide feedback during the selected horizon and are not project invoices. Comparisons are capped at 60 months, 120,000 household-months and a 30-second worker timeout; cancellation is available. A project not completed during the horizon is reported as unfinished within that horizon, never as permanently impossible.
 
 Run `bun test test/project-unblock.test.js` for the paired-future and budget checks and `bunx playwright test test/e2e/project-unblock.e2e.js` for the saved-experiment UI flow.
+
+## Progressive replay map (SHE-158)
+
+**Enter future** now opens a Canvas2D tile map for the selected recomputed month.
+Drag to pan, use zoom buttons or reset. The complete tile inventory table and
+city totals come from that same CityState, never from loaded meshes. Each
+building belongs to one tile by footprint center; units follow building IDs,
+households follow unit IDs, and missing/unhoused inventory remains in explicitly
+schematic district tiles. Resident totals sum household size, not avatars.
+Imported Polygon exteriors use a local tangent plane; absent geometry is a
+schematic district layout, not a reconstructed street map. Holes, interiors,
+heights and cross-tile polygon clipping are not represented in this preview.
+
+`city-spatial-tiles.v1` records dataset, model, month, revision and seed. Geometry
+materializes asynchronously in batches of32 buildings with up to2 concurrent
+loads and6 retained visible tiles. Eviction, month changes and summary-only mode
+abort obsolete work; late completion cannot attach to a replacement tile.
+Failures keep coarse summaries and can be retried by Reset map view. Devices
+reporting2GB RAM or less start in summary-only mode. With no Canvas2D context,
+the inventory table and totals remain available and detail is disabled.
+
+This streams rendering detail from an already-loaded replay, not network data or
+simulation state. All inventory indexing still runs on the main thread; there is
+no million-agent performance claim. Synthetic imported test footprints are
+fixtures, not observations of a real city. No model clock or rules changed.
+
+Verification: `bun test test/city-spatial-tiles.test.js` and
+`bunx playwright test test/e2e/city-tiles.e2e.js`. Set `HBL_TILE_BASELINE=1` against
+the pre-change application to capture the before image/video. Browser test output
+includes after and fallback PNGs plus video. Browser recording remains unverified
+in the restricted workspace: Bun server bind fails (EADDRINUSE on three distinct
+ports), and direct Chromium launch fails macOS bootstrap_check_in with permission
+denied. Run the browser journey in a host with server/browser permissions before
+accepting visual behavior or recordings.

@@ -1003,3 +1003,44 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-158 — progressive City Lab replay tiles
+
+Owned slice: new `world/city/spatial-tiles.js`, `spatial-tiles-view.js`,
+focused unit/browser tests and City Lab replay integration (lab.js/html/css).
+No World map-streamer, Future Machine, simulation engine or metric contract edits.
+SHE-141 is Done (PR34); source metric interface exists. Read-only GitHub issue
+search found no SHE-158 PR. Existing World streaming is geometry-only context.
+
+Implement bounded in-memory geometry materialization for visible replay tiles,
+with immutable full-city and tile summaries always available. Imported footprints
+use geographic coordinates; absent geometry uses explicitly schematic district
+positions. Camera loading never advances the model or synthesizes population.
+Acceptance: partition sums equal complete replay inventory during loading, errors,
+cancellation and summary-only mode; rapid pan rejects obsolete work; month change
+cancels old detail; Canvas2D and accessible summary table work without WebGL.
+Risks/limits: replay is already in memory; this does not stream the saved snapshot
+over a server API or claim million-agent capacity. Record before/after browser
+artifacts and deterministic seed158 fixtures, run focused and City integration tests.
+
+Delivered working source increment: City Lab → Enter future mounts the map from
+that exact replay step; month/experiment changes cancel prior detail. Immutable
+full inventory is independent of the six-tile/two-load rendering window. Canvas
+pan/zoom, retry/reset, full inventory table, automatic ≤2GB summary mode and
+no-Canvas table path are wired. Geographic imports retain source building IDs;
+missing geometry and missing household locations stay in labeled schematic tiles.
+No simulation, storage schema, server endpoint or metric semantics changed.
+
+Actual verification:45tests passed/496assertions across spatial tiles, City
+systems/API/persistence/replay, project unblock, worker lifecycle and agent counts.
+Focused6tests cover seed158 partition/replay, source immutability, geographic
+identity, rapid movement, abort/late success, concurrency, failures, retry,
+summary-only and disposal. `git diff --check` passed. Playwright discovers both
+new integrated tests (mapped replay and no-Canvas fallback), but execution and
+before/after recordings remain blocked: server bind returned EADDRINUSE for
+3100,3188,49783; direct installed Chromium launch failed bootstrap_check_in
+permission denied. No visual pass, recording, commit, PR, merge or deploy claimed.
+Next gate: run the two browser tests and capture/inspect the images/videos on a
+host allowing server bind and Chromium. This is in-memory progressive rendering;
+network-backed tile retrieval and large-city index/latency benchmarks remain
+follow-on scope. README documents commands, provenance and these limits.
