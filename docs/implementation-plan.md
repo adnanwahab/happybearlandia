@@ -46,7 +46,7 @@ The next proposed cross-application milestone is the ten-year housing journey in
 
 | Status | Task | Dependencies and acceptance |
 | --- | --- | --- |
-| Pending | Audit housing runs and World render inputs | Identify supported proposals, costs, metrics, run versions, snapshots, and any existing geographic mappings. Document gaps and choose the authoritative housing state for the slice. |
+| Audited; independent replay pending | Audit housing runs and World render inputs | [SHE-245 audit](housing-world-input-audit.md): 18 metric IDs plus structural/envelope/World inputs; 7 semantic metric mismatches. Housing 1.2.0 remains aggregate/project authority; no Population identity mapping claimed. Recorded seed-42 ten-year output and verifier; 46 focused tests pass. Second-person replay remains the final research validation gate. |
 | Pending | Define the run and geography adapters | After the audit, specify stable scenario, checkpoint, time, unit, and entity mappings. Attribute real geometry and label synthetic properties. Expose missing or unsupported mappings explicitly. |
 | Pending | Run a housing proposal and matched baseline over ten years | Use the supported housing engine and the agreed run contract. Verify identical inputs and seeds reproduce the same outcomes, and preserve the baseline when an input changes. |
 | Pending | Connect the selected future to World and Worldline | Use the same run, date, metrics, and supported entities in both views. Verify deep links and missing checkpoint handling. |
