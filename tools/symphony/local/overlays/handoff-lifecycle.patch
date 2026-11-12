@@ -1,0 +1,236 @@
+--- a/lib/symphony_elixir/agent_runner.ex
++++ b/lib/symphony_elixir/agent_runner.ex
+@@ -47,7 +47,14 @@
+             run_codex_turns(workspace, issue, codex_update_recipient, opts, worker_host)
+           end
+         after
+-          Workspace.run_after_run_hook(workspace, issue, worker_host)
++          case Workspace.run_after_run_hook(workspace, issue, worker_host) do
++            :ok ->
++              :ok
++
++            {:error, _reason} ->
++              park_host_recovery(codex_update_recipient, issue, :after_run_failed)
++              raise RuntimeError, "Host after_run failed; operator recovery required"
++          end
+         end
+ 
+       {:error, reason} ->
+@@ -110,7 +117,7 @@
+            ) do
+       Logger.info("Completed agent run for #{issue_context(issue)} session_id=#{turn_session[:session_id]} workspace=#{workspace} turn=#{turn_number}/#{max_turns}")
+ 
+-      case continue_with_issue?(issue, issue_state_fetcher) do
++      case continuation_outcome(workspace, issue, issue_state_fetcher, codex_update_recipient) do
+         {:continue, refreshed_issue} when turn_number < max_turns ->
+           Logger.info("Continuing agent run for #{issue_context(refreshed_issue)} after normal turn completion turn=#{turn_number}/#{max_turns}")
+ 
+@@ -139,6 +146,93 @@
+     end
+   end
+ 
++  # Model-authored data can request an early stop, never authorize publication.
++  # The trusted after_run hook remains the sole validator/publisher.
++  @doc false
++  @spec local_handoff_outcome(Path.t()) :: :continue | :stop | {:error, :invalid_handoff}
++  def local_handoff_outcome(workspace) do
++    paths = [[".hbl-handoff", "workpad.json"], [".git", "hbl-workpad.json"]]
++
++    Enum.reduce_while(paths, :continue, fn components, outcome ->
++      reduce_handoff(read_handoff(workspace, components), outcome)
++    end)
++  end
++
++  defp reduce_handoff(:absent, outcome), do: {:cont, outcome}
++
++  defp reduce_handoff({:ok, %{"status" => status, "notes" => notes}}, outcome)
++       when status in ["progress", "blocked", "handoff"] and is_binary(notes) do
++    if String.valid?(notes) and String.trim(notes) != "" and String.length(notes) <= 40_000 do
++      {:cont, if(status in ["blocked", "handoff"], do: :stop, else: outcome)}
++    else
++      {:halt, {:error, :invalid_handoff}}
++    end
++  end
++
++  defp reduce_handoff(_update, _outcome), do: {:halt, {:error, :invalid_handoff}}
++
++  defp read_handoff(workspace, [directory, filename]) do
++    parent = Path.join(workspace, directory)
++    path = Path.join(parent, filename)
++
++    case File.lstat(path) do
++      {:error, :enoent} ->
++        :absent
++
++      {:ok, %{type: :regular, size: size}} when size <= 262_144 ->
++        with {:ok, %{type: :directory}} <- File.lstat(parent),
++             {:ok, data} <- read_bounded_handoff(path),
++             true <- byte_size(data) <= 262_144,
++             {:ok, decoded} <- Jason.decode(data) do
++          {:ok, decoded}
++        else
++          _ -> {:error, :invalid_handoff}
++        end
++
++      _ ->
++        {:error, :invalid_handoff}
++    end
++  end
++
++  defp read_bounded_handoff(path) do
++    case File.open(path, [:read, :binary]) do
++      {:ok, file} ->
++        try do
++          case IO.binread(file, 262_145) do
++            data when is_binary(data) -> {:ok, data}
++            _ -> {:error, :invalid_handoff}
++          end
++        after
++          File.close(file)
++        end
++
++      _ ->
++        {:error, :invalid_handoff}
++    end
++  end
++
++  defp continuation_outcome(workspace, issue, fetcher, recipient) do
++    case local_handoff_outcome(workspace) do
++      :continue ->
++        continue_with_issue?(issue, fetcher)
++
++      :stop ->
++        {:done, issue}
++
++      {:error, reason} ->
++        park_host_recovery(recipient, issue, reason)
++        {:error, reason}
++    end
++  end
++
++  defp park_host_recovery(recipient, issue, reason) do
++    send_codex_update(recipient, issue, %{
++      event: :host_handoff_blocked,
++      timestamp: DateTime.utc_now(),
++      reason: reason
++    })
++  end
++
+   defp build_turn_prompt(issue, opts, 1, _max_turns), do: PromptBuilder.build_prompt(issue, opts)
+ 
+   defp build_turn_prompt(_issue, _opts, turn_number, max_turns) do
+--- a/lib/symphony_elixir/workspace.ex
++++ b/lib/symphony_elixir/workspace.ex
+@@ -231,7 +231,7 @@
+     end
+   end
+ 
+-  @spec run_after_run_hook(Path.t(), map() | String.t() | nil, worker_host()) :: :ok
++  @spec run_after_run_hook(Path.t(), map() | String.t() | nil, worker_host()) :: :ok | {:error, term()}
+   def run_after_run_hook(workspace, issue_or_identifier, worker_host \\ nil) when is_binary(workspace) do
+     issue_context = issue_context(issue_or_identifier)
+     hooks = Config.settings!().hooks
+@@ -242,7 +242,6 @@
+ 
+       command ->
+         run_hook(command, workspace, issue_context, "after_run", worker_host)
+-        |> ignore_hook_failure()
+     end
+   end
+ 
+--- a/lib/symphony_elixir/orchestrator.ex
++++ b/lib/symphony_elixir/orchestrator.ex
+@@ -657,7 +657,7 @@
+   defp last_activity_timestamp(_running_entry), do: nil
+ 
+   defp input_required_blocker?(running_entry) when is_map(running_entry) do
+-    Map.get(running_entry, :last_codex_event) in [:turn_input_required, :approval_required] or
++    Map.get(running_entry, :last_codex_event) in [:turn_input_required, :approval_required, :host_handoff_blocked] or
+       not is_nil(input_required_completion_outcome(Map.get(running_entry, :completion))) or
+       codex_message_method(Map.get(running_entry, :last_codex_message)) ==
+         "mcpServer/elicitation/request"
+@@ -698,6 +698,7 @@
+ 
+   defp codex_event_blocker_error(:turn_input_required), do: "codex turn requires operator input"
+   defp codex_event_blocker_error(:approval_required), do: "codex turn requires approval"
++  defp codex_event_blocker_error(:host_handoff_blocked), do: "host handoff requires operator recovery; implementation parked"
+   defp codex_event_blocker_error(_event), do: nil
+ 
+   defp completion_blocker_error(completion) do
+--- a/lib/symphony_elixir_web/factory_throughput.ex
++++ b/lib/symphony_elixir_web/factory_throughput.ex
+@@ -22,7 +22,7 @@
+   end
+ 
+   defp valid_snapshot?(data) do
+-    maps = ~w(runtime queue rates cycle_times utilization resources tokens api quality)
++    maps = ~w(runtime queue rates cycle_times utilization resources tokens api quality inventory)
+     lists = [data["timeline"] || [], data["watchdog"] || [], get_in(data, ["runtime", "workers"]) || [], get_in(data, ["queue", "blocking_reasons"]) || []]
+ 
+     Enum.all?(maps, &is_map(Map.get(data, &1, %{}))) and
+@@ -50,7 +50,7 @@
+           <p class="metric-label">{label}</p><p class="metric-value numeric">{value}</p>
+         </article>
+       </div>
+-      <p class="section-copy">Repository PR rates include coordinator work; Symphony-only rates require an exact Symphony issue branch. Small samples do not establish capacity.</p>
++      <p class="section-copy">Repository PR rates include coordinator work; Symphony-only rates require an exact Symphony issue branch. Small samples do not establish capacity. Inventory age is separate from current resource samples; API counts describe the last full scan.</p>
+       <h3>Watchdog</h3>
+       <ul><li :for={entry <- @data["watchdog"] || []}>{entry["code"]} · {entry["severity"]} {entry["issue"]}</li></ul>
+       <h3>Blocking reasons</h3>
+@@ -92,6 +92,7 @@
+       {"API retries", ["api", "retries"]},
+       {"API throttles", ["api", "throttles"]},
+       {"Scan seconds", ["api", "scan_seconds"]},
++      {"Inventory age seconds", ["inventory", "age_seconds"]},
+       {"Available RAM bytes", ["resources", "available_memory_bytes"]},
+       {"Swap used bytes", ["resources", "swap_used_bytes"]},
+       {"Free disk bytes", ["resources", "disk_free_bytes"]},
+@@ -122,8 +123,19 @@
+ 
+   @spec index(Plug.Conn.t(), map()) :: Plug.Conn.t()
+   def index(conn, _params) do
++    settings = SymphonyElixir.Config.settings!()
++
++    data =
++      Map.put(SymphonyElixirWeb.FactoryThroughput.snapshot(), "effective_configuration", %{
++        "required_labels" => settings.tracker.required_labels,
++        "max_concurrent_agents" => settings.agent.max_concurrent_agents,
++        "max_turns" => settings.agent.max_turns,
++        "workspace_root" => SymphonyElixir.Config.local_workspace_root(),
++        "workflow_path" => SymphonyElixir.Workflow.workflow_file_path()
++      })
++
+     conn
+     |> Plug.Conn.put_resp_header("cache-control", "no-store")
+-    |> json(SymphonyElixirWeb.FactoryThroughput.snapshot())
++    |> json(data)
+   end
+ end
+--- a/test/symphony_elixir/factory_throughput_test.exs
++++ b/test/symphony_elixir/factory_throughput_test.exs
+@@ -40,7 +40,14 @@
+     result = SymphonyElixirWeb.FactoryThroughputController.call(conn, options)
+     assert result.status == 200
+     assert Plug.Conn.get_resp_header(result, "cache-control") == ["no-store"]
+-    assert Jason.decode!(result.resp_body) == %{"unavailable" => true}
++    data = Jason.decode!(result.resp_body)
++    assert data["unavailable"] == true
++    settings = SymphonyElixir.Config.settings!()
++    assert data["effective_configuration"]["max_turns"] == settings.agent.max_turns
++    assert data["effective_configuration"]["required_labels"] == settings.tracker.required_labels
++
++    assert Enum.sort(Map.keys(data["effective_configuration"])) ==
++             ["max_concurrent_agents", "max_turns", "required_labels", "workflow_path", "workspace_root"]
+   end
+ 
+   test "symlink snapshot is refused", %{path: path, directory: directory} do
+--- a/test/symphony_elixir/core_test.exs
++++ b/test/symphony_elixir/core_test.exs
+@@ -132,6 +132,7 @@
+ 
+     assert tracker["active_states"] == ["Todo", "In Progress", "Rework"]
+     assert config["agent"]["max_concurrent_agents"] == 1
++    assert config["agent"]["max_turns"] == 20
+     assert config["codex"]["thread_sandbox"] == "workspace-write"
+ 
+     assert config["codex"]["turn_sandbox_policy"] == %{

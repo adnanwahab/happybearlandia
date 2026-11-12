@@ -47,6 +47,23 @@ class SchedulerTest(unittest.TestCase):
                      current_limit=1,runtime_reader=runtime,resource_reader=resources,apply=True,
                      refresh=lambda:self.refreshes.append(1),sleep=lambda _:None)
 
+    def test_observation_adapter_reuses_inventory_without_changing_apply_services(self):
+        from unittest.mock import Mock, patch
+        service=Mock()
+        with patch('inventory_cache.InventoryCache') as cache:
+            adapter=s._ObservationServices(service,self.directory)
+            adapter.scan()
+            cache.return_value.scan.assert_called_once_with(observation=True)
+            self.assertEqual(adapter.approve,cache.return_value.approve)
+
+    def test_two_readonly_cycles_share_one_full_inventory_and_keep_cache_age(self):
+        adapter=s._ObservationServices(self.services,self.directory/'inventory-cache')
+        results=s.run_loop(**dict(self.kw,services=adapter,apply=False),max_cycles=2)
+        self.assertEqual(self.services.reads,1)
+        self.assertFalse(results[0]['inventoryCache']['hit'])
+        self.assertTrue(results[1]['inventoryCache']['hit'])
+        self.assertEqual(self.services.calls,[])
+
     def test_one_cycle_respects_actual_worker_limit_and_durable_restart(self):
         metrics=FakeMetrics()
         report=s.run_loop(**self.kw,metrics=metrics)[0]

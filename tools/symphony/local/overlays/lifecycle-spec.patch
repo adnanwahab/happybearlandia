@@ -1,0 +1,63 @@
+--- a/SPEC.md
++++ b/SPEC.md
+@@ -922,7 +922,7 @@
+ 
+ - `after_create` failure or timeout is fatal to workspace creation.
+ - `before_run` failure or timeout is fatal to the current run attempt.
+-- `after_run` failure or timeout is logged and ignored.
++- Local trusted-publication profile: `after_run` failure or timeout is logged and parks implementation for host recovery; it is never reported as successful completion.
+ - `before_remove` failure or timeout is logged and ignored.
+ 
+ ### 9.5 Safety Invariants
+@@ -1942,7 +1942,7 @@
+ 
+   session = app_server.start_session(workspace=workspace.path)
+   if session failed:
+-    run_hook_best_effort("after_run", workspace.path)
++    run_hook_or_park_host_recovery("after_run", workspace.path)
+     fail_worker("agent session startup error")
+ 
+   max_turns = config.agent.max_turns
+@@ -1952,7 +1952,7 @@
+     prompt = build_turn_prompt(workflow_template, issue, attempt, turn_number, max_turns)
+     if prompt failed:
+       app_server.stop_session(session)
+-      run_hook_best_effort("after_run", workspace.path)
++      run_hook_or_park_host_recovery("after_run", workspace.path)
+       fail_worker("prompt error")
+ 
+     turn_result = app_server.run_turn(
+@@ -1964,13 +1964,13 @@
+ 
+     if turn_result failed:
+       app_server.stop_session(session)
+-      run_hook_best_effort("after_run", workspace.path)
++      run_hook_or_park_host_recovery("after_run", workspace.path)
+       fail_worker("agent turn error")
+ 
+     refreshed_issue = tracker.fetch_issues_by_ids([issue.id])
+     if refreshed_issue failed:
+       app_server.stop_session(session)
+-      run_hook_best_effort("after_run", workspace.path)
++      run_hook_or_park_host_recovery("after_run", workspace.path)
+       fail_worker("issue state refresh error")
+ 
+     if refreshed_issue is empty:
+@@ -1987,7 +1987,7 @@
+     turn_number = turn_number + 1
+ 
+   app_server.stop_session(session)
+-  run_hook_best_effort("after_run", workspace.path)
++  run_hook_or_park_host_recovery("after_run", workspace.path)
+ 
+   exit_normal()
+ ```
+@@ -2093,7 +2093,7 @@
+ - OPTIONAL workspace population/synchronization errors are surfaced
+ - `after_create` hook runs only on new workspace creation
+ - `before_run` hook runs before each attempt and failure/timeouts abort the current attempt
+-- `after_run` hook runs after each attempt and failure/timeouts are logged and ignored
++- `after_run` runs once after each attempt; local trusted-publication failures/timeouts park implementation for host recovery. Terminal data-only handoff stops continuation promptly; it does not authorize publication.
+ - `before_remove` hook runs on cleanup and failures/timeouts are ignored
+ - Workspace path sanitization, stable original-identifier-hash collision resistance, and root
+   containment invariants are enforced before agent launch

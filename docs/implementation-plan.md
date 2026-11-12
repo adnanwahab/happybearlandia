@@ -527,3 +527,37 @@ Acceptance/evidence and operator recovery: docs/symphony-workpad-oversize-repair
 Fresh clean-package gate:92tests passed; latest installed-host164passed
 (other owners expanded the suite after the earlier106-test pass). Private readback
 `/private/tmp/hbl-workpad-oversize-repair/`; no live hook invocation/issue mutation.
+
+## Continuous Symphony backlog slice — November 11, 2026
+
+Requested result: safely drain explicitly reviewed work through existing single
+Symphony dispatcher, preserve source-only host publisher ownership, and test20
+continuation turns without repeating completed implementations. Runtime owner
+owns native lifecycle/parking, workflow agent limits, observer/cache/metrics;
+separate host-Git owner owns hooks, publisher, workpads and SHE-121 recovery;
+readiness coordinator exclusively audits/approves SHE-83 and SHE-142. No shared
+issue-file claim or duplicate implementation is created by this slice.
+
+Observed prerequisites: PR36 and PR37 merged; observer19cycles/0grants/0ready;
+actual runtime externally restarted asPID97590, file cap2 vs observer1 untilreload.
+Both required pilot+pressure-release labels remain. Approvals disabled, reviews
+empty and no leases. Kernelmemorypressure2(warn),16GiBRAM,~19.3GiBswap means
+no resource clearance; restore cap1 and retainhold. SHE79/141 Done does not prove
+SHE83/142 absent or their file ownership approved. Source-only host hooks are
+not installed yet and current workspace/publisher roots disagree.
+
+Acceptance: terminal local handoff/blocked ends same-thread continuation atturn1;
+incomplete work retains same thread/workspace up to20; after_runonce and failures
+park with useful host-recovery reason rather than retry implementation; pending
+publication cannot restart on next poll. Add strict local-only native overlay,
+backup/restore and fullnativegates. Cached read-only inventory must carry age and
+never satisfy an authoritative apply scan. No producer/dispatcher duplication,
+blanketapprovals, skippedtests, merge, deployment or production mutation.
+
+Verification plan: focused native realOTP/fakeappserver lifecycle+parking tests,
+cache/privacy/freshapply regressions, integrated Python suite, required native
+format/lint/coverage/Dialyzer/build only after idle-stop, real dashboard smoke.
+If physical resource pressure persists, prove source-only publication with
+retained tested SHE121 output through hostowner; do not claim an actual running
+worker or end-to-end useful throughput absent observation. Pending independent
+readiness/user capacity prerequisites remain explicit in final report.
