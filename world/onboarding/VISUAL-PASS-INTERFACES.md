@@ -27,6 +27,15 @@ Quick-demo always compares legacy scene town via a dedicated fresh cycle worker;
 
 ## Integrated decisions and verification notes
 
+SHE-51 extends the guide with optional `onChangeYear(year)` and test IDs
+`quick-demo-year` / `quick-demo-change`. After a completed matched comparison,
+the prompt offers implementation years 0, 1, 3, 5 and 10. The current year cannot
+be submitted. Integration changes only the captured local recipe's year and
+starts the existing controller/worker flow; Replay then repeats that recipe.
+Town inputs, proposal IDs and seven-day horizon stay fixed. This is a fresh
+detached same-start comparison, not a continuation of live playback. The guide
+preserves a pending selection across updates for the same completed run.
+
 The integration uses a fixed **local Balanced** recipe (year 3, seven measured days) to avoid remote-package startup delays. It explicitly switches from Population to legacy before observing the scene; no identity map is inferred. The first progress latency includes initial work and is labeled as such. `rulesVersion` is null because policy.js declares none; its source path is retained. Reproducibility across future source updates is not claimed without a versioned build recipe.
 
 Integration-owned `integration.css` suppresses legacy docks during an active sheet. Guide secondary actions are moved into “More city actions” by renderer glue; first-run-guide.js remains owned by its original worker. The actual-position ring is drawn through occluders and labeled as a locator including indoors. Main-world WebGPU failure falls back to WebGL2; unavailable graphics expose accessible recovery. The integration browser config includes the actual accessibility filename (the worker config used a mismatched filename) and additional real error/touch/tour/pacing checks.

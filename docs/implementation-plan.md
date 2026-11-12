@@ -1,5 +1,46 @@
 # HappyBearLandia implementation plan
 
+## SHE-51 — change one thing repeat play (2026-11-12)
+
+Scope/ownership for this local slice: `world/first-run-guide.js`, the quick-demo
+integration in `world/render.js`, its interface documentation, focused guide and
+repeat-play tests, and this status. Existing uncommitted SHE-51 implementation
+and browser test were present on arrival and retained. No agent delegation,
+production changes, deployment or main merge.
+
+Baseline/prerequisites: the existing visual-pass slice already supplies the
+resident observation, actual paired worker, measured feedback and deterministic
+Replay required by the issue's HBL-W1-017 / HBL-W1-033 dependency intent. Their
+Linear completion statuses were not independently established. This issue adds
+the repeat invitation, not a second comparison engine. Existing prompt edits
+already offered a supported policy implementation year; review added regression
+coverage and prevented repeated completion updates from resetting a selection.
+
+Acceptance: completed matched comparison → choose a different implementation
+year → run the existing fresh paired worker → replay the revised recipe. Keep
+origin/geometry/population, local Balanced proposal IDs and seven-day horizon
+fixed; retain synthetic-data labels, simulation authority and provenance. No
+simulation/model/rules/data versions or outcomes are changed. Implementation
+years are policy ramp inputs, not calendar navigation or live continuation.
+
+Verification commands:
+`bun test test/repeat-play.test.js test/world-quick-demo-controller.test.js test/world-visual-feedback.test.js test/world-first-run-repairs.test.js`
+and `git diff --check`. The real-worker test checks unchanged before/control
+scores, different plan scores at year 0 versus 3, and exact revised replay.
+Browser command: `HBL_ACTIVITY_FOLLOWUP_PORT=41951 bunx playwright test --config test/repeat-play.browser.config.js`.
+Both default port 41924 and override 41951 failed at server startup with
+`EADDRINUSE`; no browser journey or new screenshot is claimed. The existing
+browser test covers that journey once a local server can bind. No repository
+lint/type-check script is defined. Branch: `mini/SHE-51`; no commit/PR created.
+Remaining acceptance: run the browser test and inspect its mobile screenshot.
+
+Final focused checks: **21 pass, 0 fail, 113 assertions**, including three real
+worker runs (14.44 seconds total suite). `git diff --check` passed. A raw browser
+bundle attempt cannot resolve the existing runtime `/vendor/three/three.module.js`
+URL; the application serves that dependency separately.
+`bun build world/render.js --target browser --external '/vendor/*' --outdir /tmp/she51-build`
+passed (347 modules), retaining that established runtime dependency.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
