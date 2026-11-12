@@ -506,6 +506,21 @@ specific readiness reservations, not silently enabled. Full JSON reports are
 atomically written mode600; publication excludes raw issue comments/descriptions.
 
 
+## Trusted-host Git publication slice — November 11, 2026
+
+User authorizes isolated clones and a source-only worker contract: no sandbox Git metadata writes, unrestricted sandbox, main merge or deploy. Audit finds existing clones but instructions still require worker commits and `.git` handoffs; publisher lacks trusted scope enforcement. Next slice moves handoffs to `.hbl-handoff/`, stages a bounded exact-file snapshot into host-private Git storage without repository config/hooks/filters, commits/pushes/drafts/links through the existing publisher. Trusted per-issue assignment authorizes paths and baseline; model input cannot expand it. Preserve legacy workspaces/handoffs and all ignored state; fail closed on stale base, ambiguity, auth/scope/secret/symlink/race failures.
+
+Acceptance: real source edits allowed while native `.git` writes stay denied; preflight covers shared metadata, failed fetch/commit, absent auth, duplicate publication and retry after partial publication. Test real Git with controlled remote fixtures; run one explicitly reviewed approved issue to a real draft sprint PR and Linear URL with no competing worker. Runtime concurrency/filter/resource holds remain unchanged. Ownership here: local publisher/workpad/isolation/worker procedures and focused tests only; scanner/scheduler/dashboard remain with their existing owner.
+
+Delivered source slice: `host_git.py`, `handoff.py`, `prepare.py`, trusted publisher/workpad and independent-clone hooks implement exact-file assignments, source hash/mode checks, private deterministic commits and recovery receipts. Procedures and workflow tell workers to edit/test/handoff without Git writes. All previous workspace roots remain intact. Host installation made private before/after hash backups; never replaced unrelated runtime fields.
+
+Acceptance evidence (2026-11-12 UTC): current checkout `/usr/bin/python3 -m unittest discover -s tools/symphony/local -p 'test_*.py'`:132passed/8.610s. Native `codex sandbox -P :workspace` source probe: sourceEdit=true, gitMetadataWriteDenied=true without metadata exception. SHE-121 resumed the original approved worker's retained real implementation in an independent clone pinned173f9530752b0e476583ad3ee7433b57a857b6bd;6unit tests/27assertions in native workspace-write,7trusted-host browser tests/3.0s. Trusted publisher created commit4845c3dadc1cc32c6d6e42b64cf6583410884b79 and draft https://github.com/adnanwahab/happybearlandia/pull/40 against the requested sprint, exactly10assigned paths, verified uploaded screenshot, real Linear attachment, pilot label removed. All pre-existing worker `.git` files including index/HEAD/refs retain hashes; host added only its legacy-compatible workpad snapshot. Original workspace/ignored state retained.
+
+Limits: this is a recovered real-worker pilot; no fresh model was dispatched under memory pressure. Native runtime owner separately removes an implicit `.git` grant, verifies actual app-server policy and pins workflow against concurrent external edits. Installed combined190-test run had189pass and an unrelated Python3.9 scheduler HTTPError-close regression reported to that owner; the132-test publication package passes. No merge/deploy or bulk approval. Final retry/runtime evidence is recorded in `docs/symphony-host-git-evidence.md`.
+
+Final coordinated gates: installed213Python tests now pass after runtime owner's scheduler fix; native310tests/0failure/6skipped plus all static/build gates. Pinned runtime cap1/max_turns20/source-only/dualfilter verified; live API0running/0retrying/0blocked. Actual app-server policy source-root-only. Live publisher repeat remains blocked by coordinating chat's automatic approval review citing earlier no-push restriction; its explicit approval request remains pending. No workaround, duplicate model, merge or deployment. Repair draft https://github.com/adnanwahab/happybearlandia/pull/42 (initial9611a46), pilotdraft40 and source evidence preserved.
+
+Follow-up: one newly approved live repeat failed generically. Fixed actual-CLI module duplication that hid safe PublicationError reasons; genuine subprocess regression fails before/passes after, full133tests pass. Installed with backup/issue lock. No further live retry without separate approval; original PR40/receipt unchanged, underlying historical failure unrecoverable from redacted result. See evidence update.
 ## Host workpad oversized-update retry-loop repair
 
 Observed42,212-character handoff against40,000-character contract could fail both
@@ -550,3 +565,104 @@ preparation succeeded; real local Docker/browser rendering is BLOCKED by host
 pressure/headroom guard. Fly live activation is PENDING budget/isolation review.
 Focused tests and390px Chromium UI smoke passed; see docs/github-preview-evidence.md.
 Do not call fixture providers or source preparation a completed rendering milestone.
+## Improvement services: first shared slice — November 11, 2026
+
+Audit actual sprint33e84c3, active worktrees, host workflow, CI and Linear before
+implementation. Reuse merged SHE180 PR30/31/37, existing replay/benchmark artifacts
+and current one-worker, dual-label resource hold. SHE7 is absent; SHE52/SHE120
+are incomplete and overlap. Simulation feedback presentation is not consented
+player collection. Existing research worktrees contain experiments, not an
+OpenAlex/Crossref acquisition service. Preserve all of these owners and stores.
+
+Central owner: this branch alone owns new ops/improvement core schema, private
+SQLite proposal inbox, atomic receipts/cursors/budgets, CLI and read-only adapter
+to existing coordinator reports. It stores proposed work, not simulation runs.
+The default dry-run must not create state or contact services; --record writes
+only the local inbox. Neither mode executes proposed test argv or grants labels.
+
+Three separately owned follow-ons were created under existing product issues:
+SHE246 (parent185), research metadata/cache in ops/improvement/research/;
+SHE247 (parent189), evidence normalization in evaluation/;
+SHE248 (parent196), consented aggregate triage in feedback/. Each owns its module,
+fixtures and tests only, can test with an injected sink, and waits for the shared
+contract before integrated handoff. No execution approval or live activation.
+
+Acceptance for this slice: strict versioned source/hypothesis/acceptance/test/
+dependency/dedup validation; transactional proposal + cursor ingestion; replay
+and conflicting-revision behavior; durable restart and intake limits; no lost
+cursor on failure; private state; dry-run zero filesystem/remote mutations;
+existing-issue/PR/dependency hold projection from fresh complete coordinator
+reports. Source references are structurally checked, not factual verification.
+Paper retrieval, CI execution, feedback collection and live services are later
+phases. Delivered core has 26 passing focused tests (independently rerun) and
+150 passing existing coordinator regressions. A dedicated CI job runs the new
+contracts. Real SHE180 dry-run scanned 178 issues with no selections. Actual CLI
+default dry-run created no state; local record stored one proposal/checkpoint;
+restart replay produced zero new proposals; final dry-run left DB bytes/mtime
+unchanged. Existing SHE141 delivery was held rather than duplicated. Source
+hashes and sanitized observations: docs/evidence/improvement-intake-smoke.json.
+Independent review's corrupt-receipt finding was fixed and regression-tested.
+No browser behavior changed; local Playwright is not applicable. Published
+[draft PR #41](https://github.com/adnanwahab/happybearlandia/pull/41); hosted CI is
+pending final-head verification. Next tasks are SHE-246, SHE-247 and SHE-248,
+each linked to that contract PR. No execution labels or persistent service
+activation were applied. User explicitly requested keeping the PR draft;
+the separate merge/cleanup owner was notified to exclude it.
+## Continuous Symphony backlog slice — November 11, 2026
+
+Requested result: safely drain explicitly reviewed work through existing single
+Symphony dispatcher, preserve source-only host publisher ownership, and test20
+continuation turns without repeating completed implementations. Runtime owner
+owns native lifecycle/parking, workflow agent limits, observer/cache/metrics;
+separate host-Git owner owns hooks, publisher, workpads and SHE-121 recovery;
+readiness coordinator exclusively audits/approves SHE-83 and SHE-142. No shared
+issue-file claim or duplicate implementation is created by this slice.
+
+Observed prerequisites: PR36 and PR37 merged; observer19cycles/0grants/0ready;
+actual runtime externally restarted asPID97590, file cap2 vs observer1 untilreload.
+Both required pilot+pressure-release labels remain. Approvals disabled, reviews
+empty and no leases. Kernelmemorypressure2(warn),16GiBRAM,~19.3GiBswap means
+no resource clearance; restore cap1 and retainhold. SHE79/141 Done does not prove
+SHE83/142 absent or their file ownership approved. Source-only host hooks are
+not installed yet and current workspace/publisher roots disagree.
+
+Acceptance: terminal local handoff/blocked ends same-thread continuation atturn1;
+incomplete work retains same thread/workspace up to20; after_runonce and failures
+park with useful host-recovery reason rather than retry implementation; pending
+publication cannot restart on next poll. Add strict local-only native overlay,
+backup/restore and fullnativegates. Cached read-only inventory must carry age and
+never satisfy an authoritative apply scan. No producer/dispatcher duplication,
+blanketapprovals, skippedtests, merge, deployment or production mutation.
+
+Verification plan: focused native realOTP/fakeappserver lifecycle+parking tests,
+cache/privacy/freshapply regressions, integrated Python suite, required native
+format/lint/coverage/Dialyzer/build only after idle-stop, real dashboard smoke.
+If physical resource pressure persists, prove source-only publication with
+retained tested SHE121 output through hostowner; do not claim an actual running
+worker or end-to-end useful throughput absent observation. Pending independent
+readiness/user capacity prerequisites remain explicit in final report.
+
+
+Continuous-slice actual checkpoint: native makeall310/0fail/6skip and100%configured
+coverage;173standalonePython3.9tests;214installed-hosttests. Actualruntimepolicy
+nowonlycanonicalworkspace writableRoots, no implicit.gitexception. Between-turn
+terminalhandoff+hookfailurepark tested; maxturns20 installed withcap1/dualfilter.
+Unknownterminalinterferenceconfirmedbyuser: privatepinnedworkflow/runtimev2 now
+ownsdispatch. Cachedobserveravoided2of3fullscans, keepsfreshapplyauthority. Real
+retainedSHE121outputpublishedasdraft40viahostafter_run; oneexplicitlyapproved
+idempotentretryfailedexit1 andwasnotrepeated; newCLIdiagnosticfixinhostownerPR42.
+SHE83/142 pilotlabels exist butnoclaims/newmodeltokens; resource/cleanclone/25active
+ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
+No live implementation occupancy or delivery-throughput improvement claimed.
+
+Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+### PR45 conflict resolution — November 12, 2026
+
+Resolved the append-only implementation-plan conflict by retaining both the
+preview feature record and the sprint's newer implementation/evidence sections.
+No preview runtime behavior changed during resolution. Combined-head validation:
+35 focused preview/provider/navigation tests passed (294 assertions); Chromium
+390px UI smoke passed with mocked metadata, XSS checks and one explicit preview
+POST. Live Docker/Fly rendering remains unverified and providers remain subject
+to their documented activation gates. User explicitly authorized PR45 merge.

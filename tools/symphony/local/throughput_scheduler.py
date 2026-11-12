@@ -241,9 +241,11 @@ def run_loop(services, config_loader, directory, current_limit, runtime_reader, 
                         review_backlog = sum(pr.get('state') == 'open' for pr in report.get('pullRequests', []))
                 after = c.load_state(directory)
             added = [key for key, value in after['leases'].items() if value.get('status') == 'active' and before['leases'].get(key, {}).get('status') != 'active']
+            report['inventoryCache'] = captured.snapshot.get('inventoryCache') if isinstance(captured.snapshot, dict) else None
             report['max_workers'] = configured_limit
             report['scheduler'] = {'capacity': capacity, 'watchdog': _unique_alarms(holds + watchdog(runtime, report, resources, now=clock())),
-                                   'review_backlog': review_backlog, 'full_scan_interval_seconds': interval,
+                                   'review_backlog': review_backlog, 'observation_interval_seconds': interval,
+                                   'full_scan_interval_seconds': (report.get('inventoryCache') or {}).get('ttlSeconds', interval),
                                    'cycle_elapsed_seconds': max(0, clock() - started), 'new_grants': len(added),
                                    'apply_requested': apply, 'apply_effective': effective_apply, 'error': None}
             if added:
@@ -261,7 +263,8 @@ def run_loop(services, config_loader, directory, current_limit, runtime_reader, 
                          (isinstance(error, urllib.error.HTTPError) and error.code in [408, 429, 500, 502, 503, 504]) or
                          (isinstance(error, (urllib.error.URLError, TimeoutError, ConnectionError)) and
                           not isinstance(error, urllib.error.HTTPError)))
-            if isinstance(error, urllib.error.HTTPError):
+            # Python3.9 HTTPError(fp=None) has no closeable response file.
+            if isinstance(error, urllib.error.HTTPError) and error.fp is not None:
                 error.close()
             stopped = stop.is_set()
             report = {'dryRun': not apply, 'max_workers': configured_limit, 'issues': None, 'selected': [],
@@ -291,6 +294,19 @@ def run_loop(services, config_loader, directory, current_limit, runtime_reader, 
     return reports
 
 
+class _ObservationServices:
+    """Reuse inventory only for read-only cycles; apply always uses raw services."""
+    def __init__(self, services, directory):
+        from inventory_cache import InventoryCache
+        self.cache = InventoryCache(services, directory)
+
+    def scan(self):
+        return self.cache.scan(observation=True)
+
+    def __getattr__(self, name):
+        return getattr(self.cache, name)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group()
@@ -310,7 +326,10 @@ def main(argv=None):
         stop = threading.Event()
         old = {sig: signal.signal(sig, lambda *_: stop.set()) for sig in [signal.SIGINT, signal.SIGTERM]}
         try:
-            reports = run_loop(c.Services(), lambda: c.read_private(args.evidence), c.STATE, lambda: workflow_limit(args.workflow),
+            services = c.Services()
+            if not args.apply:
+                services = _ObservationServices(services, c.STATE / 'inventory-cache')
+            reports = run_loop(services, lambda: c.read_private(args.evidence), c.STATE, lambda: workflow_limit(args.workflow),
                 read_runtime, sample_resources, metrics=MetricsStore(c.STATE), apply=args.apply,
                 interval=args.interval, max_cycles=args.max_cycles if args.watch else 1, stop=stop)
         finally:

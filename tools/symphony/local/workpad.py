@@ -12,6 +12,7 @@ from pathlib import Path
 import sys
 import time
 import uuid
+import handoff
 import publish as p
 
 HEADER = '## Codex Workpad'
@@ -242,6 +243,7 @@ def _reject_oversized_update(path, data, request, raw, notes, pilot):
         success('mutation($id:String!,$label:String!){issueRemoveLabel(id:$id,labelId:$label){success}}',
                 {'id': data['id'], 'label': pilot}, 'issueRemoveLabel')
     pad = ensure(data)
+    p.archive_workpad(path.name, pad['body'])
     marker = f'\n\n### Host rejected workpad update `{checksum}`\n'
     receipt = (f'Blocked: pending notes contain {len(notes)} characters; limit is {MAX_NOTES}. '
                'Dispatch approval is absent. Full original JSON bytes are retained in the '
@@ -265,10 +267,10 @@ def sync(path, phase):
     issue = p.validate(path)
     data = issue_data(issue)
     pilot = next((x['id'] for x in data['labels']['nodes'] if x['name'] == 'symphony-pilot'), None)
-    request = path / '.git/hbl-workpad.json'
+    request = handoff.pending(path, 'workpad')
     update = None
     if request.exists():
-        raw = request.read_bytes()
+        raw, identity = handoff.read_raw(request, limit=2 * 1024 * 1024)
         update = json.loads(raw)
         if (isinstance(update, dict) and update.get('status') in ('progress', 'blocked', 'handoff') and
                 isinstance(update.get('notes'), str) and len(update['notes']) > MAX_NOTES):
@@ -276,6 +278,7 @@ def sync(path, phase):
     if not pilot and phase == 'before':
         raise p.PublicationError('Workpad: missing symphony-pilot approval; operator must reconcile')
     pad = ensure(data)
+    p.archive_workpad(issue, pad['body'])
     if phase == 'before':
         # Consume only after a successful update; never replay a stale blocker next attempt.
         if request.exists():
@@ -301,8 +304,16 @@ def sync(path, phase):
     if status == 'blocked' and pilot:
         success('mutation($id:String!,$label:String!){issueRemoveLabel(id:$id,labelId:$label){success}}',
                 {'id': data['id'], 'label': pilot}, 'issueRemoveLabel')
-    (path / '.git/hbl-workpad.md').write_text(body + '\n')
+    handoff.snapshot(path / '.git', 'hbl-workpad.md', body + '\n')
+    handoff.snapshot(handoff.directory(path), 'workpad.md', body + '\n')
+    from host_git import atomic
+    status_directory = p.STATE / 'workpad-status'
+    _private_directory(status_directory)
+    atomic(status_directory / (issue + '.json'), {'issue': issue, 'status': status})
     if phase == 'after':
+        current, current_identity = handoff.read_raw(request, limit=2 * 1024 * 1024)
+        if current_identity != identity or current != raw:
+            raise p.PublicationError('Workpad: update replaced during host sync; current input preserved for next recovery')
         request.unlink()
     return status
 

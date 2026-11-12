@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "scalar-agent-oracle-golden.v1",
+  "model": "scalar-agent-oracle.v1",
+  "rules": "integer-household-walk.v1",
+  "cases": [
+    {
+      "input": {
+        "agents": 1000,
+        "ticks": 12,
+        "seed": 42,
+        "stayHomeBps": 2500
+      },
+      "stateHash": "0f9419acb365452516168552cadf2453686764ba752e6a718ff128051aab6961",
+      "eventHash": "6679381685ce2b0ed9040227c6ffcc00de2435307374fa111c9b0024f2b5eb3a",
+      "invariants": {
+        "population": 1000,
+        "households": 250,
+        "resourceMin": 38,
+        "resourceMax": 62,
+        "checkedTicks": 12,
+        "events": 12116
+      }
+    },
+    {
+      "input": {
+        "agents": 10000,
+        "ticks": 12,
+        "seed": 42,
+        "stayHomeBps": 2500
+      },
+      "stateHash": "0c9fc905547570e42f0594016460a355ff5a352cd0c0f9dda5dfa2d4a9964bb6",
+      "eventHash": "ecc9050b1ffe71ebae7cc5c6e48f494ec38af015cb5a35fb0d433466c5fb1502",
+      "invariants": {
+        "population": 10000,
+        "households": 2500,
+        "resourceMin": 36,
+        "resourceMax": 65,
+        "checkedTicks": 12,
+        "events": 121157
+      }
+    }
+  ]
+}
