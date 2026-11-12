@@ -116,6 +116,29 @@ def _reason(value):
     return next((name for name, words in categories if any(word.lower() in lowered for word in words)), 'unclassified')
 
 
+def _remaining_queue(rows):
+    """Remaining project scope is broader than dispatch-ready, never a promise."""
+    if not isinstance(rows, list):
+        return None, None
+    remaining, unknown = 0, False
+    terminal = {'done', 'closed', 'canceled', 'cancelled', 'duplicate'}
+    for row in rows:
+        if not isinstance(row, dict):
+            unknown = True
+            continue
+        reasons = row.get('reasons') if isinstance(row.get('reasons'), list) else []
+        if (row.get('archivedAt') or row.get('archived_at') or row.get('archived') is True
+                or 'archived issue' in reasons):
+            continue
+        state = row.get('state')
+        state = state.get('name') if isinstance(state, dict) else state
+        if not isinstance(state, str) or not state.strip():
+            unknown = True
+        elif state.strip().casefold() not in terminal:
+            remaining += 1
+    return (None if unknown else remaining), len(rows)
+
+
 class MetricsStore:
     def __init__(self, directory):
         self.directory = Path(directory).absolute()
@@ -180,6 +203,7 @@ class MetricsStore:
                 events.append((f'worker:{issue}:{stage}:{started if started is not None else "observed"}',
                                started if started is not None and stage == 'running' else now, issue, stage, 'runtime', None))
         rows = report.get('issues') if isinstance(report.get('issues'), list) else []
+        remaining, total_project = _remaining_queue(report.get('issues'))
         reasons, ready = {}, 0
         for row in rows:
             if not isinstance(row, dict):
@@ -202,7 +226,8 @@ class MetricsStore:
         payload = {'runtime': {stage: number(counts.get(stage)) for stage in ('running', 'retrying', 'blocked')},
                    'workers': workers, 'max_workers': number(report.get('max_workers', runtime.get('max_workers'))),
                    'queue': {'ready': ready if isinstance(report.get('issues'), list) else None, 'blocked': sum(bool(r.get('reasons')) for r in rows if isinstance(r, dict)) if isinstance(report.get('issues'), list) else None,
-                             'remaining_estimate': len(rows) if isinstance(report.get('issues'), list) else None, 'blocking_reasons': [{'reason': k, 'count': v} for k, v in sorted(reasons.items())]},
+                             'remaining_estimate': remaining, 'total_project_issues': total_project,
+                             'remaining_estimate_scope': 'nonterminal_project_issues_including_unapproved', 'blocking_reasons': [{'reason': k, 'count': v} for k, v in sorted(reasons.items())]},
                    'resources': {key: number(resources.get(key)) for key in RESOURCE_KEYS},
                    'tokens': {key: number(totals.get(key + '_tokens')) for key in ('total', 'input', 'output')}, 'api': api,
                    'watchdog': [], 'pr_inventory_observed': isinstance(report.get('pullRequests'), list)}
@@ -291,7 +316,8 @@ class MetricsStore:
             rates = {key: None for key in rates}
         runtime = dict(latest.get('runtime', {'running': None, 'retrying': None, 'blocked': None}))
         runtime.update(max_workers=latest.get('max_workers'), workers=latest.get('workers', []))
-        queue = latest.get('queue', {'ready': None, 'blocked': None, 'remaining_estimate': None, 'blocking_reasons': []})
+        queue = latest.get('queue', {'ready': None, 'blocked': None, 'remaining_estimate': None, 'total_project_issues': None,
+                                     'remaining_estimate_scope': 'nonterminal_project_issues_including_unapproved', 'blocking_reasons': []})
         queue = dict(queue, retrying=runtime.get('retrying'))
         return {'schema_version': 1, 'generated_at': now, 'window_seconds': window,
                 'runtime': runtime, 'queue': queue, 'rates': rates,

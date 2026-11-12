@@ -24,8 +24,8 @@ def pr(n, branch='codex/manual', created=100, merged=150):
 
 
 def report(prs=None):
-    return {'max_workers': 2, 'issues': [{'identifier': 'SHE-11', 'eligible': True, 'description': 'PRIVATE ISSUE'},
-                                       {'identifier': 'SHE-12', 'eligible': False, 'reasons': ['unknown ownership PRIVATE ERROR']}],
+    return {'max_workers': 2, 'issues': [{'identifier': 'SHE-11', 'state': 'Todo', 'eligible': True, 'description': 'PRIVATE ISSUE'},
+                                       {'identifier': 'SHE-12', 'state': 'In Progress', 'eligible': False, 'reasons': ['unknown ownership PRIVATE ERROR']}],
             'pullRequests': prs or [], 'scanMetrics': {'linear_reads': 4, 'github_reads': 2, 'scan_seconds': .25}}
 
 
@@ -153,6 +153,36 @@ class MetricsTests(unittest.TestCase):
         self.assertEqual(snap['watchdog'][4]['code'], 'upstream_or_auth_failure')
         self.assertNotIn('PRIVATE', json.dumps(snap))
         self.assertNotIn(b'PRIVATE', self.store.path.read_bytes())
+
+    def test_remaining_queue_excludes_terminal_and_known_archived_rows(self):
+        r = report()
+        r['issues'] = [
+            {'state': 'Todo', 'eligible': True},
+            {'state': 'In Progress', 'eligible': False},
+            {'state': 'Backlog', 'eligible': False},
+            *[{'state': state, 'eligible': False} for state in ['Done', 'Closed', 'Canceled', 'Cancelled', 'Duplicate']],
+            {'state': 'Todo', 'archivedAt': '2026-11-11T00:00:00Z'},
+            {'state': 'Todo', 'archived': True},
+            {'state': 'Todo', 'reasons': ['archived issue']},
+        ]
+        queue = self.store.observe(runtime(), r, {}, now=200)['queue']
+        self.assertEqual(queue['remaining_estimate'], 3)
+        self.assertEqual(queue['total_project_issues'], 11)
+        self.assertEqual(queue['ready'], 1)
+        self.assertEqual(queue['remaining_estimate_scope'], 'nonterminal_project_issues_including_unapproved')
+
+    def test_missing_state_retains_unknown_remaining_estimate_not_total_or_zero(self):
+        r = report()
+        r['issues'].append({'eligible': False})
+        queue = self.store.observe(runtime(), r, {}, now=200)['queue']
+        self.assertIsNone(queue['remaining_estimate'])
+        self.assertEqual(queue['total_project_issues'], 3)
+        self.assertEqual(queue['ready'], 1)
+        empty = self.store.observe(runtime(), report() | {'issues': []}, {}, now=210)['queue']
+        self.assertEqual(empty['remaining_estimate'], 0)
+        absent = self.store.observe(runtime(), {}, {}, now=220)['queue']
+        self.assertIsNone(absent['remaining_estimate'])
+        self.assertIsNone(absent['total_project_issues'])
 
     def test_failed_event_transaction_does_not_leave_partial_sample(self):
         before = self.store.snapshot(now=100)['utilization']['samples']
