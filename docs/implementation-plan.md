@@ -1003,3 +1003,34 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-216 — retained Future Machine renderer
+
+Renderer-only slice implements the issue's D03 target without changing City,
+construction progress, or layout v2. The cited `docs/reviews/claude.md` is absent
+in this checkout; the full Linear issue and existing scene interfaces supply the
+acceptance contract. Historical U03 resource measurements exist in this plan;
+new device measurements remain a separate gate.
+
+Tasks: retain native meshes by arm/collection/id/ghost, update recorded geometry
+and materials in place, retain effects and progress gauges, remove disappeared
+inventory synchronously, diff native labels, and use LAYOUT_VERSION in Canvas.
+Acceptance: same geometry count after two complete scrubs; idle native draw count
+stops within one second; month16→15 removes the completed building immediately,
+15→16 shows all three recorded floors; an existing building's changed recorded
+height tweens on the same mesh; Canvas reports the mapping's layout version.
+
+Implemented with focused effect disposal/reapplication and Canvas-version
+regressions plus a normal-route browser regression covering those acceptance
+conditions and label reuse. Effects request a final settled draw, and unchanged
+rows do not restart pulses. Height/footprint changes replace only the affected
+geometry/edges; no intermediate construction floors are inferred. Missing
+snapshots also clear the Canvas fallback. Risks: actual GPU memory, browser
+integration, and native WebGPU behavior require live browser verification.
+
+Verification: all Future Machine unit suites passed:97passed/3skipped,948
+assertions across16files; final focused29passed/168assertions (including recorded
+construction boundary tests). Playwright test discovery passes. Playwright could not start the local server:
+Bun returned EADDRINUSE for ports39884,39916,48763. No browser acceptance or
+hardware performance claim is made. Browser config now accepts HBL_FM_PORT for
+an isolated retry. No commit, PR, deployment or production-data changes.

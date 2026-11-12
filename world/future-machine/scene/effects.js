@@ -75,6 +75,8 @@ export function createVisualEffects({THREE, reducedMotion = false} = {}) {
         entries.set(mesh, entry);
       }
       const previous = entry.row;
+      const unchanged=previous&&key(previous)===key(row)&&previous.polygon===Boolean(row.polygon)&&previous.height===row.height&&entry.changed===Boolean(changed)&&entry.selected===Boolean(selected)&&entry.ghost===Boolean(ghost);
+      if(unchanged)return;
       // The stage updates geometry/position to this recorded row before apply.
       entry.position.copy(mesh.position);
       const next = {collection: row.collection, id: row.id, height: row.height, polygon: Boolean(row.polygon)};
@@ -109,9 +111,12 @@ export function createVisualEffects({THREE, reducedMotion = false} = {}) {
         if (!entry.row.polygon) entry.mesh.position.y = entry.position.y + entry.row.height * (ratio - 1) / 2;
         paint(entry, Math.sin(Math.PI * t));
         entry.active = t < 1;
-        needsMoreFrames ||= entry.active;
+        needsMoreFrames = true; // Include the final settled frame.
       }
       return needsMoreFrames;
+    },
+    remove(mesh) {
+      const entry=entries.get(mesh);if(entry){restore(entry);entries.delete(mesh);}
     },
     dispose() {
       if (disposed) return;

@@ -79,3 +79,43 @@ test('largest supported recipe stays bounded across scrubs and releases scene re
  await page.goto('/world/future-machine.html?fm=invalid&month=121');await page.goBack({waitUntil:'domcontentloaded'});await ready(page);expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);
  await page.evaluate(()=>window.futureMachine.dispose());expect(await page.evaluate(()=>window.futureMachine.stats.scene.objects)).toBe(0);expect(await page.locator('.fm-ui').count()).toBe(0);
 });
+
+
+test('retained native meshes settle, scrub without growth, and reverse recorded completion',async({page})=>{
+ await page.goto('/world/future-machine.html?renderer=webgl');
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);
+ expect(await page.evaluate(()=>window.futureMachine.stats.scene.backend)).toBe('webgl');
+ const result=await page.evaluate(async()=>{
+   const slider=document.querySelector('input[type=range]');
+   const seek=month=>{slider.value=month;slider.dispatchEvent(new Event('input'));};
+   const stats=()=>window.futureMachine.stats.scene;
+   const scrub=()=>{for(let month=0;month<=120;month++)seek(month);return stats().geometries;};
+   const first=scrub(),second=scrub();
+   seek(16);const at16=stats().targets.find(t=>t.id==='building-project-policy-1-0'&&t.arm==='plan');
+   seek(15);const removed=!stats().targets.some(t=>t.id==='building-project-policy-1-0'&&t.arm==='plan');
+   seek(16);const added=stats().targets.find(t=>t.id==='building-project-policy-1-0'&&t.arm==='plan');
+   const ordinary=stats().targets.find(t=>t.arm==='baseline');
+   seek(17);const retained=stats().targets.find(t=>t.id===ordinary.id&&t.arm==='baseline').meshId===ordinary.meshId;
+   const label=document.querySelector('[data-native-city-labels] span');
+   seek(18);const labelRetained=!label||label.isConnected;
+   return {first,second,removed,at16,added,retained,labelRetained};
+ });
+ expect(result.first).toBeGreaterThan(0);expect(result.second).toBe(result.first);
+ expect(result.removed).toBe(true);expect(result.added.height).toBe(9);expect(result.added.scaleY).toBe(1);
+ expect(result.retained).toBe(true);expect(result.labelRetained).toBe(true);
+ await page.waitForTimeout(1000);const settled=await page.evaluate(()=>window.futureMachine.stats.scene.draws);
+ await page.waitForTimeout(200);expect(await page.evaluate(()=>window.futureMachine.stats.scene.draws)).toBe(settled);
+ // Exercise the production stage with two recorded heights for the same entity.
+ const tween=await page.evaluate(async()=>{
+   const {createStage}=await import('/world/future-machine/scene/index.js');
+   const {compareFrame}=await import('/world/future-machine/diff/index.js');
+   const h=window.futureMachine.history,container=document.createElement('div');container.style.width='800px';document.body.append(container);
+   const stage=createStage(container);const frame={month:16,baseline:h.baseline[16],plan:structuredClone(h.plan[16])};
+   stage.update(frame,compareFrame(frame));await stage.whenReady();
+   const before=stage.getStats().targets.find(t=>t.id==='building-project-policy-1-0'&&t.arm==='plan');
+   frame.plan.state.buildings.find(b=>b.id===before.id).floors=6;
+   stage.update(frame,compareFrame(frame));const during=stage.getStats().targets.find(t=>t.id===before.id&&t.arm==='plan');
+   stage.dispose();container.remove();return {before,during};
+ });
+ expect(tween.during.meshId).toBe(tween.before.meshId);expect(tween.during.height).toBe(18);expect(tween.during.scaleY).toBe(.5);
+});

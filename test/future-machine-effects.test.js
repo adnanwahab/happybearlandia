@@ -21,7 +21,8 @@ test('only explicit recorded changes animate; selection can glow without animati
   expect(changed.scale.y).toBe(1); // An addition is already a recorded complete structure.
   expect(effects.tick(0)).toBe(true);
   expect(changed.material.emissive.getHex()).toBe(0x40d9c4);
-  expect(effects.tick(900)).toBe(false);
+  expect(effects.tick(900)).toBe(true);
+  expect(effects.tick(901)).toBe(false);
   effects.apply(changed,row(),{changed:false});
   expect(changed.material.emissive.getHex()).toBe(0);
   effects.dispose();
@@ -34,7 +35,8 @@ test('same-identity recorded height transition is smooth, ground anchored and fi
   expect(target.scale.y).toBe(.5);
   expect(effects.tick(10)).toBe(true); expect(target.position.y).toBe(3);
   effects.tick(460); expect(target.scale.y).toBe(.75); expect(target.position.y).toBe(4.5);
-  expect(effects.tick(910)).toBe(false); expect(target.scale.y).toBe(1); expect(target.position.y).toBe(6);
+  expect(effects.tick(910)).toBe(true);
+  expect(effects.tick(911)).toBe(false); expect(target.scale.y).toBe(1); expect(target.position.y).toBe(6);
   expect(effects.tick(NaN)).toBe(false);
   effects.dispose();
 });
@@ -84,4 +86,14 @@ test('fixed seed actual monthly model yields +24 homes and first mapped physical
   console.log('Effects verified model stop:',JSON.stringify(stop));
   expect(firstPhysicalStop(history,[diffs[0]])).toBe(null);
   expect(firstPhysicalStop({},diffs)).toBe(null);
+});
+
+test('reapplying a retained row does not restart its pulse; removing releases its effect', () => {
+  const effects=createVisualEffects({THREE}), target=mesh();
+  effects.apply(target,row(),{changed:true});effects.tick(0);
+  effects.apply(target,row(),{changed:true});effects.tick(900);
+  expect(effects.tick(901)).toBe(false);
+  const original=target.material;let disposed=0;original.addEventListener('dispose',()=>disposed++);
+  effects.remove(target);expect(disposed).toBe(1);
+  effects.dispose();expect(disposed).toBe(1);
 });
