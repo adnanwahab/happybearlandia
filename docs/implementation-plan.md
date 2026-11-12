@@ -1003,3 +1003,39 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-118 — shareable question cards
+
+Next slice: three optional editable policy questions on Future Machine's existing
+paired comparison. Reuse canonical-run-receipt.v1 and monthly City replay; no
+model changes or new persistence. This isolated SHE-118 checkout owns the new
+challenge sharing/view modules, main composition, focused tests and documentation.
+Acceptance: all three questions carry a validated receipt and restore exact saved
+run/month/outcomes; reject corrupt or mismatched links before displaying results;
+render question text safely and preserve ordinary comparison sharing. Prompts are
+questions, with no numeric impact claims. Risks: links contain synthetic evidence
+and question text (warn against personal information); bounded fragment size and
+missing saved records must fail explicitly. Verification: receipt/share unit
+regressions and focused browser journey using disposable local storage.
+
+Implemented locally: optional editable homes/rent/capital-cost question cards,
+validated receipt fragments, exact query/receipt identity checks and full
+regenerated receipt comparison before presentation. Missing saved records fail
+explicitly for challenges; ordinary comparison fallback remains available.
+Links follow displayed history rather than pending configuration; text uses
+native DOM text properties. Startup validation now yields to a newer run/cancel.
+No model/rules, server, persistence or production changes. Connected GitHub
+search found no open PR matching SHE-118 on 2026-11-12.
+
+Acceptance evidence: six focused challenge/share/data/manifest/UI/diff suites
+passed 38 tests (436 assertions), one opt-in browser component test skipped.
+After adding unsaved/identity cases, challenge/share rerun passed 9 tests with
+114 assertions. Receipt suite's three non-server tests passed; its CLI test
+failed at Bun.serve(port:0), EADDRINUSE. Playwright launch failed before executing
+assertions when its isolated server could not bind port39884 (EADDRINUSE).
+Both challenge browser journeys are discovered by --list: all three links,
+refresh, mismatch/missing-record recovery, and delayed startup validation versus
+a new run. Actual browser execution and screenshots remain unverified; rerun
+`bunx playwright test --config test/future-machine-challenges.browser.config.js`
+on a host permitting the isolated local server. `git diff --check` passed.
+No commit/PR was created from this source-only sandbox.

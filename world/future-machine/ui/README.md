@@ -45,3 +45,29 @@ Focused browser evidence is component-only: `/tmp/future-machine-ui-semantic-mob
 `onConfigure(recipe)` is additive and receives a detached configured recipe on valid seed changes or policy edits. The visible **Seed for next run** field (`data-testid="future-machine-seed"`) accepts decimal uint32 integers including 0 and 4294967295. Empty, nonnumeric, fractional, negative and out-of-range input remains visible with an error, never becomes zero, never dispatches configuration and blocks Fork City through native validity. `onRun(recipe)` receives the configured recipe, not the displayed run recipe. Busy runs disable seed editing.
 
 Pending edits survive ordinary `update` calls, including repeated old `recipe` values on timeline/inspection updates. A recipe matching valid pending configuration acknowledges it; a changed nonempty experiment ID plus an explicit recipe replaces it for a newly displayed run. The run provenance reads `provenance` or the coordinator's displayed `recipe`, never the pending seed. The coordinator owns validation/persistence and must keep saved history/share URLs tied to the actual run, supplying recipe and experiment ID when switching runs. No main/shared contract changes are included.
+
+## Optional shared questions
+
+`createChallengeCards(host,{getContext})` mounts three editable policy prompts
+(homes, modeled rent, capital cost). Context supplies the displayed immutable
+history and month, so pending seed/policy edits do not change the shared run.
+Share controls require ready results. Generated anchors use a validated
+`canonical-run-receipt.v1` in a `future-question.v1` URL fragment, with a
+200-character question and a 120,000-character fragment bound. The receipt
+includes synthetic evidence and the question is public to recipients; the panel
+warns against personal information. Text renders through native text properties.
+
+Opening validates query/receipt identity, recipe and selected month before
+loading, then compares the complete regenerated receipt (including selected and
+terminal outcome digests) before presenting results. A missing saved record,
+changed rules, corrupt receipt or mismatched replay fails explicitly. Unlike
+ordinary comparison links, challenge links never fall back to a new run. Replay
+is manifest recomputation, not independently retained checkpoint verification.
+Moving to another month removes the receipt fragment; returning to the challenge
+month restores it. A new run clears the received question. Link preparation is
+invalidated on edits, run/month changes and disposal; startup validation yields
+to a subsequent run or cancel.
+
+Verification: `bun test test/future-machine-challenges.test.js` and
+`bunx playwright test --config test/future-machine-challenges.browser.config.js`.
+The browser suite uses disposable City storage and the normal page/API entry.
