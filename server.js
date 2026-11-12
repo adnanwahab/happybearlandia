@@ -1,3 +1,5 @@
+import { createPlayerFeedbackHandler } from './ops/player-feedback/api.js';
+const handlePlayerFeedback = createPlayerFeedbackHandler();
 import { withUniverseNavigation } from './world/universe/html-navigation.js';
 import {createCausalityHandler} from './world/causality/api.js';
 import {createReleaseHealthHandler,initializeReleaseStorage} from './ops/release-health.js';
@@ -516,6 +518,7 @@ const server = serve({
     }
     if (pathname === "/api/area/enrichment") return handleAreaEnrichment(new URL(request.url));
     if (pathname === "/api/overpass-health") return handleOverpassHealth();
+    if (pathname === "/api/player-feedback") return handlePlayerFeedback(request);
     if (pathname === "/api/config") return handleConfig();
     if (under(pathname, "/api/causality")) return handleCausality(request);
     if (under(pathname, "/api/world-history")) return handleTemporalCity(request);

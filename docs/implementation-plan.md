@@ -1003,3 +1003,27 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Consented lightweight player feedback — SHE-52
+
+Scoped slice: optional World disclosure → unchecked consent → structured
+confusing-step/favorite-moment submission → private durable aggregate receipt.
+Audit found simulation presentation and publishing-draft feedback, but no player
+collector. Owned changes are `world/player-feedback.js`, `ops/player-feedback/`,
+focused tests, this plan, and the small route/HTML integrations in `server.js`
+and `world/index.html`. No other feature or simulation contracts changed.
+No independent implementation tasks or agents were needed for this small slice.
+
+Implemented and locally verified: strict versioned allowlist, same-origin POST,
+bounded body, private aggregate-only SQLite storage, no public reads, explicit
+consent, opt-out, timeout/error/retry without awaiting or pausing gameplay.
+Acceptance evidence: 13 focused tests pass (84 assertions), whitespace clean;
+existing simulation feedback tests pass. Dependencies install with TMPDIR override.
+Browser acceptance remains pending: repository Bun shim fails postinstall check;
+absolute-Bun retry cannot bind isolated port (EADDRINUSE). No screenshot or real
+Chromium execution claimed. See `ops/player-feedback/README.md` for exact commands,
+privacy limits, baseline overlap and operator contract. Branch `mini/SHE-52`;
+no commit/PR publication or deployment performed. Next action: run the committed
+focused browser test in a working server environment and review visual layout.
+Counts represent submissions, may duplicate on uncertain retry, and are not
+unique-player estimates. Abuse controls and SHE-248 triage remain outside scope.
