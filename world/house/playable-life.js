@@ -1,3 +1,4 @@
+import { createPopulationRuntime } from '../population/runtime.js';
 import { persistCityReturn } from './bridge.js';
 import { journeyURL } from '../future-journey/navigation.js';
 
@@ -12,7 +13,7 @@ function element(doc, tag, text) {
   return node;
 }
 
-function residentSummary(person, household) {
+export function residentSummary(person, household) {
   return {
     name: person.name,
     home: person.homeId ?? null,
@@ -34,6 +35,18 @@ export function submitLifeAction(runtime, { householdId, entityId }, action, tar
     case 'rest': return runtime.householdAction({ ...actor, type: 'rest' });
     default: throw new Error('Choose a supported resident action.');
   }
+}
+
+// Compare only arms with the same recorded starting state, identity and clock.
+export function lifeComparison(report) {
+  const a = report.arm, b = report.matchedControl;
+  if (!a || !b || !b.after || !['seed', 'modelVersion', 'runId', 'entityId', 'startTick', 'endTick'].every(
+    key => a[key] != null && a[key] === b[key])) return null;
+  const difference = (x, y) => Number.isFinite(x) && Number.isFinite(y) ? x - y : null;
+  return {
+    needs: Object.fromEntries(Object.entries(report.after.needs).map(([key, value]) => [key, difference(value, b.after.needs[key])])),
+    savings: difference(report.after.savings, b.after.savings),
+  };
 }
 
 export async function mountPlayableLife(container, { runtime, entry, record }, entityId, { review = false } = {}) {
@@ -144,7 +157,28 @@ export async function mountPlayableLife(container, { runtime, entry, record }, e
       make('p', 'The follow-up includes autonomous city activity. These changes describe the observed trajectory.'),
       actions.length ? commands : make('p', 'The resident followed the ordinary schedule.'),
       evidenceRows, decisions);
-    result.replaceChildren(make('h2', 'Resident changes'), make('p', 'Start → End of day → 30-day follow-up'), changes, evidence);
+    const delta = lifeComparison(report);
+    const comparison = make('section');
+    comparison.setAttribute('aria-label', delta ? 'Matched comparison' : 'observational');
+    comparison.append(make('h2', delta ? 'Matched comparison' : 'observational'),
+      make('p', 'Seed ' + (report.arm?.seed ?? 'Unavailable') + ' · Population model ' + report.modelVersion));
+    if (delta) {
+      const table = make('table');
+      const header = make('tr');
+      for (const label of ['Outcome', 'with your action', 'matched control', 'Difference']) header.append(make('th', label));
+      table.append(header);
+      const format = value => Number.isFinite(value) ? value.toFixed(2) : 'Unavailable';
+      for (const [label, played, control, difference] of [
+        ...Object.keys(delta.needs).map(key => [key, after.needs[key], report.matchedControl.after.needs[key], delta.needs[key]]),
+        ['Household savings', after.savings, report.matchedControl.after.savings, delta.savings],
+      ]) {
+        const row = make('tr');
+        for (const value of [label, format(played), format(control), format(difference)]) row.append(make('td', value));
+        table.append(row);
+      }
+      comparison.append(table, make('p', 'Modeled difference for this command sequence in one seeded run.'));
+    }
+    result.replaceChildren(comparison, make('h2', 'Resident changes'), make('p', 'Start → End of day → 30-day follow-up'), changes, evidence);
     links.replaceChildren(
       anchor('Open starting World checkpoint', worldURL(controlSession.runId)),
       anchor('Open follow-up World checkpoint', worldURL(finalId)),
@@ -166,6 +200,9 @@ export async function mountPlayableLife(container, { runtime, entry, record }, e
     return;
   }
 
+  // Export before accepting any command: a seed alone cannot restore current RNG/state.
+  const startingCheckpoint = await runtime.exportCheckpoint();
+  let controlRuntime;
   const initial = await read();
   const start = runtime.getSnapshot();
   const before = residentSummary(initial.person, initial.household);
@@ -205,7 +242,7 @@ export async function mountPlayableLife(container, { runtime, entry, record }, e
     }
   };
   const unsubscribe = runtime.subscribe(captureEvents);
-  doc.defaultView.addEventListener('pagehide', () => { unsubscribe(); runtime.destroy(); }, { once: true });
+  doc.defaultView.addEventListener('pagehide', () => { unsubscribe(); followUpController?.abort(); controlRuntime?.destroy(); runtime.destroy(); }, { once: true });
 
   const target = make('select');
   target.setAttribute('aria-label', 'Housemate to talk with');
@@ -256,14 +293,14 @@ export async function mountPlayableLife(container, { runtime, entry, record }, e
       status.textContent = 'Command accepted. Advance time to see elapsed effects.';
     }).dataset.action = action;
   }
-  async function advanceTo(end, signal) {
-    while (runtime.getSnapshot().minute < end) {
+  async function advanceTo(end, signal, armRuntime = runtime) {
+    while (armRuntime.getSnapshot().minute < end) {
       if (signal?.aborted) throw new Error('Follow-up paused. Continue to resume from the last committed minute.');
-      const minutes = Math.min(batchMinutes, end - runtime.getSnapshot().minute);
-      const progress = await runtime.observeHousehold({ householdId, minutes, signal });
+      const minutes = Math.min(batchMinutes, end - armRuntime.getSnapshot().minute);
+      const progress = await armRuntime.observeHousehold({ householdId, minutes, signal });
       if (progress.status !== 'completed') throw new Error('The clock stopped. Continue to resume from the last committed minute.');
-      if (handoff) status.textContent = 'Autonomous follow-up · ' +
-        Math.max(0, Math.floor((runtime.getSnapshot().minute - dayEnd) / DAY)) + ' of 30 days';
+      if (handoff) status.textContent = (armRuntime === runtime ? 'Autonomous follow-up · ' : 'Matched control · ') +
+        Math.max(0, Math.floor((armRuntime.getSnapshot().minute - dayEnd) / DAY)) + ' of 30 days';
     }
   }
   button('Advance time', async () => {
@@ -281,12 +318,38 @@ export async function mountPlayableLife(container, { runtime, entry, record }, e
         dayClose = await read();
       }
       await advanceTo(followUpEnd, followUpController.signal);
+      if (!controlRuntime) {
+        controlRuntime = createPopulationRuntime({ config: start.config, workerCount: 1 });
+        try {
+          await controlRuntime.ready;
+          await controlRuntime.restoreCheckpoint(startingCheckpoint);
+          controlRuntime.pause();
+        } catch (error) {
+          controlRuntime.destroy();
+          controlRuntime = null;
+          throw error;
+        }
+      }
+      status.textContent = 'Running matched control…';
+      await advanceTo(followUpEnd, followUpController.signal, controlRuntime);
     } finally {
       pause.hidden = true;
       followUpController = null;
     }
     const final = await read();
+    const arm = {
+      seed: start.config.seed, modelVersion: startingCheckpoint.modelVersion,
+      runId: record.id, entityId, startTick: start.runtime.tick,
+      endTick: runtime.getSnapshot().runtime.tick,
+    };
+    const controlPerson = await controlRuntime.inspectPerson(entityId);
+    const controlHousehold = await controlRuntime.inspectHousehold(householdId);
+    if (!controlPerson || !controlHousehold) throw new Error('The control resident is unavailable.');
     const report = {
+      arm,
+      matchedControl: { ...arm, seed: controlRuntime.getSnapshot().config.seed,
+        endTick: controlRuntime.getSnapshot().runtime.tick,
+        after: residentSummary(controlPerson, controlHousehold), actions: [] },
       schemaVersion: sessionVersion, modelVersion: record.save.checkpoint.modelVersion, controlSession, before,
       dayEnd: residentSummary(dayClose.person, dayClose.household),
       after: residentSummary(final.person, final.household),
@@ -300,6 +363,8 @@ export async function mountPlayableLife(container, { runtime, entry, record }, e
       viewPatch: { playableLife: report, selection: { id: entityId, type: 'person' },
         playback: { ...record.save.view.playback, paused: true } },
     });
+    controlRuntime.destroy();
+    controlRuntime = null;
     finished = true;
     unsubscribe();
     showFacts(final);

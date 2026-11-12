@@ -24,6 +24,18 @@ internals remain unverified; publication of this follow-up is a host gate.
 
 ## Playable Life vertical slice
 
+### SHE-243 matched control — implemented locally; browser/publication pending
+
+Next slice: fork the exact paused pre-action Population checkpoint into an autonomous runtime; advance both arms through the playable day and 30-day follow-up. Persist matched seed, model version, resident, start/end ticks and outcomes in the existing report. Compare finite needs and savings only for compatible arms; legacy reports remain observational. Prerequisites: existing checkpoint restore, household observation and report persistence. Acceptance: deterministic no-action replay, a measured action difference, visible paired results and provenance after reload, pause/resume and immutable parent. Risk: approximately twice the simulation work; run control on demand and retain it across pauses, destroy it on completion/navigation. This estimates the complete command sequence in one synthetic seeded run, not an individual action or population effect.
+
+Delivered: paired saved outcomes and finite differences, visible seed/model version, observational fallback for older or incompatible reports, control pause/resume and cleanup. `bun test test/playable-life-control.test.js`: 2 passed / 104 assertions (31-day, 60-minute fixed-step fixture). `bun test test/house-integration.test.js`: 8 passed / 73 assertions. Browser entry bundled successfully; `git diff --check` passed. The first 15-minute-step determinism fixture exceeded its 60-second test limit; the passing fixture retains the full 31-day horizon with 60-minute steps.
+
+Example for the PR description: Population/rules 1.3.0, seed 42, 8 synthetic residents, householdSize 4, default remaining inputs, midnight checkpoint, 60-minute fixed steps, 744 ticks. Buying a plant before advancing gave household savings USD 23259.56158416296; the matched no-action control gave USD 23294.56158416296; difference −35 USD. Two no-action outputs matched exactly.
+
+Browser assertions now cover both columns, difference, provenance, saved-arm seed/time matching, reload and legacy observational fallback, but were not executed: the normal Node launcher rejected the existing config’s import.meta; using the Bun launcher passed config loading but the server failed with EADDRINUSE on ports 54388 and 54493. No browser outcome is claimed. GitHub CLI authentication reports an invalid token, so no PR was published. Next action: run the updated Playwright journey on a host that can start the server, then publish the PR with the example above. No deployment or production mutation.
+
+
+
 Source is the “15 new features I'd add next” emerging civilization proposal. Start with “Live a Day as Anyone” on the shared Living World and House Simulator Population authority. Use the selected resident's existing identity and keep the current clock. The available work and travel activities are a household chore and the trip home. The follow-up uses 30 modeled days.
 
 | Status | Task | Dependencies and acceptance |
@@ -36,7 +48,7 @@ Source is the “15 new features I'd add next” emerging civilization proposal.
 
 Verification passed with 32 House, checkpoint integration, and movement tests plus the Playable Life browser journey. The browser fixture supplies a selected resident to the World entry control.
 
-The follow-up report is observational. An action-level effect estimate needs a matched autonomous control with a defined outcome and equivalent start state. Keep that comparison, broader work and venue actions, and the universal causal inspector handoff as follow-on scope. Bound evidence and checkpoint size, and measure follow-up responsiveness against representative Population runs before expanding the time horizon. Verify identity and clock mapping before linking a resident to monthly CityState, Decision Studio, or a different model version.
+The follow-up report is observational. An action-level effect estimate needs a matched autonomous control with a defined outcome and equivalent start state. The SHE-243 slice above adds that comparison for the whole command sequence. Keep broader work and venue actions and the universal causal inspector handoff as follow-on scope. Bound evidence and checkpoint size, and measure follow-up responsiveness against representative Population runs before expanding the time horizon. Verify identity and clock mapping before linking a resident to monthly CityState, Decision Studio, or a different model version.
 
 The emerging civilization roadmap depends on inspectable events and stable entity identity. Start idea diffusion with a recorded social interaction and a seeded adoption rule, then add durable kinship and historical residence records for generational families. Perspective comparisons need a shared event and resident-level exposure evidence. Resident-led experiments need versioned experiment recipes, transparent assumptions, and a way to compare forecasts with recorded outcomes.
 

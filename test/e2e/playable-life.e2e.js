@@ -84,6 +84,10 @@ test('a resident day advances and persists an exact 30-day follow-up', async ({ 
   const { id: followUpId } = await saved.json();
   expect(followUpId).not.toBe(startId);
   await expect(page.getByRole('heading', { name: 'Resident changes' })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'with your action', exact: true })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'matched control', exact: true })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'Difference', exact: true })).toBeVisible();
+  await expect(page.getByText(/Seed .* · Population model/)).toBeVisible();
   const reviewURL = house + '?' + new URLSearchParams({
     experiment: followUpId, person: fixture.personId, lifeReview: '1',
   });
@@ -97,6 +101,8 @@ test('a resident day advances and persists an exact 30-day follow-up', async ({ 
   expect(persisted.status()).toBe(200);
   const record = await persisted.json();
   expect(record.parentId).toBe(startId);
+  expect(record.save.view.playableLife.matchedControl.seed).toBe(record.save.view.playableLife.arm.seed);
+  expect(record.save.view.playableLife.matchedControl.endTick).toBe(record.save.view.playableLife.arm.endTick);
   expect(record.save.view.playableLife.actions.map(receipt => [receipt.action, receipt.minute])).toEqual([
     ['rest', fixture.minute],
     ['purchase', fixture.minute + 60],
@@ -128,5 +134,19 @@ test('a resident day advances and persists an exact 30-day follow-up', async ({ 
   await page.getByText('Inspect recorded events and decisions', { exact: true }).click();
   await expect(page.getByText(new RegExp('Minute ' + fixture.minute + ' · Rest'))).toBeVisible();
   await expect(page.getByText(new RegExp('Minute ' + (fixture.minute + 60) + ' · Buy a plant'))).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'matched control', exact: true })).toBeVisible();
   expect(reviewWrites).toEqual([]);
+  await page.evaluate(async ({ record, fixture }) => {
+    const { mountPlayableLife } = await import('/world/house/playable-life.js');
+    delete record.save.view.playableLife.matchedControl;
+    const after = record.save.view.playableLife.after;
+    await mountPlayableLife(document.body, {
+      record, entry: { householdId: fixture.householdId, members: [fixture.personId] },
+      runtime: { pause() {}, destroy() {},
+        async inspectPerson() { return { name: after.name, needs: after.needs }; },
+        async inspectHousehold() { return { savings: after.savings }; } },
+    }, fixture.personId, { review: true });
+  }, { record, fixture });
+  await expect(page.getByRole('heading', { name: 'observational', exact: true })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'Difference', exact: true })).toHaveCount(0);
 });
