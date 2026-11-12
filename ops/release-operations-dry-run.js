@@ -33,7 +33,10 @@ export function reviewRollbackRecord(record) {
   let origin;
   try {
     origin = new URL(record.stagingOrigin);
-    if (origin.protocol !== 'https:' || origin.username || origin.password || origin.pathname !== '/' || origin.search || origin.hash ||
+    const host = origin.hostname;
+    const local = host === 'localhost' || host.endsWith('.localhost') || /^127\./.test(host) ||
+      ['0.0.0.0', '[::]', '[::1]'].includes(host);
+    if (local || origin.protocol !== 'https:' || origin.username || origin.password || origin.pathname !== '/' || origin.search || origin.hash ||
         ['happybearlandia.fly.dev', 'localhost', '127.0.0.1', '[::1]'].includes(origin.hostname)) throw Error();
   } catch { blockers.push('Provide a distinct approved HTTPS staging origin without credentials.'); }
   const ready = record.stagingReady;

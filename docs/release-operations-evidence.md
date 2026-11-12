@@ -27,9 +27,9 @@ Owned files:
 On Bun `1.4.2 (744846f84)` in the isolated issue clone:
 
 - `bun test test/release-operations-dry-run.test.js test/release-health.test.js`:
-  **13 passed, 0 failed, 62 assertions**. Existing readiness/storage failure paths
+  **13 passed, 0 failed, 69 assertions**. Existing readiness/storage failure paths
   remain covered. New tests exercise current Fly topology, missing/private/local
-  staging evidence, wrong recovered build, inaccessible storage, mutable images,
+  staging evidence (normalized IPv4/IPv6 loopback, unspecified and .localhost names), wrong recovered build, inaccessible storage, mutable images,
   failed compatibility, missing approval malformed incident records and rejected execution requests.
 - `bun --no-env-file ops/release-operations-dry-run.js`: exit 0; repository-config
   report has `problems: []`, `singleWriterRequired: true`, `canaryAllowed: false`,

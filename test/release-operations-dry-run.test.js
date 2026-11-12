@@ -37,7 +37,9 @@ test('complete synthetic record produces review-only argv and cannot execute a r
 
 test('missing evidence, local evidence and production-as-staging all fail closed', () => {
   expect(reviewRollbackRecord({}).decision).toBe('BLOCKED');
-  for (const stagingOrigin of ['http://127.0.0.1:3000', 'https://happybearlandia.fly.dev', 'https://user:secret@stage.invalid']) {
+  for (const stagingOrigin of ['http://127.0.0.1:3000', 'https://happybearlandia.fly.dev', 'https://user:secret@stage.invalid',
+    'https://127.0.0.2', 'https://127.1', 'https://0.0.0.0', 'https://foo.localhost',
+    'https://[::1]', 'https://[0:0:0:0:0:0:0:1]', 'https://[::]']) {
     expect(reviewRollbackRecord({ ...completeRecord(), stagingOrigin }).proposedCommand).toBeNull();
   }
   expect(reviewRollbackRecord({ ...completeRecord(), evidenceScope: 'local' }).decision).toBe('BLOCKED');
