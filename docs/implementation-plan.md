@@ -1003,3 +1003,27 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-201 — performance tooling and budgets
+
+Slice: extend the existing city benchmark harness across its six permanent routes
+and the WebGL2/WebGPU backend matrix. Reuse the fixed scripted camera and 500-person
+synthetic benchmark. World streaming remains SHE-158. SHE-40 has no measured
+hardware baseline in its issue; provisional guardrails must be calibrated rather
+than represented as certified mobile/laptop targets.
+
+Acceptance implemented: explicit per-route/backend limits for load-to-render time,
+frame p95 and sampled peak JS heap; missing/nonfinite/negative measurements fail;
+backend fallback fails; profiles, traces and JSON reports retained after errors;
+PR CI runs all six routes on Chromium WebGL2 and always uploads artifacts.
+Default local command includes both backends. Hardware WebGPU and additional
+application surfaces (House, Decision Studio, etc.) remain outside this first
+city-renderer slice; these require their own route/readiness adapters and baselines.
+
+Verification: `bun test test/performance-budgets.test.js test/render-performance.test.js`
+passed 10 tests / 290 assertions. `git diff --check` passed. Dependencies installed
+with `TMPDIR=/private/tmp bun install --frozen-lockfile`. Browser measurement blocked:
+server listen failed with EADDRINUSE on both 3198 and 39127 in this environment.
+No measured performance pass or WebGPU hardware coverage claimed. CI and actual
+hardware runs remain required before treating provisional limits as calibrated.
+See `docs/performance-budgets.md` for commands, metric scope and artifacts.
