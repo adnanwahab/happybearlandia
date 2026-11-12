@@ -22,6 +22,13 @@ internals remain unverified; publication of this follow-up is a host gate.
 
 [Product design](design.md) defines the target experience. [Engineering instructions](../AGENTS.md) describe how to plan, implement, and verify changes. Keep this plan current with task status, dependencies, acceptance evidence, and commit or PR references when available.
 
+## SHE-82 — discard superseded Decision Studio responses
+
+Implemented in `world/decision/studio.js`; regression coverage in `test/decision-request-race.test.js`.
+Audit found Future Machine already uses AbortController/request identity and has a real-API cancel/restart browser test. Decision Studio guarded new requests but did not invalidate them when seed/policy inputs changed. Its input handler now invalidates create/start/reopen/poll work, detaches the watcher, releases busy state for the next run, and invalidates pending trace selection. Previous displayed results keep their existing prior-input label. Stale reopen failures and watcher errors are ignored. Server records remain immutable and may finish; this does not cancel server computation or change simulation contracts.
+
+Acceptance: controlled deferred responses exercise the actual coordinator functions, with DOM/rendering spies and lifecycle-only network fixtures. A newer seed/policy run retains its results, experiment identity, URL and busy/error state after older responses settle. Six new tests fail against HEAD's original coordinator and pass with the fix. Full evidence and reproduction commands: [SHE-82 verification](evidence/she82-stale-results.md). No commit/PR published in this session; browser verification remains limited by local server startup.
+
 ## Playable Life vertical slice
 
 Source is the “15 new features I'd add next” emerging civilization proposal. Start with “Live a Day as Anyone” on the shared Living World and House Simulator Population authority. Use the selected resident's existing identity and keep the current clock. The available work and travel activities are a household chore and the trip home. The follow-up uses 30 modeled days.

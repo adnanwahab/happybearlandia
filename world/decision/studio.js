@@ -235,6 +235,12 @@ function updateRunDescription() { $('#run-description').textContent = `${Number(
 function updateDraftTrust() { trust.update({ experiment: currentInput(), runs: [], aggregates: [], comparisons: [], model: activeModel, evidence: collectedEvidence(), readOnly: state.readonly }); }
 function markDirty() {
   if (state.readonly) return;
+  // Input edits supersede pending create/start/reopen requests as well as polls.
+  // The server may finish its immutable record; it no longer owns this draft.
+  activeRequest++;
+  state.watch?.destroy(); state.watch = null;
+  traceSelectionToken++; state.tracePending = false;
+  if (state.busy) setBusy(false);
   state.dirty = true; state.generation++; updateAdvancedStudio(); $('#share-experiment').disabled = true;
   if (!state.results) updateDraftTrust();
   $('#result-context').textContent = state.results ? 'Assumptions changed. Results below belong to the previous experiment until a new run finishes.' : 'Assumptions ready. Run the experiment to explore outcomes.';
@@ -354,14 +360,16 @@ async function reopenExperiment(id, readonly = false) {
   if (state.busy) throw new Error('Cancel the running experiment before opening another.');
   clearTimeout(previewTimer); state.watch?.destroy(); runTraces.clear();traceSelectionToken++;automaticTraceKey=null;const token = ++activeRequest;
   status('Opening saved experiment…');
-  const result = readonly ? await client.share(id) : await client.results(id);
+  let result;
+  try { result = readonly ? await client.share(id) : await client.results(id); }
+  catch (error) { if (token !== activeRequest) return; throw error; }
   if (token !== activeRequest) return;
   if (!result.experiment) throw new Error('The server did not return an experiment.');
   state.results=null;state.summaryResults=null;state.selectedRun=null;constructionRun=null;state.experiment=result.experiment;runTraces.setExperiment(result.experiment.id);
   loadInput(result.experiment); setReadonly(readonly); state.preview = Boolean(result.experiment.metadata?.preview); state.hasRun = true; state.dirty = false;
   renderResults(result); updateExperimentUrl(id); status(readonly ? 'Read-only experiment opened. Explore the original inputs, futures, and decision brief.' : 'Experiment reopened with its original inputs and results.');
   if (result.experiment.status === 'running') {
-    setBusy(true); state.watch = client.watch(id, { onUpdate(next) { if (token !== activeRequest) return; renderResults(next); if (['completed', 'cancelled', 'failed'].includes(next.experiment?.status)) setBusy(false); }, onError(error) { setBusy(false); status(error.message, true); } });
+    setBusy(true); state.watch = client.watch(id, { onUpdate(next) { if (token !== activeRequest) return; renderResults(next); if (['completed', 'cancelled', 'failed'].includes(next.experiment?.status)) setBusy(false); }, onError(error) { if (token !== activeRequest) return; setBusy(false); status(error.message, true); } });
   }
 }
 function loadInput(input) {
