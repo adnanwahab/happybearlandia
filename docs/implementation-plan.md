@@ -1,5 +1,52 @@
 # HappyBearLandia implementation plan
 
+## SHE-92 — linked city identity selection audit (2026-11-12)
+
+Status: dependency blocked; feature acceptance is not complete. The supplied
+isolated checkout is on `mini/SHE-92` at `b963dd3` and was clean before this
+documentation change. Linear's In Review status records an earlier access-blocked
+handoff, not an implementation: its workpad explicitly reports no code, tests,
+commit or PR. GitHub searches for `"SHE-92" in:title` and `"SHE-34" in:title`
+returned no PRs in the repository during this audit; this is search evidence,
+not a guarantee that no unpublished implementation exists.
+
+Observed current behavior: `world/causal/heatmap.js` renders three district
+aggregates from the selected City checkpoint. Rows retain local district IDs
+internally but are not selectable and expose neither IDs nor metric time.
+`world/causal/history.js` and `page.js` already select canonical building IDs at
+the displayed month. `world/causal/adapter.js` preserves explicit canonical/local
+entity mappings. These interfaces must be reused rather than equating a district
+aggregate with an individual building or with the separate Population clock.
+
+Prerequisites: the grid lattice, entity mapping, coverage crosswalk and grid view
+listed in `docs/reviews/chatgpt-30-neighborhood-proposal.md` (G01–G03, U01–U02)
+are absent from this checkout. [SHE-34](https://linear.app/shel-bernstein/issue/SHE-34/hbl-w1-021-define-stable-district-to-grid-entity-mapping)
+is In Progress and owns the district/grid identity contract; its issue also
+declares HBL-W1-020 as a dependency. No competing mapping or speculative grid API
+was added. The design prohibits attributing district-only measurements to cells
+without supported coverage.
+
+Next integrated slice, after that contract and an actual grid entry point land:
+
+1. Consume the owned mapping to carry source collection/local ID, canonical ID,
+   run/checkpoint identity and recorded month through metric and cell selection.
+2. Wire both selection paths to one inspector and expose the same source IDs
+   and recorded metric month; distinguish aggregate district context from
+   supported building/cell measurements and unavailable coverage.
+3. Verify clicks in both views, forward/reverse scrub, run changes, refresh and
+   missing checkpoints. Assert no stale timestamp or identity survives a change.
+
+Acceptance remains: either view reveals the same source entity ID and correct
+metric timestamp from the same recorded checkpoint. The main risks are conflicting
+ownership of the mapping and falsely precise spatial attribution. This audit
+does not broaden SHE-92 into implementation of those prerequisite workstreams.
+
+Actual verification: `bun test test/time-machine-heatmap.test.js
+test/metric-registry.test.js` passed 6 tests, 11 assertions, 0 failures. These
+verify existing aggregation/registry behavior, not SHE-92 acceptance. No browser
+behavior changed; Playwright was skipped for this documentation-only audit.
+No implementation commit/PR, deployment, issue status or label changes were made.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
