@@ -1,3 +1,4 @@
+import {disposeObjectResources} from './resources.js';
 import {createRendererBackend} from './renderer-backend.js';
 import {createCanvasStage,fitCanvasCamera} from './canvas-stage.js';
 import {createVisualEffects} from './effects.js';
@@ -27,8 +28,13 @@ export function createStage(container, {onSelect,history} = {}) {
   observer?.observe(views);globalThis.addEventListener?.('resize',resize);
   function releaseMeshes() {
     effects?.dispose();effects=THREE&&!canvasStage&&!disposed&&!error?createVisualEffects({THREE,reducedMotion:globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches}):null;
-    for(const mesh of meshes) {mesh.parent?.remove(mesh);mesh.geometry.dispose();mesh.material.dispose();for(const child of mesh.children){child.geometry?.dispose();child.material?.dispose();}}
+    for(const mesh of meshes) {mesh.parent?.remove(mesh);disposeObjectResources(mesh);}
     meshes=[];
+  }
+  function releaseScenes() {
+    releaseMeshes();
+    for(const scene of scenes) {disposeObjectResources(scene);scene.clear();}
+    scenes=[];
   }
   function material(row, ghost) {
     const focused=selected?.id===row.id&&selected?.collection===row.collection;
@@ -110,7 +116,7 @@ export function createStage(container, {onSelect,history} = {}) {
     if(disposed||canvasStage)return;THREE=module;
     if(new URLSearchParams(location.search).get('renderer')&&['canvas','canvas2d'].includes(new URLSearchParams(location.search).get('renderer'))){fail(new Error('Canvas2D selected'));return;}
     effects=createVisualEffects({THREE,reducedMotion:globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches});
-    const selectedBackend=await createRendererBackend({THREE,forceWebGL:new URLSearchParams(location.search).get('renderer')==='webgl'});if(disposed){selectedBackend.renderer.dispose();return;}renderer=selectedBackend.renderer;renderBackend=selectedBackend.backend;backendReason=selectedBackend.reason;renderer.autoClear=false;renderer.setClearColor(0x10232d,1);renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio||1,1.5));
+    const selectedBackend=await createRendererBackend({THREE,forceWebGL:new URLSearchParams(location.search).get('renderer')==='webgl'});if(disposed){selectedBackend.renderer.dispose();selectedBackend.renderer.forceContextLoss?.();return;}renderer=selectedBackend.renderer;renderBackend=selectedBackend.backend;backendReason=selectedBackend.reason;renderer.autoClear=false;renderer.setClearColor(0x10232d,1);renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio||1,1.5));
     views.append(renderer.domElement);renderer.domElement.style.cssText='display:block;width:100%;height:100%';renderer.domElement.setAttribute('aria-label','City inventory scenes; drag to orbit, scroll to zoom');
     scenes=[0,1].map(()=>{const scene=new THREE.Scene();scene.background=renderBackend==='webgpu'?null:new THREE.Color(0x10232d);scene.add(new THREE.HemisphereLight(0xdfeeff,0x425449,2));const sun=new THREE.DirectionalLight(0xffffff,2);sun.position.set(50,100,60);scene.add(sun);const grid=new THREE.GridHelper(600,25,0x456070,0x203746);grid.position.y=-.1;scene.add(grid);return scene;});
     camera=new THREE.PerspectiveCamera(45,1,.1,100000);camera.position.set(100,100,100);
@@ -124,12 +130,12 @@ export function createStage(container, {onSelect,history} = {}) {
     status.textContent=(renderBackend==='webgpu'?'WebGPU · ':'WebGL · ')+(projection?.physicalDifference?'Recorded building differences · wireframe ghosts show presence in the other future.':'No recorded physical building difference at this month.');
   }).catch(fail);
   function lost(event) {event.preventDefault();fail(new Error('Graphics context lost'));}
-  function fail(reason) {if(disposed||canvasStage)return;error=reason?.message||'Graphics unavailable';status.textContent='Canvas2D low-fidelity view · same recorded City inventory, camera and timeline.';controls?.dispose();effects?.dispose();if(animation)cancelAnimationFrame(animation);releaseMeshes();renderer?.dispose();renderer?.domElement.remove();renderer=null;labels.replaceChildren();try{canvasStage=createCanvasStage(views,{onSelect});canvasStage.setMode(mode);canvasStage.setGhosts(ghosts);if(projection){canvasStage.update(projection,currentDiff);if(fitRows)canvasStage.setCamera(fitCanvasCamera({a:fitRows,b:fitRows},views.clientWidth,views.clientHeight,mode));}}catch(fallbackError){canvasStage?.dispose();canvasStage=null;error=`${error}; ${fallbackError.message}`;views.hidden=true;status.textContent='Graphics unavailable. The exact recorded inventory, timeline, outcomes and WHY controls remain available below.';}resolveReady({backend:canvasStage?'canvas2d':'inventory-fallback'});}
+  function fail(reason) {if(disposed||canvasStage)return;error=reason?.message||'Graphics unavailable';status.textContent='Canvas2D low-fidelity view · same recorded City inventory, camera and timeline.';controls?.dispose();effects?.dispose();if(animation)cancelAnimationFrame(animation);releaseScenes();renderer?.domElement.removeEventListener('webglcontextlost',lost);renderer?.dispose();renderer?.forceContextLoss?.();renderer?.domElement.remove();renderer=null;labels.replaceChildren();try{canvasStage=createCanvasStage(views,{onSelect});canvasStage.setMode(mode);canvasStage.setGhosts(ghosts);if(projection){canvasStage.update(projection,currentDiff);if(fitRows)canvasStage.setCamera(fitCanvasCamera({a:fitRows,b:fitRows},views.clientWidth,views.clientHeight,mode));}}catch(fallbackError){canvasStage?.dispose();canvasStage=null;error=`${error}; ${fallbackError.message}`;views.hidden=true;status.textContent='Graphics unavailable. The exact recorded inventory, timeline, outcomes and WHY controls remain available below.';}resolveReady({backend:canvasStage?'canvas2d':'inventory-fallback'});}
   const api={
     whenReady:()=>ready,
     update(frame,diff) {
       if(disposed)return;
-      if(!frame?.baseline?.state||!frame?.plan?.state){projection=null;releaseMeshes();list.replaceChildren();legend.textContent='City snapshots unavailable';status.textContent='Both futures are required for a matched scene.';draw();return;}
+      if(!frame?.baseline?.state||!frame?.plan?.state){projection=null;currentFrame=null;currentDiff=null;canvasStage?.update(null,null);releaseMeshes();labels.replaceChildren();list.replaceChildren();legend.textContent='City snapshots unavailable';status.textContent='Both futures are required for a matched scene.';draw();return;}
       currentFrame=frame;currentDiff=diff;const first=!projection;projection=mapping.frame(frame.baseline.state,frame.plan.state);
       legend.textContent=`Month ${frame.month} · ${projection.label}`;
       if(!error)status.textContent=(renderBackend==='webgpu'?'WebGPU · ':'WebGL · ')+(projection.physicalDifference?'Recorded building differences · wireframe ghosts show presence in the other future.':'No recorded physical building difference at this month.');
@@ -141,7 +147,7 @@ export function createStage(container, {onSelect,history} = {}) {
     resetCamera(){cameraTransition=null;if(canvasStage&&projection)canvasStage.setCamera(fitCanvasCamera(fitRows?{a:fitRows,b:fitRows}:projection,views.clientWidth,views.clientHeight,mode));fit();draw();},
     getCamera(){return canvasStage?.getCamera()||{position:camera?.position.toArray()??null,target:controls?.target.toArray()??null};},
     getStats(){const arms=['split','difference'].includes(mode)?[0,1]:[mode==='plan'?1:0];const segment=width/arms.length;const targets=camera?meshes.filter(m=>!m.userData.ghost&&arms.includes(m.parent===scenes[0]?0:1)).map(m=>{const arm=m.parent===scenes[0]?0:1;const v=m.position.clone().project(camera);return {...m.userData,x:(arms.indexOf(arm)+(v.x+1)/2)*segment,y:(1-v.y)/2*height};}):[];return {...canvasStage?.getStats(),targets,camera:api.getCamera(),mode,disposed,backend:disposed?'disposed':canvasStage?'canvas2d':renderer&&!error?renderBackend:'inventory-fallback',backendReason,objects:canvasStage?canvasStage.getStats().objects:meshes.length,geometries:renderer?.info?.memory?.geometries??null,textures:renderer?.info?.memory?.textures??null,month:projection?.month??null,layoutVersion:mapping.version,error};},
-    dispose(){if(disposed)return;disposed=true;observer?.disconnect();globalThis.removeEventListener?.('resize',resize);canvasStage?.dispose();effects?.dispose();if(animation)cancelAnimationFrame(animation);views.removeEventListener('click',pick);renderer?.domElement.removeEventListener('webglcontextlost',lost);controls?.dispose();releaseMeshes();for(const scene of scenes)scene.traverse(object=>{if(object.geometry){object.geometry.dispose();if(Array.isArray(object.material))object.material.forEach(material=>material.dispose());else object.material.dispose();}});effects?.dispose();renderer?.dispose();renderer=null;root.remove();resolveReady({backend:'disposed'});},
+    dispose(){if(disposed)return;disposed=true;observer?.disconnect();globalThis.removeEventListener?.('resize',resize);canvasStage?.dispose();effects?.dispose();if(animation)cancelAnimationFrame(animation);views.removeEventListener('click',pick);renderer?.domElement.removeEventListener('webglcontextlost',lost);controls?.dispose();releaseScenes();renderer?.dispose();renderer?.forceContextLoss?.();renderer=null;controls=null;camera=null;effects=null;canvasStage=null;projection=null;currentFrame=null;currentDiff=null;fitRows=null;selected=null;cameraTransition=null;labels.replaceChildren();list.replaceChildren();root.remove();resolveReady({backend:'disposed'});},
   };
   return api;
 }

@@ -79,3 +79,33 @@ test('largest supported recipe stays bounded across scrubs and releases scene re
  await page.goto('/world/future-machine.html?fm=invalid&month=121');await page.goBack({waitUntil:'domcontentloaded'});await ready(page);expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);
  await page.evaluate(()=>window.futureMachine.dispose());expect(await page.evaluate(()=>window.futureMachine.stats.scene.objects)).toBe(0);expect(await page.locator('.fm-ui').count()).toBe(0);
 });
+
+test('SHE-106: thirty sequential replays preserve model digest and bounded resources',async({page},testInfo)=>{
+ test.setTimeout(240000);
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('/world/future-machine.html?renderer=webgl');
+ const cdp=await page.context().newCDPSession(page);
+ const samples=[];let digest;
+ for(let replay=0;replay<30;replay++){
+  await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);await seek(page,120);
+  const result=await page.evaluate(async()=>{
+   const h=window.futureMachine.history;
+   const bytes=new TextEncoder().encode(JSON.stringify({seed:h.seed,version:h.modelVersion,baseline:h.baseline,plan:h.plan}));
+   const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),v=>v.toString(16).padStart(2,'0')).join('');
+   return {hash,scene:window.futureMachine.stats.scene,delta:window.futureMachine.state.diff.metrics.housingUnits.delta};
+  });
+  expect(result.scene.backend).toBe('webgl');expect(result.delta).toBe(24);
+  digest??=result.hash;expect(result.hash).toBe(digest);
+  await cdp.send('HeapProfiler.collectGarbage');
+  const heap=(await cdp.send('Runtime.getHeapUsage')).usedSize;
+  samples.push({replay:replay+1,heap,geometries:result.scene.geometries,textures:result.scene.textures});
+  expect(heap).toBeLessThanOrEqual(samples[0].heap+32*1024*1024);
+  expect(result.scene.geometries).toBe(samples[0].geometries);
+  expect(result.scene.textures).toBe(samples[0].textures);
+ }
+ await page.evaluate(()=>{window.futureMachine.dispose();window.futureMachine.dispose();});
+ expect(await page.locator('.fm-stage canvas').count()).toBe(0);
+ expect(await page.evaluate(()=>window.futureMachine.stats.scene.objects)).toBe(0);
+ expect(errors).toEqual([]);
+ await testInfo.attach('replay-resources.json',{body:JSON.stringify({digest,samples,boundBytes:32*1024*1024},null,2),contentType:'application/json'});
+});

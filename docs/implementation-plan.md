@@ -1003,3 +1003,24 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-106 — replay resource ownership
+
+Next slice: audit Future Machine stage replacement, release all scene-owned GPU
+resources on fallback/disposal, and drop retained frame references. Preserve the
+City adapter, seed/version and model results. Acceptance: 30 sequential normal
+route runs with stable post-GC heap (first warmed run + 32 MiB), non-growing
+geometry/texture counts, identical canonical history digest, and idempotent
+disposal. Scene resources and focused tests owned here; no model/API changes.
+Risks: renderer counters are not GPU byte measurements; Chromium GC measurements
+are local evidence only.
+
+Implemented: recursive deduplicated mesh/grid resource release on rebuild,
+fallback and disposal; explicit WebGL context release including deferred
+completion; missing-frame Canvas clear and disposed-stage reference cleanup.
+Verification: 38 focused tests pass / 215 assertions, 1 opt-in browser skip;
+whitespace check clean. Thirty-run browser regression is added with full-history
+SHA-256 equality, fixed resource counts and post-GC first-sample +32 MiB bound.
+Acceptance remains pending: isolated server cannot bind (EADDRINUSE on 39884
+and alternate 39986 after bypassing package-local Bun setup failure). No memory
+bound measurement claimed. See scene README for command, assumptions and limits.

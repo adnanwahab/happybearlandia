@@ -21,3 +21,38 @@ A temporary localhost harness exercised the module in Chromium with the installe
 ## Remaining integration checks
 
 Coordinator should run the real route with City replay data and verify UI-to-stage wiring, responsive framing, director focus, and 120-month playback. Large imported geometries and Safari/device performance are unmeasured. Current integration uses bounded native WebGPU→WebGL→Canvas rendering, then accessible inventory if all contexts fail. AppleMetal native and desktop390/320 Canvas journeys are verified in the sprint status; Safari/device performance remains unmeasured.
+
+## Replay ownership audit (SHE-106)
+
+A stage owns its meshes, edge buffers, project gauges, grid buffers/materials,
+renderer, controls and effects. Rebuild disposes the prior mesh trees; effects
+first restore the original materials and dispose their private clones. No
+textures are created by the current inventory scene. The disposal helper handles
+shared geometry/material/map references once within a tree, including material
+arrays. It is for stage-owned assets, not externally cached textures.
+
+Fallback now releases both scene grids as well as inventory, removes the context
+listener and relinquishes the WebGL context. Normal disposal does the same and
+clears frame/projection/camera-fit references; deferred renderer completion also
+relinquishes its context. Missing frames clear the Canvas projection and labels.
+No City rules, recipe, persistence contracts or model outputs changed.
+
+Reproduce the acceptance test with:
+`bunx playwright test --config test/future-machine.browser.config.js --grep SHE-106`.
+It runs 30 sequential Fork City actions at seed 42 using the default versioned
+synthetic recipe, compares SHA-256 of both complete normalized histories and
+seed/model version, and samples Chromium heap after explicit CDP garbage
+collection at Month 120. Proposed bound: every sample <= first warmed sample +
+32 MiB; geometry and texture counts must remain equal to the first run. The JSON
+attachment records every sample and digest. Counts are allocation diagnostics,
+not GPU byte measurements; this local default-recipe check makes no Safari,
+WebGPU, maximum-recipe or physical-device claim.
+
+Verification in this restricted checkout: 38 focused tests passed, 1 opt-in
+Chromium test skipped (215 assertions). Browser acceptance is **unverified**:
+Playwright's server initially resolved an uninitialized package-local Bun; a
+throwaway configuration selecting installed Bun then failed to bind both ports
+39884 and 39986 with EADDRINUSE (no listener observed on 39986). Temporary
+configuration was removed. No 30-replay heap measurement or passing browser
+result is claimed. Run the above test on a host able to start the isolated
+server before considering the issue accepted.
