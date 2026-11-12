@@ -86,3 +86,17 @@ test('mission cards are accessible before iframe activation and preserve scope o
   await expect(link).toBeFocused();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
+
+test('fun metrics show honest missing data separately from engineering without collecting', async ({page}) => {
+ await page.goto('/');
+ const player = page.getByRole('region', {name:'Player fun metrics',exact:true});
+ await expect(player).toContainText('SHE-56 privacy sign-off');
+ await expect(player.locator('dt')).toHaveCount(5);
+ await expect(player).toContainText('Skipped feedback is missing, never negative');
+ await expect(page.getByRole('region',{name:'Engineering throughput',exact:true})).toBeVisible();
+ expect(await page.evaluate(()=>localStorage.getItem('hbl.local-journeys.v1'))).toBeNull();
+ await page.getByRole('checkbox',{name:/Count six aggregate/}).check();
+ await expect(player).toContainText('unavailable');
+ await page.getByRole('button',{name:'Reset local counters'}).click();
+ expect(await page.evaluate(()=>localStorage.getItem('hbl.local-journeys.v1'))).toBeNull();
+});

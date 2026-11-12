@@ -1003,3 +1003,21 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Fun Analytics reporting contract — SHE-186
+
+Delivered a bounded homepage reporting slice: five metric definitions with
+explicit numerator/denominator and missing-data states, separate named player
+and engineering panels. Reuses the universe shell and preserves existing opt-in
+local counters. No new collector or identity store; SHE-8 event instrumentation,
+SHE-66 dashboard and reviewed SHE-124 cohorts remain prerequisites. SHE-56 is
+Todo, so privacy approval and live collection are not complete. See
+[definitions, eligibility and privacy handoff](fun-analytics.md).
+
+Acceptance evidence: 9 focused unit/regression tests pass; browser bundle and
+`git diff --check` pass. Added homepage Playwright coverage but execution was
+blocked by server EADDRINUSE on both default3197 and isolated3296; no browser
+verification claimed. Test config accepts an explicit isolated port. Next:
+integrate the existing event/cohort contracts when available, define retention
+with SHE-56, obtain audit sign-off, then connect actual aggregates. SHE-186 remains
+incomplete; no deploy, production mutation, issue completion or audit approval.
