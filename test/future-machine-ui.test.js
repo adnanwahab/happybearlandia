@@ -43,7 +43,7 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('Chromium controls, loading, failure, k
     await page.goto(`http://127.0.0.1:${server.port}`);
     await page.evaluate(async()=>{
       const {createUI}=await import('/world/future-machine/ui/index.js');window.calls=[];
-      window.ui=createUI(document.body,{onConfigure:recipe=>calls.push(['configure',recipe]),onDemo:()=>calls.push(['demo']),onDemoPause:()=>calls.push(['demoPause']),onMetric:key=>calls.push(['metric',key]),onRun:recipe=>calls.push(['run',recipe]),onMonth:month=>calls.push(['month',month]),onPlay:value=>calls.push(['play',value]),onMode:mode=>calls.push(['mode',mode]),onDirector:()=>calls.push(['director']),onShare:()=>calls.push(['share']),onExport:()=>calls.push(['export']),onCancel:()=>calls.push(['cancel'])});
+      window.ui=createUI(document.body,{onReset:()=>calls.push(['reset']),onConfigure:recipe=>calls.push(['configure',recipe]),onDemo:()=>calls.push(['demo']),onDemoPause:()=>calls.push(['demoPause']),onMetric:key=>calls.push(['metric',key]),onRun:recipe=>calls.push(['run',recipe]),onMonth:month=>calls.push(['month',month]),onPlay:value=>calls.push(['play',value]),onMode:mode=>calls.push(['mode',mode]),onDirector:()=>calls.push(['director']),onShare:()=>calls.push(['share']),onExport:()=>calls.push(['export']),onCancel:()=>calls.push(['cancel'])});
       ui.update({status:'idle'});
       document.querySelector('.fm-demo-play').click();
       window.idleDemoEnabled=!document.querySelector('.fm-demo-play').disabled;
@@ -94,7 +94,17 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('Chromium controls, loading, failure, k
     await page.getByRole('button',{name:'Fork City',exact:true}).click();
     expect(await page.evaluate(()=>calls.filter(call=>call[0]==='run').at(-1)[1].intervention.amount)).toBe(24);
     expect(await page.evaluate(()=>calls.filter(call=>call[0]==='run').at(-1)[1].seed)).toBe(4294967295);
+    await page.evaluate(()=>ui.update({originalRecipe:{seed:17,months:120,households:51,intervention:{type:'housing',amount:7,cost:800,districtId:'d1',delay:3,compliance:.5}}}));
+    await seed.fill('invalid');
+    const runCount=await page.evaluate(()=>calls.filter(call=>call[0]==='run').length);
+    await page.getByTestId('future-machine-reset').click();
+    expect(await seed.inputValue()).toBe('17');
+    expect(await seed.getAttribute('aria-invalid')).toBe('false');
+    expect(await page.evaluate(()=>calls.filter(call=>call[0]==='run').length)).toBe(runCount);
+    await page.getByRole('button',{name:'Fork City',exact:true}).click();
+    expect(await page.evaluate(()=>calls.filter(call=>call[0]==='run').at(-1)[1])).toEqual({seed:17,months:120,households:51,intervention:{type:'housing',amount:7,cost:800,districtId:'d1',delay:3,compliance:.5}});
     await page.evaluate(()=>ui.update({status:'loading',message:'Bounded run in progress'}));
+    expect(await page.getByTestId('future-machine-reset').isDisabled()).toBe(true);
     expect(await page.getByRole('button',{name:'Fork City',exact:true}).isDisabled()).toBe(true);
     await page.getByRole('button',{name:'Cancel run',exact:true}).click();
     expect(await page.evaluate(()=>calls.some(call=>call[0]==='cancel'))).toBe(true);

@@ -45,3 +45,14 @@ Focused browser evidence is component-only: `/tmp/future-machine-ui-semantic-mob
 `onConfigure(recipe)` is additive and receives a detached configured recipe on valid seed changes or policy edits. The visible **Seed for next run** field (`data-testid="future-machine-seed"`) accepts decimal uint32 integers including 0 and 4294967295. Empty, nonnumeric, fractional, negative and out-of-range input remains visible with an error, never becomes zero, never dispatches configuration and blocks Fork City through native validity. `onRun(recipe)` receives the configured recipe, not the displayed run recipe. Busy runs disable seed editing.
 
 Pending edits survive ordinary `update` calls, including repeated old `recipe` values on timeline/inspection updates. A recipe matching valid pending configuration acknowledges it; a changed nonempty experiment ID plus an explicit recipe replaces it for a newly displayed run. The run provenance reads `provenance` or the coordinator's displayed `recipe`, never the pending seed. The coordinator owns validation/persistence and must keep saved history/share URLs tied to the actual run, supplying recipe and experiment ID when switching runs. No main/shared contract changes are included.
+
+## SHE-88 reset
+
+`onReset()` and `originalRecipe` are additive coordinator contracts. The original
+is the page-entry shared recipe or DEFAULT_RECIPE and remains fixed across forks.
+Reset to original clears invalid seed text and restores the complete detached
+recipe, including null policy and nonvisible fields. It does not run a simulation.
+The coordinator preserves displayed history, provenance, evidence export and share
+URL until Fork City completes a replacement. Reset is disabled while busy and
+without an onReset callback. Reloading a shared comparison establishes that
+comparison's recipe as the new original.

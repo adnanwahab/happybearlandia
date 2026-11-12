@@ -12,11 +12,12 @@ import { createShareURL, parseShareURL, createEvidenceReport, assertHistoryIdent
 
 const app=document.querySelector('#app');
 let inspectorEntity=null,outcomeTimeline=null;
+let originalRecipe=structuredClone(DEFAULT_RECIPE);
 let history=null,diffs=[],story=null,stage=null,storyDispose=()=>{},request=null,playTimer=null,disposed=false;
 let state={status:'idle',message:'Fork the same city. Change one decision. Watch ten modeled years.',recipe:structuredClone(DEFAULT_RECIPE),month:0,playing:false,mode:'split',ghosts:true,experimentId:null,shareURL:null,error:null};
 const stats={startedAt:performance.now(),readyMs:null,runMs:null};
 app.replaceChildren();
-const ui=createUI(app,{onRun:run,onConfigure:configure,onCancel:cancel,onMonth:manualMonth,onPlay:manualPlay,onDemo:playDemo,onDemoPause:()=>director.togglePause(),onMetric:explainMetric,onMode(mode){state.mode=mode;stage?.setMode(mode);update();},onGhosts(value){state.ghosts=value;stage?.setGhosts(value);update();},onDirector:direct,onShare:share,onExport:exportReport});
+const ui=createUI(app,{onRun:run,onConfigure:configure,onReset:resetConfiguration,onCancel:cancel,onMonth:manualMonth,onPlay:manualPlay,onDemo:playDemo,onDemoPause:()=>director.togglePause(),onMetric:explainMetric,onMode(mode){state.mode=mode;stage?.setMode(mode);update();},onGhosts(value){state.ghosts=value;stage?.setGhosts(value);update();},onDirector:direct,onShare:share,onExport:exportReport});
 const outcomeHost=document.createElement("div");ui.stageElement.after(outcomeHost);
 stage=createStage(ui.stageElement,{onSelect:select});
 stage.setMode(state.mode);stage.setGhosts(state.ghosts);
@@ -33,7 +34,8 @@ async function playDemo(){const generation=++demoGeneration;director.stop();stat
 function explainMetric(key,stop=true){if(!history)return;if(stop){demoGeneration++;director.stop();setPlaying(false);}const source={homes:'housingUnits',commute:'meanTravelMinutes',spending:'capitalSpending'}[key]||key;const metric=diffs[state.month]?.metrics?.[source];const changed=diffs[state.month]?.entities?.filter(e=>e.physical)||[];const entity=changed.find(e=>e.collection==='buildings')||changed[0];const details=entity?entityDescription({collection:entity.collection,id:entity.id}):{evidence:[],limitations:[]};showStory(withContext({...details,title:`WHY · ${source} · Month ${state.month}`,summary:`WITHOUT PLAN ${metric?.baseline??'unavailable'}; WITH PLAN ${metric?.plan??'unavailable'}; delta ${metric?.delta??'unavailable'} ${metric?.unit??''}. ${details.summary||'No related physical entity event is recorded at this selected month.'} Housing supply changes when the City construction model completes a funded project; entitlement alone does not create homes. Link travel time is a coarse modeled network mean, not individual commute. Spending is cumulative recorded capital expense.`}));}
 
 function configure(recipe){try{state.recipe=validateRecipe(recipe);state.error=null;state.message=history?`Next run configured with seed ${state.recipe.seed}. Displayed results and shared link still refer to saved seed ${history.seed}.`:`Configured seed ${state.recipe.seed}. Fork City runs two matched futures.`;update();}catch(error){state.error=error.message;update();}}
-function update(){if(!disposed){ui.update(state);outcomeTimeline?.update(state.month);}}
+function resetConfiguration(){if(state.status==='loading')return;state.recipe=structuredClone(originalRecipe);state.error=null;state.message='Original seed and policy restored. Displayed results, evidence and share link are unchanged. Click Fork City to rerun.';update();}
+function update(){if(!disposed){ui.update({...state,originalRecipe});outcomeTimeline?.update(state.month);}}
 function cancel(){demoGeneration++;director.stop();request?.abort();request=null;setPlaying(false);state.status=history?'ready':'idle';state.error=null;state.message='Run cancelled. Any completed comparison remains available.';update();}
 function frame(){return history?getFrame(history,state.month):null;}
 function showStory(description){storyDispose();const clean=renderStory(ui.storyElement,description,{onJump:jump})||(()=>{});const entity=description.entity;inspectorEntity=entity??null;const trailClean=history&&entity?.id?renderEvidenceTrail(ui.storyElement,history,{...entity,month:state.month},{onJump:jump}):()=>{};storyDispose=()=>{clean();trailClean();};}
@@ -69,4 +71,4 @@ window.addEventListener('pageshow',event=>{if(event.persisted&&disposed)location
 // Read-only diagnostics for local resource measurements and integration checks.
 window.futureMachine={get history(){return history;},get state(){return {...state};},get stats(){return {...stats,scene:stage?.getStats?.()};},dispose};
 update();
-try{const context=parseShareURL(location.href);if(context)void run(context.recipe,context.experimentId,context.month);else if(new URLSearchParams(location.search).get('demo')==='1')void playDemo();}catch(error){state.status='error';state.error=`Invalid shared comparison: ${error.message}`;state.message='Use Fork City to start a valid bounded comparison.';update();}
+try{const context=parseShareURL(location.href);if(context){originalRecipe=structuredClone(context.recipe);update();void run(context.recipe,context.experimentId,context.month);}else if(new URLSearchParams(location.search).get('demo')==='1')void playDemo();}catch(error){state.status='error';state.error=`Invalid shared comparison: ${error.message}`;state.message='Use Fork City to start a valid bounded comparison.';update();}

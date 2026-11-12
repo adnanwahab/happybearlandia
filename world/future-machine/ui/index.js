@@ -150,6 +150,18 @@ export function createUI(container, callbacks = {}) {
     return true;
   }
   seedInput.oninput=configureSeed;
+  const reset=doc.createElement('button');reset.type='button';reset.textContent='Reset to original';reset.dataset.testid='future-machine-reset';
+  reset.title='Restore the original seed and policy. Keep displayed results; Fork City reruns on demand.';
+  reset.onclick=()=>{
+    if(reset.disabled)return;
+    recipe=structuredClone(current.originalRecipe || DEFAULT_RECIPE);configurationDirty=false;
+    defaultIntervention=structuredClone(recipe.intervention || DEFAULT_RECIPE.intervention);
+    seedInput.value=String(recipe.seed);seedInput.setCustomValidity('');seedInput.setAttribute('aria-invalid','false');seedError.hidden=true;
+    callbacks.onReset?.();
+    update({});
+  };
+  shell.querySelector('.fm-setup').append(reset);
+
 
   const storyElement=doc.createElement('section');storyElement.className='fm-story';storyElement.dataset.testid='future-machine-why';storyElement.setAttribute('aria-label','Recorded change story');shell.querySelector('.fm-inspectors').after(storyElement);
   const actions=shell.querySelector('.fm-timeline .fm-actions');
@@ -175,7 +187,7 @@ export function createUI(container, callbacks = {}) {
         if(recipe.intervention)defaultIntervention=structuredClone(recipe.intervention);
       }
     }
-    const busy=['loading','running','queued'].includes(current.status);seedInput.disabled=busy;
+    const busy=['loading','running','queued'].includes(current.status);seedInput.disabled=busy;reset.disabled=busy || !callbacks.onReset;
     const demoState=current.demo || {};
     const demoActive=['playing','running','paused','preparing','loading'].includes(demoState.status);
     demo.disabled=busy || !callbacks.onDemo;demo.textContent=demoActive?'Restart Demo':'Play Demo';
@@ -204,5 +216,5 @@ export function createUI(container, callbacks = {}) {
     shareLink.hidden=!current.shareURL;
     if(current.shareURL){try{const url=new URL(current.shareURL,doc.baseURI);if(['http:','https:'].includes(url.protocol))shareLink.href=url.href;else{shareLink.removeAttribute('href');shareLink.hidden=true;}}catch{shareLink.removeAttribute('href');shareLink.hidden=true;}}
   }
-  return {stageElement:view.stage,storyElement,update,dispose(){seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
+  return {stageElement:view.stage,storyElement,update,dispose(){reset.onclick=null;seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
 }

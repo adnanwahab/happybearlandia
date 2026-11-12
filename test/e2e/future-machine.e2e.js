@@ -79,3 +79,32 @@ test('largest supported recipe stays bounded across scrubs and releases scene re
  await page.goto('/world/future-machine.html?fm=invalid&month=121');await page.goBack({waitUntil:'domcontentloaded'});await ready(page);expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);
  await page.evaluate(()=>window.futureMachine.dispose());expect(await page.evaluate(()=>window.futureMachine.stats.scene.objects)).toBe(0);expect(await page.locator('.fm-ui').count()).toBe(0);
 });
+
+test('reset restores entry recipe, preserves prior receipt, and reruns only on demand',async({page},testInfo)=>{
+ await page.goto('/world/future-machine.html?renderer=canvas2d');
+ const seed=page.getByTestId('future-machine-seed'),reset=page.getByTestId('future-machine-reset');
+ const fork=page.getByRole('button',{name:'Fork City',exact:true});
+ await seed.fill('99');await page.getByRole('combobox',{name:'Plan',exact:true}).selectOption('baseline');
+ await fork.click();await ready(page);
+ const prior=await page.evaluate(()=>({id:futureMachine.history.experimentId,recipe:structuredClone(futureMachine.history.recipe),url:location.href}));
+ await seed.fill('invalid');await reset.click();
+ await expect(seed).toHaveValue('42');await expect(seed).toHaveAttribute('aria-invalid','false');
+ await expect(page.getByRole('combobox',{name:'Plan',exact:true})).toHaveValue('housing');
+ expect(await page.evaluate(()=>({id:futureMachine.history.experimentId,recipe:futureMachine.history.recipe,url:location.href}))).toEqual(prior);
+ await page.getByRole('button',{name:'Share comparison',exact:true}).click();
+ const downloadEvent=page.waitForEvent('download');await page.getByRole('button',{name:'Export evidence',exact:true}).click();
+ const download=await downloadEvent;await download.saveAs(testInfo.outputPath('prior-experiment-receipt.json'));
+ await fork.click();await ready(page);
+ expect(await page.evaluate(()=>futureMachine.history.recipe)).toEqual((await import('../../world/future-machine/contracts.js')).DEFAULT_RECIPE);
+ expect(await page.evaluate(()=>futureMachine.history.experimentId)).not.toBe(prior.id);
+ const defaultMetrics=await page.evaluate(()=>futureMachine.history.plan[120].metrics);
+ await seed.fill('123');await reset.click();await fork.click();await ready(page);
+ expect(await page.evaluate(()=>futureMachine.history.plan[120].metrics)).toEqual(defaultMetrics);
+ // A shared custom recipe becomes this page's original, including a null policy.
+ await page.goto(prior.url);await ready(page);await seed.fill('0');
+ await page.getByRole('combobox',{name:'Plan',exact:true}).selectOption('housing');await fork.click();await ready(page);
+ await reset.click();await expect(seed).toHaveValue('99');
+ await expect(page.getByRole('combobox',{name:'Plan',exact:true})).toHaveValue('baseline');
+ expect(await page.evaluate(()=>futureMachine.state.recipe)).toEqual(prior.recipe);
+ await testInfo.attach('reset-recipe-evidence',{body:JSON.stringify({prior,restored:await page.evaluate(()=>futureMachine.state.recipe),defaultMetrics},null,2),contentType:'application/json'});
+});

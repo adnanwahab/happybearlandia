@@ -1003,3 +1003,30 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-88 — restore original experiment configuration
+
+Next slice: add one-click reset in the Future Machine's existing pending seed/
+policy controls. Original means the recipe at page entry (the shared recipe when
+present, otherwise DEFAULT_RECIPE), retained across subsequent forks. Restore all
+recipe fields, clear invalid seed input and update controls without running or
+replacing the displayed receipt. Fork City explicitly reruns the restored input.
+Prerequisites: existing detached pending configuration and immutable saved history.
+Acceptance: default/custom/null-policy baselines, repeated edits/runs, invalid input,
+busy disablement, unchanged receipt/share/export until explicit run, seed-matched
+recomputation. Keep model, persistence and receipt schemas unchanged. One small
+coordinator/UI slice; no independent implementation ownership to delegate.
+
+Delivered: reset button, coordinator-owned entry baseline, control/validity restore,
+and on-demand rerun; existing history/share/export remain tied to the prior run.
+Audit found no existing reset or matching open GitHub issue/PR via repository
+search; local issue branch mini/SHE-88 was clean before changes. Documentation
+records original as page-entry recipe rather than the latest edited run.
+Verification: 23 focused tests passed / 207 assertions, 1 opt-in browser test
+skipped; whitespace check passed. Explicit component browser attempt failed at
+Bun.serve(port:0), and integrated Playwright attempt failed starting port 39884
+(EADDRINUSE). Thus new browser reset regression is added but not executed;
+no browser acceptance or captured run artifact is claimed. The browser regression
+exports the preserved prior receipt and attaches recipe/result evidence when run.
+Remaining: run the focused Playwright reset test in an environment allowing local
+server binding; review and host-owned commit/PR publication. No deployment.
