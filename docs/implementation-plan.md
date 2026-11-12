@@ -1,5 +1,18 @@
 # HappyBearLandia implementation plan
 
+## Station crowd inspection — SHE-134
+
+Dispatch readiness audited on 2026-11-12; see the
+[source evidence and proposed integrated slice](reviews/she-134-station-dispatch.md).
+Feature implementation remains pending: Linear records SHE-145 (Architecture C)
+as a Todo blocker, and the current Population model has no station timetable or
+microscopic queue history. Reuse existing raw/represented flow semantics, but
+require an executed station event producer before implementing the inspector.
+The review records overlap with SHE-132/SHE-156 and proposed ownership,
+prerequisites, interval/queue invariants and repeatable 1000x scrub acceptance.
+No station feature or performance acceptance has been verified. Next action is
+coordinator dispatch review and shared event-interface ownership.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
