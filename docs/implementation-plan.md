@@ -1003,3 +1003,37 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Cinematic Game Director — SHE-183
+
+Next slice: read-only deterministic selection over Future Machine's existing City
+history, separate narrative presentation, and an accessible moment library with
+skip, replay and exact source inspection. Prerequisite: recorded monthly events
+and decisions; no simulator hooks or changes to House's active Story Director.
+Selection uses versioned editorial rules, stable arm/month/source identities,
+explicit dependencies only for chains, and authored interpretations for goal
+tradeoffs. Missing sources/dependencies remain unavailable. Acceptance: frozen
+input and seed replay tests, arm-scoped provenance, no fabricated chains, UI
+skip/replay/source controls and existing story regressions. Coordinator owns this
+small dependent slice; no independent implementation work warrants delegation.
+Risks: City workers are not Population characters; City decisions have no event
+IDs, so they retain exact decision record references instead. Goal tradeoffs are
+narrative interpretation, not newly modeled player goals or causal conclusions.
+
+Delivered increment: versioned read-only selector and separate narrative renderer
+are integrated into `/world/future-machine.html`. Optional text cutscene cards,
+observation quests, skip/replay and exact source inspection use the shared
+recorded month navigation. Tests verify frozen input, real seed-matched replay,
+scoped IDs, selection bounds, missing/cyclic/future dependency rejection, empty
+history, DOM controls and listener cleanup. Actual integration gate:
+`bun test test/game-director.test.js test/future-machine-*.test.js` — 100 passed,
+3 existing browser-dependent skips, 0 failures (970 assertions). Playwright
+attempts on 3100 and alternate 34183 both failed server startup with EADDRINUSE;
+no actual browser pass is claimed. Focused browser regression is retained in
+`test/e2e/game-director.e2e.js`; rerun it when local server binding is available.
+No lint/typecheck script exists in package.json. No deployment or production
+mutation. Remaining model limitations: no City dependency edges for real chain
+moments, no player-goal registry, and job decisions lack event IDs. These are
+explicit in the UI and module README; completing those broader semantics needs
+producer contracts rather than invented evidence. This is an integrated City
+presentation slice, not full cross-simulator cinematic coverage.

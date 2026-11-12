@@ -9,3 +9,34 @@ The coordinator handles `onJump(stop)` by setting the shared month, updating bot
 Receipts associate events only by exact entity references and the selected month. District events do not become household/building causes. IDs remain scoped by baseline/plan because City event IDs can collide between arms. Receipt payload, model version, and supplied dependencies are preserved; missing dependencies are disclosed, never inferred from temporal proximity. Narration is labeled interpretation separately from recorded events. Household comparisons use exact monthly City household and reciprocal unit assignment IDs; unavailable rent and missing households remain null, including in deltas. No Population or native House identity is inferred.
 
 Verification: `bun test test/future-machine-story.test.js` covers first/large/zero differences, stable ordering, invalid and missing months, absent/ambiguous mappings, missing events, event arm identity and dependencies, exact household IDs, missing observations, text-safe DOM rendering, jump/disposal behavior, and a real seed-matched 120-step City pair with immutable Month 0 and Month 120. Browser entry-point integration belongs to the coordinator; no standalone route is owned by this worker. No interface changes requested.
+
+## Cinematic Game Director (SHE-183)
+
+Future Machine also mounts a separate optional moment library after a completed
+run. `game-director.js` selects copied records using `cinematic-city.v1`, with no
+simulator imports, writes, random draws, or action callbacks. Inputs are the same
+versioned arm/month histories as the stage. Output preserves run, seed, model,
+arm, month and source identity. At most 24 moments are selected: reserve the
+first available moment of each kind, fill chronologically with arm/source ties,
+and suppress repeated entity/type moments. Construction start, topping and
+completion are distinct milestones. Job-match decisions use City worker IDs;
+there is no implied House/Population mapping or importance/welfare estimate.
+
+`moment-narrative.js` separately authors optional observation quests, text
+cutscene cards and explanations. Skip hides a card, replay reveals it and jumps
+to its recorded month, and Inspect source opens the exact copied record. These
+controls never rerun or command the model; every selected card remains replayable
+until another run replaces the library. Disposal removes all listeners. There
+are no automatic pauses, rewards, generated dialogue or invented outcomes.
+
+City job decisions lack event IDs, so provenance uses arm/month/decision index
+and actor ID rather than fabricating an event. Construction and constraint
+moments retain their original event IDs. Chains require explicit dependencies
+on strictly earlier events in the same arm; City currently emits no such causal
+edges, so the normal City run does not claim a surprising chain. Missing edges
+remain unavailable. Budget/affordability conflicts are labeled authored goal
+tradeoffs, since this model has no recorded player-goal registry. Extending these
+two categories requires producer evidence contracts, not inferred causality.
+
+Checks: `bun test test/game-director.test.js test/future-machine-*.test.js`.
+Browser coverage: `bunx playwright test test/e2e/game-director.e2e.js`.
