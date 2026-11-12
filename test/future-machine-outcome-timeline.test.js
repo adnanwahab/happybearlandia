@@ -14,7 +14,7 @@ test('reject unsupported metrics, duplicate months and invalid horizons',()=>{
 test.skipIf(!process.env.HBL_FM_BROWSER)('renderer-independent outcome timeline works at 320px, keyboard and missing observations',async()=>{
   const {chromium}=await import(process.env.HBL_PLAYWRIGHT_MODULE||'@playwright/test');
   const root=new URL('../',import.meta.url).pathname;
-  const server=Bun.serve({port:0,fetch(request){const path=new URL(request.url).pathname;if(path==='/')return new Response('<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><body style="margin:0;background:#091522">',{headers:{'content-type':'text/html'}});if(!['/world/future-machine/ui/outcome-timeline.js','/world/future-machine/contracts.js','/world/city/contracts.js'].includes(path))return new Response('',{status:404});return new Response(Bun.file(root+path));}});
+  const server=Bun.serve({port:0,fetch(request){const path=new URL(request.url).pathname;if(path==='/')return new Response('<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><body style="margin:0;background:#091522">',{headers:{'content-type':'text/html'}});if(!['/world/future-machine/ui/outcome-timeline.js','/world/future-machine/ui/household-timeline.js','/world/future-machine/ui/model.js','/world/future-machine/contracts.js','/world/city/contracts.js'].includes(path))return new Response('',{status:404});return new Response(Bun.file(root+path));}});
   let browser;
   try{
     browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:320,height:720},reducedMotion:'reduce'});page.setDefaultTimeout(5000);
@@ -22,8 +22,13 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('renderer-independent outcome timeline 
     await page.evaluate(async()=>{
       const {createOutcomeTimeline}=await import('/world/future-machine/ui/outcome-timeline.js');window.months=[];
       const arm=plan=>Array.from({length:121},(_,month)=>({month,metrics:{housingUnits:month===4?null:30+(plan&&month>=16?24:0),meanRent:plan?999.123456789:1000,capitalSpending:plan?1000000:0}}));
+      window.householdHistory={seed:42,modelVersion:'v1',experimentId:'test-run',baseline:[0,1,3].map(month=>({month,state:{month,version:'v1',seed:42,households:[{id:'h1',income:2000,savings:month}],units:[]}})),plan:[0,1,3].map(month=>({month,state:{month,version:'v1',seed:42,households:[{id:'h1',income:2000,savings:month*2}],units:[]}}))};
+      const {createHouseholdTimeline}=await import('/world/future-machine/ui/household-timeline.js');window.household=createHouseholdTimeline(document.body,{history:householdHistory,onMonth:month=>months.push(month)});
       window.timeline=createOutcomeTimeline(document.body,{history:{baseline:arm(false),plan:arm(true)},onMonth:month=>months.push(month)});
     });
+    await page.getByRole('button',{name:'Next household change',exact:true}).last().click();expect(await page.evaluate(()=>months.at(-1))).toBe(1);
+    await page.evaluate(()=>household.update(2));expect(await page.getByRole('region',{name:'Household change timeline'}).last().textContent()).toContain('Unavailable');
+    await page.evaluate(()=>household.dispose());
     expect(await page.locator('canvas').count()).toBe(0);
     expect(await page.evaluate(()=>{const point=document.querySelector('svg circle');timeline.update(0);return point===document.querySelector('svg circle');})).toBe(true);
     await page.getByRole('combobox',{name:'Outcome series mode'}).selectOption('delta');

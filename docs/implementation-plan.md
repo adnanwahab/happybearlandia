@@ -1003,3 +1003,33 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-139 — synchronized household changes
+
+In progress: extend the existing Future Machine outcome timeline with an exact-ID
+household selector, paired monthly observations, and previous/next recorded change
+navigation through the coordinator's shared month callback. Ownership: new
+`ui/household-timeline.js`, its focused test, outcome-timeline composition and UI
+documentation only. No engine, storage, Population identity or clock changes.
+Dependency SHE-142 is Done (PR #50). Backlog audit found SHE-130's week-following
+scope and GH #15's general comparison UI; existing Timeline Braids compares sparse
+Population saves, while this slice uses only the monthly City pair. GitHub search
+found no dedicated household timeline PR. Acceptance: gaps never carry state,
+exact household/unit IDs and run/seed/version remain visible, both arms jump using
+one month, deterministic change detection, native keyboard controls and disposal.
+Risk: observations are recomputed history, and changes are observational, not
+causal events. Dispatch review remains required before publication/merge.
+
+Implemented locally: household selector, paired observations at the shared month,
+previous/next adjacent recorded changes, exact-month change table, provenance
+validation and disposal. The parent outcome timeline composes the module, so the
+normal Future Machine run/reopen path uses it without a second clock or engine.
+Verification: existing UI/outcome/data/diff/paired selection passed 26 tests,
+2 browser tests skipped by default, 183 assertions. The new household suite then
+passed 3/3 with 17 assertions, including a real 12-month City-engine matched pair
+and deterministic rerun. `git diff --check` passed. Explicit browser attempt
+failed before browser launch: Bun.serve({port:0}) returned EADDRINUSE in both
+existing browser suites under this sandbox. Browser layout, keyboard and full
+integrated app interaction remain unverified; expanded component smoke is ready
+for a host with local port binding. No screenshot is claimed. No production
+changes, merge or deployment. Next: host browser verification and dispatch review.
