@@ -1003,3 +1003,35 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-94 — synchronized camera bookmark
+
+Slice: add session-local Save view / Restore view to the existing paired scene.
+Prerequisites: existing shared Three camera and shared Canvas camera; no model or
+shared recipe contract changes. Acceptance: restore target, distance/zoom and
+orientation after navigation, scrubbing, resizing and mode changes; empty and
+unavailable/disposed stages cannot restore. Stop guided camera movement before
+bookmark actions. Keep the bookmark within one stage/run and disclose its lifetime.
+Risk: GPU-to-Canvas fallback cannot preserve a 3D orbit; invalidate that bookmark
+rather than applying an incompatible pose.
+
+Implemented in `scene/index.js`, with coordinator tour cancellation in `main.js`
+and lifecycle/API documentation in `scene/README.md`. No model, server, frozen
+interface or recipe changes. Audit: current checkout is isolated `mini/SHE-94`;
+no existing bookmark implementation or bookmark commit found locally. Connected
+GitHub issue/PR searches for this repository and “bookmark” returned no matches;
+branch search for “94” returned only `mini/SHE-194`. Full Linear SHE-94 description
+was read; no readiness label, issue status, release or production changes made.
+
+Verification: `bun test test/future-machine-*.test.js` passed 98 tests, 962
+assertions, with 3 existing opt-in browser skips and no failures. The new two
+stage tests cover real stage/Canvas integration using a DOM adapter, replacement,
+no-save/missing-frame/inventory/disposed cases, and new-stage reset. Existing tests
+verify shared camera geometry across both Canvas halves. `git diff --check`
+passed. No lint/typecheck scripts exist. The two new Canvas/WebGL route tests
+are discoverable with Playwright `--list`, but execution failed before tests at
+server bind (`EADDRINUSE`) on ports 3100, 3194 and 49194. Native 3D rotation,
+responsive layout and real route tour cancellation remain browser-unverified;
+next action is to run `test/e2e/future-machine-bookmark.e2e.js` on a host with
+working server binding. Bookmark is intentionally session-local, not persisted
+or shared. No commit/PR was created in this session.

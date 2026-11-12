@@ -18,12 +18,13 @@ const stats={startedAt:performance.now(),readyMs:null,runMs:null};
 app.replaceChildren();
 const ui=createUI(app,{onRun:run,onConfigure:configure,onCancel:cancel,onMonth:manualMonth,onPlay:manualPlay,onDemo:playDemo,onDemoPause:()=>director.togglePause(),onMetric:explainMetric,onMode(mode){state.mode=mode;stage?.setMode(mode);update();},onGhosts(value){state.ghosts=value;stage?.setGhosts(value);update();},onDirector:direct,onShare:share,onExport:exportReport});
 const outcomeHost=document.createElement("div");ui.stageElement.after(outcomeHost);
-stage=createStage(ui.stageElement,{onSelect:select});
+stage=createStage(ui.stageElement,{onSelect:select,onCameraInteraction:stopCameraTour});
 stage.setMode(state.mode);stage.setGhosts(state.ghosts);
 
 // Guided presentation changes the selected recorded frame, never the simulation.
 let demoGeneration=0;
 const director=createDemoController({onMonth:month=>{if(month!==state.month)setMonth(month);},onHighlight(stop){stage.focus(stop.entity,{animate:true});showStory(withContext(entityDescription(stop.entity)));},onExplain(){if(!state.demoExplained){state.demoExplained=true;explainMetric('homes',false);}},onState(demo){state.demo=demo;update();}});
+function stopCameraTour(){demoGeneration++;director.stop();setPlaying(false);}
 function manualMonth(month){demoGeneration++;director.stop();setPlaying(false);setMonth(month);}
 function manualPlay(value){demoGeneration++;director.stop();setPlaying(value);}
 function withContext(description){return {...description,summary:`${description.summary} Run ${history?.experimentId??'unavailable'} · ${history?.modelVersion??'unavailable'} · seed ${history?.seed??'unavailable'} · Month ${state.month}. Intervention: ${history?.recipe.intervention?`${history.recipe.intervention.type}, proposed amount ${history.recipe.intervention.amount}, district ${history.recipe.intervention.districtId}, ${history.recipe.intervention.cost.toLocaleString('en-US')} illustrative USD`:'none (matched control)'}.`,limitations:[...(description.limitations||[]),'Synthetic, uncalibrated City model; a controlled model contrast is not empirical causal certainty.']};}
@@ -54,7 +55,7 @@ async function run(recipe=state.recipe,savedId=null,selectedMonth=0){
     else loaded=await createExperiment(recipe,options);
     if(disposed||request!==current)return;
     assertHistoryIdentity(loaded,{recipe,experimentId:fallback?null:savedId});
-    stage.dispose();stage=createStage(ui.stageElement,{onSelect:select,history:loaded});stage.setMode(state.mode);stage.setGhosts(state.ghosts);
+    stage.dispose();stage=createStage(ui.stageElement,{onSelect:select,onCameraInteraction:stopCameraTour,history:loaded});stage.setMode(state.mode);stage.setGhosts(state.ghosts);
     inspectorEntity=null;outcomeTimeline?.dispose();outcomeTimeline=createOutcomeTimeline(outcomeHost,{history:loaded,onMonth:manualMonth});
     history=loaded;diffs=compareHistory(history);story=buildStory(history,diffs);story.limitations.push(...(history.baseline[0].state.provenance.assumptions||[]));stats.runMs=performance.now()-start;
     state={...state,status:'ready',recipe:history.recipe,provenance:{seed:history.seed,modelVersion:history.modelVersion,experimentId:history.experimentId},experimentId:history.experimentId,message:`${fallback?'Saved record unavailable; reran the versioned recipe. ':''}120 months complete · detailed states recomputed from the saved monthly City manifest. Synthetic, uncalibrated model.`,error:null};

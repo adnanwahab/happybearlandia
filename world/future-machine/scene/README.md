@@ -21,3 +21,27 @@ A temporary localhost harness exercised the module in Chromium with the installe
 ## Remaining integration checks
 
 Coordinator should run the real route with City replay data and verify UI-to-stage wiring, responsive framing, director focus, and 120-month playback. Large imported geometries and Safari/device performance are unmeasured. Current integration uses bounded native WebGPU→WebGL→Canvas rendering, then accessible inventory if all contexts fail. AppleMetal native and desktop390/320 Canvas journeys are verified in the sprint status; Safari/device performance remains unmeasured.
+
+## Comparison camera bookmark (SHE-94)
+
+The stage exposes native **Save view** and **Restore view** controls. Both arms
+render through the same camera, so restoring applies the same target, orbit
+position, rotation quaternion and zoom to both 3D panels. Canvas restores its
+shared x/z target and zoom; its orientation is fixed. Camera bookmarks do not
+change the selected month, comparison mode, run data or share URL.
+
+`saveCameraBookmark()` / `restoreCameraBookmark()` return false when unavailable.
+`getCamera()` returns a detached snapshot; 3D snapshots now also include
+`quaternion` and `zoom`. Optional `onCameraInteraction()` lets the coordinator
+stop its guided tour/playback before either bookmark action. Saving freezes an
+active focus transition at the current pose; restoring cancels that transition.
+One bookmark lives in the current stage only, is replaced by another save, and
+clears on a new comparison, reload, disposal or GPU-to-Canvas fallback. Inventory
+fallback has no camera bookmark. Controls announce save/restore status and are
+disabled before graphics/frame readiness or before a first save.
+
+`bun test test/future-machine-bookmark.test.js` exercises the real stage with a
+DOM/Canvas adapter, including replacement, detached state, timeline/mode changes,
+missing frames, disposal and inventory fallback. The route-level Playwright test
+is `test/e2e/future-machine-bookmark.e2e.js` (Canvas and WebGL); execution requires
+a host that can bind the application servers.
