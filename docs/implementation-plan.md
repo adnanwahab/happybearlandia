@@ -1003,3 +1003,29 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-143 Architecture A spike (2026-11-12)
+
+Owned isolated workspace: `workspaces/SHE-143`, branch `mini/SHE-143`.
+Slice: standalone synthetic integer SoA state-transition compute, immutable CSR
+spatial index, CPU reference, browser benchmark export at 10k/100k/1M.
+Tasks: implement deterministic bounded contacts; verify replay/boundaries; measure
+GPU/CPU parity and feasibility; document commands, source, limits and results.
+Acceptance: per-tick updated rows, directed contacts, timestamp GPU duration (or
+explicitly unavailable), allocated GPU bytes (not physical VRAM), 10k mismatches,
+adapter/machine/seed/version, and observed scale outcomes. No render instances.
+Risks: scalar prerequisite is Done in Linear but absent in this base; this spike
+uses a distinct oracle and does not claim SHE-142 equivalence. Fixed positions
+exclude movement/index rebuild costs; dense-cell truncation limits fidelity.
+No dispatch, merge or deployment. Existing metric fixture remains read-only.
+
+SHE-143 actual status: working research increment implemented in
+`world/microagents/`, with CPU tests and CLI/browser benchmark runners.
+11 tests / 477 assertions passed (including metric regressions); diff whitespace
+check passed. Bounded 10k CPU record: all rows changed, 79,912 directed contacts
+per tick across three ticks. GPU/browser verification blocked by denied HTTP bind
+and Chrome SIGABRT; acceptance remains open for GPU parity, pass timing, adapter
+limits and 100k/1M feasibility. Strict state-changing pairwise-event evidence is
+not implemented; contact evaluations are explicitly distinguished. See
+[spike report](architecture-a-spike.md) for methods, limitations and commands.
+No PR, commit, dispatch, merge or deployment performed.
