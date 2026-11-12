@@ -1003,3 +1003,28 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-145 Architecture C spatial event spike
+
+Delivered standalone synthetic end-to-end slice: per-tile queues, deterministic
+head coordinator, adjacent atomic handoff, local energy contacts, executable CLI,
+independent scalar oracle tests and recorded 10k/100k/1M distributed/hot evidence.
+Owned source: world/spatial-events/, scripts/benchmark-spatial-events.js,
+test/spatial-events.test.js and docs/spatial-events.md plus its evidence JSON.
+Prerequisites: SHE141 metric contract present; SHE142 marked Done remotely but
+scalar source absent in this checkout; SHE171 shared runner still Todo. Existing
+isolated mini/SHE-145 branch used. GitHub PR audit blocked by network access.
+Acceptance: scheduled/processed contacts, queue depths, late events and event
+ordering hash exported; six measured runs assert zero duplicate/lost/teleported
+agents, conserved bounded resources and no late events. Focused independent
+oracle, scheduler comparison, deterministic evidence replay and invalid CLI path
+verify the slice. No browser behavior changed; Playwright inapplicable.
+Limits/decisions: synthetic ring/time/contacts, single-threaded coordinator,
+32-bit regression hashes and no retained event trace; no production model or
+shared-runner integration. Evidence and reproducible commands are in
+[spatial spike report](spatial-events.md). Next: integrate actual prerequisites
+and causal trace before scientific/production or architecture-ranking claims.
+Actual verification: Bun1.4.2 focused suite12pass/0fail/379assertions in4.57s;
+invalid-count CLI exited1; git diff --check passed. AppleM4 1M runs measured
+2299.77ms distributed/1764.45ms hot including setup and invariant scans. No
+repository lint/typecheck command is defined for this JavaScript research slice.
