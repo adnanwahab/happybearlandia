@@ -15,3 +15,21 @@ The command checks SQLite integrity, snapshots each database with `VACUUM INTO` 
 Restore with writers stopped: copy `backup/city` to a new private City directory and `backup/reality-shares.sqlite` to a new private share path, point the environment variables to those paths, then start the server. Check the original experiment status, replay, and a share read before traffic returns. Keep the previous storage untouched for rollback. Restrict backup permissions and keep copies off the single database-owning Machine.
 
 Local acceptance is covered by `bun test test/future-machine-storage.test.js`: 120 finance records, immutable initial manifest, CityStore close/reopen, SQLite export integrity, share close/reopen and restored backup. Remaining release gates: actual mounted volume and free space, stopped-writer migration, off-host backup/restore rehearsal, capacity and rate controls appropriate to public traffic, and explicit deployment approval. No production deployment or production data change was performed.
+
+### City save compatibility
+
+New City experiment manifests carry `saveFormatVersion:1` independently of the
+simulation `version`. `world/city/save-format.js` defines the v0 (unversioned)
+to v1 migration. Migration adds metadata only, on a clone at read time, and
+returns a receipt in experiment GET and replay responses. It does not rewrite
+either persisted manifest copy or any run evidence. Unknown future or malformed
+format versions are rejected. Add a tested migration before incrementing the
+format version; model/rules upgrades retain their separate version gate.
+
+Replay now compares every stored final run metric to recomputed metrics. Success
+includes `verification:{status:'matched',scope:'final-metrics',differences:[]}`.
+A difference or missing outcome evidence returns HTTP409 with an explicit error
+and verification report; callers cannot display that replay as verified. This
+checks final metrics only, not intermediate events or full-state equivalence.
+Migration receipts explicitly state that recorded outcomes are unchanged. These
+contracts apply to monthly City experiments, not other simulation save stores.

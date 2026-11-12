@@ -1,3 +1,4 @@
+import { assertHistoryIntegrity } from '../integrity.js';
 import { DEFAULT_RECIPE, CONTRACT_VERSION, MODEL_VERSION, MONTHS, assertMonth } from '../contracts.js';
 import { addIntervention, createEngine } from '../../city/engine.js';
 import { createCity } from '../../city/seed.js';
@@ -38,7 +39,7 @@ export function normalizeReplay(initial, replay) {
   let spending = 0;
   const result = [snapshot(structuredClone(initial), null, 0)];
   for (const [index, step] of replay.steps.entries()) {
-    if (!step.state || step.state.month !== index + 1 || step.state.seed !== initial.seed || step.state.version !== MODEL_VERSION) throw new Error('Missing or mismatched replay state');
+    if (!step?.state || step.state.month !== index + 1 || step.state.seed !== initial.seed || step.state.version !== MODEL_VERSION) throw new Error('Missing or mismatched replay state');
     // Validate assignments as well as clock; missing inventory must never become zero.
     checkReplayState(step.state);
     const capital = step.state.systems.finance?.capitalExpense;
@@ -50,15 +51,22 @@ export function normalizeReplay(initial, replay) {
 }
 function checkReplayState(state) {
   const originalMonth = state.month;
-  checkInitial({ ...state, month: 0 });
+  checkInitial(state, {replay:true});
   assertMonth(originalMonth);
 }
 async function historyFrom(record, baselineReplay, planReplay, recipe, initialHash) {
   const { manifest } = record;
   const initial = manifest.initial;
-  return freeze({ schemaVersion: CONTRACT_VERSION, recipe, experimentId: record.id, initialHash, modelVersion: MODEL_VERSION, seed: initial.seed,
-    baseline: normalizeReplay(initial, baselineReplay), plan: normalizeReplay(initial, planReplay),
-    provenance: { ...structuredClone(initial.provenance), modelManifest: manifest.modelManifest, initialHash, replay: 'Recomputed from saved City manifest; not independently verified recorded checkpoints.', assumptions: manifest.assumptions, authority: 'monthly City only' } });
+  for (const [arm, replay] of [['baseline', baselineReplay], ['plan', planReplay]]) {
+    const expected = {experimentId:record.id, scenarioId:arm, runIndex:0, runId:`${arm}-0`};
+    if (!replay?.identity || Object.entries(expected).some(([key,value]) => replay.identity[key] !== value)) throw new Error('Replay run identity mismatch');
+  }
+  const tagged = (replay) => normalizeReplay(initial, replay).map(snapshot => ({...snapshot, identity:{...replay.identity}}));
+  const history = { schemaVersion: CONTRACT_VERSION, recipe, experimentId: record.id, initialHash, modelVersion: MODEL_VERSION, seed: initial.seed,
+    baseline: tagged(baselineReplay), plan: tagged(planReplay),
+    provenance: { ...structuredClone(initial.provenance), modelManifest: manifest.modelManifest, initialHash, replay: 'Recomputed from saved City manifest; not independently verified recorded checkpoints.', assumptions: manifest.assumptions, authority: 'monthly City only' } };
+  assertHistoryIntegrity(history);
+  return freeze(history);
 }
 function recipeFromManifest(manifest) {
   if (!manifest || Array.isArray(manifest) || typeof manifest !== 'object' || manifest.version !== MODEL_VERSION || manifest.months !== MONTHS || manifest.runs !== 1) throw new Error('Unsupported saved experiment version or horizon');
@@ -88,11 +96,18 @@ async function operation(options, work) {
   const abort = () => controller.abort();
   options.signal?.addEventListener('abort', abort, { once: true });
   if (options.signal?.aborted) abort();
-  const timer = setTimeout(abort, 180000);
+  let timedOut = false;
+  const timer = setTimeout(() => { timedOut = true; abort(); }, options.timeoutMs ?? 180000);
   const request = async (path, body) => {
     checkCancelled(controller.signal);
-    const response = await fetch(path, { signal: controller.signal, ...(body === undefined ? {} : { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }) });
-    const data = await response.json();
+    let response, data;
+    try {
+      response = await fetch(path, { signal: controller.signal, ...(body === undefined ? {} : { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }) });
+      data = await response.json();
+    } catch (error) {
+      if (!controller.signal.aborted && error instanceof TypeError) throw new Error('City data connection interrupted. Check your connection and retry the comparison.');
+      throw error;
+    }
     checkCancelled(controller.signal);
     if (!response.ok) throw new Error(data.error || `City request failed (${response.status})`);
     return data;
@@ -104,6 +119,10 @@ async function operation(options, work) {
     controller.signal.addEventListener('abort', cancelled, { once: true });
   });
   try { return await work(request, pause); }
+  catch (error) {
+    if (timedOut) throw new Error('City data timed out. Check your connection and retry the comparison.');
+    throw error;
+  }
   finally { clearTimeout(timer); options.signal?.removeEventListener('abort', abort); }
 }
 async function load(id, request, pause, onProgress, expectedRecipe) {
@@ -141,5 +160,6 @@ export function loadExperiment(id, options = {}) {
 }
 export function getFrame(history, month) {
   assertMonth(month);
+  if (history?.experimentId) assertHistoryIntegrity(history);
   return { month, baseline: history?.baseline?.[month] ?? null, plan: history?.plan?.[month] ?? null };
 }

@@ -1,0 +1,77 @@
+{
+  "observedAtUTC": "2026-11-12T04:52:29.862737+00:00",
+  "baselineCommit": "19690dba767ad8db1185bcffe3519923e31b82bc",
+  "executedSourceHashes": {
+    "ops/improvement/proposal.py": "e8fee9252500e010a7f8fc1c2b210f9080cca31355bbbb13f46e191fde9c9fd3",
+    "ops/improvement/inbox.py": "2102e73129554089cb0f8f48cde2fa9d85a6365e2db21f9cbd123301ca0f4581",
+    "ops/improvement/coordinator.py": "178a5cdcd1121102b96e67084597df4119eac4a993d6686940ef1b1acd3c24fc",
+    "ops/improvement/__main__.py": "109417e4b30f8c2f0464bd9b9693ad641934d80ad5037c2511cb8ab32674c7a6",
+    "ops/improvement/fixtures/example-batch.json": "718643bdcbaf9a056ef76b1302d7589525552b3b881c0f6093a78f32bedd680d"
+  },
+  "realCoordinatorReport": {
+    "dryRun": true,
+    "projectId": "3f960f14-ee1f-4b2b-a4f8-b1b67483b88a",
+    "baseSha": "173f9530752b0e476583ad3ee7433b57a857b6bd",
+    "scannedAt": 1794458538.7228549,
+    "issues": 178,
+    "selected": []
+  },
+  "results": [
+    {
+      "mode": "default-dry-run",
+      "exitCode": 0,
+      "newProposals": 1,
+      "recordedProposals": 0,
+      "duplicates": 0,
+      "held": 1,
+      "storedCursor": null,
+      "noRemoteWrites": true,
+      "terminalHold": true,
+      "existingPrHold": true
+    },
+    {
+      "mode": "record",
+      "exitCode": 0,
+      "newProposals": 1,
+      "recordedProposals": 1,
+      "duplicates": 0,
+      "held": 1,
+      "storedCursor": "example-revision-1",
+      "noRemoteWrites": true,
+      "terminalHold": true,
+      "existingPrHold": true
+    },
+    {
+      "mode": "record-replay",
+      "exitCode": 0,
+      "newProposals": 0,
+      "recordedProposals": 0,
+      "duplicates": 1,
+      "held": 1,
+      "storedCursor": "example-revision-1",
+      "noRemoteWrites": true,
+      "terminalHold": true,
+      "existingPrHold": true
+    },
+    {
+      "mode": "final-dry-run",
+      "exitCode": 0,
+      "newProposals": 0,
+      "recordedProposals": 0,
+      "duplicates": 1,
+      "held": 1,
+      "storedCursor": "example-revision-1",
+      "noRemoteWrites": true,
+      "terminalHold": true,
+      "existingPrHold": true
+    }
+  ],
+  "persistedCounts": {
+    "proposals": 1,
+    "streams": 1,
+    "receipts": 1,
+    "budgets": 1
+  },
+  "statePreservedLocally": true,
+  "note": "Example proposal targets already delivered SHE-141. No new scientific result, evidence verification, issue publication, dispatch or service activation is claimed."
+}

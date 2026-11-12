@@ -1,0 +1,260 @@
+{
+  "recordedAt": "2026-11-12T20:22:05.756Z",
+  "runtime": "v26.3.0",
+  "bun": "1.4.2",
+  "machine": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M4",
+    "logicalCPUs": 10,
+    "ramBytes": 17179869184
+  },
+  "results": [
+    {
+      "model": "spatial-events.v1",
+      "rules": "ring-arrival-unit-contact.v1",
+      "source": "synthetic-lattice.v1",
+      "seed": 42,
+      "count": 10000,
+      "rounds": 1,
+      "tiles": 64,
+      "hot": false,
+      "scheduler": "tiled",
+      "metrics": {
+        "scheduled": 30000,
+        "processed": 30000,
+        "scheduledInteractions": 10000,
+        "processedInteractions": 10000,
+        "stateUpdates": 24386,
+        "handoffs": 10000,
+        "maxQueueDepth": 10000,
+        "maxTileQueueDepth": 163,
+        "lateEvents": 0
+      },
+      "modeledPairwiseInteractions": 7193,
+      "eventOrderingHash": "e91f1476",
+      "stateHash": "f947a2c7",
+      "invariants": {
+        "population": 10000,
+        "energy": 100000,
+        "duplicates": 0,
+        "lost": 0,
+        "teleports": 0
+      },
+      "elapsedMs": 17.871125,
+      "memory": {
+        "rss": 40026112,
+        "heapTotal": 5564416,
+        "heapUsed": 1850380,
+        "external": 199004,
+        "arrayBuffers": 0
+      },
+      "memoryNote": "post-run process sample; not peak or per-run allocation"
+    },
+    {
+      "model": "spatial-events.v1",
+      "rules": "ring-arrival-unit-contact.v1",
+      "source": "synthetic-lattice.v1",
+      "seed": 42,
+      "count": 10000,
+      "rounds": 1,
+      "tiles": 64,
+      "hot": true,
+      "scheduler": "tiled",
+      "metrics": {
+        "scheduled": 30000,
+        "processed": 30000,
+        "scheduledInteractions": 10000,
+        "processedInteractions": 10000,
+        "stateUpdates": 24452,
+        "handoffs": 10000,
+        "maxQueueDepth": 10000,
+        "maxTileQueueDepth": 10000,
+        "lateEvents": 0
+      },
+      "modeledPairwiseInteractions": 7226,
+      "eventOrderingHash": "d8c0d6b8",
+      "stateHash": "331630d7",
+      "invariants": {
+        "population": 10000,
+        "energy": 100000,
+        "duplicates": 0,
+        "lost": 0,
+        "teleports": 0
+      },
+      "elapsedMs": 13.504624999999997,
+      "memory": {
+        "rss": 46481408,
+        "heapTotal": 7548928,
+        "heapUsed": 2820168,
+        "external": 278712,
+        "arrayBuffers": 0
+      },
+      "memoryNote": "post-run process sample; not peak or per-run allocation"
+    },
+    {
+      "model": "spatial-events.v1",
+      "rules": "ring-arrival-unit-contact.v1",
+      "source": "synthetic-lattice.v1",
+      "seed": 42,
+      "count": 100000,
+      "rounds": 1,
+      "tiles": 64,
+      "hot": false,
+      "scheduler": "tiled",
+      "metrics": {
+        "scheduled": 300000,
+        "processed": 300000,
+        "scheduledInteractions": 100000,
+        "processedInteractions": 100000,
+        "stateUpdates": 244854,
+        "handoffs": 100000,
+        "maxQueueDepth": 100000,
+        "maxTileQueueDepth": 1569,
+        "lateEvents": 0
+      },
+      "modeledPairwiseInteractions": 72427,
+      "eventOrderingHash": "4fd0a436",
+      "stateHash": "ddcda7cb",
+      "invariants": {
+        "population": 100000,
+        "energy": 1000000,
+        "duplicates": 0,
+        "lost": 0,
+        "teleports": 0
+      },
+      "elapsedMs": 126.149959,
+      "memory": {
+        "rss": 82903040,
+        "heapTotal": 34842624,
+        "heapUsed": 17066687,
+        "external": 525679,
+        "arrayBuffers": 0
+      },
+      "memoryNote": "post-run process sample; not peak or per-run allocation"
+    },
+    {
+      "model": "spatial-events.v1",
+      "rules": "ring-arrival-unit-contact.v1",
+      "source": "synthetic-lattice.v1",
+      "seed": 42,
+      "count": 100000,
+      "rounds": 1,
+      "tiles": 64,
+      "hot": true,
+      "scheduler": "tiled",
+      "metrics": {
+        "scheduled": 300000,
+        "processed": 300000,
+        "scheduledInteractions": 100000,
+        "processedInteractions": 100000,
+        "stateUpdates": 244904,
+        "handoffs": 100000,
+        "maxQueueDepth": 100000,
+        "maxTileQueueDepth": 100000,
+        "lateEvents": 0
+      },
+      "modeledPairwiseInteractions": 72452,
+      "eventOrderingHash": "1b7721a8",
+      "stateHash": "e1b7ea7d",
+      "invariants": {
+        "population": 100000,
+        "energy": 1000000,
+        "duplicates": 0,
+        "lost": 0,
+        "teleports": 0
+      },
+      "elapsedMs": 103.88524999999998,
+      "memory": {
+        "rss": 120209408,
+        "heapTotal": 41480192,
+        "heapUsed": 41601779,
+        "external": 862483,
+        "arrayBuffers": 0
+      },
+      "memoryNote": "post-run process sample; not peak or per-run allocation"
+    },
+    {
+      "model": "spatial-events.v1",
+      "rules": "ring-arrival-unit-contact.v1",
+      "source": "synthetic-lattice.v1",
+      "seed": 42,
+      "count": 1000000,
+      "rounds": 1,
+      "tiles": 64,
+      "hot": false,
+      "scheduler": "tiled",
+      "metrics": {
+        "scheduled": 3000000,
+        "processed": 3000000,
+        "scheduledInteractions": 1000000,
+        "processedInteractions": 1000000,
+        "stateUpdates": 2449596,
+        "handoffs": 1000000,
+        "maxQueueDepth": 1000000,
+        "maxTileQueueDepth": 15630,
+        "lateEvents": 0
+      },
+      "modeledPairwiseInteractions": 724798,
+      "eventOrderingHash": "38ec20ac",
+      "stateHash": "7d2b4eb3",
+      "invariants": {
+        "population": 1000000,
+        "energy": 10000000,
+        "duplicates": 0,
+        "lost": 0,
+        "teleports": 0
+      },
+      "elapsedMs": 2299.765583,
+      "memory": {
+        "rss": 592166912,
+        "heapTotal": 360671232,
+        "heapUsed": 215690412,
+        "external": 3186588,
+        "arrayBuffers": 0
+      },
+      "memoryNote": "post-run process sample; not peak or per-run allocation"
+    },
+    {
+      "model": "spatial-events.v1",
+      "rules": "ring-arrival-unit-contact.v1",
+      "source": "synthetic-lattice.v1",
+      "seed": 42,
+      "count": 1000000,
+      "rounds": 1,
+      "tiles": 64,
+      "hot": true,
+      "scheduler": "tiled",
+      "metrics": {
+        "scheduled": 3000000,
+        "processed": 3000000,
+        "scheduledInteractions": 1000000,
+        "processedInteractions": 1000000,
+        "stateUpdates": 2449596,
+        "handoffs": 1000000,
+        "maxQueueDepth": 1000000,
+        "maxTileQueueDepth": 1000000,
+        "lateEvents": 0
+      },
+      "modeledPairwiseInteractions": 724798,
+      "eventOrderingHash": "bde5a4ea",
+      "stateHash": "bb9f6f4b",
+      "invariants": {
+        "population": 1000000,
+        "energy": 10000000,
+        "duplicates": 0,
+        "lost": 0,
+        "teleports": 0
+      },
+      "elapsedMs": 1764.4534590000003,
+      "memory": {
+        "rss": 850640896,
+        "heapTotal": 441118720,
+        "heapUsed": 405240140,
+        "external": 6186604,
+        "arrayBuffers": 0
+      },
+      "memoryNote": "post-run process sample; not peak or per-run allocation"
+    }
+  ]
+}

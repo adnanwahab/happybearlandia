@@ -17,7 +17,8 @@ async function withManifest(manifest,run){
   if(path.endsWith('/replay')){
    const plan=JSON.parse(options.body).scenarioId==='plan';
    const policy=plan?manifest.scenarios[1].interventions[0]:null;
-   return Response.json(createEngine().run(policy?addIntervention(manifest.initial,policy):manifest.initial,120));
+   const scenarioId=plan?'plan':'baseline';
+   return Response.json({...createEngine().run(policy?addIntervention(manifest.initial,policy):manifest.initial,120),identity:{experimentId:id,scenarioId,runIndex:0,runId:`${scenarioId}-0`}});
   }
   return Response.json({id,status:'complete',manifest});
  };
@@ -60,7 +61,7 @@ test('valid API-shaped manifest and missing legacy title preserve exact common i
   await withManifest(manifest,async calls=>{
    const history=await loadExperiment(id);
    expect(calls).toHaveLength(3);expect(history.recipe).toEqual(DEFAULT_RECIPE);expect(history.experimentId).toBe(id);expect(history.seed).toBe(42);
-   expect(history.baseline[0]).toEqual(history.plan[0]);expect(history.baseline).toHaveLength(121);expect(history.plan).toHaveLength(121);
+   expect(history.baseline[0].state).toEqual(history.plan[0].state);expect(history.baseline).toHaveLength(121);expect(history.plan).toHaveLength(121);
    expect(history.plan[16].metrics.housingUnits-history.baseline[16].metrics.housingUnits).toBe(24);expect(history.initialHash).toBe(await stateHash(manifest.initial));expect(await stateHash(manifest)).toBe(before);
   });
  }
@@ -89,6 +90,6 @@ test('missing or non-object saved responses fail without raw runtime exceptions'
 test('supported empty plan remains a deterministic zero-control manifest',async()=>{
  const manifest=fixture();manifest.scenarios[1].interventions=[];
  await withManifest(manifest,async calls=>{
-  const history=await loadExperiment(id);expect(calls).toHaveLength(3);expect(history.recipe.intervention).toBeNull();expect(history.baseline).toEqual(history.plan);
+  const history=await loadExperiment(id);expect(calls).toHaveLength(3);expect(history.recipe.intervention).toBeNull();expect(history.baseline.map(s=>s.state)).toEqual(history.plan.map(s=>s.state));
  });
 });

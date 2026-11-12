@@ -9,6 +9,9 @@ test('WebGL2 fallback exposes quality, cutaway, feature toggles and benchmark st
  expect(await page.evaluate(()=>window.hblCityRenderer.timeOfDay)).toBeUndefined();
  await page.getByLabel('Scene lighting',{exact:true}).selectOption('14');
  const result=await page.evaluate(()=>{const api=window.hblCityRenderer;api.setQuality('LOW');api.setWeather('rain');api.setTimeOfDay(22);api.setFeature('traffic',false);api.setCutaway(true);api.focusBuilding(0);return api.getPerformanceStats();});
+ expect(result.readback.latest).toBeNull();
+ const readback=await page.evaluate(()=>{window.hblCityRenderer.setReadbackEnabled(false);return window.hblCityRenderer.getPerformanceStats().readback;});
+ expect(readback.enabled).toBe(false);expect(readback.latest).toBeNull();
  expect(result.backend).toBe('webgl2');expect(result.quality).toBe('LOW');expect(result.features.traffic).toBe(false);
  await page.getByLabel('Geometry detail',{exact:true}).selectOption('HIGH');
  await page.getByLabel('Geometry debug',{exact:true}).selectOption('lod');
@@ -37,3 +40,51 @@ test('close-up grass and an imported GLB render without shader errors',async({pa
  await page.waitForFunction(()=>window.hblCityRenderer.getGeometryStats().grass.blades===0);
  expect(park).toHaveLength(2);expect(errors).toEqual([]);
 });
+
+for (const backend of ['webgl2', 'canvas2d']) test(`detected ${backend} label survives unavailable WebGPU and usable controls`, async ({page}, info) => {
+ test.setTimeout(120000);
+ // Expose the API but deny adapters: capability presence must never become a WebGPU claim.
+ await page.addInitScript(({blockWebGL}) => {
+  Object.defineProperty(navigator, 'gpu', {configurable:true, value:{requestAdapter:async()=>null}});
+  if (blockWebGL) {
+   const getContext=HTMLCanvasElement.prototype.getContext;
+   HTMLCanvasElement.prototype.getContext=function(type,...args){return /webgl/i.test(type)?null:getContext.call(this,type,...args);};
+  }
+ }, {blockWebGL:backend==='canvas2d'});
+ await page.goto('/world?demo=1&people=10');
+ await page.waitForFunction(()=>window.hblCityRenderer?.getPerformanceStats().frames>3,null,{timeout:90000});
+ expect(await page.evaluate(()=>window.hblCityRenderer.getPerformanceStats().backend)).toBe(backend);
+ await expect(page.locator('#source')).toContainText(`renderer ${backend.toUpperCase()}`);
+ await expect(page.locator('#source')).not.toContainText('WEBGPU');
+ await page.keyboard.press('F3');
+ await expect(page.getByTestId('render-performance')).toBeVisible();
+ await page.getByLabel('Scene lighting',{exact:true}).selectOption('22');
+ await expect(page.getByLabel('Scene lighting',{exact:true})).toHaveValue('22');
+ const stats=await page.evaluate(()=>{window.hblCityRenderer.setQuality('LOW');return window.hblCityRenderer.getPerformanceStats();});
+ expect(stats.backend).toBe(backend);expect(stats.quality).toBe('LOW');
+ await page.screenshot({path:info.outputPath(`detected-${backend}.png`)});
+});
+
+for (const fallback of ['webgl2', 'canvas2d']) {
+ test(`adapter rejection retains model-backed World through ${fallback}`,async({page},testInfo)=>{
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  await page.addInitScript(({fallback})=>{
+   Object.defineProperty(navigator,'gpu',{configurable:true,value:{requestAdapter:async()=>{throw new Error('SHE-105 simulated adapter rejection');}}});
+   if(fallback==='canvas2d'){
+    const original=HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext=function(type,...args){return /webgl/i.test(type)?null:original.call(this,type,...args);};
+   }
+  },{fallback});
+  await page.goto('/world/?demo=1&synthetic=1&people=20');
+  await expect.poll(()=>page.evaluate(()=>window.hblVisualPass?.ready),{timeout:90000}).toBe(true);
+  await expect.poll(()=>page.evaluate(()=>window.hblSimulationModel?.status)).toBe('ready');
+  await expect(page.locator('#source')).toContainText('SHE-105 simulated adapter rejection');
+  await expect(page.locator('#source')).toContainText(`renderer ${fallback.toUpperCase()}`);
+  await expect(page.locator('#view canvas')).toBeVisible();
+  const stats=await page.evaluate(()=>window.hblCityRenderer.getGeometryStats());
+  expect(stats.bytes).toBeGreaterThan(0);
+  await expect(page.locator('#world-playback-facts')).toContainText(/Mood: \d+ \/ 100 · Seed: .+/);
+  await page.screenshot({path:testInfo.outputPath(`adapter-rejection-${fallback}.png`)});
+  expect(errors).toEqual([]);
+ });
+}

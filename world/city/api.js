@@ -1,3 +1,4 @@
+import {SAVE_FORMAT_VERSION,compareSavedOutcome} from './save-format.js';
 import {CityStore,validateReadQuery} from './storage.js';
 import {createCity} from './seed.js';
 import {createEngine,addIntervention,scheduleShock} from './engine.js';
@@ -30,7 +31,7 @@ export function normalizeExperiment(body={}) {
   }
   if(!Array.isArray(body.shocks||[])||(body.shocks||[]).length>64)throw new Error('At most 64 shocks');
   for(const shock of body.shocks||[])initial=scheduleShock(initial,shock);
-  return {version:VERSION,title:String(body.title||'Coupled city experiment').slice(0,200),initial,runs,months,retention,scenarios,modelManifest:createEngine().manifest,assumptions:'Illustrative uncalibrated coefficients; district transport and coarse monthly markets. Not an empirical forecast.'};
+  return {saveFormatVersion:SAVE_FORMAT_VERSION,version:VERSION,title:String(body.title||'Coupled city experiment').slice(0,200),initial,runs,months,retention,scenarios,modelManifest:createEngine().manifest,assumptions:'Illustrative uncalibrated coefficients; district transport and coarse monthly markets. Not an empirical forecast.'};
 }
 export function createCityApi({root,store:providedStore}={}) {
   let store=providedStore;const getStore=()=>store||=new CityStore(root);const active=new Set();
@@ -67,7 +68,7 @@ export function createCityApi({root,store:providedStore}={}) {
         if(request.method!=='GET')return json({error:'Method not allowed'},405);
         const progress=await workerCall('./query.worker.js',{path:db.path(id),sql:'SELECT COUNT(*) AS completed FROM runs'},3000);
         const metrics=await workerCall('./query.worker.js',{path:db.path(id),sql:SAVED_QUERIES['Compare plans']},3000);
-        return json({id,status:record.status,error:record.error,completed:progress.rows[0].completed,total:record.manifest.runs*record.manifest.scenarios.length,metrics:metrics.rows,manifest:record.manifest});
+        return json({id,status:record.status,error:record.error,completed:progress.rows[0].completed,total:record.manifest.runs*record.manifest.scenarios.length,metrics:metrics.rows,migrations:record.migrations,manifest:record.manifest});
       }
       if((action==='query'||action==='replay')?request.method!=='POST':request.method!=='GET')return json({error:'Method not allowed'},405);
       if(action==='tables')return json({tables:db.tables(id),savedQueries:SAVED_QUERIES});
@@ -84,7 +85,12 @@ export function createCityApi({root,store:providedStore}={}) {
         const scenario=record.manifest.scenarios.find(s=>s.id===scenarioId);if(!scenario)throw new Error('Unknown scenario');
         let initial=record.manifest.initial;for(const intervention of scenario.interventions||[])initial=addIntervention(initial,intervention);
         const token=`replay-${crypto.randomUUID()}`;active.add(token);
-        try {return json(await workerCall('./run.worker.js',{initial,seed:(initial.seed+runIndex)>>>0,months:record.manifest.months,replay:true},60000,{signal:request.signal}));}finally{active.delete(token);}
+        try {
+          const result=await workerCall('./run.worker.js',{initial,seed:(initial.seed+runIndex)>>>0,months:record.manifest.months,replay:true},60000,{signal:request.signal});
+          const verification=compareSavedOutcome(db.savedOutcome(id,`${scenarioId}-${runIndex}`),result.metrics);
+          if(verification.status!=='matched')return json({error:verification.status==='mismatch'?'Saved replay outcome mismatch':'Saved replay outcome verification unavailable',verification,migrations:record.migrations},409);
+          return json({...result,verification,migrations:record.migrations,identity:{experimentId:id,scenarioId,runIndex,runId:`${scenarioId}-${runIndex}`}});
+        }finally{active.delete(token);}
       }
       if(action==='export') {
         if(record.status!=='complete')return json({error:'Export is available after completion'},409);

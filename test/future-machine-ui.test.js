@@ -1,5 +1,15 @@
 import {test,expect} from 'bun:test';
-import {clampMonth,calendarLabel,formatMeasurement,metricPresentation,metricSemantics,householdObservation,householdSummary} from '../world/future-machine/ui/model.js';
+import {clampMonth,calendarLabel,formatMeasurement,metricPresentation,metricSemantics,householdObservation,householdSummary,comparisonMetric} from '../world/future-machine/ui/model.js';
+import {metricDelta} from '../world/future-machine/diff/core.js';
+
+test('overflowing paired measurements remain unavailable rather than displaying Infinity',()=>{
+  const comparison=metricDelta(-Number.MAX_VALUE,Number.MAX_VALUE,'USD');
+  expect(comparison.status).toBe('missing');
+  expect(comparison.delta).toBeNull();
+  const metric={baseline:comparison.baseline,intervention:comparison.plan,unit:comparison.unit};
+  expect(metricPresentation(metric).delta).toBe('Unavailable');
+  expect(metricSemantics('spending',metric).tone).toBe('unavailable');
+});
 test('shared calendar includes exact Month 0 and Month 120',()=>{expect(calendarLabel(0)).toBe('Jan 2026');expect(calendarLabel(60)).toBe('Jan 2031');expect(calendarLabel(120)).toBe('Jan 2036');expect(calendarLabel(11)).toBe('Dec 2026');});
 test('timeline clamps invalid and out of range input',()=>{expect(clampMonth(-1)).toBe(0);expect(clampMonth(121)).toBe(120);expect(clampMonth(NaN)).toBe(0);expect(clampMonth(1.7)).toBe(2);});
 test('measurements preserve zero and units, never coerce missing data to zero',()=>{expect(formatMeasurement(0,'homes')).toBe('0 homes');for(const value of [null,undefined,NaN,Infinity,'4'])expect(formatMeasurement(value)).toBe('Unavailable');});
@@ -26,13 +36,20 @@ test('household rent and burden require an exact reciprocal occupied-unit identi
   expect(text).toContain('missing from one future');expect(text).toContain('500 USD/month');expect(text).toContain('25 %');expect(text).toContain('savings 0 USD');expect(text).toContain('rent Unavailable');
 });
 
+test('negative cost and overflow deltas retain truthful direction and availability',()=>{
+  expect(metricSemantics('spending',{baseline:100,intervention:0})).toEqual({tone:'cost',label:'Lower capital spending; service benefit not established'});
+  const overflow={baseline:-Number.MAX_VALUE,intervention:Number.MAX_VALUE,unit:'USD'};
+  expect(metricPresentation(overflow).delta).toBe('Unavailable');
+  expect(metricSemantics('spending',overflow).tone).toBe('unavailable');
+});
+
 test.skipIf(!process.env.HBL_FM_BROWSER)('Chromium controls, loading, failure, keyboard, mobile and cleanup',async()=>{
   const {chromium}=await import(process.env.HBL_PLAYWRIGHT_MODULE || '@playwright/test');
   const root=new URL('../',import.meta.url).pathname;
   const server=Bun.serve({port:0,fetch(request){
     const path=new URL(request.url).pathname;
     if(path==='/')return new Response('<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/world/future-machine/ui/styles.css"><body style="margin:0">',{headers:{'content-type':'text/html'}});
-    if(!path.startsWith('/world/future-machine/ui/')&&!['/world/future-machine/contracts.js','/world/city/contracts.js'].includes(path))return new Response('',{status:404});
+    if(!path.startsWith('/world/')&&!path.startsWith('/shared/'))return new Response('',{status:404});
     return new Response(Bun.file(root+path));
   }});
   let browser;
@@ -43,13 +60,31 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('Chromium controls, loading, failure, k
     await page.goto(`http://127.0.0.1:${server.port}`);
     await page.evaluate(async()=>{
       const {createUI}=await import('/world/future-machine/ui/index.js');window.calls=[];
-      window.ui=createUI(document.body,{onConfigure:recipe=>calls.push(['configure',recipe]),onDemo:()=>calls.push(['demo']),onDemoPause:()=>calls.push(['demoPause']),onMetric:key=>calls.push(['metric',key]),onRun:recipe=>calls.push(['run',recipe]),onMonth:month=>calls.push(['month',month]),onPlay:value=>calls.push(['play',value]),onMode:mode=>calls.push(['mode',mode]),onDirector:()=>calls.push(['director']),onShare:()=>calls.push(['share']),onExport:()=>calls.push(['export']),onCancel:()=>calls.push(['cancel'])});
+      window.ui=createUI(document.body,{onReset:()=>calls.push(['reset']),onConfigure:recipe=>calls.push(['configure',recipe]),onDemo:()=>calls.push(['demo']),onDemoPause:()=>calls.push(['demoPause']),onMetric:key=>calls.push(['metric',key]),onRun:recipe=>calls.push(['run',recipe]),onMonth:month=>calls.push(['month',month]),onPlay:value=>calls.push(['play',value]),onMode:mode=>calls.push(['mode',mode]),onDirector:()=>calls.push(['director']),onShare:()=>calls.push(['share']),onExport:()=>calls.push(['export']),onCancel:()=>calls.push(['cancel'])});
       ui.update({status:'idle'});
       document.querySelector('.fm-demo-play').click();
       window.idleDemoEnabled=!document.querySelector('.fm-demo-play').disabled;
       ui.update({recipe:{seed:42,months:120,intervention:{type:'housing',amount:24,cost:1000000,districtId:'d1'}},status:'ready',month:0,frame:{baseline:{state:{households:[{id:'h1',savings:0}]}},plan:{state:{households:[{id:'h1',savings:3}]}}},diff:{available:true,metrics:{housingUnits:{baseline:0,plan:5,unit:'homes'},capitalSpending:{baseline:0,plan:1000000,unit:'USD cumulative'}},physicalCount:0,changedCount:1}});
     });
+    const badges=page.locator('.fm-provenance-badge');
+    expect(await badges.count()).toBe(3);
+    for(const badge of await badges.all()){
+      const description=await badge.getAttribute('title');
+      expect(description).toContain('Category:');expect(description).toContain('Source:');
+    }
+    expect(await badges.first().getAttribute('title')).toContain('Category: Modeled.');
+    await badges.first().focus();
+    expect(await badges.first().getAttribute('aria-label')).toContain('Monthly City recorded');
     expect(await page.evaluate(()=>idleDemoEnabled&&calls.some(call=>call[0]==='demo'))).toBe(true);
+    await page.evaluate(()=>ui.update({diff:{available:true,changedCount:0,physicalCount:0,metrics:{housingUnits:{baseline:24,plan:24,delta:0,unit:'homes'}}}}));
+    expect(await page.locator('.fm-arm-heading').allTextContents()).toEqual(['WITHOUT PLAN · Identical starting state','WITH PLAN · Identical starting state']);
+    expect(await page.locator('.fm-arm-inputs').count()).toBe(2);
+    await page.evaluate(()=>ui.update({diff:{available:false,changedCount:0,physicalCount:0,metrics:{housingUnits:{baseline:24,plan:null,delta:null,unit:'homes'}}}}));
+    expect(await page.locator('.fm-legends').textContent()).not.toContain('Identical');
+    await page.evaluate(()=>ui.update({diff:{available:true,changedCount:0,physicalCount:0,metrics:{housingUnits:{baseline:24,plan:24,delta:0,unit:'homes'},capitalSpending:{baseline:0,plan:1000000,delta:1000000,unit:'USD cumulative'}}}}));
+    expect(await page.locator('.fm-legends').textContent()).not.toContain('Identical');
+    await page.evaluate(()=>ui.update({month:1}));
+    expect(await page.locator('.fm-legends').textContent()).not.toContain('Identical');
     await page.getByRole('button',{name:'WHY · Homes',exact:true}).click();
     await page.getByRole('button',{name:'WHY · City spending',exact:true}).click();
     expect(await page.evaluate(()=>calls.filter(call=>call[0]==='metric').map(call=>call[1]))).toEqual(['housingUnits','capitalSpending']);
@@ -61,9 +96,19 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('Chromium controls, loading, failure, k
     await page.evaluate(()=>ui.update({demo:{status:'paused',paused:true,caption:'Explore the city'}}));
     await page.getByRole('button',{name:'Resume demo',exact:true}).click();
     expect(await page.evaluate(()=>calls.filter(call=>call[0]==='demoPause').length)).toBe(2);
+    const explanation=page.locator('.fm-explanation');
+    expect(await explanation.getAttribute('open')).toBeNull();
+    await explanation.locator('summary').focus();await page.keyboard.press('Enter');
+    expect(await explanation.getAttribute('open')).not.toBeNull();
+    expect(await explanation.textContent()).toContain('not predictions of real rents');
+    expect(await explanation.textContent()).toContain('not independently verified stored checkpoints');
+    expect(await explanation.getByRole('link').count()).toBe(5);
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
+    await explanation.locator('summary').focus();await page.keyboard.press('Space');
+    expect(await explanation.getAttribute('open')).toBeNull();
     await page.getByRole('slider').focus();await page.keyboard.press('End');
     expect(await page.evaluate(()=>calls.some(call=>call[0]==='month'&&call[1]===120))).toBe(true);
-    for(const name of ['Play timelapse','Blink: Future A','Show Me What Changed','Share comparison','Export evidence'])await page.getByRole('button',{name,exact:true}).click();
+    for(const name of ['Play timelapse','Blink: Future A','Show Me What Changed','Copy comparison link','Export evidence'])await page.getByRole('button',{name,exact:true}).click();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
     const seed=page.getByLabel('Seed for next run',{exact:false});
     await seed.fill('0');
@@ -94,7 +139,17 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('Chromium controls, loading, failure, k
     await page.getByRole('button',{name:'Fork City',exact:true}).click();
     expect(await page.evaluate(()=>calls.filter(call=>call[0]==='run').at(-1)[1].intervention.amount)).toBe(24);
     expect(await page.evaluate(()=>calls.filter(call=>call[0]==='run').at(-1)[1].seed)).toBe(4294967295);
+    await page.evaluate(()=>ui.update({originalRecipe:{seed:17,months:120,households:51,intervention:{type:'housing',amount:7,cost:800,districtId:'d1',delay:3,compliance:.5}}}));
+    await seed.fill('invalid');
+    const runCount=await page.evaluate(()=>calls.filter(call=>call[0]==='run').length);
+    await page.getByTestId('future-machine-reset').click();
+    expect(await seed.inputValue()).toBe('17');
+    expect(await seed.getAttribute('aria-invalid')).toBe('false');
+    expect(await page.evaluate(()=>calls.filter(call=>call[0]==='run').length)).toBe(runCount);
+    await page.getByRole('button',{name:'Fork City',exact:true}).click();
+    expect(await page.evaluate(()=>calls.filter(call=>call[0]==='run').at(-1)[1])).toEqual({seed:17,months:120,households:51,intervention:{type:'housing',amount:7,cost:800,districtId:'d1',delay:3,compliance:.5}});
     await page.evaluate(()=>ui.update({status:'loading',message:'Bounded run in progress'}));
+    expect(await page.getByTestId('future-machine-reset').isDisabled()).toBe(true);
     expect(await page.getByRole('button',{name:'Fork City',exact:true}).isDisabled()).toBe(true);
     await page.getByRole('button',{name:'Cancel run',exact:true}).click();
     expect(await page.evaluate(()=>calls.some(call=>call[0]==='cancel'))).toBe(true);
@@ -109,6 +164,7 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('Chromium controls, loading, failure, k
     expect(await page.locator('.fm-inspectors').textContent()).toContain('rent 500 USD/month');
     expect(await page.locator('.fm-inspectors').textContent()).toContain('rent Unavailable');
     expect(await page.locator('.fm-card').evaluateAll(cards=>getComputedStyle(cards[0].querySelector('strong')).color!==getComputedStyle(cards[2].querySelector('strong')).color)).toBe(true);
+    expect(await page.locator('.fm-metric-limits').textContent()).toContain('not an uncertainty interval');
     await page.screenshot({path:'/tmp/future-machine-ui-semantic-mobile.png',fullPage:true});
     await page.setViewportSize({width:1440,height:1000});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
@@ -116,6 +172,42 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('Chromium controls, loading, failure, k
     await page.evaluate(()=>ui.update({diff:{available:true,metrics:{housingUnits:{baseline:0,plan:null,unit:'homes'}},physicalCount:0,changedCount:0}}));
     expect(await page.locator('.fm-card').first().getAttribute('data-tone')).toBe('unavailable');
     expect(await page.getByRole('button',{name:'WHY · Homes',exact:true}).isDisabled()).toBe(true);
+    await page.evaluate(()=>ui.update({diff:{available:false,metrics:{housingUnits:{baseline:36,plan:60,unit:'homes',status:'available'},meanRent:{baseline:100,plan:90,unit:'USD/month',status:'missing',reason:'Rent observation missing'},capitalSpending:{baseline:0,plan:100,unit:'USD cumulative',available:false,reason:'Cost record unavailable'}},physicalCount:1,changedCount:1}}));
+    expect(await page.locator('.fm-card').first().textContent()).toContain('+24 homes');
+    expect(await page.locator('.fm-card').nth(1).textContent()).toContain('Rent observation missing');
+    expect(await page.locator('.fm-card').nth(2).textContent()).toContain('Cost record unavailable');
+    expect(await page.getByRole('button',{name:'WHY · City spending',exact:true}).isDisabled()).toBe(true);
     await page.evaluate(()=>ui.dispose());expect(await page.locator('.fm-ui').count()).toBe(0);
   }finally{await browser?.close();server.stop(true);}
 },30000);
+
+test('recorded metric adapter preserves missing status, reason, zero and signed cost',()=>{
+  for(const unavailable of [{status:'missing'},{available:false}]) {
+    const metric=comparisonMetric({baseline:0,plan:100,unit:'USD cumulative',reason:'Ledger unavailable',...unavailable});
+    expect(metricPresentation(metric).delta).toBe('Unavailable');
+    expect(metricPresentation(metric).detail).toBe('Ledger unavailable');
+    expect(metricSemantics('spending',metric).tone).toBe('unavailable');
+  }
+  expect(metricPresentation(comparisonMetric({baseline:36,plan:36,unit:'homes',status:'available'})).delta).toBe('0 homes');
+  expect(metricPresentation(comparisonMetric({baseline:100,plan:0,unit:'USD cumulative',status:'available'})).delta).toBe('-100 USD total');
+});
+
+test('first construction cue requires its exact available positive month and preserves missing metrics',async()=>{
+ const {firstConstructionLabel}=await import('../world/future-machine/ui/model.js');
+ const current={status:'ready',month:16,firstConstruction:{month:16,entity:{collection:'buildings',id:'recorded'}},diff:{available:true,metrics:{housingUnits:{delta:24}}}};
+ expect(firstConstructionLabel(current)).toBe('First recorded construction · Month 16 · +24 homes vs without plan');
+ for(const patch of [{month:0},{month:15},{month:17},{status:'loading'},{firstConstruction:null},{firstConstruction:{month:0}},{diff:{available:false}}])expect(firstConstructionLabel({...current,...patch})).toBeNull();
+ expect(firstConstructionLabel({...current,diff:{available:true}})).toBe('First recorded construction · Month 16');
+});
+
+test('provenance categories require explicit metadata and preserve unknown sources',async()=>{
+  const {provenancePresentation,MONTHLY_CITY_PROVENANCE}=await import('../world/future-machine/ui/provenance.js');
+  for(const category of ['observed','synthetic','modeled']){
+    const value=provenancePresentation({category,source:'Recorded fixture source'});
+    expect(value.category).toBe(category);expect(value.description).toContain('Source: Recorded fixture source.');
+  }
+  for(const value of [undefined,{}, {category:'forecast'}, {category:'toString'}])expect(provenancePresentation(value).category).toBe('unknown');
+  expect(provenancePresentation({category:'observed'}).description).toContain('Source: Unavailable.');
+  const modeled=provenancePresentation(MONTHLY_CITY_PROVENANCE);
+  expect(modeled.description).toContain('Category: Modeled.');expect(modeled.description).toContain('Synthetic, uncalibrated');
+});

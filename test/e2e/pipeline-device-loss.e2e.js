@@ -49,6 +49,7 @@ for(const backend of ['webgpu','webgl'])test(`${backend}: actual initialized los
   if(backend==='webgpu')expect(loss.reason).toBe('destroyed');else{expect(loss.contextLost).toBe(true);expect(loss.event.isTrusted).toBe(true);}
   await expect.poll(async()=>(await scene(page)).backend).toBe('canvas2d');
   await expect(nativeLabels).toHaveCount(0);
+  await expect(page.getByRole('status').filter({hasText:'Graphics connection lost.'})).toContainText('No simulation rerun is needed.');
   const after=await observation(page);
   expect(after.canvases).toBe(1);expect(await page.evaluate(()=>window.actualLossProbe.oldCanvas.isConnected)).toBe(false);
   for(const key of ['month','seed','modelVersion','runId','initialHash','recipe','lengths','metrics','baseline','plan'])expect(after[key]).toEqual(before[key]);

@@ -29,3 +29,19 @@ test('a saturated transit input produces no invented benefit',async()=>{
  expect(result.after).toEqual(result.before);
  expect(result.residents.every(r=>r.delta.burden===0&&r.delta.access===0&&(r.delta.commute===null||r.delta.commute===0))).toBe(true);
 },30000);
+
+test('pair selection keeps recorded identities, missing observations and unknown IDs honest',async()=>{
+ const {selectResidentPair}=await import('../world/what-if/resident-pair.js');
+ const result=await compareNeighborhood(input('housing'));
+ const ids=result.residents.slice(0,2).map(r=>r.id),copy=structuredClone(result);
+ const pair=selectResidentPair(result,ids);
+ expect(pair.map(r=>r.resident.id)).toEqual(ids);
+ expect(pair[0].resident).toBe(result.residents[0]);
+ expect(result.modelVersion).toBeString();expect(result.runId).toMatch(/^what-if-[a-f0-9]{64}$/);expect(result).toEqual(copy);
+ expect(selectResidentPair(result,['missing',''])[0].resident).toBeNull();
+ expect(selectResidentPair(result,[ids[0],ids[0]])[1].resident.id).toBe(ids[0]);
+ const broken=structuredClone(result);broken.residents[0].after.id='foreign';
+ expect(selectResidentPair(broken,[ids[0]])[0].message).toContain('identity');
+ const noTrip=structuredClone(result);noTrip.residents[0].before.commute=null;noTrip.residents[0].delta.commute=null;
+ expect(selectResidentPair(noTrip,[ids[0]])[0].resident.delta.commute).toBeNull();
+},30000);

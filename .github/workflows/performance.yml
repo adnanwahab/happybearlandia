@@ -1,0 +1,37 @@
+name: Performance budgets
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  performance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run test:performance
+      - run: bunx playwright install --with-deps chromium
+      - name: Measure routes and enforce budgets
+        env:
+          HBL_PERF_BACKENDS: webgl2
+        run: |
+          PORT=3198 bun run server.js > /tmp/hbl-performance-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid"' EXIT
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3198/world?demo=1 > /dev/null; then break; fi
+            sleep 1
+          done
+          bun run profile:performance
+      - name: Retain measurements and CPU profiles even on budget failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-profiles
+          path: test-results/performance
+          if-no-files-found: error
+          retention-days: 14

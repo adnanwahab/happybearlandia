@@ -1,0 +1,64 @@
+{
+  "version": "hbl-gpu-conflicts.v1",
+  "recordedAt": "2026-11-12T20:23:36.771Z",
+  "machine": {
+    "platform": "darwin",
+    "release": "24.6.0",
+    "arch": "arm64",
+    "cpu": "Apple M4"
+  },
+  "rows": [
+    {
+      "backend": "cpu",
+      "seed": 0,
+      "count": 257,
+      "buckets": 17,
+      "inputHash": "f5919aedb1272d8c",
+      "repeats": 100,
+      "expectedHash": "8d1993d92f92ae86",
+      "hashes": {
+        "8d1993d92f92ae86": 100
+      },
+      "mismatches": 0,
+      "accepted": true,
+      "medianMs": 0.014207999999999998,
+      "p95Ms": 0.02704199999999979
+    },
+    {
+      "backend": "cpu",
+      "seed": 42,
+      "count": 257,
+      "buckets": 17,
+      "inputHash": "576b37ff13b1d10a",
+      "repeats": 100,
+      "expectedHash": "6f4d1ef9dbd36cd8",
+      "hashes": {
+        "6f4d1ef9dbd36cd8": 100
+      },
+      "mismatches": 0,
+      "accepted": true,
+      "medianMs": 0.013749999999999929,
+      "p95Ms": 0.016750000000000043
+    },
+    {
+      "backend": "cpu",
+      "seed": 2911,
+      "count": 257,
+      "buckets": 17,
+      "inputHash": "a1fcb1b90090e314",
+      "repeats": 100,
+      "expectedHash": "14ebe2bcda32547c",
+      "hashes": {
+        "14ebe2bcda32547c": 100
+      },
+      "mismatches": 0,
+      "accepted": true,
+      "medianMs": 0.018166000000000793,
+      "p95Ms": 0.022417000000000797
+    }
+  ],
+  "adapters": [],
+  "errors": [
+    "Local browser server unavailable: Failed to start server. Is port 0 in use?"
+  ]
+}

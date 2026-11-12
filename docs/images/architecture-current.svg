@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="790" viewBox="0 0 1200 790" role="img" aria-labelledby="title desc">
+<title id="title">Today: connected experiences, distinct models</title><desc id="desc">November 2026 · Logical layers; execution and persistence vary by experience. Boundary: carrying a run or resident ID between views does not prove model or clock equivalence.</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#87a8b8" stroke-width="1.5"/></marker></defs>
+<rect width="1200" height="790" rx="24" fill="#101d2c"/>
+<g font-family="Arial, Helvetica, sans-serif"><text x="48" y="53" fill="#6fe2bd" font-size="14" font-weight="700" letter-spacing="2">HAPPYBEARLANDIA / ARCHITECTURE</text>
+<text x="48" y="100" fill="#f4f7fc" font-size="34" font-weight="700">Today: connected experiences, distinct models</text>
+<text x="48" y="133" fill="#b6c8d9" font-size="17">November 2026 · Logical layers; execution and persistence vary by experience.</text>
+<text x="48" y="180" fill="#9ab3c8" font-size="13" font-weight="700" letter-spacing="1.5">01 / EXPLORE</text>
+<rect x="48.0" y="195" width="356.0" height="112" rx="12" fill="#1b3044" stroke="#39566f"/>
+<text x="68.0" y="225" fill="#f4f7fc" font-size="19" font-weight="700">World + Future Machine</text>
+<text x="68.0" y="252" fill="#bed0df" font-size="15">Three.js scenes and comparison</text>
+<text x="68.0" y="275" fill="#bed0df" font-size="15">Monthly City flagship journey</text>
+<rect x="422.0" y="195" width="356.0" height="112" rx="12" fill="#1b3044" stroke="#39566f"/>
+<text x="442.0" y="225" fill="#f4f7fc" font-size="19" font-weight="700">House + Living World</text>
+<text x="442.0" y="252" fill="#bed0df" font-size="15">Resident and household views</text>
+<text x="442.0" y="275" fill="#bed0df" font-size="15">Population runtime journey</text>
+<rect x="796.0" y="195" width="356.0" height="112" rx="12" fill="#1b3044" stroke="#39566f"/>
+<text x="816.0" y="225" fill="#f4f7fc" font-size="19" font-weight="700">Decision Studio + Worldline</text>
+<text x="816.0" y="252" fill="#bed0df" font-size="15">Scenario configuration</text>
+<text x="816.0" y="275" fill="#bed0df" font-size="15">Housing alternatives and analysis</text>
+<path d="M600 310V337" stroke="#87a8b8" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="48" y="350" fill="#9ab3c8" font-size="13" font-weight="700" letter-spacing="1.5">02 / RUN + CONNECT</text>
+<rect x="48.0" y="365" width="543.0" height="112" rx="12" fill="#1b3044" stroke="#6fe2bd"/>
+<text x="68.0" y="395" fill="#f4f7fc" font-size="19" font-weight="700">Model-owned execution</text>
+<text x="68.0" y="422" fill="#bed0df" font-size="15">Monthly City · Population · housing</text>
+<text x="68.0" y="445" fill="#bed0df" font-size="15">Web Workers where supported</text>
+<rect x="609.0" y="365" width="543.0" height="112" rx="12" fill="#1b3044" stroke="#6fe2bd"/>
+<text x="629.0" y="395" fill="#f4f7fc" font-size="19" font-weight="700">Versioned contracts + navigation</text>
+<text x="629.0" y="422" fill="#bed0df" font-size="15">Run context · explicit entity mappings</text>
+<text x="629.0" y="445" fill="#bed0df" font-size="15">Evidence records · bounded interventions</text>
+<path d="M600 480V507" stroke="#87a8b8" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="48" y="520" fill="#9ab3c8" font-size="13" font-weight="700" letter-spacing="1.5">03 / SERVE + RETAIN</text>
+<rect x="48.0" y="535" width="543.0" height="112" rx="12" fill="#1b3044" stroke="#39566f"/>
+<text x="68.0" y="565" fill="#f4f7fc" font-size="19" font-weight="700">Bun application server</text>
+<text x="68.0" y="592" fill="#bed0df" font-size="15">HTTP handlers and static entry points</text>
+<text x="68.0" y="615" fill="#bed0df" font-size="15">Existing multiplayer WebSockets</text>
+<rect x="609.0" y="535" width="543.0" height="112" rx="12" fill="#1b3044" stroke="#39566f"/>
+<text x="629.0" y="565" fill="#f4f7fc" font-size="19" font-weight="700">SQLite + file-backed stores</text>
+<text x="629.0" y="592" fill="#bed0df" font-size="15">Experiments, manifests and causal records</text>
+<text x="629.0" y="615" fill="#bed0df" font-size="15">Storage ownership varies by feature</text>
+<rect x="48" y="705" width="1104" height="48" rx="10" fill="#253d42"/><text x="68" y="735" fill="#b9f3db" font-size="15">Boundary: carrying a run or resident ID between views does not prove model or clock equivalence.</text></g></svg>

@@ -1,7 +1,14 @@
+import {mountLife} from './life.js';
+import {housingDrainageExperiment, POLICY_COMPARISON_VERSION, POLICY_FLOOD_QUERY} from './policy-comparison.js';
+import {mountCityTiles} from './spatial-tiles-view.js';
 import {mountProjectUnblock} from './unblock-view.js';
 import {createCityFromArea} from './seed.js';
 const $=id=>document.getElementById(id);
+const life=mountLife($('many-worlds'));
 const unblock=mountProjectUnblock($('project-unblock'));
+const cityTiles=mountCityTiles($('city-tiles'));cityTiles.update(null);
+// Cached pages retain their DOM and replay handlers for back/forward navigation.
+addEventListener('pagehide',event=>{if(!event.persisted)cityTiles.destroy();});
 let replaySource=null;
 let selected=null,pollTimer=null,imported=null,replay=null,requestGeneration=0;
 const n=value=>typeof value==='number'?Number(value.toFixed(2)).toLocaleString():typeof value==='object'?JSON.stringify(value):String(value??'');
@@ -20,7 +27,7 @@ function status(message,error=false){$('status').textContent=message;$('status')
 function options(target,rows,value,label){$(target).replaceChildren(...rows.map(row=>{const el=document.createElement('option');el.value=value(row);el.textContent=label(row);return el;}));}
 async function saved(){const {experiments}=await api('/api/city-experiments');$('saved').replaceChildren(...experiments.map(e=>{const button=document.createElement('button');button.textContent=`${e.experiment_id.slice(0,16)} · ${e.status}`;button.onclick=()=>select(e.experiment_id);return button;}));}
 async function select(id) {
-  selected=id;replay=null;replaySource=null;unblock.update(null);$('replay-summary').replaceChildren();$('replay-events').replaceChildren();$('replay-decisions').replaceChildren();$('replay-flows').replaceChildren();
+  life.update(null);$('policy-flood').hidden=true;selected=id;replay=null;replaySource=null;unblock.update(null);cityTiles.update(null);$('replay-summary').replaceChildren();$('replay-events').replaceChildren();$('replay-decisions').replaceChildren();$('replay-flows').replaceChildren();
   const generation=++requestGeneration;clearTimeout(pollTimer);history.replaceState(null,'',`?experiment=${id}`);
   try {
     const tables=await api(`/api/experiments/${id}/tables`);if(generation!==requestGeneration)return;
@@ -35,6 +42,11 @@ async function refresh(generation=requestGeneration) {
     status(`${result.manifest.title} · ${result.status} · ${result.completed} / ${result.total} futures${result.error?' · '+result.error:''}`,!!result.error);
     const comparison=new Map();for(const row of result.metrics){if(!comparison.has(row.metric_id))comparison.set(row.metric_id,{metric:row.metric_id});comparison.get(row.metric_id)[row.scenario_id]=`${n(row.mean_value)} (${n(row.minimum)}–${n(row.maximum)})`;}
     table('metrics',[...comparison.values()]);options('replay-scenario',result.manifest.scenarios,s=>s.id,s=>s.id);$('replay-index').max=result.manifest.runs-1;
+    if(!['queued','running'].includes(result.status))life.update(result,id);
+    if(result.manifest.initial.provenance.guidedComparison?.recipeVersion===POLICY_COMPARISON_VERSION) {
+      const flood=await api(`/api/experiments/${id}/query`,{sql:POLICY_FLOOD_QUERY});if(generation!==requestGeneration)return;
+      $('policy-flood').hidden=false;table('policy-flood-results',flood.rows);
+    }
     const lineage=await api(`/api/experiments/${id}/lineage`);if(generation!==requestGeneration)return;
     $('manifest').textContent=JSON.stringify(lineage,null,2);$('dependencies').replaceChildren(...lineage.dependencyGraph.map(d=>{const p=document.createElement('p');p.textContent=`${d.dependsOn.join(' + ')||'Clock / external inputs'} → ${d.system}`;return p;}));
     const events=await api(`/api/experiments/${id}/query`,{sql:'SELECT system, event_type, COUNT(*) AS events FROM system_events GROUP BY system, event_type ORDER BY events DESC'});if(generation!==requestGeneration)return;table('events',events.rows);
@@ -62,10 +74,10 @@ function updateCSV() {if(selected)$('csv').href=`/api/experiments/${selected}/ex
 $('tables').onchange=()=>{$('sql').value=`SELECT * FROM ${$('tables').value}`;updateCSV();};
 $('query').onclick=async()=>{if(!selected)return status('Select an experiment first.',true);$('query').disabled=true;try{const result=await api(`/api/experiments/${selected}/query`,{sql:$('sql').value});table('results',result.rows);$('query-status').textContent=`${result.rows.length} rows${result.truncated?' · preview truncated':''}`;}catch(error){$('query-status').textContent=error.message;}finally{$('query').disabled=false;}};
 $('replay').onclick=async()=>{
-  if(!selected)return status('Select an experiment first.',true);$('replay').disabled=true;replay=null;replaySource=null;unblock.update(null);const generation=requestGeneration;const id=selected;const scenarioId=$('replay-scenario').value,runIndex=Number($('replay-index').value);
+  if(!selected)return status('Select an experiment first.',true);$('replay').disabled=true;replay=null;replaySource=null;unblock.update(null);cityTiles.update(null);const generation=requestGeneration;const id=selected;const scenarioId=$('replay-scenario').value,runIndex=Number($('replay-index').value);
   try {status('Recomputing future from recorded inputs…');const result=await api(`/api/experiments/${id}/replay`,{scenarioId,runIndex});if(id!==selected||generation!==requestGeneration)return;replay=result;replaySource={experimentId:id,scenarioId,runIndex};$('timeline').min=result.steps[0].state.month;$('timeline').max=result.state.month;$('timeline').value=result.steps[0].state.month;renderReplay();status('Future regenerated. Inspect each month below.');}catch(error){status(error.message,true);}finally{$('replay').disabled=false;}
 };
-function renderReplay(){if(!replay)return;const step=replay.steps.find(s=>s.state.month===Number($('timeline').value));if(!step)return;unblock.update(step.state,{...replaySource,month:step.state.month});$('month').textContent=`Month ${step.state.month}`;$('replay-summary').textContent=step.diagnostics.map(d=>d.message).join(' · ')||'No stability diagnostics this month.';table('replay-events',step.events.map(e=>({system:e.system,event:e.eventType,district:e.geographyId,payload:e.payload})));table('replay-decisions',step.decisions.slice(0,100).map(d=>({actor:d.actorId,decision:d.decisionType,chosen:d.chosenOption,reason:d.primaryReason,alternatives:d.alternatives})));table('replay-flows',step.flows);}
+function renderReplay(){if(!replay)return;const step=replay.steps.find(s=>s.state.month===Number($('timeline').value));if(!step)return;unblock.update(step.state,{...replaySource,month:step.state.month});cityTiles.update(step.state,replaySource);$('month').textContent=`Month ${step.state.month}`;$('replay-summary').textContent=step.diagnostics.map(d=>d.message).join(' · ')||'No stability diagnostics this month.';table('replay-events',step.events.map(e=>({system:e.system,event:e.eventType,district:e.geographyId,payload:e.payload})));table('replay-decisions',step.decisions.slice(0,100).map(d=>({actor:d.actorId,decision:d.decisionType,chosen:d.chosenOption,reason:d.primaryReason,alternatives:d.alternatives})));table('replay-flows',step.flows);}
 $('timeline').oninput=renderReplay;
 saved().catch(error=>status(error.message,true));const initialId=new URL(location.href).searchParams.get('experiment');if(initialId)select(initialId);
 
@@ -74,3 +86,13 @@ $('load-area').onclick=async()=>{
   try {const lat=Number($('latitude').value),lng=Number($('longitude').value);if(!Number.isFinite(lat)||Math.abs(lat)>90||!Number.isFinite(lng)||Math.abs(lng)>180)throw new Error('Invalid coordinates');status('Loading OSM geometry…');const area=await api(`/api/area?lat=${lat}&lng=${lng}&radiusM=400`);imported=createCityFromArea(area,{seed:Number(document.querySelector('[name=seed]').value),households:Number(document.querySelector('[name=households]').value)});options('district',imported.districts,d=>d.id,d=>d.name);$('import-status').textContent=`${imported.buildings.length} OSM footprints · synthetic city systems`;status('Area loaded. Geometry is sourced; system assumptions remain synthetic.');}catch(error){status(error.message,true);}finally{$('load-area').disabled=false;}
 };
 const coords=new URL(location.href).searchParams;for(const [key,id]of [['lat','latitude'],['lng','longitude']])if(coords.has(key))$(id).value=coords.get(key);
+
+$('compare-policies').onclick=async()=>{
+  $('compare-policies').disabled=true;
+  try {
+    status('Preparing matched housing and drainage futures…');
+    const result=await api('/api/city-experiments',housingDrainageExperiment());
+    document.querySelector('[data-tab=overview]').click();
+    await select(result.id);await saved();
+  }catch(error){status(error.message,true);}finally{$('compare-policies').disabled=false;}
+};

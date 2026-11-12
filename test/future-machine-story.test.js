@@ -95,12 +95,18 @@ test('renderer creates accessible jumps, literal evidence and disposes handlers'
   }
   const doc={createElement:tag=>new Element(tag)};
   const container=new Element('div');let selected=null;
-  const stop={month:1,title:'First divergence',summary:'<script>literal</script>',evidence:[]};
+  const receipt={eventId:'exact',future:'b',month:7,entity:{collection:'buildings',entityId:'true-id'},payload:{}};
+  const stop={month:1,title:'First divergence',summary:'<script>literal</script>',evidence:[receipt]};
   const dispose=renderStory(container,{summary:'Recorded change',stops:[stop],limitations:[]},{onJump:row=>selected=row});
   const root=container.children[0],button=root.children.find(row=>row.tag==='button');
   expect(button.type).toBe('button');button.handlers.get('click')();expect(selected).toBe(stop);
   expect(root.children.some(row=>row.textContent==='<script>literal</script>')).toBe(true);
-  dispose();expect(button.handlers.size).toBe(0);expect(root.removed).toBe(true);
+  const details=root.children.find(row=>row.tag==='details');
+  const eventButton=details.children.find(row=>row.tag==='button');
+  eventButton.handlers.get('click')();
+  expect(selected.entity).toEqual({collection:'buildings',id:'true-id',arm:'plan'});
+  expect(selected.month).toBe(7);expect(selected.evidence).toEqual([receipt]);
+  dispose();expect(eventButton.handlers.size).toBe(0);expect(button.handlers.size).toBe(0);expect(root.removed).toBe(true);
 });
 
 

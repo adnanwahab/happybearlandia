@@ -1,14 +1,14 @@
 import { describe, expect, test } from "bun:test";
-import { createProgressiveLoader } from "../world/render/progressive-loader.js";
+import { createProgressiveLoader, createFrameAllowance } from "../world/render/progressive-loader.js";
 
 const flush = async () => { for (let i = 0; i < 20; i++) await Promise.resolve(); };
 function clock() {
   const frames = new Map();
-  let next = 0, time = 0;
+  let next = 0, time = 0, frameNumber = 0;
   return {
-    options: { requestFrame: (callback) => { frames.set(++next, callback); return next; }, cancelFrame: (id) => frames.delete(id), now: () => time },
+    options: { frameAllowance: createFrameAllowance(), requestFrame: (callback) => { frames.set(++next, callback); return next; }, cancelFrame: (id) => frames.delete(id), now: () => time },
     cost: (ms) => { time += ms; },
-    async frame() { const callbacks = [...frames.values()]; frames.clear(); for (const callback of callbacks) callback(time); await flush(); },
+    async frame() { const callbacks = [...frames.values()]; frames.clear(); frameNumber++; for (const callback of callbacks) callback(frameNumber); await flush(); },
     async finish(loader) { for (let i = 0; i < 1000 && loader.getProgress().status === "running"; i++) { await flush(); await this.frame(); } return loader.done; },
     get pending() { return frames.size; },
   };
@@ -133,3 +133,68 @@ describe("bounded progressive geometry startup", () => {
     expect(started).toBe(false);
   });
 });
+
+ test("competing loaders share a frame allowance and expose nonpreemptible overruns", async () => {
+  const frames = clock(), attached = [];
+  const loaders = [0, 1, 2].map(id => createProgressiveLoader({ ...frames.options,
+    items: [0, 1, 2, 3], load: item => item,
+    attach: item => { attached.push([id, item]); frames.cost(5); }
+  }));
+  loaders.forEach(loader => loader.start()); await flush();
+  for (let frame = 0; frame < 12; frame++) {
+    const before = attached.length;
+    await frames.frame();
+    expect(attached.length - before).toBe(1);
+  }
+  const results = await Promise.all(loaders.map(loader => loader.done));
+  expect(results.every(result => result.completed === 4 && result.maxChunkMs === 5)).toBe(true);
+  expect(results.reduce((sum, result) => sum + result.budgetOverruns, 0)).toBe(12);
+  expect(results.some(result => result.budgetDeferrals > 0)).toBe(true);
+ });
+
+ test("rejects unbounded scheduler settings", () => {
+  for (const frameBudgetMs of [Infinity, NaN, 0, -1]) expect(() => createProgressiveLoader({items: [], load() {}, attach() {}, frameBudgetMs})).toThrow();
+  for (const maxAttachmentsPerFrame of [Infinity, NaN, 0, 1.5]) expect(() => createProgressiveLoader({items: [], load() {}, attach() {}, maxAttachmentsPerFrame})).toThrow();
+ });
+
+ test("cancelling a stalled async attachment releases the shared allowance", async () => {
+  const frames = clock();
+  const stalled = createProgressiveLoader({...frames.options, items:[1], load: item=>item, attach:()=>new Promise(()=>{})});
+  const healthy = createProgressiveLoader({...frames.options, items:[2], load: item=>item, attach:()=>{}});
+  stalled.start(); healthy.start(); await flush(); await frames.frame();
+  expect(healthy.getProgress().completed).toBe(0);
+  stalled.abort();
+  await frames.frame();
+  expect(await healthy.done).toMatchObject({status:'completed',completed:1});
+  expect(await stalled.done).toMatchObject({status:'cancelled'});
+ });
+
+ test("seeded sustained competing chunks preserve results and responsive cancellation", async () => {
+  const frames = clock(), actual = [], progress = [];
+  const seed = 42;
+  const inputs = Array.from({length:9}, (_,lane)=>Array.from({length:1000},(_,index)=>(Math.imul(lane*1000+index+seed,1664525)+1013904223)>>>0));
+  const loaders = inputs.map(items=>createProgressiveLoader({...frames.options, items,
+    load:value=>value, attach:value=>{actual.push(value);frames.cost(1);},
+    onProgress:value=>progress.push(value.completed)}));
+  loaders.forEach(loader=>loader.start());await flush();
+  let cameraFrames=0;
+  for(let index=0;index<600;index++){
+    const before=actual.length;
+    frames.options.requestFrame(()=>cameraFrames++);
+    await frames.frame();
+    expect(actual.length-before).toBeLessThanOrEqual(4);
+    for(const loader of loaders){const p=loader.getProgress();expect(p.inFlight+p.ready+p.attaching).toBeLessThanOrEqual(3);}
+  }
+  loaders.forEach(loader=>loader.abort());
+  const count=actual.length;
+  await frames.frame();
+  expect(actual.length).toBe(count);
+  expect(cameraFrames).toBe(600);
+  expect(progress.some(value=>value>0)).toBe(true);
+  const results=await Promise.all(loaders.map(loader=>loader.done));
+  expect(results.every(result=>result.status==='cancelled'&&result.maxBatchMs<=4)).toBe(true);
+  expect(results.reduce((sum,result)=>sum+result.completed,0)).toBe(count);
+  const expected=new Set(inputs.flat());
+  expect(actual.every(value=>expected.has(value))).toBe(true);
+  expect(new Set(actual).size).toBe(actual.length);
+ });

@@ -1,3 +1,4 @@
+import { experimentRegistryEntry, filterExperimentRecords } from "./experiment-registry.js";
 import { mkdir, readFile, readdir, rename, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { join } from "node:path";
@@ -45,6 +46,7 @@ export function createServerExperimentRecord(snapshot, options = {}) {
     modelVersion: snapshot?.model?.simulatorVersion || snapshot?.simulationBatch?.adapter?.id || null,
     seed: snapshot?.worldBatch?.seed ?? snapshot?.experiment?.experiment?.seed ?? null,
     runs: snapshot?.worldBatch?.runs ?? snapshot?.simulationBatch?.simulations?.length ?? 0,
+    registry: experimentRegistryEntry(snapshot),
     snapshot,
   };
 }
@@ -88,7 +90,7 @@ export async function listServerExperiments(options = {}) {
       rows.push(row);
     } catch { /* ignore partial/corrupt files in listing */ }
   }
-  return rows.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+  return filterExperimentRecords(rows, options.filters).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
 }
 
 export async function listExperimentChildren(parentId, options = {}) {

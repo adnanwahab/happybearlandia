@@ -1,3 +1,4 @@
+import { experimentRegistryEntry } from "./experiment-registry.js";
 function clone(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value));
 }
@@ -20,6 +21,7 @@ export function buildPensieveHandoff({ record, experiment, sourceUrl = null } = 
     },
     exhibit: {
       title: civicExperiment.plan?.title || "Civic experiment",
+      resultLabel: experimentRegistryEntry(snapshot).resultLabel,
       subtitle: "journal → plan → assumptions → futures → critique → revision",
       sections: [
         "journal-and-plan",

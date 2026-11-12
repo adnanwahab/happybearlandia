@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "population-startup.v1",
+  "recordedAt": "2026-11-12T20:57:36.587Z",
+  "machine": {
+    "platform": "darwin",
+    "release": "24.6.0",
+    "arch": "arm64",
+    "totalMemoryBytes": 17179869184,
+    "cpu": "Apple M4"
+  },
+  "route": "/world?demo=1&living=0&people=20&seed=42&renderer=webgl&quality=LOW",
+  "seed": 42,
+  "coldDefinition": "New browser process and fresh context for each engine; OS and server caches are not cleared.",
+  "limitations": [
+    "Chromium, Firefox and WebKit are automated engines; WebKit is not shipping Safari.",
+    "JS heap excludes worker, GPU and native memory. Missing memory APIs return null.",
+    "The opt-out route tests existing on-demand startup, not default auto-activation or a million-resident backend.",
+    "First animation callback is a scheduling observation, not proof of a presented WebGL frame."
+  ],
+  "browsers": [
+    {
+      "engine": "chromium",
+      "status": "unavailable",
+      "reason": "Chromium closed during launch before page creation"
+    },
+    {
+      "engine": "firefox",
+      "status": "unavailable",
+      "reason": "Playwright executable not installed"
+    },
+    {
+      "engine": "webkit",
+      "status": "unavailable",
+      "reason": "Playwright executable not installed"
+    }
+  ],
+  "serverStartup": {
+    "status": "blocked",
+    "attemptedPorts": [
+      54327,
+      0
+    ],
+    "error": "Bun listen EADDRINUSE; no HTTP measurements taken"
+  }
+}

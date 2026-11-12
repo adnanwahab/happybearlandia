@@ -1,3 +1,4 @@
+import { replayExperimentRecord } from "./experiment-registry.js";
 import {
   forkServerExperiment,
   listExperimentChildren,
@@ -18,7 +19,7 @@ export async function handleExperimentApi(request, options = {}) {
   if (parts[0] !== "api" || parts[1] !== "experiments") return null;
   const id = parts[2] || null;
   const action = parts[3] || null;
-  const store = { root: options.root };
+  const store = { root: options.root, filters: Object.fromEntries(url.searchParams) };
 
   try {
     if (!id && request.method === "POST") {
@@ -28,6 +29,10 @@ export async function handleExperimentApi(request, options = {}) {
       return json(record, 201);
     }
     if (!id && request.method === "GET") return json(await listServerExperiments(store));
+    if (id && action === "replay" && request.method === "POST") {
+      const record = await loadServerExperiment(id, store);
+      return record ? json(await replayExperimentRecord(record)) : json({ error: "Experiment not found" }, 404);
+    }
     if (id && action === "children" && request.method === "GET") return json(await listExperimentChildren(id, store));
     if (id && action === "fork" && request.method === "POST") {
       const body = await bodyJson(request);

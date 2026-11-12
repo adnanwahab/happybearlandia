@@ -17,3 +17,8 @@ Run `bun test test/future-machine-diff.test.js test/city-systems.test.js`. The t
 A six-household fixture with ordinary default utilities and a four-home housing intervention produced nonphysical differences but no completed building over 120 months: utility headroom can block completion. An empty `physicalCount` is a valid modeled outcome and must be presented honestly. Browser presentation, saved experiment normalization, sharing and full integration remain the integration owner's checks; this worker changes no browser behavior and does not require Playwright.
 
 The seed-42 flagship now has direct regression coverage using the actual versioned data generator, rather than only the separate six-household fixture. It verifies no physical differences before Month 16, one added building with 24 exact-ID-linked units at Month 16, +24 homes and +1,000,000 cumulative USD at Months 16/120, deterministic repeat, and agreement with every shared metric unit. Detailed observed measurements and provenance are in [the data audit](../data/README.md#seed-42-flagship-audit-2026-11-11). Month 120 link travel changes by only -0.00025240888888866664 minutes/link; this should not be narrated as a meaningful commute improvement.
+
+`firstDivergence(history, diffs)` selects the earliest renderable recorded physical
+building change, with exact ID ordering within a month. Missing paired building
+or project inventories are skipped. Demo, story first physical stop and browser
+evidence share this rule; it returns null when no mapped building is available.

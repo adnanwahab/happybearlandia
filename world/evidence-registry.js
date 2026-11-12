@@ -1,3 +1,4 @@
+import { libraryFromExperiment } from "./research-library/library.js";
 const isObject = (value) => Boolean(value) && typeof value === "object" && !Array.isArray(value);
 const asArray = (value) => Array.isArray(value) ? value : [];
 const clamp01 = (value, fallback = 0.5) => Number.isFinite(Number(value)) ? Math.max(0, Math.min(1, Number(value))) : fallback;
@@ -14,6 +15,8 @@ export function normalizeEvidenceRecord(raw = {}, fallback = {}) {
     sourceName: String(row.sourceName || row.source || fallback.sourceName || "HBL model assumption"),
     sourceType: String(row.sourceType || fallback.sourceType || (type === "observed" ? "official-statistic" : "model-assumption")),
     observedAt: row.observedAt || fallback.observedAt || null,
+    license: row.license || fallback.license || null,
+    retrievedAt: row.retrievedAt || fallback.retrievedAt || null,
     geography: String(row.geography || fallback.geography || "unspecified"),
     value: Number.isFinite(Number(row.value)) ? Number(row.value) : (Number.isFinite(Number(fallback.value)) ? Number(fallback.value) : null),
     unit: String(row.unit || fallback.unit || "unknown"),
@@ -124,6 +127,7 @@ export function attachEvidenceLayer(experiment, options = {}) {
     ...experiment,
     evidenceLayer: {
       schemaVersion: "hbl-evidence-layer.v1",
+      researchLibrary: libraryFromExperiment({ ...experiment, worldModel: { ...experiment.worldModel, variables, causalEdges }, outcomes: { ...experiment.outcomes, metricRegistry } }),
       variableCountsByType: counts,
       calibratedVariables: variables.filter((row) => row.calibration?.status === "calibrated").length,
       note: "Evidence metadata describes provenance and confidence; it does not by itself establish causality or predictive validity.",

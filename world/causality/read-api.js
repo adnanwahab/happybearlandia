@@ -1,3 +1,4 @@
+import {inspectRipple} from './ripple.js';
 import {explainRecorded} from './explanation.js';
 import {sameRun} from '../../shared/causality/index.js';
 const json=(data,status=200)=>Response.json(data,{status,headers:{'cache-control':'no-store','x-content-type-options':'nosniff'}});
@@ -7,7 +8,7 @@ const integer=(query,key,fallback,min,max)=>{if(!query.has(key))return fallback;
 export function createCausalityReadHandler({store}) {
  return async request=>{
   const url=new URL(request.url),path=url.pathname.replace(/^\/api\/causality\/?/,'').replace(/\/$/,''),q=url.searchParams;
-  if(!['runs','run','events','observations','explain','timeline','checkpoints'].includes(path)&&!path.startsWith('runs/'))return null;
+  if(!['runs','run','events','observations','explain','ripple','timeline','checkpoints'].includes(path)&&!path.startsWith('runs/'))return null;
   if(request.method!=='GET')return new Response(null,{status:405,headers:{allow:'GET'}});
   try{
    for(const key of new Set(q.keys()))if(q.getAll(key).length!==1)bad('Duplicate query parameter: '+key);
@@ -16,6 +17,11 @@ export function createCausalityReadHandler({store}) {
    let runId=q.get('runId');if(path.startsWith('runs/')){try{runId=decodeURIComponent(path.slice(5));}catch{bad('Invalid run ID');}}
    if(!runId||runId.length>4096)bad('runId is required');const run=store.getRun(runId);if(!run)return json({error:'Stored run not found'},404);
    if(path==='run'||path.startsWith('runs/'))return json({run});
+   if(path==='ripple'){
+    const targetId=q.get('targetId');if(!targetId)bad('targetId is required');
+    const result=inspectRipple(store,runId,targetId);
+    return result?json(result):json({error:'Stored target record not found'},404);
+   }
    if(path==='explain'){
     const targetId=q.get('targetId');if(!targetId)bad('targetId is required');
     if(q.has('includeAssociations')&&!['true','false'].includes(q.get('includeAssociations')))bad('Invalid includeAssociations');
