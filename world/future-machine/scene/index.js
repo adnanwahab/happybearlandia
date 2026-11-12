@@ -106,9 +106,9 @@ export function createStage(container, {onSelect,history} = {}) {
   }
   views.addEventListener('click',pick);
   // Native ESM uses the host's same-version curated Three import map.
-  Promise.all([import('three'),import('three/addons/controls/OrbitControls.js')]).then(async ([module,{OrbitControls}])=>{
+  const canvasSelected=['canvas','canvas2d'].includes(new URLSearchParams(location.search).get('renderer'));
+  (canvasSelected?Promise.reject(new Error('Canvas2D selected')):Promise.all([import('three'),import('three/addons/controls/OrbitControls.js')])).then(async ([module,{OrbitControls}])=>{
     if(disposed||canvasStage)return;THREE=module;
-    if(new URLSearchParams(location.search).get('renderer')&&['canvas','canvas2d'].includes(new URLSearchParams(location.search).get('renderer'))){fail(new Error('Canvas2D selected'));return;}
     effects=createVisualEffects({THREE,reducedMotion:globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches});
     const selectedBackend=await createRendererBackend({THREE,forceWebGL:new URLSearchParams(location.search).get('renderer')==='webgl'});if(disposed){selectedBackend.renderer.dispose();return;}renderer=selectedBackend.renderer;renderBackend=selectedBackend.backend;backendReason=selectedBackend.reason;renderer.autoClear=false;renderer.setClearColor(0x10232d,1);renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio||1,1.5));
     views.append(renderer.domElement);renderer.domElement.style.cssText='display:block;width:100%;height:100%';renderer.domElement.setAttribute('aria-label','City inventory scenes; drag to orbit, scroll to zoom');

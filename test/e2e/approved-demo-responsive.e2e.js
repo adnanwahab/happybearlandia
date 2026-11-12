@@ -27,21 +27,29 @@ async function snapshot(page,info,name,errors){
 }
 
 for(const viewport of [{width:1440,height:1000},{width:390,height:844},{width:320,height:640}]){
- test(`homepage Canvas reduced-motion journey at ${viewport.width}px`,async({page},info)=>{
+ test(`homepage Canvas reduced-motion journey at ${viewport.width}px`,async({page,browserName},info)=>{
   const errors={page:[],console:[]};
   page.on('pageerror',e=>errors.page.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.console.push(m.text());});
   await page.setViewportSize(viewport);
   // Configure the supported renderer query before application modules execute
   // after the real homepage click. Simulation APIs and outcomes stay untouched.
-  await page.addInitScript(()=>{
+  await page.addInitScript(({emulate})=>{
    if(location.pathname==='/world/future-machine.html'){
     const url=new URL(location.href);url.searchParams.set('renderer','canvas2d');history.replaceState(null,'',url);
+    if(emulate){
+     const calls=[];
+     for(const name of ['replaceState','pushState']){
+      const original=history[name].bind(history);
+      history[name]=(...args)=>{const now=performance.now();while(calls.length&&now-calls[0]>=30000)calls.shift();if(calls.length>=100)throw new DOMException('History write limit','SecurityError');calls.push(now);return original(...args);};
+     }
+    }
    }
-  });
+  },{emulate:browserName==='chromium'});
   await page.goto('/');await page.getByRole('link',{name:'Play Demo',exact:true}).click();
   await expect(page).toHaveURL(/\/world\/future-machine\.html\?/);
   await expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.status),{timeout:90000}).toBe('ready');
   await page.getByRole('button',{name:'Pause demo',exact:true}).click();
+  expect(await page.evaluate(()=>Number(new URL(location.href).searchParams.get('month'))===window.futureMachine.state.month)).toBe(true);
   await seek(page,0);const initial=await snapshot(page,info,`${viewport.width}-matched-0`,errors);
   expect(initial.seed).toBe(42);expect(initial.firstDivergence.month).toBe(16);expect(initial.baselineBuildings).toEqual(initial.planBuildings);expect(initial.metrics.housingUnits.delta).toBe(0);
   const slider=page.getByTestId('future-machine-timeline');await reachable(slider);await page.keyboard.press('ArrowRight');

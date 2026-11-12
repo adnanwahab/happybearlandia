@@ -1003,3 +1003,35 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-213 — WebKit-safe flagship demo
+
+Slice: preserve monthly City replay while moving address-bar writes to manual
+seek, pause/stop, completion, initial load and share. Share computes the current
+recipe/month on demand; history failures must not interrupt inspector refresh.
+Explicit Canvas selection must bypass Three and OrbitControls imports.
+Acceptance: homepage → Play Demo → divergence → timeline → outcomes → WHY in
+Chromium, Firefox and WebKit; full demo and 0→120 playback under a synthetic
+100-history-writes/30-second limit, paused URL/month agreement, no Three requests
+in Canvas. Existing simulation records, seeds and clocks remain unchanged.
+Prerequisites: installed Playwright browsers and local Bun server. Physical iPhone
+verification is a separate outstanding gate; desktop engines do not prove mobile
+support. No deployment or production data changes are authorized by this slice.
+
+Implemented: boundary-only history writes with identical-URL suppression and
+nonfatal address-bar failure; fresh share URL generation; Canvas import bypass;
+dedicated three-engine Playwright config and canonical CI lane. Chromium journeys
+emulate a combined pushState/replaceState rolling limit. Browser assertions cover
+full 50-second demo, full 200ms/month timelapse, pause agreement, fresh WHY and
+absence of Three requests; existing responsive canonical journey runs per engine.
+
+Actual local verification: 18 tests / 117 assertions passed across
+two-futures-demo-controller, future-machine-scene and future-machine-share.
+Playwright --list discovers 12 checks in all three engines; git diff --check passes.
+Execution attempted twice with an explicit installed Bun binary: local server
+binding failed with EADDRINUSE on ports 54419 and 57831 before browser launch.
+The default local package Bun shim also fails its missing-postinstall check;
+HBL_BUN_EXECUTABLE supports choosing the working binary without changing CI.
+No browser pass or physical-device evidence is claimed. Next: run
+bunx playwright test --config test/flagship-browser.config.js on a host with
+local server access, then record a physical iPhone run before mobile support claims.
