@@ -20,6 +20,14 @@ were returned. The report now records that live receipt separately from
 the original offline tests, which passed 8/8 again. CI and dispatcher
 internals remain unverified; publication of this follow-up is a host gate.
 
+November 12 checkout follow-up: the report already existed and was preserved;
+absence-before-creation is historical evidence only. Starting HEAD: `b963dd3`.
+Reran the offline pipeline tests (8 passed) and one-worker Linear dry-run
+(exit 0); `git diff --check` passed. Creating `symphony/SHE-179` failed because
+the shared Git metadata is outside the writable workspace. Branch creation
+and the requested local commit remain outstanding; checkout stays on `mini/SHE-179`.
+No live service verification or publication was performed in this follow-up.
+
 [Product design](design.md) defines the target experience. [Engineering instructions](../AGENTS.md) describe how to plan, implement, and verify changes. Keep this plan current with task status, dependencies, acceptance evidence, and commit or PR references when available.
 
 ## Playable Life vertical slice
