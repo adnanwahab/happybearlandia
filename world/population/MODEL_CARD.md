@@ -82,3 +82,12 @@ Inspecting a household in Households at risk exposes a What would help this hous
 Rent reduction, childcare subsidy and wage increase controls each accept 0–100%; the projection horizon is 1–365 whole days. The comparison shows each intervention alone and their combination. Rent relief reduces the recorded rent outflow, childcare support reimburses only recorded household-paid care, and wage support scales actual received wages. A household without wages receives no invented job or wage income. Public childcare cost, added employer payroll and landlords' rent forgone are reported separately, per synthetic household, over the chosen horizon. Their sum equals the additional household resources. Full childcare/rent relief cannot exceed recorded charges.
 
 Savings projections use current savings plus daily net cash flow multiplied by the horizon. Work hours, employment, benefits, other spending, prices and behavior stay constant; tax, administration, business viability and general market responses are outside the calculation. Negative savings remain visible as an uncovered deficit. The calculator executes no policy, changes no population state and writes no simulation records. Its JSON export includes settings, baseline, scenarios, evidence bounds, source run/snapshot context and assumptions. The supporting payment link retains the selected snapshot cutoff.
+
+Research-only transport ablation hooks (`transport-experiment.js`) are inert
+unless explicitly attached to a fresh model by the headless research runner.
+The full arm preserves ordinary state exactly. Frozen, shuffled, half and double
+transport feedback leave household, care, housing, firm and social dependencies
+active. They do not constitute resident independence. Controls and streamed
+observers are not production checkpoint state; regenerate from the versioned
+recipe. [E2 protocol and limitations](../../docs/research/million-agent-architectures.md)
+defines the output graph and the withheld release claim.

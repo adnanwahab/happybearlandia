@@ -1003,3 +1003,63 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-219 — interaction ablation, first verifiable slice
+
+The source research document and SHE-171 runner are absent in this checkout.
+Reuse the actual Population model behind `world/PEOPLE_BENCHMARK.md` through a
+bounded headless CLI. Prerequisites inspected: behavior 1.3.0, transport demand
+feedback and same-step boarding gates, daily household/economy/employment rules.
+
+Scope: transport-channel intervention, five matched arms (current, frozen
+transport, shuffled demand, half and double demand feedback). Keep current
+behavior unchanged outside an explicitly attached diagnostic. Record seed,
+source/config/model/rules, horizon, units, initial identity digest, outcomes,
+resource-incidence graph and paired 95% Student-t seed intervals. Do not label
+this a complete resident-independent ablation: households, care, housing and
+employer coupling remain. A statistical difference must never override that
+coverage failure or authorize an interacting-resident claim.
+
+Acceptance: exact full-arm equivalence; deterministic intervention replay;
+freeze both lagged demand and same-step transit gate; shuffle preserves demand
+counts; zero/missing metrics remain explicit; paired seeds cannot be duplicated
+or dropped; real 10k/100k runs; meaningful failure/boundary tests. No browser
+behavior changes. Follow-on: independent-copy adapters for household, care,
+housing and firm feedback and actual sharding before the full E2 release gate.
+
+Implemented: shared benchmark context, opt-in demand-read hooks, streamed
+transport-resource graph, paired Student-t analysis, bounded sequential CLI,
+source/state hashes, atomic complete-report publication and coverage-blocked
+E2 result. Protocol and residual interfaces are in
+`docs/research/million-agent-architectures.md`; existing benchmark and model
+card link it. Hooks preserve normal state exactly; no production config or
+checkpoint contract was changed.
+
+Verification so far: focused/adjacent suite 62 pass, 0 fail, 717 assertions
+(20.60s); real CLI replay of 15 small runs produced identical scientific fields,
+graph evidence, source hashes and initial/final digests; invalid CLI input
+preserved an existing output file. Broader six-file regression including
+checkpoints: 55 pass, 1 timeout (73.12s). The checkpoint-worker test also timed
+out alone with current behavior and with original HEAD behavior in a temporary
+source copy; baseline invocation was interrupted after recording the timeout.
+This remains a limitation, not a green checkpoint-worker gate. Existing
+serialization/continuation and other checkpoint tests passed in the broader
+run. No lint/typecheck script exists in package.json. Browser behavior is
+unchanged; Playwright is skipped in favor of focused actual-model integration.
+The 10k/100k, three-seed (42–44), one-day sweep completed all 30 arms in
+814.26 seconds. The complete report is retained at
+`docs/research/results/she219-transport-ablation.json`; all 993 source hashes
+match the checkout. No headline band excludes zero at 10k; only planned commute
+does at 100k (full minus frozen −0.032616 minutes, 95% interval
+[−0.053252, −0.011981]). Employment, occupancy and rent differences are zero.
+Neither population meets even the transport-only two-outcome criterion;
+complete E2 remains unimplemented and the interacting-resident claim withheld.
+
+Final focused/adjacent rerun: 62 pass, 0 fail, 717 assertions (21.64s).
+Focused checkpoint checks: 4 pass, 0 fail, 26 assertions (serialization,
+deterministic continuation and capture consistency); the previously timed-out
+worker case was filtered out and remains unresolved. Whitespace checks pass.
+Next implementation task is resident-independent shared-resource adapters with
+trajectory perturbation tests, followed by partner/resource rewiring and causal
+graph instrumentation as specified in the protocol. No deploy, production
+mutation, commit or PR.
