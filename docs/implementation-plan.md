@@ -1,5 +1,24 @@
 # HappyBearLandia implementation plan
 
+## SHE-234 — causal architecture experiment
+
+Completed isolated architecture investigation; [comparison and migration gates](experiments/she-234-causal-architecture.md).
+Audited current deterministic City, checkpoint replay and recorded causal trails;
+SHE-76/SHE-90 remain In Review and their production interfaces are untouched.
+Owned slice: opt-in `experiments/she-234/`, report and benchmark evidence only.
+Acceptance: complete branch suffix/trace equality, immutable parents, pinned
+rules/source/seed provenance and honest unsupported graph-execution status.
+Nine measured cases passed; checkpoint continuation executes 12 versus 24 steps.
+Focused existing and experiment suites: 34 pass, 0 fail, 481 expectations.
+No browser behavior changed; Playwright inapplicable. `git diff --check` passed.
+Prototype is supplied as `experiments/she-234/prototypes.patch` for `git am`
+in a clean baseline checkout; it contains only benchmark and test files.
+No push, production behavior change or deployment. Recommendation: checkpoint
+authority plus ordered versioned input replay and explanatory edges. Next slice
+requires a City intervention-input adapter and independently recorded target
+digests; targeted graph execution remains gated on complete dependency coverage
+and full-state/trace equivalence under capacity contention and lagged feedback.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
