@@ -53,21 +53,32 @@ function checkReplayState(state) {
   checkInitial({ ...state, month: 0 });
   assertMonth(originalMonth);
 }
-async function historyFrom(record, baselineReplay, planReplay) {
+async function historyFrom(record, baselineReplay, planReplay, recipe, initialHash) {
   const { manifest } = record;
   const initial = manifest.initial;
-  const recipe = recipeFromManifest(manifest);
-  const initialHash = await stateHash(initial);
-  if (initialHash !== await stateHash(initialForRecipe(recipe))) throw new Error('Saved initial state does not match versioned synthetic generator');
   return freeze({ schemaVersion: CONTRACT_VERSION, recipe, experimentId: record.id, initialHash, modelVersion: MODEL_VERSION, seed: initial.seed,
     baseline: normalizeReplay(initial, baselineReplay), plan: normalizeReplay(initial, planReplay),
     provenance: { ...structuredClone(initial.provenance), modelManifest: manifest.modelManifest, initialHash, replay: 'Recomputed from saved City manifest; not independently verified recorded checkpoints.', assumptions: manifest.assumptions, authority: 'monthly City only' } });
 }
 function recipeFromManifest(manifest) {
-  if (!manifest || manifest.version !== MODEL_VERSION || manifest.months !== MONTHS || manifest.runs !== 1) throw new Error('Unsupported saved experiment version or horizon');
+  if (!manifest || Array.isArray(manifest) || typeof manifest !== 'object' || manifest.version !== MODEL_VERSION || manifest.months !== MONTHS || manifest.runs !== 1) throw new Error('Unsupported saved experiment version or horizon');
+  // City manifests use title as their display name (200 characters in the API).
+  // Older Future Machine records may omit it. Keep printable Unicode and literal
+  // markup as text; reject malformed/control metadata without echoing its value.
+  if (Object.hasOwn(manifest, 'title') && (typeof manifest.title !== 'string' || !manifest.title.trim() || manifest.title.length > 200 || /[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/u.test(manifest.title))) {
+    throw new Error('Invalid saved experiment title: use 1–200 characters without control characters');
+  }
   checkInitial(manifest.initial);
   const scenarios = manifest.scenarios;
-  if (!Array.isArray(scenarios) || scenarios.length !== 2 || scenarios[0].id !== 'baseline' || scenarios[1].id !== 'plan' || scenarios[0].interventions?.length !== 0 || !Array.isArray(scenarios[1].interventions) || scenarios[1].interventions.length > 1) throw new Error('Saved experiment is not a matched Future Machine pair');
+  if (!Array.isArray(scenarios) || scenarios.length !== 2) throw new Error('Saved experiment is not a matched Future Machine pair');
+  for (const [index, scenario] of scenarios.entries()) {
+    if (!scenario || Array.isArray(scenario) || typeof scenario !== 'object' || scenario.id !== ['baseline', 'plan'][index] || !Array.isArray(scenario.interventions) || scenario.interventions.length > index) {
+      throw new Error(`Invalid saved scenario at index ${index}: expected ${index === 0 ? 'baseline with no interventions' : 'plan with at most one intervention'}`);
+    }
+    if (scenario.interventions.length === 1 && (!scenario.interventions[0] || Array.isArray(scenario.interventions[0]) || typeof scenario.interventions[0] !== 'object')) {
+      throw new Error('Invalid saved plan intervention: expected a policy object');
+    }
+  }
   const recipe = validateRecipe({ ...DEFAULT_RECIPE, seed: manifest.initial.seed, households: manifest.initial.households.length, intervention: scenarios[1].interventions[0] ?? null });
   if (JSON.stringify(manifest.modelManifest) !== JSON.stringify(createEngine().manifest)) throw new Error('Recorded system versions unavailable');
   return recipe;
@@ -100,6 +111,7 @@ async function load(id, request, pause, onProgress, expectedRecipe) {
   let record;
   while (true) {
     record = await request(`/api/city-experiments/${id}`);
+    if (!record || Array.isArray(record) || typeof record !== 'object') throw new Error('Invalid saved experiment response: expected an object');
     if (record.id !== id) throw new Error('Saved experiment identity does not match request');
     onProgress?.({ status: record.status, message: `City pair: ${record.completed ?? 0}/2 runs` });
     if (record.status === 'complete') break;
@@ -108,10 +120,13 @@ async function load(id, request, pause, onProgress, expectedRecipe) {
   }
   const savedRecipe = recipeFromManifest(record.manifest);
   if (expectedRecipe && await stateHash(savedRecipe) !== await stateHash(expectedRecipe)) throw new Error('Saved experiment does not match requested recipe');
+  // Reject an altered common original before requesting expensive replays.
+  const initialHash = await stateHash(record.manifest.initial);
+  if (initialHash !== await stateHash(initialForRecipe(savedRecipe))) throw new Error('Saved initial state does not match versioned synthetic generator');
   // Sequential replays respect the existing server's two-job limit.
   const baseline = await request(`/api/city-experiments/${id}/replay`, { scenarioId: 'baseline', runIndex: 0 });
   const plan = await request(`/api/city-experiments/${id}/replay`, { scenarioId: 'plan', runIndex: 0 });
-  return historyFrom({ ...record, id }, baseline, plan);
+  return historyFrom({ ...record, id }, baseline, plan, savedRecipe, initialHash);
 }
 export function createExperiment(input = DEFAULT_RECIPE, options = {}) {
   const recipe = validateRecipe(input);
