@@ -1003,3 +1003,75 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-128 — neighborhood population brush
+
+Dependency SHE-141 is Done; its executable count contract is present locally.
+Read-only GitHub search for neighborhood/SHE-128/brush found no matching PR.
+The existing Policy Paintbrush concerns proposals; the proposed monthly City
+grid in `docs/reviews/chatgpt-30-neighborhood-proposal.md` has another clock and
+identity authority. This slice owns new Population selection adapter/UI/tests
+and the minimal model, worker, runtime and Living World wiring. No monthly City
+counts or render samples are combined. Work stays in the isolated SHE-128
+workspace; no deployment or Git metadata changes.
+
+Acceptance: Shift-drag world ground coordinates or submit keyboard coordinate
+bounds; pause and query the entire committed worker population; show tick,
+minute, seed, model and explicit activity window. Count current positions with
+inclusive edges. Active is distinct residents changing the declared spatial,
+activity, travel or need fields during the last committed step, including
+intermediate changes that revert. Other state fields are outside this diagnostic.
+The complete spatial interaction ledger is absent, so current interactions are
+unavailable. Unweighted models have zero aggregate-only persons; represented
+weights have no separately located aggregate records, so that count is unavailable.
+No weighted person is relabeled an independent agent. Old checkpoints without
+activity diagnostics report unavailable until the next step. Diagnostics are
+saved with model state and never influence rules or randomness.
+
+Verification in progress: pure reconciliation, zero/unavailable, boundary,
+seed-matched replay, serialization and real worker query pass (5 tests,23
+assertions). Browser keyboard/pointer integration and existing regression suite
+are next. This is coupled model/worker/UI work with shared interfaces, so no
+independent implementation delegation is used. Risk: diagnostic arrays add
+bounded per-step allocation proportional to resident count; this is not evidence
+of million-resident throughput. Pointer projection uses the existing world ground
+plane, not surveyed neighborhood boundaries. Results remain labeled snapshots;
+subsequent simulation advances require another selection to refresh.
+
+SHE-128 verification checkpoint: integrated selection adapter, diagnostics,
+worker/runtime query and toolbar UI delivered. Final focused/regression command
+`bun test test/neighborhood-selection.test.js test/agent-counts.test.js
+world/population/fresh-start.test.js test/neighborhood-traditions.test.js
+test/population-world-view.test.js test/population-model.test.js
+test/population-needs.test.js test/population-hotspots.test.js` passed62tests,
+665assertions in7.79s. `git diff --check` passed. The new worker checkpoint test
+preserves selection evidence exactly through JSON save/restore. Seed metadata
+uses the input config seed rather than the generator's derived internal seed.
+
+Existing checkpoint suite:29pass/1timeout; isolated rerun reproduced the timeout.
+A separate54MiB `/private/tmp/SHE-128-baseline` source copy with HEAD versions of
+model/runtime/worker also timed out on the same existing `worker checkpoints
+restore full state and continue identically at10and30minutes` test at30s.
+No existing tests or deadlines were changed. Playwright attempted on default
+3100 and alternate34128; both server starts failed with EADDRINUSE. Thus the
+new keyboard/pointer browser test is added as source but unexecuted, and no
+screenshot or visual acceptance is claimed. Remaining release verification:
+run `bunx playwright test test/e2e/neighborhood-selection.e2e.js` in an environment
+that permits the app to bind a port. No lint/type scripts are configured in the
+root package. No PR, commit, deployment or Linear state change performed.
+
+Overlap follow-up: Linear search found related SHE-33/96/97 monthly neighborhood
+metrics, SHE-154 density rendering, SHE-161 occupancy/activity heatmaps and
+SHE-219 interaction-ablation research. These are separate outputs or model
+contracts; this slice owns only Population rectangular inspection and does not
+implement their views. Browser bundling passed for the new inspector (2 modules)
+and integrated world-view (199 modules). No million-scale performance claim.
+
+Revalidation on November 12: fetched the full SHE-128 contract and confirmed
+SHE-141 remains Done. Fresh GitHub SHE-128 search returned no matching issue/PR;
+Linear neighborhood search confirmed the separately scoped monthly metrics work.
+Preserved the implementation already present in this workspace. The eight-file
+focused/regression command above passed again: 62 tests, 665 assertions, 8.25s.
+`git diff --check` passed. Fresh Playwright attempts on ports 3100 and 34128 both
+failed before test execution with server EADDRINUSE. Browser acceptance and
+dispatch review remain outstanding; no merge, deployment or issue mutation.
