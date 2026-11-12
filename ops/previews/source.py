@@ -30,6 +30,7 @@ def safe_members(raw, strip=True):
             name='/'.join(parts)
             if any(p in {'.git','node_modules','.ssh','.aws','.agents','.codex','.netrc','.npmrc','.bunfig.toml','bunfig.toml'} for p in parts): continue
             if any(p.startswith('.env') and p!='.env.example' for p in parts): continue
+            if parts[-1] in {'.git-credentials','id_rsa','id_ed25519'} or re.search(r'\.(?:sqlite3?|db)(?:-wal|-shm)?$',parts[-1],re.I): continue
             if entry.isdir(): continue
             if not entry.isfile() or entry.size>128*1024*1024: raise Invalid('Archive links/special/oversized files forbidden')
             total+=entry.size

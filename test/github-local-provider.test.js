@@ -39,3 +39,8 @@ test('revision readiness cannot be satisfied by a different guest SHA',async()=>
  const provider=new LocalProvider({stateDir:'/tmp/test-only',command:async args=>args.includes('ls')?JSON.stringify({ID:'fixture'}):args.includes('inspect')?JSON.stringify([metadata]):JSON.stringify({sha:'b'.repeat(40),repository:job.repository,recipe:'bun-network-none.v1'})});
  expect(provider.inspect(job)).rejects.toThrow('revision proof mismatch');
 });
+
+test('source transport excludes credential files and persisted databases',()=>{
+ const program=`import importlib.util,io,tarfile\np=importlib.util.spec_from_file_location('s','ops/previews/source.py');s=importlib.util.module_from_spec(p);p.loader.exec_module(s)\nb=io.BytesIO()\nwith tarfile.open(fileobj=b,mode='w:gz') as t:\n for n in ['public.js','.env','.git-credentials','world.sqlite','city.db-wal','id_rsa']:\n  i=tarfile.TarInfo('prefix/'+n);i.size=1;t.addfile(i,io.BytesIO(b'x'))\nassert [n for n,_,_ in s.safe_members(b.getvalue())]==['public.js']`;
+ const r=spawnSync('/usr/bin/python3',['-c',program],{cwd:import.meta.dir+'/..',encoding:'utf8',env:{...process.env,PYTHONDONTWRITEBYTECODE:'1'}});expect(r.status).toBe(0);
+});
