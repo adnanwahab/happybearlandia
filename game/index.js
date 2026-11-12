@@ -7397,6 +7397,8 @@ if (!isGalleryRoute()) {
     event
   ) {
 
+    if (event.defaultPrevented || event.target?.closest?.('input, textarea, select, button, a, [contenteditable], dialog')) return;
+
     var keyCode =
       event.which;
 

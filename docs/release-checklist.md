@@ -91,3 +91,19 @@ Use the local application origin, `http://127.0.0.1:3000` with the default port.
 ### Rollback
 
 Trigger rollback for sustained startup failures, inaccessible saved records, storage attachment mismatch, unexpected schema failure, or a blocking user journey. Freeze affected writes, preserve the current mounted state, and capture the failing release and logs. Use the known-good pre-release image and its matching configuration only when staging verified it against the resulting schema. The observed pre-release digest is `registry.fly.io/happybearlandia@sha256:deaed19df4bd96ea11809dd2b2e67180f79bcca61b4feebd0f964bcccbf05f30`. If the old app cannot read the migrated schema, restore an authorized recovery point onto an isolated or replacement volume first, verify it, and resolve writes made since that recovery point before switching traffic. Recheck the read-only smoke and document the recovery.
+
+## Accessibility gate for each new or changed system
+
+- [ ] Record the system, route, candidate SHA, tested journey and tester. Complete
+  the journey using keyboard alone, including entry, entity selection, actions,
+  errors, dismissal and return. Verify visible focus and no keyboard traps.
+- [ ] Repeat with a screen reader and assistive/switch input. Verify names,
+  headings, state changes, errors, modal focus and a semantic alternative to
+  canvas-only actions. Record reader/browser and actual results.
+- [ ] Measure rendered text contrast (4.5:1 normal, 3:1 large) and control/focus
+  contrast (3:1), including overlays, selected, hover and error states.
+- [ ] Enable reduced motion before entry and change it during play. Verify CSS
+  and renderer/camera effects, flashing and transitions across the entire journey.
+- [ ] Run focused accessibility regressions and the system's normal browser
+  journey. Record blockers and unresolved failures; release requires these gates
+  to pass for every included system. Automated checks supplement manual checks.

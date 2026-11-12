@@ -1003,3 +1003,35 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Full-game accessibility — SHE-199
+
+First integrated increment: `/game/:sceneId` conversations and workbench controls.
+Prerequisites audited: World has its own nonmodal accessibility helper; it does
+not cover the React game overlay or other simulation surfaces. No shared full-game
+accessibility contract currently exists. Native dialog owns conversation focus,
+background isolation and restoration; existing conversation events and choices
+remain unchanged. Text editing must not trigger choice or scene shortcuts.
+
+Implemented: named native conversation modal, explicit dismissal at every node,
+labels for question/rules/raise inputs, visible keyboard focus and CSS reduced
+motion for the game overlay. Acceptance browser test uses runtime scene and
+interaction events to exercise typing, focus containment and Escape. Existing
+startup smoke remains part of verification. Dependency install passed with
+`TMPDIR=/private/tmp bun install --frozen-lockfile`. Both focused Playwright
+attempts stopped before server startup: local `node_modules` Bun shim reports
+its postinstall script was not run. Browser behavior is therefore unverified.
+Bun's JSX build and whitespace validation are recorded below after execution.
+
+Remaining: inventory and verify every World/House/Business/Decision/FlowMap/
+Council and companion system; replace pointer-only canvas picking with semantic
+entity/action navigation; test switch input; audit rendered contrast at WCAG AA
+(4.5:1 normal text, 3:1 large text and control boundaries); connect reduced motion
+to camera, particles, flashing and other renderer animation paths; real screen
+reader checks. CSS suppression alone does not reduce canvas animation. SHE-199
+remains incomplete; no full-game compliance or release readiness is claimed.
+
+Actual static verification: `bun build game/main.jsx --target browser --external
+'/game/index.js' --external react --external react-dom/client --external
+react-router --outfile /private/tmp/she199-game.js` passed; `git diff --check`
+passed. No deployment or production writes performed.
