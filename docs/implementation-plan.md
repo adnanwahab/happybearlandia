@@ -1003,3 +1003,27 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-220 — E6 consumer-device soak
+
+Next slice: versioned manual capture contract and CLI evidence checker, using the
+issue's full E6 protocol because `docs/research/million-agent-architectures.md`
+is absent in this checkout. Existing renderer and bounded synthetic CPU fixtures
+cannot establish a sustained million-resident worker claim. No additional agents
+are needed for this sequential contract/documentation slice.
+
+Acceptance: require twenty minute records for each render mode, preserve device,
+model/rules/seed/scenario provenance, distinguish unavailable measurements, and
+report provisional T2 retention and mobile OOM outcomes without treating missing
+observations as passing. Verify boundary/failure cases and CLI input/output.
+Physical T1–T4 runs, a population-specific worker capture adapter, and SHE-177
+threshold ratification remain prerequisites to completing E6. No deployment.
+
+Delivered this slice: `scripts/soak-evidence.js`, focused contract/CLI tests and
+[device capture protocol](research/consumer-hardware-soak.md). Actual verification:
+5 Bun tests passed, 33 assertions; no browser behavior changed so Playwright is
+inapplicable. Checker validates both twenty-minute modes and reports proposed
+per-mode gates; explicit unavailable metrics remain human-review limitations.
+No device soak, battery, thermal, worker-scale, fallback or million-population
+result is claimed. Physical matrix and capture adapter remain pending; E6 is
+incomplete. No Linear state change, commit, PR or deployment performed.
