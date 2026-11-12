@@ -1003,3 +1003,39 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-194 — World Builder + Time Travel
+
+Next integrated slice: extend `/world/living-city/` with a bounded transit
+infrastructure proposal from the currently displayed monthly City checkpoint.
+Reuse City construction/governance and network/home inspection; do not map this
+state to the separate Population or housing model. One owner implements the
+shared model, worker dispatch, panel and tests sequentially.
+
+Acceptance: immutable parent; same seed and scheduled shocks in both arms;
+side-by-side recorded outcomes at a common month; enter either arm and branch
+again from that displayed state; evidence-backed model records distinguished
+from synthetic cost/rule assumptions and unsupported effects. Verify deterministic
+replay, invalid/missing inputs and the browser journey. Risks: uncalibrated city
+rules, unavailable commutes, construction delays, and session-only history.
+
+Delivered: exact-checkpoint branching in `living-city/builder.js`, worker action,
+side-by-side monthly records and event inspection, entry into both arms through
+the shared network/home view, and subsequent branching from the entered state.
+Original quest comparisons and share recipes retain their existing contracts.
+Presets deliberately cover transit infrastructure only; arbitrary buildings and
+unsupported physical effects remain outside this slice. Branch retention is
+session-only and disclosed next to results.
+
+Verification: 14 focused Bun tests passed (186 assertions), covering deterministic
+replay, immutable parent, equal clocks/seeds/shocks, construction completion,
+chained branching, invalid input and existing quest/network/council/recipe paths.
+An initial new assertion incorrectly checked only the last month's event list;
+it now checks the recorded timeline for the completion event. Browser test added
+for both entry controls, month scrub, rebranching and invalid horizon. Playwright
+could not start the local server: listen returned EADDRINUSE on both 3100 and
+3194; browser execution remains unverified in this environment. No lint or type
+check script exists in package.json. No deployment or production mutation.
+Final integration gate: 26 tests passed, 270 assertions across City systems and
+all focused Builder/Living City modules, including SQLite API replay. Browser
+entry bundle built successfully (12 modules); `git diff --check` passed.

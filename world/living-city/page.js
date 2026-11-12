@@ -1,3 +1,4 @@
+import { mountBuilder } from './builder-panel.js';
 import { VERSION } from '../city/contracts.js';
 import { cityMetrics } from '../city/engine.js';
 import { COMMUTE_OPTIONS, QUEST_SCENARIO_VERSION } from './quests.js';
@@ -22,6 +23,7 @@ let sequence = 0;
 let starting;
 let activeExperiment;
 let currentPair;
+let enteredSnapshot;
 let homeOpen = false;
 let replayRevision = 0;
 
@@ -71,7 +73,7 @@ function direction(delta) {
 }
 
 function selection() {
-  return currentPair?.[find('view').value] ?? starting;
+  return enteredSnapshot ?? currentPair?.[find('view').value] ?? starting;
 }
 
 function showHome(snapshot) {
@@ -169,6 +171,7 @@ async function openPair(index) {
   try {
     const pair = await simulate('replay', { seed, amount, index, months });
     if (revision !== replayRevision) return;
+    enteredSnapshot = null;
     currentPair = pair;
     find('view').value = 'intervention';
     const { baseline, intervention } = pair;
@@ -215,6 +218,7 @@ async function openPair(index) {
 async function compare({ amount, index, seed }) {
   replayRevision++;
   activeExperiment = { seed, amount };
+  enteredSnapshot = null;
   currentPair = null;
   find('view').value = 'starting';
   find('test').disabled = true;
@@ -250,7 +254,7 @@ find('visit').onclick = () => {
 find('investment').onchange = setProposal;
 find('test').onclick = () => compare({ seed: starting.seed, amount: Number(find('investment').value) });
 find('sample').onchange = () => openPair(Number(find('sample').value));
-find('view').onchange = showSnapshot;
+find('view').onchange = () => { enteredSnapshot = null; showSnapshot(); };
 find('copy').onclick = async () => {
   const input = find('share');
   try {
@@ -288,5 +292,10 @@ async function open() {
     find('opening').textContent = `Could not open the city. ${error.message}`;
   }
 }
+
+mountBuilder(find('builder'), {
+  selection, simulate,
+  enter(snapshot) { enteredSnapshot = snapshot; showSnapshot(); },
+});
 
 open();

@@ -172,7 +172,7 @@ function sampleStart(state, index) {
   return { seed, shock, state: shock ? scheduleShock(sharedState, shock) : sharedState };
 }
 
-function advance(state, months, includeCheckpoint) {
+export function advance(state, months, includeCheckpoint) {
   const events = [];
   let result;
   for (let step = 0; step < months; step++) {
