@@ -40,7 +40,7 @@ function observe(model, record) {
 }
 function outcome(model, record) {
   const p=model.people,hh=model.households;
-  const residents=Array.from({length:p.age.length},(_,i)=>({id:`${model.prefix}-p${i}`,x:p.homeX[i],z:p.homeZ[i],district:model.districts[p.home[i]].label,commute:record.count[i]?record.sum[i]/record.count[i]:null,burden:hh.rent[p.household[i]]*12/Math.max(1,hh.income[p.household[i]]),access:dailyAccess(model,i)}));
+  const residents=Array.from({length:p.age.length},(_,i)=>({id:`${model.prefix}-p${i}`,x:p.homeX[i],z:p.homeZ[i],districtId:model.districts[p.home[i]].id,district:model.districts[p.home[i]].label,commute:record.count[i]?record.sum[i]/record.count[i]:null,burden:hh.rent[p.household[i]]*12/Math.max(1,hh.income[p.household[i]]),access:dailyAccess(model,i)}));
   const trips=record.count.reduce((sum,n)=>sum+n,0);
   return {commute:trips?record.sum.reduce((sum,n)=>sum+n,0)/trips:null,commuteTrips:trips,burden:model.metrics.meanHousingBurden,access:residents.reduce((sum,r)=>sum+r.access,0)/residents.length,residents};
 }
@@ -61,5 +61,5 @@ export async function compareNeighborhood({context,project,config=COMPARISON_CON
   const before=outcome(baseline,records[0]),after=outcome(changed,records[1]);
   const residents=before.residents.map((b,i)=>{const a=after.residents[i];return {id:b.id,home:initialHomes[i],before:b,after:a,delta:{commute:b.commute===null||a.commute===null?null:a.commute-b.commute,burden:a.burden-b.burden,access:a.access-b.access}};});
   delete before.residents;delete after.residents;
-  return {version:'neighborhood-what-if.v1',project,districtId,seed:config.seed,population:config.population,minutes:1440,before,after,residents,assumption:PROJECTS[project.kind].assumption};
+  return {version:'neighborhood-what-if.v1',modelVersion:baseline.modelVersion,project,districtId,seed:config.seed,population:config.population,minutes:1440,before,after,residents,assumption:PROJECTS[project.kind].assumption};
 }

@@ -1003,3 +1003,32 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-97 — neighborhood impact summary
+
+Slice: aggregate the existing paired Population neighborhood comparison receipt,
+then expose metric-specific ordered neighborhood rows in its normal What if panel.
+Use stable starting district IDs (retain labels for older receipts), matched finite
+resident observations, and mean per-resident B−A deltas. Rank absolute magnitude,
+then district ID; never combine unlike units into a welfare score. Include zero
+rows and explicit missing/excluded counts. This is a fixed starting cohort, not
+current district composition or the monthly City canonical receipt authority.
+Prerequisites: existing deterministic paired-day model and worker contract.
+Acceptance: identical receipts and reordered residents yield identical ordered
+rows; missing/nonfinite measurements cannot become zero or enter the ranking;
+verify real model integration and panel rendering. Risk: commute covers only
+residents with observed work departures in both arms; burden is resident-weighted
+here, unlike the household-weighted headline. No cross-model identity mapping.
+Status: implementation and verification in progress.
+
+Delivered: pure receipt projection in `world/what-if/impact.js`, additive starting
+district/model version provenance in the existing model receipt, and selected
+metric table plus explicit excluded-neighborhood text in the What if panel.
+Module contract and limits are in `world/what-if/README.md`.
+Verification: 8 focused tests passed (107 assertions), including two real paired
+runs and JSON receipt projection. Updated existing browser journey assertions;
+execution blocked at server startup with EADDRINUSE on both 3100 and 4197, so
+browser rendering remains unverified. No configured lint/typecheck scripts.
+Audit: clean initial issue worktree `mini/SHE-97`; no open GitHub issue/PR matching
+SHE-97 was returned, no existing summary implementation found. No publication,
+Linear status/label mutation, or production changes performed.

@@ -19,7 +19,10 @@ test('place an addition, compare paired days, inspect residents, cancel and clea
  await panel.getByRole('button',{name:'Simulate before & after'}).click();
  await expect(panel.locator('[data-status]')).toContainText('Comparison complete',{timeout:90000});
  await expect(panel.locator('[data-summary]')).toContainText('200 synthetic residents');await expect(panel.locator('[data-metrics] tr')).toHaveCount(3);
- await panel.getByRole('button',{name:'Housing burden',exact:true}).click();await expect(panel.locator('[data-explanation]')).toContainText('improved');
+ await expect(panel.locator('[data-impact] tr').first()).toBeVisible();
+ await expect(panel.locator('[data-impact-excluded]')).toContainText('Excluded neighborhoods:');
+ await expect(panel.locator('[data-impact-caption]')).toContainText('access');
+ await panel.getByRole('button',{name:'Housing burden',exact:true}).click();await expect(panel.locator('[data-impact-caption]')).toContainText('burden');await expect(panel.locator('[data-explanation]')).toContainText('improved');
  await panel.getByRole('button',{name:'Average commute',exact:true}).click();
  const resident=panel.locator('[data-residents] button').first();if(await resident.count()){await resident.click();await expect(panel.locator('[data-status]')).toContainText('Comparison resident');}
  await page.screenshot({path:'/private/tmp/hbl-neighborhood-what-if.png'});
