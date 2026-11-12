@@ -12,6 +12,11 @@ HappyBearLandia lets people explore cities, households, businesses, and alternat
 
 ## Application surfaces
 
+The physics playground at `/game/1` also offers a lightweight Honey Trail:
+collect eight visible drops around the floor and shallow stairs, finish a timed
+run, and replay against the page session's best time. It uses authored game
+geometry and local gameplay rules, independent of city simulation outcomes.
+
 | Surface | Product role |
 | --- | --- |
 | World and Time Machine | Explore geographic context, view changes by month, select an entity, and jump from a headline to the corresponding recorded checkpoint. |

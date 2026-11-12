@@ -1,5 +1,38 @@
 # HappyBearLandia implementation plan
 
+## SHE-5 — Honey Trail playground challenge
+
+Next integrated slice: add an optional collect-and-replay challenge to `/game/1`
+using the existing character position, scene, and animation loop. No new service,
+scene schema, or multiplayer authority. Authored synthetic playground rules:
+collect eight honey drops, start the timer on first pickup, finish on the last,
+and retain a session best across retries. Progress survives lava respawns.
+
+Tasks: implement deterministic collection rules; render visible drops and a
+compact progress/instructions/retry panel; integrate with normal physics updates;
+test pickup boundaries, duplicate prevention, completion and replay, then run the
+existing game browser smoke plus a focused journey when dependencies permit.
+Acceptance: reachable markers, visible progress and completion, working replay,
+and no challenge on unrelated scenes. Risks: edited scene geometry can move
+under authored markers; browser dependencies may be unavailable in this checkout.
+Status: implemented. `game/honey-trail.js` owns collection and session-best rules;
+`game/honey-trail-view.js` owns nonphysical Three markers and DOM feedback, called
+from the existing character physics loop only on scene 1. Scene JSON, inventory,
+and multiplayer contracts stay compatible. Design and game README document scope.
+
+Verification: `bun test test/honey-trail.test.js test/scene.test.js
+test/game-sounds.test.js` passed 11 tests / 48 assertions, including real Three
+scene/view integration through a minimal DOM adapter. `git diff --check` passed.
+Browser pickup/restart assertions extend `test/e2e/game.e2e.js`, but the browser
+run is unverified: the local Bun package launcher lacked its postinstall binary;
+using the installed native Bun resolved that, then server startup reported
+EADDRINUSE on both 3100 and 43105. An independent Python bind to an OS-selected
+loopback port confirmed `PermissionError: Operation not permitted` in the
+sandbox. Do not interpret this as an app regression or browser pass. Next action:
+run the focused Playwright game test in a host permitting local server sockets,
+and visually check marker reachability and the compact HUD. No deployment or
+production data changes performed; no commit/PR created in this source-only slice.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).

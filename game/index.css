@@ -1,2 +1,32 @@
 /* Tailwind build is not available in static /game runtime.
    Keep this file present so /game/index.html can load without 404s. */
+
+#honey-trail {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 9997;
+  width: min(290px, calc(100vw - 110px));
+  box-sizing: border-box;
+  padding: 14px;
+  border: 1px solid #ffd35a;
+  border-radius: 14px;
+  background: rgba(27, 24, 16, 0.9);
+  color: #fff3cf;
+  font: 14px/1.4 system-ui, sans-serif;
+}
+#honey-trail strong { font-size: 20px; }
+#honey-trail p { margin: 7px 0; }
+#honey-trail .honey-controls { font-size: 12px; color: #e6cf9d; }
+#honey-trail .honey-progress { font-weight: 700; margin-top: 10px; }
+#honey-trail button {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #ffd35a;
+  color: #302000;
+  font: inherit;
+  cursor: pointer;
+}
+#honey-trail button:focus-visible { outline: 3px solid white; outline-offset: 3px; }
