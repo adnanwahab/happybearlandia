@@ -452,7 +452,7 @@ def main(argv=None):
         else:
             report = cycle(Services(), config, STATE)
         if args.json_report:
-            args.json_report.write_text(json.dumps(report, indent=2) + '\n')
+            atomic(args.json_report, report)
         output = render(report)
         if args.report:
             args.report.write_text(output + '\n')
