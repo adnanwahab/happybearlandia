@@ -1003,3 +1003,32 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-122 — small-screen flagship regression pack
+
+Next slice: exercise the homepage-linked One City, Two Futures at 320×640,
+390×844 and 768×1024 with touch enabled and reduced motion. Own the focused
+browser config, regression spec, visual baselines and pack documentation; reuse
+existing UI and simulation interfaces. No independent implementation dependencies
+justify delegation. This issue checkout is already isolated on `mini/SHE-122`.
+
+Acceptance: real seed-42 paired run, screenshot comparisons for configuration,
+timeline, recorded-change inspector and sharing; viewport bounds, minimum touch
+targets and browser hit testing for enabled controls, plus a working replay link.
+The flagship has inline configuration and share output, not overlay dialogs;
+test its actual entry points without inventing UI. Use the supported Canvas
+renderer for stable pixels, retain model/run provenance separately, and mask only
+volatile run identifiers/URL text. Native GPU pixels remain outside this pack.
+Prerequisites: installed Bun dependencies and Playwright Chromium. Open-PR audit
+was attempted with `gh pr list` but GitHub network access failed. Baseline review
+and focused execution are required before claiming acceptance.
+
+Implemented the focused three-viewport pack and reproducible operator instructions
+in `test/e2e/SMALL-SCREEN-GAME.md`. Validation: Node syntax checks pass for both
+new JavaScript files; Playwright discovery finds all 3 journeys; existing UI unit
+suite passes 6 tests / 41 assertions with 1 browser-gated skip. Browser baseline
+generation was attempted twice but Bun server startup reported EADDRINUSE on
+39931 and 39978. No screenshots/baselines were generated and no visual or
+zero-blocked-controls acceptance is claimed. Next action: run baseline generation
+on a host permitting server startup, review twelve images, then rerun without
+`--update-snapshots`. Publication/PR audit remains blocked by GitHub connectivity.
