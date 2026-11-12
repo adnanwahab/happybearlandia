@@ -6,6 +6,7 @@ import json
 import math
 import os
 from pathlib import Path
+import re
 import sqlite3
 import stat
 import time
@@ -51,6 +52,14 @@ def private_file(path):
     info = path.lstat()
     require(stat.S_ISREG(info.st_mode) and info.st_uid == os.getuid() and info.st_nlink == 1 and
             not info.st_mode & 0o077, 'state must be a private host-owned regular file')
+
+
+def related_ids(db, proposal, identity):
+    related = {r[0] for key in proposal['deduplicationKeys'] for r in db.execute(
+        'SELECT proposal_id FROM proposal_keys WHERE key=? AND proposal_id<>?', (key, identity))}
+    require(all(isinstance(item, str) and re.fullmatch(r'[0-9a-f]{64}', item) for item in related),
+            'corrupt proposal relation; preserve and reconcile')
+    return related
 
 
 @contextmanager
@@ -125,6 +134,7 @@ def ingest(batch, directory, *, coordinator_report=None, record=False, daily_lim
     with database(directory, record) as db:
         used = db.execute('SELECT count FROM budgets WHERE day=?', (day,)).fetchone()
         used = used[0] if used else 0
+        require(type(used) is int and 0 <= used <= 100, 'corrupt intake budget; preserve and reconcile')
         receipt = db.execute('SELECT fingerprint,result FROM receipts WHERE id=?', (receipt_id,)).fetchone()
         if receipt:
             require(receipt[0] == fingerprint, 'batch receipt conflicts with prior content')
@@ -132,8 +142,7 @@ def ingest(batch, directory, *, coordinator_report=None, record=False, daily_lim
             rows = []
             for p in batch['proposals']:
                 identity = proposal_id(p)
-                related = {r[0] for key in p['deduplicationKeys'] for r in db.execute(
-                    'SELECT proposal_id FROM proposal_keys WHERE key=? AND proposal_id<>?', (key, identity))}
+                related = related_ids(db, p, identity)
                 rows.append({'id': identity, 'intake': 'DUPLICATE', **project(p, issues, related)})
             result = {**saved, 'dryRun': not record, 'replayed': True, 'newProposals': 0,
                       'recordedProposals': 0, 'duplicates': len(rows), 'proposals': rows}
@@ -146,8 +155,7 @@ def ingest(batch, directory, *, coordinator_report=None, record=False, daily_lim
                 old = db.execute('SELECT fingerprint FROM proposals WHERE id=?', (identity,)).fetchone()
                 old_hash = old[0] if old else pending.get(identity)
                 require(old_hash is None or old_hash == payload_hash, 'proposal identity conflicts with prior content')
-                related = {r[0] for key in p['deduplicationKeys'] for r in db.execute(
-                    'SELECT proposal_id FROM proposal_keys WHERE key=? AND proposal_id<>?', (key, identity))}
+                related = related_ids(db, p, identity)
                 for previous in rows:
                     if previous['id'] != identity and set(previous['_keys']) & set(p['deduplicationKeys']):
                         related.add(previous['id'])
@@ -173,6 +181,8 @@ def ingest(batch, directory, *, coordinator_report=None, record=False, daily_lim
                 db.execute('INSERT INTO budgets VALUES(?,?) ON CONFLICT(day) DO UPDATE SET count=excluded.count', (day, used + len(pending)))
                 db.execute('INSERT INTO receipts VALUES(?,?,?)', (receipt_id, fingerprint, canonical(result)))
         cursor = db.execute('SELECT cursor FROM streams WHERE id=?', (batch['stream'],)).fetchone()
+        require(cursor is None or isinstance(cursor[0], str) and 0 < len(cursor[0]) <= 256,
+                'corrupt stored cursor; preserve and reconcile')
         result['storedCursor'] = cursor[0] if cursor else None
         result['budget'] = {'dayUTC': day, 'limit': daily_limit,
                             'remainingAfterPlan': max(0, daily_limit - used - result['newProposals'])}

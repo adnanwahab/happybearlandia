@@ -194,6 +194,27 @@ class IntakeTest(unittest.TestCase):
                 self.ingest(record=True)
             self.assertEqual(path.read_bytes(), original)
 
+    def test_corrupt_budget_cursor_and_relations_fail_closed(self):
+        self.ingest(record=True)
+        path = self.state / 'proposals.sqlite'
+        changes = [
+            ("UPDATE budgets SET count='invalid'", (), 'corrupt intake budget', 'UPDATE budgets SET count=1', ()),
+            ('UPDATE streams SET cursor=?', (sqlite3.Binary(b'invalid'),), 'corrupt stored cursor',
+             'UPDATE streams SET cursor=?', (batch()['cursorAfter'],)),
+            ("UPDATE proposal_keys SET proposal_id='invalid'", (), 'corrupt proposal relation',
+             'UPDATE proposal_keys SET proposal_id=?', (proposal_id(validate_proposal(batch()['proposals'][0])),))]
+        for query, values, message, restore, restored in changes:
+            with closing(sqlite3.connect(path)) as db:
+                db.execute(query, values)
+                db.commit()
+            original = path.read_bytes()
+            with self.assertRaisesRegex(InvalidProposal, message):
+                self.ingest(record=True)
+            self.assertEqual(path.read_bytes(), original)
+            with closing(sqlite3.connect(path)) as db:
+                db.execute(restore, restored)
+                db.commit()
+
     def test_symlink_hardlink_and_public_state_rejected(self):
         self.ingest(record=True)
         path = self.state / 'proposals.sqlite'

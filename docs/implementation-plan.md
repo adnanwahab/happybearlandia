@@ -557,7 +557,7 @@ cursor on failure; private state; dry-run zero filesystem/remote mutations;
 existing-issue/PR/dependency hold projection from fresh complete coordinator
 reports. Source references are structurally checked, not factual verification.
 Paper retrieval, CI execution, feedback collection and live services are later
-phases. Delivered core has 25 passing focused tests (independently rerun) and
+phases. Delivered core has 26 passing focused tests (independently rerun) and
 150 passing existing coordinator regressions. A dedicated CI job runs the new
 contracts. Real SHE180 dry-run scanned 178 issues with no selections. Actual CLI
 default dry-run created no state; local record stored one proposal/checkpoint;
