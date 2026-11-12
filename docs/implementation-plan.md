@@ -1003,3 +1003,34 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-206 — draft-only AI research role
+
+Next slice: add an operator entry point and injectable research-agent role using
+supplied, versioned Research Library records and simulation rules. Reuse the
+existing improvement inbox for durable triage; preserve its frozen v1 contract
+and all execution holds. No provider provisioning or acquisition service is
+required. Tasks: build bounded context/prompt and evidence-gap inventory; validate
+structured agent output; adapt drafts into research proposals; verify persisted
+replay and rejection paths. Acceptance: four research activities, explicit
+hypothesis/data sources/acceptance for experiments, each claim resolved to a
+library entry or labeled unsupported, all saved output draft-only. Risk: source
+links establish provenance, not scientific support; metadata-only citations must
+remain unsupported. Full structured drafts must fit the existing 2,000-character
+hypothesis field; oversize output is rejected rather than truncated.
+
+SHE-206 delivered: `ops/research_agents/` adds prompt/context preparation, per-rule
+evidence-gap inventory, four typed research activities, injectable model callback,
+strict claim/experiment validation, and CLI prepare/dry-run/record/read-triage.
+Normalized drafts retain source links, unsupported status, context hash and role
+version inside the existing inbox contract. No dispatcher, external issue writer
+or provider credentials were added. Changed output shares a stable topic key for
+review; replay does not duplicate drafts. Seven focused tests pass, including
+real CLI prepare/intake/triage, persistence/replay, citation and required-field
+rejection, and proof that proposed argv is never executed. All 26 existing
+improvement inbox tests pass; `git diff --check` passes. Browser behavior is
+unchanged, so Playwright is not applicable. Limits: operator supplies library
+snapshot and model response (or injected generator); citations are not factual
+verification; compact normalized drafts must fit the frozen 2,000-character
+hypothesis field. Provider integration and library acquisition remain separate
+work; this slice requires no live service activation.
