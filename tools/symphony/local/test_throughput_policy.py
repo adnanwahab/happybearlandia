@@ -23,6 +23,17 @@ class PolicyTest(unittest.TestCase):
                          ['fast','fast','fast','feature','feature','research'])
         self.assertEqual(set(r['id'] for r in ranked),set(r['id'] for r in rows))
 
+    def test_durable_lease_cursor_serves_all_lanes_at_single_capacity(self):
+        rows=[dict(id=str(i),identifier=f'SHE-{i}',eligible=True) for i in range(6)]
+        reviews={str(i):dict(scheduling=dict(lane='fast' if i<3 else 'feature' if i<5 else 'research')) for i in range(6)}
+        lanes=[]
+        for durable_lease_count in range(6):
+            selected=rank_rows(rows,dict(reviews=reviews,schedulingCursor=durable_lease_count))[0]
+            lanes.append(reviews[selected['id']]['scheduling']['lane'])
+        self.assertEqual(lanes,['fast','fast','fast','feature','feature','research'])
+        self.assertEqual(rank_rows(rows,dict(reviews=reviews,schedulingCursor=5))[0]['id'],'5')
+        with self.assertRaises(ValueError):rank_rows(rows,dict(reviews=reviews,schedulingCursor=True))
+
     def test_scoring_rewards_useful_small_work_without_changing_eligibility(self):
         rows=[dict(id='a',identifier='SHE-1',eligible=False),dict(id='b',identifier='SHE-2',eligible=True)]
         reviews={key:dict(scheduling=dict(lane='fast',gameplayImpact=5,effortHours=effort,successProbability=.9))

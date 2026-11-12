@@ -54,6 +54,7 @@ class SchedulerTest(unittest.TestCase):
         self.assertEqual(report['cap'],1)
         self.assertEqual(report['scheduler']['new_grants'],1)
         self.assertEqual(self.refreshes,[1])
+        self.assertEqual(self.services.reads,2)  # audit + mandatory fresh pre-grant inventory
         s.run_loop(**self.kw)
         self.assertEqual(self.services.calls,['id-1'])
         self.assertEqual(json.loads((self.directory/'throughput.json').read_text()),{'samples':1})
@@ -112,7 +113,7 @@ class SchedulerTest(unittest.TestCase):
         def bad():raise c.host.PublicationError('fixture transient')
         reports=s.run_loop(**dict(self.kw,config_loader=bad,sleep=delays.append),max_cycles=20)
         self.assertEqual(len(reports),3)
-        self.assertEqual(delays,[15,30])
+        self.assertEqual(delays,[60,120])
         self.assertEqual(self.services.calls,[])
 
     def test_runtime_transient_network_failure_is_bounded_but_auth_failure_stops(self):
@@ -124,10 +125,71 @@ class SchedulerTest(unittest.TestCase):
 
     def test_disabled_approval_and_stop_signal_never_mutate(self):
         self.config['enableApprovals']=False
-        self.assertEqual(len(s.run_loop(**self.kw,max_cycles=4)),1)
+        reports=s.run_loop(**self.kw,max_cycles=4)
+        self.assertEqual(len(reports),4)
         self.assertEqual(self.services.calls,[])
+        self.assertTrue(all(r['scheduler']['error'] is None for r in reports))
+        self.assertTrue(all('operator-approvals-disabled' in [a['code'] for a in r['scheduler']['watchdog']] for r in reports))
         stop=threading.Event();stop.set()
         self.assertEqual(s.run_loop(**self.kw,stop=stop),[])
+
+    def test_pregrant_retained_lease_watchdog_blocks_new_work_at_free_capacity(self):
+        s.run_loop(**self.kw)
+        state=c.load_state(self.directory)
+        state['leases']['id-1']['createdAt']=1
+        c.atomic(self.directory/'leases.json',state)
+        self.config['scaling']=dict(observedConcurrency=2)
+        report=s.run_loop(**dict(self.kw,current_limit=2))[0]
+        self.assertEqual(self.services.calls,['id-1'])
+        self.assertFalse(report['scheduler']['apply_effective'])
+        self.assertIn('retained-lease-needs-reconciliation',[a['code'] for a in report['scheduler']['watchdog']])
+
+    def test_known_commit_without_pr_and_actual_review_backlog_block_before_grant(self):
+        self.services.snapshot['publication_receipts']=[dict(identifier='SHE-99',status='committed',at=1)]
+        report=s.run_loop(**self.kw)[0]
+        self.assertEqual(self.services.calls,[])
+        self.assertIn('commit-without-draft-pr',[a['code'] for a in report['scheduler']['watchdog']])
+        self.services.snapshot.pop('publication_receipts')
+        self.services.snapshot['prs']=[dict(number=i,state='open',head=dict(ref='unrelated'),files=[]) for i in range(3)]
+        report=s.run_loop(**self.kw)[0]
+        self.assertEqual(self.services.calls,[])
+        self.assertEqual(report['scheduler']['review_backlog'],3)
+        self.assertIn('review-capacity-reserved',[a['code'] for a in report['scheduler']['watchdog']])
+
+    def test_disabled_observation_resumes_only_after_explicit_policy_becomes_enabled(self):
+        self.config['enableApprovals']=False
+        def enable(_):self.config['enableApprovals']=True
+        reports=s.run_loop(**dict(self.kw,sleep=enable),max_cycles=2)
+        self.assertFalse(reports[0]['scheduler']['apply_effective'])
+        self.assertTrue(reports[1]['scheduler']['apply_effective'])
+        self.assertEqual(self.services.calls,['id-1'])
+
+    def test_shutdown_during_scan_prevents_additive_approval_and_retains_pending(self):
+        for during_read in [1,2]:
+            with self.subTest(during_read=during_read):
+                stop=threading.Event()
+                services=FakeServices(self.issues)
+                def stopping(service):
+                    if service.reads==during_read:stop.set()
+                services.change=stopping
+                directory=Path(self.tmp.name)/f'stop-{during_read}'
+                result=s.run_loop(**dict(self.kw,services=services,stop=stop,directory=directory),max_cycles=3)
+                self.assertEqual(services.calls,[])
+                self.assertIsNone(result[0]['scheduler']['error'])
+                if during_read==2:
+                    self.assertEqual(c.load_state(directory)['leases']['id-1']['status'],'pending')
+
+    def test_full_scan_budget_and_fresh_operator_policy_are_enforced(self):
+        for interval in [5,15,59]:
+            with self.assertRaises(ValueError):s.run_loop(**self.kw,interval=interval)
+        config=copy.deepcopy(self.config)
+        calls=[]
+        def changed():
+            calls.append(1)
+            return config if len(calls)==1 else dict(config,enableApprovals=False)
+        result=s.run_loop(**dict(self.kw,config_loader=changed))[0]
+        self.assertEqual(self.services.calls,[])
+        self.assertIn('operator-evidence-changed-during-scan',[a['code'] for a in result['scheduler']['watchdog']])
 
     def test_refresh_failure_retains_successful_grant_without_reexecution(self):
         def bad():raise RuntimeError('fixture unavailable')

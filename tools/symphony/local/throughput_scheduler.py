@@ -78,16 +78,59 @@ def watchdog(runtime, report, resources, now=None):
     return alarms
 
 
+def _unique_alarms(alarms):
+    seen, result = set(), []
+    for alarm in alarms:
+        key = (alarm.get('code'), alarm.get('issue'), alarm.get('pr'))
+        if key not in seen:
+            seen.add(key)
+            result.append(alarm)
+    return result
+
+
+class _CapturedServices:
+    """Reuse only the audit's first read under the same host lock.
+
+    A true apply cycle still calls the underlying fresh inventory before every
+    approval. Reusing its initial snapshot avoids adding a redundant third full
+    inventory to the original coordinator's two-scan approval protocol.
+    """
+    def __init__(self, services, stop):
+        self.services = services
+        self.stop = stop
+        self.snapshot = None
+        self.replay = False
+
+    def scan(self):
+        if self.replay:
+            self.replay = False
+            return copy.deepcopy(self.snapshot)
+        self.snapshot = self.services.scan()
+        return copy.deepcopy(self.snapshot)
+
+    def replay_first_scan(self):
+        self.replay = True
+        return self
+
+    def approve(self, issue):
+        if self.stop.is_set():
+            raise host.PublicationError("Scheduler stopping; pending lease retained", retryable=False)
+        return self.services.approve(issue)
+
+    def __getattr__(self, name):
+        return getattr(self.services, name)
+
+
 def run_loop(services, config_loader, directory, current_limit, runtime_reader, resource_reader,
-             metrics=None, apply=False, interval=15, max_cycles=1, sleep=time.sleep,
+             metrics=None, apply=False, interval=60, max_cycles=1, sleep=time.sleep,
              stop=None, refresh=refresh_runtime, clock=time.time):
     """One host lock spans each scan and any durable grant. Never expire leases.
 
     Unknown resources/runtime cause audit-only cycles. Persistent or deterministic
     failures stop this invocation rather than spinning or restarting workers.
     """
-    if not isinstance(interval, (int, float)) or isinstance(interval, bool) or not 5 <= interval <= 300:
-        raise ValueError('Interval must be 5–300 seconds')
+    if not isinstance(interval, (int, float)) or isinstance(interval, bool) or not 60 <= interval <= 300:
+        raise ValueError('Full-scan interval must be 60–300 seconds')
     if type(max_cycles) is not int or not 1 <= max_cycles <= 10000:
         raise ValueError('max_cycles must be 1–10000')
     stop = stop or threading.Event()
@@ -108,23 +151,50 @@ def run_loop(services, config_loader, directory, current_limit, runtime_reader, 
             cap = config.get('cap', 3)
             if type(cap) is not int or not 1 <= cap <= 12:
                 raise ValueError('Invalid operator cap')
-            if apply and (config.get('enableApprovals') is not True or not config.get('overlapReconciledBy')):
-                raise ValueError('Live approvals disabled')
+            policy_enabled = config.get('enableApprovals') is True and bool(config.get('overlapReconciledBy'))
             runtime = runtime_reader()
             resources = resource_reader()
             runtime = dict(runtime, max_workers=configured_limit)
             capacity = capacity_decision(resources, configured_limit, min(cap, configured_limit), config.get('scaling', {}), now=clock())
-            stale = watchdog(runtime, {}, resources, now=clock())
             effective = copy.deepcopy(config)
             effective['cap'] = max(1, capacity['grant_limit'])
-            effective_apply = apply and not capacity['hold_new_grants'] and not any(x['severity'] == 'hold' for x in stale)
+            # Observe and reconcile before deciding whether ANY new grant is safe.
+            # An old/unobserved lease or known commit without PR must not be
+            # discovered only after a new additive approval has escaped.
             with c.locked(directory):
                 before = c.load_state(directory)
-                report = c.cycle(services, effective, directory, effective_apply)
+                captured = _CapturedServices(services, stop)
+                report = c.cycle(captured, effective, directory, False)
+                if isinstance(captured.snapshot, dict) and 'publication_receipts' in captured.snapshot:
+                    report['publication_receipts'] = captured.snapshot['publication_receipts']
+                holds = watchdog(runtime, report, resources, now=clock())
+                review_backlog = sum(pr.get('state') == 'open' for pr in report.get('pullRequests', []))
+                if review_backlog > 2:
+                    holds.append({'code': 'review-capacity-reserved', 'severity': 'hold'})
+                if not policy_enabled:
+                    holds.append({'code': 'operator-approvals-disabled', 'severity': 'hold'})
+                effective_apply = apply and not stop.is_set() and policy_enabled and not capacity['hold_new_grants'] and not any(x['severity'] == 'hold' for x in holds)
+                if effective_apply:
+                    # Re-read local/runtime safety inputs after the potentially
+                    # slow audit. The coordinator still performs its mandatory
+                    # fresh full scan immediately before each actual mutation.
+                    if config_loader() != config:
+                        holds.append({'code': 'operator-evidence-changed-during-scan', 'severity': 'hold'})
+                        effective_apply = False
+                    else:
+                        runtime = dict(runtime_reader(), max_workers=configured_limit)
+                        resources = resource_reader()
+                        capacity = capacity_decision(resources, configured_limit, min(cap, configured_limit), config.get('scaling', {}), now=clock())
+                        holds.extend(watchdog(runtime, report, resources, now=clock()))
+                        effective_apply = not stop.is_set() and not capacity['hold_new_grants'] and not any(x['severity'] == 'hold' for x in holds)
+                    if effective_apply:
+                        effective['cap'] = max(1, capacity['grant_limit'])
+                        report = c.cycle(captured.replay_first_scan(), effective, directory, True)
                 after = c.load_state(directory)
             added = [key for key, value in after['leases'].items() if value.get('status') == 'active' and before['leases'].get(key, {}).get('status') != 'active']
             report['max_workers'] = configured_limit
-            report['scheduler'] = {'capacity': capacity, 'watchdog': watchdog(runtime, report, resources, now=clock()),
+            report['scheduler'] = {'capacity': capacity, 'watchdog': _unique_alarms(holds + watchdog(runtime, report, resources, now=clock())),
+                                   'review_backlog': review_backlog, 'full_scan_interval_seconds': interval,
                                    'cycle_elapsed_seconds': max(0, clock() - started), 'new_grants': len(added),
                                    'apply_requested': apply, 'apply_effective': effective_apply, 'error': None}
             if added:
@@ -144,10 +214,13 @@ def run_loop(services, config_loader, directory, current_limit, runtime_reader, 
                           not isinstance(error, urllib.error.HTTPError)))
             if isinstance(error, urllib.error.HTTPError):
                 error.close()
+            stopped = stop.is_set()
             report = {'dryRun': not apply, 'max_workers': configured_limit, 'issues': [], 'selected': [],
-                      'leases': {}, 'pullRequests': [], 'scheduler': {'error': 'upstream-unavailable' if retryable else 'invalid-or-deterministic-input',
+                      'leases': {}, 'pullRequests': [], 'scheduler': {'error': None if stopped else 'upstream-unavailable' if retryable else 'invalid-or-deterministic-input',
+                      'stopped': stopped,
                       'retryable': retryable, 'consecutive_errors': consecutive_errors,
-                      'watchdog': [{'code': 'upstream-or-auth-failure', 'severity': 'hold'}],
+                      'watchdog': [{'code': 'scheduler-stopped' if stopped else 'upstream-or-auth-failure',
+                                    'severity': 'notice' if stopped else 'hold'}],
                       'cycle_elapsed_seconds': max(0, clock() - started), 'new_grants': 0}}
         # Persist public projections only; raw issues/comments stay in host-private coordinator data.
         host.private_directory(directory)
@@ -160,7 +233,7 @@ def run_loop(services, config_loader, directory, current_limit, runtime_reader, 
         if report['scheduler'].get('error') and (not report['scheduler'].get('retryable') or consecutive_errors >= 3):
             break
         if count + 1 < max_cycles and not stop.is_set():
-            delay = min(60, interval * (2 ** max(0, consecutive_errors - 1)))
+            delay = min(300, interval * (2 ** max(0, consecutive_errors - 1)))
             # Event.wait makes SIGTERM interrupt the normal CLI sleep immediately.
             if sleep is time.sleep:
                 stop.wait(delay)
@@ -177,7 +250,7 @@ def main(argv=None):
     parser.add_argument('--apply', action='store_true')
     parser.add_argument('--evidence', required=True, type=Path)
     parser.add_argument('--workflow', required=True, type=Path)
-    parser.add_argument('--interval', type=float, default=15)
+    parser.add_argument('--interval', type=float, default=60)
     parser.add_argument('--max-cycles', type=int, default=10000)
     args = parser.parse_args(argv)
     try:

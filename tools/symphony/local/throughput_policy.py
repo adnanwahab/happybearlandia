@@ -44,10 +44,19 @@ def rank_rows(rows, config, now=None):
         buckets[lane].append((score, row))
     queues = {lane: deque(row for _, row in sorted(items, key=lambda x: (-x[0], x[1].get('priority') or 5, x[1]['identifier'])))
               for lane, items in buckets.items()}
+    # The coordinator derives this cursor from the count of its durable lease
+    # history (including released leases). Failed scans/no-op loops do not move
+    # it. Rotating the weighted slots prevents cap=1 from always choosing fast.
+    cursor = config.get('schedulingCursor', 0)
+    if type(cursor) is not int or cursor < 0:
+        raise ValueError('Scheduling cursor must be a nonnegative durable lease count')
+    slots = ['fast', 'fast', 'fast', 'feature', 'feature', 'research']
+    offset = cursor % len(slots)
+    slots = slots[offset:] + slots[:offset]
     result = []
     while any(queues.values()):
-        for lane, count in [('fast', 3), ('feature', 2), ('research', 1)]:
-            for _ in range(min(count, len(queues[lane]))):
+        for lane in slots:
+            if queues[lane]:
                 result.append(queues[lane].popleft())
     return result
 
