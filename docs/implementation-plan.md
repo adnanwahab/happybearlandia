@@ -7922,3 +7922,47 @@ test/world-user-fixes.test.js still reports 32 homepage carousel sections versus
 33 registered experiences. The identical failure was reproduced using exact
 118aad baseline inputs; this existing catalog mismatch was not changed by PR278.
 No simulation, seed, runtime, gallery, or target-branch changes were made.
+
+## SHE-261 — current commuting residents, review increment (2026-11-12)
+
+Audit: merged SHE-155 provides distance LOD and bounded worker sampling;
+SHE-156 is a prerequisite audit, not delivered completed-trip ribbons. Population
+behavior commits straight-line endpoint travel and no shared fleet identity.
+No architecture.md exists. Reviewed model.js, behavior.js, generator.js,
+renderer.js, visible-sample.js, world-view.js, runtime.js, render-lod.js,
+docs/models/population.md and DATA_FORMATS.md against executable behavior.
+
+Implemented slice through normal /world Living City: expose current committed
+trip metadata; retain moving travelers at default cluster distance; instantiate
+car and bus/rail passenger shapes nearby; show synthetic name, purpose and planned
+trip time on hover; select/follow on an unhandled click. Preserve command-menu
+interception and manual-pan cancellation. Bound display to 500 sampled residents;
+keep draw counts separate from population/represented totals. Tests cover real
+seed-42 replay, null/finished trips, metadata/coordinate equality, 500 markers,
+default-distance count reconciliation, pause, reset and disposal.
+
+Acceptance remains partial: no street-following route model, shared bus identity,
+completed-trip flow ribbons, Canvas crowd fallback or verified mid-tier 60fps.
+These require a route/fleet authority and SHE-156's versioned ledger rather than
+invented renderer paths. Existing >=900m heat and unsupported-WebGPU notice remain.
+No model rules, random draws or checkpoint state changed. No merge/deployment.
+
+Verification: focused 34 tests/338 assertions passed before the final default-LOD
+regression; subsequent renderer/trip/LOD selection passed 19 tests/138 assertions.
+Playwright normal /world acceptance was attempted with
+`bunx --no-install playwright test --config test/population-trips.browser.config.mjs`;
+server startup failed EADDRINUSE on 39961 before browser launch. No browser pixels,
+hover/click observation, rush-hour recording or GPU FPS measurement is claimed.
+Next: run the committed browser journey on a bind-capable host, measure actual
+500-visible-agent frame timing on target devices, then implement versioned routed
+trip/fleet state and completed-trip ribbons with their own model contracts.
+
+Final verification: the five-file model/trip/LOD/view/sample suite passed 35 tests,
+343 assertions, zero failures. The added analysis-layer counter regression then
+passed in the trip suite (4 tests, 61 assertions). `git diff --check` passed.
+A second Playwright attempt on port 39962 also failed EADDRINUSE at server
+startup. Broader checkpoint-suite execution was interrupted after two passing
+codec/model tests when subsequent work stopped progressing; the complete
+checkpoint suite is not claimed passed. No repository lint/type-check scripts
+are defined in package.json. Rendering checks exercise Three.js CPU objects,
+not actual GPU frame time or device performance.

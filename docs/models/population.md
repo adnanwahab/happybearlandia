@@ -80,3 +80,17 @@ from slow commits. Failed or cancelled commits produce no successful timing
 sample. The guard cannot preempt a single expensive tick or promise a frame-rate
 bound. See [the runtime policy](../../world/workers/README.md#adaptive-live-population-scheduling-she-174).
 Verify with `bun test test/population-scheduling.test.js test/population-memory-pressure.test.js`.
+
+### Current-trip presentation (SHE-261)
+
+`world/population/trip-display.js` projects committed `remaining`, `tripTotal`,
+`departureMinute`, `plannedActivity` and endpoint arrays into each bounded
+snapshot/inspection row. Null means no current trip. This read introduces no
+random draws, rules or time advancement. Coordinates retain behavior.js's
+straight-line approximation; sidewalk access endpoints do not establish a road
+path. Car shapes represent traveling residents; bus/rail shapes represent
+passengers, since the model has no shared fleet identity. Neither shape counts
+nor sampled points establish real traffic volume. Ongoing trips are distinct
+from a retained completed-trip ledger. Seed, model version, clock and run
+identity remain on the enclosing snapshot/runtime. Verify with
+`test/population-trip-display.test.js` and the existing model/replay suites.
