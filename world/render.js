@@ -2512,7 +2512,7 @@ if (!embedMode && !businessMode && !simulationId && !loadedExperiment) {
   window.dispatchEvent(new CustomEvent('hbl:world-ready'));
   addEventListener('pagehide',()=>{delete window.hblGuidedActions;},{once:true});
 }
-startup.readyMs=performance.now();for(const [node,disabled] of startupDisabled)node.disabled=policyPending&&['policy','runExperimentBtn','runCycleBtn','demoBtn'].includes(node.id)?true:disabled;startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);
+startup.readyMs=performance.now();for(const [node,disabled] of startupDisabled)node.disabled=disabled;startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);
 requestAnimationFrame(frame);
 
 
