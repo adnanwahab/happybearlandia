@@ -1003,3 +1003,20 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-78 — first-play demo readiness
+
+Delivered bounded read-only `/api/demo/ready` in the existing release health
+handler and server route. Acceptance: combine homepage demo assets, versioned
+synthetic fixture/generator availability and City/World/Decision dependencies;
+return safe fixed checks, 200/503, HEAD/405 and no-store without storage writes.
+Preserve existing liveness/readiness. No dependency or model changes.
+
+Verification: 15 focused release-health/runbook tests passed, 87 assertions;
+whitespace clean. Healthy, missing fixture, cache expiry, degraded City database,
+secret/path redaction and non-modification covered. Server smoke assertion added
+but startup blocked by Bun EADDRINUSE on port 0; Playwright skipped for that
+setup blocker. Full contract, reproducible commands, audit and limitations:
+[evidence](evidence/she-78-demo-readiness.md). Next: run real-server smoke in a
+listen-enabled environment and publish through the trusted review workflow.
+No production changes, commit or PR in this source-only turn.
