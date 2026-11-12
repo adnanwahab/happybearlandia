@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import { stat } from 'node:fs/promises';
 
-const sourceStoreMetadata = async () => stat('.data/city-history.sqlite')
+const sourceStoreMetadata = async (path = '.data/city-history.sqlite') => stat(path)
   .then(info => ({ size: info.size, mtimeMs: info.mtimeMs }))
   .catch(error => { if (error.code === 'ENOENT') return null; throw error; });
 import { assessHeaders, collectHeaders, loopbackOrigin, runLocalAudit, probes } from '../ops/static-asset-cache-audit.mjs';
@@ -52,15 +52,18 @@ test('oversized responses fail visibly instead of retaining an unbounded body', 
 
 test('actual isolated server preserves World freshness, dynamic no-store, source denial and GET/HEAD semantics', async () => {
   const before = await sourceStoreMetadata();
+  const voteStoreBefore = await sourceStoreMetadata('.hbl-private/patch-votes.sqlite');
   const evidence = await runLocalAudit();
   expect(await sourceStoreMetadata()).toEqual(before);
+  expect(await sourceStoreMetadata('.hbl-private/patch-votes.sqlite')).toEqual(voteStoreBefore);
   expect(evidence.evidenceType).toBe('local-non-production');
   expect(evidence.stagingVerified).toBe(false);
   expect(evidence.responses.filter(row => row.error)).toEqual([]);
   for (const row of evidence.responses) {
     expect(row.status).toBe(row.expectedStatus);
     if (row.kind === 'dynamic') {
-      expect(row.status).toBe(row.path === '/api/world-experiments' && row.method === 'HEAD' ? 405 : 200);
+      const status = row.method === 'HEAD' ? row.path === '/api/world-experiments' ? 405 : row.path === '/api/patch-votes' ? 404 : 200 : 200;
+      expect(row.status).toBe(status);
       expect(row.assessment.issues).toEqual([]);
     }
     if (['private-source-denial', 'malformed-path-denial', 'missing'].includes(row.kind)) expect(row.status).toBe(404);
@@ -68,6 +71,16 @@ test('actual isolated server preserves World freshness, dynamic no-store, source
     if (row.method === 'HEAD') expect(row.bodyBytes).toBe(0);
   }
   expect(evidence.responses.find(row => row.path === '/' && row.method === 'GET').assessment.issues).toContain('html-freshness-unspecified');
+  const ballot = evidence.responses.filter(row => row.path === '/vote-on-patch');
+  expect(ballot.map(row => [row.method, row.status])).toEqual([['GET', 200], ['HEAD', 200]]);
+  expect(ballot[0].headers['cache-control']).toBe('no-cache');
+  const votes = evidence.responses.filter(row => row.path === '/api/patch-votes');
+  expect(votes.map(row => [row.method, row.status])).toEqual([['GET', 200], ['HEAD', 404]]);
+  for (const row of votes) {
+    expect(row.headers['cache-control']).toBe('no-store');
+    expect(row.headers['set-cookie']).toBeUndefined();
+    expect(row.headers.authorization).toBeUndefined();
+  }
   expect(evidence.inventory.models.count).toBeGreaterThan(0);
   expect(evidence.inventory.javascript.count).toBeGreaterThan(0);
 }, 45000);
