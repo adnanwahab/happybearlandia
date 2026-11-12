@@ -40,6 +40,19 @@ jobs:
           test/server.test.js
           test/world-database-path.test.js
           test/overpass-diagnostics.test.js
+      - name: Verify manifest preflight and replay cancellation regressions
+        run: >
+          bun test --timeout 15000
+          test/city-worker-call.test.js
+          test/city-systems.test.js
+          test/project-unblock.test.js
+          test/server-civic-api.test.js
+          test/future-machine-manifest-validation.test.js
+          test/future-machine-data.test.js
+          test/future-machine-boundaries.test.js
+          test/future-machine-share.test.js
+          test/future-machine-diff.test.js
+          test/example-receipts.test.js
       - name: Install Chromium for browser journeys
         run: bunx playwright install --with-deps chromium
       - name: Universe shell, sprint experiences, and saved future journey
@@ -48,3 +61,15 @@ jobs:
         run: bunx playwright test --config test/time-machine.browser.config.js world-time-machine.browser.js --workers=1
       - name: Causal inspector component
         run: bunx playwright test --config test/causality.browser.config.js
+      - name: Verify normal replay and visible manifest rejection
+        env:
+          HBL_SYMPHONY_UNBLOCK_ARTIFACT_DIR: ${{ github.workspace }}/test-results/symphony-unblock
+        run: bunx playwright test --config test/symphony-unblock.browser.config.js
+      - name: Retain manifest validation and replay evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: symphony-unblock-evidence
+          path: test-results/symphony-unblock
+          if-no-files-found: ignore
+          retention-days: 7
