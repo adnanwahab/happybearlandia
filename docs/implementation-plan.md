@@ -1003,3 +1003,35 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-90 — selected-month entity causal trail
+
+Audit: existing construction handoff records real inputs and transitions; other
+inventory selections open cumulative history without a selected-month trail.
+No SHE-90 PR was returned by the connected GitHub search. Work is isolated on
+`mini/SHE-90`. Reuse the existing run event store and construction mapping.
+
+Slice: list every recorded event explicitly attached to the selected entity at
+the selected month, plus the established construction transition mapping. Link
+each actual event ID into the existing inspector. Show run/model/seed and an
+explicit missing-evidence state. Same-month membership is not a causal edge;
+only the inspector's stored dependencies establish recorded model contributions.
+Acceptance: verify run/month/entity isolation, multiple transitions, missing
+records, and a browser selection/reload against the real recorded fixture.
+Status: implementation and verification in progress. No schema or API changes.
+
+Implemented: `world/causal/history.js` scopes event membership to the exact
+run/world/month/entity; `page.js` renders linked event IDs and explicit missing
+coverage alongside the shared inspector. Construction retains its model-owned
+mapping. README documents the limits. Added real-model regression coverage and
+browser assertions for employment selection, API event identity, reload and
+missing evidence.
+
+Verification: 10/10 Bun tests passed (304 assertions) with
+`bun test test/entity-event-trail.test.js test/world-causal-adapter.test.js test/time-machine-checkpoints.test.js test/causality-read.test.js`.
+`git diff --check` passed. Browser execution remains unverified: both the standard
+Time Machine config (39876) and a temporary isolated-port config (39927) failed
+at server startup with `EADDRINUSE`. Temporary config removed. No lint/typecheck
+scripts are defined. Next action: run the updated World Time Machine browser
+suite on a host that can bind the configured port, then review/publish this
+branch. No merge, deployment, production data update or issue-state change.

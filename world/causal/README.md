@@ -15,3 +15,11 @@ The timeline requests the immutable checkpoint for the selected month and, where
 The Time Machine links to the [Living Newspaper](../newspaper/index.html) and [Surprising Discoveries](../discoveries/index.html). Both read the same stored simulation through the causal API. The newspaper presents selected events in yearly editions. Discoveries scores completed monthly World observations using explicit rules and links to the evidence.
 
 This view covers months 0–20 of the synthetic monthly CityState fixture. The general World map, the minute-based population runtime, arbitrary run selection, and branching from the selected month require additional integration. Checkpoints provide recorded playback; verified recomputation requires independently recorded target digests.
+
+Selecting an inventory entity also shows its exact selected-month event trail,
+with recorded event IDs and run/model/seed context. Links open the existing
+stored explanation and survive reload. Only explicit entity references and the
+model-owned construction mapping are included. Shared month or district does
+not establish causation. When no matching event exists, the trail says so;
+checkpoint differences alone do not supply missing causes. Coverage remains
+limited to the transitions instrumented by the monthly City model.
