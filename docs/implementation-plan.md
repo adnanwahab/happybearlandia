@@ -1003,3 +1003,48 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Reality Gap Explorer — SHE-204
+
+Next integrated slice: a research-hub entry to a versioned historical comparison
+import, shared-axis chart with observed/model intervals, per-date errors and a
+persistent browser-local human triage queue. Dependencies: existing static World
+routing and backtest scoring conventions. One owner implements the contract
+before its dependent UI and tests; no independent implementation delegation.
+Acceptance: strict identity/unit/date alignment; explicit missing observations;
+finite errors and zero-observation percentage handling; run/source/seed/input
+provenance; deterministic duplicate-safe triage drafts; reload and export; focused
+unit and browser integration checks. No external issue creation or automatic
+execution. Risks: imported provenance is asserted by the user, intervals do not
+establish causality, and local storage is device-specific. No default empirical
+or illustrative rent data. Actual verification and remaining limits follow below.
+
+Delivered: `world/reality-gap/{model.js,page.js,index.html,README.md}` and research
+hub link. The strict importer aligns one declared metric/geography/unit basis,
+plots actual calendar dates and supplied observed/model bounds, reports signed,
+absolute and percentage errors, marks missing/initialization points unscored,
+and drafts threshold crossings into persistent local triage. Drafts retain the
+full versioned inputs and evidence, require human review, deduplicate replay and
+reject conflicting evidence under a reused identity. Export supports handoff.
+No strategy-document rent figures or default observations were used.
+
+Verification: `bun test test/reality-gap.test.js test/decision-intelligence.test.js`
+passed 16 tests / 87 assertions; `git diff --check` passed. Added browser journey
+covers the actual research hub link, import, chart, missing data, idempotent
+drafting, reload, JSON export and invalid import. Playwright execution is blocked
+before browser startup: app server bind reports EADDRINUSE on default 3100 and
+isolated 3194/48193; no browser pass claimed. No lint/type scripts exist in the
+package manifest. Review confirmed no server routing change is necessary: World
+static routing already serves the new directory.
+
+Limits/next action: browser smoke remains to run where app binding is available.
+This delivered slice scores imported historical runs; upstream calibration and
+pre-cutoff input provenance are user-supplied, not independently verified here.
+Drafts are local research issues, not remotely published Linear issues. A shared
+triage backend/explicit publication workflow and automated improved-model reruns
+remain follow-on integrations. No deployment or production data changes.
+
+Final combined regression check including existing historical backtest leakage,
+housing adapter and source-owned diagnostic tests:
+`bun test test/decision-analysis.test.js test/reality-gap.test.js test/research-institutions.test.js test/decision-intelligence.test.js`
+passed 32 tests / 225 assertions. Final whitespace check passed.
