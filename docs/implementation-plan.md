@@ -40,6 +40,26 @@ The follow-up report is observational. An action-level effect estimate needs a m
 
 The emerging civilization roadmap depends on inspectable events and stable entity identity. Start idea diffusion with a recorded social interaction and a seeded adoption rule, then add durable kinship and historical residence records for generational families. Perspective comparisons need a shared event and resident-level exposure evidence. Resident-led experiments need versioned experiment recipes, transparent assumptions, and a way to compare forecasts with recorded outcomes.
 
+### SHE-208 season increment
+
+The existing day journey is the prerequisite. Extend its ordinary House entry
+with a choice of 30 autonomous days or a synthetic 90-day season, using the same
+Population runtime, resident identity and child-checkpoint persistence. Lock the
+horizon at handoff so pause/resume cannot change the target. Save the selected
+horizon and exact minute/tick bounds; retain legacy 30-day report rendering.
+Acceptance: both horizons reach exact boundaries, preserve the parent, reopen
+without writes and retain accepted command evidence. Focused browser integration
+covers both journeys. Risk: longer horizons increase runtime and checkpoint size;
+this does not establish action-level city causality or a monthly CityState mapping.
+Verification: 13 focused House integration, movement and identity-navigation tests
+passed (126 assertions); syntax and whitespace checks passed. Browser cases now cover both
+horizons, immutable parents, pause/resume and read-only reopening, but could not
+run: the dependency-local Bun shim lacks its postinstall; using the installed Bun
+then failed server listen on ports 3100 and 3418. The broader checkpoint run
+also timed out in its existing worker-restore case (30-second limit) and was
+interrupted after subsequent checks completed. This is a working increment toward SHE-208, not completion
+of its broader causal-tracing criterion.
+
 ## Housing policy vertical slice
 
 The next proposed cross-application milestone is the ten-year housing journey in the product design. The existing Decision Studio housing model and monthly City history are starting points. The checklist records the integration work and its acceptance gates.
