@@ -1,5 +1,5 @@
 import {DEFAULT_RECIPE} from '../contracts.js';
-import {calendarLabel, clampMonth, metricPresentation, metricSemantics, householdObservation, householdSummary} from './model.js';
+import {calendarLabel, clampMonth, metricPresentation, metricSemantics, householdObservation, householdSummary, firstConstructionLabel} from './model.js';
 
 /** Mount a renderer-independent view. Call update with recorded data; see README. */
 export function mountFutureMachineUI(root, options = {}) {
@@ -163,6 +163,9 @@ export function createUI(container, callbacks = {}) {
   const split=doc.createElement('button');split.type='button';split.textContent='Side by side';split.onclick=()=>callbacks.onMode?.('split');actions.append(split);
   const ghostsLabel=doc.createElement('label');const ghosts=doc.createElement('input');ghosts.type='checkbox';ghosts.checked=true;ghosts.onchange=()=>callbacks.onGhosts?.(ghosts.checked);ghostsLabel.append(ghosts,doc.createTextNode(' Ghost differences'));actions.append(ghostsLabel);
   const shareLink=doc.createElement('a');shareLink.textContent='Open comparison link';shareLink.hidden=true;shareLink.className='fm-share-link';shell.append(shareLink);
+  const firstConstruction=doc.createElement('aside');firstConstruction.className='fm-first-construction';firstConstruction.hidden=true;firstConstruction.setAttribute('aria-label','First recorded construction');
+  const constructionText=doc.createElement('strong');const constructionWhy=doc.createElement('button');constructionWhy.type='button';constructionWhy.textContent='Inspect WHY';constructionWhy.onclick=()=>callbacks.onFirstConstruction?.();
+  firstConstruction.append(constructionText,constructionWhy);view.stage.before(firstConstruction);
   const noPhysical=doc.createElement('p');noPhysical.className='fm-detail';shell.querySelector('.fm-metrics').after(noPhysical);
   function update(patch={}) {
     const previousExperiment=current.experimentId ?? current.provenance?.experimentId;
@@ -199,6 +202,9 @@ export function createUI(container, callbacks = {}) {
       policyId:recipe?.intervention?'housing':'baseline',spatialLabel:'Synthetic schematic layout · Monthly City model · January 2026–January 2036 · Uncalibrated assumptions. No real-world geometry inferred. Private parcel capacity 0; utility capacity 200 per district/network; annual growth 0.',
       blink:current.mode==='plan',evidence:current.diff?{month:current.month,experimentId:current.experimentId,changedCount:current.diff.changedCount,physicalCount:current.diff.physicalCount,source:'Monthly City comparison. Select an entity for recorded evidence.'}:null,
     });
+    const cue=firstConstructionLabel(current);
+    firstConstruction.hidden=cue===null;constructionText.textContent=cue??'';
+    constructionWhy.disabled=!callbacks.onFirstConstruction;
     noPhysical.textContent=current.diff ? (current.diff.available===false?'Comparison unavailable for this month.':current.diff.physicalCount===0?'No physical building or link difference recorded at this month.':'Physical changes are recorded; inspect the highlighted entities for evidence.') : '';
     difference.disabled=split.disabled=ghosts.disabled=!ready;difference.setAttribute('aria-pressed',String(current.mode==='difference'));split.setAttribute('aria-pressed',String(current.mode==='split'));ghosts.checked=current.ghosts;
     shareLink.hidden=!current.shareURL;

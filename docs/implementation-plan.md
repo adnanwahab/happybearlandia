@@ -1003,3 +1003,44 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-15 first-divergence emphasis — November 12, 2026
+
+Prerequisite SHE-9 verified Done in Linear. Audit confirms existing seed-42,
+121-frame paired fixture, exact-ID scene focus, six-second Month-16 cinematic
+hold, construction receipts and reduced-motion camera behavior. Preserve these.
+This local slice owns main.js, ui/index.js, ui/styles.css and the focused sprint
+browser test additions; no simulation, recipe, renderer or release-gate changes.
+No independent tasks justify delegation. Dispatch automation remains untouched.
+
+Next slice: show a static, high-contrast first-construction cue inside the
+comparison at its exact recorded month, with observed homes delta and a WHY
+button targeting the recorded entity. Hide it at Month 0, missing evidence and
+other months. Acceptance: actual first addition visible, unchanged Month 0,
+normal/reduced-motion browser screenshots and existing model/clock regressions.
+Risk: physical differences need not be construction; require a completion receipt
+at that month and avoid making claims for unsupported or absent events.
+
+Delivered: receipt-gated static cue and exact-building WHY action, using the
+existing scene highlight/hold and current diff's homes delta. UI adapter contract
+and focused boundary regression updated; ownership also includes ui/model.js,
+ui/README.md and test/future-machine-ui.test.js. No model/data changes.
+Browser command `bunx playwright test --config test/two-futures-sprint.browser.config.js --grep 'first construction cue'`
+failed during server startup with EADDRINUSE on 39931; retry with
+`HBL_TWO_FUTURES_PORT=40153` failed identically. Browser assertions and screenshot
+capture therefore remain unverified. Two normal/reduced-motion tests are added
+for the real route, actual added entity, Month 0 equality and reverse scrubbing.
+Branch: mini/SHE-15; no commit/PR or deployment made. No lint/typecheck scripts
+exist. Next action: run these browser checks on a host able to start the server
+and inspect the captured comparison screenshots before visual acceptance.
+Final verification: `bun test test/future-machine-*.test.js test/two-futures-*.test.js`
+passed 100 tests, 967 assertions, 3 browser-gated skips, 0 failures (18.25s).
+`git diff --check` passed. Focused new UI cue test passed as part of that suite.
+
+Revalidation on November 12: inspected the full SHE-15 issue and retained the
+existing uncommitted implementation rather than duplicating it. The same Bun
+command passed again: 100 passed, 3 skipped, 0 failed, 967 assertions (17.94s).
+The focused Playwright command above again exited 1 before assertions because
+the configured server reported EADDRINUSE on 39931. No screenshots or browser
+acceptance are claimed. Whitespace verification passed; branch remains
+`mini/SHE-15`, with no commit, PR, merge or deployment performed here.

@@ -47,3 +47,10 @@ export function householdSummary(row) {
   const arms=[['WITHOUT PLAN',row.baseline,row.baselineHousing],['WITH PLAN',row.plan,row.planHousing]];
   return `${row.baseline && row.plan?'Same City household ID in both futures.':'Household missing from one future; no matched comparison.'}\n`+arms.map(([label,household,housing])=>`${label}: income ${formatMeasurement(household?.income,'USD/month')}; savings ${formatMeasurement(household?.savings,'USD')}; rent ${formatMeasurement(housing?.rent,'USD/month')}; rent / income ${formatMeasurement(housing?.burden==null?null:housing.burden*100,'%')}.`).join('\n')+'\nRent requires an exact occupied unit ↔ household match; burden is rent divided by positive monthly income. Whole-stock mean rent includes new inventory and does not measure this household’s rent savings. Synthetic modeled observations.';
 }
+
+/** Composition supplies a receipt-verified stop; display only its exact frame. */
+export function firstConstructionLabel({status,month,diff,firstConstruction}={}) {
+  if(status!=='ready'||diff?.available!==true||!(firstConstruction?.month>0)||month!==firstConstruction.month)return null;
+  const homes=diff.metrics?.housingUnits?.delta;
+  return `First recorded construction · Month ${month}${Number.isFinite(homes)?` · ${homes>0?'+':''}${homes} homes vs without plan`:''}`;
+}

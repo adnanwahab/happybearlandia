@@ -119,3 +119,11 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('Chromium controls, loading, failure, k
     await page.evaluate(()=>ui.dispose());expect(await page.locator('.fm-ui').count()).toBe(0);
   }finally{await browser?.close();server.stop(true);}
 },30000);
+
+test('first construction cue requires its exact available positive month and preserves missing metrics',async()=>{
+ const {firstConstructionLabel}=await import('../world/future-machine/ui/model.js');
+ const current={status:'ready',month:16,firstConstruction:{month:16,entity:{collection:'buildings',id:'recorded'}},diff:{available:true,metrics:{housingUnits:{delta:24}}}};
+ expect(firstConstructionLabel(current)).toBe('First recorded construction · Month 16 · +24 homes vs without plan');
+ for(const patch of [{month:0},{month:15},{month:17},{status:'loading'},{firstConstruction:null},{firstConstruction:{month:0}},{diff:{available:false}}])expect(firstConstructionLabel({...current,...patch})).toBeNull();
+ expect(firstConstructionLabel({...current,diff:{available:true}})).toBe('First recorded construction · Month 16');
+});

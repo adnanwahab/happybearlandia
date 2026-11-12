@@ -16,7 +16,7 @@ let history=null,diffs=[],story=null,stage=null,storyDispose=()=>{},request=null
 let state={status:'idle',message:'Fork the same city. Change one decision. Watch ten modeled years.',recipe:structuredClone(DEFAULT_RECIPE),month:0,playing:false,mode:'split',ghosts:true,experimentId:null,shareURL:null,error:null};
 const stats={startedAt:performance.now(),readyMs:null,runMs:null};
 app.replaceChildren();
-const ui=createUI(app,{onRun:run,onConfigure:configure,onCancel:cancel,onMonth:manualMonth,onPlay:manualPlay,onDemo:playDemo,onDemoPause:()=>director.togglePause(),onMetric:explainMetric,onMode(mode){state.mode=mode;stage?.setMode(mode);update();},onGhosts(value){state.ghosts=value;stage?.setGhosts(value);update();},onDirector:direct,onShare:share,onExport:exportReport});
+const ui=createUI(app,{onRun:run,onConfigure:configure,onCancel:cancel,onMonth:manualMonth,onPlay:manualPlay,onDemo:playDemo,onDemoPause:()=>director.togglePause(),onMetric:explainMetric,onMode(mode){state.mode=mode;stage?.setMode(mode);update();},onGhosts(value){state.ghosts=value;stage?.setGhosts(value);update();},onFirstConstruction:()=>jump(state.firstConstruction),onDirector:direct,onShare:share,onExport:exportReport});
 const outcomeHost=document.createElement("div");ui.stageElement.after(outcomeHost);
 stage=createStage(ui.stageElement,{onSelect:select});
 stage.setMode(state.mode);stage.setGhosts(state.ghosts);
@@ -56,7 +56,11 @@ async function run(recipe=state.recipe,savedId=null,selectedMonth=0){
     assertHistoryIdentity(loaded,{recipe,experimentId:fallback?null:savedId});
     stage.dispose();stage=createStage(ui.stageElement,{onSelect:select,history:loaded});stage.setMode(state.mode);stage.setGhosts(state.ghosts);
     inspectorEntity=null;outcomeTimeline?.dispose();outcomeTimeline=createOutcomeTimeline(outcomeHost,{history:loaded,onMonth:manualMonth});
-    history=loaded;diffs=compareHistory(history);story=buildStory(history,diffs);story.limitations.push(...(history.baseline[0].state.provenance.assumptions||[]));stats.runMs=performance.now()-start;
+    history=loaded;diffs=compareHistory(history);
+    // A physical difference alone does not establish a construction event.
+    const first=physicalStop();
+    state.firstConstruction=first&&constructionReceipts(history,first.entity,first.month).some(receipt=>receipt.month===first.month)?first:null;
+    story=buildStory(history,diffs);story.limitations.push(...(history.baseline[0].state.provenance.assumptions||[]));stats.runMs=performance.now()-start;
     state={...state,status:'ready',recipe:history.recipe,provenance:{seed:history.seed,modelVersion:history.modelVersion,experimentId:history.experimentId},experimentId:history.experimentId,message:`${fallback?'Saved record unavailable; reran the versioned recipe. ':''}120 months complete · detailed states recomputed from the saved monthly City manifest. Synthetic, uncalibrated model.`,error:null};
     state.status='loading';state.message='Preparing synchronized city graphics…';setMonth(selectedMonth);await stage.whenReady();if(disposed||request!==current)return;state.status='ready';state.message=`${fallback?"Saved record unavailable; recomputed from the versioned recipe. ":""}120 recorded months ready · ${stage.getStats().backend} · Synthetic monthly City model.`;update();showStory(withContext(story));stats.readyMs=performance.now()-stats.startedAt;
   }catch(error){if(request!==current||disposed)return;state.status='error';state.error=error.message;state.message='The comparison could not be opened. Check the inputs and use Fork City to retry.';update();}
