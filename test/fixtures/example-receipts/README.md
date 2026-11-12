@@ -1,11 +1,12 @@
 # Reproducible example receipts
 
-These are existing `future-machine-evidence.v1` exports, generated from supported
+These are `canonical-run-receipt.v1` exports containing `future-machine-evidence.v1`
+evidence, generated from supported
 Future Machine recipes using the real monthly City engine. They are synthetic,
 uncalibrated model results, not observations of real people or empirical forecasts.
 Each JSON includes the generator assumptions, model/system versions, seed, policy,
 time range, initial-state hash, selected-month records and interpretation limits.
-No experiment is persisted: `experimentId` is null.
+No experiment is persisted: `evidence.experimentId` is null.
 
 - `housing-month-16.json`: default seed 42, first completed housing project; 24
   additional homes and 1,000,000 illustrative USD capital expenditure.
@@ -21,13 +22,17 @@ bun scripts/example-receipts.js --write
 ```
 
 `hashes.json` pins the existing canonical SHA-256 (`stateHash`) of each entire
-parsed report, excluding formatting. `initialHash` inside each receipt separately
+parsed report, excluding formatting. `evidence.initialHash` inside each receipt separately
 identifies its generated Month 0. The check regenerates each report, compares its
-exact serialized content and verifies the pinned report hash. Hashes are integrity
+exact serialized content, validates each checked-in JSON with `validateRunReceipt`,
+and verifies the pinned whole-receipt hash. The embedded `checksum` separately
+hashes the receipt body without its checksum field. Hashes are integrity
 checks, not proof of empirical validity or independent checkpoint equivalence.
 
 Replay uses the existing bounded recipe codec, generator, engine, normalization
 and evidence exporter; it performs no network requests. Full histories are rebuilt
-in memory and only selected-month evidence is checked in. These fixtures do not
-define the proposed general receipt import/export contracts in SHE-83/SHE-84, and
-do not claim to exercise a future JSON upload validator. Browser behavior is unchanged.
+in memory and only selected-month evidence is checked in. The receipt also pins rules, units and selected/terminal outcome digests.
+Regeneration recomputes both full histories locally and compares these digests.
+`replayRunReceipt` requires a saved identity, so these unsaved examples cannot be
+reopened through that loader. See [the receipt contract](../../../docs/run-receipt.md).
+Browser behavior is unchanged.

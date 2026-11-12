@@ -1003,3 +1003,27 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-89 canonical example receipts — November 12, 2026
+
+Next slice: migrate the two recovered evidence fixtures to the now-available
+`canonical-run-receipt.v1` exporter and validator. Reuse their supported recipes,
+real engine and synthetic provenance; preserve fixture names and hash manifest.
+Acceptance: every parsed fixture validates, regenerates byte-for-byte and matches
+its pinned whole-receipt SHA-256; reject tampering and retain clear caveats.
+No persisted identity is fabricated: these unsaved examples reproduce locally
+and cannot use the saved-experiment replay loader. No browser change is needed.
+
+Delivered: both fixtures now use the canonical exporter; `--check` validates the
+parsed fixtures, independently regenerates the paired histories, compares exact
+JSON bytes and verifies pinned whole-receipt hashes. Tests retain completion and
+zero-control evidence and reject altered observations/checksums. Fixture README
+and receipt contract describe synthetic limits, hash meanings and unsaved replay.
+Verification: `bun scripts/example-receipts.js --write` and `--check` succeeded;
+example/share/data/diff suite: 26 passed, 220 assertions. Canonical receipt library
+checks (persisted replay, boundaries, invalid inputs): 3 passed, 53 assertions.
+The initial combined run had 18 passes and one existing CLI test failure at
+`Bun.serve({port:0,hostname:'127.0.0.1'})` with EADDRINUSE; CLI child-process
+verification remains blocked in this environment. No browser behavior changed;
+Playwright skipped. No commit/PR, tracker mutation, deployment or production data
+change was performed. This supersedes the earlier canonical-scope gap above.

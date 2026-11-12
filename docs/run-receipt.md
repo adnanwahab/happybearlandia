@@ -1,8 +1,9 @@
 # Canonical monthly City run receipt
 
 `world/future-machine/share/run-receipt.js` owns the new
-`canonical-run-receipt.v1` interface. Existing evidence, example receipts, City
-storage, replay, URL sharing and browser behavior are unchanged.
+`canonical-run-receipt.v1` interface. Existing evidence, City storage, replay, URL sharing and browser behavior are
+unchanged. Checked-in [synthetic example receipts](../test/fixtures/example-receipts/README.md)
+use this canonical contract and can be validated and regenerated without a server.
 
 ```js
 import {
