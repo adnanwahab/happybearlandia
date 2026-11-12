@@ -1003,3 +1003,25 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Architecture D adaptive fidelity spike — SHE-146 (2026-11-12)
+
+Prerequisite audit recorded in [adaptive-fidelity-spike.md](adaptive-fidelity-spike.md).
+Owned isolated worktree `workspaces/SHE-146`, branch `mini/SHE-146`, base b963dd3;
+this slice owns only that report and this plan entry. SHE-142 is Done with PR50
+but its scalar oracle is absent locally; structured blocker SHE-171 remains
+Todo. Connector PR search returned no matching Architecture D/runner PR; live
+merge state is unverified. Do not substitute the bounded energy-transfer
+fixture for the movement/contact oracle or duplicate another ticket's runner.
+
+Next end-to-end slice: reviewed upstream oracle + runner contracts, then bounded
+policy/ownership transfers with CPU-oracle/GPU comparison, atomic failure/retry,
+ID conservation and replay tests. Follow with measured 10k/100k/1M switches and
+small matched all-high-fidelity divergence. Report actual CPU/GPU completions,
+cohort weight separately, versions/seed/adapter limits/machine and transfer costs.
+Risks and independently verifiable acceptance tasks are in the report.
+
+Actual local check: existing agent-count contract 8pass/0fail/266assertions.
+Documentation only; no browser run needed. Implementation, GPU comparison and
+scale measurements remain blocked by unavailable prerequisites, not verified.
+No dispatch, merge, deployment or production data change performed.
