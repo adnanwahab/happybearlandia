@@ -1,3 +1,5 @@
+See [the measured throughput follow-up](../../../docs/symphony-throughput.md) for the guarded recurring scheduler, native dashboard overlay, verification and rollback.
+
 # HappyBearLandia trusted host backlog coordinator
 
 See [COORDINATOR.md](COORDINATOR.md) for installation, readiness evidence,
@@ -29,3 +31,13 @@ files fail closed. No force pushes, main/sprint commits, production deployment,
 worker Git write privileges or model-authored scope policy are introduced.
 Historical worker-commit/.git-handoff procedures in older installations describe
 legacy recovery only and are superseded for new workers by this contract.
+
+## Historical oversized pending workpad repair
+
+The versioned workpad/publisher runtime files mirror the already installed host
+integration. The earlier repair versioned `publish.py` as a runtime dependency. The current
+source-only publication policy above supersedes that historical installation. The workpad repair archives an oversized update byte-for-byte before
+parking only its pilot label. It leaves the original request, prior workpad history,
+implementation and publisher handoff intact and returns nonzero before publication.
+See [repair/recovery details](../../../docs/symphony-workpad-oversize-repair.md).
+That earlier repair did not install/rewrite hooks or change workflow/scheduler configuration.

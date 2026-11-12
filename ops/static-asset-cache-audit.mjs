@@ -10,6 +10,9 @@ import { fileURLToPath } from 'node:url';
 export const auditVersion = 1;
 export const probes = Object.freeze([
   { path: '/', kind: 'html' },
+  { path: '/vote-on-patch', kind: 'html' },
+  // Existing voting handler supports GET, while HEAD is a no-store 404.
+  { path: '/api/patch-votes', kind: 'dynamic', expectedStatuses: { GET: 200, HEAD: 404 } },
   { path: '/world/future-machine.html', kind: 'html' },
   { path: '/world/future-machine/main.js', kind: 'javascript' },
   { path: '/vendor/three/three.module.js', kind: 'javascript' },
@@ -108,8 +111,9 @@ export async function collectHeaders(origin, { fetcher = fetch } = {}) {
   const rows = [];
   for (const probe of probes) {
     for (const method of ['GET', 'HEAD']) {
-      const expectedStatus = ['private-source-denial', 'malformed-path-denial', 'missing'].includes(probe.kind)
-        ? 404 : probe.path === '/api/world-experiments' && method === 'HEAD' ? 405 : 200;
+      const expectedStatus = probe.expectedStatuses?.[method] ??
+        (['private-source-denial', 'malformed-path-denial', 'missing'].includes(probe.kind)
+          ? 404 : probe.path === '/api/world-experiments' && method === 'HEAD' ? 405 : 200);
       const row = { ...probe, method, expectedStatus };
       try {
         const response = await fetcher(new URL(probe.path, base), {

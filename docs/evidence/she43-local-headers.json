@@ -1,21 +1,21 @@
 {
   "auditVersion": 1,
-  "auditToolSha256": "b1a5c3e272fbc551fd56e01f65f503b0e2d9f1f5c8689b72e79d88872d8234bc",
-  "observedAt": "2026-11-12T03:26:16.968Z",
+  "auditToolSha256": "1c4285ba93a62229edd7f1e527718e9edb30f7c0e242dfa23d16e0a47ae3f722",
+  "observedAt": "2026-11-12T04:29:48.331Z",
   "evidenceType": "local-non-production",
-  "sourceSha": "59d2e6546421732b41c137d0d8d114fb22c89ce9",
+  "sourceSha": "0d126fa5b619fe7b038c04db1c710da4ba6855b9",
   "runtime": {
     "bun": "1.4.2",
     "platform": "darwin",
     "arch": "arm64"
   },
-  "origin": "http://127.0.0.1:58169",
+  "origin": "http://127.0.0.1:49303",
   "stagingVerified": false,
   "inventoryScope": "Tracked source files in public-root candidates; excludes node_modules, untracked data and route-denied-file analysis.",
   "inventory": {
     "javascript": {
-      "count": 1045,
-      "bytes": 18602572,
+      "count": 1047,
+      "bytes": 18611700,
       "samples": [
         {
           "path": "data/server.js",
@@ -106,8 +106,8 @@
       ]
     },
     "jsonData": {
-      "count": 307,
-      "bytes": 35330341,
+      "count": 308,
+      "bytes": 35330519,
       "samples": [
         {
           "path": "data/events/2026-09-18/20260918T212114.336Z-scene_3-1fbb5db5-7327-4647-ade7-f8ca9a62a977.json",
@@ -141,10 +141,10 @@
       "status": 200,
       "headers": {
         "content-type": "text/html;charset=utf-8",
-        "content-length": "23783"
+        "content-length": "23838"
       },
-      "bodyBytes": 23783,
-      "bodySha256": "ff6e7f86eb095694a43758cbbccfb29c5169c78b51f1ba8d633ca076a4fdb484",
+      "bodyBytes": 23838,
+      "bodySha256": "033be9302c7d4bca310cd39f5f51abc13f20cb1fa41f315d5d2ca9f0847a3303",
       "assessment": {
         "directives": [
           ""
@@ -162,7 +162,7 @@
       "expectedStatus": 200,
       "status": 200,
       "headers": {
-        "content-length": "23783"
+        "content-length": "23838"
       },
       "bodyBytes": 0,
       "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -174,6 +174,94 @@
           "html-freshness-unspecified",
           "cache-policy-unspecified"
         ]
+      }
+    },
+    {
+      "path": "/vote-on-patch",
+      "kind": "html",
+      "method": "GET",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/html;charset=utf-8",
+        "content-length": "2084"
+      },
+      "bodyBytes": 2084,
+      "bodySha256": "948ec85392533d7964558099ba1fd0bc5c3f9f1b1d7d6f86e7c90380e5cd7587",
+      "assessment": {
+        "directives": [
+          "no-cache"
+        ],
+        "issues": []
+      }
+    },
+    {
+      "path": "/vote-on-patch",
+      "kind": "html",
+      "method": "HEAD",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "cache-control": "no-cache",
+        "content-type": "text/html;charset=utf-8",
+        "content-length": "2084"
+      },
+      "bodyBytes": 0,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "assessment": {
+        "directives": [
+          "no-cache"
+        ],
+        "issues": []
+      }
+    },
+    {
+      "path": "/api/patch-votes",
+      "kind": "dynamic",
+      "expectedStatuses": {
+        "GET": 200,
+        "HEAD": 404
+      },
+      "method": "GET",
+      "expectedStatus": 200,
+      "status": 200,
+      "headers": {
+        "cache-control": "no-store",
+        "content-type": "application/json;charset=utf-8",
+        "content-length": "1588"
+      },
+      "bodyBytes": 1588,
+      "bodySha256": "6140cbbb711b747a71cf50e096440b53f4a8b4bb54120baf6be1a0722fe9a5b9",
+      "assessment": {
+        "directives": [
+          "no-store"
+        ],
+        "issues": []
+      }
+    },
+    {
+      "path": "/api/patch-votes",
+      "kind": "dynamic",
+      "expectedStatuses": {
+        "GET": 200,
+        "HEAD": 404
+      },
+      "method": "HEAD",
+      "expectedStatus": 404,
+      "status": 404,
+      "headers": {
+        "cache-control": "no-store",
+        "content-type": "application/json;charset=utf-8",
+        "content-length": "22"
+      },
+      "bodyBytes": 0,
+      "bodySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "assessment": {
+        "directives": [
+          "no-store"
+        ],
+        "issues": []
       }
     },
     {
@@ -593,7 +681,7 @@
         "content-length": "399"
       },
       "bodyBytes": 399,
-      "bodySha256": "492ccdf5462ec4efb036aa613a31311b7d3dcc3ad6dc5cc30920cbd176818fa2",
+      "bodySha256": "3e5f705514a99358ce8ec58a35b93686085e851425c9021f79318328ae588b03",
       "assessment": {
         "directives": [
           "no-store"

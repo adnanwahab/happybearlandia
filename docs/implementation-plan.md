@@ -439,6 +439,52 @@ from an idle dispatcher. User-authorized live pilot remains conditional on real
 candidate readiness. Publish this working package as draft only; no merge/deploy.
 Acceptance and exact test/audit evidence: docs/she-180-coordinator-evidence.json.
 
+## Symphony throughput increment — 2026-11-11
+
+Measured next slice: reduce PR30 coordinator's per-issue API fanout, run bounded
+recurring reconciliation of explicitly reviewed tasks, persist redacted throughput
+events/resource samples, and extend the installed Symphony dashboard with those
+metrics. User authorized profiling, implementation, safe empirical experiments
+and draft sprint PRs; no main merge/deploy/production-data changes. Preserve all
+approval/ownership gates and original workspaces. No automatic backlog approval.
+
+Baseline: live concurrency1, zero running/retrying, 10s poll; about28GiB swap and
+35GiB free disk in two five-second resource samples. PR30 scan evidence recorded
+877Linear reads for175issues. PRs27–29 were coordinator-delegated tasks, not
+Symphony dispatches, so they cannot prove eligible-to-claim/reasoning latency.
+
+Ownership: scan worker owns backlog_coordinator.py and its tests; scheduler worker
+owns throughput_policy.py, throughput_scheduler.py and tests; metrics worker owns
+throughput_metrics.py and tests. Coordinator owns shared interfaces, integration,
+native dashboard overlay/install, live verification and report. All workers use
+independent clones; no remote credentials or autonomous production actions.
+
+Acceptance: unchanged fail-closed schema/pagination/ownership semantics; measured
+complete scan reduction; restart-safe single-host leases and no duplicate grant;
+resource pressure holds new grants without killing work; ranked fast/feature/
+research lanes preserve trusted approvals; real loop records events and serves
+real utilization in existing dashboard. Focused tests, full package integration
+checks, native dashboard compile/tests and browser smoke before reviewable PR.
+
+Risks: live unknown ownership and28GiB swap may block actual useful-ticket scaling.
+Report that honestly; no claims of4/6/8/12 live capacity from synthetic tests. Keep
+one active Symphony worker until accepted changes/worker-hour and resource health
+justify gradual scaling. Rollback backs up installed files/config and retains
+leases/events; do not destroy state or reset active workers.
+
+Implemented increment: complete batched scan, durable weighted lanes, guarded
+recurring scheduler, private SQLite events/resources and native dashboard overlay.
+Live175-issue scan:18logicalLinearreads/24GitHubcommands/0GitHubretries/21.196s;
+prior logical count877. No end-to-end throughput improvement claimed. Quality
+rates without event history remain unavailable. Host cap restored1; additive
+pressure-release filter holds dispatch. Read-only observer installed; no approvals
+or workers launched. Test evidence and operational limits are in
+`docs/symphony-throughput.md`; pressure config/test patch is reviewable alongside
+the installer. Native formatter/lint/build/305tests(0failures,6skips)/100%coverage/
+Dialyzer passed; installed-host164tests passed; package102tests passed; actual
+Playwright dashboard smoke passed without page errors. Retain current approval
+hold, review ownership individually, then measure nonduplicate useful tickets at
+concurrency1 before considering4/6/8/12. Human review required before merging.
 ## Independent agent-count review repair — November 11, 2026
 
 PR34's bounded synthetic metric interface can accept a positive finite duration
@@ -475,3 +521,73 @@ Limits: this is a recovered real-worker pilot; no fresh model was dispatched und
 Final coordinated gates: installed213Python tests now pass after runtime owner's scheduler fix; native310tests/0failure/6skipped plus all static/build gates. Pinned runtime cap1/max_turns20/source-only/dualfilter verified; live API0running/0retrying/0blocked. Actual app-server policy source-root-only. Live publisher repeat remains blocked by coordinating chat's automatic approval review citing earlier no-push restriction; its explicit approval request remains pending. No workaround, duplicate model, merge or deployment. Repair draft https://github.com/adnanwahab/happybearlandia/pull/42 (initial9611a46), pilotdraft40 and source evidence preserved.
 
 Follow-up: one newly approved live repeat failed generically. Fixed actual-CLI module duplication that hid safe PublicationError reasons; genuine subprocess regression fails before/passes after, full133tests pass. Installed with backup/issue lock. No further live retry without separate approval; original PR40/receipt unchanged, underlying historical failure unrecoverable from redacted result. See evidence update.
+## Host workpad oversized-update retry-loop repair
+
+Observed42,212-character handoff against40,000-character contract could fail both
+host phases repeatedly without parking. The repair durably preserves exact raw
+JSON, keeps original pending/publisher/history/implementation untouched, removes
+only pilot approval, appends a bounded truthful rejection receipt and returns
+nonzero before publication. A concurrent replacement guard avoids acting on a
+superseded request; retries reuse archive/receipt. No workflow/scheduler, issue
+source, live handoff or publisher-policy edit. Existing publisher runtime is
+versioned unchanged solely as the workpad dependency missing from the repository.
+
+Focused35tests and installed-host106tests passed, including fresh-process shell
+short-circuit, exact40000/40001 boundary,42,212 Unicode/format-preservation,
+API/write/interruption/retry, pressure-label preservation and no lost history.
+Earlier unrelated exact-label assertion failure retained and resolved separately
+by runtime owner. No live issue mutation, recovery command or agent launch here.
+Acceptance/evidence and operator recovery: docs/symphony-workpad-oversize-repair.md.
+
+Fresh clean-package gate:92tests passed; latest installed-host164passed
+(other owners expanded the suite after the earlier106-test pass). Private readback
+`/private/tmp/hbl-workpad-oversize-repair/`; no live hook invocation/issue mutation.
+
+## Continuous Symphony backlog slice — November 11, 2026
+
+Requested result: safely drain explicitly reviewed work through existing single
+Symphony dispatcher, preserve source-only host publisher ownership, and test20
+continuation turns without repeating completed implementations. Runtime owner
+owns native lifecycle/parking, workflow agent limits, observer/cache/metrics;
+separate host-Git owner owns hooks, publisher, workpads and SHE-121 recovery;
+readiness coordinator exclusively audits/approves SHE-83 and SHE-142. No shared
+issue-file claim or duplicate implementation is created by this slice.
+
+Observed prerequisites: PR36 and PR37 merged; observer19cycles/0grants/0ready;
+actual runtime externally restarted asPID97590, file cap2 vs observer1 untilreload.
+Both required pilot+pressure-release labels remain. Approvals disabled, reviews
+empty and no leases. Kernelmemorypressure2(warn),16GiBRAM,~19.3GiBswap means
+no resource clearance; restore cap1 and retainhold. SHE79/141 Done does not prove
+SHE83/142 absent or their file ownership approved. Source-only host hooks are
+not installed yet and current workspace/publisher roots disagree.
+
+Acceptance: terminal local handoff/blocked ends same-thread continuation atturn1;
+incomplete work retains same thread/workspace up to20; after_runonce and failures
+park with useful host-recovery reason rather than retry implementation; pending
+publication cannot restart on next poll. Add strict local-only native overlay,
+backup/restore and fullnativegates. Cached read-only inventory must carry age and
+never satisfy an authoritative apply scan. No producer/dispatcher duplication,
+blanketapprovals, skippedtests, merge, deployment or production mutation.
+
+Verification plan: focused native realOTP/fakeappserver lifecycle+parking tests,
+cache/privacy/freshapply regressions, integrated Python suite, required native
+format/lint/coverage/Dialyzer/build only after idle-stop, real dashboard smoke.
+If physical resource pressure persists, prove source-only publication with
+retained tested SHE121 output through hostowner; do not claim an actual running
+worker or end-to-end useful throughput absent observation. Pending independent
+readiness/user capacity prerequisites remain explicit in final report.
+
+
+Continuous-slice actual checkpoint: native makeall310/0fail/6skip and100%configured
+coverage;173standalonePython3.9tests;214installed-hosttests. Actualruntimepolicy
+nowonlycanonicalworkspace writableRoots, no implicit.gitexception. Between-turn
+terminalhandoff+hookfailurepark tested; maxturns20 installed withcap1/dualfilter.
+Unknownterminalinterferenceconfirmedbyuser: privatepinnedworkflow/runtimev2 now
+ownsdispatch. Cachedobserveravoided2of3fullscans, keepsfreshapplyauthority. Real
+retainedSHE121outputpublishedasdraft40viahostafter_run; oneexplicitlyapproved
+idempotentretryfailedexit1 andwasnotrepeated; newCLIdiagnosticfixinhostownerPR42.
+SHE83/142 pilotlabels exist butnoclaims/newmodeltokens; resource/cleanclone/25active
+ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
+No live implementation occupancy or delivery-throughput improvement claimed.
+
+Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
