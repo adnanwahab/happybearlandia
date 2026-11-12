@@ -79,3 +79,44 @@ test('largest supported recipe stays bounded across scrubs and releases scene re
  await page.goto('/world/future-machine.html?fm=invalid&month=121');await page.goBack({waitUntil:'domcontentloaded'});await ready(page);expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);
  await page.evaluate(()=>window.futureMachine.dispose());expect(await page.evaluate(()=>window.futureMachine.stats.scene.objects)).toBe(0);expect(await page.locator('.fm-ui').count()).toBe(0);
 });
+
+for(const delay of [3000,30000])test(`progressive readiness with Three delayed ${delay}ms`,async({page})=>{
+ const errors=[];page.on('pageerror',error=>errors.push(error.message));
+ const releaseAt=Date.now()+delay;
+ await page.route('**/vendor/three/**',async route=>{await new Promise(resolve=>setTimeout(resolve,Math.max(0,releaseAt-Date.now())));await route.continue().catch(()=>{});});
+ await page.goto('/world/future-machine.html?renderer=webgl',{waitUntil:'domcontentloaded'});
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);
+ // Data readiness must expose every normal entry point without waiting for imports.
+ const started=Date.now();
+ await expect(page.getByTestId('future-machine-timeline')).toBeEnabled({timeout:1000});
+ await expect(page.getByRole('button',{name:'Share comparison',exact:true})).toBeEnabled({timeout:1000});
+ await page.getByRole('button',{name:'Play timelapse',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Pause timelapse',exact:true})).toBeEnabled();
+ await page.getByRole('button',{name:'Pause timelapse',exact:true}).click();
+ await seek(page,120);
+ expect(await page.evaluate(()=>window.futureMachine.state.diff.metrics.housingUnits.delta)).toBe(24);
+ await page.getByRole('button',{name:/WHY.*homes/i}).click();
+ await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('WHY');
+ expect(Date.now()-started).toBeLessThan(1000);
+ await page.getByRole('button',{name:/building-d1 · schematic/}).last().click();
+ await expect.poll(()=>page.evaluate(()=>window.futureMachine.stats.scene.backend)).toBe(delay>10000?'canvas2d':'webgl');
+ expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);
+ await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('building-d1');
+ const camera=await page.evaluate(()=>window.futureMachine.stats.scene.camera);
+ if(delay>10000)await page.waitForTimeout(21000);
+ expect(await page.evaluate(()=>window.futureMachine.stats.scene.camera)).toEqual(camera);
+ expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);
+ expect(errors).toEqual([]);
+});
+
+test('blocked Three and all contexts unavailable preserve inventory and WHY',async({page})=>{
+ await page.addInitScript(()=>{HTMLCanvasElement.prototype.getContext=()=>null;});
+ await page.route('**/vendor/three/**',route=>route.abort());
+ await page.goto('/world/future-machine.html');await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);await seek(page,120);
+ await expect(page.getByText('Graphics unavailable. The exact recorded inventory, timeline, outcomes and WHY controls remain available below.')).toBeVisible();
+ await page.getByRole('button',{name:/building-d1 · schematic/}).last().click();
+ await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('building-d1');
+ await page.getByRole('button',{name:/WHY.*homes/i}).click();
+ await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('WHY');
+ expect(await page.evaluate(()=>window.futureMachine.stats.scene.backend)).toBe('inventory-fallback');
+});

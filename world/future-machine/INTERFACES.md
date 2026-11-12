@@ -38,7 +38,7 @@ Exact stable IDs, additions/removals, finite measurements, missing data; determi
 - `createUI(container,callbacks={}) -> ui` creates controls, stage and story mounting containers. `ui.stageElement`, `ui.storyElement` DOM nodes.
 - callbacks `onRun(recipe)`, `onMonth(month)`, `onPlay(boolean)`, `onMode(mode)`, `onGhosts(boolean)`, `onDirector()`, `onShare()`, `onExport()`.
 - `ui.update({status,message,recipe,month,playing,mode,ghosts,frame,diff,experimentId,shareURL,error})`; `ui.dispose()`.
-Partial updates allowed. Run button text Fork City; timeline label Month; accessible native controls. Controls disabled while loading, cancel/retry error clear. UI owns CSS in ui/. Show units, synthetic assumptions, unavailable metrics, no physical difference. Coordinator handles playback timer. Share link visible when shareURL provided.
+Partial updates allowed. Run button text Fork City; timeline label Month; accessible native controls. Controls disabled while data is loading, cancel/retry error clear. Data-ready comparisons remain usable while graphics load; the guided demo waits for stage readiness. UI owns CSS in ui/. Show units, synthetic assumptions, unavailable metrics, no physical difference. Coordinator handles playback timer. Share link visible when shareURL provided.
 
 ## story/index.js
 

@@ -1003,3 +1003,25 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-218 — Progressive comparison readiness
+
+Slice: expose the paired recorded inventory, timeline, KPIs, WHY, playback and
+sharing as soon as replay/validation/diff/story preparation completes. Graphics
+settle independently; the guided demo waits for the bounded graphics/fallback
+result. Preserve month, exact entity selection and history-wide camera fit when
+attaching the renderer. Three imports have a 10-second deadline; late imports
+cannot replace Canvas/inventory fallback or disposed stages. No model/data
+contracts change. Risks: deferred callbacks after cancellation/replacement and
+selection before a camera exists; guard stage/request identity and replay focus.
+
+Implementation complete in main.js and scene/index.js. Acceptance regressions
+added to the normal-route Playwright suite for 3-second and 30-second delayed
+Three, plus blocked Three with every canvas context unavailable. Unit/regression
+verification: `bun test test/future-machine-*.test.js` — 96 pass, 3 browser-gated
+skips, 942 assertions. Normal-route browser verification remains blocked: server
+startup reports EADDRINUSE on ports 39884, 39892 and 42719. The existing browser-gated UI harness also failed at Bun.serve({port:0})
+(6 pure checks passed, 1 browser check failed before browser launch). No browser
+acceptance claim is made until that suite runs. No lint/typecheck commands are configured.
+Next action: run focused progressive-readiness/blocked-Three Playwright tests in
+an environment that can start the isolated server, then the full journey suite.

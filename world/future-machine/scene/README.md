@@ -21,3 +21,11 @@ A temporary localhost harness exercised the module in Chromium with the installe
 ## Remaining integration checks
 
 Coordinator should run the real route with City replay data and verify UI-to-stage wiring, responsive framing, director focus, and 120-month playback. Large imported geometries and Safari/device performance are unmeasured. Current integration uses bounded native WebGPU→WebGL→Canvas rendering, then accessible inventory if all contexts fail. AppleMetal native and desktop390/320 Canvas journeys are verified in the sprint status; Safari/device performance remains unmeasured.
+
+Graphics readiness is independent of comparison readiness: `update()` immediately
+renders the selectable inventory. Three and OrbitControls imports share a
+10-second deadline, followed by the existing bounded backend setup or
+Canvas/inventory fallback. Late imports after the deadline are ignored. Pending
+entity focus is applied when a camera attaches; framing uses the full history,
+not the month at which graphics happened to finish. `whenReady()` resolves on
+backend/fallback readiness or disposal; it must not gate ordinary data controls.
