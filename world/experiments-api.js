@@ -13,6 +13,7 @@
 //   "seeds": 8, "years": 5, "checkpoints": [1, 3, 5], "maxPeople": 120, "baseSeed": "hbl"
 // }
 
+import { readExperimentInput, validateExperimentInput, validateImportedPlan } from "./experiment-input.js";
 import { buildTown } from "./gen.js";
 import { runPairedExperiment } from "./paired.js";
 import { compilePlan } from "./planspec.js";
@@ -89,6 +90,7 @@ export function createExperimentsHandler({ fetchPlan, getArea, runner = runPaire
       const payload = await fetchPlan({});
       const pkg = findPackage(payload, body.package);
       if (!pkg) throw new Error(`Dear Congress has no package named "${body.package}"`);
+      validateImportedPlan(pkg);
       return compilePlan(pkg);
     }
     throw new Error('Pass "plan", "proposalIds", or "package"');
@@ -109,9 +111,10 @@ export function createExperimentsHandler({ fetchPlan, getArea, runner = runPaire
   async function start(request) {
     let body;
     try {
-      body = await request.json();
-    } catch {
-      return json({ error: "Body must be JSON" }, 400);
+      body = await readExperimentInput(request);
+      validateExperimentInput(body);
+    } catch (error) {
+      return json({ error: error.message }, error.status || 400);
     }
     body = body || {};
 

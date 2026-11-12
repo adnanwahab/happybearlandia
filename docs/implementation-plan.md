@@ -1003,3 +1003,65 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-54 — public simulation input audit and legacy endpoint slice
+
+Branch: `mini/SHE-54`. Follow-up audit found this slice already present as
+uncommitted work and preserved it. This slice owns only
+`world/experiment-input.js`, `world/experiments-api.js`,
+`test/public-experiment-input.test.js`, and this plan entry. No parallel writers
+were introduced, and no dispatch labels, production data or release gates changed.
+
+Audit overlap: Decision Studio already has strict uint32 seed, run/horizon,
+parameter/distribution, imported manifest version and aggregate workload validation
+in `world/decision/contracts.js`, plus bounded streaming request reads in its API.
+Existing kernel/housing/integration tests exercise those contracts and replay.
+City experiments already bound runs/months and aggregate household work in
+`world/city/api.js`. Reality shares verify frozen manifest and selected-run identity.
+No simulation rules, output records, random streams or synthetic-data notices changed.
+
+Delivered independently verifiable slice: `/api/world/experiments` now reads at
+most 64 KiB, requires a JSON object, and rejects numeric strings, nulls,
+booleans and nonfinite values instead of coercing them. Existing finite numeric
+floor/default/upper-clamp behavior remains: seeds default8/max32, years default5/
+max10, people default120/max300; values below1 use the existing default. Missing
+optional fields retain defaults. Seed text must be nonblank and at most64 characters
+instead of silently truncating it. Explicit coordinates, checkpoints and procedural
+flags receive field-specific errors. Checkpoints retain the existing0–10 range.
+Imported plans and provider packages permit at most100 actions/IDs, proposal IDs
+up to96 characters, supported PlanSpec version1, integer adoption years0–10 and
+finite nonnegative illustrative costB up to1,000,000 (a transport safety ceiling,
+not a calibrated policy estimate). Unsupported proposal IDs remain inspectable.
+Errors are400, or413 for oversized bodies, before a job is created. Source policy
+mapping remains exclusively in the existing compiler.
+
+Acceptance evidence: `bun test test/public-experiment-input.test.js
+world/experiments-api.test.js test/decision-kernel.test.js
+test/housing-model.test.js test/decision-integration.test.js` passed47 tests,
+2968 assertions, zero failures. Includes malformed-value matrix, direct NaN/Infinity,
+streamed oversize body without Content-Length, unchanged clamps/defaults, real tiny-town
+simulation and Decision manifest reproduction. No UI change; Playwright/screenshots
+are inapplicable. No lint/typecheck scripts exist in package.json.
+
+Remaining audit gap: the separate civic `/api/runs` resolver in
+`world/server-civic-api.js` still coerces numeric inputs and accepts inline civic
+experiments/world batches through a different contract. This slice does not claim
+repository-wide validation completion. Next work must define and test that contract
+(including imported batch shape, adapter options and aggregate resource budgets)
+before expanding ownership to its resolver/store/generator. Queue admission/rate
+limits and browser worker entry points also remain outside this transport slice.
+No commit/PR was created in this source-only workspace.
+
+Follow-up review (2026-11-12): fixed imported PlanSpec validation to inspect the
+same proposal ID and cost fields the compiler consumes; nested proposal metadata
+can no longer mask malformed top-level values. Added explicit object/array shape
+errors and bounded action labels/titles. Validation does not change policy rule
+mapping or trust imported `rule`/`simulated` claims. Added provider-import rejection
+and a numeric boundary matrix covering negatives, fractions and finite extremes.
+Reran the exact five-file command above: 49 passed, 0 failed, 3038 assertions,
+1.387 seconds; `git diff --check` passed. Real runner integration and seeded
+Decision manifest reproduction passed. No browser-facing changes, so Playwright
+was skipped. The civic resolver, queue admission and browser worker gaps above
+remain unresolved; SHE-54 is a working increment, not complete across all public
+entry points. Existing source-only ownership is retained pending coordinator
+agreement for a separate civic resolver slice.
