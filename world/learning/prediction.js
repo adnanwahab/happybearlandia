@@ -34,6 +34,8 @@ export function createPrediction(plan, { metric, expected } = {}, createdAt = Da
  * Resolve only the exact committed City plan and its no-change control at the target month.
  * Recipe or month mismatches throw. Missing observations produce state "unavailable" with null
  * score, actual, and absoluteError. Scored results use max(0, 100 * (1 - absoluteError / tolerance)).
+ * Skill is unclamped: 1 - absoluteError / abs(actual), relative to a zero-change guess.
+ * Zero baseline error or missing observations yield null skill; historical records are not rescored.
  * Values for unemployment are percentages and its deltas are in percentage points.
  */
 export function resolvePrediction(prediction, baseline, adjusted) {
@@ -57,15 +59,19 @@ export function resolvePrediction(prediction, baseline, adjusted) {
   const after = read(adjusted.final);
   const context = { version: PREDICTION_VERSION, planKey, metric, month, unit, expected, baseline: before, adjusted: after, tolerance };
   if (before === null || after === null) {
-    return { ...context, state: 'unavailable', actual: null, absoluteError: null, score: null };
+    return { ...context, state: 'unavailable', actual: null, absoluteError: null, score: null, noChangeError: null, skill: null };
   }
   const actual = after - before;
   const absoluteError = Math.abs(expected - actual);
-  return { ...context, state: 'scored', actual, absoluteError, score: Math.max(0, 100 * (1 - absoluteError / tolerance)) };
+  const noChangeError = Math.abs(actual);
+  const skill = noChangeError === 0 ? null : 1 - absoluteError / noChangeError;
+  return { ...context, state: 'scored', actual, absoluteError, noChangeError, skill, score: Math.max(0, 100 * (1 - absoluteError / tolerance)) };
 }
 
 const number = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 });
 const signed = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2, signDisplay: 'exceptZero' });
+const skillValue = resolution => Number.isFinite(resolution.skill) ? number.format(resolution.skill) :
+  resolution.noChangeError === 0 ? 'Unavailable (no-change error is zero)' : 'Unavailable';
 const points = value => `${number.format(value)} / 100`;
 const difference = (value, unit) => `${signed.format(value)} ${unit}`;
 const snapshotValue = (value, unit) => value === null ? 'Unavailable' : `${number.format(value)} ${unit}`;
@@ -169,6 +175,8 @@ export function mountPrediction(host, { onCommit } = {}) {
       ['Adjusted result', snapshot(resolution.adjusted)],
       ['Modeled change', resolution.actual === null ? 'Unavailable' : difference(resolution.actual, unit)],
       ['Absolute error', snapshotValue(resolution.absoluteError, unit)],
+      ['No-change error', Number.isFinite(resolution.noChangeError) ? snapshotValue(resolution.noChangeError, unit) : 'Unavailable'],
+      ['Skill vs no-change', skillValue(resolution)],
       ['Accuracy score', resolution.score === null ? 'Unscored' : points(resolution.score)],
     ];
     const list = element('dl');
@@ -195,7 +203,7 @@ export function mountPrediction(host, { onCommit } = {}) {
       const { label, unit } = metrics.get(prediction.metric);
       return element('li',
         `${label} · Seed ${prediction.plan.seed} · Month ${prediction.month} · Predicted ${difference(prediction.expected, unit)} · ` +
-        `Modeled ${difference(resolution.actual, unit)} · Score ${points(resolution.score)}`,
+        `Modeled ${difference(resolution.actual, unit)} · Score ${points(resolution.score)} · Skill vs no-change ${skillValue(resolution)}`,
       );
     }));
   }

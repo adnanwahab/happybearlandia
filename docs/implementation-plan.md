@@ -1003,3 +1003,19 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Prediction skill against no-change — SHE-244
+
+Slice: add baseline-relative skill to newly resolved Learning Civilization predictions and display it in results/history. Reuse the committed City plan, paired results, units and browser journal. Acceptance: all five metrics, no-change skill 0, perfect skill 1, negative skill, explicit zero-denominator and missing-data handling, and old saved records without rewriting.
+
+Decision: `noChangeError = abs(actual)` because the forecast target is the adjusted-minus-control delta, so no change predicts zero. `skill = 1 - absoluteError / noChangeError` is unclamped; negative means worse than no-change. When `noChangeError` is zero, skill is `null` even for a perfect prediction because relative skill is undefined. Missing observations yield both new fields as `null`. Accuracy tolerances and the existing score remain unchanged. Additive fields retain `city-prediction.v1`; old records show unavailable skill and are never rescored. Results describe this synthetic model comparison, not real-world predictive validity.
+
+Delivered in `world/learning/prediction.js`, `test/prediction-league.test.js`, and `test/e2e/learning-civilization.e2e.js`. Focused scoring/journal suite: 6 passed, 79 assertions. Browser regression now checks persisted skill and a legacy record whose fields are absent, including unchanged storage bytes. Browser execution remains unverified: default Node runner cannot parse the existing config's `import.meta`; Bun runner gets EADDRINUSE on both the configured port 54388 and isolated port 54489. No production or deployment changes. No PR created in this source-only workspace.
+
+Example synthetic resolved record (seed 2911, 12-month transit plan, fabricated unemployment observations 18% and 15%; this is a scoring fixture, not a simulation run):
+
+```json
+{"version":"city-prediction.v1","metric":"unemploymentRate","month":14,"unit":"percentage points","expected":-3,"baseline":18,"adjusted":15,"tolerance":10,"state":"scored","actual":-3,"absoluteError":0,"noChangeError":3,"skill":1,"score":100}
+```
+
+The example omits `planKey` for readability; real records retain the exact committed recipe key. Skill coverage and distribution can be computed from stored outcomes; this slice adds no telemetry, and these descriptive metrics do not demonstrate game effectiveness.
