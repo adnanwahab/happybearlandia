@@ -1003,3 +1003,34 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Selected entity investigation links — SHE-99
+
+Next slice: extend the existing monthly City Time Machine URL contract with a
+copy action and district selection. Reuse stored run/checkpoint authority and
+canonical entity IDs; no new replay recipe or population identity mapping.
+Acceptance: copy a selected building with construction event or a district,
+reopen in a clean browser context at the same month, and preserve unrelated URL
+context. Missing entities clear selection with a visible notice while retaining
+the stored month; clipboard denial exposes a selectable link. Copy stays disabled
+while checkpoints load or fail. Verify with focused browser and causal tests.
+Risks: links require the same server's retained run; unavailable runs continue to
+use the existing explicit error/retry state. Ownership is limited to Time Machine
+page, inventory, markup, documentation and focused browser coverage.
+
+Delivered locally: copy/status/manual-copy controls, selectable canonical district
+inventory, and stale-entity cleanup at the loaded checkpoint (including legacy
+URL alias cleanup). Removed rows remain selectable at their transition month.
+Focused verification: 14 Bun tests / 300 assertions passed across investigation
+selection, checkpoints, heatmaps, causal adapter and read API. Added browser
+coverage for building/event and district copy, clean-context reopening without
+writes, stale IDs, clipboard denial and failed checkpoint disabling. Browser
+execution remains unverified: both standard and alternate ports failed to start;
+a direct ephemeral loopback socket probe returned EPERM, confirming sandbox bind
+restriction rather than an application failure. Run
+`bunx playwright test --config test/time-machine.browser.config.js world-time-machine.browser.js`
+on a host permitting local servers. No dedicated lint/typecheck scripts exist.
+Audit: clean isolated `mini/SHE-99` checkout, full Linear issue read, related issue
+search and GitHub SHE-99 PR search (no matches); CLI open-PR inventory was blocked
+by network access, so unrelated active branch ownership was not fully audited.
+No commit/PR or production changes were made in this source-only workspace.
