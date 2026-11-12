@@ -79,3 +79,22 @@ test('largest supported recipe stays bounded across scrubs and releases scene re
  await page.goto('/world/future-machine.html?fm=invalid&month=121');await page.goBack({waitUntil:'domcontentloaded'});await ready(page);expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);
  await page.evaluate(()=>window.futureMachine.dispose());expect(await page.evaluate(()=>window.futureMachine.stats.scene.objects)).toBe(0);expect(await page.locator('.fm-ui').count()).toBe(0);
 });
+
+test('first policy choices change the real matched pair and preserve loaded recipes',async({page},testInfo)=>{
+ await page.goto('/world/future-machine.html?renderer=canvas');
+ const policy=page.getByLabel('Plan',{exact:true});
+ await expect(policy.locator('option')).toHaveCount(3);
+ let baselineHash;
+ for(const [id,homes,cost] of [['housing-small',12,500000],['housing',24,1000000],['baseline',0,0]]){
+  await policy.selectOption(id);
+  await expect(page.locator('.fm-policy-note')).toContainText(id==='baseline'?'No policy added':'Source: monthly City');
+  await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);await seek(page,120);
+  const result=await page.evaluate(()=>{const h=window.futureMachine.history;return {hash:h.initialHash,homes:window.futureMachine.state.diff.metrics.housingUnits.delta,cost:h.plan[120].metrics.capitalSpending,seed:h.seed,common:JSON.stringify(h.baseline[0])===JSON.stringify(h.plan[0])};});
+  baselineHash??=result.hash;expect(result.hash).toBe(baselineHash);expect(result.homes).toBe(homes);expect(result.cost).toBe(cost);expect(result.seed).toBe(42);expect(result.common).toBe(true);
+  await expect(policy).toHaveValue(id);
+  if(id==='housing-small'){
+   await page.screenshot({path:testInfo.outputPath('first-policy-small.png'),fullPage:true});
+   await page.getByRole('button',{name:'Share comparison',exact:true}).click();await page.reload();await ready(page);await expect(policy).toHaveValue(id);
+  }
+ }
+});

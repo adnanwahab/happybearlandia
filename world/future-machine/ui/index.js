@@ -1,4 +1,5 @@
 import {DEFAULT_RECIPE} from '../contracts.js';
+import {policyChoices, policyId} from './policies.js';
 import {calendarLabel, clampMonth, metricPresentation, metricSemantics, householdObservation, householdSummary} from './model.js';
 
 /** Mount a renderer-independent view. Call update with recorded data; see README. */
@@ -130,9 +131,8 @@ export function createUI(container, callbacks = {}) {
     onExport:callbacks.onExport,
     onCancel:callbacks.onCancel,
     onMetric:callbacks.onMetric ? key=>callbacks.onMetric({homes:'housingUnits',commute:'meanTravelMinutes',rent:'meanRent',spending:'capitalSpending'}[key]) : undefined,
-    onPolicyChange:id=>{recipe={...recipe,intervention:id==='baseline'?null:structuredClone(defaultIntervention)};configurationDirty=true;callbacks.onConfigure?.(structuredClone(recipe));},
+    onPolicyChange:id=>{recipe={...recipe,intervention:structuredClone(policyChoices(recipe.intervention).find(choice=>choice.id===id).intervention)};configurationDirty=true;callbacks.onConfigure?.(structuredClone(recipe));},
   });
-  let defaultIntervention=structuredClone(DEFAULT_RECIPE.intervention);
   const doc=container.ownerDocument;
   const shell=view.stage.closest('.fm-ui');
   const seedLabel=doc.createElement('label');seedLabel.textContent='Seed for next run';seedLabel.className='fm-seed-label';
@@ -172,7 +172,6 @@ export function createUI(container, callbacks = {}) {
       const accepted=seedInput.getAttribute('aria-invalid')!=='true' && JSON.stringify(patch.recipe)===JSON.stringify(recipe);
       if(!configurationDirty || accepted || (previousExperiment && incomingExperiment && previousExperiment!==incomingExperiment)){
         recipe=structuredClone(patch.recipe);configurationDirty=false;seedInput.value=String(recipe.seed);seedError.hidden=true;seedInput.setCustomValidity('');seedInput.setAttribute('aria-invalid','false');
-        if(recipe.intervention)defaultIntervention=structuredClone(recipe.intervention);
       }
     }
     const busy=['loading','running','queued'].includes(current.status);seedInput.disabled=busy;
@@ -195,8 +194,8 @@ export function createUI(container, callbacks = {}) {
     const households=ids.map(id=>({id,label:`City household ${id}`,baseline:a.find(row=>row.id===id)??null,plan:b.find(row=>row.id===id)??null,baselineHousing:householdObservation(a.find(row=>row.id===id),current.frame?.baseline?.state?.units),planHousing:householdObservation(b.find(row=>row.id===id),current.frame?.plan?.state?.units)}));
     view.update({busy,ready,month:current.month,playing:current.playing,status:current.message,error:current.error,metrics,households,
       cities:[{id:'synthetic',label:'Riverside · Synthetic City'}],
-      policies:defaultIntervention?[{id:'housing',label:'Housing intervention',description:`${defaultIntervention.amount} proposed homes · ${defaultIntervention.cost} illustrative USD · district ${defaultIntervention.districtId}. Construction and funding constraints still apply.`},{id:'baseline',label:'No intervention (matched control)',description:'Compare two unchanged futures from the same initial state and seed.'}]:[{id:'baseline',label:'No intervention (matched control)'}],
-      policyId:recipe?.intervention?'housing':'baseline',spatialLabel:'Synthetic schematic layout · Monthly City model · January 2026–January 2036 · Uncalibrated assumptions. No real-world geometry inferred. Private parcel capacity 0; utility capacity 200 per district/network; annual growth 0.',
+      policies:policyChoices(recipe.intervention),
+      policyId:policyId(recipe.intervention),spatialLabel:'Synthetic schematic layout · Monthly City model · January 2026–January 2036 · Uncalibrated assumptions. No real-world geometry inferred. Private parcel capacity 0; utility capacity 200 per district/network; annual growth 0.',
       blink:current.mode==='plan',evidence:current.diff?{month:current.month,experimentId:current.experimentId,changedCount:current.diff.changedCount,physicalCount:current.diff.physicalCount,source:'Monthly City comparison. Select an entity for recorded evidence.'}:null,
     });
     noPhysical.textContent=current.diff ? (current.diff.available===false?'Comparison unavailable for this month.':current.diff.physicalCount===0?'No physical building or link difference recorded at this month.':'Physical changes are recorded; inspect the highlighted entities for evidence.') : '';

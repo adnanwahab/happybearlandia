@@ -1003,3 +1003,51 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-30 — supported first policy choice
+
+Audit: prerequisite HBL-W1-004 (SHE-9) is Done in Linear. Existing Future
+Machine already supplies real City paired runs, seed controls, housing construction,
+null-intervention comparison, share/reopen, and provenance. The missing slice is
+choice: its selector previously offered only the supplied housing input and control.
+No engine, generator, model version, API, or persistence contract change is needed.
+
+Owned slice on `mini/SHE-30`: `world/future-machine/ui/index.js`, new
+`ui/policies.js`, UI README, new `test/future-machine-policies.test.js`, the existing
+Future Machine browser suite, and this plan. Single worker; no delegation or
+changes to dispatch/release gates. Acceptance: two bounded housing proposals
+(24 homes/1,000,000 illustrative USD and 12 homes/500,000 illustrative USD), plus
+unchanged matched control; visible source, cost and constraints; actual model
+completion evidence; matching initial state/seed; exact share/reopen. Loaded
+nonpreset interventions retain their exact inputs and a separate loaded label.
+Risk: a policy edit must configure the next run without relabeling displayed results;
+existing dirty-configuration handling is preserved. These are two parameter choices
+in the existing housing model, not two independently calibrated policy models.
+
+Initial verification: `bun test test/future-machine-policies.test.js
+ test/future-machine-ui.test.js test/future-machine-data.test.js
+ test/future-machine-share.test.js` — 20 passed, 1 optional browser test skipped,
+0 failed, 195 assertions. New tests execute the real 120-month engine: +12/+24
+homes, 500,000/1,000,000 cumulative capital USD, identical control, deterministic
+replay, unchanged parent hash, recorded completion/model version and share recipes.
+Browser verification pending below. No commit/PR or deployment created here.
+
+Final local verification: `bun test test/future-machine-policies.test.js
+ test/future-machine-ui.test.js test/future-machine-data.test.js
+ test/future-machine-share.test.js test/future-machine-manifest-validation.test.js
+ test/future-machine-diff.test.js test/city-systems.test.js` — 50 passed,
+1 optional browser test skipped, 0 failed, 521 assertions. `git diff --check`
+passed. No standalone lint/typecheck script exists in package.json.
+
+Browser attempts: `bunx playwright test --config
+ test/future-machine.browser.config.js -g 'first policy choices'` failed before
+running tests: Bun server listen EADDRINUSE on 39884. A temporary isolated-port
+config and `HBL_FM_TEST_PORT=39930` retry failed identically; config was restored.
+`HBL_FM_BROWSER=1 bun test test/future-machine-ui.test.js` produced 6 passes and
+1 failure before Chromium launch: even Bun.serve port 0 returned EADDRINUSE.
+Local listen/setup is blocked; UI screenshots and browser acceptance remain
+unverified. The added normal-route browser test checks all three policy selections,
+actual persisted matched comparisons, smaller-plan share/reload and captures
+`first-policy-small.png` when run successfully. Next action: rerun that exact
+Playwright command in an environment permitting the local server. No browser
+results or screenshot are fabricated; no commit/PR is available for this local slice.
