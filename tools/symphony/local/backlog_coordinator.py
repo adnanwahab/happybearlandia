@@ -149,10 +149,23 @@ class Services:
         return [row for page in pages for row in page]
 
     def approve(self, issue):
+        self.verify_assignment_maintenance()
+        check = issue.get('_assignmentCheck')
+        if not callable(check):
+            raise host.PublicationError('Coordinator: execution label requires locked assignment admission')
+        check()
         result = host.linear('mutation($id:String!,$label:String!){issueAddLabel(id:$id,labelId:$label){success}}',
                              {'id': issue['id'], 'label': issue['approvalLabelId']})
         if not result['issueAddLabel']['success']:
             raise host.PublicationError('Coordinator: approval label rejected; pending lease retained')
+
+    def verify_assignment_maintenance(self):
+        if getattr(self, 'evidence_path', None) and read_private(self.evidence_path) != self.expected_config:
+            raise host.PublicationError('Coordinator: operator review revoked/changed during scan; preserve pending admission', retryable=False)
+
+    def admission_inventory(self):
+        from assignment_lifecycle import collect
+        return collect(self, STATE)
 
     def approval_label(self, team):
         labels = self.connection('''query($after:String){issueLabels(first:100,after:$after){
@@ -337,11 +350,12 @@ def atomic(path, value):
             os.unlink(temporary)
 
 
-def read_private(path):
+def read_private(path, limit=None):
     fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
     with os.fdopen(fd) as stream:
         info = os.fstat(stream.fileno())
-        if not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid() or info.st_mode & 0o077 or info.st_nlink != 1:
+        if (not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid() or info.st_mode & 0o077 or info.st_nlink != 1 or
+                (limit is not None and info.st_size > limit)):
             raise host.PublicationError('Coordinator: evidence/state must be host-owned private regular files')
         return json.load(stream)
 
@@ -386,7 +400,7 @@ def occupied(snapshot, state):
     return result
 
 
-def cycle(services, config, directory, apply=False):
+def cycle(services, config, directory, apply=False, maintain=False):
     """Caller holds the host lock throughout read/reconcile/persist/mutate."""
     if config.get('version') != 1 or config.get('projectId') != PROJECT:
         raise host.PublicationError('Coordinator: wrong readiness evidence version/project')
@@ -401,6 +415,8 @@ def cycle(services, config, directory, apply=False):
         if len(valid) < 3 or not config.get('scaleApprovedBy'):
             raise host.PublicationError('Coordinator: scale above3 needs operator approval and three actual open draft PRs')
     by_id = {i['id']: i for i in snapshot['issues']}
+    import assignment_lifecycle as assignments
+    inventory = services.admission_inventory() if hasattr(services, 'admission_inventory') else None
     # Never revoke a remote label or expire a running lease by wall clock.
     for ident, lease in state['leases'].items():
         issue = by_id.get(ident)
@@ -408,7 +424,7 @@ def cycle(services, config, directory, apply=False):
             lease['status'] = 'held'
             continue
         approved = APPROVAL_LABEL in issue['labels']
-        linked_draft = any(delivered(p, issue) for p in snapshot['prs'])
+        linked_draft = assignments.verified_handoff(snapshot, issue, inventory)
         release_reason = config.get('releases', {}).get(ident)
         if not approved and isinstance(release_reason, str) and release_reason.strip():
             lease['status'] = 'released'
@@ -418,9 +434,66 @@ def cycle(services, config, directory, apply=False):
         elif lease['status'] in {'pending', 'active', 'held'} and linked_draft:
             lease['status'] = 'released'
             lease['releaseReason'] = 'verified draft handoff'
+            receipt = next(x for x in inventory['handoffs'] if x['issue'] == issue['identifier'])
+            lease['handoff'] = {'commit': receipt['commit'], 'url': receipt['url'], 'verifiedAt': time.time()}
         elif lease['status'] == 'active':
             lease['status'] = 'held'  # Operator removal may race a worker; retain scope.
+    maintenance = []
+    trusted_approved = set()
+    enabled = config.get('enableApprovals') is True and bool(config.get('overlapReconciledBy'))
+    for issue in snapshot['issues']:
+        if APPROVAL_LABEL not in issue['labels']:
+            continue
+        policy, reasons = assignments.plan(snapshot, config, state, inventory, issue)
+        entry = {'identifier': issue['identifier'], 'action': 'hold' if reasons else 'ready', 'reasons': reasons}
+        maintenance.append(entry)
+        if not reasons:
+            existing_policy = next((x['policy'] for x in inventory['assignments'] if x['name'] == issue['identifier']), None)
+            if existing_policy and all(existing_policy.get(key) == value for key, value in policy.items() if key not in ['expiresAt', 'publishEnabled']):
+                try:
+                    assignments.validate_policy(existing_policy, issue['identifier'])
+                    trusted_approved.add(issue['id'])
+                except host.PublicationError:
+                    pass
+        if (apply or maintain) and enabled and not reasons:
+            if not apply:
+                # Under a new-grant/resource hold, only renew a policy already
+                # owned by this exact durable active admission. No missing policy
+                # repair or label addition may escape that hold.
+                lease = state['leases'].get(issue['id'], {})
+                existing = next((x['policy'] for x in inventory['assignments'] if x['name'] == issue['identifier']), None)
+                if (not existing or lease.get('status') != 'active' or
+                        not assignments.owns_policy(lease, existing) or
+                        not config['reviews'][issue['id']].get('standingAuthorization')):
+                    entry.update(action='hold', reasons=['maintenance-only: no exact existing standing-authorized admission'])
+                    continue
+            if hasattr(services, 'verify_assignment_maintenance'):
+                services.verify_assignment_maintenance()
+            # Fresh inventory and full remote scan before maintenance too.
+            fresh = services.scan()
+            current = next((i for i in fresh['issues'] if i['id'] == issue['id']), None)
+            fresh_inventory = services.admission_inventory()
+            policy, reasons = assignments.plan(fresh, config, state, fresh_inventory, current) if current else (None, ['issue disappeared'])
+            if reasons:
+                entry.update(action='hold', reasons=reasons)
+                continue
+            state['leases'].setdefault(issue['id'], {'identifier': issue['identifier'], 'status': 'pending',
+                'digest': digest(current), 'reviewDigest': review_digest(config['reviews'][issue['id']]),
+                'files': policy['files'], 'interfaces': policy['interfaces'], 'baseSha': policy['baseCommit'], 'createdAt': time.time()})
+            atomic(directory / 'leases.json', state)
+            try:
+                entry['action'] = assignments.ensure(directory, state, current, policy, config, verify=getattr(services, 'verify_assignment_maintenance', None))
+                state['leases'][issue['id']]['status'] = 'active'
+                atomic(directory / 'leases.json', state)
+            except host.PublicationError as error:
+                entry.update(action='hold', reasons=[str(error)])
     rows = classify(snapshot, config, state)
+    for row in rows:
+        issue = by_id[row['id']]
+        if row['eligible']:
+            _, reasons = assignments.plan(snapshot, config, state, inventory, issue)
+            row['reasons'].extend(reasons)
+            row['eligible'] = not row['reasons']
     occupied_ids = occupied(snapshot, state)
     occupied_ids.update(k for k, v in state['leases'].items() if v['status'] != 'released')
     selected = []
@@ -437,9 +510,18 @@ def cycle(services, config, directory, apply=False):
             selected.append(row)
     for row in rows:
         row['eligible'] = not row['reasons']
+    held_by_code = {}
+    for row in rows:
+        for code in set(assignments.reason_code(reason) for reason in row['reasons']):
+            held_by_code[code] = held_by_code.get(code, 0) + 1
+    queue = {'approved': len(trusted_approved),
+             'execution_labeled': sum(APPROVAL_LABEL in issue['labels'] for issue in snapshot['issues']),
+             'awaiting_review': None,  # review decisions are not supplied by the PR inventory
+             'open_draft_prs': sum(pr['state'] == 'open' and pr.get('draft') is True for pr in snapshot['prs']),
+             'held_by_code': held_by_code}
     report = {'dryRun': not apply, 'projectId': PROJECT, 'baseSha': snapshot['baseSha'],
               'scannedAt': snapshot['scannedAt'], 'scanMetrics': snapshot.get('scanMetrics', {}), 'cap': cap, 'occupied': len(occupied_ids),
-              'issues': rows, 'selected': [r['identifier'] for r in selected], 'leases': state['leases'], 'pullRequests': snapshot['prs']}
+              'queue': queue, 'assignmentMaintenanceEnabled': bool(apply or maintain), 'assignmentMaintenance': maintenance, 'issues': rows, 'selected': [r['identifier'] for r in selected], 'leases': state['leases'], 'pullRequests': snapshot['prs']}
     if not apply:
         return report
     if config.get('enableApprovals') is not True or not config.get('overlapReconciledBy'):
@@ -460,8 +542,24 @@ def cycle(services, config, directory, apply=False):
         fresh_occupied.update(k for k, v in state['leases'].items() if k != row['id'] and v['status'] != 'released')
         if not fresh_row or not fresh_row['eligible'] or len(fresh_occupied) >= cap:
             raise host.PublicationError('Coordinator: readiness/capacity changed before approval; pending lease retained for operator reconciliation')
-        issue['approvalLabelId'] = services.approval_label(issue['team']['id'])
-        services.approve(issue)
+        current = next(i for i in fresh['issues'] if i['id'] == row['id'])
+        fresh_inventory = services.admission_inventory()
+        policy, reasons = assignments.plan(fresh, config, state, fresh_inventory, current)
+        if reasons:
+            raise host.PublicationError('Coordinator: assignment admission held: ' + '; '.join(reasons))
+        if hasattr(services, 'verify_assignment_maintenance'):
+            services.verify_assignment_maintenance()
+        assignments.ensure(directory, state, current, policy, config, verify=getattr(services, 'verify_assignment_maintenance', None))
+        with assignments.grant(directory, current, state['leases'][row['id']],
+                               verify=getattr(services, 'verify_assignment_maintenance', None)) as check:
+            issue['approvalLabelId'] = services.approval_label(issue['team']['id'])
+            check()
+            issue['_assignmentCheck'] = check
+            services.approve(issue)
+        if row['id'] not in trusted_approved:
+            report['queue']['approved'] += 1
+            report['queue']['execution_labeled'] += 1
+            trusted_approved.add(row['id'])
         state['leases'][row['id']]['status'] = 'active'
         atomic(directory / 'leases.json', state)
     report['leases'] = copy.deepcopy(state['leases'])
@@ -495,11 +593,13 @@ def main(argv=None):
         if args.evidence.absolute().parent != STATE.absolute() or args.evidence.is_symlink():
             raise host.PublicationError('Coordinator: evidence must be a direct host-private state file; never load workspace approval policy')
         config = read_private(args.evidence)
+        services = Services()
+        services.evidence_path, services.expected_config = args.evidence, config
         if args.apply:
             with locked(STATE):
-                report = cycle(Services(), config, STATE, True)
+                report = cycle(services, config, STATE, True)
         else:
-            report = cycle(Services(), config, STATE)
+            report = cycle(services, config, STATE)
         if args.json_report:
             atomic(args.json_report, report)
         output = render(report)

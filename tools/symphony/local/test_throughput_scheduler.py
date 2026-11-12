@@ -180,7 +180,7 @@ class SchedulerTest(unittest.TestCase):
                         else:
                             service.snapshot['publication_receipts']=[dict(identifier='SHE-99',status='committed',at=1)]
                 services.change=change
-                directory=Path(self.tmp.name)/kind
+                directory=Path(self.tmp.name)/kind/'state'
                 result=s.run_loop(**dict(self.kw,services=services,directory=directory))[0]
                 self.assertEqual(services.calls,[])
                 self.assertFalse(result['scheduler']['apply_effective'])
@@ -208,7 +208,7 @@ class SchedulerTest(unittest.TestCase):
                     return value
                 def fresh_config():
                     return dict(self.config,enableApprovals=False) if changed and kind=='policy' else copy.deepcopy(self.config)
-                directory=Path(self.tmp.name)/kind
+                directory=Path(self.tmp.name)/kind/'state'
                 result=s.run_loop(**dict(self.kw,services=services,directory=directory,resource_reader=fresh_resources,
                     runtime_reader=fresh_runtime,config_loader=fresh_config))[0]
                 self.assertEqual(services.calls,[])

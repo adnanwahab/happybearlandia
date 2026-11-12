@@ -113,3 +113,7 @@ The separate native probe runs `source_preflight.py` once using the installed
 and Git metadata write denial; it grants no `.git` permission override. Do not run
 that probe in an existing valuable Git directory or call nested-sandbox setup
 failures a successful permission result.
+
+## Automatic trusted assignment admission
+
+The existing backlog coordinator now manages reviewed exact-file assignments before execution labels, recoverable maintenance and explicitly authorized renewal. See [ASSIGNMENTS.md](ASSIGNMENTS.md). Workers cannot create or renew these policies; publication remains independently held.

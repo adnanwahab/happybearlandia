@@ -21,7 +21,9 @@ class IntegratedLanes(unittest.TestCase):
                   'enableApprovals': True, 'overlapReconciledBy': 'fixture-coordinator'}
         services = FakeServices(issues)
         selected = []
-        with tempfile.TemporaryDirectory() as directory:
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary).resolve() / 'coordinator'
+            directory.mkdir(mode=0o700)
             for n in range(6):
                 result = c.cycle(services, config, Path(directory), True)
                 self.assertEqual(len(result['selected']), 1)

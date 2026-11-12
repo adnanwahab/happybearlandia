@@ -102,9 +102,10 @@ class _CapturedServices:
     approval. Reusing its initial snapshot avoids adding a redundant third full
     inventory to the original coordinator's two-scan approval protocol.
     """
-    def __init__(self, services, stop, before_approve=None):
+    def __init__(self, services, stop, before_approve=None, before_maintenance=None):
         self.services = services
         self.before_approve = before_approve
+        self.before_maintenance = before_maintenance
         self.stop = stop
         self.snapshot = None
         self.replay = False
@@ -128,6 +129,12 @@ class _CapturedServices:
         if self.stop.is_set():
             raise host.PublicationError("Scheduler stopping; pending lease retained", retryable=False)
         return self.services.approve(issue)
+
+    def verify_assignment_maintenance(self):
+        if self.stop.is_set():
+            raise host.PublicationError('Scheduler stopping; preserve assignment', retryable=False)
+        if self.before_maintenance:
+            self.before_maintenance()
 
     def __getattr__(self, name):
         return getattr(self.services, name)
@@ -199,8 +206,11 @@ def run_loop(services, config_loader, directory, current_limit, runtime_reader, 
             # discovered only after a new additive approval has escaped.
             with c.locked(directory):
                 before = c.load_state(directory)
-                captured = _CapturedServices(services, stop, final_grant_guard)
-                report = c.cycle(captured, effective, directory, False)
+                def maintenance_guard():
+                    if config_loader() != config:
+                        raise _GrantHeld([{'code': 'operator-evidence-changed-during-scan', 'severity': 'hold'}])
+                captured = _CapturedServices(services, stop, final_grant_guard, maintenance_guard)
+                report = c.cycle(captured, effective, directory, False, maintain=apply and policy_enabled)
                 if isinstance(captured.snapshot, dict) and 'publication_receipts' in captured.snapshot:
                     report['publication_receipts'] = captured.snapshot['publication_receipts']
                 holds = watchdog(runtime, report, resources, now=clock())
@@ -261,7 +271,7 @@ def run_loop(services, config_loader, directory, current_limit, runtime_reader, 
                          (isinstance(error, urllib.error.HTTPError) and error.code in [408, 429, 500, 502, 503, 504]) or
                          (isinstance(error, (urllib.error.URLError, TimeoutError, ConnectionError)) and
                           not isinstance(error, urllib.error.HTTPError)))
-            if isinstance(error, urllib.error.HTTPError):
+            if isinstance(error, urllib.error.HTTPError) and error.fp is not None:
                 error.close()
             stopped = stop.is_set()
             report = {'dryRun': not apply, 'max_workers': configured_limit, 'issues': None, 'selected': [],
@@ -276,7 +286,9 @@ def run_loop(services, config_loader, directory, current_limit, runtime_reader, 
         if metrics is not None:
             metrics.observe(runtime, report, resources, now=clock())
             c.atomic(directory / 'throughput.json', metrics.snapshot(now=clock()))
+        from assignment_lifecycle import projection
         c.atomic(directory / 'scheduler-status.json', {'version': 1, 'at': clock(), 'cycles': count + 1,
+                 'assignmentMaintenance': projection(report), 'queue': report.get('queue'),
                  'scheduler': report['scheduler'], 'selected': report.get('selected', [])})
         reports.append(report)
         if report['scheduler'].get('error') and (not report['scheduler'].get('retryable') or consecutive_errors >= 3):
