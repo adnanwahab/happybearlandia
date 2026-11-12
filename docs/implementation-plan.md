@@ -481,7 +481,7 @@ pressure-release filter holds dispatch. Read-only observer installed; no approva
 or workers launched. Test evidence and operational limits are in
 `docs/symphony-throughput.md`; pressure config/test patch is reviewable alongside
 the installer. Native formatter/lint/build/305tests(0failures,6skips)/100%coverage/
-Dialyzer passed; installed-host104tests passed; package96tests passed; actual
+Dialyzer passed; installed-host104tests passed; package102tests passed; actual
 Playwright dashboard smoke passed without page errors. Retain current approval
 hold, review ownership individually, then measure nonduplicate useful tickets at
 concurrency1 before considering4/6/8/12. Human review required before merging.

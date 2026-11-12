@@ -61,6 +61,24 @@ class MetricsTests(unittest.TestCase):
         self.assertNotIn(b'PRIVATE', self.store.path.read_bytes())
         self.assertNotIn('PRIVATE', json.dumps(snap))
 
+    def test_all_current_scheduler_hold_codes_reach_redacted_dashboard(self):
+        r=report()
+        codes=['operator-approvals-disabled','review-capacity-reserved','operator-evidence-changed-during-scan','scheduler-stopped']
+        r['scheduler']={'watchdog':[dict(code=code,severity='hold',issue='SHE-11',message='PRIVATE SECRET') for code in codes]}
+        snap=self.store.observe(runtime(),r,{},now=200)
+        self.assertEqual([a['code'] for a in snap['watchdog']],[code.replace('-','_') for code in codes])
+        self.assertTrue(all(a['severity']=='hold' for a in snap['watchdog']))
+        self.assertNotIn('PRIVATE',json.dumps(snap))
+
+    def test_blocking_breakdown_counts_affected_issues_not_repeated_reasons(self):
+        r=report()
+        r['issues']=[dict(identifier='SHE-11',state='Todo',eligible=False,
+                         reasons=['unknown ownership A','ownership conflict B','scope conflict C','prerequisite A','prerequisite B']),
+                     dict(identifier='SHE-12',state='Todo',eligible=False,reasons=['ownership conflict D'])]
+        snap=self.store.observe(runtime(),r,{},now=200)
+        self.assertEqual(snap['queue']['blocking_reasons'],[dict(reason='dependency',count=1),dict(reason='ownership',count=2)])
+        self.assertTrue(all(item['count']<=2 for item in snap['queue']['blocking_reasons']))
+
     def test_sampled_utilization_and_tokens_do_not_claim_time_before_observation(self):
         self.store.observe(runtime(1, 100), report(), {}, now=100)
         snap = self.store.observe(runtime(0, 160), report(), {}, now=110)

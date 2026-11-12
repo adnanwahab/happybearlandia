@@ -32,6 +32,10 @@ WATCHDOG_CODES.update({
     'runtime-refresh-unavailable': 'runtime_refresh_unavailable',
     'upstream-or-auth-failure': 'upstream_or_auth_failure', 'resource-pressure': 'resource_pressure',
     'approval-policy-disabled': 'approval_policy_disabled',
+    'operator-approvals-disabled': 'operator_approvals_disabled',
+    'review-capacity-reserved': 'review_capacity_reserved',
+    'operator-evidence-changed-during-scan': 'operator_evidence_changed_during_scan',
+    'scheduler-stopped': 'scheduler_stopped',
     'eligible-work-awaiting-dispatch': 'eligible_idle',
 })
 API_KEYS = ('linear_reads', 'github_reads', 'errors', 'throttles', 'retries', 'scan_seconds',
@@ -210,8 +214,9 @@ class MetricsStore:
                 continue
             if row.get('eligible') is True:
                 ready += 1
-            for reason in row.get('reasons', []) if isinstance(row.get('reasons'), list) else []:
-                category = _reason(reason)
+            # Count affected issues per category, not repeated prose reasons.
+            categories = {_reason(reason) for reason in row.get('reasons', [])} if isinstance(row.get('reasons'), list) else set()
+            for category in categories:
                 reasons[category] = reasons.get(category, 0) + 1
         totals = runtime.get('codex_totals') if isinstance(runtime.get('codex_totals'), dict) else {}
         scan = report.get('scanMetrics') if isinstance(report.get('scanMetrics'), dict) else report.get('scan_metrics', {})

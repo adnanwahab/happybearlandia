@@ -40,6 +40,15 @@ class OverlayTest(unittest.TestCase):
             self.assertFalse((root/'backup').exists())
             self.assertEqual(original, (root/o.PRESENTER).read_bytes())
 
+    def test_apply_refuses_existing_different_overlay_before_writes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); self.fixture(root)
+            target = root/o.MODULE
+            target.write_text('other owner edits')
+            with self.assertRaises(ValueError): o.install(root, root/'backup')
+            self.assertFalse((root/'backup').exists())
+            self.assertEqual('other owner edits', target.read_text())
+
     def test_restore_refuses_to_clobber_newer_edits(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory); self.fixture(root)

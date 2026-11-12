@@ -88,6 +88,13 @@ def _unique_alarms(alarms):
     return result
 
 
+class _GrantHeld(Exception):
+    """A fresh safety observation held a grant; preserve pending ownership."""
+    def __init__(self, alarms):
+        self.alarms = alarms
+        super().__init__('Fresh grant safety check held')
+
+
 class _CapturedServices:
     """Reuse only the audit's first read under the same host lock.
 
@@ -95,8 +102,9 @@ class _CapturedServices:
     approval. Reusing its initial snapshot avoids adding a redundant third full
     inventory to the original coordinator's two-scan approval protocol.
     """
-    def __init__(self, services, stop):
+    def __init__(self, services, stop, before_approve=None):
         self.services = services
+        self.before_approve = before_approve
         self.stop = stop
         self.snapshot = None
         self.replay = False
@@ -113,6 +121,10 @@ class _CapturedServices:
         return self
 
     def approve(self, issue):
+        if self.stop.is_set():
+            raise host.PublicationError("Scheduler stopping; pending lease retained", retryable=False)
+        if self.before_approve is not None:
+            self.before_approve(self.snapshot)
         if self.stop.is_set():
             raise host.PublicationError("Scheduler stopping; pending lease retained", retryable=False)
         return self.services.approve(issue)
@@ -158,12 +170,36 @@ def run_loop(services, config_loader, directory, current_limit, runtime_reader, 
             capacity = capacity_decision(resources, configured_limit, min(cap, configured_limit), config.get('scaling', {}), now=clock())
             effective = copy.deepcopy(config)
             effective['cap'] = max(1, capacity['grant_limit'])
+            def final_grant_guard(snapshot):
+                # Runs after the coordinator's mandatory fresh full inventory and
+                # before its additive mutation, under the same host lock. Hold
+                # conditions can appear during that scan; the first audit is
+                # not authority to ignore newer backlog or publication state.
+                nonlocal runtime, resources, capacity
+                alarms = []
+                limit_now = current_limit() if callable(current_limit) else current_limit
+                if config_loader() != config or limit_now != configured_limit:
+                    alarms.append({'code': 'operator-evidence-changed-during-scan', 'severity': 'hold'})
+                runtime = dict(runtime_reader(), max_workers=configured_limit)
+                resources = resource_reader()
+                capacity = capacity_decision(resources, configured_limit, min(cap, configured_limit), config.get('scaling', {}), now=clock())
+                if capacity['hold_new_grants']:
+                    alarms.append({'code': 'resource-pressure', 'severity': 'hold'})
+                current = {'leases': c.load_state(directory)['leases'],
+                           'pullRequests': snapshot['prs'],
+                           'publication_receipts': snapshot.get('publication_receipts', [])}
+                alarms.extend(watchdog(runtime, current, resources, now=clock()))
+                if sum(pr.get('state') == 'open' for pr in snapshot['prs']) > 2:
+                    alarms.append({'code': 'review-capacity-reserved', 'severity': 'hold'})
+                if any(alarm['severity'] == 'hold' for alarm in alarms):
+                    raise _GrantHeld(_unique_alarms(alarms))
+
             # Observe and reconcile before deciding whether ANY new grant is safe.
             # An old/unobserved lease or known commit without PR must not be
             # discovered only after a new additive approval has escaped.
             with c.locked(directory):
                 before = c.load_state(directory)
-                captured = _CapturedServices(services, stop)
+                captured = _CapturedServices(services, stop, final_grant_guard)
                 report = c.cycle(captured, effective, directory, False)
                 if isinstance(captured.snapshot, dict) and 'publication_receipts' in captured.snapshot:
                     report['publication_receipts'] = captured.snapshot['publication_receipts']
@@ -191,7 +227,18 @@ def run_loop(services, config_loader, directory, current_limit, runtime_reader, 
                         effective_apply = not stop.is_set() and not capacity['hold_new_grants'] and not any(x['severity'] == 'hold' for x in holds)
                     if effective_apply:
                         effective['cap'] = max(1, capacity['grant_limit'])
-                        report = c.cycle(captured.replay_first_scan(), effective, directory, True)
+                        try:
+                            report = c.cycle(captured.replay_first_scan(), effective, directory, True)
+                        except _GrantHeld as held:
+                            # The coordinator has already durably reserved the
+                            # pending lease. Reuse the latest full snapshot for
+                            # reporting only; no new scan, label or state reset.
+                            holds.extend(held.alarms)
+                            effective_apply = False
+                            report = c.cycle(captured.replay_first_scan(), effective, directory, False)
+                            if 'publication_receipts' in captured.snapshot:
+                                report['publication_receipts'] = captured.snapshot['publication_receipts']
+                        review_backlog = sum(pr.get('state') == 'open' for pr in report.get('pullRequests', []))
                 after = c.load_state(directory)
             added = [key for key, value in after['leases'].items() if value.get('status') == 'active' and before['leases'].get(key, {}).get('status') != 'active']
             report['max_workers'] = configured_limit

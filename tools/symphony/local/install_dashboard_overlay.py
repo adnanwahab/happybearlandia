@@ -49,11 +49,16 @@ def changes(root):
     path = root / MODULE
     if path.is_symlink():
         raise ValueError('Refusing a symlink overlay')
+    if path.exists() and path.read_bytes() != OVERLAY.read_bytes():
+        raise ValueError('Existing overlay differs; preserve and reconcile newer work')
     result[MODULE] = (path.read_bytes() if path.exists() else None, OVERLAY.read_bytes())
     test_path = root / TEST
     if test_path.is_symlink():
         raise ValueError('Refusing a symlink test')
-    result[TEST] = (test_path.read_bytes() if test_path.exists() else None, OVERLAY.with_name('factory_throughput_test.exs').read_bytes())
+    expected_test = OVERLAY.with_name('factory_throughput_test.exs').read_bytes()
+    if test_path.exists() and test_path.read_bytes() != expected_test:
+        raise ValueError('Existing overlay test differs; preserve and reconcile newer work')
+    result[TEST] = (test_path.read_bytes() if test_path.exists() else None, expected_test)
     return result
 
 

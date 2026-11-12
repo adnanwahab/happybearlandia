@@ -123,6 +123,19 @@ class SchedulerTest(unittest.TestCase):
         self.assertEqual(len(s.run_loop(**dict(self.kw,runtime_reader=forbidden),max_cycles=10)),1)
         self.assertEqual(self.services.calls,[])
 
+    def test_stop_during_final_guard_preserves_pending_without_approval(self):
+        stop=threading.Event()
+        def final_resources():
+            if self.services.reads >= 2:
+                stop.set()
+            return resources()
+        reports=s.run_loop(**dict(self.kw,stop=stop,resource_reader=final_resources),max_cycles=3)
+        self.assertEqual(len(reports),1)
+        self.assertEqual(self.services.calls,[])
+        self.assertEqual(c.load_state(self.directory)['leases']['id-1']['status'],'pending')
+        self.assertTrue(reports[0]['scheduler']['stopped'])
+        self.assertIsNone(reports[0]['scheduler']['error'])
+
     def test_disabled_approval_and_stop_signal_never_mutate(self):
         self.config['enableApprovals']=False
         reports=s.run_loop(**self.kw,max_cycles=4)
@@ -155,6 +168,53 @@ class SchedulerTest(unittest.TestCase):
         self.assertEqual(self.services.calls,[])
         self.assertEqual(report['scheduler']['review_backlog'],3)
         self.assertIn('review-capacity-reserved',[a['code'] for a in report['scheduler']['watchdog']])
+
+    def test_new_review_backlog_or_publication_hold_during_fresh_scan_retains_pending_without_label(self):
+        for kind in ['review','publication']:
+            with self.subTest(kind=kind):
+                services=FakeServices(self.issues)
+                def change(service):
+                    if service.reads==2:
+                        if kind=='review':
+                            service.snapshot['prs']=[dict(number=i,title='unrelated',body='',state='open',head=dict(ref='misc'),files=[]) for i in range(3)]
+                        else:
+                            service.snapshot['publication_receipts']=[dict(identifier='SHE-99',status='committed',at=1)]
+                services.change=change
+                directory=Path(self.tmp.name)/kind
+                result=s.run_loop(**dict(self.kw,services=services,directory=directory))[0]
+                self.assertEqual(services.calls,[])
+                self.assertFalse(result['scheduler']['apply_effective'])
+                self.assertIsNone(result['scheduler']['error'])
+                self.assertEqual(c.load_state(directory)['leases']['id-1']['status'],'pending')
+                expected='review-capacity-reserved' if kind=='review' else 'commit-without-draft-pr'
+                self.assertIn(expected,[a['code'] for a in result['scheduler']['watchdog']])
+                if kind=='review':self.assertEqual(result['scheduler']['review_backlog'],3)
+
+    def test_pressure_and_policy_changes_during_mandatory_scan_block_final_mutation(self):
+        for kind in ['resources','policy','runtime']:
+            with self.subTest(kind=kind):
+                changed=[]
+                services=FakeServices(self.issues)
+                def change(service):
+                    if service.reads==2:changed.append(True)
+                services.change=change
+                def fresh_resources():
+                    value=resources()
+                    if changed and kind=='resources':value['swap_used_bytes']=28*GIB
+                    return value
+                def fresh_runtime():
+                    value=runtime()
+                    if changed and kind=='runtime':value['generated_at']='2000-01-01T00:00:00Z'
+                    return value
+                def fresh_config():
+                    return dict(self.config,enableApprovals=False) if changed and kind=='policy' else copy.deepcopy(self.config)
+                directory=Path(self.tmp.name)/kind
+                result=s.run_loop(**dict(self.kw,services=services,directory=directory,resource_reader=fresh_resources,
+                    runtime_reader=fresh_runtime,config_loader=fresh_config))[0]
+                self.assertEqual(services.calls,[])
+                self.assertEqual(c.load_state(directory)['leases']['id-1']['status'],'pending')
+                self.assertFalse(result['scheduler']['apply_effective'])
+                self.assertIsNone(result['scheduler']['error'])
 
     def test_disabled_observation_resumes_only_after_explicit_policy_becomes_enabled(self):
         self.config['enableApprovals']=False
@@ -216,9 +276,9 @@ class SchedulerTest(unittest.TestCase):
             with self.assertRaises(ValueError):s.workflow_limit(path)
 
     def test_actual_limit_is_reloaded_each_cycle(self):
-        limits=iter([2,1])
+        limits=[2]
         config=copy.deepcopy(self.config);config['scaling']=dict(observedConcurrency=2)
-        results=s.run_loop(**dict(self.kw,current_limit=lambda:next(limits),config_loader=lambda:config),max_cycles=2)
+        results=s.run_loop(**dict(self.kw,current_limit=lambda:limits[0],config_loader=lambda:config,sleep=lambda _:limits.__setitem__(0,1)),max_cycles=2)
         self.assertEqual([r['max_workers'] for r in results],[2,1])
         self.assertEqual(len(self.services.calls),2)
 

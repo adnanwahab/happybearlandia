@@ -44,7 +44,7 @@ python3 tools/symphony/local/throughput_scheduler.py --once \
   --evidence "$HOME/.local/state/hbl-publisher/backlog-coordinator/she180-activation-readiness.json"
 ```
 
-For continuous read-only monitoring replace `--once` with `--watch --interval 60`. The default `--max-cycles 10000` is bounded. No `--apply` means no approval label mutations. The operator evidence currently disables approvals and has no readiness reviews; retain that setting until unknown active ownership and dependencies are individually reconciled. Parked In Progress issues continue to reserve capacity; do not silently release ownership based on an absent worker. Prose references to downstream issues must be reviewed before interpreting them as prerequisites; do not blanket remove dependencies.
+For continuous read-only monitoring replace `--once` with `--watch --interval 60`. The default `--max-cycles 10000` is bounded. No `--apply` means no approval label mutations. A host restarter must wait for the state API to return200 before starting the observer; its bounded transport retry also tolerates transient startup unavailability. The operator evidence currently disables approvals and has no readiness reviews; retain that setting until unknown active ownership and dependencies are individually reconciled. Parked In Progress issues continue to reserve capacity; do not silently release ownership based on an absent worker. Prose references to downstream issues must be reviewed before interpreting them as prerequisites; do not blanket remove dependencies.
 
 After memory pressure is resolved and one issue has fresh ownership, tests and explicit digest-bound readiness approval, use the same command once with `--apply`. Keep cap1 and only that issue eligible. Remove the *additional* `symphony-pressure-release` required-label guard from the active workflow only as a deliberate operator release after verifying zero active/retrying workers, fresh safe resources and the single approved issue. Do not add this release label across the board. The ordinary `symphony-pilot` requirement remains. The scheduler requests the existing runtime refresh endpoint only after a new durable grant. A full inventory loop intentionally uses60–300seconds to avoid recreating API pressure; immediate completion-event inventory is not implemented.
 
@@ -68,3 +68,51 @@ Exact source anchors must match. Never overwrite a running escript with `make bu
 6. Completion-event replenishment, live CI/publication collectors and independently reconciled oversized player-feature subtasks remain follow-up work. Prefer first-minute gameplay and One City, Two Futures slices after the dispatch gates are satisfied.
 
 Human review remains required before merging. No production deployment, rollback or production data mutation is part of this work.
+
+## Installed verification and exact files
+
+The installed native runtime passed `make build fmt-check lint coverage dialyzer`:
+305tests,0failures,6existing skips,100%coverage, zero Credo/Dialyzer errors. Existing
+locked dependency advisories were reported by Hex; this change does not upgrade
+them or claim dependency security certification. The installed host suite passed
+104tests at this coordinator's checkpoint; another owner subsequently added a
+workpad regression and independently verified105pass. The standalone package
+suite and GitHub check run on the final integration commit are reported in the PR.
+Playwright loaded the actual native dashboard, found its throughput panel and
+reported zero page errors; screenshot retained privately. Original state API
+remains available. No live-worker pilot was launched.
+
+RuntimePID88616 executes the unique private `20261111-v1/symphony`; the observer
+was first installed asPID88985 (`20261111-observer-v2`). Later tested observer
+versions may replace that PID without rebuilding/restarting Symphony. The first
+successful observation covered175issues/27PRs in26.999seconds using18logical
+Linearqueries,27GitHubcommands,0GitHubretries. It found0ready/165nonterminal,
+~0.89GiB available-memory estimate and~19.8GiB swap. The private metrics persist
+across observer versions. Initial boot-race failure was retained as an unavailable
+sample; do not count it as an empty queue. Repeated cycles measure the explicitly
+held runtime's utilization, not a saturated workload's capacity.
+
+The reviewed PR's exact changed-file manifest is `git diff --name-only
+<current-sprint-base>...HEAD`. In addition to that manifest, installation changed
+these existing local-only native files (not vendored by sprint):
+
+- `tools/symphony/elixir/lib/symphony_elixir_web/router.ex`
+- `tools/symphony/elixir/lib/symphony_elixir_web/live/dashboard_live.ex`
+- `tools/symphony/elixir/lib/symphony_elixir_web/factory_throughput.ex` (new)
+- `tools/symphony/elixir/test/symphony_elixir/factory_throughput_test.exs` (new)
+- `tools/symphony/elixir/WORKFLOW.md` (cap1 and stricter label hold)
+- `tools/symphony/elixir/test/symphony_elixir/core_test.exs` (allows only standard or stricter pilot filter)
+- `tools/symphony/local/test_publish.py` (same strict filter regression)
+
+Source backups: `/private/tmp/hbl-throughput-dashboard-backup-20261111` with
+checksums; pre-ownership workflow `/private/tmp/hbl-workflow-before-throughput-ownership-20261111.md`;
+original config-test/publisher-test bytes in matching private `/private/tmp/hbl-*-before-pressure-hold.*` files.
+`overlays/runtime-pressure-hold.patch` records exact local configuration/test
+changes. The active executable, logs, SQLite and host JSON are operational state,
+not repository source; do not publish their raw contents. Build outputs/caches
+were generated by required native checks. All existing worktrees, branches,
+commits, workpads and credentials were preserved.
+
+Two completed real observer cycles recorded zero grants and0.0utilization over90.166sampledseconds (the runtime was deliberately held). This verifies recurrence, not useful changes per worker-hour.
+
+Final race regressions cover PR backlog/publication receipts arriving during the mandatory fresh scan, policy/resource changes during that scan, and shutdown during the final check. All retain pending ownership without adding the dispatch label. Final integrated standalone package:102tests passed with ResourceWarning treated as an error. Blocking categories count each affected issue once.

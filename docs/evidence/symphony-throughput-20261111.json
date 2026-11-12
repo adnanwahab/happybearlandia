@@ -32,7 +32,7 @@
     "dialyzer": "passed"
   },
   "packageTests": {
-    "tests": 96,
+    "tests": 102,
     "failures": 0
   },
   "installedHostTests": {
@@ -47,5 +47,17 @@
     "performed": false,
     "reason": "resource pressure and unresolved approval/ownership; preserve user safety hold"
   },
-  "deliveryThroughputImprovement": null
+  "deliveryThroughputImprovement": null,
+  "liveRecurringObservation": {
+    "cycles": 2,
+    "newGrants": 0,
+    "apply": false,
+    "utilization": {
+      "capacity_seconds": 90.16565704345703,
+      "fraction": 0.0,
+      "idle_fraction": 1.0,
+      "observed_seconds": 90.16565704345703,
+      "samples": 3
+    }
+  }
 }
