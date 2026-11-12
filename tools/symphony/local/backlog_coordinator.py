@@ -18,6 +18,8 @@ import time
 import coordinator_host as host
 from throughput_policy import rank_rows
 
+from dispatch_policy import missing_approvals
+
 REVIEW_LABEL = 'hbl-symphony-queue'
 APPROVAL_LABEL = 'symphony-pilot'
 PROJECT = '3f960f14-ee1f-4b2b-a4f8-b1b67483b88a'
@@ -227,6 +229,8 @@ def classify(snapshot, config, state, now=None):
             reasons.append('archived issue')
         if issue['state'] != 'Todo':
             reasons.append('only fresh Todo work can receive a new lease; active/review/terminal work preserved')
+        for label in missing_approvals(issue['labels']):
+            reasons.append('missing required dispatch approval: ' + label)
         if REVIEW_LABEL not in issue['labels']:
             reasons.append('not in review queue')
         if APPROVAL_LABEL in issue['labels']:

@@ -195,3 +195,33 @@ HBL_TEST_CODEX_SANDBOX=0 PYTHONDONTWRITEBYTECODE=1 \
 ```
 
 No browser behavior changes; browser tests are unnecessary for this coordinator.
+
+## SHE-182 approval hardening
+
+SHE-180 remains the only queue/lease owner. Before it grants `symphony-pilot`,
+every candidate must already carry **both** `hbl-agent-ready` and
+`hbl-coordinator-approved`. The coordinator never adds either HBL approval.
+Its mandatory fresh scan rechecks them before granting a lease. Existing pilot
+and pressure-release gates remain additional constraints. The versioned workflow
+requires all four labels; the trusted before-run workpad hook and publisher also
+reject missing HBL approvals. Revocation preserves assignments and workspaces;
+it does not reset a lease or grant permission to resume. Oversized handoff
+recovery may still archive/park an existing run without dispatch approval.
+
+The operating files are versioned under `tools/symphony/elixir/WORKFLOW.md`,
+`tools/symphony/local/`, and `ops/symphony/`; no root WORKFLOW.md is required.
+The Elixir runtime itself is externally installed. This change does not install
+or activate it. Reconcile operator approvals before adopting the updated workflow
+and host files together. Do not run the legacy opt-in supervisor alongside the
+current coordinator/runtime.
+
+Existing observations and holds are available in the native dashboard overlay,
+private `scheduler-status.json` and `throughput.json`: queue eligibility, running,
+retrying and blocked workers, resource holds and sanitized failure reasons.
+The scheduler stops on deterministic errors or three consecutive transient
+errors, retains uncertain leases, and holds new grants on missing runtime or
+resource evidence. See `docs/symphony-throughput.md` for the installation contract.
+Those admission checks are not kernel CPU/memory containment. Hard host resource
+limits, runtime retry exhaustion, and a sustained unattended run still require
+verification on the actual external runtime before relying on unattended work.
+No token/dollar cap or release automation is claimed.

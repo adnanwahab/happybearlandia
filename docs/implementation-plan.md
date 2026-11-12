@@ -1003,3 +1003,44 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-182 unattended dispatch hardening — November 12, 2026
+
+Next integrated slice: preserve SHE-180 as sole queue/lease owner, require both
+`hbl-agent-ready` and `hbl-coordinator-approved` in addition to existing pilot and
+pressure gates, and enforce the same approvals at host startup/publication.
+Harden the legacy opt-in launcher rather than install a second scheduler.
+Prerequisites: existing private host assignments, resource-aware scheduler and
+source-only handoff. Acceptance: missing/revoked labels hold new grants and
+startup/publication, old pilot labels cannot bypass approval, bounded launcher
+concurrency and cleanup tests, complete offline host suite. Risks: existing
+pilot tickets will intentionally stop until a human reconciles approvals;
+external runtime installation and actual OS resource containment remain host
+validation, never inferred from offline fixtures. No live activation, issue
+mutation, merge, deployment or production write is authorized by this slice.
+
+Delivered in checkout: shared dual-approval policy across coordinator fresh scans,
+host worker bootstrap and publication; both legacy templates and the current
+workflow retain the additional pilot/pressure gates. Legacy launcher now has a
+hard six-worker ceiling, never-approval policy, stripped tracker/GitHub child
+environment, explicit Linear turn/stall/backoff limits, and process-group cleanup
+even after its leader exits. SHE-180 remains sole queue owner; no competing
+scheduler or remote mutation was added. Regression checks include revocation
+between scans (pending lease retained, no grant), host rejection before workpad
+mutation, and a real SIGTERM-resistant orphan worker stopped before restart.
+
+Verification: ops suite21 tests passed; Linear one-worker dry-run exited0;
+focused approval regressions5 passed; whitespace check passed. Host suite final
+result is recorded below. No browser behavior changed; Playwright skipped.
+Remaining acceptance: external runtime initial/retry label-filter semantics,
+kernel CPU/memory containment, runtime retry exhaustion and sustained unattended
+operation must be verified on the trusted host. The versioned resource scheduler
+provides admission holds, not hard OS quotas. No unattended reliability or full
+SHE-182 completion is claimed. Host adoption requires the workflow and Python
+modules (including `dispatch_policy.py`) together and operator reconciliation of
+old approvals. No dispatcher was activated, issue approved, merge performed,
+deployment made or production data changed.
+
+Final combined host suite:219 tests passed in11.659seconds. Together with21
+ops tests,240 tests passed. Existing private-credential rejection fixture printed
+its expected hold; there were no failures. Final diff whitespace check passed.

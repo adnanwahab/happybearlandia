@@ -6,6 +6,7 @@ tracker:
     api_key: $LINEAR_API_KEY
   required_labels:
     - hbl-agent-ready
+    - hbl-coordinator-approved
   active_states:
     - Todo
     - In Progress
@@ -27,14 +28,17 @@ hooks:
 agent:
   max_concurrent_agents: __MAX_WORKERS__
   max_turns: 12
+  max_retry_backoff_ms: 300000
 codex:
-  command: codex app-server
+  command: env -u LINEAR_API_KEY -u GH_TOKEN -u GITHUB_TOKEN -u GH_ENTERPRISE_TOKEN -u GITHUB_ENTERPRISE_TOKEN codex --config shell_environment_policy.inherit=none app-server
   thread_sandbox: workspace-write
-  approval_policy: on-request
+  approval_policy: never
   turn_sandbox_policy:
     type: workspaceWrite
     writableRoots: []
     networkAccess: true
+  stall_timeout_ms: 300000
+  turn_timeout_ms: 3600000
 ---
 
 You are one HappyBearLandia Codex implementation worker.

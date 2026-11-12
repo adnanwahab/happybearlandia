@@ -275,6 +275,8 @@ def sync(path, phase):
         if (isinstance(update, dict) and update.get('status') in ('progress', 'blocked', 'handoff') and
                 isinstance(update.get('notes'), str) and len(update['notes']) > MAX_NOTES):
             return _reject_oversized_update(path, data, request, raw, update['notes'], pilot)
+    if phase == 'before' and p.missing_approvals(x['name'] for x in data['labels']['nodes']):
+        raise p.PublicationError('Workpad: missing required dispatch approvals; operator must reconcile')
     if not pilot and phase == 'before':
         raise p.PublicationError('Workpad: missing symphony-pilot approval; operator must reconcile')
     pad = ensure(data)
