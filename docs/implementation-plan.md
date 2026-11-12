@@ -829,6 +829,43 @@ exact selection and startup failure. No merge/deployment or remote mutation.
 Branch mini/SHE-72; commit/PR publication remains pending because shared Git
 metadata is outside this session's writable roots.
 
+## SHE-14 — homepage Play Demo explanation (2026-11-12)
+
+Baseline audit: the homepage already has one prominent Play Demo link to
+`/world/future-machine.html?demo=1`; the functioning guided clock and matched
+comparison are covered by `test/e2e/approved-demo-responsive.e2e.js` and
+`test/two-futures-demo-controller.test.js`. HBL-W1-001 / SHE-6 is Done in
+Linear. This slice reuses that entry and runtime, adding a short explanation
+of the guided ten-year housing comparison, pause/exploration, and synthetic
+scenario limits. No model, seed, data, recipe or results change.
+
+Local ownership is limited to `index.html`, the existing responsive browser
+test, and this plan on branch `mini/SHE-14`; checkout was clean at audit.
+No automated dispatch labels/status, release gates, merge or deployment changed.
+The work is a small single-owner slice, with no independent implementation
+tasks requiring delegation.
+
+Implemented: one existing primary CTA, a Start here heading, descriptive text
+associated through `aria-describedby`, and a truthful synthetic-data disclaimer.
+Responsive test now checks the single visible CTA, keyboard activation, unchanged
+destination, accessible explanation, no horizontal overflow or intro overlap,
+and captures homepage screenshots at 1440, 390 and 320px before continuing the
+existing real comparison/WHY journey.
+
+Actual verification:
+- `bun test test/two-futures-demo-controller.test.js`: 2 passed, 13 assertions.
+- `bun test test/server.test.js test/two-futures-demo-controller.test.js`:
+  2 passed, 1 failed; server exits before startup on its ephemeral port.
+- `/Users/wahabma/happybearlandia/node_modules/.bin/playwright test --config test/approved-demo-responsive.browser.config.js`:
+  blocked before browser tests by Bun listen `EADDRINUSE` on 39962.
+- Repeated with `HBL_RESPONSIVE_PORT=41873`: same startup blocker.
+- `git diff --check`: passed.
+
+Remaining acceptance: run that responsive command in an environment where Bun
+can listen, inspect the generated `*-homepage.png` screenshots and verify the
+demo journey. No screenshots were generated here; browser layout and activation
+remain unverified. No commit or PR created.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
@@ -7862,3 +7899,26 @@ routes, six guests/three groups, two separate group reactions, spend/dialogue
 persistence, safe household return and no horizontal overflow at390px/320px.
 WebGL was deliberately disabled for fallback verification; native GPU visuals
 were not reverified. No deployment or Symphony mutation. Hosted CI gates merge.
+
+### PR278 homepage entry integration — November 12, 2026
+
+Integrated original head c2bf0099341cd57f265e4bcfa10e31e8c2310038 against
+sprint baseline 118aad5bcbe65ba6c5b7a16f47faa08f22adf20b. Added the guided-demo
+explanation and accessible CTA description to the existing hero. Preserved the
+hero heading, image and caption, optional onboarding, FAQ, timing scripts, styles,
+all 52 homepage link destinations, and every directory section. The responsive
+test retains its History API rate-limit emulator and complete demo/WHY journey;
+its added overlap check compares direct hero blocks without double-counting the
+CTA inside its enclosing paragraph. Both original implementation-plan additions
+remain recorded.
+
+Verification: the focused demo controller, performance timing, and onboarding
+suite passed 16 tests and 77 assertions. Playwright discovered all three approved
+responsive cases (1440px, 390px, and 320px); browser execution was unavailable in
+this environment, so no new layout or screenshot acceptance is claimed. A parsed
+HTML comparison confirmed the preserved destinations and byte-identical styles,
+scripts, onboarding, FAQ, and hero figure. The adjacent catalog assertion in
+test/world-user-fixes.test.js still reports 32 homepage carousel sections versus
+33 registered experiences. The identical failure was reproduced using exact
+118aad baseline inputs; this existing catalog mismatch was not changed by PR278.
+No simulation, seed, runtime, gallery, or target-branch changes were made.
