@@ -1003,3 +1003,38 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Operations Observatory — SHE-202
+
+Next integrated slice: read-only `/tools/operations-observatory/` and
+`/api/operations-observatory`, linked from the homepage. Reuse the SHE-180
+coordinator report as queue authority and `/api/ready` as the local storage
+probe. Optional operator-supplied, sanitized evidence covers Symphony, CI,
+verified-feature costs, release gates and player outcomes. No dispatcher,
+credentials, remote polling or production changes belong to this slice.
+
+Acceptance: separate engineering and product panels; each links to an issue or
+run; timestamps and stale/missing states; actual blocked reasons; failed CI
+links; unique verified-feature denominator with explicit USD scope; readiness
+never inferred from ticket closure or storage alone. Verify projection/privacy,
+missing/malformed inputs, stale evidence, zero denominator and browser normal
+route/refresh/mobile/fetch failure. Risk: private host reports contain sensitive
+fields; project only documented public fields and never expose raw reports.
+
+Delivered local increment: `ops/operations-observatory.js` projects the existing
+coordinator report plus versioned optional evidence at a no-store read-only API;
+`tools/operations-observatory/` renders six source-linked panels and live local
+storage readiness, with separate product outcomes, minute refresh and explicit
+stale/unavailable states. Homepage and Simulation Health link to the normal route.
+`docs/operations-observatory.md` documents safe feed configuration, public fields,
+USD receipt scope, evidence semantics and remaining host integration ownership.
+No live feed is installed; absent reports remain unavailable. No deployment.
+
+Acceptance evidence: 15 focused/API and existing release-health tests pass;
+JavaScript syntax and `git diff --check` pass. Playwright suite was implemented
+for real normal-server routing, fixture-backed API, source links, refresh failure,
+build mismatch/stale gates and 320px layout. Execution is blocked before tests:
+Bun cannot bind local ports 54419 or 55382 (`EADDRINUSE` on each); browser layout
+and journeys remain unverified. No browser screenshot or live service claim.
+Next: run the browser suite on a host permitting the local server, then have the
+existing observer owner provide reviewed sanitized coordinator/evidence paths.
