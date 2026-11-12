@@ -27,3 +27,17 @@ Verification on2026-11-12 UTC:
   acceptance or production verification. No merge or deployment.
 
 ![Saved future exits above the selected resident on phone Canvas2D](images/symphony-saved-future-canvas-phone.png)
+
+## Concurrent sprint reconciliation
+
+Sprint advanced to f794ba2 through another coordinator's reviewed PR26.
+Losslessly merged that baseline into the pilot issue branch at fc40c3c,
+resolving only overlapping release/directory test assertions. Retained the
+sprint's stronger Canvas first-frame/readiness, source seed/paused minute360,
+identity, restore-error and runtime evidence checks, plus the pilot's phone
+and total-graphics-failure coverage. No existing implementation was discarded.
+
+Combined source: both actual YAML unit commands pass (81 core and68
+manifest/replay tests); complete release-browser suite13 pass/35.9s.
+Reconciled remote CI is pending publication. Earlier source-qualified checks
+and failed candidates remain historical evidence rather than new acceptance.
