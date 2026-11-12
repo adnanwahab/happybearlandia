@@ -1003,3 +1003,37 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-31 — visible fair comparison inputs
+
+Implemented the scoped Future Machine slice. Audit found existing seed editing,
+provenance, matched Month 0 histories, null-intervention controls and versioned
+share/replay tests (overlap with HBL-W1-017); these remain authoritative.
+Owned changes: `world/future-machine/main.js`, `ui/index.js`, `ui/styles.css`,
+`ui/README.md`, new `test/e2e/future-machine-inputs.e2e.js`, and this plan.
+No independent implementation tasks justified delegation.
+
+Each arm now displays the recorded comparison recipe's seed, 120-month horizon,
+starting household count and people summed from recorded Month 0 household sizes.
+Baseline explicitly has no intervention; plan shows district, proposed homes,
+illustrative USD cost, delay in months and compliance fraction, preserving zero.
+The coordinator passes history recipe/initial state separately from draft inputs,
+so editing next-run settings cannot relabel the displayed comparison. Missing
+history is explicitly unavailable. No simulation, seed/data version, share format,
+or synthetic-data disclaimer changed.
+
+Acceptance evidence: `bun test test/future-machine-ui.test.js test/future-machine-share.test.js`
+passed 13 tests / 123 assertions, with one opt-in Chromium component test skipped.
+Added real-API browser regressions for seed 0, unchanged control, zero cost/delay/
+compliance, pending seed edits, shared-link baseline hash reproduction and mobile
+width, with screenshot capture on success. `bunx playwright test test/e2e/future-machine-inputs.e2e.js`
+could not start its server: EADDRINUSE at port 3100; retry with
+`HBL_PLAYWRIGHT_PORT=34131 HBL_PLAYWRIGHT_PARTY_PORT=34132` failed identically.
+Browser assertions and screenshots remain unverified due to local server setup.
+No deployment, merge, dispatch label or Linear state change. Next action: run the
+committed browser tests in an environment that permits the configured listeners.
+
+Final regression gate: `bun test test/future-machine-*.test.js` passed 96 tests,
+942 assertions, 0 failures; 3 opt-in browser tests skipped. `git diff --check`
+and Node syntax checks of the changed UI and new browser test passed. Branch:
+`mini/SHE-31`; no commit or PR created in this session.

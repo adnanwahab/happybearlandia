@@ -163,6 +163,12 @@ export function createUI(container, callbacks = {}) {
   const split=doc.createElement('button');split.type='button';split.textContent='Side by side';split.onclick=()=>callbacks.onMode?.('split');actions.append(split);
   const ghostsLabel=doc.createElement('label');const ghosts=doc.createElement('input');ghosts.type='checkbox';ghosts.checked=true;ghosts.onchange=()=>callbacks.onGhosts?.(ghosts.checked);ghostsLabel.append(ghosts,doc.createTextNode(' Ghost differences'));actions.append(ghostsLabel);
   const shareLink=doc.createElement('a');shareLink.textContent='Open comparison link';shareLink.hidden=true;shareLink.className='fm-share-link';shell.append(shareLink);
+  const inputSummaries=['baseline','plan'].map(arm=>{
+    const box=doc.createElement('div');box.className='fm-arm-inputs';box.dataset.testid=`future-machine-inputs-${arm}`;
+    box.setAttribute('aria-label',`${arm==='baseline'?'Without plan':'With plan'} comparison inputs`);
+    shell.querySelector('.fm-legends').children[arm==='baseline'?0:1].append(box);
+    return box;
+  });
   const noPhysical=doc.createElement('p');noPhysical.className='fm-detail';shell.querySelector('.fm-metrics').after(noPhysical);
   function update(patch={}) {
     const previousExperiment=current.experimentId ?? current.provenance?.experimentId;
@@ -184,6 +190,15 @@ export function createUI(container, callbacks = {}) {
     if(Number.isFinite(demoState.elapsedMs))demoCaption.textContent+=` · ${Math.floor(Math.max(0,demoState.elapsedMs)/1000)}s`;
     const provenance=current.provenance || {};
     runProvenance.textContent=`MONTH ${current.month} / 120 · SEED ${provenance.seed ?? current.recipe?.seed ?? 'Unavailable'} · MODEL ${provenance.modelVersion ?? current.recipe?.modelVersion ?? 'Unavailable'} · RUN ${provenance.experimentId ?? current.experimentId ?? 'Not run yet'}`;
+    const displayed=current.comparisonRecipe;
+    const initialHouseholds=current.comparisonInitial?.households;
+    const people=initialHouseholds?.every(row=>Number.isFinite(row.size)) ? initialHouseholds.reduce((sum,row)=>sum+row.size,0) : null;
+    const value=(number,unit='')=>number==null?'Unavailable':`${number}${unit}`;
+    for(const [index,box] of inputSummaries.entries()){
+      const intervention=displayed?.intervention;
+      const policy=!displayed?'Policy: Unavailable':index===0 || !intervention?'Policy: no intervention · 0 added homes · 0 USD intervention cost':`Policy: ${intervention.type} · district ${intervention.districtId} · ${value(intervention.amount,' proposed homes')} · ${value(intervention.cost,' illustrative USD')} · delay ${value(intervention.delay,' months')} · compliance ${value(intervention.compliance)}`;
+      box.textContent=`Seed ${value(displayed?.seed)} · Horizon ${value(displayed?.months,' months')} · Starting population ${value(people,' people')} (${value(displayed?.households,' households')}) · ${policy}`;
+    }
     const ready=!!current.frame && !busy;
     const metrics={};
     for(const [key,source] of [['homes','housingUnits'],['rent','meanRent'],['spending','capitalSpending']]){
