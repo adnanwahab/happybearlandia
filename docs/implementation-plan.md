@@ -666,3 +666,28 @@ No preview runtime behavior changed during resolution. Combined-head validation:
 390px UI smoke passed with mocked metadata, XSS checks and one explicit preview
 POST. Live Docker/Fly rendering remains unverified and providers remain subject
 to their documented activation gates. User explicitly authorized PR45 merge.
+
+### SHE-84 receipt import slice — November 12, 2026
+
+Implement manually in isolated codex/she-84-receipt-import after verifying no
+SHE-84 PR and no live Symphony worker. Symphony admission remains held; no claim
+of Symphony execution. Own share/import.{html,js,css}, share/import-receipt.js,
+UI footer link, focused import tests/browser smoke and docs/run-receipt-import.md.
+Reuse canonical receipt and saved replay APIs read-only. Prerequisite SHE-83 is
+merged. Acceptance: bounded paste/file input, actionable errors, valid persisted
+receipt verifies selected/terminal hashes and opens matching saved month; malformed,
+oversized, unsupported and missing-record cases never claim success. Verify real
+City-store integration, existing UI/share tests and normal-server browser smoke.
+No new backend endpoint, model contract, deployment or merge is required.
+
+SHE-84 delivered: added linked paste/upload import page, UTF-8 size checks before
+parse/file read, canonical validator and saved replay integration, cancellation
+and stale-success clearing. Existing receipt/data/model contracts unchanged.
+Validation:19 pass/0 fail/1 optional component-browser skip,213 assertions across
+import, canonical receipt, share and UI tests. Dedicated390px Chromium normal-server
+journey passed with real persisted City pair (seed0,month16), paste/file equality,
+malformed/oversized errors, stale link clearing and entry-link navigation. Inspected
+mobile screenshot /private/tmp/hbl-she84-import-mobile.png. No lint/typecheck scripts
+are defined; git diff --check passed. Direct manual delivery, not Symphony dispatch.
+Canonical receipts require the saved experiment on this server; evidence-only and
+unsaved exports cannot reopen. Review/merge/deployment remain separate actions.

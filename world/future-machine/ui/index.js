@@ -58,7 +58,8 @@ export function mountFutureMachineUI(root, options = {}) {
   inspectors.append(householdPanel,evidencePanel); shell.append(inspectors);
   const footer=node('footer',undefined,'fm-actions');
   const share=button('Share comparison',()=>action(options.onShare)); const exportButton=button('Export evidence',()=>action(options.onExport));
-  footer.append(share,exportButton); shell.append(footer); root.append(shell);
+  const importLink=node('a','Import run receipt'); importLink.href='/world/future-machine/share/import.html';
+  footer.append(share,exportButton,importLink); shell.append(footer); root.append(shell);
   async function action(callback, ...args) {
     if (!callback) return;
     try { await callback(...args); } catch (failure) { if(!destroyed) update({error:failure?.message || String(failure)}); }
