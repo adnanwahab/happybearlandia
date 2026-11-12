@@ -35,6 +35,26 @@ internals remain unverified; publication of this follow-up is a host gate.
 
 [Product design](design.md) defines the target experience. [Engineering instructions](../AGENTS.md) describe how to plan, implement, and verify changes. Keep this plan current with task status, dependencies, acceptance evidence, and commit or PR references when available.
 
+## Agent Training Gym — SHE-192 (deferred)
+
+Status: later-phase backlog; excluded from the next release. This entry records scope and acceptance, not a delivered training runtime. [Product requirements](design.md#agent-training-gym--later-phase-she-192).
+
+Checkout evidence: `world/experiment-record.js` records civic experiments and lineage; `world/reproducibility.js` records model, seed, and fingerprints; `world/experiment-store.js` saves browser records. `world/experiments-api.js` runs bounded paired city experiments. These are reuse candidates, but none of these contracts defines a rebuildable training environment, frozen reward declaration, or agent trajectory. The improvement proposal inbox in `ops/improvement/` stores proposed work, not simulation runs, and must remain separate.
+
+The first implementation slice, once scheduled, is one bounded synthetic environment: register its version and reward declaration, rebuild it by registry identity, run a scripted agent, persist its trajectory, replay it, and reopen the evaluation report through an established application entry point. A scripted agent verifies the environment contract before introducing a learning algorithm. Select the authoritative model and entry point during that slice's audit; do not assume City and Population identities or clocks coincide.
+
+| Status | Task | Dependencies and acceptance |
+| --- | --- | --- |
+| Deferred | Establish the Experiment Registry environment contract | Choose the registry owner and storage interface. Retain immutable environment, model/rules, dependency and source revisions, initial state, scenario inputs, seed, action/observation schemas, and resource limits. Rebuild in a clean process without unrecorded defaults; fail explicitly for missing artifacts or unsupported versions. |
+| Deferred | Declare rewards before training | Persist a versioned reward definition with components, units, weights, constraints, terminal rules, and definition digest before accepting a run. Reject absent declarations and changes after start; revisions preserve prior runs. |
+| Deferred | Execute and record one bounded episode | Resolve only registered environments and supported actions. Retain agent/policy version, ordered observations/actions, reward components, event dependencies, seed, model ticks, termination and error states. Bound steps, time, and artifact size; handle invalid actions and interrupted runs explicitly. |
+| Deferred | Replay and evaluate | Rebuild from registry artifacts and verify recorded transitions and rewards against retained evidence. Use held-out seeds and seed-matched policy comparisons. Test deterministic replay, immutable parents, reward boundaries, missing observations, invalid transitions, and timeout/failure paths. |
+| Deferred | Present separate performance reports | Reopen persisted results through the selected normal entry point. Separate training, held-out simulated evaluation, and sourced real-world evaluation. Include sample counts, units, uncertainty, dataset/environment/policy revisions, and limitations; missing real-world evaluation remains unavailable. Verify reload and missing-artifact behavior. |
+
+Material risks: environment drift or missing artifacts can defeat rebuilds; reward changes or evaluation leakage can invalidate comparisons; model success does not establish real-world performance. Registry ownership, artifact retention, model selection, and a real-world evidence protocol remain prerequisites. Do not add a training dispatcher or activate external agents as part of this deferred planning slice.
+
+Acceptance evidence for this change: repository contract inspection and documentation review only. Runtime acceptance criteria above remain unverified. No application code or browser behavior changes; runtime tests and Playwright are inapplicable. Next action: schedule the registry contract and bounded environment slice when later-phase work is authorized.
+
 ## Playable Life vertical slice
 
 Source is the “15 new features I'd add next” emerging civilization proposal. Start with “Live a Day as Anyone” on the shared Living World and House Simulator Population authority. Use the selected resident's existing identity and keep the current clock. The available work and travel activities are a household chore and the trip home. The follow-up uses 30 modeled days.

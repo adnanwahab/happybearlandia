@@ -93,6 +93,14 @@ The next priority after Playable Life is idea diffusion, followed by generationa
 | Asymmetric Multiplayer | Give each role explicit authority over its own decisions in a shared scenario. Establish ownership, synchronization, and conflict rules first. |
 | Browser Compute Swarm and Simulation Modding Studio | Establish bounded, versioned execution, consent and resource controls for contributed compute, and verification of results and extension behavior. |
 
+## Agent Training Gym — later phase (SHE-192)
+
+Give AI agents controlled environments with recorded trajectories, rewards, and evaluations. This is later-phase work and is not required for the next release. Implementation depends on an Experiment Registry contract that can retain and rebuild an immutable environment version.
+
+Each environment must pin its model and rules, starting state, source data, dependencies, scenario inputs, seed, action and observation contracts, and execution limits. Record ordered actions, observations, reward components, termination reasons, and causal references against that version. Declare and freeze the reward definition before training starts; changing rewards creates a new experiment revision.
+
+Report simulated evaluation and real-world evaluation separately, with provenance, sample counts, units, uncertainty, and limitations for each. Missing real-world evidence is explicitly unavailable and must never be inferred from simulated rewards. Training performance and held-out evaluation are also distinct results.
+
 ## Open questions
 
 - Which housing model outputs can World render directly, and what mapping is needed for properties, residents, and dates?
