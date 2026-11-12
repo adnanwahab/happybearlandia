@@ -75,3 +75,25 @@ render failure disables GI and restores the direct path. Simulation inputs,
 clocks, saved state and hashes are never read or written by this presentation
 control. `window.hblGlobalIllumination.getState()` reports the current capability
 and toggle state for diagnostics.
+
+## Classic World Storm (SHE-260)
+
+The ordinary Storm button now connects `policy.storm` and building flood state to
+the sky, lighting, rain and a single merged water surface. `getStormState()` on
+the renderer exposes rendered stable parcel IDs, depths, particle count and water
+draw count; `window.hblStorm.getSnapshot()` supplies the corresponding model
+records. Water is drawn only for flooded IDs with finite positive depths. The
+model records its synthetic lot apron; see the [Legacy ODD](../../docs/models/legacy.md)
+for its geometry limitations and uncalibrated depth/recovery assumptions. There
+is no full street hydraulic surface.
+
+LOW caps storm rain at300 streaks; other presets cap it at1200. Reduced motion
+removes rain, cloud drift, onset flash and thunder; water still reflects committed
+model depth without waves. The separate Storm sound button defaults muted and
+unmuting requires a user gesture. Flash occurs once on positive-intensity onset.
+Recovery and moving cues follow model minutes, including pause. Safe-home moves
+use actual resident walking; no decorative evacuees are generated.
+
+Focused checks: `bun test test/parcel-storm.test.js test/legacy-checkpoint.test.js`
+and `bunx playwright test --config test/storm-world.browser.config.js`. Browser
+and low-end GPU certification remain pending where a server cannot bind.

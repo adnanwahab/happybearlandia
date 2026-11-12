@@ -1,3 +1,5 @@
+import {mountStormCue} from './render/environment/storm-cue.js';
+import {stormIntensityAt} from './weather/parcel-storm.js';
 import {createGlobalIllumination} from './render/global-illumination.js';
 import {mountPlaybackFacts,withMetadataDeadline,mountControlReadiness} from './onboarding/first-run-repairs.js';
 import {createQuickDemoController} from './onboarding/quick-demo-controller.js';
@@ -419,6 +421,9 @@ addEventListener("pagehide",()=>{progressiveGeometry.dispose();for(const materia
 let gpuParticleMenu=null,gpuParticleMenuDisposed=false;
 const cityRenderer = mountCityRenderer({ renderer, mode: rendererMode, scene, camera, controls, town, sun, facades, geometryCache, embed: embedMode });
 window.hblCityRenderer = cityRenderer;
+window.hblStorm={getSnapshot:()=>({minute:world.t,active:!livingWorld?.active,storm:structuredClone(world.policy?.storm??null),flooded:world.buildings.filter(b=>b.state.flooded).map(b=>({id:String(b.id),depthMeters:b.state.floodDepthMeters,polygon:structuredClone(b.state.floodSurfacePoly??b.poly)}))})};
+const stormCue=mountStormCue(document.querySelector('#stormBtn').parentElement);
+addEventListener('pagehide',()=>stormCue.dispose(),{once:true});
 startupCityRenderer=cityRenderer;
 if(loadedExperiment?.save.view.graphics){const graphics=loadedExperiment.save.view.graphics;if(graphics.quality)cityRenderer.setQuality(graphics.quality);if(graphics.settings?.targetFPS)cityRenderer.setTargetFPS(graphics.settings.targetFPS);for(const [name,value] of Object.entries(graphics.features??{}))cityRenderer.setFeature(name,value);}
 if(!embedMode)void import('./render/gpu-particle-menu.js').then(({mountGpuParticleMenu})=>{if(gpuParticleMenuDisposed)return;const container=document.querySelector('[data-testid=render-performance]');gpuParticleMenu=mountGpuParticleMenu({container,THREE,renderer,scene,bounds:{minX:-400,maxX:400,minZ:-400,maxZ:400},getSource:()=>({minute:livingWorld?.active?livingWorld.getClockMinute():world.t,frame:livingWorld?.active?physicalPolicySnapshot:null,electricity:world.electricity,weather:world.weather?.snapshot?.(),culture:world.cultureSnapshot})});window.hblGpuParticles=gpuParticleMenu;});
@@ -906,58 +911,18 @@ function rebuildJournalPins() {
   updateOverlayLegend();
 }
 
-function nearestSafeHome(fromHome) {
-  const src = town.buildings[fromHome];
-  const homes = town.buildings.filter((b) => b.kind === "home" && !b.state.flooded);
-  let best = null, bestD = Infinity;
-  for (const h of homes) {
-    const d = (h.center[0] - src.center[0]) ** 2 + (h.center[1] - src.center[1]) ** 2;
-    if (d < bestD) { bestD = d; best = h; }
-  }
-  return best;
-}
-
 function triggerStorm() {
-  const floodedIds = selectFloodedIds(floodFractionNow());
-  let floodedNow = 0;
-  for (const b of town.buildings) {
-    if (b.kind === "park") { b.state.flooded = false; continue; }
-    b.state.flooded = floodedIds.has(b.index);
-    if (b.state.flooded) floodedNow++;
-  }
-
-  let displaced = 0;
-  for (const p of town.people) {
-    const home = town.buildings[p.home];
-    if (!home?.state?.flooded) continue;
-    p.today.homeFlooded = true;
-    p.today.displaced = true;
-    const safe = nearestSafeHome(p.home);
-    if (!safe) continue;
-    displaced++;
-    p.home = safe.index;
-    p.mode = "idle";
-    p.action = null;
-    p.target = null;
-    p.path = null;
-    p.pathI = 0;
-    p.x = safe.center[0] + (world.rand() - 0.5) * 4;
-    p.z = safe.center[1] + (world.rand() - 0.5) * 4;
-    p.doing = "displaced after storm";
-    p.needs.energy = Math.max(0, p.needs.energy - 12);
-    p.needs.fun = Math.max(0, p.needs.fun - 15);
-    p.needs.social = Math.max(0, p.needs.social - 10);
-  }
-
-  world.policy.floodedNow = floodedNow;
-  world.policy.displaced = displaced;
+  const weather = world.weather?.snapshot?.();
+  const intensity = weather?.parameters?.automatic === false ? weather.stormIntensity : 1;
+  const {floodedNow, displaced} = world.startStorm({floodedIds:selectFloodedIds(floodFractionNow() * intensity), intensity});
+  if(intensity>0)stormCue.onset();
   world.log(`Storm hit: ${floodedNow} parcels flooded, ${displaced} residents displaced`, "storm");
   overlayMode = 'flood';
   if (overlayEl) overlayEl.value = 'flood';
   updateOverlayLegend();
   worldFeedback('storm', {
     label:'Storm result',
-    message:'A synthetic storm has affected the classic town. The highlighted flooded parcels and relocated residents come from the simulation.',
+    message:'A synthetic storm has affected the classic town. The water depth and evacuating residents come from the simulation.',
     metrics:[
       {label:'Flooded parcels',value:String(floodedNow)},
       {label:'Residents displaced',value:String(displaced)},
@@ -2261,7 +2226,9 @@ function frame(now) {
   const policyMinute=Number.isFinite(livingMinute)?livingMinute:world.t;
   physicalPolicyLayer.update({minute:policyMinute,transitService:livingWorld?.active?(policyFrame?.config?.transitService??0):(world.transitServiceMult??0),projects:world.projects??[],districts:policyFrame?.districts??[],source:livingWorld?.active?'Living configured transit service; no civic project ledger supplied':'Legacy transitServiceMult; actual civic projects only'});
   const m = cityRenderer.timeOfDay != null ? cityRenderer.timeOfDay * 60 : Number.isFinite(livingMinute) ? livingMinute % 1440 : world.minuteOfDay();
-  const daylight = Math.max(0, Math.sin(((m - 6 * 60) / (14 * 60)) * Math.PI)); // 6am–8pm arc
+  const stormIntensity = livingWorld?.active ? 0 : stormIntensityAt(world.policy?.storm, world.t);
+  cityRenderer.updateCity({parcelStorm:{minute:world.t,intensity:stormIntensity,enabled:!livingWorld?.active}});
+  const daylight = Math.max(0, Math.sin(((m - 6 * 60) / (14 * 60)) * Math.PI)) * (1 - .78 * stormIntensity); // 6am–8pm arc
   sky.copy(night).lerp(day, daylight);
   scene.background = buildingBridge?.worldVisuals.skyColor ? new THREE.Color(buildingBridge.worldVisuals.skyColor) : sky;
   hemi.intensity = (buildingBridge?.worldVisuals.nightBrightness ?? 0.12) + 0.42 * daylight;

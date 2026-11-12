@@ -1,3 +1,4 @@
+import {startParcelStorm, updateParcelStorm} from './weather/parcel-storm.js';
 import {driveLegacyTraditionRoutines} from './relationships/city-traditions.js';
 import {legacySocial} from './relationships/model.js';
 import {driveLegacyPromiseRoutines} from './relationships/promises.js';
@@ -512,8 +513,17 @@ export function createWorld(town, opts = {}) {
     historyEvent(p,"TRIP_STARTED",{mode:trip.mode,activity:id,destinationId:b.id,distanceMeters:p.tripDistanceMeters,expectedWaitMinutes:trip.wait});
   }
 
+  w.startStorm = options => startParcelStorm(w, {...options, route:(p,b)=>roadWaypoints(roadGraph,p.x,p.z,...b.center)});
   function arrive(p) {
     completeTrip(p);
+    if (p.evacuation) {
+      const record = w.policy?.storm?.evacuations.find(e => e.personId === String(p.id));
+      if (record) { record.status = 'arrived'; record.arrivedMinute = w.t; }
+      delete p.evacuation;
+      p.mode = 'idle'; p.action = null; p.target = null; p.path = null; p.pathI = 0;
+      p.doing = 'safe after storm';
+      return;
+    }
     if(personCommands.arrive(p))return;
     const a = ACTIONS[p.action];
     const b = w.buildings[p.target];
@@ -559,6 +569,7 @@ export function createWorld(town, opts = {}) {
   // --------------------------------------------------------------------
   function minute() {
     w.t += 1;
+    updateParcelStorm(w);
     const m = w.minuteOfDay();
     if (m === 0) {
       const d = w.day();

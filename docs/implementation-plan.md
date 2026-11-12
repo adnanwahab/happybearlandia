@@ -7922,3 +7922,67 @@ test/world-user-fixes.test.js still reports 32 homepage carousel sections versus
 33 registered experiences. The identical failure was reproduced using exact
 118aad baseline inputs; this existing catalog mismatch was not changed by PR278.
 No simulation, seed, runtime, gallery, or target-branch changes were made.
+
+## SHE-260 — model-backed World storm (implemented; browser acceptance pending)
+
+Audit: merged renderer has procedural sky/rain, but classic Storm only sets
+boolean exposure and teleports residents; there is no depth or recovery clock.
+This slice owns classic `/world` Storm, its committed policy/building/person state,
+and a bounded renderer layer. Living switches through the existing classic action
+entry point. Prerequisites: ranked exposure, normal walking graph, complete legacy
+checkpoint and renderer quality tiers already exist.
+
+Acceptance: positive-depth surfaces identify only committed flooded IDs; onset,
+rise and recession follow model minutes; evacuations use real resident walking;
+checkpoint continuation is deterministic; LOW caps rain and reduced motion removes
+rain/cloud drift/lightning/thunder. Verify ordinary Storm entry in Chromium and
+report measured frame costs separately from unavailable hardware certification.
+Risks: synthetic depth envelope is gameplay, not hydraulic calibration; footprints
+are not cadastral street/lot boundaries, so water must remain inside declared
+model-recorded surface polygons. The implemented synthetic2m footprint apron
+is suppressed near other footprints; it supplies illustrative lot water, not
+street-wide hydraulic coverage. No capacity or shelter reachability model is introduced. Sound defaults
+muted and requires an explicit user gesture. No deployment or merge.
+
+
+Delivered through the normal Storm action: captured intensity input; versioned,
+checkpointed flooded IDs, depth envelope and evacuation records; actual road
+walking instead of teleportation; recovery over180 model minutes; dark sky,
+cloud drift, bounded rain, one merged water draw, onset flash and opt-in thunder.
+Reduced motion suppresses rain/drift/flash/thunder. Unchanged water skips buffer
+uploads. A later user movement command records interrupted evacuation rather
+than falsely claiming safe arrival. Existing complete checkpoint authority owns
+all new fields, without a second renderer simulation.
+
+Verification (2026-11-12):
+-52 tests /702 assertions passed across parcel-storm, person-commands, legacy
+ checkpoint, playback, weather, render-performance, procedural-geometry and
+ building-renderer suites. Includes exact restored storm continuation, positive
+ depth/ID mapping, zero intensity, no destination, recovery, model surface
+ polygon use and paused upload suppression.
+- Browser bundle passed:369 modules, with existing `/vendor/*` URLs external.
+ `git diff --check` passed. No lint/type scripts are declared in package.json.
+- Both focused Playwright cases discover successfully. Execution is blocked at
+ server startup: Bun reported EADDRINUSE for3199; a separate32991 attempt failed
+ identically. No screenshot, audible-thunder, WebGL/WebGPU visual acceptance or
+ browser/GPU frame-budget result is claimed.
+- Actual isolated Bun CPU update microbenchmark:517 source parcels,73 flooded,
+ 300 warmups +600 samples, LOW300 streaks, p50=.0254ms, p95=.0320ms,
+ p99=.0354ms. Reduced motion:0 streaks, p95=.0245ms. This excludes browser,
+ simulation, render submission and GPU execution; it is not a60FPS certificate.
+- Adjacent world-visual-feedback suite:6 pass /1 failure in pre-existing
+ `Change one thing` prompt lookup. Same failure reproduced with exact HEAD
+ first-run-guide.js; neither guide nor test was changed. Broad model-validation
+ script was interrupted before results (unrelated housing/city diagnostic scope);
+ no pass is claimed for it.
+
+Review: compared docs/models/legacy.md and inventory with world/sim.js,
+world/weather/parcel-storm.js, world/person-commands.js, legacy-checkpoint.js,
+render.js and render/environment/{storm-effects,storm-cue,sky}. Existing ODD
+seven elements still describe the host; added the storm submodel's coefficients,
+ordering, state ownership, geometry assumption, versions, reproduction and limits.
+No new independent social model. Risks remaining: no hydraulic street coverage,
+no capacity/reachability/return-home model; visual apron is synthetic and can be
+suppressed by dense footprints. Next action: run focused browser config in a
+bind-capable environment, inspect screenshots/audio and benchmark LOW on actual
+target hardware before acceptance. No merge, deployment or PR was performed.
