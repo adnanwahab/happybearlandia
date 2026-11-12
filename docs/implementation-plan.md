@@ -1003,3 +1003,42 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## Release Experiment System — SHE-203
+
+Next integrated slice: private operator CLI and server-side routing between two
+existing same-origin application paths. Prerequisites: fixed candidate/control
+revision references, explicit selected pseudonymous roster, consent evidence or
+selection rationale, written success-rate regression threshold and sample floor,
+and SHE-67 go/no-go evidence reference. No second SQLite writer or image canary.
+
+Acceptance: stable bounded treatment/control assignment; consent exclusion;
+observations tied to assigned participants and evidence; threshold breach creates
+an immutable rollback proposal; only an explicit human decision can disable the
+candidate or promote everyone. Verify replay, missing samples, invalid decisions,
+restart persistence and HTTP routing. Risk: operator evidence is an assertion,
+not independently authenticated approval; private filesystem access is the trust
+boundary. This slice gates navigation, not direct access to candidate paths or
+image deployment. Existing incident/recovery gates remain authoritative.
+
+Delivered: `ops/release-experiments/{system.js,cli.js,README.md}`, opt-in
+`server.js` routing, and `test/release-experiments.test.js`. Versioned deterministic
+assignment caps treatment at 10% of declared population, excludes missing consent,
+records one evidence-linked outcome per participant, and compares observed success
+rates with explicit missing counts. Regression produces a retained proposal;
+human-recorded approval switches navigation to control. Promotion requires a
+closed window, sufficient observations, no proposal and current go/no-go evidence.
+Consent requirements continue after promotion. Private signed cookies bind identity
+to experiment; no public enrollment or telemetry collection UI is included.
+
+Verification: `bun test test/release-experiments.test.js test/release-health.test.js
+test/release-operations-dry-run.test.js`: 18 passed, 1 opt-in HTTP test skipped,
+0 failed. `git diff --check` passed. Attempted actual server HTTP smoke failed at
+Bun's listener (`EADDRINUSE` on port 0) before requests could run. Re-run with
+`HBL_RELEASE_HTTP_TEST=1 bun test test/release-experiments.test.js` on a host that
+permits listening. Request-handler routing and persistence/replay are verified;
+actual browser/server journey remains unverified, so Playwright was skipped.
+No project lint/typecheck command is defined. No deployment or production changes.
+Remaining operational gates: trusted cookie enrollment, real consent/outcome
+sources, human approval evidence and SHE-60/SHE-67 release review. Navigation gate
+does not prevent direct candidate URLs or replace authorization for protected data.

@@ -1,3 +1,8 @@
+import { createExperimentHandler, cookieIdentity } from './ops/release-experiments/system.js';
+const handleReleaseExperiment = createExperimentHandler({
+  file: process.env.HBL_RELEASE_EXPERIMENT_FILE,
+  identify: (request, id) => cookieIdentity(request, id, process.env.HBL_RELEASE_IDENTITY_SECRET),
+});
 import { withUniverseNavigation } from './world/universe/html-navigation.js';
 import {createCausalityHandler} from './world/causality/api.js';
 import {createReleaseHealthHandler,initializeReleaseStorage} from './ops/release-health.js';
@@ -435,6 +440,8 @@ const server = serve({
   port: PORT,
 
   async fetch(request, server) {
+    const releaseResponse = handleReleaseExperiment(request);
+    if (releaseResponse) return releaseResponse;
     const { pathname } = new URL(request.url);
     if (pathname === "/api/health" || pathname === "/api/ready") return handleReleaseHealth(request);
     if (pathname === '/vote-on-patch' || pathname === '/vote-on-patch/') return serveFile('./world/patch-voting.html');

@@ -203,3 +203,12 @@ unavailable storage and local/production origins presented as staging. It never
 executes a command; even `RECORD_COMPLETE_FOR_HUMAN_REVIEW` means only that fields
 are complete. It neither verifies their truth nor grants approval. No `--execute`
 mode exists. See [SHE-60 validation evidence](release-operations-evidence.md).
+
+## Bounded navigation experiments (SHE-203)
+
+The [release experiment operator guide](../ops/release-experiments/README.md)
+documents the implemented private CLI, signed selected-participant routing,
+control comparison, written threshold proposals and explicit human decisions.
+This is a same-process navigation gate, not a Fly image canary or maintenance
+switch. It does not relax the single-writer, backup, incident or SHE-67 go/no-go
+gates above. No candidate image is automatically deployed or promoted.
