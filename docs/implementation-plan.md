@@ -1003,3 +1003,22 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-44 — mobile Canvas fallback benchmark
+
+Owned slice: new `test/e2e/low-end-fallback.e2e.js`, dedicated
+`test/low-end-fallback.browser.config.js`, and `docs/low-end-fallback-benchmark.md`.
+Reuse existing Future Machine Canvas, retry and recorded City interfaces; no
+renderer or simulation changes. Existing fallback/device-loss/resize tests cover
+correctness but do not report throttled mobile interaction latency/cadence.
+SHE-40 (HBL-W1-027) is still In Progress: collect baseline observations without
+inventing budgets or claiming that dependency complete. Acceptance: 320/390px,
+explicit Canvas and suppressed GPU APIs, scrub/selection/pan/zoom/retry, unchanged
+history, measured backend, reproducible environment and honest timing limits.
+Verification: 19 focused tests passed (one existing opt-in browser smoke skipped;
+289 assertions), all four benchmark cases discover successfully, diff check passes.
+Local browser execution is blocked before launch: Bun cannot bind even port 0
+(EADDRINUSE). No timing or interaction-pass claim; full details and reproduction
+are in [the benchmark report](low-end-fallback-benchmark.md). Added separate RAF
+cadence and instrumented Canvas draw-call rate; displayed FPS remains unknown.
+No production deployment, merge or dispatch-label change.
