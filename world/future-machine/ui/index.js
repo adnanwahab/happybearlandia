@@ -1,3 +1,4 @@
+import {provenancePresentation, MONTHLY_CITY_PROVENANCE} from './provenance.js';
 import {DEFAULT_RECIPE} from '../contracts.js';
 import {calendarLabel, clampMonth, metricPresentation, metricSemantics, householdObservation, householdSummary} from './model.js';
 
@@ -45,9 +46,10 @@ export function mountFutureMachineUI(root, options = {}) {
   const cards=node('section',undefined,'fm-metrics'); cards.setAttribute('aria-label','Measured outcomes');cards.dataset.testid='future-machine-metrics';
   const metricNodes={};
   for(const [key,label] of [['homes','Homes'],['rent','Mean unit rent'],['spending','City spending']]) {
-    const card=node('article',undefined,'fm-card'), delta=node('strong'), values=node('p'), detail=node('p',undefined,'fm-detail');
+    const card=node('article',undefined,'fm-card'), delta=node('strong'), values=node('p'), detail=node('p',undefined,'fm-detail'), badge=node('button',undefined,'fm-provenance-badge'); badge.type='button';
+    const sourceDetail=node('p',undefined,'fm-detail');sourceDetail.hidden=true;badge.setAttribute('aria-expanded','false');listen(badge,'click',()=>{sourceDetail.hidden=!sourceDetail.hidden;badge.setAttribute('aria-expanded',String(!sourceDetail.hidden));});
     const why=button(`WHY · ${label}`,()=>action(options.onMetric,key)); why.className='fm-metric-why'; why.disabled=true;
-    card.append(node('h2',label),delta,values,detail,why); cards.append(card); metricNodes[key]={card,delta,values,detail,why};
+    card.append(node('h2',label),delta,values,badge,sourceDetail,detail,why); cards.append(card); metricNodes[key]={card,delta,values,badge,sourceDetail,detail,why};
   }
   shell.append(cards);
   const inspectors=node('section',undefined,'fm-inspectors');
@@ -101,7 +103,7 @@ export function mountFutureMachineUI(root, options = {}) {
     if(!state.ready || state.busy)pause();
     else if(options.externalPlayback){play.textContent=state.playing?'Pause timelapse':'Play timelapse';play.setAttribute('aria-pressed',String(!!state.playing));}
     provenance.textContent=state.spatialLabel || 'No spatial data loaded. Unlocated changes remain in the inspector.';
-    for(const key of Object.keys(metricNodes)){const item=metricPresentation(state.metrics?.[key]); const elements=metricNodes[key];elements.delta.textContent=item.delta;elements.values.replaceChildren(node('span',`WITHOUT PLAN  ${item.baseline}`,'fm-value-baseline'),node('span',`WITH PLAN  ${item.intervention}`,'fm-value-plan'));const semantics=metricSemantics(key,state.metrics?.[key]);elements.card.dataset.tone=semantics.tone;elements.detail.textContent=key==='rent' && semantics.tone==='neutral' && item.delta!=='Unavailable' ? `${semantics.label}.` : `${semantics.label}. ${item.detail}`;elements.why.disabled=!state.ready || state.busy || !options.onMetric || item.delta==='Unavailable';}
+    for(const key of Object.keys(metricNodes)){const item=metricPresentation(state.metrics?.[key]); const elements=metricNodes[key];const provenance=provenancePresentation(state.metrics?.[key]?.provenance);elements.sourceDetail.textContent=provenance.description;elements.badge.textContent=provenance.label;elements.badge.title=provenance.description;elements.badge.setAttribute('aria-label',provenance.description);elements.badge.dataset.category=provenance.category;elements.card.title=provenance.description;elements.delta.textContent=item.delta;elements.values.replaceChildren(node('span',`WITHOUT PLAN  ${item.baseline}`,'fm-value-baseline'),node('span',`WITH PLAN  ${item.intervention}`,'fm-value-plan'));const semantics=metricSemantics(key,state.metrics?.[key]);elements.card.dataset.tone=semantics.tone;elements.detail.textContent=key==='rent' && semantics.tone==='neutral' && item.delta!=='Unavailable' ? `${semantics.label}.` : `${semantics.label}. ${item.detail}`;elements.why.disabled=!state.ready || state.busy || !options.onMetric || item.delta==='Unavailable';}
     if(patch.households){fill(household,state.households,state.householdId ?? household.value);renderHousehold();}
     household.disabled=!state.households.length;
     if('householdId' in patch){household.value=state.householdId;renderHousehold();}
@@ -188,7 +190,7 @@ export function createUI(container, callbacks = {}) {
     const metrics={};
     for(const [key,source] of [['homes','housingUnits'],['rent','meanRent'],['spending','capitalSpending']]){
       const metric=current.diff?.metrics?.[source];
-      metrics[key]=metric?{baseline:metric.baseline,intervention:metric.plan,unit:metric.unit,note:key==='rent'?'All recorded units, including new inventory; not incumbent rent savings.':key==='spending'?'Cumulative capital spending in USD; cost is not a welfare gain.':undefined}:null;
+      metrics[key]=metric?{provenance:MONTHLY_CITY_PROVENANCE,baseline:metric.baseline,intervention:metric.plan,unit:metric.unit,note:key==='rent'?'All recorded units, including new inventory; not incumbent rent savings.':key==='spending'?'Cumulative capital spending in USD; cost is not a welfare gain.':undefined}:null;
     }
     const a=current.frame?.baseline?.state?.households||[],b=current.frame?.plan?.state?.households||[];
     const ids=[...new Set([...a,...b].map(row=>row.id))].sort();

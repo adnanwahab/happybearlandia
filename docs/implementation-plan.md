@@ -1003,3 +1003,36 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+
+## SHE-85 provenance badges — bounded comparison slice
+
+Audit (2026-11-12): Linear remains In Review; repository integration audit records
+no completed prior SHE-85 implementation. Current Future Machine cards lacked
+category/source tooltips despite a run-level seed/version label. This issue branch
+owns only Future Machine UI presentation and targeted tests; no model, API or
+persistence contract changes. The next independently verifiable slice covers the
+three comparative KPI cards and recorded outcome chart. Acceptance: explicit
+category/source, synthetic starting-state caveat, no inferred empirical status or
+extra numeric precision, explicit unknown metadata, keyboard/mobile access.
+
+Delivered: shared observed/synthetic/modeled presentation helper with unknown
+fallback; modeled Monthly City metadata on KPI cards and timeline point titles;
+focusable badges expand source details on activation. Values and formatting are
+unchanged. Classification follows output origin: a recorded simulation snapshot
+is modeled, even when its input generator is synthetic. No observed data is
+fabricated. Source states the snapshots and cumulative finance ledger; generator
+version and uncalibrated limitation are explicit.
+
+Verification: `bun test test/future-machine-ui.test.js
+ test/future-machine-diff.test.js test/future-machine-outcome-timeline.test.js`
+passed 20 tests / 142 assertions, 2 browser tests skipped. Explicit browser attempt
+`HBL_FM_BROWSER=1 bun test test/future-machine-ui.test.js` failed before Chromium:
+Bun.serve({port:0}) returned EADDRINUSE in this sandbox. Browser rendering and
+interaction remain unverified. Reproducible result: docs/evidence/she-85-provenance.json.
+No lint/type script is configured. Whitespace check passed.
+
+Remaining scope: inventory and integrate other application comparison surfaces
+(Decision Studio, World inspectors and narrative comparisons), verify real source
+metadata there, and run browser acceptance when local listening is available.
+This increment does not satisfy the issue-wide “everywhere” goal; retain review
+status. No publication, merge, deployment or production mutation performed.

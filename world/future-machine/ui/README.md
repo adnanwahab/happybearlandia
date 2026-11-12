@@ -45,3 +45,14 @@ Focused browser evidence is component-only: `/tmp/future-machine-ui-semantic-mob
 `onConfigure(recipe)` is additive and receives a detached configured recipe on valid seed changes or policy edits. The visible **Seed for next run** field (`data-testid="future-machine-seed"`) accepts decimal uint32 integers including 0 and 4294967295. Empty, nonnumeric, fractional, negative and out-of-range input remains visible with an error, never becomes zero, never dispatches configuration and blocks Fork City through native validity. `onRun(recipe)` receives the configured recipe, not the displayed run recipe. Busy runs disable seed editing.
 
 Pending edits survive ordinary `update` calls, including repeated old `recipe` values on timeline/inspection updates. A recipe matching valid pending configuration acknowledges it; a changed nonempty experiment ID plus an explicit recipe replaces it for a newly displayed run. The run provenance reads `provenance` or the coordinator's displayed `recipe`, never the pending seed. The coordinator owns validation/persistence and must keep saved history/share URLs tied to the actual run, supplying recipe and experiment ID when switching runs. No main/shared contract changes are included.
+
+## SHE-85 provenance
+
+Each comparison card has a category badge, native category/source tooltip and
+expandable source detail (keyboard Enter/Space or touch activation). The lower-level
+view accepts optional `metric.provenance:{category,source,limitation}`. Categories
+are observed, synthetic and modeled; absent/unknown metadata stays explicitly
+unavailable. The City adapter labels engine outputs modeled with synthetic,
+uncalibrated inputs; recording a model output never makes it an empirical
+observation. Outcome chart point titles and its persistent note use the same
+source description. Numeric formatting and stored records are unchanged.

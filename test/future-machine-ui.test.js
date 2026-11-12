@@ -49,6 +49,15 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('Chromium controls, loading, failure, k
       window.idleDemoEnabled=!document.querySelector('.fm-demo-play').disabled;
       ui.update({recipe:{seed:42,months:120,intervention:{type:'housing',amount:24,cost:1000000,districtId:'d1'}},status:'ready',month:0,frame:{baseline:{state:{households:[{id:'h1',savings:0}]}},plan:{state:{households:[{id:'h1',savings:3}]}}},diff:{available:true,metrics:{housingUnits:{baseline:0,plan:5,unit:'homes'},capitalSpending:{baseline:0,plan:1000000,unit:'USD cumulative'}},physicalCount:0,changedCount:1}});
     });
+    const badges=page.locator('.fm-provenance-badge');
+    expect(await badges.count()).toBe(3);
+    for(const badge of await badges.all()){
+      const description=await badge.getAttribute('title');
+      expect(description).toContain('Category:');expect(description).toContain('Source:');
+    }
+    expect(await badges.first().getAttribute('title')).toContain('Category: Modeled.');
+    await badges.first().focus();
+    expect(await badges.first().getAttribute('aria-label')).toContain('Monthly City recorded');
     expect(await page.evaluate(()=>idleDemoEnabled&&calls.some(call=>call[0]==='demo'))).toBe(true);
     await page.getByRole('button',{name:'WHY · Homes',exact:true}).click();
     await page.getByRole('button',{name:'WHY · City spending',exact:true}).click();
@@ -119,3 +128,15 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('Chromium controls, loading, failure, k
     await page.evaluate(()=>ui.dispose());expect(await page.locator('.fm-ui').count()).toBe(0);
   }finally{await browser?.close();server.stop(true);}
 },30000);
+
+test('provenance categories require explicit metadata and preserve unknown sources',async()=>{
+  const {provenancePresentation,MONTHLY_CITY_PROVENANCE}=await import('../world/future-machine/ui/provenance.js');
+  for(const category of ['observed','synthetic','modeled']){
+    const value=provenancePresentation({category,source:'Recorded fixture source'});
+    expect(value.category).toBe(category);expect(value.description).toContain('Source: Recorded fixture source.');
+  }
+  for(const value of [undefined,{}, {category:'forecast'}, {category:'toString'}])expect(provenancePresentation(value).category).toBe('unknown');
+  expect(provenancePresentation({category:'observed'}).description).toContain('Source: Unavailable.');
+  const modeled=provenancePresentation(MONTHLY_CITY_PROVENANCE);
+  expect(modeled.description).toContain('Category: Modeled.');expect(modeled.description).toContain('Synthetic, uncalibrated');
+});
