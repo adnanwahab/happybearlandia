@@ -296,6 +296,8 @@ class CoordinatorTest(unittest.TestCase):
                 self.assertEqual(query.count('includeArchived:true'),1)
                 node={k:template[k] for k in ['id','identifier','title','description','priority','team']}
                 node['state']={'name':'Todo'}
+                for field in connections:
+                    node[field]={'nodes':[], 'pageInfo':{'hasNextPage':True,'endCursor':'second'}}
                 return {'issues':{'nodes':[node] if variables['after'] is None else [],
                     'pageInfo':{'hasNextPage':variables['after'] is None,'endCursor':'second'}}}
             field=next(k for k in connections if k+'(first:' in query)
@@ -304,7 +306,7 @@ class CoordinatorTest(unittest.TestCase):
         services=c.Services()
         with patch.object(host,'linear',side_effect=api) as linear, patch.object(services,'github_pages',return_value=[]), patch.object(services,'github',return_value={'object':{'sha':'a'*40}}):
             snapshot=services.scan()
-        self.assertEqual(linear.call_count,12)
+        self.assertEqual(linear.call_count,7)
         self.assertEqual(snapshot['issues'][0]['comments'],connections['comments'])
         self.assertEqual(snapshot['issues'][0]['blockedBy'][0]['identifier'],'SHE-2')
         self.assertEqual(snapshot['issues'][0]['attachments'],connections['attachments'])

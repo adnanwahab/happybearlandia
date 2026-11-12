@@ -35,39 +35,81 @@ def review_digest(review):
     return hashlib.sha256(json.dumps(review, sort_keys=True).encode()).hexdigest()
 
 
-def paginate(fetch):
+def paginate(fetch, initial=None):
+    """Consume complete connections, optionally continuing an embedded first page."""
     cursor, seen, rows = None, set(), []
+    page = initial
     while True:
-        page = fetch(cursor)
+        if page is None:
+            page = fetch(cursor)
+        if (not isinstance(page, dict) or not isinstance(page.get('nodes'), list) or
+                not isinstance(page.get('pageInfo'), dict) or
+                type(page['pageInfo'].get('hasNextPage')) is not bool or
+                'endCursor' not in page['pageInfo']):
+            raise host.PublicationError('Coordinator: incomplete pagination response; no approval allowed')
         rows.extend(page['nodes'])
         if not page['pageInfo']['hasNextPage']:
             return rows
         cursor = page['pageInfo']['endCursor']
-        if not cursor or cursor in seen:
+        if not isinstance(cursor, str) or not cursor or cursor in seen:
             raise host.PublicationError('Coordinator: incomplete or cyclic pagination; no approval allowed')
         seen.add(cursor)
+        page = None
 
 
 class Services:
     """Read queries reuse trusted publisher auth; the only mutation is addLabel."""
+
+    # Small issue pages bound nested GraphQL cost. Each connection remains fully
+    # paginated: batching removes round trips, never truncates approval evidence.
+    issue_page_size = 10
+    nested_page_size = 20
+    connection_fields = (
+        ('comments', 'id body'), ('labels', 'id name'),
+        ('inverseRelations', 'type issue{identifier state{name}}'),
+        ('relations', 'type relatedIssue{identifier state{name}}'),
+        ('attachments', 'id url title'),
+    )
+
+    def __init__(self):
+        self.scan_metrics = {}
+
+    def linear(self, query, variables):
+        self.scan_metrics['linearQueryCalls'] = self.scan_metrics.get('linearQueryCalls', 0) + 1
+        return host.linear(query, variables)
+
     def connection(self, query, variables, field):
-        return paginate(lambda after: host.linear(query, dict(variables, after=after))[field])
+        return paginate(lambda after: self.linear(query, dict(variables, after=after))[field])
 
     def scan(self):
-        issues = self.connection('''query($project:ID!,$after:String){issues(first:100,after:$after,includeArchived:true,
-          filter:{project:{id:{eq:$project}}}){nodes{id identifier title description priority updatedAt archivedAt
-          state{name} team{id}} pageInfo{hasNextPage endCursor}}}''', {'project': PROJECT}, 'issues')
+        started = time.monotonic()
+        self.scan_metrics = dict(linearQueryCalls=0, githubCommandCalls=0, githubRetries=0,
+                                 nestedContinuationCalls=0)
+        connections = ' '.join(
+            field + '(first:' + str(self.nested_page_size) + '){nodes{' + selection +
+            '} pageInfo{hasNextPage endCursor}}' for field, selection in self.connection_fields)
+        query = ('query($project:ID!,$after:String){issues(first:' + str(self.issue_page_size) +
+                 ',after:$after,includeArchived:true,filter:{project:{id:{eq:$project}}}){nodes{' +
+                 'id identifier title description priority updatedAt archivedAt state{name} team{id} ' +
+                 connections + '} pageInfo{hasNextPage endCursor}}}')
+        issues = self.connection(query, {'project': PROJECT}, 'issues')
         if len({i['id'] for i in issues}) != len(issues) or len({i['identifier'] for i in issues}) != len(issues):
             raise host.PublicationError('Coordinator: duplicate issue inventory; retry complete scan')
         for issue in issues:
-            for field, selection in [('comments', 'id body'), ('labels', 'id name'),
-                                     ('inverseRelations', 'type issue{identifier state{name}}'),
-                                     ('relations', 'type relatedIssue{identifier state{name}}'),
-                                     ('attachments', 'id url title')]:
-                query = ('query($id:String!,$after:String){issue(id:$id){' + field +
-                         '(first:100,after:$after){nodes{' + selection +
-                         '} pageInfo{hasNextPage endCursor}}}}')
-                issue[field] = paginate(lambda after: host.linear(query, {'id': issue['id'], 'after': after})['issue'][field])
+            for field, selection in self.connection_fields:
+                continuation = ('query($id:String!,$after:String){issue(id:$id){' + field +
+                                '(first:100,after:$after){nodes{' + selection +
+                                '} pageInfo{hasNextPage endCursor}}}}')
+
+                def fetch(after, field=field, query=continuation, issue_id=issue['id']):
+                    self.scan_metrics['nestedContinuationCalls'] += 1
+                    return self.linear(query, {'id': issue_id, 'after': after})['issue'][field]
+
+                # Missing/invalid embedded evidence fails closed; never silently
+                # substitute an empty connection or drop its initial page.
+                if field not in issue or issue[field] is None:
+                    raise host.PublicationError('Coordinator: missing embedded issue evidence; no approval allowed')
+                issue[field] = paginate(fetch, initial=issue[field])
             issue['state'] = issue['state']['name']
             issue['blockedBy'] = [x['issue'] for x in issue.pop('inverseRelations') if x['type'] == 'blocks']
             issue['labels'] = {x['name']: x['id'] for x in issue['labels']}
@@ -78,7 +120,9 @@ class Services:
             if len(pr['files']) >= 3000:
                 raise host.PublicationError('Coordinator: GitHub PR file limit reached; reconcile manually')
         base = self.github(f'repos/{host.REPO}/git/ref/heads/{host.BASE}')['object']['sha']
-        return {'issues': issues, 'prs': prs, 'baseSha': base, 'scannedAt': time.time()}
+        self.scan_metrics['elapsedSeconds'] = time.monotonic() - started
+        return {'issues': issues, 'prs': prs, 'baseSha': base, 'scannedAt': time.time(),
+                'scanMetrics': dict(self.scan_metrics)}
 
     def github(self, endpoint, pages=False):
         env = {k: v for k, v in os.environ.items() if not k.startswith(('GIT_', 'GH_', 'GITHUB_', 'LINEAR_'))}
@@ -86,6 +130,7 @@ class Services:
         for attempt in range(3):
             try:
                 # Never run authenticated commands in a model-owned workspace.
+                self.scan_metrics['githubCommandCalls'] = self.scan_metrics.get('githubCommandCalls', 0) + 1
                 result = subprocess.run(args, cwd=tempfile.gettempdir(), env=env, capture_output=True, text=True, timeout=120)
                 if result.returncode:
                     raise ValueError('request failed')
@@ -93,6 +138,7 @@ class Services:
             except (OSError, ValueError, subprocess.TimeoutExpired):
                 if attempt == 2:
                     raise host.PublicationError('Coordinator: GitHub read failed after 3 attempts; check host auth/connectivity') from None
+                self.scan_metrics['githubRetries'] = self.scan_metrics.get('githubRetries', 0) + 1
                 time.sleep(attempt + 1)
 
     def github_pages(self, endpoint):
@@ -389,7 +435,7 @@ def cycle(services, config, directory, apply=False):
     for row in rows:
         row['eligible'] = not row['reasons']
     report = {'dryRun': not apply, 'projectId': PROJECT, 'baseSha': snapshot['baseSha'],
-              'scannedAt': snapshot['scannedAt'], 'cap': cap, 'occupied': len(occupied_ids),
+              'scannedAt': snapshot['scannedAt'], 'scanMetrics': snapshot.get('scanMetrics', {}), 'cap': cap, 'occupied': len(occupied_ids),
               'issues': rows, 'selected': [r['identifier'] for r in selected], 'leases': state['leases'], 'pullRequests': snapshot['prs']}
     if not apply:
         return report
