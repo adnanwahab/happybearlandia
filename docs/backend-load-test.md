@@ -103,3 +103,24 @@ No live staging origin/approval/metrics were supplied. Staging p50/p95, error ra
 server saturation and deployment identity remain unmeasured; unit/integration
 timings are not staging evidence. No UI changed, so Playwright/screenshots are
 inapplicable. No PR has been created by this task.
+
+## SHE-45-r2: disposable loopback staging
+
+Run from the repository using `bun --no-env-file ops/backend-load-local.mjs > /private/tmp/she45-local.json`.
+This launches the actual `server.js` on an ephemeral port bound to `127.0.0.1`,
+with a fresh temporary working directory, isolated stores, no inherited service
+credentials, and `.env` loading disabled. It checks the current checkout SHA via
+readiness, uses the same bounded recipe and request limits, stops the child and
+removes the disposable directory in `finally`. Startup has a 20-second deadline.
+It does not change admission budgets. Application source/assets are symlinked
+read-only by convention; hidden default stores stay in the disposable directory.
+
+The runner accepts HTTP only with `localStaging: true`, literal `127.0.0.1`, an
+explicit port, and the existing staging/disposable/build/prerequisite assertions.
+Local reports label their environment and carry no production capacity inference.
+`HBL_BIND_HOST` configures the application listener; the launcher sets loopback.
+The external HTTPS staging path retains its existing validation.
+
+Fresh verification and the listener blocker are recorded in
+[the follow-up report](reviews/SHE-45-r2.md). The earlier unmeasured-staging status
+above is historical; no successful HTTP measurements are yet available here.
