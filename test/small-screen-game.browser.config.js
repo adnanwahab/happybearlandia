@@ -7,7 +7,7 @@ const baseURL = `http://127.0.0.1:${port}`;
 export default {
   ...base,
   webServer: {...base.webServer, command: `${process.env.HBL_BUN_EXECUTABLE || join(homedir(), '.bun/bin/bun')} --no-env-file run server.js`, url:baseURL+'/world/future-machine.html', env:{...base.webServer.env, PORT:port}},
-  testMatch: 'small-screen-game.e2e.js',
+  testMatch: ['small-screen-game.e2e.js', 'world-hud.e2e.js'],
   outputDir: resolve('test-results/small-screen-game'),
   snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/{arg}-{platform}{ext}',
   expect: {...base.expect, toHaveScreenshot: {animations: 'disabled', maxDiffPixels: 0}},

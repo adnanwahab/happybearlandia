@@ -1,0 +1,22 @@
+import {test,expect} from '@playwright/test';
+import {writeFileSync} from 'node:fs';
+for(const reducedMotion of ['no-preference','reduce'])test(`Storm normal entry, LOW and ${reducedMotion}`,async({page})=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.emulateMedia({reducedMotion});
+ await page.goto('/world/?demo=1&synthetic=1&people=80&renderer=webgl&quality=LOW');
+ await page.waitForFunction(()=>window.hblVisualPass?.ready);
+ await page.evaluate(()=>{window.hblVisualPass.panels.closeAll();window.hblCityRenderer.setAdaptiveQuality(false);});
+ await page.locator('#top > summary').click();await page.locator('#stormBtn').click();
+ await expect.poll(()=>page.evaluate(()=>window.hblCityRenderer.getStormState().floodedParcelIds.length)).toBeGreaterThan(0);
+ await expect(page.getByTestId('storm-mute')).toHaveAttribute('aria-pressed','true');
+ await page.evaluate(()=>window.hblSimulationPlayback.pause());
+ const source=await page.evaluate(()=>window.hblStorm.getSnapshot());
+ const state=await page.evaluate(()=>window.hblCityRenderer.getStormState());
+ expect(state.floodedParcelIds.map(String).sort()).toEqual(source.flooded.map(p=>p.id).sort());
+ for(const reading of state.depths)expect(source.flooded.find(p=>p.id===String(reading.id)).depthMeters).toBe(reading.depthMeters);
+ expect(state.rainCount).toBe(reducedMotion==='reduce'?0:300);
+ await page.screenshot({path:`/private/tmp/she260-${reducedMotion}.png`});
+ await page.waitForTimeout(3000);
+ const evidence=await page.evaluate(()=>({storm:window.hblCityRenderer.getStormState(),performance:window.hblCityRenderer.getPerformanceStats(),agent:navigator.userAgent}));
+ writeFileSync(`/private/tmp/she260-${reducedMotion}.json`,JSON.stringify({evidence,errors},null,2));
+ expect(errors).toEqual([]);
+});

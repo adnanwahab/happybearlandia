@@ -25,6 +25,8 @@ export function mountFirstRunGuide({ container, onQuickDemo, onStop, onReplay, o
   const inspect = button('Inspect resident', 'quick-demo-inspect', onInspect);
   button('Compare a week', null, onCompare); button('Run a storm', null, onStorm);
   button('Full civic tour', null, onTour); button('Explore 10 years', null, onExperiment);
+  const build = button('3 · Build something', 'build-something', () => { const summary = doc.querySelector('[data-testid=world-building-tools] > summary'); if (summary) { summary.parentElement.open = true; summary.parentElement.querySelector('[data-action=edit-world]')?.click(); } });
+  actions.before(build);
   const details = make('div', ''); details.className = 'first-run-feedback';
   const heading = make('h3', 'What changed?', details), body = make('p', 'Choose an action to inspect its evidence.', details);
   const source = make('p', '', details); source.className = 'first-run-source';
