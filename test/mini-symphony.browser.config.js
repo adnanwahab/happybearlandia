@@ -1,0 +1,10 @@
+import {defineConfig} from '@playwright/test';
+import {mkdtempSync,mkdirSync,writeFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+const external=process.env.HBL_MINI_DASHBOARD_URL;
+const port=process.env.HBL_MINI_DASHBOARD_PORT||'39915';
+const root=mkdtempSync(join(tmpdir(),'mini-dashboard-browser-'));
+const other=join(root,'dear');mkdirSync(other);
+const sources=join(root,'sources.json');writeFileSync(sources,JSON.stringify({projects:[{id:'happybearlandia',name:'HappyBearLandia test source',root},{id:'dear-congress',name:'Dear Congress test source',root:other}]}));
+export default defineConfig({testDir:'./e2e',testMatch:'mini-symphony.e2e.js',workers:1,timeout:30000,expect:{timeout:10000},outputDir:process.env.HBL_MINI_ARTIFACT_DIR||join(process.cwd(),'test-results/mini-symphony'),use:{baseURL:external||`http://127.0.0.1:${port}`,browserName:'chromium',viewport:{width:1440,height:1000},screenshot:'only-on-failure',trace:'retain-on-failure'},...(external?{}:{webServer:{command:'bun --no-env-file run server.js',cwd:process.cwd(),url:`http://127.0.0.1:${port}/mini-symphony`,reuseExistingServer:false,env:{PORT:port,HBL_MINI_SYMPHONY_SOURCES:sources,HBL_WORLD_DB_PATH:':memory:',HBL_REALITY_SHARE_DB_PATH:':memory:',HBL_JOURNAL_ROOT:join(root,'journals'),DECISION_STORE_DIR:join(root,'decision')}}})});

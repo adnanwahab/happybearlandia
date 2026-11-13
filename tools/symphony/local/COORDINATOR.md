@@ -1,5 +1,10 @@
 # Safe Symphony backlog coordinator (SHE-180)
 
+Current assignment-before-label admission, standing renewal, host ownership checks
+and launchd handoff instructions: [ASSIGNMENTS.md](ASSIGNMENTS.md). These supersede
+the historical label-only admission descriptions below. Existing approval gates
+remain mandatory; no new scheduler or automatic authority is introduced.
+
 `backlog_coordinator.py` is a host-only one-cycle job, independent of the Symphony
 poller. Run it periodically through an operator-managed scheduler. It does not
 start Codex, create workers, execute ticket commands, edit workflow configuration,

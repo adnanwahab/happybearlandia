@@ -31,6 +31,7 @@ def review(i):
 
 
 def pr(n, i, state='open', draft=True):
+    i['comments'] = [{'id': 'fixture-pad', 'body': '## Codex Workpad\nhttps://github.com/'+host.REPO+'/pull/'+str(n)+'\n'+ 'b'*40}]
     return dict(number=n, title=i['identifier']+' fixture', body='', head={'ref':'symphony/'+i['identifier'], 'sha':'b'*40, 'repo':{'full_name':host.REPO}},
                 base={'ref':host.BASE, 'repo':{'full_name':host.REPO}}, html_url=f'https://github.com/{host.REPO}/pull/{n}', state=state,
                 draft=draft, files=[f'feature/{i["identifier"]}.py'])
@@ -49,6 +50,11 @@ class FakeServices:
         if self.change:
             self.change(self)
         return copy.deepcopy(self.snapshot)
+
+    def admission_inventory(self):
+        snapshot = self.snapshot if hasattr(self, 'snapshot') else json.loads(self.remote.read_text())
+        return {'at': time.time(), 'claims': [], 'worktrees': [], 'assignments': [],
+                'handoffs': [{'issue': p['head']['ref'].split('/')[-1], 'status': 'published', 'commit': p['head']['sha'], 'url': p['html_url']} for p in snapshot['prs'] if p.get('head', {}).get('ref', '').startswith('symphony/')]}
 
     def approval_label(self, team):
         return 'pilot'

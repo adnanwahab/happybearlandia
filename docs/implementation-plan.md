@@ -1,5 +1,22 @@
 # HappyBearLandia implementation plan
 
+## Mini Symphony PR to Linear completion sync
+
+Added a GitHub Actions workflow that reacts only to a merged, same-repository
+Mini Symphony branch named `mini/SHE-<number>`. It resolves the issue and its
+team's completed workflow state through Linear GraphQL, then closes the issue
+idempotently. Requires repository Actions secret `LINEAR_API_KEY`; provisioning
+that external secret and a live merged-PR verification remain operational setup.
+
+## Local Mini Symphony Bun starter
+
+Implemented an opt-in, single-worker task runner in `tools/symphony/mini-bun/`.
+It reads JSON tasks, creates per-task Git worktrees, invokes Codex CLI, saves
+logs and atomic task state, and marks successful exits `needs_review`. It does
+not integrate with or modify the live Linear dispatcher. Manual acceptance:
+run against a disposable repository with a fake Codex executable, then inspect
+state, log and isolated worktree. Automated runtime exercise remains pending.
+
 ## Symphony pilot — SHE-179
 
 Documentation slice: [verification report](symphony-pilot-verification.md).
@@ -1003,3 +1020,348 @@ ownership/reviewholdsremain. Source-onlyassignments/readinessstagedinactive.
 No live implementation occupancy or delivery-throughput improvement claimed.
 
 Finaluserhandoff: keepotherterminalruntime; stopthiscoordinator'scompetingrestarts/configwrites. ObservedPID32399/sharedWORKFLOWcap1/20/dualfilter/0workers; privatev2preservedinactive. Read-onlyobserver33294/v5 usesactualworkflow. PR43draftrecordsfinalownership; productiveexecutionstillblocked,notclaimedcomplete.
+Continuous Symphony repair actual checkpoint: native310/0fail/6skip,173standalonePython3.9 and214installed-host tests. Pinnedruntime26040/lifecycle-v2 cap1/20/dualfilter/workspace-onlyroots; source-onlyhostpublicationPR40observed, oneapprovedidempotentretryfailed1 (notrepeated). Boundedcachedobserver26942/v4verified3cycles/2cachehits/no grants. Resource/readiness/ownershipholdremains; see docs/symphony-continuation-replenishment.md.
+
+Final user choice: keep the other terminal runtime; this chat stopped config writes/restarts. Observed32399/shared workflow cap1/20/dual filter0workers; read-onlyobserver33294/v5. Private pinnedv2 inactive/preserved. PR43 head updated to reflect handoff; native310+package173+installed214 pass.
+
+
+### Milestone 1 audit: one authorized SHE-83 delivery
+
+Prioritize one worker and recovery before scaling. Reuse the existing operator-
+reviewed assignment and active admission/publication repair owners; no duplicate
+implementation. Independent installed host regression verification:58tests pass.
+Live API at November11 23:26:32 America/Chicago:0running/0retrying/0tokens,cap1,
+turns20,bothlabels. Resource hold still active. End-to-end milestone is NOT
+verified; live restart requires a fresh state check and explicit approval.
+Detailed protocol, actual approval provenance and remaining evidence:
+`docs/symphony-milestone-one.md`. No deployment or merge authorized.
+
+
+### November12 SHE-83 live recovery delivered
+
+One actual Symphony worker delivered draftPR49, commitfa51becfaf1fcac1cea9305e4d307be5ae10fcd5,
+against approved173f953 sprint. Independent18tests0fail207assertions andCLI
+success/failure passed; four approved source hashes match handoff. One draft
+linked in the unique Linear workpad; slot0running/0retry/0blocked afterward.
+Actualpressurev2+missinggate-label+boundedhostreview-window repairs are recorded
+in docs/symphony-recovery-20261112.md. No restart proof, merge, deployment or
+concurrency increase; keep Milestone2 held. Observerfreshnessfix is tested/staged,
+not falsely reported as an activated authenticated observer replacement.
+
+## Mini Symphony remaining-queue recovery — November 12, 2026
+
+Next integrated slice: reconcile a fresh, complete Linear project snapshot with
+GitHub PR evidence and existing local task state; import full issue descriptions,
+hold review/externally assigned work, and expose explicit retry decisions rather
+than re-running merged implementations. Repair publication recovery after commit,
+push, or PR creation and cover those boundaries with disposable Git tests.
+Acceptance: no duplicate PR/model attempts for existing delivery, no completion
+claim from exit zero/no_changes, no lost existing task/state, dry-run by default.
+Live inventory: 30 Backlog, 4 In Review; local 220 pr_created, 28 no_changes;
+GitHub inventory 262 merged, 5 closed, no open PRs. SHE-11 and SHE-165 have merged
+mini branches despite Backlog status. Preserve all unrelated dirty checkout work.
+
+Recovery slice delivered: `mini-bun/publication.ts` and `reconcile.ts`, integrated
+runner recovery/filter/logging fixes and updated operator instructions. Six Bun
+regression tests pass (real disposable Git interrupted-publication cases); Bun
+bundle passes. Full 34-issue snapshot privately reconciled; existing live runner
+lock prevented queue replacement, and its concurrent SHE14 work was preserved.
+Verified PR25 + successful hosted check, then closed stale SHE70 in Linear.
+Other merged PRs need acceptance review: PR53/SHE165 is readiness documentation,
+not feature delivery. Remaining review issues need human evidence or actual
+implementation. No bulk closure/worker restart performed. Details and next
+operator steps: docs/symphony-mini-remaining-queue.md.
+
+## Mini Symphony idle/publication diagnosis — November 12, 2026
+
+Observed SHE253 remote comparison: ahead0/behind319, despite local stale-base
+comparison showing inherited documentation differences. Worker made no edits
+and correctly stopped at human metric selection. Next slice fetches the actual
+publication base before checking ahead/diff; no-change becomes terminal local
+review state rather than repeating a doomed PR on every startup. Idle diagnostics
+must distinguish enabled from runnable, prior attempts, terminal and disabled.
+Acceptance: regression with remote base advanced while local ref stays stale;
+existing recovery tests pass; actual queue summary verified without dispatch.
+
+Diagnosis slice delivered: publication fetches current remote base before ahead/
+diff checks; shared queue selection and idle summary distinguish actual runnable
+work. Eight tests/29 assertions pass, including remote-advanced/stale-local-base
+regression and explicit-retry/terminal/disabled selection. Bun bundle and diff
+whitespace checks pass. Actual queue:0runnable/10disabled/17terminal/231prior
+attempts/0running. No task activation, state overwrite or live PR retry performed.
+SHE253 remains human-metric-gated; next startup classifies its empty branch as
+no_changes after successful fetch rather than attempting an empty PR. New work
+requires enabling the imported tasks; prior results are preserved.
+
+## Mini Symphony actionable queue activation — November 12, 2026
+
+User requests a working remaining queue after repeated idle messages. Fresh
+Linear project has35unfinished issues. Activate ten previously imported, never
+attempted PLAY tasks259–268, priority259then263; preserve all prior results and
+external human gates. Refresh local status metadata from complete project scan.
+New worktrees must fetch and pin the current remote PR base rather than old local
+HEAD(b963dd3). Acceptance: ten runnable/zero disabled after update, current-base
+worktree regression, existing recovery suite/build. No reset/rebase of existing
+worktrees, forced retries of merged PRs, merge or deployment.
+
+Activation delivered: refreshed all258task status fields from current Linear,
+full ten PLAY prompts fetched/checked for blockers and enabled in priority order.
+Verified queue10runnable/0disabled/223terminal/25prior/0running, nextSHE259.
+Existing live runner reappeared during preparation; used its supported atomic
+hot task-file update rather than restarting it or overwriting state. Private
+queue backup retained. `workspace.ts` now fetches/pins current remote base only
+for new worktrees, preserving existing worktrees and source HEAD. Nine Bun tests/
+33assertions pass, including stale source HEAD/current-remote worktree test;
+runner bundle passes. Actual completed PLAY delivery remains unverified until
+worker publication and acceptance. Other25unfinished issues retain prior results
+or external gates; no automatic reimplementation/closure implied.
+Live follow-up: existing runner claimed SHE259 and its actual Codex log shows
+repository/document investigation. Observed state running; no PR completion yet.
+
+## Mini Symphony remaining-work authorization — November 12, 2026
+
+User deleted externally blocked issues and authorizes remaining labels/dispatch
+repairs. Fresh inventory29unfinished;3PLAYPRs open,1worker active. Preserve those.
+Prerequisites with formal blockedBy are Done except44->63; retain that relationship.
+Fresh approved follow-up task IDs use SHE-N-r2 (increment if occupied), preserving
+old state/worktrees/merged PRs and starting current sprint. Full issue IDs/URLs
+remain attached. Reports write owned repo files rather than disappearing in
+no_changes logs. Update Linear descriptions to supersede stale coordinator/tool
+assignment gates, set ready labels, exclude deleted tasks locally. Keep single
+worker, no external-service load, no fabricated measurements or completion.
+Acceptance: idempotent queue generation, deleted exclusion, open-PR/active-worker
+protection, follow-up branch-to-Linear mapping, existing regression/build gates.
+
+Authorization slice delivered:29Linear issues updated with ready+coordinator
+approval+queue labels; stale review-before-dispatch removed. Three existing open
+PLAY PRs retained InReview, newly delivered SHE261 also moved InReview; active
+SHE260 retained. Remaining Todo descriptions explicitly supersede historical
+ownership/Claude/frozen-sprint gates; scope45uses bounded loopback staging,
+analysis tasks persist reports,192bounded local vertical slice,212child audit.
+Real blockedBy44->63 retained, completed dependencies not treated as new work.
+
+Applied approved queue atomically:19fresh r2follow-ups,5existing never-attempted
+PLAY tasks enabled,4open PRs preserved,1worker active.24runnable/248historical-or-
+deleted disabled/5prior-or-active/1running observed. All old state/branches remain;
+no state.json writes, no redispatch of deleted external tasks. Snapshot/backup/
+activation receipts are private in .hbl-private/mini-recovery/. Twelve focused Bun
+tests/54assertions pass, runner build and Node syntax check pass. Follow-up
+branch-to-Linear helper mapping is tested locally; SHE182explicitly owns publishing
+it to hosted workflow (not claimed active). No issue marked Done, merge, deployment,
+production load or performance claim. Real acceptance remains each worker's task.
+
+## Mini Symphony Dear Congress project profile — November 13, 2026
+
+User requests Civic Synthesis board24f935081b94 and Dear Congress repo. Audit:
+board36b11054-5397-473e-9e3b-2092a100de5e has252Done,251Backlog(existing open
+DearCongressPR1),249Backlog(empty description). Target origin adnanwahab/
+dear_congress,main. Local Dear Congress checkout heavily dirty; do not snapshot,
+commit, reset or copy its local app/data/env changes. Isolated per-project runner
+profile binds repo origin, Linear project and state directory; preserve legacy
+HBL CLI. Seed full249+251with existing PR receipt; one worker default. Add explicit
+board refresh CLI, dry-run and runtime check; no duplicate251, live merge/deploy
+or voting-policy activation. Acceptance: cross-project mismatch rejected, scoped
+paginated Linear import, remote-base existing recovery suite, disposable target
+normal-entry smoke, install isolated runtime with preserved Dear package edits.
+
+Dear Congress slice delivered:project-bound profile support and --check in shared
+runner; full-description paginated Linear refresh with repo/project validation,
+existing-PR dedup, dependency/terminal holds and concurrent-state protection.
+Bundled-runner locks now respect any live owner PID. Project worker environment
+filters application DB/bot/tracker keys while preserving required CLI auth.
+Legacy HBL positional invocation and task/state remain untouched; real HBL --check
+passes.17Bun tests/85assertions pass, including real disposable Git normal-entry
+publication+source-dirty preservation+second-runner lock, project isolation,
+pagination/API failures and environment filtering. Both bundles build.
+
+Installed .mini-symphony runtime/profile/queue/state in DearCongress; added only
+three package scripts, ignore rule and docs/mini-symphony.md while preserving all
+existing dirty package/app/data changes. Installed package-command check passes
+against real origin adnanwahab/dear_congress,base main,correct Linear project,
+cap1. No worker launched. Actual existingPR1 covers251and249baseline; linked both
+issues and moved them to InReview, imported real PR receipts and disabled duplicate
+dispatch.252Done is retained disabled. Zero runnable is expected for current board.
+Live Linear import used connector full issues; direct API refresh is unit-tested,
+requires LINEAR_API_KEY and has not been claimed live-tested without that key.
+No merge/deploy/live voting policy changes or copied application env/data. Runtime
+bundles are local generated installs; shared source remains under HBL tooling.
+
+## Dear Congress board refresh repair — November 13, 2026
+
+User observes stale3-task snapshot despite new launch issues. Fresh scan15items:
+8Todo,2InReview,4Duplicate,1Done. Import six implementation children270/271/276/
+279/272/278; retain existingPR1 links; hold269umbrella and280production deploy.
+Fix duplicate terminal handling and add configured periodic read-only board sync
+with available Linear API key; preserve live worker state and explicit task holds.
+Acceptance: actual project API dry-run, duplicates never runnable, held issues stay
+held, periodic sync preserves live claims and refuses concurrent edits, regression
+suite + installed queue counts. No production deploy/reset or duplicate parent.
+
+Refresh repair delivered and live-verified: actual GraphQL100x100query hit
+HTTP400QueryTooComplex; reduced nested page sizes20x20 and real project dry-run
+now succeeds15issues/6enabled. Duplicate status is terminal; heldIssues protects
+269umbrella/280production deploy. Runner refreshes every60seconds between tasks
+when configured+LINEAR_API_KEY available, logs missing credentials/failures,
+keeps manual edits/current active state intact, uses existing publication dedup.
+18focused Bun tests/94assertions pass, both bundles build. Installed new bundles
+and profile; atomically hot-refreshed only Dear tasks.json, no state replacement.
+Observed actual existing runnerSHE270running+5runnable+9disabled; sixqueueIDs
+270/271/276/279/272/278. Existing PR1,4duplicates,Done252 and2holds retained.
+Current process loaded old bundle: periodic-refresh code activates on next start;
+do not interrupt current implementation just to reload it. No deploy/production
+reset/bulk closure. Remaining real implementation/acceptance belongs to workers.
+
+## Mini Symphony 25-hour measurement dashboard — November 13, 2026
+
+Requested integrated slice: /mini-symphony in existing Bun app, session-level
+human-readable logs + machine events, project comparison and explainable25h
+endurance/output metrics. Record a new UUID per coordinator start, heartbeats,
+working/publishing/waiting/syncing phases, task outcomes, new-vs-reused PR receipts,
+queue exhaustion, sync errors and stop/interruption causes. Preserve old task logs
+but label historical state as uninstrumented; cannot backfill continuous sessions.
+25h observed runtime is distinct from25h actual working time and from accepted
+code. Unknown heartbeat gaps are uncredited; restarts never stitched together.
+
+Parallel dependencies: coordinator owns telemetry writer/runner hooks/API/server
+routes+integration; isolated metrics owner owns pure session reducer+tests;
+isolated UI owner owns dashboard HTML/JS/CSS against fixed read-only API contract.
+No merge/deploy, increased concurrency, blanket retry or external messaging.
+Acceptance: exact25h boundary/idle/gaps/restarts, real temp Git runner telemetry,
+secrets/prompt exclusion and bounded reads, loopback-only API with fixed configured
+sources, dashboard empty/error/live/mobile/text-log smoke. Install new Dear bundle
+without replacing state or interrupting running work; no historical25h claim.
+
+Measurement slice delivered: version1append-only session JSONL+curated text,
+15sheartbeats/60sgap threshold, phase/task/queue/sync/PR/stop events, explicit
+new-vs-reused PR receipts, external interruption/edit notices and redaction.
+Monotonic metrics separate continuous observed runtime from coding, publishing,
+waiting and unknown time; no restart stitching, imported-history credit or
+acceptance inference. Timeout SIGTERM-exit0 bug fixed; ignored termination gets
+bounded process-group escalation. Graceful multiworker failure waits for closure.
+HBL command no longer hot-reloads long experiments. Existing raw logs retained.
+
+Integrated /mini-symphony+loopback/same-origin read-only API and curated text
+download. Fixed allowlisted source roots register HBL+Dear locally; bounded reads,
+path checks, no raw prompts/transcripts/credentials in API. Dashboard has primary
+25hgoal, breakdown/output/queue/activity/history/project selectors and definitions.
+Installed updated Dear runner bundle without changing state/tasks or interrupting
+PID98134's active worker; telemetry begins on its next start. Old records remain
+unmeasured. Local HBL server88591 reloaded to expose the requested port3000route;
+no production deploy or merge. Local-only Sites skill workflow used.
+
+Evidence so far: focused34Bun tests/213assertions passed with real localserver
+smoke and temp-Git runner success+stubborn-timeout telemetry;2Chromium tests pass
+for actual route/local sources, project switch,390px/no overflow and synthetic
+25h-idle/error truthfulness. Desktop/mobile PNGs inspected. An initial broad test
+filter matched retained workspaces and socket startup was sandbox-blocked; explicit
+./paths+loopback permission resolved verification, not skipped assertions.
+Documentation: docs/mini-symphony-observability.md. Actual25h trial has NOT run;
+current earlier processes cannot be backfilled. Synchronous network commands can
+still create unobserved heartbeat gaps; logger failure degrades evidence rather
+than stopping coding. Direct visible-browser host was unavailable; actual browser
+checks used isolated repo Playwright Chromium instead. Final focused rerun pending.
+
+Final acceptance: bun run test:mini-symphony passes34tests/213assertions; standalone
+Playwright config self-starts an isolated app and passes2tests, also independently
+passed against actual localhost3000route. Browser screenshots inspected at desktop
+and390px. Added both gates to existing core-journeys CI; hosted CI not yet run.
+Ignored generated root telemetry; docs explain log locations, interpretation and
+25h proof limits. Final source/bundles pass syntax/whitespace gates. Operator API
+and UI work through normal app entry points; no new dependency/lint/typecheck
+configuration required. Current Dear worker preserved; updated bundle ready for
+next start, no claim it retroactively instruments that process. Actual25h field
+trial and acceptance of generated PRs remain future observations, not passed gates.
+
+## Dear Congress dependency pagination recovery — November 13, 2026
+
+Observed live runner rejects the entire board when one inverseRelations page has
+more than20entries. Installed24-task snapshot therefore remains all disabled as
+board grows. Next slice fully paginates issue dependencies separately from bounded
+project pages; guards cursor cycles/source mismatches; isolates incomplete per-issue
+checks as holds rather than losing unrelated work. Restore sync-owned dependency
+holds when blockers clear, preserve explicit operator disables and prior attempts.
+Acceptance: active blocker on page2never dispatched, closed blocker releases hold,
+repeated cursors/missing issue/API failure safe, actual project refresh and installed
+bundle/queue checked. Preserve history, no blanket retry/merge/deploy or production
+changes. Existing coding must not be interrupted; idle old runner may be reloaded.
+
+Acceptance completed: 43 tests/253 assertions pass, including nine importer
+regressions. Both Bun bundles rebuilt and installed in Dear Congress; installed
+--check validates repository/profile and the 54-issue queue. State file was not
+replaced; original config/tasks/bundles backed up. Current source prerequisite
+SHE-281 remains Todo: 32 feature tasks held pending deployed source recovery,
+19 terminal, two project holds, one operator-disabled. Explicit profile prerequisite
+prevents new feature workers running against the known incomplete GitHub baseline.
+No Linear state or production changes. Old process must restart to load bundles.
+Browser checks skipped: this repair changes importer/coordinator behavior only.
+
+## SHE-281 source recovery — November 13, 2026
+
+Prepared isolated /private/tmp/dear-congress-source-recovery from Dear Congress
+local f53852e plus uncommitted application source; integrated origin/main 47659fa.
+Published draft PR https://github.com/adnanwahab/dear_congress/pull/18, current
+revision a00d3c4. Restores product shell, map, workflow/docs and source fixtures;
+retains newer privacy/moderation/public-write security and release-only deployment
+gates. Original dirty checkout, runtime databases and runner history preserved.
+224 local tests/99,104 assertions, typecheck and production route smoke passed.
+Hosted CI exposed macOS-specific tmp path; corrected to os.tmpdir, focused test
+passes; final hosted rerun passes all three required checks on a00d3c4.
+Reopened SHE-270/271/278/279; SHE-281 In Progress
+with evidence link. No merge/deploy/current-live tag claimed: newly discovered
+Dear Congress AGENTS.md explicitly requires human review/merge on launch day.
+Source prerequisite retained pending recovered main and live release provenance.
+
+## Dear Congress PR batch merge — November 13
+
+User explicitly authorized all open PR merges, overriding repository launch-day
+merge restriction for this batch. Merged all 30 PRs #19–48. Twenty-four are
+review documents only: restored their pre-merge Linear Todo/Backlog states after
+integration auto-closed them. Six implementation heads integrated through PR48
+with merge ancestry preserved; resolved workflow conflicts retaining provenance,
+empty/retry states, consistent navigation and explicit advisory vote actions.
+Added four-stage provenance regression to the suite. Final 236tests/99,333assertions,
+typecheck, production-route smoke and all three hosted CI checks pass. Main
+0268a4c matches the tested d4c6a26 tree exactly. No open PRs remain. No release
+published or production deployment; original dirty Dear Congress checkout intact.
+
+## Explicit unfinished-work follow-ups — November 13
+
+Queue idle because merged PR receipts are terminal attempts. Prepare new r2 IDs
+for 24 report-only unfinished issues and four reopened launch issues, preserving
+all prior state/workspaces. Skip In Review work and project holds. Importer must
+refresh latest family member, supersede old task and retain implementation-only
+follow-up instruction across polling; regression covers blocker and terminal
+updates. Install bundle and restart only idle runner; verify actual dispatch.
+
+Follow-up acceptance: 28 new r2 tasks installed; state file not replaced.
+Old idle process stopped and updated runner restarted, PID55571, console log
+Dear Congress .mini-symphony/coordinator.log. Session2416aea1 was superseded
+while idle; current session observed28runnable and SHE-270-r2 running.
+Priority sorting exposed array-order selection bug; importer now selects highest
+numeric revision, regression includes r10/r2/original in reverse order and two
+refreshes. Added follow-up.test.ts to the standard source test command.
+Live refresh tests use temporary files and prove scan failures preserve queue
+and state ownership. Production and coordination holds remain; no new merge or
+deploy authorized by this queue activation.
+
+## Optional port-conflict auto-debug — November 13
+
+Add --auto-debug (default off) through normal Bun runner entry. Detect explicit
+port errors in worker output; one repair worker in the same worktree with original
+time budget, separate result, preserved transcript and curated telemetry. Require
+structured worker-reported successful checks before publication. No process killing
+or automatic arbitrary command replay: safer initial slice uses PORT=0/readiness/
+finally cleanup repairs. Failure, timeout, stop and malformed results hold publication.
+Acceptance: default behavior unchanged, enabled failure recovers once, repeated
+errors never loop, bad result cannot publish, original result retained.
+
+Acceptance completed: 55 source tests/409 assertions pass, including real normal
+entry fixtures for disabled/default, recovery after exit-zero port error, blocked
+repair and stubborn repair timeout. Both passes share deadline; exactly two
+worker invocations maximum and original result retained. New result is session
+unique to prevent stale success receipts. Built and installed Dear Congress
+bundle atomically (backup retained); --auto-debug --check confirms true without
+launch. No runner started, browser tests skipped for coordinator-only changes.
+Limit: checks are worker-reported, not independently rerun by coordinator;
+process killing deliberately excluded. Raw output can include already-resolved
+port errors and trigger one conservative extra validation pass.

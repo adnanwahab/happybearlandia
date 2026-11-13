@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "restartGeneration": 1,
+  "coordinatorApply": false,
+  "code": "/Users/OPERATOR/happybearlandia/tools/symphony/local",
+  "workflow": "/Users/OPERATOR/happybearlandia/tools/symphony/elixir/WORKFLOW.md",
+  "evidence": "/Users/OPERATOR/.local/state/hbl-publisher/backlog-coordinator/readiness.json",
+  "linearKeyFile": "/Users/OPERATOR/.local/state/hbl-publisher/supervisor/linear.key",
+  "symphonyExecutable": "/Users/OPERATOR/.local/state/hbl-publisher/verified-runtime/symphony",
+  "toolchainDirectories": []
+}

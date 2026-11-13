@@ -85,10 +85,8 @@ def capacity_decision(resources, current_limit, requested_limit=None, evidence=N
     if sampled is not None and (not _number(sampled) or not -5 <= now - sampled <= 60):
         reasons.append('resource sample stale or invalid')
     if not reasons:
-        if resources['available_memory_bytes'] < 2 * GIB:
-            reasons.append('available memory below 2 GiB')
-        if resources['swap_used_bytes'] > 4 * GIB:
-            reasons.append('swap exceeds 4 GiB')
+        if resources['swap_used_bytes'] > 16 * GIB:
+            reasons.append('swap exceeds 16 GiB')
         if resources['disk_free_bytes'] < 10 * GIB:
             reasons.append('free disk below 10 GiB')
         if resources['cpu_load_ratio'] > .85:

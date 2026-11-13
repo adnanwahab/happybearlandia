@@ -16,7 +16,7 @@ if (root) {
   root.innerHTML = `<div class="universe-kicker">One living world · ${EXPERIENCES.length} connected experiences</div>
     <h2>Follow a world. Explore its futures.</h2>
     <p>World is the stage. Worldline explores possible futures. The causal inspector explains recorded model dependencies.</p>
-    <nav aria-label="Universe navigation"><a data-app="world">Enter World</a><a data-app="worldline">Explore Worldline</a><a data-app="experiments">Experiments</a><a id="universe-model">Recorded World model</a></nav>
+    <nav aria-label="Universe navigation"><a data-app="world">Enter World</a><a data-app="worldline">Explore Worldline</a><a data-app="experiments">Experiments</a><a id="universe-model">Recorded World model</a><a href="/blog/">Blog</a></nav>
     <section id="universe-demos" aria-label="Try the new connected demos">
       <h3>Choose Your First Adventure</h3>
       <div class="universe-missions">

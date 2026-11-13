@@ -59,8 +59,12 @@ jobs:
           test/future-machine-share.test.js
           test/future-machine-diff.test.js
           test/example-receipts.test.js
+      - name: Verify Mini Symphony measurement and publication contracts
+        run: bun run test:mini-symphony
       - name: Install Chromium for browser journeys
         run: bunx playwright install --with-deps chromium
+      - name: Mini Symphony operator dashboard
+        run: bunx playwright test --config test/mini-symphony.browser.config.js
       - name: Universe shell, sprint experiences, and saved future journey
         run: bunx playwright test --config test/release-browser.config.js
       - name: Time Machine recording and playback with a fresh store

@@ -1,0 +1,6 @@
+[
+  {
+    "id": "TASK-1",
+    "prompt": "Create HELLO.md in this workspace explaining what this project does. Keep it concise and base the description on the existing README or package metadata."
+  }
+]

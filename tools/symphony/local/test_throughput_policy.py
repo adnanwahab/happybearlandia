@@ -77,3 +77,9 @@ class PolicyTest(unittest.TestCase):
 
 
 if __name__=='__main__': unittest.main()
+
+class SwapBoundaryTest(unittest.TestCase):
+    def test_inclusive_16_gib_ceiling(self):
+        for used, held in ((15*GIB, False), (16*GIB, False), (16*GIB+1, True)):
+            values=healthy(); values['swap_used_bytes']=used
+            self.assertEqual(capacity_decision(values,1)['hold_new_grants'],held)

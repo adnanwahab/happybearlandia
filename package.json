@@ -4,6 +4,7 @@
     "@playwright/test": "^1.63.0"
   },
   "scripts": {
+    "symphony:mini": "bun run tools/symphony/mini-bun/run.ts .",
     "start": "bun run server.js",
     "test:e2e": "playwright test",
     "screenshot:index": "bun scripts/screenshot-index.js",
@@ -17,7 +18,8 @@
     "test:advanced:e2e": "playwright test test/e2e/advanced-",
     "record:demo": "HBL_RECORD_DEMO=1 playwright test test/e2e/advanced-loop.e2e.js",
     "test:city": "bun test --timeout 15000 test/city-systems.test.js test/project-unblock.test.js test/server-civic-api.test.js",
-    "test:city:e2e": "playwright test test/e2e/city-systems.e2e.js test/e2e/project-unblock.e2e.js"
+    "test:city:e2e": "playwright test test/e2e/city-systems.e2e.js test/e2e/project-unblock.e2e.js",
+    "test:mini-symphony": "bun test ./tools/symphony/mini-bun/auto-debug.test.ts ./tools/symphony/mini-bun/follow-up.test.ts ./tools/symphony/mini-bun/linear-import.test.ts ./tools/symphony/mini-bun/project.test.ts ./tools/symphony/mini-bun/recovery.test.ts ./tools/symphony/mini-bun/telemetry.test.ts ./tools/symphony/mini-bun/session-metrics.test.js ./test/mini-symphony-api.test.js ./test/server.test.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1136.0",

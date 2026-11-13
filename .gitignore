@@ -53,3 +53,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Private patch votes and agent job state
 .hbl-private/
+
+# Mini Symphony curated session evidence (local operator data)
+/telemetry/

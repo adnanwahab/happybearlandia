@@ -1,3 +1,5 @@
+import { createMiniSymphonyHandler } from './ops/mini-symphony/api.js';
+const handleMiniSymphony = createMiniSymphonyHandler();
 import { withUniverseNavigation } from './world/universe/html-navigation.js';
 import {createCausalityHandler} from './world/causality/api.js';
 import {createReleaseHealthHandler,initializeReleaseStorage} from './ops/release-health.js';
@@ -436,6 +438,10 @@ const server = serve({
 
   async fetch(request, server) {
     const { pathname } = new URL(request.url);
+    if (pathname === '/mini-symphony' || pathname === '/mini-symphony/') return serveFile('./tools/mini-symphony-dashboard/index.html');
+    if (pathname.startsWith('/api/mini-symphony')) return handleMiniSymphony(request, {localAddress: server.requestIP(request)?.address});
+    if (pathname === '/mini-symphony/dashboard.js') return serveFile('./tools/mini-symphony-dashboard/dashboard.js');
+    if (pathname === '/mini-symphony/style.css') return serveFile('./tools/mini-symphony-dashboard/style.css');
     if (pathname === "/api/health" || pathname === "/api/ready") return handleReleaseHealth(request);
     if (pathname === '/vote-on-patch' || pathname === '/vote-on-patch/') return serveFile('./world/patch-voting.html');
     if (pathname === '/api/patch-votes' || pathname.startsWith('/api/patch-votes/')) return patchVoting(request);
@@ -462,7 +468,7 @@ const server = serve({
     if (pathname === "/" || pathname === "/index.html") {
       return serveFile("./index.html");
     }
-    if (pathname === "/favicon.ico") return new Response(null, { status: 204 });
+    if (pathname === "/favicon.ico") return serveFile("./favicon.ico");
     // This Jolt distribution embeds its WASM; no CDN or separate WASM fetch is needed.
     if (pathname === "/vendor/jolt/jolt-physics.wasm-compat.js") return serveFile("./node_modules/jolt-physics/dist/jolt-physics.wasm-compat.js");
     // Curated local Three modules for the building workspace. No general

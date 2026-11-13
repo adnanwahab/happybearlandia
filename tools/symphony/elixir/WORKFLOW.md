@@ -25,7 +25,7 @@ hooks:
     exec /usr/bin/python3 /Users/wahabma/happybearlandia/tools/symphony/local/publish.py
 agent:
   max_concurrent_agents: 1
-  max_turns: 1
+  max_turns: 20
   max_retry_backoff_ms: 300000
 codex:
   command: env -u LINEAR_API_KEY -u GH_TOKEN -u GITHUB_TOKEN -u GH_ENTERPRISE_TOKEN -u GITHUB_ENTERPRISE_TOKEN codex --config shell_environment_policy.inherit=none app-server

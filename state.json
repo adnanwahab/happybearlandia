@@ -1,0 +1,2477 @@
+{
+  "SHE-30": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:02:11.855Z",
+    "log": "logs/SHE-30.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:03:57.462Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/52"
+  },
+  "SHE-165": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:03:58.190Z",
+    "log": "logs/SHE-165.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:04:51.577Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/53"
+  },
+  "SHE-182": {
+    "status": "pr_created",
+    "attempt": 2,
+    "startedAt": "2026-11-12T20:35:57.709Z",
+    "log": "logs/SHE-182.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:38:39.627Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/195"
+  },
+  "SHE-128": {
+    "status": "pr_created",
+    "attempt": 2,
+    "startedAt": "2026-11-12T20:35:57.780Z",
+    "log": "logs/SHE-128.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:36:40.440Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/188"
+  },
+  "SHE-138": {
+    "status": "pr_created",
+    "attempt": 2,
+    "startedAt": "2026-11-12T20:35:57.781Z",
+    "log": "logs/SHE-138.log",
+    "finishedAt": "2026-11-12T20:37:43.982Z",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/190"
+  },
+  "SHE-149": {
+    "status": "pr_created",
+    "attempt": 2,
+    "startedAt": "2026-11-12T20:35:57.781Z",
+    "log": "logs/SHE-149.log",
+    "finishedAt": "2026-11-12T20:38:28.578Z",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/194"
+  },
+  "SHE-150": {
+    "status": "pr_created",
+    "attempt": 2,
+    "startedAt": "2026-11-12T20:35:57.781Z",
+    "log": "logs/SHE-150.log",
+    "finishedAt": "2026-11-12T20:41:27.422Z",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/208"
+  },
+  "SHE-154": {
+    "status": "pr_created",
+    "attempt": 2,
+    "startedAt": "2026-11-12T20:35:57.781Z",
+    "log": "logs/SHE-154.log",
+    "finishedAt": "2026-11-12T20:38:17.170Z",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/193"
+  },
+  "SHE-155": {
+    "status": "pr_created",
+    "attempt": 2,
+    "startedAt": "2026-11-12T20:35:57.781Z",
+    "log": "logs/SHE-155.log",
+    "finishedAt": "2026-11-12T20:37:35.840Z",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/189"
+  },
+  "SHE-168": {
+    "status": "pr_created",
+    "attempt": 2,
+    "startedAt": "2026-11-12T20:35:57.781Z",
+    "log": "logs/SHE-168.log",
+    "finishedAt": "2026-11-12T20:38:44.148Z",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/196"
+  },
+  "SHE-171": {
+    "status": "pr_created",
+    "attempt": 2,
+    "startedAt": "2026-11-12T20:35:57.781Z",
+    "log": "logs/SHE-171.log",
+    "finishedAt": "2026-11-12T20:38:13.705Z",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/192"
+  },
+  "SHE-255": {
+    "status": "pr_created",
+    "attempt": 2,
+    "startedAt": "2026-11-12T20:35:57.781Z",
+    "log": "logs/SHE-255.log",
+    "finishedAt": "2026-11-12T20:37:57.358Z",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/191"
+  },
+  "SHE-253": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T22:14:28.713Z",
+    "log": "logs/SHE-253.log",
+    "finishedAt": "2026-11-12T22:15:29.166Z",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/282"
+  },
+  "SHE-257": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:28:45.575Z",
+    "log": "logs/SHE-257.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:30:04.821Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/56"
+  },
+  "SHE-208": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:28:46.275Z",
+    "log": "logs/SHE-208.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:30:42.647Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/60"
+  },
+  "SHE-195": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:28:46.889Z",
+    "log": "logs/SHE-195.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:31:49.912Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/63"
+  },
+  "SHE-29": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:28:47.408Z",
+    "log": "logs/SHE-29.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:30:00.126Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/54"
+  },
+  "SHE-258": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:28:47.856Z",
+    "log": "logs/SHE-258.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:32:03.624Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/64"
+  },
+  "SHE-127": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:28:48.327Z",
+    "log": "logs/SHE-127.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:30:15.668Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/57"
+  },
+  "SHE-42": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:28:48.780Z",
+    "log": "logs/SHE-42.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:30:30.817Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/59"
+  },
+  "SHE-256": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:28:49.188Z",
+    "log": "logs/SHE-256.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:30:04.821Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/55"
+  },
+  "SHE-223": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:28:49.640Z",
+    "log": "logs/SHE-223.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:31:09.223Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/61"
+  },
+  "SHE-214": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:28:50.049Z",
+    "log": "logs/SHE-214.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:30:20.955Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/58"
+  },
+  "SHE-219": {
+    "status": "pr_created",
+    "attempt": 58,
+    "startedAt": "2026-11-12T20:04:25.135Z",
+    "log": "logs/SHE-219.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:08:28.493Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/151"
+  },
+  "SHE-190": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:30:15.117Z",
+    "log": "logs/SHE-190.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:34:42.119Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/75"
+  },
+  "SHE-254": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:30:15.667Z",
+    "log": "logs/SHE-254.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:31:27.901Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/62"
+  },
+  "SHE-187": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:30:21.396Z",
+    "log": "logs/SHE-187.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:32:39.659Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/66"
+  },
+  "SHE-239": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:30:27.221Z",
+    "log": "logs/SHE-239.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:00:22.244Z",
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-209": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:30:35.405Z",
+    "log": "logs/SHE-209.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:32:58.921Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/67"
+  },
+  "SHE-200": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:30:48.944Z",
+    "log": "logs/SHE-200.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:32:14.387Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/65"
+  },
+  "SHE-196": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:31:13.566Z",
+    "log": "logs/SHE-196.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:33:08.974Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/69"
+  },
+  "SHE-225": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:31:32.358Z",
+    "log": "logs/SHE-225.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:34:12.680Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/70"
+  },
+  "SHE-188": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:31:49.557Z",
+    "log": "logs/SHE-188.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:34:26.888Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/72"
+  },
+  "SHE-224": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:31:54.551Z",
+    "log": "logs/SHE-224.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:33:03.425Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/68"
+  },
+  "SHE-202": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:32:09.496Z",
+    "log": "logs/SHE-202.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:35:46.680Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/79"
+  },
+  "SHE-40": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:32:18.831Z",
+    "log": "logs/SHE-40.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:34:38.025Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/74"
+  },
+  "SHE-201": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:32:43.844Z",
+    "log": "logs/SHE-201.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:34:16.549Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/71"
+  },
+  "SHE-199": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:33:03.425Z",
+    "log": "logs/SHE-199.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:34:33.231Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/73"
+  },
+  "SHE-198": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:33:09.559Z",
+    "log": "logs/SHE-198.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:37:38.492Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/84"
+  },
+  "SHE-47": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:33:14.362Z",
+    "log": "logs/SHE-47.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:35:05.851Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/76"
+  },
+  "SHE-197": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:34:21.247Z",
+    "log": "logs/SHE-197.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:35:16.341Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/78"
+  },
+  "SHE-48": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:34:21.843Z",
+    "log": "logs/SHE-48.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:35:58.025Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/80"
+  },
+  "SHE-192": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:34:31.144Z",
+    "log": "logs/SHE-192.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:35:12.391Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/77"
+  },
+  "SHE-204": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:34:37.620Z",
+    "log": "logs/SHE-204.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:37:05.504Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/83"
+  },
+  "SHE-181": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:34:42.574Z",
+    "log": "logs/SHE-181.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:38:28.518Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/87"
+  },
+  "SHE-220": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:34:47.293Z",
+    "log": "logs/SHE-220.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:36:21.575Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/81"
+  },
+  "SHE-189": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:35:10.181Z",
+    "log": "logs/SHE-189.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:39:16.416Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/89"
+  },
+  "SHE-191": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:35:16.867Z",
+    "log": "logs/SHE-191.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:38:05.946Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/86"
+  },
+  "SHE-207": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:35:23.262Z",
+    "log": "logs/SHE-207.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:36:55.907Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/82"
+  },
+  "SHE-203": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:35:51.669Z",
+    "log": "logs/SHE-203.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:38:53.740Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/88"
+  },
+  "SHE-221": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:36:02.566Z",
+    "log": "logs/SHE-221.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:40:16.097Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/92"
+  },
+  "SHE-229": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:36:26.707Z",
+    "log": "logs/SHE-229.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:00:22.615Z",
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-205": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:37:01.166Z",
+    "log": "logs/SHE-205.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:37:44.794Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/85"
+  },
+  "SHE-193": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:37:10.017Z",
+    "log": "logs/SHE-193.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:39:28.866Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/91"
+  },
+  "SHE-185": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:37:39.526Z",
+    "log": "logs/SHE-185.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:40:30.984Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/94"
+  },
+  "SHE-230": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:37:44.793Z",
+    "log": "logs/SHE-230.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:39:20.851Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/90"
+  },
+  "SHE-231": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:37:49.655Z",
+    "log": "logs/SHE-231.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:00:22.966Z",
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-206": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:38:11.775Z",
+    "log": "logs/SHE-206.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:40:36.349Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/95"
+  },
+  "SHE-232": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:38:33.785Z",
+    "log": "logs/SHE-232.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:42:44.081Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/101"
+  },
+  "SHE-213": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:38:50.889Z",
+    "log": "logs/SHE-213.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:40:26.423Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/93"
+  },
+  "SHE-215": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:38:59.124Z",
+    "log": "logs/SHE-215.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:41:01.464Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/96"
+  },
+  "SHE-233": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:39:21.661Z",
+    "log": "logs/SHE-233.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:00:23.376Z",
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-234": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:39:26.382Z",
+    "log": "logs/SHE-234.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:41:46.157Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/97"
+  },
+  "SHE-216": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:39:33.335Z",
+    "log": "logs/SHE-216.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:42:14.878Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/99"
+  },
+  "SHE-217": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:40:21.985Z",
+    "log": "logs/SHE-217.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:41:54.635Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/98"
+  },
+  "SHE-237": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:40:31.961Z",
+    "log": "logs/SHE-237.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:00:23.732Z",
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-218": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:40:37.405Z",
+    "log": "logs/SHE-218.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:42:39.935Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/100"
+  },
+  "SHE-238": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:40:44.459Z",
+    "log": "logs/SHE-238.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:43:29.346Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/103"
+  },
+  "SHE-222": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:40:45.359Z",
+    "log": "logs/SHE-222.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:42:48.781Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/102"
+  },
+  "SHE-227": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:41:06.711Z",
+    "log": "logs/SHE-227.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:00:24.172Z",
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-194": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:41:51.771Z",
+    "log": "logs/SHE-194.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:44:04.966Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/108"
+  },
+  "SHE-228": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:41:59.890Z",
+    "log": "logs/SHE-228.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:00:24.545Z",
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-212": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:42:05.258Z",
+    "log": "logs/SHE-212.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:00:24.908Z",
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-210": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:42:19.319Z",
+    "log": "logs/SHE-210.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:43:35.266Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/104"
+  },
+  "SHE-184": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:42:23.834Z",
+    "log": "logs/SHE-184.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:45:59.664Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/116"
+  },
+  "SHE-241": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:42:44.720Z",
+    "log": "logs/SHE-241.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:43:40.131Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/105"
+  },
+  "SHE-242": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:42:49.418Z",
+    "log": "logs/SHE-242.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:43:40.131Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/106"
+  },
+  "SHE-243": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:42:55.255Z",
+    "log": "logs/SHE-243.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:45:37.939Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/111"
+  },
+  "SHE-244": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:42:56.839Z",
+    "log": "logs/SHE-244.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:44:00.596Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/107"
+  },
+  "SHE-183": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:43:34.585Z",
+    "log": "logs/SHE-183.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:45:55.690Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/115"
+  },
+  "SHE-245": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:43:40.588Z",
+    "log": "logs/SHE-245.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:45:41.693Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/112"
+  },
+  "SHE-186": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:43:49.268Z",
+    "log": "logs/SHE-186.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:45:13.176Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/109"
+  },
+  "SHE-226": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:43:49.779Z",
+    "log": "logs/SHE-226.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:45:28.388Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/110"
+  },
+  "SHE-11": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:44:06.176Z",
+    "log": "logs/SHE-11.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:45:41.693Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/114"
+  },
+  "SHE-7": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T19:44:10.959Z",
+    "log": "logs/SHE-7.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:45:41.693Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/113"
+  },
+  "SHE-46": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T19:53:55.853Z",
+    "log": "logs/SHE-46.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:54:58.455Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/120"
+  },
+  "SHE-63": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T19:53:55.853Z",
+    "log": "logs/SHE-63.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:54:43.215Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/118"
+  },
+  "SHE-64": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T19:53:55.853Z",
+    "log": "logs/SHE-64.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:55:37.405Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/125"
+  },
+  "SHE-65": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T19:53:55.853Z",
+    "log": "logs/SHE-65.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:54:46.864Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/119"
+  },
+  "SHE-55": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T19:53:55.853Z",
+    "log": "logs/SHE-55.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:55:18.071Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/122"
+  },
+  "SHE-39": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T19:53:55.853Z",
+    "log": "logs/SHE-39.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:55:37.405Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/124"
+  },
+  "SHE-17": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T19:53:55.853Z",
+    "log": "logs/SHE-17.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:55:33.688Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/123"
+  },
+  "SHE-16": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T19:53:55.853Z",
+    "log": "logs/SHE-16.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:55:37.405Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/126"
+  },
+  "SHE-13": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T19:53:55.853Z",
+    "log": "logs/SHE-13.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:55:08.935Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/121"
+  },
+  "SHE-50": {
+    "status": "pr_created",
+    "attempt": 2,
+    "startedAt": "2026-11-12T19:54:50.540Z",
+    "log": "logs/SHE-50.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:57:23.762Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/130"
+  },
+  "SHE-37": {
+    "status": "pr_created",
+    "attempt": 2,
+    "startedAt": "2026-11-12T19:54:50.556Z",
+    "log": "logs/SHE-37.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:56:31.034Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/127"
+  },
+  "SHE-36": {
+    "status": "pr_created",
+    "attempt": 2,
+    "startedAt": "2026-11-12T19:55:03.605Z",
+    "log": "logs/SHE-36.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:56:39.561Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/128"
+  },
+  "SHE-32": {
+    "status": "pr_created",
+    "attempt": 2,
+    "startedAt": "2026-11-12T19:55:12.368Z",
+    "log": "logs/SHE-32.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:57:38.078Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/132"
+  },
+  "SHE-35": {
+    "status": "pr_created",
+    "attempt": 2,
+    "startedAt": "2026-11-12T19:55:22.273Z",
+    "log": "logs/SHE-35.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:57:08.196Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/129"
+  },
+  "SHE-15": {
+    "status": "pr_created",
+    "attempt": 54,
+    "startedAt": "2026-11-12T20:00:25.451Z",
+    "log": "logs/SHE-15.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:01:15.795Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/134"
+  },
+  "SHE-41": {
+    "status": "pr_created",
+    "attempt": 55,
+    "startedAt": "2026-11-12T20:04:25.135Z",
+    "log": "logs/SHE-41.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:07:18.539Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/144"
+  },
+  "SHE-31": {
+    "status": "pr_created",
+    "attempt": 2,
+    "startedAt": "2026-11-12T19:55:49.992Z",
+    "log": "logs/SHE-31.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T19:57:30.842Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/131"
+  },
+  "SHE-14": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T21:49:59.088Z",
+    "log": "logs/SHE-14.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T21:51:00.095Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/278"
+  },
+  "SHE-33": {
+    "status": "pr_created",
+    "attempt": 52,
+    "startedAt": "2026-11-12T20:00:25.451Z",
+    "log": "logs/SHE-33.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:01:08.635Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/133"
+  },
+  "SHE-140": {
+    "status": "pr_created",
+    "attempt": 53,
+    "startedAt": "2026-11-12T20:04:25.135Z",
+    "log": "logs/SHE-140.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:05:38.158Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/137"
+  },
+  "SHE-57": {
+    "status": "pr_created",
+    "attempt": 52,
+    "startedAt": "2026-11-12T20:04:25.135Z",
+    "log": "logs/SHE-57.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:06:24.250Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/140"
+  },
+  "SHE-12": {
+    "status": "pr_created",
+    "attempt": 50,
+    "startedAt": "2026-11-12T20:04:25.135Z",
+    "log": "logs/SHE-12.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:05:05.085Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/136"
+  },
+  "SHE-53": {
+    "status": "pr_created",
+    "attempt": 48,
+    "startedAt": "2026-11-12T20:04:25.135Z",
+    "log": "logs/SHE-53.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:06:24.250Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/141"
+  },
+  "SHE-51": {
+    "status": "pr_created",
+    "attempt": 49,
+    "startedAt": "2026-11-12T20:04:25.135Z",
+    "log": "logs/SHE-51.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:06:19.844Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/139"
+  },
+  "SHE-38": {
+    "status": "pr_created",
+    "attempt": 47,
+    "startedAt": "2026-11-12T20:04:25.135Z",
+    "log": "logs/SHE-38.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:05:00.996Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/135"
+  },
+  "SHE-248": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:04:25.135Z",
+    "log": "logs/SHE-248.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:06:02.297Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/138"
+  },
+  "SHE-247": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:04:25.135Z",
+    "log": "logs/SHE-247.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:06:32.703Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/142"
+  },
+  "SHE-246": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T20:05:09.553Z",
+    "log": "logs/SHE-246.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:07:55.442Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/148"
+  },
+  "SHE-177": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T20:05:09.585Z",
+    "log": "logs/SHE-177.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:06:32.703Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/143"
+  },
+  "SHE-160": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T20:05:42.605Z",
+    "log": "logs/SHE-160.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:07:31.422Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/145"
+  },
+  "SHE-87": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T20:06:07.820Z",
+    "log": "logs/SHE-87.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:07:44.585Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/146"
+  },
+  "SHE-97": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T20:06:28.366Z",
+    "log": "logs/SHE-97.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:08:02.549Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/149"
+  },
+  "SHE-112": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T20:06:32.722Z",
+    "log": "logs/SHE-112.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:08:18.197Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/150"
+  },
+  "SHE-56": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T20:06:32.741Z",
+    "log": "logs/SHE-56.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:07:49.141Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/147"
+  },
+  "SHE-66": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T20:06:41.418Z",
+    "log": "logs/SHE-66.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:08:36.465Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/152"
+  },
+  "SHE-26": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T20:06:41.444Z",
+    "log": "logs/SHE-26.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:08:48.850Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/155"
+  },
+  "SHE-23": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T20:07:22.474Z",
+    "log": "logs/SHE-23.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:08:40.385Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/153"
+  },
+  "SHE-22": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T20:07:36.021Z",
+    "log": "logs/SHE-22.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:08:44.996Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/154"
+  },
+  "SHE-20": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T20:07:52.860Z",
+    "log": "logs/SHE-20.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:08:48.850Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/156"
+  },
+  "SHE-134": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T20:07:52.905Z",
+    "log": "logs/SHE-134.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:09:20.412Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/157"
+  },
+  "SHE-99": {
+    "status": "pr_created",
+    "attempt": 3,
+    "startedAt": "2026-11-12T20:07:59.866Z",
+    "log": "logs/SHE-99.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:09:41.471Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/158"
+  },
+  "SHE-118": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:19:34.941Z",
+    "log": "logs/SHE-118.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:20:50.006Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/165"
+  },
+  "SHE-25": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:19:34.941Z",
+    "log": "logs/SHE-25.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:20:50.006Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/164"
+  },
+  "SHE-54": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:19:34.941Z",
+    "log": "logs/SHE-54.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:20:33.863Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/161"
+  },
+  "SHE-6": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:19:34.941Z",
+    "log": "logs/SHE-6.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:20:22.022Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/160"
+  },
+  "SHE-71": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:19:34.941Z",
+    "log": "logs/SHE-71.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:22:51.585Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/172"
+  },
+  "SHE-117": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:19:34.941Z",
+    "log": "logs/SHE-117.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:21:28.127Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/168"
+  },
+  "SHE-45": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:19:34.941Z",
+    "log": "logs/SHE-45.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:21:15.633Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/167"
+  },
+  "SHE-44": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:19:34.941Z",
+    "log": "logs/SHE-44.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:20:38.564Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/162"
+  },
+  "SHE-49": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:19:34.941Z",
+    "log": "logs/SHE-49.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:20:59.211Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/166"
+  },
+  "SHE-146": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:19:34.944Z",
+    "log": "logs/SHE-146.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:20:46.168Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/163"
+  },
+  "SHE-147": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:20:26.168Z",
+    "log": "logs/SHE-147.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:21:59.328Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/170"
+  },
+  "SHE-151": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:20:38.546Z",
+    "log": "logs/SHE-151.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:22:02.886Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/171"
+  },
+  "SHE-143": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:20:42.421Z",
+    "log": "logs/SHE-143.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:23:00.484Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/174"
+  },
+  "SHE-144": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:20:50.034Z",
+    "log": "logs/SHE-144.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:21:54.262Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/169"
+  },
+  "SHE-145": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:20:59.225Z",
+    "log": "logs/SHE-145.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:22:55.530Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/173"
+  },
+  "SHE-153": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:20:59.236Z",
+    "log": "logs/SHE-153.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:23:05.375Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/175"
+  },
+  "SHE-175": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:21:02.957Z",
+    "log": "logs/SHE-175.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:23:16.756Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/176"
+  },
+  "SHE-8": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:21:19.776Z",
+    "log": "logs/SHE-8.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:24:24.776Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/183"
+  },
+  "SHE-28": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:21:31.726Z",
+    "log": "logs/SHE-28.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:23:38.558Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/177"
+  },
+  "SHE-172": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:21:57.792Z",
+    "log": "logs/SHE-172.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:26:08.118Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/185"
+  },
+  "SHE-162": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:22:06.737Z",
+    "log": "logs/SHE-162.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:23:44.733Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/178"
+  },
+  "SHE-148": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:22:06.752Z",
+    "log": "logs/SHE-148.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:24:15.048Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/182"
+  },
+  "SHE-132": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:22:59.295Z",
+    "log": "logs/SHE-132.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:23:56.151Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/179"
+  },
+  "SHE-129": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:22:59.309Z",
+    "log": "logs/SHE-129.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:24:00.670Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/181"
+  },
+  "SHE-156": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:23:05.401Z",
+    "log": "logs/SHE-156.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:24:00.668Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/180"
+  },
+  "SHE-152": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:23:09.092Z",
+    "log": "logs/SHE-152.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:27:05.434Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/186"
+  },
+  "SHE-135": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:23:22.191Z",
+    "log": "logs/SHE-135.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:25:41.321Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/184"
+  },
+  "SHE-130": {
+    "status": "pr_created",
+    "attempt": 4,
+    "startedAt": "2026-11-12T20:23:43.072Z",
+    "log": "logs/SHE-130.log",
+    "exitCode": 0,
+    "finishedAt": "2026-11-12T20:28:42.916Z",
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/187"
+  },
+  "SHE-84": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:37:32.808Z",
+    "finishedAt": "2026-11-12T20:37:56.621Z",
+    "log": "logs/SHE-84.log",
+    "exitCode": 0,
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-121": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:37:40.367Z",
+    "finishedAt": "2026-11-12T20:38:04.890Z",
+    "log": "logs/SHE-121.log",
+    "exitCode": 0,
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-142": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:37:50.341Z",
+    "finishedAt": "2026-11-12T20:38:12.307Z",
+    "log": "logs/SHE-142.log",
+    "exitCode": 0,
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-90": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:37:57.357Z",
+    "finishedAt": "2026-11-12T20:39:16.677Z",
+    "log": "logs/SHE-90.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/197"
+  },
+  "SHE-111": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:38:01.912Z",
+    "finishedAt": "2026-11-12T20:39:42.328Z",
+    "log": "logs/SHE-111.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/198"
+  },
+  "SHE-83": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:38:06.240Z",
+    "finishedAt": "2026-11-12T20:38:26.829Z",
+    "log": "logs/SHE-83.log",
+    "exitCode": 0,
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-52": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:38:13.605Z",
+    "finishedAt": "2026-11-12T20:40:49.780Z",
+    "log": "logs/SHE-52.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/204"
+  },
+  "SHE-68": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:38:18.035Z",
+    "finishedAt": "2026-11-12T20:39:57.145Z",
+    "log": "logs/SHE-68.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/200"
+  },
+  "SHE-180": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:38:24.331Z",
+    "finishedAt": "2026-11-12T20:39:01.023Z",
+    "log": "logs/SHE-180.log",
+    "exitCode": 0,
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-126": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:38:27.321Z",
+    "finishedAt": "2026-11-12T20:39:52.927Z",
+    "log": "logs/SHE-126.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/199"
+  },
+  "SHE-100": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:38:33.653Z",
+    "finishedAt": "2026-11-12T20:39:57.759Z",
+    "log": "logs/SHE-100.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/201"
+  },
+  "SHE-59": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:38:44.688Z",
+    "finishedAt": "2026-11-12T20:41:23.375Z",
+    "log": "logs/SHE-59.log",
+    "exitCode": 0,
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-96": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:38:49.671Z",
+    "finishedAt": "2026-11-12T20:40:13.913Z",
+    "log": "logs/SHE-96.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/203"
+  },
+  "SHE-19": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:39:02.045Z",
+    "finishedAt": "2026-11-12T20:40:09.256Z",
+    "log": "logs/SHE-19.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/202"
+  },
+  "SHE-58": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:39:21.255Z",
+    "finishedAt": "2026-11-12T20:41:01.598Z",
+    "log": "logs/SHE-58.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/205"
+  },
+  "SHE-157": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:39:50.173Z",
+    "finishedAt": "2026-11-12T20:41:07.625Z",
+    "log": "logs/SHE-157.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/206"
+  },
+  "SHE-164": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:39:57.759Z",
+    "finishedAt": "2026-11-12T20:41:18.411Z",
+    "log": "logs/SHE-164.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/207"
+  },
+  "SHE-235": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:40:07.096Z",
+    "finishedAt": "2026-11-12T20:41:06.239Z",
+    "log": "logs/SHE-235.log",
+    "exitCode": 0,
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-236": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:40:07.866Z",
+    "finishedAt": "2026-11-12T20:46:07.357Z",
+    "log": "logs/SHE-236.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/228"
+  },
+  "SHE-240": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:40:19.005Z",
+    "finishedAt": "2026-11-12T20:43:06.835Z",
+    "log": "logs/SHE-240.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/214"
+  },
+  "SHE-82": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:40:19.637Z",
+    "finishedAt": "2026-11-12T20:42:23.408Z",
+    "log": "logs/SHE-82.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/211"
+  },
+  "SHE-81": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:40:55.385Z",
+    "finishedAt": "2026-11-12T20:42:36.670Z",
+    "log": "logs/SHE-81.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/212"
+  },
+  "SHE-80": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:41:05.745Z",
+    "finishedAt": "2026-11-12T20:43:40.887Z",
+    "log": "logs/SHE-80.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/216"
+  },
+  "SHE-78": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:41:07.336Z",
+    "finishedAt": "2026-11-12T20:42:47.162Z",
+    "log": "logs/SHE-78.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/213"
+  },
+  "SHE-9": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:41:12.266Z",
+    "finishedAt": "2026-11-12T20:41:49.161Z",
+    "log": "logs/SHE-9.log",
+    "exitCode": 0,
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-43": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:41:23.917Z",
+    "finishedAt": "2026-11-12T20:42:18.010Z",
+    "log": "logs/SHE-43.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/210"
+  },
+  "SHE-179": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:41:24.503Z",
+    "finishedAt": "2026-11-12T20:42:10.144Z",
+    "log": "logs/SHE-179.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/209"
+  },
+  "SHE-79": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:41:32.895Z",
+    "finishedAt": "2026-11-12T20:42:16.464Z",
+    "log": "logs/SHE-79.log",
+    "exitCode": 0,
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-115": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:41:50.221Z",
+    "finishedAt": "2026-11-12T20:42:18.009Z",
+    "log": "logs/SHE-115.log",
+    "exitCode": 0,
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-27": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:42:15.585Z",
+    "finishedAt": "2026-11-12T20:42:43.079Z",
+    "log": "logs/SHE-27.log",
+    "exitCode": 0,
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-60": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:42:17.284Z",
+    "finishedAt": "2026-11-12T20:42:42.689Z",
+    "log": "logs/SHE-60.log",
+    "exitCode": 0,
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-61": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:42:19.208Z",
+    "finishedAt": "2026-11-12T20:42:43.512Z",
+    "log": "logs/SHE-61.log",
+    "exitCode": 0,
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-89": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:42:24.481Z",
+    "finishedAt": "2026-11-12T20:43:23.738Z",
+    "log": "logs/SHE-89.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/215"
+  },
+  "SHE-88": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:42:30.179Z",
+    "finishedAt": "2026-11-12T20:44:16.159Z",
+    "log": "logs/SHE-88.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/221"
+  },
+  "SHE-95": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:42:42.261Z",
+    "finishedAt": "2026-11-12T20:44:03.294Z",
+    "log": "logs/SHE-95.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/217"
+  },
+  "SHE-94": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:42:44.320Z",
+    "finishedAt": "2026-11-12T20:45:01.098Z",
+    "log": "logs/SHE-94.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/223"
+  },
+  "SHE-119": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:42:44.881Z",
+    "finishedAt": "2026-11-12T20:44:07.187Z",
+    "log": "logs/SHE-119.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/218"
+  },
+  "SHE-107": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:42:45.710Z",
+    "finishedAt": "2026-11-12T20:44:11.565Z",
+    "log": "logs/SHE-107.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/220"
+  },
+  "SHE-102": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:42:52.054Z",
+    "finishedAt": "2026-11-12T20:44:11.564Z",
+    "log": "logs/SHE-102.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/219"
+  },
+  "SHE-123": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:43:11.323Z",
+    "finishedAt": "2026-11-12T20:44:54.013Z",
+    "log": "logs/SHE-123.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/222"
+  },
+  "SHE-125": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:43:28.609Z",
+    "finishedAt": "2026-11-12T20:45:39.302Z",
+    "log": "logs/SHE-125.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/226"
+  },
+  "SHE-5": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:43:45.656Z",
+    "finishedAt": "2026-11-12T20:46:13.571Z",
+    "log": "logs/SHE-5.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/229"
+  },
+  "SHE-24": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:44:07.890Z",
+    "finishedAt": "2026-11-12T20:46:46.239Z",
+    "log": "logs/SHE-24.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/231"
+  },
+  "SHE-85": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:44:12.312Z",
+    "finishedAt": "2026-11-12T20:45:19.880Z",
+    "log": "logs/SHE-85.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/224"
+  },
+  "SHE-86": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:44:20.469Z",
+    "finishedAt": "2026-11-12T20:47:13.895Z",
+    "log": "logs/SHE-86.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/233"
+  },
+  "SHE-91": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:44:20.957Z",
+    "finishedAt": "2026-11-12T20:45:57.188Z",
+    "log": "logs/SHE-91.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/227"
+  },
+  "SHE-92": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:44:25.536Z",
+    "finishedAt": "2026-11-12T20:45:31.807Z",
+    "log": "logs/SHE-92.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/225"
+  },
+  "SHE-98": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:44:58.794Z",
+    "finishedAt": "2026-11-12T20:47:39.789Z",
+    "log": "logs/SHE-98.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/238"
+  },
+  "SHE-103": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:45:05.221Z",
+    "finishedAt": "2026-11-12T20:47:05.830Z",
+    "log": "logs/SHE-103.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/232"
+  },
+  "SHE-105": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:45:26.696Z",
+    "finishedAt": "2026-11-12T20:46:28.457Z",
+    "log": "logs/SHE-105.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/230"
+  },
+  "SHE-109": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:45:36.741Z",
+    "finishedAt": "2026-11-12T20:47:23.183Z",
+    "log": "logs/SHE-109.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/234"
+  },
+  "SHE-110": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:45:43.892Z",
+    "finishedAt": "2026-11-12T20:47:52.434Z",
+    "log": "logs/SHE-110.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/240"
+  },
+  "SHE-114": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:46:01.977Z",
+    "finishedAt": "2026-11-12T20:47:27.895Z",
+    "log": "logs/SHE-114.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/236"
+  },
+  "SHE-116": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:46:18.792Z",
+    "finishedAt": "2026-11-12T20:47:35.504Z",
+    "log": "logs/SHE-116.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/237"
+  },
+  "SHE-69": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:46:20.116Z",
+    "finishedAt": "2026-11-12T20:47:11.831Z",
+    "log": "logs/SHE-69.log",
+    "exitCode": 0,
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-72": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:46:33.294Z",
+    "finishedAt": "2026-11-12T20:48:13.697Z",
+    "log": "logs/SHE-72.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/242"
+  },
+  "SHE-75": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:46:51.624Z",
+    "finishedAt": "2026-11-12T20:47:45.242Z",
+    "log": "logs/SHE-75.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/239"
+  },
+  "SHE-74": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:47:11.365Z",
+    "finishedAt": "2026-11-12T20:48:00.186Z",
+    "log": "logs/SHE-74.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/241"
+  },
+  "SHE-101": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:47:12.800Z",
+    "finishedAt": "2026-11-12T20:48:41.871Z",
+    "log": "logs/SHE-101.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/244"
+  },
+  "SHE-21": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:47:19.376Z",
+    "finishedAt": "2026-11-12T20:48:34.899Z",
+    "log": "logs/SHE-21.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/243"
+  },
+  "SHE-124": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:47:27.894Z",
+    "finishedAt": "2026-11-12T20:49:23.125Z",
+    "log": "logs/SHE-124.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/249"
+  },
+  "SHE-62": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:47:33.004Z",
+    "finishedAt": "2026-11-12T20:48:06.116Z",
+    "log": "logs/SHE-62.log",
+    "exitCode": 0,
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-104": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:47:40.480Z",
+    "finishedAt": "2026-11-12T20:49:19.190Z",
+    "log": "logs/SHE-104.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/248"
+  },
+  "SHE-108": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:47:45.242Z",
+    "finishedAt": "2026-11-12T20:49:02.073Z",
+    "log": "logs/SHE-108.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/246"
+  },
+  "SHE-73": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:47:49.868Z",
+    "finishedAt": "2026-11-12T20:50:31.452Z",
+    "log": "logs/SHE-73.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/253"
+  },
+  "SHE-76": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:47:57.388Z",
+    "finishedAt": "2026-11-12T20:49:30.996Z",
+    "log": "logs/SHE-76.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/250"
+  },
+  "SHE-77": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:48:05.527Z",
+    "finishedAt": "2026-11-12T20:48:53.831Z",
+    "log": "logs/SHE-77.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/245"
+  },
+  "SHE-122": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:48:07.271Z",
+    "finishedAt": "2026-11-12T20:50:02.214Z",
+    "log": "logs/SHE-122.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/251"
+  },
+  "SHE-93": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:48:19.851Z",
+    "finishedAt": "2026-11-12T20:49:06.092Z",
+    "log": "logs/SHE-93.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/247"
+  },
+  "SHE-113": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:48:47.053Z",
+    "finishedAt": "2026-11-12T20:50:27.020Z",
+    "log": "logs/SHE-113.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/252"
+  },
+  "SHE-106": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:48:48.066Z",
+    "finishedAt": "2026-11-12T20:56:56.212Z",
+    "log": "logs/SHE-106.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/264"
+  },
+  "SHE-70": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:49:00.334Z",
+    "finishedAt": "2026-11-12T20:49:38.542Z",
+    "log": "logs/SHE-70.log",
+    "exitCode": 0,
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-67": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:49:07.043Z",
+    "finishedAt": "2026-11-12T20:58:09.914Z",
+    "log": "logs/SHE-67.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/270"
+  },
+  "SHE-120": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:49:11.712Z",
+    "finishedAt": "2026-11-12T20:57:41.596Z",
+    "log": "logs/SHE-120.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/268"
+  },
+  "SHE-141": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:49:23.711Z",
+    "finishedAt": "2026-11-12T20:49:49.783Z",
+    "log": "logs/SHE-141.log",
+    "exitCode": 0,
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-159": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:49:29.108Z",
+    "finishedAt": "2026-11-12T20:53:14.276Z",
+    "log": "logs/SHE-159.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/255"
+  },
+  "SHE-161": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:49:35.091Z",
+    "finishedAt": "2026-11-12T20:57:31.647Z",
+    "log": "logs/SHE-161.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/267"
+  },
+  "SHE-169": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:49:39.250Z",
+    "finishedAt": "2026-11-12T20:57:13.178Z",
+    "log": "logs/SHE-169.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/265"
+  },
+  "SHE-131": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:49:52.073Z",
+    "finishedAt": "2026-11-12T20:52:29.623Z",
+    "log": "logs/SHE-131.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/254"
+  },
+  "SHE-167": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:50:08.781Z",
+    "finishedAt": "2026-11-12T20:58:43.480Z",
+    "log": "logs/SHE-167.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/271"
+  },
+  "SHE-18": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:50:33.462Z",
+    "finishedAt": "2026-11-12T20:53:19.917Z",
+    "log": "logs/SHE-18.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/256"
+  },
+  "SHE-133": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:50:41.452Z",
+    "finishedAt": "2026-11-12T20:53:46.363Z",
+    "log": "logs/SHE-133.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/257"
+  },
+  "SHE-163": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:52:34.744Z",
+    "finishedAt": "2026-11-12T20:54:44.425Z",
+    "log": "logs/SHE-163.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/258"
+  },
+  "SHE-176": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:53:19.364Z",
+    "finishedAt": "2026-11-12T20:55:07.304Z",
+    "log": "logs/SHE-176.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/259"
+  },
+  "SHE-158": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:53:24.780Z",
+    "finishedAt": "2026-11-12T20:56:49.882Z",
+    "log": "logs/SHE-158.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/263"
+  },
+  "SHE-136": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:53:51.022Z",
+    "finishedAt": "2026-11-12T20:55:11.688Z",
+    "log": "logs/SHE-136.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/260"
+  },
+  "SHE-10": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:54:50.256Z",
+    "finishedAt": "2026-11-12T20:56:01.865Z",
+    "log": "logs/SHE-10.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/261"
+  },
+  "SHE-137": {
+    "status": "no_changes",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:55:11.688Z",
+    "finishedAt": "2026-11-12T20:55:42.730Z",
+    "log": "logs/SHE-137.log",
+    "exitCode": 0,
+    "publishError": "Error: Codex exited successfully but produced no changes to publish"
+  },
+  "SHE-166": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:55:15.992Z",
+    "finishedAt": "2026-11-12T20:56:34.374Z",
+    "log": "logs/SHE-166.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/262"
+  },
+  "SHE-139": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:55:44.314Z",
+    "finishedAt": "2026-11-12T20:57:21.249Z",
+    "log": "logs/SHE-139.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/266"
+  },
+  "SHE-173": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:56:06.687Z",
+    "finishedAt": "2026-11-12T20:58:05.284Z",
+    "log": "logs/SHE-173.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/269"
+  },
+  "SHE-174": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:56:38.899Z",
+    "finishedAt": "2026-11-12T20:59:56.329Z",
+    "log": "logs/SHE-174.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/274"
+  },
+  "SHE-34": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:56:54.840Z",
+    "finishedAt": "2026-11-12T20:58:53.074Z",
+    "log": "logs/SHE-34.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/272"
+  },
+  "SHE-170": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T20:57:02.069Z",
+    "finishedAt": "2026-11-12T20:58:58.378Z",
+    "log": "logs/SHE-170.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/273"
+  },
+  "SHE-259": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T22:25:56.800Z",
+    "finishedAt": "2026-11-12T22:27:48.510Z",
+    "log": "logs/SHE-259.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/283"
+  },
+  "SHE-263": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T22:27:54.837Z",
+    "finishedAt": "2026-11-12T22:30:34.499Z",
+    "log": "logs/SHE-263.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/284"
+  },
+  "SHE-265": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T22:30:41.565Z",
+    "finishedAt": "2026-11-12T22:34:11.057Z",
+    "log": "logs/SHE-265.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/285"
+  },
+  "SHE-261": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T22:34:18.865Z",
+    "finishedAt": "2026-11-12T22:37:35.732Z",
+    "log": "logs/SHE-261.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/286"
+  },
+  "SHE-260": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T22:37:42.419Z",
+    "finishedAt": "2026-11-12T22:42:54.202Z",
+    "log": "logs/SHE-260.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/287"
+  },
+  "SHE-262": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T22:43:00.809Z",
+    "finishedAt": "2026-11-12T22:48:32.714Z",
+    "log": "logs/SHE-262.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/288"
+  },
+  "SHE-264": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T22:48:38.812Z",
+    "finishedAt": "2026-11-12T22:52:44.946Z",
+    "log": "logs/SHE-264.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/289"
+  },
+  "SHE-266": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T22:52:52.090Z",
+    "finishedAt": "2026-11-12T22:57:15.831Z",
+    "log": "logs/SHE-266.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/290"
+  },
+  "SHE-267": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T22:57:22.830Z",
+    "finishedAt": "2026-11-12T23:00:17.229Z",
+    "log": "logs/SHE-267.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/291"
+  },
+  "SHE-268": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T23:00:23.654Z",
+    "finishedAt": "2026-11-12T23:03:12.735Z",
+    "log": "logs/SHE-268.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/292"
+  },
+  "SHE-182-r2": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T23:03:19.782Z",
+    "finishedAt": "2026-11-12T23:05:52.184Z",
+    "log": "logs/SHE-182-r2.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/293"
+  },
+  "SHE-171-r2": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T23:06:00.306Z",
+    "finishedAt": "2026-11-12T23:08:35.925Z",
+    "log": "logs/SHE-171-r2.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/294"
+  },
+  "SHE-167-r2": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T23:08:43.378Z",
+    "finishedAt": "2026-11-12T23:10:17.755Z",
+    "log": "logs/SHE-167-r2.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/295"
+  },
+  "SHE-45-r2": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T23:10:24.479Z",
+    "finishedAt": "2026-11-12T23:11:52.936Z",
+    "log": "logs/SHE-45-r2.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/296"
+  },
+  "SHE-44-r2": {
+    "status": "failed",
+    "attempt": 1,
+    "startedAt": "2026-11-12T23:11:57.289Z",
+    "finishedAt": "2026-11-12T23:11:59.429Z",
+    "log": "logs/SHE-44-r2.log"
+  },
+  "SHE-64-r2": {
+    "status": "failed",
+    "attempt": 1,
+    "startedAt": "2026-11-12T23:11:59.433Z",
+    "finishedAt": "2026-11-12T23:12:01.356Z",
+    "log": "logs/SHE-64-r2.log"
+  },
+  "SHE-63-r2": {
+    "status": "failed",
+    "attempt": 1,
+    "startedAt": "2026-11-12T23:12:01.358Z",
+    "finishedAt": "2026-11-12T23:12:03.137Z",
+    "log": "logs/SHE-63-r2.log"
+  },
+  "SHE-192-r2": {
+    "status": "failed",
+    "attempt": 1,
+    "startedAt": "2026-11-12T23:12:03.141Z",
+    "finishedAt": "2026-11-12T23:12:04.576Z",
+    "log": "logs/SHE-192-r2.log"
+  },
+  "SHE-11-r2": {
+    "status": "failed",
+    "attempt": 1,
+    "startedAt": "2026-11-12T23:12:04.578Z",
+    "finishedAt": "2026-11-12T23:12:06.103Z",
+    "log": "logs/SHE-11-r2.log"
+  },
+  "SHE-165-r2": {
+    "status": "failed",
+    "attempt": 1,
+    "startedAt": "2026-11-12T23:12:06.105Z",
+    "finishedAt": "2026-11-12T23:12:07.997Z",
+    "log": "logs/SHE-165-r2.log"
+  },
+  "SHE-239-r2": {
+    "status": "failed",
+    "attempt": 1,
+    "startedAt": "2026-11-12T23:12:07.998Z",
+    "finishedAt": "2026-11-12T23:12:11.363Z",
+    "log": "logs/SHE-239-r2.log"
+  },
+  "SHE-229-r2": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T23:12:12.430Z",
+    "finishedAt": "2026-11-12T23:15:10.266Z",
+    "log": "logs/SHE-229-r2.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/297"
+  },
+  "SHE-231-r2": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T23:15:16.743Z",
+    "finishedAt": "2026-11-12T23:17:40.072Z",
+    "log": "logs/SHE-231-r2.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/298"
+  },
+  "SHE-233-r2": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T23:17:47.657Z",
+    "finishedAt": "2026-11-12T23:20:57.522Z",
+    "log": "logs/SHE-233-r2.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/299"
+  },
+  "SHE-237-r2": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T23:21:05.295Z",
+    "finishedAt": "2026-11-12T23:24:58.857Z",
+    "log": "logs/SHE-237-r2.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/300"
+  },
+  "SHE-227-r2": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T23:25:06.699Z",
+    "finishedAt": "2026-11-12T23:28:15.097Z",
+    "log": "logs/SHE-227-r2.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/301"
+  },
+  "SHE-228-r2": {
+    "status": "pr_created",
+    "attempt": 1,
+    "startedAt": "2026-11-12T23:28:23.653Z",
+    "finishedAt": "2026-11-12T23:31:36.230Z",
+    "log": "logs/SHE-228-r2.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/302"
+  },
+  "SHE-212-r2": {
+    "status": "failed",
+    "attempt": 1,
+    "startedAt": "2026-11-12T23:31:42.337Z",
+    "finishedAt": "2026-11-12T23:31:44.788Z",
+    "log": "logs/SHE-212-r2.log"
+  },
+  "SHE-137-r2": {
+    "status": "failed",
+    "attempt": 1,
+    "startedAt": "2026-11-12T23:31:44.789Z",
+    "finishedAt": "2026-11-12T23:31:47.978Z",
+    "log": "logs/SHE-137-r2.log"
+  }
+}
