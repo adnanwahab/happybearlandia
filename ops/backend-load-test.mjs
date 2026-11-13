@@ -3,7 +3,8 @@ import {VERSION} from '../world/city/contracts.js';
 export const recipe = Object.freeze({title:'Synthetic staging load probe',city:{seed:45,households:12},runs:1,months:2,retention:'summary',scenarios:[{id:'baseline',interventions:[]}]});
 export function validateTarget(config) {
   const url=new URL(config.origin);
-  if(url.protocol!=='https:'||url.username||url.password||url.pathname!=='/'||url.search||url.hash||!/(^|[.-])staging([.-]|$)/.test(url.hostname)||['happybearlandia.fly.dev','happybearlandia.com','www.happybearlandia.com'].includes(url.hostname))throw Error('Explicit HTTPS staging origin required');
+  const local=config.localStaging===true&&url.protocol==='http:'&&url.hostname==='127.0.0.1'&&url.port!=='';
+  if((!local&&url.protocol!=='https:')||url.username||url.password||url.pathname!=='/'||url.search||url.hash||(!local&&!/(^|[.-])staging([.-]|$)/.test(url.hostname))||['happybearlandia.fly.dev','happybearlandia.com','www.happybearlandia.com'].includes(url.hostname))throw Error('Explicit HTTPS staging origin required');
   if(config.environment!=='staging'||!config.app||!config.buildSha?.match(/^[a-f0-9]{40}$/)||config.approvedOrigin!==url.origin||config.concurrencyPrerequisite!=='SHE-42 verified'||config.disposableData!==true)throw Error('Staging identity, build, approval, disposable data and verified SHE-42 required');
   return url.origin;
 }
@@ -16,7 +17,7 @@ export function summarize(samples) {
 }
 export async function runLoad(config,{execute=false,fetchImpl=fetch}={}) {
   const origin=validateTarget(config);
-  const plan={version:1,origin,app:config.app,buildSha:config.buildSha,modelVersion:VERSION,recipe,users:2,journeysPerUser:2,maxRequests:65,requestTimeoutMs:10000,maxResponseBytes:2*1024*1024,assumptions:'Synthetic illustrative uncalibrated city; not an empirical forecast.'};
+  const plan={version:1,measurementEnvironment:config.localStaging?'local staging (no production capacity inference)':'staging',origin,app:config.app,buildSha:config.buildSha,modelVersion:VERSION,recipe,users:2,journeysPerUser:2,maxRequests:65,requestTimeoutMs:10000,maxResponseBytes:2*1024*1024,assumptions:'Synthetic illustrative uncalibrated city; not an empirical forecast.'};
   if(!execute)return {dryRun:true,plan};
   const samples=[],createdExperimentIds=[];let count=0,active=0,peak=0,stopped=false;
   const started=performance.now();

@@ -183,6 +183,19 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 30, 0);
 controls.maxPolarAngle = Math.PI * 0.47;
 controls.enableDamping = true;
+// Arrival is visual only; the selected URL is the simulation authority.
+if(params.get('arrival')==='1'&&matchMedia('(prefers-reduced-motion: reduce)').matches){camera.position.set(22,18,32);controls.target.set(0,8,0);}
+let arrivalStart=null,arrivalDone=params.get('arrival')!=='1'||matchMedia('(prefers-reduced-motion: reduce)').matches;
+function updateArrival(now){
+  if(arrivalDone)return;
+  arrivalStart??=now;
+  const t=Math.min(1,(now-arrivalStart)/2600),ease=1-Math.pow(1-t,3);
+  camera.position.set(320*(1-ease)+22*ease,3000*(1-ease)+18*ease,450*(1-ease)+32*ease);
+  controls.target.set(0,8,0);
+  if(t===1)arrivalDone=true;
+}
+renderer.domElement.addEventListener('pointerdown',()=>{arrivalDone=true;},{once:true});
+
 const resizeWorldView = () => {camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);};
 addEventListener("resize",resizeWorldView);
 
@@ -216,7 +229,7 @@ scene.add(ground);
 
 
 scene.background=new THREE.Color(0xbcd3df);
-function drawStartupFrame(now){if(!startupActive||startupAbort.signal.aborted)return;const started=performance.now(),frameMs=startupLastFrame===null?0:now-startupLastFrame;startupLastFrame=now;mapControls.update(now);fpsMeter.update(now);controls.update();startupCityRenderer?.beforeFrame(now,0,1,null,{}, {now:0,dt:0});globalIllumination.render();if(frameMs>0)startupCityRenderer?.afterFrame(now,performance.now()-started,frameMs);startup.firstFrameMs??=performance.now();startupRAF=requestAnimationFrame(drawStartupFrame);}
+function drawStartupFrame(now){if(!startupActive||startupAbort.signal.aborted)return;const started=performance.now(),frameMs=startupLastFrame===null?0:now-startupLastFrame;startupLastFrame=now;mapControls.update(now);fpsMeter.update(now);updateArrival(now);controls.update();startupCityRenderer?.beforeFrame(now,0,1,null,{}, {now:0,dt:0});globalIllumination.render();if(frameMs>0)startupCityRenderer?.afterFrame(now,performance.now()-started,frameMs);startup.firstFrameMs??=performance.now();startupRAF=requestAnimationFrame(drawStartupFrame);}
 requestAnimationFrame(drawStartupFrame);
 addEventListener("pagehide",()=>{startup.cancelled=true;startupAbort.abort();startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);removeEventListener("resize",resizeWorldView);},{once:true});
 
@@ -231,7 +244,7 @@ const originalAreaGeometry=structuredClone(area);
 startup.mapReadyMs=performance.now();
 const town = buildTown(origin, area, { maxPeople, savedGeometry: savedSyntheticHome });
 mountConstitutionComparison({ THREE, scene, camera, controls, town, params });
-const world = createWorld(town, { journalsEnabled:!embedMode&&!realityRunSeed&&Boolean(journalCity(origin)),recordHistory:!embedMode, ...(realityRunSeed ? { runSeed:realityRunSeed } : {}) });
+const world = createWorld(town, { journalsEnabled:!embedMode&&!realityRunSeed&&Boolean(journalCity(origin)),recordHistory:!embedMode, ...((realityRunSeed || params.get("seed")) ? { runSeed:realityRunSeed || params.get("seed") } : {}) });
 const legacyJournalCity=journalCity(origin),legacyJournalRun=`legacy:${crypto.randomUUID()}`;
 const legacyJournalRecorder=world.journals?createJournalRecorder({city:legacyJournalCity,mode:'legacy',getRunId:()=>legacyJournalRun,getMinute:()=>world.t,getPage:query=>{for(const p of world.people)ensureJournal(world.journals,String(p.id),p.name,world.t);return journalPage(world.journals,query);},onSaved:minute=>pruneSavedJournals(world.journals,minute,world.t)}):null;
 if(legacyJournalRecorder)void legacyJournalRecorder.flush(true);
@@ -517,7 +530,7 @@ function bindActivityRuntime(runtime){if(activityRuntimeUnsubscribe)return;activ
 const legacyActivityUnsubscribe=world.subscribeActivity(()=>{if(!livingWorld?.active)notifyActivity();});
 const playback=createSimulationPlayback({initialSpeed:speed,onChange:state=>{speed=state.paused?0:state.speed;const runtime=livingWorld?.active?livingWorld.getRuntime():null;if(runtime){runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();}for(const button of $("speeds").children)button.classList.toggle("on",Number(button.dataset.s)===(state.paused?0:state.speed));if(selected?.type==="person")renderInspector();if(window.hblGuidedActions)worldFeedback("playback",{paused:state.paused,speed:state.speed});}});
 window.hblSimulationPlayback=playback;
-livingWorld=!embedMode?mountLivingWorld({container:document.body,scene,camera,controls,THREE,town,renderer,autoActivate:loadedExperiment?false:!businessMode&&!simulationId&&!demoMode&&!renderBenchmark,initialMinute:loadedExperiment?0:6*60,onRuntimeReady:runtime=>{bindActivityRuntime(runtime);const state=playback.getState();runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();if(!livingPlaybackUnsubscribe)livingPlaybackUnsubscribe=runtime.subscribe(frame=>{if(!livingWorld?.active||!frame?.runtime)return;if(Number.isFinite(frame.runtime.speed)&&frame.runtime.speed!==playback.getState().speed)playback.setSpeed(frame.runtime.speed);frame.runtime.paused?playback.pause():playback.resume();});return true;},onModeChange:active=>{if(active){window.hblVisualPass?.controller.stop();visualCamera?.cancel();visualSpotlight?.clear();}people.visible=!active;follow=false;selected=null;document.documentElement.classList.remove("person-selected");$("inspect").removeAttribute("data-person-selected");$("inspect").style.display="none";cityRenderer.setFeature('traffic',active?false:originalTrafficEnabled);cityRenderer.updateCity({trafficDensity:active?0:1});document.body.classList.toggle('living-active',active);notifyActivity();const fastest=$('speeds').lastElementChild;fastest.dataset.s=active?'32':'60';fastest.textContent=active?'32×':'60×';if(active&&playback.getState().speed>32)playback.setSpeed(32);}}):null;
+livingWorld=!embedMode?mountLivingWorld({container:document.body,scene,camera,controls,THREE,town,renderer,autoActivate:false,initialMinute:loadedExperiment?0:6*60,onRuntimeReady:runtime=>{bindActivityRuntime(runtime);const state=playback.getState();runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();if(!livingPlaybackUnsubscribe)livingPlaybackUnsubscribe=runtime.subscribe(frame=>{if(!livingWorld?.active||!frame?.runtime)return;if(Number.isFinite(frame.runtime.speed)&&frame.runtime.speed!==playback.getState().speed)playback.setSpeed(frame.runtime.speed);frame.runtime.paused?playback.pause():playback.resume();});return true;},onModeChange:active=>{if(active){window.hblVisualPass?.controller.stop();visualCamera?.cancel();visualSpotlight?.clear();}people.visible=!active;follow=false;selected=null;document.documentElement.classList.remove("person-selected");$("inspect").removeAttribute("data-person-selected");$("inspect").style.display="none";cityRenderer.setFeature('traffic',active?false:originalTrafficEnabled);cityRenderer.updateCity({trafficDensity:active?0:1});document.body.classList.toggle('living-active',active);notifyActivity();const fastest=$('speeds').lastElementChild;fastest.dataset.s=active?'32':'60';fastest.textContent=active?'32×':'60×';if(active&&playback.getState().speed>32)playback.setSpeed(32);}}):null;
 window.hblLivingWorld=livingWorld;
 const neighborhoodWhatIf = !embedMode ? mountNeighborhoodWhatIf({scene,camera,controls,renderer,THREE,getContext:()=>livingWorld.getContext()}) : null;
 addEventListener('pagehide',()=>neighborhoodWhatIf?.destroy(),{once:true});
@@ -1410,6 +1423,7 @@ $("runExperimentBtn")?.addEventListener("click", () => withClassicWorld(runExper
 /* ---------------------------------------------------------------- */
 let cycleWorker = null;     // stays alive between cycles so cycle 2 continues cycle 1's worlds
 let cycleBusy = false;
+let cycleDeadline = null;
 let cycleResults = [];      // one entry per completed cycle
 let cycleIdx = 0;           // which cycle the panel and overlay show
 let cycleWho = "best";
@@ -1448,27 +1462,49 @@ function cycleStatusText(r, n) {
 
 function setCycleBusy(busy) {
   cycleBusy = busy;
+  clearTimeout(cycleDeadline);
+  if (busy) cycleDeadline = setTimeout(() => failCycle("The weekly comparison exceeded its 120-second limit. Try Run cycle again."), 120000);
+  $("cycleRunState").textContent = busy ? "Running" : "Ready";
+  $("cycleProgress").hidden = !busy;
+  $("cycleCancel").hidden = !busy;
+  if (busy) $("cycleProgress").removeAttribute("value");
   $("runCycleBtn").disabled = busy;
   const next = $("cycleNext");
   if (next) next.disabled = busy;
 }
 
+function failCycle(message, cancelled = false) {
+  cycleWorker?.terminate();
+  cycleWorker = null;
+  setCycleBusy(false);
+  $("cycleRunState").textContent = cancelled ? "Cancelled" : "Failed";
+  $("cycleStatus").textContent = message + " Click Run cycle to retry.";
+  $("runCycleBtn").textContent = "Retry Run cycle";
+  cycleWaiter?.reject(new Error(message));
+  cycleWaiter = null;
+  if (!cancelled) worldFeedback('error', {label:'Weekly comparison failed', message});
+}
+
+$("cycleCancel")?.addEventListener("click", () => failCycle("Weekly comparison cancelled.", true));
+
 function startCycleWorker() {
   cycleWorker?.terminate();
-  cycleWorker = createTrackedWorker(new URL("./cycle.worker.js", import.meta.url), { type: "module" }, { type: "Cycle", ownership: { system: "legacy-cycle" } });
-  cycleWorker.onmessage = (ev) => {
+  const worker = createTrackedWorker(new URL("./cycle.worker.js", import.meta.url), { type: "module" }, { type: "Cycle", ownership: { system: "legacy-cycle" } });
+  cycleWorker = worker;
+  worker.onerror = (event) => { if (cycleWorker === worker && cycleBusy) failCycle(event.message || "The simulation worker could not start."); };
+  worker.onmessageerror = () => { if (cycleWorker === worker && cycleBusy) failCycle("The simulation result could not be read."); };
+  worker.onmessage = (ev) => {
+    if (cycleWorker !== worker || !cycleBusy) return;
     const msg = ev?.data || {};
-    const status = $("cycleStatus");
-    if (msg.type === "progress") { status.textContent = `${msg.stage}…`; return; }
-    if (msg.type === "error") {
-      status.textContent = `Cycle failed: ${msg.error}`;
-      worldFeedback('error',{label:'Weekly comparison failed',message:String(msg.error)});
-      setCycleBusy(false);
-      cycleWaiter?.reject(new Error(msg.error));
-      cycleWaiter = null;
+    if (msg.type === "progress") {
+      $("cycleStatus").textContent = `${msg.stage}…`;
+      if (Number.isFinite(msg.frac)) $("cycleProgress").value = Math.max(0, Math.min(1, msg.frac));
       return;
     }
-    if (msg.type === "done") onCycleDone(msg.result);
+    if (msg.type === "error") { failCycle(String(msg.error)); return; }
+    if (msg.type === "done") {
+      try { onCycleDone(msg.result); } catch (error) { failCycle(error.message); }
+    }
   };
 }
 
@@ -1491,21 +1527,23 @@ function runCycle() {
   $("cycleStatus").textContent = "Starting…";
   cycleResults = [];
 
-  // The visible world adopts the plan too, so what you watch matches what was measured.
-  $("policy").value = pkgId;
-  activePolicyId = pkgId;
-  policyYear = year;
-  if (planYearEl) planYearEl.value = String(year);
-  if (planYearNEl) planYearNEl.textContent = `Year ${year}`;
-  applyPolicy(pkgId, year);
+  try {
+    // The visible world adopts the plan too, so what you watch matches what was measured.
+    $("policy").value = pkgId;
+    activePolicyId = pkgId;
+    policyYear = year;
+    if (planYearEl) planYearEl.value = String(year);
+    if (planYearNEl) planYearNEl.textContent = `Year ${year}`;
+    applyPolicy(pkgId, year);
 
-  startCycleWorker(); // a fresh cycle 1 starts from fresh worlds
-  pendingCycleLabel = pkgLabel;
-  pendingCycleSource = pkg.source;
-  cycleWorker.postMessage({
-    type: "run",
-    payload: { origin, area, maxPeople, proposalIds: pkg.proposalIds || [], label: pkgLabel, remoteId: pkg.remoteId || null, year, days: 7 },
-  });
+    startCycleWorker(); // a fresh cycle 1 starts from fresh worlds
+    pendingCycleLabel = pkgLabel;
+    pendingCycleSource = pkg.source;
+    cycleWorker.postMessage({
+      type: "run",
+      payload: { origin, area, maxPeople, proposalIds: pkg.proposalIds || [], label: pkgLabel, remoteId: pkg.remoteId || null, year, days: 7 },
+    });
+  } catch (error) { failCycle(error.message); }
 }
 
 function runNextCycle() {
@@ -1514,7 +1552,8 @@ function runNextCycle() {
   $("cycleStatus").textContent = "Reading residents' journals…";
   pendingCycleLabel = null;
   pendingCycleSource = null;
-  cycleWorker.postMessage({ type: "next" });
+  try { cycleWorker.postMessage({ type: "next" }); }
+  catch (error) { failCycle(error.message); }
 }
 
 let pendingCycleLabel = null;
@@ -1550,6 +1589,8 @@ function onCycleDone(result) {
   const addedForLog = changeLabels(r.added);
   world.log(`Cycle ${n}${n > 1 && addedForLog.length ? ` (+ ${addedForLog.join(", ")})` : `: ${label}`} → ${signed(d)} avg well-being ${vs}`, "civic");
   setCycleBusy(false);
+  $("cycleRunState").textContent = "Completed";
+  $("runCycleBtn").textContent = "Run cycle";
   renderCyclePanel();
   $("cyclePanel").scrollTop = 0;
   worldFeedback('cycle',{
@@ -2332,7 +2373,7 @@ function frame(now) {
     }
   }
 
-  controls.update();
+  updateArrival(now);controls.update();
   if(buildingDateBridge?.get().enabled&&now-buildingDateLastRefresh>500){buildingDateLastRefresh=now;buildingDateBridge.refresh();}
   personCommandUI?.update();
   houseEntryControls?.update();
