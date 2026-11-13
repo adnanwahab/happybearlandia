@@ -1,5 +1,47 @@
 # HappyBearLandia implementation plan
 
+## SHE-265 — transparent World plan cards
+
+Delivered locally on 2026-11-12; browser acceptance remains pending. Audit of
+merged HEAD 53090035 found the opaque select in `world/index.html`, dynamic
+packages in `world/render.js`, separate Canvas2D presets, and worker year-zero
+substitution. This integrated slice reuses the existing policy/change and worker
+entry points. Shared staging derives cards and direct custom inputs from the
+same policy rules; native radio cards and labeled range controls expose units,
+source limitations, unsupported proposals, and additional program boosts.
+
+Acceptance tasks: [x] exact preset/year and custom values; [x] preserve zero year
+and explicit no-package runs; [x] custom matched week through the real worker;
+[x] deterministic replay and matched baseline; [x] source links and honest local
+popularity disclaimer; [x] keyboard/screen-reader semantics in code;
+[ ] real desktop/mobile keyboard, layout and assistive-technology acceptance.
+Remote packages with the standard names replace their local counterpart cards,
+preserving their original remote IDs for synthesis. Custom values are direct
+synthetic mechanisms, with other boosts zero; journal-driven follow-up is disabled
+for them because there is no reviewed mapping back to proposals. Default year is
+three, and explicit year zero is honored. No model rule coefficients changed.
+
+Changed UI: `world/index.html`, `world/plan-choices.{js,css}`,
+`world/plan-choices-source.html`, both renderer entries. Worker integration:
+`world/cycle.worker.js`. Reviewed these against `world/policy.js`,
+`world/sim.js` and `docs/models/legacy.md`; documented the discrepancies that
+weekly housing construction and automatic flooding are unsupported. The four
+levers are inputs, not fabricated output. Browser checks cover the normal
+Canvas2D World route at 1280 and 320px and capture actual worker submissions.
+
+Actual checks: final focused Bun suite passed 18 tests, 163 assertions in 9.87s;
+policy-comparison/guide/staging suite passed 9 tests, 251 assertions in 9.05s.
+The real worker custom test verifies unchanged levers, identical starting and
+no-plan scores, changed transit-arm scores, and exact deterministic rerun.
+Playwright setup initially lacked the server cwd (fixed). Final attempts on
+39889 and 41973 both failed before launch with Bun server EADDRINUSE. No browser,
+layout, screen-reader, screenshot, performance or remote-service observation is
+claimed. Browser-target bundling passed for all three entries (369 modules), with the
+existing /vendor imports externalized; `git diff --check` passed. No merge or
+deployment. Next: run
+`bunx --no-install playwright test --config test/plan-choices.browser.config.mjs`
+on a host that permits local server binding, then manually check a screen reader.
+
 ## SHE-253 — quest-selection director paired experiment
 
 Preparation only; experiment execution remains gated by the issue's explicit

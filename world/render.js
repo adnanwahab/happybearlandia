@@ -1,5 +1,6 @@
 import {mountStormCue} from './render/environment/storm-cue.js';
 import {stormIntensityAt} from './weather/parcel-storm.js';
+import {mountPlanChoices,customPlan,stagePlan} from './plan-choices.js';
 import {createGlobalIllumination} from './render/global-illumination.js';
 import {mountPlaybackFacts,withMetadataDeadline,mountControlReadiness} from './onboarding/first-run-repairs.js';
 import {createQuickDemoController} from './onboarding/quick-demo-controller.js';
@@ -669,11 +670,12 @@ const BASE_POLICY_PACKAGES = {
   },
 };
 
-let PLAN_PACKAGES = { ...BASE_POLICY_PACKAGES };
+let PLAN_PACKAGES = { ...BASE_POLICY_PACKAGES, custom:customPlan() };
+let planChoices;
 let PLAN_COMPARE_DIFF = {};
 let BALANCED_SIM_NOTE = "";
 let activePolicyId = "none";
-let policyYear = Math.max(0, Math.min(10, Number(params.get("year") ?? 0) || 0));
+let policyYear = Math.max(0, Math.min(10, Number(params.get("year") ?? 3) || 0));
 const planYearEl = $("planYear");
 const planYearNEl = $("planYearN");
 if (planYearEl) planYearEl.value = String(policyYear);
@@ -718,12 +720,13 @@ function refreshPolicySelect(selected = "none") {
     .join("");
   sel.innerHTML = options;
   sel.value = PLAN_PACKAGES[selected] ? selected : "none";
+  planChoices?.render();
 }
 
 function applyPolicy(id, year = policyYear) {
   const k = PLAN_PACKAGES[id] ? id : "none";
   const p = PLAN_PACKAGES[k];
-  const staged = computeEffectsForYear(p.proposalIds || [], year);
+  const staged = stagePlan(p, year);
 
   world.policy = {
     ...world.policy,
@@ -760,7 +763,7 @@ function applyPolicy(id, year = policyYear) {
     label: 'Plan configured',
     message: p.label + ' at plan year ' + year + '. These are configured mechanisms; run a paired experiment to measure outcomes.',
     metrics: [
-      {label:'Transit time multiplier',value:staged.effects.speedMult.toFixed(2) + '×'},
+      {label:'Transit speed multiplier',value:staged.effects.speedMult.toFixed(2) + '×'},
       {label:'Flood mitigation',value:Math.round(staged.effects.floodMitigation * 100) + '%'},
       {label:'Housing growth',value:Math.round(staged.effects.housingGrowth * 100) + '%'},
     ],
@@ -797,7 +800,8 @@ async function loadPolicyPackages() {
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
         const name = row?.name || row?.title || row?.label || row?.packageName || `Package ${i + 1}`;
-        const id = slug(row?.id || row?.slug || name);
+        const preset = Object.entries(BASE_POLICY_PACKAGES).find(([,p])=>p.label.toLowerCase()===name.toLowerCase());
+        const id = preset?.[0] || slug(row?.id || row?.slug || name);
         const items = row?.items || row?.proposals || row?.package?.items || [];
         const proposalIds = Array.from(new Set(items.map(proposalIdFrom).filter(Boolean)));
         if (!proposalIds.length) continue;
@@ -810,7 +814,7 @@ async function loadPolicyPackages() {
       }
       if (!n) continue;
 
-      PLAN_PACKAGES = {...BASE_POLICY_PACKAGES,...next};
+      PLAN_PACKAGES = {...BASE_POLICY_PACKAGES,custom:PLAN_PACKAGES.custom||customPlan(),...next};
       PLAN_COMPARE_DIFF = compareDiffById;
       const balancedId = Object.keys(next).find((k) => /balanced/i.test(next[k]?.label || ""));
       const d = balancedId ? PLAN_COMPARE_DIFF[balancedId] : null;
@@ -948,6 +952,7 @@ function triggerStorm() {
 $("policy").onchange = (e) => {
   activePolicyId = e.target.value;
   applyPolicy(activePolicyId, policyYear);
+  planChoices?.render();
 };
 
 if (planYearEl) {
@@ -956,8 +961,11 @@ if (planYearEl) {
     if (planYearNEl) planYearNEl.textContent = `Year ${policyYear}`;
     params.set("year", String(policyYear));
     applyPolicy(activePolicyId, policyYear);
+    planChoices?.render();
   };
 }
+
+planChoices=mountPlanChoices({select:$('policy'),host:$('planChoices'),packages:()=>PLAN_PACKAGES,year:()=>policyYear,onCustom:()=>applyPolicy('custom',policyYear)});
 
 $("stormBtn").onclick = async () => {
   const panel = $("top"), scrollTop = panel.scrollTop;
@@ -1406,7 +1414,7 @@ function balancedPackageId() {
 }
 
 function cyclePackageId() {
-  if (PLAN_PACKAGES[activePolicyId] && activePolicyId !== "none" && !activePolicyId.startsWith("cycle-")) return activePolicyId;
+  if (PLAN_PACKAGES[activePolicyId] && !activePolicyId.startsWith("cycle-")) return activePolicyId;
   return balancedPackageId();
 }
 
@@ -1435,7 +1443,7 @@ function setCycleBusy(busy) {
   if (busy) $("cycleProgress").removeAttribute("value");
   $("runCycleBtn").disabled = busy;
   const next = $("cycleNext");
-  if (next) next.disabled = busy;
+  if (next) next.disabled = busy || Boolean(cycleResults[0]?.custom);
 }
 
 function failCycle(message, cancelled = false) {
@@ -1487,7 +1495,7 @@ function runCycle() {
   }
   const pkgId = pkg.id || requestedId || "none";
   const pkgLabel = pkg.label || pkgId;
-  const year = policyYear || 3; // effects ramp in over years; year 0 would show nothing
+  const year = policyYear;
   setCycleBusy(true);
   $("cycleStatus").textContent = "Starting…";
   cycleResults = [];
@@ -1500,19 +1508,20 @@ function runCycle() {
     if (planYearEl) planYearEl.value = String(year);
     if (planYearNEl) planYearNEl.textContent = `Year ${year}`;
     applyPolicy(pkgId, year);
+  planChoices.render();
 
     startCycleWorker(); // a fresh cycle 1 starts from fresh worlds
     pendingCycleLabel = pkgLabel;
     pendingCycleSource = pkg.source;
     cycleWorker.postMessage({
       type: "run",
-      payload: { origin, area, maxPeople, proposalIds: pkg.proposalIds || [], label: pkgLabel, remoteId: pkg.remoteId || null, year, days: 7 },
+      payload: { origin, area, maxPeople, proposalIds: pkg.proposalIds || [], label: pkgLabel, remoteId: pkg.remoteId || null, customEffects:pkg.customEffects, year, days: 7 },
     });
   } catch (error) { failCycle(error.message); }
 }
 
 function runNextCycle() {
-  if (cycleBusy || !cycleWorker || !cycleResults.length) return;
+  if (cycleBusy || !cycleWorker || !cycleResults.length || cycleResults[0]?.custom) return;
   setCycleBusy(true);
   $("cycleStatus").textContent = "Reading residents' journals…";
   pendingCycleLabel = null;
@@ -1693,8 +1702,8 @@ function renderCyclePanel() {
     </div>
     ${cycleIdx === cycleResults.length - 1 ? `
     <div class="row" style="margin-top:10px">
-      <button id="cycleNext" ${cycleBusy ? "disabled" : ""} title="Residents journal about this week; their journals pick the next change">Run cycle ${cycleResults.length + 1} →</button>
-      <span class="muted">let residents' journals pick the next fix</span>
+      <button id="cycleNext" ${cycleBusy || cycleResults[0]?.custom ? "disabled" : ""} title="Residents journal about this week; their journals pick the next change">Run cycle ${cycleResults.length + 1} →</button>
+      <span class="muted">${cycleResults[0]?.custom ? "Custom plans: edit sliders and Run cycle for another matched week." : "let residents' journals pick the next fix"}</span>
     </div>` : ""}
     <div class="exp-footnote">Synthetic residents. Well-being = day-averaged mood minus commute, housing, grocery and park frictions. Illustrative, not a forecast.</div>`;
 

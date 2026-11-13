@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>HappyBearLandia world</title>
 <link rel="stylesheet" href="/world/person-needs.css" />
+<link rel="stylesheet" href="/world/plan-choices.css" />
 <link rel="stylesheet" href="/world/first-run-guide.css" />
 <style>
   :root { --bg: #f4f1ea; --panel: rgba(255,255,255,.92); --ink: #1d1d1b; --muted: #6b6a64; --line: rgba(0,0,0,.12); --accent: #2f6fd6; }
@@ -176,9 +177,10 @@ body:has(.saved-future-navigation) #global-illumination-button{top:auto;bottom:m
   <div class="need"><span id="moodLabel">Mood</span><div class="bar" role="meter" aria-label="Simulated mood or utility" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="moodMeter"><i id="mood"></i></div><output id="moodN" for="moodMeter" style="font-size:12px;min-width:54px;text-align:right">— / 100</output></div>
   <div class="row muted" id="counts"></div>
   <div class="row">
-    <label class="muted" for="policy">Plan package</label>
-    <select id="policy" aria-label="Plan package">
-      <option value="none">No package</option>
+    <div id="planChoices"></div>
+    <select id="policy" aria-label="Plan package" hidden>
+      <option value="custom">Make my own</option>
+      <option value="none" selected>No package</option>
       <option value="balanced">Balanced</option>
       <option value="minimal-change">Minimal change</option>
       <option value="most-popular">Most popular</option>
@@ -206,8 +208,8 @@ body:has(.saved-future-navigation) #global-illumination-button{top:auto;bottom:m
     <summary>Advanced settings · plan year, overlays, seeds &amp; diagnostics</summary>
   <div class="row" style="margin-top:2px">
     <label class="muted" for="planYear">Year of plan</label>
-    <input id="planYear" type="range" min="0" max="10" step="1" value="0" style="flex:1" />
-    <span id="planYearN" class="muted" style="min-width:52px;text-align:right">Year 0</span>
+    <input id="planYear" type="range" min="0" max="10" step="1" value="3" style="flex:1" />
+    <span id="planYearN" class="muted" style="min-width:52px;text-align:right">Year 3</span>
   </div>
   <div class="row" style="margin-top:2px">
     <label class="muted" for="overlayMode">Overlay</label>

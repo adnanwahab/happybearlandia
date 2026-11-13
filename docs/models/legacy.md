@@ -30,6 +30,27 @@ Town geometry and building kinds come from the supplied town. Resident attribute
 
 ACTIONS defines locations, eligibility, duration, need rates and start effects: e.g. eating consumes fridge stock, purchases transfer money, work pays per minute. Base need decay is hunger .09, energy .045, fun .05, social .04 per minute, modified by active rules; walking is 40 m/min. These are gameplay assumptions. [simulation-parameters.js](../../world/simulation-parameters.js) resolves overrides/metadata. [Relationships](../../world/relationships/model.js) supplies the same sparse social rule family through legacySocial with legacy identity/availability adapters; [culture](../../world/culture/README.md) and [weather](../../world/weather/README.md) specify environmental submodels. Verify: `bun test test/simulation-playback.test.js test/weather-simulation.test.js test/culture-simulation.test.js`.
 
+### World plan choice inputs (SHE-265)
+
+`world/plan-choices.js` stages the preset proposal IDs with the selected integer
+implementation year through `policy.js`, including year zero. Local presets have
+no measured popularity evidence; World links their recipe/rules sources. Optional
+Civic Synthesis packages retain their remote IDs and unsupported-proposal list;
+the World response does not establish the voter population or vote counts.
+
+The custom card supplies explicit bounded `customEffects`: speedMult [1,2.6],
+floodMitigation [0,.45], housingGrowth [0,1.8], voucherMonthly [0,120]. These are
+synthetic input assumptions, not observations or inferred outcomes. Other program
+boosts remain zero. The worker validates and retains resolved effects in its
+first-cycle result, applies transit and vouchers to the plan arm only, and keeps
+the identical no-plan initialization. Housing growth is configuration metadata:
+the legacy weekly engine does not construct housing. Flood mitigation configures
+the separate live Storm action, not an automatic weekly flood. Custom plans
+support one matched week; edit and rerun rather than asking synthesis to translate
+arbitrary direct values back into proposal IDs. No new entity/time mapping,
+randomness, or model outcome claims are introduced. Verify exact values and
+seed-matched replay with `test/plan-choices.test.js` and `test/repeat-play.test.js`.
+
 ### Classic World Storm — parcel-storm.v1
 
 The normal Storm button selects the existing ranked non-park building IDs by

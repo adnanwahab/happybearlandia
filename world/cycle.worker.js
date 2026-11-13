@@ -1,3 +1,4 @@
+import {stagePlan} from './plan-choices.js';
 // Run civic cycles off the main thread.
 //
 // Cycle 1: two identical copies of the visible town (same origin, area and seed).
@@ -43,7 +44,7 @@ function makeWorld({ origin, area, maxPeople }) {
 }
 
 function applyPlan(w, proposalIds, year) {
-  const staged = computeEffectsForYear(proposalIds, year);
+  const staged = Array.isArray(proposalIds) ? computeEffectsForYear(proposalIds, year) : stagePlan(proposalIds,year);
   const e = staged.effects;
   Object.assign(w, {
     speedMult: e.speedMult,
@@ -218,12 +219,12 @@ async function cycle1(payload, progress) {
   const tick = async (label) => { done++; progress(label(), done / totalDays); await null; };
 
   const base = await replayHistory(env, [[]], () => tick(() => "Simulating without the plan"));
-  const plan = await replayHistory(env, [plan1Ids], () => tick(() => "Simulating with the plan"));
+  const plan = await replayHistory(env, [payload.customEffects ? {proposalIds:plan1Ids,customEffects:payload.customEffects} : plan1Ids], () => tick(() => "Simulating with the plan"));
   const journalsAfter = journals(plan.world, plan.byId);
   const scores = { before: [...plan.before], noPlan: [...base.after], withPlan: [...plan.after] };
 
   state = {
-    env, cycle: 1, history: [plan1Ids], plan1Ids, plan1Label: payload.label, remoteId: payload.remoteId || null, streak: {},
+    custom: Boolean(payload.customEffects), env, cycle: 1, history: [plan1Ids], plan1Ids, plan1Label: payload.label, remoteId: payload.remoteId || null, streak: {},
     planWorld: plan.world, planById: plan.byId, cycle1Scores: scores,
     hurtRef: { scores, plan: 1 }, // the last change, for "who did it hurt, and did the next change help?"
   };
@@ -233,6 +234,8 @@ async function cycle1(payload, progress) {
     days: env.days,
     year: env.year,
     proposalIds: plan1Ids,
+    effects: plan.staged.effects,
+    custom: Boolean(payload.customEffects),
     unsupported: plan.staged.unsupported,
     scores,
     ...summarize(scores, base.world, plan.world, plan.journalsBefore, journalsAfter),
@@ -251,6 +254,7 @@ function complaintFor(proposalId, counts) {
 
 async function cycle2(progress) {
   if (!state) throw new Error("Run cycle 1 first");
+  if (state.custom) throw new Error("Custom plans support one matched week. Change the sliders and Run cycle again.");
   const { env, history, plan1Ids, plan1Label, remoteId, streak, planWorld, planById, cycle1Scores, hurtRef } = state;
   const n = (state.cycle || 1) + 1;
 
