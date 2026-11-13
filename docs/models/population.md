@@ -88,6 +88,18 @@ sample. The guard cannot preempt a single expensive tick or promise a frame-rate
 bound. See [the runtime policy](../../world/workers/README.md#adaptive-live-population-scheduling-she-174).
 Verify with `bun test test/population-scheduling.test.js test/population-memory-pressure.test.js`.
 
+
+### Building home observation for lighting
+
+`buildingHomeCounts` in [model.js](../../world/population/model.js) scans the full
+individual population at snapshot time, grouping assigned `homeLocation` IDs and
+counting presence with House `personAtHome`. It has no RNG, scheduling or state
+mutation. Unmapped homes are omitted; raw residents and atHome counts are
+unweighted. The renderer uses their ratio; no visible-sample or district-vacancy
+substitution is allowed. Synthetic anchors are not observed unit occupancy.
+Visitors are excluded from the resident numerator; this does not alter housing
+assignment or the House guest/roommate roster.
+
 ### Current-trip presentation (SHE-261)
 
 `world/population/trip-display.js` projects committed `remaining`, `tripTotal`,

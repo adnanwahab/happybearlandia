@@ -8,7 +8,7 @@ export function createFacadeMaterial(color, seed = 0, layout = {}) {
   const side = step(.5, normalLocal.y.abs()).oneMinus();
   const window = step(halfWidth.negate().add(.5),u).mul(step(u,halfWidth.add(.5))).mul(step(halfHeight.negate().add(.5),v)).mul(step(v,halfHeight.add(.5))).mul(side).mul(enabled).mul(landscape.oneMinus());
   const random = fract(sin(dot(vec3(cellX.floor(),cellY.floor(),uniform(seed)),vec3(12.9898,78.233,37.719))).mul(43758.5453));
-  const lit = step(random,occupancy);
+  const lit = step(random,occupancy).mul(step(.000001,occupancy));
   const glass = mix(vec3(.12,.2,.26),vec3(.36,.45,.49),v);
   // Intersect a view-dependent ray with a virtual room box. This is shader-only:
   // no apartment meshes, room textures or per-window scene objects are created.
