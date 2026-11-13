@@ -183,6 +183,19 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 30, 0);
 controls.maxPolarAngle = Math.PI * 0.47;
 controls.enableDamping = true;
+// Arrival is visual only; the selected URL is the simulation authority.
+if(params.get('arrival')==='1'&&matchMedia('(prefers-reduced-motion: reduce)').matches){camera.position.set(22,18,32);controls.target.set(0,8,0);}
+let arrivalStart=null,arrivalDone=params.get('arrival')!=='1'||matchMedia('(prefers-reduced-motion: reduce)').matches;
+function updateArrival(now){
+  if(arrivalDone)return;
+  arrivalStart??=now;
+  const t=Math.min(1,(now-arrivalStart)/2600),ease=1-Math.pow(1-t,3);
+  camera.position.set(320*(1-ease)+22*ease,3000*(1-ease)+18*ease,450*(1-ease)+32*ease);
+  controls.target.set(0,8,0);
+  if(t===1)arrivalDone=true;
+}
+renderer.domElement.addEventListener('pointerdown',()=>{arrivalDone=true;},{once:true});
+
 const resizeWorldView = () => {camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);};
 addEventListener("resize",resizeWorldView);
 
@@ -216,7 +229,7 @@ scene.add(ground);
 
 
 scene.background=new THREE.Color(0xbcd3df);
-function drawStartupFrame(now){if(!startupActive||startupAbort.signal.aborted)return;const started=performance.now(),frameMs=startupLastFrame===null?0:now-startupLastFrame;startupLastFrame=now;mapControls.update(now);fpsMeter.update(now);controls.update();startupCityRenderer?.beforeFrame(now,0,1,null,{}, {now:0,dt:0});globalIllumination.render();if(frameMs>0)startupCityRenderer?.afterFrame(now,performance.now()-started,frameMs);startup.firstFrameMs??=performance.now();startupRAF=requestAnimationFrame(drawStartupFrame);}
+function drawStartupFrame(now){if(!startupActive||startupAbort.signal.aborted)return;const started=performance.now(),frameMs=startupLastFrame===null?0:now-startupLastFrame;startupLastFrame=now;mapControls.update(now);fpsMeter.update(now);updateArrival(now);controls.update();startupCityRenderer?.beforeFrame(now,0,1,null,{}, {now:0,dt:0});globalIllumination.render();if(frameMs>0)startupCityRenderer?.afterFrame(now,performance.now()-started,frameMs);startup.firstFrameMs??=performance.now();startupRAF=requestAnimationFrame(drawStartupFrame);}
 requestAnimationFrame(drawStartupFrame);
 addEventListener("pagehide",()=>{startup.cancelled=true;startupAbort.abort();startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);removeEventListener("resize",resizeWorldView);},{once:true});
 
@@ -231,7 +244,7 @@ const originalAreaGeometry=structuredClone(area);
 startup.mapReadyMs=performance.now();
 const town = buildTown(origin, area, { maxPeople, savedGeometry: savedSyntheticHome });
 mountConstitutionComparison({ THREE, scene, camera, controls, town, params });
-const world = createWorld(town, { journalsEnabled:!embedMode&&!realityRunSeed&&Boolean(journalCity(origin)),recordHistory:!embedMode, ...(realityRunSeed ? { runSeed:realityRunSeed } : {}) });
+const world = createWorld(town, { journalsEnabled:!embedMode&&!realityRunSeed&&Boolean(journalCity(origin)),recordHistory:!embedMode, ...((realityRunSeed || params.get("seed")) ? { runSeed:realityRunSeed || params.get("seed") } : {}) });
 const legacyJournalCity=journalCity(origin),legacyJournalRun=`legacy:${crypto.randomUUID()}`;
 const legacyJournalRecorder=world.journals?createJournalRecorder({city:legacyJournalCity,mode:'legacy',getRunId:()=>legacyJournalRun,getMinute:()=>world.t,getPage:query=>{for(const p of world.people)ensureJournal(world.journals,String(p.id),p.name,world.t);return journalPage(world.journals,query);},onSaved:minute=>pruneSavedJournals(world.journals,minute,world.t)}):null;
 if(legacyJournalRecorder)void legacyJournalRecorder.flush(true);
@@ -2327,7 +2340,7 @@ function frame(now) {
     }
   }
 
-  controls.update();
+  updateArrival(now);controls.update();
   if(buildingDateBridge?.get().enabled&&now-buildingDateLastRefresh>500){buildingDateLastRefresh=now;buildingDateBridge.refresh();}
   personCommandUI?.update();
   houseEntryControls?.update();
