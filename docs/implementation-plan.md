@@ -8080,3 +8080,26 @@ all relative report links resolve and both changed documents have no trailing
 whitespace. `git diff --check` passed for tracked changes.
 No browser behavior changed; Playwright skipped. No configured general lint or
 typecheck. No merge/deployment/production mutation; commit/PR publication pending.
+
+## SHE-45-r2 — disposable local staging follow-up (2026-11-12)
+
+Owned slice: `ops/backend-load-test.mjs`, `ops/backend-load-local.mjs`,
+`test/backend-load-test.test.js`, one listener-host option in `server.js`,
+`docs/backend-load-test.md`, this entry, and `docs/reviews/SHE-45-r2.md`.
+Initial worktree was clean on `mini/SHE-45-r2`; prior merged PR #167 supplies
+most behavior. SHE-42 is Done and its worker bounds remain covered by tests.
+
+Acceptance: run the existing representative recipe through a real loopback
+`server.js` with disposable stores, retaining source data/version/seed semantics;
+record per-class p50/p95/error rates and saturation limits. Implemented explicit
+loopback target validation and a disposable full-server launcher. No model rules
+or provenance contracts changed. Risk: listener permission can block HTTP evidence;
+local tiny samples cannot establish deployment capacity.
+
+Verification: 29 passed, 1 opt-in HTTP test skipped, 0 failed, 377 assertions;
+`git diff --check` passed. Full-server command attempted but Bun cannot listen;
+independent Python bind confirms EPERM. HTTP latency/error/saturation measurements
+remain unverified. See [exact evidence and next action](reviews/SHE-45-r2.md).
+No browser behavior changed, so Playwright/screenshots are inapplicable. No merge,
+deployment, production load or data changes. No new PR/commit created because
+shared Git metadata is outside writable roots; host publication remains pending.
