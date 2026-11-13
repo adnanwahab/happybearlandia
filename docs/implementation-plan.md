@@ -8174,3 +8174,28 @@ Visual acceptance remains pending; next is the added SHE-267 normal-route test
 and guided normal/reduced-motion review on a host able to bind the server.
 Canvas retains its low-fidelity view; optional wipe not included. No model change,
 merge, deployment or production data change.
+
+## SHE-264 — ground wish construction action (November 12, 2026)
+
+Audit: isolated `mini/SHE-264`, clean initial worktree, base `53090035`.
+Remote main inspected through GitHub (`fbdce9e8`); building bridge matches this
+checkout. Prior PR search found no implementation for this issue. Existing
+Decision housing lifecycle, approval, occupancy and recorded rendering are reused.
+Next slice: ground right-click/long-press wish bubble, explicit parsed review,
+onboarding entry, selected-project before/after wireframe and project World Diff.
+Acceptance: gestures never approve; request uses selected world coordinates;
+invalid placement stays rejected; recorded monthly progress and entity IDs remain
+consistent across inspector/diff. Risk: housing is an aggregate model, with no
+resident identity mapping to live World people. Do not invent move-in agents,
+zoning decisions, utility checks or cross-model identities. Existing recorded
+occupied units are the supported move-in measure. Verification/status follows.
+
+SHE-264 actual status: ground-wish gesture, shared explicit review, onboarding
+entry, recorded scaffold, automatic construction playback, project-ID World Diff
+and selected-project ghost implemented. 76 building/gesture/checkpoint tests pass
+(1,055 assertions); 8 onboarding tests pass (32 assertions); whitespace passes.
+Playwright journey discovers but cannot start local server (`EADDRINUSE` on
+3194/43827); browser and mobile visual acceptance remain open. Individual resident
+move-in is unsupported by the current cross-model identity contracts; aggregate
+recorded occupied homes are exposed honestly. Full evidence and remaining work:
+`docs/reviews/SHE-264.md`. No merge/deploy/production action or commit/PR.
