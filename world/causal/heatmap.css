@@ -82,3 +82,7 @@
 .city-heatmap__swatch[data-bin="missing"] {
   background: repeating-linear-gradient(135deg, #fff 0 3px, #b7c7c1 3px 5px);
 }
+
+.city-heatmap__evidence { grid-column: 2; font-size: .8rem; color: #41665a; }
+.city-heatmap__evidence summary { cursor: help; text-decoration: underline dotted; }
+.city-heatmap__evidence p { margin: .4rem 0; }

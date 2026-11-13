@@ -1,7 +1,6 @@
+import { assertFrameIntegrity, assertHistoryIntegrity } from '../integrity.js';
 import {compareCityStates, metricDelta} from './core.js';
-
-// Keys and units match the coordinator's frozen future-machine.v1 contract.
-const METRIC_UNITS = Object.freeze({population:'people',households:'households',housingUnits:'homes',availableUnits:'homes',meanRent:'USD/month',unhoused:'households',employed:'workers',jobs:'jobs',businesses:'businesses',meanTravelMinutes:'minutes/link',balance:'USD',debt:'USD',capitalSpending:'USD cumulative',completedProjects:'projects'});
+import {METRIC_UNITS} from '../contracts.js';
 
 function assertMonth(month) {
   if (!Number.isInteger(month) || month < 0 || month > 120) throw new Error('Month must be an integer from 0 through 120');
@@ -19,7 +18,7 @@ function stableState(value) {
 /** Compare a pair of read-only monthly snapshots. Metrics come from the snapshots,
  * including cumulative spending; absent measurements are never recomputed as zero. */
 export function compareFrame(frame) {
-  assertMonth(frame?.month);
+  assertFrameIntegrity(frame);
   const {month, baseline, plan} = frame;
   for (const snapshot of [baseline, plan]) {
     if (snapshot && (snapshot.month !== month || snapshot.state?.month !== month)) throw new Error('Snapshot month does not match frame');
@@ -41,6 +40,7 @@ export function compareFrame(frame) {
 
 /** Exactly 121 frame results, keyed by their recorded month rather than row order. */
 export function compareHistory(history) {
+  if (history?.experimentId) assertHistoryIntegrity(history);
   if (!history || !Array.isArray(history.baseline) || !Array.isArray(history.plan)) throw new Error('Two monthly histories required');
   function months(snapshots) {
     if (snapshots.length > 121) throw new Error('History exceeds 120 monthly steps');
@@ -65,3 +65,5 @@ export function compareHistory(history) {
 }
 
 export {compareCityStates, compareEntities, compareHouseholds, metricDelta} from './core.js';
+
+export {firstDivergence} from './first-divergence.js';

@@ -1,8 +1,12 @@
 # Canonical monthly City run receipt
 
 `world/future-machine/share/run-receipt.js` owns the new
-`canonical-run-receipt.v1` interface. Existing evidence, example receipts, City
-storage, replay, URL sharing and browser behavior are unchanged.
+`canonical-run-receipt.v1` interface. Existing evidence, City storage, replay, URL sharing and browser behavior are
+unchanged. Checked-in [synthetic example receipts](../test/fixtures/example-receipts/README.md)
+use this canonical contract and can be validated and regenerated without a server.
+The examples directory also retains explicitly versioned historical receipts.
+Those original bytes are evidence of their old model version, not inputs accepted
+by the current model's strict replay validator.
 
 ```js
 import {
@@ -34,7 +38,7 @@ The receipt contains:
 | `scenarioIds` | Existing ordered monthly City `baseline` and `plan` pair |
 | `timeRange` | Months 0–120; illustrative January 2026–January 2036 |
 | `units` | Existing `METRIC_UNITS`, including cumulative capital USD and minutes/link |
-| `outcomeDigests` | SHA-256 of each full normalized selected and terminal snapshot, including state, metrics and recorded events |
+| `outcomeDigests` | SHA-256 of each normalized selected and terminal simulation snapshot, including all state, metrics and recorded events; the later-added top-level transport `identity` is validated separately |
 | `checksum` | SHA-256 of every other receipt field, using existing `stateHash` canonicalization |
 
 Canonical JSON sorts every object key lexicographically, preserves array order,
@@ -51,6 +55,15 @@ checksum mismatch and initial digest mismatch with the versioned synthetic
 generator. Housing retains the data adapter's stricter 120-home limit. Snapshot
 outcome digests and saved identity are verified against the real replay after
 loading. A missing saved record or a changed outcome fails explicitly.
+
+Snapshot transport identity was added after this v1 contract. To preserve
+existing City 1.1 receipts, only that top-level `identity` property is excluded
+from snapshot outcome hashes. Any history containing identity tags must pass
+the complete 121-month integrity check before export: matching experiment,
+scenario, run index/run ID, month, seed and model. Untagged legacy or local
+histories retain their original digest semantics. No state field, nested value,
+metric, event, decision or causal record is excluded, and saved replay still
+requires the strict City saved-outcome and complete regenerated-receipt checks.
 
 Provenance is copied from the source history, never invented. A missing rules
 manifest is an error. Synthetic assumptions and recomputation limits remain in
@@ -100,3 +113,27 @@ month 16, re-signed outcome mismatch, uint32 seeds 0/4294967295, null identity,
 canonical ordering, immutable detached export, incomplete histories and
 pre-network rejection of malformed/tampered/version-mismatched inputs. There
 is no browser-facing change or browser verification claim.
+
+## Player inspection and copy
+
+At `/world/future-machine.html`, complete a run, select a month, and expand
+**Replay receipt**. **Inspect current receipt** produces readable JSON from the
+existing canonical receipt library. **Copy receipt** copies those bytes; when
+clipboard access fails the field selects its text for manual copying. Selecting
+a different month or run clears the old export so a new inspection is explicit.
+The receipt includes model/rules versions, seed, bounded policy inputs, selected
+month events, causal records and decisions, provenance and synthetic limitations.
+It excludes page/account data and uses the existing synthetic monthly City data.
+
+Paste the JSON into **Paste replay receipt** and choose **Reopen receipt**.
+Validation and strict saved-run recomputation must succeed before replacing the
+comparison. Corrupt/unsupported metadata, unavailable saved records and changed
+outcomes fail visibly. Reopening has no recipe fallback. The saved experiment
+must still exist on this service. Receipt verification does not authenticate its
+author or establish empirical causality. Existing share and download controls
+keep their contracts.
+
+Focused UI verification command:
+`bunx playwright test --config test/future-machine.browser.config.js -g 'player inspects'`.
+This session could not start the local browser server (bind `EADDRINUSE`);
+no UI screenshot was produced.

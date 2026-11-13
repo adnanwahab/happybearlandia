@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test('edit drainage, compare exposures, replay a branch and run the 100-storm ensemble', async ({ page }) => {
   await page.addInitScript(() => Object.defineProperty(navigator, 'gpu', { value: undefined }));
   await page.goto('/world/storm/');
-  await expect(page.locator('#run-status')).toHaveText('Matched storms ready · CPU water solver');
+  await expect(page.locator('#run-status')).toContainText('Matched storms ready · CPU water solver · Fallback: CPU worker');
   const roads = page.getByRole('row').filter({ hasText: 'Road links closed' });
   await expect(roads.getByRole('cell')).toHaveText(['1', '1']);
   await page.getByRole('button', { name: 'Add drainage by Low Crossing' }).click();
@@ -57,3 +57,32 @@ test('Crisis Control Room dispatches treaty crews and replays the exact recovery
   await expect(page.locator('#shift-label')).toHaveText('Shift 1 of 8');
   await expect(page.locator('#events')).toContainText('dispatched · Open depot shelter');
 });
+
+for (const failure of ['missing GPU', 'low storage limit', 'worker failure']) {
+  test(`safe execution fallback: ${failure}`, async ({ page, browserName }) => {
+    await page.addInitScript(failure => {
+      window.deviceRequests = 0;
+      Object.defineProperty(navigator, 'gpu', { value: failure === 'low storage limit' ? {
+        requestAdapter: async () => ({ limits: { maxStorageBufferBindingSize: 1 },
+          requestDevice: async () => { window.deviceRequests++; throw Error('must not request unsupported device'); } }),
+      } : undefined });
+      if (failure === 'worker failure') window.Worker = class { constructor() { throw Error('injected worker failure'); } };
+      const getContext = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function(type, ...args) {
+        return type === 'webgl2' || type === 'webgl' ? null : getContext.call(this, type, ...args);
+      };
+    }, failure);
+    await page.goto('/world/storm/');
+    const status = page.locator('#run-status');
+    await expect(status).toContainText(`Fallback: ${failure === 'worker failure' ? 'CPU on main thread' : 'CPU worker'}`);
+    await expect(status).toContainText(failure === 'low storage limit' ? 'maxStorageBufferBindingSize' : 'No WebGPU');
+    if (failure === 'worker failure') await expect(status).toContainText('Worker unavailable');
+    expect(await page.evaluate(() => window.deviceRequests)).toBe(0);
+    await expect(page.locator('.storm-scene__toolbar')).toContainText('Top-down grid · 3D unavailable');
+    await expect(page.locator('.storm-scene__canvas--2d')).toBeVisible();
+    await expect(page.getByRole('row').filter({ hasText: 'Road links closed' }).getByRole('cell')).toHaveText(['1', '1']);
+    await page.locator('#tick').press('Home');
+    await expect(page.locator('#step-label')).toHaveText('Step 0 of 60');
+    console.log(JSON.stringify({ issue: 'SHE-168', browserName, failure, recipe: await page.evaluate(() => location.search), status: await status.textContent() }));
+  });
+}

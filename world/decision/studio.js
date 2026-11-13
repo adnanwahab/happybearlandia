@@ -1,3 +1,6 @@
+import { renderParameterDiff } from './parameter-diff.js';
+
+import { mountExplorationBadges } from './exploration-badges.js';
 import { mountContinuity } from './continuity-view.js';
 import { decisionSnapshot, localContextId } from './continuity.js';
 import { housingModel, compileHousingPlan, createHousingScenarios, stressPresets, validateHousingParameters, resolveHousingModel } from '../models/housing/index.js';
@@ -38,6 +41,7 @@ const scenario = () => state.scenarios.find(s => s.id === state.selected);
 const el = (tag, text, className) => { const node = document.createElement(tag); if (text !== undefined) node.textContent = text; if (className) node.className = className; return node; };
 const status = (message, error = false) => { $('#app-status').textContent = message; $('#app-status').classList.toggle('error', error); if (error) { state.errors.push(message); diagnostics.update({ ...(state.results || {}), apiErrors: state.errors }); } };
 const visuals = mountDecisionVisualizations($('#decision-visualizations'), { onSelectRun: selectRun, onEnterFuture: enterFuture });
+const badges = mountExplorationBadges($('#decision-visualizations'));
 const trust = mountDecisionTrust($('#decision-trust'));
 const diagnosticsContainer = el('div'); $('#trust').append(diagnosticsContainer);
 const diagnostics = mountDiagnostics(diagnosticsContainer);
@@ -231,10 +235,18 @@ function renderParameters() {
     renderFields(); renderCurve(); uncertainty.append(distribution, fields); row.append(mini, uncertainty); const role = definition.role || definition.controlGroup || definition.parameterRole; const group = /policy|lever/.test(role || '') || !role && policyIds.has(definition.id) ? 'policy' : 'world'; groups[group].append(row);
   }
 }
-function updateRunDescription() { $('#run-description').textContent = `${Number($('#run-count').value).toLocaleString()} futures × ${state.scenarios.length} scenarios. Same seed sequence, different choices.`; }
+function updateParameterDiff() { renderParameterDiff($('#scenario-parameter-diff'), currentInput(), activeModel, state.selected); }
+function updateRunDescription() { updateParameterDiff(); $('#run-description').textContent = `${Number($('#run-count').value).toLocaleString()} futures × ${state.scenarios.length} scenarios. Same seed sequence, different choices.`; }
 function updateDraftTrust() { trust.update({ experiment: currentInput(), runs: [], aggregates: [], comparisons: [], model: activeModel, evidence: collectedEvidence(), readOnly: state.readonly }); }
 function markDirty() {
+  updateParameterDiff();
   if (state.readonly) return;
+  // Input edits supersede pending create/start/reopen requests as well as polls.
+  // The server may finish its immutable record; it no longer owns this draft.
+  activeRequest++;
+  state.watch?.destroy(); state.watch = null;
+  traceSelectionToken++; state.tracePending = false;
+  if (state.busy) setBusy(false);
   state.dirty = true; state.generation++; updateAdvancedStudio(); $('#share-experiment').disabled = true;
   if (!state.results) updateDraftTrust();
   $('#result-context').textContent = state.results ? 'Assumptions changed. Results below belong to the previous experiment until a new run finishes.' : 'Assumptions ready. Run the experiment to explore outcomes.';
@@ -283,7 +295,7 @@ function renderResults(result) {
   const data = { ...result, experiment: state.experiment, runs: summaryRows.map(row=>mergeRunTrace(row,runTraces.peek(state.experiment.id,row.id))), previousResults: state.previousResults, model: result.model || resolveHousingModel(state.experiment?.modelVersion || activeModel.version).model, readOnly: state.readonly, evidence: state.evidence, apiErrors: state.errors };
   state.summaryResults = {...data,runs:summaryRows,previousResults:undefined};
   continuity.update(decisionSnapshot({ ...data, job: continuityJob, selectedRun: state.selectedRun }), { namespace: 'decision', experimentId: state.experiment?.id });
-  state.results = data; visuals.update(data); trust.update(data); diagnostics.update(data);
+  state.results = data; badges.update(data); visuals.update(data); trust.update(data); diagnostics.update(data);
   syncConstructionWorld(); worldTools?.update(); updateAdvancedStudio();
   const experiment = state.experiment;
   updateExecutiveSummary();
@@ -354,14 +366,16 @@ async function reopenExperiment(id, readonly = false) {
   if (state.busy) throw new Error('Cancel the running experiment before opening another.');
   clearTimeout(previewTimer); state.watch?.destroy(); runTraces.clear();traceSelectionToken++;automaticTraceKey=null;const token = ++activeRequest;
   status('Opening saved experiment…');
-  const result = readonly ? await client.share(id) : await client.results(id);
+  let result;
+  try { result = readonly ? await client.share(id) : await client.results(id); }
+  catch (error) { if (token !== activeRequest) return; throw error; }
   if (token !== activeRequest) return;
   if (!result.experiment) throw new Error('The server did not return an experiment.');
   state.results=null;state.summaryResults=null;state.selectedRun=null;constructionRun=null;state.experiment=result.experiment;runTraces.setExperiment(result.experiment.id);
   loadInput(result.experiment); setReadonly(readonly); state.preview = Boolean(result.experiment.metadata?.preview); state.hasRun = true; state.dirty = false;
   renderResults(result); updateExperimentUrl(id); status(readonly ? 'Read-only experiment opened. Explore the original inputs, futures, and decision brief.' : 'Experiment reopened with its original inputs and results.');
   if (result.experiment.status === 'running') {
-    setBusy(true); state.watch = client.watch(id, { onUpdate(next) { if (token !== activeRequest) return; renderResults(next); if (['completed', 'cancelled', 'failed'].includes(next.experiment?.status)) setBusy(false); }, onError(error) { setBusy(false); status(error.message, true); } });
+    setBusy(true); state.watch = client.watch(id, { onUpdate(next) { if (token !== activeRequest) return; renderResults(next); if (['completed', 'cancelled', 'failed'].includes(next.experiment?.status)) setBusy(false); }, onError(error) { if (token !== activeRequest) return; setBusy(false); status(error.message, true); } });
   }
 }
 function loadInput(input) {
@@ -683,7 +697,7 @@ on('apply-import', () => {
 function resetResults() {
   clearTimeout(previewTimer); stopConstructionPlayback(); constructionRun = null; constructionMonth = 0; worldPreview = null; worldVisualPreview = null; state.watch?.destroy(); activeRequest++; runTraces.clear();traceSelectionToken++;automaticTraceKey=null;state.summaryResults=null;state.tracePending=false;state.traceError=null; state.experiment = null; state.results = null; state.previousResults = null; state.selectedRun = null; state.hasRun = false; state.dirty = false; state.preview = false;
   const empty = { experiment: null, runs: [], aggregates: [], comparisons: [], model: housingModel, evidence: state.evidence };
-  visuals.update(empty); trust.update(empty); diagnostics.update(empty); $('#selected-run').hidden = true;
+  badges.update(empty); visuals.update(empty); trust.update(empty); diagnostics.update(empty); $('#selected-run').hidden = true;
   $('#share-experiment').disabled = $('#download-manifest').disabled = $('#reproduce-experiment').disabled = true;
   $('#result-context').textContent = 'Run the project to calculate its possible futures.';
   syncConstructionWorld(); updateAdvancedStudio();

@@ -72,6 +72,7 @@ test('replay route passes request abort, releases both reserved slots and keeps 
 });
 test('actual replay route still executes a successful short run on the normal Worker entry point',async()=>{
  const manifest=normalizeExperiment({city:{seed:0,households:6},runs:1,months:2,scenarios:[{id:'baseline',interventions:[]}]}),initial=JSON.stringify(manifest.initial);
- const handle=createCityApi({store:{get:()=>({manifest,status:'complete'})}}),response=await handle(new Request('http://localhost/api/city-experiments/city_short/replay',{method:'POST',body:JSON.stringify({runIndex:0,scenarioId:'baseline'})}));
- expect(response.status).toBe(200);const result=await response.json();expect(result.state).toEqual(createEngine().run(manifest.initial,2).state);expect(result.steps).toHaveLength(2);expect(result.state.seed).toBe(0);expect(JSON.stringify(manifest.initial)).toBe(initial);
+ const recorded=cityMetrics(createEngine().run(manifest.initial,2).state);
+ const handle=createCityApi({store:{get:()=>({manifest,status:'complete'}),savedOutcome:()=>recorded}}),response=await handle(new Request('http://localhost/api/city-experiments/city_short/replay',{method:'POST',body:JSON.stringify({runIndex:0,scenarioId:'baseline'})}));
+ expect(response.status).toBe(200);const result=await response.json();expect(result.state).toEqual(createEngine().run(manifest.initial,2).state);expect(result.steps).toHaveLength(2);expect(result.state.seed).toBe(0);expect(result.verification.status).toBe('matched');expect(JSON.stringify(manifest.initial)).toBe(initial);
 });

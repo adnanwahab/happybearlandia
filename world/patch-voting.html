@@ -12,18 +12,22 @@
 <main>
 <header><a href="/world/future-machine.html" class="back">← Back to the game</a><div class="eyebrow">HappyBearLandia · Community roadmap</div>
 <h1>Vote on the next patch</h1><p class="intro">Keep playing while the game improves. Vote for the changes you'd like to see next. Results guide the engineering backlog; every patch still passes review and tests.</p></header>
+<label><input type="checkbox" id="consent"> I opt in to sending votes and feedback for private human triage.</label>
+<p>Optional. Playing does not require feedback. A browser token prevents duplicate votes; no name or email is requested. Avoid personal information. Uncheck to stop future submissions; already sent feedback remains in triage. Nothing is implemented automatically.</p>
 <section aria-labelledby="ballot-heading">
 <h2 id="ballot-heading">Today's and this week's choices</h2>
 <p id="status" role="status" aria-live="polite">Loading the ballot…</p>
 <div id="ballot" class="cards"></div>
 </section>
 <section class="suggest" aria-labelledby="suggest-heading">
-<h2 id="suggest-heading">Suggest an improvement</h2>
+<h2 id="suggest-heading">Share feedback</h2>
 <p>What would make the next playthrough more fun? Suggestions are reviewed before they become votable tasks.</p>
 <form id="suggestion-form">
+<label for="kind">Feedback type</label><select name="kind" id="kind"><option value="idea">Idea</option><option value="problem">Problem report</option><option value="confusing">Confusing step</option><option value="favorite">Favorite moment</option></select>
+<label for="replay-seed">Replay seed (optional, problems only)</label><input id="replay-seed" name="replaySeed" maxlength="128" disabled>
 <label for="patch-title">Your idea</label><input id="patch-title" name="title" minlength="8" maxlength="100" required placeholder="Make floods more dramatic">
 <label for="patch-details">What should change?</label><textarea id="patch-details" name="details" minlength="12" maxlength="800" required rows="4" placeholder="Describe an improvement that players can notice and verify…"></textarea>
-<button type="submit">Submit suggestion</button>
+<button type="submit" disabled>Submit suggestion</button>
 </form><p id="suggestion-status" role="status" aria-live="polite"></p>
 </section>
 <footer>Votes are advisory, not guaranteed releases. One ballot per browser session is enforced as a best-effort anti-abuse measure, not proof of unique people. <a href="/">HappyBearLandia</a></footer>

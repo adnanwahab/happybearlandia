@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111b22">
+  <meta name="description" content="A night out in HappyBearLandia. Meet a funny cast, join the conversation, and see who you click with.">
+  <title>The Social Bear · HappyBearLandia</title>
+  <link rel="stylesheet" href="/world/bar/bar.css">
+  <link rel="icon" type="image/svg+xml" href="/world/bar/favicon.svg">
+  <script type="importmap">{"imports":{"three":"/vendor/three/three.module.js","three/addons/":"/vendor/three/addons/"}}</script>
+</head>
+<body>
+  <a class="skip-link" href="#conversation">Skip to conversation</a>
+  <header class="topbar">
+    <a class="brand" href="/routes" aria-label="HappyBearLandia routes"><span class="bear-mark" aria-hidden="true">ʕ•ᴥ•ʔ</span><span>HAPPYBEARLANDIA<small>A LITTLE AFTER HOURS</small></span></a>
+    <nav aria-label="Bar navigation">
+      <a id="return-home" class="quiet-link" href="/world/house">← Back to house</a>
+      <button type="button" class="icon-button" id="sound-toggle" aria-pressed="false" aria-label="Turn lounge music on">♫ <span>Sound off</span></button>
+      <button type="button" class="quiet-button" id="contacts-toggle">Connections <span id="contact-count" class="count">0</span></button>
+      <span class="wallet" aria-label="Tonight's spending money"><span aria-hidden="true">◇</span> <strong id="budget">$60</strong><small>TONIGHT’S CASH</small></span>
+    </nav>
+  </header>
+  <main id="bar-app" class="bar-layout">
+    <section class="lounge" aria-label="The Social Bear lounge">
+      <div class="lounge-heading"><div><div class="eyebrow"><span class="live-dot" aria-hidden="true"></span> THE NIGHT IS YOUNG <span id="night-number">/ 01</span></div><h1>The Social Bear<span>Good company. Questionable opening lines.</span></h1></div><button type="button" id="open-menu" class="menu-button"><span aria-hidden="true">♧</span> Drinks menu <span aria-hidden="true">↗</span></button></div>
+      <div class="scene-wrap" id="scene-wrap">
+        <div id="bar-scene" aria-label="Three-dimensional bar. Select people using the guest buttons below."></div>
+        <div class="scene-grain" aria-hidden="true"></div>
+        <div class="scene-note"><span class="live-dot" aria-hidden="true"></span> SIX STRANGERS. ONE GOOD STORY.</div>
+        <div class="scene-instruction" id="scene-instruction">Click someone to say hello</div>
+        <div class="scene-toast" id="scene-toast" hidden></div>
+      </div>
+      <section class="guest-section" aria-label="Tonight's guests"><div class="section-heading"><h2>Who’s here tonight</h2><span>Everyone has a different kind of funny.</span></div><div class="guest-roster" id="guest-roster"></div></section>
+      <section class="group-section" aria-label="Group conversations"><div class="section-heading"><h2>Or join the conversation</h2><span>Three tables. Several questionable opinions.</span></div><div class="group-roster" id="group-roster"></div></section>
+      <div class="night-footer"><span id="night-stats">Say hello. See where the evening goes.</span><button type="button" id="end-night" class="text-button">Call it a night ↗</button></div>
+    </section>
+    <aside class="conversation-panel" id="conversation" tabindex="-1" aria-label="Conversation"><div id="panel-content"><p class="loading" role="status">The bartender is polishing the punchlines…</p></div></aside>
+  </main>
+  <p class="save-message" id="save-message" hidden></p>
+  <div class="announcer" id="announcer" role="status" aria-live="polite" aria-atomic="true"></div>
+  <dialog id="bar-dialog" aria-labelledby="dialog-title"><div id="dialog-content"></div></dialog>
+  <noscript><p class="noscript">The Social Bear needs JavaScript to play. Return to <a href="/world/house">your house</a>.</p></noscript>
+  <script type="module" src="/world/bar/app.js"></script>
+</body>
+</html>

@@ -9,7 +9,16 @@
 <style>html{color-scheme:dark;background:#081425;color:#e9f2ff;font:16px system-ui}body{margin:0}#boot{max-width:60rem;margin:5rem auto;padding:2rem}a{color:#8fd9ff}button{font:inherit;padding:.7rem;cursor:pointer}body.future-machine-page>nav[aria-label="Connected universe"]{position:static!important;margin:16px auto!important;max-width:calc(100% - 32px)!important;width:fit-content;z-index:auto!important}
 </style>
 </head>
-<body class="future-machine-page"><div id="app"><section id="boot"><h1>Future Machine</h1><p>Loading the city comparison…</p><p><a href="/">HappyBearLandia home</a></p></section></div>
-<script type="module">import('/world/future-machine/main.js').catch(error=>{const p=document.querySelector('#boot p');if(p)p.textContent=`Unable to load Future Machine: ${error.message}. Refresh to retry.`;console.error(error);});</script>
+<body class="future-machine-page"><nav><a href="/world/detective.html">Play Detective of Futures</a></nav><div id="app"><section id="boot"><h1>Future Machine</h1><p>Loading the city comparison…</p><p><a href="/">HappyBearLandia home</a></p></section></div>
+<script type="module">
+import {mountDiagnosticReport} from '/world/future-machine/diagnostics.js';
+import('/world/future-machine/main.js').catch(()=>{
+  const app=document.querySelector('#app');
+  const message=document.createElement('p');
+  message.textContent='Unable to load Future Machine. Refresh to retry.';
+  app.replaceChildren(message);
+  mountDiagnosticReport(app).show({errorType:'boot-failure'});
+});
+</script>
 </body>
 </html>

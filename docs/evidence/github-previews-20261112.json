@@ -1,0 +1,12 @@
+{
+  "scope": "open pull requests only",
+  "integrationBranch": "sprint/one-city-two-futures-20261111",
+  "integrationBaseline": "173f9530752b0e476583ad3ee7433b57a857b6bd",
+  "realMetadata": {"transport": "host gh read-only API", "state": "open", "page": 1, "perPage": 25, "returned": 8},
+  "sourcePreparation": {"pr": 40, "sha": "4845c3dadc1cc32c6d6e42b64cf6583410884b79", "files": 18815, "expandedBytes": 468789099, "hostSelectedCodeExecuted": false},
+  "browserUISmoke": {"browser": "Chromium", "width": 390, "mockedMetadataAndPreview": true, "listRequests": 2, "detailRequests": 3, "explicitPOSTs": 1, "passed": true},
+  "localRuntimeRendering": {"verified": false, "blocker": "normal macOS pressure and at least 2GiB estimated headroom required"},
+  "fly": {"activated": false, "resourcesCreated": 0, "liveIsolationRenderingVerified": false},
+  "productionDeployed": false,
+  "symphonyModified": false
+}

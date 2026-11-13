@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "hbl-lifecycle-verification.v1",
+  "source": "Observed createExperimentsHandler events with injected synthetic runner and area gate",
+  "model": "controlled lifecycle fixture v1; no modeled city outcome claimed",
+  "command": "HBL_LIFECYCLE_RECEIPT=docs/evidence/she80-lifecycle.json bun test test/run-lifecycle.test.js",
+  "inputs": {
+    "proposalIds": [
+      "t_bus"
+    ],
+    "baseSeed": "she80-seed",
+    "seeds": 1,
+    "maxPeople": 30
+  },
+  "events": [
+    {
+      "sequence": 0,
+      "state": "queued",
+      "at": "2026-11-12T20:43:09.652Z",
+      "attempt": 1
+    },
+    {
+      "sequence": 1,
+      "state": "starting",
+      "at": "2026-11-12T20:43:09.652Z",
+      "attempt": 1
+    },
+    {
+      "sequence": 2,
+      "state": "running",
+      "at": "2026-11-12T20:43:09.655Z",
+      "attempt": 1
+    },
+    {
+      "sequence": 3,
+      "state": "canceled",
+      "at": "2026-11-12T20:43:09.657Z",
+      "attempt": 1
+    },
+    {
+      "sequence": 4,
+      "state": "retrying",
+      "at": "2026-11-12T20:43:09.657Z",
+      "attempt": 2
+    },
+    {
+      "sequence": 5,
+      "state": "starting",
+      "at": "2026-11-12T20:43:09.657Z",
+      "attempt": 2
+    },
+    {
+      "sequence": 6,
+      "state": "running",
+      "at": "2026-11-12T20:43:09.658Z",
+      "attempt": 2
+    },
+    {
+      "sequence": 7,
+      "state": "failed",
+      "at": "2026-11-12T20:43:09.658Z",
+      "attempt": 2
+    },
+    {
+      "sequence": 8,
+      "state": "retrying",
+      "at": "2026-11-12T20:43:09.659Z",
+      "attempt": 3
+    },
+    {
+      "sequence": 9,
+      "state": "starting",
+      "at": "2026-11-12T20:43:09.659Z",
+      "attempt": 3
+    },
+    {
+      "sequence": 10,
+      "state": "running",
+      "at": "2026-11-12T20:43:09.660Z",
+      "attempt": 3
+    },
+    {
+      "sequence": 11,
+      "state": "completed",
+      "at": "2026-11-12T20:43:09.660Z",
+      "attempt": 3
+    }
+  ],
+  "queuedCancellation": [
+    {
+      "sequence": 0,
+      "state": "queued",
+      "at": "2026-11-12T20:43:09.657Z",
+      "attempt": 1
+    },
+    {
+      "sequence": 1,
+      "state": "canceled",
+      "at": "2026-11-12T20:43:09.657Z",
+      "attempt": 1
+    }
+  ],
+  "attempts": [
+    {
+      "baseSeed": "she80-seed",
+      "seeds": 1
+    },
+    {
+      "baseSeed": "she80-seed",
+      "seeds": 1
+    },
+    {
+      "baseSeed": "she80-seed",
+      "seeds": 1
+    }
+  ],
+  "result": "passed"
+}

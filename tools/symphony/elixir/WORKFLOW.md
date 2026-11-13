@@ -4,7 +4,7 @@ tracker:
   provider:
     api_key: $LINEAR_API_KEY
     project_slug: "hbl-1m-player-launch-week-1-da57f913e8aa"
-  required_labels: ["symphony-pilot", "symphony-pressure-release"]
+  required_labels: ["hbl-agent-ready", "hbl-coordinator-approved", "symphony-pilot", "symphony-pressure-release"]
   active_states: [Todo, In Progress, Rework]
   terminal_states: [Closed, Cancelled, Canceled, Duplicate, Done]
 polling:
@@ -77,7 +77,8 @@ follow the blocker path before editing. Do not launch subagents.
 
 The host owns status transitions. For In Progress or Rework,
 resume existing work and address all PR review feedback without resetting scope.
-For any other state or a removed symphony-pilot label, stop without changes.
+For any other state or a removed symphony-pilot, hbl-agent-ready or
+hbl-coordinator-approved label, stop without changes.
 If the existing branch PR is closed or merged, block for operator reconciliation;
 do not discard work or create a replacement automatically.
 

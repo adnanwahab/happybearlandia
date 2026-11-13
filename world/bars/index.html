@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Houston Bar Atlas · HappyBearLandia</title>
+<style>
+:root{color-scheme:dark;background:#08141c;color:#f0f5ed;font:14px/1.5 system-ui,sans-serif}
+*{box-sizing:border-box}body{margin:0}a{color:#a5dada}
+header{padding:18px 24px;border-bottom:1px solid #315460;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
+h1{font-size:clamp(26px,3.5vw,42px);letter-spacing:-.04em;margin:0}
+h2{font-size:17px;margin:0 0 8px}p{color:#b6c7c9;margin:7px 0}main{display:grid;grid-template-columns:minmax(250px,340px) minmax(0,1fr);gap:16px;padding:16px;max-width:1550px;margin:0 auto}
+.list{background:#112431;border:1px solid #315460;border-radius:12px;padding:15px;max-height:calc(100vh - 145px);overflow:auto}
+input,button,select{font:inherit;background:#1b3441;color:#f0f5ed;border:1px solid #648d94;border-radius:8px;padding:9px}button{cursor:pointer}button:hover{background:#295263}
+button:disabled{opacity:.4;cursor:default}button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #ffce78;outline-offset:2px}
+#search{width:100%;margin:6px 0 12px}#venues{display:grid;gap:7px}#venues button{text-align:left;width:100%;padding:10px;background:#17303b}
+#venues button[aria-pressed=true]{background:#345a63;border-color:#ffce78}
+#venues strong,#venues small{display:block}small{color:#9fc0c2}
+.scene-area{min-width:0;display:grid;grid-template-rows:auto minmax(250px,1fr) auto;gap:12px}
+#atlas{width:100%;height:145px;border-radius:12px;background:#0a2230;cursor:crosshair;border:1px solid #315460}
+#scene{width:100%;height:min(51vh,550px);min-height:280px;background:#07141b;border:1px solid #315460;border-radius:12px;touch-action:manipulation}
+.bar-card{border:1px solid #315460;background:#112431;padding:12px;border-radius:12px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+label{display:block;margin:8px 0}
+#speech{width:min(600px,100%)}#log{max-height:100px;overflow:auto;border-top:1px solid #315460;margin-top:8px;padding-top:8px}
+#log li{margin:3px 0}.muted{font-size:12px;color:#a5bcbc}#venue-title{margin:0}
+@media(max-width:800px){main{grid-template-columns:1fr} .list{max-height:230px}#atlas{height:100px}#scene{height:37vh;min-height:240px}header{padding:12px 16px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header><div><p>HAPPYBEARLANDIA / REAL PLACES + FICTIONAL STORIES</p><h1>Houston Bar Atlas</h1></div><nav><a href="/">Home</a> · <a href="/world">World</a></nav></header>
+<main>
+<section class="list" aria-label="OSM Houston bar directory">
+<h2>Explore mapped Houston-area venues</h2>
+<p class="muted">Listings come from OpenStreetMap, which may omit bars and may not reflect current operation. The region is an approximate Houston-area bounding box, not exact city limits.</p>
+<label for="search">Find a bar or neighborhood</label><input id="search" type="search" placeholder="Search mapped venues…" autocomplete="off">
+<p id="catalog-status" role="status">Loading OpenStreetMap venues…</p>
+<div class="actions"><button id="retry" type="button">Refresh list</button><button id="show-list" type="button">Show all results</button></div>
+<div id="venues"></div>
+</section>
+<section class="scene-area">
+<canvas id="atlas" role="img" aria-label="Schematic plot of sourced Houston-area venue coordinates"></canvas>
+<div class="bar-card">
+<h2 id="venue-title">Choose a mapped venue</h2>
+<p id="venue-source">The exterior uses an exact OSM way footprint when available. If none matches, you will see an explicitly illustrative exterior.</p>
+<div id="venue-link"></div>
+</div>
+<canvas id="scene" role="img" aria-label="Isometric playable fictional bar scene"></canvas>
+<section class="bar-card" aria-label="Fictional venue interaction">
+<h2>Play a fictional evening</h2>
+<p class="muted">Patrons, menu, prices, conversations and interior design are invented. No real customers, bar operations or interior observations are represented.</p>
+<div class="actions"><button id="rotate-left" type="button" disabled>Rotate left</button><button id="rotate-right" type="button" disabled>Rotate right</button><button id="pause" type="button" disabled>Pause scene</button></div>
+<label for="patron">Talk to a fictional patron</label><select id="patron" disabled></select>
+<form id="talk"><label for="speech">What would you say?</label><input id="speech" maxlength="220" placeholder="Try a friendly, funny line…" required><button type="submit" disabled>Say it</button></form>
+<ul id="log" aria-live="polite"></ul>
+</section>
+</section>
+</main>
+<script type="module" src="/world/bars/app.js"></script>
+</body></html>

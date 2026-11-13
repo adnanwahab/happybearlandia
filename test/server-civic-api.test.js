@@ -92,3 +92,39 @@ describe("server civic API wiring", () => {
     expect(final.simulationBatch.simulations).toHaveLength(2);
   });
 });
+
+test("normal server API exposes anonymous counters and Retry-After on saturation", async () => {
+  let release;
+  const handler = createServerCivicApiHandler({
+    maxRunning: 1, maxQueued: 1,
+    resolveAdapter: () => ({ id: "held-api", simulateWorld: () => new Promise(resolve => { release = resolve; }) }),
+  });
+  const submit = (id) => handler(new Request("http://localhost/api/runs", {
+    method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ experiment: { ...tinyExperiment(), id }, worldBatch: { ...tinyWorldBatch(), worlds: [tinyWorldBatch().worlds[0]] } }),
+  }));
+  expect((await submit("secret-first")).status).toBe(202);
+  const queued = await submit("secret-second");
+  expect(queued.status).toBe(202);
+  expect((await queued.json()).status).toBe("queued");
+  const rejected = await submit("secret-third");
+  expect(rejected.status).toBe(429);
+  expect(rejected.headers.get("retry-after")).toBe("1");
+  expect(rejected.headers.get("cache-control")).toBe("no-store");
+  const response = await handler(new Request("http://localhost/api/runs/metrics"));
+  expect(response.headers.get("cache-control")).toBe("no-store");
+  const metrics = await response.json();
+  expect(metrics).toEqual({ schemaVersion: "hbl-run-queue-metrics.v1", submitted: 3, queued: 1, completed: 0, failed: 0, rejected: 1, deduplicated: 0, running: 1, queueDepth: 1, maxRunning: 1, maxQueued: 1 });
+  release({ score: 1 });
+  // The identical world/plan for the queued request uses the existing cache.
+  for (let i = 0; i < 20; i++) {
+    const final = await (await handler(new Request("http://localhost/api/runs/metrics"))).json();
+    if (final.completed === 2) {
+      expect(final.running).toBe(0);
+      expect(final.queueDepth).toBe(0);
+      return;
+    }
+    await new Promise(resolve => setTimeout(resolve, 1));
+  }
+  throw Error("Queue did not drain");
+});

@@ -10,3 +10,10 @@ test('Canvas fallback projects real scene bounds and reports no GPU support',()=
  expect(mode).toBe('canvas2d');expect(fills).toBe(1);expect(renderer.hasFeature('timestamp-query')).toBe(false);expect(mesh.position.toArray()).toEqual([0,0,0]);renderer.dispose();expect(removed).toBe(true);
 });
 test('convex hull removes interior points without modifying geometry inputs',()=>{const points=[{x:0,y:0},{x:2,y:0},{x:2,y:2},{x:0,y:2},{x:1,y:1}];expect(hull(points)).toHaveLength(4);expect(points).toHaveLength(5);});
+test('Canvas sky uses the shared scene background at day and night',()=>{
+ const backgrounds=[];const context={fillRect(){backgrounds.push(this.fillStyle);},fillText(){}};
+ const canvas={getContext:()=>context,setAttribute(){},dataset:{},style:{},remove(){}};
+ const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera();
+ for(const color of [0x0a1028,0xa8c5e8]){scene.background=new THREE.Color(color);const {renderer}=createCanvasRenderer({canvas});renderer.render(scene,camera);renderer.dispose();}
+ expect(backgrounds).toEqual(['#0a1028','#a8c5e8']);
+});

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "hbl.first-interaction-budgets.v1",
+  "runs": 3,
+  "profiles": [
+    {
+      "id": "laptop-emulated", "viewport": {"width": 1366, "height": 768}, "deviceScaleFactor": 1,
+      "cpuSlowdown": 1,
+      "network": {"latencyMs": 20, "downloadBytesPerSecond": 12500000, "uploadBytesPerSecond": 1250000},
+      "limits": {}
+    },
+    {
+      "id": "mobile-emulated", "viewport": {"width": 390, "height": 844}, "deviceScaleFactor": 2,
+      "cpuSlowdown": 4,
+      "network": {"latencyMs": 80, "downloadBytesPerSecond": 1250000, "uploadBytesPerSecond": 625000},
+      "limits": {}
+    }
+  ]
+}

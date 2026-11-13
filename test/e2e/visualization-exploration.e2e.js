@@ -6,10 +6,11 @@ test('500 real futures: ghost comparison, criteria, bounded search, density, las
   await page.setContent('<div id="visual-test" style="max-width:1100px;margin:auto"></div>');
   const elapsed=await page.evaluate(async()=>{
     const {mountDecisionVisualizations,futureOutcome}=await import('/world/decision/visualizations.js');
+    const {DECISION_ENGINE_VERSION}=await import('/world/decision/contracts.js');
     const {housingModel,createHousingScenarios,simulateHousingRun}=await import('/world/models/housing/index.js');
     const scenarios=createHousingScenarios().map(s=>({...s,successCriterion:{metricId:'affordability',operator:'gte',value:70}})),runs=[],prior=[];
     for(let i=0;i<500;i++){
-      const scenario=scenarios[i%4],seed=Math.floor(i/4),identity={id:`run-${i}`,experimentId:'visual-test',scenarioId:scenario.id,seed,status:'completed',modelVersion:housingModel.version};
+      const scenario=scenarios[i%4],seed=Math.floor(i/4),identity={id:`run-${i}`,experimentId:'visual-test',scenarioId:scenario.id,seed,status:'completed',engineVersion:DECISION_ENGINE_VERSION,modelVersion:housingModel.version};
       runs.push({...identity,...simulateHousingRun({parameters:scenario.parameters,seed,years:2})});
       prior.push({...identity,id:`prior-${i}`,...simulateHousingRun({parameters:scenario.id==='plan-a'?{...scenario.parameters,construction_capacity:scenario.parameters.construction_capacity*.8}:scenario.parameters,seed,years:2})});
     }

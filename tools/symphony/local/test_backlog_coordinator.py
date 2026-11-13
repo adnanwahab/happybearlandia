@@ -14,7 +14,7 @@ import coordinator_host as host
 
 def issue(n):
     return dict(id=f'id-{n}', identifier=f'SHE-{n}', title=f'Approved fixture {n}', description='bounded fixture task',
-                priority=n, state='Todo', team={'id': 'team'}, labels={c.REVIEW_LABEL: 'review'},
+                priority=n, state='Todo', team={'id': 'team'}, labels={c.REVIEW_LABEL: 'review', 'hbl-agent-ready': 'ready', 'hbl-coordinator-approved': 'approved'},
                 comments=[], blockedBy=[], attachments=[])
 
 

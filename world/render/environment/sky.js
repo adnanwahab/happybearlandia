@@ -1,9 +1,9 @@
-import { SphereGeometry, Mesh, BackSide, MeshBasicNodeMaterial } from 'three/webgpu';
+import { Color, SphereGeometry, Mesh, BackSide, MeshBasicNodeMaterial } from 'three/webgpu';
 import { positionLocal, uniform, vec2, vec3, fract, sin, dot, mix, smoothstep } from 'three/tsl';
 
 // One background draw, no cloud textures or volumetric raymarching.
 export function createCitySky(scene) {
-  const daylight = uniform(1), overcast = uniform(0);
+  const daylight = uniform(1), overcast = uniform(0), tint=uniform(new Color(0xffffff));
   const direction = positionLocal.normalize();
   function noise(p) {
     const cell = p.floor(), f = fract(p), blend = f.mul(f).mul(f.mul(-2).add(3));
@@ -17,8 +17,8 @@ export function createCitySky(scene) {
   const blue = mix(horizon,zenith,direction.y.max(0).pow(.13));
   const day = mix(blue,vec3(.72,.76,.77),clouds.add(overcast.mul(.55)).clamp());
   const material = new MeshBasicNodeMaterial({side:BackSide,depthWrite:false,fog:false});
-  material.colorNode = mix(vec3(.008,.014,.032),day,daylight);
+  material.colorNode = mix(tint,day,daylight.mul(.55));
   const geometry = new SphereGeometry(4400,24,12), sky = new Mesh(geometry,material);
   sky.frustumCulled=false;sky.renderOrder=-1000;scene.add(sky);
-  return {update(camera,light,weather,enabled=true){sky.position.copy(camera.position);sky.visible=enabled;daylight.value=.025+.975*light;overcast.value=weather==='rain'?.9:weather==='cloudy'?.6:0;},dispose(){scene.remove(sky);geometry.dispose();material.dispose();}};
+  return {update(camera,light,weather,enabled=true,lighting){tint.value.setHex(lighting?.skyColor??0xffffff);sky.position.copy(camera.position);sky.visible=enabled;daylight.value=.025+.975*light;overcast.value=weather==='rain'?.9:weather==='cloudy'?.6:0;},dispose(){scene.remove(sky);geometry.dispose();material.dispose();}};
 }

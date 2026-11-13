@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>First-play dashboard</title>
+<style>body{font:16px/1.6 system-ui;max-width:1000px;margin:40px auto;padding:0 20px;background:#101b29;color:#ecf3fa}a{color:#9ee4ff}table{border-collapse:collapse;width:100%;margin:20px 0}th,td{text-align:left;border-bottom:1px solid #567;padding:10px}input{max-width:100%}pre{white-space:pre-wrap;overflow-wrap:anywhere}.scroll{overflow:auto}</style>
+<a href="/">HappyBearLandia</a><h1>First-play conversion & return</h1>
+<p>Read-only analysis of recorded event exports. Upload stays in this browser. No live collector is connected.</p>
+<label>Event export (JSON, up to 10 MB) <input id="file" type="file" accept="application/json,.json"></label>
+<p id="status" role="status">Unavailable — load a recorded export to view counts. D1 and D7 retention are unavailable.</p>
+<div id="result"></div><p><a href="/tools/first-play/contract.md">Export contract and metric definitions</a></p>
+<script type="module" src="./page.js"></script></html>

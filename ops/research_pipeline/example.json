@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "research-release.v1",
+  "brief": {
+    "schemaVersion": "research-brief.v1",
+    "issue": "SHE-207",
+    "question": "Does the synthetic adapter preserve units?",
+    "hypothesis": "Units are preserved",
+    "dataSources": [
+      {
+        "reference": "fixture:units",
+        "revision": "v1",
+        "kind": "synthetic",
+        "limitations": "No empirical calibration"
+      }
+    ],
+    "intendedUse": "experiments",
+    "acceptanceCriteria": [
+      "Exact unit round trip"
+    ],
+    "verification": "Round-trip tests",
+    "validation": "Compare with held-out fixture",
+    "uncertainty": "Report fixture coverage and missing observations"
+  },
+  "model": {
+    "id": "example-only",
+    "version": "1.0.0",
+    "codeRevision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "author": "author",
+    "briefDigest": "8034b0a9d6b481a7c480ac3e61e82bcb548b9a7ceaecfff47735184b6868b425",
+    "reproduction": {
+      "environment": "Python 3",
+      "command": [
+        "python3",
+        "-m",
+        "unittest"
+      ],
+      "seeds": [
+        42
+      ],
+      "inputs": [
+        "fixture:units@v1"
+      ],
+      "rulesVersion": "v1",
+      "evidence": "example only, no experiment executed"
+    },
+    "errorAnalysis": "Example residual analysis",
+    "uncertainty": "Uncalibrated",
+    "limitations": [
+      "Synthetic example"
+    ]
+  },
+  "engineeringGate": {
+    "status": "NOT_EVALUATED",
+    "reviewer": "engineer",
+    "subjectDigest": "2ced004f611c19a5a40873d272682c5ee8162a5b2fd3b36187198232cf72665d",
+    "evidence": [
+      "Example only"
+    ]
+  },
+  "researchGate": {
+    "status": "NOT_EVALUATED",
+    "reviewer": "scientist",
+    "subjectDigest": "2ced004f611c19a5a40873d272682c5ee8162a5b2fd3b36187198232cf72665d",
+    "evidence": [
+      "Example only"
+    ]
+  }
+}

@@ -2,6 +2,7 @@ import { createEvidenceReport, validateRecipe } from './index.js';
 import { loadExperiment, initialForRecipe, validateRecipe as validateDataRecipe } from '../data/index.js';
 import { freeze, stateHash } from '../data/core.js';
 import { MODEL_VERSION, METRIC_UNITS, calendarLabel } from '../contracts.js';
+import { assertHistoryIntegrity } from '../integrity.js';
 import { createEngine } from '../../city/engine.js';
 
 export const RECEIPT_VERSION = 'canonical-run-receipt.v1';
@@ -21,14 +22,25 @@ export function canonicalReceiptJSON(value) {
     return '{' + Object.keys(value).sort().map(key => JSON.stringify(key) + ':' + canonicalReceiptJSON(value[key])).join(',') + '}';
   fail('requires finite JSON data');
 }
+// v1 hashes the recorded simulation snapshot. Transport identity was added
+// later and is validated separately; it must not change an existing receipt.
+function recordedSnapshot(snapshot) {
+  const { identity, ...recorded } = snapshot;
+  return recorded;
+}
 async function outcomes(history, month) {
   return Object.fromEntries(await Promise.all(['baseline', 'plan'].map(async arm => [arm, {
-    selected: await stateHash(history[arm][month]), terminal: await stateHash(history[arm][120])
+    selected: await stateHash(recordedSnapshot(history[arm][month])),
+    terminal: await stateHash(recordedSnapshot(history[arm][120]))
   }])));
 }
 export async function createRunReceipt(history, { month = 120 } = {}) {
   const evidence = createEvidenceReport(history, { month });
   validateDataRecipe(validateRecipe(evidence.recipe));
+  if (['baseline', 'plan'].some(arm => Array.isArray(history[arm]) &&
+      history[arm].some(snapshot => snapshot && Object.hasOwn(snapshot, 'identity')))) {
+    assertHistoryIntegrity(history);
+  }
   const body = {
     schemaVersion: RECEIPT_VERSION, evidence,
     rulesRevision: structuredClone(history.provenance?.modelManifest ?? null),

@@ -174,3 +174,23 @@ describe("camera-driven bounded real-map context", () => {
     streamer.dispose();
   });
 });
+
+test('stalled map releases its slot, retains resident baseline and ignores late response after retry', async () => {
+  let late, first = true, aborted;
+  const streamer = createMapStreamer({ ...options(), maxTiles: 2, requestTimeoutMs: 15,
+    fetchArea: (tile, {signal}) => {
+      if (!first) return Promise.resolve(response(tile));
+      first = false; aborted = signal;
+      return new Promise(resolve => { late = () => resolve(response(tile, ['obsolete'])); });
+    }, loadBuilding: () => ({}) });
+  streamer.update({x:0,z:0});
+  await waitFor(() => streamer.getState().activeFetches === 0);
+  expect(aborted.aborted).toBe(true);
+  expect(streamer.getState().tiles.find(t => t.key === '0:0').status).toBe('resident');
+  expect(streamer.getState().tiles.find(t => t.status === 'error').error).toContain('Continue');
+  streamer.retry();
+  await waitFor(() => streamer.getState().tiles.some(t => t.status === 'ready'));
+  late(); await delay();
+  expect(streamer.getMinimapData().buildings.map(b => b.id)).toEqual(['shared']);
+  streamer.dispose();
+});

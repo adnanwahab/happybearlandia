@@ -105,7 +105,7 @@ async function overpass(endpoint, query, timeoutMs = OVERPASS_TIMEOUT_MS, fetchI
   }, timeoutMs, signal);
 }
 
-async function queryOverpass(query, timeoutMs = OVERPASS_TIMEOUT_MS, { fetchImpl = fetch, endpoints = OVERPASS_ENDPOINTS } = {}) {
+export async function queryOverpass(query, timeoutMs = OVERPASS_TIMEOUT_MS, { fetchImpl = fetch, endpoints = OVERPASS_ENDPOINTS } = {}) {
   // Return the first valid mirror, rather than waiting for slow failed mirrors.
   // Abort losers to avoid wasting public service capacity. Every attempt has a
   // hard deadline even if an injected fetch ignores AbortSignal in a test.

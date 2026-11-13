@@ -24,6 +24,8 @@ loadLocalOpenAISettings();
 import {createDateMysteryHandler} from './world/date/mystery-api.js';
 const handleDateMystery=createDateMysteryHandler();
 import {createDatePlacesHandler} from './world/house/date-drive-search.js';
+import {createHoustonBarCatalogHandler} from './world/bar/houston-catalog.js';
+const handleHoustonBars=createHoustonBarCatalogHandler();
 const handleDatePlaces=createDatePlacesHandler();
 import {createWorldPersistenceHandler,EXPERIMENT_MAX_BYTES} from './world/experiments/persistence-api.js';
 const handleWorldPersistence=createWorldPersistenceHandler({dbPath:releaseStorage.worldDbPath});
@@ -435,6 +437,7 @@ const handleConstitutionSource = createConstitutionSourceHandler({fetchPlan:()=>
 const server = serve({
   maxRequestBodySize:EXPERIMENT_MAX_BYTES,
   port: PORT,
+  hostname: process.env.HBL_BIND_HOST || undefined,
 
   async fetch(request, server) {
     const { pathname } = new URL(request.url);
@@ -512,6 +515,7 @@ const server = serve({
 
     // Synthetic world: /world?lat=29.7286&lng=-95.4746
     if (["/api/date-places", "/api/date-places/drive", "/api/date-places/nearby", "/api/date-drive-options"].includes(pathname)) return handleDatePlaces(request);
+    if (pathname === "/api/houston-bars") return handleHoustonBars(request);
     if (pathname === "/api/area") {
       try {
         return await handleArea(new URL(request.url));
@@ -542,10 +546,13 @@ const server = serve({
     if (pathname === "/api/constitution-city/plan") return handleConstitutionSource(request);
     if (/^\/r\/[A-Za-z0-9_-]{8,16}\/?$/.test(pathname)) return serveFile("./world/reality-compiler.html");
     if (["/change", "/reality-compiler", "/city-speaks"].includes(pathname.replace(/\/$/, ""))) return serveFile("./world/reality-compiler.html");
+    // Bar night is an independent social scene with its own local progress.
+    if (/^\/world\/bar\/?$/.test(pathname)) return serveFile("./world/bar/index.html");
     // House mode observes/restores the same saved population authority as /world.
     // Asset URLs in this entry point are absolute so household IDs are not directories.
     if (/^\/world\/date\/[^/]{1,540}\/?$/.test(pathname)&&!pathname.endsWith('.js')&&!pathname.endsWith('.css')&&!pathname.endsWith('.html')) return serveFile("./world/date/index.html");
     if (/^\/world\/house(?:\/[A-Za-z0-9_-]{1,80})?\/?$/.test(pathname)) return serveFile("./world/house/index.html");
+    if (pathname === "/world/bars" || pathname === "/world/bars/") return serveFile("./world/bars/index.html");
     if (pathname.replace(/\/$/, "") === "/visualize-constitution") return serveFile("./world/constitution-city.html");
     if (["/world/visualize-consitution", "/world/visualize-constitution"].includes(pathname.replace(/\/$/, ""))) return serveFile("./world/constitution-city.html");
     if (pathname === "/api/plan") return handlePlan(request);

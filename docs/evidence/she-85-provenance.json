@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "she-85-verification.v1",
+  "date": "2026-11-12",
+  "scope": "Future Machine comparison cards and outcome timeline only",
+  "command": "bun test test/future-machine-ui.test.js test/future-machine-diff.test.js test/future-machine-outcome-timeline.test.js",
+  "observed": {"passed": 20, "skipped": 2, "failed": 0, "assertions": 142},
+  "browserAttempt": {"command": "HBL_FM_BROWSER=1 bun test test/future-machine-ui.test.js", "result": "Blocked before browser launch: Bun.serve port 0 EADDRINUSE"},
+  "limitations": ["Browser layout and interaction unverified", "Other application comparison surfaces remain pending"],
+  "modelChanges": false,
+  "syntheticAssumptions": "Existing future-machine-synthetic.v1, uncalibrated",
+  "newSimulationRun": false
+}

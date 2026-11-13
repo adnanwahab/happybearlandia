@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Import a run receipt · Future Machine</title><link rel="stylesheet" href="./import.css"></head>
+<body><main><a href="/world/future-machine.html">← Future Machine</a><h1>Import a run receipt</h1>
+<p>Paste a canonical JSON run receipt or upload its file (maximum 4.5 MB). We verify its model, checksum and saved replay before offering a link to the comparison.</p>
+<p>The saved experiment must still exist on this server. This verifies a model recomputation, not an empirical prediction. Evidence-only exports and unsaved receipts cannot reopen a saved run.</p>
+<form><label for="receipt">Receipt JSON</label><textarea id="receipt" rows="10" spellcheck="false"></textarea>
+<label for="file">Or choose a JSON file (used instead of pasted text)</label><input id="file" type="file" accept=".json,application/json">
+<div class="actions"><button type="submit">Verify and replay receipt</button><button type="button" id="cancel" hidden>Cancel verification</button></div></form>
+<p id="status" role="status" aria-live="polite"></p><p id="error" role="alert" hidden></p><section id="result" hidden><h2>Verified saved replay</h2><p id="summary"></p><a id="open">Open verified comparison</a></section>
+</main><script type="module" src="./import.js"></script></body></html>

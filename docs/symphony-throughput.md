@@ -1,5 +1,9 @@
 # Symphony throughput: measured follow-up to PR 30
 
+The [SHE-256 concurrency decision gate](symphony-concurrency-gate.md) records
+the unmeasured candidate table, proposed disposable-project protocol, budget
+prerequisites and rollback to 1. No candidate above 1 is certified.
+
 ## Ownership and scope
 
 The throughput coordinator owns `tools/symphony/local/{backlog_coordinator,throughput_policy,throughput_scheduler,throughput_metrics,install_dashboard_overlay}.py`, their focused tests, the dashboard overlay and this report. The existing host publisher/workpad hooks remain separate owners. The recovery coordinator owns `ops/symphony/workspace_preflight.py` (PR 33). Another release coordinator owns the retained SHE-121 changelog implementation and its verification/handoff. No file-ownership agreement or dispatch approval is inferred from an issue's priority or lane.

@@ -28,8 +28,8 @@ _STOP = False
 
 
 def render_workflow(workers: int, tracker: str = "github", linear_project_slug: str = "") -> str:
-    if not 1 <= workers <= 50:
-        raise ValueError("workers must be between 1 and 50")
+    if type(workers) is not int or not 1 <= workers <= 6:
+        raise ValueError("workers must be between 1 and 6")
     if tracker not in ("github", "linear"):
         raise ValueError("tracker must be github or linear")
     template = LINEAR_TEMPLATE if tracker == "linear" else TEMPLATE
@@ -52,26 +52,38 @@ def request_stop(signum: int, _frame: object) -> None:
 
 
 def stop_process(process: subprocess.Popen, grace_seconds: int = 20) -> None:
-    if process.poll() is not None:
-        return
-    try:
-        if hasattr(os, "killpg"):
-            os.killpg(process.pid, signal.SIGTERM)
-        else:
-            process.terminate()
-        process.wait(timeout=grace_seconds)
-    except (subprocess.TimeoutExpired, ProcessLookupError):
-        if process.poll() is None:
-            if hasattr(os, "killpg"):
-                os.killpg(process.pid, signal.SIGKILL)
-            else:
-                process.kill()
+    # A crashed dispatcher can leave app-server descendants in its session.
+    # Always drain that group before retrying; waiting only for the leader would
+    # permit old and new workers to overlap and exceed the configured ceiling.
+    if hasattr(os, "killpg"):
+        def signal_group(sig):
+            try:
+                os.killpg(process.pid, sig)
+                return True
+            except ProcessLookupError:
+                return False
+
+        if signal_group(signal.SIGTERM):
+            deadline = time.monotonic() + grace_seconds
+            while time.monotonic() < deadline:
+                process.poll()  # Reap the leader, including when it already died.
+                if not signal_group(0):
+                    break
+                time.sleep(min(.05, max(0, deadline - time.monotonic())))
+            signal_group(signal.SIGKILL)
+        process.wait(timeout=10)
+    elif process.poll() is None:
+        process.terminate()
+        try:
+            process.wait(timeout=grace_seconds)
+        except subprocess.TimeoutExpired:
+            process.kill()
             process.wait(timeout=10)
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--workers", type=int, default=6, help="Max concurrent Codex workers (1-50; default 6)")
+    parser.add_argument("--workers", type=int, default=6, help="Max concurrent Codex workers (1-6; default 6)")
     parser.add_argument("--tracker", choices=("github", "linear"), default="github",
                         help="Issue tracker to dispatch from (default github)")
     parser.add_argument("--linear-project-slug", default=os.getenv("HBL_LINEAR_PROJECT_SLUG", "hbl-1m-player-launch-week-1-da57f913e8aa"),
@@ -83,7 +95,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--max-restarts", type=int, default=10, help="Maximum dispatcher restarts")
     parser.add_argument("--run", action="store_true", help="Actually launch the dispatcher")
     parser.add_argument("--ack-scale", action="store_true",
-                        help="Acknowledge resource/usage risks when requesting >6 workers")
+                        help="Deprecated compatibility option; cannot exceed the six-worker ceiling")
     args = parser.parse_args(argv)
 
     try:
@@ -97,8 +109,6 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--port must be a TCP port")
     if args.max_restarts < 0:
         parser.error("--max-restarts cannot be negative")
-    if args.workers > 6 and not args.ack_scale:
-        parser.error("More than 6 workers requires --ack-scale; expand only after a verified pilot")
 
     workspace_default = "workspaces-linear" if args.tracker == "linear" else "workspaces"
     log_default = "logs-linear" if args.tracker == "linear" else "logs"
@@ -112,7 +122,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Workers: {args.workers} maximum; duration: {args.hours:g} hours", flush=True)
     print(f"Workspace root: {workspaces}", flush=True)
     print(f"Logs: {logs}", flush=True)
-    print("Dispatch gate: eligible issues with label hbl-agent-ready", flush=True)
+    print("Dispatch gate: eligible issues with both hbl-agent-ready and hbl-coordinator-approved", flush=True)
     print("Target for worker PRs: sprint/one-city-two-futures-20261111", flush=True)
     print("Automatic merging and deployment: DISABLED", flush=True)
     if not args.run:

@@ -6,6 +6,7 @@ tracker:
     token: $GITHUB_TOKEN
   required_labels:
     - hbl-agent-ready
+    - hbl-coordinator-approved
   active_states:
     - open
   terminal_states:
@@ -29,13 +30,9 @@ agent:
   max_retry_backoff_ms: 300000
 
 codex:
-  command: codex app-server
+  command: env -u LINEAR_API_KEY -u GH_TOKEN -u GITHUB_TOKEN -u GH_ENTERPRISE_TOKEN -u GITHUB_ENTERPRISE_TOKEN codex --config shell_environment_policy.inherit=none app-server
   thread_sandbox: workspace-write
-  approval_policy:
-    reject:
-      sandbox_approval: true
-      rules: true
-      mcp_elicitations: true
+  approval_policy: never
   turn_sandbox_policy:
     type: workspaceWrite
     writableRoots: []

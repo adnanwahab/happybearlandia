@@ -31,22 +31,32 @@ export function manageWebGPUDemo(renderer, scene, controls) {
   const dispose = () => {
     if (disposed) return;
     disposed = true;
-    renderer.setAnimationLoop(null);
-    controls?.dispose();
+    // Cleanup must not prevent the user-visible loss notice or reject device.lost.
+    const failures = [];
+    const attempt = action => { try { action(); } catch (error) { failures.push(error); } };
+    attempt(() => renderer.setAnimationLoop(null));
+    attempt(() => controls?.dispose());
     const geometries = new Set(), materials = new Set(), textures = new Set();
-    scene.traverse(object => {
+    attempt(() => scene.traverse(object => {
       if (object.geometry) geometries.add(object.geometry);
       for (const material of [object.material].flat().filter(Boolean)) {
         materials.add(material);
         for (const value of Object.values(material)) if (value?.isTexture) textures.add(value);
       }
-    });
-    for (const resource of [...geometries, ...materials, ...textures]) resource.dispose();
-    renderer.dispose();
+    }));
+    for (const resource of [...geometries, ...materials, ...textures]) attempt(() => resource.dispose());
+    attempt(() => renderer.dispose());
+    if (failures.length) showWebGPUError(new Error('Graphics cleanup failed. Reload to restart this demo.'));
   };
   window.addEventListener('pagehide', event => { if (!event.persisted) dispose(); });
-  renderer.backend.device?.lost.then(info => {
-    if (!disposed) { dispose(); showWebGPUError(new Error(info.message || 'The GPU device was lost. Reload to reconnect.')); }
-  });
+  const fail = error => {
+    if (disposed) return;
+    dispose();
+    showWebGPUError(error);
+  };
+  renderer.backend.device?.lost.then(
+    info => fail(new Error(info.message || 'The GPU device was lost. Reload to reconnect.')),
+    error => fail(new Error(`GPU connection failed. Reload to reconnect. ${error?.message || ''}`)),
+  );
   return dispose;
 }

@@ -20,12 +20,20 @@
   </header>
   <p id="opening" role="status">Loading the city…</p>
   <div id="city" hidden>
+    <section class="panel" aria-labelledby="challenge-title">
+      <h2 id="challenge-title">One-minute city futures challenge</h2>
+      <p>Choose a transit policy, compare futures, inspect one recorded event, then copy its exact replay receipt. Aim for about a minute; take as long as you need.</p>
+      <button id="begin" type="button">Begin challenge</button>
+      <p id="challenge-status" role="status">Ready when you are.</p>
+      <p class="note">Synthetic, uncalibrated monthly City model. A receipt recomputes a versioned scenario; it is not an archived checkpoint or a million-agent simulation.</p>
+    </section>
     <div class="workspace">
       <section class="panel quest" aria-labelledby="quest-title">
         <label for="quest">City requests</label>
         <select id="quest"></select>
         <h2 id="quest-title"></h2>
         <p id="request"></p>
+        <p id="quest-status" role="status"></p>
         <dl id="quest-evidence"></dl>
         <button id="visit" type="button" aria-controls="home" aria-expanded="false">Visit the resident’s home</button>
         <div id="home" hidden></div>
@@ -35,6 +43,13 @@
         <p id="proposal"></p>
         <label for="investment">Transit capacity investment</label>
         <select id="investment"></select>
+        <details id="council-scene">
+          <summary>Join the neighborhood council (optional)</summary>
+          <p>Riverside asks for a shorter commute. Choose a transit capacity investment above, then test one seed-matched future. Council positions are illustrative rules, not resident consent. You can revise the choice or leave at any time.</p>
+          <button id="council-test" type="button">Test one council decision</button>
+          <p>Results appear below and in Living City Council. One synthetic pair cannot establish how often an outcome occurs.</p>
+          <button id="council-leave" type="button">Leave council</button>
+        </details>
         <button id="test" type="button">Compare 100 paired futures</button>
         <p id="progress" role="status"></p>
         <div id="results" hidden>
@@ -61,6 +76,10 @@
             <p id="answer"></p>
             <p class="note">The interview text describes the selected pair’s simulated records.</p>
           </details>
+          <details id="event-inspector">
+            <summary>Inspect one recorded event</summary>
+            <pre id="event-record" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre>
+          </details>
           <div class="share">
             <label for="share">Share this challenge</label>
             <input id="share" type="url" readonly>
@@ -69,8 +88,10 @@
         </div>
       </section>
     </div>
+    <section id="builder" class="panel" aria-label="World Builder and Time Travel"></section>
     <div id="network" class="panel"></div>
     <div id="council" class="panel"></div>
+    <p id="council-provenance" class="note"></p>
   </div>
 </main>
 <script type="module" src="./page.js"></script>

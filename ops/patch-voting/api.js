@@ -85,6 +85,10 @@ export function createPatchVotingStore(options = {}) {
     'CREATE TABLE IF NOT EXISTS suggestion (id TEXT PRIMARY KEY, voter_key TEXT NOT NULL, title TEXT NOT NULL, details TEXT NOT NULL, created_at INTEGER NOT NULL, status TEXT NOT NULL DEFAULT \'pending\')',
     'CREATE TABLE IF NOT EXISTS throttle (voter_key TEXT NOT NULL, action TEXT NOT NULL, at INTEGER NOT NULL)'
   ].join(';') + ';');
+  for (const column of ['kind TEXT NOT NULL DEFAULT \'idea\'', 'replay_seed TEXT', 'merged_into TEXT']) {
+    const name = column.split(' ')[0];
+    if (!db.query('PRAGMA table_info(suggestion)').all().some(row => row.name === name)) db.exec('ALTER TABLE suggestion ADD COLUMN ' + column);
+  }
   const clock = options.now || (() => Date.now());
   const initial = clock();
   const seed = db.query('INSERT OR IGNORE INTO ballot (id,title,summary,cadence,area,closes_at) VALUES (?,?,?,?,?,?)');
@@ -116,16 +120,26 @@ export function createPatchVotingStore(options = {}) {
     if (value === 0) db.query('DELETE FROM vote WHERE candidate_id=? AND voter_key=?').run(id, voterKey);
     else db.query('INSERT INTO vote (candidate_id,voter_key,value,updated_at) VALUES (?,?,?,?) ON CONFLICT(candidate_id,voter_key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at').run(id, voterKey, value, clock());
   });
-  const suggest = db.transaction((voterKey, title, details) => {
+  const suggest = db.transaction((voterKey, title, details, kind = 'idea', replaySeed = null) => {
+    if (!['idea', 'problem', 'confusing', 'favorite'].includes(kind)) throw error(400, 'Invalid feedback kind.');
+    if (replaySeed !== null && (kind !== 'problem' || !validString(replaySeed, 1, 128))) throw error(400, 'Replay seed must be 1–128 characters on a problem report.');
     if (!validString(title, 8, 100) || !validString(details, 12, 800)) throw error(400, 'Title must be 8–100 characters and details 12–800 characters.');
     throttle(voterKey, 'suggest', 3, 86400000);
     const id = randomUUID();
     db.query('INSERT INTO suggestion (id,voter_key,title,details,created_at,status) VALUES (?,?,?,?,?,?)').run(id, voterKey, title.trim(), details.trim(), clock(), 'pending');
+    db.query('UPDATE suggestion SET kind=?,replay_seed=? WHERE id=?').run(kind, replaySeed, id);
     return { id, status: 'pending' };
   });
   return {
     list, castVote, suggest,
-    listSuggestions: () => db.query('SELECT id,title,details,created_at,status FROM suggestion ORDER BY created_at DESC LIMIT 200').all(),
+    mergeIdeas: db.transaction((source, target) => {
+      const get = id => db.query('SELECT * FROM suggestion WHERE id=?').get(id);
+      const a = get(source), b = get(target);
+      if (!a || !b || source === target || a.kind !== 'idea' || b.kind !== 'idea' || a.merged_into || b.merged_into) throw error(400, 'Merge requires two distinct unmerged ideas.');
+      db.query("UPDATE suggestion SET status='merged',merged_into=? WHERE id=?").run(target, source);
+    }),
+    triageVotes: () => list().map(({yourVote, ...item}) => ({...item, status: 'pending', advisory: true})),
+    listSuggestions: () => db.query('SELECT id,title,details,created_at,status,kind,replay_seed,merged_into FROM suggestion ORDER BY created_at DESC LIMIT 200').all(),
     close: () => db.close()
   };
 }
@@ -137,7 +151,7 @@ export function createPatchVotingHandler(options = {}) {
     const url = new URL(request.url);
     const pathname = url.pathname.replace(/\/$/, '');
     let token = secret ? getSession(request, secret) : null;
-    const fresh = Boolean(secret && !token);
+    const fresh = Boolean(secret && !token && request.method === 'POST');
     if (fresh) token = randomBytes(24).toString('hex');
     const setCookie = fresh ? cookieHeader(token, secret, request) : null;
     const voterKey = token ? identity(secret, token) : '';
@@ -145,24 +159,26 @@ export function createPatchVotingHandler(options = {}) {
       if (pathname === '/api/patch-votes' && request.method === 'GET') {
         return json({ schemaVersion: 'patch-ballot.v1', advisory: true, patches: store.list(voterKey), submissionsRequireReview: true, votingEnabled: Boolean(secret) }, 200, setCookie);
       }
-      if (request.method !== 'POST') return json({ error: 'Not found.' }, 404, setCookie);
+      if (request.method !== 'POST') return json({ error: 'Not found.' }, 404);
       if (!secret) throw error(503, 'Patch voting is not configured on this server.');
       if (!sameOrigin(request)) throw error(403, 'Same-origin request required.');
       const match = pathname.match(/^\/api\/patch-votes\/([A-Za-z0-9_-]{1,32})\/vote$/);
       if (match) {
         const body = await readBody(request);
-        if (Object.keys(body).some(key => key !== 'value')) throw error(400, 'Only value is accepted.');
+        if (body.consent !== true) throw error(400, 'Explicit consent required.');
+        if (Object.keys(body).some(key => !['value', 'consent'].includes(key))) throw error(400, 'Only value is accepted.');
         store.castVote(match[1], voterKey, body.value);
         return json({ patches: store.list(voterKey) }, 200, setCookie);
       }
       if (pathname === '/api/patch-votes/suggestions') {
         const body = await readBody(request);
-        if (Object.keys(body).some(key => !['title', 'details'].includes(key))) throw error(400, 'Unexpected suggestion field.');
-        return json({ message: 'Suggestion sent for moderation; it is not an agent instruction.', ...store.suggest(voterKey, body.title, body.details) }, 202, setCookie);
+        if (Object.keys(body).some(key => !['title', 'details', 'kind', 'replaySeed', 'consent'].includes(key))) throw error(400, 'Unexpected suggestion field.');
+        if (body.consent !== true) throw error(400, 'Explicit consent required.');
+        return json({ message: 'Feedback sent for moderation; it is not an agent instruction.', ...store.suggest(voterKey, body.title, body.details, body.kind, body.replaySeed) }, 202, setCookie);
       }
-      return json({ error: 'Not found.' }, 404, setCookie);
+      return json({ error: 'Not found.' }, 404);
     } catch (e) {
-      return json({ error: e.message || 'Patch voting unavailable.' }, e.status || 500, setCookie);
+      return json({ error: e.message || 'Patch voting unavailable.' }, e.status || 500);
     }
   }
   handle.close = () => store.close();
