@@ -20,7 +20,7 @@ Basic principles: advertised actions and need-based utility. Emergence: shared s
 
 ## 5. Initialization
 
-createWorld(town, opts) uses rng(hashSeed(town.seedKey + ":sim" + optional runSeed suffix)). Retain generated town, all options, resolved simulation parameters, runSeed and commands. Fresh start time is not simulated prehistory. [Legacy checkpoints](../../world/legacy-checkpoint.js) capture/restore continuation; preserve RNG state and model metadata.
+createWorld(town, opts) uses rng(hashSeed(town.seedKey + ":sim" + optional runSeed suffix)). Retain generated town, all options, resolved simulation parameters, runSeed and commands. World postcard selection supplies the versioned `postcard-v1:<place>` URL seed as `runSeed` in both 3D and Canvas2D entry points; custom locations use `place-v1:<coordinates>`. Activity snapshots report this effective seed. Town generation remains keyed by coordinates. A shared seed does not freeze live OSM geometry; exact replay still requires retained town inputs/checkpoints. Postcard hooks are authored invitations, not predictions. Fresh start time is not simulated prehistory. [Legacy checkpoints](../../world/legacy-checkpoint.js) capture/restore continuation; preserve RNG state and model metadata.
 
 ## 6. Input data
 
@@ -29,3 +29,64 @@ Town geometry and building kinds come from the supplied town. Resident attribute
 ## 7. Submodels
 
 ACTIONS defines locations, eligibility, duration, need rates and start effects: e.g. eating consumes fridge stock, purchases transfer money, work pays per minute. Base need decay is hunger .09, energy .045, fun .05, social .04 per minute, modified by active rules; walking is 40 m/min. These are gameplay assumptions. [simulation-parameters.js](../../world/simulation-parameters.js) resolves overrides/metadata. [Relationships](../../world/relationships/model.js) supplies the same sparse social rule family through legacySocial with legacy identity/availability adapters; [culture](../../world/culture/README.md) and [weather](../../world/weather/README.md) specify environmental submodels. Verify: `bun test test/simulation-playback.test.js test/weather-simulation.test.js test/culture-simulation.test.js`.
+
+### World plan choice inputs (SHE-265)
+
+`world/plan-choices.js` stages the preset proposal IDs with the selected integer
+implementation year through `policy.js`, including year zero. Local presets have
+no measured popularity evidence; World links their recipe/rules sources. Optional
+Civic Synthesis packages retain their remote IDs and unsupported-proposal list;
+the World response does not establish the voter population or vote counts.
+
+The custom card supplies explicit bounded `customEffects`: speedMult [1,2.6],
+floodMitigation [0,.45], housingGrowth [0,1.8], voucherMonthly [0,120]. These are
+synthetic input assumptions, not observations or inferred outcomes. Other program
+boosts remain zero. The worker validates and retains resolved effects in its
+first-cycle result, applies transit and vouchers to the plan arm only, and keeps
+the identical no-plan initialization. Housing growth is configuration metadata:
+the legacy weekly engine does not construct housing. Flood mitigation configures
+the separate live Storm action, not an automatic weekly flood. Custom plans
+support one matched week; edit and rerun rather than asking synthesis to translate
+arbitrary direct values back into proposal IDs. No new entity/time mapping,
+randomness, or model outcome claims are introduced. Verify exact values and
+seed-matched replay with `test/plan-choices.test.js` and `test/repeat-play.test.js`.
+
+### Classic World Storm — parcel-storm.v1
+
+The normal Storm button selects the existing ranked non-park building IDs by
+`round(count × max(0,.24−floodMitigation) × intensity)`. In automatic-weather mode
+an explicit Storm uses intensity1; in manual mode it captures the Weather panel's
+Storm intensity (0–1), including zero. The storm records that input, world seed,
+onset model minute, sequence, selected stable IDs and evacuation records in
+`policy.storm`. This is synthetic gameplay exposure, not an observed flood result.
+
+[parcel-storm.js](../../world/weather/parcel-storm.js) owns depth and flood flags.
+Peak depth is `.3 + 1.2 × intensity` metres, initially10% of peak, rising linearly
+to peak at20 model minutes and draining to zero at180. Rain/sky intensity holds
+until60 minutes and fades to zero at90. Each minute updates depth before resident
+movement; paused clocks freeze the envelope. Storm metadata, building surface
+polygons/depths and person evacuation trips use the existing full checkpoint.
+No additional random draws occur.
+
+Current geometry supplies building footprints, not cadastral lots or hydraulic
+street cells. The model records a synthetic2m radial apron around each exposed
+footprint, suppressing the apron when its bounds touch another footprint. This
+illustrative lot surface belongs to the same flooded ID; it is not surveyed
+inundation extent. The renderer triangulates only that recorded polygon and uses
+its committed positive depth, in one shared water draw. Street-wide flood extent
+and calibrated hydraulic depth remain unavailable.
+
+Residents whose current home is flooded choose the nearest unflooded home by
+home-center distance (stable array-order ties). There is no shelter capacity,
+household regrouping, road-flood avoidance or return-home model. Without a safe
+home, the record explicitly says `no-safe-home`; those residents are not counted
+as relocated. Successful relocations change home and walk from their actual
+current position along the existing road graph at40m/min, replacing current
+activities/commands without teleportation. Arrival is recorded with the model
+minute. A later explicit resident command interrupts the evacuation record and
+does not claim arrival at the safe home. Repeated Storm commands replace the bounded current storm record and
+exposure, rather than keeping unlimited event history. Preserve command times
+and checkpoint version to replay. Checks: `test/parcel-storm.test.js` and
+`test/legacy-checkpoint.test.js`. Rendering rain/cloud drift/lightning and
+opt-in thunder are presentation; reduced motion removes those moving cues while
+retaining static model depth readings.

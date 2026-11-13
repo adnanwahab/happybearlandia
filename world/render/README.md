@@ -2,7 +2,7 @@
 
 `/world?demo=1` uses the installed Three.js 0.186 WebGPURenderer, with its WebGL2 backend fallback. `?renderer=webgl` forces fallback. All Three modules are served locally through the curated vendor routes; there is no CDN version mismatch.
 
-The Graphics button or F3 opens performance and graphics controls. Lighting defaults to a sunny daytime presentation; choose Simulation clock to follow the resident clock, or select golden hour/night. These are visual overrides only. The scene uses a procedural blue sky and cloud layer, muted masonry palettes, dark weathered roof materials, reflection-tinted windows, and instanced multi-lobe park/street trees. Double-click a building to focus it; its inspector provides Focus and Cutaway. Geometry detail is independent of render resolution. Photo mode temporarily chooses ULTRA and restores the previous preset.
+The Graphics button or F3 opens performance and graphics controls. Lighting defaults to the active simulation clock; select daylight/golden hour/night for manual visual overrides. These are visual overrides only. The scene uses a procedural blue sky and cloud layer, muted masonry palettes, dark weathered roof materials, reflection-tinted windows, and instanced multi-lobe park/street trees. Double-click a building to focus it; its inspector provides Focus and Cutaway. Geometry detail is independent of render resolution. Photo mode temporarily chooses ULTRA and restores the previous preset.
 
 ## Close-up vegetation and artist assets
 
@@ -75,3 +75,18 @@ render failure disables GI and restores the direct path. Simulation inputs,
 clocks, saved state and hashes are never read or written by this presentation
 control. `window.hblGlobalIllumination.getState()` reports the current capability
 and toggle state for diagnostics.
+
+### Simulation lighting (SHE-262)
+
+Fixed authored solar hours (06–20), twilight palette and weekend tint follow the
+active World authority, with Monday at elapsed day zero. These are presentation
+assumptions, not observed astronomy. Population `buildingHomeCounts` includes
+every assigned individual, independently of the visible sample: `residents`
+and `atHome` use homeLocation ID and the House `personAtHome` predicate.
+Façades use atHome/residents; stable shader cells approximate that fraction.
+Visitors do not inflate resident counts. Synthetic home anchors may have a
+nonresidential geographic kind. Work/office lights are closed outside weekday
+08–18 even when the synthetic model assigns homes there. Buildings without
+residents use current recorded occupancy during allowed hours. Unmapped buildings remain dark. Street lamps and decorative
+vehicle headlights fade in at dusk. Vehicles remain illustrative traffic.
+Canvas2D uses the same scene sky color, without window or lamp shading.
