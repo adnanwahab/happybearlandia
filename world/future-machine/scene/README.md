@@ -200,3 +200,23 @@ release now clears both scene trees and owned contexts on fallback/disposal;
 disposal also drops the history reference. The thirty-run test waits for actual
 WebGL readiness and hashes normalized model frames separately from each newly
 allocated experiment identity. Per-run experiment IDs remain in its evidence.
+
+## SHE-267 decorative neighborhood and divergence receipt
+
+`neighborhood.js` reuses World's `generateBuildingGeometry` for schematic
+buildings and muted context neighbors. Floor-spaced window details, roof edges,
+street lanes, sidewalks and trees are illustrative presentation. Context groups
+never enter mapped rows, inventory buttons, native mesh pick targets, diffs or
+metrics. The persistent legend labels decorative context and retains the
+schematic/not-real-geography disclaimer. Canvas keeps its existing low-fidelity
+schematic without these native-only details.
+
+`divergence.js` resolves the shared first physical divergence through the exact
+recorded next-month completion mapping. Stage updates require that event ID in
+the current frame, deduplicate the burst per stage, and animate synchronized
+rings and construction sparks for three seconds. These are emphasis, not
+simulated construction or causal links to decorative neighbors. The director's
+camera request is separately validated against that receipt and current entity;
+one shared camera makes both panels dolly together over 2.8 seconds. Reduced
+motion skips the burst and uses immediate framing. Month changes clear active
+particles; disposal releases all owned scenery. No model rules or metrics change.
