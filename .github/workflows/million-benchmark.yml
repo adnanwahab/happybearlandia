@@ -13,6 +13,7 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun test test/million-benchmark.test.js test/agent-counts.test.js
       - run: bunx playwright install --with-deps chromium
+      - run: HBL_MILLION_BROWSER=1 bun test test/million-benchmark-cli.test.js
       - run: bun scripts/benchmark-million.js million-benchmark.json 30 42
       - uses: actions/upload-artifact@v4
         if: always()

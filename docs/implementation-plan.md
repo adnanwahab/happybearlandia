@@ -8124,3 +8124,28 @@ browser cases (activation and injected worker failure). Verification: 40 tests /
 two browser cases discovered, not executed. Fresh server EADDRINUSE and engine
 availability failures prevented measurements. Review candidate remains partial;
 full receipt and next acceptance work: [SHE-167-r2](reviews/SHE-167-r2.md).
+
+## SHE-171 r2 — acceptance follow-up (review candidate)
+
+Owned slice on clean `mini/SHE-171-r2`: existing runner provenance, focused
+CLI acceptance tests, manual workflow, model inventory/ODD and issue report.
+Reuse PR192's kernel and rendering workload; no new model or production adapter.
+Prerequisites inspected: SHE-141 count contract and SHE-142 scalar oracle; their
+bounded fixtures intentionally remain separate. Remote sprint runner was read
+through GitHub and matches this checkout; shell fetch is permission/network blocked.
+Next tasks: retain runner identity even on launch failure; exercise the real CLI
+matrix and missing-browser failure; describe the existing synthetic model.
+Acceptance requires nine complete records, phase-specific counts/timings, replay,
+metadata and explicit memory availability. Risk: local Chromium sandbox launch
+is denied; no simulated browser result may replace actual measurements. True
+process/GPU peak memory remains outside the existing sampled-JS-heap contract.
+
+r2 delivered: top-level model/runner SHA256 provenance, subprocess missing-browser
+failure coverage, opt-in nine-record CLI acceptance test wired into manual CI,
+and separate seven-element ODD for the existing synthetic schedule. Focused plus
+dependency tests: 24 passed, 1 opt-in skip, 2385 assertions. Explicit browser gate
+was attempted and failed at Chromium launch (macOS MachPort permission denial),
+not counted as acceptance. CLI failed with zero records and exit 1; sanitized
+host/seed/source evidence retained in `docs/evidence/she-171-r2-launch-failure.json`.
+Review candidate with actual-browser acceptance pending; full findings and next
+command in `docs/reviews/SHE-171-r2.md`. No production capacity claim authorized.
