@@ -8030,3 +8030,26 @@ unsupported identities/geography, uncalibrated rules and confusion of seed sprea
 with empirical probability. See report for exact evidence and demo failure gates.
 Next: review the three proposed demos, then a separate implementation slice;
 no functional demo implementation or usability validation is claimed here.
+
+## SHE-231-r2 — architectural failure-family taxonomy (November 12, 2026)
+
+Completed analysis-only slice: [review report](reviews/SHE-231-r2.md) contains
+exactly 15 explicitly hypothetical failure modes spanning state synchronization,
+async lifecycle, API contracts, caching, rendering, accessibility, provenance and
+simulation identity. Each has a repository search and proposed regression;
+shared-invariant investigations are prioritized. No product code or model rules
+changed. Scope ownership is this report and this status entry only.
+
+Prerequisites audited: source 53090035, verified identical to the current remote
+sprint base through GitHub compare; existing worker output, issue comments and
+PR search; SHE-108/PR246 and SHE-169/PR265 merged source boundaries. Existing
+request/identity guards and recorded-history Canvas fallback are preserved and
+acknowledged. Required Linear approval labels were already present.
+
+Fresh acceptance evidence: focused demo-runtime, City worker, Future Machine
+integrity, boundaries and diff suites passed 34 tests, 276 assertions, no failures
+on Bun 1.4.2. Report structure and git diff whitespace checks passed. Browser
+execution skipped for this documentation-only change. Limit: hypotheses are not
+confirmed diagnoses; proposed regression designs remain unexecuted. Next action:
+review the report and select a bounded investigation; no implementation, merge,
+deployment or production changes are part of this issue.
