@@ -198,7 +198,7 @@ class PublisherTest(unittest.TestCase):
     def test_workflow_host_handoff(self):
         workflow = Path(__file__).parent.parent / 'elixir/WORKFLOW.md'
         text = workflow.read_text()
-        self.assertRegex(text, r'required_labels: \["symphony-pilot"(?:, "symphony-pressure-release")?\]')
+        self.assertRegex(text, r'required_labels: \["hbl-agent-ready", "hbl-coordinator-approved", "symphony-pilot"(?:, "symphony-pressure-release")?\]')
         self.assertRegex(text, r'max_turns: (?:1|20)\b')
         self.assertIn('after_run: |', text)
         self.assertIn('/local/publish.py', text)

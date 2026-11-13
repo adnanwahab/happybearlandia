@@ -18,6 +18,14 @@ crash; retry/restart counts and deadlines are bounded. Pool actions through the
 registry require explicit developer authorization. A task error is not silently
 retried as a crash. Normal inspector controls remain read-only.
 
+Canceling a queued task rejects its promise with `Task cancelled` and immediately
+releases its queue slot. Canceling active work terminates its worker. Late events
+from retired workers cannot settle replacement tasks or trigger crash recovery.
+The Population Studio runner invalidates pending replacements and rejects late
+results after cancellation/supersession, preserving the caller's retained result.
+Reproducible cancellation checks: `bun test test/queued-simulation-cancel.test.js
+test/worker-platform.test.js test/population-studio.test.js`.
+
 Future initialization enforces the model validation gate. Rejected targets produce
 failed rows with the actual validation errors, not fabricated forecasts. Live
 state remains inspectable with its gate warnings.
@@ -60,3 +68,31 @@ A local Bun1.4.2 /10logical-core run of12futures ×1000people ×1day measured:
 Startup and messaging overhead is included. These small synthetic workload
 measurements are not a browser frame-rate,100000-person, or production guarantee.
 Rerun on the target device; more workers are not automatically faster.
+
+### Adaptive live Population scheduling (SHE-174)
+
+`population-scheduling.v1` measures successful automatic commits on the main
+thread, from submission through worker reply and snapshot acceptance (including
+queue/transport latency). At >=100 ms it enters `reduced` update frequency:
+subsequent automatic commits wait at least 400 ms after the last completion.
+Eight consecutive commits <=40 ms restore `normal`; a slower sample resets that
+recovery streak. Invalid/nonfinite/negative measurements are ignored. This policy
+uses illustrative thresholds, not calibrated device limits or portable CPU data.
+
+`getSnapshot().runtime.scheduling` exposes mode, policy version, cooldown, total
+transition count and the latest 64 transitions, with reason, measured duration,
+monotonic real timestamp, committed tick and reset revision. Copies are detached.
+Diagnostics live for this runtime session across resets; checkpoint restore starts
+with the receiving runtime's device policy. They are not model events or saved
+run provenance. No agent configuration, seed, RNG consumption, fixed-step duration,
+command ordering, future manifest or authoritative checkpoint state is changed.
+
+Cooldown polls use the existing busy-clock path, discarding elapsed time and
+fractional backlog. Entering reduced mode stops the current automatic burst.
+`minutes-per-second` retains the existing 250 ms elapsed clamp and four-tick cap;
+`ticks-per-poll` retains its 32-tick cap and slows with admitted polls. Thus equal
+wall time may produce fewer modeled ticks; compare equal modeled ticks with
+identical initial state, model version, seed and command timeline. Explicit steps,
+replay and household observation retain their existing scheduling. Pausing and
+worker errors cannot manufacture successful pressure samples. The guard cannot
+preempt a single expensive worker tick, eliminate snapshot costs or bound hitches.

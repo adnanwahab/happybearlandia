@@ -14,7 +14,7 @@
   <div class="studio-shell">
     <header class="studio-header">
       <a class="brand" href="/world/decision.html"><span class="brand-mark" aria-hidden="true">H<span>↗</span></span><span>HappyBearLandia<small>DECISION SIMULATION PLATFORM</small></span></a>
-      <nav aria-label="Studio navigation"><a href="#studio">Studio</a><a href="#physical-world">Build & edit</a><a href="#futures">Possible futures</a><a href="#trust">Evidence & brief</a></nav>
+      <nav aria-label="Studio navigation"><a href="#studio">Studio</a><a href="#physical-world">Build & edit</a><a href="#futures">Possible futures</a><a href="#trust">Evidence & brief</a><a href="/world/research-library.html">Research Library</a></nav>
       <button id="executive-toggle" class="quiet" aria-pressed="false">Executive mode</button>
     </header>
     <main>
@@ -55,6 +55,7 @@
             <div class="button-group scenario-management"><button id="reset-scenario">Reset assumptions</button><button id="delete-scenario">Delete alternative</button></div>
             <details id="outcome-criteria-editor"><summary>Define success, mixed & failure</summary><p class="fine">These are your recorded decision rules. Failure rules take precedence; otherwise all success rules must match, and remaining outcomes are mixed. No thresholds are inferred.</p><label>Classification<select id="criteria-mode"><option value="none">No recorded criterion</option><option value="binary">Success / failure threshold</option><option value="bands">Success / mixed / failure</option></select></label><div id="criteria-fields"></div><button id="apply-criteria" class="quiet full">Apply decision rules to this scenario</button></details>
             <div class="parameter-heading"><h3>Make the assumptions explicit.</h3><span class="fine">Native units · editable uncertainty</span></div>
+            <details id="parameter-diff-inspector"><summary>Compare scenario settings side by side</summary><div id="scenario-parameter-diff" class="parameter-diff-scroll"></div></details>
             <div id="parameter-controls" class="parameter-controls"><p>Loading the housing schema…</p></div>
             <details class="data-import"><summary>Bring your data · CSV / JSON</summary>
               <p class="fine">Upload numerical inputs, map columns to model parameters, preview one row, then apply it to this scenario. Uploaded inputs remain labeled as user supplied.</p>

@@ -1,0 +1,19 @@
+[WebServer] $ bun run server.js
+[WebServer] 428 | 
+[WebServer] 429 | const handleExperiments = createExperimentsHandler({ fetchPlan: fetchPlanFromDearCongress, getArea });
+[WebServer] 430 | if (!DEAR_CONGRESS_ORIGIN) throw new Error("Invalid Dear Congress endpoint configuration.");
+[WebServer] 431 | const handleConstitutionSource = createConstitutionSourceHandler({fetchPlan:()=>fetchPlanFromDearCongress({includeSynthetic:false}),sourceUrl:DEAR_CONGRESS_ORIGIN+'/'});
+[WebServer] 432 | 
+[WebServer] 433 | const server = serve({
+[WebServer]                      ^
+[WebServer] error: Failed to start server. Is port 40171 in use?
+[WebServer]  syscall: "listen",
+[WebServer]    errno: 0,
+[WebServer]     code: "EADDRINUSE"
+[WebServer] 
+[WebServer]       at /Users/wahabma/happybearlandia/workspaces/SHE-71/server.js:433:16
+[WebServer] 
+[WebServer] Bun v1.4.2 (macOS arm64)
+[WebServer] error: script "start" exited with code 1
+Error: Process from config.webServer was not able to start. Exit code: 1
+

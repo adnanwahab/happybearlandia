@@ -1,0 +1,704 @@
+{
+  "schemaVersion": "she236-resident-lab.v1",
+  "capturedAt": "2026-11-12T20:43:30.493Z",
+  "sourceCommit": "b963dd353538294cb0fbf5d34d5283fad6e10e68",
+  "machine": {
+    "cpu": "Apple M4",
+    "logicalCPUs": 10,
+    "memoryBytes": 17179869184,
+    "platform": "darwin",
+    "release": "24.6.0",
+    "arch": "arm64",
+    "runtime": {
+      "node": "26.3.0",
+      "bun": "1.4.2",
+      "boringssl": "41bf9b59c2ebf277a7aa427e1ecad5cc80dd4d4f",
+      "openssl": "1.1.0",
+      "llhttp": "9.3.0",
+      "libarchive": "ded82291ab41d5e355831b96b0e1ff49e24d8939",
+      "mimalloc": "6a64e1ba7f5b2130d4efccb67ec87fd0003f0f6a",
+      "picohttpparser": "066d2b1e9ab820703db0837a7255d92d30f0c9f5",
+      "uwebsockets": "744846f844374847c902b5e7fd59b4342a51ef99",
+      "webkit": "2e2aa2290fac856d6f451ceacb58f7f5b44dd057",
+      "zig": "04e7f6ac1e009525bc00934f20199c68f04e0a24",
+      "zlib": "12731092979c6d07f42da27da673a9f6c7b13586",
+      "tinycc": "05f0fafaa3be31e31d7b4b5c17dc60f62c991171",
+      "lolhtml": "725ce499aa9b71e38b7a2d0a9fbb6d7294a4079e",
+      "ares": "c7a3138dcfe3bb0eaaf10c0c24c36dc66dc790ab",
+      "libdeflate": "c8c56a20f8f621e6a966b716b31f1dedab6a41e3",
+      "usockets": "744846f844374847c902b5e7fd59b4342a51ef99",
+      "lshpack": "8905c024b6d052f083a3d11d0a169b3c2735c8a1",
+      "zstd": "f8745da6ff1ad1e7bab384bd1f9d742439278e99",
+      "v8": "14.6.202.34-node.20",
+      "uv": "1.48.0",
+      "napi": "10",
+      "icu": "76.1",
+      "unicode": "16.0",
+      "sqlite": "3.43.2",
+      "modules": "147"
+    }
+  },
+  "repetitions": 3,
+  "warmupRunsPerSize": 1,
+  "context": {
+    "id": "she236-synthetic.v1",
+    "districts": [
+      {
+        "id": "home",
+        "x": 0,
+        "z": 0,
+        "transit": 0.6,
+        "services": 0.7
+      },
+      {
+        "id": "jobs",
+        "x": 1800,
+        "z": 0,
+        "transit": 0.8,
+        "services": 0.8
+      }
+    ],
+    "provenance": {
+      "type": "synthetic-benchmark",
+      "calibrated": false
+    }
+  },
+  "view": {
+    "x": 0,
+    "z": 0
+  },
+  "reports": [
+    {
+      "population": 1000,
+      "modelVersion": "1.3.0",
+      "seed": 42,
+      "initialMinute": 360,
+      "finalMinute": 376,
+      "steps": 16,
+      "stepMinutes": 1,
+      "visibleAvatars": null,
+      "displayRows": 500,
+      "interactions": null,
+      "deterministicStateHash": "21d001eeb122a6d9c486313167cf5ed535bcb7107723309ce4baa84292f29f03",
+      "hashEncoding": "node:v8 serialize of serializePopulation",
+      "typedBufferBytes": 703008,
+      "snapshotJsonBytes": 2040307,
+      "validation": {
+        "targets": {
+          "population": 1000,
+          "householdSize": 2.5,
+          "medianIncome": 72000,
+          "employmentRate": 0.75
+        },
+        "actual": {
+          "population": 1000,
+          "householdSize": 2.5,
+          "medianIncome": 72000,
+          "employmentRate": 0.7503250975292588
+        },
+        "errors": {
+          "population": {
+            "absolute": 0,
+            "relative": 0
+          },
+          "householdSize": {
+            "absolute": 0,
+            "relative": 0
+          },
+          "medianIncome": {
+            "absolute": 0,
+            "relative": 0
+          },
+          "employmentRate": {
+            "absolute": 0.00032509752925879987,
+            "relative": 0.0004334633723450665
+          }
+        },
+        "tolerances": {
+          "population": 0,
+          "householdSize": 0.06,
+          "medianIncome": 0.02,
+          "employmentRate": 0.05
+        },
+        "passed": true,
+        "gate": {
+          "accepted": true,
+          "reasons": []
+        },
+        "source": {
+          "type": "synthetic",
+          "confidence": "low"
+        },
+        "synthetic": true,
+        "calibrated": false,
+        "notes": [
+          "Generated targets are assumption checks, not independent empirical validation. Income targets validate baseline resources before policy wage multipliers.",
+          "Household sizes use adjacent integer sizes; full joint demographic distributions are not fitted."
+        ]
+      },
+      "processMemory": {
+        "rss": 154664960,
+        "heapTotal": 28025856,
+        "heapUsed": 18149476,
+        "external": 13329903,
+        "arrayBuffers": 4520694
+      },
+      "phases": {
+        "generation": {
+          "samplesMs": [
+            3.163125000000008,
+            2.4856249999999704,
+            2.175666999999976
+          ],
+          "p50Ms": 2.4856249999999704,
+          "p95Ms": 3.163125000000008
+        },
+        "step": {
+          "samplesMs": [
+            9.410875000000004,
+            6.280000000000001,
+            4.916541000000024,
+            5.305958000000004,
+            4.5052499999999895,
+            5.691083999999989,
+            4.485457999999994,
+            11.928124999999994,
+            4.296082999999982,
+            5.989208999999988,
+            4.293791999999996,
+            4.778874999999999,
+            4.101124999999996,
+            4.6659159999999815,
+            4.092084,
+            4.720416999999998,
+            5.840250000000026,
+            7.2402079999999955,
+            4.114250000000027,
+            4.874124999999992,
+            4.083416,
+            4.399458000000038,
+            3.570500000000038,
+            3.5722089999999866,
+            4.352499999999964,
+            3.569291000000021,
+            4.425041999999962,
+            3.7103329999999914,
+            5.193250000000035,
+            3.659458000000029,
+            3.8697090000000003,
+            4.843584000000021,
+            5.661125000000027,
+            5.228916999999967,
+            4.359792000000027,
+            5.807166999999993,
+            4.47808299999997,
+            4.14633299999997,
+            5.043125000000032,
+            3.994041999999979,
+            6.232208999999955,
+            4.337832999999989,
+            3.7410830000000033,
+            4.820832999999993,
+            3.8059579999999755,
+            4.691540999999972,
+            3.7130000000000223,
+            3.4923329999999737
+          ],
+          "p50Ms": 4.485457999999994,
+          "p95Ms": 7.2402079999999955
+        },
+        "snapshot": {
+          "samplesMs": [
+            1.7821250000000077,
+            2.678042000000005,
+            3.075207999999975
+          ],
+          "p50Ms": 2.678042000000005,
+          "p95Ms": 3.075207999999975
+        },
+        "clone": {
+          "samplesMs": [
+            4.428957999999966,
+            4.535040999999978,
+            4.133041999999989
+          ],
+          "p50Ms": 4.428957999999966,
+          "p95Ms": 4.535040999999978
+        },
+        "json": {
+          "samplesMs": [
+            4.240166999999985,
+            4.053458000000035,
+            4.0712500000000205
+          ],
+          "p50Ms": 4.0712500000000205,
+          "p95Ms": 4.240166999999985
+        }
+      },
+      "selection": {
+        "fullSort": {
+          "samplesMs": [
+            0.09354100000001608,
+            0.2227079999999546,
+            0.07524999999998272
+          ],
+          "p50Ms": 0.09354100000001608,
+          "p95Ms": 0.2227079999999546
+        },
+        "heap": {
+          "samplesMs": [
+            0.2023749999999609,
+            0.17616600000002336,
+            0.16849999999999454
+          ],
+          "p50Ms": 0.17616600000002336,
+          "p95Ms": 0.2023749999999609
+        },
+        "insertion": {
+          "samplesMs": [
+            0.2179580000000101,
+            0.12074999999998681,
+            0.12450000000001182
+          ],
+          "p50Ms": 0.12450000000001182,
+          "p95Ms": 0.2179580000000101
+        },
+        "partition": {
+          "samplesMs": [
+            0.1619590000000244,
+            0.09770800000001145,
+            0.09558299999997644
+          ],
+          "p50Ms": 0.09770800000001145,
+          "p95Ms": 0.1619590000000244
+        }
+      }
+    },
+    {
+      "population": 10000,
+      "modelVersion": "1.3.0",
+      "seed": 42,
+      "initialMinute": 360,
+      "finalMinute": 376,
+      "steps": 16,
+      "stepMinutes": 1,
+      "visibleAvatars": null,
+      "displayRows": 500,
+      "interactions": null,
+      "deterministicStateHash": "9f14feea691d755cb4b32a48a5660f11d56525e6e319ce2743f9bc67b281fed7",
+      "hashEncoding": "node:v8 serialize of serializePopulation",
+      "typedBufferBytes": 7018752,
+      "snapshotJsonBytes": 2021215,
+      "validation": {
+        "targets": {
+          "population": 10000,
+          "householdSize": 2.5,
+          "medianIncome": 72000,
+          "employmentRate": 0.75
+        },
+        "actual": {
+          "population": 10000,
+          "householdSize": 2.5,
+          "medianIncome": 72000,
+          "employmentRate": 0.7500663658083355
+        },
+        "errors": {
+          "population": {
+            "absolute": 0,
+            "relative": 0
+          },
+          "householdSize": {
+            "absolute": 0,
+            "relative": 0
+          },
+          "medianIncome": {
+            "absolute": 0,
+            "relative": 0
+          },
+          "employmentRate": {
+            "absolute": 6.63658083355223e-05,
+            "relative": 8.848774444736307e-05
+          }
+        },
+        "tolerances": {
+          "population": 0,
+          "householdSize": 0.06,
+          "medianIncome": 0.02,
+          "employmentRate": 0.05
+        },
+        "passed": true,
+        "gate": {
+          "accepted": true,
+          "reasons": []
+        },
+        "source": {
+          "type": "synthetic",
+          "confidence": "low"
+        },
+        "synthetic": true,
+        "calibrated": false,
+        "notes": [
+          "Generated targets are assumption checks, not independent empirical validation. Income targets validate baseline resources before policy wage multipliers.",
+          "Household sizes use adjacent integer sizes; full joint demographic distributions are not fitted."
+        ]
+      },
+      "processMemory": {
+        "rss": 271089664,
+        "heapTotal": 69451776,
+        "heapUsed": 49169396,
+        "external": 38356388,
+        "arrayBuffers": 21896223
+      },
+      "phases": {
+        "generation": {
+          "samplesMs": [
+            8.583666999999878,
+            8.769374999999854,
+            9.711832999999842
+          ],
+          "p50Ms": 8.769374999999854,
+          "p95Ms": 9.711832999999842
+        },
+        "step": {
+          "samplesMs": [
+            33.797041000000036,
+            28.541417000000138,
+            27.77145799999994,
+            27.182666000000154,
+            26.989208999999846,
+            45.43212500000004,
+            32.68220900000006,
+            30.13804200000004,
+            32.44633399999998,
+            30.138458000000128,
+            30.91166700000008,
+            32.56745799999999,
+            32.02558299999987,
+            31.05899999999997,
+            30.005791000000045,
+            31.004917000000205,
+            32.04895899999997,
+            26.939333000000033,
+            30.289708999999903,
+            30.719250000000102,
+            31.08137499999998,
+            28.4923339999998,
+            28.588167000000112,
+            30.954042000000072,
+            27.66554199999996,
+            27.449749999999995,
+            26.908541999999898,
+            29.676542000000154,
+            29.244249999999965,
+            33.65616699999987,
+            29.153166000000056,
+            28.47245900000007,
+            36.64258400000017,
+            30.764708000000155,
+            29.892707999999857,
+            30.709041999999954,
+            37.225124999999935,
+            31.181084000000283,
+            31.22629199999983,
+            33.2668749999998,
+            30.764416999999867,
+            32.161625000000186,
+            31.868458999999802,
+            35.89729200000011,
+            29.213834000000134,
+            32.378291999999874,
+            28.990291999999954,
+            32.2905410000003
+          ],
+          "p50Ms": 30.764708000000155,
+          "p95Ms": 36.64258400000017
+        },
+        "snapshot": {
+          "samplesMs": [
+            1.8663750000000618,
+            1.9966249999997672,
+            2.1812919999997575
+          ],
+          "p50Ms": 1.9966249999997672,
+          "p95Ms": 2.1812919999997575
+        },
+        "clone": {
+          "samplesMs": [
+            3.3415829999999005,
+            3.6463330000001406,
+            3.977374999999938
+          ],
+          "p50Ms": 3.6463330000001406,
+          "p95Ms": 3.977374999999938
+        },
+        "json": {
+          "samplesMs": [
+            2.9257500000001073,
+            4.1872089999997115,
+            4.702334000000064
+          ],
+          "p50Ms": 4.1872089999997115,
+          "p95Ms": 4.702334000000064
+        }
+      },
+      "selection": {
+        "fullSort": {
+          "samplesMs": [
+            0.5102919999999358,
+            0.5577920000000631,
+            0.5552920000000086
+          ],
+          "p50Ms": 0.5552920000000086,
+          "p95Ms": 0.5577920000000631
+        },
+        "heap": {
+          "samplesMs": [
+            0.2623329999998987,
+            0.2452499999999418,
+            0.26883300000008603
+          ],
+          "p50Ms": 0.2623329999998987,
+          "p95Ms": 0.26883300000008603
+        },
+        "insertion": {
+          "samplesMs": [
+            0.4383749999999509,
+            0.32074999999986176,
+            0.33433300000024246
+          ],
+          "p50Ms": 0.33433300000024246,
+          "p95Ms": 0.4383749999999509
+        },
+        "partition": {
+          "samplesMs": [
+            0.32783299999982773,
+            0.3302089999997406,
+            0.39508299999988594
+          ],
+          "p50Ms": 0.3302089999997406,
+          "p95Ms": 0.39508299999988594
+        }
+      }
+    },
+    {
+      "population": 100000,
+      "modelVersion": "1.3.0",
+      "seed": 42,
+      "initialMinute": 360,
+      "finalMinute": 376,
+      "steps": 16,
+      "stepMinutes": 1,
+      "visibleAvatars": null,
+      "displayRows": 500,
+      "interactions": null,
+      "deterministicStateHash": "7d83fc4876b909e5bf7f4fc0c1879d865452924965fc63078b040a02fc7f1271",
+      "hashEncoding": "node:v8 serialize of serializePopulation",
+      "typedBufferBytes": 70172996,
+      "snapshotJsonBytes": 2032195,
+      "validation": {
+        "targets": {
+          "population": 100000,
+          "householdSize": 2.5,
+          "medianIncome": 72000,
+          "employmentRate": 0.75
+        },
+        "actual": {
+          "population": 100000,
+          "householdSize": 2.5,
+          "medianIncome": 72000,
+          "employmentRate": 0.7500033341779918
+        },
+        "errors": {
+          "population": {
+            "absolute": 0,
+            "relative": 0
+          },
+          "householdSize": {
+            "absolute": 0,
+            "relative": 0
+          },
+          "medianIncome": {
+            "absolute": 0,
+            "relative": 0
+          },
+          "employmentRate": {
+            "absolute": 3.3341779918094616e-06,
+            "relative": 4.445570655745949e-06
+          }
+        },
+        "tolerances": {
+          "population": 0,
+          "householdSize": 0.06,
+          "medianIncome": 0.02,
+          "employmentRate": 0.05
+        },
+        "passed": true,
+        "gate": {
+          "accepted": true,
+          "reasons": []
+        },
+        "source": {
+          "type": "synthetic",
+          "confidence": "low"
+        },
+        "synthetic": true,
+        "calibrated": false,
+        "notes": [
+          "Generated targets are assumption checks, not independent empirical validation. Income targets validate baseline resources before policy wage multipliers.",
+          "Household sizes use adjacent integer sizes; full joint demographic distributions are not fitted."
+        ]
+      },
+      "processMemory": {
+        "rss": 1211351040,
+        "heapTotal": 441450496,
+        "heapUsed": 451617858,
+        "external": 374896514,
+        "arrayBuffers": 288739578
+      },
+      "phases": {
+        "generation": {
+          "samplesMs": [
+            61.51141699999971,
+            57.80304199999955,
+            57.76941699999952
+          ],
+          "p50Ms": 57.80304199999955,
+          "p95Ms": 61.51141699999971
+        },
+        "step": {
+          "samplesMs": [
+            287.02308300000004,
+            249.32358299999942,
+            244.76354199999878,
+            253.35554200000115,
+            246.63387500000135,
+            248.68029100000058,
+            252.99683300000106,
+            294.62462499999856,
+            321.0709160000006,
+            304.33870800000113,
+            268.1272080000017,
+            278.4722920000004,
+            268.0181250000005,
+            271.0827499999996,
+            262.6498330000013,
+            262.05625000000146,
+            262.59670800000094,
+            245.66799999999967,
+            262.8610840000001,
+            255.4657499999994,
+            251.62287500000093,
+            256.7744590000002,
+            251.88154100000065,
+            247.71654200000012,
+            243.17991599999914,
+            249.86608299999898,
+            263.4411659999987,
+            268.1987079999999,
+            264.7693340000005,
+            271.833584,
+            251.52637499999946,
+            242.0967500000006,
+            264.885542,
+            239.44737499999974,
+            246.23570799999652,
+            243.70420899999954,
+            240.2009590000016,
+            245.12766600000032,
+            253.34208299999955,
+            268.6601669999982,
+            256.8144169999978,
+            257.354209000001,
+            274.8171660000007,
+            272.8622499999983,
+            286.48458400000163,
+            273.8419580000009,
+            283.97199999999793,
+            262.61616700000013
+          ],
+          "p50Ms": 262.05625000000146,
+          "p95Ms": 294.62462499999856
+        },
+        "snapshot": {
+          "samplesMs": [
+            7.877833000000464,
+            7.752457999999024,
+            8.506499999999505
+          ],
+          "p50Ms": 7.877833000000464,
+          "p95Ms": 8.506499999999505
+        },
+        "clone": {
+          "samplesMs": [
+            3.0689170000005106,
+            3.0729170000013255,
+            3.1919589999997697
+          ],
+          "p50Ms": 3.0729170000013255,
+          "p95Ms": 3.1919589999997697
+        },
+        "json": {
+          "samplesMs": [
+            3.083042000000205,
+            3.403874999999971,
+            2.7970840000016324
+          ],
+          "p50Ms": 3.083042000000205,
+          "p95Ms": 3.403874999999971
+        }
+      },
+      "selection": {
+        "fullSort": {
+          "samplesMs": [
+            4.235624999999345,
+            4.361249999999927,
+            5.398250000002008
+          ],
+          "p50Ms": 4.361249999999927,
+          "p95Ms": 5.398250000002008
+        },
+        "heap": {
+          "samplesMs": [
+            0.6962910000002012,
+            0.6774580000001151,
+            0.6948329999977432
+          ],
+          "p50Ms": 0.6948329999977432,
+          "p95Ms": 0.6962910000002012
+        },
+        "insertion": {
+          "samplesMs": [
+            2.234958999999435,
+            2.6487919999999576,
+            3.10791700000118
+          ],
+          "p50Ms": 2.6487919999999576,
+          "p95Ms": 3.10791700000118
+        },
+        "partition": {
+          "samplesMs": [
+            1.718417000000045,
+            2.0217909999992116,
+            2.1883750000015425
+          ],
+          "p50Ms": 2.0217909999992116,
+          "p95Ms": 2.1883750000015425
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "Synthetic two-district morning workload; not calibrated or a resident ceiling.",
+    "Phase timings exclude validation/hash/export; step includes normal metrics/history.",
+    "Clone is an in-process structuredClone proxy, not measured worker transfer latency.",
+    "Typed bytes exclude objects; process memory is sampled, shared across phases, not peak/per-model memory.",
+    "No browser, GPU synchronization, draw calls, rendered FPS, main-thread latency or pairwise interaction throughput measured.",
+    "All alternatives select identical display IDs; they do not change simulation cadence or model rules."
+  ],
+  "sourceHashes": {
+    "world/population/visible-sample.js": "0d2ef991b95ff28636ea9ca2635b5a03a34ece6ac0ef0a4012b68da062bd3e00",
+    "world/activity-history.js": "bcffa4e7b0aeb4fbc28b427f6804f15e1507f485de71ddcef231cfa514aedc04",
+    "scripts/benchmark-residents.js": "e67107229affd5c91ce77905122406d917ad38827144e401a3d24d635629d5f1"
+  },
+  "sourceHashNote": "Hashes attached immediately after baseline completion, before history optimization. Runner metadata-only source hash export added while baseline ran."
+}

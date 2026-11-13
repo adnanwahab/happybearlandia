@@ -1,0 +1,31 @@
+import {test,expect} from '@playwright/test';
+
+test('change one year reruns a real matched comparison and replays it exactly',async({page},info)=>{
+ await page.goto('/world/?demo=1&synthetic=1&people=30&renderer=canvas2d');
+ await expect.poll(()=>page.evaluate(()=>window.hblVisualPass?.ready),{timeout:60000}).toBe(true);
+ const state=()=>page.evaluate(()=>window.hblVisualPass.getState());
+ const completed=()=>expect.poll(async()=>(await state()).status,{timeout:120000}).toBe('completed');
+ await expect(page.getByTestId('quick-demo-change')).toBeHidden();
+ await page.getByTestId('quick-demo').click();await completed();
+ const original=await state();
+ await page.getByTestId('quick-demo-replay').click();await completed();
+ expect((await state()).result).toEqual(original.result);
+ await page.getByTestId('quick-demo-year').selectOption('0');
+ await page.getByTestId('quick-demo-change').click();await completed();
+ const changed=await state();
+ expect(changed.result.year).toBe(0);expect(changed.feedback.provenance.year).toBe(0);
+ expect(changed.result.days).toBe(original.result.days);
+ expect(changed.result.proposalIds).toEqual(original.result.proposalIds);
+ expect(changed.result.scores.before).toEqual(original.result.scores.before);
+ expect(changed.result.scores.noPlan).toEqual(original.result.scores.noPlan);
+ expect(changed.result.scores.withPlan).not.toEqual(original.result.scores.withPlan);
+ expect(changed.provenance.seed).toBe(original.provenance.seed);
+ await page.getByTestId('quick-demo-year').selectOption('0');
+ await expect(page.getByTestId('quick-demo-change')).toBeDisabled();
+ await page.getByTestId('quick-demo-year').selectOption('3');
+ await page.getByTestId('quick-demo-change').scrollIntoViewIfNeeded();
+ await page.screenshot({path:info.outputPath('change-one-thing.png')});
+ await page.getByTestId('quick-demo-replay').click();await completed();
+ expect((await state()).result).toEqual(changed.result);
+ await info.attach('comparisons',{body:JSON.stringify({original,changed},null,2),contentType:'application/json'});
+});

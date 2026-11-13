@@ -1,0 +1,80 @@
+From 5556a28913fc2f8e56e445c18f2b2ac8658986b7 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Thu, 12 Nov 2026 12:00:00 -0600
+Subject: [PATCH] test: capture SHE-232 boundary regressions
+
+Report-first audit baseline b963dd353538294cb0fbf5d34d5283fad6e10e68.
+Tests only; intentionally red until the reviewed fixes are implemented.
+HTTP route regression requires a local socket-capable environment.
+
+---
+diff --git a/test/she232-bug-families.test.js b/test/she232-bug-families.test.js
+new file mode 100644
+index 0000000..a5e5e33
+--- /dev/null
++++ b/test/she232-bug-families.test.js
+@@ -0,0 +1,62 @@
++import {test,expect} from 'bun:test';
++import {mkdtemp,rm} from 'node:fs/promises';
++import {tmpdir} from 'node:os';
++import {join} from 'node:path';
++import {createDecisionClient} from '../world/decision/client.js';
++import {createConstitutionRuntime} from '../world/constitution-city/runtime.js';
++import {createCity} from '../world/city/seed.js';
++import {normalizeDearCongressPlan} from '../world/constitution-city/plan.js';
++import planSnapshot from '../world/constitution-city/dear-congress-plan.json';
++
++// Intentionally red against the SHE-232 baseline. No implementation repairs.
++test('SHE-232 B3: malformed successful Decision response rejects',async()=>{
++ const client=createDecisionClient({fetcher:async()=>new Response('<html>fallback</html>',{status:200})});
++ await expect(client.results('demo')).rejects.toThrow();
++});
++
++test('SHE-232 B3: malformed polling data reaches onError instead of onUpdate',async()=>{
++ let updates=0,calls=0,watch;
++ const client=createDecisionClient({fetcher:async()=>{calls++;return new Response('not JSON',{status:200});}});
++ const outcome=await new Promise(resolve=>{
++  watch=client.watch('demo',{onUpdate(){updates++;resolve('update');},onError(){resolve('error');}});
++ });
++ watch.destroy();
++ expect(outcome).toBe('error');expect(updates).toBe(0);expect(calls).toBe(1);
++});
++
++test('SHE-232 B2: dispatch failure releases worker and abort listener before disposal',async()=>{
++ let terminations=0,added=0,removed=0;
++ const controller=new AbortController(),signal=controller.signal;
++ const add=signal.addEventListener.bind(signal),remove=signal.removeEventListener.bind(signal);
++ signal.addEventListener=(...args)=>{added++;return add(...args);};
++ signal.removeEventListener=(...args)=>{removed++;return remove(...args);};
++ const runtime=createConstitutionRuntime({initial:createCity({households:3}),plan:normalizeDearCongressPlan(planSnapshot),workerFactory:()=>({terminate(){terminations++;},postMessage(){throw Error('dispatch failed');}})});
++ try{
++  await expect(runtime.run({scenarios:[{id:'current',label:'Current',clauseIds:[]}],runs:1,months:0,signal})).rejects.toThrow('dispatch failed');
++  expect(terminations).toBe(1);expect(added).toBe(removed);
++ }finally{runtime.destroy();}
++ expect(terminations).toBe(1);expect(added).toBe(removed);
++});
++
++test('SHE-232 B1: real server denies encoded server modules and preserves public modules',async()=>{
++ const directory=await mkdtemp(join(tmpdir(),'she232-routes-'));
++ const server=Bun.spawn([process.execPath,'--no-env-file','run','server.js'],{
++  env:{PATH:process.env.PATH,PORT:'0',HBL_WORLD_DB_PATH:join(directory,'world.sqlite'),HBL_CITY_DATA_DIR:join(directory,'city'),HBL_REALITY_SHARE_DB_PATH:join(directory,'shares.sqlite'),DECISION_STORE_DIR:join(directory,'decision'),HBL_JOURNAL_ROOT:join(directory,'journals')},stdout:'pipe',stderr:'ignore',
++ });
++ const startupTimer=setTimeout(()=>server.kill(),5000);
++ try{
++  const reader=server.stdout.getReader(),decoder=new TextDecoder();let startup='',port;
++  try{
++   while(!port){const {value,done}=await reader.read();if(done)throw Error('Local server did not start; HTTP regression is unverified');startup+=decoder.decode(value,{stream:true});port=startup.match(/HappyBearLandia running at http:\/\/localhost:(\d+)\r?\n/)?.[1];}
++  }finally{clearTimeout(startupTimer);reader.releaseLock();}
++  const origin=`http://127.0.0.1:${port}`;
++  for(const path of ['/world/api.js','/world/%61pi.js','/world/city/api.js','/world/city/%61pi.js','/world/city/api%2ejs','/world/city%2fapi.js']){
++   const response=await fetch(origin+path,{signal:AbortSignal.timeout(3000)});
++   await response.body?.cancel();expect(response.status,`server-only path ${path}`).toBe(404);
++  }
++  for(const path of ['/world/universe/registry.js','/world/future-machine.html']){
++   const response=await fetch(origin+path,{signal:AbortSignal.timeout(3000)});
++   await response.body?.cancel();expect(response.status,`public path ${path}`).toBe(200);
++  }
++ }finally{clearTimeout(startupTimer);server.kill();await server.exited;await rm(directory,{recursive:true,force:true});}
++},15000);
+-- 
+2.39.5

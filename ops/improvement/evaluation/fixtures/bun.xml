@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="bun test" tests="1" failures="0"><testsuite name="test/checkpoint-replay.test.js" tests="1" failures="0"><testcase name="registered causal dispatcher serves persisted City state without live-state fallback" classname="test/checkpoint-replay.test.js" time="0.012" /></testsuite></testsuites>

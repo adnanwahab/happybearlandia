@@ -103,3 +103,36 @@ or publisher implementation, CI results, or approval by a reviewer. The new
 documentation update still requires host publication after this session;
 the receipt above verifies the earlier commit only. No browser behavior
 changed, so app launch, Playwright and uploaded media remain inapplicable.
+
+## Checkout re-verification — November 12, 2026
+
+This follow-up ran in `/Users/wahabma/happybearlandia/workspaces/SHE-179`,
+starting at `b963dd353538294cb0fbf5d34d5283fad6e10e68` on `mini/SHE-179`
+with a clean working tree. File discovery and `git ls-files --error-unmatch
+docs/symphony-pilot-verification.md` confirmed that this report already exists
+and is tracked. It was preserved and extended; the acceptance criterion to
+confirm absence before creation cannot be newly satisfied in this checkout.
+The original creation is recorded in local commit `cc9d10a` above.
+Attempted `git switch -c symphony/SHE-179`; it failed because the shared
+Git metadata is outside the writable workspace at
+`/Users/wahabma/happybearlandia/.git`. The sandbox denied creation of the
+branch ref. The branch remains `mini/SHE-179`; no local commit was created.
+Branch creation and commit remain outstanding and require a session with
+write access to the shared Git metadata.
+
+Checks actually performed in this follow-up:
+
+| Check | Result and scope |
+| --- | --- |
+| `python3 -m unittest discover -s ops/symphony -p test_pipeline.py -v` | **8 passed. Offline only.** Expected argument errors were emitted by passing negative tests. |
+| `python3 ops/symphony/run_25h.py --tracker linear --workers 1` | **Exit 0. Offline dry-run only.** Printed rendered configuration; launched no worker. |
+| `git diff --check` | **Passed** for this documentation update on the final documentation diff. |
+
+The observed Linear → Symphony → Codex → GitHub workflow and live PR #24
+receipt remain historical evidence from the preceding sections. This follow-up
+did not query Linear or GitHub, inspect a live dispatcher, push, create a PR,
+or verify CI. The supplied issue context says Done; that status was not
+independently rechecked. The current local README describes a newer source-only
+host handoff, so the historical worker-commit procedure above should not be
+treated as the current runtime contract. This requested local commit records
+documentation only. Browser behavior is unchanged; Playwright was skipped.

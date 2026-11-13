@@ -1,3 +1,5 @@
+import {neighborhoodImpact} from './impact.js';
+import {selectResidentPair} from './resident-pair.js';
 import {PROJECTS,COMPARISON_CONFIG,validateProject} from './catalog.js';
 import {createTrackedWorker} from '../workers/worker-registry.js';
 
@@ -16,7 +18,7 @@ export function mountNeighborhoodWhatIf({container=document.body,scene,camera,co
   <div class="wi-actions"><button type="button" data-run disabled>Simulate before & after</button><button type="button" data-cancel hidden>Cancel</button><button type="button" data-clear>Clear</button></div>
   <p data-status role="status" aria-live="polite">Choose an addition and a location.</p><progress data-progress max="1" value="0" hidden aria-label="Neighborhood simulation progress"></progress>
   <div data-results hidden><h3>Same people. Two possible days.</h3><p data-summary class="wi-note"></p><div class="wi-table"><table><caption>Unchanged neighborhood → with your addition</caption><thead><tr><th>Measure</th><th>Before</th><th>After</th><th>Change</th></tr></thead><tbody data-metrics></tbody></table></div>
-  <p class="wi-note">Select a measure to highlight affected comparison residents at their original homes. Green = improved; orange = worsened. These markers belong to this separate synthetic comparison.</p><p data-explanation></p><ul data-residents class="wi-residents"></ul></div>
+  <p class="wi-note">Select a measure to highlight affected comparison residents at their original homes. Green = improved; orange = worsened. These markers belong to this separate synthetic comparison.</p><h3>Neighborhood impact by selected measure</h3><p class="wi-note">Starting residents grouped by original district; ranked by absolute mean change, then district ID. Separate modeled measures, not a welfare ranking. Housing burden here is resident-weighted. Missing paired measurements are excluded.</p><div class="wi-table"><table><caption data-impact-caption></caption><thead><tr><th>Neighborhood</th><th>Before</th><th>After</th><th>Mean change</th><th>Included / total</th><th>Excluded</th></tr></thead><tbody data-impact></tbody></table></div><p data-impact-excluded class="wi-note"></p><form data-pair-form><h3>Compare two residents across both days</h3><label>First resident ID <input data-pair-first aria-label="First resident ID" required></label><label>Second resident ID <input data-pair-second aria-label="Second resident ID" required></label><button type="submit">Compare residents</button></form><p data-pair-context class="wi-note"></p><div data-pair-output aria-live="polite"></div><p class="wi-note">IDs map only within these two identically seeded populations, generated before the addition. They do not map to live World, City or House residents. Both days start at midnight; the addition applies before the first 15-minute step. These synthetic modeled differences describe one paired day, not an empirical causal estimate. Different residents are not controls for each other; zero change and missing trips are valid. Random streams may diverge after decisions change.</p><p data-explanation></p><ul data-residents class="wi-residents"></ul></div>
   <details><summary>How this comparison works</summary><p>Two fresh populations of 200 synthetic people, seed 42, start at midnight with identical homes, jobs and resources. The existing population model advances both for 24 hours in 15-minute steps. This is a separate experiment; the live population continues independently.</p><p>Commute is mean planned duration of work departures observed at 15-minute steps. Housing burden is average annual rent ÷ household income across households. Daily access is the average share of two destinations—grocery and park—within a 400 m straight-line walk of each home (10 minutes at 2.4 km/h).</p><p>District capacities and behavior are synthetic assumptions. No construction period, public budget, land acquisition, street routing or empirical calibration is modeled. Small or zero changes are valid results.</p></details>`;
   const style=doc.createElement('link');style.rel='stylesheet';style.href=new URL('./panel.css',import.meta.url).href;container.append(style,root);
   const $=selector=>root.querySelector(selector),canvas=renderer.domElement,group=new THREE.Group();group.name='Neighborhood what-if preview';scene.add(group);
@@ -39,7 +41,12 @@ export function mountNeighborhoodWhatIf({container=document.body,scene,camera,co
   function place(x,z){try{project=validateProject({kind:$('[data-kind]').value,x,z},getContext());invalidate();paintProposal();setArmed(false);$('[data-location]').textContent=`Proposed ${PROJECTS[project.kind].label.toLowerCase()} · E ${x.toFixed(0)} m, S ${z.toFixed(0)} m`;$('[data-run]').disabled=false;status('Location ready. Simulate to compare the two days.');}catch(error){status(error.message);}}
   function reset(){cancel();setArmed(false);project=null;invalidate();paintProposal();$('[data-run]').disabled=true;$('[data-location]').textContent='No location selected.';status('Choose an addition and a location.');}
   function focus(home){const target=new THREE.Vector3(home.x,controls.target.y,home.z),offset=target.clone().sub(controls.target);camera.position.add(offset);controls.target.copy(target);controls.update();}
-  function showMetric(id){if(!result)return;metric=id;disposeChildren(markers);const list=$('[data-residents]');list.replaceChildren();
+  function showMetric(id){if(!result)return;metric=id;disposeChildren(markers);
+    const impact=neighborhoodImpact(result,id),body=$('[data-impact]');body.replaceChildren();
+    $('[data-impact-caption]').textContent=`${id} · mean matched resident observations · ${impact.unit} (change)`;
+    for(const row of impact.rows){const tr=doc.createElement('tr');for(const value of [row.label,row.baseline.toFixed(3),row.plan.toFixed(3),`${row.delta>0?'+':''}${row.delta.toFixed(3)} ${impact.unit}`,`${row.included} / ${row.total}`,String(row.excluded)]){const td=doc.createElement('td');td.textContent=value;tr.append(td);}body.append(tr);}
+    $('[data-impact-excluded]').textContent=`Excluded neighborhoods: ${impact.excluded.map(row=>`${row.label}: ${row.excluded} missing matched measurements`).join('; ')||'none'}. Residents without a starting district: ${impact.unmapped}. Zero changes remain listed.`;
+const list=$('[data-residents]');list.replaceChildren();
     const threshold=id==='commute'?.1:.0001;
     const affected=result.residents.filter(r=>r.delta[id]!==null&&Math.abs(r.delta[id])>threshold).sort((a,b)=>Math.abs(b.delta[id])-Math.abs(a.delta[id]));
     const improved=r=>id==='access'?r.delta[id]>0:r.delta[id]<0;
@@ -50,7 +57,21 @@ export function mountNeighborhoodWhatIf({container=document.body,scene,camera,co
     if(!affected.length){const li=doc.createElement('li');li.textContent='No measurable change for this measure. Try another location or addition.';list.append(li);}
     root.querySelectorAll('[data-metric]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.metric===id)));
   }
-  function renderResult(value){result=value;$('[data-results]').hidden=false;$('[data-summary]').textContent=`${value.population} synthetic residents · seed ${value.seed} · 24 hours · ${value.before.commuteTrips} / ${value.after.commuteTrips} work departures. Positive change means more; negative means less.`;
+  function showPair(){
+    if(!result)return;
+    const output=$('[data-pair-output]');output.replaceChildren();
+    for(const selection of selectResidentPair(result,[$('[data-pair-first]').value,$('[data-pair-second]').value])){
+      const section=doc.createElement('section'),heading=doc.createElement('h4');heading.textContent=selection.id||'No resident ID';section.append(heading);
+      if(!selection.resident){const note=doc.createElement('p');note.textContent=selection.message;section.append(note);}
+      else {const table=doc.createElement('table'),caption=doc.createElement('caption');caption.textContent='Recorded resident outcomes';table.append(caption);const head=doc.createElement('thead'),headers=doc.createElement('tr');for(const label of ['Measure','Without addition','With addition','Change']){const th=doc.createElement('th');th.scope='col';th.textContent=label;headers.append(th);}head.append(headers);table.append(head);
+        for(const [id,label,percent] of [['commute','Work departure duration (min)',false],['burden','Annual rent / income (%)',true],['access','Daily destination access (%)',true]]){
+          const r=selection.resident,row=doc.createElement('tr'),th=doc.createElement('th');th.scope='row';th.textContent=label;row.append(th);
+          for(const text of [fmt(r.before[id],percent),fmt(r.after[id],percent),delta(r.delta[id],percent)]){const cell=doc.createElement('td');cell.textContent=text;row.append(cell);}table.append(row);
+        }section.append(table);}
+      output.append(section);
+    }
+  }
+  function renderResult(value){result=value;$('[data-results]').hidden=false;$('[data-pair-first]').value=value.residents[0]?.id||'';$('[data-pair-second]').value=value.residents[1]?.id||value.residents[0]?.id||'';$('[data-pair-context]').textContent=`Recorded comparison ${value.runId} · ${value.version} · model ${value.modelVersion} · seed ${value.seed} in both arms · 0–${value.minutes} minutes · ${value.project.kind} at E ${value.project.x}, S ${value.project.z}. Result belongs to this completed run; rerunning replaces it.`;showPair();$('[data-summary]').textContent=`${value.population} synthetic residents · seed ${value.seed} · 24 hours · ${value.before.commuteTrips} / ${value.after.commuteTrips} work departures. Positive change means more; negative means less.`;
     const body=$('[data-metrics]');body.replaceChildren();for(const [id,label]of [['commute','Average commute'],['burden','Housing burden'],['access','Daily access']]){const tr=doc.createElement('tr'),th=doc.createElement('th'),b=doc.createElement('button');b.type='button';b.textContent=label;b.dataset.metric=id;b.addEventListener('click',()=>showMetric(id));th.scope='row';th.append(b);tr.append(th);for(const text of [fmt(value.before[id],id!=='commute'),fmt(value.after[id],id!=='commute'),delta(value.before[id]===null||value.after[id]===null?null:value.after[id]-value.before[id],id!=='commute')]){const td=doc.createElement('td');td.textContent=text;tr.append(td);}body.append(tr);}showMetric(metric);status('Comparison complete. Select a measure to explore who changed.');}
   function run(){if(worker||!project)return;setArmed(false);invalidate();busy(true);$('[data-progress]').value=0;status('Simulating two possible days…');
     try{const active=createTrackedWorker(new URL('./compare.worker.js',import.meta.url),{type:'module'},{type:'Neighborhood what-if',group:'experiments'});worker=active;
@@ -62,6 +83,7 @@ export function mountNeighborhoodWhatIf({container=document.body,scene,camera,co
   function open(){root.hidden=false;group.visible=true;button.setAttribute('aria-expanded','true');$('[data-kind]').focus();}
   function close(){setArmed(false);root.hidden=true;group.visible=false;button.setAttribute('aria-expanded','false');button.focus();}
   const listeners=[];function listen(node,type,fn,options){node.addEventListener(type,fn,options);listeners.push(()=>node.removeEventListener(type,fn,options));}
+  listen($('[data-pair-form]'),'submit',event=>{event.preventDefault();showPair();});
   listen(button,'click',()=>root.hidden?open():close());listen($('[data-close]'),'click',close);
   listen($('[data-kind]'),'change',()=>{invalidate();$('[data-assumption]').textContent=PROJECTS[$('[data-kind]').value].assumption;if(project)place(project.x,project.z);});
   listen($('[data-place]'),'click',()=>{setArmed(!armed);status(armed?'Click the ground inside the loaded neighborhood. Drag to adjust your view; Escape cancels placement.':'Placement cancelled.');});

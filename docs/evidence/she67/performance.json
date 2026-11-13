@@ -1,0 +1,27 @@
+[
+  {
+    "label": "100 paired commute futures",
+    "elapsedMs": 1901,
+    "cpu": {
+      "user": 2667390,
+      "system": 152762
+    },
+    "rssBeforeBytes": 34258944,
+    "rssAfterBytes": 131055616,
+    "samples": 100,
+    "horizonMonths": 12,
+    "resultBytes": 132412
+  },
+  {
+    "label": "one guided household Population checkpoint",
+    "elapsedMs": 75,
+    "cpu": {
+      "user": 93308,
+      "system": 33838
+    },
+    "rssBeforeBytes": 131055616,
+    "rssAfterBytes": 148996096,
+    "checkpointBytes": 35381,
+    "saveBytes": 36103
+  }
+]

@@ -1,0 +1,70 @@
+bun test v1.4.2 (744846f84)
+
+test/population-model.test.js:
+(pass) synthetic living population model > stable snapshot+seed IDs, deterministic full state and changed seeds [1044.84ms]
+(pass) synthetic living population model > hot state is typed, snapshots and inspectors remain bounded and restore continues exactly [283.48ms]
+(pass) synthetic living population model > generated target report has explicit tolerance gate and synthetic provenance [4.18ms]
+(pass) synthetic living population model > small populations fit seeded adult employment quota, while actual job scarcity still gates [0.91ms]
+(pass) synthetic living population model > actual building anchors generate within-district trips, positions and occupancy [202.31ms]
+(pass) synthetic living population model > probabilistic mode choices respond to transit, exclude hard infeasible modes and retain actual traces [824.51ms]
+(pass) synthetic living population model > weighted population preserves per-capita economics with equivalent represented care capacity [834.61ms]
+(pass) synthetic living population model > reason codes remain truthful for stochastic choices and schedules log actual event phases [290.58ms]
+(pass) synthetic living population model > car-free district hard constraints reject road modes and visible flags come from actual state [177.18ms]
+(pass) synthetic living population model > slower registered walking assumption changes walking time without changing other modes [3.86ms]
+(pass) synthetic living population model > initial housing and daily jobs cannot oversubscribe represented capacity [3.65ms]
+(pass) synthetic living population model > household housing utility includes all employed workers and hard vacancy constraints [1.69ms]
+(pass) synthetic living population model > weekends suppress work trips, events recover, budgets and bounded retention are real [4229.12ms]
+(pass) synthetic living population model > local-economy pack is deterministic, cost/tax sensitive, and has real daily state [38.49ms]
+
+test/activity-history.test.js:
+(pass) exact bounded activity history > interval durations cross hour/day boundaries with raw and represented conservation [2.64ms]
+(pass) exact bounded activity history > poll splitting cannot multiply visits/transitions or selected bouts [0.19ms]
+(pass) exact bounded activity history > expired bucket/detail retention cannot change exact lifetime totals [0.23ms]
+(pass) exact bounded activity history > event on exact boundary respects bucket cap and represents no activity duration [0.09ms]
+(pass) exact bounded activity history > snapshot/query is pure and only returns supported scoped counters [0.24ms]
+(pass) exact bounded activity history > serialization preserves continuation, explicit gaps and selected detail budgets [0.52ms]
+(pass) exact bounded activity history > rejects overlaps, prototype keys and nonfinite/oversized data before changing totals [0.13ms]
+(pass) exact bounded activity history > deterministic partition property conserves totals for many arbitrary intervals [1.35ms]
+History100kintervals measuredms: 62
+(pass) exact bounded activity history > 100k actor admission is linear-budgeted and state stays explicitly bounded [62.91ms]
+(pass) need validation is atomic and weighted need sums survive interval splitting [0.50ms]
+
+test/population-needs.test.js:
+(pass) need hot fields are seeded, bounded and identical across replay [2.17ms]
+(pass) HOME sleep recovers energy, DINING satisfies hunger and WORK consumes energy [0.17ms]
+(pass) recreation replenishes fun/social, transit cannot replenish food, clamps are monotone [0.17ms]
+(pass) snapshot/inspect expose net rates and actual state without ticking paused meters [73.31ms]
+(pass) existing activity stepping actually applies need changes once per simulated substep [0.47ms]
+
+test/resident-performance.test.js:
+(pass) exact selectors match the previous full sort across ties, sizes and camera positions [10.49ms]
+
+test/population-visible-sample.test.js:
+(pass) bounded worker display samples prioritize actual travelers nearest the view [0.05ms]
+(pass) street access destinations preserve map centers and become actual model locations [4.79ms]
+
+test/population-world-view.test.js:
+(pass) living population visual evidence > town coordinates remain actual geometry while districts are explicitly synthetic [0.05ms]
+(pass) living population visual evidence > renderer strictly bounds worker rows and rejects absent/nonfinite positions [3.23ms]
+(pass) living population visual evidence > interpolation is between actual samples with no extrapolated synthetic destinations [0.03ms]
+(pass) living population visual evidence > behavior filters require actual flags/metrics; no inferred displacement [0.04ms]
+(pass) living population visual evidence > real Three instances/points interpolate, ray-select IDs and clean up without generating agents [6.48ms]
+(pass) actual worker frames retain selected needs and rates across a model step [66.69ms]
+(pass) pause freezes interpolation exactly and resume excludes paused wall time [1.22ms]
+(pass) sample filters apply while paused without changing interpolation position [0.73ms]
+(pass) screen picking respects offset canvas bounds, stable IDs and geometry occlusion [1.01ms]
+(pass) distant markers use a bounded pixel radius rather than a fixed world-unit hit threshold [0.65ms]
+(pass) new resident inspection reads the current paused worker without retroactive history replay [57.54ms]
+(pass) settled distant frames do not upload unchanged GPU buffers or commit detailed humans [3.22ms]
+
+test/legacy-activity-history.test.js:
+(pass) legacy history conserves elapsed person-time, queries do not tick, and detail retention stays honest [27.64ms]
+(pass) history recording does not change seeded people, resource outcomes or model decisions [35.84ms]
+(pass) work and school are unavailable overnight, and an early worker waits without getting paid [5.13ms]
+(pass) walking consumes a full distance budget across short intermediate road segments [2.03ms]
+(pass) all legacy people retain real routines before selection without a sixteen-person inspection limit [23.12ms]
+
+ 49 pass
+ 0 fail
+ 635 expect() calls
+Ran 49 tests across 7 files. [8.41s]

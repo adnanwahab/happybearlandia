@@ -28,7 +28,7 @@ class WorkpadTest(unittest.TestCase):
         network_patch.start()
         self.addCleanup(network_patch.stop)
         self.data = dict(id='issue-id', identifier='SHE-179', state={'name': 'In Progress'},
-                         labels={'nodes': [{'id': 'pilot', 'name': 'symphony-pilot'}], 'pageInfo': {'hasNextPage': False}})
+                         labels={'nodes': [{'id': 'pilot', 'name': 'symphony-pilot'}, {'id': 'ready', 'name': 'hbl-agent-ready'}, {'id': 'approved', 'name': 'hbl-coordinator-approved'}], 'pageInfo': {'hasNextPage': False}})
         self.pads = []
         self.creates = []
         self.fail = False

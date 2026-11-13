@@ -155,13 +155,13 @@ export function mountWorldTools(container, {
       const row = node('article', undefined, 'wt-diff-row'); row.append(node('strong', operationLabel(operation)));
       const previous = operation.op === 'set_parameter' ? currentScenario()?.parameters?.[operation.target.split('.').at(-1)] : operation.op === 'change_world_visual' ? currentScenario()?.worldVisuals?.[operation.target] : undefined;
       if (previous !== undefined) row.append(node('p', `Current: ${text(previous)} → Proposed: ${text(operation.value)}`));
-      if (operation.value?.program) row.append(node('p', `${operation.value.geometry?.floors} floors · ${operation.value.program.residentialUnits} homes · ${operation.value.program.affordableUnits} affordable · ${money(operation.value.finance?.estimatedCost || 0)} estimated cost`));
+      if (operation.value?.program) row.append(node('p', `Entity ${operation.value.id} · ${operation.value.geometry?.floors} floors · ${operation.value.program.residentialUnits} homes · ${operation.value.program.affordableUnits} affordable · ${money(operation.value.finance?.estimatedCost || 0)} estimated cost`));
       if (edited) appendOperationEditor(row, operation, index);
       box.append(row);
     }
     const warnings = find('[data-warnings]'); warnings.replaceChildren();
     for (const warning of new Set([...(pending.warnings || []), ...(checked.warnings || []), ...(checked.errors || [])])) warnings.append(node('li', text(warning)));
-    find('[data-validation]').textContent = checked.valid ? 'Schema validation passed. Final validation runs again when you approve.' : 'This proposal cannot be approved. Resolve the validation messages or reject it.';
+    find('[data-validation]').textContent = checked.valid ? 'Accepted as a draft: the values above. No zoning, utility capacity or land ownership approval is modeled. Geometric placement and schema validation passed; approval validates again.' : 'Rejected: this proposal cannot be approved. The messages above explain why; revise or reject it.';
     find('[data-action="approve"]').disabled = locked || busy || !checked.valid;
     find('[data-rerun]').disabled = !rerun || locked; find('[data-rerun]').closest('label').hidden = !rerun;
     find('[data-action="approve"]').textContent = rerun && find('[data-rerun]').checked ? 'Approve & simulate' : 'Approve & apply';
@@ -330,6 +330,12 @@ export function mountWorldTools(container, {
   }
   update(); loadProviders();
   return {
+    requestWish(prompt, selection) {
+      if (locked || destroyed || busy) return;
+      this.setSelection(selection); cancelPreview(); selectTab('edit');
+      find('[data-prompt]').value = prompt;
+      return perform(proposeEdit);
+    },
     showProposal(proposal) { if (locked || destroyed) return; showProposal(proposal); selectTab('edit'); root.scrollIntoView?.({ behavior: 'smooth', block: 'start' }); },
     setPlacement(proposal) { if (locked || destroyed) return; if (!proposal) { cancelPreview(); announce('Placement cancelled. Inputs and approved projects are unchanged.'); return; } draft = clone(proposal); if (!draft.id) draft.id = createBuildingProposal().id; renderBuildingForm(); onPreview(clone(draft)); announce('Building placed as a draft. Review its configuration and explicitly approve to change the scenario.'); },
     setSelection(selection) {

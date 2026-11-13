@@ -36,6 +36,8 @@ test('strict versions, missing inventory, horizon and frame boundaries', async (
   expect(() => normalizeReplay(initial, {steps:[]})).toThrow('Missing replay');
   const run = replay(initial); run.steps[3].state = null;
   expect(() => normalizeReplay(initial,run)).toThrow('Missing');
+  run.steps[3] = null; expect(() => normalizeReplay(initial,run)).toThrow('Missing or mismatched replay state');
+  delete run.steps[3]; expect(() => normalizeReplay(initial,run)).toThrow('Missing or mismatched replay state');
   expect(() => getFrame({},-1)).toThrow(); expect(() => getFrame({},121)).toThrow();
   expect(getFrame({},0)).toEqual({month:0,baseline:null,plan:null});
   expect(await stateHash({b:2,a:1})).toBe(await stateHash({a:1,b:2}));
@@ -50,7 +52,7 @@ test('API adapter persists paired seeds, normalizes replay and handles cancellat
       manifest = { ...body, version:DEFAULT_RECIPE.modelVersion, modelManifest:createEngine().manifest };
       return Response.json({id:'city_test'});
     }
-    if (url.endsWith('/replay')) return Response.json(replay(manifest.initial,body.scenarioId === 'plan' ? manifest.scenarios[1].interventions[0] : null));
+    if (url.endsWith('/replay')) return Response.json({...replay(manifest.initial,body.scenarioId === 'plan' ? manifest.scenarios[1].interventions[0] : null),identity:{experimentId:'city_test',scenarioId:body.scenarioId,runIndex:0,runId:`${body.scenarioId}-0`}});
     return Response.json({id:'city_test',status:'complete',manifest});
   };
   try {
@@ -58,7 +60,7 @@ test('API adapter persists paired seeds, normalizes replay and handles cancellat
     expect(history.experimentId).toBe('city_test');
     expect(history.initialHash).toHaveLength(64);
     expect(Object.isFrozen(history.baseline[0].state)).toBe(true);
-    expect(history.baseline[0]).toEqual(history.plan[0]);
+    expect(history.baseline[0].state).toEqual(history.plan[0].state);
     expect(history.baseline[120].state.seed).toBe(history.plan[120].state.seed);
     expect(calls).toHaveLength(4);
     const aborted = new AbortController(); aborted.abort();
@@ -107,4 +109,48 @@ test('normalization preserves completion provenance and rejects a missing capita
   expect(normalized.every(snapshot => snapshot.causalRecords.length === 0)).toBe(true);
   delete run.steps[0].state.systems.finance.capitalExpense;
   expect(() => normalizeReplay(initial,run)).toThrow('Missing monthly finance capital ledger');
+});
+
+test('editing proposed homes reuses the original baseline and leaves prior results immutable',async()=>{
+  const originalInitial=freeze(initialForRecipe());
+  const baseline=freeze(replay(originalInitial));
+  const originalPlan=freeze(replay(originalInitial,DEFAULT_RECIPE.intervention));
+  const before=await stateHash({originalInitial,baseline,originalPlan});
+  const recipe=validateRecipe({...DEFAULT_RECIPE,intervention:{...DEFAULT_RECIPE.intervention,amount:12}});
+  const editedInitial=initialForRecipe(recipe);
+  expect(await stateHash(editedInitial)).toBe(await stateHash(originalInitial));
+  expect(await stateHash(replay(editedInitial))).toBe(await stateHash(baseline));
+  const editedPlan=replay(editedInitial,recipe.intervention);
+  expect(normalizeReplay(editedInitial,editedPlan)[120].metrics.housingUnits-normalizeReplay(originalInitial,baseline)[120].metrics.housingUnits).toBe(12);
+  expect(normalizeReplay(originalInitial,originalPlan)[120].metrics.housingUnits-normalizeReplay(originalInitial,baseline)[120].metrics.housingUnits).toBe(24);
+  expect(await stateHash({originalInitial,baseline,originalPlan})).toBe(before);
+});
+
+test('deadline reports actionable timeout and caller abort remains cancellation', async () => {
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (_url, {signal}) => new Promise((_resolve, reject) => {
+    signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), {once:true});
+  });
+  try {
+    await expect(loadExperiment('city_timeout', {timeoutMs:10})).rejects.toThrow('City data timed out');
+    const controller = new AbortController();
+    const pending = loadExperiment('city_cancel', {signal:controller.signal});
+    controller.abort();
+    await expect(pending).rejects.toThrow('Aborted');
+  } finally { globalThis.fetch = realFetch; }
+});
+
+
+test('lost connection is actionable without masking application failures', async () => {
+  const realFetch = globalThis.fetch;
+  try {
+    globalThis.fetch = async () => { throw new TypeError('Failed to fetch'); };
+    await expect(loadExperiment('city_offline')).rejects.toThrow('City data connection interrupted. Check your connection and retry');
+    globalThis.fetch = async () => ({json:async()=>{throw new TypeError('body stream lost');}});
+    await expect(loadExperiment('city_interrupted')).rejects.toThrow('City data connection interrupted');
+    globalThis.fetch = async () => Response.json({error:'Try again later'}, {status:503});
+    await expect(loadExperiment('city_unavailable')).rejects.toThrow('Try again later');
+    globalThis.fetch = async () => Response.json({id:'city_poll',status:'running'});
+    await expect(loadExperiment('city_poll', {onProgress(){throw new TypeError('progress bug');}})).rejects.toThrow('progress bug');
+  } finally { globalThis.fetch = realFetch; }
 });

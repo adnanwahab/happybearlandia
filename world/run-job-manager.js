@@ -1,3 +1,4 @@
+import { readRunInput } from "./run-input.js";
 import { fingerprint } from "./reproducibility.js";
 import { simulateExperiment } from "./simulation-adapter.js";
 
@@ -6,6 +7,14 @@ function clone(value) { return value == null ? value : JSON.parse(JSON.stringify
 
 export class RunJobManager {
   constructor(options = {}) {
+    for (const [name, fallback, min] of [["maxRunning", 2, 1], ["maxQueued", 8, 0]]) {
+      const value = options[name] ?? fallback;
+      if (!Number.isSafeInteger(value) || value < min) throw new Error(`Invalid ${name}`);
+      this[name] = value;
+    }
+    this.running = 0;
+    this.queue = [];
+    this.counters = { submitted: 0, queued: 0, completed: 0, failed: 0, rejected: 0, deduplicated: 0 };
     this.jobs = new Map();
     this.cache = options.cache || new Map();
     this.listeners = new Map();
@@ -15,7 +24,17 @@ export class RunJobManager {
     if (!experiment || !worldBatch?.worlds || !adapter) throw new Error("Run job requires experiment, worldBatch, and adapter");
     const identity = { experimentId: experiment.id, plan: experiment.plan, model: experiment.model, seed: worldBatch.seed, worldIds: worldBatch.worlds.map((row) => row.id), adapter: adapter.id };
     const id = `run_${fingerprint(identity)}`;
-    if (this.jobs.has(id)) return this.jobs.get(id).public;
+    this.counters.submitted += 1;
+    if (this.jobs.has(id)) {
+      this.counters.deduplicated += 1;
+      return this.jobs.get(id).public;
+    }
+    if (this.running >= this.maxRunning && this.queue.length >= this.maxQueued) {
+      this.counters.rejected += 1;
+      const error = new Error("Simulation capacity reached; run queue is full; retry later");
+      error.status = 429;
+      throw error;
+    }
     const internal = {
       id,
       createdAt: nowIso(),
@@ -24,7 +43,7 @@ export class RunJobManager {
       completed: 0,
       total: worldBatch.worlds.length,
       chunkSize: Math.max(1, Math.round(chunkSize)),
-      concurrency: Math.max(1, Math.min(64, Math.round(concurrency))),
+      concurrency: Math.max(1, Math.min(8, Math.round(Number.isFinite(concurrency) ? concurrency : 8))),
       experimentId: experiment.id || null,
       seed: worldBatch.seed ?? null,
       adapter: { id: adapter.id, label: adapter.label, predictive: adapter.predictive, modelClass: adapter.modelClass },
@@ -35,8 +54,50 @@ export class RunJobManager {
     };
     internal.public = this.snapshot(internal);
     this.jobs.set(id, internal);
-    internal.promise = this.#run(internal, { experiment, worldBatch, adapter });
+    internal.promise = new Promise((resolve, reject) => {
+      internal.resolve = resolve;
+      internal.reject = reject;
+    });
+    // Jobs can fail before a polling client calls wait(). Keep the rejection observed.
+    internal.promise.catch(() => {});
+    const entry = { job: internal, input: { experiment, worldBatch, adapter } };
+    if (this.running < this.maxRunning) this.#start(entry);
+    else {
+      this.queue.push(entry);
+      this.counters.queued += 1;
+    }
     return internal.public;
+  }
+
+  budget() {
+    return { active: this.running, queued: this.queue.length, rejected: this.counters.rejected, maxActive: this.maxRunning, maxQueued: this.maxQueued, maxConcurrencyPerJob: 8 };
+  }
+
+  metrics() {
+    return {
+      schemaVersion: "hbl-run-queue-metrics.v1",
+      ...this.counters,
+      running: this.running,
+      queueDepth: this.queue.length,
+      maxRunning: this.maxRunning,
+      maxQueued: this.maxQueued,
+    };
+  }
+
+  #start({ job, input }) {
+    this.running += 1;
+    this.#run(job, input).then(
+      () => this.#finish(job, false),
+      (error) => this.#finish(job, true, error),
+    );
+  }
+
+  #finish(job, failed, error) {
+    this.running -= 1;
+    this.counters[failed ? "failed" : "completed"] += 1;
+    if (this.queue.length) this.#start(this.queue.shift());
+    if (failed) job.reject(error);
+    else job.resolve();
   }
 
   async #run(job, { experiment, worldBatch, adapter }) {
@@ -55,7 +116,18 @@ export class RunJobManager {
         }
         for (const [index, row] of cachedRows) job.simulations[index] = row;
         if (missing.length) {
-          const batch = await simulateExperiment(experiment, { worlds: missing.map((row) => row.world) }, adapter, { concurrency: job.concurrency });
+          // A failed Promise.all may leave sibling adapter calls in flight.
+          // Hold this job's slot until those calls settle as well.
+          const inFlight = new Set();
+          const trackedAdapter = { ...adapter, simulateWorld: (...args) => {
+            const promise = Promise.resolve().then(() => adapter.simulateWorld(...args));
+            inFlight.add(promise);
+            promise.finally(() => inFlight.delete(promise)).catch(() => {});
+            return promise;
+          } };
+          let batch;
+          try { batch = await simulateExperiment(experiment, { worlds: missing.map((row) => row.world) }, trackedAdapter, { concurrency: job.concurrency }); }
+          finally { await Promise.allSettled([...inFlight]); }
           batch.simulations.forEach((simulation, index) => {
             const target = missing[index];
             job.simulations[target.index] = simulation;
@@ -108,7 +180,10 @@ export class RunJobManager {
   }
   #emit(job) {
     job.public = this.snapshot(job);
-    for (const fn of this.listeners.get(job.id) || []) fn(job.public);
+    for (const fn of this.listeners.get(job.id) || []) {
+      // Observers must not change execution outcomes or stall queue draining.
+      try { fn(job.public); } catch {}
+    }
   }
 }
 
@@ -119,10 +194,18 @@ export function createRunApiHandler(manager, resolveRunInput) {
     const parts = url.pathname.split("/").filter(Boolean);
     if (parts[0] !== "api" || parts[1] !== "runs") return null;
     const id = parts[2] || null;
+    if (id === "metrics" && parts.length === 3 && request.method === "GET") {
+      return Response.json(manager.metrics(), { headers: { "cache-control": "no-store" } });
+    }
     if (!id && request.method === "POST") {
-      const body = await request.json();
+      const body = await readRunInput(request);
       const input = await resolveRunInput(body);
-      return Response.json(manager.createJob(input), { status: 202 });
+      try {
+        return Response.json(manager.createJob(input), { status: 202 });
+      } catch (error) {
+        if (error?.status !== 429) throw error;
+        return Response.json({ error: error.message, budget: manager.budget() }, { status: 429, headers: { "retry-after": "1", "cache-control": "no-store" } });
+      }
     }
     if (id && request.method === "GET") {
       const job = manager.get(id, url.searchParams.get("results") === "1");

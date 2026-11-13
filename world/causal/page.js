@@ -3,7 +3,7 @@ import { VERSION } from '../city/contracts.js';
 import { demoRunId } from './demo.js';
 import { mountCityHeatmap } from './heatmap.js';
 import { mountLivingNetwork } from '../living-city/network.js';
-import { cityInventory, compareInventory, indexConstructionEvidence } from './history.js';
+import { cityInventory, compareInventory, indexConstructionEvidence, hasInventoryEntity, entityMonthEvents } from './history.js';
 
 const find = id => document.getElementById(id);
 const runButton = find('run');
@@ -14,6 +14,32 @@ const eventPicker = find('event');
 const checkpointStatus = find('checkpoint');
 const inventory = find('inventory');
 const inspectorHost = find('inspector');
+const copyInvestigation = find('copy-investigation');
+const investigationStatus = find('investigation-status');
+const investigationFallback = find('investigation-fallback');
+let investigationURL;
+
+function clearInvestigation() {
+  investigationURL = undefined;
+  copyInvestigation.disabled = true;
+  investigationStatus.textContent = '';
+  investigationFallback.hidden = true;
+}
+
+copyInvestigation.onclick = async () => {
+  const url = investigationURL;
+  if (!url) return;
+  try {
+    await navigator.clipboard.writeText(url);
+    if (investigationURL === url) investigationStatus.textContent = 'Investigation link copied.';
+  } catch {
+    if (investigationURL !== url) return;
+    investigationStatus.textContent = 'Could not copy automatically. Select and copy the link below.';
+    investigationFallback.hidden = false;
+    find('investigation-link').value = url;
+    find('investigation-link').select();
+  }
+};
 const runPicker = find('saved-run');
 const playbackButton = find('playback');
 const playbackSpeed = find('playback-speed');
@@ -29,6 +55,7 @@ networkDetails.addEventListener('toggle', () => {
 });
 const checkpointCacheSize = 12;
 const labels = {
+  districts: 'Districts',
   buildings: 'Buildings',
   households: 'Households',
   workers: 'People',
@@ -190,6 +217,8 @@ function updateURL(month, eventId, entityId) {
   url.searchParams.set('runId', selectedRun.context.runId);
   url.searchParams.set('month', month);
   url.searchParams.delete('targetId');
+  url.searchParams.delete('entityId');
+  url.searchParams.delete('tick');
   for (const [key, value] of [['event', eventId], ['inspectEntity', entityId]]) {
     if (value) url.searchParams.set(key, value);
     else url.searchParams.delete(key);
@@ -198,6 +227,11 @@ function updateURL(month, eventId, entityId) {
 }
 
 function inspect(month, entityId, eventId) {
+  clearInvestigation();
+  if (entityId) {
+    investigationURL = location.href;
+    copyInvestigation.disabled = false;
+  }
   for (const button of inventory.querySelectorAll('button')) {
     button.setAttribute('aria-pressed', String(button.dataset.entityId === entityId));
   }
@@ -208,7 +242,44 @@ function inspect(month, entityId, eventId) {
   const inspector = document.createElement('causal-inspector');
   inspector.tab = eventId ? 'Why' : 'History';
   inspector.context = { runId: selectedRun.context.runId, tick: month, entityId, targetId: eventId };
-  inspectorHost.replaceChildren(inspector);
+  if (!entityId) {
+    inspectorHost.replaceChildren(inspector);
+    return;
+  }
+  const trail = document.createElement('section');
+  trail.setAttribute('aria-label', 'Selected month event trail');
+  const heading = document.createElement('h3');
+  heading.textContent = `Recorded entity events · month ${month}`;
+  const provenance = document.createElement('p');
+  const context = selectedRun.context;
+  provenance.textContent = `Run ${context.runId} · model ${context.modelVersion} · seed ${context.seed}`;
+  trail.append(heading, provenance);
+  const events = entityMonthEvents([...selectedRun.events.values()], context, month, entityId);
+  const note = document.createElement('p');
+  note.textContent = events.length
+    ? 'These records reference this entity or its recorded construction transition. Follow an event to inspect stored model inputs and dependencies; membership alone does not establish a cause.'
+    : 'No entity transition was recorded for this month. A checkpoint difference does not identify its cause. Earlier records remain available in History.';
+  trail.append(note);
+  const list = document.createElement('ul');
+  for (const event of events) {
+    const item = document.createElement('li');
+    const link = document.createElement('a');
+    const url = new URL(location.href);
+    url.searchParams.set('event', event.id);
+    link.href = url.href;
+    link.textContent = `${event.type} · ${event.id}`;
+    link.onclick = click => {
+      click.preventDefault();
+      eventPicker.value = event.id;
+      pausePlayback(playing ? 'Playback paused.' : '');
+      updateURL(month, event.id, entityId);
+      inspect(month, entityId, event.id);
+    };
+    item.append(link);
+    list.append(item);
+  }
+  trail.append(list);
+  inspectorHost.replaceChildren(trail, inspector);
 }
 
 function renderInventory(rows, month) {
@@ -324,6 +395,7 @@ async function showMonth(month, { eventId, entityId } = {}) {
   if (!run) return false;
   const request = ++requestNumber;
   monthReady = false;
+  clearInvestigation();
   updatePlaybackControls();
   slider.value = month;
   eventPicker.value = eventId ?? '';
@@ -353,7 +425,13 @@ async function showMonth(month, { eventId, entityId } = {}) {
     checkpointStatus.textContent = previous
       ? `Stored month ${month} · changes since month ${month - 1}`
       : month === run.firstMonth ? `Stored month ${month} · starting state` : `Stored month ${month}`;
+    const staleEntity = entityId && !hasInventoryEntity(rows, entityId);
+    if (staleEntity) {
+      entityId = undefined;
+      updateURL(month, eventId, entityId);
+    }
     inspect(month, entityId, eventId);
+    if (staleEntity) investigationStatus.textContent = 'The linked entity is unavailable at this month. Showing the stored city checkpoint.';
     displayedMonth = month;
     monthReady = true;
     updatePlaybackControls();
@@ -377,6 +455,7 @@ async function openScenario({ runId, month, eventId, entityId, record = false, r
   requestNumber++;
   monthReady = false;
   selectedRun = undefined;
+  clearInvestigation();
   pausePlayback();
   playbackStatus.textContent = '';
   retry.hidden = true;

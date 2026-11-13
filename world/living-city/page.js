@@ -1,3 +1,4 @@
+import { mountBuilder } from './builder-panel.js';
 import { VERSION } from '../city/contracts.js';
 import { cityMetrics } from '../city/engine.js';
 import { COMMUTE_OPTIONS, QUEST_SCENARIO_VERSION } from './quests.js';
@@ -22,8 +23,29 @@ let sequence = 0;
 let starting;
 let activeExperiment;
 let currentPair;
+let enteredSnapshot;
 let homeOpen = false;
 let replayRevision = 0;
+let challengeStarted = false;
+let inspected = false;
+let shared = false;
+let recordedEvent = null;
+
+function challengeStatus() {
+  find('challenge-status').textContent = !challengeStarted ? 'Ready when you are.'
+    : !currentPair ? '1/4 · Choose a policy, then compare futures.'
+    : !inspected ? '2/4 · Futures computed. Inspect one recorded event.'
+    : !shared ? '3/4 · Event inspected. Copy the exact replay receipt to finish.'
+    : '4/4 · Challenge complete. Receipt copied — a clean browser can replay this future.';
+}
+function resetEvidence() {
+  inspected = false;
+  shared = false;
+  recordedEvent = null;
+  find('event-inspector').open = false;
+  find('event-record').textContent = '';
+  challengeStatus();
+}
 
 worker.addEventListener('message', ({ data }) => {
   const request = pending.get(data.id);
@@ -71,7 +93,7 @@ function direction(delta) {
 }
 
 function selection() {
-  return currentPair?.[find('view').value] ?? starting;
+  return enteredSnapshot ?? currentPair?.[find('view').value] ?? starting;
 }
 
 function showHome(snapshot) {
@@ -102,15 +124,20 @@ function showSnapshot() {
     selectedWorkerId: snapshot.participant.personId,
   });
   if (homeOpen) showHome(snapshot);
+  showQuest();
 }
 
 function showQuest() {
   const quest = starting.quests.find(item => item.id === find('quest').value);
   if (!quest) return;
   find('quest-title').textContent = quest.title;
+  const observed = selection().quests?.find(row => row.id === quest.id) ?? quest;
   find('request').textContent = quest.request;
+  find('quest-status').textContent = observed.completion
+    ? `Completed · Month ${observed.completion.month}: ${measure(observed.completion.before.value, observed.completion.before.unit)} → ${measure(observed.completion.after.value, observed.completion.after.unit)}. Modeled outcome; player causality is not inferred.`
+    : `Status: ${observed.status}. Target: ${measure(quest.objective.target, quest.evidence[0].unit)} or less. Rules: ${quest.provenance.rulesVersion} · Seed ${quest.provenance.seed}`;
   const visit = find('visit');
-  visit.hidden = quest !== starting.quests[0];
+  visit.hidden = quest.entity.id !== starting.participant.personId;
   if (visit.hidden && homeOpen) {
     homeOpen = false;
     find('home').hidden = true;
@@ -129,6 +156,7 @@ function setProposal() {
   if (currentPair && activeExperiment.amount === option.amount) {
     updateCouncil({ before: currentPair.baseline, after: currentPair.intervention, proposal: option });
   } else {
+    find('council-provenance').textContent = '';
     const before = { ...cityMetrics(starting.state), commuteMinutes: starting.participant.commuteMinutes };
     updateCouncil({ before, after: null, proposal: option });
   }
@@ -161,6 +189,8 @@ async function openPair(index) {
   const revision = ++replayRevision;
   const experiment = activeExperiment;
   const { seed, amount } = experiment;
+  currentPair = null;
+  resetEvidence();
   find('sample').value = index;
   find('share').value = '';
   find('copy').disabled = true;
@@ -169,7 +199,15 @@ async function openPair(index) {
   try {
     const pair = await simulate('replay', { seed, amount, index, months });
     if (revision !== replayRevision) return;
+    enteredSnapshot = null;
     currentPair = pair;
+    recordedEvent = pair.intervention.events.find(event => event.system === 'policies')
+      ?? pair.intervention.events[0] ?? null;
+    find('event-record').textContent = recordedEvent
+      ? JSON.stringify({ scenarioVersion: QUEST_SCENARIO_VERSION, modelVersion: VERSION,
+          scenarioSeed: seed, seed: pair.seed, amount, index, months,
+          startMonth: starting.month, arm: 'intervention', event: recordedEvent }, null, 2)
+      : 'No recorded event is available for this pair.';
     find('view').value = 'intervention';
     const { baseline, intervention } = pair;
     measurements(find('pair'), [
@@ -199,6 +237,8 @@ async function openPair(index) {
       ? `Proposed investment · ${currency.format(proposal.cost)} modeled USD` : 'Proposed investment unavailable.';
     find('pair-scorecard').hidden = false;
     updateCouncil({ before: baseline, after: intervention, proposal });
+    find('council-provenance').textContent =
+      `Synthetic modeled comparison · ${recipeVersion} · Starting seed ${seed} · Pair ${index + 1} · Paired seed ${pair.seed} · Month ${baseline.state.month}. Policy: transit · district ${starting.participant.districtId} · amount ${amount} · cost ${proposal.cost}. Matched baseline and intervention; no real-world forecast or inferred resident votes.`;
     showSnapshot();
     const url = new URL(location.href);
     url.searchParams.set('challenge', encodeChallenge({ version: recipeVersion, seed, amount, index }));
@@ -206,26 +246,31 @@ async function openPair(index) {
     find('copy').textContent = 'Copy';
     find('copy').disabled = false;
     history.replaceState(history.state, '', url);
+    challengeStatus();
   } catch (error) {
     if (revision !== replayRevision) return;
     find('pair-status').textContent = `This pair could not be replayed. ${error.message}`;
   }
 }
 
-async function compare({ amount, index, seed }) {
+async function compare({ amount, index, seed, samples = sampleCount }) {
   replayRevision++;
   activeExperiment = { seed, amount };
+  enteredSnapshot = null;
   currentPair = null;
+  resetEvidence();
   find('view').value = 'starting';
   find('test').disabled = true;
+  find('council-test').disabled = true;
   find('investment').disabled = true;
   find('results').hidden = true;
   find('share').value = '';
+  find('council-provenance').textContent = '';
   setProposal();
   showSnapshot();
-  find('progress').textContent = `Simulating ${sampleCount} seed-matched pairs…`;
+  find('progress').textContent = `Simulating ${samples} seed-matched pair(s)…`;
   try {
-    const ensemble = await simulate('compare', { seed, amount, samples: sampleCount, months });
+    const ensemble = await simulate('compare', { seed, amount, samples, months });
     showSummary(ensemble);
     const cost = COMMUTE_OPTIONS.find(option => option.amount === amount).cost;
     find('progress').textContent =
@@ -236,6 +281,7 @@ async function compare({ amount, index, seed }) {
     find('progress').textContent = `The comparison could not run. ${error.message}`;
   } finally {
     find('test').disabled = false;
+    find('council-test').disabled = false;
     find('investment').disabled = false;
   }
 }
@@ -247,17 +293,51 @@ find('visit').onclick = () => {
   find('visit').setAttribute('aria-expanded', String(homeOpen));
   if (homeOpen) showHome(selection());
 };
-find('investment').onchange = setProposal;
+find('begin').onclick = () => {
+  challengeStarted = true;
+  find('investment').focus();
+  challengeStatus();
+};
+find('event-inspector').ontoggle = () => {
+  if (find('event-inspector').open && recordedEvent && currentPair) {
+    inspected = true;
+    challengeStatus();
+  }
+};
+find('investment').onchange = () => {
+  replayRevision++;
+  currentPair = null;
+  resetEvidence();
+  find('results').hidden = true;
+  find('share').value = '';
+  find('copy').disabled = true;
+  find('view').value = 'starting';
+  showSnapshot();
+  setProposal();
+};
 find('test').onclick = () => compare({ seed: starting.seed, amount: Number(find('investment').value) });
+find('council-test').onclick = () => compare({ seed: starting.seed, amount: Number(find('investment').value), samples: 1 });
+find('council-leave').onclick = () => {
+  find('council-scene').open = false;
+  find('council-scene').querySelector('summary').focus();
+};
 find('sample').onchange = () => openPair(Number(find('sample').value));
-find('view').onchange = showSnapshot;
+find('view').onchange = () => { enteredSnapshot = null; showSnapshot(); };
 find('copy').onclick = async () => {
   const input = find('share');
+  if (!input.value || !currentPair) return;
+  const receipt = input.value;
+  const revision = replayRevision;
   try {
-    await navigator.clipboard.writeText(input.value);
+    await navigator.clipboard.writeText(receipt);
+    if (revision !== replayRevision || input.value !== receipt) return;
+    shared = inspected;
+    challengeStatus();
     find('copy').textContent = 'Copied';
   } catch {
+    if (revision !== replayRevision || input.value !== receipt) return;
     input.select();
+    find('challenge-status').textContent = 'Clipboard unavailable. Select and copy the replay link manually; automatic completion is unavailable.';
   }
 };
 
@@ -288,5 +368,10 @@ async function open() {
     find('opening').textContent = `Could not open the city. ${error.message}`;
   }
 }
+
+mountBuilder(find('builder'), {
+  selection, simulate,
+  enter(snapshot) { enteredSnapshot = snapshot; showSnapshot(); },
+});
 
 open();

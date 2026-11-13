@@ -1,0 +1,64 @@
+SHE-232 check results — baseline b963dd353538294cb0fbf5d34d5283fad6e10e68
+Bun 1.4.2 (744846f84), macOS arm64, restricted workspace session.
+
+1. bun test test/*.test.js
+   Completed: 1835 pass, 3 skip, 6 fail; 22381 assertions; 369 files; 194.68s.
+   This is the root JavaScript test baseline, not every repository test project.
+   Existing failures:
+(fail) actual isolated server preserves World freshness, dynamic no-store, source denial and GET/HEAD semantics [1629.89ms]
+(fail) the production server serves the homepage and rejects an unknown route [95.00ms]
+(fail) synthetic living population model > weekends suppress work trips, events recover, budgets and bounded retention are real [7655.32ms]
+(fail) shared projects require real helpers over three days, leave permanent results and restore contributor history [5603.91ms]
+(fail) production server serves the patch ballot and records a vote with the signed cookie [119.65ms]
+(fail) normal CLI emits canonical receipt; failures emit only stderr and nonzero exit [974.71ms]
+(fail) actual isolated server preserves World freshness, dynamic no-store, source denial and GET/HEAD semantics [1629.89ms]
+(fail) the production server serves the homepage and rejects an unknown route [95.00ms]
+(fail) synthetic living population model > weekends suppress work trips, events recover, budgets and bounded retention are real [7655.32ms]
+(fail) shared projects require real helpers over three days, leave permanent results and restore contributor history [5603.91ms]
+(fail) production server serves the patch ballot and records a vote with the signed cookie [119.65ms]
+(fail) normal CLI emits canonical receipt; failures emit only stderr and nonzero exit [974.71ms]
+   Classification of failed checks:
+   - static cache audit: could not export candidate/find checkout-local node_modules.
+     Dependencies resolve from a parent, but its isolated export expects a local path.
+   - server.test and patch-voting-server: child server failed to start.
+   - run-receipt: socket bind at port 0 failed with EADDRINUSE.
+   - population-model and shared-projects: 5000ms timeouts.
+   These are check failures, not six newly confirmed product defects.
+
+2. Focused baseline (six files listed in report): 40 pass, 0 fail, 364 assertions,
+   3.58s. Existing first-run, navigation, trace-cache and worker coverage.
+
+3. bun test --timeout 60000 test/population-model.test.js
+   14 pass, 0 fail, 193 assertions, 18.05s.
+   The previously timed-out test passed; no simulation assertion was removed.
+
+4. bun test --timeout 60000 test/shared-projects.test.js
+   6 pass, 0 fail, 60 assertions, 5.68s.
+   The previously timed-out test passed; no simulation assertion was removed.
+
+5. Browser: approved-demo-responsive config failed server startup at 39962,
+   retried once at 47932 with same EADDRINUSE. No browser test ran.
+   No viewport, keyboard or real-device GPU verification claimed.
+
+6. New tests-only patch, run before packaging:
+   bun test test/she232-bug-families.test.js
+   0 pass, 4 fail, 233ms. Three expected unit assertion failures establish B2/B3.
+   Fourth test is blocked before HTTP assertions because server failed to start;
+   it does not provide live-HTTP proof of B1. B1 has bounded source execution proof.
+   Tests deliberately express corrected behavior; applying this patch alone is red.
+
+7. bun --no-env-file output/she232/reproduce-boundaries.js
+   Malformed Decision HTTP-200 JSON => {}.
+   World generic API paths: plain 404, encoded 200, at both root and city module.
+   Constitution dispatch throw => 0 terminations, 1 added/0 removed abort listener;
+   unchanged after destroy. Verbatim server source gate/helper execution, no socket.
+
+8. git apply --check output/she232/0001-bug-family-regressions.patch: exit 0.
+   git diff --check: exit 0. No tracked application/test/documentation edits retained.
+   No lint/typecheck script exists at package root. Module-specific checks outside
+   the audit's exercised slices were not run. No full browser/build/production claim.
+
+Apply later from repository root (mail patch contains only one new test file):
+  git am output/she232/0001-bug-family-regressions.patch
+Then implement reviewed fixes and run focused + HTTP + browser checks in an
+environment with local socket access. This task made no commit or push.

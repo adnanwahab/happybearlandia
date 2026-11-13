@@ -40,8 +40,10 @@ test('real persisted City receipt round-trips selected month, identity and outco
     const reopened = await replayRunReceipt(JSON.parse(canonicalReceiptJSON(receipt)));
     expect(reopened.month).toBe(16);
     expect(reopened.history).toEqual(history);
-    expect(reopened.receipt.outcomeDigests.plan.selected).toBe(await stateHash(history.plan[16]));
-    expect(reopened.receipt.outcomeDigests.baseline.terminal).toBe(await stateHash(history.baseline[120]));
+    const {identity: selectedIdentity, ...selected} = history.plan[16];
+    const {identity: terminalIdentity, ...terminal} = history.baseline[120];
+    expect(reopened.receipt.outcomeDigests.plan.selected).toBe(await stateHash(selected));
+    expect(reopened.receipt.outcomeDigests.baseline.terminal).toBe(await stateHash(terminal));
     expect(Object.isFrozen(reopened.receipt.evidence.observations.plan.metrics)).toBe(true);
     const altered = structuredClone(receipt);
     altered.outcomeDigests.plan.terminal = '0'.repeat(64);
@@ -134,3 +136,26 @@ test('normal CLI emits canonical receipt; failures emit only stderr and nonzero 
     } finally {server.stop(true);}
   });
 },15000);
+
+
+test('prior-batch City 1.1 receipts replay unchanged after adding snapshot transport identity',async()=>{
+ await fixture(async()=>{
+  const history=await createExperiment({...DEFAULT_RECIPE,households:2});
+  expect(history.modelVersion).toBe('city-systems.1.1.0');
+  const legacySnapshot=snapshot=>{const {identity,...recorded}=snapshot;return recorded;};
+  // Reconstruct the prior-batch v1 checksum from its untagged full snapshots,
+  // independently of the current receipt producer's outcome-digest algorithm.
+  const legacy=structuredClone(await createRunReceipt(history,{month:16}));
+  for(const arm of ['baseline','plan'])legacy.outcomeDigests[arm]={
+   selected:await stateHash(legacySnapshot(history[arm][16])),
+   terminal:await stateHash(legacySnapshot(history[arm][120]))
+  };
+  const {checksum,...body}=legacy;legacy.checksum=await stateHash(body);
+  expect(await validateRunReceipt(legacy)).toEqual(legacy);
+  const reopened=await replayRunReceipt(legacy);
+  expect(reopened.history.plan[16].identity).toEqual({experimentId:history.experimentId,scenarioId:'plan',runIndex:0,runId:'plan-0'});
+  expect(canonicalReceiptJSON(await createRunReceipt(reopened.history,{month:16}))).toBe(canonicalReceiptJSON(legacy));
+  const wrong=structuredClone(history);wrong.plan[16].identity.experimentId='city_other';
+  await expect(createRunReceipt(wrong,{month:16})).rejects.toThrow('identity');
+ });
+},20000);

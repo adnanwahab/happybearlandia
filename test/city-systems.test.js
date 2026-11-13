@@ -10,10 +10,10 @@ import {CityStore,queryDatabase,validateReadQuery} from '../world/city/storage.j
 import {createCityApi,normalizeExperiment} from '../world/city/api.js';
 const temp=()=>mkdtempSync(join(tmpdir(),'hbl-city-test-'));
 describe('Coupled city clock',()=>{
- test('all twelve packs replay exactly, independent of registration order',()=>{
+ test('all thirteen packs replay exactly, independent of registration order',()=>{
    const initial=createCity({households:30}),forward=createEngine(),reverse=createEngine(createSystemPacks().reverse());
    const a=forward.run(initial,24),b=reverse.run(initial,24);
-   expect(a).toEqual(b);expect(initial.month).toBe(0);expect(a.state.month).toBe(24);expect(Object.keys(a.state.systems)).toHaveLength(12);
+   expect(a).toEqual(b);expect(initial.month).toBe(0);expect(a.state.month).toBe(24);expect(Object.keys(a.state.systems)).toHaveLength(13);
    expect(a.steps[11].events.some(e=>e.eventType==='ANNUAL_POPULATION_UPDATE')).toBe(true);
    for(const step of a.steps)expect(validateState(step.state)).toBe(true);
  });
@@ -106,11 +106,13 @@ describe('SQLite evidence and analytics',()=>{
    const root=temp(),store=new CityStore(root),handle=createCityApi({store});
    const call=(path,body)=>handle(new Request(`http://localhost${path}`,body===undefined?{}:{method:'POST',body:JSON.stringify(body),headers:{'content-type':'application/json'}}));
    try {
-     const response=await call('/api/city-experiments',{city:{households:9},runs:1,months:3,retention:'analysis'});expect(response.status).toBe(202);const {id}=await response.json();
+     const response=await call('/api/city-experiments',{city:{households:9},runs:1,months:12,retention:'analysis'});expect(response.status).toBe(202);const {id}=await response.json();
      let record;for(let i=0;i<100;i++){record=await (await call(`/api/city-experiments/${id}`)).json();if(!['queued','running'].includes(record.status))break;await new Promise(r=>setTimeout(r,20));}
      expect(record.error).toBeNull();expect(record.status).toBe('complete');expect(record.completed).toBe(2);
      const replay=await (await call(`/api/experiments/${id}/replay`,{runIndex:0,scenarioId:'baseline'})).json();
-     expect(replay.metrics).toEqual(cityMetrics(createEngine().run(record.manifest.initial,3).state));
+     expect(replay.state.residents[0].memories).toHaveLength(12);
+     expect(replay.steps[11].events.some(e=>e.eventType==='RESIDENT_MONTH')).toBe(true);
+     expect(replay.metrics).toEqual(cityMetrics(createEngine().run(record.manifest.initial,12).state));
      const query=await call(`/api/experiments/${id}/query`,{sql:'UPDATE runs SET seed=0'});expect(query.status).toBe(400);
      const data=await (await call(`/api/experiments/${id}/query`,{sql:'SELECT * FROM run_metrics'})).json();expect(data.rows.length).toBeGreaterThan(0);
      const timeout=await call(`/api/experiments/${id}/query`,{sql:'WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM n WHERE x<1000000000) SELECT SUM(x) FROM n'});expect(timeout.status).toBe(400);expect((await timeout.json()).error).toContain('time limit');

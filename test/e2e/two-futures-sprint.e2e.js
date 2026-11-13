@@ -6,10 +6,42 @@ const ready=page=>expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.
 async function seek(page,month){const slider=page.getByRole('slider').first();await slider.fill(String(month));await slider.dispatchEvent('input');await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.month)).toBe(month);}
 async function fork(page){await page.goto(route);await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);}
 async function evidence(page,testInfo,name){
- const record=await page.evaluate(()=>{const api=window.futureMachine,h=api.history,s=api.state,m=s.month;return {schemaVersion:'two-futures-browser-evidence.v1',selectedMonth:m,seed:h.seed,modelVersion:h.modelVersion,experimentId:h.experimentId,initialHash:h.initialHash,recipe:h.recipe,scenario:h.recipe,firstDivergence:(()=>{for(let month=0;month<=120;month++){const a=h.baseline[month].state.buildings,b=h.plan[month].state.buildings;const added=b.find(row=>!a.some(other=>other.id===row.id));if(added)return {month,collection:'buildings',id:added.id};}return null;})(),metrics:Object.entries(s.diff.metrics).map(([metricId,row])=>({metricId,...row})),evidenceRecords:h.plan.slice(0,m+1).flatMap(snapshot=>snapshot.events.filter(event=>event.eventType==='PROJECT_COMPLETE').map(event=>({arm:'plan',...event}))),provenance:h.provenance,baseline:h.baseline[m],plan:h.plan[m],diff:s.diff,scene:api.stats.scene,camera:api.stats.scene?.camera??null};});
+ const record=await page.evaluate(async()=>{const {firstDivergence,compareHistory}=await import('/world/future-machine/diff/index.js');const api=window.futureMachine,h=api.history,s=api.state,m=s.month;return {schemaVersion:'two-futures-browser-evidence.v1',selectedMonth:m,seed:h.seed,modelVersion:h.modelVersion,experimentId:h.experimentId,initialHash:h.initialHash,recipe:h.recipe,scenario:h.recipe,firstDivergence:(()=>{const stop=firstDivergence(h,compareHistory(h));return stop?{month:stop.month,...stop.entity}:null;})(),metrics:Object.entries(s.diff.metrics).map(([metricId,row])=>({metricId,...row})),evidenceRecords:h.plan.slice(0,m+1).flatMap(snapshot=>snapshot.events.filter(event=>event.eventType==='PROJECT_COMPLETE').map(event=>({arm:'plan',...event}))),provenance:h.provenance,baseline:h.baseline[m],plan:h.plan[m],diff:s.diff,scene:api.stats.scene,camera:api.stats.scene?.camera??null};});
  await writeFile(testInfo.outputPath(`${name}.json`),JSON.stringify(record,null,2));await page.screenshot({path:testInfo.outputPath(`${name}.png`),fullPage:true});return record;
 }
 function assertPair(record){expect(record.seed).toBe(42);expect(record.modelVersion).toBeTruthy();expect(record.experimentId).toBeTruthy();expect(record.initialHash).toBeTruthy();expect(record.scenario.intervention).toMatchObject({type:'housing',amount:24,cost:1000000,delay:0});expect(record.baseline.month).toBe(record.selectedMonth);expect(record.plan.month).toBe(record.selectedMonth);}
+
+test('automated month zero and actual first divergence screenshot evidence',async({page},info)=>{
+ await page.emulateMedia({reducedMotion:'reduce'});await fork(page);
+ const report=await page.evaluate(async()=>{
+  const {captureEvidencePlan}=await import('/world/future-machine/capture-evidence.js');
+  return captureEvidencePlan(window.futureMachine.history);
+ });
+ expect(report.status).toBe('diverged');expect(report.divergenceMonth).toBeGreaterThan(0);
+ const comparison=page.locator('.fm-comparison');await comparison.scrollIntoViewIfNeeded();
+ // A complete model history can precede asynchronous graphics readiness.
+ // Freeze the actual camera only after a graphics backend has rendered it.
+ await expect.poll(()=>page.evaluate(()=>window.futureMachine.stats.scene?.backend)).toMatch(/^(webgpu|webgl|canvas2d)$/);
+ await expect.poll(()=>page.evaluate(()=>Boolean(window.futureMachine.stats.scene?.camera))).toBe(true);
+ const camera=await page.evaluate(()=>window.futureMachine.stats.scene.camera);
+ const captures=[];
+ for(const month of report.captureMonths){
+  await seek(page,month);
+  await expect.poll(()=>page.evaluate(()=>window.futureMachine.stats.scene?.month)).toBe(month);
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  expect(await page.evaluate(()=>window.futureMachine.stats.scene.camera)).toEqual(camera);
+  const record=await evidence(page,info,`capture-month-${month}`);assertPair(record);
+  expect(record.seed).toBe(report.seed);expect(record.initialHash).toBe(report.initialHash);
+  if(month===0){expect(record.baseline.state).toEqual(record.plan.state);expect(record.diff.physicalCount).toBe(0);}
+  else expect(record.diff.physicalCount).toBeGreaterThan(0);
+  const screenshot=`scene-month-${month}.png`;
+  await comparison.screenshot({path:info.outputPath(screenshot),animations:'disabled'});
+  captures.push({month,screenshot,evidence:`capture-month-${month}.json`,camera:record.camera,backend:record.scene.backend,viewport:page.viewportSize()});
+ }
+ expect(captures[1].backend).toBe(captures[0].backend);
+ await writeFile(info.outputPath('capture-manifest.json'),JSON.stringify({...report,captures},null,2));
+ await info.attach('capture manifest',{path:info.outputPath('capture-manifest.json'),contentType:'application/json'});
+});
 
 test('real paired runs: matched start, physical divergence, metrics, timeline and deterministic refresh',async({page},testInfo)=>{
  const errors=[];page.on('pageerror',error=>errors.push(error.message));await fork(page);
@@ -60,4 +92,83 @@ for(const reducedMotion of ['no-preference','reduce'])test(`cinematic recorded d
  const first=await evidence(page,info,'cinematic-month-16');assertPair(first);expect(first.metrics.find(m=>m.metricId==='housingUnits').delta).toBe(24);
  await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('24');
  await seek(page,0);expect(await page.evaluate(()=>window.futureMachine.history.plan[0].state.buildings.some(b=>b.id==='building-project-policy-1-0'))).toBe(false);
+});
+
+test('rent microscope follows recorded month and exposes counts and signed components',async({page})=>{
+ const errors=[];page.on('pageerror',error=>errors.push(error.message));
+ await page.goto(route+'?renderer=canvas2d');await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);
+ await page.getByRole('button',{name:'WHY · Mean unit rent',exact:true}).click();
+ const microscope=page.locator('.fm-rent-decomposition');
+ await expect(microscope).toContainText('Month 0');await expect(microscope).toContainText('new units: 0');
+ await expect(microscope).toContainText('total: 0.000000 USD/month');
+ await seek(page,120);await expect(microscope).toContainText('Month 120');
+ await expect(microscope).toContainText('Existing units: 36; new units: 24; denominator: 60');
+ const components=await page.locator('.fm-rent-stack span').evaluateAll(nodes=>nodes.map(n=>Number(n.title.match(/: ([-\d.]+)/)[1])));
+ const delta=await page.evaluate(()=>window.futureMachine.state.diff.metrics.meanRent.delta);
+ expect(Math.abs(components[0]+components[1]-delta)).toBeLessThanOrEqual(1e-6);
+ await expect(page.getByRole('img',{name:/Existing-unit rent change:/})).toBeVisible();
+ await page.setViewportSize({width:320,height:900});
+ expect(await microscope.evaluate(node=>node.getBoundingClientRect().right)).toBeLessThanOrEqual(320);
+ await seek(page,15);await expect(microscope).toContainText('new units: 0');
+ await seek(page,16);await expect(microscope).toContainText('new units: 24');
+ await page.getByRole('button',{name:'WHY · Homes',exact:true}).click();await expect(microscope).toHaveCount(0);
+ expect(errors).toEqual([]);
+});
+
+for(const reducedMotion of ['no-preference','reduce'])test(`first construction cue uses actual records in ${reducedMotion}`,async({page},info)=>{
+ await page.emulateMedia({reducedMotion});await fork(page);
+ const cue=page.getByRole('complementary',{name:'First recorded construction'});
+ await expect(cue).toBeHidden();
+ expect(await page.evaluate(()=>JSON.stringify(window.futureMachine.history.baseline[0].state)===JSON.stringify(window.futureMachine.history.plan[0].state))).toBe(true);
+ const first=await page.evaluate(()=>{const h=window.futureMachine.history;for(const snapshot of h.plan){const baseline=h.baseline.find(row=>row.month===snapshot.month);const building=snapshot.state.buildings.find(b=>!baseline.state.buildings.some(a=>a.id===b.id));if(building)return {month:snapshot.month,id:building.id};}});
+ expect(first.month).toBe(16);await seek(page,first.month);
+ await expect(cue).toBeVisible();await expect(cue).toContainText('Month 16');await expect(cue).toContainText('+24 homes');
+ const targets=await page.evaluate(()=>window.futureMachine.stats.scene.targets);expect(targets.some(t=>t.id===first.id&&t.arm==='plan')).toBe(true);
+ await cue.getByRole('button',{name:'Inspect WHY'}).click();
+ await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText(first.id);
+ await page.locator('.fm-comparison').screenshot({path:info.outputPath('first-construction.png')});
+ await seek(page,15);await expect(cue).toBeHidden();await seek(page,17);await expect(cue).toBeHidden();await seek(page,0);await expect(cue).toBeHidden();
+});
+
+// Exercise normal entry points with actual Tab/Enter/Space/range keys. Never
+// focus(), click(), fill(), or dispatch synthetic control events in this journey.
+test('keyboard first play completes and exposes named replay, WHY and share controls', async ({page}, testInfo) => {
+  async function tabTo(target, key='Tab') {
+    for(let count=0;count<500;count++) {
+      await page.keyboard.press(key);
+      const focused=page.locator(':focus');
+      await expect(focused).toBeVisible();
+      expect(await focused.evaluate(element=>!element.closest('[hidden], [inert], [aria-hidden="true"]'))).toBe(true);
+      if(await target.evaluate(element=>element===element.ownerDocument.activeElement))return;
+    }
+    throw new Error(`Keyboard could not reach ${await target.getAttribute('aria-label') || await target.textContent()}`);
+  }
+  await page.goto('/');
+  await tabTo(page.getByRole('link',{name:'Play Demo',exact:true}));
+  await page.keyboard.press('Enter');
+  await ready(page);
+  await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.demo?.status),{timeout:75000}).toBe('complete');
+  expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);
+  const difference=page.getByRole('button',{name:'Difference-only',exact:true});
+  const split=page.getByRole('button',{name:'Side by side',exact:true});
+  await tabTo(difference);await page.keyboard.press('Enter');await expect(difference).toHaveAttribute('aria-pressed','true');
+  await tabTo(split);await page.keyboard.press('Space');await expect(split).toHaveAttribute('aria-pressed','true');
+  const slider=page.getByRole('slider',{name:'Shared month for Future A and Future B'});
+  await tabTo(slider,'Shift+Tab');await page.keyboard.press('Home');
+  expect(await slider.inputValue()).toBe('0');
+  await page.keyboard.press('ArrowRight');expect(await slider.inputValue()).toBe('1');
+  await page.keyboard.press('End');await expect(slider).toHaveAttribute('aria-valuetext',/Month 120 \/ 120/);
+  const why=page.getByRole('button',{name:'WHY · Homes',exact:true});
+  await tabTo(why);await page.keyboard.press('Enter');await expect(why).toBeFocused();
+  const story=page.getByRole('region',{name:'Recorded change story'});
+  await expect(story).toContainText('120');await expect(story).toContainText(/synthetic|uncalibrated/i);
+  await expect(page.getByRole('region',{name:'Measured outcomes'})).toContainText('WITHOUT PLAN');
+  await expect(page.getByRole('region',{name:'Measured outcomes'})).toContainText('WITH PLAN');
+  await tabTo(page.getByRole('button',{name:'Copy comparison link',exact:true}));await page.keyboard.press('Enter');
+  const link=page.getByRole('link',{name:'Open comparison link',exact:true});await tabTo(link);
+  const metrics=await page.evaluate(()=>window.futureMachine.state.diff.metrics);
+  await page.keyboard.press('Enter');await ready(page);
+  expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);
+  expect(await page.evaluate(()=>window.futureMachine.state.diff.metrics)).toEqual(metrics);
+  await page.screenshot({path:testInfo.outputPath('keyboard-completed-replay.png'),fullPage:true});
 });

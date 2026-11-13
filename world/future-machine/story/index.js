@@ -1,3 +1,4 @@
+import {firstDivergence} from '../diff/index.js';
 /** Deterministic interpretation of recorded monthly City comparisons. No simulation. */
 const compare = (a, b) => a < b ? -1 : a > b ? 1 : 0;
 const clone = value => structuredClone(value);
@@ -102,11 +103,13 @@ function description(frame, entity) {
 
 export function buildStory(history, diffs) {
   const selected = selectChanges(normalizedDiffs(diffs));
-  const stops = selected.stops.map((change, index) => {
+  const first = firstDivergence(history, diffs);
+  const ordered = first ? [{month:first.month, collection:first.entity.collection, entityId:first.entity.id}, ...selected.stops.filter(row => row.month !== first.month || row.collection !== first.entity.collection || row.entityId !== first.entity.id)].slice(0,6) : selected.stops;
+  const stops = ordered.map((change, index) => {
     const entity = {collection: change.collection, id: change.entityId};
     const frame = {month: change.month, baseline: history.baseline.find(row => row.month === change.month), plan: history.plan.find(row => row.month === change.month)};
     const detail = description(frame, entity);
-    return {month: change.month, title: `${index === 0 ? 'First divergence' : 'Significant change'} · ${entity.collection} ${entity.id}`, summary: detail.summary, entity, evidence: detail.evidence, limitations: detail.limitations};
+    return {month: change.month, title: `${index === 0 && first ? 'First divergence' : 'Significant change'} · ${entity.collection} ${entity.id}`, summary: detail.summary, entity, evidence: detail.evidence, limitations: detail.limitations};
   });
   return {stops, summary: selected.status === 'no-change' ? 'No recorded differences in available paired months.' : `${stops.length} selected modeled changes. ${selected.physicalStatus === 'no-physical-change' ? 'No physical building or link change was recorded.' : 'Building or link differences are available for inspection.'}`,
     limitations: [...limits, 'Significance ranks physical additions/removals first, then other additions/removals and changed-field count; repeated entity/kind changes are deduplicated; ties use month and exact ID; it is an editorial rule, not a causal or welfare score.', ...(diffs.some(row => !row.available) ? ['Some paired months are unavailable; first divergence is only among available months.'] : [])]};
@@ -123,11 +126,16 @@ export function describeSelection(frame, diff, {collection, id, arm} = {}) {
 }
 
 /** DOM uses textContent exclusively: payload strings never become markup. */
-export function renderStory(container, description, {onJump} = {}) {
+export function renderStory(container, description, {onJump, onNarrate} = {}) {
   const doc = container.ownerDocument;
   const root = doc.createElement('section');
   const listeners = [];
   function text(tag, value, parent = root) { const element = doc.createElement(tag); element.textContent = value; parent.append(element); return element; }
+  if (onNarrate) {
+    const button = text('button', 'Describe selected change');
+    button.type = 'button';
+    button.addEventListener('click', onNarrate); listeners.push([button, onNarrate]);
+  }
   text('h2', description.title || 'Show Me What Changed');
   text('p', `Narrative interpretation: ${description.summary}`);
   for (const stop of description.stops || []) {
@@ -141,7 +149,17 @@ export function renderStory(container, description, {onJump} = {}) {
   const receipts = text('details', '');
   text('summary', `Recorded model events (${evidence.length})`, receipts);
   if (!evidence.length) text('p', 'No matching entity events supplied. Causal explanation unavailable.', receipts);
-  for (const receipt of evidence) text('pre', JSON.stringify(receipt, null, 2), receipts);
+  for (const receipt of evidence) {
+    text('pre', JSON.stringify(receipt, null, 2), receipts);
+    const id = receipt.entity?.id ?? receipt.entity?.entityId;
+    const arm = {a:'baseline',b:'plan',baseline:'baseline',plan:'plan'}[receipt.future];
+    if (id && receipt.entity?.collection && arm && Number.isInteger(receipt.month) && receipt.month >= 0 && receipt.month <= 120) {
+      const button = text('button', `Inspect event ${receipt.eventId} · ${arm} · ${id} · Month ${receipt.month}`, receipts);
+      button.type = 'button';
+      const handler = () => onJump?.({month:receipt.month,entity:{collection:receipt.entity.collection,id,arm},title:`WHY · event ${receipt.eventId}`,summary:'Selected exact recorded entity event. Related records do not establish A/B causality.',evidence:[receipt]});
+      button.addEventListener('click', handler); listeners.push([button, handler]);
+    } else text('p', 'Unsupported entity causality: this receipt has no exact selectable City identity, arm or month.', receipts);
+  }
   for (const limitation of description.limitations || []) text('p', limitation);
   container.replaceChildren(root);
   return () => { for (const [button, handler] of listeners) button.removeEventListener('click', handler); root.remove(); };

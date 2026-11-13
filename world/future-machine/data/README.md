@@ -1,5 +1,27 @@
 # Future Machine City adapter
 
+## SHE-21 acceptance refresh (2026-11-12)
+
+The adapter already exists on this checkout. The remaining owned slice adds
+`test/future-machine-paired.test.js`: run the default seed-42 recipe twice,
+compare canonical full normalized state and diff digests, verify both 121-frame
+arms and unchanged Month 0, then run a null-intervention pair and require zero
+differences at every month. Prerequisites are the existing City engine and frozen
+diff interface; neither is modified. This local status lives here because the
+assignment reserves the shared implementation plan for the coordinator.
+
+Observed acceptance: `bun test test/future-machine-data.test.js test/future-machine-paired.test.js test/city-systems.test.js`
+passed 19 tests, 0 failed, 143 assertions. The new test logs the complete scenario,
+seed, actual completion event and measured Month-16 homes 36/60/+24 and cumulative
+capital USD 0/1000000/+1000000. First physical entity is the added building
+`building-project-policy-1-0`, with no identified parcel. Original hash:
+`e62e2cfd67d6f4a48dbeb9bc6a739a1abe1eb8a3e62e8e88241555829bc4d3fe`;
+paired state digest `7a1d5108b5096380fa3acef8172616fcbcb5dd8810ecbf0993d671441a965264`;
+diff digest `1431a5c2df93ee0593bfee9293a735854b6505e7d438918f32caa30224416aee`.
+These are real synthetic engine results, not observations of a real city.
+Replay remains recomputation. No browser behavior changed; browser/media
+verification remains with the coordinator. No shared interfaces changed.
+
 `index.js` implements the frozen v1 interfaces with the existing persisted City API. Create uses one run per arm, summary storage, matched seed, 120 monthly steps; sequential replay supplies exact detailed state. Both returned Month 0 snapshots are the unchanged common original, before the plan policy is proposed. History and nested records are frozen. Canonical SHA-256 identifies the original; reopened manifests must match the generator, model pack manifest, pair structure and horizon.
 
 The versioned `future-machine-synthetic.v1` generator starts with City `createCity`, initialized once. Explicit assumptions: no private parcel capacity, utility capacity 200 for each network/district, annual growth zero. It has no geographic coordinates. The default intervention produces 24 additional completed homes and 1,000,000 modeled USD capital spending after 120 months. These are synthetic, uncalibrated model results, not a prediction.
@@ -52,3 +74,66 @@ The existing `loadExperiment`/`createExperiment` path validates the completed sa
 The City's existing optional `manifest.title` is the display-name boundary: if supplied, it must be nonblank text within the API's existing 200-code-unit bound, without C0/C1 or bidi override/isolate controls. Printable Unicode and literal markup remain text; values are neither rewritten nor echoed in validation errors. A missing title remains valid for legacy manifests. No new per-scenario `displayName`/`name` field, required metadata, general scenario catalog, API schema or engine was introduced. Unsupported generic scenario manifests are not converted into a Future Machine pair.
 
 `test/future-machine-manifest-validation.test.js` covers corrupt shapes/metadata, unsupported or missing inputs, pre-replay generator rejection, valid/legacy manifests, a zero-control pair and actual SQLite-backed City API creation/reopen. Errors reject the normal adapter promise, which the existing host displays; this increment does not change UI rendering or make server-wide startup-validation claims. Invalid submitted City jobs may already exist on the server; this client preflight prevents replay/rendering, not production job cancellation.
+
+SHE-57 failure injection retains the existing 180-second whole-operation deadline
+(`timeoutMs` may override it for adapter tests). Deadline failures and interrupted
+fetch/body transfers report connection/retry guidance; caller abort remains
+cancellation. The page's Retry comparison repeats the failed recipe, saved ID and
+selected month. Failed loads keep any previously completed pair visibly identified;
+a fresh shared page publishes no history until both arms validate. No network
+failure triggers recipe recomputation: only an explicitly missing saved record does.
+
+## Snapshot integrity (SHE-86)
+
+City replay responses now add `identity: {experimentId, scenarioId, runIndex,
+runId}`; run IDs retain the City's existing `scenario-index` convention and are
+scoped to the experiment. The adapter requires the exact requested identity and
+copies it onto every normalized snapshot, including the common Month 0 state.
+The two Month 0 **states** remain equal; their arm identities differ.
+`normalizeReplay` remains a pure state-only helper; production histories use the
+identified adapter path. Sparse/null replay steps fail explicitly.
+
+`../integrity.js` checks persisted paired histories before selection, diffing and
+stage construction, and checks frame clocks/paired identities before stage
+updates. Exactly 121 ordered months, matching state clocks/seed/model and exact
+arm/run identity are required. Pure unpersisted diff fixtures can still describe
+missing data as unavailable. Old replay servers without identity fail closed;
+frontend and backend need to be released together. The additive API envelope is
+the only City API change; it does not change storage or model rules. These are
+structural integrity checks, not cryptographic authentication or proof of exact
+checkpoint replay.
+
+## SHE-76 paired acceptance closure (2026-11-12)
+
+The adapter was already integrated at base `b963dd3`; this increment adds the
+assignment's missing `test/future-machine-paired.test.js`, without changing the
+engine, API or shared interfaces. The test runs the actual engine twice using
+`DEFAULT_RECIPE`, normalizes both complete arms and compares canonical SHA-256
+digests of snapshots and frame diffs. It also independently runs the null-policy
+control, verifies identical arms and zero differences across all 121 frames,
+checks finite-or-null metrics and logs the exact recipe and measured divergence.
+
+Seed 42 digest evidence (same on both executions):
+
+| Content | SHA-256 |
+| --- | --- |
+| Common initial state | `e62e2cfd67d6f4a48dbeb9bc6a739a1abe1eb8a3e62e8e88241555829bc4d3fe` |
+| Normalized baseline | `139fcb91f0114f87d883d12ef12ed8b06ab3032af7d271410ddfcaef06011f95` |
+| Normalized plan | `69480cbe85d6d3f33e152c1d7046a8fab54deb603f9376d5c5beb23c07fe3bf9` |
+| Frame diffs | `1431a5c2df93ee0593bfee9293a735854b6505e7d438918f32caa30224416aee` |
+
+First physical divergence remains Month 16, added building
+`building-project-policy-1-0`: housing 36 baseline / 60 plan / +24 homes;
+cumulative capital 0 / 1,000,000 / +1,000,000 USD. This is synthetic modeled
+inventory, with the generator assumptions and replay limitations above.
+
+Actual verification:
+
+- `bun test test/future-machine-data.test.js test/future-machine-paired.test.js test/city-systems.test.js`: 19 passed, 0 failed, 622 assertions, three files.
+- `bun test test/future-machine-boundaries.test.js test/future-machine-manifest-validation.test.js test/future-machine-diff.test.js`: 23 passed, 0 failed, 285 assertions, three files. Includes saved identity/version/seed drift, missing snapshots, polling/replay abort and fresh retry.
+- `git diff --check`: passed. No browser behavior changed; browser smoke and media were not needed for this test/documentation increment.
+
+Coordinator handoff: retain the existing adapter; integrate this paired regression
+and update the coordinator-owned implementation plan with this acceptance
+evidence. That plan is outside this assignment's allowed files. No release,
+deployment or production data change was performed.

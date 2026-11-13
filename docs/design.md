@@ -12,6 +12,11 @@ HappyBearLandia lets people explore cities, households, businesses, and alternat
 
 ## Application surfaces
 
+The physics playground at `/game/1` also offers a lightweight Honey Trail:
+collect eight visible drops around the floor and shallow stairs, finish a timed
+run, and replay against the page session's best time. It uses authored game
+geometry and local gameplay rules, independent of city simulation outcomes.
+
 | Surface | Product role |
 | --- | --- |
 | World and Time Machine | Explore geographic context, view changes by month, select an entity, and jump from a headline to the corresponding recorded checkpoint. |
@@ -74,7 +79,7 @@ The first quest follows a Riverside resident’s commute. Visit the home, inspec
 
 The first playable life starts with a selected resident in a saved Living World. Open that resident in House Simulator and inspect their home, employment, schedule, needs, and available relationship and goal records. For one 24-hour window on the existing Population clock, direct the resident through five supported activities. Clean the living room, travel home, talk with a housemate, buy a plant, or rest. Show whether the simulation accepted each request and use the existing House and Population rules for time, movement, spending, and social interaction.
 
-End the playable day and observe 30 further modeled days under ordinary simulation behavior. Compare the resident's needs and household savings at the start and after the follow-up. Show the recorded events and decision evidence alongside links to the starting World checkpoint, the follow-up World checkpoint, and the saved resident report. Changes during follow-up describe the resident's observed trajectory. Estimating the effect of a particular action requires a matched control from the same starting checkpoint.
+End the playable day and choose either 30 further modeled days or a synthetic season of 90 days under ordinary simulation behavior. The selected horizon locks when the handoff begins, including across pause and resume. Compare the resident's needs and household savings at the start and after the follow-up. Show the recorded events and decision evidence alongside links to the starting World checkpoint, the follow-up World checkpoint, and the saved resident report. Changes during follow-up describe the resident's observed trajectory. Estimating the effect of a particular action requires a matched control from the same starting checkpoint.
 
 Record the resident's persistent entity ID, starting World/run identity, and control-window ticks. Save the follow-up as a child of the starting checkpoint and keep the saved report with the child. World and House use the same Population runtime identity and clock for this journey. Expanding playable lives to the monthly City model or Decision Studio requires an explicit mapping of resident, household, time, and action semantics.
 
@@ -93,9 +98,40 @@ The next priority after Playable Life is idea diffusion, followed by generationa
 | Asymmetric Multiplayer | Give each role explicit authority over its own decisions in a shared scenario. Establish ownership, synchronization, and conflict rules first. |
 | Browser Compute Swarm and Simulation Modding Studio | Establish bounded, versioned execution, consent and resource controls for contributed compute, and verification of results and extension behavior. |
 
+## Agent Training Gym — later phase (SHE-192)
+
+Give AI agents controlled environments with recorded trajectories, rewards, and evaluations. This is later-phase work and is not required for the next release. Implementation depends on an Experiment Registry contract that can retain and rebuild an immutable environment version.
+
+Each environment must pin its model and rules, starting state, source data, dependencies, scenario inputs, seed, action and observation contracts, and execution limits. Record ordered actions, observations, reward components, termination reasons, and causal references against that version. Declare and freeze the reward definition before training starts; changing rewards creates a new experiment revision.
+
+Report simulated evaluation and real-world evaluation separately, with provenance, sample counts, units, uncertainty, and limitations for each. Missing real-world evidence is explicitly unavailable and must never be inferred from simulated rewards. Training performance and held-out evaluation are also distinct results.
+
 ## Open questions
 
 - Which housing model outputs can World render directly, and what mapping is needed for properties, residents, and dates?
 - Which snapshots must be retained for exact replay when model versions change, and which scenarios can be rebuilt from a pinned recipe?
 - What evidence and thresholds make a modeled change meaningful to a player, and what does a first-time player need to complete the guided journey?
 - Which authorization and retention contracts are required before public submissions, persistent shared state, and multiplayer decisions?
+
+## Research agent role
+
+Operator-invoked research agents inspect supplied simulation rules and a pinned
+Research Library snapshot, compare approaches, and propose experiments or
+implementation issues. Their output enters the existing private improvement
+inbox as drafts for human triage. Every claim links to a library entry or is
+explicitly unsupported; metadata citations do not establish a mechanism.
+Experiments declare a hypothesis, data sources and acceptance criteria. The
+role never dispatches work. See [the role contract](../ops/research_agents/README.md).
+
+## Storm hazard fields
+
+Sculpt a Storm includes a Canvas2D depth/drainage inspector using the same
+selected arm, grid cell and recorded step as its terrain view. Depth is in
+metres; compiled drainage capacity is in metres per model step, not measured
+outflow. Fixed colour bands show source values, with zero distinct from missing
+or invalid values. Crosses identify unknown tiles, diagonal marks identify
+sampled estimates when supplied, and dots identify unquantified structural
+model uncertainty. Current single-run frames are modeled values, not sampled
+probabilities. No calibrated uncertainty interval is available. Selection shows
+recipe/model versions, backend, seed, arm, step, rain input and synthetic-source
+limitations. With Canvas2D unavailable, the textual selected-cell reading remains.

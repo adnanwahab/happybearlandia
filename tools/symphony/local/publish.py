@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Trusted host after_run publisher. Never execute this from an agent shell."""
+from dispatch_policy import missing_approvals
 import fcntl
 import json
 import os
@@ -138,6 +139,8 @@ def workpad(issue, require_approval=True):
         raise PublicationError('Issue missing or no longer active; operator must reconcile')
     if data['labels']['pageInfo']['hasNextPage']:
         raise PublicationError('Incomplete labels; operator must reconcile')
+    if require_approval and missing_approvals(x['name'] for x in data['labels']['nodes']):
+        raise PublicationError('Issue lacks required dispatch approvals; operator must reconcile')
     if require_approval and 'symphony-pilot' not in [x['name'] for x in data['labels']['nodes']]:
         raise PublicationError('Issue lacks symphony-pilot approval')
     pads = [x for x in data['comments']['nodes'] if x['body'].startswith('## Codex Workpad')]

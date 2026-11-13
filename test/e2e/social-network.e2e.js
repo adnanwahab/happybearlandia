@@ -1,0 +1,33 @@
+import {test,expect} from '@playwright/test';
+test('resident panel shows only worker ledger edges with configurable depth',async({page})=>{
+ await page.route('**/__network-test',r=>r.fulfill({contentType:'text/html',body:'<!doctype html><main></main>'}));
+ await page.goto('/__network-test');
+ const result=await page.evaluate(async()=>{
+  const {createPopulationRuntime}=await import('/world/population/runtime.js');
+  const {renderRelationships}=await import('/world/relationships/panel.js');
+  const runtime=createPopulationRuntime({config:{population:40,seed:42},stepMinutes:1});
+  window.networkRuntime=runtime;await runtime.ready;runtime.pause();
+  const id=runtime.getSnapshot().visibleAgents[0].id;
+  const a=await runtime.inspectPerson(id), b=a.social.nearby[0];
+  window.networkSelects=[];
+  const render=social=>renderRelationships(document.querySelector('main'),social,{onSelect:id=>window.networkSelects.push(id)});
+  render(a.social);
+  window.recordNetworkEncounter=async()=>{const result=await runtime.socialAction(id,b.id,'talk');render(result.social);return result.social.network;};
+  return {id,b:b.id};
+ });
+ await expect(page.getByRole('heading',{name:'Recorded social network'})).toBeVisible();
+ await expect(page.getByLabel('Recorded network edges')).toBeEmpty();
+ const network=await page.evaluate(()=>window.recordNetworkEncounter());
+ expect(network.edges).toHaveLength(1);
+ const edges=page.getByLabel('Recorded network edges');
+ await expect(edges.locator('li')).toHaveCount(1);
+ await expect(edges).toContainText(network.edges[0].id);
+ await page.getByRole('combobox',{name:'Network depth',exact:true}).selectOption('0');
+ await expect(edges).toBeEmpty();
+ await expect(page.getByLabel('Recorded network residents').locator('li')).toHaveCount(1);
+ await page.getByRole('combobox',{name:'Network depth',exact:true}).selectOption('3');
+ await expect(edges.locator('li')).toHaveCount(1);
+ await page.getByLabel('Recorded network residents').getByRole('button').first().click();
+ expect(await page.evaluate(()=>window.networkSelects)).toEqual([result.id]);
+ await page.evaluate(()=>window.networkRuntime.destroy());
+});

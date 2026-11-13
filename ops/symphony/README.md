@@ -27,7 +27,7 @@ Verified sprint branch -> feedback -> next approved planning cycle
 
 **Who starts the implementation threads?** Symphony does. The planner does
 NOT manually start Codex chats. Symphony polls GitHub Issues for open issues
-with the exact \`hbl-agent-ready\` label, starts Codex app-server processes in
+with both \`hbl-agent-ready\` and \`hbl-coordinator-approved\` labels, starts Codex app-server processes in
 isolated workspaces up to the configured concurrency, and reuses capacity as
 issues finish. The worker must push a branch and hand off a PR, then remove
 its ready label so the dispatcher does not repeatedly process a finished task.
@@ -35,8 +35,8 @@ its ready label so the dispatcher does not repeatedly process a finished task.
 **Important:** only **five first-wave tasks (R01-R05)** are currently tagged
 by the intake script as eligible for automatic dispatch. Other READY rows
 have follow-on dependencies or coordinator ownership and must be reviewed
-before adding \`hbl-agent-ready\`. Fifty worker *slots* cannot guarantee
-fifty productive workers. Never fabricate scope to fill idle slots.
+before adding \`hbl-agent-ready\`. Worker *slots* cannot guarantee
+productive workers. Never fabricate scope to fill idle slots.
 
 ## Current deliverables and limitations
 
@@ -66,8 +66,7 @@ prototype software; review its security posture before unattended use.
 
 A durable Linux VM or equivalent is preferable for overnight runs.
 A sleeping MacBook cannot reliably execute a 25-hour local daemon.
-Fifty workers may need multiple hosts; verify Symphony's current SSH
-worker support and real rate-limit capacity before scaling.
+Verify host resource capacity and provider limits before increasing concurrency.
 
 Install Git, Python 3.10+, Bun, the Codex CLI, and authenticate Codex
 interactively on that host. Install the Symphony reference runtime
@@ -118,31 +117,29 @@ or a supervised service on a host that remains awake. The host and Codex
 account must have enough capacity. In the first live run, verify one
 issue completes a real Codex session and opens a correctly targeted PR.
 
-## Scaling to 50 concurrent implementation workers
+## Safety ceiling and recovery
 
-After verifying end-to-end issue -> branch -> tests -> PR -> review:
-1. Scale to 10, measure real throughput and integration wait.
-2. Scale to 20 if system throughput and CI are stable.
-3. Prepare 50 **independent, approved, unblocked** issues; add the
-   \`hbl-agent-ready\` label only after interface/file ownership checks.
-4. Provision sufficient CPU/RAM/storage/network capacity, GitHub API quota,
-   Codex concurrency quota, and an external cost alert / account usage cap.
-5. Scale to 50 deliberately, not merely to maximize thread count:
+The launcher enforces at most six workers, including with the deprecated
+`--ack-scale` option. Start with one. Increase only after measuring the existing
+host resource checks and integration capacity. The supervisor bounds wall time
+and restart count; it drains the entire old process group before a retry, even
+when the dispatcher leader has crashed. Inspect remote workers separately.
 
-\`\`\`bash
-python3 ops/symphony/run_25h.py --workers 50 --hours 25 \
-  --symphony-bin "$SYMPHONY_BIN" --ack-scale --run
-\`\`\`
+Both tracker templates require **both** `hbl-agent-ready` and
+`hbl-coordinator-approved`. Readiness alone is never execution approval. Only a
+trusted coordinator/human may grant the latter after reviewing ownership and
+prerequisites. Template worker commands remove tracker/GitHub environment tokens
+and disable inherited shell environment, while keeping `approval_policy: never`.
+These are environment boundaries, not a replacement for a dedicated host and
+filesystem/secret-manager isolation. Never store credentials in workspaces.
 
-This starts **one dispatcher** which *may start up to 50 Codex agents*.
-It does not create 50 persistent ChatGPT conversation tabs. If only five
-issues are eligible, at most five issue workers will run. New work can
-be labeled ready while Symphony is running without restarting it.
-
-The dispatcher process is stopped after 25 hours. The current supervisor
-does not enforce a hard dollar/token cap; configure an actual provider-side
-usage limit and monitoring before using a large pool. Check GitHub API
-rate limits and run costs frequently.
+This older launcher remains opt-in and is not the installed source-only pilot.
+The current coordinator, resource holds, durable leases, failure reports and
+source-only publisher are documented in
+[`tools/symphony/local/README.md`](../../tools/symphony/local/README.md).
+No live activation, release authority or 25-hour reliability claim follows from
+these offline checks. A runtime must enforce required labels on initial and
+retry dispatch before being used with these templates.
 
 ## Planning and integration operating contracts
 
@@ -172,7 +169,7 @@ until automated gating and recovery are tested.
 
 ## Troubleshooting and stopping
 
-- No workers: ensure at least one open issue has \`hbl-agent-ready\`;
+- No workers: ensure at least one open issue has both required approval labels;
   check that this label actually exists and the token can read the repo.
 - Workers cannot push: configure least-privilege Git authentication on
   the isolated worker host; a GitHub Issues API token alone does not
