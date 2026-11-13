@@ -1,5 +1,35 @@
 # HappyBearLandia implementation plan
 
+## SHE-182 revision 2 — publication repair (November 12, 2026)
+
+Delivered slice: merged-only, same-repository Mini Symphony branch mapping and
+idempotent Linear merge-evidence publication, including `mini/SHE-182-r2` to
+`SHE-182`. Remote sprint HEAD matches this checkout; current sprint and main
+contain no prior sync helper. Preserve SHE-180 as sole queue/lease owner and
+existing dual approval checks. See [the checked audit](reviews/SHE-182-r2.md)
+for exact source/test evidence, prior PR195 and remaining acceptance.
+
+Changed interfaces: `.github/scripts/sync-merged-pr.cjs` and
+`.github/workflows/linear-merged-pr.yml`; regression entry point is
+`node --test test/sync-merged-pr.test.cjs`. The workflow runs trusted base code,
+never worker head code with its secret. It links merged evidence without
+changing issue status or granting acceptance. Failed/uncertain writes stop;
+rerunning safely upserts the same issue/URL attachment.
+
+Actual verification: 222 host tests, 21 ops tests and 5 publication tests passed
+(248 total). Node syntax and diff whitespace checks passed. Python YAML parsing
+was unavailable because PyYAML is not installed; Ruby YAML parsing passed.
+No browser behavior changed; Playwright skipped.
+No merge, deployment, production write or runtime activation occurred.
+
+Operational prerequisites/risks: repository `LINEAR_API_KEY` availability could
+not be inspected; configure/verify it before hosted synchronization. Hosted sync
+requires reviewed default-branch installation and an observed eligible merged PR;
+no hosted claim is made. Full issue acceptance still requires trusted-host hard
+resource containment and external runtime approval/retry/recovery validation.
+Those runtime changes are outside this explicitly scoped publication follow-up.
+No commit/PR reference exists for this revision yet.
+
 ## SHE-256 concurrency decision gate — 2026-11-12
 
 Delivered documentation increment: [decision gate](symphony-concurrency-gate.md)
@@ -7922,6 +7952,57 @@ test/world-user-fixes.test.js still reports 32 homepage carousel sections versus
 33 registered experiences. The identical failure was reproduced using exact
 118aad baseline inputs; this existing catalog mismatch was not changed by PR278.
 No simulation, seed, runtime, gallery, or target-branch changes were made.
+
+## SHE-227 r2 — radical ideation audit and report (2026-11-12)
+
+Delivered analysis-only [review report](reviews/SHE-227-r2.md): 30 proposed
+capabilities with all five requested fields and five defining-feature finalists.
+Preserved the earlier issue-comment catalog, audited current overlap and local
+SHE-223–226 commits, and distinguished designs from existing behavior. Read-only
+GitHub current-main design/engine inspection succeeded; complete remote sync was
+blocked by shared Git permissions and DNS. Original Claude report returned 404;
+paired-experiments source was not located. These limits are explicit in the report.
+
+Acceptance: document validator passed 30 consecutive ideas, 150 fields, five
+finalists and cited local paths. Focused overlap checks initially passed 15 tests
+and failed one Detective case at the default 5s timeout; that case passed alone
+with a 20s limit (109 assertions, 5.66s). No runtime code or tests changed.
+Whitespace checks passed. Browser checks skipped for documentation-only scope.
+No new model means no ODD change; future social mechanisms require their own
+ODD/contracts. Next: review the proposed Last Reversible Minute bounded rescue
+experiment before authorizing implementation. No PR/commit reference yet; no
+merge, deployment or production data changes.
+
+## SHE-237 r2 — emergent storyteller design
+
+Completed design-only slice: [25 situations and five recommendations](reviews/SHE-237-r2.md).
+Audited prior SHE-238 output, SHE-49 source/evidence and merged PR #166, live
+Linear issue state, current remote sprint SHA `53090035` (matches this checkout),
+and newer main `fbdce9e8` integration differences. No existing 25-item SHE-237
+deliverable was found. Preserved prior work; no product implementation added.
+
+Acceptance: exactly 25 situations each specify mechanisms, trigger, recorded
+state, discovery and causal replay; exactly five ranked systems have feasibility,
+replayability and engagement rationale. Shared evidence contract distinguishes
+existing rules from proposed extensions, synthetic inputs from results, and
+Population/City/idea authorities. No fabricated customer ledger, cross-model
+identity, clinical outcome or guaranteed dramatic result is assumed.
+
+Fresh verification: seven focused Bun files passed 61 tests / 418 assertions,
+zero failures (5.87s), including normal runtime/worker House actions and checkpoint
+transfer, relationships, hotspots, traditions, employment, household risk and
+three City recipes. Report count/field/link checks and `git diff --check` pass.
+Browser checks skipped for documentation-only scope; these regressions do not
+certify proposed receipt journeys. No PR/commit reference exists for this r2 yet.
+
+Next proposed implementation slice (outside this ticket): persist/reopen one
+actual dinner-to-conversation receipt through World → House. Prerequisites are a
+bounded versioned evidence/save contract, exact actor/time links, retained source
+records and immutable revision handling. Acceptance and failure paths are in the
+report; browser action-to-receipt/reload verification is required when implemented.
+Risks: evidence eviction, clock/identity mismatch and confusing helper fixtures
+with integrated outcomes. The named paired-experiments source was not located;
+the supplied full experiment-6 issue governs the completed design scope.
 
 ## SHE-233 r2 — Road Not Taken design review (2026-11-12)
 
