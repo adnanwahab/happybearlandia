@@ -105,3 +105,15 @@ Coordinates are model x/z; circle intensity is count divided by the largest coun
 for the selected measure at this timestamp. There is no area normalization or
 fixed color scale across ticks. Older snapshots without this projection show
 unavailable. Both panels clear with the authoritative snapshot on reset.
+
+## Current-trip read projection
+
+Bounded `visibleAgents` and inspected people optionally carry `trip`, null when
+`remaining <= 0`. `population-current-trip.v1` includes departureMinute,
+durationMinutes (planned), remainingMinutes, plannedActivity (contracts.js enum),
+from/to world x/z and `geometry: straight-line model approximation`. This is
+current committed synthetic travel state, not completed-trip history or surveyed
+street routing. Enclosing run/version/seed/time provenance applies. Bus/rail
+markers identify passengers, not shared vehicles. Consumers must not infer a
+fleet count or realized duration from this record. Legacy rows without trip
+remain supported by the renderer.

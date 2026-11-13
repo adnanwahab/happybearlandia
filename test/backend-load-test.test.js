@@ -68,3 +68,10 @@ test('real server civic handler accepts recipe and replays disposable saved runs
     expect(result.samples.every(sample=>sample.ok)).toBe(true);
   } finally {await rm(root,{recursive:true,force:true});}
 },15000);
+
+test('local staging requires explicit opt-in and a literal loopback address with port',()=>{
+  expect(validateTarget({...config,origin:'http://127.0.0.1:43123',approvedOrigin:'http://127.0.0.1:43123',localStaging:true})).toBe('http://127.0.0.1:43123');
+  for(const origin of ['http://127.0.0.1:43123','http://localhost:43123','http://192.168.1.1:43123','http://staging.example.com:43123','http://127.0.0.1']) {
+    expect(()=>validateTarget({...config,origin,approvedOrigin:origin,localStaging:origin!=='http://127.0.0.1:43123'})).toThrow();
+  }
+});
