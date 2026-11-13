@@ -8284,3 +8284,44 @@ passed; diff whitespace passed. Three browser tests are committed but unexecuted
 the normal server failed to bind two attempted ports (`EADDRINUSE`). Browser
 acceptance and visual flight/mobile review remain pending on a runnable host.
 No commit/PR, merge, deployment or production changes.
+
+## SHE-259 — bounded weekly cycle lifecycle (2026-11-12)
+
+Audit: current sprint head 53090035 already has separate weekly and ten-year
+workers and a cancellable detached quick demo. The normal Run cycle path ignored
+worker progress fractions, native errors and unreadable messages, and had no
+cancellation or deadline. The adjacent Idle label belongs to the ten-year run.
+A long first branch therefore looked stalled; this audit does not establish the
+specific cause or duration of the reported playtest stall.
+
+Implemented slice: normal Run cycle and subsequent cycles expose weekly
+Running/Completed/Failed/Cancelled status, actual worker fraction, Cancel, native
+error handling and a 120-second total wall-clock deadline. Cancellation/failure
+terminates the worker, rejects pending guided/demo waiters, restores the run
+button and offers retry. Ignore late events from retired workers. Explicitly
+label ten-year status/history. No model, town size, seed, rules, sampling or
+seven-day horizon changes. Legacy ODD (`docs/models/legacy.md`) checked against
+`world/cycle.worker.js` and the presentation changes in `world/render.js`;
+its model schedule and assumptions remain accurate.
+
+Acceptance evidence: lifecycle tests exercise progress, cancellation, stale
+messages/errors, native load errors, unreadable messages, timeout and retry:
+2 passed / 22 assertions. Adjacent guide/playback/repeat/replay/feedback suite:
+22 passed, 1 failed (114 assertions, 10.18s). Failure is the untouched feedback
+fixture looking for a missing “Change one thing” heading; neither its test nor
+implementation was changed here. The initial guide/playback selection passed
+9/9 (41 assertions). Diff whitespace check passed.
+
+Playwright journey now selects Balanced through the real plan select and Run
+cycle button, requires results within 90 seconds on explicitly synthetic geometry
+with 16 residents, records elapsed time, and tests cancel/load-failure/retry.
+Attempted `bunx --no-install playwright test --config test/first-run.browser.config.js`:
+server failed before browser launch with EADDRINUSE on 39889. A second server
+attempt on 41983 also failed EADDRINUSE. No browser timing, results or screenshots
+are claimed. Normal default-population performance, browser layout and the
+90-second journey remain unverified; run this suite on a bind-capable host.
+No merge or deployment. No lint/typecheck scripts exist in package.json.
+
+Final focused rerun: 11 passed, 0 failed, 63 assertions (9ms). Browser-target
+render bundle passed (356 modules); `/vendor/*` and Three.js externalized to
+match served imports. No browser execution is implied by this compile check.
