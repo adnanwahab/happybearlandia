@@ -435,6 +435,7 @@ const handleConstitutionSource = createConstitutionSourceHandler({fetchPlan:()=>
 const server = serve({
   maxRequestBodySize:EXPERIMENT_MAX_BYTES,
   port: PORT,
+  hostname: process.env.HBL_BIND_HOST || undefined,
 
   async fetch(request, server) {
     const { pathname } = new URL(request.url);
