@@ -34,7 +34,9 @@ Agent updates count those transitions, distinct changed IDs are separately
 tracked, and empty donors count neither. This is an uncalibrated synthetic
 schedule, not PR34's bounded fixture or PR50's scalar oracle. Their limits and
 contracts remain intact. Replay retains seed, tick count, final PRNG/state digest,
-energy invariant, module SHA256 hashes and model version. The compact digest is
+energy invariant, module SHA256 hashes and model version. The report also retains
+model identity and a SHA256 of the CLI itself, including when browser launch fails.
+See the [ODD description](models/million-paired-transfer.md). The compact digest is
 a regression check, not cryptographic proof or an event log; exact events can
 be regenerated from this recipe. No cross-model causal equivalence is claimed.
 
@@ -63,3 +65,12 @@ run the manual workflow or the command above on a browser-capable host before
 accepting performance numbers. Unit tests cover all three sizes and compute
 phase exports, deterministic replay, a separate first-tick scalar oracle,
 conservation, empty donors and invalid inputs. No lint/typecheck scripts exist.
+
+
+Follow-up CLI acceptance: `bun test test/million-benchmark-cli.test.js` verifies
+missing-browser export. On a browser-capable host run
+`HBL_MILLION_BROWSER=1 bun test test/million-benchmark-cli.test.js` to require
+all nine records, counts, metadata, timings and seed-matched replay through the
+actual CLI. This is also required by the manual workflow after Chromium setup.
+The browser test is opt-in locally; an explicitly enabled run fails on launch
+errors. See [the r2 review](reviews/SHE-171-r2.md) for actual results.
