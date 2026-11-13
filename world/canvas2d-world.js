@@ -1,10 +1,10 @@
+import {mountPlanChoices,customPlan,stagePlan} from './plan-choices.js';
 /** Explicitly low-fidelity World. Reuses the legacy seeded town and simulation,
  * replacing only Three/WebGPU visuals with Canvas2D for restricted browsers.
  * The monthly City and Living Population engines are separate authorities.
  */
 import {buildTown,hashSeed} from './gen.js';
 import {createWorld} from './sim.js';
-import {computeEffectsForYear} from './policy.js';
 
 const $=id=>document.getElementById(id),query=new URLSearchParams(location.search);
 const safeNumber=(value,fallback,min,max)=>{const n=Number(value);return Number.isFinite(n)?Math.max(min,Math.min(max,n)):fallback;};
@@ -15,6 +15,7 @@ const notify=(type,detail={})=>window.dispatchEvent(new CustomEvent('hbl:world-f
 let world,town,canvas,ctx,paused=false,speed=1,disposed=false,selected=null,panX=0,panZ=0,zoom=1,then=0,accum=0,frame=null,clock=0;
 let activityDashboard=null,worker=null,weeklyPromise=null,experimentStatus='';
 const planDefinitions={
+  custom:customPlan(),
   none:{id:'none',label:'No package',ids:[]},
   balanced:{id:'balanced',label:'Balanced',ids:['t_brt','h_lots','f_drainage','s_311']},
   'minimal-change':{id:'minimal-change',label:'Minimal change',ids:['t_bus','s_311','sb_filing']},
@@ -22,12 +23,12 @@ const planDefinitions={
 };
 const trail=new Map();
 function applyPlan(){
-  const id=$('policy').value,def=planDefinitions[id]||planDefinitions.none,year=Number($('planYear')?.value)||3;
-  const staged=computeEffectsForYear(def.ids,year),e=staged.effects;
+  const id=$('policy').value,def=planDefinitions[id]||planDefinitions.none,year=Number($('planYear')?.value??3);
+  const staged=stagePlan({...def,proposalIds:def.ids||[]},year),e=staged.effects;
   Object.assign(world,{parkCleanupBoost:e.parkCleanupBoost,restockBoost:e.restockBoost,hiringBoost:e.hiringBoost,
     voucherMonthly:e.voucherMonthly,groceryDelivery:e.groceryDelivery});
   world.speedMult=e.speedMult;
-  world.policy={...world.policy,id,label:def.label,proposalIds:def.ids,floodMitigation:e.floodMitigation,floodedNow:world.policy?.floodedNow||0,displaced:world.policy?.displaced||0};
+  world.policy={...world.policy,id,label:def.label,proposalIds:def.ids||[],floodMitigation:e.floodMitigation,floodedNow:world.policy?.floodedNow||0,displaced:world.policy?.displaced||0};
   $('policyNote').textContent=def.label+' · year '+year+' · transit ×'+e.speedMult.toFixed(2)+' · flood mitigation '+(e.floodMitigation*100).toFixed(0)+'% (illustrative local rules).';
   notify('policy',{label:'Plan configured',message:'The '+def.label+' mechanisms are active. Run a matched comparison before attributing outcomes to the plan.',metrics:[{label:'Transit multiplier',value:e.speedMult.toFixed(2)+'×'}]});
 }
@@ -112,7 +113,7 @@ function runWeek(){
   if(weeklyPromise)return weeklyPromise;
   const message=$('cycleStatus');message.textContent='Comparing matched weeks on CPU…';
   $('runCycleBtn').disabled=true;
-  const ids=planDefinitions[$('policy').value]?.ids??planDefinitions.balanced.ids;
+  const ids=planDefinitions[$('policy').value]?.ids??[];
   weeklyPromise=new Promise((resolve,reject)=>{
     const worker=new Worker(new URL('./cycle.worker.js',import.meta.url),{type:'module'});
     const timeout=setTimeout(()=>{worker.terminate();reject(new Error('Weekly worker timed out'));},90000);
@@ -132,7 +133,7 @@ function runWeek(){
     };
     worker.onerror=e=>{clearTimeout(timeout);worker.terminate();reject(new Error(e.message||'Worker failed'));};
     worker.postMessage({type:'run',payload:{origin,area:townArea,maxPeople:town.people.length,
-      proposalIds:ids,label:planDefinitions[$('policy').value]?.label??'Balanced',year:Number($('planYear')?.value)||3,days:7}});
+      customEffects:planDefinitions[$('policy').value]?.customEffects,proposalIds:ids,label:planDefinitions[$('policy').value]?.label??'Balanced',year:Number($('planYear')?.value??3),days:7}});
   }).catch(error=>{message.textContent='Weekly comparison unavailable: '+error.message;notify('error',{label:'Weekly comparison failed',message:error.message});throw error;})
     .finally(()=>{weeklyPromise=null;$('runCycleBtn').disabled=false;});
   return weeklyPromise;
@@ -147,7 +148,7 @@ async function init(){
     if(response.ok)townArea=await response.json();
   }catch{status.textContent='Map provider unavailable; starting a procedural fictional neighborhood.';}
   town=buildTown(origin,townArea,{maxPeople:count});
-  world=createWorld(town,{recordHistory:true});
+  world=createWorld(town,{recordHistory:true,...(query.get("seed")?{runSeed:query.get("seed")}:{})});
   canvas=document.createElement('canvas');canvas.id='canvas-lite-world';canvas.setAttribute('aria-label','Playable low fidelity top-down city');canvas.style.cssText='width:100%;height:100%;display:block;touch-action:none';$('view').append(canvas);
   ctx=canvas.getContext('2d');if(!ctx){status.textContent='Canvas2D is unavailable. Try another browser.';return;}
   $('source').textContent='Canvas2D low fidelity · '+(townArea.source==='osm'?'OSM building footprints, fictional residents':'Procedural fictional neighborhood')+' · same legacy City activity rules as the classic World, simplified graphics.';
@@ -156,7 +157,8 @@ async function init(){
   $('simulationModelMetadata').textContent ||= 'Synthetic legacy parameters available; loaded independently of GPU.';
   const seed=town.seedKey+'|exp-v1';$('experimentSeed').textContent=seed;$('experimentSeedInput').value=seed;
   $('policy').addEventListener('change',applyPlan);
-  $('planYear').addEventListener('input',()=>{$('planYearN').textContent='Year '+$('planYear').value;applyPlan();});
+  const planChoices=mountPlanChoices({select:$('policy'),host:$('planChoices'),packages:()=>planDefinitions,year:()=>Number($('planYear').value),onCustom:applyPlan});
+  $('planYear').addEventListener('input',()=>{$('planYearN').textContent='Year '+$('planYear').value;applyPlan();planChoices.render();});
   $('stormBtn').addEventListener('click',storm);
   $('runCycleBtn').addEventListener('click',()=>runWeek().catch(()=>{}));
   $('runExperimentBtn').addEventListener('click',()=>{const a=document.createElement('a');a.href='/world/city-lab.html';a.click();});

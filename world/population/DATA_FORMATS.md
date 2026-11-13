@@ -118,3 +118,15 @@ represented-population multiplier is applied. Residents at other homes do not
 light their assigned home's windows. The projection is read-only and uses the
 snapshot's minute/tick/model/run provenance. Window selection is a deterministic
 visual approximation of atHome/residents, not observed electricity demand.
+
+## Current-trip read projection
+
+Bounded `visibleAgents` and inspected people optionally carry `trip`, null when
+`remaining <= 0`. `population-current-trip.v1` includes departureMinute,
+durationMinutes (planned), remainingMinutes, plannedActivity (contracts.js enum),
+from/to world x/z and `geometry: straight-line model approximation`. This is
+current committed synthetic travel state, not completed-trip history or surveyed
+street routing. Enclosing run/version/seed/time provenance applies. Bus/rail
+markers identify passengers, not shared vehicles. Consumers must not infer a
+fleet count or realized duration from this record. Legacy rows without trip
+remain supported by the renderer.

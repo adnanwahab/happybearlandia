@@ -20,6 +20,13 @@ Basic principles: bounded needs and constrained utility choices, with analyst co
 
 ## 5. Initialization
 
+Ordinary World visits defer this model until a Population toolbar action. Explicit
+`living=1` links still initialize on entry; saved Living runs restore their recorded
+checkpoint. Deferral changes allocation timing only, not the generator, seed,
+initial model minute or configured resident count. The legacy preview has its own
+model identity and is not a partially initialized Population run.
+
+
 [createPopulationModel](../../world/population/model.js) normalizes config, calls [generatePopulation](../../world/population/generator.js), initializes needs, employment, economy and histories and aggregates. A fresh initialMinute is within day one; it supplies no prehistory. Save full config, context, initialMinute/tick and optional subsystem configuration, or use the [checkpoint codec](../../world/population/checkpoint.js) for continuation. Keep the recorded POPULATION_VERSION from contracts.js rather than assuming the latest version.
 
 ## 6. Input data
@@ -92,3 +99,17 @@ unweighted. The renderer uses their ratio; no visible-sample or district-vacancy
 substitution is allowed. Synthetic anchors are not observed unit occupancy.
 Visitors are excluded from the resident numerator; this does not alter housing
 assignment or the House guest/roommate roster.
+
+### Current-trip presentation (SHE-261)
+
+`world/population/trip-display.js` projects committed `remaining`, `tripTotal`,
+`departureMinute`, `plannedActivity` and endpoint arrays into each bounded
+snapshot/inspection row. Null means no current trip. This read introduces no
+random draws, rules or time advancement. Coordinates retain behavior.js's
+straight-line approximation; sidewalk access endpoints do not establish a road
+path. Car shapes represent traveling residents; bus/rail shapes represent
+passengers, since the model has no shared fleet identity. Neither shape counts
+nor sampled points establish real traffic volume. Ongoing trips are distinct
+from a retained completed-trip ledger. Seed, model version, clock and run
+identity remain on the enclosing snapshot/runtime. Verify with
+`test/population-trip-display.test.js` and the existing model/replay suites.

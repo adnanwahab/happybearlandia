@@ -36,3 +36,15 @@ at server startup in this workspace: Bun reports EADDRINUSE on both 39931 and
 39978. No baselines have been generated or visually approved. Zero blocked
 controls and screenshot acceptance remain unverified until the update, image
 review and normal comparison run complete on a host that permits the server.
+
+SHE-263 extends this config with `world-hud.e2e.js`: `/world?renderer=webgl`
+at 320×640, 390×844, 768×1024, 1280×784, 1520×784 and 1920×1080. It dismisses
+the initial Start here sheet, checks launcher hit targets and measured viewport
+bounds, exercises both numbered explorer actions, asserts pill/dismiss behavior,
+and checks Storm preserves the World controls scroll offset. Each test attaches
+actual measured HUD rectangles. Screenshots cover the expanded and collapsed
+explorer; the scene and volatile playback/status outputs are masked. This does
+not substitute Canvas2D for the main World integration. No new World baselines
+are generated or approved in this workspace: server startup fails with
+EADDRINUSE before browser launch. Run with `--grep 'World HUD' --update-snapshots`,
+review all twelve images, then run without snapshot updates to verify.
