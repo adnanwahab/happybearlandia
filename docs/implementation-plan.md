@@ -8103,3 +8103,24 @@ remain unverified. See [exact evidence and next action](reviews/SHE-45-r2.md).
 No browser behavior changed, so Playwright/screenshots are inapplicable. No merge,
 deployment, production load or data changes. No new PR/commit created because
 shared Git metadata is outside writable roots; host publication remains pending.
+
+## SHE-167-r2 — ordinary-entry deferred Population allocation
+
+Next slice: ordinary World opens the existing legacy exploration shell without
+a Population worker; the toolbar starts the unchanged dense model. Explicit
+`living=1` and saved checkpoint restoration retain their entry semantics.
+Prerequisites: existing mount/start lifecycle and SHE-141 count contract.
+Acceptance: ordinary route has no Population runtime/worker before toolbar input;
+activation retains seed 42, configured 10,000 residents and bounded render sample.
+Risks: ordinary visits now start in legacy mode; no selected million-resident
+backend or measured free-memory API exists. Do not change population using
+`deviceMemory`, weights or a synthetic cohort substitute. Browser evidence and
+final status are recorded in docs/reviews/SHE-167-r2.md.
+
+Delivered r2: disabled ordinary-entry auto-activation; explicit Living links and
+saved restoration preserved. Updated ordinary-entry benchmark and added two
+browser cases (activation and injected worker failure). Verification: 40 tests /
+607 assertions pass; browser build passes with server vendor imports external;
+two browser cases discovered, not executed. Fresh server EADDRINUSE and engine
+availability failures prevented measurements. Review candidate remains partial;
+full receipt and next acceptance work: [SHE-167-r2](reviews/SHE-167-r2.md).
