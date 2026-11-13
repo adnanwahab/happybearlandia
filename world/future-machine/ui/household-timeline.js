@@ -1,3 +1,4 @@
+import {familyIdentity,rankFamilies} from '../data/families.js';
 import {MONTHS, assertMonth} from '../contracts.js';
 import {householdObservation} from './model.js';
 
@@ -32,8 +33,8 @@ export function createHouseholdTimeline(container,{history,onMonth}={}) {
   const node=(tag,text)=>{const e=doc.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
   const shell=node('section');shell.setAttribute('aria-label','Household change timeline');
   const label=node('label','City household '),select=node('select');select.setAttribute('aria-label','Timeline household');label.append(select);
-  const ids=[...new Set(['baseline','plan'].flatMap(arm=>(history[arm]??[]).flatMap(s=>s?.state?.households?.map(h=>h.id)??[])))].sort();
-  for(const id of ids){const option=node('option',id);option.value=id;select.append(option);}
+  const ids=rankFamilies(history).map(row=>row.id);
+  for(const id of ids){const option=node('option',`${familyIdentity(history.seed,id).name} · synthetic · ${id}`);option.value=id;select.append(option);}
   let rows=ids.length?householdTimeline(history,ids[0]):[],month=0,disposed=false;
   const provenance=node('p',`RUN ${history.experimentId??'Unavailable'} · SEED ${history.seed??'Unavailable'} · MODEL ${history.modelVersion??'Unavailable'}`);
   const values=node('p');values.style.whiteSpace='pre-line';

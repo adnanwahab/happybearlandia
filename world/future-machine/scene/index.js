@@ -1,5 +1,6 @@
 import {CONTEXT_NOTICE,architectureGeometry,createNeighborhood,replaceDetails} from './neighborhood.js';
 import {createDivergenceGate,createDivergenceBurst} from './divergence.js';
+import {familyRecord} from '../data/families.js';
 import {disposeObjectResources} from './resources.js';
 import {constructionGhosts} from './construction-ghosts.js';
 import { createMediaPreferences } from '../../../shared/media/preferences.js';
@@ -79,8 +80,11 @@ export function createStage(container, {onSelect,history,onCameraInteraction} = 
     scenes=[];
   }
 
-  function color(row,ghost) {
-    return selected?.id===row.id&&selected?.collection===row.collection?0xffcf62:changed(row)?0xb9f488:row.collection==='projects'?0xd5ab67:ghost?0x89e7ef:0x80afba;
+  let followedHousehold=null;
+  function followedBuildings(){return Object.fromEntries(["baseline","plan"].map(arm=>[arm,familyRecord(currentFrame?.[arm],followedHousehold).building?.id??null]));}
+  function active(row,arm){return selected?.id===row.id&&selected?.collection===row.collection || row.collection==='buildings'&&followedHousehold!==null&&followedBuildings()[arm]===row.id;}
+  function color(row,ghost,arm) {
+    return active(row,arm)?0xffcf62:changed(row)?0xb9f488:row.collection==='projects'?0xd5ab67:ghost?0x89e7ef:0x80afba;
   }
   function geometryFor(row) {
     if(!row.polygon)return row.collection==='buildings'?architectureGeometry(THREE,row):new THREE.BoxGeometry(14,row.height,14);
@@ -89,9 +93,9 @@ export function createStage(container, {onSelect,history,onCameraInteraction} = 
   }
   function add(row,scene,arm,ghost=false) {
     const geometry=geometryFor(row);
-    const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:color(row,ghost),transparent:ghost,opacity:ghost?.25:1,wireframe:ghost,roughness:.65,emissiveIntensity:.5}));
+    const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:color(row,ghost,arm),transparent:ghost,opacity:ghost?.25:1,wireframe:ghost,roughness:.65,emissiveIntensity:.5}));
     if(!row.polygon)mesh.position.set(row.x,row.height/2,row.z);
-    effects?.apply(mesh,row,{changed:changed(row),selected:selected?.collection===row.collection&&selected?.id===row.id,ghost,kind:row.collection});
+    effects?.apply(mesh,row,{changed:changed(row),selected:active(row,arm),ghost,kind:row.collection});
     if(!ghost){const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geometry),new THREE.LineBasicMaterial({color:changed(row)?0xe9ffd0:0xb4d8e6,transparent:true,opacity:.5}));mesh.add(edges);}
     mesh.userData={collection:row.collection,id:row.id,arm,ghost,...(row.eventId?{eventId:row.eventId,eventMonth:row.eventMonth}:{} )};scene.add(mesh);meshes.push(mesh);
     // Recorded work gauge above a project marker; never unfinished building floors.
@@ -120,9 +124,9 @@ export function createStage(container, {onSelect,history,onCameraInteraction} = 
       if(!mesh){mesh=add(row,scenes[side],arm,ghost);retained.set(key,mesh);}
       else {
         if(!row.polygon){mesh.position.x=row.x;mesh.position.z=row.z;if(mesh.recordedShape!==shape)mesh.position.y=row.height/2;}else mesh.position.set(0,0,0);
-        mesh.material.color.set(color(row,ghost));
+        mesh.material.color.set(color(row,ghost,arm));
         if(!ghost)mesh.children[0].material.color.set(changed(row)?0xe9ffd0:0xb4d8e6);
-        effects?.apply(mesh,row,{changed:changed(row),selected:selected?.collection===row.collection&&selected?.id===row.id,ghost,kind:row.collection});
+        effects?.apply(mesh,row,{changed:changed(row),selected:active(row,arm),ghost,kind:row.collection});
         const fill=row.construction?mesh.children[2]:null,ratio=row.construction?.progressRatio;
         if(fill&&ratio!=null){fill.scale.x=ratio;fill.visible=ratio>0;fill.position.x=-9+9*ratio;}
       }
@@ -211,7 +215,7 @@ export function createStage(container, {onSelect,history,onCameraInteraction} = 
     status.textContent=(renderBackend==='webgpu'?'WebGPU · ':'WebGL · ')+(projection?.physicalDifference?'Recorded building differences · wireframe ghosts show presence in the other future.':'No recorded physical building difference at this month.');
   }).catch(reason=>{clearTimeout(importDeadline);fail(reason);});
   function lost(event) {event.preventDefault();fail(new Error('Graphics context lost'));}
-  function fail(reason) {if(disposed||canvasStage)return;bookmark=null;bookmarkStatus.textContent='No view saved. Bookmark lasts until a new comparison or page reload.';error=reason?.message||'Graphics unavailable';status.textContent=`${/device lost|context lost/i.test(error)?'Graphics connection lost. ':''}Canvas2D low-fidelity view · same recorded City inventory and timeline. No simulation rerun is needed.`;controls?.dispose();effects?.dispose();if(animation)cancelAnimationFrame(animation);releaseScenes();renderer?.domElement.removeEventListener('webglcontextlost',lost);renderer?.dispose();renderer?.forceContextLoss?.();renderer?.domElement.remove();renderer=null;controls=null;camera=null;effects=null;cameraTransition=null;renderReady=false;labels.replaceChildren();labelNodes.clear();try{canvasStage=createCanvasStage(views,{onSelect,onCameraInteraction});canvasStage.setPixelRatio(pixelRatio(true));canvasStage.setMode(mode);canvasStage.setGhosts(ghosts);if(projection){canvasStage.update(projection,currentDiff);if(fitRows)canvasStage.setCamera(fitCanvasCamera({a:fitRows,b:fitRows},views.clientWidth,views.clientHeight,mode));if(selected)canvasStage.focus(selected);}}catch(fallbackError){canvasStage?.dispose();canvasStage=null;error=`${error}; ${fallbackError.message}`;views.hidden=true;status.textContent='Graphics unavailable. The exact recorded inventory, timeline, outcomes and WHY controls remain available below.';}refreshBookmarkControls();resolveReady({backend:canvasStage?'canvas2d':'inventory-fallback'});}
+  function fail(reason) {if(disposed||canvasStage)return;bookmark=null;bookmarkStatus.textContent='No view saved. Bookmark lasts until a new comparison or page reload.';error=reason?.message||'Graphics unavailable';status.textContent=`${/device lost|context lost/i.test(error)?'Graphics connection lost. ':''}Canvas2D low-fidelity view · same recorded City inventory and timeline. No simulation rerun is needed.`;controls?.dispose();effects?.dispose();if(animation)cancelAnimationFrame(animation);releaseScenes();renderer?.domElement.removeEventListener('webglcontextlost',lost);renderer?.dispose();renderer?.forceContextLoss?.();renderer?.domElement.remove();renderer=null;controls=null;camera=null;effects=null;cameraTransition=null;renderReady=false;labels.replaceChildren();labelNodes.clear();try{canvasStage=createCanvasStage(views,{onSelect,onCameraInteraction});canvasStage.setPixelRatio(pixelRatio(true));canvasStage.setMode(mode);canvasStage.setGhosts(ghosts);if(projection){canvasStage.update(projection,currentDiff);canvasStage.setFamilyBuildings(followedBuildings());if(fitRows)canvasStage.setCamera(fitCanvasCamera({a:fitRows,b:fitRows},views.clientWidth,views.clientHeight,mode));if(selected)canvasStage.focus(selected);}}catch(fallbackError){canvasStage?.dispose();canvasStage=null;error=`${error}; ${fallbackError.message}`;views.hidden=true;status.textContent='Graphics unavailable. The exact recorded inventory, timeline, outcomes and WHY controls remain available below.';}refreshBookmarkControls();resolveReady({backend:canvasStage?'canvas2d':'inventory-fallback'});}
   unsubscribeMotion = preferences.subscribe(state => {
     if(state.reducedMotion){burst?.dispose();burst=null;}
     if (state.reducedMotion && cameraTransition) {
@@ -239,8 +243,9 @@ export function createStage(container, {onSelect,history,onCameraInteraction} = 
       const previews=Object.values(projection.constructionGhosts).some(rows=>rows.length);
       legend.textContent=`Month ${frame.month} · ${projection.label} 3m per recorded floor. ${CONTEXT_NOTICE}${previews?' Dashed previews: next-month recorded completion, absent now; inspect its event below.':''}`;
       if(!error)status.textContent=renderBackend==='pending'?'Inventory ready · graphics loading in the background.':(renderBackend==='webgpu'?'WebGPU · ':'WebGL · ')+(projection.physicalDifference?'Recorded building differences · wireframe ghosts show presence in the other future.':'No recorded physical building difference at this month.');
-      refreshBookmarkControls();summary();canvasStage?.update(projection,diff);if(first&&canvasStage&&fitRows)canvasStage.setCamera(fitCanvasCamera({a:fitRows,b:fitRows},views.clientWidth,views.clientHeight,mode));rebuild();if(first)fit();
+      refreshBookmarkControls();summary();canvasStage?.update(projection,diff);canvasStage?.setFamilyBuildings(followedBuildings());if(first&&canvasStage&&fitRows)canvasStage.setCamera(fitCanvasCamera({a:fitRows,b:fitRows},views.clientWidth,views.clientHeight,mode));rebuild();if(first)fit();
     },
+    followHousehold(id){followedHousehold=id;canvasStage?.setFamilyBuildings(followedBuildings());rebuild();},
     setMode(value){if(!['split','baseline','plan','difference'].includes(value))throw new TypeError('Unknown scene mode');mode=value;canvasStage?.setMode(value);summary();rebuild();draw();},
     setGhosts(value){ghosts=Boolean(value);canvasStage?.setGhosts(ghosts);rebuild();},
     cancelCamera(){cameraTransition=null;},
@@ -276,7 +281,7 @@ export function createStage(container, {onSelect,history,onCameraInteraction} = 
       }
       bookmarkStatus.textContent='Saved view restored in both worlds.';return true;
     },
-    getStats(){const arms=['split','difference'].includes(mode)?[0,1]:[mode==='plan'?1:0];const segment=width/arms.length;const targets=camera?meshes.filter(m=>m.visible&&!m.userData.ghost&&arms.includes(m.parent===scenes[0]?0:1)).map(m=>{const arm=m.parent===scenes[0]?0:1;const v=m.position.clone().project(camera);return {...m.userData,meshId:m.uuid,height:m.geometry.parameters?.height??null,scaleY:m.scale.y,x:(arms.indexOf(arm)+(v.x+1)/2)*segment,y:(1-v.y)/2*height};}):[];return {...canvasStage?.getStats(),quality,pixelRatio:pixelRatio(Boolean(canvasStage)),targets,decorativeContext:scenes.some(s=>s.children.some(c=>c.userData.decorative)),divergenceEventId:lastDivergenceEventId,camera:api.getCamera(),mode,disposed,backend:disposed?'disposed':canvasStage?'canvas2d':error?'inventory-fallback':renderReady&&renderer?renderBackend:'pending',backendReason,objects:canvasStage?canvasStage.getStats().objects:meshes.length,draws,geometries:renderer?.info?.memory?.geometries??null,textures:renderer?.info?.memory?.textures??null,month:projection?.month??null,layoutVersion:mapping.version,error};},
+    getStats(){const arms=['split','difference'].includes(mode)?[0,1]:[mode==='plan'?1:0];const segment=width/arms.length;const targets=camera?meshes.filter(m=>m.visible&&!m.userData.ghost&&arms.includes(m.parent===scenes[0]?0:1)).map(m=>{const arm=m.parent===scenes[0]?0:1;const v=m.position.clone().project(camera);return {...m.userData,meshId:m.uuid,height:m.geometry.parameters?.height??null,scaleY:m.scale.y,x:(arms.indexOf(arm)+(v.x+1)/2)*segment,y:(1-v.y)/2*height};}):[];return {...canvasStage?.getStats(),followedHousehold,followedBuildings:followedBuildings(),quality,pixelRatio:pixelRatio(Boolean(canvasStage)),targets,decorativeContext:scenes.some(s=>s.children.some(c=>c.userData.decorative)),divergenceEventId:lastDivergenceEventId,camera:api.getCamera(),mode,disposed,backend:disposed?'disposed':canvasStage?'canvas2d':error?'inventory-fallback':renderReady&&renderer?renderBackend:'pending',backendReason,objects:canvasStage?canvasStage.getStats().objects:meshes.length,draws,geometries:renderer?.info?.memory?.geometries??null,textures:renderer?.info?.memory?.textures??null,month:projection?.month??null,layoutVersion:mapping.version,error};},
     dispose(){if(disposed)return;disposed=true;bookmark=null;saveView.onclick=restoreView.onclick=null;refreshBookmarkControls();qualitySelect.onchange=null;clearTimeout(importDeadline);unsubscribeMotion();preferences.dispose();observer?.disconnect();globalThis.removeEventListener?.('resize',resize);canvasStage?.dispose();effects?.dispose();if(animation)cancelAnimationFrame(animation);views.removeEventListener('click',pick);renderer?.domElement.removeEventListener('webglcontextlost',lost);controls?.dispose();releaseScenes();renderer?.dispose();renderer?.forceContextLoss?.();renderer=null;controls=null;camera=null;effects=null;canvasStage=null;projection=null;currentFrame=null;currentDiff=null;fitRows=null;selected=null;cameraTransition=null;history=null;labels.replaceChildren();labelNodes.clear();list.replaceChildren();root.remove();resolveReady({backend:'disposed'});},
   };
   return api;

@@ -57,6 +57,7 @@ export function createCanvasStage(container,{onSelect,onCameraChange,onCameraInt
   let ctx;
   try {ctx=canvas.getContext('2d');} catch(error) {canvas.remove();throw error;}
   if (!ctx) {canvas.remove();throw new Error('Canvas2D unavailable');}
+  let familyBuildings={};
   let projection=null,diff=null,mode='split',ghosts=true,selected=null,disposed=false,fitted=false;
   let pixelRatio=null;
   let width=1,height=1,camera={x:0,z:0,zoom:1},drawn=0;
@@ -82,7 +83,7 @@ export function createCanvasStage(container,{onSelect,onCameraChange,onCameraInt
       for(const row of canvasRows(projection,diff,view.arm,mode,ghosts)) {
         const points=polygon(row).map(([x,z])=>canvasPoint(x,z,camera,view));
         ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();
-        const active=selected?.collection===row.collection&&selected?.id===row.id;
+        const active=selected?.collection===row.collection&&selected?.id===row.id || row.collection==='buildings'&&familyBuildings[view.arm]===row.id;
         ctx.setLineDash(row.ghost?[5,4]:[]);
         ctx.fillStyle=row.ghost?'#9fe4f015':row.collection==='projects'?'#d6a25c':row.change?'#56dca4':'#7d9fae';
         ctx.strokeStyle=active?'#fff2a1':row.ghost?'#9fe4f0':row.change?'#a0ffd0':'#bfd4df';
@@ -132,6 +133,7 @@ export function createCanvasStage(container,{onSelect,onCameraChange,onCameraInt
     update(next,nextDiff){if(disposed)return;projection=validProjection(next);diff=nextDiff;pointers.clear();gesture=null;if(!fitted&&projection&&(projection.a.length||projection.b.length)){camera=fitCanvasCamera(projection,width,height,mode);fitted=true;}draw();},
     setMode(next){if(!MODES.includes(next))throw new TypeError('Unknown scene mode');if(disposed)return;mode=next;draw();},
     setGhosts(value){if(disposed)return;ghosts=Boolean(value);draw();},
+    setFamilyBuildings(value){familyBuildings=value;draw();},
     focus(entity,{scale}={}){if(disposed)return false;const row=[...(projection?.a||[]),...(projection?.b||[])].find(r=>identity(r)===identity(entity||{}));if(!row)return false;selected={collection:row.collection,id:row.id};camera={...camera,x:row.x,z:row.z,...(scale?{zoom:Math.min(width/(mode==='split'?2:1),height)/(scale==='neighborhood'?400:150)}:{})};changed();return true;},
     setPixelRatio(value){if(!Number.isFinite(value)||value<=0||value>2)throw new RangeError('Pixel ratio must be positive and at most 2');pixelRatio=value;resize();},
     getCamera(){return {...camera};},

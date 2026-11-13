@@ -1,3 +1,4 @@
+import {rankFamilies,familyIdentity,familyRecord} from '../world/future-machine/data/families.js';
 import { test, expect } from 'bun:test';
 import { addIntervention, createEngine } from '../world/city/engine.js';
 import { DEFAULT_RECIPE, METRIC_UNITS } from '../world/future-machine/contracts.js';
@@ -22,6 +23,16 @@ test('seed-42 paired state and diff digests reproduce with real physical evidenc
     baseline: run(initial, null), plan: run(initial, DEFAULT_RECIPE.intervention) });
   const first = pair(), second = pair();
   const diffs = compareHistory(first);
+  const ranking=rankFamilies(first);
+  expect(ranking).toEqual(rankFamilies(second));
+  const familyId=ranking[0].id;
+  expect(familyIdentity(first.seed,familyId)).toEqual(familyIdentity(second.seed,familyId));
+  for(const arm of ['baseline','plan']){
+    const exact=familyRecord(first[arm][120],familyId);
+    expect(exact.household).toBe(first[arm][120].state.households.find(h=>h.id===familyId));
+    if(exact.unit)expect(exact.unit.householdId).toBe(familyId);
+    if(exact.building)expect(exact.building.id).toBe(exact.unit.buildingId);
+  }
   expect(first.baseline).toHaveLength(121);
   expect(first.plan).toHaveLength(121);
   expect(first.baseline[0]).toEqual(first.plan[0]);
