@@ -8,13 +8,13 @@ const [base, output] = process.argv.slice(2);
 if (!/^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(base || '') || !output) {
   throw Error('Supply an isolated local server URL and an output JSON path.');
 }
-const route = '/world?demo=1&living=0&people=20&seed=42&renderer=webgl&quality=LOW';
+const route = '/world?people=20&seed=42&renderer=webgl&quality=LOW';
 const report = {schemaVersion:'population-startup.v1', recordedAt:new Date().toISOString(),
   machine:{platform:os.platform(), release:os.release(), arch:os.arch(), totalMemoryBytes:os.totalmem(), cpu:os.cpus()[0]?.model},
   route, seed:42, modelVersion:POPULATION_VERSION, coldDefinition:'New browser process and fresh context for each engine; OS and server caches are not cleared.',
   limitations:['Chromium, Firefox and WebKit are automated engines; WebKit is not shipping Safari.',
     'JS heap excludes worker, GPU and native memory. Missing memory APIs return null.',
-    'The opt-out route tests existing on-demand startup, not default auto-activation or a million-resident backend.',
+    'The ordinary World route tests on-demand startup, not a million-resident backend.',
     'First animation callback is a scheduling observation, not proof of a presented WebGL frame.'], browsers:[]};
 let failed = false;
 for (const [name, engine] of Object.entries({chromium, firefox, webkit})) {
@@ -39,7 +39,7 @@ for (const [name, engine] of Object.entries({chromium, firefox, webkit})) {
     await page.goto(base+route);
     await page.waitForFunction(()=>Boolean(window.hblLivingWorld),null,{timeout:90000});
     row.before=await page.evaluate(()=>({
-      ...window.__startup, elapsedMs:performance.now(),
+      ...window.__startup, worldStartup:window.hblWorldStartup, elapsedMs:performance.now(),
       populationRuntimePresent:Boolean(window.hblLivingWorld.getRuntime()),
       heapUsedBytes:performance.memory?.usedJSHeapSize??null,
       deviceMemoryGiB:navigator.deviceMemory??null, userAgent:navigator.userAgent,
