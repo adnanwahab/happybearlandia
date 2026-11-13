@@ -20,7 +20,7 @@ Basic principles: advertised actions and need-based utility. Emergence: shared s
 
 ## 5. Initialization
 
-createWorld(town, opts) uses rng(hashSeed(town.seedKey + ":sim" + optional runSeed suffix)). Retain generated town, all options, resolved simulation parameters, runSeed and commands. Fresh start time is not simulated prehistory. [Legacy checkpoints](../../world/legacy-checkpoint.js) capture/restore continuation; preserve RNG state and model metadata.
+createWorld(town, opts) uses rng(hashSeed(town.seedKey + ":sim" + optional runSeed suffix)). Retain generated town, all options, resolved simulation parameters, runSeed and commands. World postcard selection supplies the versioned `postcard-v1:<place>` URL seed as `runSeed` in both 3D and Canvas2D entry points; custom locations use `place-v1:<coordinates>`. Activity snapshots report this effective seed. Town generation remains keyed by coordinates. A shared seed does not freeze live OSM geometry; exact replay still requires retained town inputs/checkpoints. Postcard hooks are authored invitations, not predictions. Fresh start time is not simulated prehistory. [Legacy checkpoints](../../world/legacy-checkpoint.js) capture/restore continuation; preserve RNG state and model metadata.
 
 ## 6. Input data
 

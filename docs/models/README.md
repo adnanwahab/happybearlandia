@@ -15,6 +15,7 @@ These descriptions follow the seven elements of the [ODD 2020 protocol and autho
 | Authored bar social game | [Bar](bar.md) | Honey Pot command model, including externally supplied judgement boundary |
 | Party NPCs | [Party](party.md) | Act Normal authoritative server room and commands |
 | Synthetic pair-transfer fixture | [Energy transfer](energy-transfer.md) | Agent-count benchmark; not an empirical social simulation |
+| Million-scale paired-transfer workload | [Million workload](million-paired-transfer.md) | Opt-in headless compute/render benchmark; separate synthetic schedule |
 
 Inventory boundary: an agent model maintains individual state and applies behavioral rules or interactions. A file named model.js is not necessarily an ABM. Decision Studio housing (including frozen legacy versions) is an aggregate stock/flow model, documented in world/models/housing/README.md; civic/sim.ts is aggregate policy-to-metric interpolation. Risk Universe is an asset-path Monte Carlo model. Weather and culture are environmental/aggregate submodels documented with their hosts. Particle physics is not a social model. Family history, civilization zoom/perspectives, journals, timeline braids, hidden systems, what-if, future journey and invention/laboratory views inspect, compare, narrate or orchestrate existing records/runs; they do not acquire another resident-state authority by displaying people. Replay/counterfactual engines reuse the selected model. Add any new independent social mechanism here, even if it is experimental or not integrated into World.
 

@@ -703,7 +703,7 @@ export function createWorld(town, opts = {}) {
   };
   w.trackActivityPerson = id => {if(!w.people.some(p=>personId(p)===String(id)))throw new Error("Unknown legacy person");};
   w.subscribeActivity = callback => {historyListeners.add(callback);return()=>historyListeners.delete(callback);};
-  w.getActivitySnapshot = () => ({mode:"legacy",seed:town.seedKey,minute:w.t,peopleCount:w.people.length,modelVersion:w.modelVersion,runId:activityRunId,historyAvailable:!!activityHistory,stats:{...w.stats},metrics:{population:w.people.length,earned:w.stats.earned,spent:w.stats.spent,...w.summary().avg},people:w.people.map(p=>({id:personId(p),name:p.name,householdId:p.householdId,activity:activityOf(p),districtId:placeOf(p),needs:{...p.needs},doing:p.doing,decisionTrace:p.decisionHistory||[]})),districtLabel:"Place type",districts:[...new Set(w.buildings.map(b=>b.kind)),"travel"].map(id=>({id,label:id}))});
+  w.getActivitySnapshot = () => ({mode:"legacy",seed:opts.runSeed??town.seedKey,minute:w.t,peopleCount:w.people.length,modelVersion:w.modelVersion,runId:activityRunId,historyAvailable:!!activityHistory,stats:{...w.stats},metrics:{population:w.people.length,earned:w.stats.earned,spent:w.stats.spent,...w.summary().avg},people:w.people.map(p=>({id:personId(p),name:p.name,householdId:p.householdId,activity:activityOf(p),districtId:placeOf(p),needs:{...p.needs},doing:p.doing,decisionTrace:p.decisionHistory||[]})),districtLabel:"Place type",districts:[...new Set(w.buildings.map(b=>b.kind)),"travel"].map(id=>({id,label:id}))});
 
   w.summary = () => {
     const n = w.people.length || 1;

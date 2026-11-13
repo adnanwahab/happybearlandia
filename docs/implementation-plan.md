@@ -1,5 +1,56 @@
 # HappyBearLandia implementation plan
 
+## SHE-253 — quest-selection director paired experiment
+
+Preparation only; experiment execution remains gated by the issue's explicit
+human metric-selection requirement. [Protocol draft](experiments/quest-selection-paired.md)
+records current quest/replay infrastructure, proposed definitions, paired analysis,
+null check and fixed stop rule. No experiment has run and no results are claimed.
+Living City's transit ensemble and monthly City replay evidence do not establish
+quest-selection replay. House date quests are a candidate test bed requiring
+explicit scope selection; the existing House lab compares designs.
+
+Next independently verifiable slice: obtain and record human test-bed/metric/
+horizon approval; commit the finalized protocol before running; then implement
+one selector adapter through ordinary quest commands, full event collection,
+independent deterministic replay and label-invariance tests. Only after those
+gates pass run exactly 100 paired seeds and report effects, intervals, failures
+and what was not measured. Main risks: switching runtimes without approval,
+bounded event retention, ambiguous first-quest timing and policy-dependent RNG.
+Documentation-only preparation is verified with `git diff --check`; no browser
+behavior changes, so Playwright is inapplicable. Acceptance remains incomplete
+until the human preregistration and actual paired/null results are recorded.
+
+## SHE-182 revision 2 — publication repair (November 12, 2026)
+
+Delivered slice: merged-only, same-repository Mini Symphony branch mapping and
+idempotent Linear merge-evidence publication, including `mini/SHE-182-r2` to
+`SHE-182`. Remote sprint HEAD matches this checkout; current sprint and main
+contain no prior sync helper. Preserve SHE-180 as sole queue/lease owner and
+existing dual approval checks. See [the checked audit](reviews/SHE-182-r2.md)
+for exact source/test evidence, prior PR195 and remaining acceptance.
+
+Changed interfaces: `.github/scripts/sync-merged-pr.cjs` and
+`.github/workflows/linear-merged-pr.yml`; regression entry point is
+`node --test test/sync-merged-pr.test.cjs`. The workflow runs trusted base code,
+never worker head code with its secret. It links merged evidence without
+changing issue status or granting acceptance. Failed/uncertain writes stop;
+rerunning safely upserts the same issue/URL attachment.
+
+Actual verification: 222 host tests, 21 ops tests and 5 publication tests passed
+(248 total). Node syntax and diff whitespace checks passed. Python YAML parsing
+was unavailable because PyYAML is not installed; Ruby YAML parsing passed.
+No browser behavior changed; Playwright skipped.
+No merge, deployment, production write or runtime activation occurred.
+
+Operational prerequisites/risks: repository `LINEAR_API_KEY` availability could
+not be inspected; configure/verify it before hosted synchronization. Hosted sync
+requires reviewed default-branch installation and an observed eligible merged PR;
+no hosted claim is made. Full issue acceptance still requires trusted-host hard
+resource containment and external runtime approval/retry/recovery validation.
+Those runtime changes are outside this explicitly scoped publication follow-up.
+No commit/PR reference exists for this revision yet.
+
 ## SHE-256 concurrency decision gate — 2026-11-12
 
 Delivered documentation increment: [decision gate](symphony-concurrency-gate.md)
@@ -7922,6 +7973,386 @@ test/world-user-fixes.test.js still reports 32 homepage carousel sections versus
 33 registered experiences. The identical failure was reproduced using exact
 118aad baseline inputs; this existing catalog mismatch was not changed by PR278.
 No simulation, seed, runtime, gallery, or target-branch changes were made.
+
+## SHE-227 r2 — radical ideation audit and report (2026-11-12)
+
+Delivered analysis-only [review report](reviews/SHE-227-r2.md): 30 proposed
+capabilities with all five requested fields and five defining-feature finalists.
+Preserved the earlier issue-comment catalog, audited current overlap and local
+SHE-223–226 commits, and distinguished designs from existing behavior. Read-only
+GitHub current-main design/engine inspection succeeded; complete remote sync was
+blocked by shared Git permissions and DNS. Original Claude report returned 404;
+paired-experiments source was not located. These limits are explicit in the report.
+
+Acceptance: document validator passed 30 consecutive ideas, 150 fields, five
+finalists and cited local paths. Focused overlap checks initially passed 15 tests
+and failed one Detective case at the default 5s timeout; that case passed alone
+with a 20s limit (109 assertions, 5.66s). No runtime code or tests changed.
+Whitespace checks passed. Browser checks skipped for documentation-only scope.
+No new model means no ODD change; future social mechanisms require their own
+ODD/contracts. Next: review the proposed Last Reversible Minute bounded rescue
+experiment before authorizing implementation. No PR/commit reference yet; no
+merge, deployment or production data changes.
+
+## SHE-237 r2 — emergent storyteller design
+
+Completed design-only slice: [25 situations and five recommendations](reviews/SHE-237-r2.md).
+Audited prior SHE-238 output, SHE-49 source/evidence and merged PR #166, live
+Linear issue state, current remote sprint SHA `53090035` (matches this checkout),
+and newer main `fbdce9e8` integration differences. No existing 25-item SHE-237
+deliverable was found. Preserved prior work; no product implementation added.
+
+Acceptance: exactly 25 situations each specify mechanisms, trigger, recorded
+state, discovery and causal replay; exactly five ranked systems have feasibility,
+replayability and engagement rationale. Shared evidence contract distinguishes
+existing rules from proposed extensions, synthetic inputs from results, and
+Population/City/idea authorities. No fabricated customer ledger, cross-model
+identity, clinical outcome or guaranteed dramatic result is assumed.
+
+Fresh verification: seven focused Bun files passed 61 tests / 418 assertions,
+zero failures (5.87s), including normal runtime/worker House actions and checkpoint
+transfer, relationships, hotspots, traditions, employment, household risk and
+three City recipes. Report count/field/link checks and `git diff --check` pass.
+Browser checks skipped for documentation-only scope; these regressions do not
+certify proposed receipt journeys. No PR/commit reference exists for this r2 yet.
+
+Next proposed implementation slice (outside this ticket): persist/reopen one
+actual dinner-to-conversation receipt through World → House. Prerequisites are a
+bounded versioned evidence/save contract, exact actor/time links, retained source
+records and immutable revision handling. Acceptance and failure paths are in the
+report; browser action-to-receipt/reload verification is required when implemented.
+Risks: evidence eviction, clock/identity mismatch and confusing helper fixtures
+with integrated outcomes. The named paired-experiments source was not located;
+the supplied full experiment-6 issue governs the completed design scope.
+
+## SHE-233 r2 — Road Not Taken design review (2026-11-12)
+
+Delivered [design and acceptance audit](reviews/SHE-233-r2.md): exactly fifteen
+proposed interactions, each separating observed model events, causal evidence,
+correlations and speculation. Selected #1 Empty Footprint, #6 Ripple with a Missing
+Stone and #15 Receipt at the Crossroads for later functional demos, with normal
+entry points, prerequisites, success/failure acceptance and explicit model boundaries.
+Scope is design only; no runtime or model changes. Ownership: report and this entry.
+
+Audited remote sprint SHA matching local HEAD 53090035, live SHE-90/SHE-37 and
+merged PRs 197/127, existing architecture/correctness worker reports and current
+source/tests. Both requested Linear readiness/approval labels already exist.
+The separate original uploaded paired-experiments document was not located;
+SHE-221 confirms child prompts are full copies and SHE-233 supplies experiment 4.
+
+Fresh focused checks: 15 passed, 1 failed, 860 assertions across entity trail,
+World causal adapter, causal reads, canonical receipt and paired-future suites.
+CLI receipt test failed on local port-0 bind EADDRINUSE; in-process persisted
+receipt roundtrip, full deterministic pair and missing-evidence checks passed.
+Whitespace, local links, fifteen-design count and four evidence lanes checked.
+Playwright skipped: documentation-only change. No package lint/typecheck scripts.
+No commit/PR created. Material risks: different runs' edges cannot be combined,
+unsupported identities/geography, uncalibrated rules and confusion of seed spread
+with empirical probability. See report for exact evidence and demo failure gates.
+Next: review the three proposed demos, then a separate implementation slice;
+no functional demo implementation or usability validation is claimed here.
+
+## SHE-231-r2 — architectural failure-family taxonomy (November 12, 2026)
+
+Completed analysis-only slice: [review report](reviews/SHE-231-r2.md) contains
+exactly 15 explicitly hypothetical failure modes spanning state synchronization,
+async lifecycle, API contracts, caching, rendering, accessibility, provenance and
+simulation identity. Each has a repository search and proposed regression;
+shared-invariant investigations are prioritized. No product code or model rules
+changed. Scope ownership is this report and this status entry only.
+
+Prerequisites audited: source 53090035, verified identical to the current remote
+sprint base through GitHub compare; existing worker output, issue comments and
+PR search; SHE-108/PR246 and SHE-169/PR265 merged source boundaries. Existing
+request/identity guards and recorded-history Canvas fallback are preserved and
+acknowledged. Required Linear approval labels were already present.
+
+Fresh acceptance evidence: focused demo-runtime, City worker, Future Machine
+integrity, boundaries and diff suites passed 34 tests, 276 assertions, no failures
+on Bun 1.4.2. Report structure and git diff whitespace checks passed. Browser
+execution skipped for this documentation-only change. Limit: hypotheses are not
+confirmed diagnoses; proposed regression designs remain unexecuted. Next action:
+review the report and select a bounded investigation; no implementation, merge,
+deployment or production changes are part of this issue.
+
+## SHE-229 r2 — scientific skeptic critique (2026-11-12)
+
+Analysis-only acceptance delivered in [docs/reviews/SHE-229-r2.md](reviews/SHE-229-r2.md):
+20 risk hypotheses, each with concrete scenario, falsifiable test, uncertainty
+visualization and practical engineering proposal, plus 5 user-run experiment
+protocols grounded in existing Decision Studio/Living City controls. No product
+implementation is requested or included. Existing ODD descriptions remain valid.
+
+Audited prior local output/history, live SHE-229 and overlapping SHE-96/SHE-153,
+and merged PRs #203/#175; no prior matching SHE-229 report/PR was found in the
+bounded searches. Approval labels were already present. Clean isolated branch
+mini/SHE-229-r2 owns only the report and this appended record. Git fetch was
+blocked by shared metadata permissions; GitHub remote main was pinned at
+fbdce9e8b489f2dd02acbe33c007a944ecf64e74 and five critical source blobs were
+compared successfully with this checkout. Whole-tree equivalence is not claimed.
+
+Actual verification: focused housing-model, decision-integration,
+time-machine-heatmap, demo-evidence, paired-future-comparison and living-city-recipe
+suites: 49 pass, 0 fail, 3425 assertions in 6 files (Bun 1.4.2). These establish
+implementation behavior including normal Decision API execution/reproduction,
+not external scientific validity. All five user protocols remain proposed and
+unexecuted. Document checks passed: exactly 20 complete risks and 5 experiment protocols;
+all relative report links resolve and both changed documents have no trailing
+whitespace. `git diff --check` passed for tracked changes.
+No browser behavior changed; Playwright skipped. No configured general lint or
+typecheck. No merge/deployment/production mutation; commit/PR publication pending.
+
+## SHE-45-r2 — disposable local staging follow-up (2026-11-12)
+
+Owned slice: `ops/backend-load-test.mjs`, `ops/backend-load-local.mjs`,
+`test/backend-load-test.test.js`, one listener-host option in `server.js`,
+`docs/backend-load-test.md`, this entry, and `docs/reviews/SHE-45-r2.md`.
+Initial worktree was clean on `mini/SHE-45-r2`; prior merged PR #167 supplies
+most behavior. SHE-42 is Done and its worker bounds remain covered by tests.
+
+Acceptance: run the existing representative recipe through a real loopback
+`server.js` with disposable stores, retaining source data/version/seed semantics;
+record per-class p50/p95/error rates and saturation limits. Implemented explicit
+loopback target validation and a disposable full-server launcher. No model rules
+or provenance contracts changed. Risk: listener permission can block HTTP evidence;
+local tiny samples cannot establish deployment capacity.
+
+Verification: 29 passed, 1 opt-in HTTP test skipped, 0 failed, 377 assertions;
+`git diff --check` passed. Full-server command attempted but Bun cannot listen;
+independent Python bind confirms EPERM. HTTP latency/error/saturation measurements
+remain unverified. See [exact evidence and next action](reviews/SHE-45-r2.md).
+No browser behavior changed, so Playwright/screenshots are inapplicable. No merge,
+deployment, production load or data changes. No new PR/commit created because
+shared Git metadata is outside writable roots; host publication remains pending.
+
+## SHE-167-r2 — ordinary-entry deferred Population allocation
+
+Next slice: ordinary World opens the existing legacy exploration shell without
+a Population worker; the toolbar starts the unchanged dense model. Explicit
+`living=1` and saved checkpoint restoration retain their entry semantics.
+Prerequisites: existing mount/start lifecycle and SHE-141 count contract.
+Acceptance: ordinary route has no Population runtime/worker before toolbar input;
+activation retains seed 42, configured 10,000 residents and bounded render sample.
+Risks: ordinary visits now start in legacy mode; no selected million-resident
+backend or measured free-memory API exists. Do not change population using
+`deviceMemory`, weights or a synthetic cohort substitute. Browser evidence and
+final status are recorded in docs/reviews/SHE-167-r2.md.
+
+Delivered r2: disabled ordinary-entry auto-activation; explicit Living links and
+saved restoration preserved. Updated ordinary-entry benchmark and added two
+browser cases (activation and injected worker failure). Verification: 40 tests /
+607 assertions pass; browser build passes with server vendor imports external;
+two browser cases discovered, not executed. Fresh server EADDRINUSE and engine
+availability failures prevented measurements. Review candidate remains partial;
+full receipt and next acceptance work: [SHE-167-r2](reviews/SHE-167-r2.md).
+
+## SHE-171 r2 — acceptance follow-up (review candidate)
+
+Owned slice on clean `mini/SHE-171-r2`: existing runner provenance, focused
+CLI acceptance tests, manual workflow, model inventory/ODD and issue report.
+Reuse PR192's kernel and rendering workload; no new model or production adapter.
+Prerequisites inspected: SHE-141 count contract and SHE-142 scalar oracle; their
+bounded fixtures intentionally remain separate. Remote sprint runner was read
+through GitHub and matches this checkout; shell fetch is permission/network blocked.
+Next tasks: retain runner identity even on launch failure; exercise the real CLI
+matrix and missing-browser failure; describe the existing synthetic model.
+Acceptance requires nine complete records, phase-specific counts/timings, replay,
+metadata and explicit memory availability. Risk: local Chromium sandbox launch
+is denied; no simulated browser result may replace actual measurements. True
+process/GPU peak memory remains outside the existing sampled-JS-heap contract.
+
+r2 delivered: top-level model/runner SHA256 provenance, subprocess missing-browser
+failure coverage, opt-in nine-record CLI acceptance test wired into manual CI,
+and separate seven-element ODD for the existing synthetic schedule. Focused plus
+dependency tests: 24 passed, 1 opt-in skip, 2385 assertions. Explicit browser gate
+was attempted and failed at Chromium launch (macOS MachPort permission denial),
+not counted as acceptance. CLI failed with zero records and exit 1; sanitized
+host/seed/source evidence retained in `docs/evidence/she-171-r2-launch-failure.json`.
+Review candidate with actual-browser acceptance pending; full findings and next
+command in `docs/reviews/SHE-171-r2.md`. No production capacity claim authorized.
+
+## SHE-267 — neighborhood stage and recorded divergence
+
+Slice in progress: retain City projections, metrics, recorded floor heights and
+existing synchronized director; add muted stage-owned neighborhood architecture,
+streets and trees using World geometry, and a receipt-validated construction burst
+and ripple. Scenery must never enter inventory, picks, diffs or metrics. Verify
+actual seed-42 Month-16 receipt, missing/forged receipts, replay deduplication,
+reduced motion, disposal and normal route where browser setup permits.
+Remote main scene inspected through GitHub; no SHE-267 PR found. Local Git fetch
+is blocked by read-only shared Git metadata; shell remote DNS is unavailable.
+No production changes. Single worker owns scene module, integration and tests.
+
+Implemented slice: World architecture generator reused for native schematic
+inventory and muted decorative neighbors, streets, sidewalks and trees. Context
+is separate from inventory/picks/metrics. Exact recorded completion ID gates the
+burst and director dolly; shared camera and particles preserve synchronized arms.
+Existing recorded floors and geography disclaimer retained. See
+[checked work record](reviews/SHE-267.md) for source and remote audit evidence.
+49 tests pass, 1 browser-gated skip, 1608 assertions; browser bundle succeeds.
+Playwright server binding failed on 39931 and 41967 before browser execution.
+Visual acceptance remains pending; next is the added SHE-267 normal-route test
+and guided normal/reduced-motion review on a host able to bind the server.
+Canvas retains its low-fidelity view; optional wipe not included. No model change,
+merge, deployment or production data change.
+
+## SHE-264 — ground wish construction action (November 12, 2026)
+
+Audit: isolated `mini/SHE-264`, clean initial worktree, base `53090035`.
+Remote main inspected through GitHub (`fbdce9e8`); building bridge matches this
+checkout. Prior PR search found no implementation for this issue. Existing
+Decision housing lifecycle, approval, occupancy and recorded rendering are reused.
+Next slice: ground right-click/long-press wish bubble, explicit parsed review,
+onboarding entry, selected-project before/after wireframe and project World Diff.
+Acceptance: gestures never approve; request uses selected world coordinates;
+invalid placement stays rejected; recorded monthly progress and entity IDs remain
+consistent across inspector/diff. Risk: housing is an aggregate model, with no
+resident identity mapping to live World people. Do not invent move-in agents,
+zoning decisions, utility checks or cross-model identities. Existing recorded
+occupied units are the supported move-in measure. Verification/status follows.
+
+SHE-264 actual status: ground-wish gesture, shared explicit review, onboarding
+entry, recorded scaffold, automatic construction playback, project-ID World Diff
+and selected-project ghost implemented. 76 building/gesture/checkpoint tests pass
+(1,055 assertions); 8 onboarding tests pass (32 assertions); whitespace passes.
+Playwright journey discovers but cannot start local server (`EADDRINUSE` on
+3194/43827); browser and mobile visual acceptance remain open. Individual resident
+move-in is unsupported by the current cross-model identity contracts; aggregate
+recorded occupied homes are exposed honestly. Full evidence and remaining work:
+`docs/reviews/SHE-264.md`. No merge/deploy/production action or commit/PR.
+
+## SHE-261 — current commuting residents, review increment (2026-11-12)
+
+Audit: merged SHE-155 provides distance LOD and bounded worker sampling;
+SHE-156 is a prerequisite audit, not delivered completed-trip ribbons. Population
+behavior commits straight-line endpoint travel and no shared fleet identity.
+No architecture.md exists. Reviewed model.js, behavior.js, generator.js,
+renderer.js, visible-sample.js, world-view.js, runtime.js, render-lod.js,
+docs/models/population.md and DATA_FORMATS.md against executable behavior.
+
+Implemented slice through normal /world Living City: expose current committed
+trip metadata; retain moving travelers at default cluster distance; instantiate
+car and bus/rail passenger shapes nearby; show synthetic name, purpose and planned
+trip time on hover; select/follow on an unhandled click. Preserve command-menu
+interception and manual-pan cancellation. Bound display to 500 sampled residents;
+keep draw counts separate from population/represented totals. Tests cover real
+seed-42 replay, null/finished trips, metadata/coordinate equality, 500 markers,
+default-distance count reconciliation, pause, reset and disposal.
+
+Acceptance remains partial: no street-following route model, shared bus identity,
+completed-trip flow ribbons, Canvas crowd fallback or verified mid-tier 60fps.
+These require a route/fleet authority and SHE-156's versioned ledger rather than
+invented renderer paths. Existing >=900m heat and unsupported-WebGPU notice remain.
+No model rules, random draws or checkpoint state changed. No merge/deployment.
+
+Verification: focused 34 tests/338 assertions passed before the final default-LOD
+regression; subsequent renderer/trip/LOD selection passed 19 tests/138 assertions.
+Playwright normal /world acceptance was attempted with
+`bunx --no-install playwright test --config test/population-trips.browser.config.mjs`;
+server startup failed EADDRINUSE on 39961 before browser launch. No browser pixels,
+hover/click observation, rush-hour recording or GPU FPS measurement is claimed.
+Next: run the committed browser journey on a bind-capable host, measure actual
+500-visible-agent frame timing on target devices, then implement versioned routed
+trip/fleet state and completed-trip ribbons with their own model contracts.
+
+Final verification: the five-file model/trip/LOD/view/sample suite passed 35 tests,
+343 assertions, zero failures. The added analysis-layer counter regression then
+passed in the trip suite (4 tests, 61 assertions). `git diff --check` passed.
+A second Playwright attempt on port 39962 also failed EADDRINUSE at server
+startup. Broader checkpoint-suite execution was interrupted after two passing
+codec/model tests when subsequent work stopped progressing; the complete
+checkpoint suite is not claimed passed. No repository lint/type-check scripts
+are defined in package.json. Rendering checks exercise Three.js CPU objects,
+not actual GPU frame time or device performance.
+
+## SHE-268 postcard place picker — active slice
+
+Replace the explorer dock's first action with a full-screen, accessible picker:
+six authored illustrated presets, one-tap selection after opening, deterministic
+URL seeds, approximate pin map, existing address search, explicit geolocation
+consent and precise-coordinate disclosure. Reuse renderer navigation via a fresh
+URL; never carry saved-run identity to a new place. Animate the 3D arrival with
+reduced-motion support. Verify URL contracts and normal `/world` entry points.
+Risks: map search requires its upstream service; map geometry is live and a seed
+alone does not freeze OSM inputs. Postcard hooks are authored prompts, not results.
+
+SHE-268 delivered the integrated picker, URL run-seed wiring in both renderers,
+3D arrival, coordinate disclosure and effective activity-seed provenance.
+[Review and acceptance evidence](reviews/SHE-268.md) records exact source paths,
+remote-main audit and ODD comparison. Focused checks: 25 tests / 215 assertions
+passed; diff whitespace passed. Three browser tests are committed but unexecuted:
+the normal server failed to bind two attempted ports (`EADDRINUSE`). Browser
+acceptance and visual flight/mobile review remain pending on a runnable host.
+No commit/PR, merge, deployment or production changes.
+
+## SHE-259 — bounded weekly cycle lifecycle (2026-11-12)
+
+Audit: current sprint head 53090035 already has separate weekly and ten-year
+workers and a cancellable detached quick demo. The normal Run cycle path ignored
+worker progress fractions, native errors and unreadable messages, and had no
+cancellation or deadline. The adjacent Idle label belongs to the ten-year run.
+A long first branch therefore looked stalled; this audit does not establish the
+specific cause or duration of the reported playtest stall.
+
+Implemented slice: normal Run cycle and subsequent cycles expose weekly
+Running/Completed/Failed/Cancelled status, actual worker fraction, Cancel, native
+error handling and a 120-second total wall-clock deadline. Cancellation/failure
+terminates the worker, rejects pending guided/demo waiters, restores the run
+button and offers retry. Ignore late events from retired workers. Explicitly
+label ten-year status/history. No model, town size, seed, rules, sampling or
+seven-day horizon changes. Legacy ODD (`docs/models/legacy.md`) checked against
+`world/cycle.worker.js` and the presentation changes in `world/render.js`;
+its model schedule and assumptions remain accurate.
+
+Acceptance evidence: lifecycle tests exercise progress, cancellation, stale
+messages/errors, native load errors, unreadable messages, timeout and retry:
+2 passed / 22 assertions. Adjacent guide/playback/repeat/replay/feedback suite:
+22 passed, 1 failed (114 assertions, 10.18s). Failure is the untouched feedback
+fixture looking for a missing “Change one thing” heading; neither its test nor
+implementation was changed here. The initial guide/playback selection passed
+9/9 (41 assertions). Diff whitespace check passed.
+
+Playwright journey now selects Balanced through the real plan select and Run
+cycle button, requires results within 90 seconds on explicitly synthetic geometry
+with 16 residents, records elapsed time, and tests cancel/load-failure/retry.
+Attempted `bunx --no-install playwright test --config test/first-run.browser.config.js`:
+server failed before browser launch with EADDRINUSE on 39889. A second server
+attempt on 41983 also failed EADDRINUSE. No browser timing, results or screenshots
+are claimed. Normal default-population performance, browser layout and the
+90-second journey remain unverified; run this suite on a bind-capable host.
+No merge or deployment. No lint/typecheck scripts exist in package.json.
+
+Final focused rerun: 11 passed, 0 failed, 63 assertions (9ms). Browser-target
+render bundle passed (356 modules); `/vendor/*` and Three.js externalized to
+match served imports. No browser execution is implied by this compile check.
+
+## SHE-263 — World HUD collisions
+
+Audit: merged SHE-122 pack (`test/e2e/small-screen-game.e2e.js`) covers
+Future Machine only. Connected-universe navigation already uses a collapsed
+handle in this checkout. Main World still independently positions the build
+panel, shortcuts, graphics and scrapbook controls; explorer has no completion
+state. No model rules or simulation data change.
+
+Slice: reserve HUD lanes, put asynchronous display launchers in one scrolling
+flow toolbar, collapse explorer after both numbered actions, expose minimize
+and dismiss, and retain controls scroll after Storm. At narrow widths expanded
+build and World controls are mutually exclusive. Acceptance: hit testing and
+screenshots at 320/390/768/1280/1520/1920, expanded and collapsed explorer,
+dismissal, and unchanged Storm scroll offset. Risk: optional renderer modules
+mount late; observe child additions so their launchers join the same toolbar.
+
+Local verification: 19 tests / 94 assertions pass across first-run repairs,
+visual panels and quick-demo controller; explorer browser bundle builds;
+`git diff --check` passes. Expanded feedback suite: 25 pass / 1 fail, existing
+`world-visual-feedback.test.js` repeat-prompt lookup expects an h3 absent from
+unchanged `world/first-run-guide.js`. Six new World HUD browser tests discover
+successfully. Execution blocked before Chromium: Bun EADDRINUSE on both 39978
+and 48763, including the real Playwright webServer attempt. No measured HUD
+rectangles, screenshots, approved baselines or collision-free viewport claim.
+The next required action is a browser run on a host permitting local listen,
+visual baseline review, and regression comparison; fix any observed layout
+failures before acceptance. No merge, deployment or simulation changes.
 
 ## SHE-260 — model-backed World storm (implemented; browser acceptance pending)
 
