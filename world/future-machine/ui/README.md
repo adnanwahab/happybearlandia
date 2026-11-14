@@ -352,3 +352,19 @@ move. Names/avatars are synthetic; outcomes are uncalibrated model observations.
 arm's household → occupied unit → building on every frame and highlights both
 recorded buildings, including different buildings after a move. Unmapped homes
 remain unhighlighted. Camera and simulation playback are unchanged.
+
+## Personal event bookmarks (SHE-486)
+
+`ui/bookmarks.js` composes local named scenes through `bookmarks.js` and the
+coordinator's existing run/selection path. Up to 50 labels (80 characters each)
+retain the displayed versioned recipe, saved experiment, exact Month 0–120 and
+optional arm-scoped City collection/ID. `monthly-city:<month>` is a monthly
+manifest locator, not a newly recorded checkpoint. The existing data adapter
+retains baseline-0/plan-0 run identities; no clocks or model state are modified.
+Missing saved runs never use ordinary share-link recipe fallback. Missing months,
+entities, corrupt storage and incompatible versions fail visibly. Previously
+completed history remains available on load failure. Native buttons provide
+keyboard/touch activation; there is no added animation or GPU requirement.
+Remove one/all affects only `hbl.future-machine.bookmarks.v1`. Export explicitly
+includes user labels and pinned recipes; it performs a local JSON download.
+Cross-device import, public links and server retention are outside this slice.

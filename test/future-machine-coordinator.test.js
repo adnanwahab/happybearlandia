@@ -24,6 +24,7 @@ const diffFor=month=>({month,available:true,changedCount:month>=16?1:0,physicalC
 const first={month:16,entity:{collection:'buildings',id:'building-recorded',arm:'plan'}};
 const receipt={future:'plan',month:16,eventId:'event-recorded',entity:first.entity,payload:{units:24},policyId:'policy-recorded'};
 async function boot(options={}){
+ let bookmarkCallbacks;
  let time=0,nextId=1,callbacks,receiptCallbacks,description,storyCallbacks,questCallbacks,questState,diagnostic,followUpCallbacks,followUpState;
  const raf=new Map(),intervals=new Map(),stages=[],updates=[],announcements=[],requests=[],writes=[],narrations=[];
  const storage=new Map(options.recent?[[recent.RECENT_KEY,JSON.stringify(options.recent)]]:[]);
@@ -37,6 +38,8 @@ async function boot(options={}){
   setInterval:fn=>{const id=nextId++;intervals.set(id,fn);return id;},clearInterval:id=>intervals.delete(id)});
  const noop=()=>{};
  const modules={
+  './bookmarks.js':{bookmarkScene:()=>{}},
+  './ui/bookmarks.js':{mountBookmarks:(_host,events)=>{bookmarkCallbacks=events;return {update:noop,dispose:noop};}},
   './follow-up.js':{createFollowUp(_root,events){followUpCallbacks=events;return {update:state=>followUpState=state,dispose:noop};}},
   './demo-performance.js':{consumeDemoClick:()=>options.entryClick??null,createDemoTiming:()=>createDemoTiming({now:()=>1000+time}),visibleCity:()=>options.visible!==false},
   './contracts.js':{DEFAULT_RECIPE,MONTHS,assertMonth},
@@ -56,7 +59,7 @@ async function boot(options={}){
    let backend=gate?'pending':options.renderer??'canvas2d';
    let camera=structuredClone(options.camera??{x:0,z:0,zoom:1});
    const stage={onSelect,onCameraInteraction,history,disposed:false,shots:[],frames:[],restored:[],transition:false,cancellations:0,
-    setMode:noop,setGhosts:noop,resetCamera:noop,update(frame,diff){this.frames.push({frame:structuredClone(frame),diff:structuredClone(diff)});},
+    divergenceShot(stop){this.shots.push({...stop});this.transition=true;},setMode:noop,setGhosts:noop,resetCamera:noop,update(frame,diff){this.frames.push({frame:structuredClone(frame),diff:structuredClone(diff)});},
     focus(entity,settings={}){this.shots.push({entity:structuredClone(entity),...settings});this.transition=Boolean(settings.animate);return true;},
     cancelCamera(){this.transition=false;this.cancellations++;},getCamera:()=>structuredClone(camera),
     setCamera(value){if(options.compatibleCamera===false)return false;camera=structuredClone(value);this.restored.push(camera);return true;},
@@ -81,7 +84,7 @@ async function boot(options={}){
  await main.evaluate();
  const drain=async()=>{for(let i=0;i<16;i++){await Promise.resolve();for(const [id,fn]of [...raf]){raf.delete(id);fn();}}};
  await drain();
- return {window,callbacks,receiptCallbacks,questCallbacks,followUpCallbacks,stages,updates,announcements,requests,writes,storage,location,drain,narrations,
+ return {window,callbacks,bookmarkCallbacks,receiptCallbacks,questCallbacks,followUpCallbacks,stages,updates,announcements,requests,writes,storage,location,drain,narrations,
   get followUpState(){return followUpState;},get questState(){return questState;},get diagnostic(){return diagnostic;},get pendingAnimationFrames(){return raf.size;},
   get state(){return window.futureMachine.state;},get description(){return description;},get storyCallbacks(){return storyCallbacks;},
   tick(ms){time+=ms;for(const fn of [...intervals.values()])fn();},dispose:()=>window.futureMachine.dispose()};
@@ -436,4 +439,9 @@ test('cancel retains initial inventory and ignores a late result without restori
   expect(app.state.frame).toEqual(initial);expect(app.window.futureMachine.history).toBeNull();
   expect(app.state.playing).toBe(false);expect(app.window.futureMachine.stats.demoTiming).toBeNull();
  }finally{app.dispose();}
+});
+
+test('bookmark reopening requires its saved run and never creates a fallback experiment',async()=>{
+ const app=await boot({load:async()=>{throw new Error('Experiment not found');}});
+ try{await expect(app.bookmarkCallbacks.onOpen({recipe:DEFAULT_RECIPE,experimentId:'city_expired',month:16})).rejects.toThrow('unavailable or expired');expect(app.requests.filter(r=>r[0]==='create')).toHaveLength(0);expect(app.state.error).toContain('Bookmark run unavailable or expired');}finally{app.dispose();}
 });

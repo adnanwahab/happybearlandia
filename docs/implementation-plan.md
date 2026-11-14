@@ -1,5 +1,24 @@
 # HappyBearLandia implementation plan
 
+## SHE-486 — personal event bookmarks (2026-11-14)
+
+Bounded local slice implemented in the isolated `mini/SHE-486` worktree: named
+scene references, strict saved-run reopening, individual/all deletion and recipe
+plus bookmark JSON export. Reused share validators, data replay, City selection
+and native controls. Prerequisites: compatible saved City manifest and local
+browser storage; exact stored-checkpoint replay is not supplied by this model.
+Acceptance tasks: three scenes retain run/month/entity; expired/corrupt references
+fail without recipe fallback; local clear/export; keyboard/touch and fallback
+browser verification. Risks: saved-run expiry, storage denial and replay cost.
+No model or ODD rule changes; monthly locator is explicitly a recomputation
+reference. Current state: 43 focused tests / 356 assertions pass; syntax and diff
+checks pass. Two browser cases discovered, but both execution attempts failed
+before launch at server EADDRINUSE (39884, 41986). Before/after feature captures,
+replay interaction benchmarks and browser acceptance remain pending a runnable
+local server. No root lint/typecheck script exists. Full audit and next command:
+[review](reviews/SHE-486.md). No commit, PR, merge or deployment in this session.
+
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,
