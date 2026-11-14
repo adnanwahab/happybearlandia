@@ -29,3 +29,19 @@ git diff --check
 ```
 
 The type check verifies the exported API declarations against the shared TypeScript contract; JavaScript behavior is covered by runtime/unit/browser checks. Browser tests use same-origin fixture app documents to isolate shell behavior from GPU startup, upstream services, and individual model availability. They do not certify all app models or automatically install chrome into all 29 standalone apps.
+
+Homepage **Surprise Me** uses `surprise.js` and the ordered `curated-wonders.1`
+curation: Future Machine (Canvas2D), Reverse Simulator and Reality Breakpoints.
+These existing local City entry points require no account or live provider.
+Same version, unsigned 32-bit selection seed and available subset reproduce the
+choice. Unknown IDs/routes cannot introduce destinations. All three are currently
+available; a future availability source must be local and explicit.
+
+Results label the synthetic preset and native model seed separately from the
+selection seed. **Change world** opens the existing independent preset; it does
+not transfer or rewrite active run context, IDs, clocks or stored results.
+Choosing does not fetch, persist, prewarm, run a model or animate. Editing the
+seed clears the previous link. Empty curation disables selection and points to
+existing navigation; without JavaScript, Play Demo and the directory remain.
+Checks: `bun test test/surprise-wonder.test.js` and
+`bunx playwright test --config test/surprise-wonder.browser.config.js`.

@@ -1,5 +1,21 @@
 # HappyBearLandia implementation plan
 
+## SHE-477 — curated Surprise Me (2026-11-14)
+
+Bounded slice: seeded homepage choice → labeled synthetic native preset →
+explicit Change world navigation. Prerequisites audited: supported routes,
+native defaults/contracts and open PRs (no duplicate Surprise Me).
+Acceptance: ten valid launches, repeat choice, empty/invalid state, keyboard/touch,
+local selection and unchanged simulation provenance. Implemented three-entry
+versioned curation, native controls and Canvas2D flagship fallback, no new motion.
+25 focused tests / 330 assertions passed; browser build and syntax passed.
+Four browser tests added; execution blocked by server EADDRINUSE and independent
+Chromium macOS permission error. Before captures preserved; after evidence and
+browser acceptance remain pending. Risk: defaults/curation must evolve together;
+selection seed is separate from model seed. No simulation/ODD/governance changes.
+Next: rerun focused browser suite in a permitted environment and inspect captures.
+No commit/PR yet. [SHE-477 review](reviews/SHE-477.md).
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,
