@@ -9188,3 +9188,29 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-444 — Command-K travel and action palette (2026-11-14)
+
+Slice: reuse the canonical navigation registry and bootstrap for native modal
+travel search plus guarded calls to existing Follow, Compare, WHY and Photo
+controls. Acceptance: all current registry destinations, Cmd/Ctrl-K, Escape,
+combobox announcements, keyboard/focus containment, stale/disabled action denial,
+instant reduced-motion presentation and real before/after browser captures.
+Prerequisites/risks: no shared live action bus exists; owners opt in their native
+controls rather than inferring identity from query parameters. Registry now has
+33 entries, so the ticket's 31 is a historical count, not a reason to drop routes.
+One worker only; source audit found open overlapping presentation PRs #324/#325;
+no unmerged code copied. No changes to model rules, evidence, auth or governance.
+
+Implemented normal home and registered standalone mounting, accessible combobox
+relationships, native focus containment and owner selection/run/month checks.
+Verification: 38 tests passed, one existing opt-in browser skip, 405 assertions;
+module API declaration typecheck, browser bundle and whitespace checks passed.
+Playwright is authored but blocked by Bun listen EADDRINUSE (3197 and 39947);
+server-free retry also cannot launch Chromium (Mach bootstrap permission denied).
+Existing before images preserved; no new real after screenshots claimed. Browser
+Tab containment, announcement/screen-reader behavior, reduced-motion rendering,
+real owner-action journeys and screenshot review remain acceptance gates. Next:
+run `bunx playwright test --config test/command-palette.config.js` on a permitted
+host, inspect matched captures and exercise each available owner action. Details
+and preserved configured merge hold: [SHE-444 review](reviews/SHE-444.md).
