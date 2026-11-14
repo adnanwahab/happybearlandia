@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {seasonalStyle} from './seasons.js';
 import { createTrafficVehicleMetadata } from '../../vehicle-inspector.js';
 import { generateRoadNetwork } from '../geometry/road-network.js';
 import { toBufferGeometry } from '../geometry/geometry-cache.js';
@@ -63,6 +64,17 @@ export function createCityDetails(scene, town) {
   const wind = new MeshStandardNodeMaterial({color:0xffffff,roughness:.95}); track(wind);
   wind.positionNode=positionLocal.add(vec3(sin(time.mul(.8).add(positionLocal.y)).mul(positionLocal.y.max(0)).mul(.025),0,0));
   instances('vegetation',track(new THREE.IcosahedronGeometry(1,1)),wind,treePositions);
+  const originals=treePositions.map(t=>({s:[...t.s],c:t.c}));
+  const seasonalProps=instances('seasonal',box,material(0xffffff),treePositions.filter((_,i)=>i%3===0).slice(0,64).map(t=>({p:[t.p[0]+2,.12,t.p[2]],s:[.7,.12,.5],seed:t.seed})));
+  let seasonKey='';
+  function season(state,features){
+    const style=seasonalStyle(state.lighting?.minute,state.season??'auto');
+    const key=style?.season??'off';
+    seasonalProps.visible=!!style&&features.vegetation!==false&&features.props!==false;
+    if(key===seasonKey)return;seasonKey=key;lastStatic=-Infinity;
+    treePositions.forEach((t,i)=>{const variant=seasonalStyle(state.lighting?.minute,state.season??'auto',`${t.p[0]}:${t.p[2]}:${t.seed}`);t.c=variant?.color??originals[i].c;t.s=originals[i].s.map(v=>v*(variant?.scale??1));});
+    if(style)seasonalProps.material.color.setHex(style.propColor);
+  }
   instances('roofs',box,material(0x8b9398),roofs);
   const propTransforms={metal:[],dark:[],wood:[],red:[],lamp:[],solar:[],sign:[]};
   function kit(name,x,y,z,r=0){for(const part of PROP_KITS[name]){const [px,py,pz]=part.position;propTransforms[part.material].push({p:[x+px*Math.cos(r)+pz*Math.sin(r),y+py,z-px*Math.sin(r)+pz*Math.cos(r)],s:part.scale,r});}}
@@ -109,9 +121,10 @@ export function createCityDetails(scene, town) {
     get vehicleCount() { return cars.count; },
     setWeather(value){if(!['clear','cloudy','rain'].includes(value))throw new RangeError('Weather must be clear, cloudy, or rain');weather=value;},
     update(now,dt,camera,settings,features,state={}) {
+      season(state,features);
       wetness += ((weather==='rain'?1:0)-wetness)*Math.min(1,dt*.4);
       roadMaterial.roughness=.94-wetness*.67;roadMaterial.color.set(0x353a3c).multiplyScalar(1-wetness*.3);
-      for(const [name,meshes] of Object.entries(groups))for(const m of meshes)m.visible=features[name]!==false;
+      for(const [name,meshes] of Object.entries(groups))for(const m of meshes)m.visible=name==='seasonal'?seasonalProps.visible:features[name]!==false;
       const lampStrength=state.lighting?.lamps??0;
       if(streetLampMaterial)streetLampMaterial.emissiveIntensity=lampStrength*1.4;
       headlights.visible=features.traffic!==false&&lampStrength>0;headlightMaterial.color.setHex(0xffedba).multiplyScalar(lampStrength);

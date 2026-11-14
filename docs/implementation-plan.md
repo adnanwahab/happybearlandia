@@ -1,5 +1,23 @@
 # HappyBearLandia implementation plan
 
+## SHE-513 — illustrative seasonal neighborhood visuals (2026-11-14)
+
+Bounded slice implemented: existing World tree foliage and capped static accents,
+active elapsed-time calendar, reversible previews/Off, native keyboard controls,
+static reduced-motion behavior and standalone Canvas2D park-color fallback.
+Prerequisites audited: renderer module/clock/entry/teardown and open GitHub PRs;
+no seasonal PR found. No model authority or RNG changes. Calendar is an authored
+360-day northern-style illustration, explicitly labeled rather than an observation.
+Acceptance evidence: 15 focused tests / 173 assertions pass, syntax checks pass.
+Browser desktop/mobile/keyboard/reduced-motion/route cases are written but blocked
+before launch by server EADDRINUSE on 3513. Before screenshots preserved; after
+browser evidence remains required. Existing Canvas compatibility export test
+failure is documented separately. No root lint/typecheck script exists.
+Risks/remaining: browser visual inspection and device validation, no performance
+certification. Review and commands: [SHE-513](reviews/SHE-513.md). No commit/PR,
+merge, deploy or governance change; configured merge policy retained.
+
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,

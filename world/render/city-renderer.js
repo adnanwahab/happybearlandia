@@ -1,3 +1,4 @@
+import {mountSeasonControls} from './environment/season-controls.js';
 import {simulationBudget,formatSimulationBudget} from './renderer/dual-budget.js';
 import {windowFraction} from './environment/sim-lighting.js';
 import * as THREE from 'three';
@@ -38,6 +39,8 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
   panel.style.cssText='position:fixed;top:12px;right:12px;z-index:100;background:#111e;color:#e1edf4;padding:14px;border:1px solid #52616c;border-radius:10px;font:12px/1.5 monospace;max-height:85vh;overflow:auto';
   panel.innerHTML='<strong>City renderer · F3</strong><pre></pre><label>Lighting <select data-lighting aria-label="Scene lighting"><option value="14">Daylight</option><option value="18">Golden hour</option><option value="22">Night</option><option value="simulation">Simulation clock</option></select></label><label>Quality <select aria-label="Render quality"></select></label><label>Geometry <select data-geometry aria-label="Geometry detail"><option>LOW</option><option selected>MEDIUM</option><option>HIGH</option><option>ULTRA</option></select></label><label>Geometry view <select data-geometry-debug aria-label="Geometry debug"><option value="off">Off</option><option value="lod">Show LOD</option><option value="heatmap">Triangle heatmap</option></select></label><label><input type="checkbox" data-wireframe>Wireframe selected</label><div data-features></div><button data-cutaway>Selected cutaway</button><button data-photo>Photo mode</button><button data-record>Record 30 seconds</button><button data-export>Export JSON</button><p role="status"></p>';
   panel.querySelector('[data-lighting]').value='14';
+  const seasonControls=mountSeasonControls(panel,value=>{state.season=value;});
+  panel.style.maxWidth='calc(100vw - 52px)';
   const select=panel.querySelector('[aria-label="Render quality"]');
   panel.querySelector('[data-lighting]').onchange=event=>{if(event.target.value==='simulation')delete state.timeOfDay;else api.setTimeOfDay(Number(event.target.value));};
   panel.querySelector('[data-geometry]').onchange=event=>api.setGeometryDetail(event.target.value);
@@ -57,7 +60,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
     const url=URL.createObjectURL(new Blob([JSON.stringify(stats.lastReport,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='city-benchmark.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   };
   const targetLabel=document.createElement('label');targetLabel.textContent='Frame-rate target ';const targetSelect=document.createElement('select');targetSelect.setAttribute('aria-label','Frame-rate target');for(const fps of [30,60,120,144]){const option=document.createElement('option');option.value=String(fps);option.textContent=fps+' FPS target';targetSelect.append(option);}targetSelect.value=String(quality.targetFPS);targetSelect.onchange=()=>api.setTargetFPS(Number(targetSelect.value));targetLabel.append(targetSelect);panel.append(targetLabel);const targetNote=document.createElement('small');targetNote.textContent='Quality target only. Actual FPS depends on hardware, display and city load.';panel.append(targetNote);
-  const graphicsButton=document.createElement('button');graphicsButton.textContent='Graphics';graphicsButton.setAttribute('aria-label','Open graphics settings');graphicsButton.style.cssText='position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:80;background:#18242e;color:#e1edf4';graphicsButton.onclick=()=>{panel.hidden=!panel.hidden;};
+  const graphicsButton=document.createElement('button');graphicsButton.textContent='Graphics · illustrative seasons';graphicsButton.setAttribute('aria-label','Open graphics settings');graphicsButton.style.cssText='position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:80;background:#18242e;color:#e1edf4';graphicsButton.onclick=()=>{panel.hidden=!panel.hidden;};
   if(!embed)document.body.append(panel,graphicsButton);
   function hotkey(event){if(event.code==='F3'){event.preventDefault();panel.hidden=!panel.hidden;}}
   addEventListener('keydown',hotkey);
@@ -136,7 +139,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
         }
       }
     },
-    destroy(){disposed=true;gpu.dispose();removeEventListener('keydown',hotkey);panel.remove();graphicsButton.remove();details.dispose();lod.dispose();cutaway.dispose();construction.dispose();environment.dispose();grass.dispose();detailAssets.dispose();skyDome.dispose();stormEffects.dispose();geometryDebug.dispose();geometryDetail?.dispose();geometryCache?.dispose();},
+    destroy(){if(disposed)return;disposed=true;seasonControls.destroy();gpu.dispose();removeEventListener('keydown',hotkey);panel.remove();graphicsButton.remove();details.dispose();lod.dispose();cutaway.dispose();construction.dispose();environment.dispose();grass.dispose();detailAssets.dispose();skyDome.dispose();stormEffects.dispose();geometryDebug.dispose();geometryDetail?.dispose();geometryCache?.dispose();},
   };
   applyQuality();return api;
 }

@@ -128,3 +128,22 @@ The browser test hashes full decoded model checkpoints before/after graphics
 changes and records before/after screenshots plus video. See
 `docs/reviews/SHE-165.md` for actual execution limits; the test existing is not
 proof it passed.
+
+### Illustrative seasons (SHE-513)
+
+Graphics → Season decorations defaults to an authored 360-day calendar (four
+90-day seasons, spring at elapsed day zero) on the active lighting clock. It is
+not a geographic calendar, climate forecast, ecology result or sourced planting
+inventory. Manual spring/summer/autumn/winter previews and Off affect only
+presentation. Missing time restores original foliage; Off restores exact original
+colors/scales. Scene coordinates and local tree identity seed palette variation,
+without consuming simulation randomness. Seasonal props are static ground accents
+near existing illustrative trees, capped at 64 shared box instances. No assets,
+particles, timers or per-season geometry allocations are added. Existing renderer
+quality/camera culling still governs foliage; props follow vegetation/props toggles.
+The standalone Canvas2D entry offers the same native keyboard-select controls and
+uses only park colors. All seasonal decoration is static, including reduced motion.
+Renderer/route teardown removes its controls and disposes its owned geometry and
+materials. Tests: `bun test test/seasons.test.js test/render-performance.test.js
+ test/world-canvas-renderer.test.js`; browser: `bunx playwright test --config
+ test/seasons.browser.config.js`.
