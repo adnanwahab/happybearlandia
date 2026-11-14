@@ -6,6 +6,7 @@ on:
       - 'world/laws/**'
       - 'world/constitution-city/app.js'
       - 'test/law-behavior-playback.test.js'
+      - 'test/law-behavior-api.test.js'
       - 'test/e2e/law-behavior-playback.e2e.js'
       - '.github/workflows/law-behavior-playback.yml'
   push:
@@ -14,6 +15,7 @@ on:
       - 'world/laws/**'
       - 'world/constitution-city/app.js'
       - 'test/law-behavior-playback.test.js'
+      - 'test/law-behavior-api.test.js'
       - 'test/e2e/law-behavior-playback.e2e.js'
       - '.github/workflows/law-behavior-playback.yml'
 
@@ -34,6 +36,8 @@ jobs:
         run: >
           bun test --timeout 60000
           test/law-behavior-playback.test.js
+          test/law-behavior-api.test.js
+          test/simulation-admission.test.js
           test/laws.test.js
           test/law-impact.test.js
           test/law-mechanism-contract.test.js
