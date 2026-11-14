@@ -108,7 +108,7 @@ function explainMetric(key,stop=true,{preserveTrail=false}={}){
   const source={homes:'housingUnits',commute:'meanTravelMinutes',rent:'meanRent',spending:'capitalSpending'}[key]||key;
   const metric=diffs[state.month]?.metrics?.[source];
   const stops=metricChangeStops(history,diffs[state.month],source);
-  showStory(withContext({metricKey:source,title:`WHY · ${source} · Month ${state.month}`,stops,evidence:[],
+  showStory(withContext({metricKey:source,title:`WHY · ${source} · Month ${state.month}`,stops,evidence:stops.flatMap(stop=>stop.evidence||[]),
     summary:`WITHOUT PLAN ${metric?.baseline??'unavailable'}; WITH PLAN ${metric?.plan??'unavailable'}; delta ${metric?.delta??'unavailable'} ${metric?.unit??''}. ${stops.length?'Select a recorded housing completion to inspect its exact building and event month.':'Unsupported entity causality: no verified metric-to-entity event link is available. No entity selected.'} Housing supply changes when the City construction model completes a funded project; entitlement alone does not create homes. Mean rent covers all recorded units, not incumbent savings. Link travel time is a coarse modeled network mean, not individual commute. Spending is cumulative recorded capital expense.`,
     limitations:['Related events alone do not establish the cause of an aggregate A/B difference.']}),{preserveTrail});
   const diff=diffs[state.month];if(diff?.available&&(diff.changedCount>0||Object.values(diff.metrics).some(metric=>Number.isFinite(metric.delta)&&metric.delta!==0)))recordMilestone('why_opened',{target:'recorded-divergence'});

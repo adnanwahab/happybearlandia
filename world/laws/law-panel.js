@@ -1,6 +1,7 @@
 import {mountLawImpact} from './impact.js';
 import {LAW_CATALOG} from './catalog.js';
 import {compareLawInWorker as compareLawDefault} from './comparison-client.js';
+import {civicContextLink} from './civic-context.js';
 import {mountLawBehaviorPlayback} from './behavior-playback.js';
 /** mountLawPanel(container,{laws,compareLaw,getContext,onSelect,onPlanIdeaChange,
  * planInput,worldLayer,onError}) -> {open,close,selectLaw,setLaws,destroy}.
@@ -50,6 +51,8 @@ export function mountLawPanel(container,options={}){
  el('p','0% uses baseline numeric factors; 100% uses the original reviewed proxy; intermediate steps interpolate only reviewed factors. This does not rewrite or enact the proposed law.',editPanel);
  const scope=el('p','',detail);scope.className='law-note';
  const actions=el('div',undefined,detail);const compareButton=button('Rerun paired worlds',()=>runComparison(),actions);button('Relevant institutions',()=>paint('potential'),actions);const recordedButton=button('Highlight modeled changes',()=>paint('recorded'),actions);recordedButton.disabled=true;button('Clear highlights',()=>worldLayer?.clear?.(),actions);
+ const civicLink=el('a','Discuss or give your view in Civic Synthesis',detail);civicLink.hidden=true;civicLink.dataset.testid='law-civic-link';
+ const civicNote=el('p','',detail);civicNote.dataset.testid='law-civic-context';
  const playback=mountLawBehaviorPlayback(detail);
  const impact=mountLawImpact(detail,{showMetrics:false});
  const updateImpact=()=>impact.update({law:selected,result:comparison,buildings:getContext().worldContext?.buildings||[]});
@@ -81,6 +84,12 @@ export function mountLawPanel(container,options={}){
   el('p','Missing outcomes remain unavailable. Changed inputs can produce unchanged outcomes; a modeled difference is not proof of real-world causality.',box);
  }
  function renderResult(result){
+  civicLink.hidden=true;civicNote.textContent='';
+  if(options.civicContext && result?.status==='completed'){
+   const context={...options.civicContext,revision:options.civicContext.revision+(Number(strength.value)/100!==options.civicContext.implementationStrength||selected.number!==options.civicContext.lawId?1:0),lawId:selected.number,implementationStrength:Number(strength.value)/100,seed:result.manifest.seed,population:24,modelVersion:result.manifest.modelVersion};
+   if(options.civicContext.modelVersion && options.civicContext.modelVersion!==result.manifest.modelVersion){civicNote.textContent='Model version mismatch: this run cannot reproduce the shared result. The imported version is '+options.civicContext.modelVersion;playback.clear();return;}
+   civicLink.href=civicContextLink(context);civicLink.hidden=false;civicNote.textContent='Public synthetic scenario context only. This does not apply proposal text or cast an advisory vote.';
+  }
   updateImpact();renderTrace(result);table.replaceChildren();notes.replaceChildren();const rows=lawComparisonRows(result);recordedButton.disabled=!hasRecordedLawGeography(result);
   if(rows.length){const head=el('thead',undefined,table),tr=el('tr',undefined,head);for(const name of ['Metric','Without law','With law','Modeled change'])el('th',name,tr);const body=el('tbody',undefined,table);for(const row of rows){const tr=el('tr',undefined,body);for(const value of [row.label,format(row.baseline,row.unit),format(row.current,row.unit),format(row.delta,row.unit)])el('td',value,tr);if(typeof row.delta==='number'&&row.delta!==0)tr.classList.add('law-metric-changed');}}
   else el('caption','No recorded numerical comparison is available.',table);
@@ -96,15 +105,16 @@ export function mountLawPanel(container,options={}){
  strength.addEventListener('change',onStrengthChange);
  function publishPlanIdea(law){const value=law.text??law.title??'';idea.value=value;if(planInput){planInput.value=value;planInput.dispatchEvent(new win.Event('input',{bubbles:true}));}onPlanIdeaChange?.(value,law);root.dispatchEvent(new win.CustomEvent('law-plan-idea',{bubbles:true,detail:{text:value,lawId:law.id??law.number}}));}
  async function runComparison(){
+  civicLink.hidden=true;
   if(!selected||destroyed)return;
   if(typeof compareLaw!=='function'){status.textContent='Comparison unavailable: no same-world comparison service is connected.';return;}
   const serial=++request;abort?.abort();abort=new AbortController();const law=selected,context=getContext();comparison=null;playback.clear();updateImpact();paint('potential');status.textContent='Comparing the same frozen world with and without this law…';renderTrace(null);table.replaceChildren();notes.replaceChildren();recordedButton.disabled=true;compareButton.disabled=true;detail.setAttribute('aria-busy','true');
-  try{if(law.supported&&!context.initialState&&(!context.worldContext||!Object.keys(context.worldContext).length))throw Error('Current-world comparison context is not connected.');const result=await compareLaw(law,{...context,implementationStrength:Number(strength.value)/100,signal:abort.signal});if(destroyed||serial!==request)return;if(!result||typeof result!=='object')throw Error('Unsupported comparison response');comparison=result;if(result.status==='completed'&&Number(strength.value)===100&&!referenceResult)referenceResult=result;renderResult(result);playback.update(result,{referenceResult:Number(strength.value)!==100?referenceResult:null});paint(hasRecordedLawGeography(result)?'recorded':'potential');}
+  try{if(law.supported&&!options.civicContext&&!context.initialState&&(!context.worldContext||!Object.keys(context.worldContext).length))throw Error('Current-world comparison context is not connected.');const result=await compareLaw(law,{...context,implementationStrength:Number(strength.value)/100,signal:abort.signal});if(destroyed||serial!==request)return;if(!result||typeof result!=='object')throw Error('Unsupported comparison response');if(options.civicContext?.modelVersion && result?.manifest?.modelVersion!==options.civicContext.modelVersion)throw Error('Model version mismatch: shared '+options.civicContext.modelVersion+'; current '+result?.manifest?.modelVersion+'. No matching replay is available.');comparison=result;if(result.status==='completed'&&Number(strength.value)===100&&!referenceResult)referenceResult=result;renderResult(result);playback.update(result,{referenceResult:Number(strength.value)!==100?referenceResult:null});paint(hasRecordedLawGeography(result)?'recorded':'potential');}
   catch(error){if(destroyed||serial!==request||error.name==='AbortError')return;status.textContent='Comparison unavailable: '+error.message;onError?.(error);}
   finally{if(!destroyed&&serial===request){compareButton.disabled=false;detail.setAttribute('aria-busy','false');}}
  }
  function selectLaw(law){
-  selected=law;comparison=null;referenceResult=null;strength.value='100';strengthOutput.textContent='100%';editPanel.hidden=!editableNumericLaw(law);playback.clear();detail.hidden=false;heading.textContent='Law '+law.number+' · '+(law.category??'Proposal');idea.value=law.text??law.title??'';text.textContent=law.supported?'Reviewed model mapping: '+(law.mapping?.mechanism??'partial proxy'):'Effects unavailable: no reviewed model mechanism.';
+  selected=law;comparison=null;referenceResult=null;civicLink.hidden=true;const initialStrength=options.civicContext?.lawId===law.number?options.civicContext.implementationStrength:1;strength.value=String(initialStrength*100);strengthOutput.textContent=String(initialStrength*100)+'%';editPanel.hidden=!editableNumericLaw(law);playback.clear();detail.hidden=false;heading.textContent='Law '+law.number+' · '+(law.category??'Proposal');idea.value=law.text??law.title??'';text.textContent=law.supported?'Reviewed model mapping: '+(law.mapping?.mechanism??'partial proxy'):'Effects unavailable: no reviewed model mechanism.';
   updateImpact();publishPlanIdea(law);onSelect?.(law);renderList();paint('potential');detail.scrollIntoView?.({block:'start'});void runComparison();
  }
  root.insertBefore(detail,list);

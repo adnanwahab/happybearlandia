@@ -17,7 +17,7 @@ test('full guided demo and timelapse keep history bounded and Canvas independent
    };
   }
  },{emulate:browserName==='chromium'});
- await page.goto('/');await page.getByRole('link',{name:'Play Demo',exact:true}).click();
+ await page.goto('/');await page.getByRole('link',{name:'Try the 60-second simulation',exact:true}).click();
  await expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.status),{timeout:90000}).toBe('ready');
  await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.demo?.status),{timeout:65000}).toBe('complete');
  expect(await page.evaluate(()=>window.futureMachine.state.month)).toBe(120);

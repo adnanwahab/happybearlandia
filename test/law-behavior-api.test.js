@@ -96,3 +96,15 @@ test('actual bounded model endpoint emits genuine paired checkpoints',async()=>{
   expect(data.manifest.seed).toBe(42);
   expect(data.manifest.implementationStrength).toBe(.5);
 },60000);
+
+
+test('comparison deadline returns retryable failure and releases the active slot',async()=>{
+ let calls=0,signal;
+ const handler=createLawBehaviorHandler({maxConcurrent:1,timeoutMs:15,compare:async input=>{
+  signal=input.signal;if(++calls===1)return new Promise(()=>{});return fakeResult;
+ }});
+ const failed=await handler(request());
+ expect(failed.status).toBe(504);expect(signal.aborted).toBe(true);
+ expect((await failed.json()).error).toContain('timed out');
+ expect((await handler(request())).status).toBe(200);
+});

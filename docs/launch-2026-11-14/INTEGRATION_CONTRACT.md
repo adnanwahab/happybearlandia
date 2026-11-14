@@ -1,0 +1,9 @@
+# Civic/HBL integration contract
+
+Existing `hbl-law-behavior-receipt.v1` and POST `/api/law-behavior` remain the model-data authority. Request lawId, seed, population and implementationStrength only; bounded12 synthetic actors/100 checkpoints; no screenshot/iframe/HTML data extraction, private journal or ballot identity. The server chooses720 population minutes or12 city months; both branches use one synthetic initial state and seed. Literal edited legal text is never compiled implicitly.
+
+Public navigation schema: `civicContext=1`, optional bounded proposalId, integer revision1..1,000,000, lawId21/22/23/83, strength0/.25/.5/.75/1 (law21fixed1), seeduint32, population24, optional bounded modelVersion. URLs use fixed HBL and Civic origins. Unknown fields are dropped; duplicate recognized keys and invalid values fail closed. Context is a synthetic discussion recipe, not a saved legal revision or ballot. Model-version mismatch reports unavailable replay rather than presenting a replacement as equivalent.
+
+On valid import HBL's law panel deliberately uses the API's default synthetic initial world and exact horizon rather than unrelated mapped ConstitutionCity state. On rerun, edited strength changes revision and preserves seed/baseline; the result's modelVersion is returned to Civic. Recorded actor samples are never interpolated into invented positions or stories. Current-year/five-year ConstitutionCity comparisons remain separate.
+
+API timeout:30seconds,504 retryable response and cooperative abort; active comparison slot released in finally. Civic additionally owns UI cancellation/deadline and validates request identity against receipt. Rate limits, origin allowlists and three-comparison cap remain enforced. Exact HBL origin must be in Civic CSP. Local transport proof does not establish production CSP/CORS/deployment parity.

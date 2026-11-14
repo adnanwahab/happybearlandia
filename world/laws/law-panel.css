@@ -62,3 +62,6 @@
  .law-panel .law-behavior-lane{padding:6px 4px}
 }
 @media(prefers-reduced-motion:reduce){.law-panel .law-behavior-playback *{scroll-behavior:auto!important;transition:none!important}}
+
+/* Shared civic recipes remain usable at 320px without widening the dialog. */
+.law-panel :is(fieldset,section,details){min-width:0}.law-panel fieldset{margin-inline:0;max-width:100%;box-sizing:border-box}.law-panel :is(p,a,li,summary){overflow-wrap:anywhere}.law-panel table{table-layout:fixed}

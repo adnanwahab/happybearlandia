@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 for(const renderer of ['canvas2d','webgl'])test(`${renderer} cold homepage and warm button timing`,async({page},info)=>{
  await page.goto('/');
  await page.locator('.flagship-demo').evaluate((link,renderer)=>link.href+=`&renderer=${renderer}`,renderer);
- await page.getByRole('link',{name:'Play Demo',exact:true}).click();
+ await page.getByRole('link',{name:'Try the 60-second simulation',exact:true}).click();
  await expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.status)).toBe('ready');
  await page.getByTestId('future-machine-stage').scrollIntoViewIfNeeded();
  await expect.poll(()=>page.evaluate(()=>window.futureMachine.stats.demoTiming)).not.toBeNull();

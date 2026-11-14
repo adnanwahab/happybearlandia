@@ -16,7 +16,7 @@ for (const variant of ['direct','policy']) test(`${variant} exposure before clic
   expect((await record()).events.map(e=>e.type)).toEqual(['exposure']);
   // Abort destination computation: this smoke test concerns routing only.
   await page.route('**/world/future-machine.html?demo=1',route=>route.fulfill({contentType:'text/html',body:'Demo destination'}));
-  await page.getByRole('link',{name:'Play Demo',exact:true}).click();
+  await page.getByRole('link',{name:'Try the 60-second simulation',exact:true}).click();
   if (variant === 'policy') {
     await expect(page.getByRole('button',{name:'What does the policy cost?'})).toBeVisible();
     await page.getByRole('button',{name:'What does the policy cost?'}).click();
@@ -29,5 +29,5 @@ test('withdrawal erases evidence and restores ordinary demo',async({page})=>{
   await consent.check(); await consent.uncheck();
   expect(await page.evaluate(key=>sessionStorage.getItem(key),key)).toBeNull();
   await expect(page.getByRole('button',{name:'What does the policy cost?'})).toBeHidden();
-  await expect(page.getByRole('link',{name:'Play Demo',exact:true})).toHaveAttribute('href','/world/future-machine.html?demo=1');
+  await expect(page.getByRole('link',{name:'Try the 60-second simulation',exact:true})).toHaveAttribute('href','/world/future-machine.html?demo=1');
 });
