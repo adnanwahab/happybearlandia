@@ -8877,3 +8877,26 @@ by Bun listen EADDRINUSE on ports 39884 and 41967. Visual/GPU/mobile acceptance
 remains unverified. Current remote main has unrelated newer coordinator/scene
 fixes to preserve during integration; fetch/rebase/commit are unavailable because
 shared Git metadata is outside writable roots. No merge or deployment.
+
+## SHE-192 authorized bounded implementation — November 13, 2026
+
+Prior #77 merged documentation only; its deferred status is historical. The owner
+authorized one local slice. Plan: extend immutable Experiment Registry snapshots
+with a pinned synthetic resource-control environment and predeclared reward;
+execute bounded scripted policies, record causal trajectories, replay stored
+evidence, and reopen separate training/held-out/unavailable real-world reports
+through `/api/experiments`. No external agent, learning algorithm or live data.
+Acceptance: durable API round trip, version/reward rejection, deterministic
+replay/tamper detection, held-out seed separation and invalid-action boundaries.
+Risks: only the current version is executable; fingerprints are consistency
+checks, not authenticated observations. Registry retention remains existing policy.
+
+SHE-192 slice complete locally: declaration/run/reopen/replay through the existing
+server Experiment Registry API, pinned resource-control fixture, predeclared
+reward and separate training/held-out/unavailable real-world report. Evidence:
+[review](reviews/SHE-192.md), [contract](experiment-registry.md#agent-training-gym-she-192-local-slice).
+28 focused regression tests passed (141 assertions); no configured lint/typecheck.
+No browser changes; Playwright skipped. Learning algorithms, arbitrary reward
+revisions and real-world evaluation remain outside this bounded authorization.
+No deployment, merge or production writes. Prior deferred plan above is retained
+as historical context, superseded only for this implemented local slice.
