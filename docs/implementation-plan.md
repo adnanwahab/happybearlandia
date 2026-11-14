@@ -1,5 +1,23 @@
 # HappyBearLandia implementation plan
 
+## SHE-546 — object discovery shimmer (2026-11-14)
+
+Bounded slice implemented: eligibility-backed hover/touch marker, native keyboard
+object picker and static reduced-motion fallback. Reuses house action availability
+and existing menu commands; changes no simulation state contract. Prerequisites
+were installed-object affordances and read-only runtime availability. Acceptance
+covers rejected/pending/stale checks staying dark, selection cleanup, keyboard,
+touch, reduced motion and unchanged checkpoints. Risks are asynchronous stale
+replies (revision guarded) and browser placement (still awaiting visual review).
+
+Verification: 39 focused/regression tests passed with 249 assertions, browser
+bundle and JavaScript syntax passed. No root lint/typecheck command exists.
+Playwright execution is blocked by server listen and macOS Chromium sandbox
+permissions; full house and focused no-WebGL picker tests are added but browser
+acceptance and before/after evidence remain pending. No commit, PR, merge or
+deployment. Audit, merge-policy preservation, commands and next actions:
+[review](reviews/SHE-546.md).
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,

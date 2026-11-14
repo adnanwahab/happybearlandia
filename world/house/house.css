@@ -57,3 +57,12 @@
 
 /* Keep the open More menu above the bottom HUD's equal stacking level. */
 .house-topbar:has([data-house-tools][open]) { z-index: 31; }
+
+/* Discovery uses one CSS marker, including on low-end graphics backends. */
+.house-discovery-marker{position:absolute;width:64px;height:38px;transform:translate(-50%,-50%);border:2px solid #e4bc67;border-radius:50%;box-shadow:0 0 12px #f3d48b88;pointer-events:none;z-index:21;animation:house-discovery-pulse 1.8s ease-in-out infinite}
+.house-discovery-marker[hidden]{display:none}
+@keyframes house-discovery-pulse{50%{opacity:.55;transform:translate(-50%,-50%) scale(1.08)}}
+.house-discovery-picker{position:absolute;top:80px;right:16px;z-index:30;display:flex;gap:6px;align-items:center;padding:6px 9px;border-radius:10px;background:#fff9e9ed;color:#294936;font:12px system-ui;max-width:calc(100% - 32px)}
+.house-discovery-picker select{max-width:160px}.house-discovery-picker button{min-height:36px}
+@media(prefers-reduced-motion:reduce){.house-discovery-marker{animation:none;box-shadow:none}}
+@media(max-width:600px){.house-discovery-picker{top:74px;right:8px;font-size:11px}.house-discovery-picker select{max-width:100px}}
