@@ -1,0 +1,33 @@
+import { expect, test } from '@playwright/test';
+test('map reopens pinned stops with keyboard and touch and preserves parent', async ({ page, request }, info) => {
+  await page.goto('/tools/future-journey.html');
+  await page.screenshot({ path: '.mini-symphony-evidence/SHE-482-journey-empty.png', fullPage: true });
+  await page.getByRole('button', { name: 'Create a guided demo checkpoint' }).click();
+  await expect(page.locator('#lineage-map a')).toHaveCount(1);
+  const parent = new URL(page.url()).searchParams.get('experiment');
+  const original = await (await request.get('/api/world-experiments/' + parent)).json();
+  await page.getByRole('button', { name: 'Run matched fork and save child' }).click();
+  await expect(page.locator('#lineage-map a')).toHaveCount(2);
+  const child = new URL(page.url()).searchParams.get('experiment');
+  const stop = page.locator('#lineage-map a').first();
+  await stop.focus();
+  await stop.press('Enter');
+  await expect(page.locator('#lineage-map a[aria-current]')).toHaveAttribute('href', new RegExp(parent));
+  await expect(page.locator('#clock')).toContainText('Minute 360');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.locator('#lineage-map a').last().tap();
+  await expect(page.locator('#clock')).toContainText('Minute 361');
+  expect(new URL(page.url()).searchParams.get('experiment')).toBe(child);
+  expect(await (await request.get('/api/world-experiments/' + parent)).json()).toEqual(original);
+  await page.screenshot({ path: '.mini-symphony-evidence/SHE-482-journey-after-mobile.png', fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.screenshot({ path: '.mini-symphony-evidence/SHE-482-journey-after-desktop.png', fullPage: true });
+});
+test('empty and missing checkpoint states', async ({ page }) => {
+  await page.goto('/tools/future-journey.html');
+  await expect(page.locator('#status')).toContainText('Open a saved');
+  await expect(page.locator('#result')).toBeHidden();
+  await page.goto('/tools/future-journey.html?experiment=missing001');
+  await expect(page.locator('#status')).toContainText('missing');
+});

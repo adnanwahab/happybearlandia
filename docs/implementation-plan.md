@@ -9188,3 +9188,28 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-482 — bounded branching checkpoint map (2026-11-14)
+
+Owner-authorized local slice on isolated `mini/SHE-482`, base `cdb773a1`.
+Audit existing immutable World persistence, Population continuation, journey
+navigation and rain fork before adding presentation. Single coding worker;
+no delegated/shared interface changes. Open PR audit found no SHE-482 candidate.
+
+Slice: retain the ancestor slider and existing fork path; discover related saved
+children from the existing catalog, decode at most 16 map checkpoints, render
+native checkpoint links with parent IDs, intervention, horizon, pinned version,
+seed and synthetic labels. No simulation input, rule, ID or clock mutation.
+Acceptance: exact node reopen, immutable parents, explicit unavailable/expired
+states, component tests and normal-entry keyboard/touch browser tests plus
+before/after evidence. Risks: catalog/network cost and large checkpoints;
+bounded display may omit branches and must say so. Current saves never expire.
+
+Local implementation complete; acceptance remains open for browser execution
+and visual evidence. 21 focused tests pass /132 assertions; browser bundle,
+Node syntax and whitespace checks pass. In-process synthetic 30-child fixture,
+15 decoded children: 10.33 ms on this host (not a browser/device budget).
+Playwright could not start the local server on 54482 or 55482 (EADDRINUSE).
+No configured repository lint/typecheck script. See [review](reviews/SHE-482.md)
+for audit, limits and next action. No merge, deploy, remote message or policy
+change; the existing auto-merge workflow safety hold remains literal false.

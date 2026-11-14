@@ -1,3 +1,4 @@
+import { lineageMap, renderLineage } from './lineage.js';
 import { listLivingSaves } from '../timeline-braids/comparison.js';
 import { checkpointLineage, compareRainFork, inspectFuture, readFuture, saveRainFork } from './model.js';
 import { journeySelection, journeyURL } from './navigation.js';
@@ -8,6 +9,7 @@ const fork = find('fork');
 const status = find('status');
 const timeline = find('timeline');
 let checkpoints = [];
+let mapNodes = [];
 let person;
 let generation = 0;
 
@@ -27,6 +29,7 @@ function paint() {
   const source = checkpoints[Number(timeline.value)];
   const selection = inspectFuture(source, person);
   person = selection.person;
+  renderLineage(find('lineage-map'), mapNodes, source.record.id, person);
   open.elements.person.value = person;
   find('record-title').textContent = source.record.save.label;
   find('clock').textContent = `Tick ${selection.tick} · Minute ${selection.minute} · Population ${selection.modelVersion}`;
@@ -48,6 +51,10 @@ async function load(id, selectedId = id, selectedPerson = '') {
     const tip = await readFuture(id);
     const result = await checkpointLineage(tip);
     if (current !== generation) return;
+    const map = await lineageMap(result.checkpoints);
+    if (current !== generation) return;
+    mapNodes = map.nodes;
+    find('lineage-notice').textContent = map.notice;
     checkpoints = result.checkpoints;
     person = selectedPerson;
     const index = checkpoints.findIndex(row => row.record.id === selectedId);
