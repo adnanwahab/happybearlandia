@@ -90,3 +90,18 @@ under literal false. `.github/scripts/auto-merge.cjs` retains current-head/base
 checks, required CI, review/hold and unresolved-thread checks. Remote protection
 settings were not modified or independently certified. No voting/auth/quorum,
 release gate, production, merge, deployment or external-message action occurred.
+
+## Coordinator pipeline repair — November 14
+
+The live queue correctly suppresses duplicate PRs and preserves native dependency
+holds. Hosted verify failed because the server did not route /api/demo/ready,
+even though the release-health handler and readiness tests already implement it.
+Routed that endpoint rather than weakening the smoke assertion. Hosted first-run
+browser flow still selected the hidden legacy policy dropdown; updated it to use
+the visible Balanced plan radio card.
+
+Host verification: 21 readiness/server tests pass. Chromium launches successfully
+outside the coding-worker sandbox. The local first-run browser pack has 3 passing
+checks and 1 failing ready-state guide check (#firstRunGuide missing), before the
+updated policy selection executes. Browser acceptance and numeric budgets remain
+incomplete; do not close SHE-40 or bypass SHE-44/63/64 dependencies on this basis.

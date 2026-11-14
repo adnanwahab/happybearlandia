@@ -109,7 +109,7 @@ test('guided actions operate on the actual World simulator', async ({page}) => {
   await expect(guide.locator('[data-guide-kind]')).toHaveText('Storm result');
   await expect(guide.locator('[data-guide-metrics]')).toContainText('Flooded parcels');
   await expect(page.locator('#overlayMode')).toHaveValue('flood');
-  await page.locator('#policy').selectOption({label:'Balanced'});
+  await page.locator('input[name="world-plan-choice"][value="balanced"]').check();
   const started = Date.now();
   await page.locator('#runCycleBtn').click();
   await expect(page.locator('#cycleRunState')).toHaveText('Running');
