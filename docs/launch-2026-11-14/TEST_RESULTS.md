@@ -35,3 +35,9 @@ No complete Safari/Firefox/a11y matrix, production serving-SHA parity, staging d
 - [Civic native mobile receipt](assets/civic-native-mobile.png)
 
 All show synthetic local model data. They are evidence of rendered local behavior, not proof of deployment or calibrated outcomes.
+
+## Companion Civic final verification
+
+Final companion commit `0028e961578ca3d906550b07648daa9e4c6c3631`: `bun test`536passed,0failed,106478assertions; `bun run typecheck` and `bun run test:routes` passed. Real browser script `scripts/verify-law-launch-browser.mjs` passed3 actual HBL model requests and the native320px/reduced-motion/edit/actor/WHY/share/version/unsupported paths described above. Focused `/synth` accessibility passed5/5 projects (axe critical/serious and keyboard focus/skip-link checks). No voting test/action selected. Optional accessibility output/dependencies were moved outside checkout after the existing CSS source audit traversed generated assets; its assertions/timeouts were retained, and final mandatory suite passed cleanly.
+
+Draft review candidates: [HBL320](https://github.com/adnanwahab/happybearlandia/pull/320), [Civic123](https://github.com/adnanwahab/dear_congress/pull/123). CI status is independently reported on the actual PR revision; local passing checks are not a claim all hosted jobs passed.

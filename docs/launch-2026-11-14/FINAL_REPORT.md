@@ -26,3 +26,9 @@ The entire24hour plan is not claimed complete. Full flagship-to-saved-civic-prop
 ## Next highest-value action
 
 Human review of both tested integration branches, resolve any required CI/a11y findings, reconcile the serving release identities, then verify an explicitly approved staging pair with rollback. Only after those gates should production release, launch promotion or individual outreach sending be authorized.
+
+## Review handoff
+
+- [HBL draft PR320](https://github.com/adnanwahab/happybearlandia/pull/320), source revision `dc6b65f631017ee5fc82c1c99a73e1d4d8453d8e` plus this evidence-only follow-up.
+- [Civic draft PR123](https://github.com/adnanwahab/dear_congress/pull/123), revision `0028e961578ca3d906550b07648daa9e4c6c3631`.
+- Civic final mandatory suite536tests/106478assertions, typecheck/routes and focused accessibility5/5 passed. Real local cross-app browser receipt journey passed. Both branches remain draft; review, hosted CI and release approval are separate gates.
