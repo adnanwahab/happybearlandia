@@ -8877,3 +8877,31 @@ by Bun listen EADDRINUSE on ports 39884 and 41967. Visual/GPU/mobile acceptance
 remains unverified. Current remote main has unrelated newer coordinator/scene
 fixes to preserve during integration; fetch/rebase/commit are unavailable because
 shared Git metadata is outside writable roots. No merge or deployment.
+
+
+## SHE-137 — independent World playback and camera controls (2026-11-13)
+
+Slice: expose 0.25×, 0.5×, 1×, 2×, 4×, 8× in the normal `/world`
+controls, preserving existing faster controls; add independent keyboard/orbit
+camera sensitivity. The model continues to receive whole fixed minutes.
+SHE-141 is Done; approval labels already present. Fresh isolated branch
+`mini/SHE-137-r3`, clean starting tree at `5fdb9683`. One worker owns
+world/index.html, world/render.js, world/map-controls.js, the Canvas2D fallback
+and focused tests/docs.
+No shared interface or model-rule changes, no delegation needed.
+
+Acceptance: seed-matched complete authority digest and event count at equal
+modeled horizon across all six rates, paused time excluded, camera changes leave
+playback unchanged. Verify normal UI bindings, bundle and focused browser path.
+Risks: hardware FPS is unmeasured; bounded busy/hidden-frame wall time may be
+dropped by existing clocks, so speed is a pacing request, not a throughput promise.
+Evidence and final status: docs/reviews/SHE-137.md (updated after verification).
+
+SHE-137 verification: 33 focused tests passed / 222 assertions, including all
+six rates and pause/resume with identical complete state digests/event counts
+(legacy 6 events, Population 40). Browser-entry bundles and Playwright discovery
+passed; 32 adjacent World runtime/weather/culture tests passed (309 assertions). Actual browser runs blocked before execution by EADDRINUSE on two
+ports; hardware smoothness unmeasured. Adjacent legacy checkpoint restore has
+two existing cross-seed history failures in unchanged code. Full evidence,
+provenance and preserved disabled auto-merge policy: docs/reviews/SHE-137.md.
+Implementation is ready for dispatch review, with browser acceptance still open.

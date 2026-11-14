@@ -521,7 +521,7 @@ async function withClassicWorld(action) {
   if (livingWorld?.active) await livingWorld.setActive(false);
   return action();
 }
-let speed = Math.max(1, Math.min(100, Number(params.get("speed")) || 1)); // game minutes per real second
+let speed = Math.max(0.25, Math.min(100, Number(params.get("speed")) || 1)); // game minutes per real second
 let selected = null; // { type: "person"|"building"|"journal", id }
 let follow = false;
 let overlayMode = "none";
@@ -537,6 +537,7 @@ function bindActivityRuntime(runtime){if(activityRuntimeUnsubscribe)return;activ
 const legacyActivityUnsubscribe=world.subscribeActivity(()=>{if(!livingWorld?.active)notifyActivity();});
 const playback=createSimulationPlayback({initialSpeed:speed,onChange:state=>{speed=state.paused?0:state.speed;const runtime=livingWorld?.active?livingWorld.getRuntime():null;if(runtime){runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();}for(const button of $("speeds").children)button.classList.toggle("on",Number(button.dataset.s)===(state.paused?0:state.speed));if(selected?.type==="person")renderInspector();if(window.hblGuidedActions)worldFeedback("playback",{paused:state.paused,speed:state.speed});}});
 window.hblSimulationPlayback=playback;
+$("camera-speed").onchange=event=>{const value=Number(event.target.value);mapControls.setSpeed(value);controls.panSpeed=value;controls.rotateSpeed=value;controls.zoomSpeed=value;};
 livingWorld=!embedMode?mountLivingWorld({container:document.body,scene,camera,controls,THREE,town,renderer,autoActivate:false,initialMinute:loadedExperiment?0:6*60,onRuntimeReady:runtime=>{bindActivityRuntime(runtime);const state=playback.getState();runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();if(!livingPlaybackUnsubscribe)livingPlaybackUnsubscribe=runtime.subscribe(frame=>{if(!livingWorld?.active||!frame?.runtime)return;if(Number.isFinite(frame.runtime.speed)&&frame.runtime.speed!==playback.getState().speed)playback.setSpeed(frame.runtime.speed);frame.runtime.paused?playback.pause():playback.resume();});return true;},onModeChange:active=>{if(active){window.hblVisualPass?.controller.stop();visualCamera?.cancel();visualSpotlight?.clear();}people.visible=!active;follow=false;selected=null;document.documentElement.classList.remove("person-selected");$("inspect").removeAttribute("data-person-selected");$("inspect").style.display="none";cityRenderer.setFeature('traffic',active?false:originalTrafficEnabled);cityRenderer.updateCity({trafficDensity:active?0:1});document.body.classList.toggle('living-active',active);notifyActivity();const fastest=$('speeds').lastElementChild;fastest.dataset.s=active?'32':'60';fastest.textContent=active?'32×':'60×';if(active&&playback.getState().speed>32)playback.setSpeed(32);}}):null;
 window.hblLivingWorld=livingWorld;
 const neighborhoodWhatIf = !embedMode ? mountNeighborhoodWhatIf({scene,camera,controls,renderer,THREE,getContext:()=>livingWorld.getContext()}) : null;
