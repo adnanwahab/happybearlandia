@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Street Sketch</title>
+<link rel="stylesheet" href="/world/civilization/civilization.css"><style>
+svg{display:block;width:min(100%,600px);height:auto;background:#eef4ef;touch-action:manipulation}button,select{min-height:44px;margin:4px}polyline{fill:none;stroke:#184e69;stroke-width:3}svg:focus{outline:3px solid #184e69}pre{white-space:pre-wrap;overflow-wrap:anywhere}
+</style></head><body><main><nav><a href="/world/invention/">City Invention Studio</a></nav><h1>Street Sketch</h1>
+<p>Synthetic Riverside schematic, not a geographic street map. Tap/click to add snapped vertices. Keyboard: arrows move the pencil, Enter adds a point, Backspace undoes. Maximum 32 points.</p>
+<p>Each vertical strip represents Center, Riverside or Uptown. Only transit capacity within one district can run. Geometry is retained as an illustration; the model does not route along your sketch. New roads and cross-district network edits are unsupported.</p>
+<label>Proposal type <select id="kind"><option value="transit">Transit capacity</option><option value="road">New road (unsupported)</option></select></label>
+<label>Capacity and assumed cost <select id="policy"></select></label>
+<svg id="drawing" viewBox="0 0 300 300" tabindex="0" role="application" aria-label="Street drawing pencil" aria-describedby="preview"><path d="M100 0V300 M200 0V300" stroke="#888"/><text x="5" y="15">Center</text><text x="105" y="15">Riverside</text><text x="205" y="15">Uptown</text><polyline id="line"/><g id="vertices"></g><circle id="pencil" cx="20" cy="40" r="5" fill="#a53b16"/></svg>
+<button id="undo">Undo point</button><button id="redraw">Redraw</button><p id="preview" role="status"></p>
+<button id="run">Validate and test proposal</button><p id="status" role="status"></p><pre id="result"></pre><a id="download" hidden download="city-street-proposal.json">Download submitted geometry and assumptions</a>
+<script type="module" src="./page.js"></script></main></body></html>

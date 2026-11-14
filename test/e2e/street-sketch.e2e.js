@@ -1,0 +1,38 @@
+import { expect, test } from '@playwright/test';
+test('keyboard draws, refuses roads, runs transit and preserves the submission', async ({ page }) => {
+  await page.goto('/world/invention/');
+  await page.getByRole('link', { name: 'Street Sketch', exact: true }).click();
+  const pencil = page.getByRole('application', { name: 'Street drawing pencil' });
+  await pencil.focus();
+  await pencil.press('Enter'); await pencil.press('ArrowDown'); await pencil.press('Enter');
+  await expect(page.locator('#preview')).toContainText('2 points');
+  await page.getByLabel('Proposal type').selectOption('road');
+  await page.getByRole('button', { name: 'Validate and test proposal' }).click();
+  await expect(page.locator('#status')).toContainText('Refused');
+  await expect(page.locator('#download')).toBeHidden();
+  await page.getByLabel('Proposal type').selectOption('transit');
+  await page.getByRole('button', { name: 'Validate and test proposal' }).click();
+  await expect(page.locator('#result')).toContainText('"geometryRole": "schematic-only"');
+  const downloaded = page.waitForEvent('download');
+  await page.locator('#download').click();
+  expect((await downloaded).suggestedFilename()).toBe('city-street-proposal.json');
+  await page.getByRole('button', { name: 'Undo point' }).click();
+  await expect(page.locator('#preview')).toContainText('1 points');
+  await expect(page.locator('#download')).toBeHidden();
+  await page.getByRole('button', { name: 'Redraw', exact: true }).click();
+  await expect(page.locator('#preview')).toContainText('0 points');
+});
+test('touch and reduced motion retain drawing and redraw controls', async ({ browser }) => {
+  const context = await browser.newContext({ hasTouch: true, viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto('/world/invention/sketch/');
+  const box = await page.locator('#drawing').boundingBox();
+  await page.touchscreen.tap(box.x + box.width * .1, box.y + box.height * .3);
+  await page.touchscreen.tap(box.x + box.width * .2, box.y + box.height * .6);
+  await expect(page.locator('#preview')).toContainText('2 points');
+  await page.getByRole('button', { name: 'Undo point' }).tap();
+  await expect(page.locator('#preview')).toContainText('1 points');
+  await page.getByRole('button', { name: 'Redraw', exact: true }).tap();
+  await expect(page.locator('#preview')).toContainText('0 points');
+  await context.close();
+});
