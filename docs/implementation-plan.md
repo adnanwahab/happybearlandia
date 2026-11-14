@@ -2,11 +2,12 @@
 
 ## Mini Symphony PR to Linear completion sync
 
-Added a GitHub Actions workflow that reacts only to a merged, same-repository
-Mini Symphony branch named `mini/SHE-<number>`. It resolves the issue and its
-team's completed workflow state through Linear GraphQL, then closes the issue
-idempotently. Requires repository Actions secret `LINEAR_API_KEY`; provisioning
-that external secret and a live merged-PR verification remain operational setup.
+The evidence-only workflow `.github/workflows/linear-merged-pr.yml` maps merged,
+same-repository `mini/SHE-<number>` and revision branches to the original Linear
+issue. It upserts a source attachment; human acceptance review determines issue
+completion. The former automatic-close workflow is retired in SHE-182 revision3.
+Requires repository Actions secret `LINEAR_API_KEY`; hosted verification remains
+operational setup.
 
 ## Local Mini Symphony Bun starter
 
@@ -8877,3 +8878,26 @@ by Bun listen EADDRINUSE on ports 39884 and 41967. Visual/GPU/mobile acceptance
 remains unverified. Current remote main has unrelated newer coordinator/scene
 fixes to preserve during integration; fetch/rebase/commit are unavailable because
 shared Git metadata is outside writable roots. No merge or deployment.
+
+## SHE-182 revision 3 — consolidate publication acceptance
+
+Next slice: remove the duplicate automatic Linear completion workflow and route
+its legacy CLI through the existing merged-evidence helper. Require a complete
+GitHub event with same-repository/merged-only gates, preserve revision mapping,
+and test the CLI with offline transport. SHE-180 remains queue/lease owner;
+no runtime changes. Acceptance: neither publication path can mark an issue Done,
+ineligible events make no requests, uncertain writes stop with sanitized errors.
+Host resource containment and sustained external runtime recovery remain pending.
+
+Revision3 delivered: retired duplicate automatic-close workflow; legacy CLI
+now links evidence through the checked same-repository merged-event helper.
+Added fail-closed missing repository validation and subprocess CLI regressions;
+updated Mini README and workflow test path triggers. See
+[checkpoint and remaining blockers](reviews/SHE-182.md). Actual checks: Node7/7,
+ops21/21; host299/301 (unchanged supervisor exact-label validation error and
+resource boundary failure); Mini54/55 (unchanged server startup failure).
+Node syntax and diff checks pass. No repository-wide typecheck/lint script;
+no browser change, Playwright skipped. Hard host containment, live retry/recovery
+and hosted secret/sync verification remain pending. Automatic merging stays
+held by literal false; no quorum, voting/auth/check change, external publication,
+merge, deployment or production operation. No commit or PR created this turn.
