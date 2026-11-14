@@ -8505,6 +8505,23 @@ whitespace. `git diff --check` passed for tracked changes.
 No browser behavior changed; Playwright skipped. No configured general lint or
 typecheck. No merge/deployment/production mutation; commit/PR publication pending.
 
+## SHE-45-r3 acceptance follow-up (2026-11-13)
+
+Owned files on initially clean `mini/SHE-45-r3`: `ops/backend-load-test.mjs`,
+`test/backend-load-test.test.js`, `docs/backend-load-test.md`,
+`docs/reviews/SHE-45.md`, and this entry. Existing PRs #167 and #296 are merged;
+SHE-42 is Done. Reused their bounded workload and disposable launcher.
+Concrete gap: HTTP 200 replay previously passed without validating its content.
+Require requested identity, saved-outcome verification and current seeded horizon;
+test corrupt contracts and actual civic-handler/worker integration.
+
+Acceptance evidence: 30 pass, 1 opt-in HTTP skip, 0 fail, 427 assertions in
+14.28 seconds across the four focused files. Local full-server execution still
+fails before listening; independent Python bind returns EPERM. No HTTP p50/p95,
+error rates or server resource measurements are claimed. No model, UI, admission,
+vote or merge-policy change. Full HTTP measurement acceptance remains blocked
+on a host permitting loopback. [Commands and evidence](reviews/SHE-45.md).
+
 ## SHE-45-r2 — disposable local staging follow-up (2026-11-12)
 
 Owned slice: `ops/backend-load-test.mjs`, `ops/backend-load-local.mjs`,
