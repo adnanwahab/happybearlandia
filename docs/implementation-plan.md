@@ -9188,3 +9188,33 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-567 — tabletop block, bounded local slice (2026-11-14)
+
+Audit: invention landing has no World camera/runtime; building-proposal.v1 and
+housing 1.2.0 already support geometry validation and approved project simulation.
+No overlapping open PR found via repository search for diorama/invention/SHE-567.
+One coding worker; no delegation. Preserve automatic merge safety hold and all
+voting/auth/check requirements.
+
+Slice: normal invention entry opens a synthetic block with selectable miniatures,
+rotation and pointer/keyboard positioning. Draft changes never advance simulation.
+Confirmation reruns the existing housing model only after proposal and placement
+validation. Explicitly separate this model/clock from monthly City and saved World.
+Exit discards drafts and restores the prior local view. CSS/DOM fallback requires
+no GPU or animation. Acceptance: deterministic accepted/rejected simulation tests,
+keyboard browser journey, constraint/cost visibility, before/after evidence.
+Risks: validator has no zoning, utilities or ownership authority; local synthetic
+sandbox cannot certify real parcels or mutate saved World runs. No model rules change.
+
+SHE-567 delivered the local synthetic tabletop sandbox and normal-entry link;
+geometry validation is the only confirmation boundary into existing housing
+simulation. 16 focused tests (376 assertions), 71 build-world regressions (1022
+assertions), and 2 City invention regressions (19 assertions) pass. Browser bundle
+and one Playwright test discovery pass; whitespace check passes. No configured
+lint/typecheck. Browser server fails EADDRINUSE; direct Chromium launch fails
+MachPort permission denial. Before/after evidence and actual keyboard/touch layout
+verification remain open. Saved-World camera integration is not present: Exit
+restores only this page's local schematic view. See reviews/SHE-567.md for checked
+contracts, preserved policy, limits and the exact next browser command. No model
+rules, production state, voting/auth/check or automatic merge policy changed.
