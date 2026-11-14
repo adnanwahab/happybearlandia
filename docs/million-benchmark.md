@@ -74,3 +74,10 @@ all nine records, counts, metadata, timings and seed-matched replay through the
 actual CLI. This is also required by the manual workflow after Chromium setup.
 The browser test is opt-in locally; an explicitly enabled run fails on launch
 errors. See [the r2 review](reviews/SHE-171-r2.md) for actual results.
+
+The additive `coverage` array accounts for every requested size/phase, including
+`unverified` combinations when launch or an earlier phase fails. It contains no
+measurements for unexecuted work. The manual workflow attempts the report run
+after successful browser setup even when its CLI acceptance test fails, retaining
+failure evidence without treating failure as acceptance. See the
+[r3 review](reviews/SHE-171.md) for current checks and outstanding host limits.
