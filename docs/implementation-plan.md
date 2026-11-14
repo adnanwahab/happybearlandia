@@ -1,5 +1,30 @@
 # HappyBearLandia implementation plan
 
+## SHE-524 — optional decorative park wildlife (2026-11-14)
+
+Bounded slice: Graphics/F3 opt-in → map-seeded park silhouettes → live quality
+and motion gating → pagehide disposal. Prerequisites: existing Three renderer,
+park polygons and presentation clock. Acceptance: cosmetic label; no model RNG,
+IDs, time or checkpoint changes; bounded resources; empty/distant/LOW/motion
+fallback; keyboard/mobile control; rapid navigation and route teardown.
+
+Implemented private deterministic map-seed layout, up to 24 butterfly/bird/critter
+silhouettes in one instanced draw, default off. LOW quality, adaptive level >=2,
+reduced motion, distant/high cameras and inactive city hide the layer. Existing
+Canvas2D entry never mounts it. No model or ODD rules changed.
+
+Evidence: 24 focused tests / 524 assertions pass, including source immutability,
+seed-matched full model hashes, repeated camera/time jumps, empty parks and
+idempotent GPU-resource disposal. JavaScript syntax and whitespace checks pass.
+No root lint/typecheck script exists. Browser cases cover desktop/mobile keyboard,
+live preferences, navigation and teardown, but server EADDRINUSE on 39974/41974
+blocks execution before launch. Before screenshots were already supplied in the
+worktree; no after screenshots or visual acceptance claimed. Next: rerun browser
+suite in an environment that permits the local server, inspect both silhouettes
+and control layout. No merge/deploy/PR created; governance preserved. Details:
+[review](reviews/SHE-524.md).
+
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,
