@@ -8084,3 +8084,9 @@ Final combined verification on the candidate containing both published parents:
 - Whitespace validation passed. Chromium execution remains blocked by the
   environment's process-singleton socket EPERM; no new browser-layout, screenshot,
   native-GPU, or device-performance acceptance is claimed.
+
+## Civic launch integration — November 14, 2026
+
+Baseline: main `3faa2699655baed0e5550cd0aec450a132ef29f1`; primary sprint dirty work preserved. Next slice: existing native law receipt → revision-bound public navigation → same-seed law-83 strength edit and recorded playback, flagship entry and bounded /world lifecycle. Own shared routing/contracts here; independent entry and QA branches own distinct files, Civic implementation owns React. No receipt payload expansion or model rules changes. Acceptance: real paired API execution, safe context import/export, 320px/reduced-motion/keyboard browser journey, timeout/cancel/error paths, privacy exclusion, seed/golden replay checks. Risks: production SHA/deployment mismatch and existing scheduling regression; neither merge records nor static/mocked browser rendering qualify live integration. Release and outreach sending require separate human authorization. Actual evidence and remaining scope are recorded under docs/launch-2026-11-14.
+
+Civic launch evidence: entry slice integrated asdd9bee4a and lifecycle slice asd4532372. Final combined real-browser suite9/9passed, startup6/6, focused integration22tests171assertions, replay44tests340assertions, city22tests134assertions, model replay106cases and housing validation passed. Source/context API suite42tests678assertions passed. See [candidate reports](launch-2026-11-14/FINAL_REPORT.md); production lawAPI preflight404 and unknown/null serving commit identity remain release blockers. No production or governance changes. Private20draft outreach packet is not committed or sent.

@@ -83,7 +83,7 @@ export function lawBehaviorReceipt(result,law){
     ]
   };
 }
-export function createLawBehaviorHandler({compare=compareLaw,maxConcurrent=3}={}){
+export function createLawBehaviorHandler({compare=compareLaw,maxConcurrent=3,timeoutMs=30000}={}){
   let active=0;
   return async function handleLawBehavior(request){
     const origin=request.headers.get('origin');
@@ -112,16 +112,21 @@ export function createLawBehaviorHandler({compare=compareLaw,maxConcurrent=3}={}
       return Response.json({error:'Partial strength is not supported for this fixed or unavailable law.'},{status:422,headers});
     if(active>=maxConcurrent)return Response.json({error:'Model is busy; please retry this limited experiment.'},{status:503,headers:{...headers,'retry-after':'5'}});
     active++;
+    const deadline = new AbortController();
+    const signal = AbortSignal.any([request.signal,deadline.signal]);
+    let timer;
+    const timedOut = new Promise((_,reject)=>{timer=setTimeout(()=>{deadline.abort();reject(new DOMException('Comparison deadline exceeded','TimeoutError'));},timeoutMs);});
     try{
       // The engine chooses exact bounded 12-hour or 12-month horizons. Callers cannot request arbitrary worlds/workloads.
-      const result=await compare({lawId:law.number,seed:input.seed,population:input.population,
+      const result=await Promise.race([compare({lawId:law.number,seed:input.seed,population:input.population,
         implementationStrength:input.implementationStrength,
         ...(law.mapping?.engine==='city'?{months:12}:{minutes:720}),
-        signal:request.signal});
+        signal}),timedOut]);
       return Response.json(lawBehaviorReceipt(result,law),{status:200,headers});
     }catch(error){
+      if(error?.name==='TimeoutError')return Response.json({error:'Model comparison timed out. Retry this bounded experiment.'},{status:504,headers});
       if(error?.name==='AbortError')return Response.json({error:'Cancelled.'},{status:409,headers});
       return Response.json({error:'Law comparison unavailable. Check reviewed mapping, input validity and model availability.'},{status:422,headers});
-    }finally{active--;}
+    }finally{clearTimeout(timer);deadline.abort();active--;}
   };
 }

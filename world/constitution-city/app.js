@@ -11,6 +11,8 @@ import {LAW_CATALOG} from '../laws/catalog.js';
 import {mountLawPanel} from '../laws/law-panel.js';
 import {compareLawInWorker} from '../laws/comparison-client.js';
 import {mountLawLibrary} from '../laws/library.js';
+import {parseCivicContext} from '../laws/civic-context.js';
+const civicContext=parseCivicContext(window.location.search);
 const continuity=mountContinuity();
 function syncContinuity(value,plan){const m=value.result?.manifest;continuity.update(pairedSnapshot({...value,plan}),m?{namespace:'constitution',runId:value.runId,scenarioId:value.scenarioId,tick:value.month}:undefined);}
 const query=constitutionLocationQuery(),status=document.querySelector('#cc-load-status'),container=document.querySelector('#cc-app'),refresh=document.querySelector('#cc-refresh-plan');
@@ -62,5 +64,13 @@ async function load(refreshSource=false){
  }catch(error){if(!disposed&&token===generation)status.textContent=`Could not load World Diff: ${error.message}. ${studio?'The previous source and results are retained.':'Retry with Refresh source plan.'}`;}
  finally{if(token===generation)refresh.disabled=false;}
 }
-refresh.addEventListener('click',()=>load(true));load();
+refresh.addEventListener('click',()=>load(true));
+if(civicContext){
+ // A shared law recipe is independent of the captured legal package or map service.
+ refresh.hidden=true;document.querySelector('#cc-compiler').hidden=true;document.querySelector('#cc-law-library').hidden=true;
+ document.querySelector('#cc-location').textContent='Shared synthetic scenario · seed '+civicContext.seed+' · no enacted law or real resident data';
+ status.textContent='Shared model recipe. Compare recorded synthetic actors, then return to Civic Synthesis to discuss. No proposal text is applied.';
+ lawPanel=mountLawPanel(document.body,{laws:LAW_CATALOG,civicContext,getContext:()=>({seed:civicContext.seed,population:24}),compareLaw:(law,context)=>compareLawInWorker({lawId:law.id,seed:context.seed,population:24,...(law.mapping?.engine==='population'?{minutes:720}:{months:12}),implementationStrength:context.implementationStrength,signal:context.signal})});
+ window.hblConstitutionCity={lawPanel};lawPanel.open();lawPanel.selectLaw(LAW_CATALOG.find(law=>law.number===civicContext.lawId));
+}else if(new URLSearchParams(window.location.search).has('civicContext')){refresh.hidden=true;status.textContent='Invalid or unsupported public scenario context. No replacement comparison was started. Return to Civic Synthesis and choose a reviewed mechanism.';}else load();
 addEventListener('pagehide',()=>{disposed=true;generation++;abort.abort();editor?.destroy();lawLibrary?.destroy();lawPanel?.destroy();studio?.destroy();runtime?.destroy();},{once:true});
