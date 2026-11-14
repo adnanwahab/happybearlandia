@@ -1,5 +1,20 @@
 # HappyBearLandia implementation plan
 
+## SHE-514 — recorded walking-trip crossing areas (2026-11-14)
+
+Implemented a bounded local slice: anonymous cosmetic rings group active recorded
+walking trips near shared road vertices. No resident repositioning, model changes
+or inferred street routing. At most 128 static rings; distant views hide them.
+Acceptance: [x] sample count conservation and timing eligibility; [x] empty and
+invalid inputs; [x] rapid frame/camera changes, filtering and disposal tests;
+[ ] normal-route desktop/mobile, keyboard and reduced-motion browser evidence.
+Focused regression suite passed 21 tests / 211 assertions. Browser startup is
+blocked by launcher setup and then EADDRINUSE; after evidence remains pending.
+No root lint/typecheck script exists. No commit or PR reference yet. Existing
+human-review merge hold is unchanged. Full audit, commands and limits:
+[review](reviews/SHE-514.md).
+
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,

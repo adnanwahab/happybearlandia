@@ -128,3 +128,18 @@ The browser test hashes full decoded model checkpoints before/after graphics
 changes and records before/after screenshots plus video. See
 `docs/reviews/SHE-165.md` for actual execution limits; the test existing is not
 proof it passed.
+
+## Recorded walking-trip crossing areas
+
+The Living City Population adapter adds at most 128 static mint rings at shared
+road vertices. These are cosmetic areas, not surveyed crosswalks. Each distinct
+sample ID with a finite position and an active, finite recorded walking trip can
+support only its nearest area within eight world metres. Opacity encodes a bounded
+sample count; it is never extrapolated to the population or added to individual
+counts. Anonymous grouping is labeled in the city deck and detailed panel.
+Resident positions and straight-line model geometry remain unchanged. Missing
+roads/trips produce no rings. Camera distances of 350 or more hide the layer.
+Static rings add no motion, animation clock, input controls or external assets.
+Frame replacement, filtering, reset and destruction release their geometry and
+materials. Counts are available as `crossingSampleCount` and `crossingAreas` in
+Population renderer stats; neither is a surveyed density measurement.
