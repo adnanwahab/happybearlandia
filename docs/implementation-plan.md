@@ -9188,3 +9188,29 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-468 — living edit affordances
+
+Next bounded slice: reuse the shared World tools and validator for contextual
+parcel/project/policy hints in the `/world` construction workspace. Validate
+representative drafts against the selected scenario and actual placement context;
+never label sourced context buildings as editable. Keep approval and simulation
+behind existing explicit controls. Static DOM hints avoid animation and per-frame
+validation, support keyboard/touch, and disappear in read-only mode.
+Acceptance: validator agreement, blocked geometry/missing input states, immutable
+input and selection, read-only transitions, and focused browser verification.
+Audit: open PRs #331/#332/#341 cover context/picking/focus and #343 build cost;
+none implements this ticket. No changes to these interfaces or merge policy.
+
+Delivered local increment: validator-derived selected-project/ground and housing
+policy hints reuse existing editors, static DOM overlay, no source-building edits,
+read-only removal and no simulation changes. Module contract updated in
+`world/BUILD_WORLD.md`; audit and limits in `docs/reviews/SHE-468.md`.
+Verification: final integrated regression run passed 75 tests/1,041 assertions;
+focused file passed 4 tests/19 assertions. Browser bundle (21 modules),
+new test/config syntax and diff checks passed. No lint/typecheck script exists.
+Local 200-policy-refresh measurement: 12.28 ms, not device/render certification.
+Browser tests added but server startup blocked by EADDRINUSE on two ports; after
+screenshots and real keyboard/touch/visual validation remain pending. Contextual
+selection hints delivered; citywide all-asset highlights are not implemented.
+Existing disabled automatic merge job and voting/auth/check policies preserved.
