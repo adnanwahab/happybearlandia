@@ -8877,3 +8877,32 @@ by Bun listen EADDRINUSE on ports 39884 and 41967. Visual/GPU/mobile acceptance
 remains unverified. Current remote main has unrelated newer coordinator/scene
 fixes to preserve during integration; fetch/rebase/commit are unavailable because
 shared Git metadata is outside writable roots. No merge or deployment.
+
+## SHE-165 — dual render / simulation budget
+
+2026-11-13: isolated `mini/SHE-165-r3`, baseline `5fdb9683`. Audited prior
+PR #53 / `63c51bf8` (readiness report only), current renderer and Population
+contracts. Claim: city renderer, new dual-budget projection, render entry-point
+binding, runtime observational timing, focused tests and documentation. No
+independent implementation tasks warrant delegation. Other worktrees' source
+changes are outside these files; coordinator plan changes are preserved by this
+isolated checkout and this appended section must be reconciled on integration.
+
+Slice: Graphics/F3 shows separate renderer and live Population budgets, independent
+resident states versus weighted population and visual instances, CPU estimates,
+GPU supported timestamp values, partial geometry memory and unavailable metrics.
+Prerequisite SHE-141 is accepted; its synthetic reference is not a Population
+counter. Acceptance: deterministic fixture boundaries, normal-entry browser
+smoke and aesthetic-toggle state hash equality. Risks: no complete Population
+pair-interaction counter or memory accounting; do not fabricate either. Canvas2D
+path has no city-renderer diagnostics; WebGL2 uses the same overlay.
+Verification status and remaining limitations: `docs/reviews/SHE-165.md`.
+
+SHE-165 verification: 17 focused tests / 98 assertions pass; browser entrypoint
+bundles (363 modules); whitespace clean. Three-tick seed-matched full model hashes
+remain exact under headless visual controls/diagnostic reads. The included normal
+entry-point Playwright recording cannot run: local socket creation returns EPERM.
+Broader checkpoint suite: 20 pass / 1 timeout; same 30-second test also times out
+against unchanged HEAD runtime. Active changed-resident and full pair-interaction
+counters remain explicitly unavailable, so full issue acceptance stays open.
+No browser/hardware measurement or recording is claimed. See issue-specific report.
