@@ -1,0 +1,56 @@
+{
+  "base": "cd3dadbfe92435ea05cb5f736110b6ee0823cc8f",
+  "capturedHead": "58ec10ddd6d9643b9659bc6fa5e6608b370a3bed",
+  "before": {
+    "stage": "before",
+    "capturedAt": "2026-11-14T16:49:50.055Z",
+    "files": [
+      {
+        "path": ".mini-symphony-evidence/PR-319-before-desktop-1.png",
+        "route": "/",
+        "viewport": "desktop 1440×1000"
+      },
+      {
+        "path": ".mini-symphony-evidence/PR-319-before-desktop-2.png",
+        "route": "/world/?demo=1&synthetic=1&people=16",
+        "viewport": "desktop 1440×1000"
+      },
+      {
+        "path": ".mini-symphony-evidence/PR-319-before-mobile-1.png",
+        "route": "/",
+        "viewport": "mobile 390×844"
+      },
+      {
+        "path": ".mini-symphony-evidence/PR-319-before-mobile-2.png",
+        "route": "/world/?demo=1&synthetic=1&people=16",
+        "viewport": "mobile 390×844"
+      }
+    ]
+  },
+  "after": {
+    "stage": "after",
+    "capturedAt": "2026-11-14T16:50:01.364Z",
+    "files": [
+      {
+        "path": ".mini-symphony-evidence/PR-319-after-desktop-1.png",
+        "route": "/",
+        "viewport": "desktop 1440×1000"
+      },
+      {
+        "path": ".mini-symphony-evidence/PR-319-after-desktop-2.png",
+        "route": "/world/?demo=1&synthetic=1&people=16",
+        "viewport": "desktop 1440×1000"
+      },
+      {
+        "path": ".mini-symphony-evidence/PR-319-after-mobile-1.png",
+        "route": "/",
+        "viewport": "mobile 390×844"
+      },
+      {
+        "path": ".mini-symphony-evidence/PR-319-after-mobile-2.png",
+        "route": "/world/?demo=1&synthetic=1&people=16",
+        "viewport": "mobile 390×844"
+      }
+    ]
+  }
+}
