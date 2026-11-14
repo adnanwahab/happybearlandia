@@ -52,7 +52,7 @@ test('320px Canvas comparison retains timeline, metrics and WHY without overflow
  await page.screenshot({path:testInfo.outputPath('mobile-320-canvas-why.png'),fullPage:true});
 });
 test('homepage Play Demo starts the real fixed-seed comparison with no configuration',async({page})=>{
- await page.goto('/');await page.getByRole('link',{name:'Play Demo',exact:true}).click();
+ await page.goto('/');await page.getByRole('link',{name:'Try the 60-second simulation',exact:true}).click();
  await expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.status)).toBe('ready');
  await expect(page.getByTestId('future-machine-stage')).toBeVisible();await expect(page.getByTestId('future-machine-metrics')).toBeVisible();
  await page.getByRole('button',{name:'Pause demo',exact:true}).click();

@@ -144,7 +144,7 @@ test('keyboard first play completes and exposes named replay, WHY and share cont
     throw new Error(`Keyboard could not reach ${await target.getAttribute('aria-label') || await target.textContent()}`);
   }
   await page.goto('/');
-  await tabTo(page.getByRole('link',{name:'Play Demo',exact:true}));
+  await tabTo(page.getByRole('link',{name:'Try the 60-second simulation',exact:true}));
   await page.keyboard.press('Enter');
   await ready(page);
   await expect.poll(()=>page.evaluate(()=>window.futureMachine.state.demo?.status),{timeout:75000}).toBe('complete');

@@ -107,7 +107,7 @@ test('record real SHE-71 homepage journey and intervention replay', async ({page
  await page.route('**/api/city-experiments', async request => { await gate; await request.continue(); });
  await page.goto('/');
  const started = Date.now();
- await page.getByRole('link', {name: 'Play Demo', exact: true}).click();
+ await page.getByRole('link', {name: 'Try the 60-second simulation', exact: true}).click();
  await expect(page).toHaveURL(/\/world\/future-machine.html/);
  try {
   await expect(page.getByTestId('future-machine-timeline')).toBeDisabled();

@@ -56,7 +56,7 @@ for (const profile of budgets.profiles) {
           const started = performance.now();
           try {
             await page.goto('/');
-            await page.getByRole('link', { name: 'Play Demo', exact: true }).click();
+            await page.getByRole('link', { name: 'Try the 60-second simulation', exact: true }).click();
             await expect.poll(() => page.evaluate(() => window.futureMachine?.state.status), { timeout: 90000 }).toBe('ready');
             await page.getByRole('button', { name: 'Pause demo', exact: true }).click();
             const slider = page.getByRole('slider').first();
