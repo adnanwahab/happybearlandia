@@ -9188,3 +9188,42 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-474 — bounded cinematic camera presets (2026-11-14)
+
+Audit: isolated `mini/SHE-474` worktree; existing OrbitControls, visual director,
+legacy/Living follow and Graphics controls. Open PR camera search returned no
+matches. Nearby in-flight motion/palette/breadcrumb work is kept separate.
+Single coding worker; no parallel implementation. Existing merge policy in
+`docs/auto-merge.md` is preserved (draft exclusion, current-head CI, fresh base,
+review/hold gates); no merge/deploy or governance changes.
+
+Slice: add a native Camera disclosure in the existing toolbar, Street/Rooftop/
+Skyline/Follow and one-tap Return. Use immediate cuts, conservative building
+bounds and a bounded candidate search; follow tracks only the active selected
+resident and cancels on manual input, selection/authority change or unavailable
+position. Reduced motion frames once. No simulation mutation or identity mapping.
+Acceptance: three synthetic place fixtures, occupied/unavailable poses, exact
+return, preserved selection, keyboard/touch interruption, normal-entry browser
+checks and local planning-cost measurement. Conservative footprint boxes can
+reject valid narrow spaces; no route/pathfinding or surveyed access claim.
+Status: implementation and verification in progress.
+
+Verification/status: bounded local slice implemented; 61 tests / 431 assertions
+passed across camera presets/director/panels, Population view, map controls,
+playback, lighting and Canvas rendering. Three synthetic place fixtures and
+component failure/interrupt/return paths pass. Browser-target no-bundle build
+passed for all three changed runtime modules; no root lint/typecheck scripts
+exist. `git diff --check` passed. Synthetic 1000-building CPU benchmark (Bun1.4.2,
+2000 samples) p95 0.288ms; raw evidence in
+`docs/evidence/she474-camera-presets-benchmark.json`, excludes rendering/GPU.
+
+Acceptance is not complete: World Playwright server startup failed EADDRINUSE
+on3498/44974; server-independent browser component test failed Chrome launch
+SIGABRT before assertions. No new after screenshots. Run both configs on a host
+permitting server/browser startup and capture desktop/mobile before accepting.
+Actual geographic fixture navigation, touch hardware and GPU/Canvas browser
+matrix remain unverified. Conservative solids omit trees/vehicles/ornaments and
+refresh every500ms during follow. Audit, checked paths, preserved merge policy,
+commands and limitations are in `docs/reviews/SHE-474.md`. No commit/PR created,
+external messages sent, deployment, merge or production mutation.

@@ -23,3 +23,34 @@ test('normal World frame loop keeps rendering and accepts orbit, pan and zoom',a
  await lighting.selectOption('14');
  expect(errors).toEqual([]);await page.screenshot({path:test.info().outputPath('camera-controls-fixed.png')});
 });
+
+for(const mobile of [false,true])test(`cinematic presets preserve selection and return; ${mobile?'touch':'keyboard'}`,async({page})=>{
+ await page.setViewportSize(mobile?{width:390,height:844}:{width:1200,height:800});
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.route('**/api/area*',route=>route.abort());
+ await page.route('**/OrbitControls.js',async route=>{const response=await route.fetch();await route.fulfill({response,body:(await response.text())+'\nconst presetUpdate=OrbitControls.prototype.update;OrbitControls.prototype.update=function(...args){globalThis.__presetControls=this;return presetUpdate.apply(this,args);};'});});
+ await page.goto('/world?synthetic=1&people=16');
+ await page.waitForFunction(()=>window.hblWorldStartup?.readyMs&&window.__presetControls);
+ const sample=()=>page.evaluate(()=>({position:__presetControls.object.position.toArray(),target:__presetControls.target.toArray()}));
+ await page.locator('#top').evaluate(node=>node.open=true);
+ const picker=page.getByTestId('camera-presets');await picker.locator('summary').click();
+ await expect(picker.getByRole('button',{name:'Return',exact:true})).toBeDisabled();
+ await picker.getByRole('button',{name:'Follow',exact:true}).click();await expect(picker.getByRole('status')).toContainText('unavailable');
+ const original=await sample();
+ for(const name of ['Street','Rooftop','Skyline']){await picker.getByRole('button',{name,exact:true}).click();await expect(picker.getByRole('status')).toContainText(`${name} view`);const pose=await sample();expect(pose.position[1]).toBeGreaterThanOrEqual(3);}
+ await picker.getByRole('button',{name:'Return',exact:true}).click();
+ const restored=await sample();for(const key of ['position','target'])restored[key].forEach((n,i)=>expect(n).toBeCloseTo(original[key][i],5));
+ await page.evaluate(()=>window.hblGuidedActions.resident());
+ // Stop existing follow before measuring selection; preset controls never select.
+ await page.locator('#top').evaluate(node=>node.open=true);
+ await page.getByRole('button',{name:'Pause',exact:true}).click();
+ const selected=await page.locator('#inspect').innerText();
+ await picker.getByRole('button',{name:'Follow',exact:true}).click();await expect(picker.getByRole('status')).toContainText('Reduced motion');
+ expect(await page.locator('#inspect').innerText()).toBe(selected);
+ await page.emulateMedia({reducedMotion:'no-preference'});
+ const followButton=picker.getByRole('button',{name:'Follow',exact:true});
+ await followButton.focus();await page.keyboard.press('Enter');await expect(picker.getByRole('status')).toContainText('Following selected');
+ if(mobile)await page.locator('canvas').first().dispatchEvent('pointerdown',{pointerId:9,pointerType:'touch',clientX:350,clientY:500});else await page.keyboard.press('Escape');
+ await expect(picker.getByRole('status')).toContainText('interrupted');
+ await page.screenshot({path:`.mini-symphony-evidence/SHE-474-after-${mobile?'mobile':'desktop'}-camera.png`});
+});
