@@ -9188,3 +9188,22 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-443 — central presentation motion (2026-11-14)
+
+Slice: canonical duration/easing/layer tokens, preference-aware View Transition
+adapter and native transition inspector on homepage, Future Machine and Decision
+Studio. Reuse existing media preferences; migrate homepage card and Studio
+feedback/reveal timing. Simulation/recorded playback timing is outside this API.
+Acceptance: once-only commits, unsupported/reduced-motion fallback, live OS
+preference handling, keyboard focus, three normal routes and before/after images.
+Risk: browser captures require a bind-capable host; local server currently fails
+EADDRINUSE on 39943. Existing merge/voting/auth configuration stays unchanged.
+
+Delivered local slice and verification: 24 tests pass / 1 existing browser skip,
+124 assertions; browser bundle and diff whitespace checks pass. Broader media
+asset check blocked by missing Three loader dependency; Playwright config cannot
+resolve @playwright/test. No root typecheck/lint command/compiler available.
+Real new before/after screenshots and browser focus/reduced-motion acceptance
+remain pending dependency/server repair. See [review](reviews/SHE-443.md) for
+paths audited, preserved merge policy, actual checks and remaining acceptance.
