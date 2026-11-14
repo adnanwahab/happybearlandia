@@ -1,3 +1,4 @@
+import {outdoorLighting} from './render/environment/outdoor-lighting.js';
 import {mountStormCue} from './render/environment/storm-cue.js';
 import {stormIntensityAt} from './weather/parcel-storm.js';
 import {mountPlanChoices,customPlan,stagePlan} from './plan-choices.js';
@@ -2297,11 +2298,11 @@ function frame(now) {
     cityRenderer.updateCity({buildingHomeCounts:lightSnapshot?.buildingHomeCounts??(lightingLiving?[]:legacyHomeCounts(town.people,town.buildings)),buildingOccupancy:lightSnapshot?.buildingOccupancy??(lightingLiving?[]:legacyBuildingOccupancy(town.people,town.buildings))});
   }
   scene.background = buildingBridge?.worldVisuals.skyColor ? new THREE.Color(buildingBridge.worldVisuals.skyColor) : sky;
-  hemi.intensity = (buildingBridge?.worldVisuals.nightBrightness ?? 0.12) + 0.42 * daylight;
+  hemi.intensity = (buildingBridge?.worldVisuals.nightBrightness ?? 0.12) + outdoorLighting(daylight,lighting.twilight).skyIntensity - .12;
   hemi.color.setHex(0xc5ddf2);hemi.groundColor.setHex(0x55523f);
   sun.intensity = 2.8 * daylight;
-  sun.color.setHex(daylight < .35 ? 0xffce98 : 0xffefda);
-  sun.position.set(Math.cos(ang) * 400, Math.sin(ang) * 500, 200);
+  sun.color.setHex(0xffefda).lerp(new THREE.Color(0xffbd87),lighting.twilight);
+  sun.position.set(Math.cos(ang) * 800, Math.sin(ang) * 1000, 400).add(sun.target.position);
 
   // People
   // In the well-being and cycle overlays everyone is shown (indoors too), colored red→green.

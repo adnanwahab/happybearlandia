@@ -1,3 +1,4 @@
+import {outdoorLighting,updateOutdoorShadow,disposeOutdoorShadow} from './environment/outdoor-lighting.js';
 import {simulationBudget,formatSimulationBudget} from './renderer/dual-budget.js';
 import {windowFraction} from './environment/sim-lighting.js';
 import * as THREE from 'three';
@@ -35,8 +36,9 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
   let renderInstances=0,adaptiveEnabled=true,simulationSource=()=>null;
   let state={timeOfDay:14},lastSettings='',lastOverlay=0,frameIndex=0,active=true,photoPreset=null,focus=null,visible={},cached={},disposed=false, benchmarkStart=null;
   const panel=document.createElement('aside');panel.hidden=true;panel.dataset.testid='render-performance';
-  panel.style.cssText='position:fixed;top:12px;right:12px;z-index:100;background:#111e;color:#e1edf4;padding:14px;border:1px solid #52616c;border-radius:10px;font:12px/1.5 monospace;max-height:85vh;overflow:auto';
-  panel.innerHTML='<strong>City renderer · F3</strong><pre></pre><label>Lighting <select data-lighting aria-label="Scene lighting"><option value="14">Daylight</option><option value="18">Golden hour</option><option value="22">Night</option><option value="simulation">Simulation clock</option></select></label><label>Quality <select aria-label="Render quality"></select></label><label>Geometry <select data-geometry aria-label="Geometry detail"><option>LOW</option><option selected>MEDIUM</option><option>HIGH</option><option>ULTRA</option></select></label><label>Geometry view <select data-geometry-debug aria-label="Geometry debug"><option value="off">Off</option><option value="lod">Show LOD</option><option value="heatmap">Triangle heatmap</option></select></label><label><input type="checkbox" data-wireframe>Wireframe selected</label><div data-features></div><button data-cutaway>Selected cutaway</button><button data-photo>Photo mode</button><button data-record>Record 30 seconds</button><button data-export>Export JSON</button><p role="status"></p>';
+  panel.style.cssText='position:fixed;top:12px;right:12px;z-index:100;background:#111e;color:#e1edf4;padding:14px;border:1px solid #52616c;border-radius:10px;font:12px/1.5 monospace;max-height:85vh;max-width:calc(100vw - 52px);overflow:auto';
+  panel.innerHTML='<strong>City renderer · F3</strong><pre></pre><label>Lighting <select data-lighting aria-label="Scene lighting"><option value="14">Daylight</option><option value="6">Dawn</option><option value="18">Golden hour</option><option value="19.5">Twilight</option><option value="22">Night</option><option value="simulation">Simulation clock</option></select></label><label>Quality <select aria-label="Render quality"></select></label><label>Geometry <select data-geometry aria-label="Geometry detail"><option>LOW</option><option selected>MEDIUM</option><option>HIGH</option><option>ULTRA</option></select></label><label>Geometry view <select data-geometry-debug aria-label="Geometry debug"><option value="off">Off</option><option value="lod">Show LOD</option><option value="heatmap">Triangle heatmap</option></select></label><label><input type="checkbox" data-wireframe>Wireframe selected</label><div data-features></div><button data-cutaway>Selected cutaway</button><button data-photo>Photo mode</button><button data-record>Record 30 seconds</button><button data-export>Export JSON</button><p role="status"></p>';
+  const cosmeticNote=document.createElement('small');cosmeticNote.textContent='Lighting and atmosphere are cosmetic; not observed weather or model results.';panel.append(cosmeticNote);
   panel.querySelector('[data-lighting]').value='14';
   const select=panel.querySelector('[aria-label="Render quality"]');
   panel.querySelector('[data-lighting]').onchange=event=>{if(event.target.value==='simulation')delete state.timeOfDay;else api.setTimeOfDay(Number(event.target.value));};
@@ -65,7 +67,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
     const s=quality.settings,key=JSON.stringify([s,features.shadows]);if(key===lastSettings)return;lastSettings=key;
     renderer.setPixelRatio(Math.min(devicePixelRatio||1,embed?1:s.dpr)*s.scale);renderer.setSize(innerWidth,innerHeight);
     renderer.shadowMap.enabled=features.shadows&&s.shadows;
-    if(sun.shadow.mapSize.x!==s.shadowSize){sun.shadow.mapSize.setScalar(s.shadowSize);sun.shadow.map?.dispose();sun.shadow.map=null;}
+    if(sun.shadow.mapSize.x!==s.shadowSize){sun.shadow.mapSize.setScalar(s.shadowSize);disposeOutdoorShadow(sun);}
   }
   const api={
     renderCity(next){api.updateCity(next);active=true;},
@@ -88,7 +90,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
     getVehicle(id){return details.getVehicle?.(id)||null;},
     setReadbackEnabled(enabled){gpu.setEnabled(enabled);},
     setSimulationSource(read){if(typeof read!=='function')throw new TypeError('Simulation source must be a read function');simulationSource=read;},
-    getPerformanceStats(){return {...cached,simulation:simulationBudget(simulationSource()),lighting:state.lighting,buildingHomeCounts:state.buildingHomeCounts,readback:gpu.getSnapshot(),backend:mode,quality:quality.preset,settings:quality.settings,features:{...features},geometryError:geometryDetail?.error,recording:!!stats.recording,lastBenchmark:stats.lastReport};},
+    getPerformanceStats(){return {...cached,simulation:simulationBudget(simulationSource()),lighting:state.lighting,outdoor:state.outdoor,buildingHomeCounts:state.buildingHomeCounts,readback:gpu.getSnapshot(),backend:mode,quality:quality.preset,settings:quality.settings,features:{...features},geometryError:geometryDetail?.error,recording:!!stats.recording,lastBenchmark:stats.lastReport};},
     startBenchmark({scripted=false}={}){benchmarkStart=scripted?performance.now():null;stats.start(performance.now(),{readback:gpu.getSnapshot(),backend:mode,preset:quality.preset,features:{...features},url:location.href,userAgent:navigator.userAgent,viewport:[innerWidth,innerHeight],devicePixelRatio,adaptive:false,settings:quality.settings,geometryDetail:geometryDetail?.quality,scripted});},
     focusBuilding(id){const b=town.buildings.find(b=>String(b.id)===String(id)||b.index===id);if(!b)return false;state.selectedBuilding=b.id;focus={target:new THREE.Vector3(b.center[0],b.height/2,b.center[1]),position:new THREE.Vector3(b.center[0]+b.height*1.8+35,b.height*1.5+30,b.center[1]+b.height*1.8+35)};return true;},
     focusDistrict({x=0,z=0,radius=250}={}){focus={target:new THREE.Vector3(x,0,z),position:new THREE.Vector3(x+radius,radius,z+radius)};},
@@ -96,7 +98,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
     leaveCity(){active=false;renderer.domElement.style.visibility='hidden';},
     setPhotoMode(enabled){if(enabled&&!photoPreset){photoPreset=quality.preset;api.setQuality('ULTRA');}else if(!enabled&&photoPreset){const previous=photoPreset;photoPreset=null;api.setQuality(previous);}},
     beforeFrame(now,dt,daylight,selected,visuals={},motion={now,dt}){
-      if(disposed)return;applyQuality();
+      if(disposed)return false;applyQuality();
       if(focus){const alpha=1-Math.exp(-dt*5);camera.position.lerp(focus.position,alpha);controls.target.lerp(focus.target,alpha);camera.lookAt(controls.target);if(camera.position.distanceTo(focus.position)<.1)focus=null;}
       if(benchmarkStart!=null){const seconds=(now-benchmarkStart)/1000;scriptedCamera(camera,controls,seconds);camera.lookAt(controls.target);if(seconds>=24)api.setTimeOfDay(22);if(seconds>=30)benchmarkStart=null;}
       construction.animate(motion.now,features.construction);
@@ -106,8 +108,12 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
       const stormIntensity=parcelStorm.enabled===false?0:(parcelStorm.intensity??0);
       stormEffects.update({...parcelStorm,intensity:stormIntensity,reducedMotion,rainEnabled:features.rain,low:quality.preset==='LOW'},camera);
       skyDome.update(camera,daylight,state.weather,features.sky&&!visuals.skyColor,state.lighting,{minute:parcelStorm.minute,intensity:stormIntensity,reducedMotion});
-      scene.fog=features.atmosphere?fog:null;fog.color.setHex(0x91afbf).multiplyScalar(.08+.92*daylight);
-      visible=visibility.update(camera,quality.settings.distance,selected??state.selectedBuilding,features.shadows&&quality.settings.shadows,features.culling);
+      const outdoor=outdoorLighting(daylight,state.lighting?.twilight,state.weather);state.outdoor=outdoor;
+      renderer.toneMappingExposure=outdoor.exposure;
+      scene.fog=features.atmosphere?fog:null;fog.density=outdoor.fogDensity;
+      fog.color.setHex(0x91afbf).lerp(new THREE.Color(0xd99a83),outdoor.warm*.45).multiplyScalar(.08+.92*daylight);
+      updateOutdoorShadow(sun,controls.target,quality.settings,outdoor.shadowStrength,features.shadows&&!renderer.isCanvasRenderer);
+      visible=visibility.update(camera,quality.settings.distance,selected??state.selectedBuilding,sun.castShadow,features.culling);
       const selectedId=selected??state.selectedBuilding;
       geometryDetail?.update(now,camera,selectedId,innerHeight);
       visible.instances=lod.update(camera,selectedId,features.lod);
@@ -136,7 +142,9 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
         }
       }
     },
-    destroy(){disposed=true;gpu.dispose();removeEventListener('keydown',hotkey);panel.remove();graphicsButton.remove();details.dispose();lod.dispose();cutaway.dispose();construction.dispose();environment.dispose();grass.dispose();detailAssets.dispose();skyDome.dispose();stormEffects.dispose();geometryDebug.dispose();geometryDetail?.dispose();geometryCache?.dispose();},
+    destroy(){if(disposed)return;disposed=true;removeEventListener('pagehide',onPageHide);scene.fog=null;disposeOutdoorShadow(sun);gpu.dispose();removeEventListener('keydown',hotkey);panel.remove();graphicsButton.remove();details.dispose();lod.dispose();cutaway.dispose();construction.dispose();environment.dispose();grass.dispose();detailAssets.dispose();skyDome.dispose();stormEffects.dispose();geometryDebug.dispose();geometryDetail?.dispose();geometryCache?.dispose();},
   };
+  function onPageHide(){api.destroy();}
+  addEventListener('pagehide',onPageHide,{once:true});
   applyQuality();return api;
 }

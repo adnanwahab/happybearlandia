@@ -128,3 +128,20 @@ The browser test hashes full decoded model checkpoints before/after graphics
 changes and records before/after screenshots plus video. See
 `docs/reviews/SHE-165.md` for actual execution limits; the test existing is not
 proof it passed.
+
+## Cosmetic outdoor atmosphere (SHE-525)
+
+Dawn and Twilight are explicit lighting overrides in Graphics (F3). Authored
+skylight, continuous sun tint, bounded exposure (0.78–0.85) and exponential depth
+fog follow presentation time/weather, never write to a model, and use no added
+postprocessing passes or transparent fog planes. These effects are cosmetic,
+not weather observations. The atmosphere checkbox removes fog.
+
+Shadows use one approximate region centered on the controls target, with a
+160–400m half-width and existing per-tier 512/1024/2048 map sizes; this is not
+cascaded shadow mapping. Adaptive overload can disable shadows. Canvas2D omits
+shadows and atmospheric shading; WebGL2 retains the same bounded path without
+WebGPU. New settings have no timers or motion; existing cloud/rain reduced-motion
+rules remain. Resizing and destroy release both shadow render targets. Full
+sun-angle visual and physical device FPS acceptance remains pending; see
+[review](../../docs/reviews/SHE-525.md).
