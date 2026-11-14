@@ -9188,3 +9188,38 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+### SHE-547 — acknowledged household action microanimations (2026-11-14)
+
+Bounded slice: add a presentation-only response log to `/world/house`, connected to
+existing runtime mutations and inspected completed-action IDs. Pending, accepted,
+rejected and completed use separate text, symbols and colors. Character response
+icons and available roster portraits nod/shake briefly; reduced motion leaves
+static readable responses. No new simulation rules, clock, IDs, seeds or saved
+state. Commands retain their original arguments and return values; the response
+executor serializes submitted calls and retains their display order. Existing
+busy/availability guards remain in force; this does not add another simulation
+task queue or permit commands from disabled controls.
+
+Acceptance evidence: 31 tests / 226 assertions pass across
+`test/house-action-feedback.test.js`, `world/house/task-queue.test.js`, and
+`world/house/model.test.js`. This includes delayed acknowledgment, rejection,
+ordered submission, completion arriving before acknowledgment, deterministic
+queue replay and atomic model rejection. Browser bundle (310 modules), changed
+entry/UI syntax and diff whitespace checks pass. There is no repository-wide
+lint/typecheck script; JavaScript syntax and browser bundling are the applicable
+static checks.
+
+Remaining: run the added normal-entry keyboard/reduced-motion browser journey
+and isolated no-renderer response test on a host that permits local ports and
+Chromium. Local server startup failed at ports 3100/3547; isolated Chromium
+launch failed with MachPortRendezvous `Permission denied (1100)`. No new browser
+screenshots or visual acceptance claimed. Inspect desktop/mobile overlap and
+portrait timing before approval. Existing before-evidence files were preserved.
+See `docs/reviews/SHE-547.md` for overlap and merge-policy audit. No deployment,
+merge, external messages or production writes performed.
+
+Final integration evidence: `bun test test/house-integration.test.js
+ test/house-action-feedback.test.js` passed 11 tests / 86 assertions. This adds
+canonical checkpoint transfer, identity, paid action failure and deterministic
+continuation coverage. Both added browser test files pass syntax checks.
