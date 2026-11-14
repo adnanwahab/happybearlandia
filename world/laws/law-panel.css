@@ -3,3 +3,62 @@
 @media(max-width:760px){.law-panel-toggle{top:auto;bottom:12px;left:160px;max-width:calc(100vw - 172px);font-size:12px}}
 .law-library{margin:16px 0;padding:16px;border:1px solid #becdd8;border-radius:10px;background:#f4f8fb;color:#20394b;font:13px/1.5 system-ui}.law-library h2{margin:0 0 8px}.law-library input{display:block;box-sizing:border-box;width:100%;padding:9px;margin-top:5px;border:1px solid #8aa3b4;border-radius:6px;font:inherit;background:white;color:inherit}.law-library details{border-top:1px solid #c4d2dc;padding:9px 0}.law-library summary{cursor:pointer;font-weight:650}.law-library details>button{display:block;box-sizing:border-box;width:100%;margin:6px 0;padding:9px;text-align:left;white-space:normal;border:1px solid #a6bac8;border-radius:6px;background:white;color:inherit;font:inherit;cursor:pointer}.law-library button[aria-pressed=true]{background:#dceff8;border-color:#3483a9}.law-library :focus-visible{outline:3px solid #268fbe;outline-offset:2px}
 .law-panel .law-detail{margin:12px 0 18px;padding:12px;background:white;border:1px solid #b6ccd9;border-radius:10px}.law-panel .law-detail h3{margin:0 0 8px}.law-panel .law-metric-changed{background:#fff0d9}.law-panel button:disabled{opacity:.5;cursor:default}.law-panel .law-note[data-mode=recorded]{background:#fff0d9;border-color:#db8d28}.law-panel .law-detail[aria-busy=true] table{opacity:.5}.law-panel-toggle{box-shadow:0 2px 10px #0002}
+
+/* Recorded, seed-matched simulation playback. The two lanes always share one axis/scale. */
+.law-panel .law-lever-editor{border:1px solid #abc8d5;background:#eaf5f8;border-radius:10px;padding:11px 12px;margin:12px 0}
+.law-panel .law-lever-editor legend{font-weight:750;padding:0 5px}
+.law-panel .law-lever-editor label{font-weight:600}
+.law-panel .law-lever-editor input[type=range]{display:block;width:100%;padding:0;margin:12px 0 5px;accent-color:#0b7597}
+.law-panel .law-lever-editor output{display:inline-block;font-weight:800;margin:0 0 0 8px}
+.law-panel .law-lever-editor p{font-size:12px;color:#486276;margin:5px 0}
+.law-panel .law-behavior-playback{margin:14px 0 20px;padding:14px 11px;background:#f9fcff;border:1px solid #a6c6d9;border-radius:11px;color:#20394b}
+.law-panel .law-behavior-playback[hidden]{display:none}
+.law-panel .law-behavior-playback h3{margin:0 0 7px;color:#173e55;font-size:17px}
+.law-panel .law-behavior-playback h4{margin:2px 0 8px;font-size:12px}
+.law-panel .law-behavior-disclaimer{font-size:11px;line-height:1.45;color:#4e6473}
+.law-panel .law-behavior-provenance{font:600 11px/1.45 system-ui;color:#396378;background:#e6f1f8;border-radius:5px;padding:7px}
+.law-panel .law-behavior-controls{display:grid;gap:7px;grid-template-columns:1fr auto;align-items:end;margin:8px 0}
+.law-panel .law-behavior-controls label{font-size:11px;font-weight:650;min-width:0}
+.law-panel .law-behavior-controls label:first-child{grid-column:1/-1}
+.law-panel .law-behavior-controls select{width:100%;max-width:100%;border:1px solid #97b0c0;background:#fff;color:inherit;border-radius:7px;padding:7px;margin-top:3px;font:inherit}
+.law-panel .law-behavior-controls input[type=range]{display:block;width:100%;margin-top:10px;padding:0;accent-color:#12759a}
+.law-panel .law-behavior-controls button{margin:0;white-space:normal;max-width:150px;background:#174f6c;color:#fff;border-color:#174f6c}
+.law-panel .law-behavior-clock{font-weight:750;font-variant-numeric:tabular-nums;margin:8px 0}
+.law-panel .law-behavior-lanes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.law-panel .law-behavior-lane{min-width:0;padding:8px 7px 4px;border:1px solid #d0dce4;border-radius:9px;overflow:hidden}
+.law-panel .law-behavior-lane-base{background:#e8f3fb}
+.law-panel .law-behavior-lane-edited{background:#eaf6f0}
+.law-panel .law-behavior-number{font-size:clamp(14px,2vw,19px);line-height:1.35;font-weight:800;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.law-panel .law-behavior-map{min-height:26px}
+.law-panel .law-behavior-map svg{display:block;width:100%;height:auto}
+.law-panel .law-behavior-map-background{fill:#fff;stroke:#d1dfe4;stroke-width:1}
+.law-panel .law-behavior-person{stroke:#fff;stroke-width:1.6}
+.law-panel .law-behavior-person-changed{stroke:#e09c17;stroke-width:2}
+.law-panel .law-behavior-base{fill:#177bad;stroke:#177bad}
+.law-panel .law-behavior-edited{fill:#18905c;stroke:#18905c}
+.law-panel .law-behavior-person.law-behavior-base{fill:#177bad;stroke:#fff}
+.law-panel .law-behavior-person.law-behavior-edited{fill:#18905c;stroke:#fff}
+.law-panel .law-behavior-person-changed.law-behavior-base,
+.law-panel .law-behavior-person-changed.law-behavior-edited{stroke:#e09c17}
+.law-panel .law-behavior-delta{font-weight:750;color:#29566b;margin:10px 0 4px}
+.law-panel .law-behavior-reference{font-size:11px;line-height:1.45;color:#435a6a;margin:3px 0}
+.law-panel .law-behavior-chart svg{width:100%;height:auto;display:block;background:#fff;border:1px solid #d7e5ee;border-radius:8px}
+.law-panel .law-behavior-line{fill:none;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}
+.law-panel .law-behavior-line.law-behavior-base{stroke:#177bad}
+.law-panel .law-behavior-line.law-behavior-edited{stroke:#18905c}
+.law-panel .law-behavior-dot.law-behavior-base{fill:#177bad;stroke:none}
+.law-panel .law-behavior-dot.law-behavior-edited{fill:#18905c;stroke:none}
+.law-panel .law-behavior-axis{stroke:#8da2b0;stroke-width:1}
+.law-panel .law-behavior-cursor{stroke:#dc8e1b;stroke-width:1.7;stroke-dasharray:4 3}
+.law-panel .law-behavior-chart-text{font-size:10px;fill:#486276}
+.law-panel .law-behavior-legend{font-size:11px;line-height:1.4;color:#435c6b}
+.law-panel .law-behavior-actor-summary{font-weight:700;margin:6px 0}
+.law-panel .law-behavior-actor{border-top:1px solid #dae6ed;padding:7px 0}
+.law-panel .law-behavior-actor strong{display:block;color:#17455c}
+.law-panel .law-behavior-actor p{margin:3px 0;font-size:12px}
+@media(max-width:640px){
+ .law-panel .law-behavior-controls{grid-template-columns:1fr}
+ .law-panel .law-behavior-controls button{max-width:none}
+ .law-panel .law-behavior-lane{padding:6px 4px}
+}
+@media(prefers-reduced-motion:reduce){.law-panel .law-behavior-playback *{scroll-behavior:auto!important;transition:none!important}}
