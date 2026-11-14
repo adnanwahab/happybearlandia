@@ -3,6 +3,7 @@ import {windowFraction} from './environment/sim-lighting.js';
 import * as THREE from 'three';
 import { DetailAssetLibrary } from './assets/instanced-glb.js';
 import { createGrass } from './vegetation/grass.js';
+import { createStormEffects } from './environment/storm-effects.js';
 import { createCitySky } from './environment/sky.js';
 import { GeometryDebug } from './geometry/debug/geometry-debug.js';
 import { GeometryDetailManager } from './geometry/geometry-detail-manager.js';
@@ -26,6 +27,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
   const grass=createGrass(scene,town),detailAssets=new DetailAssetLibrary(scene);
   const environment=createEnvironmentLight(renderer,scene);
   const skyDome=createCitySky(scene);
+  const stormEffects=createStormEffects(scene,town);
   const construction=new ConstructionRenderer(scene);
   const lod=new BuildingLOD(scene,visibility.chunks), cutaway=new BuildingCutaway(scene);
   const features={assets:true,grass:true,sky:true,environment:true,construction:true,lod:true,props:true,roads:true,traffic:true,vegetation:true,roofs:true,rain:true,facades:true,interiors:true,atmosphere:true,shadows:!embed,culling:true};
@@ -78,6 +80,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
     setCutaway(value){cutaway.enabled=Boolean(value);},
     setWeather(value){details.setWeather(value);state.weather=value;},
     setTimeOfDay(hour){if(!Number.isFinite(hour))throw new TypeError('Hour must be finite');state.timeOfDay=((hour%24)+24)%24;},
+    getStormState(){return stormEffects.getState();},
     get timeOfDay(){return state.timeOfDay;},
     get density(){return quality.settings.density;},
     get cutawayEnabled(){return cutaway.enabled;},
@@ -98,7 +101,11 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
       if(benchmarkStart!=null){const seconds=(now-benchmarkStart)/1000;scriptedCamera(camera,controls,seconds);camera.lookAt(controls.target);if(seconds>=24)api.setTimeOfDay(22);if(seconds>=30)benchmarkStart=null;}
       construction.animate(motion.now,features.construction);
       environment.update(daylight,features.environment);
-      skyDome.update(camera,daylight,state.weather,features.sky&&!visuals.skyColor,state.lighting);
+      const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const parcelStorm=state.parcelStorm??{};
+      const stormIntensity=parcelStorm.enabled===false?0:(parcelStorm.intensity??0);
+      stormEffects.update({...parcelStorm,intensity:stormIntensity,reducedMotion,rainEnabled:features.rain,low:quality.preset==='LOW'},camera);
+      skyDome.update(camera,daylight,state.weather,features.sky&&!visuals.skyColor,state.lighting,{minute:parcelStorm.minute,intensity:stormIntensity,reducedMotion});
       scene.fog=features.atmosphere?fog:null;fog.color.setHex(0x91afbf).multiplyScalar(.08+.92*daylight);
       visible=visibility.update(camera,quality.settings.distance,selected??state.selectedBuilding,features.shadows&&quality.settings.shadows,features.culling);
       const selectedId=selected??state.selectedBuilding;
@@ -109,7 +116,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
       cutaway.update(now);
       grass.update(motion.now,camera,quality.settings,features.grass&&features.vegetation,quality.preset);
       detailAssets.update(motion.now,camera,quality.settings,features);
-      details.update(motion.now,motion.dt,camera,{...quality.settings,geometryRadius:({LOW:.6,MEDIUM:1,HIGH:1.3,ULTRA:1.6})[geometryDetail?.quality||'MEDIUM']},features,state);
+      details.update(motion.now,motion.dt,camera,{...quality.settings,geometryRadius:({LOW:.6,MEDIUM:1,HIGH:1.3,ULTRA:1.6})[geometryDetail?.quality||'MEDIUM']},{...features,rain:features.rain&&!reducedMotion&&stormIntensity===0},state);
       const homes=new Map((state.buildingHomeCounts??[]).map(r=>[String(r.buildingId),r])),present=new Map((state.buildingOccupancy??[]).map(r=>[String(r.buildingId),r.count]));
       for(const facade of facades){facade.setNight(1-daylight);facade.setEnabled(features.facades);facade.setInteriorEnabled(features.interiors&&quality.settings.interiors);const b=facade.building;facade.setOccupancy(b?windowFraction(b,homes.get(String(b.id)),present.get(String(b.id))??0,state.lighting?.hour??14,state.lighting?.day??0):0);}
       return active;
@@ -129,7 +136,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
         }
       }
     },
-    destroy(){disposed=true;gpu.dispose();removeEventListener('keydown',hotkey);panel.remove();graphicsButton.remove();details.dispose();lod.dispose();cutaway.dispose();construction.dispose();environment.dispose();grass.dispose();detailAssets.dispose();skyDome.dispose();geometryDebug.dispose();geometryDetail?.dispose();geometryCache?.dispose();},
+    destroy(){disposed=true;gpu.dispose();removeEventListener('keydown',hotkey);panel.remove();graphicsButton.remove();details.dispose();lod.dispose();cutaway.dispose();construction.dispose();environment.dispose();grass.dispose();detailAssets.dispose();skyDome.dispose();stormEffects.dispose();geometryDebug.dispose();geometryDetail?.dispose();geometryCache?.dispose();},
   };
   applyQuality();return api;
 }
