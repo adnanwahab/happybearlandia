@@ -1,3 +1,4 @@
+import {mountGamepadControls} from './gamepad-controls.js';
 import {mountStormCue} from './render/environment/storm-cue.js';
 import {stormIntensityAt} from './weather/parcel-storm.js';
 import {mountPlanChoices,customPlan,stagePlan} from './plan-choices.js';
@@ -2137,7 +2138,7 @@ const businessUI = businessMode ? mountBusinessMode(world, {
   },
 }) : null;
 renderer.domElement.addEventListener("pointerdown", (e) => { downAt = [e.clientX, e.clientY];ptr.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);ray.setFromCamera(ptr,camera);downVehicle=cityRenderer.pickVehicle?.(ray)||null; });
-renderer.domElement.addEventListener("pointerup", (e) => {
+function inspectWorldPointer(e) {
   if(e.defaultPrevented)return; // Living City claimed an actual sampled person; let OrbitControls finish release.
   if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) return; // was a drag
   ptr.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
@@ -2160,8 +2161,29 @@ renderer.domElement.addEventListener("pointerup", (e) => {
   } else if (hp && (!hb || hp.distance < hb.distance)) {if(emitLegacyPersonContext(e,hp.index)!==false)select({ type: "person", id: hp.index });}
   else if (hb) select({ type: "building", id: hb.object.userData.b.index });
   else select(null);
-});
+}
+renderer.domElement.addEventListener("pointerup",inspectWorldPointer);
 addEventListener("keydown", (e) => { if (e.key === "Escape") select(null); });
+renderer.domElement.tabIndex=0;
+const gamepadControls=!embedMode?mountGamepadControls({container:$('top'),canvas:renderer.domElement,
+ onMove:({x,y,rx,ry,zoom,dt})=>{
+  if(!controls.enabled||!dt||!(x||y||rx||ry||Math.abs(zoom)>.1))return;
+  follow=false;visualCamera?.cancel();
+  const speed=Number($('camera-speed').value)||1,distance=camera.position.distanceTo(controls.target);
+  if(x)mapControls.pan(x>0?'east':'west',Math.abs(x)*distance*dt*speed);
+  if(y)mapControls.pan(y>0?'south':'north',Math.abs(y)*distance*dt*speed);
+  if(rx||ry||Math.abs(zoom)>.1){
+   const offset=camera.position.clone().sub(controls.target),spherical=new THREE.Spherical().setFromVector3(offset);
+   spherical.theta-=rx*dt*speed;spherical.phi=Math.max(.1,Math.min(Math.PI/2-.02,spherical.phi+ry*dt*speed));
+   spherical.radius=Math.max(controls.minDistance,Math.min(controls.maxDistance,spherical.radius*Math.exp(-zoom*dt*speed)));
+   camera.position.copy(controls.target).add(offset.setFromSpherical(spherical));controls.update();
+  }
+ },onInspect:()=>{const r=renderer.domElement.getBoundingClientRect(),e={clientX:r.left+r.width/2,clientY:r.top+r.height/2,type:'gamepad'};downAt=[e.clientX,e.clientY];downVehicle=null;inspectWorldPointer(e);downAt=null;},
+ onMenu:()=>document.querySelector('[data-testid="person-commands"] button')?.focus(),
+ onTour:()=>$('demoBtn')?.click()
+}):null;
+addEventListener('pagehide',()=>gamepadControls?.destroy(),{once:true});
+
 
 function emitLegacyPersonContext(event,index){const person=town.people[index];return window.dispatchEvent(new CustomEvent('world:person-context',{cancelable:true,detail:{mode:'legacy',actorId:selected?.type==='person'?String(town.people[selected.id].id):null,targetId:String(person.id),clientX:event.clientX,clientY:event.clientY,...(event.type==='contextmenu'?{trigger:'contextmenu'}:{})}}));}
 renderer.domElement.addEventListener('contextmenu',event=>{if(livingWorld?.active||event.defaultPrevented)return;const bounds=renderer.domElement.getBoundingClientRect();ptr.set((event.clientX-bounds.left)/bounds.width*2-1,-(event.clientY-bounds.top)/bounds.height*2+1);ray.setFromCamera(ptr,camera);const hit=humanPeople.pick(ray),building=ray.intersectObjects(meshes)[0];if(hit&&(!building||hit.distance<building.distance)){event.preventDefault();emitLegacyPersonContext(event,hit.index);}});
@@ -2256,7 +2278,7 @@ let last = performance.now();
 
 function frame(now) {
   if(startupAbort.signal.aborted)return;
-  mapControls.update(now);fpsMeter.update(now);if(selectedVehicle&&now-lastVehicleUpdate>200){lastVehicleUpdate=now;const vehicle=cityRenderer.getVehicle?.(selectedVehicle);if(vehicle)vehicleInspector?.update(vehicle);}if(manualPanRequested){follow=false;manualPanRequested=false;}
+  gamepadControls?.update(now);mapControls.update(now);fpsMeter.update(now);if(selectedVehicle&&now-lastVehicleUpdate>200){lastVehicleUpdate=now;const vehicle=cityRenderer.getVehicle?.(selectedVehicle);if(vehicle)vehicleInspector?.update(vehicle);}if(manualPanRequested){follow=false;manualPanRequested=false;}
   if(streamingEnabled||Math.hypot(controls.target.x,controls.target.z)>400){streamingEnabled=true;mapStreamer.update();}updateContextMinimap();
   const cpuStart = performance.now();
   const frameMs = now - last;

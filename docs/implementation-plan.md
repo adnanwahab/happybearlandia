@@ -9188,3 +9188,22 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-473 — optional World gamepad controls
+
+Bounded slice: standard Gamepad API adapter on the existing 3D World frame loop,
+explicit opt-in, configurable action button indices and deadzone. Reuse local
+pan, ray inspector, resident command toolbar and full tour. No simulation adapter
+or run records change. Acceptance: neutral-on-connect, bounded frame delta,
+edge-triggered buttons, disconnect/blur safety, unavailable API, keyboard/touch
+coexistence, browser journey and measured polling cost. Canvas2D retains keyboard
+and touch; no gamepad camera support is claimed there. Physical controller and
+hardware performance verification remain external prerequisites.
+
+Local verification: 22 tests / 130 assertions passed; JS syntax and whitespace
+checks passed. Synthetic 100k-poll benchmark took 50.06ms (excludes rendering and
+raycasts). Browser suite added but server startup blocks with EADDRINUSE on 3499
+and 41987. Before screenshots preserved; after visual evidence, physical pad,
+tour acceptance and browser raycast timing remain pending. No root typecheck or
+lint script exists. Audit and preserved merge safety hold:
+[review](reviews/SHE-473.md). No commit/PR/deployment.
