@@ -8877,3 +8877,33 @@ by Bun listen EADDRINUSE on ports 39884 and 41967. Visual/GPU/mobile acceptance
 remains unverified. Current remote main has unrelated newer coordinator/scene
 fixes to preserve during integration; fetch/rebase/commit are unavailable because
 shared Git metadata is outside writable roots. No merge or deployment.
+
+## SHE-260 follow-up — renderer integration (2026-11-13)
+
+Audit at `5fdb9683`: PR287 is closed, unmerged; its head `2b13ee3b` is
+already in this checkout's history. The working tree began clean. Prior code
+implements model depth, walking, recovery and cues, but city-renderer never
+mounted storm-effects, consumed parcelStorm or exposed getStormState. Its sky
+also lacked the claimed cloud drift. This overrides the earlier delivery claim.
+
+Bounded slice: connect existing state to the renderer, avoid duplicate rain,
+apply reduced motion, dispose resources, and animate the existing cloud shader
+from model minutes. Preserve simulation rules and source IDs. Acceptance tasks:
+model/renderer depth and recovery tests; sky intensity/time/reduced-motion tests;
+normal-entry browser test; LOW frame recording after browser startup. Risks:
+synthetic apron is not street hydraulics; browser/backend and hardware acceptance
+cannot be inferred from unit tests or bundling.
+
+Delivered: city-renderer now mounts, updates, diagnoses and disposes storm-effects;
+LOW uses its existing 300-streak cap. Sky receives model intensity and minute;
+reduced motion sets drift/rain to zero. Generic rain is suppressed while storm
+rain owns the scene. No new model or checkpoint contract was introduced.
+
+Evidence and unresolved acceptance: [SHE-260 review](reviews/SHE-260.md).
+Focused checks pass; browser startup still fails with EADDRINUSE on3199.
+Low-end frame budget, shader visual output and audible cue remain unverified.
+Two existing legacy-checkpoint tests fail on restored activity snapshot seed
+labels; this change does not modify checkpoint/simulation code. Next action:
+run the focused browser config and LOW recording in a bind-capable environment,
+then verify target hardware before closing acceptance. No merge/deployment or
+remote policy change; autonomous merge remains disabled by workflow safety hold.
