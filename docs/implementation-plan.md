@@ -9188,3 +9188,21 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-522 — source scheduling prerequisite (November 14, 2026)
+
+Analysis-only audit at cdb773a1 on mini/SHE-522. All 48 open PRs audited for
+related work; no matching title/branch/body. Business Lab supplies aggregate
+operating hours and synthetic customer traces, without authoritative shop
+opening/closing intervals. Legacy player toggles and Population firm viability
+use separate identities/clocks; neither establishes the requested mapping.
+No application/model change made. Next slice requires a versioned schedule
+source with business/run identity, clock, event provenance, interval bounds and
+missing-data semantics before projecting cosmetic signs/shutters/lights.
+Acceptance remains open, including exact event mapping, neutral fallback,
+mobile/keyboard, reduced motion, navigation and route resource teardown.
+Existing business checks: 32 pass, 0 fail, 232 assertions; no configured global
+lint/typecheck. Browser skipped for analysis-only scope; existing before images
+cover other routes and are not acceptance evidence. Full paths, risks and
+acceptance tasks: [SHE-522 review](reviews/SHE-522.md). Existing disabled
+automatic merge policy preserved; no remote writes, merge or deployment.
