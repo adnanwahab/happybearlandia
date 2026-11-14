@@ -41,6 +41,15 @@ test('the production server serves the homepage and rejects an unknown route', a
     expect(home.status).toBe(200);
     expect(home.headers.get('content-type')).toContain('text/html');
     expect(await home.text()).toContain('Try Today’s Features');
+    for (const path of ['/shared/media/pipeline.js', '/shared/media/preferences.js']) {
+      const module = await fetch(origin + path, { signal: AbortSignal.timeout(3000) });
+      expect(module.status).toBe(200);
+      expect(module.headers.get('content-type')).toContain('javascript');
+      expect(await module.text()).toContain('export');
+    }
+    for (const path of ['/shared/media/not-public.js', '/shared/not-public.js', '/.env']) {
+      expect((await fetch(origin + path, { signal: AbortSignal.timeout(3000) })).status).toBe(404);
+    }
     const missing = await fetch(origin + '/missing-release-test-page', { signal: AbortSignal.timeout(3000) });
     expect(missing.status).toBe(404);
   } finally {
