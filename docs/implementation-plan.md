@@ -9188,3 +9188,23 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-548 — need explanation fallback increment (2026-11-14)
+
+Prerequisites audited: House current inspection fields, completion ledger,
+Population need-rate stepping, current request picker and open house/needs PRs.
+Delivered native need-label buttons, an explicit unknown-history card, exact
+current-field source link with resident and Population minute, synthetic labeling,
+and existing request-flow access. No simulation or persistence contract changed.
+
+Acceptance evidence: 19 relevant Bun tests pass (98 assertions); browser bundle,
+module/test syntax and diff checks pass. Focused mounted-UI Playwright test added;
+execution blocked by local server bind failure on both attempted ports. No House
+before/after evidence claimed. Existing unrelated before captures preserved.
+
+Status: partial, reviewable local increment. Historical per-need cause/delta/tick
+records are absent from retained history; full event-linked acceptance remains
+open. Next slice requires an authority-owned bounded provenance contract, ODD
+review and deterministic replay/eviction tests before displaying historical
+causal deltas. Detailed paths, overlap audit, preserved merge hold and checks:
+[review](reviews/SHE-548.md). No commit/PR, merge or deployment performed.
