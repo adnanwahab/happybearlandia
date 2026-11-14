@@ -352,3 +352,12 @@ move. Names/avatars are synthetic; outcomes are uncalibrated model observations.
 arm's household → occupied unit → building on every frame and highlights both
 recorded buildings, including different buildings after a move. Unmapped homes
 remain unhighlighted. Camera and simulation playback are unchanged.
+
+## Optional event timelapse
+
+`onEventSlowdown(boolean)` handles the native transport checkbox; update
+`eventSlowdown` to reflect selection. Disabled until a completed frame is
+available. The coordinator owns 200/800 ms presentation holds around existing
+recorded construction/household-stress moments; the guided demo retains its own
+timing. Reduced motion bypasses the optional holds. Pause and manual seek retain
+their existing immediate takeover behavior. No simulation scheduling changes.

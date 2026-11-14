@@ -31,7 +31,7 @@ async function boot(options={}){
  const node=()=>({after(){},before(){},prepend(){},replaceChildren(){},remove(){},click(){},querySelector(){return this;}});
  const app=node(),document={hidden:false,querySelector:()=>app,createElement:node,addEventListener(){},removeEventListener(){}};
  const navigator={clipboard:{writeText:options.copy??(async()=>{})},share:options.nativeShare??(async()=>{})};
- const window={history:{replaceState(_a,_b,url){location.href=url;writes.push(url);}},localStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},addEventListener(){},removeEventListener(){}};
+ const window={matchMedia:()=>({matches:!!options.reducedMotion}),history:{replaceState(_a,_b,url){location.href=url;writes.push(url);}},localStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},addEventListener(){},removeEventListener(){}};
  const context=createContext({document,window,navigator,location,performance:{now:()=>time},structuredClone,URL,URLSearchParams,AbortController,Blob,console,setTimeout,clearTimeout,
   requestAnimationFrame:fn=>{const id=nextId++;raf.set(id,fn);return id;},cancelAnimationFrame:id=>raf.delete(id),
   setInterval:fn=>{const id=nextId++;intervals.set(id,fn);return id;},clearInterval:id=>intervals.delete(id)});
@@ -66,7 +66,7 @@ async function boot(options={}){
   './ui/outcome-timeline.js':{createOutcomeTimeline:()=>({update:(month,settings)=>{if(settings?.announce)announcements.push(month);},dispose:noop})},
   './story/index.js':{buildStory:()=>({summary:'Recorded pair.',stops:[first],limitations:[]}),describeSelection:()=>({title:'Recorded building',summary:'Recorded entity.',evidence:[receipt],limitations:[]}),renderStory(_host,value,events){description=value;storyCallbacks=events;return noop;}},
   './story/evidence-trail-view.js':{renderEvidenceTrail:()=>Object.assign(noop,{update:noop})},
-  './story/game-director.js':{selectMoments:()=>[]},'./story/moment-narrative.js':{renderMoments:()=>noop},
+  './story/game-director.js':{selectMoments:()=>options.moments??[]},'./story/moment-narrative.js':{renderMoments:()=>noop},
   './evidence.js':{constructionReceipts:(_h,_e,month)=>month>=16?[receipt]:[],metricChangeStops:(_h,diff,key)=>key==='housingUnits'&&diff.month>=16?[{...first,title:'Recorded housing completion',evidence:[receipt]}]:[]},
   './rent-decomposition.js':{decomposeRent:frame=>frame,renderRentDecomposition:noop},
   './butterfly-ledger.js':{mountLedger:()=>noop},'./share/card.js':{downloadShareCard:noop},
@@ -436,4 +436,26 @@ test('cancel retains initial inventory and ignores a late result without restori
   expect(app.state.frame).toEqual(initial);expect(app.window.futureMachine.history).toBeNull();
   expect(app.state.playing).toBe(false);expect(app.window.futureMachine.stats.demoTiming).toBeNull();
  }finally{app.dispose();}
+});
+
+ test('optional event windows hold recorded months and pause/seek immediately overrides',async()=>{
+ const app=await boot({moments:[{kind:'construction',month:16}]});
+ try{
+ await app.callbacks.onRun(DEFAULT_RECIPE);app.callbacks.onMonth(15);
+ app.callbacks.onEventSlowdown(true);app.callbacks.onPlay(true);
+ for(let i=0;i<3;i++)app.tick(200);expect(app.state.month).toBe(15);
+ app.tick(200);expect(app.state.month).toBe(16);
+ app.callbacks.onPlay(false);app.tick(200);expect(app.state.month).toBe(16);
+ app.callbacks.onMonth(42);app.tick(200);expect(app.state.month).toBe(42);expect(app.state.playing).toBe(false);
+ app.callbacks.onPlay(true);app.tick(200);expect(app.state.month).toBe(43);
+ app.callbacks.onMonth(16);app.callbacks.onEventSlowdown(false);app.callbacks.onPlay(true);app.tick(200);expect(app.state.month).toBe(17);
+ }finally{app.dispose();}
+ });
+ test('eventless runs retain normal playback even with slowdown selected',async()=>{
+ const app=await boot();try{await app.callbacks.onRun(DEFAULT_RECIPE);app.callbacks.onEventSlowdown(true);app.callbacks.onPlay(true);app.tick(200);expect(app.state.month).toBe(1);}finally{app.dispose();}
+ });
+
+test('reduced motion bypasses optional event holds',async()=>{
+ const app=await boot({reducedMotion:true,moments:[{kind:'construction',month:16}]});
+ try{await app.callbacks.onRun(DEFAULT_RECIPE);app.callbacks.onMonth(16);app.callbacks.onEventSlowdown(true);app.callbacks.onPlay(true);app.tick(200);expect(app.state.month).toBe(17);}finally{app.dispose();}
 });

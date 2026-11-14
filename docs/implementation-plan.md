@@ -9188,3 +9188,25 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-485 — optional recorded-event timelapse (2026-11-14)
+
+Bounded local slice: reuse the existing transport and `selectMoments` event
+identity validation/editorial ranking. Opt-in holds the recorded month for four
+200 ms presentation pulses within ±1 month of selected construction or household
+stress events. No model clocks, inputs, seeds, outcomes, IDs or history change.
+Guided demo remains on its existing timing. Reduced motion bypasses holds.
+
+Acceptance evidence: three focused coordinator tests pass (holds, pause/seek,
+normal speed outside windows/eventless, opt-out, reduced motion); adjacent UI,
+story, data and shortcuts: 30 pass / 2 browser skips. Browser execution attempted
+but Bun.serve fails EADDRINUSE before launch. Keyboard/touch/unavailable-state
+browser test is committed but unverified. Existing full coordinator suite has
+two failures from missing `stage.divergenceShot` in its test double; no production
+camera changes made. No lint/typecheck script exists. Diff whitespace checked.
+
+Local event-selection benchmark: actual default synthetic 120-month pair, 50
+samples, median 7.60 ms / p95 11.56 ms. Selection is cached for the play session;
+no replay or selection scans on each tick. This is not a device/browser budget
+certification. Remaining: browser bind-capable run, before/after target-surface
+captures, target-device interaction measurements. See docs/reviews/SHE-485.md.
