@@ -63,3 +63,9 @@ The actual integrated application was measured on this host using the command ab
 | Canvas2D/canvas2d |8095.7|unavailable|8098.8|8117.8|
 
 All three paths report no page/request/validation errors. Canvas has144opaque pixel samples/12colors. Screenshot inspection confirms rendered city geometry. These remain single-host observations, not device certification, GPU presentation timings, or total memory. No performance budget was weakened. SHE-11 completion still requires fresh hosted checks and PR322 integration; SHE-40 numeric CI budgets and other issue acceptance gaps remain separate. No live queue, approval, assignment, or production configuration changed.
+
+### Final hosted check diagnosis
+
+At8403062c, replay, storm and model validation passed. Performance run43626508572 completed all six scenes without application errors or load/heap violations; only p95frame1399.9–1616.5ms exceeded unchanged250ms and is covered by explicit operator exception. Core run43626508517 passed11/12canonical cases but WebKit history test counted two Three requests from the independent homepage Bar Atlas iframe (`Referer: /world/bar/scene.js`, childframe0325b1d2c80c52366f25445d4cc99e86). Trace artifact14126379061 retains the evidence.
+
+The test now scopes its no-Three assertion to the main application frame and additionally asserts the actual Canvas backend. It still rejects any main-frame Three request and preserves the full guided/history/WHY/error assertions. No application, model, budget, or security code changed. This is a test-provenance correction, not a performance waiver. Fresh checks remain required before merge.
