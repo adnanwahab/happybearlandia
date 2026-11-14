@@ -1,0 +1,89 @@
+{
+  "schemaVersion": "hbl.first-interaction.v1",
+  "timestamp": "2026-11-14T16:51:30.857Z",
+  "commit": "274e90ae351395325b51c83466f9514ae4ec6d12",
+  "host": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M4"
+  },
+  "browser": {
+    "name": "chromium",
+    "version": "157.0.8103.52"
+  },
+  "profile": {
+    "id": "mobile-emulated",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "deviceScaleFactor": 2,
+    "cpuSlowdown": 4,
+    "network": {
+      "latencyMs": 80,
+      "downloadBytesPerSecond": 1250000,
+      "uploadBytesPerSecond": 625000
+    },
+    "limits": {}
+  },
+  "physicalHardwareTested": false,
+  "route": "/ → /world/future-machine.html?demo=1",
+  "limitations": [
+    "CPU/network/viewport emulation only; no physical device claim.",
+    "Sample starts are admission-paced at least61seconds apart; idle time is outside measured latency and default admission is unchanged.",
+    "Peak is sampled main-page V8 used heap, excluding workers, GPU, native and process memory.",
+    "Render latency ends after two animation frames; it does not prove display scanout.",
+    "Decoded JS response bytes include homepage frames and demo, not compressed transfer bytes."
+  ],
+  "status": "passed",
+  "samples": [
+    {
+      "run": 0,
+      "jsBytes": 4924458,
+      "readyMs": 52928.58929200002,
+      "renderMs": 160.2000002861023,
+      "peakHeapBytes": 132232208,
+      "evidence": {
+        "seed": 42,
+        "modelVersion": "city-systems.1.1.0",
+        "initialHash": "7767de6b19f3b1c62f218c3a4ee26739157382db2c7ff962dbe141fc160821ae",
+        "backend": "webgpu",
+        "month": 16
+      }
+    },
+    {
+      "run": 1,
+      "jsBytes": 4924458,
+      "readyMs": 52880.80604100003,
+      "renderMs": 141.69999980926514,
+      "peakHeapBytes": 130919576,
+      "evidence": {
+        "seed": 42,
+        "modelVersion": "city-systems.1.1.0",
+        "initialHash": "7767de6b19f3b1c62f218c3a4ee26739157382db2c7ff962dbe141fc160821ae",
+        "backend": "webgpu",
+        "month": 16
+      }
+    },
+    {
+      "run": 2,
+      "jsBytes": 4924458,
+      "readyMs": 52965.763000000035,
+      "renderMs": 143.59999990463257,
+      "peakHeapBytes": 130579168,
+      "evidence": {
+        "seed": 42,
+        "modelVersion": "city-systems.1.1.0",
+        "initialHash": "7767de6b19f3b1c62f218c3a4ee26739157382db2c7ff962dbe141fc160821ae",
+        "backend": "webgpu",
+        "month": 16
+      }
+    }
+  ],
+  "observedMax": {
+    "jsBytes": 4924458,
+    "readyMs": 52965.763000000035,
+    "renderMs": 160.2000002861023,
+    "peakHeapBytes": 132232208
+  }
+}

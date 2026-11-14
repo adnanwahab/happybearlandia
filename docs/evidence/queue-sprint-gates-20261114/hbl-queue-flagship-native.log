@@ -1,0 +1,45 @@
+
+Running 4 tests using 1 worker
+
+(node:74895) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium] › test/e2e/approved-demo-responsive.e2e.js:30:6 › homepage Canvas reduced-motion journey at 1440px (1.5m)
+(node:75083) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  2 [chromium] › test/e2e/approved-demo-responsive.e2e.js:30:6 › homepage Canvas reduced-motion journey at 390px (56.6s)
+
+
+  1) [chromium] › test/e2e/approved-demo-responsive.e2e.js:30:6 › homepage Canvas reduced-motion journey at 1440px 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: "ready"
+    Received: undefined
+
+    Call Log:
+    - Timeout 90000ms exceeded while waiting on the predicate
+
+      67 |   await cta.focus();await expect(cta).toBeFocused();await page.keyboard.press('Enter');
+      68 |   await expect(page).toHaveURL(/\/world\/future-machine\.html\?/);
+    > 69 |   await expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.status),{timeout:90000}).toBe('ready');
+         |                                                                                                ^
+      70 |   await page.getByRole('button',{name:'Pause demo',exact:true}).click();
+      71 |   expect(await page.evaluate(()=>Number(new URL(location.href).searchParams.get('month'))===window.futureMachine.state.month)).toBe(true);
+      72 |   await seek(page,0);const initial=await snapshot(page,info,`${viewport.width}-matched-0`,errors);
+        at /Users/wahabma/.codex/worktrees/civic-launch-qa/happybearlandia/test/e2e/approved-demo-responsive.e2e.js:69:96
+
+    Error Context: test-results/approved-demo-responsive.e-fc771-ed-motion-journey-at-1440px-chromium/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/approved-demo-responsive.e-fc771-ed-motion-journey-at-1440px-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/approved-demo-responsive.e-fc771-ed-motion-journey-at-1440px-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [chromium] › test/e2e/approved-demo-responsive.e2e.js:30:6 › homepage Canvas reduced-motion journey at 1440px 
+  1 interrupted
+    [chromium] › test/e2e/approved-demo-responsive.e2e.js:30:6 › homepage Canvas reduced-motion journey at 390px 
+  2 did not run

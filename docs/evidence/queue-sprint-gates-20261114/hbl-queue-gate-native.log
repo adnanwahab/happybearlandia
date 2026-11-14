@@ -1,0 +1,14 @@
+
+Running 6 tests using 1 worker
+
+(node:73925) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 test/e2e/population-scheduling.e2e.js:3:5 › live scheduling pressure is observable without changing equal-tick state (502ms)
+  ✓  2 test/e2e/world-first-run.e2e.js:16:5 › first-run panel works before the expensive 3D renderer is ready (152ms)
+  ✓  3 test/e2e/world-first-run.e2e.js:45:5 › playback observations and minimization survive refresh without altering simulation (194ms)
+  ✓  4 test/e2e/world-first-run.e2e.js:70:5 › World HTML keeps primary actions visible and advanced controls opt-in (84ms)
+Balanced weekly results: 2466ms; 16-resident synthetic geometry fixture
+  ✓  5 test/e2e/world-first-run.e2e.js:81:5 › guided actions operate on the actual World simulator (9.5s)
+  ✓  6 test/e2e/world-first-run.e2e.js:154:5 › Canvas2D Balanced cycle supports cancellation, failure, retry and real results (2.8s)
+
+  6 passed (14.0s)

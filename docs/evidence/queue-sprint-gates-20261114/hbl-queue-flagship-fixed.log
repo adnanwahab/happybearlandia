@@ -1,0 +1,11 @@
+
+Running 4 tests using 1 worker
+
+(node:75276) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › test/e2e/approved-demo-responsive.e2e.js:30:6 › homepage Canvas reduced-motion journey at 1440px (5.4s)
+  ✓  2 [chromium] › test/e2e/approved-demo-responsive.e2e.js:30:6 › homepage Canvas reduced-motion journey at 390px (5.0s)
+  ✓  3 [chromium] › test/e2e/approved-demo-responsive.e2e.js:30:6 › homepage Canvas reduced-motion journey at 320px (1.1m)
+  ✓  4 [chromium] › test/e2e/flagship-history.e2e.js:3:5 › full guided demo and timelapse keep history bounded and Canvas independent of Three (1.3m)
+
+  4 passed (2.6m)

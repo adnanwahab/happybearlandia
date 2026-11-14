@@ -1,0 +1,14 @@
+bun test v1.4.2 (744846f84)
+
+test/future-machine-metric-selection.test.js:
+(pass) housing KPI links only exact construction records and preserves historical month and arm [0.43ms]
+(pass) aggregate, zero, missing, and unsupported links never select a proxy building [0.04ms]
+(pass) real matched City pair selects Month 16 receipt from Month 120 KPI [617.45ms]
+
+test/server.test.js:
+(pass) the production server serves the homepage and rejects an unknown route [79.79ms]
+
+ 4 pass
+ 0 fail
+ 41 expect() calls
+Ran 4 tests across 2 files. [743.00ms]
