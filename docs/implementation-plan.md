@@ -4465,6 +4465,20 @@ are in [the benchmark report](low-end-fallback-benchmark.md). Added separate RAF
 cadence and instrumented Canvas draw-call rate; displayed FPS remains unknown.
 No production deployment, merge or dispatch-label change.
 
+### SHE-44 acceptance follow-up — 2026-11-14
+
+Fresh isolated branch `mini/SHE-44-r3`; prior harness PR #162 is merged but lacks
+measurements. Owned follow-up: existing benchmark test/config/docs, new dedicated
+CI workflow and `docs/reviews/SHE-44.md`; no application/model changes. Next slice
+uses actual Retry comparison, verifies API suppression, records full-history
+integrity and retains four mobile-case measurements in CI. Acceptance still
+requires all scrub/selection/pan/zoom/retry browser assertions and actual raw
+measurements at 320/390px. Local listener and Chromium launch are blocked;
+SHE-40 numeric budgets remain unresolved. Existing fallback contracts pass
+22 tests / 313 assertions, one opt-in browser smoke skipped; four browser cases
+discover. CI is added but has not run. No physical-device/FPS/budget-pass claim.
+Full commands, evidence and remaining work: [SHE-44 review](reviews/SHE-44.md).
+
 ## Architecture D adaptive fidelity spike — SHE-146 (2026-11-12)
 
 Prerequisite audit recorded in [adaptive-fidelity-spike.md](adaptive-fidelity-spike.md).

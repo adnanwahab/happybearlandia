@@ -1,6 +1,7 @@
 # SHE-44 mobile Canvas fallback benchmark
 
-Branch: `mini/SHE-44`. No PR or deployment created.
+Original branch: `mini/SHE-44`, merged as PR #162. Follow-up branch:
+`mini/SHE-44-r3`. No follow-up PR or deployment created.
 
 The existing Future Machine route already supports Canvas fallback, recorded
 monthly City histories, timeline selection, camera controls and retry through
@@ -30,7 +31,7 @@ WebGL/WebGPU contexts. All cases launch desktop Chromium with `--disable-gpu`
 and CDP 4× CPU throttling. These are synthetic browser conditions, not physical
 low-end phone measurements; Canvas acceleration is not guaranteed absent.
 
-Each case injects one HTTP 503, retries with Fork City, asserts the actual backend
+Each case injects one HTTP 503, retries with the visible Retry comparison button, asserts the actual backend
 is canvas2d, scrubs months 0/16/60/120 three times, selects a recorded building,
 and checks ten keyboard pans and zooms. It then sends 120 alternating pan events
 on RAF callbacks, counts Canvas clearRect draw invocations, and verifies that the
@@ -65,3 +66,28 @@ permits local listeners, inspect all four reports and screenshots, and apply the
 agreed budget only after that dependency is resolved. Physical devices, Safari,
 large histories, sustained thermal pressure and production networks remain
 unmeasured.
+
+## Acceptance follow-up — 2026-11-14
+
+The earlier merged harness had no successful browser evidence. This follow-up
+checks that the error alert clears after the actual Retry comparison action,
+asserts WebGPU/WebGL API suppression in simulated-no-GPU cases, and adds a full
+serialized-history SHA-256 to each successful report. This digest includes run
+identities, so it is a within-run integrity marker, not a seed-matched digest
+across independently created experiments. Model/rules provenance remains in the
+existing history provenance/model manifest. Reports explicitly mark physical
+hardware untested and passing cases only receive `status: passed` after checks.
+
+The dedicated read-only-permissions GitHub workflow
+`.github/workflows/low-end-fallback.yml` installs Chromium, runs the existing
+fallback contracts and four browser cases, and retains results, JSON, screenshots
+and failure traces. JSON reporter output is `results.json` beside the case
+artifacts. The workflow is available for a future PR/manual run; it was not
+triggered here. It neither pins a performance budget nor changes a release gate.
+
+Local rerun still fails before navigation: port 40944 and an independent port-0
+probe both report EADDRINUSE. A standalone Chromium launch also fails at MachPort
+rendezvous with Permission denied (1100). No interaction latency, cadence, FPS or
+screenshot was obtained. The expanded harness remains browser-unverified.
+See [SHE-44 acceptance review](reviews/SHE-44.md) for exact commands, current
+contract-test results, environment and the unresolved SHE-40 dependency.
