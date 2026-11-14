@@ -27,11 +27,15 @@ test('seed matched continuation stays exact while visual controls and diagnostic
  const {BuildingCutaway}=await import('../world/render/buildings/cutaway.js');
  const THREE=await import('three');
  const a=createPopulationRuntime({config:{population:20,seed:42},stepMinutes:1}),b=createPopulationRuntime({config:{population:20,seed:42},stepMinutes:1});
+ const {createParkWildlife}=await import('../world/render/environment/park-wildlife.js');
+ const wildlife=createParkWildlife(new THREE.Scene(),{seedKey:'42',buildings:[{kind:'park',poly:[[-5,-5],[5,-5],[5,5],[-5,5]]}]});
+ const camera=new THREE.PerspectiveCamera();
  const visual=new BuildingCutaway(new THREE.Scene()),quality=new QualityManager();
  const hash=async r=>new Bun.CryptoHasher('sha256').update(JSON.stringify(readPopulationCheckpoint(await r.exportCheckpoint()).model)).digest('hex');
  try{await Promise.all([a.ready,b.ready]);for(let tick=0;tick<3;tick++){
   await a.step();await b.step();const before=await hash(a);
   quality.setPreset(tick%2?'ULTRA':'LOW');quality.sample(25,null,4);visual.enabled=!visual.enabled;visual.update(tick*1000);
+  wildlife.update(tick*1000,camera,{enabled:true,quality:quality.preset,reducedMotion:tick===2});
   formatSimulationBudget(simulationBudget(a.getSnapshot()));expect(await hash(a)).toBe(before);expect(await hash(b)).toBe(before);
- }}finally{a.destroy();b.destroy();visual.dispose();}
+ }}finally{a.destroy();b.destroy();visual.dispose();wildlife.dispose();}
 });

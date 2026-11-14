@@ -128,3 +128,19 @@ The browser test hashes full decoded model checkpoints before/after graphics
 changes and records before/after screenshots plus video. See
 `docs/reviews/SHE-165.md` for actual execution limits; the test existing is not
 proof it passed.
+
+## Decorative park wildlife (SHE-524)
+
+Graphics/F3 → “Decorative park creatures (not simulated animals)” opts in; off
+by default. Butterfly, bird and ground-critter silhouettes are authored toys,
+not observed habitat or simulated animal counts. A private hash of `town.seedKey`
+places up to six per park, 24 total, in supported park polygons. Animation uses
+absolute presentation time, with no model RNG, identifiers, clocks or writes.
+One instanced mesh (48 low-poly pieces), no textures/shadows/network assets.
+
+Reduced motion, LOW quality, adaptive overload level >=2, camera height >=42m,
+and distance >65m suppress them. Empty parks are empty; Canvas2D does not mount
+the layer. Scene teardown disposes mesh, geometry and material. Diagnostic
+`getPerformanceStats().wildlife` is explicitly decorative, outside model stats.
+The controls use native checkbox/keyboard behavior. Browser visual/mobile
+verification remains pending the local-server blocker in the ticket review.

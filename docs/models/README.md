@@ -19,6 +19,11 @@ These descriptions follow the seven elements of the [ODD 2020 protocol and autho
 
 Inventory boundary: an agent model maintains individual state and applies behavioral rules or interactions. A file named model.js is not necessarily an ABM. Decision Studio housing (including frozen legacy versions) is an aggregate stock/flow model, documented in world/models/housing/README.md; civic/sim.ts is aggregate policy-to-metric interpolation. Risk Universe is an asset-path Monte Carlo model. Weather and culture are environmental/aggregate submodels documented with their hosts. Particle physics is not a social model. Family history, civilization zoom/perspectives, journals, timeline braids, hidden systems, what-if, future journey and invention/laboratory views inspect, compare, narrate or orchestrate existing records/runs; they do not acquire another resident-state authority by displaying people. Replay/counterfactual engines reuse the selected model. Add any new independent social mechanism here, even if it is experimental or not integrated into World.
 
+Decorative park wildlife (`world/render/environment/park-wildlife.js`) is an
+opt-in presentation toy outside this inventory: no individual behavioral state,
+interactions, model RNG or authority. Map-seeded placement and presentation-time
+wing motion do not imply animal observations, resident counts or model results.
+
 ## Before a model change lands
 
 Author and reviewer must use this inventory for changes to rules, coefficients, generation, clocks, RNG, identity, inputs, retention or model dependencies, including optional submodels:
