@@ -1,6 +1,6 @@
 import {test,expect} from 'bun:test';
 import {familyIdentity,familyRecord,rankFamilies,mountFamilyCard} from '../world/future-machine/ui/family-card.js';
-const snapshot=(month,rent=500,buildingId='b1')=>({month,state:{month,households:[{id:'h1',income:2000,savings:0,size:3,unitId:'u1'},{id:'h2',income:1000,unitId:'u2'}],units:[{id:'u1',householdId:'h1',status:'occupied',rent,buildingId},{id:'u2',householdId:'h2',status:'occupied',rent:200,buildingId:'b1'}],buildings:[{id:'b1'},{id:'b2'}]}});
+const snapshot=(month,rent=500,buildingId='b1')=>({month,state:{month,seed:42,version:'v1',households:[{id:'h1',income:2000,savings:0,size:3,unitId:'u1'},{id:'h2',income:1000,unitId:'u2'}],units:[{id:'u1',householdId:'h1',status:'occupied',rent,buildingId},{id:'u2',householdId:'h2',status:'occupied',rent:200,buildingId:'b1'}],buildings:[{id:'b1'},{id:'b2'}]}});
 const fixture=()=>({seed:42,modelVersion:'v1',experimentId:'exact-run',baseline:[snapshot(0),snapshot(1)],plan:[snapshot(0),snapshot(1,1000,'b2')]});
 test('synthetic identity depends only on seed and exact City ID',()=>{
  expect(familyIdentity(42,'h1')).toEqual(familyIdentity(42,'h1'));
@@ -24,7 +24,7 @@ test('card numbers and spark points expose exact records, selection and follow d
  const doc=documentStub(),root=doc.createElement('div'),calls=[],card=mountFamilyCard(root,{onFollow:id=>calls.push(id)}),h=fixture();
  card.update({familyHistory:h,frame:{baseline:h.baseline[1],plan:h.plan[1]},month:1});
  let nodes=walk(root);expect(nodes.find(n=>n.tag==='select').children[0].value).toBe('h1');
- expect(nodes.some(n=>n.textContent?.includes('Synthetic name and avatar'))).toBe(true);
+ expect(nodes.some(n=>n.textContent?.includes('Synthetic City household'))).toBe(true);
  const link=nodes.find(n=>n.tag==='a'&&n.textContent==='25.00% rent burden');link.onclick();expect(nodes.find(n=>n.id===link.href.slice(1)).open).toBe(true);
  const point=nodes.find(n=>n.tag==='button'&&n.title?.startsWith('Month 0:'));point.onclick();expect(JSON.parse(nodes.find(n=>n.tag==='pre').textContent).month).toBe(0);link.onclick();expect(JSON.parse(nodes.find(n=>n.tag==='pre').textContent).month).toBe(1);
  nodes.find(n=>n.textContent==='Follow this family').onclick();expect(calls).toEqual(['h1']);

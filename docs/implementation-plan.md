@@ -9188,3 +9188,32 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-483 — selected household consequence postcards (2026-11-14)
+
+Bounded slice: extend the existing family panel, retain its selector/follow/record
+links, remove invented faces from these cards, validate paired identity/time/seed/
+version and show unchanged versus unavailable observations. Reuse exact household
+event receipts and the coordinator's existing event inspector. No model writes.
+One coding worker. Audited 27 open PRs via GitHub: none implements SHE-483;
+SHE-484/485/486 affect adjacent Future Machine interactions and require later
+integration review. House links require a verified City → Population resident and
+clock adapter, absent in the current contracts; display this limitation explicitly.
+Acceptance: focused component/data tests, real saved-manifest replay comparison,
+normal-entry browser tests for keyboard/touch/empty paths when setup permits.
+Risks: missing values must never count as unchanged, same local IDs across models
+must never become links, replay is recomputation rather than checkpoint proof.
+
+SHE-483 local slice delivered: aligned household postcards reuse existing panel,
+record links, follow behavior and event inspector; explicit unchanged/unavailable
+states and no generated faces on cards. Saved-manifest replay checks postcard
+identity/observations at Months 0/16/120. Focused suites: 41 pass, 1 browser opt-in
+skip, 0 fail, 757 assertions; new coordinator event check 1 pass / 3 assertions.
+Browser bundle and diff whitespace checks pass. Full coordinator has two base
+failures (missing divergenceShot mock), independently repeated on HEAD main.js.
+Playwright blocked before launch by server EADDRINUSE on ports 39884 and 42983;
+keyboard/touch/layout, after captures and browser interaction benchmark remain
+unverified. CPU-only postcard derivation p95 0.0394ms over 100 calls, excluding
+DOM/ranking/network. Exact House navigation still requires an identity/time
+adapter. No model, merge policy or external state changes; no PR published.
+Audit, commands, risks and next steps: docs/reviews/SHE-483.md.

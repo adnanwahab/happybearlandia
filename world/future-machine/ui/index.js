@@ -152,7 +152,7 @@ export function createUI(container, callbacks = {}) {
   let current={status:'idle',month:0,playing:false,mode:'split',ghosts:true};
   let recipe=structuredClone(DEFAULT_RECIPE), configurationDirty=false;
   const familyHost=container.ownerDocument.createElement("div");
-  const family=mountFamilyCard(familyHost,{onFollow:callbacks.onFollowFamily});
+  const family=mountFamilyCard(familyHost,{onFollow:callbacks.onFollowFamily,onInspectEvent:callbacks.onHouseholdEvent});
   const view=mountFutureMachineUI(container,{
     externalPlayback:true,
     onFork:()=>{if(!configureSeed())throw new Error(seedError.textContent);if(!configureAmount())throw new Error(amountInput.validationMessage);return callbacks.onRun?.(structuredClone(recipe));},

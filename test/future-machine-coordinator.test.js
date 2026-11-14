@@ -437,3 +437,15 @@ test('cancel retains initial inventory and ignores a late result without restori
   expect(app.state.playing).toBe(false);expect(app.window.futureMachine.stats.demoTiming).toBeNull();
  }finally{app.dispose();}
 });
+
+
+test('household postcard event preserves exact arm, event receipt and shared month',async()=>{
+ const app=await boot({create:async()=>historyFor()});
+ try{
+  await app.callbacks.onRun(DEFAULT_RECIPE);await app.drain();
+  const evidence={future:'b',eventId:'household-event',month:7,entity:{collection:'households',entityId:'h1'},dependencies:['source-event']};
+  app.callbacks.onHouseholdEvent({month:7,entity:{collection:'households',id:'h1',arm:'plan'},title:'Household event',summary:'Exact recorded event.',evidence:[evidence]});await app.drain();
+  expect(app.state.month).toBe(7);expect(app.description.entity).toEqual({collection:'households',id:'h1',arm:'plan'});
+  expect(app.description.evidence).toEqual([evidence]);
+ }finally{app.dispose();}
+});
