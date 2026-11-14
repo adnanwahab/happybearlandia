@@ -1,0 +1,38 @@
+name: Law behavior playback
+
+on:
+  pull_request:
+    paths:
+      - 'world/laws/**'
+      - 'world/constitution-city/app.js'
+      - 'test/law-behavior-playback.test.js'
+      - '.github/workflows/law-behavior-playback.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'world/laws/**'
+      - 'world/constitution-city/app.js'
+      - 'test/law-behavior-playback.test.js'
+      - '.github/workflows/law-behavior-playback.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  matched-law-behavior:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - run: bun install --frozen-lockfile
+      - name: Recorded frames, input bounds and existing law contracts
+        run: >
+          bun test --timeout 60000
+          test/law-behavior-playback.test.js
+          test/laws.test.js
+          test/law-impact.test.js
+          test/law-mechanism-contract.test.js
+          test/law-visuals.test.js
