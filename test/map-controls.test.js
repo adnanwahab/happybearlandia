@@ -80,3 +80,16 @@ test('pan distance stays target-centered and independent of far/horizon bounds',
  s.camera.far=50000;s.camera.updateProjectionMatrix();expect(s.api.getPanFootprint().width).toBeCloseTo(local.width,6);expect(s.api.getPanFootprint().depth).toBeCloseTo(local.depth,6);expect(s.api.getPanFootprint().center.x).toBeCloseTo(s.controls.target.x,6);
  s.api.update(0);s.win.fire('keydown',{key:'ArrowUp',target:s.container});for(let i=1;i<=4;i++)s.api.update(i*250);expect(s.controls.target.z).toBeCloseTo(-local.depth,6);expect(s.moves.at(-1).footprint.source).toBe('target-depth-local-viewport');
 });
+
+test('camera speed scales real-time keyboard motion',()=>{
+ const distances=[];
+ for(const speed of [.25,1,8]){
+  const {api,win,controls}=setup();api.setSpeed(speed);
+  win.fire('keydown',{key:'ArrowRight'});api.update(0);api.update(100);
+  distances.push(controls.target.x);
+  for(const invalid of [0,-1,NaN,Infinity,9])expect(()=>api.setSpeed(invalid)).toThrow();
+  api.destroy();
+ }
+ expect(distances[0]/distances[1]).toBeCloseTo(.25,10);
+ expect(distances[2]/distances[1]).toBeCloseTo(8,10);
+});
