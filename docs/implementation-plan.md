@@ -9188,3 +9188,22 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-555 — room mood presentation (2026-11-14)
+
+Next bounded slice: room-scoped Cozy, Lively and Quiet lighting/color preferences,
+with opt-in sound previews using existing media mute/volume. Persist separately
+from saved households, validate room/preset IDs, restore defaults. Native controls
+provide keyboard/touch access; static lighting avoids motion and extra render passes.
+Acceptance: separate room settings survive reload, reset removes effects, mute
+prevents audio, and frozen model fixtures remain unchanged. Verify focused unit
+and browser interaction checks. Risk: unavailable GPU/audio/storage must retain
+usable controls with an explicit fallback. No model/rules/clock/identity changes.
+
+Local status: implemented preference/UI/renderer integration and opt-in short
+scene previews; 17 focused tests / 108 assertions pass, plus two lifecycle checks.
+Syntax and whitespace checks pass; no root lint/typecheck script. Renderer
+performance check blocked by missing `three`. Browser server bind and Chromium
+permission failures block keyboard/browser execution and new visual evidence.
+Acceptance remains pending actual saved-home render, touch and low-end checks.
+Details and preserved automatic-merge safety hold: [SHE-555 review](reviews/SHE-555.md).
