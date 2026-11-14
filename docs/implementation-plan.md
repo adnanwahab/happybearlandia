@@ -9188,3 +9188,23 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-476 — optional contextual hints (2026-11-14)
+
+Bounded slice: reuse the standalone universe navigation mount and `/routes` directory.
+Discover a currently visible, enabled native control only when requested; focus it
+without executing it. No model writes or input changes. Persist workspace dismissal
+locally, keep all hints closed by default, and prevent duplicate mounts. Acceptance:
+three first-action journeys, empty/stale actions, keyboard/touch, blocked storage,
+reduced motion and measured discovery cost. Risk: generic control order may be less
+instructive than authored per-workspace goals; apps outside the registry/bootstrap
+need explicit integration. Verification and scope recorded in `reviews/SHE-476.md`.
+
+SHE-476 actual evidence: 16 focused tests / 228 assertions, Universe declaration
+contract, browser build and syntax checks pass. Temporary DOM integration passes
+focus/no activation, singleton, stale/empty and dismissal persistence. Four
+browser cases and benchmark added but blocked at launch (missing expected
+Chromium, installed Chrome SIGABRT/EPERM); local listen also blocked. Before/after
+visual review, browser timing and a simulation-workspace journey remain pending.
+No commit/PR yet. Full scope and preserved disabled automatic merge policy:
+[review](reviews/SHE-476.md).
