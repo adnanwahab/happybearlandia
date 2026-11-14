@@ -9188,3 +9188,23 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+### SHE-551 — retained household scrapbook (November 14, 2026)
+
+Bounded slice: a read-only Life scrapbook through the normal House toolbar reads
+an exported Population checkpoint. Prerequisites are the existing checkpoint
+validator and retained event.v2 records. Acceptance: stable event IDs and ordering
+across serialization; original source tick opens the exact event record; local
+privacy control hides all remembered content, including photos; unavailable data
+has an explicit fallback. No rules, clocks, RNG, or model state changes.
+
+Risk/limit: event retention is bounded. There is no independently stored world
+checkpoint for every event tick; opening a source record does not replay the world.
+Only photos explicitly referenced by an event can be attributed to its tick.
+Existing date photos without that link remain in the existing date scrapbook.
+Historical scene replay and broader photo capture remain follow-on work.
+Implemented locally; 38 focused/model regression tests passed, plus a typed
+checkpoint-graph round-trip check. Syntax and diff checks passed. Playwright
+blocked before test execution by macOS Chromium process permission denial. No
+after screenshot or normal-entry browser acceptance is claimed. See
+`docs/reviews/SHE-551.md` for evidence, preserved merge policy and follow-on scope.
