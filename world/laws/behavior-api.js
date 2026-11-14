@@ -93,12 +93,12 @@ export function createLawBehaviorHandler({compare=compareLaw,maxConcurrent=3}={}
     if(request.method!=='POST')return Response.json({error:'Use POST.'},{status:405,headers:{...headers,allow:'POST, OPTIONS'}});
     const length=Number(request.headers.get('content-length')||0);
     if(length>1024)return Response.json({error:'Input too large.'},{status:413,headers});
-    let input;
-    try{
-      const raw=await request.text();
-      if(raw.length>1024)throw Error('Input too large.');
-      input=JSON.parse(raw);
-    }catch{return Response.json({error:'Invalid bounded JSON input.'},{status:400,headers});}
+    let raw,input;
+    try{raw=await request.text();}
+    catch{return Response.json({error:'Could not read input.'},{status:400,headers});}
+    if(raw.length>1024)return Response.json({error:'Input too large.'},{status:413,headers});
+    try{input=JSON.parse(raw);}
+    catch{return Response.json({error:'Invalid bounded JSON input.'},{status:400,headers});}
     if(!input||typeof input!=='object'||Array.isArray(input)||
       !boundInteger(input.lawId,11,100)||!boundInteger(input.seed,0,0xffffffff)||
       !boundInteger(input.population,1,60)||
