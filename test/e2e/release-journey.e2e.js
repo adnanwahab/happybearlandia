@@ -12,6 +12,16 @@ test('an exact Living World future survives World, House, replay and a matched f
   test.setTimeout(180000);
   await page.setViewportSize({ width: 900, height: 600 });
   await page.goto('/');
+  const moreTools = page.getByText('More worlds and tools', { exact: true });
+  const toolsDisclosure = page.locator('details').filter({ has: moreTools });
+  await expect(moreTools).toBeVisible();
+  await expect(toolsDisclosure).not.toHaveAttribute('open', '');
+  // The flagship stays primary; preserved experimental tools open through the
+  // visible disclosure using its native keyboard interaction.
+  await moreTools.focus();
+  await expect(moreTools).toBeFocused();
+  await moreTools.press('Enter');
+  await expect(toolsDisclosure).toHaveAttribute('open', '');
   await page.getByRole('link', { name: 'Try Today’s Features', exact: true }).click();
   await page.getByRole('button', { name: 'Create a guided demo checkpoint' }).click();
   await expect(page.locator('#clock')).toContainText('Minute 360');
