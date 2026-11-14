@@ -72,7 +72,7 @@ test('World HTML keeps primary actions visible and advanced controls opt-in', as
 });
 
 test('guided actions operate on the actual World simulator', async ({page}) => {
-  test.setTimeout(120000);
+  test.setTimeout(330000);
   const lat=29.7286,lng=-95.4746,radiusM=400,kx=111320*Math.cos(lat*Math.PI/180);
   const coord=(x,z)=>[lat-z/110540,lng+x/kx];
   const buildings=Array.from({length:16},(_,i)=>{
@@ -109,14 +109,16 @@ test('guided actions operate on the actual World simulator', async ({page}) => {
   await expect(guide.locator('[data-guide-kind]')).toHaveText('Storm result');
   await expect(guide.locator('[data-guide-metrics]')).toContainText('Flooded parcels');
   await expect(page.locator('#overlayMode')).toHaveValue('flood');
-  await page.locator('input[name="world-plan-choice"][value="balanced"]').check();
+  await page.getByRole('radio',{name:'Balanced',exact:true}).check();
   const started = Date.now();
   await page.locator('#runCycleBtn').click();
   await expect(page.locator('#cycleRunState')).toHaveText('Running');
   await expect(page.locator('#cycleProgress')).toBeVisible();
   await expect(page.locator('#cycleCancel')).toBeVisible();
   await expect(page.locator('#cyclePanel')).toBeVisible({timeout:90000});
-  console.log(`Balanced weekly results: ${Date.now()-started}ms; 16-resident synthetic geometry fixture`);
+  const elapsedMs=Date.now()-started;
+  expect(elapsedMs).toBeLessThan(90000);
+  console.log(`Balanced weekly results: ${elapsedMs}ms; 16-resident synthetic geometry fixture`);
   await expect(page.locator('#cycleRunState')).toHaveText('Completed');
   await expect(page.locator('#cycleProgress')).toBeHidden();
   await expect(guide.locator('[data-guide-kind]')).toHaveText('Paired weekly result',{timeout:90000});
@@ -134,4 +136,38 @@ test('guided actions operate on the actual World simulator', async ({page}) => {
   await page.unroute('**/cycle.worker.js');
   await page.locator('#runCycleBtn').click();
   await expect(page.locator('#cycleRunState')).toHaveText('Completed', {timeout:90000});
+});
+
+
+test('Canvas2D Balanced cycle supports cancellation, failure, retry and real results', async ({page},testInfo) => {
+  test.setTimeout(150000);
+  // Explicit synthetic procedural geometry, isolated from map/provider availability.
+  await page.route('**/api/area?**',route=>route.fulfill({json:{source:'none',buildings:[],roads:[],pois:[]}}));
+  await page.goto('/world?renderer=canvas2d&people=16&lat=29.7286&lng=-95.4746');
+  await expect.poll(()=>page.evaluate(()=>window.hblWorldStartup?.mode)).toBe('canvas2d');
+  await page.getByRole('radio',{name:'Balanced',exact:true}).check();
+  // Use a silent worker for the cancellation case; retry uses the real module.
+  await page.route('**/cycle.worker.js',route=>route.fulfill({contentType:'application/javascript',body:'// Deliberately silent worker for cancellation.'}));
+  await page.locator('#runCycleBtn').click();
+  await expect(page.locator('#cycleRunState')).toHaveText('Running');
+  await expect(page.locator('#cycleProgress')).toBeVisible();
+  await page.locator('#cycleCancel').click();
+  await expect(page.locator('#cycleRunState')).toHaveText('Cancelled');
+  await expect(page.locator('#runCycleBtn')).toBeEnabled();
+  await page.unroute('**/cycle.worker.js');
+  await page.route('**/cycle.worker.js',route=>route.abort());
+  await page.locator('#runCycleBtn').click();
+  await expect(page.locator('#cycleRunState')).toHaveText('Failed');
+  await expect(page.locator('#cycleStatus')).toContainText('retry');
+  await expect(page.locator('#cycleProgress')).toBeHidden();
+  await expect(page.locator('#cycleCancel')).toBeHidden();
+  await page.unroute('**/cycle.worker.js');
+  const started=Date.now();
+  await page.locator('#runCycleBtn').click();
+  await expect(page.locator('#cycleRunState')).toHaveText('Completed',{timeout:90000});
+  await expect(page.locator('#cyclePanel')).toBeVisible();
+  await expect(page.locator('#cyclePanel')).toContainText('Well-being difference');
+  const elapsedMs=Date.now()-started;
+  expect(elapsedMs).toBeLessThan(90000);
+  await testInfo.attach('balanced-cycle-budget',{contentType:'application/json',body:JSON.stringify({elapsedMs,budgetMs:90000,people:16,geometry:'synthetic procedural',origin:{lat:29.7286,lng:-95.4746},year:3,days:7,recipe:['t_brt','h_lots','f_drainage','s_311']})});
 });

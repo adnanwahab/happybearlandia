@@ -5,6 +5,7 @@ import {mountPlanChoices,customPlan,stagePlan} from './plan-choices.js';
  */
 import {buildTown,hashSeed} from './gen.js';
 import {createWorld} from './sim.js';
+import {createSimulationPlayback} from './simulation-playback.js';
 
 const $=id=>document.getElementById(id),query=new URLSearchParams(location.search);
 const safeNumber=(value,fallback,min,max)=>{const n=Number(value);return Number.isFinite(n)?Math.max(min,Math.min(max,n)):fallback;};
@@ -12,8 +13,10 @@ const lat=safeNumber(query.get('lat'),29.7286,-85,85),lng=safeNumber(query.get('
 const origin={lat,lng},count=Math.round(safeNumber(query.get('people'),100,10,250));
 const status=$('loading');
 const notify=(type,detail={})=>window.dispatchEvent(new CustomEvent('hbl:world-feedback',{detail:{type,...detail}}));
-let world,town,canvas,ctx,paused=false,speed=1,disposed=false,selected=null,panX=0,panZ=0,zoom=1,then=0,accum=0,frame=null,clock=0;
-let activityDashboard=null,worker=null,weeklyPromise=null,experimentStatus='';
+let world,town,canvas,ctx,paused=false,speed=1,disposed=false,selected=null,panX=0,panZ=0,zoom=1,cameraSpeed=1,accum=0,frame=null,clock=0;
+const playback=createSimulationPlayback({initialSpeed:1});
+window.hblSimulationPlayback=playback;
+let activityDashboard=null,worker=null,weeklyPromise=null,experimentStatus='',cancelWeek=null;
 const planDefinitions={
   custom:customPlan(),
   none:{id:'none',label:'No package',ids:[]},
@@ -97,8 +100,8 @@ function paint(){
 }
 function draw(now){
   if(disposed)return;
-  const dt=then?Math.max(0,Math.min(100,now-then)):0;then=now;
-  if(!paused && world){accum+=dt*speed/1000;const mins=Math.min(6,Math.floor(accum));if(mins>0){world.step(mins);accum-=mins;} }
+  const {deltaMs,paused:framePaused}=playback.update(now);
+  if(!framePaused&&world){accum+=deltaMs/1000;const mins=Math.min(6,Math.floor(accum));if(mins>0){world.step(mins);accum-=mins;} }
   clock++;if(clock%10===0)snapshot();
   paint();frame=requestAnimationFrame(draw);
 }
@@ -113,29 +116,61 @@ function runWeek(){
   if(weeklyPromise)return weeklyPromise;
   const message=$('cycleStatus');message.textContent='Comparing matched weeks on CPU…';
   $('runCycleBtn').disabled=true;
+  $('cycleRunState').textContent='Running';
+  $('cycleProgress').hidden=false;
+  $('cycleProgress').removeAttribute('value');
+  $('cycleCancel').hidden=false;
   const ids=planDefinitions[$('policy').value]?.ids??[];
   weeklyPromise=new Promise((resolve,reject)=>{
-    const worker=new Worker(new URL('./cycle.worker.js',import.meta.url),{type:'module'});
-    const timeout=setTimeout(()=>{worker.terminate();reject(new Error('Weekly worker timed out'));},90000);
-    worker.onmessage=e=>{
-      if(e.data.type==='progress'){message.textContent=e.data.stage+'…';return;}
-      clearTimeout(timeout);worker.terminate();
-      if(e.data.type==='error'){reject(new Error(e.data.error));return;}
-      const r=e.data.result,d=Number(r?.avg?.withPlan)-Number(r?.avg?.noPlan);
-      message.textContent='Matched weekly comparison complete';
-      const metrics=[{label:'No plan',value:Number(r.avg.noPlan).toFixed(1)},{label:'With plan',value:Number(r.avg.withPlan).toFixed(1)},
-        {label:'Well-being difference',value:(d>0?'+':'')+d.toFixed(1)},{label:'Better off',value:String(r.improved)},{label:'Worse off',value:String(r.worse)}];
-      notify('cycle',{label:'Paired weekly comparison',message:'Two copies of the same synthetic starting town and seed, with and without the chosen plan.',metrics,resultId:'cyclePanel'});
-      $('cyclePanel').style.display='block';
-      $('cyclePanel').replaceChildren();
-      const summary=document.createElement('p');summary.textContent='Week result · '+metrics.map(row=>row.label+': '+row.value).join(' · ');$('cyclePanel').append(summary);
-      resolve(r);
+    let worker=null,timeout=null,settled=false;
+    const finish=(error,result)=>{
+      if(settled)return;
+      settled=true;clearTimeout(timeout);worker?.terminate();cancelWeek=null;
+      if(error)reject(error);else resolve(result);
     };
-    worker.onerror=e=>{clearTimeout(timeout);worker.terminate();reject(new Error(e.message||'Worker failed'));};
-    worker.postMessage({type:'run',payload:{origin,area:townArea,maxPeople:town.people.length,
-      customEffects:planDefinitions[$('policy').value]?.customEffects,proposalIds:ids,label:planDefinitions[$('policy').value]?.label??'Balanced',year:Number($('planYear')?.value??3),days:7}});
-  }).catch(error=>{message.textContent='Weekly comparison unavailable: '+error.message;notify('error',{label:'Weekly comparison failed',message:error.message});throw error;})
-    .finally(()=>{weeklyPromise=null;$('runCycleBtn').disabled=false;});
+    cancelWeek=()=>{const error=new Error('Weekly comparison cancelled');error.name='AbortError';finish(error);};
+    try {
+      worker=new Worker(new URL('./cycle.worker.js',import.meta.url),{type:'module'});
+      timeout=setTimeout(()=>finish(new Error('Weekly comparison exceeded its 90-second limit')),90000);
+      worker.onmessage=e=>{
+        if(settled)return;
+        if(e.data?.type==='progress'){
+          message.textContent=e.data.stage+'…';
+          if(Number.isFinite(e.data.frac))$('cycleProgress').value=Math.max(0,Math.min(1,e.data.frac));
+          return;
+        }
+        if(e.data?.type==='error'){finish(new Error(e.data.error));return;}
+        if(e.data?.type!=='done')return;
+        try {
+          const r=e.data.result,d=Number(r?.avg?.withPlan)-Number(r?.avg?.noPlan);
+          message.textContent='Matched weekly comparison complete';
+          const metrics=[{label:'No plan',value:Number(r.avg.noPlan).toFixed(1)},{label:'With plan',value:Number(r.avg.withPlan).toFixed(1)},
+            {label:'Well-being difference',value:(d>0?'+':'')+d.toFixed(1)},{label:'Better off',value:String(r.improved)},{label:'Worse off',value:String(r.worse)}];
+          notify('cycle',{label:'Paired weekly comparison',message:'Two copies of the same synthetic starting town and seed, with and without the chosen plan.',metrics,resultId:'cyclePanel'});
+          $('cyclePanel').style.display='block';
+          $('cyclePanel').replaceChildren();
+          const summary=document.createElement('p');summary.textContent='Week result · '+metrics.map(row=>row.label+': '+row.value).join(' · ');$('cyclePanel').append(summary);
+          $('cycleRunState').textContent='Completed';
+          $('runCycleBtn').textContent='Run cycle';
+          finish(null,r);
+        }catch(error){finish(error);}
+      };
+      worker.onerror=e=>finish(new Error(e.message||'Worker failed'));
+      worker.onmessageerror=()=>finish(new Error('The simulation result could not be read'));
+      worker.postMessage({type:'run',payload:{origin,area:townArea,maxPeople:town.people.length,
+        customEffects:planDefinitions[$('policy').value]?.customEffects,proposalIds:ids,label:planDefinitions[$('policy').value]?.label??'Balanced',year:Number($('planYear')?.value??3),days:7}});
+    }catch(error){finish(error);}
+  }).catch(error=>{
+    const cancelled=error.name==='AbortError';
+    $('cycleRunState').textContent=cancelled?'Cancelled':'Failed';
+    message.textContent=error.message+'. Click Run cycle to retry.';
+    $('runCycleBtn').textContent='Retry Run cycle';
+    if(!cancelled)notify('error',{label:'Weekly comparison failed',message:error.message});
+    throw error;
+  }).finally(()=>{
+    weeklyPromise=null;$('runCycleBtn').disabled=false;
+    $('cycleProgress').hidden=true;$('cycleCancel').hidden=true;
+  });
   return weeklyPromise;
 }
 let townArea={source:'none',origin,buildings:[],roads:[],pois:[]};
@@ -161,19 +196,22 @@ async function init(){
   $('planYear').addEventListener('input',()=>{$('planYearN').textContent='Year '+$('planYear').value;applyPlan();planChoices.render();});
   $('stormBtn').addEventListener('click',storm);
   $('runCycleBtn').addEventListener('click',()=>runWeek().catch(()=>{}));
+  $('cycleCancel').addEventListener('click',()=>cancelWeek?.());
   $('runExperimentBtn').addEventListener('click',()=>{const a=document.createElement('a');a.href='/world/city-lab.html';a.click();});
   $('experimentStatus').textContent='The 120-month CPU City laboratory opens separately. It uses a different monthly engine.';
   $('demoBtn').addEventListener('click',()=>demo().catch(()=>{}));
   for(const button of $('speeds').querySelectorAll('button'))button.addEventListener('click',()=>{
     const value=Number(button.dataset.s);paused=value===0;speed=value||speed;
+    if(paused)playback.pause();else{playback.setSpeed(speed);playback.resume();}
     for(const other of $('speeds').querySelectorAll('button'))other.classList.toggle('on',other===button);
     notify('playback',{paused,speed});
   });
+  $('camera-speed').onchange=e=>{cameraSpeed=Number(e.target.value);};
   let start=null;canvas.addEventListener('pointerdown',e=>{start={x:e.clientX,y:e.clientY,panX,panZ};canvas.setPointerCapture(e.pointerId);});
   canvas.addEventListener('pointerup',e=>{if(!start)return;const dx=e.clientX-start.x,dy=e.clientY-start.y,c=coords();
     if(Math.hypot(dx,dy)<8)choosePerson((e.clientX-canvas.getBoundingClientRect().left)*canvas.width/canvas.clientWidth,(e.clientY-canvas.getBoundingClientRect().top)*canvas.height/canvas.clientHeight);
-    else{panX=start.panX-dx/c.scale;panZ=start.panZ-dy/c.scale;}start=null;});
-  canvas.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(.5,Math.min(7,zoom*(e.deltaY<0?1.15:.87)));},{passive:false});
+    else{panX=start.panX-dx/c.scale*cameraSpeed;panZ=start.panZ-dy/c.scale*cameraSpeed;}start=null;});
+  canvas.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(.5,Math.min(7,zoom*Math.exp((e.deltaY<0?1:-1)*.14*cameraSpeed)));},{passive:false});
   $('activity-dashboard-button').addEventListener('click',async()=>{
     if(!activityDashboard){const {mountActivityDashboard}=await import('./activity-dashboard.js');activityDashboard=mountActivityDashboard({container:document.body,
       getSnapshot:()=>world.getActivitySnapshot(),getHistory:q=>world.getActivityHistory(q),subscribe:callback=>world.subscribeActivity(callback),
@@ -200,5 +238,5 @@ async function demo(){
     $('demoCaption').textContent='No plan '+r.avg.noPlan.toFixed(1)+' vs plan '+r.avg.withPlan.toFixed(1)+' ('+(d>=0?'+':'')+d.toFixed(1)+'). '+r.improved+' better off, '+r.worse+' worse off in this synthetic model.';
   }catch(error){$('demoCaption').textContent='The comparison could not run: '+error.message;}
 }
-window.addEventListener('pagehide',()=>{disposed=true;cancelAnimationFrame(frame);activityDashboard?.destroy();}, {once:true});
+window.addEventListener('pagehide',()=>{disposed=true;cancelWeek?.();playback.destroy();cancelAnimationFrame(frame);activityDashboard?.destroy();}, {once:true});
 init().catch(error=>{status.textContent='Canvas2D could not start: '+error.message;});

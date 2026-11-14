@@ -1,5 +1,18 @@
 # HappyBearLandia implementation plan
 
+## SHE-388 — rainbow text title (2026-11-14)
+
+Implemented a CSS-only pastel hue rotation on the existing homepage title,
+preserving layout and copy. Reduced motion keeps a static gradient; forced
+colors restores system text. No simulation or governance behavior changed.
+Focused contrast/navigation checks passed: 7 tests, 169 assertions. Browser
+checks were added for animation, mobile/desktop overflow, reduced motion and
+forced colors, but execution is blocked before launch by server EADDRINUSE on
+39931. No root typecheck/lint script exists; JavaScript syntax check passed.
+Acceptance remains pending browser execution and visual inspection. No commit,
+PR, merge or deployment. Audit, preserved merge policy and rerun command:
+[SHE-388 review](reviews/SHE-388.md).
+
 ## SHE-212 — defining-feature umbrella audit (2026-11-13)
 
 Completed the approved analysis-only slice in [the consolidated acceptance and
@@ -8952,3 +8965,201 @@ no browser change, Playwright skipped. Hard host containment, live retry/recover
 and hosted secret/sync verification remain pending. Automatic merging stays
 held by literal false; no quorum, voting/auth/check change, external publication,
 merge, deployment or production operation. No commit or PR created this turn.
+
+## SHE-239 — tournament director specification (2026-11-13)
+
+Delivered analysis-only `docs/reviews/SHE-239.md` at baseline `5fdb9683`: seven
+missions, each with three competing hypothesis designs and a decisive experiment;
+six-dimension weighted rubric, common Codex results template, reproducibility and
+failure gates. Audited prior SHE-240 output, clean older SHE-239 worktree, live
+SHE-77/131/161/169 statuses and merged PR metadata. Both readiness labels already
+exist. Prior disk-full checkout failure is preserved; fresh worktree used.
+No product/model behavior changed. Focused existing foundation checks: 24 pass,
+1 opt-in browser skip, 0 fail, 654 assertions. Current City 1.1.0 receipt and exact
+commands are recorded in the report; historical 1.0.0 hashes are not substituted.
+Specification acceptance is complete; no candidate is implemented or declared a
+winner. Next: choose and preregister a bounded experiment, recheck ownership and
+prerequisites, then gather actual normal-entry/user/device evidence. Voting,
+auth/check and merge policy remain unchanged; no release action authorized.
+
+### SHE-263 completion follow-up — 2026-11-13
+
+Audited PR #284, original commit `0591eb6e`, and reconciliation `7958ee12`
+against current source. Prior layout lanes, pill/dismiss controls and Storm
+scroll restoration remain present; prior acceptance was explicitly blocked.
+The postcard picker now navigates, exposing a remaining integration gap: the
+new page forgot step one. Reuse its existing `arrival=1` marker for local UI
+progress so choosing policy after arrival collapses the explorer. No simulation,
+identity, seed, auth, vote, or merge-policy contract changes.
+
+Verification slice: unit-test distinct-step/order/idempotence and actual postcard
+URL arrival; correct the browser journey to close its modal before policy;
+remove full-viewport screenshot masking; check five target points, all utility
+links/summaries, and expanded/collapsed/dismissed screenshots at the original six
+sizes. Add arrival/reopen/minimize/dismiss browser coverage. Tests use real
+`/world` with `demo=1`, 16 residents and run seed 263; this is a bounded synthetic
+layout fixture, not default-population performance evidence.
+
+Evidence: 25 tests pass / 148 assertions across five focused files; browser
+bundle builds (3 modules); seven World HUD browser tests discover; whitespace
+check passes. Playwright server startup still fails with EADDRINUSE on 39978 and
+48963 before any browser runs. No screenshot, measured target bounds, Storm
+scroll measurement or approved baseline was produced. No lint/typecheck script
+is configured. Full viewport and Storm acceptance remains pending the documented
+browser command and review of 18 World baseline images on a bind-capable host.
+See `docs/reviews/SHE-263.md` for reproduction and preserved policy. No remote
+messages, merge, deployment or production changes.
+
+## SHE-171 r3 — failure coverage and retained evidence (review candidate)
+
+Clean isolated `mini/SHE-171-r3` at `5fdb9683`; prior PR192/294 and current
+source/CI audited, SHE-141/142 confirmed Done. Small owned slice: CLI coverage
+matrix, its subprocess acceptance assertions, manual workflow artifact path,
+benchmark docs and issue-specific review/evidence. Preserve synthetic model,
+ODD, hashes and prior history. Acceptance requires all nine actual browser
+records; risk remains macOS launch denial and unavailable total peak memory.
+
+Delivered explicit unverified size/phase coverage on failure and workflow CLI
+execution after successful browser setup even when its preceding browser test
+fails. Focused/dependency checks: 24 pass, 1 opt-in skip, 2392 assertions. Enabled
+browser gate: 1 pass/1 fail at MachPort permission denial. Actual CLI seed42,
+3 steps, 10k/100k/1M: exit1, zero measurements, nine unverified combinations.
+Evidence and exact commands: [SHE-171 review](reviews/SHE-171.md),
+[failed-run JSON](evidence/she-171-r3-launch-failure.json). No configured JS
+lint/typecheck; diff check passed. Browser-capable nine-record acceptance run
+remains next action. No merge/deploy/production or public performance claim;
+existing disabled automatic merge policy preserved.
+
+## SHE-192 authorized bounded implementation — November 13, 2026
+
+Prior #77 merged documentation only; its deferred status is historical. The owner
+authorized one local slice. Plan: extend immutable Experiment Registry snapshots
+with a pinned synthetic resource-control environment and predeclared reward;
+execute bounded scripted policies, record causal trajectories, replay stored
+evidence, and reopen separate training/held-out/unavailable real-world reports
+through `/api/experiments`. No external agent, learning algorithm or live data.
+Acceptance: durable API round trip, version/reward rejection, deterministic
+replay/tamper detection, held-out seed separation and invalid-action boundaries.
+Risks: only the current version is executable; fingerprints are consistency
+checks, not authenticated observations. Registry retention remains existing policy.
+
+SHE-192 slice complete locally: declaration/run/reopen/replay through the existing
+server Experiment Registry API, pinned resource-control fixture, predeclared
+reward and separate training/held-out/unavailable real-world report. Evidence:
+[review](reviews/SHE-192.md), [contract](experiment-registry.md#agent-training-gym-she-192-local-slice).
+28 focused regression tests passed (141 assertions); no configured lint/typecheck.
+No browser changes; Playwright skipped. Learning algorithms, arbitrary reward
+revisions and real-world evaluation remain outside this bounded authorization.
+No deployment, merge or production writes. Prior deferred plan above is retained
+as historical context, superseded only for this implemented local slice.
+
+## SHE-259 follow-up — November 13, 2026 (in progress)
+
+Audit merged PR #283 / ff49b62d against current 5fdb9683. Preserve its 3D
+lifecycle; fix the remaining Canvas2D normal-entry lifecycle gap and the stale
+3D test fixture (missing cycleResults after custom-plan integration). Single
+worker owns canvas2d-world.js, lifecycle tests, focused browser test/config and
+issue evidence. Acceptance: fallback Running/progress/cancel, bounded failure
+and retry, stale-message isolation, real Balanced results within 90 seconds.
+Do not change worker inputs, model rules or seeds. Browser startup currently
+fails EADDRINUSE on 39889; keep measured performance acceptance open if blocked.
+
+SHE-259 follow-up result: Canvas2D normal Run cycle now exposes lifecycle status,
+worker progress, cancel, cleanup and retry, retaining its existing 90s deadline
+and unchanged simulation payload. Repaired stale 3D custom-plan test fixture.
+16 focused tests /203 assertions pass; 8 adjacent real-worker replay/playback tests
+/40 assertions pass. Actual runWeek + real Bun Worker Balanced integration:
+1582.6ms for16 synthetic residents; this is not browser timing. Browser bundle
+99 modules passes;5 Playwright cases discover; diff whitespace passes. Both
+39889 and41983 browser attempts fail before launch at server listen EADDRINUSE.
+No lint/typecheck script exists. Browser budget/layout/default-population
+acceptance remains open. Exact scope, provenance, prior PR #283 audit, policy
+preservation and reproduction commands: [SHE-259 review](reviews/SHE-259.md).
+No commit/PR, merge, deployment, external message or production change performed.
+
+
+## SHE-137 — independent World playback and camera controls (2026-11-13)
+
+Slice: expose 0.25×, 0.5×, 1×, 2×, 4×, 8× in the normal `/world`
+controls, preserving existing faster controls; add independent keyboard/orbit
+camera sensitivity. The model continues to receive whole fixed minutes.
+SHE-141 is Done; approval labels already present. Fresh isolated branch
+`mini/SHE-137-r3`, clean starting tree at `5fdb9683`. One worker owns
+world/index.html, world/render.js, world/map-controls.js, the Canvas2D fallback
+and focused tests/docs.
+No shared interface or model-rule changes, no delegation needed.
+
+Acceptance: seed-matched complete authority digest and event count at equal
+modeled horizon across all six rates, paused time excluded, camera changes leave
+playback unchanged. Verify normal UI bindings, bundle and focused browser path.
+Risks: hardware FPS is unmeasured; bounded busy/hidden-frame wall time may be
+dropped by existing clocks, so speed is a pacing request, not a throughput promise.
+Evidence and final status: docs/reviews/SHE-137.md (updated after verification).
+
+SHE-137 verification: 33 focused tests passed / 222 assertions, including all
+six rates and pause/resume with identical complete state digests/event counts
+(legacy 6 events, Population 40). Browser-entry bundles and Playwright discovery
+passed; 32 adjacent World runtime/weather/culture tests passed (309 assertions). Actual browser runs blocked before execution by EADDRINUSE on two
+ports; hardware smoothness unmeasured. Adjacent legacy checkpoint restore has
+two existing cross-seed history failures in unchanged code. Full evidence,
+provenance and preserved disabled auto-merge policy: docs/reviews/SHE-137.md.
+Implementation is ready for dispatch review, with browser acceptance still open.
+
+## SHE-165 — dual render / simulation budget
+
+2026-11-13: isolated `mini/SHE-165-r3`, baseline `5fdb9683`. Audited prior
+PR #53 / `63c51bf8` (readiness report only), current renderer and Population
+contracts. Claim: city renderer, new dual-budget projection, render entry-point
+binding, runtime observational timing, focused tests and documentation. No
+independent implementation tasks warrant delegation. Other worktrees' source
+changes are outside these files; coordinator plan changes are preserved by this
+isolated checkout and this appended section must be reconciled on integration.
+
+Slice: Graphics/F3 shows separate renderer and live Population budgets, independent
+resident states versus weighted population and visual instances, CPU estimates,
+GPU supported timestamp values, partial geometry memory and unavailable metrics.
+Prerequisite SHE-141 is accepted; its synthetic reference is not a Population
+counter. Acceptance: deterministic fixture boundaries, normal-entry browser
+smoke and aesthetic-toggle state hash equality. Risks: no complete Population
+pair-interaction counter or memory accounting; do not fabricate either. Canvas2D
+path has no city-renderer diagnostics; WebGL2 uses the same overlay.
+Verification status and remaining limitations: `docs/reviews/SHE-165.md`.
+
+SHE-165 verification: 17 focused tests / 98 assertions pass; browser entrypoint
+bundles (363 modules); whitespace clean. Three-tick seed-matched full model hashes
+remain exact under headless visual controls/diagnostic reads. The included normal
+entry-point Playwright recording cannot run: local socket creation returns EPERM.
+Broader checkpoint suite: 20 pass / 1 timeout; same 30-second test also times out
+against unchanged HEAD runtime. Active changed-resident and full pair-interaction
+counters remain explicitly unavailable, so full issue acceptance stays open.
+No browser/hardware measurement or recording is claimed. See issue-specific report.
+
+## SHE-260 follow-up — renderer integration (2026-11-13)
+
+Audit at `5fdb9683`: PR287 is closed, unmerged; its head `2b13ee3b` is
+already in this checkout's history. The working tree began clean. Prior code
+implements model depth, walking, recovery and cues, but city-renderer never
+mounted storm-effects, consumed parcelStorm or exposed getStormState. Its sky
+also lacked the claimed cloud drift. This overrides the earlier delivery claim.
+
+Bounded slice: connect existing state to the renderer, avoid duplicate rain,
+apply reduced motion, dispose resources, and animate the existing cloud shader
+from model minutes. Preserve simulation rules and source IDs. Acceptance tasks:
+model/renderer depth and recovery tests; sky intensity/time/reduced-motion tests;
+normal-entry browser test; LOW frame recording after browser startup. Risks:
+synthetic apron is not street hydraulics; browser/backend and hardware acceptance
+cannot be inferred from unit tests or bundling.
+
+Delivered: city-renderer now mounts, updates, diagnoses and disposes storm-effects;
+LOW uses its existing 300-streak cap. Sky receives model intensity and minute;
+reduced motion sets drift/rain to zero. Generic rain is suppressed while storm
+rain owns the scene. No new model or checkpoint contract was introduced.
+
+Evidence and unresolved acceptance: [SHE-260 review](reviews/SHE-260.md).
+Focused checks pass; browser startup still fails with EADDRINUSE on3199.
+Low-end frame budget, shader visual output and audible cue remain unverified.
+Two existing legacy-checkpoint tests fail on restored activity snapshot seed
+labels; this change does not modify checkpoint/simulation code. Next action:
+run the focused browser config and LOW recording in a bind-capable environment,
+then verify target hardware before closing acceptance. No merge/deployment or
+remote policy change; autonomous merge remains disabled by workflow safety hold.

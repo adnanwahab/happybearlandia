@@ -1,7 +1,7 @@
 /** Local camera panning only: never navigates, reloads a tile or changes zoom.
  * mountMapControls({container,camera,controls,THREE,buttons=true,onPan?}) ->
  * {update(now|{now,enabled}),panScreen(direction),pan(direction,meters),
- * getScreenFootprint(),getPanFootprint(),setEnabled(),destroy()}.
+ * getScreenFootprint(),getPanFootprint(),setEnabled(),setSpeed(multiplier),destroy()}.
  * Call update(now) in the EXISTING frame loop. No RAF is created here.
  * For the shared minimap arrow pad use buttons:false, and pass panScreen to it.
  * North=-world Z, East=+world X; clicks move one local viewport scale at the
@@ -73,7 +73,7 @@ export function mountMapControls({container,camera,controls,THREE,buttons=true,o
   const doc=container.ownerDocument,win=doc.defaultView;
   const root=doc.createElement('section');root.className=`map-controls${buttons?'':' map-controls-keyboard-only'}`;root.setAttribute('aria-label','Pan current map without reloading');root.dataset.testid='map-pan-controls';
   const sheet=doc.createElement('link');sheet.rel='stylesheet';sheet.href=stylesheet;container.append(sheet,root);
-  const listeners=[],held=new Set();let destroyed=false,enabled=true,lastTime=null;
+  const listeners=[],held=new Set();let destroyed=false,enabled=true,lastTime=null,speedMultiplier=1;
   const listen=(target,type,fn,options)=>{target?.addEventListener(type,fn,options);listeners.push(()=>target?.removeEventListener(type,fn,options));};
   if(buttons){
     const title=doc.createElement('strong');title.textContent='Pan this view';root.append(title);
@@ -121,8 +121,9 @@ export function mountMapControls({container,camera,controls,THREE,buttons=true,o
     let x=0,z=0;for(const key of held){const v=DIRECTIONS[KEYS[key]];x+=v[0];z+=v[1];}
     const magnitude=Math.hypot(x,z);if(!magnitude||!dt)return;
     const footprint=getPanFootprint(),speed=Number.isFinite(screensPerSecond)&&screensPerSecond>0?screensPerSecond:.8;
-    const dx=x/magnitude*footprint.width*speed*dt,dz=z/magnitude*footprint.depth*speed*dt;
+    const dx=x/magnitude*footprint.width*speed*speedMultiplier*dt,dz=z/magnitude*footprint.depth*speed*speedMultiplier*dt;
     if(translateMapView(camera,controls,dx,dz))notify(dx,dz,null,footprint,'keyboard');
   }
-  return{update,pan,panScreen,getScreenFootprint,getPanFootprint,setEnabled,destroy(){if(destroyed)return;destroyed=true;stop();for(const off of listeners)off();sheet.remove();root.remove();}};
+  function setSpeed(value){if(!finite(value)||value<.25||value>8)throw new RangeError('Camera speed must be 0.25–8.');speedMultiplier=value;}
+  return{update,pan,panScreen,getScreenFootprint,getPanFootprint,setEnabled,setSpeed,destroy(){if(destroyed)return;destroyed=true;stop();for(const off of listeners)off();sheet.remove();root.remove();}};
 }
