@@ -9188,3 +9188,23 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-556 — state-backed pet care presentation (2026-11-14)
+
+Bounded slice: reuse Population pet identities, actions and completion history;
+show only finite supported food/rest/play/affection values, expose requested versus
+completed care, and remove unconditional pet idle animation. Default companions
+have no need measurements. No rules, clocks, seeds, events or save contracts change.
+Acceptance: pure projection tests, existing command acceptance/rejection and restore
+regressions, focused keyboard/reduced-motion browser interaction and screenshots.
+Risk: graphics failure must leave profile care text and controls accessible.
+Open GitHub PR searches for `pet` and `house` returned no matches on November 14.
+
+Local result: shared read-only cue projection and contract, scene/profile cues,
+request confirmation, three projection regressions and enhanced keyboard/reduced-
+motion Playwright journey. 15 Bun tests / 92 assertions pass; edited application
+syntax and whitespace checks pass. No repository-wide typecheck script exists.
+Browser evidence remains blocked by local server listen EADDRINUSE on two ports
+(after resolving Playwright via installed NODE_PATH). No browser acceptance or
+new screenshots claimed. Review and concrete next step: docs/reviews/SHE-556.md.
+Existing auto-merge human-review hold (`if: false`) is unchanged.
