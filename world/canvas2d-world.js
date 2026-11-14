@@ -5,6 +5,7 @@ import {mountPlanChoices,customPlan,stagePlan} from './plan-choices.js';
  */
 import {buildTown,hashSeed} from './gen.js';
 import {createWorld} from './sim.js';
+import {createSimulationPlayback} from './simulation-playback.js';
 
 const $=id=>document.getElementById(id),query=new URLSearchParams(location.search);
 const safeNumber=(value,fallback,min,max)=>{const n=Number(value);return Number.isFinite(n)?Math.max(min,Math.min(max,n)):fallback;};
@@ -12,7 +13,9 @@ const lat=safeNumber(query.get('lat'),29.7286,-85,85),lng=safeNumber(query.get('
 const origin={lat,lng},count=Math.round(safeNumber(query.get('people'),100,10,250));
 const status=$('loading');
 const notify=(type,detail={})=>window.dispatchEvent(new CustomEvent('hbl:world-feedback',{detail:{type,...detail}}));
-let world,town,canvas,ctx,paused=false,speed=1,disposed=false,selected=null,panX=0,panZ=0,zoom=1,then=0,accum=0,frame=null,clock=0;
+let world,town,canvas,ctx,paused=false,speed=1,disposed=false,selected=null,panX=0,panZ=0,zoom=1,cameraSpeed=1,accum=0,frame=null,clock=0;
+const playback=createSimulationPlayback({initialSpeed:1});
+window.hblSimulationPlayback=playback;
 let activityDashboard=null,worker=null,weeklyPromise=null,experimentStatus='',cancelWeek=null;
 const planDefinitions={
   custom:customPlan(),
@@ -97,8 +100,8 @@ function paint(){
 }
 function draw(now){
   if(disposed)return;
-  const dt=then?Math.max(0,Math.min(100,now-then)):0;then=now;
-  if(!paused && world){accum+=dt*speed/1000;const mins=Math.min(6,Math.floor(accum));if(mins>0){world.step(mins);accum-=mins;} }
+  const {deltaMs,paused:framePaused}=playback.update(now);
+  if(!framePaused&&world){accum+=deltaMs/1000;const mins=Math.min(6,Math.floor(accum));if(mins>0){world.step(mins);accum-=mins;} }
   clock++;if(clock%10===0)snapshot();
   paint();frame=requestAnimationFrame(draw);
 }
@@ -199,14 +202,16 @@ async function init(){
   $('demoBtn').addEventListener('click',()=>demo().catch(()=>{}));
   for(const button of $('speeds').querySelectorAll('button'))button.addEventListener('click',()=>{
     const value=Number(button.dataset.s);paused=value===0;speed=value||speed;
+    if(paused)playback.pause();else{playback.setSpeed(speed);playback.resume();}
     for(const other of $('speeds').querySelectorAll('button'))other.classList.toggle('on',other===button);
     notify('playback',{paused,speed});
   });
+  $('camera-speed').onchange=e=>{cameraSpeed=Number(e.target.value);};
   let start=null;canvas.addEventListener('pointerdown',e=>{start={x:e.clientX,y:e.clientY,panX,panZ};canvas.setPointerCapture(e.pointerId);});
   canvas.addEventListener('pointerup',e=>{if(!start)return;const dx=e.clientX-start.x,dy=e.clientY-start.y,c=coords();
     if(Math.hypot(dx,dy)<8)choosePerson((e.clientX-canvas.getBoundingClientRect().left)*canvas.width/canvas.clientWidth,(e.clientY-canvas.getBoundingClientRect().top)*canvas.height/canvas.clientHeight);
-    else{panX=start.panX-dx/c.scale;panZ=start.panZ-dy/c.scale;}start=null;});
-  canvas.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(.5,Math.min(7,zoom*(e.deltaY<0?1.15:.87)));},{passive:false});
+    else{panX=start.panX-dx/c.scale*cameraSpeed;panZ=start.panZ-dy/c.scale*cameraSpeed;}start=null;});
+  canvas.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(.5,Math.min(7,zoom*Math.exp((e.deltaY<0?1:-1)*.14*cameraSpeed)));},{passive:false});
   $('activity-dashboard-button').addEventListener('click',async()=>{
     if(!activityDashboard){const {mountActivityDashboard}=await import('./activity-dashboard.js');activityDashboard=mountActivityDashboard({container:document.body,
       getSnapshot:()=>world.getActivitySnapshot(),getHistory:q=>world.getActivityHistory(q),subscribe:callback=>world.subscribeActivity(callback),
@@ -233,5 +238,5 @@ async function demo(){
     $('demoCaption').textContent='No plan '+r.avg.noPlan.toFixed(1)+' vs plan '+r.avg.withPlan.toFixed(1)+' ('+(d>=0?'+':'')+d.toFixed(1)+'). '+r.improved+' better off, '+r.worse+' worse off in this synthetic model.';
   }catch(error){$('demoCaption').textContent='The comparison could not run: '+error.message;}
 }
-window.addEventListener('pagehide',()=>{disposed=true;cancelWeek?.();cancelAnimationFrame(frame);activityDashboard?.destroy();}, {once:true});
+window.addEventListener('pagehide',()=>{disposed=true;cancelWeek?.();playback.destroy();cancelAnimationFrame(frame);activityDashboard?.destroy();}, {once:true});
 init().catch(error=>{status.textContent='Canvas2D could not start: '+error.message;});
