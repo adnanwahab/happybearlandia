@@ -9,3 +9,17 @@ Tests will cover before any elapsedtime, one actor only, both actors after1min, 
 Models hook LANDED: recordHouseInterval calls recordHouseRelationshipEncounter immediately after committed participant progress, using min(model.minute,max(start,action.start)+dt). Actual visitor hug/conversation tests confirm no contact at admission; both reciprocal lists after1 actual minute; no premature memory; exact mid-action restore and continuation; completed hug only1memory. Interrupted partially attended affection retains contact but no completed memory. Focused16tests135assertions pass (`/private/tmp/hbl-relationship-discovery-final.log`).
 
 Final resumed Models acceptance: core activities/affection tests now explicitly assert partially attended contacts persist with0completedmemories (old no-tie expectations superseded by user request). Six focused suites30pass208assert. Broader full current core/house/population/save/commitment suite result in `/private/tmp/hbl-core-complete.log` after shared discovery hook and infant/furniture/history fixes. Root standalone year run was inspected through day241; no restart or interruption by Models.
+
+SHE-550 presentation contract: `inspectHouseRelationships` adds the read-only
+boolean `recordedTie`, true only when the canonical pair key exists in
+`model.social.ties`. Inspection-generated household backstory is false. No save
+schema or simulation rules change. The profile constellation projects only true
+rows from the existing inspected subset (default limit 12). It uses only valid
+past `lastEncounterMinute` and retained memory minutes for contact recency;
+missing or future contact times remain unknown. It does not equate tie strength
+with contact, infer edges between neighbors, or infer causal evidence. Displayed
+minutes use the current Population minute, not wall time. Canonical IDs remain
+unchanged. Only members and admitted visitor profiles in the current view are
+navigable; other saved ties explicitly state that the profile is unavailable.
+A static SVG and equivalent native-button list require no WebGPU. Narrow screens
+and reduced motion show the list alone. No new model or ODD rule is introduced.

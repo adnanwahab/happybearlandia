@@ -1,5 +1,10 @@
 # HappyBearLandia implementation plan
 
+## SHE-550 — relationship constellation
+
+Bounded slice: add a static radial map to the existing resident profile using only persisted canonical ties. Prerequisite: distinguish persisted ties from inspection-generated household backstory. Acceptance: names and modeled recency, supported profile navigation, explicit empty state, keyboard/touch list fallback, no simulation writes. Verify projection rejection cases, source-state preservation and focused browser interactions. Risk: existing inspection is capped at 12 relationships; label this as the inspected subset. Open PR #380 owns conversation controls; leave those intact. Status: locally implemented; 17 focused tests / 145 assertions, JavaScript syntax and diff checks passed. No root lint/typecheck script. Playwright blocked before launch by socket-bind EPERM; before/after browser evidence and normal-entry smoke remain pending. See [review and preserved merge policy](reviews/SHE-550.md). No commit/PR/deployment.
+
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,
