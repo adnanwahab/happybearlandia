@@ -1,5 +1,17 @@
 # HappyBearLandia implementation plan
 
+## SHE-553 — event-backed lighthearted captions (2026-11-14)
+
+Local slice: default-off native checkbox in House activity panel, four closed
+mundane-completion templates, explicit synthetic narrative-color label and source
+event ID/minute. Requires matching retained action evidence; missing data fails
+closed. No simulation changes or external prerequisites. Caption, UI, comedy and
+House integration tests pass; browser acceptance and before/after captures remain
+blocked by local server EADDRINUSE. No root lint/typecheck command exists; JS
+syntax checks pass. Next: run the focused keyboard/reduced-motion browser test
+with a working server and review captures. No PR/commit, merge or deployment.
+Audit, configured merge safety hold and details: [SHE-553 review](reviews/SHE-553.md).
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,
