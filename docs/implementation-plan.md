@@ -1,5 +1,18 @@
 # HappyBearLandia implementation plan
 
+## SHE-487 — follow-flow spotlight (2026-11-14)
+
+Prerequisite audit complete; implementation remains blocked on retained directed
+event counts with endpoint IDs, interval coverage and run provenance. Current
+Population edges count in-progress trips, while the resource graph has no app
+caller. Spatial-events source now exists (updating the older SHE-156 absence
+finding), but exports counters/hashes without retained edge events or Population
+identity/time mapping. Open PR audit found no existing ribbon implementation.
+Next slice, contract, acceptance tasks and preserved merge policy are recorded in
+[SHE-487 review](reviews/SHE-487.md). Existing flow/replay checks: 7 passed,
+120 assertions. No executable changes, browser acceptance or interaction benchmark
+claimed; no merge/deploy. Await the producer export before presentation work.
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,
