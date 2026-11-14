@@ -1,4 +1,5 @@
 import {test,expect} from '@playwright/test';
+import {createHash} from 'node:crypto';
 import {writeFile} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import {cpus,platform,release} from 'node:os';
@@ -17,12 +18,15 @@ for(const width of [320,390])for(const mode of ['explicit-canvas','simulated-no-
  async function measure(name,action){const start=performance.now();await action();await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));(latency[name]??=[]).push(performance.now()-start);}
  try{
   await page.goto(baseURL+'/world/future-machine.html'+(mode==='explicit-canvas'?'?renderer=canvas':''));
-  // A controlled HTTP failure must surface, then the normal Fork City action retries.
+  // A controlled HTTP failure must surface, then the visible retry action recovers.
   await page.route('**/api/city-experiments',route=>route.fulfill({status:503,json:{error:'Benchmark injected transient failure'}}));
   await page.getByRole('button',{name:'Fork City',exact:true}).click();await expect(page.getByRole('alert')).toBeVisible();
   await page.unroute('**/api/city-experiments');
-  await measure('retry',async()=>{await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);});
+  await measure('retry',async()=>{await page.getByRole('button',{name:'Retry comparison',exact:true}).click();await ready(page);});
+  await expect(page.getByRole('alert')).toBeHidden();
   await expect.poll(()=>page.evaluate(()=>window.futureMachine.stats.scene.backend)).toBe('canvas2d');
+  const capabilities=await page.evaluate(()=>{const probe=document.createElement('canvas');return {navigatorGPU:Boolean(navigator.gpu),webgl:Boolean(probe.getContext('webgl')),webgl2:Boolean(document.createElement('canvas').getContext('webgl2'))};});
+  if(mode==='simulated-no-gpu')expect(capabilities).toEqual({navigatorGPU:false,webgl:false,webgl2:false});
   const original=await page.evaluate(()=>JSON.stringify(window.futureMachine.history));
   for(let repeat=0;repeat<3;repeat++)for(const month of [0,16,60,120])await measure('scrub',async()=>{
    const slider=page.getByTestId('future-machine-timeline');await slider.fill(String(month));await slider.dispatchEvent('input');
@@ -53,7 +57,7 @@ for(const width of [320,390])for(const mode of ['explicit-canvas','simulated-no-
   expect(errors).toEqual([]);
   const history=await page.evaluate(()=>{const h=window.futureMachine.history;return {seed:h.seed,modelVersion:h.modelVersion,initialHash:h.initialHash,recipe:h.recipe,provenance:h.provenance};});
   await page.screenshot({path:info.outputPath('mobile-canvas.png'),fullPage:true});
-  const report={schemaVersion:'low-end-fallback.v1',recordedAt:new Date().toISOString(),sourceCommit:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),mode,environment:{browser:browser.version(),os:`${platform()} ${release()}`,cpu:cpus()[0]?.model,viewport:{width,height:844},deviceScaleFactor:2,cpuThrottleRate:4,launchArgs:['--disable-gpu'],...await page.evaluate(()=>({userAgent:navigator.userAgent,hardwareConcurrency:navigator.hardwareConcurrency,backend:window.futureMachine.stats.scene.backend}))},history,latency:Object.fromEntries(Object.entries(latency).map(([k,v])=>[k,{...summarize(v),rawMs:v}])),cadence:{...summarize(cadence.intervals),rafHz:1000/(cadence.intervals.reduce((a,b)=>a+b,0)/cadence.intervals.length),rawMs:cadence.intervals},canvasDraws:{count:cadence.draws,elapsedMs:cadence.elapsedMs,drawCallsPerSecond:cadence.draws*1000/cadence.elapsedMs,displayedFps:null},errors,limitations:['Desktop Chromium mobile viewport and 4x CDP CPU throttle; not physical low-end hardware.','GPU APIs are deliberately suppressed in simulated-no-gpu; Canvas2D may use host acceleration.','RAF Hz is scheduling cadence during input; clearRect counts completed draw invocations, not displayed FPS. Canvas draws on demand.','Latency includes Playwright dispatch, assertions and two RAF callbacks; not hardware input-to-photon latency.','Synthetic City recipe; unchanged history asserted across interactions.','No performance budget pass claim: SHE-40 remains in progress.']};
+  const report={schemaVersion:'low-end-fallback.v1',status:'passed',physicalHardwareTested:false,historySHA256:createHash('sha256').update(original).digest('hex'),capabilities,recordedAt:new Date().toISOString(),sourceCommit:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),mode,environment:{browser:browser.version(),os:`${platform()} ${release()}`,cpu:cpus()[0]?.model,viewport:{width,height:844},deviceScaleFactor:2,cpuThrottleRate:4,launchArgs:['--disable-gpu'],...await page.evaluate(()=>({userAgent:navigator.userAgent,hardwareConcurrency:navigator.hardwareConcurrency,backend:window.futureMachine.stats.scene.backend}))},history,latency:Object.fromEntries(Object.entries(latency).map(([k,v])=>[k,{...summarize(v),rawMs:v}])),cadence:{...summarize(cadence.intervals),rafHz:1000/(cadence.intervals.reduce((a,b)=>a+b,0)/cadence.intervals.length),rawMs:cadence.intervals},canvasDraws:{count:cadence.draws,elapsedMs:cadence.elapsedMs,drawCallsPerSecond:cadence.draws*1000/cadence.elapsedMs,displayedFps:null},errors,limitations:['Desktop Chromium mobile viewport and 4x CDP CPU throttle; not physical low-end hardware.','GPU APIs are deliberately suppressed in simulated-no-gpu; Canvas2D may use host acceleration.','RAF Hz is scheduling cadence during input; clearRect counts completed draw invocations, not displayed FPS. Canvas draws on demand.','Latency includes Playwright dispatch, assertions and two RAF callbacks; not hardware input-to-photon latency.','Synthetic City recipe; unchanged history asserted across interactions.','No performance budget pass claim: SHE-40 remains in progress.']};
   const reportPath=info.outputPath('benchmark.json');
   await writeFile(reportPath,JSON.stringify(report,null,2));
   await info.attach('benchmark',{path:reportPath,contentType:'application/json'});
