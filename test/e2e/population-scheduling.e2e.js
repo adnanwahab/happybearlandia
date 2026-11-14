@@ -21,10 +21,14 @@ test('live scheduling pressure is observable without changing equal-tick state',
    const a=readPopulationCheckpoint(await slow.exportCheckpoint()).model,b=readPopulationCheckpoint(await reference.exportCheckpoint()).model;
    // Graph-encoded checkpoints preserve typed bytes and aliases deterministically.
    const {encodeCheckpointGraph}=await import('/world/population/checkpoint.js');
-   return {scheduling:state.runtime.scheduling,tick:state.runtime.tick,seed:a.seed,population:a.people.age.length,equal:JSON.stringify(encodeCheckpointGraph(a))===JSON.stringify(encodeCheckpointGraph(b)),userAgent:navigator.userAgent};
+   const {hash}=await import('/world/population/contracts.js');
+   // generator.js namespaces its internal draw seed by snapshotId; the public
+   // recipe seed remains config.seed. Scheduling must preserve both identities.
+   return {scheduling:state.runtime.scheduling,tick:state.runtime.tick,seed:a.config.seed,referenceSeed:b.config.seed,internalSeed:a.seed,referenceInternalSeed:b.seed,expectedInternalSeed:hash(`${a.config.snapshotId}:${a.config.seed}`),population:a.people.age.length,equal:JSON.stringify(encodeCheckpointGraph(a))===JSON.stringify(encodeCheckpointGraph(b)),userAgent:navigator.userAgent};
   }finally{slow.destroy();reference.destroy();}
  });
  expect(evidence.scheduling.mode).toBe('reduced');expect(evidence.scheduling.transitions[0].tick).toBe(evidence.tick);
- expect(evidence.equal).toBe(true);expect(evidence.seed).toBe(42);expect(evidence.population).toBe(20);
+ expect(evidence.equal).toBe(true);expect(evidence.seed).toBe(42);expect(evidence.referenceSeed).toBe(42);
+ expect(evidence.internalSeed).toBe(evidence.expectedInternalSeed);expect(evidence.referenceInternalSeed).toBe(evidence.expectedInternalSeed);expect(evidence.population).toBe(20);
  await test.info().attach('scheduling-evidence',{body:JSON.stringify({browserName,...evidence},null,2),contentType:'application/json'});
 });
