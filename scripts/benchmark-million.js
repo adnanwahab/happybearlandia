@@ -60,6 +60,13 @@ try {
 } catch (error) { report.status = 'failed'; report.error = error.message; process.exitCode = 1; }
 finally {
   await browser?.close();
+  // Explicitly account for every requested combination, including launch failure
+  // or a fail-fast phase that prevented later sizes from being attempted.
+  report.coverage = sizes.flatMap(size => ['compute-only', 'render-only', 'combined'].map(phase => {
+    const record = report.records.find(row => row.size === size && row.phase === phase);
+    return { size, phase, status: record?.status ?? 'unverified',
+      ...(record ? {} : { reason: 'Not executed because the benchmark failed before this phase completed.' }) };
+  }));
   await writeFile(output, JSON.stringify(report, null, 2) + '\n');
   console.log(JSON.stringify({ status: report.status, output, records: report.records.length, error: report.error }));
 }

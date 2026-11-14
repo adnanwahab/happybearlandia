@@ -8877,3 +8877,23 @@ by Bun listen EADDRINUSE on ports 39884 and 41967. Visual/GPU/mobile acceptance
 remains unverified. Current remote main has unrelated newer coordinator/scene
 fixes to preserve during integration; fetch/rebase/commit are unavailable because
 shared Git metadata is outside writable roots. No merge or deployment.
+
+## SHE-171 r3 — failure coverage and retained evidence (review candidate)
+
+Clean isolated `mini/SHE-171-r3` at `5fdb9683`; prior PR192/294 and current
+source/CI audited, SHE-141/142 confirmed Done. Small owned slice: CLI coverage
+matrix, its subprocess acceptance assertions, manual workflow artifact path,
+benchmark docs and issue-specific review/evidence. Preserve synthetic model,
+ODD, hashes and prior history. Acceptance requires all nine actual browser
+records; risk remains macOS launch denial and unavailable total peak memory.
+
+Delivered explicit unverified size/phase coverage on failure and workflow CLI
+execution after successful browser setup even when its preceding browser test
+fails. Focused/dependency checks: 24 pass, 1 opt-in skip, 2392 assertions. Enabled
+browser gate: 1 pass/1 fail at MachPort permission denial. Actual CLI seed42,
+3 steps, 10k/100k/1M: exit1, zero measurements, nine unverified combinations.
+Evidence and exact commands: [SHE-171 review](reviews/SHE-171.md),
+[failed-run JSON](evidence/she-171-r3-launch-failure.json). No configured JS
+lint/typecheck; diff check passed. Browser-capable nine-record acceptance run
+remains next action. No merge/deploy/production or public performance claim;
+existing disabled automatic merge policy preserved.
