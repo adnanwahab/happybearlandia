@@ -138,12 +138,14 @@ test('Ripple tab shows bounded downstream connections and explicit gaps', async 
 
 test('pulses resolve events and entities, and reduced motion disables animation', async ({ page }) => {
   await page.route(explanation, route => route.fulfill({json:{targetId:target.id,nodes:[source,target],edges:[edge],evidence:[source]}}));
-  await page.goto(inspect(target));
+  await page.goto(inspect(source));
   const pulse = page.locator('.evidence-graph__pulse');
   await expect(pulse).toHaveAttribute('data-from-event', source.id);
   await expect(pulse).toHaveAttribute('data-to-event', target.id);
   await expect(page.getByText('Entity · project:test:2').first()).toBeVisible();
   expect(await pulse.evaluate(el=>getComputedStyle(el,'::after').animationName)).toBe('causal-pulse');
+  await page.reload();
+  await expect(pulse).toHaveAttribute('data-edge-id', edge.id);
   await page.emulateMedia({reducedMotion:'reduce'});
   expect(await pulse.evaluate(el=>getComputedStyle(el,'::after').animationName)).toBe('none');
 });
@@ -189,4 +191,11 @@ test('does not invent model support when an unrecognized model returns no depend
   await expect(page.getByText('No recorded attribution is available', { exact: false })).toContainText('may not support dependency recording');
   await expect(page.locator('.evidence-graph__edge')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Inspect ' + target.type, exact: true })).toBeVisible();
+});
+
+test('an outcome never pulses backwards across an incoming connection', async ({ page }) => {
+  await page.route(explanation, route => route.fulfill({json:{targetId:target.id,nodes:[source,target],edges:[edge],evidence:[source]}}));
+  await page.goto(inspect(target));
+  await expect(page.locator('.evidence-graph__pulse')).toHaveCount(0);
+  await expect(page.getByText('Showing 0 of 0 eligible connections.', {exact:false})).toBeVisible();
 });
