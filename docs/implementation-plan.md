@@ -9188,3 +9188,23 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-447 — bounded neighborhood lasso (2026-11-14)
+
+Next slice: extend the existing authoritative Population selection query with a
+bounded polygon and canonical IDs, preserving rectangle keyboard entry. Pointer
+lasso uses ground-plane projection of screen vertices; selection is current
+resident ground anchors, not visible avatar geometry. Acceptance: exact fixture
+IDs/count, explicit empty/overflow and missing metrics, bounded vertices/IDs,
+Escape/focus/control restoration, worker read-only regression and browser tests.
+Prerequisites: active Living City and initialized World canvas. No model rules,
+clocks, RNG or checkpoint fields change. One coding worker. Merge safety hold
+in `.github/workflows/auto-merge.yml` (`if: false`) remains unchanged.
+
+Implemented locally: bounded polygon/ID query and static SVG lasso; existing
+keyboard bounds, provenance and missing metric semantics preserved. Verification:
+21 tests/106 assertions passed across selection, World view and density; UI syntax
+and diff checks passed. No lint/typecheck script exists. Playwright startup blocked
+by Bun EADDRINUSE on two ports; after screenshot and normal-entry browser/mobile
+acceptance remain pending. Details: [SHE-447 review](reviews/SHE-447.md). No PR,
+merge/deployment, production writes or merge-policy changes.

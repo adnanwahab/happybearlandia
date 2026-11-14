@@ -130,3 +130,17 @@ street routing. Enclosing run/version/seed/time provenance applies. Bus/rail
 markers identify passengers, not shared vehicles. Consumers must not infer a
 fleet count or realized duration from this record. Legacy rows without trip
 remain supported by the renderer.
+
+SHE-447 adds `inspectNeighborhood({polygon:[{x,z},…]})` (3–256 finite
+vertices, ±1,000,000 world units). Screen lasso vertices are ray-projected onto
+y=0; selection tests current ground anchors with inclusive polygon edges and
+an even/odd fill rule. It includes occluded anchors, independent of rendered
+samples and interpolation. Keyboard world bounds remain supported.
+`entityIds` retains at most 2048 canonical `${model.prefix}-p${index}` IDs in
+model order. `selectionStatus` is `complete`, `empty`, or `too-large`; in the
+last case IDs are partial and counts still cover the entire polygon. Run and
+revision from the worker scope these IDs. This is one atomic read of committed
+state, without a second query that could mix ticks. No resident-weight total is
+inferred. The UI allows one pending query and one bounded outline; oversized
+outlines fail explicitly. Its static SVG has no animation, including under
+reduced motion; no GPU selection/readback or retained selection history is used.
