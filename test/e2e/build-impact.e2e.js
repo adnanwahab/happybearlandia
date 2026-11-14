@@ -1,0 +1,36 @@
+import {test,expect} from '@playwright/test';
+for (const touch of [false,true]) test(`World build preview validates, cancels and commits (${touch?'touch':'keyboard'})`,async({browser,baseURL})=>{
+ const context=await browser.newContext({viewport:touch?{width:390,height:844}:{width:1440,height:1000},hasTouch:touch,reducedMotion:'reduce'});
+ const page=await context.newPage();
+ await page.route('**/api/outcomes',r=>r.fulfill({json:{outcomes:[]}}));
+ await page.goto(`${baseURL}/world?demo=1&synthetic=1&people=16&renderer=webgl`);
+ const bridge=page.locator('[data-testid="world-building-tools"]'); await expect(bridge).toBeAttached();
+ await bridge.locator(':scope > summary').click();
+ const activate=async locator=>{if(touch)await locator.tap();else {await locator.focus();await page.keyboard.press('Enter');}};
+ await activate(bridge.locator('[data-action="new-building"]'));
+ await activate(bridge.getByRole('button',{name:'Review project changes'}));
+ const impact=bridge.locator('[data-build-impact]');
+ await expect(impact).toContainText('Committed project estimates: $0');
+ await expect(impact).toContainText('Pending project estimates after approval: $84,000,000');
+ await expect(impact).toContainText('permit 8 months + build 30 months');
+ await page.screenshot({path:`.mini-symphony-evidence/SHE-470-impact-${touch?'touch':'keyboard'}.png`});
+ await activate(bridge.locator('[data-action="reject"]'));
+ await expect(bridge.locator('[data-projects]')).toContainText('No specific building projects');
+ await activate(bridge.locator('[data-action="new-building"]'));
+ await bridge.getByLabel('East / west · meters',{exact:true}).fill('999999');
+ await activate(bridge.getByRole('button',{name:'Review project changes'}));
+ await expect(bridge.locator('[data-status]')).toContainText('outside world bounds');
+ await expect(bridge.locator('[data-preview]')).toBeHidden();
+ await activate(bridge.locator('[data-action="cancel-building"]'));
+ await activate(bridge.locator('[data-action="new-building"]'));
+ await activate(bridge.getByRole('button',{name:'Review project changes'}));
+ await bridge.locator('[data-rerun]').uncheck();
+ await activate(bridge.locator('[data-action="approve"]'));
+ await expect(bridge.locator('[data-status]')).toContainText('Revision approved');
+ await activate(bridge.locator('[data-action="new-building"]'));
+ // Suggested parcel avoids the committed project.
+ await activate(bridge.getByRole('button',{name:'Review project changes'}));
+ await expect(impact).toContainText('Committed project estimates: $84,000,000');
+ await expect(impact).toContainText('Pending project estimates after approval: $168,000,000');
+ await context.close();
+});
