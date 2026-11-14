@@ -57,3 +57,24 @@
 
 /* Keep the open More menu above the bottom HUD's equal stacking level. */
 .house-topbar:has([data-house-tools][open]) { z-index: 31; }
+
+/* Acknowledgment feedback works without the 3D renderer or animation APIs. */
+.house-action-feedback{position:absolute;left:16px;top:100px;z-index:12;max-width:min(340px,calc(100% - 32px));pointer-events:none;display:grid;gap:5px}
+.house-action-response{display:flex;align-items:center;gap:8px;padding:7px 10px;background:#fff8e8;color:#332b20;border:2px solid #ad8230;border-radius:12px;font-size:12px;box-shadow:0 2px 6px #0002}
+.house-action-character{display:inline-grid;place-items:center;width:24px;height:24px;flex:none;border-radius:50%;background:#ead8b7;font-size:19px}
+.house-action-response[data-state=accepted]{border-color:#32784b;background:#eaf7e9}
+.house-action-response[data-state=rejected]{border-color:#a33b32;background:#fff0ed}
+.house-action-response[data-state=completed]{border-color:#41689c;background:#edf4ff}
+@media(prefers-reduced-motion:no-preference){
+.house-action-response[data-state=pending] .house-action-character{animation:house-response-wait 700ms ease-in-out 2}
+.house-action-response[data-state=accepted] .house-action-character,.house-action-response[data-state=completed] .house-action-character{animation:house-response-nod 240ms ease-out}
+.house-action-response[data-state=rejected] .house-action-character{animation:house-response-no 220ms ease-out}
+}
+@keyframes house-response-wait{50%{opacity:.45}}
+@keyframes house-response-nod{50%{transform:translateY(-4px) scale(1.12)}}
+@keyframes house-response-no{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+@media(prefers-reduced-motion:no-preference){
+.house-portrait[data-response-state=accepted]{animation:house-response-nod 240ms ease-out}
+.house-portrait[data-response-state=rejected]{animation:house-response-no 220ms ease-out}
+.house-portrait[data-response-state=pending]{animation:house-response-wait 700ms ease-in-out 2}
+}
