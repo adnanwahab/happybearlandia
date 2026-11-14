@@ -1,5 +1,19 @@
 # HappyBearLandia implementation plan
 
+## SHE-521 — cosmetic architecture palettes (2026-11-14)
+
+Implemented the bounded `/world` slice using existing geometry/material/LOD
+interfaces: deterministic category palettes, roof/window variants and storefront
+fascia with a cosmetic label. No model state or RNG changes. Acceptance: same
+ID/revision/category yields same variants; unknown categories fall back; LOW
+omits attachments. 30 focused tests pass (858 assertions); syntax and whitespace
+checks pass. No root lint/typecheck script exists. Browser acceptance and after
+evidence remain blocked by server EADDRINUSE on two ports; mobile/keyboard,
+shader rendering, rapid camera/timeline and route-exit checks need rerun.
+See [review evidence and preserved merge policy](reviews/SHE-521.md). No PR,
+merge or deployment. Next task: browser verification in a runnable environment.
+
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,
