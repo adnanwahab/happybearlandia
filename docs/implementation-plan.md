@@ -9188,3 +9188,40 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-475 — aligned checkpoint curtain (November 14, 2026)
+
+Bounded local slice implemented in the existing Future Machine stage. **Aligned
+curtain** is a session-local presentation toggle in Side by side mode. One shared
+camera renders both full-width native viewports with complementary scissors;
+Canvas uses the same full-width projection and complementary clips. Drag the
+44px seam with mouse/touch, or use the labeled native range with keyboard. Input
+coalesces to one requestAnimationFrame; no easing or automatic curtain motion is
+introduced. Dates, matched month and displayed seed come from the current frame.
+
+Prerequisites and gates: reuse the validated monthly City pair and existing
+spatial mapping; reject empty inventories, no common entity, unsupported/ambiguous
+footprints or displaced common footprints. Additions/removals and recorded floor
+changes remain supported. Side-by-side/blink/difference, scene-only bookmarks,
+quality and exact arm/entity picks retain their existing contracts. The curtain
+is not persisted in v1 share links; no recipe, simulation, clock or identity
+contract changes. Native floating entity labels are suppressed while revealing;
+exact selectable inventory remains available.
+
+Acceptance evidence: 41 focused Bun tests / 301 assertions pass across curtain,
+Canvas, scene, bookmarks, integrity and effects. Browser bundle succeeds (69
+modules); JavaScript syntax and `git diff --check` pass. Three focused Playwright
+tests are discovered, but execution is blocked by application-server EADDRINUSE
+on ports 39895 and 49975. Fresh before/after Future Machine screenshots and
+60 Hz/hardware performance acceptance are **unverified**. The browser tests
+include per-frame timing attachments and desktop/mobile capture paths for the
+next runnable environment. Existing supplied screenshots were preserved and
+are not evidence of this implementation.
+
+Broader coordinator regression attempt: 2 existing tests fail because their stage
+mock lacks `divergenceShot`; coordinator and its mock are unchanged by this slice.
+Initial dependency resolution was repaired locally using the existing repository
+node_modules via a workspace symlink; no package/lockfile changes. There is no
+repository-wide lint/typecheck script. Review and concrete remaining acceptance
+steps: [SHE-475 work record](reviews/SHE-475.md). No deployment, merge, external
+message, voting/auth/check or production change; automatic merge remains disabled.
