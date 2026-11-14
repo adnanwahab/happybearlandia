@@ -1,0 +1,2 @@
+import {defineConfig} from '@playwright/test';
+export default defineConfig({testDir:'./e2e',testMatch:'recipe-deck.e2e.js',workers:1,timeout:60000,use:{baseURL:'http://127.0.0.1:41964',browserName:'chromium',launchOptions:{...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH}:{})}},webServer:{cwd:process.cwd(),command:'bun run server.js',env:{PORT:'41964',DECISION_STORE_DIR:'/tmp/hbl-she564-decision'},url:'http://127.0.0.1:41964/world/decision.html',reuseExistingServer:false}});

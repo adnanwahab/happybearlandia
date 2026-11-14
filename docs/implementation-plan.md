@@ -9188,3 +9188,24 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-564 — recipe card deck (2026-11-14)
+
+Slice: existing schema editors become movable cards within policy/assumption
+groups. Bounded per-scenario move undo/redo is presentation only; no model input,
+clock, ID, provenance or rule changes. Existing schedules own actual timing.
+Acceptance: boundary/branch history tests, unchanged inputs, manifest completeness,
+and normal-entry keyboard/touch fallback browser test. One worker. Open PR342
+owns broader edit history; retain separate card history and reconcile the small
+studio.js/html/css hooks during integration. Verification pending.
+
+SHE-564 local implementation delivered: grouped static cards with session-only,
+scenario-isolated 50-move undo/redo; explicit display-versus-model timing labels;
+existing validated edits and full manifest unchanged. Evidence:
+[review](reviews/SHE-564.md). Focused card/diff/API 14 pass/1120 assertions;
+Decision suite62pass/3579 assertions; final card/diff7pass; browser bundle48modules
+and diff check pass. No configured lint/typecheck. Normal-page Playwright blocked
+by Bun EADDRINUSE41964; isolated browser controls blocked by macOS MachPort launch
+denial. No new screenshots or UI pass claimed. Next: execute both browser configs,
+inspect Decision Studio before/after evidence and reconcile PR342 hooks. Acceptance
+stays open. Existing disabled auto-merge/voting/auth/check policy preserved.

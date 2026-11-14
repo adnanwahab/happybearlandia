@@ -18,3 +18,8 @@
 .parameter-diff-table th, .parameter-diff-table td { padding: .6rem; border-bottom: 1px solid #556375; text-align: left; min-width: 10rem; overflow-wrap: anywhere; }
 .parameter-diff-table tr[data-changed="true"] { background: #c19a3220; }
 .parameter-diff-table caption { text-align: left; padding: .6rem; font-weight: bold; }
+
+/* Static cards support touch, keyboard and reduced motion. */
+.recipe-card-actions { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0; }
+.recipe-card-actions button { min-height:44px; min-width:44px; }
+.recipe-card-actions [role="status"] { flex-basis:100%; font-size:12px; }
