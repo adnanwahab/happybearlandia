@@ -1,3 +1,4 @@
+import {mountSpatialTargets,spatialTargets} from './onboarding/spatial-targets.js';
 import {mountStormCue} from './render/environment/storm-cue.js';
 import {stormIntensityAt} from './weather/parcel-storm.js';
 import {mountPlanChoices,customPlan,stagePlan} from './plan-choices.js';
@@ -114,6 +115,7 @@ $("goto").onsubmit = (e) => {
 $("preset").onchange = (e) => { if (e.target.value) { const [a, b] = e.target.value.split(",").map(Number); go(a, b); } };
 $("here").onclick = () => navigator.geolocation?.getCurrentPosition((p) => go(p.coords.latitude, p.coords.longitude));
 
+let spatialNavigationUpdate=null,spatialNavigation=null;
 let visualCamera=null, visualSpotlight=null, visualPanels=null, visualComparisonResult=null, visualComparisonView='withPlan';
 const startup = window.hblWorldStartup = { startedAt:performance.now(), firstFrameMs:null, mapReadyMs:null, placeholdersReadyMs:null, geometryReadyMs:null, readyMs:null, geometry:null, cancelled:false };
 const startupAbort = new AbortController();
@@ -538,7 +540,7 @@ const legacyActivityUnsubscribe=world.subscribeActivity(()=>{if(!livingWorld?.ac
 const playback=createSimulationPlayback({initialSpeed:speed,onChange:state=>{speed=state.paused?0:state.speed;const runtime=livingWorld?.active?livingWorld.getRuntime():null;if(runtime){runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();}for(const button of $("speeds").children)button.classList.toggle("on",Number(button.dataset.s)===(state.paused?0:state.speed));if(selected?.type==="person")renderInspector();if(window.hblGuidedActions)worldFeedback("playback",{paused:state.paused,speed:state.speed});}});
 window.hblSimulationPlayback=playback;
 $("camera-speed").onchange=event=>{const value=Number(event.target.value);mapControls.setSpeed(value);controls.panSpeed=value;controls.rotateSpeed=value;controls.zoomSpeed=value;};
-livingWorld=!embedMode?mountLivingWorld({container:document.body,scene,camera,controls,THREE,town,renderer,autoActivate:false,initialMinute:loadedExperiment?0:6*60,onRuntimeReady:runtime=>{bindActivityRuntime(runtime);const state=playback.getState();runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();if(!livingPlaybackUnsubscribe)livingPlaybackUnsubscribe=runtime.subscribe(frame=>{if(!livingWorld?.active||!frame?.runtime)return;if(Number.isFinite(frame.runtime.speed)&&frame.runtime.speed!==playback.getState().speed)playback.setSpeed(frame.runtime.speed);frame.runtime.paused?playback.pause():playback.resume();});return true;},onModeChange:active=>{if(active){window.hblVisualPass?.controller.stop();visualCamera?.cancel();visualSpotlight?.clear();}people.visible=!active;follow=false;selected=null;document.documentElement.classList.remove("person-selected");$("inspect").removeAttribute("data-person-selected");$("inspect").style.display="none";cityRenderer.setFeature('traffic',active?false:originalTrafficEnabled);cityRenderer.updateCity({trafficDensity:active?0:1});document.body.classList.toggle('living-active',active);notifyActivity();const fastest=$('speeds').lastElementChild;fastest.dataset.s=active?'32':'60';fastest.textContent=active?'32×':'60×';if(active&&playback.getState().speed>32)playback.setSpeed(32);}}):null;
+livingWorld=!embedMode?mountLivingWorld({container:document.body,scene,camera,controls,THREE,town,renderer,autoActivate:false,initialMinute:loadedExperiment?0:6*60,onRuntimeReady:runtime=>{bindActivityRuntime(runtime);const state=playback.getState();runtime.setSpeed(Math.min(32,state.speed));state.paused?runtime.pause():runtime.resume();if(!livingPlaybackUnsubscribe)livingPlaybackUnsubscribe=runtime.subscribe(frame=>{if(!livingWorld?.active||!frame?.runtime)return;if(Number.isFinite(frame.runtime.speed)&&frame.runtime.speed!==playback.getState().speed)playback.setSpeed(frame.runtime.speed);frame.runtime.paused?playback.pause():playback.resume();});return true;},onModeChange:active=>{spatialNavigation?.refresh();if(active){window.hblVisualPass?.controller.stop();visualCamera?.cancel();visualSpotlight?.clear();}people.visible=!active;follow=false;selected=null;document.documentElement.classList.remove("person-selected");$("inspect").removeAttribute("data-person-selected");$("inspect").style.display="none";cityRenderer.setFeature('traffic',active?false:originalTrafficEnabled);cityRenderer.updateCity({trafficDensity:active?0:1});document.body.classList.toggle('living-active',active);notifyActivity();const fastest=$('speeds').lastElementChild;fastest.dataset.s=active?'32':'60';fastest.textContent=active?'32×':'60×';if(active&&playback.getState().speed>32)playback.setSpeed(32);}}):null;
 cityRenderer.setSimulationSource(()=>livingWorld?.active?livingWorld.getSnapshot():null);
 window.hblLivingWorld=livingWorld;
 const neighborhoodWhatIf = !embedMode ? mountNeighborhoodWhatIf({scene,camera,controls,renderer,THREE,getContext:()=>livingWorld.getContext()}) : null;
@@ -2370,6 +2372,7 @@ function frame(now) {
   cityRenderer.afterFrame(now, performance.now() - cpuStart, frameMs);
   visualCamera?.update(now);
   visualSpotlight?.update(now);
+  spatialNavigationUpdate?.();
   requestAnimationFrame(frame);
 }
 
@@ -2569,6 +2572,29 @@ if(!embedMode&&!businessMode&&!simulationId&&!loadedExperiment&&!renderBenchmark
   if(liveFeedbackGuide)visualPanels.register('live-feedback',liveFeedbackGuide);
   visualCamera=createCameraDirector({camera,controls,reducedMotion,getResidentPosition:residentPosition,now:()=>performance.now()});
   visualSpotlight=createSpotlight({THREE,scene,getResidentPosition:residentPosition,reducedMotion});
+  const resolveTarget=ref=>{
+    if(livingWorld?.active)return null;
+    const row=ref.kind==='resident'?town.people.find(p=>String(p.id)===String(ref.id)):town.buildings.find(b=>String(b.id)===String(ref.id));
+    return row?{position:ref.kind==='resident'?{x:row.x,y:0,z:row.z}:{x:row.center[0],y:0,z:row.center[1]}}:null;
+  };
+  const keyboardSpotlight=createSpotlight({THREE,scene,resolveEntity:resolveTarget,radius:6,depthTest:false});
+  spatialNavigation=mountSpatialTargets({document,container:document.body,
+    getTargets:()=>spatialTargets(town,{available:!livingWorld?.active}),
+    onFocus:row=>{
+      const position=resolveTarget(row)?.position;
+      if(!position||![position.x,position.z].every(Number.isFinite))return false;
+      visualCamera.cancel();visualSpotlight.clear();follow=false;
+      const delta=new THREE.Vector3(position.x,0,position.z).sub(controls.target);
+      camera.position.add(delta);controls.target.add(delta);controls.update();
+      return keyboardSpotlight.show({authority:'legacy-world',kind:row.kind,id:row.id});
+    },onClear:()=>keyboardSpotlight.clear(),
+    onInspect:row=>{const source=row.kind==='resident'?town.people:town.buildings;const index=source.findIndex(item=>String(item.id)===row.id);if(index>=0)select({type:row.kind==='resident'?'person':'building',id:index});},
+    onExit:()=>select(null)
+  });
+  // Keep a locator attached to the current actual position, using the existing loop.
+  const updateKeyboardTarget=()=>{if(livingWorld?.active)keyboardSpotlight.clear();else keyboardSpotlight.update();};
+  spatialNavigationUpdate=updateKeyboardTarget;
+  addEventListener('pagehide',()=>{spatialNavigationUpdate=null;spatialNavigation.dispose();keyboardSpotlight.dispose();},{once:true});
   let configurationSummary=null;
   let guide,controller,observation=null,measured=null,configuration=null,focusId=null,workerTimings=null;
   let comparisonWorker=null;

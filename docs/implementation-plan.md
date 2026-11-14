@@ -9188,3 +9188,30 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-472 — spatial keyboard traversal (2026-11-14)
+
+Audit: branch `mini/SHE-472`; open GitHub PR searches for keyboard, scene targets,
+SHE-472 and semantic returned no matches. No existing semantic scene entity list
+was found in the normal World renderer; SHE-199 explicitly records that gap.
+Reuse the existing town identities, inspector, panel manager and spotlight rather
+than introduce a second inspector. One coding worker owns this integrated slice.
+
+Next slice: bounded representative resident/building buttons, arrow traversal,
+Enter inspection, Escape dismissal and a static actual-position ring in 3D.
+Unavailable Population mapping must be explicit. Acceptance: component boundary
+checks, normal-entry browser keyboard checks, measured traversal cost, build and
+relevant regressions. Risks: active model switches and missing positions; no
+model/clock/seed changes. Native screen-reader verification remains external.
+Configured merge policy is preserved: docs/auto-merge.md documents five-minute
+CI/review gates, draft exclusion and explicit holds. No workflow or voting edits.
+
+SHE-472 implemented increment: semantic 24-target list, clamped arrows/Home/End,
+native Tab, existing Enter inspector and Escape handling; reusable static locator
+through occluders and immediate camera framing. No animation or simulation writes.
+20 tests/116 assertions pass; 365-module renderer build passes; both browser tests
+discover. Server binding prevents execution/after screenshots (EADDRINUSE at two
+ports). Benchmark and complete audit/limits: [review](reviews/SHE-472.md).
+Population and standalone Canvas2D traversal remain unsupported; NVDA/VoiceOver,
+touch layout and actual browser acceptance remain required. No PR/commit or
+configured merge/voting policy changes.
