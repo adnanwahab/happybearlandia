@@ -1,0 +1,17 @@
+Listing tests:
+  [installed-chrome] › future-machine-share-reliability.e2e.js:6:5 › actual saved replay retains selected month, identity and exact histories after refresh
+  [installed-chrome] › two-futures-compatibility.e2e.js:42:5 › 320px Canvas comparison retains timeline, metrics and WHY without overflow
+  [installed-chrome] › two-futures-sprint.e2e.js:46:5 › real paired runs: matched start, physical divergence, metrics, timeline and deterministic refresh
+  [installed-chrome] › two-futures-sprint.e2e.js:59:5 › guided controls, shared camera, difference-only and metric WHY
+  [installed-chrome] › two-futures-sprint.e2e.js:73:5 › forced unavailable WebGL retains actual paired evidence and selection
+  [playwright-firefox] › future-machine-share-reliability.e2e.js:6:5 › actual saved replay retains selected month, identity and exact histories after refresh
+  [playwright-firefox] › two-futures-compatibility.e2e.js:42:5 › 320px Canvas comparison retains timeline, metrics and WHY without overflow
+  [playwright-firefox] › two-futures-sprint.e2e.js:46:5 › real paired runs: matched start, physical divergence, metrics, timeline and deterministic refresh
+  [playwright-firefox] › two-futures-sprint.e2e.js:59:5 › guided controls, shared camera, difference-only and metric WHY
+  [playwright-firefox] › two-futures-sprint.e2e.js:73:5 › forced unavailable WebGL retains actual paired evidence and selection
+  [playwright-webkit] › future-machine-share-reliability.e2e.js:6:5 › actual saved replay retains selected month, identity and exact histories after refresh
+  [playwright-webkit] › two-futures-compatibility.e2e.js:42:5 › 320px Canvas comparison retains timeline, metrics and WHY without overflow
+  [playwright-webkit] › two-futures-sprint.e2e.js:46:5 › real paired runs: matched start, physical divergence, metrics, timeline and deterministic refresh
+  [playwright-webkit] › two-futures-sprint.e2e.js:59:5 › guided controls, shared camera, difference-only and metric WHY
+  [playwright-webkit] › two-futures-sprint.e2e.js:73:5 › forced unavailable WebGL retains actual paired evidence and selection
+Total: 15 tests in 3 files

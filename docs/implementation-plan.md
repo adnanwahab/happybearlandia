@@ -9188,3 +9188,31 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+
+## SHE-63 release matrix follow-up — 2026-11-14
+
+Candidate `cdb773a19acb5f68cd949dab2b8af148a0e1aefe`, isolated branch
+`mini/SHE-63-r3`. Reused the merged PR #118 matrix and five canonical tests;
+SHE-44 PR #319 is merged but its actual benchmark report remains incomplete.
+The sequencing correction permits executing this matrix now without accepting
+those feature tickets first. Ownership: matrix config, issue review/evidence and
+this status addition; no application/model/seed/disclosure changes.
+
+Delivered runtime and artifact-directory overrides so the matrix can select a
+working Bun executable and avoid overwriting historical tracked results.
+Acceptance requires baseline, changed month, WHY, saved sharing and real fallback
+through normal routes on each accessible browser; unavailable engines and devices
+must remain explicit. All 15 cases discover. Focused fallback/data/replay checks:
+32 pass, 1 existing browser-opt-in skip, 0 fail, 880 assertions. Syntax and diff
+checks pass. Matrix execution exits 1 before tests: local listeners denied;
+independent socket probe returns EPERM. Installed Chrome and Playwright WebKit
+also abort on standalone launch, patched Firefox is absent, browser UI host is
+unavailable and no physical device is accessible. No current browser pass or new
+screenshot. SHE-63 acceptance and SHE-64 recording gate remain unresolved.
+
+Next: execute on a listener/browser-capable host, inspect all five behaviors and
+retained provenance/artifacts per engine, test native Safari separately and
+resolve SHE-44 measurements for consolidated acceptance. Exact commands, prior
+PR links, matrix and raw logs: [SHE-63 review](reviews/SHE-63.md). No new PR,
+merge/deploy/production action or release/voting/auth policy change.
