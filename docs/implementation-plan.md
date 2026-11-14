@@ -8877,3 +8877,19 @@ by Bun listen EADDRINUSE on ports 39884 and 41967. Visual/GPU/mobile acceptance
 remains unverified. Current remote main has unrelated newer coordinator/scene
 fixes to preserve during integration; fetch/rebase/commit are unavailable because
 shared Git metadata is outside writable roots. No merge or deployment.
+
+## SHE-239 — tournament director specification (2026-11-13)
+
+Delivered analysis-only `docs/reviews/SHE-239.md` at baseline `5fdb9683`: seven
+missions, each with three competing hypothesis designs and a decisive experiment;
+six-dimension weighted rubric, common Codex results template, reproducibility and
+failure gates. Audited prior SHE-240 output, clean older SHE-239 worktree, live
+SHE-77/131/161/169 statuses and merged PR metadata. Both readiness labels already
+exist. Prior disk-full checkout failure is preserved; fresh worktree used.
+No product/model behavior changed. Focused existing foundation checks: 24 pass,
+1 opt-in browser skip, 0 fail, 654 assertions. Current City 1.1.0 receipt and exact
+commands are recorded in the report; historical 1.0.0 hashes are not substituted.
+Specification acceptance is complete; no candidate is implemented or declared a
+winner. Next: choose and preregister a bounded experiment, recheck ownership and
+prerequisites, then gather actual normal-entry/user/device evidence. Voting,
+auth/check and merge policy remain unchanged; no release action authorized.
