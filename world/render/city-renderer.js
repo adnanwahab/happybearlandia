@@ -1,3 +1,4 @@
+import {simulationBudget,formatSimulationBudget} from './renderer/dual-budget.js';
 import {windowFraction} from './environment/sim-lighting.js';
 import * as THREE from 'three';
 import { DetailAssetLibrary } from './assets/instanced-glb.js';
@@ -29,7 +30,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
   const lod=new BuildingLOD(scene,visibility.chunks), cutaway=new BuildingCutaway(scene);
   const features={assets:true,grass:true,sky:true,environment:true,construction:true,lod:true,props:true,roads:true,traffic:true,vegetation:true,roofs:true,rain:true,facades:true,interiors:true,atmosphere:true,shadows:!embed,culling:true};
   const fog=new THREE.FogExp2(0x91afbf,.00023);
-  let renderInstances=0,adaptiveEnabled=true;
+  let renderInstances=0,adaptiveEnabled=true,simulationSource=()=>null;
   let state={},lastSettings='',lastOverlay=0,frameIndex=0,active=true,photoPreset=null,focus=null,visible={},cached={},disposed=false, benchmarkStart=null;
   const panel=document.createElement('aside');panel.hidden=true;panel.dataset.testid='render-performance';
   panel.style.cssText='position:fixed;top:12px;right:12px;z-index:100;background:#111e;color:#e1edf4;padding:14px;border:1px solid #52616c;border-radius:10px;font:12px/1.5 monospace;max-height:85vh;overflow:auto';
@@ -83,7 +84,8 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
     pickVehicle(raycaster){return details.pickVehicle?.(raycaster)||null;},
     getVehicle(id){return details.getVehicle?.(id)||null;},
     setReadbackEnabled(enabled){gpu.setEnabled(enabled);},
-    getPerformanceStats(){return {...cached,lighting:state.lighting,buildingHomeCounts:state.buildingHomeCounts,readback:gpu.getSnapshot(),backend:mode,quality:quality.preset,settings:quality.settings,features:{...features},geometryError:geometryDetail?.error,recording:!!stats.recording,lastBenchmark:stats.lastReport};},
+    setSimulationSource(read){if(typeof read!=='function')throw new TypeError('Simulation source must be a read function');simulationSource=read;},
+    getPerformanceStats(){return {...cached,simulation:simulationBudget(simulationSource()),lighting:state.lighting,buildingHomeCounts:state.buildingHomeCounts,readback:gpu.getSnapshot(),backend:mode,quality:quality.preset,settings:quality.settings,features:{...features},geometryError:geometryDetail?.error,recording:!!stats.recording,lastBenchmark:stats.lastReport};},
     startBenchmark({scripted=false}={}){benchmarkStart=scripted?performance.now():null;stats.start(performance.now(),{readback:gpu.getSnapshot(),backend:mode,preset:quality.preset,features:{...features},url:location.href,userAgent:navigator.userAgent,viewport:[innerWidth,innerHeight],devicePixelRatio,adaptive:false,settings:quality.settings,geometryDetail:geometryDetail?.quality,scripted});},
     focusBuilding(id){const b=town.buildings.find(b=>String(b.id)===String(id)||b.index===id);if(!b)return false;state.selectedBuilding=b.id;focus={target:new THREE.Vector3(b.center[0],b.height/2,b.center[1]),position:new THREE.Vector3(b.center[0]+b.height*1.8+35,b.height*1.5+30,b.center[1]+b.height*1.8+35)};return true;},
     focusDistrict({x=0,z=0,radius=250}={}){focus={target:new THREE.Vector3(x,0,z),position:new THREE.Vector3(x+radius,radius,z+radius)};},
@@ -122,7 +124,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
       stats.push(sample,now);
       if(document.visibilityState!=='hidden'&&adaptiveEnabled&&!photoPreset&&!stats.recording&&quality.sample(frameMs,gpu.ms,cpuMs))applyQuality();
       if(now-lastOverlay>250){lastOverlay=now;renderInstances=0;scene.traverseVisible(object=>{if(object.isInstancedMesh)renderInstances+=object.count;});cached=stats.current;
-        if(!panel.hidden){const n=v=>v==null?'unavailable':v.toFixed(2);panel.querySelector('pre').textContent=`${mode.toUpperCase()} · ${quality.preset}\nFPS ${n(cached.fps)} · 1% low ${n(cached.onePercentLowFps)}\nCPU ${n(cpuMs)} ms · GPU latest ${n(gpu.ms)} ms · age ${n(readback.latest?.ageMs)} ms\nFrame p95 ${n(cached.p95FrameMs)} ms\nDraws ${sample.drawCalls} · triangles ${sample.triangles}\nTextures ${sample.textures} · texture bytes unavailable\nInstances ${renderInstances} · HLOD ${visible.instances}\nChunks ${visible.visibleChunks} · buildings ${visible.visibleObjects}\nShadow casters ${visible.shadowCasters}\nGeometry ${(geometryDebug.stats.bytes/1048576).toFixed(1)} MiB · LOD ${geometryDebug.stats.lodCounts.join("/")}\nGrass ${grass.getStats().blades} blades · ${grass.getStats().drawCalls} draw\nScale ${quality.settings.scale.toFixed(2)} · slow frames ${cached.slowFrames}`;
+        if(!panel.hidden){const n=v=>v==null?'unavailable':v.toFixed(2);panel.querySelector('pre').textContent=`RENDER · ${mode.toUpperCase()} · ${quality.preset}\nFPS ${n(cached.fps)} · 1% low ${n(cached.onePercentLowFps)}\nFrame callback CPU estimate ${n(cpuMs)} ms · GPU timestamp latest ${n(gpu.ms)} ms · age ${n(readback.latest?.ageMs)} ms\nFrame p95 ${n(cached.p95FrameMs)} ms\nDraws ${sample.drawCalls} · triangles ${sample.triangles}\nTextures ${sample.textures} · texture bytes unavailable\nVisual instances ${renderInstances} (not agents) · HLOD ${visible.instances}\nChunks ${visible.visibleChunks} · buildings ${visible.visibleObjects}\nShadow casters ${visible.shadowCasters}\nGeometry buffer estimate ${(geometryDebug.stats.bytes/1048576).toFixed(1)} MiB (partial) · LOD ${geometryDebug.stats.lodCounts.join("/")}\nGrass ${grass.getStats().blades} blades · ${grass.getStats().drawCalls} draw\nScale ${quality.settings.scale.toFixed(2)} · slow frames ${cached.slowFrames}\n\n${formatSimulationBudget(simulationBudget(simulationSource(),now))}`;
           panel.querySelector('[role=status]').textContent=stats.recording?'Recording… quality held fixed':stats.lastReport?'Recording complete. Export JSON to compare.':'';
         }
       }

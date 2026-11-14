@@ -90,3 +90,41 @@ nonresidential geographic kind. Work/office lights are closed outside weekday
 residents use current recorded occupancy during allowed hours. Unmapped buildings remain dark. Street lamps and decorative
 vehicle headlights fade in at dusk. Vehicles remain illustrative traffic.
 Canvas2D uses the same scene sky color, without window or lamp shading.
+
+## Dual budgets (SHE-165)
+
+Graphics/F3 separates `RENDER` from `SIMULATION`. `getPerformanceStats().simulation`
+is a read-only Population projection while Living City is active, otherwise null.
+The host supplies `setSimulationSource(readSnapshot)`; this reader cannot drive a
+step. Renderer features and quality settings do not receive the runtime.
+
+Render FPS is animation cadence; the frame callback CPU estimate includes host
+work/submission and is not GPU execution time. GPU values only come from the
+supported asynchronous timestamp-query profiler; unavailable stays unavailable.
+Geometry buffer bytes are a partial estimate, not total device memory. Textures
+have counts but no byte accounting. Visual instances, HLOD and blades are never
+agent counts.
+
+Population reports allocated independent resident states separately from weighted
+represented residents. **Active changed residents is unavailable**: the current
+snapshot has no full-state, per-window change counter under SHE-141 semantics.
+Interactions/s is also unavailable: events, social memories and sampled avatars
+are not a complete validated pair-interaction counter. No reference-fixture rates
+are substituted for live production work. Simulation memory is unavailable.
+
+Compute step is a CPU wall-clock estimate: elapsed live advance request divided
+by its fixed-step batch size, including queue, transfer, packing and snapshot work.
+It is not worker-only compute or GPU compute. The last committed sample includes
+batch size and age, remains visibly paused when paused, and clears on reset or
+checkpoint restore. Timing is outside serialized model/checkpoint provenance.
+Model version, seed, runtime/revision, tick and modeled minute are retained in the
+projection. The overlay is supported on WebGPU and WebGL2. It is **disabled on the
+separate Canvas2D fallback**, which never mounts `mountCityRenderer`.
+
+Verification: `bun test test/dual-budget.test.js test/render-performance.test.js
+test/gpu-readback.test.js`; browser journey/recording:
+`HBL_FM_PORT=39966 bun x playwright test --config test/dual-budget.browser.config.js`.
+The browser test hashes full decoded model checkpoints before/after graphics
+changes and records before/after screenshots plus video. See
+`docs/reviews/SHE-165.md` for actual execution limits; the test existing is not
+proof it passed.
