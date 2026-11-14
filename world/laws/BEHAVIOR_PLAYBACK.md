@@ -25,6 +25,47 @@ Only supported laws with reviewed numeric parameterFactors expose the 0–100% s
 
 The original 100% paired comparison is retained in panel memory when a user edits the lever. When the chosen metric and exact checkpoint are comparable, its originally modeled result is shown alongside the new result. Rerunning cancels/invalidates outstanding requests and hides stale charts immediately.
 
+## Native data receipt for Civic Synthesis
+
+This branch now exposes a read-only POST /api/law-behavior route. It returns a
+versioned hbl-law-behavior-receipt.v1 allowlisted data structure containing actual
+paired model checkpoints and up to 12 stable synthetic actor observations,
+rather than images or iframe HTML. This endpoint is consumed by the companion
+[Civic Synthesis draft PR #120](https://github.com/adnanwahab/dear_congress/pull/120).
+
+The POST body is limited to lawId (11–100), integer seed (0–4294967295),
+population (1–60), and numeric implementationStrength (0–1). The server itself
+chooses 720 modeled population minutes or 12 modeled city months. There is no
+caller-provided geography, arbitrary parameter injection, private journal, or
+literal law-text simulation. Unsupported/fixed law input strengths other than 1
+are refused. The receipt includes only enumerated synthetic metrics and actor
+fields; raw model state remains on the server.
+
+The server admission layer applies shared global and per-client IP budgets;
+the route independently allows only three active comparisons and requests have
+a maximum of 1024 characters with rejection on large inputs. Browser CORS
+allowlist is restricted to Civic Synthesis, Dear Congress, HBL and localhost
+development; anonymous public access is to synthetic models only.
+
+API contract tests in test/law-behavior-api.test.js exercise real paired
+execution, fields allowlisting, private-data exclusion, strict bounds, CORS,
+unsupported laws and concurrent pressure. The native Civic Synthesis UI parses
+the exact same versioned data and renders it as React, not as a cross-origin
+iframe. **Both PRs are draft; the endpoint is not yet deployed.**
+
+## Rollout dependencies
+
+1. Human reviews HBL PR #316, focused model and browser CI, core-journey
+   regression status and the new anonymous endpoint exposure.
+2. Deploy the approved HBL endpoint before Civic Synthesis, using existing
+   release gates.
+3. Human reviews Civic Synthesis PR #120, typecheck, Bun tests, accessibility
+   and route smoke; only then deploy it.
+4. After both are available, explicitly test live CORS, mobile, exact pair
+   identity, denied-origin behavior, rate limits, model outage and zero
+   parameter mapping. The frozen Civic plan is a navigation reference only,
+   not automatically compiled into a new policy effect.
+
 ## Verification and handoff
 
 Focused test files: test/law-behavior-playback.test.js (factor edits, deterministic matching, actor identity/time, household frames and refusal paths), plus existing test/laws.test.js, test/law-impact.test.js, test/law-mechanism-contract.test.js, test/law-visuals.test.js.
@@ -35,7 +76,7 @@ Local command:
 
 Human browser acceptance: Open Constitution City, choose law 83, inspect initial paired run, drag 100% to 50%, verify the selected transit-service config changes to 1.25 and the baseline remains at 1.0, watch tracked residents and recorded metrics over the scrubber, and verify the original 100% sample is retained. Choose law 21 (fixed upzone) and law 31 (unmodeled) to confirm no invented slider/forecast. Test 320px viewport, keyboard and reduced-motion mode.
 
-This slice does not yet bring the worker data into Civic Synthesis's native /synth screen. Its prior freeze/deeplink handoff remains; embedded screenshots and cross-origin views are not replaced in that separate app by this patch. Next integration should define a versioned, permission-safe read-only paired-run receipt/API and render the same model timeline natively in Civic Synthesis, plus an explicit amendment-to-reviewed-parameter compiler and provenance inspector. Reuse existing snapshot IDs, seeds and source policy identity rather than passing private journal content or creating an arbitrary effects model.
+The companion Civic Synthesis PR #120 now renders these bounded model checkpoint receipts natively after a plan is frozen. It still uses a separate reviewed synthetic law sandbox; it does **not** apply the exact plan or legal amendment text. A reviewed, revision-bound amendment-to-engine-lever compiler remains future work, with recorded source IDs and exact seed provenance needed for a full end-to-end policy change loop.
 
 ## Known limitations
 
