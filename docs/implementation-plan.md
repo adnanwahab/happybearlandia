@@ -9039,3 +9039,27 @@ No browser changes; Playwright skipped. Learning algorithms, arbitrary reward
 revisions and real-world evaluation remain outside this bounded authorization.
 No deployment, merge or production writes. Prior deferred plan above is retained
 as historical context, superseded only for this implemented local slice.
+
+## SHE-259 follow-up — November 13, 2026 (in progress)
+
+Audit merged PR #283 / ff49b62d against current 5fdb9683. Preserve its 3D
+lifecycle; fix the remaining Canvas2D normal-entry lifecycle gap and the stale
+3D test fixture (missing cycleResults after custom-plan integration). Single
+worker owns canvas2d-world.js, lifecycle tests, focused browser test/config and
+issue evidence. Acceptance: fallback Running/progress/cancel, bounded failure
+and retry, stale-message isolation, real Balanced results within 90 seconds.
+Do not change worker inputs, model rules or seeds. Browser startup currently
+fails EADDRINUSE on 39889; keep measured performance acceptance open if blocked.
+
+SHE-259 follow-up result: Canvas2D normal Run cycle now exposes lifecycle status,
+worker progress, cancel, cleanup and retry, retaining its existing 90s deadline
+and unchanged simulation payload. Repaired stale 3D custom-plan test fixture.
+16 focused tests /203 assertions pass; 8 adjacent real-worker replay/playback tests
+/40 assertions pass. Actual runWeek + real Bun Worker Balanced integration:
+1582.6ms for16 synthetic residents; this is not browser timing. Browser bundle
+99 modules passes;5 Playwright cases discover; diff whitespace passes. Both
+39889 and41983 browser attempts fail before launch at server listen EADDRINUSE.
+No lint/typecheck script exists. Browser budget/layout/default-population
+acceptance remains open. Exact scope, provenance, prior PR #283 audit, policy
+preservation and reproduction commands: [SHE-259 review](reviews/SHE-259.md).
+No commit/PR, merge, deployment, external message or production change performed.
