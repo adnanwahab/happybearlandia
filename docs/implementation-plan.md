@@ -9188,3 +9188,23 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-471 — scenario session undo/redo (2026-11-14)
+
+Bounded local slice on isolated `mini/SHE-471`; audited source and open PRs first,
+no competing undo work found. Single worker owns draft history, editor controls,
+committed local reload, focused tests/docs. Acceptance: at least five reversible
+edits, redo invalidation after branching, unchanged executed receipts, committed
+reload, unavailable/read-only states, keyboard/touch and reduced motion. Risks:
+100 input-event cap, session-only undo stack, browser-local project URLs, and
+browser/device timing unverified. No simulation or model contract changes.
+
+Implemented and verified with 21 focused tests (1198 assertions), 62 Decision
+suite tests (3580 assertions, overlaps integration), and 48-module browser bundle.
+Two browser cases discover; actual runs blocked before launch by EADDRINUSE on
+3194 and 41974. No before/after editor screenshots produced. Draft-only benchmark
+p95 0.040458ms for record/undo/redo excludes DOM/simulation. Full paths, measured
+limits and commands: [SHE-471 review](reviews/SHE-471.md). Next: run the browser
+config on a bind-capable host and review screenshots before acceptance. Existing
+merge workflow safety hold, auth/voting and checks preserved. No commit/PR,
+merge, deployment, live service or production-data action.

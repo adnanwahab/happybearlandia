@@ -18,3 +18,7 @@
 .parameter-diff-table th, .parameter-diff-table td { padding: .6rem; border-bottom: 1px solid #556375; text-align: left; min-width: 10rem; overflow-wrap: anywhere; }
 .parameter-diff-table tr[data-changed="true"] { background: #c19a3220; }
 .parameter-diff-table caption { text-align: left; padding: .6rem; font-weight: bold; }
+
+.edit-history { flex-wrap: wrap; align-items: center; }
+.edit-history button { min-height: 44px; min-width: 88px; }
+#edit-revision { font-size: .8rem; color: var(--muted, #64748b); }

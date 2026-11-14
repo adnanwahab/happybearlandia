@@ -49,6 +49,7 @@
           </aside>
           <div class="scenario-panel panel analyst-controls">
             <div class="panel-top"><div><div class="subheading">COMPARE ALTERNATIVES</div><p class="fine">Edit one alternative at a time. All alternatives use matched seeds.</p></div><button id="duplicate-scenario" class="quiet">+ Duplicate</button></div>
+            <div class="button-group edit-history" role="group" aria-label="Scenario edit history"><button id="undo-edit" disabled title="Undo draft edit (Ctrl/Cmd+Z outside text fields)">Undo edit</button><button id="redo-edit" disabled title="Redo draft edit (Ctrl/Cmd+Shift+Z outside text fields)">Redo edit</button><span id="edit-revision" role="status" aria-live="polite"></span></div>
             <div id="scenario-tabs" class="scenario-tabs" role="tablist" aria-label="Scenario alternatives"></div>
             <div class="scenario-heading"><label for="scenario-name">SCENARIO NAME<input id="scenario-name" maxlength="120"></label><span id="scenario-kind" class="badge"></span></div>
             <details id="stress-details"><summary>Compose stress tests</summary><div id="stress-presets" class="stress-presets"></div><p class="fine">Presets are composed by the model at execution. Numeric controls show the scenario's inputs before those shocks.</p></details>
