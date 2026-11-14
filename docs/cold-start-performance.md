@@ -109,3 +109,59 @@ harness as delivered with measurement acceptance pending; shared implementation
 plan was intentionally not edited under the issue's exclusive file ownership.
 PR publication to the sprint base remains a trusted-host handoff; this sandbox
 has read-only Git metadata and no publication receipt is claimed.
+
+## Completion sprint follow-up — November 13, 2026 (Chicago)
+
+Working branch `mini/SHE-11-r3`, base `5fdb96832cdb6d895b04e9ea95ad4b3aea0318eb`.
+Local history confirms the earlier harness was merged in
+[PR #114](https://github.com/adnanwahab/happybearlandia/pull/114), merge
+`274a003d`, implementation `6b079ab3`. That delivery explicitly lacked actual
+measurements; it is not acceptance of the laptop/browser baseline. Live PR lookup
+(`gh pr list --repo adnanwahab/happybearlandia --state all --search 'SHE-11'
+--json number,title,state,url,headRefName`) failed connecting to api.github.com.
+All registered worktrees were checked for uncommitted changes in the three owned
+files; none conflicted. No shared source, simulation or merge-policy files changed.
+
+The bounded follow-up preserves both renderer attempts and writes the report even
+when browser cleanup throws. `validationErrors` now explicitly rejects a missing
+or mismatched selected backend, so a successful Canvas fallback cannot certify
+WebGL coverage. A dependency-injected browser fixture verifies launch/context/
+cleanup error boundaries and actual JSON serialization without pretending to be
+browser performance evidence.
+
+Commands executed from this checkout:
+
+```sh
+TMPDIR=/private/tmp bun install --frozen-lockfile
+bun test test/cold-start-report.test.js test/render-performance.test.js
+PORT=43871 bun run server.js
+bun scripts/benchmark-cold-start.mjs http://127.0.0.1:43871 /private/tmp/she11-r3-cold-start.json > /private/tmp/she11-r3-cold-start.log 2>&1
+git diff --check
+```
+
+Install exited 1: `bun is unable to write files to tempdir: EPERM`. Existing
+ancestor node_modules supplied Playwright; tests passed (15 tests, 0 failures,
+79 assertions). No typecheck/lint command exists in package.json. Server exited 1
+with `EADDRINUSE` at server.js:437. No existing listener was used. Harness exited 1;
+both actual browser launches failed with the same MachPort permission denial
+shown above, before navigation. Host: Apple M4 / Darwin 24.6.0 / arm64 / 16 GiB;
+configured viewport 1440×900 at scale 1. Browser version and selected renderer
+could not be queried. Native WebGPU and hardware acceleration remain unverified.
+
+Fresh report timestamp: `2026-11-14T04:18:03.357Z` (November 13 locally).
+
+| Requested path | Selected backend | Ready ms | Useful render ms | Actionable ms | JS heap bytes |
+| --- | --- | --- | --- | --- | --- |
+| WebGL | unavailable (launch denied) | null | null | null | null |
+| Canvas2D | unavailable (launch denied) | null | null | null | null |
+
+The JSON and full logs at the paths above are local attempt artifacts. No UI
+changed and no browser page opened, so there are no new screenshots. No new PR
+was published; this environment permits reading but not writing the shared Git
+metadata. No merge, deployment, production action or external message occurred.
+Next action remains a trusted-host run of the exact harness with an isolated
+server and functioning Chromium, followed by committing its actual JSON evidence
+and opening a review PR against the sprint base. SHE-40 must remain blocked until
+those measurements are independently verified. Coordinator plan update request:
+record the error-boundary/coverage fixes as tested, and baseline acceptance as
+pending hardware/browser access.
