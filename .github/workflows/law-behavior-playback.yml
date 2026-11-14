@@ -6,6 +6,7 @@ on:
       - 'world/laws/**'
       - 'world/constitution-city/app.js'
       - 'test/law-behavior-playback.test.js'
+      - 'test/e2e/law-behavior-playback.e2e.js'
       - '.github/workflows/law-behavior-playback.yml'
   push:
     branches: [main]
@@ -13,6 +14,7 @@ on:
       - 'world/laws/**'
       - 'world/constitution-city/app.js'
       - 'test/law-behavior-playback.test.js'
+      - 'test/e2e/law-behavior-playback.e2e.js'
       - '.github/workflows/law-behavior-playback.yml'
 
 permissions:
@@ -21,7 +23,7 @@ permissions:
 jobs:
   matched-law-behavior:
     runs-on: ubuntu-24.04
-    timeout-minutes: 12
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -36,3 +38,14 @@ jobs:
           test/law-impact.test.js
           test/law-mechanism-contract.test.js
           test/law-visuals.test.js
+      - name: Install Chromium for real Worker UI smoke
+        run: bunx playwright install --with-deps chromium
+      - name: Real-browser law edit, playback, and monthly household contrast
+        run: bunx playwright test test/e2e/law-behavior-playback.e2e.js
+      - name: Retain browser evidence and failure traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: law-behavior-playback-browser
+          path: test-results/
+          if-no-files-found: ignore
