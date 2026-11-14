@@ -9188,3 +9188,27 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-559 — immutable household milestones (November 14, 2026)
+
+Next bounded slice: a read-only House timeline backed by up to eight immutable
+Population saves on the selected branch. Reuse checkpoint decoding and continuation
+validation. Show only recorded move/job/relationship/household events; never infer
+milestones from starting relationships or checkpoint differences. Filter category
+and exact tick. Seek only when a retained checkpoint exists at that exact tick;
+otherwise explain the unavailable snapshot and retain inspectable source evidence.
+Acceptance: deterministic projection/rejection tests, unchanged checkpoint bytes,
+keyboard and reduced-motion/mobile UI checks. Risks: event retention and missing
+parents limit coverage; mutable autosessions cannot supply historical snapshots.
+One coding worker; no model rule, seed, identity, clock or governance changes.
+
+Local slice delivered: `world/house/milestones.js`, `milestones-ui.js` and House
+entry/cleanup integration, with source contract and review in
+`docs/reviews/SHE-559.md`. Targeted verification: 26 tests / 192 assertions pass;
+House browser bundle passes (312 modules), diff whitespace check passes. No
+simulation changes. Focused Playwright suite added but server binding and native
+Chromium permission failures block execution and before/after House screenshots.
+Native keyboard/mobile/reduced-motion layout remains unverified until that suite
+runs on a browser-capable host. Existing supplied homepage/World baseline images
+are preserved and are not milestone acceptance evidence. No PR/merge/deploy or
+policy changes; existing auto-merge safety hold and advisory vote defaults remain.
