@@ -4,7 +4,9 @@
     "@playwright/test": "^1.63.0"
   },
   "scripts": {
-    "symphony:mini": "bun run tools/symphony/mini-bun/run.ts .",
+    "symphony:mini": "bun --no-env-file run tools/symphony/mini-bun/run.ts --config tools/symphony/mini-bun/hbl.project.json",
+    "symphony:mini:check": "bun --no-env-file run tools/symphony/mini-bun/run.ts --config tools/symphony/mini-bun/hbl.project.json --check",
+    "symphony:mini:sync": "bun --no-env-file run tools/symphony/mini-bun/import-linear.ts --config tools/symphony/mini-bun/hbl.project.json",
     "start": "bun run server.js",
     "compare:local-ideas": "bun scripts/compare-local-ideas.js",
     "test:e2e": "playwright test",

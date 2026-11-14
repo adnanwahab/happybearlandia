@@ -200,3 +200,22 @@ malformed or blocked repair reports hold publication as failed; a reported pass
 still produces only a draft PR requiring review. Curated session logs expose
 `auto_debug_started` / `auto_debug_finished` without copying private output.
 `--check --auto-debug` displays the option without launching workers.
+
+### HappyBearLandia Linear completion sprint
+
+The root `bun run symphony:mini` command now uses `hbl.project.json`: HBL's
+Linear project, `sprint/one-city-two-futures-20261111` base, existing root
+queue/state/workspaces and 60-second refresh between tasks. Both
+`hbl-agent-ready` and `hbl-coordinator-approved` labels are required for dispatch.
+Terminal/deleted issues and unresolved dependencies cannot dispatch; polling
+updates the latest numeric follow-up revision without deleting earlier receipts.
+Worker prompts use the configured repository identity, including HBL.
+
+`bun run symphony:mini:check` checks routing/eligibility without launching.
+`bun run symphony:mini:sync` previews a live Linear import; stop the runner
+before adding `--write`. `LINEAR_API_KEY` and authenticated `gh` are required
+for live refresh; no credential is stored in the profile.
+Use `bun run symphony:mini --auto-debug` to opt into port recovery.
+New task IDs after failed checkout avoid partially created worktrees/branches;
+prior attempt history and logs remain intact. Native Linear dependencies must
+be completed through acceptance/review before downstream tasks become eligible.

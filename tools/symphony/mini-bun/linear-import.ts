@@ -17,7 +17,7 @@ export async function fetchProjectIssues(project: Project, token: string, reques
   if(!token)throw Error('LINEAR_API_KEY is required to refresh the board');
   const issues:any[]=[],seenIssues=new Set<string>(),projectCursors=new Set<string>();let after:string|null=null;
   do {
-    const data=await linearRequest(token,request,'query($id:String!,$after:String){project(id:$id){id issues(first:20,after:$after){nodes{id identifier title description url priority state{name type} project{id} inverseRelations(first:20){nodes{type issue{identifier state{type}}} pageInfo{hasNextPage endCursor}}} pageInfo{hasNextPage endCursor}}}}',{id:project.linearProjectId,after});
+    const data=await linearRequest(token,request,'query($id:String!,$after:String){project(id:$id){id issues(first:20,after:$after){nodes{id identifier title description url priority labels(first:50){nodes{name}} state{name type} project{id} inverseRelations(first:20){nodes{type issue{identifier state{type}}} pageInfo{hasNextPage endCursor}}} pageInfo{hasNextPage endCursor}}}}',{id:project.linearProjectId,after});
     if(data?.project?.id!==project.linearProjectId)throw Error('Linear refresh returned another project');
     const page=data.project.issues;
     if(!Array.isArray(page?.nodes))throw Error('Invalid Linear issue page');
@@ -47,7 +47,7 @@ export async function fetchProjectIssues(project: Project, token: string, reques
           }
         } catch(error) {dependencyError=`Dependency check incomplete for ${issue.identifier}: ${String(error instanceof Error?error.message:error)}`;}
       }
-      issues.push({id:issue.identifier,title:issue.title,description:issue.description??'',url:issue.url,status:issue.state.name,statusType:issue.state.type,priority:issue.priority,blockedBy:[...blockedBy],dependencyError});
+      issues.push({id:issue.identifier,title:issue.title,description:issue.description??'',url:issue.url,status:issue.state.name,statusType:issue.state.type,priority:issue.priority,labels:(issue.labels?.nodes??[]).map((x:any)=>x.name),blockedBy:[...blockedBy],dependencyError});
     }
     after=nextCursor(page,projectCursors,'project');
     if(projectCursors.size>1000)throw Error('Project scan exceeded1000pages');
@@ -64,17 +64,19 @@ export function importProjectTasks(project: Project, issues: any[], prs: any[], 
     const task = family.reduce((latest:any,t:any)=>!latest||revision(t)>revision(latest)?t:latest,null) ?? { id: issue.id, retry: false };
     for (const old of family) if (old !== task) { old.enabled=false;old.disabledReason='superseded'; }
     const projectBlockers=(project.prerequisiteIssueIds??[]).filter(id=>id!==issue.id&&issues.find(i=>i.id===id)?.statusType!=='completed');
-    const wasAutoDisabled=['dependency','existing_pr','terminal','project_hold','project_prerequisite','source_removed','superseded'].includes(task.disabledReason) ||
+    const wasAutoDisabled=['dependency','existing_pr','terminal','project_hold','project_prerequisite','source_removed','superseded','readiness'].includes(task.disabledReason) ||
       (task.enabled===false&&!task.disabledReason&&((task.blockedBy?.length??0)>0||Boolean(task.holdReason)||['completed','canceled','duplicate'].includes(task.linearStatusType)));
     const operatorEnabled=wasAutoDisabled?true:(task.enabled??true);
-    const holdReason = project.heldIssues?.[issue.id] ?? issue.dependencyError ?? (projectBlockers.length?`Project source prerequisite not complete: ${projectBlockers.join(', ')}.`:null);
     const terminal = ['completed','canceled','duplicate'].includes(issue.statusType);
+    const missingLabels=(project.requiredLabels??[]).filter(label=>!issue.labels?.includes(label));
+    const readinessHold=!terminal&&missingLabels.length?`Missing dispatch approval labels: ${missingLabels.join(', ')}.`:null;
+    const holdReason = terminal ? null : readinessHold ?? project.heldIssues?.[issue.id] ?? issue.dependencyError ?? (projectBlockers.length?`Project source prerequisite not complete: ${projectBlockers.join(', ')}.`:null) ?? (issue.blockedBy?.length?`Unfinished prerequisites: ${issue.blockedBy.join(', ')}.`:null);
     const identity = new RegExp(`(?:^|[^A-Za-z0-9])${issue.id}(?:[^0-9]|$)`, 'i');
     const existing = !terminal && prs.find(p => p.state === 'OPEN' &&
       (identity.test(`${p.headRefName} ${p.title}`) || state[issue.id]?.pullRequestUrl === p.url ||
        (!/[A-Z]+-\d+/i.test(`${p.headRefName} ${p.title}`) && new RegExp(`^Refs?:.*https://linear\\.app/[^/]+/issue/${issue.id}(?:/|$)`, 'im').test(p.body ?? ''))));
-    const prompt = `Linear issue ${issue.id}: ${issue.title}\nRepository: ${project.githubRepository}\nBase: ${project.baseBranch}\nStatus: ${issue.status} (${issue.statusType})\nURL: ${issue.url}\n\n${issue.description || 'The issue currently contains only a title. Inspect the existing implementation and tests, record assumptions, and deliver a bounded implementation proposal or verified improvement.'}\n\nWork only in this Dear Congress repository. Read its own instructions, README and relevant module docs; do not apply HappyBearLandia product requirements. Audit current code and existing PRs before changes. Preserve source identities, vote/PR revision isolation and existing data. Run repository tests and typecheck for changed behavior. Save analysis-only results as docs/reviews/${issue.id}.md. A draft PR is a review candidate, not proof of acceptance. Do not deploy, merge, post external messages, change production data, enable live automatic merges, or weaken voting/auth/check requirements. The question about a one-vote quorum is not authorization to enable it. Preserve and document the existing configured merge policy.`;
-    const disabledReason=terminal?'terminal':project.heldIssues?.[issue.id]?'project_hold':issue.dependencyError?'dependency':projectBlockers.length?'project_prerequisite':existing?'existing_pr':issue.blockedBy?.length?'dependency':!operatorEnabled?'operator_disabled':null;
+    const prompt = `Linear issue ${issue.id}: ${issue.title}\nRepository: ${project.githubRepository}\nBase: ${project.baseBranch}\nStatus: ${issue.status} (${issue.statusType})\nURL: ${issue.url}\n\n${issue.description || 'The issue currently contains only a title. Inspect the existing implementation and tests, record assumptions, and deliver a bounded implementation proposal or verified improvement.'}\n\nWork only in the ${project.githubRepository} repository. Read its own instructions, README and relevant module docs; do not apply another project's product requirements. Audit current code and existing PRs before changes. Preserve source identities, vote/PR revision isolation and existing data. Run repository tests and typecheck for changed behavior. Save analysis-only results as docs/reviews/${issue.id}.md. A draft PR is a review candidate, not proof of acceptance. Do not deploy, merge, post external messages, change production data, enable live automatic merges, or weaken voting/auth/check requirements. The question about a one-vote quorum is not authorization to enable it. Preserve and document the existing configured merge policy.`;
+    const disabledReason=terminal?'terminal':project.heldIssues?.[issue.id]?'project_hold':issue.dependencyError?'dependency':projectBlockers.length?'project_prerequisite':readinessHold?'readiness':existing?'existing_pr':issue.blockedBy?.length?'dependency':!operatorEnabled?'operator_disabled':null;
     const followUp = task.executionInstruction ? `\n\n${task.executionInstruction}` : '';
     Object.assign(task, { issueId: issue.id, githubRepository: project.githubRepository, linearProjectId: project.linearProjectId, url: issue.url, linearStatus: issue.status, linearStatusType: issue.statusType, blockedBy: issue.blockedBy ?? [], holdReason, dependencyError:issue.dependencyError??null, disabledReason, enabled:disabledReason===null, prompt:prompt+followUp });
     if (!tasks.includes(task)) tasks.push(task);

@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { readFileSync } from 'node:fs';
-export type Project = { schemaVersion: 1; name: string; repository: string; githubRepository: string; linearProjectId: string; linearProjectUrl: string; baseBranch: string; dataDirectory: string; syncIntervalMs?: number; heldIssues?: Record<string,string>; prerequisiteIssueIds?: string[] };
+export type Project = { schemaVersion: 1; name: string; repository: string; githubRepository: string; linearProjectId: string; linearProjectUrl: string; baseBranch: string; dataDirectory: string; syncIntervalMs?: number; requiredLabels?: string[]; heldIssues?: Record<string,string>; prerequisiteIssueIds?: string[] };
 export function githubIdentity(remote: string) {
   const match = /^(?:https:\/\/github\.com\/|git@github\.com:)([\w.-]+\/[\w.-]+?)(?:\.git)?\/?$/.exec(remote.trim());
   return match?.[1].toLowerCase() ?? null;
@@ -9,6 +9,7 @@ export function readProject(file: string): Project {
   const source = path.resolve(file), config = JSON.parse(readFileSync(source, 'utf8'));
   if (config.schemaVersion !== 1 || typeof config.name !== 'string' || !/^[\w.-]+\/[\w.-]+$/.test(config.githubRepository ?? '') || !/^[0-9a-f-]{36}$/.test(config.linearProjectId ?? '') || !/^https:\/\/linear\.app\//.test(config.linearProjectUrl ?? '') || typeof config.repository !== 'string' || !config.repository || typeof config.dataDirectory !== 'string' || !config.dataDirectory || !/^[\w][\w./-]*$/.test(config.baseBranch ?? '') || config.baseBranch.includes('..')) throw Error('Invalid Mini Symphony project profile');
   if (config.syncIntervalMs !== undefined && (!Number.isInteger(config.syncIntervalMs) || config.syncIntervalMs < 10000)) throw Error('syncIntervalMs must be at least 10000');
+  if(config.requiredLabels!==undefined&&(!Array.isArray(config.requiredLabels)||config.requiredLabels.some(x=>typeof x!=='string'||!x.trim())))throw Error('Invalid requiredLabels');
   if (config.heldIssues !== undefined && (typeof config.heldIssues !== 'object' || config.heldIssues === null || Array.isArray(config.heldIssues) || Object.values(config.heldIssues).some(v => typeof v !== 'string'))) throw Error('Invalid heldIssues');
   if(config.prerequisiteIssueIds!==undefined&&(!Array.isArray(config.prerequisiteIssueIds)||config.prerequisiteIssueIds.some(id=>typeof id!=='string'||!/^\w+-\d+$/.test(id))))throw Error('Invalid project prerequisites');
   return { ...config, repository: path.resolve(path.dirname(source), config.repository), dataDirectory: path.resolve(path.dirname(source), config.dataDirectory) };

@@ -2473,5 +2473,170 @@
     "startedAt": "2026-11-12T23:31:44.789Z",
     "finishedAt": "2026-11-12T23:31:47.978Z",
     "log": "logs/SHE-137-r2.log"
+  },
+  "SHE-11-r3": {
+    "status": "pr_created",
+    "sessionId": "5ee29e5b-3741-420c-bdf5-641289c96796",
+    "attempt": 1,
+    "startedAt": "2026-11-14T04:17:22.382Z",
+    "finishedAt": "2026-11-14T04:18:31.180Z",
+    "log": "logs/SHE-11-r3.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/303",
+    "importedExistingPullRequest": true
+  },
+  "SHE-182-r3": {
+    "status": "pr_created",
+    "sessionId": "5ee29e5b-3741-420c-bdf5-641289c96796",
+    "attempt": 1,
+    "startedAt": "2026-11-14T04:18:42.608Z",
+    "finishedAt": "2026-11-14T04:20:32.525Z",
+    "log": "logs/SHE-182-r3.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/304",
+    "importedExistingPullRequest": true
+  },
+  "SHE-259-r2": {
+    "status": "pr_created",
+    "sessionId": "5ee29e5b-3741-420c-bdf5-641289c96796",
+    "attempt": 1,
+    "startedAt": "2026-11-14T04:20:43.274Z",
+    "finishedAt": "2026-11-14T04:24:20.025Z",
+    "log": "logs/SHE-259-r2.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/305",
+    "importedExistingPullRequest": true
+  },
+  "SHE-263-r2": {
+    "status": "pr_created",
+    "sessionId": "5ee29e5b-3741-420c-bdf5-641289c96796",
+    "attempt": 1,
+    "startedAt": "2026-11-14T04:24:31.635Z",
+    "finishedAt": "2026-11-14T04:27:00.623Z",
+    "log": "logs/SHE-263-r2.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/306",
+    "importedExistingPullRequest": true
+  },
+  "SHE-265-r2": {
+    "status": "pr_created",
+    "sessionId": "5ee29e5b-3741-420c-bdf5-641289c96796",
+    "attempt": 1,
+    "startedAt": "2026-11-14T04:27:10.003Z",
+    "finishedAt": "2026-11-14T04:28:53.780Z",
+    "log": "logs/SHE-265-r2.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/307",
+    "importedExistingPullRequest": true
+  },
+  "SHE-137-r3": {
+    "status": "pr_created",
+    "sessionId": "5ee29e5b-3741-420c-bdf5-641289c96796",
+    "attempt": 1,
+    "startedAt": "2026-11-14T04:29:03.602Z",
+    "finishedAt": "2026-11-14T04:32:55.040Z",
+    "log": "logs/SHE-137-r3.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/308",
+    "importedExistingPullRequest": true
+  },
+  "SHE-165-r3": {
+    "status": "pr_created",
+    "sessionId": "5ee29e5b-3741-420c-bdf5-641289c96796",
+    "attempt": 1,
+    "startedAt": "2026-11-14T04:33:04.606Z",
+    "finishedAt": "2026-11-14T04:37:17.816Z",
+    "log": "logs/SHE-165-r3.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/309",
+    "importedExistingPullRequest": true
+  },
+  "SHE-171-r3": {
+    "status": "pr_created",
+    "sessionId": "5ee29e5b-3741-420c-bdf5-641289c96796",
+    "attempt": 1,
+    "startedAt": "2026-11-14T04:37:27.723Z",
+    "finishedAt": "2026-11-14T04:38:58.010Z",
+    "log": "logs/SHE-171-r3.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/310",
+    "importedExistingPullRequest": true
+  },
+  "SHE-260-r2": {
+    "status": "pr_created",
+    "sessionId": "5ee29e5b-3741-420c-bdf5-641289c96796",
+    "attempt": 1,
+    "startedAt": "2026-11-14T04:39:09.172Z",
+    "finishedAt": "2026-11-14T04:40:58.113Z",
+    "log": "logs/SHE-260-r2.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/311",
+    "importedExistingPullRequest": true
+  },
+  "SHE-45-r3": {
+    "status": "pr_created",
+    "sessionId": "5ee29e5b-3741-420c-bdf5-641289c96796",
+    "attempt": 1,
+    "startedAt": "2026-11-14T04:41:08.170Z",
+    "finishedAt": "2026-11-14T04:43:06.589Z",
+    "log": "logs/SHE-45-r3.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/312",
+    "importedExistingPullRequest": true
+  },
+  "SHE-192-r3": {
+    "status": "pr_created",
+    "sessionId": "5ee29e5b-3741-420c-bdf5-641289c96796",
+    "attempt": 1,
+    "startedAt": "2026-11-14T04:43:15.700Z",
+    "finishedAt": "2026-11-14T04:45:22.211Z",
+    "log": "logs/SHE-192-r3.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/313",
+    "importedExistingPullRequest": true
+  },
+  "SHE-212-r3": {
+    "status": "pr_created",
+    "sessionId": "5ee29e5b-3741-420c-bdf5-641289c96796",
+    "attempt": 1,
+    "startedAt": "2026-11-14T04:45:32.662Z",
+    "finishedAt": "2026-11-14T04:48:08.888Z",
+    "log": "logs/SHE-212-r3.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/314",
+    "importedExistingPullRequest": true
+  },
+  "SHE-239-r3": {
+    "status": "pr_created",
+    "sessionId": "5ee29e5b-3741-420c-bdf5-641289c96796",
+    "attempt": 1,
+    "startedAt": "2026-11-14T04:48:18.725Z",
+    "finishedAt": "2026-11-14T04:51:29.804Z",
+    "log": "logs/SHE-239-r3.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/315",
+    "importedExistingPullRequest": true
+  },
+  "SHE-40-r2": {
+    "status": "pr_created",
+    "sessionId": "5ee29e5b-3741-420c-bdf5-641289c96796",
+    "attempt": 1,
+    "startedAt": "2026-11-14T13:32:01.213Z",
+    "finishedAt": "2026-11-14T13:34:24.930Z",
+    "log": "logs/SHE-40-r2.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/317",
+    "importedExistingPullRequest": true
+  },
+  "SHE-388": {
+    "status": "pr_created",
+    "sessionId": "5ee29e5b-3741-420c-bdf5-641289c96796",
+    "attempt": 1,
+    "startedAt": "2026-11-14T13:38:44.716Z",
+    "finishedAt": "2026-11-14T13:40:21.929Z",
+    "log": "logs/SHE-388.log",
+    "exitCode": 0,
+    "pullRequestUrl": "https://github.com/adnanwahab/happybearlandia/pull/318",
+    "importedExistingPullRequest": true
   }
 }

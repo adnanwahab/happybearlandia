@@ -8877,3 +8877,81 @@ by Bun listen EADDRINUSE on ports 39884 and 41967. Visual/GPU/mobile acceptance
 remains unverified. Current remote main has unrelated newer coordinator/scene
 fixes to preserve during integration; fetch/rebase/commit are unavailable because
 shared Git metadata is outside writable roots. No merge or deployment.
+
+## HBL remaining-ticket completion sprint — November 13
+
+Audited all252project issues with complete pagination; 17unfinished at setup
+(7 In Review, 9 Todo, 1 In Progress). Read full descriptions/relations and checked
+open GitHub PRs (none). Created six dated project milestones November13–18,
+assigned all17with due dates and issue-level acceptance checkpoints. Published
+Linear sprint brief: https://linear.app/shel-bernstein/document/hbl-week-1-all-remaining-tickets-completion-sprint-nov-13-18-d640d35f7ffa
+Native cycle creation rejected by Linear (“Cycle creation is not supported.”);
+used project milestones rather than altering team settings. Preserved status and
+assignee; did not reopen235terminal items or start/activate a runner. Added native
+QA dependencies for core feature fixes and demo-after-matrix. Critical sequence
+SHE-11→40→44→63→64. Retained model/oracle/backend/replay prerequisites.
+Acceptance requires working source/test/browser/measurement evidence; SHE-212
+prototype audit and SHE-239 tournament spec retain their explicit report scopes.
+Target is planning intent, not guaranteed capacity/hardware evidence. Local
+manifest: .hbl-private/hbl-completion-sprint-20261113.json. No code changes or
+merge/deploy/production load. Read-back verifies17milestones/dates and statuses.
+
+## Activate HBL completion sprint in Mini Symphony — November 13
+
+All nine failed r2attempt logs show ENOSPC during checkout before Codex launch.
+Disk now41GiB free. Preserve failed entries/worktrees and create fresh revisions
+to avoid partial checkout/existing-branch collision. Audit reviewed PR file scopes
+and acceptance docs: implementation exists, several measurements/hosted checks
+remain unverified. New acceptance follow-ups must inspect and complete gaps
+rather than duplicate code or assume all reports were analysis-only.
+Add HBL project profile on existing sprint base and root data directory, 60s
+project-scoped refresh, required readiness+coordinator approval labels, neutral
+repository prompt. Preserve state and metadata binding; back up queue/history.
+Normal package entry uses profile; standalone dry-run sync/check available.
+Native dependency/terminal changes release/hold latest attempts between tasks.
+Acceptance: fresh17 sprint revisions, valid routing, dependency holds intact,
+real project refresh, normal entry starts first eligible task; source regressions.
+
+Activation verified: live project contains253issues (new issue appeared after
+sprint snapshot), dependency scan failures0, 17fresh revisions created, 13eligible
+and four held by SHE-11→40→44→63→64 and core acceptance. Added missing approval
+labels to already authorized SHE-40; dependency hold remains. All nine prior
+failed entries preserved and replaced for execution with fresh r3workspaces;
+state file not replaced. Reviewed prior merged PRs include actual implementation,
+so remaining In Review work is acceptance/gap verification, not blanket rewrite.
+55Mini Symphony-specific tests/411assertions pass. Full package test command has
+one unrelated server smoke failure: /api/demo/ready404 in test/server.test.js.
+No application server changes made to mask it. Normal check shows13runnable;
+a concurrently started profile-aware runner PID34854 is running SHE-11-r3 in
+session5ee29e5b-3741-420c-bdf5-641289c96796. Duplicate-start attempt refused
+by lock; existing worker left undisturbed. No merge/deploy/production changes.
+
+## Dear Congress optional build identity and palette restoration — November 13
+
+User explicitly requested plain fly deploy without required build SHA and warm
+light screenshot palette with switch back to existing dark colors. Dear Congress
+write-build-identity now accepts missing SHA (null/unknown commit, real build
+date); optional supplied SHAs stay validated, release CI can retain parity checks.
+Light is default even for dark OS, existing header button toggles light/dark and
+persists choice; purple bottom navigation stays unchanged. Updated prepaint CSP
+hash and regression coverage. Preserved preexisting index merge-conflict cleanup.
+506Dear Congress tests/105,713assertions pass; typecheck and production route
+smoke pass. Real Chromium smoke proves desktop/mobile palette, persistence,
+OS-dark light default, documentation toggle and unchanged nav; screenshots
+inspected. No Fly deployment performed. Changes live in Dear Congress checkout;
+HBL application untouched. Dockerignore excludes local runtime as previous fix.
+
+## Both-runner stall recovery — November 14
+
+Observed HBL suppresses existing open PRs, SHE-40 blocks44 then63/64; new
+SHE-388 lacked both approval labels. Dear Congress SHE-271-r2 interrupted with
+retryfalse,249/251prior PR receipts,280deployment and269parent explicitly held.
+Reviewed388title animation scope and added approvals plus reduced-motion/contrast
+instruction. Reviewed interrupted state and atomically enabled271retry preserving
+worktree/state. Both live runners now working: HBL388, Dear271-r2; no duplicate
+coordinator started. Hosted PR317verify failure is missing /api/demo/ready routing,
+and first-run test selected hidden legacy policy dropdown. Patched existing
+PR317branch at fb380d4a,21readiness/server tests pass. Actual host Chromium runs
+3/4first-run tests; missing ready-state firstRunGuide remains unverified (before
+policy selection), recorded inPR's acceptance report. No false completion, merge,
+production deployment or dependency bypass. Existing open PRs still need review.
