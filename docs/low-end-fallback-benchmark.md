@@ -91,3 +91,16 @@ rendezvous with Permission denied (1100). No interaction latency, cadence, FPS o
 screenshot was obtained. The expanded harness remains browser-unverified.
 See [SHE-44 acceptance review](reviews/SHE-44.md) for exact commands, current
 contract-test results, environment and the unresolved SHE-40 dependency.
+
+
+## Merged PR #319 rerun — 2026-11-14
+
+On `mini/SHE-44-r4`, source `cdb773a19acb5f68cd949dab2b8af148a0e1aefe`,
+the owner has removed the SHE-40 execution-order hold. Collection may proceed
+using provisional-estimate-not-calibrated comparisons; SHE-40 is not accepted.
+Fresh run still stops before navigation: server listen EADDRINUSE, independent
+Node port-0 listener EPERM, standalone Chromium MachPort permission denied (1100).
+Focused contracts/data tests pass 32 cases, one opt-in browser smoke skipped,
+880 assertions. No latency, FPS or fallback screenshot was obtained; physical
+hardware remains untested. Full exact commands, environment and owner-requested
+estimate table are in [the r4 review](reviews/SHE-44.md#owner-approved-merged-source-verification--r4-2026-11-14).

@@ -9188,3 +9188,21 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+
+### SHE-44 r4 merged-source verification — 2026-11-14
+
+Source `cdb773a19acb5f68cd949dab2b8af148a0e1aefe` includes merged PR #319;
+branch `mini/SHE-44-r4`. Owner correction removes the SHE-40 execution-order hold;
+requested numeric comparisons remain provisional-estimate-not-calibrated, with
+physical hardware untested. Owned scope: review/benchmark docs and this status
+entry. Existing runtime and harness already cover the intended slice; no duplicate
+implementation or model changes. Fresh focused tests: 32 passed, 1 opt-in browser
+smoke skipped, 880 assertions; four benchmark cases discovered, syntax checks
+passed. Actual benchmark stopped before navigation: Bun listen EADDRINUSE,
+independent Node ephemeral listener EPERM, standalone Chromium MachPort permission
+error (1100). No browser timing, FPS, screenshot or interaction-pass claim.
+Acceptance remains incomplete; next run needs a host permitting listeners and
+Chromium. Exact commands, estimates, source/provenance audit, preserved merge
+policy and failure evidence: [SHE-44 review](reviews/SHE-44.md). No new PR,
+merge, deployment, external message or production mutation.
