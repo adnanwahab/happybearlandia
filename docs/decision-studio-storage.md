@@ -44,3 +44,17 @@ bun scripts/backup-decision-store.js /data/decision-experiments /tmp/hbl-decisio
 ```
 
 Open the recovered store and confirm an experiment can still load its results after a restart. Retain the independent backup until that check succeeds.
+
+## Recipe card presentation
+
+Decision Studio's parameter cards retain the existing parameter/uncertainty
+edit contracts. Move up/down and card move undo/redo only arrange cards within
+Policy levers or World assumptions. History is scoped to scenario ID and group,
+limited to 50 moves, and retained only for the current page session. Reloading
+restores schema order. Card move history does not undo parameter edits, persist
+in projects, mark results stale, or enter manifests. All cards configure one
+scenario together; their position is never a causal sequence. Model-owned
+implementation delay, scheduled stresses, projects and forks retain their own
+execution semantics. The side-by-side inspector exposes additional executable
+settings. Download manifest exports the stored run's inputs; run again after
+editing to export the revised inputs. Read-only experiments disable card moves.

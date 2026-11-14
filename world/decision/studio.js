@@ -1,3 +1,4 @@
+import { mountRecipeDeck } from './recipe-deck.js';
 import { renderParameterDiff } from './parameter-diff.js';
 
 import { mountExplorationBadges } from './exploration-badges.js';
@@ -15,6 +16,8 @@ import { createDecisionClient, createRunTraceCache, mergeRunTrace, parseParamete
 import { mountDiagnostics } from './diagnostics.js';
 import { mountPilotRequest } from './onboarding.js';
 
+const cardHistories = new Map();
+let refreshRecipeDeck = () => {};
 const continuity = mountContinuity();
 const initialQuery = new URLSearchParams(location.search);
 const $ = selector => document.querySelector(selector);
@@ -234,6 +237,7 @@ function renderParameters() {
     });
     renderFields(); renderCurve(); uncertainty.append(distribution, fields); row.append(mini, uncertainty); const role = definition.role || definition.controlGroup || definition.parameterRole; const group = /policy|lever/.test(role || '') || !role && policyIds.has(definition.id) ? 'policy' : 'world'; groups[group].append(row);
   }
+  refreshRecipeDeck = mountRecipeDeck(container, cardHistories, selected.id, () => state.readonly);
 }
 function updateParameterDiff() { renderParameterDiff($('#scenario-parameter-diff'), currentInput(), activeModel, state.selected); }
 function updateRunDescription() { updateParameterDiff(); $('#run-description').textContent = `${Number($('#run-count').value).toLocaleString()} futures × ${state.scenarios.length} scenarios. Same seed sequence, different choices.`; }
@@ -360,6 +364,7 @@ function applyReadonly() {
   $('#run-experiment').disabled = state.busy || state.readonly; $('#cancel-experiment').disabled = !state.busy || state.readonly;
   $('#reproduce-experiment').disabled = !state.experiment?.id || state.readonly;
   $('#apply-import').disabled = state.readonly || !upload;
+  refreshRecipeDeck();
 }
 async function reopenExperiment(id, readonly = false) {
   if (!id) throw new Error('Choose an experiment to reopen.');
