@@ -9188,3 +9188,26 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-562 — street sketch, bounded local slice
+
+Audit: `/world/invention/` currently links policy tools; City `addIntervention`
+and the invention catalog support district transit capacity, not road topology.
+Open PR search for invention returned none (2026-11-14). One coding worker.
+
+Slice: accessible schematic polyline with grid snap, preview, undo/redraw;
+validate road refusal and same-district transit mapping before paired execution;
+retain versioned geometry, catalog costs and existing City recipe in JSON.
+Geometry is illustrative and never changes routing. Acceptance requires model
+rejection/determinism tests and focused keyboard/touch browser coverage. Risks:
+users may infer geographic routing; label that limitation beside the controls.
+No model rules, IDs, clock, seed semantics or governance configuration changes.
+
+Delivered locally: linked sketch flow, strict versioned submission validator,
+paired existing-policy execution, JSON evidence download, keyboard and tap/click
+controls. Verification: 18 tests / 142 assertions pass across street-sketch,
+street-sketch-ui, city-invention-plan and city-systems; diff whitespace check
+passes. No lint/typecheck script applies. Playwright source added but execution
+blocked by local server bind failure; no new visual evidence. Native browser
+verification remains open. See [audit and prerequisites](reviews/SHE-562.md).
+Road topology modeling remains unsupported rather than silently approximated.
