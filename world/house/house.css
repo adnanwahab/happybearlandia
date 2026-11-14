@@ -57,3 +57,13 @@
 
 /* Keep the open More menu above the bottom HUD's equal stacking level. */
 .house-topbar:has([data-house-tools][open]) { z-index: 31; }
+
+/* Static SVG plus native controls works without WebGPU or animation. */
+.house-constellation { border:1px solid currentColor; border-radius:12px; padding:12px; margin-block:12px; }
+.house-constellation-map { display:block; width:100%; max-width:320px; margin:auto; color:#397b6d; }
+.house-constellation-map text { fill:currentColor; font-size:13px; }
+.house-constellation li { margin-block:10px; overflow-wrap:anywhere; }
+.house-constellation button { min-height:44px; min-width:44px; }
+.house-constellation button:focus-visible { outline:3px solid currentColor; outline-offset:3px; }
+.house-constellation small { display:block; }
+@media (max-width:480px), (prefers-reduced-motion:reduce) { .house-constellation-map { display:none; } }
