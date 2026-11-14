@@ -1,3 +1,4 @@
+import {civicProviderUrl,civicPublishUrl} from './ops/civic-provider.js';
 import { createMiniSymphonyHandler } from './ops/mini-symphony/api.js';
 const handleMiniSymphony = createMiniSymphonyHandler();
 import { withUniverseNavigation } from './world/universe/html-navigation.js';
@@ -57,7 +58,7 @@ import { createBusinessCompilerHandler } from "./world/models/business-v1/compil
 const handleBusinessCompiler = createBusinessCompilerHandler();
 
 const PORT = process.env.PORT === '0' ? 0 : Number(process.env.PORT) || 3000;
-const DEAR_CONGRESS_URL = process.env.DEAR_CONGRESS_URL || "https://dear-congress.fly.dev/api";
+const DEAR_CONGRESS_URL = civicProviderUrl(process.env);
 const DEAR_CONGRESS_ORIGIN = publicProviderOrigin(DEAR_CONGRESS_URL);
 
 const notFound = () => new Response("Not found", { status: 404 });
@@ -374,7 +375,9 @@ async function handlePublishDraft(request) {
   }
 
   const base = DEAR_CONGRESS_URL.endsWith("/") ? DEAR_CONGRESS_URL : DEAR_CONGRESS_URL + "/";
-  const upstream = new URL("publish_draft", base);
+  const publishBase=civicPublishUrl(process.env);
+  if(!publishBase)return Response.json({error:'Civic publishing requires explicit provider configuration.'},{status:503,headers:{'cache-control':'no-store'}});
+  const upstream = new URL('publish_draft',publishBase.endsWith('/')?publishBase:publishBase+'/');
 
   const body = await request.text();
   const voterId = request.headers.get("x-voter-id");
