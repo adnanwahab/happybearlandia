@@ -1,3 +1,4 @@
+import {householdPostcard} from '../world/future-machine/data/postcard.js';
 import { test, expect } from 'bun:test';
 import { createEngine, addIntervention } from '../world/city/engine.js';
 import { DEFAULT_RECIPE } from '../world/future-machine/contracts.js';
@@ -88,6 +89,12 @@ test('real City API persists and reopens the exact 120-month pair', async () => 
     console.log(`Future Machine persisted API pair + replay: ${Math.round(performance.now()-start)} ms`);
     const reopened = await loadExperiment(history.experimentId);
     expect(reopened).toEqual(history);
+    const id=history.baseline[0].state.households[0].id;
+    for(const month of [0,16,120])expect(householdPostcard(reopened,id,month)).toEqual(householdPostcard(history,id,month));
+    const samples=[];
+    for(let i=0;i<100;i++){const started=performance.now();householdPostcard(history,id,i%121);samples.push(performance.now()-started);}
+    samples.sort((a,b)=>a-b);
+    console.log('SHE-483 postcard derivation (100 calls; local CPU only)',JSON.stringify({p50Ms:samples[50],p95Ms:samples[95],maxMs:samples[99]}));
     expect(history.baseline).toHaveLength(121);
     expect(history.plan[120].metrics.housingUnits-history.baseline[120].metrics.housingUnits).toBe(24);
     expect(history.plan[120].metrics.capitalSpending).toBe(1000000);

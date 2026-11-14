@@ -352,3 +352,25 @@ move. Names/avatars are synthetic; outcomes are uncalibrated model observations.
 arm's household → occupied unit → building on every frame and highlights both
 recorded buildings, including different buildings after a move. Unmapped homes
 remain unhighlighted. Camera and simulation playback are unchanged.
+
+## SHE-483 consequence postcards
+
+The existing family panel now uses `data/postcard.js` (`household-postcard.v1`)
+for its A/B observations. Each arm requires one exact month, matching state clock,
+seed and model version, unique household ID and reciprocal occupied-unit join.
+Missing or nonfinite values cannot establish an unchanged outcome. The status
+compares displayed income, savings, rent, burden, unit ID and household size;
+it does not claim that every household attribute is unchanged. Cards use exact
+City household IDs without generated faces or feelings. Existing synthetic names
+remain only in the established selector; selection and follow behavior are reused.
+
+Exact household/month event receipts reuse `story/explainChange` and the existing
+coordinator `jump` inspector through `onHouseholdEvent`. Arm-scoped IDs, payloads
+and dependencies are retained. Unrelated district events are not household causes.
+Absent events remain explicit. House navigation is unavailable because no verified
+City-household/month → Population-resident/tick mapping exists. Implementing that
+adapter is a prerequisite for a working House link, not a presentation shortcut.
+Saved-manifest API tests reproduce postcards at Months 0, 16 and 120. Replay is
+recomputation under the stored manifest, not independent checkpoint verification.
+No animation is introduced; current native selection, record disclosures and
+follow controls remain available in fallback rendering and reduced-motion mode.
