@@ -1,6 +1,9 @@
 import {test,expect} from '@playwright/test';
 import {writeFile} from 'node:fs/promises';
 
+// This file is also run by the normal-motion cross-browser flagship config.
+test.use({reducedMotion:'reduce'});
+
 async function seek(page,month){
  const slider=page.getByTestId('future-machine-timeline');
  await slider.fill(String(month));await slider.dispatchEvent('input');
@@ -25,10 +28,10 @@ async function snapshot(page,info,name,errors){
 
 for(const viewport of [{width:1440,height:1000},{width:390,height:844},{width:320,height:640}]){
  test(`homepage Canvas reduced-motion journey at ${viewport.width}px`,async({page,browserName},info)=>{
-  // Each complete journey submits three real simulations. All cases share the
-  // isolated server's loopback client, including the preceding browser project's
-  // history case; preserve its normal six-per-minute limit.
-  if(viewport.width!==1440||browserName!=='chromium')await page.waitForTimeout(61000);
+  // Each journey submits three real simulations: two fit in the normal six/minute
+  // client window. Reset before the third viewport and each later browser project;
+  // the following history case uses the remaining three slots. No guard overrides.
+  if(viewport.width===320||viewport.width===1440&&browserName!=='chromium')await page.waitForTimeout(61000);
   const errors={page:[],console:[]};
   page.on('pageerror',e=>errors.page.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.console.push(m.text());});
   await page.setViewportSize(viewport);
