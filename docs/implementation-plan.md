@@ -9188,3 +9188,29 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-448 — persistent exploration breadcrumbs (2026-11-14)
+
+Single-worker slice in isolated mini/SHE-448: extend existing Canvas2D minimap
+with page-session camera bookmarks and recent selected buildings/legacy residents.
+Resolve stable entity IDs against current records before returning; preserve the
+current selection and translate camera/target only. No reload or model mutation.
+Prerequisites: existing minimap, loaded coverage and selection entry point.
+Acceptance: bounded/deduplicated history, unavailable destination rejection,
+keyboard actions, Escape/collapse focus return, mobile scrolling, instantaneous
+reduced-motion-safe navigation, focused unit and normal-entry browser evidence.
+Risk: bookmarks are local to this loaded scene/page, not cross-run saved entities;
+Living Population identity requires its own adapter and is not conflated with
+legacy resident IDs. Open PRs 323–328 audited; 326 is adjacent palette work.
+Verification and remaining limitations will be recorded in reviews/SHE-448.md.
+
+SHE-448 local result: page-session recent inspections/bookmarks integrated with
+existing minimap and stable-ID resolution; camera-only return, unavailable-tile
+rejection, keyboard dismissal/focus and mobile/reduced-motion presentation added.
+48 focused tests pass /351 assertions; browser entry bundles374modules; two
+Playwright cases discover; whitespace check passes. Actual browsers blocked before
+execution by server listen EADDRINUSE on3499/43948; after screenshots and browser
+acceptance remain open. No configured repository lint/typecheck. Page reload,
+Living Population and full Canvas2D fallback history remain outside this slice.
+Evidence, audit and preserved disabled merge policy: [SHE-448 review](reviews/SHE-448.md).
+No commit/PR publication, merge, deployment or production changes.
