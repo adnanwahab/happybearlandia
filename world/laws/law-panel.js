@@ -1,6 +1,7 @@
 import {mountLawImpact} from './impact.js';
 import {LAW_CATALOG} from './catalog.js';
 import {compareLawInWorker as compareLawDefault} from './comparison-client.js';
+import {mountLawBehaviorPlayback} from './behavior-playback.js';
 /** mountLawPanel(container,{laws,compareLaw,getContext,onSelect,onPlanIdeaChange,
  * planInput,worldLayer,onError}) -> {open,close,selectLaw,setLaws,destroy}.
  * getContext() returns comparison options {worldContext|initialState,seed,population,minutes?|months?}.
@@ -29,20 +30,27 @@ export function mountLawPanel(container,options={}){
  if(container?.container){options=container;container=options.container;}
  if(!container?.ownerDocument)throw new TypeError('Law panel requires a container');
  const {compareLaw=(law,context)=>compareLawDefault({...context,lawId:law.id??law.number}),getContext=()=>({}),onSelect,onPlanIdeaChange,planInput,worldLayer,onError}=options,doc=container.ownerDocument,win=doc.defaultView;
- let laws=options.laws??options.catalog?.laws??options.catalog??LAW_CATALOG,selected=null,comparison=null,request=0,abort=null,destroyed=false;
+ let laws=options.laws??options.catalog?.laws??options.catalog??LAW_CATALOG,selected=null,comparison=null,referenceResult=null,request=0,abort=null,destroyed=false;
  const root=doc.createElement('section');root.className='law-panel';root.hidden=true;root.dataset.testid='law-panel';root.setAttribute('role','dialog');root.setAttribute('aria-label','Choose a law');root.setAttribute('data-map-pan-ignore','');
  const toggle=doc.createElement('button');toggle.type='button';toggle.className='law-panel-toggle';toggle.textContent='Choose a law';toggle.dataset.testid='law-panel-button';toggle.setAttribute('aria-haspopup','dialog');toggle.setAttribute('aria-expanded','false');
  const sheet=doc.createElement('link');sheet.rel='stylesheet';sheet.href=new URL('./law-panel.css',import.meta.url).href;(doc.head||container).append(sheet);container.append(toggle,root);
  const el=(tag,text,parent=root)=>{const node=doc.createElement(tag);if(text!==undefined)node.textContent=text;parent.append(node);return node;};
  const button=(label,fn,parent=root)=>{const node=el('button',label,parent);node.type='button';node.addEventListener('click',fn);return node;};
  const header=el('header');el('h2','Choose a law',header);button('Close',close,header);
- el('p','Explore 90 proposals. Choose a law to replace Plan idea, compare the same world with and without it, and highlight affected places.');
+ el('p','Explore 90 proposals. Choose a reviewed model mapping, edit a supported numeric lever, then watch paired synthetic residents or households over actual recorded time. Unsupported mechanisms stay unavailable.');
  const label=el('label','Find a law'),search=el('input',undefined,label);search.type='search';search.placeholder='Number or words';search.setAttribute('aria-label','Find a law');
  const count=el('p'),list=el('div');list.className='law-groups';count.setAttribute('aria-live','polite');
  const detail=el('section');detail.className='law-detail';detail.hidden=true;
  const heading=el('h3','',detail),text=el('p','',detail),ideaLabel=el('label','Plan idea',detail),idea=el('textarea',undefined,ideaLabel),status=el('p','',detail);idea.rows=4;idea.readOnly=true;idea.setAttribute('aria-label','Plan idea');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+ const editPanel=el('fieldset',undefined,detail);editPanel.className='law-lever-editor';
+ const leverLegend=el('legend','Edit modeled implementation strength',editPanel);
+ const leverLabel=el('label','Strength of reviewed numeric assumption',editPanel);
+ const strength=el('input',undefined,leverLabel);strength.type='range';strength.min='0';strength.max='100';strength.step='25';strength.value='100';strength.setAttribute('aria-label','Implementation strength percent');
+ const strengthOutput=el('output','100%',leverLabel);strengthOutput.setAttribute('aria-live','polite');
+ el('p','0% uses baseline numeric factors; 100% uses the original reviewed proxy; intermediate steps interpolate only reviewed factors. This does not rewrite or enact the proposed law.',editPanel);
  const scope=el('p','',detail);scope.className='law-note';
- const actions=el('div',undefined,detail);const compareButton=button('Compare this law',()=>runComparison(),actions);button('Relevant institutions',()=>paint('potential'),actions);const recordedButton=button('Highlight modeled changes',()=>paint('recorded'),actions);recordedButton.disabled=true;button('Clear highlights',()=>worldLayer?.clear?.(),actions);
+ const actions=el('div',undefined,detail);const compareButton=button('Rerun paired worlds',()=>runComparison(),actions);button('Relevant institutions',()=>paint('potential'),actions);const recordedButton=button('Highlight modeled changes',()=>paint('recorded'),actions);recordedButton.disabled=true;button('Clear highlights',()=>worldLayer?.clear?.(),actions);
+ const playback=mountLawBehaviorPlayback(detail);
  const impact=mountLawImpact(detail,{showMetrics:false});
  const updateImpact=()=>impact.update({law:selected,result:comparison,buildings:getContext().worldContext?.buildings||[]});
  const onBuilding=event=>{if(impact.selectPlace(event.detail?.id)){root.hidden=false;toggle.setAttribute('aria-expanded','true');}};
@@ -83,18 +91,20 @@ export function mountLawPanel(container,options={}){
   if(result?.minute!==undefined)el('li','Selected simulation minute: '+result.minute,notes);
   status.textContent=result?.supported===false||result?.status==='unsupported'||result?.status==='mechanism-unavailable'?'Effects unavailable for this law in the current model. Potential institution scope can still be inspected.':result?.summary??'Comparison returned. Values above are supplied model outputs; missing values remain unavailable.';
  }
+ function editableNumericLaw(law){return Boolean(law?.supported&&law.mapping?.parameterFactors&&Object.keys(law.mapping.parameterFactors).length&&!law.mapping.intervention&&!Object.keys(law.mapping.parameterPatch||{}).length);}
+ const onStrengthChange=()=>{strengthOutput.textContent=strength.value+'%';if(!selected||!editableNumericLaw(selected))return;playback.clear();void runComparison();};
+ strength.addEventListener('change',onStrengthChange);
  function publishPlanIdea(law){const value=law.text??law.title??'';idea.value=value;if(planInput){planInput.value=value;planInput.dispatchEvent(new win.Event('input',{bubbles:true}));}onPlanIdeaChange?.(value,law);root.dispatchEvent(new win.CustomEvent('law-plan-idea',{bubbles:true,detail:{text:value,lawId:law.id??law.number}}));}
  async function runComparison(){
   if(!selected||destroyed)return;
-  publishPlanIdea(selected);
   if(typeof compareLaw!=='function'){status.textContent='Comparison unavailable: no same-world comparison service is connected.';return;}
-  const serial=++request;abort?.abort();abort=new AbortController();const law=selected,context=getContext();comparison=null;updateImpact();paint('potential');status.textContent='Comparing the same frozen world with and without this law…';renderTrace(null);table.replaceChildren();notes.replaceChildren();recordedButton.disabled=true;compareButton.disabled=true;detail.setAttribute('aria-busy','true');
-  try{if(law.supported&&!context.initialState&&(!context.worldContext||!Object.keys(context.worldContext).length))throw Error('Current-world comparison context is not connected.');const result=await compareLaw(law,{...context,signal:abort.signal});if(destroyed||serial!==request)return;if(!result||typeof result!=='object')throw Error('Unsupported comparison response');comparison=result;renderResult(result);paint(hasRecordedLawGeography(result)?'recorded':'potential');}
+  const serial=++request;abort?.abort();abort=new AbortController();const law=selected,context=getContext();comparison=null;playback.clear();updateImpact();paint('potential');status.textContent='Comparing the same frozen world with and without this law…';renderTrace(null);table.replaceChildren();notes.replaceChildren();recordedButton.disabled=true;compareButton.disabled=true;detail.setAttribute('aria-busy','true');
+  try{if(law.supported&&!context.initialState&&(!context.worldContext||!Object.keys(context.worldContext).length))throw Error('Current-world comparison context is not connected.');const result=await compareLaw(law,{...context,implementationStrength:Number(strength.value)/100,signal:abort.signal});if(destroyed||serial!==request)return;if(!result||typeof result!=='object')throw Error('Unsupported comparison response');comparison=result;if(result.status==='completed'&&Number(strength.value)===100&&!referenceResult)referenceResult=result;renderResult(result);playback.update(result,{referenceResult:Number(strength.value)!==100?referenceResult:null});paint(hasRecordedLawGeography(result)?'recorded':'potential');}
   catch(error){if(destroyed||serial!==request||error.name==='AbortError')return;status.textContent='Comparison unavailable: '+error.message;onError?.(error);}
   finally{if(!destroyed&&serial===request){compareButton.disabled=false;detail.setAttribute('aria-busy','false');}}
  }
  function selectLaw(law){
-  selected=law;comparison=null;detail.hidden=false;heading.textContent='Law '+law.number+' · '+(law.category??'Proposal');idea.value=law.text??law.title??'';text.textContent=law.supported?'Reviewed model mapping: '+(law.mapping?.mechanism??'partial proxy'):'Effects unavailable: no reviewed model mechanism.';
+  selected=law;comparison=null;referenceResult=null;strength.value='100';strengthOutput.textContent='100%';editPanel.hidden=!editableNumericLaw(law);playback.clear();detail.hidden=false;heading.textContent='Law '+law.number+' · '+(law.category??'Proposal');idea.value=law.text??law.title??'';text.textContent=law.supported?'Reviewed model mapping: '+(law.mapping?.mechanism??'partial proxy'):'Effects unavailable: no reviewed model mechanism.';
   updateImpact();publishPlanIdea(law);onSelect?.(law);renderList();paint('potential');detail.scrollIntoView?.({block:'start'});void runComparison();
  }
  root.insertBefore(detail,list);
@@ -102,5 +112,5 @@ export function mountLawPanel(container,options={}){
  function close(){root.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.focus();}
  const click=()=>root.hidden?open():close(),keys=event=>{event.stopPropagation();if(event.key==='Escape'){event.preventDefault();close();}};
  toggle.addEventListener('click',click);search.addEventListener('input',renderList);root.addEventListener('keydown',keys);renderList();
- return{open,close,selectLaw,compareSelected:runComparison,getSelection:()=>selected,setLaws(next){laws=next;renderList();},destroy(){if(destroyed)return;destroyed=true;request++;abort?.abort();toggle.removeEventListener('click',click);search.removeEventListener('input',renderList);root.removeEventListener('keydown',keys);win.removeEventListener('world:building-selected',onBuilding);impact.destroy();root.remove();toggle.remove();sheet.remove();worldLayer?.clear?.();}};
+ return{open,close,selectLaw,compareSelected:runComparison,getSelection:()=>selected,getComparison:()=>comparison?structuredClone(comparison):null,setLaws(next){laws=next;renderList();},destroy(){if(destroyed)return;destroyed=true;request++;abort?.abort();toggle.removeEventListener('click',click);search.removeEventListener('input',renderList);root.removeEventListener('keydown',keys);win.removeEventListener('world:building-selected',onBuilding);impact.destroy();playback.destroy();strength.removeEventListener('change',onStrengthChange);root.remove();toggle.remove();sheet.remove();worldLayer?.clear?.();}};
 }

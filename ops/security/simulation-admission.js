@@ -4,7 +4,7 @@ export function isSimulationSubmission(request) {
   const path = new URL(request.url).pathname.replace(/\/$/, '');
   if (/\/(cancel|pause)$/.test(path)) return false;
   return ['/api/runs', '/api/world/experiments', '/api/decision-experiments',
-    '/api/decision-optimizations', '/api/city-experiments'].some(base => path === base || path.startsWith(base + '/'));
+    '/api/decision-optimizations', '/api/city-experiments', '/api/law-behavior'].some(base => path === base || path.startsWith(base + '/'));
 }
 
 // Only an explicitly configured test process may raise its isolated budget.

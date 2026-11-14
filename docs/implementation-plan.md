@@ -1,5 +1,46 @@
 # HappyBearLandia implementation plan
 
+
+## Recorded behavior edit/replay loop (2026-11-14, draft PR #316)
+
+Status: implemented on review branch only. This is a bounded continuation of completed
+SHE-35 rather than a replacement of the existing same-initial-condition comparison.
+
+- The HBL law-panel entry point now exposes editable sensitivity for reviewed numeric
+  factors only (laws 22, 23 and 83) and stores the applied factor in a versioned
+  paired-run manifest. Reviewed discrete mechanisms and unsupported laws do not receive
+  arbitrary sliders. A run always starts from the same frozen model state and seed.
+- The existing comparison worker records up to 100 real timepoints with a bounded,
+  stable sample of 12 synthetic residents/households per branch. Playback shows
+  current/edit time-aligned frames, matched actor state and the real aggregate
+  metric timeline; missing or unchanged data are never substituted with effects.
+- Rerunning cancels old worker results and clears stale panels. A first completed
+  full-strength result is retained for comparisons at matching time and seed.
+- Documented model scope, provenance, test matrix, UX acceptance and gaps:
+  [world/laws/BEHAVIOR_PLAYBACK.md](../world/laws/BEHAVIOR_PLAYBACK.md).
+
+Verification evidence: targeted GitHub Actions workflow "Law behavior playback"
+run 43597696277 completed successfully (Bun contract tests), exercising
+test/law-behavior-playback.test.js and the existing laws/impact/mechanism/visuals
+tests. Local Bun and full browser/manual smoke were unavailable here;
+the broader workflows were still running when this entry was recorded.
+There is no claim of deployment, mobile verification, calibration, or live
+Civic Synthesis native-UI integration.
+
+Next end-to-end slice: define a versioned, authorized read-only paired-run receipt
+API from HBL; import actual sampled actor/time records into the Civic Synthesis
+simulate/edit workspace so screenshots/iframes are not the behavior source; preserve
+the frozen proposal ID, seed, rules version, units and exact horizon; connect a
+reviewed policy-text amendment to an explicit supported numeric parameter and
+offer rerun/undo. Add end-to-end Playwright coverage including stale results,
+unsupported law, inaccessible cross-origin receipt, and mismatched clocks.
+Do not infer unmodeled resident behavior from law prose.
+
+Material risks: nonrepresentative 12-actor visual sample vs population totals,
+cross-model clocks/entity IDs, overinterpreting synthetic differences as causal,
+cross-origin CORS/security/workload caps, and release readiness. Human review and
+production deploy approval remain required.
+
 ## SHE-256 concurrency decision gate — 2026-11-12
 
 Delivered documentation increment: [decision gate](symphony-concurrency-gate.md)
