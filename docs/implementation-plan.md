@@ -9188,3 +9188,21 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-557 — tiny household shelf repair (2026-11-14)
+
+Bounded slice implemented in the existing House repair café: add a genuinely
+broken household bookshelf, quote glue/two brackets (12 synthetic USD, 30
+attended minutes), undo free before commitment, commit to the resident task
+queue, then inspect the repaired object, skill minutes and action-linked event.
+Prerequisites: enabled House life, actual broken bookshelf, available helper age
+12+, existing savings. No synthetic damage is injected into ordinary homes.
+Existing generic repairs remain compatible. Materials are consumed on commitment;
+cancellation retains expenditure and attended learning but grants no repair.
+
+Acceptance evidence: 18 focused model/regression tests, 112 assertions passed.
+Keyboard/reduced-motion/mobile Playwright fixture added; execution blocked before
+browser launch by server EADDRINUSE on 39757. Before/after visual acceptance and
+normal-entry browser verification remain pending. No root lint/typecheck exists;
+changed code is JavaScript. See [review](reviews/SHE-557.md) for exact commands,
+model contract, overlap audit and unchanged governance hold. No PR/deployment.

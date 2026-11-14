@@ -113,3 +113,34 @@ nor sampled points establish real traffic volume. Ongoing trips are distinct
 from a retained completed-trip ledger. Seed, model version, clock and run
 identity remain on the enclosing snapshot/runtime. Verify with
 `test/population-trip-display.test.js` and the existing model/replay suites.
+
+### Tiny shelf repair — shelf-repair.v1 (SHE-557)
+
+This optional House submodel reuses the existing repair café and Population
+identity, clock, life conditions, ledger, task queue and progression. It introduces
+no independent agents or RNG draws. Its purpose is a bounded repair story, not an
+empirically calibrated maintenance estimate. Existing broken household `books`
+furniture is the supported object; quote/init does not generate damage or items.
+
+An explicit `quote-shelf` command records one current quote for a helper and café
+job; `undo-shelf` removes it without time or money. `commit-shelf` preflights the
+same object, worker, budget and free queue, then starts a canonical 30-minute
+`cafeRepair` and records it as an active resident task. The synthetic material
+assumption is wood glue plus two brackets, costing 12 illustrative USD, consumed
+once at commitment by the house ledger. No separate stock or real purchase is
+claimed. Atomic rejection leaves the original model untouched. Retried command
+IDs reuse café receipts; changed requests with the same ID reject.
+
+Actual attendance grows existing repair and handiness skill minutes. Only full
+attendance completes the repair, resets the existing life condition and appends
+an action-linked event and material receipt (`shelf-repair.v1`, object/job,
+source action, helper and completion minute). Cancellation spends materials and
+retains attended learning but does not repair the object. There is no random
+repair-success probability. Failure means unavailable resources/worker/object or
+interrupted attendance. Current quote, bounded café jobs/events and task history
+persist in the same checkpoint; replay requires that checkpoint and the same
+commands and time partition. Quote amounts/durations/version are validated on
+restore. No mapping to Monthly City is implied. See
+[repair source](../../world/house/repair-cafe.js),
+[house system contract](../../world/house/systems-contract.md) and
+[deterministic tests](../../world/house/tiny-repair.test.js).

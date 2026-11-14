@@ -6,7 +6,7 @@ These descriptions follow the seven elements of the [ODD 2020 protocol and autho
 
 | State authority or independent model | Description | Normal entry point / scope |
 | --- | --- | --- |
-| World Population | [Population and House](population.md) | Population runtime/worker; House, children, employment, firms, relationships, promises, traditions and life systems share this authority |
+| World Population | [Population and House](population.md) | Population runtime/worker; House, children, employment, firms, relationships, promises, traditions, life systems and versioned tiny shelf repairs share this authority |
 | Monthly City | [City](city.md) | City Lab API/worker; Future Machine reuses City rather than introducing a new model |
 | Legacy World | [Legacy](legacy.md) | createWorld in world/sim.js; legacy relationship/culture/weather adapters |
 | Agent civic prototype | [Civic](civic.md) | simulateAgentCivicDynamics; aggregate outcome calculation over fixed synthetic agent traits |
