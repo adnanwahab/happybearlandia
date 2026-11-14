@@ -8877,3 +8877,31 @@ by Bun listen EADDRINUSE on ports 39884 and 41967. Visual/GPU/mobile acceptance
 remains unverified. Current remote main has unrelated newer coordinator/scene
 fixes to preserve during integration; fetch/rebase/commit are unavailable because
 shared Git metadata is outside writable roots. No merge or deployment.
+
+### SHE-263 completion follow-up — 2026-11-13
+
+Audited PR #284, original commit `0591eb6e`, and reconciliation `7958ee12`
+against current source. Prior layout lanes, pill/dismiss controls and Storm
+scroll restoration remain present; prior acceptance was explicitly blocked.
+The postcard picker now navigates, exposing a remaining integration gap: the
+new page forgot step one. Reuse its existing `arrival=1` marker for local UI
+progress so choosing policy after arrival collapses the explorer. No simulation,
+identity, seed, auth, vote, or merge-policy contract changes.
+
+Verification slice: unit-test distinct-step/order/idempotence and actual postcard
+URL arrival; correct the browser journey to close its modal before policy;
+remove full-viewport screenshot masking; check five target points, all utility
+links/summaries, and expanded/collapsed/dismissed screenshots at the original six
+sizes. Add arrival/reopen/minimize/dismiss browser coverage. Tests use real
+`/world` with `demo=1`, 16 residents and run seed 263; this is a bounded synthetic
+layout fixture, not default-population performance evidence.
+
+Evidence: 25 tests pass / 148 assertions across five focused files; browser
+bundle builds (3 modules); seven World HUD browser tests discover; whitespace
+check passes. Playwright server startup still fails with EADDRINUSE on 39978 and
+48963 before any browser runs. No screenshot, measured target bounds, Storm
+scroll measurement or approved baseline was produced. No lint/typecheck script
+is configured. Full viewport and Storm acceptance remains pending the documented
+browser command and review of 18 World baseline images on a bind-capable host.
+See `docs/reviews/SHE-263.md` for reproduction and preserved policy. No remote
+messages, merge, deployment or production changes.
