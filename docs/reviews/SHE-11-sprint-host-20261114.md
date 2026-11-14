@@ -49,3 +49,17 @@ bun test test/cold-start-report.test.js test/render-performance.test.js
 ```
 
 Existing PR321 remains the concrete prerequisite for successful3Drenderer acceptance on the live sprint. Parent owns its review/integration. After that integration, confirm the actual sprint source and rerun/review the harness before changing SHE-11's status. This measurement-only branch contains no PR321 runtime commits, no SHE-40 validator or CTA changes, no budget pin, no queue/approval mutation, and no dispatch. The primary checkout and live runner were untouched; the isolated server was stopped.
+
+## Authorized sprint integration verification
+
+PR321 was merged as `e41b334f492233d50cdc7b9316075fa9a757cdb1` after explicit operator review and the software-renderer FPS exception. The harness branch merged that exact sprint; no runtime differences from that sprint exist outside the measurement script/tests and documentation/evidence. Existing publisher screenshots were retained by normal merges.
+
+The actual integrated application was measured on this host using the command above, with fresh browser/context per path. Standalone CLI exit0;18 focused tests/91 assertions pass. [Raw integrated report](../evidence/she-11-sprint-host-20261114/integrated-sprint/measurement.json) and all three screenshots are retained.
+
+| Requested/actual renderer | Ready ms |3Dframe observation ms | Native control ms | Canvas proxy ms |
+| --- | ---: | ---: | ---: | ---: |
+| WebGPU/webgpu |487.8|1042.7|503.7|unavailable|
+| WebGL/webgl2 |450.6|1210.0|461.8|unavailable|
+| Canvas2D/canvas2d |8095.7|unavailable|8098.8|8117.8|
+
+All three paths report no page/request/validation errors. Canvas has144opaque pixel samples/12colors. Screenshot inspection confirms rendered city geometry. These remain single-host observations, not device certification, GPU presentation timings, or total memory. No performance budget was weakened. SHE-11 completion still requires fresh hosted checks and PR322 integration; SHE-40 numeric CI budgets and other issue acceptance gaps remain separate. No live queue, approval, assignment, or production configuration changed.
