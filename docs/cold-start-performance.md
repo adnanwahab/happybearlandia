@@ -165,3 +165,10 @@ and opening a review PR against the sprint base. SHE-40 must remain blocked unti
 those measurements are independently verified. Coordinator plan update request:
 record the error-boundary/coverage fixes as tested, and baseline acceptance as
 pending hardware/browser access.
+
+
+## Actual sprint verification — November14,2026
+
+[Source-matched host review](reviews/SHE-11-sprint-host-20261114.md) now retains actual native WebGPU, WebGL2 and Canvas observations for freshly fetched sprintcd3 and the separately tested clean existing PR321 candidatee9afdf40. Currentcd3 fails both3Dpaths with `night is not defined`; its milestones are not accepted as a successful run. The clean candidate passes all three measured paths, but is not treated as integrated until parent review and actual sprint verification occur. SHE-11 remains incomplete while that prerequisite is unresolved.
+
+The harness now observes the visible native World controls disclosure instead of hidden Storm controls, preserves `webgl2` as the reported backend, and reports Canvas readiness/pixel evidence separately from unavailable3Dmilestones. Optional `HBL_COLD_START_WEBGPU=1` requests the actual native WebGPU entry; `HBL_COLD_START_SCREENSHOTS=1` retains per-path screenshots next to the report. Imported `run()` returns complete error reports without leaking CLI exit status into tests; standalone failed measurements still exit1. No application/model or live coordination behavior is changed.
