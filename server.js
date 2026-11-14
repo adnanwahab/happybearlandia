@@ -11,6 +11,7 @@ const handleReleaseExperiment=createExperimentHandler({
   identify:(request,id)=>cookieIdentity(request,id,process.env.HBL_RELEASE_IDENTITY_SECRET),
 });
 import {createSimulationAdmission,simulationAdmissionOptionsFromEnv} from './ops/security/simulation-admission.js';
+import {createLawBehaviorHandler} from './world/laws/behavior-api.js';
 const admitSimulation=createSimulationAdmission(simulationAdmissionOptionsFromEnv(process.env));
 import {createPlayerFeedbackHandler} from './ops/player-feedback/api.js';
 const handlePlayerFeedback=createPlayerFeedbackHandler();
@@ -94,6 +95,7 @@ async function serveGameBundle() {
   });
 }
 const handleServerCivicApi = createServerCivicApiHandler();
+const handleLawBehavior = createLawBehaviorHandler();
 const handleDecisionExperiments = createDecisionExperimentsHandler();
 const handleWorldEdits = createWorldEditApiHandler();
 const handleOptimizations = createOptimizationApiHandler();
@@ -462,6 +464,7 @@ const server = serve({
     const admission=admitSimulation(request,server.requestIP(request)?.address);
     if(admission)return admission;
     if (pathname === "/api/health" || pathname === "/api/ready" || pathname === "/api/demo/ready") return handleReleaseHealth(request);
+    if (pathname === "/api/law-behavior") return handleLawBehavior(request);
     if (pathname === '/vote-on-patch' || pathname === '/vote-on-patch/') return serveFile('./world/patch-voting.html');
     if (pathname === '/api/patch-votes' || pathname.startsWith('/api/patch-votes/')) return patchVoting(request);
     if(pathname.startsWith('/api/act-normal/'))return actNormalService.fetch(request,server);
