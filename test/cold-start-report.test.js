@@ -48,7 +48,7 @@ test('fallback is preserved but does not certify the requested renderer', () => 
   const row = buildReport({ requestedBackend: 'webgl', selectedBackend: 'canvas2d',
     timing: { appReadyMs: 10, firstUsefulRenderMs: 8, firstActionableControlMs: 12 } });
   expect(reportFailures(row)).toEqual(['Requested webgl, selected canvas2d; requested path not measured']);
-  expect(reportFailures({ ...row, requestedBackend: 'canvas2d' })).toEqual([]);
+  expect(reportFailures({ ...row, requestedBackend: 'canvas2d' })).toContain('Incomplete startup milestones');
   expect(reportFailures(buildReport())).toContain('Selected backend unavailable');
   expect(buildReport({ graphicsRenderer: 'ANGLE SwiftShader' }).graphicsExecution).toBe('software');
 });
@@ -74,10 +74,46 @@ test('launch and cleanup failures retain both path reports and write evidence', 
     expect(report.reports[1].errors).toEqual(['fixture context denied', 'Browser cleanup: fixture cleanup denied']);
     expect(report.reports.every(row => row.timing.appReadyMs === null)).toBe(true);
     expect(JSON.parse(await readFile(output, 'utf8'))).toEqual(report);
-    expect(process.exitCode).toBe(1);
+    expect(report.reports.every(row => reportFailures(row).length > 0)).toBe(true);
+    expect(process.exitCode).toBe(previousExitCode);
   } finally {
     console.log = originalLog;
     process.exitCode = previousExitCode;
     await rm(directory, { recursive: true, force: true });
   }
+});
+
+test('actual WebGL2 label qualifies the requested WebGL path without accepting a fallback', () => {
+  const raw = { requestedBackend: 'webgl', selectedBackend: 'webgl2', timing: {appReadyMs: 1, firstUsefulRenderMs: 2, firstActionableControlMs: 3}, errors: [] };
+  expect(reportFailures(buildReport(raw))).toEqual([]);
+  expect(reportFailures(buildReport({...raw, selectedBackend: 'canvas2d'})).length).toBeGreaterThan(0);
+});
+test('Canvas readiness proxy never fabricates the unavailable 3D render milestone', () => {
+  const raw = { requestedBackend: 'canvas2d', selectedBackend: 'canvas2d', timing: {appReadyMs: 1, firstActionableControlMs: 2, firstCanvasReadyFrameProxyMs: 3}, errors: [] };
+  const report = buildReport(raw);
+  expect(report.timing.firstUsefulRenderMs).toBeNull();
+  expect(report.timing.firstCanvasReadyFrameProxyMs).toBe(3);
+  expect(report.renderObservation).toContain('proxy');
+  expect(reportFailures(report)).toEqual([]);
+  expect(reportFailures(buildReport({...raw, timing:{appReadyMs: 1, firstActionableControlMs: 2}}))).toContain('Incomplete startup milestones');
+});
+
+test('Canvas observer records only its explicit readiness proxy after a real context exists', () => {
+  const saved = {window:globalThis.window,document:globalThis.document,requestAnimationFrame:globalThis.requestAnimationFrame,getComputedStyle:globalThis.getComputedStyle};
+  let queue=[],available=false;
+  const control={disabled:false,getAttribute:()=>null,getBoundingClientRect:()=>({x:0,y:0,width:10,height:10}),contains:()=>false};
+  const canvas={getBoundingClientRect:()=>({width:10,height:10}),getContext:kind=>kind==='2d'&&available?{}:null};
+  try {
+    globalThis.window={hblWorldStartup:{mode:'canvas2d',readyMs:10}};
+    globalThis.document={querySelector:selector=>selector==='#canvas-lite-world'?canvas:control,elementFromPoint:()=>control};
+    globalThis.getComputedStyle=()=>({visibility:'visible'});
+    globalThis.requestAnimationFrame=fn=>queue.push(fn);
+    const frame=()=>{const pending=queue;queue=[];pending.forEach(fn=>fn());};
+    observeStartup();frame();frame();frame();
+    expect(window.__hblColdStart.control).toBe('#top > summary');
+    expect(window.__hblColdStart.timing.firstCanvasReadyFrameProxyMs).toBeUndefined();
+    available=true;frame();frame();frame();
+    expect(window.__hblColdStart.timing.firstCanvasReadyFrameProxyMs).toBeNumber();
+    expect(window.__hblColdStart.timing.firstUsefulRenderMs).toBeUndefined();
+  } finally {Object.assign(globalThis,saved);}
 });
