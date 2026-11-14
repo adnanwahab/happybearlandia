@@ -9188,3 +9188,24 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-525 — outdoor atmosphere (2026-11-14)
+
+Bounded slice: smooth authored solar color; depth fog and bounded exposure; one
+camera-centered approximate shadow region using existing quality map budgets.
+Prerequisites: existing Three renderer, clock lighting and adaptive quality.
+Acceptance: unit sweeps of solar boundaries, finite fallback, shadow navigation,
+normal-entry keyboard/mobile WebGL checks and local screenshots. Physical device
+FPS and full visual sweep remain required; local emulation is not device evidence.
+No model authority, identity, seed, clock or provenance changes. No extra fog
+passes/transparent layers. Existing reduced-motion behavior retained.
+
+Delivered locally: cosmetic skylight/exposure/depth fog, smooth solar tint,
+bounded target-following shadows, Dawn/Twilight controls and pagehide disposal.
+29 focused tests pass (17,507 assertions); changed JavaScript syntax and diff
+checks pass. No configured repository lint/typecheck exists. Browser execution
+blocked at server startup (EADDRINUSE on3498 and3519); no after screenshots or
+physical device FPS measurements. Added desktop/mobile fallback cases remain
+unexecuted. Acceptance stays open pending visual solar sweeps and hardware
+benchmarks. Audit, configured merge-policy preservation and exact prerequisites:
+[review](reviews/SHE-525.md). No commit/PR, merge or deployment performed.

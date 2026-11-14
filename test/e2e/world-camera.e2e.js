@@ -23,3 +23,27 @@ test('normal World frame loop keeps rendering and accepts orbit, pan and zoom',a
  await lighting.selectOption('14');
  expect(errors).toEqual([]);await page.screenshot({path:test.info().outputPath('camera-controls-fixed.png')});
 });
+
+for(const viewport of [{width:1440,height:1000},{width:390,height:844}])test(`outdoor atmosphere fallback and navigation ${viewport.width}`,async({page})=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.setViewportSize(viewport);
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.route('**/api/area*',route=>route.abort());
+ await page.route('**/render/city-renderer.js',async route=>{const response=await route.fetch();await route.fulfill({response,body:(await response.text())+'\nconst qaMount=mountCityRenderer;mountCityRenderer=function(options){const api=qaMount(options);globalThis.__qaOutdoor={api,scene:options.scene,sun:options.sun};return api;};'});});
+ await page.goto('/world?demo=1&synthetic=1&people=16&renderer=webgl');
+ await page.waitForFunction(()=>window.hblWorldStartup?.readyMs&&window.__qaOutdoor,{timeout:45000});
+ await page.keyboard.press('F3');await expect(page.getByLabel('Scene lighting')).toBeVisible();
+ await page.getByLabel('Scene lighting').selectOption('6');
+ await expect.poll(()=>page.evaluate(()=>__qaOutdoor.api.timeOfDay)).toBe(6);
+ for(const quality of ['LOW','BALANCED','HIGH','ULTRA']){
+  await page.getByLabel('Render quality',{exact:true}).selectOption(quality);
+  await page.evaluate(async()=>{__qaOutdoor.api.setAdaptiveQuality(false);for(const hour of [0,5.99,6,6.01,12,19.49,19.5,20,23.99]){__qaOutdoor.api.setTimeOfDay(hour);__qaOutdoor.api.focusDistrict({x:hour*80,z:-hour*70});await new Promise(requestAnimationFrame);}__qaOutdoor.api.setTimeOfDay(19.5);});
+  await expect.poll(()=>page.evaluate(()=>__qaOutdoor.api.getPerformanceStats().outdoor?.warm)).toBe(1);
+  expect(await page.evaluate(()=>Number.isFinite(__qaOutdoor.scene.fog?.density))).toBe(true);
+ }
+ await page.screenshot({path:test.info().outputPath(`outdoor-twilight-${viewport.width}.png`)});
+ await page.evaluate(()=>{__qaOutdoor.api.setFeature('atmosphere',false);});
+ await expect.poll(()=>page.evaluate(()=>__qaOutdoor.scene.fog===null)).toBe(true);
+ await page.evaluate(()=>{dispatchEvent(new Event('pagehide'));__qaOutdoor.api.destroy();});
+ expect(await page.evaluate(()=>__qaOutdoor.scene.fog)).toBeNull();
+ await page.goto('/');expect(errors).toEqual([]);
+});
