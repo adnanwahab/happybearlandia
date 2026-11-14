@@ -1,5 +1,30 @@
 # HappyBearLandia implementation plan
 
+## SHE-212 — defining-feature umbrella audit (2026-11-13)
+
+Completed the approved analysis-only slice in [the consolidated acceptance and
+gap report](reviews/SHE-212.md), against checkout `5fdb96832cdb6d895b04e9ea95ad4b3aea0318eb`.
+Read current child descriptions, SHE-194 prototype comment, six merged PR records,
+module contracts, City ODD, executable source and tests. No child implementation
+was duplicated. Fresh worktree avoids the prior disk-full checkout attempt.
+
+Acceptance evidence: 72 focused prototype/replay tests passed with 1302 assertions;
+22 City/API regressions passed with 134 assertions on Bun 1.4.2. A temporary-store
+probe solved all five Detective cases with zero evidence steps using visible home
+counts, demonstrating a concrete product gap. Ledger reruns confirm the dominant
+−389.241 USD/month residual. Browser attempt failed before launch at server listen
+with EADDRINUSE on port 39931; visual/hash acceptance remains unresolved. No root
+lint/typecheck script exists; runtime behavior was unchanged. Document whitespace
+check passed. No commit/PR reference for this audit yet.
+
+Remaining child work: Detective inference-resistant cases and study; Ledger kill
+decision; Builder immutable parent-experiment receipt and pre-fork history/hash
+evidence; Clouds observed browser hash/readability study; Life real saved 60-replay
+UI/cost validation; integrated Microscope browser journey. Original dependency
+gates and user success/kill criteria remain intact. No user-study or 10-second
+legibility claim is made. Existing auto-merge workflow safety hold is preserved;
+no external messages, merges, deployment or production changes were made.
+
 ## Mini Symphony PR to Linear completion sync
 
 The evidence-only workflow `.github/workflows/linear-merged-pr.yml` maps merged,
