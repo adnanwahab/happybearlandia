@@ -1,5 +1,28 @@
 # HappyBearLandia implementation plan
 
+## SHE-515 — street repair/public works audit (2026-11-14)
+
+Analysis-only audit completed on `mini/SHE-515` at base `cdb773a1`.
+[Review and next slice](reviews/SHE-515.md) record the source paths, acceptance
+gaps and preserved merge/voting policy. Open PR #353/SHE-520 already owns
+exact-month construction choreography on Hidden Systems; it does not integrate
+that ledger into `/world`. Avoid duplicating its selector. World currently has
+stage-based drainage symbols but no verified City work-event/run/month adapter
+or source inspector. No feature acceptance or browser evidence is claimed.
+
+Next slice: establish that read-only identity/time/spatial adapter, reuse the
+reviewed milestone selector, add bounded accessible cosmetic work zones, then
+verify before/event/after replay, empty/delay/fallback paths, rapid navigation,
+reduced motion, model immutability and resource disposal through normal World
+entry. Stage alone must never imply ongoing work; no mapping means no crews.
+No simulation change or external service is required for the proposed adapter.
+
+Existing City/project/replay regressions passed 19 tests / 714 assertions.
+Physical-policy tests could not load missing `three`; no dependencies changed.
+No root lint/typecheck script exists. Browser checks skipped for this docs-only
+audit; existing before captures are not feature proof. No code implementation,
+commit/PR, merge, deployment or governance change; acceptance remains open.
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,
