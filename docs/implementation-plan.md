@@ -19,6 +19,15 @@ run against a disposable repository with a fake Codex executable, then inspect
 state, log and isolated worktree. Automated runtime exercise remains pending.
 ## SHE-265 — transparent World plan cards
 
+2026-11-13 follow-up: audited merged PR #285 at `3158450e`; application
+implementation retained. Expanded browser checks to all custom levers and every
+preset plus the popularity source link. Focused Bun checks passed (7 tests /
+280 assertions and 7 tests / 105 assertions); Playwright discovers three cases.
+Execution remains blocked before browser launch by server EADDRINUSE on ports
+39889 and 41973. Acceptance is still pending browser and assistive-technology
+evidence. Full audit and reproducible commands: [SHE-265 review](reviews/SHE-265.md).
+
+
 Delivered locally on 2026-11-12; browser acceptance remains pending. Audit of
 merged HEAD 53090035 found the opaque select in `world/index.html`, dynamic
 packages in `world/render.js`, separate Canvas2D presets, and worker year-zero
