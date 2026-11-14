@@ -27,3 +27,11 @@ Earlier law recipe browser failures exposed missing explicit synthetic-context c
 ## Not established
 
 No complete Safari/Firefox/a11y matrix, production serving-SHA parity, staging deployment/rollback, real user study, civic ballot submission or private-journal legacy authorization review. Companion Civic mandatory suite and accessibility results are recorded in its implementation documentation and final report. Test case totals overlap across focused runs; do not sum them into a unique-test count.
+
+## Reviewed screenshots
+
+- [HBL mobile recorded playback](assets/hbl-law-mobile.png)
+- [World completed real-worker comparison](assets/world-completed.png)
+- [Civic native mobile receipt](assets/civic-native-mobile.png)
+
+All show synthetic local model data. They are evidence of rendered local behavior, not proof of deployment or calibrated outcomes.
