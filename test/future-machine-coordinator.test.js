@@ -1,3 +1,4 @@
+import {buildDocumentary} from '../world/future-machine/story/documentary.js';
 import {test,expect} from 'bun:test';
 import {readFile} from 'node:fs/promises';
 import {createContext,SourceTextModule,SyntheticModule} from 'node:vm';
@@ -58,6 +59,7 @@ async function boot(options={}){
    const stage={onSelect,onCameraInteraction,history,disposed:false,shots:[],frames:[],restored:[],transition:false,cancellations:0,
     setMode:noop,setGhosts:noop,resetCamera:noop,update(frame,diff){this.frames.push({frame:structuredClone(frame),diff:structuredClone(diff)});},
     focus(entity,settings={}){this.shots.push({entity:structuredClone(entity),...settings});this.transition=Boolean(settings.animate);return true;},
+    divergenceShot(stop){return this.focus(stop.entity,{animate:true,scale:stop.scale});},
     cancelCamera(){this.transition=false;this.cancellations++;},getCamera:()=>structuredClone(camera),
     setCamera(value){if(options.compatibleCamera===false)return false;camera=structuredClone(value);this.restored.push(camera);return true;},
     getStats:()=>({backend}),whenReady:()=>gate?gate.promise.then(()=>{backend=options.renderer??'canvas2d';}):Promise.resolve(),dispose(){this.disposed=true;}};
@@ -66,6 +68,7 @@ async function boot(options={}){
   './ui/outcome-timeline.js':{createOutcomeTimeline:()=>({update:(month,settings)=>{if(settings?.announce)announcements.push(month);},dispose:noop})},
   './story/index.js':{buildStory:()=>({summary:'Recorded pair.',stops:[first],limitations:[]}),describeSelection:()=>({title:'Recorded building',summary:'Recorded entity.',evidence:[receipt],limitations:[]}),renderStory(_host,value,events){description=value;storyCallbacks=events;return noop;}},
   './story/evidence-trail-view.js':{renderEvidenceTrail:()=>Object.assign(noop,{update:noop})},
+  './story/documentary.js':{buildDocumentary,renderDocumentary:()=>noop},
   './story/game-director.js':{selectMoments:()=>[]},'./story/moment-narrative.js':{renderMoments:()=>noop},
   './evidence.js':{constructionReceipts:(_h,_e,month)=>month>=16?[receipt]:[],metricChangeStops:(_h,diff,key)=>key==='housingUnits'&&diff.month>=16?[{...first,title:'Recorded housing completion',evidence:[receipt]}]:[]},
   './rent-decomposition.js':{decomposeRent:frame=>frame,renderRentDecomposition:noop},

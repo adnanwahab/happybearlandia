@@ -92,3 +92,25 @@ Verification: `bun test test/assistive-narration.test.js test/future-machine-sto
 The opt-in Chromium check uses `HBL_FM_BROWSER=1 bun test test/assistive-narration.test.js`
 and covers keyboard activation, live-region mutations, duplicate suppression, silent
 month changes and cleanup. Actual screen-reader speech needs manual verification.
+
+## One-minute Future Documentary (SHE-511)
+
+`documentary.js` composes up to six storyboard cards: first paired checkpoint,
+up to four supported `cinematic-city.v1` moments, and final paired checkpoint.
+Cards divide 60 editorial seconds equally; seconds are separate from City months.
+A fully available diff with no entity differences gets a quiet two-checkpoint
+story, suppressing ordinary background drama. Missing paired history yields an
+explicit unavailable state. This is a storyboard, not encoded video.
+
+Each card exposes arm-scoped event/decision records and dependencies, exact month,
+building inventory IDs, and seed. Thumbnail glyphs are cosmetic, capped at 48,
+and derived only from that checkpoint's recorded building inventory; full IDs and
+counts remain inspectable. They are not camera captures or geographic geometry.
+Narration is interpretation. Export retains the complete source recipe, run,
+model version, initial hash, provenance, editorial version, selected records and
+timing. Replay remains manifest recomputation, not independent verification.
+
+The coordinator replaces/disposes this view with the completed run and on pagehide.
+Native buttons use the existing month jump path. No automatic playback, motion,
+network assets, GPU allocations or extra timers are introduced. No model rules,
+state, clocks, identities, RNG or ODD mechanisms change.

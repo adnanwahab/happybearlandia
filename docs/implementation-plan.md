@@ -1,5 +1,27 @@
 # HappyBearLandia implementation plan
 
+## SHE-511 — one-minute Future Documentary (2026-11-14)
+
+Bounded local slice implemented: reuse the grounded cinematic moment selector to
+assemble a 60-second, at-most-six-card storyboard in the normal Future Machine
+completed-run route. Native inspection/jump controls expose recorded months,
+arm-scoped IDs and seed. Cosmetic checkpoint inventory thumbnails use actual
+building IDs; narration is labeled interpretation. Quiet unchanged comparisons
+use two checkpoints. Export preserves source recipe and provenance. No model
+state, seed, clock or RNG changes, new services, encoded video or deployment.
+
+Prerequisites audited: existing City history/diff/story interfaces and open PRs;
+no overlapping documentary PR found. Acceptance evidence: 52 focused tests /
+383 assertions passed; broader Future Machine regression: 188 passed, 3 skipped,
+0 failed / 3,514 assertions. Coverage includes deterministic assembly, immutable inputs,
+missing/empty paths, rapid jumps and disposal. Syntax checks passed; no root
+lint/typecheck script exists. Desktop/mobile/reduced-motion/keyboard browser
+checks added, but server startup failed with EADDRINUSE on two ports. Visual
+before/after evidence and human browser acceptance remain unresolved. Preserve
+disabled automatic merges and existing review/check policy. No commit/PR yet.
+Detailed scope, risks, prerequisites and rerun command: [SHE-511 review](reviews/SHE-511.md).
+
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,
