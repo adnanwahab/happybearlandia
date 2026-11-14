@@ -1,5 +1,25 @@
 # HappyBearLandia implementation plan
 
+## SHE-549 — weekly routine planner
+
+Implemented locally: **House → More → Plan a better week** opens a seven-day
+planner pinned to the saved Population checkpoint. Five canonical actions use
+existing durations, costs and worker admission. Drag/drop and native form/move
+controls share atomic rejection and unlimited draft undo. Runs restore the pin;
+receipts distinguish admission from completion. Serial household blocks are a
+conservative constraint; drafts/results remain page-local and no checkpoint is
+overwritten. No model rules, IDs, clocks, seeds or governance changes.
+
+Verification: 47 tests / 350 assertions passed across nine affected/regression
+files, plus the added focused drag/drop case (1 test / 4 assertions). Syntax and
+whitespace checks passed. No root lint/typecheck script exists. Playwright
+discovers the normal-entry case, but server startup fails with EADDRINUSE on
+41949 before launch. Browser layout, device interaction and before/after planner
+screenshots remain acceptance work. Next: run the documented browser command
+where server binding works and inspect its desktop/mobile screenshots. No commit,
+PR, deployment or merge. Audit, decisions and preserved merge safety hold:
+[reviews/SHE-549.md](reviews/SHE-549.md).
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,

@@ -1,0 +1,33 @@
+import {test,expect} from '@playwright/test';
+test('House planner keyboard fallback rejects collisions, moves, undoes and reruns',async({page},testInfo)=>{
+ await page.goto('/world/government/index.html');
+ const fixture=await page.evaluate(async()=>{
+  const {createCustomHouseholdSave}=await import('/world/house/creator-model.js');
+  const {createPopulationRuntime}=await import('/world/population/runtime.js');
+  const result=await createCustomHouseholdSave({name:'Routine QA',startingMoney:14250,relationship:'roommates',members:[{name:'Routine Resident',ageYears:35,voice:'warm',skinColor:'#d1a77c',shirtColor:'#658da6',hairColor:'#534d36',traits:['social','neat','curious'],interests:['hobbies']}]},{runtimeFactory:options=>createPopulationRuntime({...options,stepMinutes:30,clockMode:'ticks-per-poll'})});
+  const response=await fetch('/api/world-experiments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({save:result.save})});
+  if(!response.ok)throw Error(await response.text());return {...result,id:(await response.json()).id};
+ });
+ await page.goto('/world/house/'+fixture.householdId+'?experiment='+fixture.id);
+ await page.screenshot({path:testInfo.outputPath('house-before-planner.png')});
+ await page.locator('[data-house-tools]>summary').click();
+ await page.getByRole('link',{name:'Plan a better week',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Plan a better week'})).toBeVisible();
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.getByRole('button',{name:'Add task',exact:true}).focus();await page.keyboard.press('Enter');
+ await expect(page.getByRole('article')).toHaveCount(1);
+ await page.getByRole('button',{name:'Add task',exact:true}).click();await expect(page.getByRole('status')).toContainText('Overlapping');
+ await page.getByLabel('Day',{exact:true}).selectOption('1');
+ await page.getByRole('button',{name:'Move task to selected day and minute'}).click();
+ await expect(page.getByRole('heading',{name:'Day 2',exact:true}).locator('..').getByRole('article')).toHaveCount(1);
+ await page.getByRole('button',{name:'Undo last edit'}).click();
+ await page.getByRole('button',{name:'Run week from pinned checkpoint'}).click();
+ await expect(page.getByRole('status')).toContainText('Week complete', {timeout:60000});
+ const receipt=await page.getByRole('region',{name:'Run receipt'}).textContent();
+ await page.getByRole('button',{name:'Run week from pinned checkpoint'}).click();
+ await expect(page.getByRole('status')).toContainText('Week complete',{timeout:60000});
+ expect(await page.getByRole('region',{name:'Run receipt'}).textContent()).toBe(receipt);
+ await page.getByRole('button',{name:'Undo last edit'}).click();await expect(page.getByRole('article')).toHaveCount(0);
+ await page.screenshot({path:testInfo.outputPath('planner-after-desktop.png')});
+ await page.setViewportSize({width:390,height:844});await page.screenshot({path:testInfo.outputPath('planner-after-mobile.png')});
+});

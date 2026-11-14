@@ -113,3 +113,15 @@ nor sampled points establish real traffic volume. Ongoing trips are distinct
 from a retained completed-trip ledger. Seed, model version, clock and run
 identity remain on the enclosing snapshot/runtime. Verify with
 `test/population-trip-display.test.js` and the existing model/replay suites.
+
+### Weekly routine command adapter
+
+`world/house/routine-planner.js` schedules a bounded serial list of existing House
+clean/rest/read/music/cook requests on the unchanged fixed-step clock. It restores
+the opened checkpoint for every seven-day run and retains seed/config, version,
+IDs, clock bounds and actual admission receipts. Drafts reserve no resources;
+canonical admission checks actual costs, work, needs, age, presence and capacity
+at each due minute. Household-wide overlap rejection is a conservative planner
+constraint, not a new modeled social rule. Accepted requests may later be
+interrupted; the UI labels admission separately from completion. Results and
+edits remain page-local, synthetic and without a matched-control effect claim.

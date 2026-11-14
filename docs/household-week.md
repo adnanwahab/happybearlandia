@@ -53,3 +53,21 @@ Browser setup in this workspace returned `EADDRINUSE` before either local server
 could start (ports 3190 and 41930); the Playwright journey is included but has not
 run successfully. Browser layout and the full inspector-to-route journey remain
 unverified. No project lint/typecheck script is defined.
+
+## Weekly routine experiment (SHE-549)
+
+From a saved House, open **More → Plan a better week**. This separate mode
+(`routinePlanner=1`) pins the opened checkpoint and offers up to 64 clean, rest,
+read, music or cook blocks over the next seven modeled days. Drag blocks or use
+the labeled resident/task/day/minute form, move and remove buttons. Every draft
+edit can be undone. Native controls remain available without animation or GPU.
+All tasks are serialized at household level; overlaps, unsupported actions and
+clock/boundary errors are visibly rejected. Canonical admission may still reject
+future tasks for actual budget, age, needs, work, travel or object constraints.
+
+Every run restores the pin and uses the existing fixed-step Population runtime.
+It retains versioned identity, seed/config, clock bounds, actual command receipts
+and final checkpoint in memory. Results are synthetic; admission does not imply
+completion or establish causal effects. Drafts/results are page-local; no saved
+checkpoint is overwritten. Undo edits the draft, while rerun resets simulation.
+See [the audit and acceptance limits](reviews/SHE-549.md).
