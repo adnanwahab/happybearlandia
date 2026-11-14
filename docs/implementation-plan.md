@@ -9188,3 +9188,20 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-390 — portal navigation (2026-11-14)
+
+Slice: native cross-document shared preview transitions for World, Living City and
+Future Machine, preserving registry identity and context URL construction. Reuse
+media preference key; no simulation changes. Acceptance: three keyboard/click
+entries, back focus, reduced-motion/unsupported native fallback and real browser
+screenshots. Risk: #324 owns incoming motion infrastructure and overlapping head
+tags; reconcile on integration. One worker; no independent delegation.
+Verification and remaining limits recorded in docs/reviews/SHE-390.md.
+
+SHE-390 local verification: 10 navigation tests pass, 197 assertions; syntax and
+whitespace checks pass; three browser tests discover. Actual browser startup
+fails on ports 39961 and 41990 (Bun EADDRINUSE). Focus/no-console, visual morphs
+and new screenshots remain unverified. Existing before images preserved.
+Acceptance stays open; see [review](reviews/SHE-390.md). No merge/deployment;
+disabled automatic merge and default five-upvote policy unchanged.
