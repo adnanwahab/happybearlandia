@@ -1,12 +1,38 @@
 # HappyBearLandia implementation plan
 
+## SHE-212 — defining-feature umbrella audit (2026-11-13)
+
+Completed the approved analysis-only slice in [the consolidated acceptance and
+gap report](reviews/SHE-212.md), against checkout `5fdb96832cdb6d895b04e9ea95ad4b3aea0318eb`.
+Read current child descriptions, SHE-194 prototype comment, six merged PR records,
+module contracts, City ODD, executable source and tests. No child implementation
+was duplicated. Fresh worktree avoids the prior disk-full checkout attempt.
+
+Acceptance evidence: 72 focused prototype/replay tests passed with 1302 assertions;
+22 City/API regressions passed with 134 assertions on Bun 1.4.2. A temporary-store
+probe solved all five Detective cases with zero evidence steps using visible home
+counts, demonstrating a concrete product gap. Ledger reruns confirm the dominant
+−389.241 USD/month residual. Browser attempt failed before launch at server listen
+with EADDRINUSE on port 39931; visual/hash acceptance remains unresolved. No root
+lint/typecheck script exists; runtime behavior was unchanged. Document whitespace
+check passed. No commit/PR reference for this audit yet.
+
+Remaining child work: Detective inference-resistant cases and study; Ledger kill
+decision; Builder immutable parent-experiment receipt and pre-fork history/hash
+evidence; Clouds observed browser hash/readability study; Life real saved 60-replay
+UI/cost validation; integrated Microscope browser journey. Original dependency
+gates and user success/kill criteria remain intact. No user-study or 10-second
+legibility claim is made. Existing auto-merge workflow safety hold is preserved;
+no external messages, merges, deployment or production changes were made.
+
 ## Mini Symphony PR to Linear completion sync
 
-Added a GitHub Actions workflow that reacts only to a merged, same-repository
-Mini Symphony branch named `mini/SHE-<number>`. It resolves the issue and its
-team's completed workflow state through Linear GraphQL, then closes the issue
-idempotently. Requires repository Actions secret `LINEAR_API_KEY`; provisioning
-that external secret and a live merged-PR verification remain operational setup.
+The evidence-only workflow `.github/workflows/linear-merged-pr.yml` maps merged,
+same-repository `mini/SHE-<number>` and revision branches to the original Linear
+issue. It upserts a source attachment; human acceptance review determines issue
+completion. The former automatic-close workflow is retired in SHE-182 revision3.
+Requires repository Actions secret `LINEAR_API_KEY`; hosted verification remains
+operational setup.
 
 ## Local Mini Symphony Bun starter
 
@@ -17,6 +43,15 @@ not integrate with or modify the live Linear dispatcher. Manual acceptance:
 run against a disposable repository with a fake Codex executable, then inspect
 state, log and isolated worktree. Automated runtime exercise remains pending.
 ## SHE-265 — transparent World plan cards
+
+2026-11-13 follow-up: audited merged PR #285 at `3158450e`; application
+implementation retained. Expanded browser checks to all custom levers and every
+preset plus the popularity source link. Focused Bun checks passed (7 tests /
+280 assertions and 7 tests / 105 assertions); Playwright discovers three cases.
+Execution remains blocked before browser launch by server EADDRINUSE on ports
+39889 and 41973. Acceptance is still pending browser and assistive-technology
+evidence. Full audit and reproducible commands: [SHE-265 review](reviews/SHE-265.md).
+
 
 Delivered locally on 2026-11-12; browser acceptance remains pending. Audit of
 merged HEAD 53090035 found the opaque select in `world/index.html`, dynamic
@@ -8505,6 +8540,23 @@ whitespace. `git diff --check` passed for tracked changes.
 No browser behavior changed; Playwright skipped. No configured general lint or
 typecheck. No merge/deployment/production mutation; commit/PR publication pending.
 
+## SHE-45-r3 acceptance follow-up (2026-11-13)
+
+Owned files on initially clean `mini/SHE-45-r3`: `ops/backend-load-test.mjs`,
+`test/backend-load-test.test.js`, `docs/backend-load-test.md`,
+`docs/reviews/SHE-45.md`, and this entry. Existing PRs #167 and #296 are merged;
+SHE-42 is Done. Reused their bounded workload and disposable launcher.
+Concrete gap: HTTP 200 replay previously passed without validating its content.
+Require requested identity, saved-outcome verification and current seeded horizon;
+test corrupt contracts and actual civic-handler/worker integration.
+
+Acceptance evidence: 30 pass, 1 opt-in HTTP skip, 0 fail, 427 assertions in
+14.28 seconds across the four focused files. Local full-server execution still
+fails before listening; independent Python bind returns EPERM. No HTTP p50/p95,
+error rates or server resource measurements are claimed. No model, UI, admission,
+vote or merge-policy change. Full HTTP measurement acceptance remains blocked
+on a host permitting loopback. [Commands and evidence](reviews/SHE-45.md).
+
 ## SHE-45-r2 — disposable local staging follow-up (2026-11-12)
 
 Owned slice: `ops/backend-load-test.mjs`, `ops/backend-load-local.mjs`,
@@ -8877,6 +8929,45 @@ by Bun listen EADDRINUSE on ports 39884 and 41967. Visual/GPU/mobile acceptance
 remains unverified. Current remote main has unrelated newer coordinator/scene
 fixes to preserve during integration; fetch/rebase/commit are unavailable because
 shared Git metadata is outside writable roots. No merge or deployment.
+
+## SHE-182 revision 3 — consolidate publication acceptance
+
+Next slice: remove the duplicate automatic Linear completion workflow and route
+its legacy CLI through the existing merged-evidence helper. Require a complete
+GitHub event with same-repository/merged-only gates, preserve revision mapping,
+and test the CLI with offline transport. SHE-180 remains queue/lease owner;
+no runtime changes. Acceptance: neither publication path can mark an issue Done,
+ineligible events make no requests, uncertain writes stop with sanitized errors.
+Host resource containment and sustained external runtime recovery remain pending.
+
+Revision3 delivered: retired duplicate automatic-close workflow; legacy CLI
+now links evidence through the checked same-repository merged-event helper.
+Added fail-closed missing repository validation and subprocess CLI regressions;
+updated Mini README and workflow test path triggers. See
+[checkpoint and remaining blockers](reviews/SHE-182.md). Actual checks: Node7/7,
+ops21/21; host299/301 (unchanged supervisor exact-label validation error and
+resource boundary failure); Mini54/55 (unchanged server startup failure).
+Node syntax and diff checks pass. No repository-wide typecheck/lint script;
+no browser change, Playwright skipped. Hard host containment, live retry/recovery
+and hosted secret/sync verification remain pending. Automatic merging stays
+held by literal false; no quorum, voting/auth/check change, external publication,
+merge, deployment or production operation. No commit or PR created this turn.
+
+## SHE-239 — tournament director specification (2026-11-13)
+
+Delivered analysis-only `docs/reviews/SHE-239.md` at baseline `5fdb9683`: seven
+missions, each with three competing hypothesis designs and a decisive experiment;
+six-dimension weighted rubric, common Codex results template, reproducibility and
+failure gates. Audited prior SHE-240 output, clean older SHE-239 worktree, live
+SHE-77/131/161/169 statuses and merged PR metadata. Both readiness labels already
+exist. Prior disk-full checkout failure is preserved; fresh worktree used.
+No product/model behavior changed. Focused existing foundation checks: 24 pass,
+1 opt-in browser skip, 0 fail, 654 assertions. Current City 1.1.0 receipt and exact
+commands are recorded in the report; historical 1.0.0 hashes are not substituted.
+Specification acceptance is complete; no candidate is implemented or declared a
+winner. Next: choose and preregister a bounded experiment, recheck ownership and
+prerequisites, then gather actual normal-entry/user/device evidence. Voting,
+auth/check and merge policy remain unchanged; no release action authorized.
 
 ### SHE-263 completion follow-up — 2026-11-13
 

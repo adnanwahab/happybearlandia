@@ -124,3 +124,18 @@ The external HTTPS staging path retains its existing validation.
 Fresh verification and the listener blocker are recorded in
 [the follow-up report](reviews/SHE-45-r2.md). The earlier unmeasured-staging status
 above is historical; no successful HTTP measurements are yet available here.
+
+## SHE-45-r3: replay contract evidence
+
+The harness now parses replay JSON as well as checking HTTP status. It requires
+the requested experiment/scenario/run identity, `verification.status: matched`,
+the current City version, seed 45, final month two and two replay steps. A 200
+with unrelated or incomplete data fails the replay sample and stops new work.
+Saved-outcome matching is the server's metric comparison; this does not establish
+independent equivalence for every intermediate checkpoint.
+
+On November 13 the bounded launcher was attempted again, but local socket
+permissions still prevented listening. No HTTP measurements were produced.
+See [current acceptance evidence](reviews/SHE-45.md) for exact commands, test
+results and unresolved metrics. Do not interpret injected-transport test timings
+as local staging latency or production capacity.
