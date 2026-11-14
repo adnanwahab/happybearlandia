@@ -9188,3 +9188,11 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-518 — City Whispers (2026-11-14)
+
+Delivered bounded local slice: `/world/city-speaks/` renders the existing monthly City synthetic fixture (seed 42, 24 households, 12 months) as selectable neighborhoods and at most six cited committed-event bubbles. Native WHY/Open event controls inspect exact records. Explicit wording whitelist, exact district/time joins and duplicate-ID rejection keep unsupported/ambiguous records silent. No model rules, clocks, IDs, RNG, causal records or configured merge policies changed.
+
+Acceptance evidence: 14 focused City Speaks/Whispers tests and 18 City engine/golden replay tests pass; syntax checks and `git diff --check` pass. Tests verify immutable navigation and seed-matched replay, citation identities, unknown/missing/conflicting records. Desktop/mobile Playwright coverage added but execution blocked at local server startup (EADDRINUSE on 39931 and 39878). Existing before captures cover home/World, not this route; route-specific before/after evidence remains outstanding. No browser acceptance claimed.
+
+Prerequisites/risks: allow an isolated local server to bind and run the focused browser suite before acceptance. This slice has a schematic neighborhood selector, no camera or active-run handoff; connecting a live camera/timeline requires a run-scoped district mapping and supported committed-event adapter. Existing paired-analysis `/city-speaks` remains independent. See `world/city-speaks/README.md` and `docs/reviews/SHE-518.md`. No automatic merge/deploy or external writes.
