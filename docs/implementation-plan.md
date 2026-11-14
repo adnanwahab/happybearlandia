@@ -1,5 +1,18 @@
 # HappyBearLandia implementation plan
 
+## SHE-388 — rainbow text title (2026-11-14)
+
+Implemented a CSS-only pastel hue rotation on the existing homepage title,
+preserving layout and copy. Reduced motion keeps a static gradient; forced
+colors restores system text. No simulation or governance behavior changed.
+Focused contrast/navigation checks passed: 7 tests, 169 assertions. Browser
+checks were added for animation, mobile/desktop overflow, reduced motion and
+forced colors, but execution is blocked before launch by server EADDRINUSE on
+39931. No root typecheck/lint script exists; JavaScript syntax check passed.
+Acceptance remains pending browser execution and visual inspection. No commit,
+PR, merge or deployment. Audit, preserved merge policy and rerun command:
+[SHE-388 review](reviews/SHE-388.md).
+
 ## SHE-212 — defining-feature umbrella audit (2026-11-13)
 
 Completed the approved analysis-only slice in [the consolidated acceptance and
