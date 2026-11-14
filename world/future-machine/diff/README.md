@@ -22,3 +22,16 @@ The seed-42 flagship now has direct regression coverage using the actual version
 building change, with exact ID ordering within a month. Missing paired building
 or project inventories are skipped. Demo, story first physical stop and browser
 evidence share this rule; it returns null when no mapped building is available.
+
+## First supported separation (SHE-507)
+
+`first-separation.js` exports `firstSeparation(diffs)` over validated
+`compareHistory` results. It scans Months 0–120 in clock order, joining the exact
+entity differences already computed by the comparison layer. Any entity field
+or presence difference, including policy/project records, or finite nonzero
+recorded metric delta counts. There is no invented significance threshold or
+causal claim. Ties use collection/ID and metric key order. A missing/unavailable
+earlier month returns `unavailable`, not an earliest claim or a zero result.
+Only complete zero histories return `none`. The selector never mutates inputs.
+This differs deliberately from `firstDivergence`, whose narrower physical
+building contract remains unchanged for the guided construction tour.

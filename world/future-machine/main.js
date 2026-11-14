@@ -1,3 +1,4 @@
+import {firstSeparation} from './diff/first-separation.js';
 import {consumeDemoClick,createDemoTiming,visibleCity} from './demo-performance.js';
 import {createFollowUp} from './follow-up.js';
 import {mountLedger} from './butterfly-ledger.js';
@@ -61,13 +62,13 @@ function measureVisibleDemo(generation,warm,activeStage){
 }
 const stats={startedAt:performance.now(),readyMs:null,runMs:null,evidenceTrailBuilds:0};
 app.replaceChildren();
-const ui=createUI(app,{onFollowFamily:id=>stage?.followHousehold(id),onRetry:async()=>{if(!lastAttempt)return;takeover();try{await run(...lastAttempt);}catch{/* run already presents strict receipt errors. */}},onRun:recipe=>{firstInput('policy');takeover();return run(recipe,null,0,{userRun:true});},onConfigure:configure,onReset:resetConfiguration,onCancel:cancel,onMonth:manualMonth,onPlay:manualPlay,onDemo:()=>{firstInput('playback');return playDemo();},onAutoCamera(value){firstInput('scenario');state.autoCamera=value;stage?.cancelCamera?.();update();},onDemoPause:()=>{firstInput('playback');director.togglePause();},onDemoManual:()=>{firstInput('playback');takeover();},onDemoSkip:()=>{firstInput('playback');director.skip();},onMetric:explainMetric,onMode(mode){firstInput('scenario');takeover();state.mode=mode;stage?.setMode(mode);update();},onGhosts(value){firstInput('scenario');takeover();state.ghosts=value;stage?.setGhosts(value);update();},onFirstConstruction:()=>jump(state.firstConstruction),onDirector:direct,onShare:share,onPreviewShare:previewShare,onCopyShare:copyShare,onBrowserShare:typeof navigator.share==='function'?browserShare:undefined,onExport:exportReport,onRemember:remember,onClearRecent:resetRecent,onCard:()=>downloadShareCard(history,state.month)});
+const ui=createUI(app,{onFollowFamily:id=>stage?.followHousehold(id),onRetry:async()=>{if(!lastAttempt)return;takeover();try{await run(...lastAttempt);}catch{/* run already presents strict receipt errors. */}},onRun:recipe=>{firstInput('policy');takeover();return run(recipe,null,0,{userRun:true});},onConfigure:configure,onReset:resetConfiguration,onCancel:cancel,onMonth:manualMonth,onPlay:manualPlay,onDemo:()=>{firstInput('playback');return playDemo();},onAutoCamera(value){firstInput('scenario');state.autoCamera=value;stage?.cancelCamera?.();update();},onDemoPause:()=>{firstInput('playback');director.togglePause();},onDemoManual:()=>{firstInput('playback');takeover();},onDemoSkip:()=>{firstInput('playback');director.skip();},onMetric:explainMetric,onMode(mode){firstInput('scenario');takeover();state.mode=mode;stage?.setMode(mode);update();},onGhosts(value){firstInput('scenario');takeover();state.ghosts=value;stage?.setGhosts(value);update();},onFirstDivergence:jumpFirstSeparation,onFirstConstruction:()=>jump(state.firstConstruction),onDirector:direct,onShare:share,onPreviewShare:previewShare,onCopyShare:copyShare,onBrowserShare:typeof navigator.share==='function'?browserShare:undefined,onExport:exportReport,onRemember:remember,onClearRecent:resetRecent,onCard:()=>downloadShareCard(history,state.month)});
 const receiptUI=mountReplayReceipt(app,{getContext:()=>({history,month:state.month}),onReopen:input=>{takeover();return run(null,null,0,{receiptInput:input});}});
 const followUp=createFollowUp(app,{onAccept:recipe=>{firstInput('policy');takeover();return run(recipe,null,0,{userRun:true});}});
 const quest=createDiscoveryQuest();
 const questView=mountDiscoveryQuest(app,{onVisit(){const stop=quest.state.stop;if(stop)manualMonth(stop.month);},onInspect(){const stop=quest.state.stop;if(stop){if(state.month!==stop.month)manualMonth(stop.month);select(stop.entity);}}});
 ui.stageElement.before(app.querySelector('.fm-quest'));
-const removeYearShortcuts=bindYearShortcuts(ui.stageElement,{getState:()=>state,getDiffs:()=>diffs,onMonth:manualMonth,onMissing(){state.message='No recorded divergence in this comparison.';update();}});
+const removeYearShortcuts=bindYearShortcuts(ui.stageElement,{getState:()=>state,getDiffs:()=>diffs,onDivergence:jumpFirstSeparation,onMonth:manualMonth,onMissing(){state.message='No recorded divergence in this comparison.';update();}});
 const narration=mountChangeNarration(app);
 const outcomeHost=document.createElement("div");ui.stageElement.after(outcomeHost);
 const diagnostic=mountDiagnosticReport(app);
@@ -120,7 +121,7 @@ function configure(recipe){try{state.recipe=validateRecipe(recipe);if(!history)s
 function showPreview(recipe){
   const initial=initialForRecipe(recipe);
   state.preview=true;state.recipe=structuredClone(recipe);state.month=0;state.diff=null;
-  state.experimentId=null;state.shareURL=null;state.sharePreview=null;state.firstConstruction=null;
+  state.experimentId=null;state.shareURL=null;state.sharePreview=null;state.firstConstruction=null;state.firstSeparation=null;
   state.frame={month:0,baseline:{month:0,state:initial},plan:{month:0,state:structuredClone(initial)}};
   state.provenance={seed:recipe.seed,modelVersion:recipe.modelVersion,datasetVersion:initial.provenance.datasetVersion,experimentId:null};
   stage.update(state.frame,null);
@@ -191,6 +192,21 @@ function select(entity){if(!history){
  }
  quest.inspect(state.month,entity);update();firstInput('scenario');takeover();stage.focus(entity);showStory(withContext(entityDescription(entity)));if(constructionReceipts(history,entity,state.month).length)recordMilestone('why_opened',{target:'recorded-event'});}
 function jump(stop){if(!history||!stop)return;firstInput('scenario');takeover();setMonth(stop.month);quest.visit(state.month);update();outcomeTimeline?.update(state.month,{announce:true});updateURL();const located=stop.entity?stage.focus(stop.entity):false;const detail=stop.entity?entityDescription(stop.entity):stop;showStory(withContext({...stop,...detail,title:stop.title??detail.title,entity:stop.entity,evidence:stop.evidence?.length?stop.evidence:detail.evidence,summary:`${detail.summary}${stop.entity&&!located?' No unambiguous scene mapping for this entity; camera unchanged.':''}`,limitations:story.limitations}));if((stop.evidence?.length??detail.evidence?.length)>0)recordMilestone('why_opened',{target:'recorded-event'});}
+function jumpFirstSeparation(){
+ if(!history||!['ready','error'].includes(state.status))return;
+ const stop=state.firstSeparation;
+ if(stop?.status!=='found'){
+  takeover();state.message=stop?.status==='none'?'No divergence in supported entity records or measured outcomes across Months 0–120. Synthetic matched comparison.':'First divergence unavailable: earlier paired evidence is incomplete.';update();return;
+ }
+ // One coordinator clock and one shared camera; never run or edit the model.
+ manualMonth(stop.month);state.mode='split';stage.setMode('split');
+ const located=stop.entity&&stage.focus(stop.entity);
+ if(!located)stage.resetCamera();
+ if(stop.entity)showStory(withContext(entityDescription(stop.entity)));
+ else if(stop.metric)explainMetric(stop.metric,false);
+ state.message=`First supported divergence · WITHOUT PLAN Month ${stop.month} · WITH PLAN Month ${stop.month}. ${stop.entity?`${stop.entity.collection} ${stop.entity.id}`:stop.metric}. ${located?'Shared camera focused.':'Shared overview; no supported scene location for this difference.'} Includes policy and nonphysical records; synthetic model result, not causal proof.`;
+ updateURL();update();
+}
 function direct(){if(!story)return;firstInput('scenario');takeover();const physical=(story.stops||[]).filter(stop=>stop.entity?.collection==='buildings');const stops=physical.length?physical:story.stops||[];const next=stops.find(stop=>stop.month>state.month)||stops[0];if(next)jump(next);else showStory(story);}
 async function run(recipe=state.recipe,savedId=null,selectedMonth=0,{demoRun=false,userRun=false,receiptInput=null,challenge=null,challengeHash=null,entry=null,landing=null}={}){
   diagnostic.clear();state.sharePreview=null;
@@ -222,6 +238,7 @@ async function run(recipe=state.recipe,savedId=null,selectedMonth=0,{demoRun=fal
     // A physical difference alone does not establish a construction event.
     const first=firstDivergence(history,diffs);
     state.firstConstruction=first&&constructionReceipts(history,first.entity,first.month).some(receipt=>receipt.month===first.month)?first:null;
+    state.firstSeparation=firstSeparation(diffs);
     story=buildStory(history,diffs);story.limitations.push(...(history.baseline[0].state.provenance.assumptions||[]));stats.runMs=performance.now()-start;
     state={...state,status:'ready',preview:false,recipe:history.recipe,provenance:{seed:history.seed,modelVersion:history.modelVersion,experimentId:history.experimentId},experimentId:history.experimentId,message:`${fallback?'Saved record unavailable; reran the versioned recipe. ':''}120 months complete · detailed states recomputed from the saved monthly City manifest. Synthetic, uncalibrated model.`,error:null};
     state.message+= ' Inventory ready; graphics loading in the background.';

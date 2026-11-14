@@ -210,3 +210,11 @@ measurement; terminal inventory fallback settles without a graphics timing resul
 or continued paint polling. Storage acquisition is inside the optional-storage
 failure guard. The shared visibility/readiness rules do not treat initial preview
 inventory as a completed paired comparison.
+
+SHE-507 adds `onFirstDivergence()` and `firstSeparation` to the UI adapter.
+`diff/first-separation.js:firstSeparation(diffs)` returns `{status:'found',month,
+entity,metric}`, `{status:'none'}` or `{status:'unavailable',month}`. It consumes
+validated paired diffs; a complete prefix is required before asserting earliest
+separation. The construction-only `firstDivergence` contract is unchanged.
+The native jump and D shortcut select the same coordinator month and shared
+camera, using split view and a labeled overview when entity focus is unsupported.

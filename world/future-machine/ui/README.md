@@ -352,3 +352,17 @@ move. Names/avatars are synthetic; outcomes are uncalibrated model observations.
 arm's household → occupied unit → building on every frame and highlights both
 recorded buildings, including different buildings after a move. Unmapped homes
 remain unhighlighted. Camera and simulation playback are unchanged.
+
+## First separation action (SHE-507)
+
+`onFirstDivergence()` and `firstSeparation:{status,month?,entity?,metric?}`
+are additive coordinator contracts. The native **Jump to first divergence**
+button and focused-canvas D shortcut invoke the same action. It stops playback
+and pending camera tours, selects one exact shared month, switches to split
+view and focuses the supported entity with the existing shared camera. For an
+unlocated nonphysical/metric result it restores the shared overview and says
+why. Both arm headings show their exact illustrative calendar and month.
+No animation, new visual asset, separate playhead or model run is added.
+Complete zero and incomplete evidence have different visible states; pressing
+the button in either state pauses without moving the selected month. Existing
+Show Me What Changed story cycling remains available.

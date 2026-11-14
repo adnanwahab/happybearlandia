@@ -1,3 +1,4 @@
+import {firstSeparation} from '../world/future-machine/diff/first-separation.js';
 import {test,expect} from 'bun:test';
 import {readFile} from 'node:fs/promises';
 import {createContext,SourceTextModule,SyntheticModule} from 'node:vm';
@@ -50,14 +51,16 @@ async function boot(options={}){
   './data/index.js':{initialForRecipe,validateRecipe:sharing.validateRecipe,getFrame:(h,month)=>({month,baseline:h.baseline[month],plan:h.plan[month]}),
    createExperiment:async(recipe,settings)=>{requests.push(['create',structuredClone(recipe)]);return options.create?options.create(recipe,settings):historyFor(recipe,`city_${recipe.seed}`);},
    loadExperiment:async(id,settings)=>{requests.push(['load',id]);return options.load?options.load(id,settings):historyFor(DEFAULT_RECIPE,id);}},
-  './diff/index.js':{compareHistory:()=>Array.from({length:121},(_,month)=>diffFor(month)),firstDivergence:()=>first},
+  './diff/first-separation.js':{firstSeparation},
+  './diff/index.js':{compareHistory:()=>options.diffs??Array.from({length:121},(_,month)=>diffFor(month)),firstDivergence:()=>first},
   './scene/index.js':{createStage(_host,{history,onSelect,onCameraInteraction}){
    const gate=history&&options.graphicsGate?options.graphicsGate:null;
    let backend=gate?'pending':options.renderer??'canvas2d';
    let camera=structuredClone(options.camera??{x:0,z:0,zoom:1});
    const stage={onSelect,onCameraInteraction,history,disposed:false,shots:[],frames:[],restored:[],transition:false,cancellations:0,
-    setMode:noop,setGhosts:noop,resetCamera:noop,update(frame,diff){this.frames.push({frame:structuredClone(frame),diff:structuredClone(diff)});},
-    focus(entity,settings={}){this.shots.push({entity:structuredClone(entity),...settings});this.transition=Boolean(settings.animate);return true;},
+    setMode(mode){this.mode=mode;},setGhosts:noop,resetCamera(){this.resets=(this.resets??0)+1;},update(frame,diff){this.frames.push({frame:structuredClone(frame),diff:structuredClone(diff)});},
+    focus(entity,settings={}){this.shots.push({entity:structuredClone(entity),...settings});this.transition=Boolean(settings.animate);return options.located!==false;},
+    divergenceShot(stop){return this.focus(stop.entity,{animate:true,scale:stop.scale});},
     cancelCamera(){this.transition=false;this.cancellations++;},getCamera:()=>structuredClone(camera),
     setCamera(value){if(options.compatibleCamera===false)return false;camera=structuredClone(value);this.restored.push(camera);return true;},
     getStats:()=>({backend}),whenReady:()=>gate?gate.promise.then(()=>{backend=options.renderer??'canvas2d';}):Promise.resolve(),dispose(){this.disposed=true;}};
@@ -436,4 +439,37 @@ test('cancel retains initial inventory and ignores a late result without restori
   expect(app.state.frame).toEqual(initial);expect(app.window.futureMachine.history).toBeNull();
   expect(app.state.playing).toBe(false);expect(app.window.futureMachine.stats.demoTiming).toBeNull();
  }finally{app.dispose();}
+});
+
+
+test('first divergence locks split view, exact clock and shared camera during rapid navigation',async()=>{
+ const f=await boot();await f.callbacks.onRun(DEFAULT_RECIPE);await f.drain();
+ const stage=f.stages.at(-1),history=JSON.stringify(f.window.futureMachine.history);
+ for(const month of [120,0,60,16]){
+  f.callbacks.onMonth(month);f.callbacks.onMode('plan');f.callbacks.onPlay(true);
+  f.callbacks.onFirstDivergence();await f.drain();
+  expect(f.state.month).toBe(16);expect(f.state.playing).toBe(false);
+  expect(f.state.mode).toBe('split');expect(stage.mode).toBe('split');
+  expect(stage.frames.at(-1).frame.month).toBe(16);
+  expect(stage.shots.at(-1).entity).toEqual({collection:'buildings',id:first.entity.id});
+  expect(stage.transition).toBe(false);
+ }
+ expect(JSON.stringify(f.window.futureMachine.history)).toBe(history);
+ expect(f.requests.filter(r=>r[0]==='create')).toHaveLength(1);
+ f.dispose();expect(stage.disposed).toBe(true);expect(f.pendingAnimationFrames).toBe(0);
+});
+
+test('zero, missing prefix and unlocated fallback do not claim physical or invented divergence',async()=>{
+ for(const missing of [false,true]){
+  const diffs=Array.from({length:121},(_,month)=>({...diffFor(0),month}));
+  if(missing)diffs[2].available=false;
+  const f=await boot({diffs});await f.callbacks.onRun(DEFAULT_RECIPE);f.callbacks.onMonth(70);
+  f.callbacks.onFirstDivergence();await f.drain();
+  expect(f.state.month).toBe(70);expect(f.state.playing).toBe(false);
+  expect(f.state.message).toContain(missing?'unavailable':'No divergence');f.dispose();
+ }
+ const f=await boot({located:false,renderer:'inventory-fallback'});
+ await f.callbacks.onRun(DEFAULT_RECIPE);f.callbacks.onFirstDivergence();await f.drain();
+ expect(f.state.month).toBe(16);expect(f.stages.at(-1).resets).toBe(1);
+ expect(f.state.message).toContain('no supported scene location');f.dispose();
 });
