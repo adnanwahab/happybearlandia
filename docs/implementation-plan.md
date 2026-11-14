@@ -9188,3 +9188,28 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-512 — bounded storm atmosphere
+
+Plan: add a presentation-only, timeline-driven wind/cloud overlay to the existing
+storm scene. Prerequisite audit: heightfield-water.v1 contains no wind or cloud
+fields; do not derive either from rainfall, depth or seed. Open GitHub PR search
+for storm returned no matches on 2026-11-14. One local coding worker.
+Acceptance: explicit unavailable wind units/direction, decorative labeling,
+empty-state clearing, keyboard toggle, reduced motion, 2D fallback, rapid timeline
+and view switching, route cleanup, focused model regressions and browser evidence.
+Risk: decorative direction could be mistaken for a modeled vector; label it beside
+the scene and keep authored movement independent of model magnitudes.
+
+Delivered locally: atmosphere adapter and five CSS marks mounted by scene.js,
+selected-step plumbing, keyboard checkbox, reduced-motion CSS, empty-state clearing
+and pagehide cleanup that preserves bfcache restoration. Model code unchanged.
+Verification: 21 tests / 750 assertions pass across the atmosphere and six existing
+storm suites. Browser-target page bundle passes. No repository-wide lint/typecheck
+script exists; changed modules are JavaScript. Browser suite authored but blocked
+before launch: Bun reports EADDRINUSE on ports 54389 and 3198 in this environment.
+Thus mobile/keyboard/rapid navigation and before/after storm screenshots remain
+unverified. Existing supplied screenshots cover other routes. No acceptance or
+performance certification claimed. Next: run the dedicated browser config in a
+bind-capable environment and inspect its route-specific images. No merge/deploy
+or governance changes. Full audit: docs/reviews/SHE-512.md.

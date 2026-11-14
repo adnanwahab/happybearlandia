@@ -33,3 +33,16 @@
 .storm-scene :focus-visible { outline: 2px solid #328db2; outline-offset: 2px; }
 .storm-scene__selection { font-weight: 650; }
 .storm-scene__reading:empty { display: none; }
+/* Five CSS marks, no textures, GPU resources, timers, or independent render loop.
+   Authored displacement follows selected steps, never rainfall or water depth. */
+.storm-atmosphere { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.storm-atmosphere i { position: absolute; display: block; transition: transform 130ms linear; transform: translateX(calc(var(--atmosphere-phase, 0) * 5rem)); }
+.storm-atmosphere__cloud { width: 28%; height: 12%; border-radius: 50%; background: #d9e7ec18; top: 10%; left: 8%; }
+.storm-atmosphere__cloud:nth-child(2) { top: 32%; left: 52%; width: 34%; }
+.storm-atmosphere__wind { width: 8%; height: 5px; border-top: 1px solid #edf8fa66; border-radius: 50%; top: 23%; left: 16%; }
+.storm-atmosphere__wind:nth-child(4) { top: 50%; left: 70%; }
+.storm-atmosphere__wind:nth-child(5) { top: 76%; left: 36%; }
+.storm-atmosphere__reading { font-size: .85rem; }
+@media (prefers-reduced-motion: reduce) {
+  .storm-atmosphere i { transition: none; transform: none; }
+}
