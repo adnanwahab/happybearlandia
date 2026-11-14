@@ -241,6 +241,8 @@ export function createUI(container, callbacks = {}) {
   const recentStatus=doc.createElement('p');recentStatus.setAttribute('role','status');
   recentPanel.append(remember,clear,recentHelp,recentStatus);demoPanel.after(recentPanel);
   const runProvenance=doc.createElement('p');runProvenance.className='fm-run-provenance';runProvenance.setAttribute('aria-label','Simulation provenance');shell.querySelector('.fm-comparison').before(runProvenance);
+  const firstJump=doc.createElement('button');firstJump.type='button';firstJump.textContent='Jump to first divergence';firstJump.onclick=()=>callbacks.onFirstDivergence?.();actions.append(firstJump);
+  const firstStatus=doc.createElement('p');firstStatus.className='fm-detail';firstStatus.setAttribute('aria-label','First divergence evidence');actions.after(firstStatus);
   const difference=doc.createElement('button');difference.type='button';difference.textContent='Difference-only';difference.onclick=()=>callbacks.onMode?.('difference');actions.append(difference);
   const split=doc.createElement('button');split.type='button';split.textContent='Side by side';split.onclick=()=>callbacks.onMode?.('split');actions.append(split);
   const ghostsLabel=doc.createElement('label');const ghosts=doc.createElement('input');ghosts.type='checkbox';ghosts.checked=true;ghosts.onchange=()=>callbacks.onGhosts?.(ghosts.checked);ghostsLabel.append(ghosts,doc.createTextNode(' Ghost differences'));actions.append(ghostsLabel);
@@ -320,6 +322,9 @@ export function createUI(container, callbacks = {}) {
       policyId:policyId(recipe.intervention),spatialLabel:'Synthetic schematic layout · Monthly City model · January 2026–January 2036 · Uncalibrated assumptions. No real-world geometry inferred. Private parcel capacity 0; utility capacity 200 per district/network; annual growth 0.',
       blink:current.mode==='plan',evidence:current.diff?{month:current.month,experimentId:current.experimentId,changedCount:current.diff.changedCount,physicalCount:current.diff.physicalCount,source:'Monthly City comparison. Select an entity for recorded evidence.'}:null,
     });
+    firstJump.disabled=!ready || !callbacks.onFirstDivergence;
+    const separation=current.firstSeparation;
+    firstStatus.textContent=!ready?'Run matched futures to find the first divergence.':separation?.status==='found'?`First supported divergence: ${calendarLabel(separation.month)} · Month ${separation.month}. Includes policy and nonphysical records; synthetic model result.`:separation?.status==='none'?'No divergence in supported entity records or measured outcomes across Months 0–120.':'First divergence unavailable: earlier paired evidence is incomplete.';
     const cue=firstConstructionLabel(current);
     firstConstruction.hidden=cue===null;constructionText.textContent=cue??'';
     constructionWhy.disabled=!callbacks.onFirstConstruction;
@@ -327,8 +332,8 @@ export function createUI(container, callbacks = {}) {
     // Only describe a matched start when a complete comparison supports it.
     const identicalStart=current.month===0 && current.diff?.available===true && current.diff.changedCount===0 && Object.values(current.diff.metrics || {}).length>0 && Object.values(current.diff.metrics).every(metric=>Number.isFinite(metric.baseline) && Number.isFinite(metric.plan) && metric.baseline===metric.plan && metric.delta===0);
     const legends=shell.querySelector('.fm-legends');
-    legends.children[0].querySelector('.fm-arm-heading').textContent=`WITHOUT PLAN${identicalStart?' · Identical starting state':''}`;
-    legends.children[1].querySelector('.fm-arm-heading').textContent=`WITH PLAN${identicalStart?' · Identical starting state':''}`;
+    legends.children[0].querySelector('.fm-arm-heading').textContent=`WITHOUT PLAN · ${calendarLabel(current.month)} · Month ${current.month}${identicalStart?' · Identical starting state':''}`;
+    legends.children[1].querySelector('.fm-arm-heading').textContent=`WITH PLAN · ${calendarLabel(current.month)} · Month ${current.month}${identicalStart?' · Identical starting state':''}`;
     difference.disabled=split.disabled=ghosts.disabled=!ready;difference.setAttribute('aria-pressed',String(current.mode==='difference'));split.setAttribute('aria-pressed',String(current.mode==='split'));ghosts.checked=current.ghosts;
     browserShare.disabled=!ready || !!current.shareBusy;
     shell.querySelector('footer button').disabled=!ready || !!current.shareBusy || !callbacks.onShare;

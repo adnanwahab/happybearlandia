@@ -9188,3 +9188,22 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-507 — first supported separation (2026-11-14)
+
+Bounded slice: reuse validated paired monthly diffs, one coordinator clock and the
+shared scene camera. Add a native jump button and route D through the same action.
+Keep story-stop cycling and the first physical-construction selector unchanged.
+Acceptance: earliest complete-prefix entity/finite metric difference; exact dates
+on both arms; split view, paused playback and shared focus or truthful overview;
+complete zero results distinguished from missing earlier evidence. No model, seed,
+identity, rule or provenance changes. Main risks: stale camera work during rapid
+navigation, unavailable evidence mistaken for zero, and fallback resource cleanup.
+Verification and final status: docs/reviews/SHE-507.md.
+
+SHE-507 actual status: local implementation and focused verification complete
+(74 pass / 1 browser-gated skip / 534 assertions); no lint/typecheck command is
+defined. Playwright desktop/mobile discovery passes, but server binding fails
+with EADDRINUSE on two ports before Chromium launch. Browser acceptance and
+feature-specific before/after evidence remain pending. See the review above
+for exact commands, source/PR audit, preserved merge policy and next steps.

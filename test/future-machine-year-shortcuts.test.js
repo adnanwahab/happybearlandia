@@ -24,3 +24,13 @@ test('focus, editing, modifiers, composition, camera keys, loading and disposal 
  f.state.status='loading';expect(f.press('PageUp')).toBe(false);f.state.status='ready';
  expect(f.state.month).toBe(0);f.dispose();expect(f.press('PageUp')).toBe(false);
 });
+
+
+test('D uses the same first-divergence coordinator action as the native button',()=>{
+ const host=new EventTarget(),doc={},canvas={tagName:'CANVAS',ownerDocument:doc};doc.activeElement=canvas;
+ let calls=0;
+ const dispose=bindYearShortcuts(host,{getState:()=>({status:'ready',month:120}),onDivergence:()=>calls++});
+ const event=new Event('keydown',{cancelable:true});Object.defineProperty(event,'target',{value:canvas});event.key='d';
+ host.dispatchEvent(event);expect(calls).toBe(1);expect(event.defaultPrevented).toBe(true);
+ dispose();host.dispatchEvent(event);expect(calls).toBe(1);
+});

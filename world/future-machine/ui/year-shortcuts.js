@@ -1,5 +1,5 @@
 /** Canvas-only navigation. The coordinator remains the selected-month authority. */
-export function bindYearShortcuts(host, {getState, getDiffs, onMonth, onMissing}) {
+export function bindYearShortcuts(host, {getState, getDiffs, onMonth, onMissing, onDivergence}) {
   function keydown(event) {
     const target=event.target;
     if(target?.tagName!=='CANVAS' || target.ownerDocument.activeElement!==target || event.defaultPrevented || event.isComposing || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)return;
@@ -8,6 +8,7 @@ export function bindYearShortcuts(host, {getState, getDiffs, onMonth, onMissing}
     let month;
     if(event.key==='PageUp')month=Math.min(120,state.month+12);
     else if(event.key==='PageDown')month=Math.max(0,state.month-12);
+    else if(event.key.toLowerCase()==='d' && onDivergence){event.preventDefault();onDivergence();return;}
     else if(event.key.toLowerCase()==='d')month=getDiffs().find(diff=>diff.available!==false && diff.changedCount>0)?.month;
     else return;
     event.preventDefault();
