@@ -32,3 +32,8 @@ Author and reviewer must use this inventory for changes to rules, coefficients, 
 The repository PR template and AGENTS.md make this a review requirement. They cannot prove that a human completed a review or replace repository branch-protection settings. No hosting/production policy is changed by these documents.
 
 Reproduction uses the pinned implementation and the documented inputs; these compact ODD descriptions link the exact source and detailed module contracts for full parameter catalogs. Do not interpret an unversioned later checkout as the original rules.
+
+SHE-558: Tonight pantry cooking remains under World Population / House, using the
+existing recipe economy and relationship authorities. The linked Population
+submodel notes and evening contract describe its authored request selection;
+there is no additional independent model inventory row.

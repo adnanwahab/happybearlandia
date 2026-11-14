@@ -113,3 +113,12 @@ nor sampled points establish real traffic volume. Ongoing trips are distinct
 from a retained completed-trip ledger. Seed, model version, clock and run
 identity remain on the enclosing snapshot/runtime. Verify with
 `test/population-trip-display.test.js` and the existing model/replay suites.
+
+The optional Tonight pantry approach orchestrates the existing recipe economy,
+shared dinner and conversation submodels; see [evening contract](../../world/house/evening-contract.md).
+It always starts with preparation, enumerates recipe catalog order, and requests the
+first feasible recipe at max(30, recipe minutes). This is an authored gameplay
+selection rule, not an observed food preference. Finite ingredients reserve at
+admission, food requires completed attendance, and kitchen help remains a separate
+real cleaning task. Inspector stock counts are saved synthetic gameplay quantities.
+No new agent, RNG, clock, need coefficient or independent state authority is added.

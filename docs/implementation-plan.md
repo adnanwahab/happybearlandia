@@ -9188,3 +9188,28 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-558 — pantry cooking mini-scene
+
+Bounded slice: extend the existing Tonight controller with an explicit “Cook together
+from the pantry” approach; retain legacy dinner behavior. Reuse cookRecipe,
+help-clean, sharedDinner, appreciation and earned evening receipts. Prerequisites:
+initialized economy, actual recipe ingredients, eligible present residents, stove,
+table seats and attended task time. No second cook slot or private simulation state.
+Acceptance: empty/insufficient stock rejects without a charge, ingredients reserve
+once, incomplete cooking produces no food, shared meal/social effects run through
+Population, mid-action serialized continuation matches, and keyboard/reduced-motion
+UI shows requirements and rejection. Risk: scene readiness is advisory and must be
+revalidated on admission; pantry can change between inspection and request.
+Status: implementing and verifying locally; no merge/deploy authorization.
+
+Delivered locally: pantry approach and read-only ingredient/task requirements in
+Tonight, using existing cooking/help/dinner/conversation authority. Controller,
+economy and House regression suite passed 43 tests; final evening suite passed
+17 tests after an additional hunger assertion. Mid-cook deterministic serialized
+continuation passes. Syntax and diff checks pass. Existing worker checkpoint test
+timed out in broader verification. Browser test saved with server-free config;
+Chromium launch is blocked by sandbox MachPort permissions and server binding is
+also blocked. Before/after browser acceptance remains open; no after evidence is
+claimed. See [review and reproduction notes](reviews/SHE-558.md). No commit/PR,
+merge, deployment or merge-policy change performed by this implementation.
