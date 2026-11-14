@@ -1,0 +1,94 @@
+bun test v1.4.2 (744846f84)
+
+test/future-machine-effects.test.js:
+(pass) only explicit recorded changes animate; selection can glow without animation [0.55ms]
+(pass) same-identity recorded height transition is smooth, ground anchored and finite [0.08ms]
+(pass) reduced motion and ghosts never animate; no height tween without changed evidence [0.10ms]
+(pass) material arrays are isolated and disposed once; original materials remain owned by stage [0.09ms]
+(pass) flat and structured diffs preserve exact collection keys and partial valid evidence [0.12ms]
+Effects verified model stop: {"month":16,"entity":{"collection":"buildings","id":"building-project-policy-1-0"}}
+(pass) fixed seed actual monthly model yields +24 homes and first mapped physical stop [625.44ms]
+(pass) first divergence orders simultaneous buildings by exact ID and agrees with story [2.80ms]
+(pass) reapplying a retained row does not restart its pulse; removing releases its effect [0.16ms]
+(pass) retained selection and diff flags preserve the recorded ground position during a tween [0.18ms]
+
+test/future-machine-ui.test.js:
+(pass) overflowing paired measurements remain unavailable rather than displaying Infinity [0.09ms]
+(pass) shared calendar includes exact Month 0 and Month 120 [2.22ms]
+(pass) timeline clamps invalid and out of range input
+(pass) measurements preserve zero and units, never coerce missing data to zero [0.08ms]
+(pass) metrics use matched A/B values, explicit unavailable, and no invented delta [0.09ms]
+(pass) metric direction does not invent welfare, and tiny nonzero values survive formatting [0.05ms]
+(pass) household rent and burden require an exact reciprocal occupied-unit identity [0.13ms]
+(pass) negative cost and overflow deltas retain truthful direction and availability [0.01ms]
+(skip) Chromium controls, loading, failure, keyboard, mobile and cleanup
+(pass) recorded metric adapter preserves missing status, reason, zero and signed cost [0.09ms]
+(pass) first construction cue requires its exact available positive month and preserves missing metrics [0.09ms]
+(pass) provenance categories require explicit metadata and preserve unknown sources [0.20ms]
+
+test/future-machine-scene.test.js:
+(pass) Future Machine City scene projection > module imports without DOM or Three initialization
+(pass) Future Machine City scene projection > zero difference and immutable source records [0.05ms]
+(pass) Future Machine City scene projection > additions and removals have stable slots across arms and scrubs [0.03ms]
+(pass) Future Machine City scene projection > source geometry requires explicit identity and unique source mapping [0.12ms]
+(pass) Future Machine City scene projection > unverified geometry and inferred parcels never become locations [0.02ms]
+(pass) Future Machine City scene projection > unlocated inventory stays outside sourced footprint extent [0.04ms]
+(pass) Future Machine City scene projection > only housing projects with recorded bounded progress render [0.05ms]
+(pass) Future Machine City scene projection > missing collections, duplicate IDs and mismatched months fail explicitly [0.06ms]
+(pass) Future Machine City scene projection > unsupported holes are schematic rather than misrendered sourced footprints [0.01ms]
+(pass) localized building evidence distinguishes added, changed and removed inventory [0.05ms]
+(pass) stage inventory selects exact IDs and missing snapshots clear selection and labels [2.12ms]
+
+test/future-machine-paired.test.js:
+{"recipe":{"schemaVersion":"future-machine.v1","modelVersion":"city-systems.1.1.0","seed":42,"households":30,"months":120,"intervention":{"type":"housing","districtId":"d1","amount":24,"cost":1000000,"delay":0,"compliance":1}},"initialHash":"7767de6b19f3b1c62f218c3a4ee26739157382db2c7ff962dbe141fc160821ae","digests":{"initial":"7767de6b19f3b1c62f218c3a4ee26739157382db2c7ff962dbe141fc160821ae","baseline":"9dbadec39af6ce3c14f742ba44dc9f52dae39c99402a20a59cabd6e3769fff29","plan":"eb2744e2b7fda6f9677300bf9ded8a058d5d448cd2ecdf091ba850c5789eaa68","diff":"1431a5c2df93ee0593bfee9293a735854b6505e7d438918f32caa30224416aee"},"stateDigest":"22bfa1c1126c976ef4ee73ade8234bb4264a47248ea4352d9cb2ab9a52cb84ef","diffDigest":"1431a5c2df93ee0593bfee9293a735854b6505e7d438918f32caa30224416aee","firstPhysical":{"month":16,"entities":[{"collection":"buildings","id":"building-project-policy-1-0","kind":"added","before":null,"after":{"id":"building-project-policy-1-0","districtId":"d1","parcelId":null,"floors":3},"changedFields":[],"physical":true,"buildingIds":["building-project-policy-1-0"]}],"housingUnits":{"baseline":36,"plan":60,"delta":24,"unit":"homes","status":"available","missing":[]},"capitalSpending":{"baseline":0,"plan":1000000,"delta":1000000,"unit":"USD cumulative","status":"available","missing":[]}},"completion":{"schemaVersion":"SystemEvent.v1","id":"16-0","simulationTime":16,"system":"construction","eventType":"PROJECT_COMPLETE","geographyId":"d1","severity":1,"payload":{"projectId":"project-policy-1-0","type":"housing","units":24,"displacedUnits":[],"displacedBusinesses":[],"rule":{"id":"city.construction","version":"city-systems.1.1.0","evidenceType":"synthetic-assumption","source":"world/city/README.md"}},"modelId":"construction","modelVersion":"city-systems.1.1.0"}}
+(pass) seed-42 paired state and diff digests reproduce with real physical evidence [3155.44ms]
+(pass) zero intervention produces identical full histories and zero deltas at every month [873.72ms]
+
+test/future-machine-story.test.js:
+(pass) first divergence, structural significance and stable ordering [0.17ms]
+(pass) director never invents a location or accepts ambiguous/unproven geometry [0.07ms]
+(pass) receipts retain arm-scoped IDs, dependencies and payload without claiming cause [0.15ms]
+(pass) household observations match only exact monthly City IDs and preserve missingness [0.10ms]
+(pass) frozen story interface handles first, large, zero, missing months and selection [0.18ms]
+(pass) real City event history produces deterministic grounded stories [1.25ms]
+(pass) seed-matched 120-month City histories keep Month 0 and 120 and immutable input [201.81ms]
+(pass) renderer creates accessible jumps, literal evidence and disposes handlers [1.21ms]
+(pass) director deduplicates repeated policy additions and includes completed physical buildings [0.29ms]
+
+test/two-futures-demo-controller.test.js:
+(pass) guided clock pauses, resumes and highlights an actual supplied change once [0.25ms]
+(pass) recorded divergence holds six seconds and replay preserves the same month sequence [0.07ms]
+(pass) skip completes once, replay resets supplied evidence and disposal prevents restart [0.07ms]
+(pass) hidden time preserves the first divergence hold and manual pause [0.06ms]
+(pass) state emissions follow caption, status and whole seconds instead of 20 Hz ticks [0.04ms]
+(pass) preparation retains pause intent, restart resets it, and takeover cancels ticks [0.07ms]
+(pass) cross-scale shot uses the exact held record once per scale, replays and stops [0.05ms]
+(pass) zero change and delayed ticks never shoot a different month [0.03ms]
+
+test/future-machine-diff.test.js:
+(pass) Future Machine stable-ID diff > zero differences ignore array and object insertion order and preserve inputs [0.83ms]
+(pass) Future Machine stable-ID diff > reports stable-ID additions and removals in both directions without array matches [0.45ms]
+(pass) Future Machine stable-ID diff > physical records distinguish floors from policies, zoning, rent and savings [0.31ms]
+(pass) Future Machine stable-ID diff > missing snapshots, collections and measurements are unavailable, not zero or removals [0.29ms]
+(pass) Future Machine stable-ID diff > missing physical attributes do not become building changes and field deletion is explicit [0.26ms]
+(pass) Future Machine stable-ID diff > snapshot metrics own cumulative spending and carry contract units [0.25ms]
+(pass) Future Machine stable-ID diff > household presence is exact City inventory, with unknown housing left unlocated [0.25ms]
+(pass) Future Machine stable-ID diff > rejects duplicate/missing IDs and mismatched clocks, seeds and model versions [0.64ms]
+(pass) Future Machine stable-ID diff > real matched 120-step engine histories preserve Month 0/120 and deterministic zero/nonzero results [658.76ms]
+(pass) Future Machine stable-ID diff > sparse histories retain 121 explicit months and reject invalid initial or run metadata [1.92ms]
+(pass) flagship seed 42 first physical difference is Month 16 with 24 homes, not 24 buildings [1246.89ms]
+
+test/future-machine-spotlight.test.js:
+SHE-478 selector 100 warm runs ms {"p50":0.48695799999950395,"p95":0.5393330000006245,"max":0.7904589999998279}
+(pass) actual seed-matched City events own every stop, deterministic, immutable and deduplicated [956.67ms]
+(pass) unchanged, missing and unsupported comparisons are distinct; absent or wrong-time receipts never produce stops [1175.70ms]
+(pass) component disables unavailable controls, bounds visits, clears old run and preserves literal IDs [11.95ms]
+
+1 tests skipped:
+(skip) Chromium controls, loading, failure, keyboard, mobile and cleanup
+
+ 64 pass
+ 1 skip
+ 0 fail
+ 888 expect() calls
+Ran 65 tests across 8 files. [8.97s]

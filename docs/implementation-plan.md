@@ -9188,3 +9188,26 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-478 — event-backed First Difference spotlight (2026-11-14)
+
+Bounded slice: curate existing housing financing, construction start and completion
+records into chronological previous/next stops. Reuse month selection, inspector,
+exact project/building mapping and stage focus. No model or provenance changes.
+Prerequisites audited: paired history, exact City project payloads, reduced-motion
+camera handling and inventory fallback already exist. Acceptance: exact event,
+entity, arm and month; no duplicate receipts; explicit empty/missing/unsupported
+states; keyboard/touch navigation; measured selector cost and browser evidence.
+Adjacent open PRs #334 (chapters), #333 (footprints) and #324 (motion tokens)
+are not duplicated. One local coding worker in existing isolated mini/SHE-478.
+Verification and final status follow in docs/reviews/SHE-478.md.
+
+SHE-478 actual status: local integrated construction-milestone tour implemented;
+64 focused tests / 888 assertions pass, one existing browser-gated skip. Syntax
+and diff checks pass. Selector benchmark is recorded in linked focused log.
+Browser suite added, but server bind failed on two ports and direct Chromium
+launch hit macOS bootstrap permission denial. Actual route before/after evidence,
+touch, animated focus and browser timing remain pending a capable host. Scope is
+verified housing event/project/building joins; other relationships explicitly
+unsupported. No simulation/governance or remote changes. Details and rerun:
+[review](reviews/SHE-478.md). No commit/PR reference generated.
