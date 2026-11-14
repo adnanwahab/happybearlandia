@@ -106,8 +106,18 @@ test.skipIf(!process.env.HBL_FM_BROWSER)('Chromium controls, loading, failure, k
     expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
     await explanation.locator('summary').focus();await page.keyboard.press('Space');
     expect(await explanation.getAttribute('open')).toBeNull();
-    await page.getByRole('slider').focus();await page.keyboard.press('End');
+    await page.getByRole('slider').focus();await page.keyboard.press('End');await page.waitForTimeout(180);
     expect(await page.evaluate(()=>calls.some(call=>call[0]==='month'&&call[1]===120))).toBe(true);
+    await page.evaluate(()=>{
+      ui.update({familyHistory:{seed:42,modelVersion:'fixture',baseline:[{month:0,metrics:{housingUnits:36}}],plan:[{month:0,metrics:{housingUnits:60}}]}});
+      const slider=document.querySelector('[data-testid="future-machine-timeline"]');
+      window.beforeScrub=calls.filter(c=>c[0]==='month').length;
+      slider.dispatchEvent(new Event('pointerdown'));slider.value=0;slider.dispatchEvent(new Event('input'));
+    });
+    expect(await page.locator('.fm-scrub-preview').textContent()).toContain('WITH PLAN 60 homes');
+    expect(await page.evaluate(()=>calls.filter(c=>c[0]==='month').length===beforeScrub)).toBe(true);
+    await page.getByRole('slider').dispatchEvent('pointerup');await page.waitForTimeout(180);
+    expect(await page.evaluate(()=>calls.filter(c=>c[0]==='month').at(-1))).toEqual(['month',0]);
     for(const name of ['Play timelapse','Blink: Future A','Show Me What Changed','Copy comparison link','Export evidence'])await page.getByRole('button',{name,exact:true}).click();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);
     const seed=page.getByLabel('Seed for next run',{exact:false});

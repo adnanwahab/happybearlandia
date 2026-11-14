@@ -1,3 +1,4 @@
+import {bindScrubPreview} from './scrub-preview.js';
 import {mountFamilyCard} from './family-card.js';
 import {mountControlReadiness} from '../../onboarding/first-run-repairs.js';
 
@@ -56,13 +57,14 @@ export function mountFutureMachineUI(root, options = {}) {
   const legends=node('div',undefined,'fm-legends'); legends.append(node('span','WITHOUT PLAN'),node('span','WITH PLAN'));
   const provenance=node('p','No spatial data loaded.','fm-provenance'); comparison.append(legends,stage,provenance); shell.append(comparison);
   const timeline=node('section',undefined,'fm-timeline'); timeline.setAttribute('aria-label','Shared timeline');
-  const date=node('output'); const slider=node('input'); slider.type='range';slider.dataset.testid='future-machine-timeline'; slider.min=0; slider.max=120; slider.step=1; slider.setAttribute('aria-label','Shared month for Future A and Future B');
+  const scrubCard=node('aside',undefined,'fm-scrub-preview');scrubCard.hidden=true;scrubCard.setAttribute('role','status');scrubCard.setAttribute('aria-live','polite');
+  const date=node('output');date.setAttribute('aria-live','polite'); const slider=node('input'); slider.type='range';slider.dataset.testid='future-machine-timeline'; slider.min=0; slider.max=120; slider.step=1; slider.setAttribute('aria-label','Shared month for Future A and Future B');
   const play=button('Play timelapse',()=>options.externalPlayback ? options.onPlay?.(!state.playing) : timer ? pause() : start());
   const blink=button('Blink A/B',()=>{update({blink:!state.blink}); options.onBlink?.(state.blink);});
   const changed=button('Show Me What Changed',()=>action(options.onShowChanges)); changed.className='fm-primary';
   const ticks=node('div',undefined,'fm-ticks'); for(const year of ['2026','2031','2036'])ticks.append(node('span',year));
   const transport=node('div',undefined,'fm-actions'); transport.append(play,blink,changed);
-  timeline.append(date,slider,ticks,transport,node('p','Focus the city canvas: Page Up advances one year; Page Down retreats one year; D jumps to the first recorded divergence (including policy or nonphysical changes). Years stop at Months 0 and 120.','fm-detail')); shell.append(timeline);
+  timeline.append(date,slider,scrubCard,ticks,transport,node('p','Focus the city canvas: Page Up advances one year; Page Down retreats one year; D jumps to the first recorded divergence (including policy or nonphysical changes). Years stop at Months 0 and 120.','fm-detail')); shell.append(timeline);
   const cards=node('section',undefined,'fm-metrics'); cards.setAttribute('aria-label','Measured outcomes');cards.dataset.testid='future-machine-metrics';
   const metricNodes={};
   for(const [key,label] of [['homes','Homes'],['rent','Mean unit rent'],['spending','City spending']]) {
@@ -97,7 +99,7 @@ export function mountFutureMachineUI(root, options = {}) {
   function pause() { clearInterval(timer); timer=null; play.textContent='Play timelapse'; play.setAttribute('aria-pressed','false'); }
   function seek(month) { update({month:clampMonth(month)}); options.onMonthChange?.(state.month); }
   function start() { if(!state.ready || state.busy)return; if(state.month===120)seek(0); play.textContent='Pause timelapse'; play.setAttribute('aria-pressed','true'); timer=setInterval(()=>{seek(state.month+1);if(state.month===120)pause();}, options.playInterval ?? 400); }
-  listen(slider,'input',()=>{pause();seek(slider.value);});
+  const scrub=bindScrubPreview(slider,scrubCard,{getState:()=>state,onCommit:seek,onBrowse:()=>{pause();if(state.playing)options.onPlay?.(false);}});
   listen(city,'change',()=>{state.cityId=city.value;options.onCityChange?.(city.value);});
   listen(policy,'change',()=>{state.policyId=policy.value;renderPolicy();options.onPolicyChange?.(policy.value);});
   listen(household,'change',()=>{state.householdId=household.value;renderHousehold();options.onHouseholdChange?.(household.value);});
@@ -140,11 +142,12 @@ export function mountFutureMachineUI(root, options = {}) {
     if(!evidence.textContent)evidence.textContent='No recorded evidence selected.';
     if(!householdBody.textContent)renderHousehold();
     cardButton.disabled=!state.ready || state.busy || !options.onCard;share.disabled=!state.ready || state.busy || !options.onShare;exportButton.disabled=!state.ready || state.busy || !options.onExport;
+    scrub.update();
     readiness.update();
     if(old.month!==state.month)options.onRenderMonth?.(state.month);
   }
   update(state);
-  return {stage,update,getState:()=>({...state}),pause,destroy(){readiness.dispose();destroyed=true;generation++;pause();listeners.forEach(remove=>remove());shell.remove();}};
+  return {stage,update,getState:()=>({...state}),pause,destroy(){scrub.dispose();readiness.dispose();destroyed=true;generation++;pause();listeners.forEach(remove=>remove());shell.remove();}};
 }
 
 /** Frozen interface v1 adapter. The coordinator owns simulation, playback, and scene rendering. */
@@ -314,7 +317,7 @@ export function createUI(container, callbacks = {}) {
     const a=current.frame?.baseline?.state?.households||[],b=current.frame?.plan?.state?.households||[];
     const ids=[...new Set([...a,...b].map(row=>row.id))].sort();
     const households=ids.map(id=>({id,label:`City household ${id}`,baseline:a.find(row=>row.id===id)??null,plan:b.find(row=>row.id===id)??null,baselineHousing:householdObservation(a.find(row=>row.id===id),current.frame?.baseline?.state?.units),planHousing:householdObservation(b.find(row=>row.id===id),current.frame?.plan?.state?.units)}));
-    view.update({busy,ready,preview:current.preview,month:current.month,playing:current.playing,status:current.message,error:current.error,metrics,households,
+    view.update({history:current.familyHistory,busy,ready,preview:current.preview,month:current.month,playing:current.playing,status:current.message,error:current.error,metrics,households,
       cities:[{id:'synthetic',label:'Riverside · Synthetic City'}],
       policies:policyChoices(recipe.intervention),
       policyId:policyId(recipe.intervention),spatialLabel:'Synthetic schematic layout · Monthly City model · January 2026–January 2036 · Uncalibrated assumptions. No real-world geometry inferred. Private parcel capacity 0; utility capacity 200 per district/network; annual growth 0.',

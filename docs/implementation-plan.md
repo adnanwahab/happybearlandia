@@ -9188,3 +9188,25 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-481 — bounded scrub checkpoint preview (2026-11-14)
+
+One worker in isolated mini/SHE-481. Audit: native range currently seeks on input;
+open PR searches for scrub/Future Machine found no overlapping implementation.
+Slice: exact-index, constant-size paired checkpoint card using existing immutable
+history; defer expensive seek until release/native keyboard selection and debounce
+bursts. Preserve coordinator authority, manifest-recomputation labeling and all
+model inputs/IDs/clocks. Acceptance: drag isolation, exact missing/loading states,
+keyboard/touch cancellation, date announcements, disposal, measured interaction
+cost and focused browser evidence. No animation or new renderer/cache. Browser
+availability and lack of independently retained checkpoints are material limits.
+
+SHE-481 local slice implemented: bounded exact paired-month checkpoint summary,
+drag isolation, 120ms committed-seek debounce, cancellation and date accessibility.
+23 focused/data/identity tests passed, 2 browser skips; browser bundle69modules
+passed; no configured lint/typecheck. Enabled browser attempts blocked at
+Bun.serve EADDRINUSE before launch. Two existing coordinator mock failures remain.
+Actual text-only1000lookup benchmark27.91–33.27ms; no browser seek budget claimed.
+Details and next acceptance actions: [SHE-481 review](reviews/SHE-481.md).
+Normal-route before/after, device interaction and committed-seek timing remain
+open. No PR/merge/deployment or configured automatic-merge policy change.
