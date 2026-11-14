@@ -170,10 +170,11 @@ body:has(.saved-future-navigation) #global-illumination-button{top:auto;bottom:m
   <div id="tile-navigation"></div>
   <div class="row" style="justify-content: space-between">
     <div id="clock">—</div>
-    <div class="row" id="speeds" style="margin:0">
-      <button data-s="0" aria-label="Pause">❚❚</button><button data-s="1" class="on">1×</button><button data-s="10">10×</button><button data-s="60">60×</button>
+    <div class="row" id="speeds" role="group" aria-label="Simulation speed" style="margin:0">
+      <button data-s="0" aria-label="Pause">❚❚</button><button data-s="0.25">0.25×</button><button data-s="0.5">0.5×</button><button data-s="1" class="on">1×</button><button data-s="2">2×</button><button data-s="4">4×</button><button data-s="8">8×</button><button data-s="10">10×</button><button data-s="60">60×</button>
     </div>
   </div>
+  <label>Camera speed <select id="camera-speed" aria-label="Camera speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option><option value="8">8×</option></select></label>
   <div class="need"><span id="moodLabel">Mood</span><div class="bar" role="meter" aria-label="Simulated mood or utility" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="moodMeter"><i id="mood"></i></div><output id="moodN" for="moodMeter" style="font-size:12px;min-width:54px;text-align:right">— / 100</output></div>
   <div class="row muted" id="counts"></div>
   <div class="row">
