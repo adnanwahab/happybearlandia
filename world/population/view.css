@@ -5,3 +5,7 @@
 @media(max-width:640px){body.living-active:has(.living-city:not([hidden])) .lc-deck{visibility:hidden}}
 @media(max-width:640px){.living-explorer .lc-deck{z-index:115}.living-explorer .living-city{z-index:125}.living-explorer .lc-deck::-webkit-scrollbar{width:3px}.living-explorer .lc-deck::-webkit-scrollbar-thumb{background:#789c86;border-radius:4px}}
 @media(max-width:640px){.living-explorer .lc-deck{bottom:60px}}
+
+.lc-window-peeks { border: 1px solid currentColor; padding: .5rem; margin-block: .5rem; }
+.lc-window-peeks button { display: block; min-height: 44px; width: 100%; white-space: normal; overflow-wrap: anywhere; text-align: left; margin-block: .25rem; }
+.lc-window-peeks button:focus-visible { outline: 3px solid #ffd36b; outline-offset: 2px; }

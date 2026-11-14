@@ -9188,3 +9188,25 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-519 — verified window activity cards (2026-11-14)
+
+Bounded slice: mount at most three static nearby synthetic home activity cards
+in the existing Living City panel at `/world?living=1`. Require matching frame
+household, exact home/location identity and supported HOME activity; click
+inspects that household/tick synchronously. Clear inspection on frame or camera
+selection changes and dispose with the owning view. Do not infer room contents,
+whole-household occupancy or private data. No model/clock/seed changes.
+
+Acceptance and risks: focused projection/privacy/stale-frame tests plus normal
+entry desktop/mobile keyboard smoke; existing building windows remain unchanged.
+Cards are panel-based, not geometry-attached silhouettes. Broader walking
+presentation remains limited to the Living City panel. No new model requires ODD
+changes. Audit and actual verification: `docs/reviews/SHE-519.md`.
+
+SHE-519 verification: 19 focused/adjacent tests pass (329 assertions); JS syntax
+and whitespace checks pass. Browser suite cannot start its server (EADDRINUSE,
+port3499), so after captures, mobile/keyboard and route-disposal browser evidence
+remain pending. Panel-card increment is implemented; geometry-attached walking
+cues and full ticket acceptance remain open. Existing auto-merge safety hold and
+all voting/auth/check requirements are unchanged. No PR/commit/deployment.
