@@ -217,7 +217,7 @@ async function run(recipe=state.recipe,savedId=null,selectedMonth=0,{demoRun=fal
     state.challengeQuestion=challenge?.question??null;state.challengeHash=challenge?challengeHash:null;state.challengeMonth=challenge?.month;
     if(landing){state.mode=landing.mode;state.ghosts=landing.ghosts;}
     stage.dispose();stage=createStage(ui.stageElement,{onSelect:select,onCameraInteraction:stopCameraTour,history:loaded});stage.setMode(state.mode);stage.setGhosts(state.ghosts);
-    trailView?.();trailView=null;trailAnchor=null;inspectorEntity=null;inspectorMetric=null;outcomeTimeline?.dispose();outcomeTimeline=createOutcomeTimeline(outcomeHost,{history:loaded,onMonth:manualMonth});
+    trailView?.();trailView=null;trailAnchor=null;inspectorEntity=null;inspectorMetric=null;outcomeTimeline?.dispose();outcomeTimeline=createOutcomeTimeline(outcomeHost,{history:loaded,onMonth:manualMonth,onChapter:jump});
     history=loaded;momentsDispose();momentsDispose=renderMoments(momentsHost,selectMoments(history),{onJump:jump});diffs=compareHistory(history);quest.reset(diffs,{userRun});
     // A physical difference alone does not establish a construction event.
     const first=firstDivergence(history,diffs);

@@ -352,3 +352,12 @@ move. Names/avatars are synthetic; outcomes are uncalibrated model observations.
 arm's household → occupied unit → building on every frame and highlights both
 recorded buildings, including different buildings after a move. Unmapped homes
 remain unhighlighted. Camera and simulation playback are unchanged.
+
+`chapters.js` clusters recorded events by exact month and event type across arms.
+`recorded-chapters.v1` ranks PROJECT_COMPLETE, then CONSTRUCTION_STARTED/TOPPED_OUT,
+then other types; ties use month/type. The top 24 appear chronologically. This is
+editorial impact, not a measured welfare score. Each receipt preserves its arm,
+ID, payload and dependencies. Empty spans generate no chapter. Native buttons
+support Tab/Enter/Space and touch; arrows/Home/End move focus. No animation or
+per-frame reclustering is used. The outcome timeline owns disposal; `onChapter`
+passes the selected chapter to the existing coordinator `jump` and WHY renderer.

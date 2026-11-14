@@ -9188,3 +9188,13 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-479 — recorded event chapter ticks
+
+Bounded slice: cluster simultaneous events by exact month/type, rank completion
+then construction milestones then other types, cap at 24, and reuse shared seek
+and WHY. Preserve arm-scoped event IDs, payloads and dependencies. No engine or
+run contract changes. Verify deterministic ordering/immutability, empty and
+unavailable history, keyboard/touch controls and normal-entry integration.
+Risk: editorial ranking is not measured impact or causality; disclose it inline.
+Implementation and verification evidence: `docs/reviews/SHE-479.md`.
