@@ -1,5 +1,12 @@
 import {test, expect} from '@playwright/test';
 
+async function openWorldControls(page) {
+  if (!await page.locator('#runCycleBtn').isVisible()) {
+    await page.getByText('World controls', {exact:true}).click();
+  }
+  await expect(page.locator('#runCycleBtn')).toBeVisible();
+}
+
 const fixture = '<!doctype html><html lang="en"><head><meta charset="utf-8"><link rel="stylesheet" href="/world/first-run-guide.css"></head><body><script type="module" src="/world/first-run-guide.js"></script></body></html>';
 
 test.beforeEach(async ({page}) => {
@@ -109,8 +116,10 @@ test('guided actions operate on the actual World simulator', async ({page}) => {
   await expect(guide.locator('[data-guide-kind]')).toHaveText('Storm result');
   await expect(guide.locator('[data-guide-metrics]')).toContainText('Flooded parcels');
   await expect(page.locator('#overlayMode')).toHaveValue('flood');
+  await openWorldControls(page);
   await page.getByRole('radio',{name:'Balanced',exact:true}).check();
   const started = Date.now();
+  await openWorldControls(page);
   await page.locator('#runCycleBtn').click();
   await expect(page.locator('#cycleRunState')).toHaveText('Running');
   await expect(page.locator('#cycleProgress')).toBeVisible();
@@ -124,16 +133,19 @@ test('guided actions operate on the actual World simulator', async ({page}) => {
   await expect(guide.locator('[data-guide-kind]')).toHaveText('Paired weekly result',{timeout:90000});
   await expect(guide.locator('[data-guide-metrics]')).toContainText('Well-being difference');
   await expect(guide.locator('[data-guide-metrics]')).toContainText('Residents better off');
+  await openWorldControls(page);
   await page.locator('#runCycleBtn').click();
   await page.locator('#cycleCancel').click();
   await expect(page.locator('#cycleRunState')).toHaveText('Cancelled');
   await expect(page.locator('#runCycleBtn')).toBeEnabled();
   await page.route('**/cycle.worker.js', route => route.abort());
+  await openWorldControls(page);
   await page.locator('#runCycleBtn').click();
   await expect(page.locator('#cycleRunState')).toHaveText('Failed');
   await expect(page.locator('#cycleStatus')).toContainText('retry');
   await expect(page.locator('#cycleCancel')).toBeHidden();
   await page.unroute('**/cycle.worker.js');
+  await openWorldControls(page);
   await page.locator('#runCycleBtn').click();
   await expect(page.locator('#cycleRunState')).toHaveText('Completed', {timeout:90000});
 });
@@ -145,9 +157,11 @@ test('Canvas2D Balanced cycle supports cancellation, failure, retry and real res
   await page.route('**/api/area?**',route=>route.fulfill({json:{source:'none',buildings:[],roads:[],pois:[]}}));
   await page.goto('/world?renderer=canvas2d&people=16&lat=29.7286&lng=-95.4746');
   await expect.poll(()=>page.evaluate(()=>window.hblWorldStartup?.mode)).toBe('canvas2d');
+  await openWorldControls(page);
   await page.getByRole('radio',{name:'Balanced',exact:true}).check();
   // Use a silent worker for the cancellation case; retry uses the real module.
   await page.route('**/cycle.worker.js',route=>route.fulfill({contentType:'application/javascript',body:'// Deliberately silent worker for cancellation.'}));
+  await openWorldControls(page);
   await page.locator('#runCycleBtn').click();
   await expect(page.locator('#cycleRunState')).toHaveText('Running');
   await expect(page.locator('#cycleProgress')).toBeVisible();
@@ -156,6 +170,7 @@ test('Canvas2D Balanced cycle supports cancellation, failure, retry and real res
   await expect(page.locator('#runCycleBtn')).toBeEnabled();
   await page.unroute('**/cycle.worker.js');
   await page.route('**/cycle.worker.js',route=>route.abort());
+  await openWorldControls(page);
   await page.locator('#runCycleBtn').click();
   await expect(page.locator('#cycleRunState')).toHaveText('Failed');
   await expect(page.locator('#cycleStatus')).toContainText('retry');
@@ -163,6 +178,7 @@ test('Canvas2D Balanced cycle supports cancellation, failure, retry and real res
   await expect(page.locator('#cycleCancel')).toBeHidden();
   await page.unroute('**/cycle.worker.js');
   const started=Date.now();
+  await openWorldControls(page);
   await page.locator('#runCycleBtn').click();
   await expect(page.locator('#cycleRunState')).toHaveText('Completed',{timeout:90000});
   await expect(page.locator('#cyclePanel')).toBeVisible();

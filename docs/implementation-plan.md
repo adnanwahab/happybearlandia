@@ -9163,3 +9163,10 @@ labels; this change does not modify checkpoint/simulation code. Next action:
 run the focused browser config and LOW recording in a bind-capable environment,
 then verify target hardware before closing acceptance. No merge/deployment or
 remote policy change; autonomous merge remains disabled by workflow safety hold.
+
+
+## Local World camera/render recovery — November 14, 2026
+
+The served sprint render loop referenced removed `night` during storm sky blending. That ReferenceError stopped the frame loop and OrbitControls updates. Restored the authored storm tint independently of simulation-clock lighting; no model rules changed. Real Chromium normal-entry test checks continuing frames, orbit, right-drag pan and wheel zoom with map failure. Exact localhost universe URL also verified with real controls and no page errors. The read proxy recognizes the retired dear-congress.fly.dev host and routes public/compute requests to civic-synthesis.fly.dev; explicit custom providers are retained, and journal publishing keeps its explicit existing route rather than silently moving writes. Focused lighting/provider/feedback tests12passed95assertions. Existing server smoke separately fails on absent /api/demo/ready in this sprint baseline; not an introduced camera/proxy failure. Chrome-extension LevelDB storage errors did not reproduce in clean Chromium; browser profile data was not erased. No deployment or production mutation in this repair.
+
+Local daylight preference: initial renderer presentation now selects Daylight (14:00) by default; the simulated minute, seed and recorded data are unchanged. Night, Golden hour and Simulation clock remain explicit renderer options. Six lighting tests76assertions and the actual browser camera/lighting regression passed (5.0s), including daylight intensity, night selection and return to simulation-clock mode.

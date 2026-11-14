@@ -2247,7 +2247,8 @@ $("feed").addEventListener("click", (e) => {
 /* ---------------------------------------------------------------- */
 /* Loop                                                              */
 /* ---------------------------------------------------------------- */
-const sky = new THREE.Color();
+// Retain the authored storm sky tint independently of simulated solar lighting.
+const night = new THREE.Color(0x1a1d2b), sky = new THREE.Color();
 let lightingSnapshot=null,lightingMinute=null,lightingLiving=null;
 let acc = 0, slowTimer = 0, lastEvents = -1;
 let lastEmbedPostT = -Infinity;
