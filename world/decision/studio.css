@@ -18,3 +18,6 @@
 .parameter-diff-table th, .parameter-diff-table td { padding: .6rem; border-bottom: 1px solid #556375; text-align: left; min-width: 10rem; overflow-wrap: anywhere; }
 .parameter-diff-table tr[data-changed="true"] { background: #c19a3220; }
 .parameter-diff-table caption { text-align: left; padding: .6rem; font-weight: bold; }
+
+/* Static, bounded presentation; no animation or model state. */
+.tradeoff-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}.tradeoff-grid article{border:1px solid #788b9c;padding:1rem;min-width:0;overflow-wrap:anywhere}.tradeoff-grid h4{font-size:1.3rem}.tradeoff-grid h5{font-size:1rem}.tradeoff-grid section{border-top:1px solid #788b9c;margin-top:1rem}.tradeoff-grid a{display:inline-block;padding:.5rem 0}.tradeoff-grid a:focus-visible{outline:3px solid currentColor;outline-offset:3px}@media(max-width:700px){.tradeoff-grid{grid-template-columns:1fr}}

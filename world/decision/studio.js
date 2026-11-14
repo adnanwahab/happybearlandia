@@ -1,3 +1,4 @@
+import { renderPolicyTradeoffs } from './tradeoffs.js';
 import { renderParameterDiff } from './parameter-diff.js';
 
 import { mountExplorationBadges } from './exploration-badges.js';
@@ -29,7 +30,7 @@ const definitions = housingModel.parameters;
 let activeModel = housingModel;
 const state = {
   scenarios: clone(createHousingScenarios()), selected: '', metadata: {}, evidence: [],
-  experiment: null, results: null, summaryResults: null, tracePending: false, traceError: null, previousResults: null, selectedRun: null, projectId: null, readonly: false, busy: false,
+  experiment: null, results: null, tradeoffResults: null, summaryResults: null, tracePending: false, traceError: null, previousResults: null, selectedRun: null, projectId: null, readonly: false, busy: false,
   needsCompile: false, dirty: false, hasRun: false, preview: false, errors: [], generation: 0, watch: null,
 };
 state.selected = state.scenarios.find(s => s.kind === 'plan-a')?.id || state.scenarios[0]?.id;
@@ -118,7 +119,7 @@ function renderScenarios() {
   renderStress(); renderParameters(); renderCriteriaEditor(); updateRunDescription(); applyReadonly();
   $('#delete-scenario').disabled = state.readonly || state.busy || selected.kind === 'baseline';
   if (!state.results) updateDraftTrust();
-  syncConstructionWorld(); worldTools?.update(); updateAdvancedStudio();
+  syncConstructionWorld(); worldTools?.update(); updateAdvancedStudio(); updateTradeoffs();
 }
 function renderCriteriaEditor() {
   const selected = scenario(), mode = $('#criteria-mode');
@@ -235,6 +236,7 @@ function renderParameters() {
     renderFields(); renderCurve(); uncertainty.append(distribution, fields); row.append(mini, uncertainty); const role = definition.role || definition.controlGroup || definition.parameterRole; const group = /policy|lever/.test(role || '') || !role && policyIds.has(definition.id) ? 'policy' : 'world'; groups[group].append(row);
   }
 }
+function updateTradeoffs() { renderPolicyTradeoffs($('#policy-tradeoffs'), state.tradeoffResults || {}, state.selected); }
 function updateParameterDiff() { renderParameterDiff($('#scenario-parameter-diff'), currentInput(), activeModel, state.selected); }
 function updateRunDescription() { updateParameterDiff(); $('#run-description').textContent = `${Number($('#run-count').value).toLocaleString()} futures × ${state.scenarios.length} scenarios. Same seed sequence, different choices.`; }
 function updateDraftTrust() { trust.update({ experiment: currentInput(), runs: [], aggregates: [], comparisons: [], model: activeModel, evidence: collectedEvidence(), readOnly: state.readonly }); }
@@ -293,10 +295,11 @@ function renderResults(result) {
   runTraces.setExperiment(state.experiment?.id || null);
   const summaryRows = successfulRuns(result.runs);
   const data = { ...result, experiment: state.experiment, runs: summaryRows.map(row=>mergeRunTrace(row,runTraces.peek(state.experiment.id,row.id))), previousResults: state.previousResults, model: result.model || resolveHousingModel(state.experiment?.modelVersion || activeModel.version).model, readOnly: state.readonly, evidence: state.evidence, apiErrors: state.errors };
+  state.tradeoffResults = { ...data, runs: result.runs || [] };
   state.summaryResults = {...data,runs:summaryRows,previousResults:undefined};
   continuity.update(decisionSnapshot({ ...data, job: continuityJob, selectedRun: state.selectedRun }), { namespace: 'decision', experimentId: state.experiment?.id });
   state.results = data; badges.update(data); visuals.update(data); trust.update(data); diagnostics.update(data);
-  syncConstructionWorld(); worldTools?.update(); updateAdvancedStudio();
+  syncConstructionWorld(); worldTools?.update(); updateAdvancedStudio(); updateTradeoffs();
   const experiment = state.experiment;
   updateExecutiveSummary();
   const p = experiment?.progress || {};
@@ -695,9 +698,9 @@ on('apply-import', () => {
   renderParameters(); markDirty(); status(`Applied ${Object.keys(values).length} inputs to ${scenario().name}. Original filename and mapping recorded in the evidence ledger.`);
 });
 function resetResults() {
-  clearTimeout(previewTimer); stopConstructionPlayback(); constructionRun = null; constructionMonth = 0; worldPreview = null; worldVisualPreview = null; state.watch?.destroy(); activeRequest++; runTraces.clear();traceSelectionToken++;automaticTraceKey=null;state.summaryResults=null;state.tracePending=false;state.traceError=null; state.experiment = null; state.results = null; state.previousResults = null; state.selectedRun = null; state.hasRun = false; state.dirty = false; state.preview = false;
+  clearTimeout(previewTimer); stopConstructionPlayback(); constructionRun = null; constructionMonth = 0; worldPreview = null; worldVisualPreview = null; state.watch?.destroy(); activeRequest++; runTraces.clear();traceSelectionToken++;automaticTraceKey=null;state.summaryResults=null;state.tracePending=false;state.traceError=null; state.experiment = null; state.results = null; state.tradeoffResults = null; state.previousResults = null; state.selectedRun = null; state.hasRun = false; state.dirty = false; state.preview = false;
   const empty = { experiment: null, runs: [], aggregates: [], comparisons: [], model: housingModel, evidence: state.evidence };
-  badges.update(empty); visuals.update(empty); trust.update(empty); diagnostics.update(empty); $('#selected-run').hidden = true;
+  updateTradeoffs(); badges.update(empty); visuals.update(empty); trust.update(empty); diagnostics.update(empty); $('#selected-run').hidden = true;
   $('#share-experiment').disabled = $('#download-manifest').disabled = $('#reproduce-experiment').disabled = true;
   $('#result-context').textContent = 'Run the project to calculate its possible futures.';
   syncConstructionWorld(); updateAdvancedStudio();
@@ -716,3 +719,10 @@ async function initialize(params) {
 }
 
 safe(() => initialize(initialQuery));
+
+addEventListener('pagehide', () => {
+  clearTimeout(previewTimer); stopConstructionPlayback(); state.watch?.destroy();
+  activeRequest++; traceSelectionToken++; runTraces.clear();
+  constructionView?.destroy(); visuals.destroy?.(); trust.destroy?.(); advancedStudio?.destroy?.(); continuity.destroy();
+}, { once: true });
+addEventListener('pageshow', event => { if (event.persisted) location.reload(); });

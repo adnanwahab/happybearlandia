@@ -9188,3 +9188,35 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-509 — trade-off theater (2026-11-14)
+
+Bounded single-worker slice in existing isolated `mini/SHE-509`: add three static
+cards to `/world/decision.html` using supported terminal housing metrics and
+unique same-seed cases. Prerequisites: stored experiment, exact model version,
+current-policy baseline, declared units/preferences. Acceptance: good/bad/ties,
+disagreement, source links, missing/failed/duplicate/foreign exclusion, unchanged
+model inputs and replay state. Risk: same-seed results describe synthetic modeled
+cases, not empirical causality or statistical significance. Timeline forks with
+incompatible starting histories are excluded. No agent delegation needed.
+
+Implemented read-only projection, bounded first-case examples per metric/category,
+all-case counts, native units, model/scenario branch and exact per-run evidence
+links. Scenario changes and newly returned results refresh cards; reset clears
+them. Static responsive layout adds no animation/assets. Page exit invalidates
+requests, stops playback/watchers and destroys mounted render resources; restored
+bfcache pages reload their stored experiment rather than reuse disposed views.
+Model, seed, clock, identities and recorded provenance are unchanged.
+
+Verification: existing decision suite 62 pass (3579 assertions); focused cards,
+request-race and trace suites 12 pass (75 assertions). Browser build passes with
+existing served `/vendor/*` imports external. No configured lint/typecheck script.
+Playwright first needed local dependency resolution and explicit server cwd;
+after those repairs, server startup failed EADDRINUSE at both 3499 and 43159.
+Desktop/mobile, keyboard/source opening, rapid replay/camera inputs and disposal
+browser tests are provided but unexecuted. Before/after route-specific screenshot
+acceptance remains open; preexisting harness captures concern other routes.
+See [audit and acceptance limitations](reviews/SHE-509.md). No merge, deployment,
+production operation, external message or merge/voting/auth/check policy change.
+Next: run `bunx playwright test --config test/tradeoffs.browser.config.js` on a
+bind-capable host and inspect its decision-route before/after screenshots.
