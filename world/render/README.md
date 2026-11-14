@@ -128,3 +128,17 @@ The browser test hashes full decoded model checkpoints before/after graphics
 changes and records before/after screenshots plus video. See
 `docs/reviews/SHE-165.md` for actual execution limits; the test existing is not
 proof it passed.
+
+## Photo mode (SHE-526)
+
+Photo opens a clean HUD with the existing orbit/pinch camera plus keyboard-focusable
+pan/zoom buttons. Escape/Exit restores camera, orbit damping, prior canvas filter,
+HUD visibility and focus. Photo no longer forces ULTRA; current quality and adaptive
+budget are retained (adaptation pauses while framing). Golden hour is a cosmetic
+canvas filter applied equally to preview and PNG, independent of model lighting.
+Capture copies the next rendered frame, caps its longest edge at 2048 pixels, and
+saves locally. It adds no personal/page text or metadata. An optional receipt is
+off on each entry; run ID, seed, modeled date and source remain explicitly
+unavailable because this renderer has no authoritative scene receipt adapter.
+Canvas2D retains its intrinsic low-fidelity disclosure. No source certification or
+replay claim is made. Exit/dispose invalidates pending captures and revokes URLs.

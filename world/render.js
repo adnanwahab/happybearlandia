@@ -446,6 +446,7 @@ addEventListener('pagehide',()=>{gpuParticleMenuDisposed=true;gpuParticleMenu?.d
 if (renderBenchmark) configureBenchmark(cityRenderer, renderBenchmark);
 addEventListener("pagehide", () => cityRenderer.destroy(), { once: true });
 renderer.domElement.addEventListener("dblclick", (event) => {
+  if(cityRenderer.photoModeActive)return;
   const bounds = renderer.domElement.getBoundingClientRect();
   const pointer = new THREE.Vector2((event.clientX - bounds.left) / bounds.width * 2 - 1, -(event.clientY - bounds.top) / bounds.height * 2 + 1);
   const picker = new THREE.Raycaster(); picker.setFromCamera(pointer, camera);
@@ -2277,7 +2278,7 @@ function frame(now) {
   }
 
   if(!livingWorld?.active)businessUI?.update();
-  livingWorld?.update(now);
+  livingWorld?.update(now,{cameraFree:cityRenderer.photoModeActive});
 
   // Follow the active simulated clock; manual renderer controls affect presentation only.
   const livingMinute=livingWorld?.active?livingWorld.getClockMinute():null;
@@ -2329,7 +2330,7 @@ function frame(now) {
     const s = smooth[selected.id];
     ring.visible = true;
     ring.position.set(s.x, 0.3, s.z);
-    if (follow) controls.target.lerp(new THREE.Vector3(s.x, 0, s.z), 0.1);
+    if (follow&&!cityRenderer.photoModeActive) controls.target.lerp(new THREE.Vector3(s.x, 0, s.z), 0.1);
     const v = new THREE.Vector3(s.x, 12, s.z).project(camera);
     tag.style.display = "block";
     tag.style.left = `${(v.x * 0.5 + 0.5) * innerWidth}px`;
@@ -2359,7 +2360,7 @@ function frame(now) {
     }
   }
 
-  updateArrival(now);controls.update();
+  if(!cityRenderer.photoModeActive)updateArrival(now);controls.update();
   if(buildingDateBridge?.get().enabled&&now-buildingDateLastRefresh>500){buildingDateLastRefresh=now;buildingDateBridge.refresh();}
   personCommandUI?.update();
   houseEntryControls?.update();
@@ -2368,7 +2369,7 @@ function frame(now) {
   if(livingWorld?.active)livingWorld.applyBuildingOccupancy?.();
   if(drawCity){globalIllumination.render();startup.firstFrameMs??=performance.now();if(scrapbook&&scrapbookSource)void scrapbook.afterRender(renderer.domElement,scrapbookSource);}
   cityRenderer.afterFrame(now, performance.now() - cpuStart, frameMs);
-  visualCamera?.update(now);
+  if(!cityRenderer.photoModeActive)visualCamera?.update(now);
   visualSpotlight?.update(now);
   requestAnimationFrame(frame);
 }

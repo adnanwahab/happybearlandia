@@ -9188,3 +9188,20 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-526 · Photo mode (November 14, 2026)
+
+Bounded slice: `/world` → Photo/Graphics → orbit, pan and zoom → optional cosmetic
+warm filter and honest scene receipt → local PNG → restore camera, focus and HUD.
+Prerequisites: existing renderer/camera; no external service. Keep quality budget,
+model clocks, seeds, IDs and checkpoints unchanged. Receipt must say unavailable
+for unbound run/seed/date/source; never infer provenance from URL fields.
+Acceptance tasks: state restoration and rapid entry/exit; empty/failed capture;
+stale asynchronous capture cancellation; keyboard and mobile controls; route
+cleanup; unit regressions plus desktop/mobile browser evidence. Risks: browser
+canvas readback restrictions, concurrent camera directors, fallback fidelity.
+Implemented locally: controller, host integration, lifecycle tests and browser
+journey. Verification: 41 tests / 322 assertions pass; World browser bundle and
+diff checks pass. No global lint/typecheck script exists. Browser server setup
+failed at listen on two ports; screenshots and live capture acceptance remain
+pending. Details: `docs/reviews/SHE-526.md`. No merge/deployment authorized.
