@@ -8,3 +8,39 @@ Open `/world/invention/` to search policy plans, combine compatible plans, or pa
 - Replay reconstructs a recipe locally. Links preserve the recipe, model version and selected month. Opening a link leaves stored World runs untouched.
 
 Supported policy types are transit capacity, public housing, and zoning capacity. Housing proposals still depend on implementation, construction, and utility headroom. More policy types require corresponding City model support and explicit cost assumptions.
+
+## Neighborhood blueprints (SHE-565)
+
+`/world/invention/blueprint/` edits a session-local design, exports copyable or
+downloadable JSON, and previews imports before an explicit replacement. The
+recompute link passes only accepted catalog policies to the existing City Plan
+Replay. Nothing writes to saved worlds, households or a live service. Reloading
+discards the session; export before leaving.
+
+The `neighborhood-blueprint.v1` contract in `blueprint/model.js` requires an exact
+City model version, `living-city-commute.v1` source scenario, seed, month-2 start,
+1–36 month horizon, synthetic source label and fixed locale-neutral units.
+At most nine policies reference exact `parcel-d0`/`d1`/`d2` identities and their
+matching districts; amounts and illustrative USD costs come from the versioned
+catalog. These parcel IDs identify authored fixtures, not real parcels. Arbitrary
+worlds and geographic remapping need a separately verified adapter.
+
+Three optional parcel palette choices are cosmetic swatches only; they do not
+alter model state or travel with policy replay links. JSON export retains them.
+Imports reject unknown fields, unsupported units/versions/parcels, conflicting
+policy scopes, duplicate cosmetics, malformed JSON and payloads over 8192 UTF-8
+bytes. No partial application or implicit migration. Confirmation revalidates and
+replaces the design, making duplicate imports idempotent. Editing the payload
+invalidates its preview. Native labeled form controls and static text provide the
+keyboard/reduced-motion/low-end path; no graphics or animation dependency.
+
+Verification:
+
+```sh
+bun test test/neighborhood-blueprint.test.js test/city-invention-plan.test.js test/reverse-simulator.test.js test/worldline-merge.test.js test/reality-breakpoints.test.js
+bunx playwright test --config test/neighborhood-blueprint.browser.config.mjs
+```
+
+An optional DOM interaction check runs with an installed `happy-dom` module:
+`HBL_DOM_MODULE=/path/to/happy-dom/lib/index.js bun scripts/check-neighborhood-blueprint-dom.mjs`.
+This check does not verify browser layout, keyboard focus or touch behavior.

@@ -9188,3 +9188,25 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-565 — reusable neighborhood blueprints
+
+Next bounded slice: local JSON export, strict bounded validation, import preview and
+explicit replacement of a session design in `/world/invention/`. Reuse the City
+policy catalog and replay authority; parcel cosmetics never enter simulation.
+Prerequisites: existing synthetic Riverside scenario and supported City version.
+Acceptance: unsupported versions/parcels and invalid payloads reject atomically;
+preview is read-only; confirmation is idempotent; keyboard/mobile fallback works;
+replayed accepted policies match existing deterministic runs. Risks: arbitrary
+worlds have no verified parcel mapping, so v1 supports only the pinned synthetic
+scenario with exact parcel/district identities. No saved World mutation.
+Tasks: contract and tests; integrated editor/preview; browser evidence and review.
+Status: local contract/editor/preview implementation delivered; 16 focused tests
+pass (202 assertions) and supplemental real-page DOM interactions pass (18
+assertions). New-file checkJs diagnostics resolved; the same 14 pre-existing
+City dependency errors remain as the unchanged baseline. Browser keyboard/touch,
+layout and before/after evidence remain unverified: sandbox blocks server bind
+and Chromium launch. Playwright journeys/config are ready for an unrestricted
+local run. Review, exact commands, overlap and external prerequisites:
+[docs/reviews/SHE-565.md](reviews/SHE-565.md). No commit/PR published and no
+changes to configured merge policy.

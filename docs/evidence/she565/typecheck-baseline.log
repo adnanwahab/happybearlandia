@@ -1,0 +1,14 @@
+world/city/seed.js(3,58): error TS2339: Property 'districts' does not exist on type '{ seed?: number; households?: number; }'.
+world/city/systems.js(7,312): error TS2353: Object literal may only specify known properties, and 'geographyType' does not exist in type '{ metricId: string; value: any; }'.
+world/city/systems.js(173,31): error TS2339: Property 'experiencedMinutes' does not exist on type '{ personId: any; originId: any; destinationId: any; mode: string; plannedMinutes: any; route: any; }'.
+world/city/systems.js(173,124): error TS2339: Property 'delayMinutes' does not exist on type '{ personId: any; originId: any; destinationId: any; mode: string; plannedMinutes: any; route: any; }'.
+world/city/systems.js(173,150): error TS2339: Property 'experiencedMinutes' does not exist on type '{ personId: any; originId: any; destinationId: any; mode: string; plannedMinutes: any; route: any; }'.
+world/invention/model.js(31,14): error TS2339: Property 'version' does not exist on type 'object'.
+world/invention/model.js(31,45): error TS2339: Property 'version' does not exist on type 'object'.
+world/invention/model.js(32,14): error TS2339: Property 'modelVersion' does not exist on type 'object'.
+world/invention/model.js(32,50): error TS2339: Property 'modelVersion' does not exist on type 'object'.
+world/invention/model.js(35,11): error TS2339: Property 'seed' does not exist on type '{}'.
+world/invention/model.js(35,38): error TS2339: Property 'months' does not exist on type '{}'.
+world/invention/model.js(35,69): error TS2339: Property 'policies' does not exist on type '{}'.
+world/invention/model.js(114,56): error TS2339: Property 'stopWhen' does not exist on type '{ retainMonths?: boolean; }'.
+world/living-city/quests.js(194,39): error TS2339: Property 'index' does not exist on type '{}'.
