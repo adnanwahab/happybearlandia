@@ -1,3 +1,4 @@
+import {mountComparisonPinboard, spatialRecord} from './comparison-pinboard.js';
 import {mountStormCue} from './render/environment/storm-cue.js';
 import {stormIntensityAt} from './weather/parcel-storm.js';
 import {mountPlanChoices,customPlan,stagePlan} from './plan-choices.js';
@@ -531,6 +532,11 @@ let todayJournalPosts = [];
 let journalPins = [];
 const originalTrafficEnabled=cityRenderer.getPerformanceStats().features?.traffic!==false;
 let livingWorld=null,livingPlaybackUnsubscribe=null;
+const comparisonPinboard=mountComparisonPinboard($('comparison-pinboard'),{
+  resolve:(type,id)=>spatialRecord(town,world,type,id),available:()=>!livingWorld?.active,
+});
+window.addEventListener('world:building-selected',event=>comparisonPinboard.observe('building',event.detail?.id));
+window.addEventListener('world:person-selected',event=>{if(event.detail?.mode==='living')comparisonPinboard.observe('person',event.detail.id);});
 const activityListeners=new Set();let activityRuntimeUnsubscribe=null,activityDashboard=null,activityDashboardPromise=null,activityObserver=null,activityDisposed=false;
 function notifyActivity(){if(!activityListeners.size||!window.hblWorldActivity)return;const snapshot=window.hblWorldActivity.getSnapshot();for(const listener of activityListeners)listener(snapshot);}
 function bindActivityRuntime(runtime){if(activityRuntimeUnsubscribe)return;activityRuntimeUnsubscribe=runtime.subscribe(frame=>{physicalPolicySnapshot=frame;if(livingWorld?.active)notifyActivity();});}
@@ -2167,6 +2173,7 @@ function emitLegacyPersonContext(event,index){const person=town.people[index];re
 renderer.domElement.addEventListener('contextmenu',event=>{if(livingWorld?.active||event.defaultPrevented)return;const bounds=renderer.domElement.getBoundingClientRect();ptr.set((event.clientX-bounds.left)/bounds.width*2-1,-(event.clientY-bounds.top)/bounds.height*2+1);ray.setFromCamera(ptr,camera);const hit=humanPeople.pick(ray),building=ray.intersectObjects(meshes)[0];if(hit&&(!building||hit.distance<building.distance)){event.preventDefault();emitLegacyPersonContext(event,hit.index);}});
 function select(s) {
   selected = s;
+  if(s?.type==='person')comparisonPinboard.observe('person',town.people[s.id]?.id);
   if(s?.type==='building'){const building=town.buildings[s.id];if(building)window.dispatchEvent(new CustomEvent('world:building-selected',{detail:{id:String(building.id)}}));}
   $('inspect').toggleAttribute('data-inspector-focused',Boolean(s));
   if(s?.type==="person")world.trackActivityPerson(String(town.people[s.id]?.id??s.id));

@@ -9188,3 +9188,34 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-469 — two-object comparison pinboard (2026-11-14)
+
+Owner-authorized local slice, one worker in isolated `mini/SHE-469` at cdb773a1.
+Audit existing scene selection, geometry inspector, low-fidelity entry and open
+PRs before implementation. No existing pinboard found; neighboring picking,
+keyboard and context-menu PRs remain separate. Preserve all simulation owners.
+
+Slice: capture two legacy spatial records through existing scene selection or
+an exact-ID keyboard/touch form. Retain IDs and capture-time provenance, align
+same-type fields and units, display missing data and incompatible pairs, and
+restore ordinary selection on clear/full. No animations or network writes.
+Acceptance: focused state and component tests, normal `/world` browser journey
+with disposable geometry, mobile/reduced-motion evidence, bounded interaction
+measurement, bundle and adjacent regressions. Risk: Population identities are
+not mapped; explicitly unavailable there. Geometry and synthetic scene height
+must remain distinguishable. Evidence/status: `docs/reviews/SHE-469.md`.
+
+SHE-469 local result: capture-time A/B pinboard wired to legacy scene selections
+and Canvas2D, exact-ID keyboard/touch form, matched units/missing values,
+incompatible-type and unmapped Population explanations. Existing normal selection
+and simulation state preserved. 17 focused tests/91 assertions pass, including
+full checkpoint/20-minute seed-matched continuation; 376-module browser build,
+JS syntax and whitespace checks pass. No applicable root lint/typecheck command.
+CPU-only two-pin p95 0.173ms for1,000 synthetic residents; not browser FPS.
+Four browser cases discover; execution blocked by server EADDRINUSE on3499/43569
+and independent Chrome SIGABRT/EPERM. Before evidence preserved; after screenshots,
+real touch/keyboard/layout and browser timing remain unverified. Unrelated home
+catalog test fails32vs33 in untouched sources. Review and next prerequisites:
+[docs/reviews/SHE-469.md](reviews/SHE-469.md). No merge/deploy/remote policy change;
+autonomous merge safety hold remains literal false. No commit or PR created.

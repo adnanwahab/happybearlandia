@@ -1,3 +1,4 @@
+import {mountComparisonPinboard, spatialRecord} from './comparison-pinboard.js';
 import {mountPlanChoices,customPlan,stagePlan} from './plan-choices.js';
 /** Explicitly low-fidelity World. Reuses the legacy seeded town and simulation,
  * replacing only Three/WebGPU visuals with Canvas2D for restricted browsers.
@@ -13,6 +14,7 @@ const lat=safeNumber(query.get('lat'),29.7286,-85,85),lng=safeNumber(query.get('
 const origin={lat,lng},count=Math.round(safeNumber(query.get('people'),100,10,250));
 const status=$('loading');
 const notify=(type,detail={})=>window.dispatchEvent(new CustomEvent('hbl:world-feedback',{detail:{type,...detail}}));
+let comparisonPinboard;
 let world,town,canvas,ctx,paused=false,speed=1,disposed=false,selected=null,panX=0,panZ=0,zoom=1,cameraSpeed=1,accum=0,frame=null,clock=0;
 const playback=createSimulationPlayback({initialSpeed:1});
 window.hblSimulationPlayback=playback;
@@ -109,7 +111,7 @@ function choosePerson(x,y){
   const c=coords(),[wx,wz]=c.reverse(x,y),maxRadius=18/c.scale;
   const p=world.people.reduce((best,row)=>!best||Math.hypot(row.x-wx,row.z-wz)<Math.hypot(best.x-wx,best.z-wz)?row:best,null);
   if(!p||Math.hypot(p.x-wx,p.z-wz)>maxRadius)return;
-  selected=p;notify('resident',{label:'Resident selected',message:p.name+' · '+p.doing+' · current needs and position are from the live local simulation.',metrics:[
+  selected=p;comparisonPinboard?.observe('person',p.id);notify('resident',{label:'Resident selected',message:p.name+' · '+p.doing+' · current needs and position are from the live local simulation.',metrics:[
     {label:'Energy',value:p.needs.energy.toFixed(0)},{label:'Social',value:p.needs.social.toFixed(0)},{label:'Fun',value:p.needs.fun.toFixed(0)}]});
 }
 function runWeek(){
@@ -184,6 +186,7 @@ async function init(){
   }catch{status.textContent='Map provider unavailable; starting a procedural fictional neighborhood.';}
   town=buildTown(origin,townArea,{maxPeople:count});
   world=createWorld(town,{recordHistory:true,...(query.get("seed")?{runSeed:query.get("seed")}:{})});
+  comparisonPinboard=mountComparisonPinboard($('comparison-pinboard'),{resolve:(type,id)=>spatialRecord(town,world,type,id)});
   canvas=document.createElement('canvas');canvas.id='canvas-lite-world';canvas.setAttribute('aria-label','Playable low fidelity top-down city');canvas.style.cssText='width:100%;height:100%;display:block;touch-action:none';$('view').append(canvas);
   ctx=canvas.getContext('2d');if(!ctx){status.textContent='Canvas2D is unavailable. Try another browser.';return;}
   $('source').textContent='Canvas2D low fidelity · '+(townArea.source==='osm'?'OSM building footprints, fictional residents':'Procedural fictional neighborhood')+' · same legacy City activity rules as the classic World, simplified graphics.';
