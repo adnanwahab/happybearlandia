@@ -352,3 +352,16 @@ move. Names/avatars are synthetic; outcomes are uncalibrated model observations.
 arm's household → occupied unit → building on every frame and highlights both
 recorded buildings, including different buildings after a move. Unmapped homes
 remain unhighlighted. Camera and simulation playback are unchanged.
+
+Optional sonic differences (`sonic.js`, SHE-508) consume only available recorded
+paired metrics through `createUI.update`. An explicit category selector and Hear
+button support homes, whole-stock rent and capital spending. The shared
+`hbl-media-v1` volume remains zero by default; prior explicit volume choices are
+honored. Captions describe exact deltas, editorial scales and synthetic limits.
+Category determines base pitch, sign determines pitch direction, magnitude sets
+one of three bounded durations; gain never exceeds 0.035 and voices never stack.
+No assets are fetched, no motion is added, and navigation never initiates sound.
+Every state update stops a cue; missing data, errors, previews and zero deltas
+are silent. Disposal/pagehide invalidates pending resumes and closes Web Audio.
+Browser/device listening validation remains required; gain caps are digital
+amplitude limits, not a claim about physical sound pressure or device safety.

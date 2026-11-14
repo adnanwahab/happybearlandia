@@ -1,5 +1,20 @@
 # HappyBearLandia implementation plan
 
+## SHE-508 — optional sonic differences (2026-11-14)
+
+Bounded slice implemented: explicit category/Hear control using existing muted
+volume preferences, deterministic captioned mapping, bounded gain/duration, and
+state/route teardown. Prerequisites: supported paired metrics and Web Audio;
+no audio assets or service credentials. Acceptance: silent defaults/failures,
+repeatable cue, rapid-navigation cancellation, accessible mobile/keyboard use.
+24 focused tests passed (178 assertions); 2 pre-existing coordinator mock
+failures reproduced against original UI. Browser launch blocked by local server
+EADDRINUSE; mobile/keyboard, listening and full-route before/after evidence remain
+pending. No root lint/typecheck script. No commit/PR, merge or deployment.
+Risk: digital gain caps do not certify device loudness. Audit, preserved merge
+policy and rerun evidence: [SHE-508](reviews/SHE-508.md).
+
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,

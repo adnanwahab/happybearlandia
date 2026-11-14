@@ -1,3 +1,4 @@
+import {mountSonicControls} from './sonic.js';
 import {mountFamilyCard} from './family-card.js';
 import {mountControlReadiness} from '../../onboarding/first-run-repairs.js';
 
@@ -169,6 +170,7 @@ export function createUI(container, callbacks = {}) {
   });
   const doc=container.ownerDocument;
   const shell=view.stage.closest('.fm-ui');
+  const sonic=mountSonicControls(shell);
   const catalog=doc.createElement('details');
   const summary=doc.createElement('summary');summary.textContent='Three playable what-if recipes';catalog.append(summary);
   for(const entry of PLAYABLE_RECIPES){
@@ -271,6 +273,7 @@ export function createUI(container, callbacks = {}) {
     const previousExperiment=current.experimentId ?? current.provenance?.experimentId;
     const previousPreview=current.sharePreview;
     current={...current,...patch,...(patch.demo?{demo:{...current.demo,...patch.demo}}:{}),...(patch.provenance?{provenance:{...current.provenance,...patch.provenance}}:{})};
+    sonic.update(current);
     if(patch.recipe){
       const incomingExperiment=current.experimentId ?? current.provenance?.experimentId;
       const accepted=seedInput.getAttribute('aria-invalid')!=='true' && amountInput.getAttribute('aria-invalid')!=='true' && JSON.stringify(patch.recipe)===JSON.stringify(recipe);
@@ -347,5 +350,5 @@ export function createUI(container, callbacks = {}) {
   }
   view.stage.after(familyHost);
   container.querySelector('.fm-household-legacy').hidden=true;
-  return {stageElement:view.stage,storyElement,update,dispose(){family.dispose();familyHost.remove();copyShare.onclick=null;previewOpen.onclick=null;reset.onclick=null;autoCamera.onchange=null;retry.onclick=null;constructionWhy.onclick=null;remember.onclick=null;clear.onclick=null;amountInput.oninput=null;browserShare.onclick=null;copyURL.onfocus=null;seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;demoSkip.onclick=null;demoManual.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
+  return {stageElement:view.stage,storyElement,update,dispose(){sonic.dispose();family.dispose();familyHost.remove();copyShare.onclick=null;previewOpen.onclick=null;reset.onclick=null;autoCamera.onchange=null;retry.onclick=null;constructionWhy.onclick=null;remember.onclick=null;clear.onclick=null;amountInput.oninput=null;browserShare.onclick=null;copyURL.onfocus=null;seedInput.oninput=null;demo.onclick=null;demoPause.onclick=null;demoSkip.onclick=null;demoManual.onclick=null;difference.onclick=null;split.onclick=null;ghosts.onchange=null;view.destroy();}};
 }
