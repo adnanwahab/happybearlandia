@@ -9188,3 +9188,20 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-516 — ambient soundscape (2026-11-14)
+
+Bounded slice: read-only scene geometry/clock adapter, opt-in cosmetic loops,
+shared media volume plus independent ambient toggle, smooth bounded mixing,
+visibility and pagehide teardown. Prerequisites: Web Audio and a user gesture;
+unsupported renderers remain silent. Acceptance: initial silence, scene/time
+selection, rapid retargeting, empty input, failure and disposal tests; mobile
+and keyboard browser evidence when the local browser/server is available.
+Risk: procedural sound quality needs human listening on target devices. No
+simulation, provenance or merge-policy changes. Audit/results: reviews/SHE-516.md.
+
+SHE-516 local status: integrated three-source procedural mixer and controls;
+13 focused tests / 76 assertions passed, syntax and whitespace passed. Browser
+checks added, but server EADDRINUSE on 39961 and 41986 prevents after screenshots
+and browser acceptance. No root typecheck/lint script. Pending target-device
+listening and desktop/mobile browser evidence; details in the linked review.

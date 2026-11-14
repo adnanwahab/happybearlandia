@@ -1,3 +1,4 @@
+import {mountAmbientSound} from './ambient/controls.js';
 import {mountStormCue} from './render/environment/storm-cue.js';
 import {stormIntensityAt} from './weather/parcel-storm.js';
 import {mountPlanChoices,customPlan,stagePlan} from './plan-choices.js';
@@ -2250,6 +2251,9 @@ $("feed").addEventListener("click", (e) => {
 // Retain the authored storm sky tint independently of simulated solar lighting.
 const night = new THREE.Color(0x1a1d2b), sky = new THREE.Color();
 let lightingSnapshot=null,lightingMinute=null,lightingLiving=null;
+const ambientSound = !embedMode ? mountAmbientSound(window, document) : null;
+addEventListener('pagehide', () => ambientSound?.dispose(), {once:true});
+let ambientNextUpdate = 0;
 let acc = 0, slowTimer = 0, lastEvents = -1;
 let lastEmbedPostT = -Infinity;
 let last = performance.now();
@@ -2283,6 +2287,10 @@ function frame(now) {
   const livingMinute=livingWorld?.active?livingWorld.getClockMinute():null;
   const policyFrame=livingWorld?.active?physicalPolicySnapshot:null;
   const policyMinute=Number.isFinite(livingMinute)?livingMinute:world.t;
+  if (now >= ambientNextUpdate) {
+    ambientNextUpdate = now + 250;
+    ambientSound?.update({target:controls.target,height:camera.position.y,buildings:town.buildings,minute:policyMinute});
+  }
   physicalPolicyLayer.update({minute:policyMinute,transitService:livingWorld?.active?(policyFrame?.config?.transitService??0):(world.transitServiceMult??0),projects:world.projects??[],districts:policyFrame?.districts??[],source:livingWorld?.active?'Living configured transit service; no civic project ledger supplied':'Legacy transitServiceMult; actual civic projects only'});
   const stormIntensity = livingWorld?.active ? 0 : stormIntensityAt(world.policy?.storm, world.t);
   cityRenderer.updateCity({parcelStorm:{minute:world.t,intensity:stormIntensity,enabled:!livingWorld?.active}});
