@@ -113,3 +113,15 @@ nor sampled points establish real traffic volume. Ongoing trips are distinct
 from a retained completed-trip ledger. Seed, model version, clock and run
 identity remain on the enclosing snapshot/runtime. Verify with
 `test/population-trip-display.test.js` and the existing model/replay suites.
+
+### Neighbor RSVP rule (house-rsvp.v1)
+
+The existing Population visit subsystem now accepts opt-in RSVP commands; see
+[invitation contract](../../world/house/invitation-contract.md#opt-in-synthetic-rsvp--house-rsvpv1-she-554).
+Current obligations, host physical presence and needs gate a keyed synthetic
+relationship-influenced willingness draw. Declines are minute/ID/seed/version
+recorded; acceptance uses existing walking and explicit door admission, with
+care constraints retained. No empirical preference calibration or future
+calendar reservation is implied. Existing immediate player transport remains
+unchanged. Reproduce with checkpoint, command history and identical step sizes;
+`world/house/rsvp.test.js` checks decisions and arrival replay.

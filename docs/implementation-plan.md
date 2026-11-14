@@ -9188,3 +9188,23 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-554 — model-backed neighbor RSVP (2026-11-14)
+
+Bounded slice in isolated `mini/SHE-554`, one coding worker: opt-in RSVP request
+on the existing visit command/replay timeline, house picker integration and
+focused deterministic/UI tests. Preserve legacy explicit immediate transport.
+Prerequisites: saved Population adult IDs, unambiguous home anchor, existing
+walking/door admission. Acceptance: state-backed decline, seeded willingness,
+committed arrival minute, checkpoint replay and keyboard/failure feedback.
+Risks: stylized uncalibrated willingness; current obligations only, no future
+calendar reservation or empirical social prediction. No external invitations.
+
+Implemented locally: RSVP checks host presence, current travel/work/school,
+house actions/visits, care and essential needs before interruption. A keyed
+synthetic relationship-influenced draw accepts or records a decline. Existing
+worker timeline records both decisions; accepted guests walk to the door and
+require admission. Existing instant calls remain compatible. See
+[review and verification](reviews/SHE-554.md). Browser acceptance remains open:
+focused Playwright server cannot bind port31854 (EADDRINUSE). No deployment,
+merge, remote messages or policy change; automatic merger safety hold retained.
