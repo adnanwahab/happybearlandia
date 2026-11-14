@@ -20,7 +20,7 @@ for (const profile of budgets.profiles) {
         'Peak is sampled main-page V8 used heap, excluding workers, GPU, native and process memory.',
         'Render latency ends after two animation frames; it does not prove display scanout.',
         'Decoded JS response bytes include homepage frames and demo, not compressed transfer bytes.'],
-      samples,
+      status: 'incomplete', samples,
     };
     try {
       for (let run = 0; run < budgets.runs; run++) {
@@ -93,6 +93,7 @@ for (const profile of budgets.profiles) {
           expect(report.observedMax[key], `${profile.id} ${key}`).toBeLessThanOrEqual(limit);
         }
       }
+      report.status = 'passed';
     } finally {
       await writeFile(info.outputPath('measurement.json'), JSON.stringify(report, null, 2));
       await info.attach('measurement', { path: info.outputPath('measurement.json'), contentType: 'application/json' });

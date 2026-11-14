@@ -2,7 +2,8 @@
 
 Status: measurement infrastructure implemented; numeric budgets await a successful
 baseline run. No mobile or laptop hardware has been tested by this change.
-Dependency HBL-W1-006 / SHE-11 is still Backlog in Linear (inspected 2026-11-12).
+Dependency HBL-W1-006 / SHE-11 is marked Done in Linear (inspected 2026-11-14),
+but its latest committed evidence still has no successful browser measurements.
 Do not treat this slice as completion of that renderer-wide cold-start audit.
 
 ## Audit and scope
@@ -87,3 +88,14 @@ Next: execute CI calibration, inspect completeness and host variability, pin
 measured numeric limits, run fixed-limit enforcement, then expand memory accounting
 and renderer coverage using SHE-11 evidence. SHE-40 remains incomplete until the
 measured budgets are selected and verified.
+
+## Completion sprint follow-up — 2026-11-14
+
+PR #74 merged the existing harness, not measured numeric budgets. The follow-up on
+`mini/SHE-40-r2` adds a report completion marker and rejects incomplete calibration,
+incorrect profile settings/sample counts, absent environment provenance and
+inconsistent seed/model/hash/backend evidence. Old reports without a completion
+marker require a fresh run. The generator's 25% allowance is unchanged. Tests use
+explicit contract fixtures, never baseline observations. See
+[the acceptance audit](reviews/SHE-40.md) for exact commands and remaining gates.
+SHE-11's Done status does not supersede its missing measurement evidence.
