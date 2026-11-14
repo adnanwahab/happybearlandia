@@ -2,8 +2,9 @@
 
 // Branch identity is authoritative; PR titles/bodies are untrusted narrative.
 function mergedIssue(event, repository) {
-  const pr = event.pull_request;
-  if (event.action !== 'closed' || pr?.merged !== true ||
+  if (typeof repository !== 'string' || !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository)) return null;
+  const pr = event?.pull_request;
+  if (event?.action !== 'closed' || pr?.merged !== true ||
       event.repository?.full_name !== repository ||
       pr.base?.repo?.full_name !== repository ||
       pr.head?.repo?.full_name !== repository) return null;

@@ -42,8 +42,16 @@ export function observeStartup() {
   requestAnimationFrame(sample);
 }
 
-export async function run(base = 'http://127.0.0.1:3000', output = '/tmp/hbl-cold-start.json') {
-  const { chromium } = await import('@playwright/test');
+export function reportFailures(row) {
+  const failures = [...row.errors];
+  if (Object.values(row.timing).some(value => value === null)) failures.push('Incomplete startup milestones');
+  if (!row.selectedBackend) failures.push('Selected backend unavailable');
+  else if (row.selectedBackend !== row.requestedBackend) failures.push(`Requested ${row.requestedBackend}, selected ${row.selectedBackend}; requested path not measured`);
+  return failures;
+}
+
+export async function run(base = 'http://127.0.0.1:3000', output = '/tmp/hbl-cold-start.json', dependencies = {}) {
+  const { chromium } = dependencies.chromium ? dependencies : await import('@playwright/test');
   const reports = [];
   // Fresh browser per path: no shared HTTP cache, cookies, storage or warmed renderer.
   for (const requestedBackend of ['webgl', 'canvas2d']) {
@@ -76,8 +84,12 @@ export async function run(base = 'http://127.0.0.1:3000', output = '/tmp/hbl-col
       });
       raw.browserVersion = browser.version();
     } catch (error) { errors.push(error.message); }
-    finally { await browser?.close(); }
-    reports.push(buildReport({ ...raw, requestedBackend, url: url.href, errors }));
+    finally {
+      try { await browser?.close(); } catch (error) { errors.push(`Browser cleanup: ${error.message}`); }
+    }
+    const row = buildReport({ ...raw, requestedBackend, url: url.href, errors });
+    row.validationErrors = reportFailures(row);
+    reports.push(row);
   }
   const report = { schemaVersion: 'hbl-cold-start-suite.v1', measuredAt: new Date().toISOString(),
     host: { platform: os.platform(), release: os.release(), arch: os.arch(), cpu: os.cpus()[0]?.model, totalMemoryBytes: os.totalmem() },
@@ -85,7 +97,7 @@ export async function run(base = 'http://127.0.0.1:3000', output = '/tmp/hbl-col
     cache: 'fresh browser/context per path; OS, server and disk caches not cleared', reports };
   await writeFile(output, JSON.stringify(report, null, 2) + '\n');
   console.log(JSON.stringify(report, null, 2));
-  if (reports.some(row => row.errors.length || Object.values(row.timing).some(value => value === null))) process.exitCode = 1;
+  if (reports.some(row => reportFailures(row).length)) process.exitCode = 1;
   return report;
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) await run(...process.argv.slice(2));
