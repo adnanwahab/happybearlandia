@@ -49,3 +49,5 @@ test('street lamps and moving headlights turn on at dusk and honor traffic visib
  details.update(3000,.016,camera,{density:1},{traffic:false},{lighting:simulationLighting(1320)});expect(headlights.visible).toBe(false);
  }finally{details.dispose();}expect(scene.children).toHaveLength(0);
 });
+
+test('daylight presentation override preserves the actual simulated minute',()=>{expect(simulationLighting(0,14)).toMatchObject({minute:0,hour:14});expect(simulationLighting(0).hour).toBe(0);});
