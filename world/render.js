@@ -1,3 +1,4 @@
+import {rankScreenTargets,mountPickPreview,isRenderedHit} from './render/magnetic-picking.js';
 import {mountStormCue} from './render/environment/storm-cue.js';
 import {stormIntensityAt} from './weather/parcel-storm.js';
 import {mountPlanChoices,customPlan,stagePlan} from './plan-choices.js';
@@ -2136,10 +2137,34 @@ const businessUI = businessMode ? mountBusinessMode(world, {
     focusBusiness(b);
   },
 }) : null;
+// Only actual frontmost rendered hits enter the magnetic candidate set.
+function rankCityTargets(x,y){
+ const rect=renderer.domElement.getBoundingClientRect();
+ return rankScreenTargets({x,y,rect,hitAt(px,py){
+  ptr.set((px-rect.left)/rect.width*2-1,-(py-rect.top)/rect.height*2+1);ray.setFromCamera(ptr,camera);
+  const hits=[];
+  const person=livingWorld?.active?null:humanPeople.pick(ray);
+  if(person&&isRenderedHit(person))hits.push({key:'person:'+person.id,label:town.people[person.index]?.name||'Person '+person.id,distance:person.distance,selection:{type:'person',id:person.index}});
+  const building=ray.intersectObjects(meshes).find(isRenderedHit);
+  if(building){const b=building.object.userData.b;hits.push({key:'building:'+b.id,label:b.name||'Building '+b.id,distance:building.distance,selection:{type:'building',id:b.index}});}
+  const journal=journalPins.length?ray.intersectObjects(journalPins.map(x=>x.mesh)).find(isRenderedHit):null;
+  if(journal)hits.push({key:'journal:'+journal.object.userData.journalIndex,label:'Journal '+journal.object.userData.journalIndex,distance:journal.distance,selection:{type:'journal',id:journal.object.userData.journalIndex}});
+  // Vehicles still block expansion; their existing exact-hit inspector owns selection.
+  const vehicle=cityRenderer.pickVehicle?.(ray);if(vehicle)hits.push({key:'vehicle:'+vehicle.id,label:'Vehicle '+vehicle.id,distance:vehicle.distance,vehicle});
+  return hits.sort((a,b)=>a.distance-b.distance)[0]||null;
+ }});
+}
+const magneticPicker=mountPickPreview(renderer.domElement,{rank:rankCityTargets,enabled:()=>!livingWorld?.active&&!businessUI,onPick:hit=>{
+ if(hit.vehicle){select(null);selectedVehicle=hit.vehicle.id;vehicleInspector?.select(hit.vehicle);return;}
+ selectedVehicle=null;vehicleInspector?.select(null);if(hit.selection.type==='person'&&emitLegacyPersonContext({clientX:hit.x,clientY:hit.y,type:'pointerup'},hit.selection.id)===false)return;select(hit.selection);
+}});
+addEventListener('pagehide',()=>magneticPicker.destroy(),{once:true});
 renderer.domElement.addEventListener("pointerdown", (e) => { downAt = [e.clientX, e.clientY];ptr.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);ray.setFromCamera(ptr,camera);downVehicle=cityRenderer.pickVehicle?.(ray)||null; });
 renderer.domElement.addEventListener("pointerup", (e) => {
   if(e.defaultPrevented)return; // Living City claimed an actual sampled person; let OrbitControls finish release.
   if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) return; // was a drag
+  if(e.button!==0)return;
+  if(!livingWorld?.active&&!businessUI){if(!magneticPicker.choose(e.clientX,e.clientY))select(null);return;}
   ptr.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
   ray.setFromCamera(ptr, camera);
   const hp = livingWorld?.active?null:humanPeople.pick(ray);

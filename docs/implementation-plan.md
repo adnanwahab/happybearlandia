@@ -9188,3 +9188,19 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-445 — magnetic city picking
+
+Local slice: bound screen-space ray sampling to 24 CSS pixels, retain only
+frontmost visible hits, preview and disambiguate near ties with native controls.
+No model mutation. Acceptance: ranking/visibility/edge tests, keyboard/touch
+browser coverage and evidence. Risks: sampled silhouettes can miss subpixel
+geometry; Living Population retains its own picker; Canvas2D remains unchanged.
+Open interaction PRs #330/#331 need integration review before merging.
+
+SHE-445 verification: 17 Bun tests / 111 assertions pass; syntax and diff checks
+pass. Two Playwright cases discover successfully; execution is blocked before
+launch by EADDRINUSE on ports 39945 and 42145. Browser screenshots and full mobile
+acceptance remain pending. No commit/PR created. See [review](reviews/SHE-445.md)
+for audited PR conflicts, unchanged merge policy, exact scope and remaining
+Population/Canvas2D, silhouette and hardware acceptance work.
