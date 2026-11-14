@@ -1,3 +1,4 @@
+import {mountSceneContextMenu} from './scene-context-menu.js';
 import {mountStormCue} from './render/environment/storm-cue.js';
 import {stormIntensityAt} from './weather/parcel-storm.js';
 import {mountPlanChoices,customPlan,stagePlan} from './plan-choices.js';
@@ -2665,4 +2666,33 @@ if(!embedMode&&!businessMode&&!simulationId&&!loadedExperiment&&!renderBenchmark
   syncComparisonControls();const comparisonControlsTimer=setInterval(syncComparisonControls,200);
   guide.update(state());guide.show();
   addEventListener('pagehide',()=>{clearInterval(comparisonControlsTimer);controller.dispose();comparisonWorker?.terminate();visualCamera.dispose();visualSpotlight.dispose();accessibility.dispose();guide.dispose();visualPanels.dispose();renderer.domElement.removeEventListener('pointerdown',interruptCamera);renderer.domElement.removeEventListener('wheel',interruptCamera);},{once:true});
+}
+
+// Reuse current inspector commands; no independent simulation action catalogue.
+if(!embedMode){
+ const style=document.createElement('link');style.rel='stylesheet';style.href='/world/scene-context-menu.css';document.head.append(style);
+ renderer.domElement.tabIndex=0;
+ const readSelection=()=>{
+   const livingActor=livingWorld?.active&&!selected?commandSelection():null;
+   if(!selected&&!livingActor)return null;
+   const entity=livingActor|| (selected.type==='person'?town.people[selected.id]:selected.type==='building'?town.buildings[selected.id]:null);
+   if(!entity)return null;
+   const root=livingActor?document.querySelector('[data-lc-person]'):$('inspect');
+   const buttons=[...root.querySelectorAll(livingActor?'.lc-row button':'.row button')];
+   return {key:(livingActor?'living':selected.type)+':'+entity.id,label:entity.name||entity.label,actions:[
+     {label:'Inspect',run:()=>{if(!livingActor)visualPanels?.open('inspect');root.querySelector('button')?.focus();}},
+     ...buttons.map(button=>({label:button.textContent,reason:button.disabled?(button.title||'Currently unavailable'):null,run:()=>{const latest=[...root.querySelectorAll('button')].find(b=>b.textContent===button.textContent);if(latest&&!latest.disabled)latest.click();}}))
+   ]};
+ };
+ const contextMenu=mountSceneContextMenu({canvas:renderer.domElement,readSelection,resolve:async event=>{
+   const rect=renderer.domElement.getBoundingClientRect();ptr.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);ray.setFromCamera(ptr,camera);
+   const building=ray.intersectObjects(meshes)[0],person=livingWorld?.active?null:humanPeople.pick(ray);
+   const resident=livingWorld?.active?livingWorld.pick(ray):null;
+   if(resident&&(!building||resident.distance<building.distance)){select(null);await livingWorld.selectPerson(resident.personId);return readSelection();}
+   if(person&&(!building||person.distance<building.distance))select({type:'person',id:person.index});
+   else if(building)select({type:'building',id:building.object.userData.b.index});
+   else return null;
+   return readSelection();
+ }});
+ addEventListener('pagehide',()=>{contextMenu.destroy();style.remove();},{once:true});
 }

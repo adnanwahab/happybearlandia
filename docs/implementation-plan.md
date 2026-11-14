@@ -9188,3 +9188,23 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-446 — scene context actions (2026-11-14 local candidate)
+
+Slice: reuse actual primary inspector commands for buildings and legacy/Population
+people through a shared DOM pie/list menu. One worker on isolated mini/SHE-446.
+Prerequisites: existing ray picking, exact authority-scoped identities and inspector
+handlers. Acceptance tasks: stationary hold/click suppression, cancelled gesture,
+keyboard/focus/disabled reason behavior, reduced-motion list, normal-entry browser
+and desktop/mobile visual evidence. Risks: concurrent renderer PRs #326/#329/#330,
+separate Canvas2D renderer and actual assistive-technology acceptance.
+
+Delivered shared menu, normal 3D World adapter and focused tests. Actual checks:
+17 tests pass /72 assertions; 375-module browser bundle; Node syntax and diff
+checks pass; two Playwright tests discover. Execution blocked before browser
+launch by EADDRINUSE3499. Unchanged catalog test fails32 versus33 entries.
+No root lint/typecheck script. No after-browser evidence claimed; before artifacts
+were preexisting. Canvas2D/vehicles/journal menu parity and actual picked-object
+browser action/assistive-technology acceptance remain open. Full audit, commands,
+limitations and preserved disabled auto-merge policy: [review](reviews/SHE-446.md).
+No model/ODD changes, merge, deployment, production write or external messages.
