@@ -9188,3 +9188,15 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-484 — Predict then reveal (2026-11-14)
+
+Bounded slice: optional session-local housing-supply direction prediction at the
+existing Decision Studio run controls. Lock an immutable player record separately
+from model inputs/results; resolve only completed exact-recipe batches using
+matched seeds and mean final housing supply in homes. Unknown/missing values are
+unscored; ties require exact equality. No animation or additional model execution.
+Tasks: scoring and isolation checks, normal-entry keyboard/mobile browser test,
+local comparison timing, and evidence review. Risk: session-only retention; reload
+starts a new prediction. No empirical forecast, model change or new ABM.
+Verification and prerequisites are recorded in docs/reviews/SHE-484.md.
