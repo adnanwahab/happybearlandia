@@ -9188,3 +9188,30 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-517 — flood depth cutaway (2026-11-14)
+
+Bounded local slice: optional selected-row vertical depth profile in the existing
+storm hazard inspector. Reuse recorded depth, arm, step, cell and provenance;
+fixed 0–1 m vertical scale with explicit overflow and exact readings, existing
+0/.10/.40 m colour bands, unknown cells distinct from dry. Universal DOM/CSS 2D
+path avoids GPU/assets/animation and supports low quality and reduced motion.
+Tasks: implement pure projection and accessible optional profile; integrate shared
+selection; dispose inspector/page resources; focused unit and browser regressions
+with route-specific before/after evidence. Acceptance includes deterministic
+read-only projection, missing/empty/overflow, keyboard/mobile, rapid step/arm/view
+changes and teardown. Risk: schematic depth above local ground is not an elevation
+survey, subsurface model, probability or forecast. No model/ODD rules change.
+
+SHE-517 delivered locally: optional selected-row depth cutaway, shared recorded
+frame/provenance and selection, fixed scale/overflow/missing readings, universal
+static 2D path, inspector disposal and page-departure cleanup. Focused storm tests:
+24 pass / 733 assertions; browser entry bundle and syntax/diff checks pass.
+No configured lint/typecheck script. Three browser cases discover; actual run
+blocked before launch by server EADDRINUSE on35177, independently reproduced by
+direct server start. Route-specific before/after browser evidence, mobile/focus
+and lifecycle acceptance remain unverified. Generic coordinator screenshots do
+not establish lens acceptance. See [review and reproduction](reviews/SHE-517.md)
+for audited PRs, baseline, mechanism/ODD boundary and unchanged disabled automatic
+merge policy. Next: execute browser suite and inspect captures on a bind-capable
+host. No merge/deployment/production or remote tracker write performed.
