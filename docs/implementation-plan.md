@@ -9188,3 +9188,27 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-520 — construction-site milestone presentation — November 14, 2026
+
+Bounded slice implemented locally on mini/SHE-520 after source and open-PR keyword
+audit. Prerequisites: existing exact-month City snapshots and construction events.
+Acceptance: no effects in delay months, recorded milestone/cost details, skip and
+reduced-motion behavior, bounded resources and navigation cleanup. Risk: monthly
+partial progress is not a license to imply work during a delayed checkpoint.
+Selector suppresses every delayed checkpoint and uses only start/top/completion.
+
+Delivered: exact project/month event selector; labeled three-second cosmetic
+crane/delivery/scaffold/dust overlay; keyboard skip; reduced-motion/save-data
+suppression; state-owned cost/overrun caption; pagehide worker/timer/view cleanup
+and bfcache recreation. No simulation rule or source identity changed. Module
+contract: world/hidden-systems/README.md. Audit: docs/reviews/SHE-520.md.
+
+Focused and adjacent City regression tests passed 22/2460 assertions; browser entry bundle passed. Browser
+acceptance and before/after feature captures remain unverified: Playwright server
+bind failed EADDRINUSE on default/dedicated ports and a port-0 loopback probe.
+Added focused browser journeys for required navigation/accessibility/fallback and
+resource-disposal checks. Next: run test/hidden-systems.browser.config.js on a
+socket-capable runner, review screenshots and fix any observed failures. Root
+package has no lint or typecheck script. Existing disabled auto-merge safety hold
+and voting/auth/check requirements preserved. No PR, merge or deployment.

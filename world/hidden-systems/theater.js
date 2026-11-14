@@ -1,3 +1,4 @@
+import { recordedBeat, DELAY_TYPES as delayTypes } from './choreography.js';
 const stageLabels = new Map([
   ['proposal', 'Proposal'],
   ['financing', 'Financing'],
@@ -6,7 +7,6 @@ const stageLabels = new Map([
   ['completion', 'Completed'],
   ['abandoned', 'Abandoned'],
 ]);
-const delayTypes = new Set(['CAPACITY_DELAY', 'MATERIAL_DELAY', 'CAPITAL_PROJECT_DELAYED', 'IMPLEMENTATION_DELAY']);
 const ratio = (value, max) => Math.min(1, Math.max(0, value / max));
 const ink = '#152b2a';
 
@@ -160,7 +160,16 @@ export function mountTheater(host) {
   rotateLeft.type = rotateRight.type = 'button';
   cameraControls.append(rotateLeft, rotateRight);
   cameraControls.hidden = true;
-  viewport.append(fallback, canvas, cameraControls);
+  const effects = element('div', 'construction-theater__effects');
+  effects.setAttribute('aria-hidden', 'true');
+  const skip = element('button', 'construction-theater__skip', 'Skip sequence');
+  skip.type = 'button';
+  skip.hidden = true;
+  const milestone = element('p', 'construction-theater__milestone');
+  const costs = element('p');
+  const cosmetic = element('p', 'construction-theater__note',
+    'Cosmetic crane, delivery, scaffold and dust choreography illustrates recorded milestones; it is not observed site activity.');
+  viewport.append(fallback, canvas, effects, cameraControls);
 
   const caption = element('figcaption', 'construction-theater__caption');
   const title = element('strong', null, 'No recorded project');
@@ -172,10 +181,20 @@ export function mountTheater(host) {
   progress.hidden = true;
   progress.setAttribute('aria-label', 'Recorded construction progress');
   const mode = element('p', 'construction-theater__note', 'Schematic elevation');
-  caption.append(title, summary, progress, delay, mode);
+  caption.append(title, summary, milestone, costs, progress, delay, skip, cosmetic, mode);
   figure.append(viewport, caption);
   host.append(figure);
 
+  const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  function cancelSequence() {
+    effects.replaceChildren();
+    skip.hidden = true;
+  }
+  skip.addEventListener('click', cancelSequence);
+  motion.addEventListener('change', cancelSequence);
+  effects.addEventListener('animationend', event => {
+    if (event.target.classList.contains('construction-theater__dust')) cancelSequence();
+  });
   let scene;
   let project;
   let stage = stageFor(project);
@@ -233,6 +252,22 @@ export function mountTheater(host) {
       const projects = snapshot?.projects ?? [];
       project = projectId == null ? projects[0] : projects.find(candidate => candidate.id === projectId);
       stage = stageFor(project);
+      cancelSequence();
+      const beat = recordedBeat(snapshot, project);
+      milestone.textContent = beat
+        ? `Recorded milestone · ${beat.label} · ${beat.event.eventType} · Month ${beat.event.simulationTime} · ${beat.event.id ?? 'Event ID unavailable'}`
+        : 'No eligible construction milestone at this month.';
+      const money = value => Number.isFinite(value)
+        ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(value) : 'unavailable';
+      costs.textContent = project
+        ? `Modeled illustrative USD · Project cost ${money(project.cost)} · Delay overrun ${money(project.costOverrun)}. These are not a spending ledger.`
+        : 'Project costs unavailable.';
+      if (beat && !motion.matches && !navigator.connection?.saveData) {
+        for (const name of ['crane', 'delivery', 'scaffold', 'dust']) {
+          effects.append(element('span', `construction-theater__${name}`));
+        }
+        skip.hidden = false;
+      }
       title.textContent = project ? `${stage.label} · ${project.id}` : stage.label;
       const month = Number.isSafeInteger(snapshot?.month) ? `Month ${snapshot.month}` : '';
       const details = [month];
@@ -262,6 +297,8 @@ export function mountTheater(host) {
       if (destroyed) return;
       destroyed = true;
       observer.disconnect();
+      cancelSequence();
+      motion.removeEventListener('change', cancelSequence);
       canvas.removeEventListener('webglcontextlost', showFallback);
       scene?.destroy();
       figure.remove();
