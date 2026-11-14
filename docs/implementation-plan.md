@@ -8952,3 +8952,19 @@ no browser change, Playwright skipped. Hard host containment, live retry/recover
 and hosted secret/sync verification remain pending. Automatic merging stays
 held by literal false; no quorum, voting/auth/check change, external publication,
 merge, deployment or production operation. No commit or PR created this turn.
+
+## SHE-239 — tournament director specification (2026-11-13)
+
+Delivered analysis-only `docs/reviews/SHE-239.md` at baseline `5fdb9683`: seven
+missions, each with three competing hypothesis designs and a decisive experiment;
+six-dimension weighted rubric, common Codex results template, reproducibility and
+failure gates. Audited prior SHE-240 output, clean older SHE-239 worktree, live
+SHE-77/131/161/169 statuses and merged PR metadata. Both readiness labels already
+exist. Prior disk-full checkout failure is preserved; fresh worktree used.
+No product/model behavior changed. Focused existing foundation checks: 24 pass,
+1 opt-in browser skip, 0 fail, 654 assertions. Current City 1.1.0 receipt and exact
+commands are recorded in the report; historical 1.0.0 hashes are not substituted.
+Specification acceptance is complete; no candidate is implemented or declared a
+winner. Next: choose and preregister a bounded experiment, recheck ownership and
+prerequisites, then gather actual normal-entry/user/device evidence. Voting,
+auth/check and merge policy remain unchanged; no release action authorized.
