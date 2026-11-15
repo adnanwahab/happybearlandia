@@ -9315,6 +9315,33 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
 
+## SHE-552 — contextual conversation wheel (local slice)
+
+Plan: reuse canonical conversation styles, target selection, relationship gates,
+consent dialog and final model admission. Add a DOM radial style selector with
+visible time/cost and selected-target availability; narrow/reduced-motion layouts
+use a static grid. Verify keyboard selection, target changes and stale async checks.
+No simulation rules, seeds, clocks, identities or merge configuration change.
+Audit: open GitHub PR search for conversation returned no matches on 2026-11-14;
+nearby open work includes SHE-553 comedy and SHE-554 visits. Keep this slice in
+conversation presentation; integrate against those changes before merge.
+Acceptance: only a chosen subject submits, final admission remains authoritative,
+existing completed actions/relationship memories retain outcome and replay provenance.
+
+Local result: wheel integrated into the existing household subject dialog. Native
+select remains an accessible fallback; static two-column layout applies below
+650px or with reduced motion. Selected style/partner admission is asynchronous,
+with revision isolation; final submission is still checked by the existing model.
+Relationship context includes the last retained outcome's action ID and minute.
+Verification: 31 tests / 209 assertions pass across house UI, invitations/topics,
+and relationships; browser bundle succeeds with server-owned `/vendor/*` external.
+No repository typecheck/lint script exists. Playwright tests added for keyboard,
+target context, narrow reduced-motion layout and stale responses. They could not
+run: server bind failed on three ports; standalone Chromium startup was denied
+macOS bootstrap permission. Before/after house browser evidence and normal-entry
+browser acceptance remain pending in an unrestricted local browser environment.
+No PR, deployment, merge, approval labels or merge-policy changes performed.
+
 ## SHE-554 — model-backed neighbor RSVP (2026-11-14)
 
 Bounded slice in isolated `mini/SHE-554`, one coding worker: opt-in RSVP request
