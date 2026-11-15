@@ -352,3 +352,42 @@ move. Names/avatars are synthetic; outcomes are uncalibrated model observations.
 arm's household → occupied unit → building on every frame and highlights both
 recorded buildings, including different buildings after a move. Unmapped homes
 remain unhighlighted. Camera and simulation playback are unchanged.
+
+## Future Watch Party (SHE-580, local review slice)
+
+`watch-party-ui.js` mounts on the normal Future Machine page. The HTTP service
+is disabled unless the operator sets `HBL_FUTURE_WATCH_LOCAL=1`. This change does
+not activate it anywhere. Use disposable City stores for local review.
+
+Both participants first open the same saved comparison by the existing sharing
+flow. Start party generates a private invitation, manually conveyed outside the
+app; Join party checks the local canonical Month 0 receipt checksum, including
+model/rules revision and terminal outcomes. No invitation is sent by the app.
+Host capabilities stay in memory. Invitation capabilities are entered manually,
+never added to URLs, browser storage or telemetry. Do not share them publicly.
+No profiles, names, chat or personal data fields are collected by this feature.
+Rooms and the last eight allowlisted cosmetic reactions exist in server memory,
+expire after 30 minutes, disappear on restart, and can be ended by the host.
+Expired rooms are removed on request or within one second by the cleanup timer.
+
+Host month and validated landing context are sampled every 500 ms. Viewers read
+latest snapshots, including after a temporary disconnect; no independent remote
+clock is extrapolated. This is eventual presentation alignment, not frame-accurate
+media synchronization. Branch means the existing baseline/plan/comparison display
+mode; no new model branch is computed. Camera uses the existing shared landing
+pose contract, not a full renderer-specific quaternion/zoom bookmark. Compatible
+camera positions apply immediately without animation; incompatible/absent graphics
+retain the local camera with a status message. Canvas2D is supported. A manual
+viewer change or Take independent control stops following; Follow host restores
+it. Opening a different run detaches the party. Page reload needs manual rejoin.
+
+The service accepts only bounded display state and allowlisted reactions, never
+simulation inputs, model results or run writes. Receipt matching is a local
+consistency check, not third-party certification. The server relays the host's
+checksum and presentation without computing or certifying a model. Existing run,
+seed, authority, entity and Month 0–120 mappings remain untouched.
+
+External prerequisites: reviewed HTTPS hosting, operational capacity/abuse controls,
+and capability handling/log-redaction review before any live activation. No live
+service, invitations, deployment or production credentials are used here.
+Focused checks and outstanding browser evidence: `docs/reviews/SHE-580.md`.

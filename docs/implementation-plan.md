@@ -9188,3 +9188,27 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-580 — Future Watch Party (2026-11-14)
+
+Next bounded slice: opt-in ephemeral two-person presentation sharing on the
+Future Machine entry point. One coding worker owns protocol, transport and UI.
+Reuse canonical Month 0 run receipts and validated landing contexts; never
+accept model inputs, run state or computation from participants. Acceptance:
+matching receipt before follow, host-only bounded presentation updates, local
+independent control, reconnect to latest snapshot, cosmetic reactions, explicit
+unavailable/expired states and keyboard controls. Test protocol and HTTP boundary,
+then focused browser smoke using disposable stores. Risks: capability disclosure,
+receipt mismatch and stale responses. No live activation; cross-device use needs
+separately reviewed HTTPS deployment.
+
+SHE-580 actual status: implemented the disabled-by-default presentation relay,
+canonical receipt gate, coordinator integration, independent control, reconnect
+snapshots and cosmetic reactions. Focused unit/in-process HTTP integration and
+run regressions passed 18 tests / 217 assertions; syntax checks passed. No root
+lint/typecheck script exists. Two-page Playwright was added but could not launch:
+Bun.serve reports EADDRINUSE on ports 39884 and 41980. Actual Future Machine
+before/after visual acceptance remains pending; inherited screenshots show other
+routes. Scope and external HTTPS/operations prerequisites are recorded in
+[the SHE-580 review](reviews/SHE-580.md). No simulation changes or live activation;
+existing merge safety hold preserved. No commit or PR reference yet.
