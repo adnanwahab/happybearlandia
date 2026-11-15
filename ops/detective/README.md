@@ -39,3 +39,32 @@ capacity 200, and annual growth zero. Events and joins are model observations;
 causal certainty and empirical prediction are not claimed. Recipes/rules and
 seeds are disclosed in the receipt only after reveal. Receipts verify internal
 deterministic recomputation, not independent recorded-checkpoint equivalence.
+
+## Causal Escape Room (SHE-578)
+
+The same entry now frames case 1 as the authored “extra homes” archive mystery;
+other cases and scoring remain compatible. The story/lock are narrative, with no
+simulation effect. Inventory subtraction, recorded completion homes and the exact
+plan housing-units node support the answer. The WHY notebook exposes original
+arm-scoped node IDs, entity IDs, event IDs, months, joins and unavailable reasons
+from `buildEvidenceTrail`; it does not expose raw policy/project records before
+reveal. The independent causal trace remains explicitly unavailable.
+
+New attempts persist `detective-evidence.v1`: allowlisted inventory, completion
+records, trail, model version, seed and monthly-clock description, plus SHA-256,
+recipe hash and matched receipt. Reads and answers use those frozen records,
+not a fresh run. Correctness requires both the recipe hash match and agreement
+with the graph's inventory difference, recorded units and completion homes.
+Same-case recipes reproduce the same graph; choice UUIDs/order remain per attempt.
+A damaged graph returns 409. Old attempts without frozen evidence are frozen on
+first access using their stored recipe and the installed engine; this migration
+cannot establish equivalence to an earlier historical engine. Existing reveals
+remain immutable. Engine changes require explicit recipe/version migration rather
+than silently treating new results as historical evidence.
+
+Hints use native details/summary and do not change steps or gate submission.
+The notebook uses readable text and a polite live region, answer choices have a
+fieldset legend, and reveal receives focus. No canvas, WebGL, animation, audio,
+external service or browser simulation is needed. This is the low-end and reduced
+motion path. No new personal data or telemetry is collected. Saved-ID access and
+single-writer storage limitations above continue to apply.

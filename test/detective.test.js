@@ -31,3 +31,32 @@ test('saved ID only, allowlisted evidence, immutable hash-verified reveal and re
  expect((await call('',{caseIndex:5})).status).toBe(400);expect((await call('/unknown')).status).toBe(404);
  }finally{rmSync(root,{recursive:true,force:true});}
 });
+
+test('frozen WHY graph replays identically and rejects altered evidence',async()=>{
+ const root=mkdtempSync(join(tmpdir(),'detective-frozen-'));
+ try{
+  let handle=createDetectiveHandler({root});
+  const call=async(path='',body)=>{const response=await handle(new Request('http://local/api/detective'+path,body===undefined?{}:{method:'POST',body:JSON.stringify(body)}));return {status:response.status,data:await response.json()};};
+  const first=(await call('',{caseIndex:0})).data.experimentId;
+  const second=(await call('',{caseIndex:0})).data.experimentId;
+  const trail=(await call('/'+first+'/evidence',{step:'trail'})).data.evidence;
+  expect((await call('/'+second+'/evidence',{step:'trail'})).data.evidence).toEqual(trail);
+  expect(trail.nodes.some(n=>n.arm==='baseline'&&n.status==='unavailable')).toBe(true);
+  const units=trail.nodes.find(n=>n.type==='housing-units');
+  const completion=(await call('/'+first+'/evidence',{step:'completion'})).data.evidence.recordedCompletions[0];
+  expect(units.homes).toBe(completion.homes);expect(units.eventId).toBe(completion.eventId);
+  expect(trail.relationships.every(e=>trail.nodes.some(n=>n.id===e.from)&&trail.nodes.some(n=>n.id===e.to))).toBe(true);
+  handle=createDetectiveHandler({root});
+  expect((await call('/'+first+'/evidence',{step:'trail'})).data.evidence).toEqual(trail);
+  const p=(await call('/'+first)).data;
+  const answer=p.choices.find(c=>c.label.startsWith('Authorize '+units.homes+' '));
+  const solved=(await call('/'+first+'/answer',{choiceId:answer.id})).data;
+  expect(solved.correct).toBe(true);expect(solved.graphHash).toBe(await stateHash(solved.proof));
+  const {readFileSync,writeFileSync}=await import('node:fs');
+  const path=join(root,'attempts.json'),records=JSON.parse(readFileSync(path,'utf8'));
+  records[second].frozen.graph.inventory.hiddenFutureHomes++;writeFileSync(path,JSON.stringify(records));
+  handle=createDetectiveHandler({root});
+  expect((await call('/'+second)).status).toBe(409);
+  expect((await call('/'+second+'/answer',{choiceId:answer.id})).status).toBe(409);
+ }finally{rmSync(root,{recursive:true,force:true});}
+});
