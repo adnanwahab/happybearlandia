@@ -1,5 +1,10 @@
 # HappyBearLandia implementation plan
 
+## SHE-569 — neighborhood palette workshop
+
+Bounded slice: authored schematic preview on `/world/invention/`, independent architecture, vegetation and lighting presets, before/after, local versioned save/reapply and reset. Prerequisites: static module serving and browser storage (preview works without persistence). Acceptance: deterministic rendering, strict recipe validation, no simulation imports/writes, accessible native controls, responsive static SVG without WebGL or motion. Risks: storage denial/corruption and confusion with measured City outputs; explicit status and aesthetic labels address these. Existing PR #372 owns live World architecture materials; this slice does not modify that renderer. Verification status follows in the SHE-569 review.
+
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,
@@ -9188,3 +9193,13 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+### SHE-569 verification status
+
+Local recipe/controller slice complete: 6 focused tests / 230 assertions pass,
+including existing invention replay; runtime syntax and whitespace checks pass.
+No root lint/typecheck command. Browser checks and screenshot capture are provided
+but execution is pending: server startup failed EADDRINUSE on 3000 and 54389;
+Playwright/Chromium are absent locally. Next action is browser setup and focused
+normal-route verification. Scope and preserved merge policy:
+[review](reviews/SHE-569.md). No merge or deployment.
