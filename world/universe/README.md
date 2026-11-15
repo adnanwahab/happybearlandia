@@ -106,3 +106,21 @@ installed `happy-dom` entry module. The optional `HBL_PALETTE_STATIC=1` browser
 transport serves actual source documents with Playwright route fulfillment when
 local listening is unavailable; it does not verify Bun serving or simulation APIs.
 See `docs/reviews/SHE-444.md` for actual evidence and outstanding browser gates.
+
+## Route constellation (SHE-439)
+
+`/routes` uses all current registry entries (33), with the same card nodes and
+exact canonical hrefs in Constellation and Flat list. Four editorial families
+reuse the directory's category mapping. Static SVG edges mean family membership
+only. Search, category and favorites filtering apply to both views. Native Tab
+order follows registry order; focus scrolls instantly to offscreen controls.
+Zoom is bounded to 75–150%; the viewport scrolls on small screens. No animation,
+GPU, force simulation, random values or model reads/writes are involved, including
+under reduced motion. Flat list retains card descriptions and favorite controls.
+
+Checks: `bun test test/constellation.test.js test/universe-shell.test.js
+ test/html-navigation.test.js`; optional `HBL_CONSTELLATION_DOM` points at an
+installed happy-dom module for DOM checks. Browser suite:
+`bunx playwright test --config test/e2e/constellation.config.js`.
+The suite intercepts local source files without a server; it verifies directory
+presentation, not Bun routing, model operation or external destination services.
