@@ -10,6 +10,7 @@ import {createQuickDemoController} from './onboarding/quick-demo-controller.js';
 import {mountFirstRunGuide} from './first-run-guide.js';
 import {createFeedbackAdapter,stormFeedback} from './onboarding/feedback-adapter.js';
 import {createPanelManager} from './onboarding/panel-manager.js';
+import {mountCameraPresets} from './camera-presets.js';
 import {createCameraDirector} from './onboarding/camera-director.js';
 import {createSpotlight} from './onboarding/spotlight.js';
 import {mountWorldAccessibility} from './onboarding/accessibility.js';
@@ -2389,7 +2390,7 @@ function frame(now) {
     }
   }
 
-  updateArrival(now);controls.update();
+  updateArrival(now);cinematicCamera?.update(now);controls.update();
   if(buildingDateBridge?.get().enabled&&now-buildingDateLastRefresh>500){buildingDateLastRefresh=now;buildingDateBridge.refresh();}
   personCommandUI?.update();
   houseEntryControls?.update();
@@ -2578,6 +2579,14 @@ if (!embedMode && !businessMode && !simulationId && !loadedExperiment) {
   window.dispatchEvent(new CustomEvent('hbl:world-ready'));
   addEventListener('pagehide',()=>{delete window.hblGuidedActions;},{once:true});
 }
+// Camera presets share existing scene coordinates; never select or command a model entity.
+const cinematicCamera=!embedMode?mountCameraPresets({container:$('top'),camera,controls,canvas:renderer.domElement,
+ getBuildings:()=>[...town.buildings,...contextBuildings.values()],
+ getSubject:()=>{if(livingWorld?.active)return livingWorld.getCameraSubject();if(selected?.type!=='person')return null;const p=smooth[selected.id];return p?{key:'legacy:'+String(town.people[selected.id].id??selected.id),position:{x:p.x,y:0,z:p.z}}:null;},
+ stopGuidance:()=>{arrivalDone=true;follow=false;visualCamera?.cancel();dispatchEvent(new CustomEvent('world:local-pan'));},
+ reducedMotion:()=>matchMedia('(prefers-reduced-motion: reduce)').matches}):null;
+addEventListener('pagehide',()=>cinematicCamera?.dispose(),{once:true});
+
 startup.readyMs=performance.now();for(const [node,disabled] of startupDisabled)node.disabled=disabled;startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);
 requestAnimationFrame(frame);
 

@@ -30,6 +30,32 @@ git diff --check
 
 The type check verifies the exported API declarations against the shared TypeScript contract; JavaScript behavior is covered by runtime/unit/browser checks. Browser tests use same-origin fixture app documents to isolate shell behavior from GPU startup, upstream services, and individual model availability. They do not certify all app models or automatically install chrome into all 29 standalone apps.
 
+### Optional contextual hints
+
+`contextual-hints.js` mounts one inline, closed-by-default disclosure in the
+existing standalone navigation; `/routes` mounts it beside directory tools.
+It discovers native labeled buttons/fields and links only on request, excludes
+hidden, inert, disabled and navigation controls, prefers actions over links, and
+rechecks availability before focusing. It never clicks, changes inputs, reads
+model state, advances time or runs an experiment. Labels come from the actual
+controls, not inferred simulation evidence. Focus scrolls instantly, including
+with reduced motion. No polling, animation or automatic prompt is added.
+
+Dismissal uses `hbl-hints:v1:<experienceId>` in localStorage. It closes the panel
+and retains a manually reopenable “dismissed” handle across reloads. Storage
+failure keeps session dismissal usable. Native button keyboard activation and
+Escape work; there is no focus trap or duplicate overlay. Shared bootstrap
+coverage follows `registeredHTMLFiles()`; unrelated standalone documents and
+the homepage shell require their own integration. Generic DOM order is a first
+slice, not a claim that every workspace has an authored tutorial.
+
+Checks: `bun test test/contextual-hints.test.js test/html-navigation.test.js
+ test/universe-shell.test.js test/local-journeys.test.js` and
+`bunx playwright test --config test/e2e/contextual-hints.config.js`.
+The browser suite serves local documents through request interception and does
+not fabricate model/API responses or certify live services. Optional
+`HBL_HINT_BROWSER` selects an installed Chromium executable.
+
 Homepage **Surprise Me** uses `surprise.js` and the ordered `curated-wonders.1`
 curation: Future Machine (Canvas2D), Reverse Simulator and Reality Breakpoints.
 These existing local City entry points require no account or live provider.

@@ -129,6 +129,40 @@ changes and records before/after screenshots plus video. See
 `docs/reviews/SHE-165.md` for actual execution limits; the test existing is not
 proof it passed.
 
+## Cinematic camera presets (SHE-474)
+
+Open World controls → Camera for Street, Rooftop, Skyline and Follow. Presets cut
+immediately to authored framing offsets around the selected resident or current
+orbit target. Return retains the camera pose before the first preset, across
+subsequent preset choices. Entity selection is unchanged. Follow resolves the
+active authority's selected resident only; unavailable/filtered Population
+positions do not acquire invented coordinates. `getCameraSubject()` on the
+Living view returns `{key: 'living:<id>', position: {x,y,z}}` from the rendered
+sample, or null, and performs no model commands.
+
+Pointer/touch, wheel, OrbitControls start, local pan and Escape/navigation keys
+stop preset follow. Reduced motion frames once; enabling it during follow stops
+pursuit. Existing arrival, legacy follow, Living follow and visual guidance are
+stopped before applying a preset. No additional animation loop, simulation
+clock, seed, run, evidence or ID mapping is introduced. Canvas2D uses the same
+camera and the current rendering quality is retained.
+
+Pose search tests at most 48 candidates within 660m of the target and uses
+conservative building footprint boxes with 3m clearance, ground height ≥3m and
+ceiling 1200m. These are presentation bounds, not surveyed navigation or
+pedestrian routes. Street is a low photographic camera, not first-person walking.
+Rooftop frames above nearby roofs rather than placing a resident on a roof.
+Boxes refresh every 500ms during follow and on each explicit choice/return;
+newly streamed or edited geometry can therefore take up to 500ms to enter follow
+collision checks. Trees, vehicles and rooftop ornaments are not collision solids.
+No valid pose leaves the current camera untouched and displays an explanation.
+Return also refuses a previous pose now occupied by a building.
+
+Run `bun test test/camera-presets.test.js test/world-visual-camera.test.js` and
+`bun scripts/performance/camera-presets.js`. Browser coverage lives in the World
+camera suite and the server-independent `test/camera-presets.browser.config.js`.
+See `docs/reviews/SHE-474.md` for actual verification and browser blockers.
+
 ## Magnetic inspection (SHE-445, local review candidate)
 
 The legacy Three.js city picker samples at most 49 frontmost rays over a 24 CSS

@@ -9205,6 +9205,102 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
 
+## SHE-474 — bounded cinematic camera presets (2026-11-14)
+
+Audit: isolated `mini/SHE-474` worktree; existing OrbitControls, visual director,
+legacy/Living follow and Graphics controls. Open PR camera search returned no
+matches. Nearby in-flight motion/palette/breadcrumb work is kept separate.
+Single coding worker; no parallel implementation. Existing merge policy in
+`docs/auto-merge.md` is preserved (draft exclusion, current-head CI, fresh base,
+review/hold gates); no merge/deploy or governance changes.
+
+Slice: add a native Camera disclosure in the existing toolbar, Street/Rooftop/
+Skyline/Follow and one-tap Return. Use immediate cuts, conservative building
+bounds and a bounded candidate search; follow tracks only the active selected
+resident and cancels on manual input, selection/authority change or unavailable
+position. Reduced motion frames once. No simulation mutation or identity mapping.
+Acceptance: three synthetic place fixtures, occupied/unavailable poses, exact
+return, preserved selection, keyboard/touch interruption, normal-entry browser
+checks and local planning-cost measurement. Conservative footprint boxes can
+reject valid narrow spaces; no route/pathfinding or surveyed access claim.
+Status: implementation and verification in progress.
+
+Verification/status: bounded local slice implemented; 61 tests / 431 assertions
+passed across camera presets/director/panels, Population view, map controls,
+playback, lighting and Canvas rendering. Three synthetic place fixtures and
+component failure/interrupt/return paths pass. Browser-target no-bundle build
+passed for all three changed runtime modules; no root lint/typecheck scripts
+exist. `git diff --check` passed. Synthetic 1000-building CPU benchmark (Bun1.4.2,
+2000 samples) p95 0.288ms; raw evidence in
+`docs/evidence/she474-camera-presets-benchmark.json`, excludes rendering/GPU.
+
+Acceptance is not complete: World Playwright server startup failed EADDRINUSE
+on3498/44974; server-independent browser component test failed Chrome launch
+SIGABRT before assertions. No new after screenshots. Run both configs on a host
+permitting server/browser startup and capture desktop/mobile before accepting.
+Actual geographic fixture navigation, touch hardware and GPU/Canvas browser
+matrix remain unverified. Conservative solids omit trees/vehicles/ornaments and
+refresh every500ms during follow. Audit, checked paths, preserved merge policy,
+commands and limitations are in `docs/reviews/SHE-474.md`. No commit/PR created,
+external messages sent, deployment, merge or production mutation.
+
+## SHE-475 — aligned checkpoint curtain (November 14, 2026)
+
+Bounded local slice implemented in the existing Future Machine stage. **Aligned
+curtain** is a session-local presentation toggle in Side by side mode. One shared
+camera renders both full-width native viewports with complementary scissors;
+Canvas uses the same full-width projection and complementary clips. Drag the
+44px seam with mouse/touch, or use the labeled native range with keyboard. Input
+coalesces to one requestAnimationFrame; no easing or automatic curtain motion is
+introduced. Dates, matched month and displayed seed come from the current frame.
+
+Prerequisites and gates: reuse the validated monthly City pair and existing
+spatial mapping; reject empty inventories, no common entity, unsupported/ambiguous
+footprints or displaced common footprints. Additions/removals and recorded floor
+changes remain supported. Side-by-side/blink/difference, scene-only bookmarks,
+quality and exact arm/entity picks retain their existing contracts. The curtain
+is not persisted in v1 share links; no recipe, simulation, clock or identity
+contract changes. Native floating entity labels are suppressed while revealing;
+exact selectable inventory remains available.
+
+Acceptance evidence: 41 focused Bun tests / 301 assertions pass across curtain,
+Canvas, scene, bookmarks, integrity and effects. Browser bundle succeeds (69
+modules); JavaScript syntax and `git diff --check` pass. Three focused Playwright
+tests are discovered, but execution is blocked by application-server EADDRINUSE
+on ports 39895 and 49975. Fresh before/after Future Machine screenshots and
+60 Hz/hardware performance acceptance are **unverified**. The browser tests
+include per-frame timing attachments and desktop/mobile capture paths for the
+next runnable environment. Existing supplied screenshots were preserved and
+are not evidence of this implementation.
+
+Broader coordinator regression attempt: 2 existing tests fail because their stage
+mock lacks `divergenceShot`; coordinator and its mock are unchanged by this slice.
+Initial dependency resolution was repaired locally using the existing repository
+node_modules via a workspace symlink; no package/lockfile changes. There is no
+repository-wide lint/typecheck script. Review and concrete remaining acceptance
+steps: [SHE-475 work record](reviews/SHE-475.md). No deployment, merge, external
+message, voting/auth/check or production change; automatic merge remains disabled.
+
+## SHE-476 — optional contextual hints (2026-11-14)
+
+Bounded slice: reuse the standalone universe navigation mount and `/routes` directory.
+Discover a currently visible, enabled native control only when requested; focus it
+without executing it. No model writes or input changes. Persist workspace dismissal
+locally, keep all hints closed by default, and prevent duplicate mounts. Acceptance:
+three first-action journeys, empty/stale actions, keyboard/touch, blocked storage,
+reduced motion and measured discovery cost. Risk: generic control order may be less
+instructive than authored per-workspace goals; apps outside the registry/bootstrap
+need explicit integration. Verification and scope recorded in `reviews/SHE-476.md`.
+
+SHE-476 actual evidence: 16 focused tests / 228 assertions, Universe declaration
+contract, browser build and syntax checks pass. Temporary DOM integration passes
+focus/no activation, singleton, stale/empty and dismissal persistence. Four
+browser cases and benchmark added but blocked at launch (missing expected
+Chromium, installed Chrome SIGABRT/EPERM); local listen also blocked. Before/after
+visual review, browser timing and a simulation-workspace journey remain pending.
+No commit/PR yet. Full scope and preserved disabled automatic merge policy:
+[review](reviews/SHE-476.md).
+
 ## SHE-478 — event-backed First Difference spotlight (2026-11-14)
 
 Bounded slice: curate existing housing financing, construction start and completion
