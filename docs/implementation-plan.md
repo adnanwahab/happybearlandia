@@ -9188,3 +9188,33 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-574 — optional discovery stamps (November 14, 2026)
+
+Bounded slice: two authored cosmetic stamps in existing Flower and Quote Carousel
+experiences, linked from a local collection on `/routes`. No simulation adapters,
+identity/clock mappings, run writes or remote services. One coding worker.
+Acceptance: explicit native button collection with keyboard/touch, reload
+persistence, reset, malformed/blocked-storage recovery, responsive no-animation
+UI and normal-entry browser evidence. Prerequisite: existing static route serving
+and experience registry. Risk: browser storage can be denied; report session-only
+progress and do not claim it persisted. Unknown stamp IDs must be discarded.
+Audit: no matching open stamp/SHE-574 PR; related House shimmer PR #386 is avoided.
+Automatic merge remains held by literal false in `.github/workflows/auto-merge.yml`.
+
+Delivered locally: authored stamp catalog/storage and independent native-details
+UI; two experience mounts and `/routes` collection/reset. Registry and simulation
+contracts unchanged. UI labels these as optional cosmetic stamps with browser-only
+progress and no deadlines, streaks or paid rewards. No new model/ODD description
+required. Tests cover unknown/duplicate/malformed IDs, reload/reset, unrelated
+storage preservation, denied reads/writes/removal and executable UI handlers.
+
+Verification: 12 tests / 78 assertions pass across discovery-stamps,
+universe-shell and local-journeys. Browser entry bundle succeeds (2 modules).
+Three Playwright journeys discover successfully. Execution blocked before tests:
+application server reports EADDRINUSE on both 31974 and 32974. Therefore keyboard,
+touch and responsive visual acceptance remain unverified in a real browser;
+no after screenshots claimed. Existing before captures are preserved. No
+repository-wide lint/typecheck script exists and no local `tsc` executable was
+available; changed files are JavaScript, not typed contracts. Review record and
+rerun prerequisites: `docs/reviews/SHE-574.md`. No commit, PR, merge or deployment.
