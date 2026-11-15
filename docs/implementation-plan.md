@@ -1,5 +1,26 @@
 # HappyBearLandia implementation plan
 
+## SHE-560 — house/shop errand audit (2026-11-14)
+
+Analysis-only result: [source audit and next slice](reviews/SHE-560.md).
+Existing exact Population-ID/checkpoint House↔World transport works; Buy a plant
+is immediate household furniture installation, with no mapped shop stock or
+seller transaction. Population firms, neighborhood Business and Business Lab
+remain separate contracts. Issue acceptance and implementation remain incomplete.
+Next slice: versioned synthetic Population retail mapping and atomic idempotent
+purchase receipt, actual walking/arrival/home return, then shared House/World UI.
+Prerequisites, independently verifiable tasks, rejection cases and receipt-retention
+risk are recorded in the review. No service credentials are needed for that local
+slice. One worker; preserve adjacent House PR work and original saved experiments.
+
+Baseline checks: 23 pass / 147 assertions across bridge, excursions, Business mode
+and Lab. Existing saved-navigation browser test failed before execution because
+the worktree cannot resolve `@playwright/test`; browser acceptance and relevant
+before/after evidence remain outstanding. No configured repository-wide lint or
+typecheck script. Documentation whitespace check passed. No commit or PR created;
+no model/ODD behavior change. Disabled automatic merge and existing review/check
+gates remain unchanged. No deployment, external messages or production changes.
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,
