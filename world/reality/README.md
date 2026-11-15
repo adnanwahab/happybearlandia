@@ -89,3 +89,11 @@ comprehension test remain product research gates.
 ## Local weekly retention
 
 Opt in and inspect session-cohort definitions at `/world/analytics/index.html`. Only completed comparison and successful shared-replay observations are recorded. Collection is local, bounded and disabled by default; no visitor identity, URL, link identifier or simulation payload is recorded. This is not site-wide analytics. Model clocks and random seeds are not used: these are wall-clock UTC observations under `hbl-retention.v1`.
+
+## Opt-in journey showcase (SHE-585)
+
+Reality share creators can manage public showcase consent from the private owner
+link returned with a new experiment link. `/routes` shows only current consented,
+manually reviewed selections; the initial selection is empty. See
+[SHOWCASE.md](SHOWCASE.md) for ownership limits, withdrawal, privacy review,
+read-only replay evidence generation and the exact-source contract.

@@ -533,7 +533,7 @@ const server = serve({
     if (pathname === "/api/config") return handleConfig();
     if (under(pathname, "/api/causality")) return handleCausality(request);
     if (under(pathname, "/api/world-history")) return handleTemporalCity(request);
-    if (under(pathname, "/api/reality-shares")) return handleRealityShares(request);
+    if (pathname === "/api/reality-showcase" || under(pathname, "/api/reality-shares")) return handleRealityShares(request);
     if (under(pathname, "/api/world-homes")) return handleWorldPersistence(request);
     if (under(pathname, "/api/world-experiments")) return handleWorldPersistence(request);
     if (["/api/date-mystery/status","/api/date-mystery/generate"].includes(pathname)) return handleDateMystery(request);
@@ -572,7 +572,7 @@ const server = serve({
       if (decodedWorldPath === "/world/models/business-v1/compiler-api.js") return notFound();
       if (decodedWorldPath === "/world/constitution-city/source-api.js") return notFound();
       if (/^\/world\/temporal\/(api|store)\.js$/.test(decodedWorldPath)) return notFound();
-      if (decodedWorldPath === "/world/reality/share-store.js") return notFound();
+      if (["/world/reality/share-store.js","/world/reality/showcase-editorial.js","/world/reality/showcase-review.js"].includes(decodedWorldPath)) return notFound();
       if (decodedWorldPath === "/world/experiments/persistence-store.js") return notFound();
       if (/^\/world\/decision\/(api|store|worker|optimization-api)\.js$/.test(decodedWorldPath)) return notFound();
       if (/^\/world\/ai\//.test(decodedWorldPath) && !/^\/world\/ai\/(edit-schema|edit-validator|revisions)\.js$/.test(decodedWorldPath)) return notFound();

@@ -1,3 +1,5 @@
+import {SHOWCASE_SELECTIONS} from './showcase-editorial.js';
+import {projectShowcase} from './showcase-review.js';
 import {randomBytes} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {verifyRealityManifest} from './runtime-core.js';
@@ -30,13 +32,29 @@ export function validateRealityShare(payload){
  if(payload.displayInitial!==undefined){try{validateState(payload.displayInitial);}catch(error){fail(`Invalid displayInitial CityState: ${error.message}`);}if(payload.displayInitial.month!==0)fail('displayInitial must be a frozen month-zero CityState.');if(Object.values(payload.displayInitial).filter(Array.isArray).reduce((n,rows)=>n+rows.length,0)>12000)fail('displayInitial exceeds the 12000-entity host limit.',413);}
  return {result:{manifest,runs:[selected]},runId,...(payload.displayInitial?{displayInitial:payload.displayInitial}:{})};
 }
-export function createRealityShareHandler({dbPath=fileURLToPath(new URL('../../.data/reality-shares.sqlite',import.meta.url)),now=()=>new Date(),idFactory=()=>randomBytes(9).toString('base64url'),maxWritesPerMinute=20}={}){
+export function createRealityShareHandler({dbPath=fileURLToPath(new URL('../../.data/reality-shares.sqlite',import.meta.url)),now=()=>new Date(),idFactory=()=>randomBytes(9).toString('base64url'),maxWritesPerMinute=20,showcaseSelections=SHOWCASE_SELECTIONS}={}){
  const store=createRealityShareStore(dbPath,{maxWritesPerMinute});let readWindow=0,reads=0;
- const handle=async request=>{try{const url=new URL(request.url),match=url.pathname.match(/^\/api\/reality-shares(?:\/([A-Za-z0-9_-]{8,16}))?\/?$/);if(!match)return json({error:'Share not found.'},404);
+ const handle=async request=>{try{const url=new URL(request.url);
+ if(url.pathname==='/api/reality-showcase'){
+  if(request.method!=='GET')return json({error:'Method not allowed.'},405);
+  return json({cards:projectShowcase(store,showcaseSelections,now().getTime())});
+ }
+ const consentMatch=url.pathname.match(/^\/api\/reality-shares\/([A-Za-z0-9_-]{8,16})\/showcase$/);
+ if(consentMatch){
+  if(request.method!=='PUT')return json({error:'Method not allowed.'},405);
+  const origin=request.headers.get('origin');if(origin&&origin!==url.origin)fail('Same-origin owner request required.',403);
+  const token=request.headers.get('authorization')?.replace(/^Bearer /,'');
+  if(!token||!/^[A-Za-z0-9_-]{43}$/.test(token))fail('Owner key required.',403);
+  store.reserveWrite(now().getTime());
+  const payload=await readBounded(request);if(typeof payload.consent!=='boolean')fail('Explicit consent boolean required.');
+  if(!store.get(consentMatch[1],now().getTime()))fail('Share not found or expired.',404);
+  return json(store.consent(consentMatch[1],token,payload.consent));
+ }
+ const match=url.pathname.match(/^\/api\/reality-shares(?:\/([A-Za-z0-9_-]{8,16}))?\/?$/);if(!match)return json({error:'Share not found.'},404);
  if(request.method==='GET'&&match[1]){const time=now().getTime();if(time-readWindow>=60000||time<readWindow){readWindow=time;reads=0;}if(++reads>240)fail('Share read rate limit reached; retry in one minute.',429);const record=store.get(match[1],time);return record?json(record):json({error:'Share not found or expired.'},404);}
  if(request.method!=='POST'||match[1])return json({error:'Use POST to create a share or GET /api/reality-shares/:id to read one.'},405);
  store.reserveWrite(now().getTime());const payload=await readBounded(request),validated=validateRealityShare(payload),id=idFactory();if(!ID.test(id))fail('Unable to allocate a safe share ID.',500);
  const createdAt=now().toISOString(),record={schemaVersion:'reality-share.v1',id,url:`/r/${id}`,createdAt,expiresAt:new Date(Date.parse(createdAt)+SHARE_TTL_MS).toISOString(),...validated,verification:'client-replay-required',notice:'Locally stored simulation inputs and submitted metrics. The server validates manifest consistency but does not certify data sources or replay outcomes. Client replay must reproduce selected metrics before display.'};
- if(new TextEncoder().encode(JSON.stringify(record)).length>SHARE_MAX_BYTES)fail('Frozen share exceeds 8 MB; reduce geography or result detail.',413);store.put(record);return json(record,201);
+ if(new TextEncoder().encode(JSON.stringify(record)).length>SHARE_MAX_BYTES)fail('Frozen share exceeds 8 MB; reduce geography or result detail.',413);store.put(record);const ownerToken=payload.claimOwnership===true?store.createOwner(id):null;return json(ownerToken?{...record,ownerToken}:record,201);
  }catch(error){return json({error:error.message||'Share unavailable.'},error.status||400);}};handle.close=()=>store.close();return handle;
 }
