@@ -29,6 +29,62 @@ Next slice, contract, acceptance tasks and preserved merge policy are recorded i
 120 assertions. No executable changes, browser acceptance or interaction benchmark
 claimed; no merge/deploy. Await the producer export before presentation work.
 
+## SHE-515 — street repair/public works audit (2026-11-14)
+
+Analysis-only audit completed on `mini/SHE-515` at base `cdb773a1`.
+[Review and next slice](reviews/SHE-515.md) record the source paths, acceptance
+gaps and preserved merge/voting policy. Open PR #353/SHE-520 already owns
+exact-month construction choreography on Hidden Systems; it does not integrate
+that ledger into `/world`. Avoid duplicating its selector. World currently has
+stage-based drainage symbols but no verified City work-event/run/month adapter
+or source inspector. No feature acceptance or browser evidence is claimed.
+
+Next slice: establish that read-only identity/time/spatial adapter, reuse the
+reviewed milestone selector, add bounded accessible cosmetic work zones, then
+verify before/event/after replay, empty/delay/fallback paths, rapid navigation,
+reduced motion, model immutability and resource disposal through normal World
+entry. Stage alone must never imply ongoing work; no mapping means no crews.
+No simulation change or external service is required for the proposed adapter.
+
+Existing City/project/replay regressions passed 19 tests / 714 assertions.
+Physical-policy tests could not load missing `three`; no dependencies changed.
+No root lint/typecheck script exists. Browser checks skipped for this docs-only
+audit; existing before captures are not feature proof. No code implementation,
+commit/PR, merge, deployment or governance change; acceptance remains open.
+
+## SHE-514 — recorded walking-trip crossing areas (2026-11-14)
+
+Implemented a bounded local slice: anonymous cosmetic rings group active recorded
+walking trips near shared road vertices. No resident repositioning, model changes
+or inferred street routing. At most 128 static rings; distant views hide them.
+Acceptance: [x] sample count conservation and timing eligibility; [x] empty and
+invalid inputs; [x] rapid frame/camera changes, filtering and disposal tests;
+[ ] normal-route desktop/mobile, keyboard and reduced-motion browser evidence.
+Focused regression suite passed 21 tests / 211 assertions. Browser startup is
+blocked by launcher setup and then EADDRINUSE; after evidence remains pending.
+No root lint/typecheck script exists. No commit or PR reference yet. Existing
+human-review merge hold is unchanged. Full audit, commands and limits:
+[review](reviews/SHE-514.md).
+
+
+## SHE-513 — illustrative seasonal neighborhood visuals (2026-11-14)
+
+Bounded slice implemented: existing World tree foliage and capped static accents,
+active elapsed-time calendar, reversible previews/Off, native keyboard controls,
+static reduced-motion behavior and standalone Canvas2D park-color fallback.
+Prerequisites audited: renderer module/clock/entry/teardown and open GitHub PRs;
+no seasonal PR found. No model authority or RNG changes. Calendar is an authored
+360-day northern-style illustration, explicitly labeled rather than an observation.
+Acceptance evidence: 15 focused tests / 173 assertions pass, syntax checks pass.
+Browser desktop/mobile/keyboard/reduced-motion/route cases are written but blocked
+before launch by server EADDRINUSE on 3513. Before screenshots preserved; after
+browser evidence remains required. Existing Canvas compatibility export test
+failure is documented separately. No root lint/typecheck script exists.
+Risks/remaining: browser visual inspection and device validation, no performance
+certification. Review and commands: [SHE-513](reviews/SHE-513.md). No commit/PR,
+merge, deploy or governance change; configured merge policy retained.
+
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,

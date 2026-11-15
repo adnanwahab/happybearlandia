@@ -129,6 +129,40 @@ changes and records before/after screenshots plus video. See
 `docs/reviews/SHE-165.md` for actual execution limits; the test existing is not
 proof it passed.
 
+### Illustrative seasons (SHE-513)
+
+Graphics → Season decorations defaults to an authored 360-day calendar (four
+90-day seasons, spring at elapsed day zero) on the active lighting clock. It is
+not a geographic calendar, climate forecast, ecology result or sourced planting
+inventory. Manual spring/summer/autumn/winter previews and Off affect only
+presentation. Missing time restores original foliage; Off restores exact original
+colors/scales. Scene coordinates and local tree identity seed palette variation,
+without consuming simulation randomness. Seasonal props are static ground accents
+near existing illustrative trees, capped at 64 shared box instances. No assets,
+particles, timers or per-season geometry allocations are added. Existing renderer
+quality/camera culling still governs foliage; props follow vegetation/props toggles.
+The standalone Canvas2D entry offers the same native keyboard-select controls and
+uses only park colors. All seasonal decoration is static, including reduced motion.
+Renderer/route teardown removes its controls and disposes its owned geometry and
+materials. Tests: `bun test test/seasons.test.js test/render-performance.test.js
+ test/world-canvas-renderer.test.js`; browser: `bunx playwright test --config
+ test/seasons.browser.config.js`.
+
+## Recorded walking-trip crossing areas
+
+The Living City Population adapter adds at most 128 static mint rings at shared
+road vertices. These are cosmetic areas, not surveyed crosswalks. Each distinct
+sample ID with a finite position and an active, finite recorded walking trip can
+support only its nearest area within eight world metres. Opacity encodes a bounded
+sample count; it is never extrapolated to the population or added to individual
+counts. Anonymous grouping is labeled in the city deck and detailed panel.
+Resident positions and straight-line model geometry remain unchanged. Missing
+roads/trips produce no rings. Camera distances of 350 or more hide the layer.
+Static rings add no motion, animation clock, input controls or external assets.
+Frame replacement, filtering, reset and destruction release their geometry and
+materials. Counts are available as `crossingSampleCount` and `crossingAreas` in
+Population renderer stats; neither is a surveyed density measurement.
+
 ## Two-object pinboard (SHE-469)
 
 In `/world`, expand World controls → Compare two objects → Start pinning, then

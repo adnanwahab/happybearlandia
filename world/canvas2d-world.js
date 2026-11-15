@@ -1,4 +1,6 @@
 import {mountComparisonPinboard, spatialRecord} from './comparison-pinboard.js';
+import {seasonalStyle} from './render/environment/seasons.js';
+import {mountSeasonControls} from './render/environment/season-controls.js';
 import {mountPlanChoices,customPlan,stagePlan} from './plan-choices.js';
 /** Explicitly low-fidelity World. Reuses the legacy seeded town and simulation,
  * replacing only Three/WebGPU visuals with Canvas2D for restricted browsers.
@@ -14,6 +16,9 @@ const lat=safeNumber(query.get('lat'),29.7286,-85,85),lng=safeNumber(query.get('
 const origin={lat,lng},count=Math.round(safeNumber(query.get('people'),100,10,250));
 const status=$('loading');
 const notify=(type,detail={})=>window.dispatchEvent(new CustomEvent('hbl:world-feedback',{detail:{type,...detail}}));
+let seasonOverride='auto';
+const seasonHost=document.createElement('details');seasonHost.style.cssText='position:fixed;bottom:10px;left:10px;z-index:80;max-width:calc(100vw - 40px);max-height:40vh;overflow:auto;background:#18242e;color:#e1edf4;padding:8px';const seasonSummary=document.createElement('summary');seasonSummary.textContent='Illustrative seasons';seasonHost.append(seasonSummary);document.body.append(seasonHost);
+const seasonControls=mountSeasonControls(seasonHost,value=>{seasonOverride=value;});
 let comparisonPinboard;
 let world,town,canvas,ctx,paused=false,speed=1,disposed=false,selected=null,panX=0,panZ=0,zoom=1,cameraSpeed=1,accum=0,frame=null,clock=0;
 const playback=createSimulationPlayback({initialSpeed:1});
@@ -85,7 +90,9 @@ function paint(){
     ctx.beginPath();
     const poly=b.poly?.length>=3?b.poly:[[b.center[0]-8,b.center[1]-8],[b.center[0]+8,b.center[1]-8],[b.center[0]+8,b.center[1]+8],[b.center[0]-8,b.center[1]+8]];
     poly.forEach(([x,z],i)=>{if(!i)ctx.moveTo(c.x(x),c.z(z));else ctx.lineTo(c.x(x),c.z(z));});ctx.closePath();
-    ctx.fillStyle=b.state?.flooded?'#467cda':colors[b.kind]??'#adbec0';ctx.fill();
+    const decoration=b.kind==='park'?seasonalStyle(world.t,seasonOverride,b.id):null;
+    const color=decoration?'#'+decoration.color.toString(16).padStart(6,'0'):colors[b.kind];
+    ctx.fillStyle=b.state?.flooded?'#467cda':color??'#adbec0';ctx.fill();
     ctx.strokeStyle=b.state?.flooded?'#a2cfff':'#0c1920';ctx.lineWidth=b.state?.flooded?3:1;ctx.stroke();
   }
   for(const p of world.people){
@@ -241,5 +248,5 @@ async function demo(){
     $('demoCaption').textContent='No plan '+r.avg.noPlan.toFixed(1)+' vs plan '+r.avg.withPlan.toFixed(1)+' ('+(d>=0?'+':'')+d.toFixed(1)+'). '+r.improved+' better off, '+r.worse+' worse off in this synthetic model.';
   }catch(error){$('demoCaption').textContent='The comparison could not run: '+error.message;}
 }
-window.addEventListener('pagehide',()=>{disposed=true;cancelWeek?.();playback.destroy();cancelAnimationFrame(frame);activityDashboard?.destroy();}, {once:true});
+window.addEventListener('pagehide',()=>{disposed=true;seasonControls.destroy();seasonHost.remove();cancelWeek?.();playback.destroy();cancelAnimationFrame(frame);activityDashboard?.destroy();}, {once:true});
 init().catch(error=>{status.textContent='Canvas2D could not start: '+error.message;});
