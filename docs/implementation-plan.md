@@ -9274,6 +9274,54 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
 
+## SHE-510 — exact sampled-future travel audit (2026-11-14)
+
+Analysis only; implementation and acceptance remain open. The current worlds
+grid reconstructs live simulations and has no immutable sample-to-checkpoint
+handoff. Sampling uses a year-specific seed that differs from the World entry
+seed; the annual label is not restored model time. Lab conditions and variants
+also do not survive that handoff. Legacy longitudinal state is available inside
+the sampler but excludes RNG/policy authority and is discarded by batch output.
+
+Next slice: retain a versioned frozen render projection and immutable receipt for
+actual samples; bind histogram members to those records; render only retained
+facts, with visible missing-checkpoint states and finite-output denominators.
+Then verify three exact samples, keyboard/mobile selection, stale navigation
+cancellation and route disposal through the normal entry points. Complete
+prerequisites, acceptance gates, related open PR #351, and unchanged merge/voting
+policy are recorded in [the audit](reviews/SHE-510.md). No external service or
+additional local implementation approval is required by this audit.
+
+Existing regression evidence: 28 tests / 152 assertions passed across multiverse,
+futures, longitudinal samples and uncertainty analysis. No feature code changed;
+browser acceptance remains unverified. Supplied before screenshots do not cover
+the required chart/checkpoint journey. No merge, deploy or production changes.
+
+## SHE-512 — bounded storm atmosphere
+
+Plan: add a presentation-only, timeline-driven wind/cloud overlay to the existing
+storm scene. Prerequisite audit: heightfield-water.v1 contains no wind or cloud
+fields; do not derive either from rainfall, depth or seed. Open GitHub PR search
+for storm returned no matches on 2026-11-14. One local coding worker.
+Acceptance: explicit unavailable wind units/direction, decorative labeling,
+empty-state clearing, keyboard toggle, reduced motion, 2D fallback, rapid timeline
+and view switching, route cleanup, focused model regressions and browser evidence.
+Risk: decorative direction could be mistaken for a modeled vector; label it beside
+the scene and keep authored movement independent of model magnitudes.
+
+Delivered locally: atmosphere adapter and five CSS marks mounted by scene.js,
+selected-step plumbing, keyboard checkbox, reduced-motion CSS, empty-state clearing
+and pagehide cleanup that preserves bfcache restoration. Model code unchanged.
+Verification: 21 tests / 750 assertions pass across the atmosphere and six existing
+storm suites. Browser-target page bundle passes. No repository-wide lint/typecheck
+script exists; changed modules are JavaScript. Browser suite authored but blocked
+before launch: Bun reports EADDRINUSE on ports 54389 and 3198 in this environment.
+Thus mobile/keyboard/rapid navigation and before/after storm screenshots remain
+unverified. Existing supplied screenshots cover other routes. No acceptance or
+performance certification claimed. Next: run the dedicated browser config in a
+bind-capable environment and inspect its route-specific images. No merge/deploy
+or governance changes. Full audit: docs/reviews/SHE-512.md.
+
 ## SHE-516 — ambient soundscape (2026-11-14)
 
 Bounded slice: read-only scene geometry/clock adapter, opt-in cosmetic loops,

@@ -133,7 +133,7 @@ function renderScene() {
   const tick = Number(tickPicker.value);
   const depth = arm.water.frames[tick];
   const { terrain } = arm.input;
-  scene.render({ size: SIZE, terrain, depth, buildings, roads, selected });
+  scene.render({ size: SIZE, terrain, depth, buildings, roads, selected, step: tick });
   const hazardFrame = { size: SIZE, depth, drains: arm.input.drains, selected,
     provenance: `${comparison.recipe.version} · ${arm.water.modelVersion} · ${arm.water.backend} solver · seed ${comparison.recipe.seed} · ${armPicker.value} · step ${tick} · rain ${comparison.recipe.rainRate} m per step · synthetic terrain and drain inputs; closed edges, illustrative runoff rules` };
   hazard.render(hazardFrame);
@@ -334,6 +334,12 @@ try {
 } catch (error) {
   find('run-status').textContent = error.message;
 }
+
+window.addEventListener('pagehide', event => {
+  stop();
+  cancelEnsemble();
+  if (!event.persisted) scene.destroy();
+});
 
 window.addEventListener('pagehide', () => {
   stop();
