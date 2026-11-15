@@ -1,0 +1,46 @@
+bun test v1.4.2 (744846f84)
+
+test/two-futures-demo-controller.test.js:
+(pass) guided clock pauses, resumes and highlights an actual supplied change once [0.45ms]
+(pass) recorded divergence holds six seconds and replay preserves the same month sequence [0.09ms]
+(pass) skip completes once, replay resets supplied evidence and disposal prevents restart [0.09ms]
+(pass) hidden time preserves the first divergence hold and manual pause [0.07ms]
+(pass) state emissions follow caption, status and whole seconds instead of 20 Hz ticks [0.04ms]
+(pass) preparation retains pause intent, restart resets it, and takeover cancels ticks [0.08ms]
+(pass) cross-scale shot uses the exact held record once per scale, replays and stops [0.10ms]
+(pass) zero change and delayed ticks never shoot a different month [0.03ms]
+
+test/two-futures-evidence.test.js:
+(pass) building WHY finds only recorded completion through selected time with exact model mapping [0.19ms]
+(pass) construction receipts respect arm-scoped event identity when IDs coincide [0.09ms]
+
+test/future-machine-data.test.js:
+Future Machine preset: 725 ms pair; 52067770 JSON bytes
+(pass) default pair has identical original Month 0, exact 120 steps and deterministic replay [2032.16ms]
+(pass) strict versions, missing inventory, horizon and frame boundaries [478.28ms]
+(pass) API adapter persists paired seeds, normalizes replay and handles cancellation/errors [1182.18ms]
+Future Machine persisted API pair + replay: 2424 ms
+(pass) real City API persists and reopens the exact 120-month pair [3831.00ms]
+(pass) normalization preserves completion provenance and rejects a missing capital ledger [369.55ms]
+(pass) editing proposed homes reuses the original baseline and leaves prior results immutable [3103.69ms]
+(pass) deadline reports actionable timeout and caller abort remains cancellation [12.85ms]
+(pass) lost connection is actionable without masking application failures [0.35ms]
+
+test/future-machine-evidence-trail.test.js:
+(pass) actual City trail preserves exact arm/month/event and policy-project-unit relationships [896.18ms]
+(pass) no future evidence at Month 0 or 15, exact completion at 16, reverse inspection stable [1.12ms]
+(pass) missing event, inventory or exact policy reference stays unavailable [1134.86ms]
+(pass) missing snapshots, wrong-version events and ordinary buildings never invent joins [283.76ms]
+(pass) trail view retains exact nodes across policy/project navigation and Return [12.37ms]
+
+test/fixtures/one-city-two-futures/recording-command.test.js:
+(pass) recording CLI rejects invalid ports and unknown arguments before launch [47.02ms]
+(pass) runner exit zero cannot report success with missing artifacts [164.55ms]
+(pass) runner exit zero cannot report success with missing video [138.98ms]
+(pass) runner exit zero cannot report success with empty video [127.28ms]
+(pass) runner exit zero cannot report success with corrupt video [157.90ms]
+
+ 28 pass
+ 0 fail
+ 159 expect() calls
+Ran 28 tests across 5 files. [14.81s]

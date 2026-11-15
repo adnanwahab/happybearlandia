@@ -1,0 +1,15 @@
+435 | 
+436 | const handleExperiments = createExperimentsHandler({ fetchPlan: fetchPlanFromDearCongress, getArea });
+437 | if (!DEAR_CONGRESS_ORIGIN) throw new Error("Invalid Dear Congress endpoint configuration.");
+438 | const handleConstitutionSource = createConstitutionSourceHandler({fetchPlan:()=>fetchPlanFromDearCongress({includeSynthetic:false}),sourceUrl:DEAR_CONGRESS_ORIGIN+'/'});
+439 | 
+440 | const server = serve({
+                     ^
+error: Failed to start server. Is port 39964 in use?
+ syscall: "listen",
+   errno: 0,
+    code: "EADDRINUSE"
+
+      at /Users/wahabma/.happybearlandia-mini-symphony-workspaces/SHE-64-r3/server.js:440:16
+
+Bun v1.4.2 (macOS arm64)

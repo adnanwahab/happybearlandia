@@ -9713,3 +9713,27 @@ resolve @playwright/test. No root typecheck/lint command/compiler available.
 Real new before/after screenshots and browser focus/reduced-motion acceptance
 remain pending dependency/server repair. See [review](reviews/SHE-443.md) for
 paths audited, preserved merge policy, actual checks and remaining acceptance.
+
+## SHE-64 current-source recording follow-up — November 15, 2026
+
+Owned slice: `docs/reviews/SHE-64.md`, `docs/evidence/she64-r3/`, and this
+status entry on `mini/SHE-64-r3`; candidate `8afcacd5891638c6552e7f885a81234ab5bd6bfe`.
+Reused existing real homepage/SHE-71 recorder and audited merged PR #125.
+SHE-9/SHE-46 are Done; SHE-63 is marked Done but its current receipt still
+reports no browser matrix journey. Preserve that evidence prerequisite.
+
+Acceptance remains incomplete. Recording failed before tests: missing local
+Playwright dependency, install tempdir EPERM, then dependency Bun launcher
+postinstall failure. Direct actual Bun server fails listen; independent ephemeral
+localhost bind returns EPERM. No new video or browser pass is claimed. Existing
+historical WebM/MP4 fully decode; MP4 remains 56.84s and matches prior hash.
+Historical capture source attribution remains qualified, not current HEAD proof.
+
+Focused contracts and recording failure guards: 28 passed, 0 failed, 159
+assertions with 30000ms timeout; initial default-timeout run had one simulation
+timeout. Diff check passed; no repo-wide lint/typecheck scripts. No model, UI,
+source identity, seed, policy, production or deployment changes. Exact commands,
+retained failure logs, prior-PR/dependency audit and next host requirements:
+[checked SHE-64 report](reviews/SHE-64.md). Next: resolve real matrix evidence
+and run recorder on a listener/browser-capable host, inspect uncut video and
+retain a source/model/seed/run/hash receipt. No new PR or external message.
