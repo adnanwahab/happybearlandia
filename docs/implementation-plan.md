@@ -9188,3 +9188,22 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-581 — private checkpoint notes (2026-11-14)
+
+Bounded slice: browser-only player text in the existing /world saved experiments
+panel. Exact immutable experiment/checkpoint SHA-256, schema/model version,
+minute and saved entity selection gate attachment. Missing/unsupported snapshots
+fail closed. No simulation mutation, tracking, public note API or sharing payload.
+Tasks: local bounded JSON store; exact anchor adapter; accessible panel;
+unit/integration and normal-entry browser checks. Risks: browser storage is
+origin-local, not encrypted; exported files contain private text. No cross-model
+or cross-version remapping. Canvas2D currently lacks the existing save panel.
+
+SHE-581 result: local notes/store/anchor and existing save-panel integration
+implemented. Final focused checks:14 pass/83 assertions; browser bundle passes;
+2 desktop/mobile reduced-motion browser cases discover; whitespace check passes.
+Actual browser run blocked at server startup EADDRINUSE:3581, so no after evidence
+is claimed. Canvas2D save-panel integration remains unavailable. Full acceptance
+requires browser evidence and fallback work. See docs/reviews/SHE-581.md for
+contracts, audit, privacy limits and preserved disabled automatic merge policy.
