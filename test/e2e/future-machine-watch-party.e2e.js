@@ -1,0 +1,31 @@
+import {test,expect} from '@playwright/test';
+const ready=page=>expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.status),{timeout:90000}).toBe('ready');
+const panel=page=>page.getByRole('region',{name:'Future Watch Party'});
+async function seek(page,month){const slider=page.getByTestId('future-machine-timeline');await slider.fill(String(month));await slider.dispatchEvent('input');}
+test('same receipt follows, detaches, reconnects and keeps model history unchanged',async({page,context},info)=>{
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.goto('/world/future-machine.html?renderer=canvas2d');
+ await page.screenshot({path:info.outputPath('watch-party-before.png'),fullPage:true});
+ await panel(page).getByRole('button',{name:'Start party',exact:true}).click();
+ await expect(panel(page).getByRole('status')).toContainText('completed saved comparison');
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();await ready(page);
+ const original=await page.evaluate(()=>JSON.stringify(window.futureMachine.history));
+ const viewer=await context.newPage();await viewer.goto(page.url());await ready(viewer);
+ await panel(page).getByRole('button',{name:'Start party',exact:true}).click();await expect(panel(page).getByRole('status')).toContainText('Party started');
+ const invitation=await panel(page).getByRole('textbox',{name:'Private invitation'}).inputValue();
+ await panel(viewer).getByRole('textbox',{name:'Private invitation'}).fill(invitation);
+ await viewer.route('**/api/future-watch/state',async route=>{const response=await route.fetch();const data=await response.json();await route.fulfill({response,json:{...data,receipt:'0'.repeat(64)}});});
+ await panel(viewer).getByRole('button',{name:'Join party',exact:true}).click();await expect(panel(viewer).getByRole('status')).toContainText('Receipt mismatch');await viewer.unroute('**/api/future-watch/state');
+ const join=panel(viewer).getByRole('button',{name:'Join party',exact:true});await join.focus();await viewer.keyboard.press('Enter');await expect(panel(viewer).getByRole('status')).toContainText('Following host');
+ await seek(page,16);await expect.poll(()=>viewer.evaluate(()=>window.futureMachine.state.month)).toBe(16);
+ await page.getByRole('button',{name:'Blink: Future A',exact:true}).click();await expect.poll(()=>viewer.evaluate(()=>window.futureMachine.state.mode)).toBe('plan');
+ await panel(viewer).getByRole('button',{name:'Take independent control'}).click();await seek(page,120);await page.waitForTimeout(1100);expect(await viewer.evaluate(()=>window.futureMachine.state.month)).toBe(16);
+ await panel(viewer).getByRole('button',{name:'Follow host',exact:true}).click();await expect.poll(()=>viewer.evaluate(()=>window.futureMachine.state.month)).toBe(120);
+ await viewer.route('**/api/future-watch/state',route=>route.abort());await expect(panel(viewer).getByRole('status')).toContainText('Retrying');await seek(page,20);await viewer.unroute('**/api/future-watch/state');await expect.poll(()=>viewer.evaluate(()=>window.futureMachine.state.month)).toBe(20);
+ await panel(viewer).getByRole('button',{name:'Wow',exact:true}).click();await expect(panel(page)).toContainText('Cosmetic reactions: wow');
+ await viewer.setViewportSize({width:390,height:844});await panel(viewer).scrollIntoViewIfNeeded();await viewer.screenshot({path:info.outputPath('watch-party-after-mobile.png'),fullPage:true});
+ expect(await viewer.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ expect(await page.evaluate(()=>JSON.stringify(window.futureMachine.history))).toBe(original);
+ await panel(page).getByRole('button',{name:'Leave / end party'}).click();await expect(panel(viewer).getByRole('status')).toContainText('missing or expired');
+ await viewer.close();
+});

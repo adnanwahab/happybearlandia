@@ -1,3 +1,5 @@
+import {createWatchPartyService} from './world/future-machine/watch-party.js';
+const watchPartyService=createWatchPartyService({enabled:process.env.HBL_FUTURE_WATCH_LOCAL==='1'});
 import {civicProviderUrl,civicPublishUrl} from './ops/civic-provider.js';
 import { createMiniSymphonyHandler } from './ops/mini-symphony/api.js';
 const handleMiniSymphony = createMiniSymphonyHandler();
@@ -451,6 +453,7 @@ const server = serve({
     if (pathname === "/api/health" || pathname === "/api/ready" || pathname === "/api/demo/ready") return handleReleaseHealth(request);
     if (pathname === '/vote-on-patch' || pathname === '/vote-on-patch/') return serveFile('./world/patch-voting.html');
     if (pathname === '/api/patch-votes' || pathname.startsWith('/api/patch-votes/')) return patchVoting(request);
+    if(pathname.startsWith('/api/future-watch/'))return watchPartyService.fetch(request);
     if(pathname.startsWith('/api/act-normal/'))return actNormalService.fetch(request,server);
     if(/^\/world\/party\/act-normal\/?$/.test(pathname))return serveFile('./world/party/act-normal.html');
 
