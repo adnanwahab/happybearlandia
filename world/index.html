@@ -101,6 +101,12 @@
   :root #inspect[data-inspector-focused]{top:76px;z-index:120;max-height:calc(100vh - 92px);overflow:auto}
   section.living-person{overflow-anchor:none;position:fixed;right:14px;top:76px;z-index:120;width:min(390px,calc(100vw - 28px));max-height:calc(100vh - 92px);overflow:auto;box-sizing:border-box}
   @media(max-width:640px){:root #inspect[data-inspector-focused],section.living-person{top:auto;bottom:12px;max-height:65vh}}
+  #comparison-pinboard { overflow-wrap:anywhere; }
+  #comparison-pinboard.has-pins { position:fixed; left:12px; top:76px; width:min(310px,calc(100vw - 48px)); max-height:60vh; overflow:auto; z-index:121; padding:12px; background:#152333; color:#fff; border:1px solid #687781; border-radius:12px; }
+  #comparison-pinboard button, #comparison-pinboard input, #comparison-pinboard select { min-height:44px; max-width:100%; }
+  #comparison-pinboard table { width:100%; border-collapse:collapse; font-size:12px; }
+  #comparison-pinboard th, #comparison-pinboard td { padding:6px 3px; text-align:left; border-bottom:1px solid #687781; }
+  #comparison-pinboard section { border-top:1px solid #687781; }
 </style>
 
 <script>
@@ -171,6 +177,7 @@ body:has(.saved-future-navigation) #global-illumination-button{top:auto;bottom:m
   </div>
   </details>
   <div id="tile-navigation"></div>
+  <div id="comparison-pinboard"></div>
   <div class="row" style="justify-content: space-between">
     <div id="clock">—</div>
     <div class="row" id="speeds" role="group" aria-label="Simulation speed" style="margin:0">

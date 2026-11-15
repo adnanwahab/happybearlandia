@@ -129,6 +129,31 @@ changes and records before/after screenshots plus video. See
 `docs/reviews/SHE-165.md` for actual execution limits; the test existing is not
 proof it passed.
 
+## Two-object pinboard (SHE-469)
+
+In `/world`, expand World controls → Compare two objects → Start pinning, then
+select two legacy buildings or residents. The existing inspector still follows
+normal selection. Capture stops after two objects; a third selection leaves both
+pins intact. Clear A/B stops capture and retains the other pin. The pinboard
+floats independently while occupied so collapsing controls cannot hide the IDs.
+Native exact source-ID entry also works with keyboard/touch and in Canvas2D;
+that fallback's existing scene picker selects residents only.
+
+Records are detached, page-local capture-time snapshots, not live metrics,
+saved simulation state, matched-run results or causal evidence. IDs, activity
+run ID, model version, town seed, run seed and modeled minute come from the
+active legacy World. Building area is the projected footprint; scene height is
+illustrative and supplied levels may be missing. Resident needs are synthetic
+points out of 100. Missing/nonfinite values display Unavailable; zero stays zero.
+Different types show a limitation instead of fabricated common metrics.
+Population captures are unavailable because no identity/metric mapping exists.
+No animation, extra engine, provider request or persistence is introduced.
+
+Checks: `bun test test/comparison-pinboard*.test.js`; browser:
+`bun x playwright test --config test/comparison-pinboard.browser.config.js`.
+CPU-only capture benchmark: `bun scripts/benchmark-comparison-pinboard.js`.
+Actual verification and remaining browser prerequisites: `docs/reviews/SHE-469.md`.
+
 ## Optional controller (SHE-473)
 
 The Controller disclosure in the 3D World toolbar opts into standard-mapped

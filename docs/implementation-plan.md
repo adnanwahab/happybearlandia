@@ -16,6 +16,19 @@ selection seed is separate from model seed. No simulation/ODD/governance changes
 Next: rerun focused browser suite in a permitted environment and inspect captures.
 No commit/PR yet. [SHE-477 review](reviews/SHE-477.md).
 
+## SHE-487 — follow-flow spotlight (2026-11-14)
+
+Prerequisite audit complete; implementation remains blocked on retained directed
+event counts with endpoint IDs, interval coverage and run provenance. Current
+Population edges count in-progress trips, while the resource graph has no app
+caller. Spatial-events source now exists (updating the older SHE-156 absence
+finding), but exports counters/hashes without retained edge events or Population
+identity/time mapping. Open PR audit found no existing ribbon implementation.
+Next slice, contract, acceptance tasks and preserved merge policy are recorded in
+[SHE-487 review](reviews/SHE-487.md). Existing flow/replay checks: 7 passed,
+120 assertions. No executable changes, browser acceptance or interaction benchmark
+claimed; no merge/deploy. Await the producer export before presentation work.
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,
@@ -9204,6 +9217,63 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-468 — living edit affordances
+
+Next bounded slice: reuse the shared World tools and validator for contextual
+parcel/project/policy hints in the `/world` construction workspace. Validate
+representative drafts against the selected scenario and actual placement context;
+never label sourced context buildings as editable. Keep approval and simulation
+behind existing explicit controls. Static DOM hints avoid animation and per-frame
+validation, support keyboard/touch, and disappear in read-only mode.
+Acceptance: validator agreement, blocked geometry/missing input states, immutable
+input and selection, read-only transitions, and focused browser verification.
+Audit: open PRs #331/#332/#341 cover context/picking/focus and #343 build cost;
+none implements this ticket. No changes to these interfaces or merge policy.
+
+Delivered local increment: validator-derived selected-project/ground and housing
+policy hints reuse existing editors, static DOM overlay, no source-building edits,
+read-only removal and no simulation changes. Module contract updated in
+`world/BUILD_WORLD.md`; audit and limits in `docs/reviews/SHE-468.md`.
+Verification: final integrated regression run passed 75 tests/1,041 assertions;
+focused file passed 4 tests/19 assertions. Browser bundle (21 modules),
+new test/config syntax and diff checks passed. No lint/typecheck script exists.
+Local 200-policy-refresh measurement: 12.28 ms, not device/render certification.
+Browser tests added but server startup blocked by EADDRINUSE on two ports; after
+screenshots and real keyboard/touch/visual validation remain pending. Contextual
+selection hints delivered; citywide all-asset highlights are not implemented.
+Existing disabled automatic merge job and voting/auth/check policies preserved.
+
+## SHE-469 — two-object comparison pinboard (2026-11-14)
+
+Owner-authorized local slice, one worker in isolated `mini/SHE-469` at cdb773a1.
+Audit existing scene selection, geometry inspector, low-fidelity entry and open
+PRs before implementation. No existing pinboard found; neighboring picking,
+keyboard and context-menu PRs remain separate. Preserve all simulation owners.
+
+Slice: capture two legacy spatial records through existing scene selection or
+an exact-ID keyboard/touch form. Retain IDs and capture-time provenance, align
+same-type fields and units, display missing data and incompatible pairs, and
+restore ordinary selection on clear/full. No animations or network writes.
+Acceptance: focused state and component tests, normal `/world` browser journey
+with disposable geometry, mobile/reduced-motion evidence, bounded interaction
+measurement, bundle and adjacent regressions. Risk: Population identities are
+not mapped; explicitly unavailable there. Geometry and synthetic scene height
+must remain distinguishable. Evidence/status: `docs/reviews/SHE-469.md`.
+
+SHE-469 local result: capture-time A/B pinboard wired to legacy scene selections
+and Canvas2D, exact-ID keyboard/touch form, matched units/missing values,
+incompatible-type and unmapped Population explanations. Existing normal selection
+and simulation state preserved. 17 focused tests/91 assertions pass, including
+full checkpoint/20-minute seed-matched continuation; 376-module browser build,
+JS syntax and whitespace checks pass. No applicable root lint/typecheck command.
+CPU-only two-pin p95 0.173ms for1,000 synthetic residents; not browser FPS.
+Four browser cases discover; execution blocked by server EADDRINUSE on3499/43569
+and independent Chrome SIGABRT/EPERM. Before evidence preserved; after screenshots,
+real touch/keyboard/layout and browser timing remain unverified. Unrelated home
+catalog test fails32vs33 in untouched sources. Review and next prerequisites:
+[docs/reviews/SHE-469.md](reviews/SHE-469.md). No merge/deploy/remote policy change;
+autonomous merge safety hold remains literal false. No commit or PR created.
 
 ## SHE-470 — build impact before approval (local slice)
 

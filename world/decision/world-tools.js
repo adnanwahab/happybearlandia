@@ -8,6 +8,7 @@ import { createBuildingProposal, validateBuildingProposal, validateBuildingPlace
 import { validateWorldEdit } from '../ai/edit-validator.js';
 import { getWorldRevisionId } from '../ai/edit-schema.js';
 import * as revisions from '../ai/revisions.js';
+import {mountEditAffordances} from './edit-affordances.js';
 import { buildImpactLines } from './build-impact.js';
 import { housingModel } from '../models/housing/index.js';
 
@@ -326,10 +327,20 @@ export function mountWorldTools(container, {
   const submit = event => { if (event.target.matches('[data-building-form]')) { event.preventDefault(); perform(reviewBuilding); } };
   root.addEventListener('click', click); root.addEventListener('submit', submit);
   find('[data-rerun]').addEventListener('change', renderProposal);
+  const hints = mountEditAffordances(root, row => {
+    if (locked || busy || destroyed) return;
+    const sheet = root.closest('details'); if (sheet) sheet.open = true;
+    if (row.kind === 'project') newBuilding(row.value);
+    else if (row.kind === 'parcel') newBuilding();
+    else { cancelPreview(); selectTab('edit'); find('[data-prompt]').value = `Change ${row.value.replaceAll('_', ' ')} to `; }
+    const target = row.kind === 'policy' ? find('[data-prompt]') : find('[data-building-form] input');
+    target?.focus({preventScroll:true}); target?.scrollIntoView?.({block:'nearest'});
+  });
+  function refreshHints() { hints.update({input:getInput(), scenarioId:currentScenario()?.id, selection:selected, readOnly:locked}); }
   function update(options = {}) {
     if (destroyed) return;
     if (typeof options.readOnly === 'boolean') locked = options.readOnly;
-    renderProjects(); renderHistory();
+    renderProjects(); renderHistory(); refreshHints();
     for (const element of root.querySelectorAll('[data-pane="edit"] input,[data-pane="edit"] textarea,[data-pane="edit"] select,[data-pane="edit"] button,[data-building-form] input,[data-building-form] button,.wt-entry-actions button')) element.disabled = locked;
     find('[data-status]').setAttribute('aria-live', 'polite');
     if (locked) { cancelPreview(); announce('Read-only world revision. Inspect projects and history, or make an editable copy.'); }
@@ -349,8 +360,9 @@ export function mountWorldTools(container, {
       selected = selection ? { ...clone(selection), placementContext: clone(selection.placementContext || selected?.placementContext || getInput().metadata?.placementContext || {}) } : null;
       if (selected && ['district', 'parameter'].includes(selected.kind) && !selected.location) { const location = findSuggestedBuildingLocation(constraints()); if (location) { selected.location = location; selected.suggested = true; } }
       find('[data-selection]').textContent = selected ? `Selected: ${selected.label || selected.id} · ${selected.kind}${selected.suggested ? ` · suggested unoccupied parcel (${selected.location.x}, ${selected.location.z} m), review before approval` : ''}` : 'No object selected · choose a building, district, or parameter.';
+      refreshHints();
     },
     update,
-    destroy() { if (destroyed) return; destroyed = true; request++; onPreview(null); onCancelPreview(); root.removeEventListener('click', click); root.removeEventListener('submit', submit); root.remove(); },
+    destroy() { if (destroyed) return; destroyed = true; request++; hints.destroy(); onPreview(null); onCancelPreview(); root.removeEventListener('click', click); root.removeEventListener('submit', submit); root.remove(); },
   };
 }
