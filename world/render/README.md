@@ -129,6 +129,23 @@ changes and records before/after screenshots plus video. See
 `docs/reviews/SHE-165.md` for actual execution limits; the test existing is not
 proof it passed.
 
+## Optional controller (SHE-473)
+
+The Controller disclosure in the 3D World toolbar opts into standard-mapped
+Gamepad API input. Left stick pans through `mapControls.pan` (including its
+existing geometry streaming notification), right stick orbits, triggers zoom,
+X uses the shared center-ray inspector, Y focuses the existing resident command
+toolbar, Start clicks Full demo. D-pad moves visible control focus, A activates
+or cycles a native select, B sends Escape and returns focus to the canvas.
+Action indices and stick deadzone are configurable for the page session. There
+is no persistence, controller identity logging or simulation state adapter.
+Unsupported/nonstandard pads and absent/denied APIs leave ordinary input intact.
+Disconnect, blur and hidden pages reset all held state; reconnection requires
+neutral controls. Polling runs once per existing frame with a 50ms delta cap,
+no repeat clicks and no idle raycast. Camera input has no added tween/inertia;
+the reused tour retains its existing reduced-motion behavior. Canvas2D does not
+mount this camera adapter. Physical standard controller testing is still needed.
+
 ## Cinematic camera presets (SHE-474)
 
 Open World controls → Camera for Street, Rooftop, Skyline and Follow. Presets cut
