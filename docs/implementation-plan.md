@@ -9188,3 +9188,37 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-570 — bounded mission authoring (November 14, 2026)
+
+Next slice: expose the existing city-challenge.v1 contract on
+`/world/challenges.html`, with an explicit supported synthetic starting checkpoint,
+registered metric selection, bounded horizon and capital cap. Reuse worker replay,
+transport, action menu and guards. No new simulation/scoring authority. One local
+coding worker owns this slice. Acceptance: invalid/empty objectives and unavailable
+checkpoints refuse; exported terms preserve state/seed; results are recomputed,
+never imported scores. Test roundtrip/replay, invalid inputs, worker unavailable,
+keyboard and mobile layout. Risks: missing browser dependencies, SHA256/Worker
+availability, shared-panel regressions. Existing illustrative missions stay separate.
+
+Delivered: inline mission authoring with all four registered outcome choices,
+two explicit small synthetic checkpoints, existing capital/horizon controls,
+reference policy menu, local file/link export and worker-based recipient replay.
+Existing city-challenge.v1 and guards are unchanged. Scoped the legacy mission
+input handler to its own article so rerenders cannot capture editor controls.
+Added worker-unavailable explanation and constructor-failure cleanup. No new
+model, clock/entity mapping, threshold formula, live sharing or scoring service.
+
+Evidence: `bun test test/mission-editor.test.js test/challenge-contract.test.js
+ test/challenge-ui.test.js test/city-systems.test.js` passes 28 tests / 203
+assertions. Node syntax checks for new editor/checkpoint and modified panel
+modules and `git diff --check` pass. No typecheck/lint script covers these JS
+modules; the checkout has no TypeScript compiler executable. Browser suite was
+added (author/refuse/export/reopen, keyboard, reduced motion, narrow viewport,
+invalid link, missing Worker) but server startup failed on ports 39884 and 39897
+with EADDRINUSE. New before/after screenshots and browser acceptance remain
+unverified. Existing supplied screenshots target other routes and are not
+claimed as mission-editor evidence. Next: run the focused browser config on a
+host permitting server startup, inspect screenshots and address any failures.
+Audit and preserved merge policy: `docs/reviews/SHE-570.md`. No PR, deployment,
+merge, external messages, production data changes or credentials used.
