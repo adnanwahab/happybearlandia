@@ -9188,3 +9188,23 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-583 — bounded replay clip (2026-11-14)
+
+Single worker on isolated mini/SHE-583. Next slice: select ten available monthly
+frames ending at the displayed month, render the existing Canvas schematic with
+fixed camera and explicit provenance, encode a silent ten-second GIF, and offer
+a static preview/PNG fallback. No simulation or persistence changes. Acceptance:
+exact source months, deterministic bytes, missing/identity rejection, download,
+keyboard access and no automatic animation under reduced motion. Risks: schematic
+Canvas presentation differs from native 3D; replay remains manifest recomputation.
+Audit found no SHE-583 PR; adjacent open #396 remix and #395 showcase are separate.
+
+SHE-583 local slice delivered: normal-entry clip panel, exact held-frame silent
+GIF, static PNG/preview and explicit animation, complete source integrity guards.
+20 focused tests /201 assertions pass; browser entry bundle passes; independent
+GIF decoder confirms ten one-second frames and exact fixture pixels. Browser
+attempts fail at server startup EADDRINUSE on39884/42983, so feature screenshots,
+mobile/low-end visual and responsiveness acceptance remain open. No lint/typecheck
+script exists. See [review and next action](reviews/SHE-583.md). No model/ODD,
+merge policy, production, deployment or external message changes.

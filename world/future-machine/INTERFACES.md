@@ -210,3 +210,17 @@ measurement; terminal inventory fallback settles without a graphics timing resul
 or continued paint polling. Storage acquisition is inside the optional-storage
 failure guard. The shared visibility/readiness rules do not treat initial preview
 inventory as a completed paired comparison.
+
+## SHE-583 local replay clip
+
+`share/clip.js` selects ten held snapshots ending at the selected month; before
+Month 9 the final available observation repeats. Strict complete-history identity,
+model, seed and clock checks reject missing comparisons. `ui/clip.js` renders a
+separate fixed-camera Canvas2D schematic using the existing spatial mapping;
+no ghosts, native 3D camera, narrative, personal labels or remote resources are
+captured. Source snapshots are manifest recomputation, not independently verified
+checkpoint equivalence. Overlay includes synthetic result label, model, seed,
+month, run and source. GIF is 640×420, one second per observation, no loop/audio;
+8-bit quantization is cosmetic. Static preview and PNG are always offered first;
+animation requires a button press. Rendering yields between frames, and only ten
+frames are retained. Low fidelity does not require WebGL or MediaRecorder.

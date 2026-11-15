@@ -1,0 +1,20 @@
+import {test,expect} from '@playwright/test';
+test('exact muted clip, static reduced-motion preview and unavailable states',async({page},info)=>{
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.goto('/world/future-machine.html?renderer=canvas2d');
+ const panel=page.locator('.fm-clip'),prepare=panel.getByRole('button',{name:'Prepare replay clip'});
+ await expect(prepare).toBeDisabled();
+ await page.screenshot({path:info.outputPath('clip-before.png'),fullPage:true});
+ await page.getByRole('button',{name:'Fork City',exact:true}).click();await expect(prepare).toBeEnabled({timeout:90000});
+ const before=await page.evaluate(()=>JSON.stringify(window.futureMachine.history));
+ await prepare.focus();await page.keyboard.press('Enter');
+ const download=panel.getByRole('link',{name:'Download muted ten-second GIF'});await expect(download).toBeVisible();
+ await expect(panel.locator('.clip-preview canvas')).toBeVisible();await expect(panel.locator('.clip-preview img')).toHaveCount(0);
+ expect(await page.evaluate(()=>JSON.stringify(window.futureMachine.history))).toBe(before);
+ const pending=page.waitForEvent('download');await download.click();const file=await pending;await file.saveAs(info.outputPath('clip.gif'));
+ const decoded=await page.evaluate(async()=>{const blob=await fetch(document.querySelector('.fm-clip a').href).then(r=>r.blob());if(!('ImageDecoder' in window))return null;const decoder=new ImageDecoder({data:await blob.arrayBuffer(),type:'image/gif'});await decoder.tracks.ready;const frames=[];for(let i=0;i<10;i++){const {image}=await decoder.decode({frameIndex:i});frames.push(image.duration);image.close();}return frames;});
+ if(decoded)expect(decoded).toEqual(Array(10).fill(1000000));
+ await panel.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath('clip-after-desktop.png'),fullPage:true});
+ await page.setViewportSize({width:390,height:844});await page.screenshot({path:info.outputPath('clip-after-mobile.png'),fullPage:true});
+ await panel.getByRole('button',{name:'Play GIF preview once'}).click();await expect(panel.locator('.clip-preview img')).toBeVisible();
+});
