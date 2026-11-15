@@ -1,0 +1,22 @@
+import {test,expect} from '@playwright/test';
+for(const mode of ['canvas2d','webgl'])test(`${mode}: keyboard stroll, checkpoint isolation and immediate interruption`,async({page})=>{
+ await page.setViewportSize(mode==='canvas2d'?{width:390,height:844}:{width:1440,height:1000});
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.route('**/api/area*',route=>route.fulfill({json:{source:'none'}}));
+ await page.route('**/world/sim.js',async route=>{const response=await route.fetch();await route.fulfill({response,body:(await response.text())+'\nconst originalCreateWorld=createWorld;createWorld=(...args)=>{const w=originalCreateWorld(...args);window.__wanderWorld=w;return w;};'});});
+ await page.goto(`/world/?renderer=${mode}&demo=1&synthetic=1&people=16`);
+ await expect.poll(()=>page.evaluate(()=>!!window.hblWander)).toBe(true);
+ await page.locator('#speeds button[data-s="0"]').click();
+ await page.screenshot({path:`.mini-symphony-evidence/SHE-575-local-before-${mode}.png`});
+ await page.locator('#wander-panel summary').click();
+ const before=await page.evaluate(()=>JSON.stringify(window.__wanderWorld.captureCheckpoint()));
+ const start=page.getByRole('button',{name:'Start stroll'});await expect(start).toBeEnabled();await start.focus();await page.keyboard.press('Enter');
+ await expect(page.locator('#wander-status')).toContainText('Stop 1 of 4');await expect(page.locator('#wander-status')).toContainText('Synthetic');
+ await page.waitForTimeout(300);await expect(page.locator('#wander-status')).toContainText('Stop 1 of 4');
+ await page.screenshot({path:`.mini-symphony-evidence/SHE-575-local-after-${mode}.png`});
+ await page.getByRole('button',{name:'Next stop'}).click();await expect(page.locator('#wander-status')).toContainText('Stop 2');
+ await page.keyboard.press('Escape');await expect.poll(()=>page.evaluate(()=>window.hblWander.getState().active)).toBe(false);
+ expect(await page.evaluate(()=>JSON.stringify(window.__wanderWorld.captureCheckpoint()))).toBe(before);
+ await start.click();await page.mouse.click(250,500);await expect.poll(()=>page.evaluate(()=>window.hblWander.getState().active)).toBe(false);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});

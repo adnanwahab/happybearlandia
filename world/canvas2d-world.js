@@ -1,3 +1,4 @@
+import {mountWander} from './wander/panel.js';
 import {mountPlanChoices,customPlan,stagePlan} from './plan-choices.js';
 /** Explicitly low-fidelity World. Reuses the legacy seeded town and simulation,
  * replacing only Three/WebGPU visuals with Canvas2D for restricted browsers.
@@ -16,6 +17,7 @@ const notify=(type,detail={})=>window.dispatchEvent(new CustomEvent('hbl:world-f
 let world,town,canvas,ctx,paused=false,speed=1,disposed=false,selected=null,panX=0,panZ=0,zoom=1,cameraSpeed=1,accum=0,frame=null,clock=0;
 const playback=createSimulationPlayback({initialSpeed:1});
 window.hblSimulationPlayback=playback;
+let wander=null;
 let activityDashboard=null,worker=null,weeklyPromise=null,experimentStatus='',cancelWeek=null;
 const planDefinitions={
   custom:customPlan(),
@@ -103,7 +105,7 @@ function draw(now){
   const {deltaMs,paused:framePaused}=playback.update(now);
   if(!framePaused&&world){accum+=deltaMs/1000;const mins=Math.min(6,Math.floor(accum));if(mins>0){world.step(mins);accum-=mins;} }
   clock++;if(clock%10===0)snapshot();
-  paint();frame=requestAnimationFrame(draw);
+  wander?.update(now);paint();frame=requestAnimationFrame(draw);
 }
 function choosePerson(x,y){
   const c=coords(),[wx,wz]=c.reverse(x,y),maxRadius=18/c.scale;
@@ -186,6 +188,8 @@ async function init(){
   world=createWorld(town,{recordHistory:true,...(query.get("seed")?{runSeed:query.get("seed")}:{})});
   canvas=document.createElement('canvas');canvas.id='canvas-lite-world';canvas.setAttribute('aria-label','Playable low fidelity top-down city');canvas.style.cssText='width:100%;height:100%;display:block;touch-action:none';$('view').append(canvas);
   ctx=canvas.getContext('2d');if(!ctx){status.textContent='Canvas2D is unavailable. Try another browser.';return;}
+  wander=mountWander({town,manual:true,move:p=>{const pts=town.buildings.flatMap(b=>b.poly);const xs=pts.map(p=>p[0]),zs=pts.map(p=>p[1]);panX=p.x-(Math.min(...xs)+Math.max(...xs))/2;panZ=p.z-(Math.min(...zs)+Math.max(...zs))/2;zoom=2;}});
+  window.hblWander=wander;
   $('source').textContent='Canvas2D low fidelity · '+(townArea.source==='osm'?'OSM building footprints, fictional residents':'Procedural fictional neighborhood')+' · same legacy City activity rules as the classic World, simplified graphics.';
   $('policy').value='none';
   $('planLoadingStatus').textContent='Local plan presets available in low-fidelity mode; remote catalog not required.';
@@ -238,5 +242,5 @@ async function demo(){
     $('demoCaption').textContent='No plan '+r.avg.noPlan.toFixed(1)+' vs plan '+r.avg.withPlan.toFixed(1)+' ('+(d>=0?'+':'')+d.toFixed(1)+'). '+r.improved+' better off, '+r.worse+' worse off in this synthetic model.';
   }catch(error){$('demoCaption').textContent='The comparison could not run: '+error.message;}
 }
-window.addEventListener('pagehide',()=>{disposed=true;cancelWeek?.();playback.destroy();cancelAnimationFrame(frame);activityDashboard?.destroy();}, {once:true});
+window.addEventListener('pagehide',()=>{disposed=true;wander?.destroy();delete window.hblWander;cancelWeek?.();playback.destroy();cancelAnimationFrame(frame);activityDashboard?.destroy();}, {once:true});
 init().catch(error=>{status.textContent='Canvas2D could not start: '+error.message;});

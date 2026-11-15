@@ -128,6 +128,7 @@
 @media(max-width:640px){#global-illumination-button{bottom:auto;top:calc(max(12px,env(safe-area-inset-top)) + 100px)}}
 @media(max-height:500px) and (orientation:landscape){#global-illumination-button{bottom:auto;top:calc(max(12px,env(safe-area-inset-top)) + 64px);max-width:40vw;white-space:normal}}
 body:has(.saved-future-navigation) #global-illumination-button{top:auto;bottom:max(12px,env(safe-area-inset-bottom))}
+#wander-panel button{min-height:44px;padding:8px 12px} #wander-panel summary{min-height:32px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -138,6 +139,7 @@ body:has(.saved-future-navigation) #global-illumination-button{top:auto;bottom:m
   <button type="button" id="activity-dashboard-button" data-testid="activity-dashboard-button" aria-label="Activity dashboard" aria-haspopup="dialog">Activity</button>
 </nav>
 <button type="button" id="global-illumination-button" aria-pressed="false" data-state="UNAVAILABLE" disabled title="Waiting for a WebGPU renderer">GLOBAL ILLUMINATION</button>
+<details id="wander-panel" style="position:fixed;left:12px;bottom:12px;z-index:51;background:#152333;color:#fff;padding:10px;border-radius:8px;max-width:min(340px,calc(100vw - 48px));max-height:40vh;overflow:auto"><summary>Wander Mode</summary><p>Cosmetic aerial stroll · synthetic landmarks · four stops, up to 24 seconds. No policy or checkpoint edits.</p><p id="wander-status" role="status" aria-live="polite">Preparing supported routes…</p><button type="button" id="wander-start" disabled>Start stroll</button> <button type="button" id="wander-next" hidden>Next stop</button> <button type="button" id="wander-end" hidden>End stroll</button><p>Escape or interact elsewhere to stop instantly.</p></details>
 <div id="loading">Generating your neighborhood…</div>
 <div id="tag"></div>
 

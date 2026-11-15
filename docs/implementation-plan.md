@@ -1,5 +1,30 @@
 # HappyBearLandia implementation plan
 
+## SHE-575 — bounded Wander Mode (2026-11-14)
+
+Local procedural-town slice implemented on `mini/SHE-575`: four seed-stable
+synthetic landmark views along validated grid streets, cosmetic aerial guidance,
+instant opt-out and static reduced-motion/Canvas2D controls. Prerequisite audit
+found no open Wander duplicate; pending co-exploration #401 owns a separate camera
+surface and requires future integration review. Source-map access is unverified,
+so those maps fail closed. No model, ODD mechanism or governance change.
+
+Tasks: [x] audit source/PRs and supported geometry; [x] pure bounded route/controller;
+[x] both normal renderer adapters and accessible controls; [x] unit/panel/model
+isolation regressions; [ ] normal-entry browser and before/after visual acceptance.
+Risks: unknown sourced-map walkability; conflicting future camera owners; browser
+setup restrictions. Acceptance requires clear streets, correct synthetic IDs,
+immediate interruption and unchanged model checkpoints, with missing/hidden
+geometry covered. Route/controller/panel and checkpoint continuation tests pass;
+final verification: 30 tests / 7518 assertions passed. Browser attempts failed before execution at
+server bind (39975 and 43127), and static fallback Chromium launch was denied by
+macOS. Existing readiness mocks/Canvas2D export tests also have unrelated failures.
+No root lint/typecheck exists; JS syntax and diff whitespace checks pass.
+
+Full paths, commands, policy audit and remaining prerequisites:
+[review](reviews/SHE-575.md). No PR, merge or deployment. Browser acceptance and
+sourced-map support remain open; this local increment is not full issue acceptance.
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,
