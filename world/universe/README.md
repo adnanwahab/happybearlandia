@@ -29,3 +29,19 @@ git diff --check
 ```
 
 The type check verifies the exported API declarations against the shared TypeScript contract; JavaScript behavior is covered by runtime/unit/browser checks. Browser tests use same-origin fixture app documents to isolate shell behavior from GPU startup, upstream services, and individual model availability. They do not certify all app models or automatically install chrome into all 29 standalone apps.
+
+### Directory postcards (`/routes`)
+
+`postcards.js` attaches native drag/drop and equivalent buttons to catalog cards.
+Only a completed same-page drag/drop or explicit button activation opens a new
+experiment. Escape/dragend cancels; external payloads are ignored. Unsupported
+presets announce the missing adapter and focus the explanation. No GPU previews,
+iframes, animation, persistence or simulation writes are needed in the directory;
+static presentation is also the reduced-motion/low-end fallback.
+
+The sole mapped preset is `future-machine`: the existing validated
+`DEFAULT_RECIPE`, month 0, Canvas2D renderer, no saved experiment identity. This
+is a new synthetic Riverside experiment, not an import of a snapshot, resident,
+clock or result. Other experiences need explicit versioned adapters before
+support can be added. Tests: `bun test test/postcards.test.js` and
+`bun node_modules/@playwright/test/cli.js test --config test/postcards.browser.config.js`.

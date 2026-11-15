@@ -9240,3 +9240,23 @@ resolve @playwright/test. No root typecheck/lint command/compiler available.
 Real new before/after screenshots and browser focus/reduced-motion acceptance
 remain pending dependency/server repair. See [review](reviews/SHE-443.md) for
 paths audited, preserved merge policy, actual checks and remaining acceptance.
+
+## SHE-442 — directory postcard to new experiment (2026-11-15)
+
+Bounded slice: `/routes` card drag/drop and equivalent keyboard/touch buttons,
+validated Future Machine synthetic preset, explicit unsupported explanations.
+Prerequisites: canonical catalog and existing versioned recipe parser. Acceptance:
+exact preset at month 0 without saved identity; no launch on hover/cancel/foreign
+drop; focused unsupported explanation; static reduced-motion/low-end fallback.
+Risk: a directory preset must not imply a snapshot or cross-model state import.
+One coding worker, existing isolated `mini/SHE-442` checkout; no delegation.
+
+Implemented in `world/universe/postcards.js` and `routes.html`, with focused unit
+interaction and real-destination Playwright coverage. 9 focused tests pass /112
+assertions; existing universe TypeScript contract check, browser build and diff
+whitespace check pass. Three Playwright tests discover, but actual execution is
+blocked before browser launch by Bun server EADDRINUSE on39942. New `/routes`
+screenshots and real browser acceptance remain pending. Broader regression has
+one existing homepage count mismatch (32 carousel entries/33 catalog entries).
+No model/ODD rule change, provenance import, merge-policy change or deployment.
+Details and rerun command: [SHE-442 review](reviews/SHE-442.md).
