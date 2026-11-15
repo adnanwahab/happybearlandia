@@ -29,3 +29,18 @@ OSM imports preserve geometry/source IDs, while inferred units, costs, capacitie
 ## 7. Submodels
 
 [systems.js](../../world/city/systems.js) implements thirteen packs, including the [resident submodel](../../world/city/residents.js). Housing filters affordability/bedrooms then ranks applications with seeded conflict resolution; rent changes are bounded to ±3%. Development uses illustrative rent capitalization minus construction/land/finance cost. Construction reserves permits/labor/materials/equipment and requires utility capacity before completion. Transport uses single-pass district routing rather than equilibrium. Business demand is aggregate spending, services use proportional coverage, utilities use household/firm demand proxies. Finance tracks revenue, operating cost, capital and bounded debt. Demographics use bounded job/housing-sensitive annual migration. Resident housing satisfaction is 100 when housed and 0 otherwise; livelihood satisfaction is bounded `100*(1-housingBurden)`. An active resident gains one bounded social-satisfaction/tie-strength point monthly with the first other resident whose household is in the same district. Monthly routines and housing/job goals reflect current assignment, not simulated daily behavior or permanent achievement; departed residents retain their history. These assumptions and exact equations are colocated in the [City equations](../../world/city/README.md#assumed-equations-city-systems100). Future Machine replays this engine; it is not a second ABM. Verify: `bun test --timeout 15000 test/city-systems.test.js test/project-unblock.test.js test/server-civic-api.test.js`.
+
+The optional [mayor guide](../../world/challenges/mayor.js) (`mayor-guide.v1`)
+uses unchanged City rules with `createCity({households:30,seed:42})`, twelve
+monthly steps, no added flood, and a no-intervention matched control. Its six
+bounded menu entries offer two housing amounts (2/6 homes, cost 6,000/18,000),
+two transit amounts (10/30 capacity, cost 4,000/12,000), and two resilience
+amounts (0.1/0.3, cost 5,000/15,000), all in the initial first district.
+These amounts and synthetic USD costs are authored game assumptions. Exactly
+one action from each pair must fit the 25,000 capital allocation. The existing
+frozen challenge contract grades actual monthly capital spending, unhoused
+households and recorded worker-trip minutes with its population/housing/employment
+guards. Resilience need not improve these outcomes without a flood. The optional
+wall timer never changes scheduling, seeds, identities, inputs or scoring. Runs
+remain separate from daily Population; no cross-model identity/time mapping is
+asserted. Full frozen inputs and exact results are visible locally, without uploads.
