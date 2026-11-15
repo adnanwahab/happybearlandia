@@ -60,3 +60,33 @@ causal interpretation. Zero differences are valid.
 
 Checks: `bun test test/neighborhood-what-if.test.js test/population-model.test.js test/worker-platform.test.js --timeout 30000`.
 Browser journey: `bunx playwright test test/e2e/neighborhood-what-if.e2e.js`.
+
+## What If map pin (SHE-561)
+
+The existing picker accepts only park, grocery, housing and transit additions.
+Choose on map (click/tap), use view center, or enter local east/south metres and
+submit **Place What If pin** using the keyboard. The panel shows inclusive
+loaded x/z bounds before running and the selected addition's model assumption.
+Editing coordinates or attempting an invalid placement clears the previous
+proposal and disables simulation. The worker validates again before generation.
+Missing, nonfinite, reversed or zero-area bounds reject; unsupported project
+keys reject rather than being silently interpreted as policy knobs.
+
+Validity means inside the loaded rectangular neighborhood from
+`deriveLivingContext`, not inside a surveyed parcel or a municipal boundary.
+Ownership, zoning, clearance, water and construction feasibility are unvalidated.
+Synthetic district capacities and paired-day outcomes retain their existing
+meaning. The static marker adds no motion, simulation commands, draws or ticks.
+
+Completed receipts now retain `manifest`, a cloned copy of the exact existing
+`neighborhood-what-if.v1` hash recipe: model version, full source context (including
+origin, bounds, buildings, district IDs and provenance where provided), validated
+project coordinates, population and seed. This additive field does not change
+run IDs for identical accepted inputs. JSON round-trip plus the pinned current
+implementation reproduces the receipt. It is an in-memory run manifest, not a
+persistent saved run or a replay certificate across model versions. The context
+may be synthetic; its recorded source is never promoted to observed geography.
+
+Checks: `bun test test/what-if-pin.test.js test/what-if-pin-ui.test.js`.
+Normal-entry browser suite (requires local server and Chrome launch permission):
+`bunx playwright test --config test/what-if-pin.browser.config.js`.

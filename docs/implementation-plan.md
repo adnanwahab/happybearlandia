@@ -9188,3 +9188,30 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-561 — bounded What If map pins
+
+Slice: retain the existing four Population additions and paired-day simulation;
+validate the loaded rectangular neighborhood, expose its limits and keyboard
+coordinate entry, invalidate stale proposals on rejected placement, and retain
+an immutable recipe manifest with geographic context in completed receipts.
+Prerequisites: World Population context and existing worker comparison. No parcel
+ownership/clearance validator exists; a pin is a conceptual map point only.
+Acceptance: deterministic boundary acceptance/rejection, unsupported knobs rejected,
+manifest round-trip reproduces receipt, and normal `/world` keyboard/fallback UI
+journey with before/after evidence. Risks: rectangular bounds are not cadastral
+polygons; no live provider or new model rules are introduced. One coding worker.
+Status: implementation in progress. Preserve all voting/auth/check configuration.
+
+Delivered locally: bounds validation, explicit unsupported-knob rejection,
+keyboard coordinate form, stale-proposal invalidation and additive full recipe
+manifest. Updated module contract and Population ODD; no model mechanism changes.
+Verification: 13 pin/comparison/impact tests (155 assertions), 2 mounted-panel
+interaction tests (17 assertions), 26 Population/worker tests (264 assertions)
+passed; browser panel/worker build passed. No configured global lint/typecheck.
+Playwright blocked: app server EADDRINUSE on two ports; serverless Chrome attempt
+also aborted at launch. Existing before evidence retained; after browser evidence
+and normal-entry keyboard/touch acceptance remain pending an environment allowing
+server and browser launch. See `docs/reviews/SHE-561.md`. No merge/deploy or voting
+policy changes. Status: local code/regression slice complete; browser acceptance
+and visual review outstanding.

@@ -66,5 +66,5 @@ export async function compareNeighborhood({context,project,config=COMPARISON_CON
   const before=outcome(baseline,records[0]),after=outcome(changed,records[1]);
   const residents=before.residents.map((b,i)=>{const a=after.residents[i];return {id:b.id,home:initialHomes[i],before:b,after:a,delta:{commute:b.commute===null||a.commute===null?null:a.commute-b.commute,burden:a.burden-b.burden,access:a.access-b.access}};});
   delete before.residents;delete after.residents;
-  return {version:'neighborhood-what-if.v1',modelVersion:baseline.modelVersion,runId,project,districtId,seed:config.seed,population:config.population,minutes:1440,before,after,residents,assumption:PROJECTS[project.kind].assumption};
+  return {version:'neighborhood-what-if.v1',modelVersion:baseline.modelVersion,runId,manifest:structuredClone(recipe),project,districtId,seed:config.seed,population:config.population,minutes:1440,before,after,residents,assumption:PROJECTS[project.kind].assumption};
 }
