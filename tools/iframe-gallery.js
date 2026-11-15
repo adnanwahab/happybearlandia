@@ -23,6 +23,7 @@
     const title = section.querySelector('h2')?.textContent || source.title;
     const card = document.createElement('article');
     card.className = 'gallery-card';
+    card.dataset.experienceId = EXPERIENCES[index].id;
     card.dataset.category = section.dataset.carousel;
     card.setAttribute('role', 'group');
     card.setAttribute('aria-roledescription', 'slide');
@@ -32,10 +33,10 @@
     heading.textContent = title;
     const link = document.createElement('a');
     link.href = source.getAttribute('src');
-    link.target = '_blank';
+    if (['world', 'living-city', 'future-machine'].includes(EXPERIENCES[index].id)) link.dataset.portalId = EXPERIENCES[index].id;
     link.rel = 'noopener';
-    link.textContent = 'Open full page ↗';
-    link.setAttribute('aria-label', `Open ${title} in a new tab`);
+    link.textContent = 'Enter world →';
+    link.setAttribute('aria-label', `Enter ${title}`);
     header.append(heading, link);
     const viewport = document.createElement('div');
     viewport.className = 'gallery-viewport';
