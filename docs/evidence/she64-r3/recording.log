@@ -1,0 +1,14 @@
+Recording real Play Demo via the canonical acceptance suite. Artifacts: /private/tmp/hbl-she64-r3-recording-final
+[WebServer] Error: Bun's postinstall script was not run.
+[WebServer] 
+[WebServer] This occurs when using --ignore-scripts during installation, or when using a
+[WebServer] package manager like pnpm that does not run postinstall scripts by default.
+[WebServer] 
+[WebServer] To fix this, run the postinstall script manually:
+[WebServer]   cd node_modules/bun && node install.js
+[WebServer] 
+[WebServer] Or reinstall bun without the --ignore-scripts flag.
+Error: Process from config.webServer was not able to start. Exit code: 1
+
+Recording acceptance did not complete successfully (exit 1). Review Playwright output and artifacts at /private/tmp/hbl-she64-r3-recording-final.
+Usage: bun scripts/record-one-city-two-futures.mjs [--output DIRECTORY] [--port PORT]
