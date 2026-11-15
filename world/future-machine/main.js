@@ -1,3 +1,5 @@
+import {buildSpotlight} from './diff/spotlight.js';
+import {mountSpotlight} from './ui/spotlight.js';
 import {consumeDemoClick,createDemoTiming,visibleCity} from './demo-performance.js';
 import {createFollowUp} from './follow-up.js';
 import {mountLedger} from './butterfly-ledger.js';
@@ -68,6 +70,8 @@ const quest=createDiscoveryQuest();
 const questView=mountDiscoveryQuest(app,{onVisit(){const stop=quest.state.stop;if(stop)manualMonth(stop.month);},onInspect(){const stop=quest.state.stop;if(stop){if(state.month!==stop.month)manualMonth(stop.month);select(stop.entity);}}});
 ui.stageElement.before(app.querySelector('.fm-quest'));
 const removeYearShortcuts=bindYearShortcuts(ui.stageElement,{getState:()=>state,getDiffs:()=>diffs,onMonth:manualMonth,onMissing(){state.message='No recorded divergence in this comparison.';update();}});
+const spotlight=mountSpotlight(app,{onVisit:stop=>jump(stop,{animate:true})});
+ui.stageElement.before(spotlight.root);
 const narration=mountChangeNarration(app);
 const outcomeHost=document.createElement("div");ui.stageElement.after(outcomeHost);
 const diagnostic=mountDiagnosticReport(app);
@@ -127,7 +131,7 @@ function showPreview(recipe){
   showStory({title:'Model-backed initial snapshot · Month 0',summary:`Synthetic starting inventory · seed ${recipe.seed} · model ${recipe.modelVersion} · dataset ${initial.provenance.datasetVersion}. Choose a policy or inspect a building while the future model runs. No future outcomes or saved experiment are available yet.`,evidence:[],limitations:initial.provenance.assumptions});
 }
 let updateFrame=null;
-function update(){if(!disposed&&updateFrame===null)updateFrame=requestAnimationFrame(()=>{updateFrame=null;if(!disposed){ui.update({...state,familyHistory:history,originalRecipe,canRetry:Boolean(lastAttempt),comparisonRecipe:history?.recipe ?? null,comparisonInitial:history?.baseline?.[0]?.state ?? null});questView.update(quest.state,!!history&&['ready','error'].includes(state.status));followUp.update({history,month:state.month,status:state.status});challenges.update(state);receiptUI.update({history,month:state.month,ready:state.status==='ready'});outcomeTimeline?.update(state.month);}});}
+function update(){if(!disposed&&updateFrame===null)updateFrame=requestAnimationFrame(()=>{updateFrame=null;if(!disposed){ui.update({...state,familyHistory:history,originalRecipe,canRetry:Boolean(lastAttempt),comparisonRecipe:history?.recipe ?? null,comparisonInitial:history?.baseline?.[0]?.state ?? null});spotlight.update(!!history&&['ready','error'].includes(state.status));questView.update(quest.state,!!history&&['ready','error'].includes(state.status));followUp.update({history,month:state.month,status:state.status});challenges.update(state);receiptUI.update({history,month:state.month,ready:state.status==='ready'});outcomeTimeline?.update(state.month);}});}
 function visibilityChanged(){director.setHidden(document.hidden);}
 document.addEventListener('visibilitychange',visibilityChanged);
 function cancel(){stopDemoTiming();linkGeneration++;demoGeneration++;director.stop();request?.abort();request=null;setPlaying(false);state.status=history?'ready':'idle';state.error=null;state.message=history?'Run cancelled. Any completed comparison remains available.':'Run cancelled. Initial inventory remains available. Choose a policy and Fork City to retry.';update();}
@@ -190,7 +194,7 @@ function select(entity){if(!history){
   manualMonth(entity.eventMonth);
  }
  quest.inspect(state.month,entity);update();firstInput('scenario');takeover();stage.focus(entity);showStory(withContext(entityDescription(entity)));if(constructionReceipts(history,entity,state.month).length)recordMilestone('why_opened',{target:'recorded-event'});}
-function jump(stop){if(!history||!stop)return;firstInput('scenario');takeover();setMonth(stop.month);quest.visit(state.month);update();outcomeTimeline?.update(state.month,{announce:true});updateURL();const located=stop.entity?stage.focus(stop.entity):false;const detail=stop.entity?entityDescription(stop.entity):stop;showStory(withContext({...stop,...detail,title:stop.title??detail.title,entity:stop.entity,evidence:stop.evidence?.length?stop.evidence:detail.evidence,summary:`${detail.summary}${stop.entity&&!located?' No unambiguous scene mapping for this entity; camera unchanged.':''}`,limitations:story.limitations}));if((stop.evidence?.length??detail.evidence?.length)>0)recordMilestone('why_opened',{target:'recorded-event'});}
+function jump(stop,{animate=false}={}){if(!history||!stop)return;firstInput('scenario');takeover();setMonth(stop.month);quest.visit(state.month);update();outcomeTimeline?.update(state.month,{announce:true});updateURL();const located=stop.entity?stage.focus(stop.entity,{animate,duration:900}):false;const detail=stop.entity?entityDescription(stop.entity):stop;showStory(withContext({...stop,...detail,title:stop.title??detail.title,entity:stop.entity,evidence:stop.evidence?.length?stop.evidence:detail.evidence,summary:`${detail.summary}${stop.entity&&!located?' No unambiguous scene mapping for this entity; camera unchanged.':''}`,limitations:story.limitations}));if((stop.evidence?.length??detail.evidence?.length)>0)recordMilestone('why_opened',{target:'recorded-event'});}
 function direct(){if(!story)return;firstInput('scenario');takeover();const physical=(story.stops||[]).filter(stop=>stop.entity?.collection==='buildings');const stops=physical.length?physical:story.stops||[];const next=stops.find(stop=>stop.month>state.month)||stops[0];if(next)jump(next);else showStory(story);}
 async function run(recipe=state.recipe,savedId=null,selectedMonth=0,{demoRun=false,userRun=false,receiptInput=null,challenge=null,challengeHash=null,entry=null,landing=null}={}){
   diagnostic.clear();state.sharePreview=null;
@@ -218,7 +222,7 @@ async function run(recipe=state.recipe,savedId=null,selectedMonth=0,{demoRun=fal
     if(landing){state.mode=landing.mode;state.ghosts=landing.ghosts;}
     stage.dispose();stage=createStage(ui.stageElement,{onSelect:select,onCameraInteraction:stopCameraTour,history:loaded});stage.setMode(state.mode);stage.setGhosts(state.ghosts);
     trailView?.();trailView=null;trailAnchor=null;inspectorEntity=null;inspectorMetric=null;outcomeTimeline?.dispose();outcomeTimeline=createOutcomeTimeline(outcomeHost,{history:loaded,onMonth:manualMonth,onChapter:jump});
-    history=loaded;momentsDispose();momentsDispose=renderMoments(momentsHost,selectMoments(history),{onJump:jump});diffs=compareHistory(history);quest.reset(diffs,{userRun});
+    history=loaded;momentsDispose();momentsDispose=renderMoments(momentsHost,selectMoments(history),{onJump:jump});diffs=compareHistory(history);quest.reset(diffs,{userRun});spotlight.reset(buildSpotlight(history,diffs));
     // A physical difference alone does not establish a construction event.
     const first=firstDivergence(history,diffs);
     state.firstConstruction=first&&constructionReceipts(history,first.entity,first.month).some(receipt=>receipt.month===first.month)?first:null;
@@ -250,7 +254,7 @@ function previewShare(){
 }
 function copyShare(){const preview=state.sharePreview;return preview?transferLink(false,{url:preview.url}):undefined;}
 function exportReport(){if(!history)return;const report=createEvidenceReport(history,{month:state.month,diff:diffs[state.month],story});const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='future-machine-evidence.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
-function dispose(){if(disposed)return;stopDemoTiming();persistRecent();disposed=true;if(updateFrame!==null)cancelAnimationFrame(updateFrame);document.removeEventListener('visibilitychange',visibilityChanged);request?.abort();removeYearShortcuts();clearInterval(playTimer);storyDispose();narration.dispose();momentsDispose();trailView?.();outcomeTimeline?.dispose();stage?.dispose();receiptUI.dispose();questView.dispose();followUp.dispose();ui.dispose();diagnostic.dispose();challenges.dispose();director.dispose();funnel.dispose();history=null;diffs=[];story=null;state.frame=null;state.diff=null;window.removeEventListener('pagehide',dispose);}
+function dispose(){if(disposed)return;stopDemoTiming();persistRecent();disposed=true;if(updateFrame!==null)cancelAnimationFrame(updateFrame);document.removeEventListener('visibilitychange',visibilityChanged);request?.abort();removeYearShortcuts();clearInterval(playTimer);storyDispose();narration.dispose();momentsDispose();trailView?.();outcomeTimeline?.dispose();stage?.dispose();receiptUI.dispose();spotlight.dispose();questView.dispose();followUp.dispose();ui.dispose();diagnostic.dispose();challenges.dispose();director.dispose();funnel.dispose();history=null;diffs=[];story=null;state.frame=null;state.diff=null;window.removeEventListener('pagehide',dispose);}
 window.addEventListener('pagehide',dispose);
 window.addEventListener('pageshow',event=>{if(event.persisted&&disposed)location.reload();});
 // Read-only diagnostics for local resource measurements and integration checks.

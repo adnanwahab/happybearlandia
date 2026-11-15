@@ -353,6 +353,17 @@ arm's household → occupied unit → building on every frame and highlights bot
 recorded buildings, including different buildings after a move. Unmapped homes
 remain unhighlighted. Camera and simulation playback are unchanged.
 
+## First Difference spotlight (SHE-478)
+
+`mountSpotlight` adds native Previous/Next buttons and an announced exact month,
+arm, entity and event receipt. Controls use 44px minimum targets, stay in the
+normal tab order, stop at sequence boundaries and reset for a new comparison.
+No timer or new keyboard shortcut is introduced. Each visit reuses coordinator
+`jump` with animated stage focus; the existing stage honors reduced motion and
+uses immediate Canvas focus or honest unlocated inventory fallback. Empty,
+missing and unsupported comparisons have distinct explanations. Tour records
+curate synthetic construction milestones, not all possible model differences.
+
 `chapters.js` clusters recorded events by exact month and event type across arms.
 `recorded-chapters.v1` ranks PROJECT_COMPLETE, then CONSTRUCTION_STARTED/TOPPED_OUT,
 then other types; ties use month/type. The top 24 appear chronologically. This is

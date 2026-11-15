@@ -92,6 +92,7 @@
     .intro > details { border-top: 1px solid #2b3b51; padding-top: 18px; }
     .intro summary { cursor: pointer; color: #94dbe9; padding: 8px 0; }
     @media (max-width: 760px) { .launch { grid-template-columns: 1fr; gap: 24px; } .launch img { height: 300px; } }
+    #surprise-wonder [data-change-world]:not([hidden]) { display: inline-flex; align-items: center; min-height: 44px; }
     .simulation-faq { padding: clamp(16px, 3vw, 28px); scroll-margin-top: 20px; }
     .simulation-faq h2 { font-size: 24px; }
     .simulation-faq h3 { font-size: 18px; line-height: 1.4; margin: 22px 0 6px; }
@@ -111,6 +112,16 @@
         <h1>One city. Two possible futures.</h1>
         <p id="demo-explanation">Watch a guided comparison of ten modeled years with and without a housing plan. Pause to explore the city and inspect why outcomes changed. No setup needed.</p>
         <p><a class="flagship-demo" href="/world/future-machine.html?demo=1" aria-describedby="demo-explanation demo-disclaimer">Play Demo <span aria-hidden="true">→</span></a></p>
+        <section id="surprise-wonder" hidden aria-label="Discover a curated wonder">
+          <form>
+            <label for="wonder-seed">Selection seed</label>
+            <input id="wonder-seed" type="number" min="0" max="4294967295" step="1" value="42" required style="width:10ch;min-height:44px">
+            <button type="submit" style="min-height:44px">Surprise Me</button>
+          </form>
+          <p>Discover a synthetic city experiment. The selection seed repeats your choice; each preset keeps its own model seed. Choosing stays local and opens nothing until you select Change world.</p>
+          <p role="status" aria-live="polite"></p>
+          <a data-change-world hidden style="min-height:44px"></a>
+        </section>
         <ol class="launch-steps">
           <li>Start from the same city and random seed.</li>
           <li>Watch the housing plan and baseline unfold side by side.</li>
@@ -303,6 +314,7 @@
 <script src="/tools/iframe-gallery.js" defer></script>
 <script type="module">import {EXPERIENCES} from "/world/universe/registry.js";document.getElementById("gallery-count").textContent=EXPERIENCES.length;</script>
 <script type="module" src="/world/universe/shell.js"></script>
+<script type="module">import {mountSurprise} from '/world/universe/surprise.js'; mountSurprise(document.querySelector('#surprise-wonder'));</script>
 <script type="module" src="/world/onboarding-experiment/main.js"></script>
 <script type="module">
 import {rememberDemoClick} from '/world/future-machine/demo-performance.js';

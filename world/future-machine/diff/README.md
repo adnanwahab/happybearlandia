@@ -22,3 +22,17 @@ The seed-42 flagship now has direct regression coverage using the actual version
 building change, with exact ID ordering within a month. Missing paired building
 or project inventories are skipped. Demo, story first physical stop and browser
 evidence share this rule; it returns null when no mapped building is available.
+
+## First Difference spotlight (SHE-478)
+
+`buildSpotlight(history, diffs)` curates housing project financing, construction
+start, and completion events in month / arm / event-ID order. A stop requires an
+available paired diff for that exact project or completed building, an event at
+that month, and the exact City payload.projectId relationship. Completion uses
+`housingProjectBuildingId`, never a district or nearby-building guess. One stop
+per project/event type per arm and one per arm/event ID avoids repeated receipts.
+These are first recorded milestones for a differing project, not a claim that
+each milestone is the earliest overall comparison difference or its cause.
+Other entity/event relationships are unsupported and remain in the inspector.
+Sparse comparisons disclose missing coverage when no supported stops exist.
+Inputs are never mutated; the coordinator builds the sequence once per run.
