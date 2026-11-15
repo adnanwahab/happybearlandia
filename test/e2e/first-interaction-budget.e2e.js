@@ -77,6 +77,12 @@ for (const profile of budgets.profiles) {
               const start = performance.now();
               slider.value = '16';
               slider.dispatchEvent(new Event('input', { bubbles: true }));
+              // The normal scrubber previews on input and commits after change.
+              slider.dispatchEvent(new Event('change', { bubbles: true }));
+              await new Promise((resolve,reject) => {
+                const committed=()=>{if(window.futureMachine.state.month===16)resolve();else if(performance.now()-start>5000)reject(new Error('Timeline commit timed out'));else requestAnimationFrame(committed);};
+                requestAnimationFrame(committed);
+              });
               await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
               if (window.futureMachine.state.month !== 16) throw new Error('Interaction did not update month');
               return performance.now() - start;
