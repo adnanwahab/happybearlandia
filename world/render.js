@@ -1,3 +1,4 @@
+import {mountWander} from './wander/panel.js';
 import {mountStormCue} from './render/environment/storm-cue.js';
 import {stormIntensityAt} from './weather/parcel-storm.js';
 import {mountPlanChoices,customPlan,stagePlan} from './plan-choices.js';
@@ -2368,6 +2369,7 @@ function frame(now) {
   if(livingWorld?.active)livingWorld.applyBuildingOccupancy?.();
   if(drawCity){globalIllumination.render();startup.firstFrameMs??=performance.now();if(scrapbook&&scrapbookSource)void scrapbook.afterRender(renderer.domElement,scrapbookSource);}
   cityRenderer.afterFrame(now, performance.now() - cpuStart, frameMs);
+  wander?.update(now);
   visualCamera?.update(now);
   visualSpotlight?.update(now);
   requestAnimationFrame(frame);
@@ -2549,6 +2551,11 @@ if (!embedMode && !businessMode && !simulationId && !loadedExperiment) {
   addEventListener('pagehide',()=>{delete window.hblGuidedActions;},{once:true});
 }
 startup.readyMs=performance.now();for(const [node,disabled] of startupDisabled)node.disabled=disabled;startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);
+const wander=!embedMode?mountWander({town,rendered:b=>b.mesh?.visible===true&&!b.mesh.userData.geometryError,
+ beforeStart:()=>{window.hblVisualPass?.controller.stop();visualCamera?.cancel();follow=false;arrivalDone=true;},
+ move:p=>{controls.target.set(p.x,0,p.z);camera.position.set(p.x,160,p.z+0.01);controls.update();}}):null;
+window.hblWander=wander;
+addEventListener('pagehide',()=>{wander?.destroy();delete window.hblWander;},{once:true});
 requestAnimationFrame(frame);
 
 
