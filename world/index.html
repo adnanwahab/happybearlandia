@@ -135,6 +135,7 @@
 @media(max-height:500px) and (orientation:landscape){#global-illumination-button{bottom:auto;top:calc(max(12px,env(safe-area-inset-top)) + 64px);max-width:40vw;white-space:normal}}
 body:has(.saved-future-navigation) #global-illumination-button{top:auto;bottom:max(12px,env(safe-area-inset-bottom))}
 </style>
+<link rel="stylesheet" href="/world/player-feedback.css">
 <style>#gamepad-controls{max-width:330px;font-size:13px}#gamepad-controls[open]{max-height:55vh;overflow:auto;background:#172331;color:#fff;padding:8px}#gamepad-controls label{display:block}#gamepad-controls select{max-width:65px}</style>
 <link rel="stylesheet" href="/world/universe/portal.css">
 <script src="/world/universe/portal.js" defer></script>
@@ -152,6 +153,7 @@ body:has(.saved-future-navigation) #global-illumination-button{top:auto;bottom:m
 
 <details class="panel" id="top">
   <summary title="Minimize or expand world controls" aria-label="HappyBearLandia world controls"><h1>World controls</h1></summary>
+  <div data-player-feedback></div>
   <div class="row"><a href="/reality-compiler" onclick="this.search=location.search">Reality Compiler</a> · <a href="/city-speaks" onclick="this.search=location.search">Who does this hurt?</a></div>
   <a href="/world/city-lab.html" onclick="this.search=location.search" style="color:var(--accent);font-size:12px">City Systems Laboratory ↗</a>
   <div class="row"><a id="world-lite-link" href="/world?renderer=canvas2d">Use 2D low-fidelity mode</a></div>
@@ -284,6 +286,7 @@ body:has(.saved-future-navigation) #global-illumination-button{top:auto;bottom:m
   </div>
 </div>
 
+<script type="module" src="/world/player-feedback.js"></script>
 <script type="module" src="/world/model-provenance-loader.js"></script>
 <script type="module" src="/world/first-run-guide.js"></script>
 <script type="module" src="/world/renderer-entry.js"></script>
