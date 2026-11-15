@@ -1,5 +1,21 @@
 # HappyBearLandia implementation plan
 
+## SHE-572 — pass-the-future relay readiness (2026-11-14)
+
+Analysis only; feature acceptance incomplete. The named challenges page owns
+authored arithmetic missions and a separate local family/council campaign, not a
+versioned City checkpoint. Existing frozen City challenges and Future Machine
+receipts are reusable but do not establish this surface's ownership or clock
+mapping. Resolve intended scenario authority and local versus authenticated
+ownership scope before implementation; do not invent a seed or substitute a new
+City scenario for the source mission. Detailed source/PR audit, prerequisites,
+next end-to-end slice, acceptance checks and preserved disabled merge policy:
+[docs/reviews/SHE-572.md](reviews/SHE-572.md).
+
+Verification: four challenge/share suites passed 23 tests / 226 assertions;
+three authored campaign suites passed 13 tests / 43 assertions. No executable
+changes or browser acceptance claimed. No PR, merge, deploy or service activation.
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,
