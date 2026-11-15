@@ -1,3 +1,4 @@
+import { readPrivateRemix } from './remix.js';
 import { createPopulationRuntime } from '../population/runtime.js';
 import { inspectHousehold, inspectPerson, restorePopulation } from '../population/model.js';
 import { readPopulationCheckpoint } from '../population/checkpoint.js';
@@ -7,7 +8,8 @@ import { persistCityReturn } from '../house/bridge.js';
 
 export async function readFuture(id, fetcher = fetch) {
   if (!/^[A-Za-z0-9_-]{8,16}$/.test(id)) throw new Error('Invalid saved experiment ID.');
-  const response = await fetcher('/api/world-experiments/' + encodeURIComponent(id));
+  const local = readPrivateRemix(id);
+  const response = local ? {ok: true, json: async () => local} : await fetcher('/api/world-experiments/' + encodeURIComponent(id));
   if (!response.ok) throw new Error(response.status === 404 ? 'Saved checkpoint is missing.' : response.status === 410 ? 'Saved checkpoint has expired.' : 'Saved checkpoint could not be loaded.');
   const record = await response.json();
   if (record.id !== id || record.schemaVersion !== 'world-experiment-record.v1' || record.save?.mode !== 'living') {

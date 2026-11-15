@@ -147,6 +147,27 @@ typecheck script. Documentation whitespace check passed. No commit or PR created
 no model/ODD behavior change. Disabled automatic merge and existing review/check
 gates remain unchanged. No deployment, external messages or production changes.
 
+## SHE-582 — event reactions audit (2026-11-14)
+
+Analysis only on isolated `mini/SHE-582` at `cdb773a1`; implementation and ticket
+acceptance remain open. No duplicate ticket PR found; adjacent sharing candidates
+395/396/397 require ownership recheck before editing the coordinator. Existing
+City event receipts support exact arm/month grounding, but Future Machine has no
+reaction ownership, private audience or report service. Next integrated slice:
+server-issued ephemeral session, bounded expiring separate reaction store,
+server-resolved event targets, private-default UI, owner-only mutations and viewer
+hide/report. Disposable fixtures need no live provider. Risks: event replay is
+recomputation; client receipts are not authorization; private reads must never
+depend on possession of an experiment ID. Concrete contract, acceptance matrix,
+source paths and public-service prerequisites: [SHE-582 review](reviews/SHE-582.md).
+
+Existing story/integrity/share/backend regression checks: 30 pass, one browser
+skip, 262 assertions, zero failures. No configured repository-wide lint/typecheck.
+No executable change; Playwright skipped. Pre-existing screenshots target other
+routes and do not establish reaction acceptance; before/after Future Machine
+evidence remains outstanding. No model/ODD, vote/auth/check or merge-policy
+changes; automatic merging remains disabled. No external publication or deployment.
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,
@@ -9335,6 +9356,25 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-584 — local private remix slice (2026-11-14)
+
+Audit: existing Population rain fork already restores matched copies and saves
+children; no access-control contract exists on world-experiments. Open GitHub PR
+searches for remix and future-journey returned none. Isolated mini/SHE-584, one
+coding worker. Scope: Remix wording, required change summary, derived origin
+credit, versioned parent checkpoint/seed/model/clock/digest and browser-only
+private persistence. Public publishing is disabled pending ownership/auth/access
+controls. Source and simulation rules remain unchanged. No ODD mechanism change.
+Acceptance evidence: 4 focused remix/house-bridge tests passed, 28 assertions;
+5 earlier remix/local-journey tests passed, 37 assertions. Browser bundle passes.
+No root lint/typecheck script exists. Playwright blocked at server startup by
+EADDRINUSE on 54407 and 54884; after screenshots, accessibility and responsive
+browser acceptance remain open. Existing before images cover other routes and
+are not evidence of this tool's baseline. See reviews/SHE-584.md for limits.
+Next: browser verification, pinned-recipe recovery UI and authorized public
+ownership/access contract before full issue acceptance. No merge/deployment;
+configured automatic merge safety hold remains literal false.
 
 ## SHE-586 — in-place World reactions (2026-11-14)
 

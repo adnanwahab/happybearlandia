@@ -53,11 +53,17 @@ test('an exact Living World future survives World, House, replay and a matched f
   await expect(page.locator('#clock')).toContainText('Minute 360');
   expect(new URL(page.url()).searchParams.get('person')).toBe(person);
 
-  await page.getByRole('button', { name: 'Run matched fork and save child' }).click();
+  await page.getByLabel('Change summary').fill('Compare more rain');
+  await page.getByRole('button', { name: 'Run matched remix and save child' }).click();
   await expect(page.locator('#pair')).toContainText('Tick 361');
   const child = new URL(page.url()).searchParams.get('experiment');
   expect(child).not.toBe(parent);
-  const saved = await (await request.get('/api/world-experiments/' + child)).json();
+  const saved = await page.evaluate(id => JSON.parse(localStorage.getItem('hbl-private-remix:' + id)), child);
+  await expect(page.locator('#lineage')).toContainText(parent);
+  await page.screenshot({path: '.mini-symphony-evidence/SHE-584-after-desktop.png', fullPage: true});
+  await page.setViewportSize({width:390,height:844});
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({path: '.mini-symphony-evidence/SHE-584-after-mobile.png', fullPage:true});
   expect(saved.parentId).toBe(parent);
   expect((await (await request.get('/api/world-experiments/' + parent)).json()).checksum).toBe(original.checksum);
   await page.locator('#timeline').press('Home');
@@ -69,11 +75,12 @@ test('an exact Living World future survives World, House, replay and a matched f
 
   await page.locator('#timeline').press('Home');
   await expect(page.locator('#clock')).toContainText('Minute 360');
-  await page.getByRole('button', { name: 'Run matched fork and save child' }).click();
+  await page.getByLabel('Change summary').fill('Compare more rain');
+  await page.getByRole('button', { name: 'Run matched remix and save child' }).click();
   await expect(page.locator('#pair')).toBeVisible();
   const replayedId = new URL(page.url()).searchParams.get('experiment');
   expect(replayedId).not.toBe(child);
-  const replayed = await (await request.get('/api/world-experiments/' + replayedId)).json();
+  const replayed = await page.evaluate(id => JSON.parse(localStorage.getItem('hbl-private-remix:' + id)), replayedId);
   expect(replayed.parentId).toBe(parent);
   expect(replayed.save.view.journeyFork).toEqual(saved.save.view.journeyFork);
   expect(replayed.save.checkpoint).toEqual(saved.save.checkpoint);
