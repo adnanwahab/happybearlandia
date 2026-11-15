@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>City Invention Studio · HappyBearLandia</title>
   <link rel="stylesheet" href="/world/civilization/civilization.css">
+  <link rel="stylesheet" href="/world/invention/palette/workshop.css">
 </head>
 <body>
   <main>
@@ -27,6 +28,25 @@
         <p>Run a City plan until a selected metric crosses your threshold and inspect that month’s evidence.</p>
       </article>
     </div>
+    <section id="palette" aria-labelledby="palette-title">
+      <h2 id="palette-title">Neighborhood palette workshop</h2>
+      <p>Aesthetics only · Make an authored neighborhood cozy, futuristic or whimsical. This schematic preview is synthetic artwork, independent of CityState, budgets, saved runs and model outputs. Tree colors imply no environmental benefit; lighting does not advance time.</p>
+      <noscript>Enable JavaScript to preview and save cosmetic presets. Policy tools above remain available.</noscript>
+      <div class="palette-controls">
+        <label>Architecture aesthetics<select name="architecture"><option value="original">Original</option><option value="cozy">Cozy</option><option value="futuristic">Futuristic</option><option value="whimsical">Whimsical</option></select></label>
+        <label>Vegetation aesthetics<select name="vegetation"><option value="original">Original</option><option value="cozy">Cozy</option><option value="futuristic">Futuristic</option><option value="whimsical">Whimsical</option></select></label>
+        <label>Lighting aesthetics<select name="lighting"><option value="original">Original</option><option value="cozy">Cozy</option><option value="futuristic">Futuristic</option><option value="whimsical">Whimsical</option></select></label>
+      </div>
+      <div class="cards">
+        <figure><figcaption>Before · Original aesthetics</figcaption><div id="palette-before"></div></figure>
+        <figure><figcaption>After · Current preview</figcaption><div id="palette-after"></div></figure>
+      </div>
+      <p id="palette-diff" aria-live="polite"></p>
+      <button id="palette-save" type="button">Save render recipe</button>
+      <button id="palette-reset" type="button">Reset aesthetics</button>
+      <p role="status"></p>
+    </section>
   </main>
+  <script type="module" src="/world/invention/palette/page.js"></script>
 </body>
 </html>
