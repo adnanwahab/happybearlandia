@@ -9188,3 +9188,28 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-571 — Five-minute mayor mode
+
+Next bounded slice: add a guided monthly City comparison at `/world/challenges.html`.
+Reuse the frozen challenge contract and worker; leave authored legacy missions intact.
+Three decisions each offer modest versus ambitious supported interventions under a
+25,000 synthetic USD capital cap. Declare the existing Pareto rubric and guards
+before execution. Optional, pauseable wall timer has no scoring or model effect.
+Acceptance: exactly three unique interventions, enforced allocation, matched engine
+results and inspectable frozen inputs/ledgers; explicit unavailable/failure states;
+keyboard/mobile/reduced-motion support. Verify unit/integration and browser paths.
+Risks: synthetic costs are game assumptions, actual spending may differ, no flood
+means resilience may not improve the selected metrics, and winning is not promised.
+No production services, persistence, cross-model mappings or governance changes.
+
+Delivered locally: `mayor.js` bounded scenario/allocation/timer, `mayor-ui.js`
+guidance and worker/fallback comparison, challenge-page entry, responsive styles,
+City ODD scenario-input documentation, focused unit and Playwright suites.
+Evidence: 17 focused tests / 117 assertions pass; syntax and whitespace pass.
+Browser attempt blocked at server startup (EADDRINUSE on 39884 and 45719), so
+screenshots/accessibility/browser acceptance remain pending. See
+`docs/reviews/SHE-571.md` for ownership audit, policy preservation and prerequisites.
+No commit/PR/deployment created. Next: run `bunx playwright test --config
+test/mayor.browser.config.js` on a host permitting server/browser startup and
+inspect before/after evidence before acceptance.
