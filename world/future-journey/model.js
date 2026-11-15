@@ -8,7 +8,7 @@ import { persistCityReturn } from '../house/bridge.js';
 export async function readFuture(id, fetcher = fetch) {
   if (!/^[A-Za-z0-9_-]{8,16}$/.test(id)) throw new Error('Invalid saved experiment ID.');
   const response = await fetcher('/api/world-experiments/' + encodeURIComponent(id));
-  if (!response.ok) throw new Error(response.status === 404 ? 'Saved checkpoint is missing.' : 'Saved checkpoint could not be loaded.');
+  if (!response.ok) throw new Error(response.status === 404 ? 'Saved checkpoint is missing.' : response.status === 410 ? 'Saved checkpoint has expired.' : 'Saved checkpoint could not be loaded.');
   const record = await response.json();
   if (record.id !== id || record.schemaVersion !== 'world-experiment-record.v1' || record.save?.mode !== 'living') {
     throw new Error('This checkpoint uses a different simulation model.');
