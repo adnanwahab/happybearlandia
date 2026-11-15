@@ -29,3 +29,16 @@ git diff --check
 ```
 
 The type check verifies the exported API declarations against the shared TypeScript contract; JavaScript behavior is covered by runtime/unit/browser checks. Browser tests use same-origin fixture app documents to isolate shell behavior from GPU startup, upstream services, and individual model availability. They do not certify all app models or automatically install chrome into all 29 standalone apps.
+
+SHE-588 stability candidate: `bunx playwright test --config
+ test/e2e/journey-stability.config.js` runs ten five-hop loops through World,
+House and Future Machine, Back to House, then closes to home. Active headings
+receive keyboard focus; closing restores the search field. The fixture and
+real-document runs are separate. JSON attachments report each hop and post-GC
+home counters against predeclared tolerances (100 nodes, 10 listeners,
+2 documents, 16 MiB heap above warm-up). These tolerances are provisional until
+measured; they exclude GPU/process memory. A retained canonical tick/entity is
+browsing context, not proof of resolved model replay or cross-model mapping.
+The config uses disposable storage and skips `.env`; set `HBL_BUN_EXECUTABLE`
+if a package-manager shim shadows the installed Bun binary. Browser evidence
+and remaining acceptance are recorded in `docs/reviews/SHE-588.md`.

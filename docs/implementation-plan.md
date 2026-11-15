@@ -9188,3 +9188,26 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-588 — fifty-hop navigation stability (2026-11-14)
+
+One worker owns the focused browser scenario/config and any demonstrated shell
+focus regression. Audit: existing universe-shell tests mock child documents;
+renderer-disposal tests mount stages directly; neither proves repeated routes.
+Next slice: ten five-hop loops (home → World → House → Future Machine → Back →
+home), canonical context checks, keyboard focus and CDP post-GC home checkpoints.
+Predeclare allowances above a warmed home: 100 nodes, 10 listeners, 2 documents,
+16 MiB JS heap; these are regression tolerances, not device certification.
+Run both isolated shell fixtures and real applications; retain per-loop evidence,
+errors, response latency and screenshots. Missing/invalid scope must stay visible.
+Prerequisites: local Bun server and Chromium. Risks: external assets, independent
+model clocks and browser-only memory coverage. No model mapping is inferred.
+Preserve disabled automatic merge workflow and existing review/check gates.
+
+SHE-588 result: three focused Playwright cases discover; 8 unit tests/57
+assertions, exported API typecheck and six-module browser bundle pass.
+Two actual browser attempts failed before launch with EADDRINUSE (39961,
+42883). Focus handoff and fifty-hop harness are local review candidates;
+measured budgets, ready inspector/replay continuity and real browser acceptance
+remain open. Exact scope, commands and limitations: docs/reviews/SHE-588.md.
+No merge/deploy or governance changes; existing automatic merge hold preserved.
