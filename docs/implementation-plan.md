@@ -9378,3 +9378,24 @@ resolve @playwright/test. No root typecheck/lint command/compiler available.
 Real new before/after screenshots and browser focus/reduced-motion acceptance
 remain pending dependency/server repair. See [review](reviews/SHE-443.md) for
 paths audited, preserved merge policy, actual checks and remaining acceptance.
+
+## SHE-441 — bounded sibling preview swipes (2026-11-15)
+
+One worker on isolated `mini/SHE-441`. Slice: reuse homepage gallery, bound
+navigation at edges, capture horizontal preview drags only, snap to one sibling,
+suppress drag clicks, retain native vertical scrolling and interactive iframe
+camera ownership. Reuse media preference reduction. Acceptance: threshold,
+cancel/edge/multitouch checks, keyboard/focus, category changes, reduced motion,
+focused Playwright and real captures when environment permits. No model changes.
+Risk: browser dependencies/launch may be unavailable. Audit open PRs before edits;
+no matching open SHE-441/swipe implementation found. Preserve merge safety hold.
+
+SHE-441 local result: bounded one-sibling pointer drag, edge clamping, retained
+control focus, horizontal intent/cancellation/click suppression, iframe ownership
+and shared reduced-motion preference implemented. 14 focused/adjacent tests pass
+(66 assertions); syntax and whitespace checks pass. Three Playwright cases
+discover via existing host dependencies, but server startup fails EADDRINUSE on
+3197 and39941 before execution. No new after screenshot or device measurement.
+Browser/device acceptance remains open; exact audit, policy preservation,
+commands and limits: [SHE-441 review](reviews/SHE-441.md). No model changes,
+merge, deployment or production writes.
