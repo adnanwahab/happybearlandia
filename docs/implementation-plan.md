@@ -9205,6 +9205,46 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
 
+## SHE-470 — build impact before approval (local slice)
+
+Audit: reuse `world/decision/world-tools.js`, `ai/edit-validator.js` and
+`buildings/proposal.js`; no new simulation authority. Open PR #342 owns Decision
+Studio undo/redo (different modules); preserve its interfaces. Next slice adds
+committed/pending synthetic project estimates and declared permit/build timing to
+the existing validated review, with no invented budget ceiling or run outcome.
+Acceptance: reject/cancel preserves inputs; invalid/stale proposals cannot commit;
+exact cost/subsidy deltas, removal and empty states are covered; keyboard/touch
+review works. Risks: estimates are not bills or realized spending; capacity,
+seeded delay, cancellation and overruns require actual runs. Verification pending.
+
+Local implementation complete for the estimate panel; acceptance remains partial.
+73 focused tests / 1032 assertions pass and browser bundle passes (21 modules).
+Summary-only 64-project benchmark: median 0.129416 ms / p95 0.141417 ms,
+1000 samples on Bun 1.4.2. Browser suite added but server bind failed with
+EADDRINUSE on two ports; keyboard/touch integration and after screenshots remain
+unverified. See `docs/reviews/SHE-470.md` for exact commands, overlap audit,
+contract paths, unchanged merge policy and prerequisites. No deployment or PR.
+
+## SHE-471 — scenario session undo/redo (2026-11-14)
+
+Bounded local slice on isolated `mini/SHE-471`; audited source and open PRs first,
+no competing undo work found. Single worker owns draft history, editor controls,
+committed local reload, focused tests/docs. Acceptance: at least five reversible
+edits, redo invalidation after branching, unchanged executed receipts, committed
+reload, unavailable/read-only states, keyboard/touch and reduced motion. Risks:
+100 input-event cap, session-only undo stack, browser-local project URLs, and
+browser/device timing unverified. No simulation or model contract changes.
+
+Implemented and verified with 21 focused tests (1198 assertions), 62 Decision
+suite tests (3580 assertions, overlaps integration), and 48-module browser bundle.
+Two browser cases discover; actual runs blocked before launch by EADDRINUSE on
+3194 and 41974. No before/after editor screenshots produced. Draft-only benchmark
+p95 0.040458ms for record/undo/redo excludes DOM/simulation. Full paths, measured
+limits and commands: [SHE-471 review](reviews/SHE-471.md). Next: run the browser
+config on a bind-capable host and review screenshots before acceptance. Existing
+merge workflow safety hold, auth/voting and checks preserved. No commit/PR,
+merge, deployment, live service or production-data action.
+
 ## SHE-472 — spatial keyboard traversal (2026-11-14)
 
 Audit: branch `mini/SHE-472`; open GitHub PR searches for keyboard, scene targets,

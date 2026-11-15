@@ -8,6 +8,7 @@ import { createBuildingProposal, validateBuildingProposal, validateBuildingPlace
 import { validateWorldEdit } from '../ai/edit-validator.js';
 import { getWorldRevisionId } from '../ai/edit-schema.js';
 import * as revisions from '../ai/revisions.js';
+import { buildImpactLines } from './build-impact.js';
 import { housingModel } from '../models/housing/index.js';
 
 const clone = value => structuredClone(value);
@@ -61,7 +62,7 @@ export function mountWorldTools(container, {
     <nav class="wt-tabs" aria-label="World tools"><button type="button" data-tab="build" aria-pressed="true">Building projects</button><button type="button" data-tab="edit" aria-pressed="false">Edit world</button><button type="button" data-tab="history" aria-pressed="false">World history</button></nav>
     <section data-pane="build"><div class="wt-project-list" data-projects></div><form class="wt-building-form" data-building-form hidden><div class="wt-subheading"><h3 data-form-title>New building proposal</h3><span class="wt-chip">Unapproved preview</span></div><p>Mixed-use residential · locations use world meters; footprints use square feet. Placement checks do not establish zoning or legal approval.</p><div class="wt-form-grid" data-building-fields></div><div class="wt-form-actions"><button type="button" data-action="place-building">Place in 3D world</button><button type="submit">Review project changes</button><button type="button" data-action="cancel-building">Cancel proposal</button></div><p class="wt-hint">In placement mode: move pointer, click to place · R rotate · + / − resize · Esc cancel. Typing fields keep normal keyboard behavior.</p></form></section>
     <section data-pane="edit" hidden><label>What would you like to change?<textarea data-prompt rows="3" maxlength="4000" placeholder="Add a 24-story, 310-unit apartment tower here. Or make construction capacity 20% higher."></textarea></label><div class="wt-provider-row"><label>Provider<select data-provider><option value="demo">Local demo parser · not AI</option></select></label><button type="button" data-action="request-edit">Preview edit</button></div><p class="wt-hint" data-provider-note>The local demo parser is deterministic. Configured AI providers propose bounded edits; they cannot approve them.</p><details><summary>Supported edits and boundaries</summary><p>Parameters, uncertainty, alternatives, immediate stress presets, building projects, world appearance, and success criteria. Timed shocks are accepted only when modeled.</p><button type="button" disabled>Model equations / new metrics · unavailable in this release</button><p>No repository code, evidence provenance, journal entries, or resident records are edited by this tool.</p></details></section>
-    <section class="wt-preview" data-preview hidden><div class="wt-preview-title"><h3>Proposed world edit</h3><span data-classification class="wt-chip"></span></div><p data-summary></p><div data-diff></div><ul data-warnings></ul><p class="wt-hint" data-validation></p><label class="wt-rerun"><input type="checkbox" data-rerun checked> Simulate the approved revision using 10 futures per scenario</label><div class="wt-form-actions"><button type="button" data-action="approve" class="wt-approve">Approve & simulate</button><button type="button" data-action="edit-proposal">Edit proposal</button><button type="button" data-action="reject">Reject</button></div><p class="wt-hint">Approval records the proposal hash, provider, prompt, operations, and parent revision. Previous completed experiments remain unchanged.</p></section>
+    <section class="wt-preview" data-preview hidden><div class="wt-preview-title"><h3>Proposed world edit</h3><span data-classification class="wt-chip"></span></div><p data-summary></p><div data-diff></div><section data-build-impact aria-label="Build impact and cost"></section><ul data-warnings></ul><p class="wt-hint" data-validation></p><label class="wt-rerun"><input type="checkbox" data-rerun checked> Simulate the approved revision using 10 futures per scenario</label><div class="wt-form-actions"><button type="button" data-action="approve" class="wt-approve">Approve & simulate</button><button type="button" data-action="edit-proposal">Edit proposal</button><button type="button" data-action="reject">Reject</button></div><p class="wt-hint">Approval records the proposal hash, provider, prompt, operations, and parent revision. Previous completed experiments remain unchanged.</p></section>
     <section data-pane="history" hidden><div class="wt-form-actions"><button type="button" data-action="undo">Undo last approved edit</button></div><div data-history></div><div data-compare></div></section>`;
   container.append(root);
   const find = selector => root.querySelector(selector);
@@ -159,6 +160,9 @@ export function mountWorldTools(container, {
       if (edited) appendOperationEditor(row, operation, index);
       box.append(row);
     }
+    const impact = find('[data-build-impact]'); impact.replaceChildren(node('h4', 'Before you commit'));
+    const candidate = checked.valid ? checked.previewInput?.scenarios?.find(s => s.id === currentScenario()?.id) : null;
+    for (const line of buildImpactLines(currentScenario(), candidate)) impact.append(node('p', line));
     const warnings = find('[data-warnings]'); warnings.replaceChildren();
     for (const warning of new Set([...(pending.warnings || []), ...(checked.warnings || []), ...(checked.errors || [])])) warnings.append(node('li', text(warning)));
     find('[data-validation]').textContent = checked.valid ? 'Accepted as a draft: the values above. No zoning, utility capacity or land ownership approval is modeled. Geometric placement and schema validation passed; approval validates again.' : 'Rejected: this proposal cannot be approved. The messages above explain why; revise or reject it.';
@@ -188,6 +192,9 @@ export function mountWorldTools(container, {
   function refreshApproval() {
     const checked = validatePending(); find('[data-action="approve"]').disabled = locked || busy || !checked.valid;
     if (checked.valid) onPreview(clone(checked.proposal));
+    const impact = find('[data-build-impact]'); impact.replaceChildren(node('h4', 'Before you commit'));
+    const candidate = checked.valid ? checked.previewInput?.scenarios?.find(s => s.id === currentScenario()?.id) : null;
+    for (const line of buildImpactLines(currentScenario(), candidate)) impact.append(node('p', line));
     find('[data-validation]').textContent = checked.valid ? 'Edited proposal validates. Review the updated values before approval.' : (checked.errors || []).map(text).join(' ');
   }
   async function approve() {
@@ -336,7 +343,7 @@ export function mountWorldTools(container, {
       find('[data-prompt]').value = prompt;
       return perform(proposeEdit);
     },
-    showProposal(proposal) { if (locked || destroyed) return; showProposal(proposal); selectTab('edit'); root.scrollIntoView?.({ behavior: 'smooth', block: 'start' }); },
+    showProposal(proposal) { if (locked || destroyed) return; showProposal(proposal); selectTab('edit'); root.scrollIntoView?.({ behavior: doc.defaultView?.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' }); },
     setPlacement(proposal) { if (locked || destroyed) return; if (!proposal) { cancelPreview(); announce('Placement cancelled. Inputs and approved projects are unchanged.'); return; } draft = clone(proposal); if (!draft.id) draft.id = createBuildingProposal().id; renderBuildingForm(); onPreview(clone(draft)); announce('Building placed as a draft. Review its configuration and explicitly approve to change the scenario.'); },
     setSelection(selection) {
       selected = selection ? { ...clone(selection), placementContext: clone(selection.placementContext || selected?.placementContext || getInput().metadata?.placementContext || {}) } : null;

@@ -44,3 +44,24 @@ bun scripts/backup-decision-store.js /data/decision-experiments /tmp/hbl-decisio
 ```
 
 Open the recovered store and confirm an experiment can still load its results after a restart. Retain the independent backup until that check succeeds.
+
+## Draft edit history (SHE-471)
+
+Decision Studio keeps up to 100 draft edits in memory. Undo/redo restores numeric
+parameters, uncertainty, stress toggles, scenario names/alternatives, decision
+rules, and primary project/run settings through the existing editor. Each changed
+snapshot receives a session revision; editing after undo discards redo. Run
+receipts, selected run identity, replay month and continuity authority are outside
+this history. Undo/redo does not execute a preview; use Simulate explicitly.
+History is unavailable during execution and in read-only shares. Ctrl/Cmd+Z,
+Ctrl/Cmd+Shift+Z and Ctrl/Cmd+Y work outside input editors; inside them native
+text undo remains available. The buttons provide the same actions on touch and
+keyboard, with 44px minimum height and no new animation.
+
+Save project commits the current inputs and `editRevision` to the existing local
+project store, and puts its browser-local `project` ID in the URL. Reload reopens
+that committed revision, with empty history. Uncommitted edits are not recovered.
+Local project URLs work only in the browser holding that project; they are not
+share links. Save experiment instead creates a separate server record and updates
+the experiment URL. Reopening/importing a project or reproducing an experiment
+starts a new history. No server storage or model schema changed.
