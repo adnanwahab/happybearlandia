@@ -1,0 +1,9 @@
+import {test,expect} from 'bun:test';
+import {districtWhispers} from '../world/city-speaks/whispers.js';
+import {createCity} from '../world/city/seed.js';
+import {createEngine} from '../world/city/engine.js';
+const event={id:'1-0',eventType:'CONSTRUCTION_STARTED',system:'construction',geographyId:'d0',simulationTime:1,modelVersion:'1.0.0',payload:{rule:{evidenceType:'synthetic-assumption'}}};
+const step=events=>({state:{month:1,districts:[{id:'d0'}]},events});
+test('facts cite exact committed event identity and never copy attributed quotes',()=>{const e={...event,payload:{...event.payload,quote:'invented resident quote'}},source=step([e]);const before=structuredClone(source),rows=districtWhispers(source,'d0');expect(rows[0].id).toBe(e.id);expect(rows[0].text).toBe('Construction started.');rows[0].event.payload.quote='changed';expect(source).toEqual(before);});
+test('missing, conflicting, unknown, wrong-clock and unlocated records remain silent',()=>{for(const events of [[],[event,event],[{...event,id:null}],[{...event,eventType:'UNKNOWN'}],[{...event,system:'housing'}],[{...event,simulationTime:2}],[{...event,geographyId:null}],[{...event,payload:{}}]])expect(districtWhispers(step(events),'d0')).toEqual([]);expect(districtWhispers(null,'d0')).toEqual([]);expect(districtWhispers(step([event]),'other')).toEqual([]);});
+test('real seeded engine records retain state and deterministic replay across rapid selections',()=>{const a=createEngine().run(createCity({households:24}),12),b=createEngine().run(createCity({households:24}),12),before=JSON.stringify(a);let count=0;for(let n=0;n<50;n++)for(const s of a.steps)for(const d of s.state.districts){const rows=districtWhispers(s,d.id);count+=rows.length;for(const r of rows)expect(s.events.find(e=>e.id===r.id)).toEqual(r.event);}expect(count).toBeGreaterThan(0);expect(JSON.stringify(a)).toBe(before);expect(a).toEqual(b);});

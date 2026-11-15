@@ -57,6 +57,30 @@ Browser validation must verify audible playback, codec fallback and rendering on
 real target devices. No Safari/WebGPU timing or decoder-memory certification is
 claimed by the unit tests.
 
+## World cosmetic ambience
+
+`/world`'s Three scene mounts `world/ambient/controls.js`. The ambient checkbox
+resets off on every mount, independently of the persisted shared volume. Both
+controls are in a keyboard-accessible details panel. Unsupported/embedded
+renderers stay silent. No microphone, voice, analytics or network audio is used.
+Three local two-second mono 22,050 Hz loops use 529,200 decoded bytes total,
+bounded below the shared 2 MiB audio cap, with zero encoded asset bytes. No
+pipeline fetch is needed for generated buffers. Three fixed sources and panners
+crossfade with a 250 ms time constant; selection samples at most four times per
+second. No source allocation occurs during camera or timeline changes.
+
+The read-only adapter uses camera height/target, building centers/kinds, and the
+active legacy or Living clock in minutes. Above 100 m selects skyline; a park
+center within 65 m selects park; four building centers within 100 m selects an
+avenue mood; otherwise skyline. Night is before 06:00 or from 20:00. These are
+cosmetic assumptions, not traffic measurements, noise estimates or model rules.
+Stereo position is an authored target-x bias, not geographic acoustic simulation.
+Empty geometry uses skyline; missing target/time yields silence. Audio remains
+smooth under reduced motion; it adds no visual animation. Hidden documents
+suspend audio and pagehide stops/disconnects sources, releases buffers, closes
+the context and removes controls/subscriptions. Audio API failure leaves gameplay
+silent. Target-device listening and browser verification remain required.
+
 ## Presentation motion (SHE-443)
 
 `motion.js` exports the frozen canonical `motionTokens`: feedback 180 ms,

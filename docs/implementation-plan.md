@@ -9218,6 +9218,58 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
 
+## SHE-516 — ambient soundscape (2026-11-14)
+
+Bounded slice: read-only scene geometry/clock adapter, opt-in cosmetic loops,
+shared media volume plus independent ambient toggle, smooth bounded mixing,
+visibility and pagehide teardown. Prerequisites: Web Audio and a user gesture;
+unsupported renderers remain silent. Acceptance: initial silence, scene/time
+selection, rapid retargeting, empty input, failure and disposal tests; mobile
+and keyboard browser evidence when the local browser/server is available.
+Risk: procedural sound quality needs human listening on target devices. No
+simulation, provenance or merge-policy changes. Audit/results: reviews/SHE-516.md.
+
+SHE-516 local status: integrated three-source procedural mixer and controls;
+13 focused tests / 76 assertions passed, syntax and whitespace passed. Browser
+checks added, but server EADDRINUSE on 39961 and 41986 prevents after screenshots
+and browser acceptance. No root typecheck/lint script. Pending target-device
+listening and desktop/mobile browser evidence; details in the linked review.
+
+## SHE-517 — flood depth cutaway (2026-11-14)
+
+Bounded local slice: optional selected-row vertical depth profile in the existing
+storm hazard inspector. Reuse recorded depth, arm, step, cell and provenance;
+fixed 0–1 m vertical scale with explicit overflow and exact readings, existing
+0/.10/.40 m colour bands, unknown cells distinct from dry. Universal DOM/CSS 2D
+path avoids GPU/assets/animation and supports low quality and reduced motion.
+Tasks: implement pure projection and accessible optional profile; integrate shared
+selection; dispose inspector/page resources; focused unit and browser regressions
+with route-specific before/after evidence. Acceptance includes deterministic
+read-only projection, missing/empty/overflow, keyboard/mobile, rapid step/arm/view
+changes and teardown. Risk: schematic depth above local ground is not an elevation
+survey, subsurface model, probability or forecast. No model/ODD rules change.
+
+SHE-517 delivered locally: optional selected-row depth cutaway, shared recorded
+frame/provenance and selection, fixed scale/overflow/missing readings, universal
+static 2D path, inspector disposal and page-departure cleanup. Focused storm tests:
+24 pass / 733 assertions; browser entry bundle and syntax/diff checks pass.
+No configured lint/typecheck script. Three browser cases discover; actual run
+blocked before launch by server EADDRINUSE on35177, independently reproduced by
+direct server start. Route-specific before/after browser evidence, mobile/focus
+and lifecycle acceptance remain unverified. Generic coordinator screenshots do
+not establish lens acceptance. See [review and reproduction](reviews/SHE-517.md)
+for audited PRs, baseline, mechanism/ODD boundary and unchanged disabled automatic
+merge policy. Next: execute browser suite and inspect captures on a bind-capable
+host. No merge/deployment/production or remote tracker write performed.
+
+## SHE-518 — City Whispers (2026-11-14)
+
+Delivered bounded local slice: `/world/city-speaks/` renders the existing monthly City synthetic fixture (seed 42, 24 households, 12 months) as selectable neighborhoods and at most six cited committed-event bubbles. Native WHY/Open event controls inspect exact records. Explicit wording whitelist, exact district/time joins and duplicate-ID rejection keep unsupported/ambiguous records silent. No model rules, clocks, IDs, RNG, causal records or configured merge policies changed.
+
+Acceptance evidence: 14 focused City Speaks/Whispers tests and 18 City engine/golden replay tests pass; syntax checks and `git diff --check` pass. Tests verify immutable navigation and seed-matched replay, citation identities, unknown/missing/conflicting records. Desktop/mobile Playwright coverage added but execution blocked at local server startup (EADDRINUSE on 39931 and 39878). Existing before captures cover home/World, not this route; route-specific before/after evidence remains outstanding. No browser acceptance claimed.
+
+Prerequisites/risks: allow an isolated local server to bind and run the focused browser suite before acceptance. This slice has a schematic neighborhood selector, no camera or active-run handoff; connecting a live camera/timeline requires a run-scoped district mapping and supported committed-event adapter. Existing paired-analysis `/city-speaks` remains independent. See `world/city-speaks/README.md` and `docs/reviews/SHE-518.md`. No automatic merge/deploy or external writes.
+
 ## SHE-520 — construction-site milestone presentation — November 14, 2026
 
 Bounded slice implemented locally on mini/SHE-520 after source and open-PR keyword
