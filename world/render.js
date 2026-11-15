@@ -1,3 +1,4 @@
+import {mountSceneContextMenu} from './scene-context-menu.js';
 import {mountStormCue} from './render/environment/storm-cue.js';
 import {stormIntensityAt} from './weather/parcel-storm.js';
 import {mountPlanChoices,customPlan,stagePlan} from './plan-choices.js';
@@ -27,7 +28,7 @@ import { createSimulationPlayback } from "./simulation-playback.js";
 import { personNeedsMarkup } from "./person-needs.js";
 import { mountLivingWorld } from "./population/world-view.js";
 import { createTrackedWorker } from "./workers/worker-registry.js";
-import { mountMinimap } from "./minimap.js";
+import { mountMinimap, resolveMinimapVisit } from "./minimap.js";
 import { mountVehicleInspector } from "./vehicle-inspector.js";
 import { mountMapControls } from "./map-controls.js";
 import { mountFpsMeter } from "./fps-meter.js";
@@ -471,7 +472,7 @@ const mapStreamer=createMapStreamer({mode:generatedContext?'generated':'osm',bui
   onProgress:state=>{startup.stream=state;contextMapBounds=state.activeWindowBounds;contextViewLimited=state.viewLimited;const unavailable=state.tiles.filter(tile=>tile.status==='error').length,partial=state.tiles.filter(tile=>tile.status==='partial'||tile.error&&tile.status!=='error').length;retryNearby.hidden=!unavailable&&!partial;retryNearby.disabled=state.activeFetches>0;streamStatus.textContent=`${state.mode==='generated'?'Generated':'Real-map'} neighbor context: ${state.tileCount} / 9 retained areas · ${state.buildingCount} context buildings · ${state.activeFetches} map requests${unavailable?` · ${unavailable} unavailable`:''}${partial?` · ${partial} partial`:''}${state.viewLimited?' · zoom in for complete view coverage':''}. Original resident model unchanged.`;updateContextMinimap(state.tiles);}
 });
 window.hblMapStreamer=mapStreamer;
-minimap=!embedMode?mountMinimap(document.body,{town,camera,controls,THREE,bounds:geographicTileBounds(area,town),loadedChunks:mapStreamer.getState().tiles,onPan:()=>{manualPanRequested=true;streamingEnabled=true;},onPanScreen:direction=>mapControls.panScreen(direction)}):null;
+minimap=!embedMode?mountMinimap(document.body,{town,camera,controls,THREE,resolveVisit:entry=>resolveMinimapVisit(town,entry),bounds:geographicTileBounds(area,town),loadedChunks:mapStreamer.getState().tiles,onPan:()=>{follow=false;manualPanRequested=true;streamingEnabled=true;},onPanScreen:direction=>mapControls.panScreen(direction)}):null;
 window.hblMapControls=mapControls;
 let selectedVehicle=null,lastVehicleUpdate=0;
 const vehicleInspector=!embedMode?mountVehicleInspector(document.body,{onClose:()=>{selectedVehicle=null;}}):null;
@@ -2167,6 +2168,10 @@ function emitLegacyPersonContext(event,index){const person=town.people[index];re
 renderer.domElement.addEventListener('contextmenu',event=>{if(livingWorld?.active||event.defaultPrevented)return;const bounds=renderer.domElement.getBoundingClientRect();ptr.set((event.clientX-bounds.left)/bounds.width*2-1,-(event.clientY-bounds.top)/bounds.height*2+1);ray.setFromCamera(ptr,camera);const hit=humanPeople.pick(ray),building=ray.intersectObjects(meshes)[0];if(hit&&(!building||hit.distance<building.distance)){event.preventDefault();emitLegacyPersonContext(event,hit.index);}});
 function select(s) {
   selected = s;
+  if(s?.type === 'building' || s?.type === 'person') {
+    const record = (s.type === 'building' ? town.buildings : town.people)[s.id];
+    if(record?.id != null) minimap?.visit({kind:s.type,id:String(record.id),label:record.name});
+  }
   if(s?.type==='building'){const building=town.buildings[s.id];if(building)window.dispatchEvent(new CustomEvent('world:building-selected',{detail:{id:String(building.id)}}));}
   $('inspect').toggleAttribute('data-inspector-focused',Boolean(s));
   if(s?.type==="person")world.trackActivityPerson(String(town.people[s.id]?.id??s.id));
@@ -2665,4 +2670,33 @@ if(!embedMode&&!businessMode&&!simulationId&&!loadedExperiment&&!renderBenchmark
   syncComparisonControls();const comparisonControlsTimer=setInterval(syncComparisonControls,200);
   guide.update(state());guide.show();
   addEventListener('pagehide',()=>{clearInterval(comparisonControlsTimer);controller.dispose();comparisonWorker?.terminate();visualCamera.dispose();visualSpotlight.dispose();accessibility.dispose();guide.dispose();visualPanels.dispose();renderer.domElement.removeEventListener('pointerdown',interruptCamera);renderer.domElement.removeEventListener('wheel',interruptCamera);},{once:true});
+}
+
+// Reuse current inspector commands; no independent simulation action catalogue.
+if(!embedMode){
+ const style=document.createElement('link');style.rel='stylesheet';style.href='/world/scene-context-menu.css';document.head.append(style);
+ renderer.domElement.tabIndex=0;
+ const readSelection=()=>{
+   const livingActor=livingWorld?.active&&!selected?commandSelection():null;
+   if(!selected&&!livingActor)return null;
+   const entity=livingActor|| (selected.type==='person'?town.people[selected.id]:selected.type==='building'?town.buildings[selected.id]:null);
+   if(!entity)return null;
+   const root=livingActor?document.querySelector('[data-lc-person]'):$('inspect');
+   const buttons=[...root.querySelectorAll(livingActor?'.lc-row button':'.row button')];
+   return {key:(livingActor?'living':selected.type)+':'+entity.id,label:entity.name||entity.label,actions:[
+     {label:'Inspect',run:()=>{if(!livingActor)visualPanels?.open('inspect');root.querySelector('button')?.focus();}},
+     ...buttons.map(button=>({label:button.textContent,reason:button.disabled?(button.title||'Currently unavailable'):null,run:()=>{const latest=[...root.querySelectorAll('button')].find(b=>b.textContent===button.textContent);if(latest&&!latest.disabled)latest.click();}}))
+   ]};
+ };
+ const contextMenu=mountSceneContextMenu({canvas:renderer.domElement,readSelection,resolve:async event=>{
+   const rect=renderer.domElement.getBoundingClientRect();ptr.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);ray.setFromCamera(ptr,camera);
+   const building=ray.intersectObjects(meshes)[0],person=livingWorld?.active?null:humanPeople.pick(ray);
+   const resident=livingWorld?.active?livingWorld.pick(ray):null;
+   if(resident&&(!building||resident.distance<building.distance)){select(null);await livingWorld.selectPerson(resident.personId);return readSelection();}
+   if(person&&(!building||person.distance<building.distance))select({type:'person',id:person.index});
+   else if(building)select({type:'building',id:building.object.userData.b.index});
+   else return null;
+   return readSelection();
+ }});
+ addEventListener('pagehide',()=>{contextMenu.destroy();style.remove();},{once:true});
 }

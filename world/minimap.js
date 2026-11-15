@@ -50,7 +50,18 @@ export function panMinimapCamera(camera, controls, target) {
   controls.update?.(); return true;
 }
 
-export function mountMinimap(container, { town = {}, camera, controls, THREE, bounds: suppliedBounds, onPan, onPanScreen, loadedChunks = [], contextBuildings = [], contextRoads = [], viewLimited = false, throttleMs = 100 } = {}) {
+export function resolveMinimapVisit(town, entry) {
+  const records = entry?.kind === "building" ? town?.buildings : entry?.kind === "person" ? town?.people : null;
+  const record = records?.find(item => String(item.id) === entry.id);
+  if (!record) return null;
+  const point = entry.kind === "building" ? {x:record.center?.[0],z:record.center?.[1]} : {x:record.x,z:record.z};
+  return finite(point.x) && finite(point.z) ? point : null;
+}
+export function minimapContains(regions, point) {
+  return Boolean(point && finite(point.x) && finite(point.z) && regions.some(({bounds:b}) => validBounds(b) && point.x >= b.minX && point.x <= b.maxX && point.z >= b.minZ && point.z <= b.maxZ));
+}
+
+export function mountMinimap(container, { town = {}, camera, controls, THREE, bounds: suppliedBounds, onPan, onPanScreen, loadedChunks = [], contextBuildings = [], contextRoads = [], viewLimited = false, throttleMs = 100, resolveVisit } = {}) {
   if (!container?.ownerDocument || !camera || !controls || !THREE) throw new TypeError("Minimap requires a DOM container, camera, controls and existing THREE namespace.");
   const doc = container.ownerDocument, win = doc.defaultView, root = doc.createElement("details"); root.className = "world-minimap"; root.dataset.testid = "world-minimap"; root.setAttribute("aria-label", "Neighborhood minimap");
   root.open = false;
@@ -59,6 +70,39 @@ export function mountMinimap(container, { town = {}, camera, controls, THREE, bo
   const canvas = root.querySelector("canvas"), ctx = canvas.getContext("2d"), staticLayer = doc.createElement("canvas"), staticContext = staticLayer.getContext("2d");
   const width = 232, height = 190, matrix = new THREE.Matrix4(), frustum = new THREE.Frustum();
   let chunks = minimapLoadedChunks(loadedChunks), loaded = chunkExtent(chunks, town, suppliedBounds), transform = minimapTransform(loaded), staticDirty = true, timer = null, destroyed = false, lastDraw = -Infinity, pointer = null, pixelRatio = 1;
+  const trail = createMinimapTrail();
+  const extras = doc.createElement("section");
+  extras.innerHTML = '<button type="button" data-mm-hide>Hide map</button> <button type="button" data-mm-save>Bookmark view</button><p>Local to this scene · camera navigation only</p><strong>Bookmarks</strong><div data-mm-bookmarks></div><strong>Recently inspected</strong><div data-mm-recent></div><p data-mm-status role="status"></p>';
+  root.querySelector(".mm-body").append(extras);
+  function available(point) { return minimapContains(regions(), point); }
+  function destination(entry) { return entry.kind === "camera" ? entry : resolveVisit?.(entry); }
+  function renderTrail() {
+    for (const [selector, entries] of [["[data-mm-bookmarks]",trail.bookmarks],["[data-mm-recent]",trail.recent]]) {
+      const list = root.querySelector(selector);
+      const signature = JSON.stringify(entries.map(entry => [entry, available(destination(entry))]));
+      if (list.dataset.signature === signature) continue;
+      const focused = list.contains(doc.activeElement) ? doc.activeElement?.dataset.trailKey : null;
+      list.dataset.signature = signature; list.replaceChildren();
+      if (!entries.length) { list.textContent = "None yet"; continue; }
+      for (const entry of entries) {
+        const button = doc.createElement("button"); button.type = "button"; button.textContent = entry.label;
+        button.dataset.trailKey = `${entry.kind}:${entry.id ?? `${entry.x},${entry.z}`}`;
+        button.disabled = !available(destination(entry));
+        button.title = button.disabled ? "Destination unavailable in loaded scene" : "Move camera here; keep current selection";
+        button.onclick = () => { const point = destination(entry); if (!available(point)) { renderTrail(); return; } pan(point.x, point.z); root.querySelector("[data-mm-status]").textContent = `Viewing ${entry.label}`; };
+        list.append(button);
+      }
+      if (focused) {
+        const button = [...list.querySelectorAll("button")].find(button => button.dataset.trailKey === focused && !button.disabled);
+        (button || root.querySelector("summary")).focus();
+      }
+    }
+  }
+  function hideMap() { root.open = false; root.querySelector("summary").focus(); }
+  function escape(event) { if (event.key === "Escape" && root.open) { event.preventDefault(); event.stopPropagation(); hideMap(); } }
+  root.addEventListener("keydown", escape);
+  root.querySelector("[data-mm-hide]").onclick = hideMap;
+  root.querySelector("[data-mm-save]").onclick = () => { if (!available(controls.target)) return; trail.save(controls.target); renderTrail(); requestDraw(); root.querySelector("[data-mm-status]").textContent = "View bookmarked for this scene"; };
   const interval = clamp(Number(throttleMs) || 100, 32, 500);
   const format = value => new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(value);
   function setupSize() {
@@ -106,6 +150,11 @@ export function mountMinimap(container, { town = {}, camera, controls, THREE, bo
         ctx.save(); clipRegions(ctx);
         ctx.beginPath(); polygon.forEach(([x, z], index) => { const point = transform.toMap(x, z); index ? ctx.lineTo(...point) : ctx.moveTo(...point); }); ctx.closePath(); ctx.fillStyle = "#7de3d737"; ctx.fill(); ctx.strokeStyle = "#89e7d9"; ctx.lineWidth = 1.5; ctx.stroke(); ctx.restore();
       }
+      for (const entry of [...trail.recent, ...trail.bookmarks]) {
+        const point = destination(entry); if (!available(point)) continue;
+        const mapped = transform.toMap(point.x, point.z);
+        ctx.beginPath(); ctx.arc(...mapped, 3, 0, Math.PI * 2); ctx.fillStyle = entry.kind === "camera" ? "#edb2ff" : "#9be5ff"; ctx.fill();
+      }
       const target = controls.target, outside = !regions().some(region => target.x >= region.bounds.minX && target.x <= region.bounds.maxX && target.z >= region.bounds.minZ && target.z <= region.bounds.maxZ);
       const point = transform.toMap(clamp(target.x, loaded.minX, loaded.maxX), clamp(target.z, loaded.minZ, loaded.maxZ));
       const dx = camera.position.x - target.x, dz = camera.position.z - target.z, length = Math.hypot(dx, dz) || 1;
@@ -117,6 +166,7 @@ export function mountMinimap(container, { town = {}, camera, controls, THREE, bo
     canvas.setAttribute("aria-disabled", String(!loaded)); root.querySelector("[data-mm-center]").disabled = !loaded;
     root.dataset.loadedChunks = String(regions().length);
     root.querySelector("[data-mm-coverage]").textContent = `${chunks.some(chunk => chunk.contextOnly) ? "Blue outlines: geometry-only map context. " : ""}${viewLimited ? "View exceeds retained map budget. " : ""}Click/drag to pan · north up`;
+    root.querySelector("[data-mm-save]").disabled = !available(controls.target);
     lastDraw = win.performance.now(); root.dataset.draws = String(Number(root.dataset.draws || 0) + 1);
   }
   function requestDraw() { if (destroyed || timer !== null || !root.open) return; timer = win.setTimeout(draw, Math.max(0, interval - (win.performance.now() - lastDraw))); }
@@ -143,7 +193,28 @@ export function mountMinimap(container, { town = {}, camera, controls, THREE, bo
   }
   for (const button of root.querySelectorAll("[data-mm-screen]")) { button.disabled = typeof onPanScreen !== "function"; button.title = "Pan by the visible ground footprint at the current zoom"; }
   root.querySelector(".mm-screen-pad").addEventListener("click", screenPan);
-  const resize = () => { staticDirty = true; requestDraw(); }, toggle = () => requestDraw();
+  const resize = () => { staticDirty = true; requestDraw(); }, toggle = () => { if (root.open) renderTrail(); else if (root.contains(doc.activeElement) && doc.activeElement !== root.querySelector("summary")) root.querySelector("summary").focus(); requestDraw(); };
   canvas.addEventListener("pointerdown", down); canvas.addEventListener("pointermove", move); canvas.addEventListener("pointerup", up); canvas.addEventListener("pointercancel", up); canvas.addEventListener("keydown", key); root.addEventListener("toggle", toggle); root.querySelector("[data-mm-center]").addEventListener("click", center); controls.addEventListener("change", requestDraw); win.addEventListener("resize", resize); requestDraw();
-  return { requestDraw, update(next = {}) { if (destroyed) return; if (next.town) { town = next.town; suppliedBounds = null; } if (Object.hasOwn(next, "bounds")) suppliedBounds = next.bounds; if (Array.isArray(next.contextBuildings)) contextBuildings = next.contextBuildings; if (Array.isArray(next.contextRoads)) contextRoads = next.contextRoads; if (Object.hasOwn(next, "loadedChunks")) chunks = minimapLoadedChunks(next.loadedChunks); if (Object.hasOwn(next, "viewLimited")) viewLimited = next.viewLimited; loaded = chunkExtent(chunks, town, suppliedBounds); transform = minimapTransform(loaded); staticDirty = true; requestDraw(); }, destroy() { if (destroyed) return; destroyed = true; if (timer !== null) win.clearTimeout(timer); canvas.removeEventListener("pointerdown", down); canvas.removeEventListener("pointermove", move); canvas.removeEventListener("pointerup", up); canvas.removeEventListener("pointercancel", up); canvas.removeEventListener("keydown", key); root.removeEventListener("toggle", toggle); root.querySelector("[data-mm-center]").removeEventListener("click", center); root.querySelector(".mm-screen-pad").removeEventListener("click", screenPan); controls.removeEventListener("change", requestDraw); win.removeEventListener("resize", resize); root.remove(); } };
+  return { requestDraw, visit(entry) { trail.visit(entry); renderTrail(); requestDraw(); }, update(next = {}) { if (destroyed) return; if (next.town) { town = next.town; suppliedBounds = null; } if (Object.hasOwn(next, "bounds")) suppliedBounds = next.bounds; if (Array.isArray(next.contextBuildings)) contextBuildings = next.contextBuildings; if (Array.isArray(next.contextRoads)) contextRoads = next.contextRoads; if (Object.hasOwn(next, "loadedChunks")) chunks = minimapLoadedChunks(next.loadedChunks); if (Object.hasOwn(next, "viewLimited")) viewLimited = next.viewLimited; loaded = chunkExtent(chunks, town, suppliedBounds); transform = minimapTransform(loaded); staticDirty = true; renderTrail(); requestDraw(); }, destroy() { if (destroyed) return; destroyed = true; root.removeEventListener("keydown", escape); if (timer !== null) win.clearTimeout(timer); canvas.removeEventListener("pointerdown", down); canvas.removeEventListener("pointermove", move); canvas.removeEventListener("pointerup", up); canvas.removeEventListener("pointercancel", up); canvas.removeEventListener("keydown", key); root.removeEventListener("toggle", toggle); root.querySelector("[data-mm-center]").removeEventListener("click", center); root.querySelector(".mm-screen-pad").removeEventListener("click", screenPan); controls.removeEventListener("change", requestDraw); win.removeEventListener("resize", resize); root.remove(); } };
+}
+
+/** Presentation-only, bounded page-session history. IDs retain their entity namespace. */
+export function createMinimapTrail(limit = 6) {
+  const recent = [], bookmarks = [];
+  return { recent, bookmarks,
+    visit(entry) {
+      if (!entry || !["building", "person"].includes(entry.kind) || entry.id == null) return false;
+      const id = String(entry.id), index = recent.findIndex(item => item.kind === entry.kind && item.id === id);
+      if (index >= 0) recent.splice(index, 1);
+      recent.unshift({kind:entry.kind,id,label:String(entry.label || `${entry.kind} ${id}`).slice(0,100)});
+      recent.splice(limit); return true;
+    },
+    save(point) {
+      if (!finite(point?.x) || !finite(point?.z)) return false;
+      const index = bookmarks.findIndex(item => item.x === point.x && item.z === point.z);
+      if (index >= 0) bookmarks.splice(index, 1);
+      bookmarks.unshift({kind:"camera",x:point.x,z:point.z,label:`E ${Math.round(point.x)} · N ${Math.round(-point.z)}`});
+      bookmarks.splice(limit); return true;
+    }
+  };
 }

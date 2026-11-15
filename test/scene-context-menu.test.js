@@ -1,0 +1,14 @@
+import {test,expect} from 'bun:test';
+import {mountSceneContextMenu} from '../world/scene-context-menu.js';
+class Node extends EventTarget {
+ constructor(doc){super();this.ownerDocument=doc;this.children=[];this.style={setProperty(){}};this.dataset={};this.attrs={};}
+ append(...nodes){this.children.push(...nodes)} replaceChildren(){this.children=[]} setAttribute(k,v){this.attrs[k]=v} remove(){this.removed=true}
+ focus(){this.ownerDocument.activeElement=this} contains(n){return n===this||this.children.some(c=>c.contains(n))}
+ querySelectorAll(){return this.children.flatMap(c=>[...(c.type==='button'?[c]:[]),...c.querySelectorAll()])} querySelector(){return this.querySelectorAll()[0]}
+ getBoundingClientRect(){return {width:360,height:360}}
+}
+function fire(node,type,props={}){const e=new Event(type,{cancelable:true});Object.assign(e,{button:0,pointerId:1,clientX:100,clientY:100,...props});node.dispatchEvent(e);return e;}
+function setup(){const win=new EventTarget();Object.assign(win,{setTimeout,clearTimeout,innerWidth:900,innerHeight:700,matchMedia:()=>({matches:false})});const doc=new Node();doc.defaultView=win;doc.createElement=()=>new Node(doc);const container=new Node(doc);doc.body=container;doc.activeElement=container;const canvas=new Node(doc);let runs=0;const selection={key:'model:exact-id',label:'Object',actions:[{label:'Inspect',run:()=>runs++},{label:'Unavailable',reason:'Not supported',run:()=>runs+=100}]};const api=mountSceneContextMenu({canvas,container,holdMs:5,resolve:()=>selection,readSelection:()=>selection});return {win,doc,container,canvas,menu:container.children[0],api,get runs(){return runs}};}
+test('hold consumes release and click; disabled actions stay focusable and inert; Escape restores focus',async()=>{const s=setup();fire(s.canvas,'pointerdown');await Bun.sleep(15);expect(s.menu.hidden).toBe(false);expect(fire(s.canvas,'pointerup').defaultPrevented).toBe(true);expect(fire(s.canvas,'click').defaultPrevented).toBe(true);const buttons=s.menu.querySelectorAll();expect(buttons[1].attrs['aria-disabled']).toBe('true');buttons[1].onclick();expect(s.runs).toBe(0);fire(s.menu,'keydown',{key:'Escape'});expect(s.menu.hidden).toBe(true);expect(s.doc.activeElement).toBe(s.canvas);s.api.destroy();expect(s.menu.removed).toBe(true);});
+test('movement, cancellation and destruction cancel the hold',async()=>{for(const type of ['pointermove','pointercancel','destroy']){const s=setup();fire(s.canvas,'pointerdown');if(type==='destroy')s.api.destroy();else fire(s.canvas,type,{clientX:120});await Bun.sleep(15);expect(s.menu.hidden).toBe(true);s.api.destroy();}});
+test('keyboard opens selected entity and executes existing action',async()=>{const s=setup();fire(s.canvas,'keydown',{key:'F10',shiftKey:true});await Bun.sleep(1);expect(s.menu.hidden).toBe(false);s.menu.querySelectorAll()[0].onclick();expect(s.runs).toBe(1);expect(s.menu.hidden).toBe(true);s.api.destroy();});

@@ -9189,6 +9189,100 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
 
+## SHE-446 — scene context actions (2026-11-14 local candidate)
+
+Slice: reuse actual primary inspector commands for buildings and legacy/Population
+people through a shared DOM pie/list menu. One worker on isolated mini/SHE-446.
+Prerequisites: existing ray picking, exact authority-scoped identities and inspector
+handlers. Acceptance tasks: stationary hold/click suppression, cancelled gesture,
+keyboard/focus/disabled reason behavior, reduced-motion list, normal-entry browser
+and desktop/mobile visual evidence. Risks: concurrent renderer PRs #326/#329/#330,
+separate Canvas2D renderer and actual assistive-technology acceptance.
+
+Delivered shared menu, normal 3D World adapter and focused tests. Actual checks:
+17 tests pass /72 assertions; 375-module browser bundle; Node syntax and diff
+checks pass; two Playwright tests discover. Execution blocked before browser
+launch by EADDRINUSE3499. Unchanged catalog test fails32 versus33 entries.
+No root lint/typecheck script. No after-browser evidence claimed; before artifacts
+were preexisting. Canvas2D/vehicles/journal menu parity and actual picked-object
+browser action/assistive-technology acceptance remain open. Full audit, commands,
+limitations and preserved disabled auto-merge policy: [review](reviews/SHE-446.md).
+No model/ODD changes, merge, deployment, production write or external messages.
+
+## SHE-447 — bounded neighborhood lasso (2026-11-14)
+
+Next slice: extend the existing authoritative Population selection query with a
+bounded polygon and canonical IDs, preserving rectangle keyboard entry. Pointer
+lasso uses ground-plane projection of screen vertices; selection is current
+resident ground anchors, not visible avatar geometry. Acceptance: exact fixture
+IDs/count, explicit empty/overflow and missing metrics, bounded vertices/IDs,
+Escape/focus/control restoration, worker read-only regression and browser tests.
+Prerequisites: active Living City and initialized World canvas. No model rules,
+clocks, RNG or checkpoint fields change. One coding worker. Merge safety hold
+in `.github/workflows/auto-merge.yml` (`if: false`) remains unchanged.
+
+Implemented locally: bounded polygon/ID query and static SVG lasso; existing
+keyboard bounds, provenance and missing metric semantics preserved. Verification:
+21 tests/106 assertions passed across selection, World view and density; UI syntax
+and diff checks passed. No lint/typecheck script exists. Playwright startup blocked
+by Bun EADDRINUSE on two ports; after screenshot and normal-entry browser/mobile
+acceptance remain pending. Details: [SHE-447 review](reviews/SHE-447.md). No PR,
+merge/deployment, production writes or merge-policy changes.
+
+## SHE-448 — persistent exploration breadcrumbs (2026-11-14)
+
+Single-worker slice in isolated mini/SHE-448: extend existing Canvas2D minimap
+with page-session camera bookmarks and recent selected buildings/legacy residents.
+Resolve stable entity IDs against current records before returning; preserve the
+current selection and translate camera/target only. No reload or model mutation.
+Prerequisites: existing minimap, loaded coverage and selection entry point.
+Acceptance: bounded/deduplicated history, unavailable destination rejection,
+keyboard actions, Escape/collapse focus return, mobile scrolling, instantaneous
+reduced-motion-safe navigation, focused unit and normal-entry browser evidence.
+Risk: bookmarks are local to this loaded scene/page, not cross-run saved entities;
+Living Population identity requires its own adapter and is not conflated with
+legacy resident IDs. Open PRs 323–328 audited; 326 is adjacent palette work.
+Verification and remaining limitations will be recorded in reviews/SHE-448.md.
+
+SHE-448 local result: page-session recent inspections/bookmarks integrated with
+existing minimap and stable-ID resolution; camera-only return, unavailable-tile
+rejection, keyboard dismissal/focus and mobile/reduced-motion presentation added.
+48 focused tests pass /351 assertions; browser entry bundles374modules; two
+Playwright cases discover; whitespace check passes. Actual browsers blocked before
+execution by server listen EADDRINUSE on3499/43948; after screenshots and browser
+acceptance remain open. No configured repository lint/typecheck. Page reload,
+Living Population and full Canvas2D fallback history remain outside this slice.
+Evidence, audit and preserved disabled merge policy: [SHE-448 review](reviews/SHE-448.md).
+No commit/PR publication, merge, deployment or production changes.
+
+
+## SHE-63 release matrix follow-up — 2026-11-14
+
+Candidate `cdb773a19acb5f68cd949dab2b8af148a0e1aefe`, isolated branch
+`mini/SHE-63-r3`. Reused the merged PR #118 matrix and five canonical tests;
+SHE-44 PR #319 is merged but its actual benchmark report remains incomplete.
+The sequencing correction permits executing this matrix now without accepting
+those feature tickets first. Ownership: matrix config, issue review/evidence and
+this status addition; no application/model/seed/disclosure changes.
+
+Delivered runtime and artifact-directory overrides so the matrix can select a
+working Bun executable and avoid overwriting historical tracked results.
+Acceptance requires baseline, changed month, WHY, saved sharing and real fallback
+through normal routes on each accessible browser; unavailable engines and devices
+must remain explicit. All 15 cases discover. Focused fallback/data/replay checks:
+32 pass, 1 existing browser-opt-in skip, 0 fail, 880 assertions. Syntax and diff
+checks pass. Matrix execution exits 1 before tests: local listeners denied;
+independent socket probe returns EPERM. Installed Chrome and Playwright WebKit
+also abort on standalone launch, patched Firefox is absent, browser UI host is
+unavailable and no physical device is accessible. No current browser pass or new
+screenshot. SHE-63 acceptance and SHE-64 recording gate remain unresolved.
+
+Next: execute on a listener/browser-capable host, inspect all five behaviors and
+retained provenance/artifacts per engine, test native Safari separately and
+resolve SHE-44 measurements for consolidated acceptance. Exact commands, prior
+PR links, matrix and raw logs: [SHE-63 review](reviews/SHE-63.md). No new PR,
+merge/deploy/production action or release/voting/auth policy change.
+
 
 ### SHE-44 r4 merged-source verification — 2026-11-14
 

@@ -128,3 +128,20 @@ The browser test hashes full decoded model checkpoints before/after graphics
 changes and records before/after screenshots plus video. See
 `docs/reviews/SHE-165.md` for actual execution limits; the test existing is not
 proof it passed.
+
+### Neighborhood exploration trail (SHE-448)
+
+The `/world` Neighborhood map retains six recent inspected buildings/legacy
+residents and six camera-target bookmarks for the loaded page. Purple markers
+are bookmarks; blue markers are inspected entities. Named buttons provide the
+same destinations without requiring pointer accuracy. Recent entities resolve
+current stable IDs and coordinates; absent entities or destinations outside
+retained loaded tiles cannot be revisited. Return actions translate the camera
+and target together, retaining zoom, elevation and current inspector selection.
+No simulation reload, clock change or new model observation is involved.
+Hide map or Escape collapses the map and returns focus to its summary. Mobile
+contents scroll within the viewport. Navigation is immediate with or without
+reduced motion; static map caching and existing overlay throttling remain.
+History survives map collapse and local travel, and ends when the page unloads.
+It is not a saved-run or cross-model identity mapping. Living Population selection
+and the separate full Canvas2D World fallback are not wired to this trail.
