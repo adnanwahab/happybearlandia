@@ -1,3 +1,5 @@
+import { createPlayerFeedbackHandler } from './ops/player-feedback/api.js';
+const handlePlayerFeedback = createPlayerFeedbackHandler();
 import {civicProviderUrl,civicPublishUrl} from './ops/civic-provider.js';
 import { createMiniSymphonyHandler } from './ops/mini-symphony/api.js';
 const handleMiniSymphony = createMiniSymphonyHandler();
@@ -444,6 +446,7 @@ const server = serve({
 
   async fetch(request, server) {
     const { pathname } = new URL(request.url);
+    if (pathname === '/api/player-feedback') return handlePlayerFeedback(request);
     if (pathname === '/mini-symphony' || pathname === '/mini-symphony/') return serveFile('./tools/mini-symphony-dashboard/index.html');
     if (pathname.startsWith('/api/mini-symphony')) return handleMiniSymphony(request, {localAddress: server.requestIP(request)?.address});
     if (pathname === '/mini-symphony/dashboard.js') return serveFile('./tools/mini-symphony-dashboard/dashboard.js');

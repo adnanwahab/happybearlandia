@@ -9188,3 +9188,29 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-586 — in-place World reactions (2026-11-14)
+
+Bounded single-worker slice on mini/SHE-586 at cdb773a1: restore the existing
+SHE-52 collector's missing normal-entry UI/server wiring, replace its survey-like
+form with consent-gated Wow / Confusing buttons, and support local clearing,
+dismissal, errors and keyboard access. Reuse v1 favorite/confusing and enumerated
+moments; World/exploring is the default, never infer context from session data.
+No automatic opening or reminders, including reloads: only player action opens
+feedback. No simulation listeners, state writes, URL collection or animations.
+Acceptance: focused API and UI tests, normal-entry desktop/mobile/reduced-motion
+browser checks and screenshots. Risk: individual withdrawal from anonymous counts
+is unavailable in the existing collector; disclose that before consent. Clearing
+is explicitly local. Preserve all approval, quorum, auth/check and merge policy.
+
+SHE-586 local result: normal-entry UI and server wiring restored; Wow/Confusing
+reuse v1 anonymous collection after explicit consent, with local clear, abort and
+stale-response isolation. 10 focused tests pass / 62 assertions; browser bundle,
+JS syntax, two-test Playwright discovery and whitespace checks pass. Actual
+browser startup fails EADDRINUSE on three ports; after screenshots and visual /
+keyboard / continuing-gameplay acceptance remain pending. Two adjacent guide tests
+fail on an unchanged incomplete DOM fixture. Sent anonymous counts cannot be
+individually withdrawn; disclosed before consent, and full deletion acceptance
+requires a reviewed receipt/retention contract. See [review](reviews/SHE-586.md)
+for audit, exact checks, before-evidence provenance and preserved merge policy.
+No simulation changes, external publication, merge, deployment or live activation.
