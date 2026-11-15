@@ -29,3 +29,24 @@ git diff --check
 ```
 
 The type check verifies the exported API declarations against the shared TypeScript contract; JavaScript behavior is covered by runtime/unit/browser checks. Browser tests use same-origin fixture app documents to isolate shell behavior from GPU startup, upstream services, and individual model availability. They do not certify all app models or automatically install chrome into all 29 standalone apps.
+
+## Optional discovery stamps
+
+`discovery-stamps.js` owns two authored cosmetic stamp IDs; these are unrelated
+to simulation entities, models, seeds, clocks or run evidence. Flower and Quote
+Carousel mount `discovery-stamps-ui.js` in explicit discovery asides; `/routes`
+mounts the album. Collecting requires an explicit native button action. The
+collapsible panel works independently of renderer startup and uses no animation,
+GPU work, timers, network requests or telemetry. Links use the existing registry
+routes. No gameplay prerequisites or deadlines apply.
+
+Only the allowlisted IDs are stored under `hbl-discovery-stamps-v1` in browser
+localStorage. Reset removes that key only. Invalid records become an empty
+collection; denied storage leaves a usable page-session collection with an
+explicit warning (including that old saved progress can return after reload).
+Different open tabs do not live synchronize; reload reads local progress.
+
+Checks: `bun test test/discovery-stamps.test.js test/universe-shell.test.js
+ test/local-journeys.test.js`; `bunx playwright test --config
+ test/discovery-stamps.browser.config.js`. Browser checks use the application
+server and write desktop/mobile evidence to `.mini-symphony-evidence/`.
