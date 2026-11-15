@@ -105,3 +105,64 @@ outside the coding-worker sandbox. The local first-run browser pack has 3 passin
 checks and 1 failing ready-state guide check (#firstRunGuide missing), before the
 updated policy selection executes. Browser acceptance and numeric budgets remain
 incomplete; do not close SHE-40 or bypass SHE-44/63/64 dependencies on this basis.
+
+
+## r3 follow-up — 2026-11-14
+
+Branch `mini/SHE-40-r3`, audited source `cdb773a1`. Exclusive local ownership:
+`scripts/performance/first-interaction-budgets.mjs`,
+`test/first-interaction-budgets.test.js`, this review, and the SHE-40 plan/status
+and first-interaction documentation entries. Existing untracked
+`.mini-symphony-evidence/SHE-40-r3-before*` files were preserved. No independent
+implementation tasks justified delegation. No root README or architecture doc
+exists; read the product design, relevant implementation-plan section, harness,
+config, workflow, renderer backend and prior evidence before editing.
+
+Read-only GitHub inspection confirms PR317 merged the r2 validator and PR322
+merged SHE-11 evidence onto the sprint at `65ab25d3`. Both are ancestors of this
+checkout. PR322's integrated report has successful native WebGPU/WebGL2/Canvas
+observations; the historical lack-of-browser-evidence notes above are superseded
+by `docs/reviews/SHE-11-sprint-host-20261114.md`. Those single-host observations
+use another workload and do not supply this issue's two-profile baseline.
+Prior attempt history and acceptance criteria are retained.
+
+Concrete remaining implementation gaps resolved: failed recalibration removes a
+previous proposal before reading reports; proposals cannot combine profiles from
+different commits, browser/host environments, or simulation/renderer identities.
+Actual `webgl2` reports are accepted without renaming their backend (the existing
+Future Machine renderer still reports `webgl`; it was already supported).
+Regression tests exercise the real CLI, a successful proposal followed by a
+failed rerun, and five cross-profile provenance mismatches. All fixture numbers
+are synthetic contract inputs, never observations or pinned budgets.
+
+Exact commands and results:
+
+```sh
+bun install --frozen-lockfile
+TMPDIR=/private/tmp bun install --frozen-lockfile
+bun test test/first-interaction-budgets.test.js test/cold-start-report.test.js test/performance-budgets.test.js
+HBL_PERF_CALIBRATE=1 HBL_PERF_BUN=/Users/wahabma/.bun/bin/bun PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' bunx --no-install playwright test --config test/first-interaction.browser.config.js
+node -e 'const s=require("node:net").createServer();s.on("error",e=>{console.error(e.code);process.exitCode=1});s.listen(0,"127.0.0.1",()=>s.close())'
+node --check scripts/performance/first-interaction-budgets.mjs
+node --check test/first-interaction-budgets.test.js
+git diff --check
+```
+
+Default install failed tempdir EPERM; explicit writable TMPDIR succeeded, frozen
+lockfile unchanged. Combined Bun run: 16 passed, 0 failed, 350 assertions, exit0
+(the earlier combined-test exit failure is no longer reproduced). Playwright
+exit1 before tests: server listen EADDRINUSE on39940. Independent Node ephemeral
+loopback listen exit1/EPERM confirms this sandbox cannot host the measurement.
+Both syntax checks and diff whitespace check passed. No lint/typecheck script is
+configured in root package.json, and no TypeScript files changed. No UI changed;
+no new screenshots or physical hardware result is claimed.
+
+Acceptance remains incomplete: both limits objects are empty. Next execute the
+existing calibration workflow on the intended unrestricted runner, retain all six
+cold samples, review and pin its measured limits, then run fixed-limit enforcement.
+CI workflow was inspected, not remotely executed here. Sampled main-page V8 heap
+is still a proxy; total peak memory is unsupported. No numbers were invented and
+no model/data/seed/disclaimer changed. No new commit/PR was published.
+Existing literal-false automatic merge job, required checks, voting, auth and
+release policy remain unchanged; remote branch protections were not certified.
+No merge, deployment, external message, production data or dispatch action occurred.

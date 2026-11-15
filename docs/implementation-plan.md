@@ -9189,6 +9189,22 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
 
+
+## SHE-40 r3 — calibration provenance follow-up (2026-11-14)
+
+SHE-11 integrated host evidence is now present via merged PR322; it supersedes
+historical missing-browser notes but does not replace this workload's baseline.
+Owned bounded slice: calibration module/tests and performance documentation.
+Reject mixed-source/environment/profile proposals and invalidate stale proposals
+on failed reruns; preserve actual WebGL2 backend identity. Implemented and verified:
+16 focused tests /350 assertions, syntax and whitespace checks pass. No independent
+implementation tasks warranted delegation. Browser measurement fails before tests
+(server39940 EADDRINUSE; independent loopback listen EPERM). No runtime, simulation,
+source identity or release policy change. Acceptance remains open: collect six
+cold observations on the intended runner, review/pin limits and enforce them.
+Total peak memory and physical devices remain unsupported. Exact commands, prior
+PR references and limitations: [r3 audit](reviews/SHE-40.md#r3-follow-up--2026-11-14).
+
 ## SHE-443 — central presentation motion (2026-11-14)
 
 Slice: canonical duration/easing/layer tokens, preference-aware View Transition
