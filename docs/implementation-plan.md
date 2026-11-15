@@ -9204,3 +9204,22 @@ source identity or release policy change. Acceptance remains open: collect six
 cold observations on the intended runner, review/pin limits and enforce them.
 Total peak memory and physical devices remain unsupported. Exact commands, prior
 PR references and limitations: [r3 audit](reviews/SHE-40.md#r3-follow-up--2026-11-14).
+
+## SHE-443 — central presentation motion (2026-11-14)
+
+Slice: canonical duration/easing/layer tokens, preference-aware View Transition
+adapter and native transition inspector on homepage, Future Machine and Decision
+Studio. Reuse existing media preferences; migrate homepage card and Studio
+feedback/reveal timing. Simulation/recorded playback timing is outside this API.
+Acceptance: once-only commits, unsupported/reduced-motion fallback, live OS
+preference handling, keyboard focus, three normal routes and before/after images.
+Risk: browser captures require a bind-capable host; local server currently fails
+EADDRINUSE on 39943. Existing merge/voting/auth configuration stays unchanged.
+
+Delivered local slice and verification: 24 tests pass / 1 existing browser skip,
+124 assertions; browser bundle and diff whitespace checks pass. Broader media
+asset check blocked by missing Three loader dependency; Playwright config cannot
+resolve @playwright/test. No root typecheck/lint command/compiler available.
+Real new before/after screenshots and browser focus/reduced-motion acceptance
+remain pending dependency/server repair. See [review](reviews/SHE-443.md) for
+paths audited, preserved merge policy, actual checks and remaining acceptance.
