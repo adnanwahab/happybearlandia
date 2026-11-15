@@ -11,3 +11,27 @@ Implementation and required validation COMPLETE: direct guests from work/distant
 Normal Send home/visit expiry still uses actual return travel. Reinviting a pending-return guest creates a renewed explicit visit rather than silently keeping its returnRequested flag. Door admission direct reinvite reuses the waiting visit ID. Old serialized walking/outbound visits remain readable; newly created explicit visits carry typed overrideSupervision/arrivalMode fields and validation.
 
 Final combined current-source validation:262pass0fail2249assertions across54files, including core/visits/guestidentity/queue/roommate/economy/party/familybridge/socialdiscovery/autosession/mappedhome/Flypath (`/private/tmp/hbl-core-current-final.log`). Focused latest invitation+familybridge+SQLite+Fly46pass331assertions (`/private/tmp/hbl-invite-family-final-focused.log`).
+
+## Opt-in synthetic RSVP — house-rsvp.v1 (SHE-554)
+
+The normal house picker sends `rsvp:true, waitForAdmission:true` through the
+existing visit command and replay timeline. Existing callers without `rsvp`
+retain immediate transport. RSVP does not contact a real person or service.
+Malformed IDs/anchors/capacity fail preflight; valid declines record
+HOUSE_VISIT_DECLINED with seed, rules version, actual IDs and Population minute.
+Both accepted and declined commands are retained by the worker timeline.
+
+Synthetic assumptions: host must be at the actual home anchor. Either party's
+current travel, work/school, active interior action/visit, supervision constraint,
+energy below20 or food satisfaction below15 declines. Future schedules are not
+reserved. Willingness is clamp(.5 + friendship/200 - tension/200, .1, .95),
+compared with Population counter draw(seed,guestIndex,minute,690+hostIndex).
+Missing ties use zero friendship/tension. These are authored assumptions, not
+observed preferences. Repeated same-minute requests make the same draw.
+
+Accepted guests use existing walking, waiting, admission, expiry and return
+mechanisms, with no supervision override. Walking estimate is not a promised
+arrival; `arrivedMinute` is committed by Population movement. No clone, permanent
+home/financial identity change, new clock or random stream mutation. Replay
+requires the same checkpoint, commands, rules and step partition. The picker is
+native dialog/buttons/search with live feedback and no motion dependency.

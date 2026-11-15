@@ -114,6 +114,18 @@ See [review evidence and preserved merge policy](reviews/SHE-521.md). No PR,
 merge or deployment. Next task: browser verification in a runnable environment.
 
 
+## SHE-553 — event-backed lighthearted captions (2026-11-14)
+
+Local slice: default-off native checkbox in House activity panel, four closed
+mundane-completion templates, explicit synthetic narrative-color label and source
+event ID/minute. Requires matching retained action evidence; missing data fails
+closed. No simulation changes or external prerequisites. Caption, UI, comedy and
+House integration tests pass; browser acceptance and before/after captures remain
+blocked by local server EADDRINUSE. No root lint/typecheck command exists; JS
+syntax checks pass. Next: run the focused keyboard/reduced-motion browser test
+with a working server and review captures. No PR/commit, merge or deployment.
+Audit, configured merge safety hold and details: [SHE-553 review](reviews/SHE-553.md).
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,
@@ -9302,6 +9314,26 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-554 — model-backed neighbor RSVP (2026-11-14)
+
+Bounded slice in isolated `mini/SHE-554`, one coding worker: opt-in RSVP request
+on the existing visit command/replay timeline, house picker integration and
+focused deterministic/UI tests. Preserve legacy explicit immediate transport.
+Prerequisites: saved Population adult IDs, unambiguous home anchor, existing
+walking/door admission. Acceptance: state-backed decline, seeded willingness,
+committed arrival minute, checkpoint replay and keyboard/failure feedback.
+Risks: stylized uncalibrated willingness; current obligations only, no future
+calendar reservation or empirical social prediction. No external invitations.
+
+Implemented locally: RSVP checks host presence, current travel/work/school,
+house actions/visits, care and essential needs before interruption. A keyed
+synthetic relationship-influenced draw accepts or records a decline. Existing
+worker timeline records both decisions; accepted guests walk to the door and
+require admission. Existing instant calls remain compatible. See
+[review and verification](reviews/SHE-554.md). Browser acceptance remains open:
+focused Playwright server cannot bind port31854 (EADDRINUSE). No deployment,
+merge, remote messages or policy change; automatic merger safety hold retained.
 
 ## SHE-556 — state-backed pet care presentation (2026-11-14)
 
