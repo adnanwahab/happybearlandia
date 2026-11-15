@@ -31,7 +31,7 @@ export function createFacadeMaterial(color, seed = 0, layout = {}) {
     });
     return result;
   })();
-  const material = new MeshStandardNodeMaterial({ color: new Color(color), roughness: .78, metalness: .08 });
+  const material = new MeshStandardNodeMaterial({ color: new Color(layout.color??color), roughness: .78, metalness: .08 });
   const grain=fract(sin(dot(positionLocal.xz.floor().add(positionLocal.y.floor()),vec3(12.9898,78.233,37.719).xy)).mul(43758.5453));
   const mortar=step(.96,fract(positionLocal.y.mul(3.5))).mul(.1);
   const floorBand=step(.95,v).mul(.12);
@@ -39,12 +39,15 @@ export function createFacadeMaterial(color, seed = 0, layout = {}) {
   const turf=sin(positionLocal.x.mul(.43).add(sin(positionLocal.z.mul(.24)))).mul(sin(positionLocal.z.mul(.37))).mul(.12).add(.9);
   const groundGrain=fract(sin(dot(positionLocal.xz.mul(40).floor(),vec3(12.9898,78.233,37.719).xy)).mul(43758.5453));
   const lawn=materialColor.mul(turf).mul(mix(.87,1,groundGrain));
-  const roof=mix(vec3(.095,.105,.10),lawn,landscape).mul(mix(.94,1,grain));
+  const roof=mix(vec3(new Color(layout.roofColor??0x1a1c1a)),lawn,landscape).mul(mix(.94,1,grain));
   const view=modelWorldMatrixInverse.mul(vec4(cameraPosition,1)).xyz.sub(positionLocal).normalize();
   const reflection=dot(view,normalLocal).abs().oneMinus().pow(3).mul(.55).add(.18);
   const reflectedRoom=mix(room,glass.mul(1.3),reflection);
   const wall=materialColor.mul(weathering).mul(mix(vec3(1),reflectedRoom,window));
-  material.colorNode = mix(wall,roof,step(.65,normalLocal.y));
+  // A ground-floor fascia is decorative: it conveys no stock, revenue or occupancy.
+  const fascia=step(positionLocal.y,2.8).mul(step(2.3,positionLocal.y)).mul(side).mul(layout.storefront?1:0).mul(enabled);
+  const decorated=mix(wall,materialColor.mul(.55),fascia);
+  material.colorNode = mix(decorated,roof,step(.65,normalLocal.y));
   material.roughnessNode=mix(.9,.28,window);material.metalnessNode=mix(.04,.3,window);
   material.emissiveNode = vec3(1,.69,.31).mul(window).mul(lit).mul(night).mul(.5);
   return { material, setNight(value) { night.value = value; }, setEnabled(value) { enabled.value = value ? 1 : 0; },setInteriorEnabled(value){interiorEnabled.value=value?1:0;},setOccupancy(value){occupancy.value=Math.max(0,Math.min(1,value));} };

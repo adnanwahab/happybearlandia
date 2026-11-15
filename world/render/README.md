@@ -129,6 +129,19 @@ changes and records before/after screenshots plus video. See
 `docs/reviews/SHE-165.md` for actual execution limits; the test existing is not
 proof it passed.
 
+## Cosmetic architecture (SHE-521)
+
+Home, work, shop, food and school categories select authored wall/roof colors,
+window proportions and awning dimensions using the existing ID/world-revision
+visual seed. Shop/food ground-floor fascia is decorative, with no business names,
+ratings or performance measures. Graphics/F3 labels these choices as cosmetic.
+Unknown categories and parks retain existing fallback materials. Explicit roof
+and archetype inputs take priority; taller homes retain their existing roof kit.
+No simulation RNG, model state, clock or outcome is changed. No animated effects,
+textures, extra materials or extra draw calls are added. Existing LOW geometry
+omits attachments, distant chunk shells remain cheap, and renderer/cache disposal
+owns all resources. Canvas2D retains its existing simpler category appearance.
+
 ### Illustrative seasons (SHE-513)
 
 Graphics → Season decorations defaults to an authored 360-day calendar (four

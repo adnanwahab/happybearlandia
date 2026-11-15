@@ -432,7 +432,7 @@ for (const [index,b] of town.buildings.entries()) {
 startup.placeholdersReadyMs=performance.now();
 const progressiveGeometry=createProgressiveLoader({items:town.buildings,signal:startupAbort.signal,concurrency:3,frameBudgetMs:4,maxAttachmentsPerFrame:6,
   priority:b=>Math.hypot(b.center[0]-camera.position.x,b.center[1]-camera.position.z),
-  load:b=>geometryCache.building({id:b.id,poly:b.poly,height:b.height,kind:b.kind}),
+  load:b=>geometryCache.building({id:b.id,poly:b.poly,height:b.height,kind:b.kind,architecture:b.architecture,worldRevision:b.worldRevision}),
   attach:(data,b)=>{const geo=toBufferGeometry(data),facade=createFacadeMaterial(b.baseColor,hash32(String(b.id))%1000,{...data.metadata.facade,park:b.kind==="park"}),mesh=b.mesh;const old=mesh.geometry;mesh.geometry=geo;mesh.material=facade.material;mesh.userData.loadingGeometry=false;mesh.userData.geometryTier=1;buildingDateBridge?.refresh();facade.building=b;facades.push(facade);b.populationFacade=facade;old.dispose();return()=>{geo.dispose();facade.material.dispose();};},
   fallback:(error,b)=>{b.mesh.userData.geometryError=error.message;return()=>b.mesh.geometry.dispose();},
   disposeSource:()=>geometryCache.dispose(),
