@@ -9989,3 +9989,22 @@ resolve @playwright/test. No root typecheck/lint command/compiler available.
 Real new before/after screenshots and browser focus/reduced-motion acceptance
 remain pending dependency/server repair. See [review](reviews/SHE-443.md) for
 paths audited, preserved merge policy, actual checks and remaining acceptance.
+
+## SHE-437 — authored homepage peeks (2026-11-15)
+
+One-worker bounded slice: replace automatically running carousel iframes with
+inline category postcards and hover/focus/explicit Preview details. Preserve
+registry routes and Enter world navigation. No simulation imports or state changes.
+Acceptance: keyboard/Escape, touch, reduced motion, 4 KiB per illustration,
+30-day stale disclosure and offline interaction after initial page load.
+Risk: category artwork is schematic and shared, not a saved view of each world;
+o offline cold-install guarantee. Verification and PR overlap audit: reviews/SHE-437.md.
+
+SHE-437 actual status: local peeks implemented; six focused tests pass (134
+assertions), 11,925 total inline SVG bytes/33 cards, browser bundle and syntax/diff
+checks pass. Three Playwright cases discover but execution fails before navigation
+at server listen EADDRINUSE on 39961 and 43937. Real touch/focus/offline browser
+acceptance and after screenshots remain pending a capable host. Category artwork
+is shared schematic illustration; cold offline loading is outside this slice.
+No model or merge-policy changes. No commit/PR, merge or deployment. Full audit,
+preserved voting policy and rerun: [SHE-437 review](reviews/SHE-437.md).
