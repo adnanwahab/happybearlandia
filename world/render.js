@@ -2205,7 +2205,7 @@ function renderInspector() {
       <div style="margin:8px 0"><b>${p.doing}</b></div>
       ${needBars(p)}
       <div class="muted" style="margin-top:8px">Lives at ${home.name}<br/>${p.age < 18 ? "School" : "Works at"}: ${job}</div>
-      <div class="row"><button id="followBtn" class="${follow ? "on" : ""}">${follow ? "Following" : "Follow"}</button><button data-b="${p.home}">Show home</button></div>`;
+      <div class="row"><button id="followBtn" data-palette-action="follow" class="${follow ? "on" : ""}">${follow ? "Following" : "Follow"}</button><button data-b="${p.home}">Show home</button></div>`;
     $("followBtn").onclick = () => { follow = !follow; renderInspector(); };
     el.style.maxHeight='calc(100vh - 112px)';el.style.overflowY='auto';
     const relationships=document.createElement('section');el.append(relationships);

@@ -29,3 +29,38 @@ git diff --check
 ```
 
 The type check verifies the exported API declarations against the shared TypeScript contract; JavaScript behavior is covered by runtime/unit/browser checks. Browser tests use same-origin fixture app documents to isolate shell behavior from GPU startup, upstream services, and individual model availability. They do not certify all app models or automatically install chrome into all 29 standalone apps.
+
+## Command-K travel and action palette (SHE-444)
+
+The homepage shell and registered standalone bootstrap mount `command-palette.js`.
+Cmd/Ctrl-K opens/toggles a native modal dialog. Its labeled combobox exposes a
+listbox, active descendant and live result count; arrows select, Enter executes,
+Escape restores the opener, and the native dialog contains Tab focus. Presentation
+is instant for all motion preferences. Route search uses the entire current
+registry (33 entries, superseding the ticket's 31); navigation retains validated
+canonical scope through `contextURL`, without inventing model identity mappings.
+Invalid URL context fails closed.
+
+Owning views opt actual native buttons in with `data-palette-action` (`follow`,
+`compare`, `why`, `photo`). `data-palette-context` identifies the owner selection /
+run / month where a button can survive a context change. The palette checks
+visibility, disabled/aria-disabled state, node identity, scope and URL context
+again immediately before calling the existing handler. Native command admission,
+authorization, busy guards and media persistence remain the owner's responsibility.
+No arbitrary iframe commands or cross-model person mappings are added. World
+resident Follow, Future Machine family Follow / comparison / metric WHY and
+House date photo controls opt in. Missing, hidden, unsupported or unavailable
+controls are absent; the homepage alone has travel results only.
+
+Verification:
+
+```sh
+bun test test/command-palette.test.js test/universe-shell.test.js test/html-navigation.test.js test/future-machine-ui.test.js test/future-machine-family-card.test.js world/house/date-memory.test.js
+bunx playwright test --config test/command-palette.config.js
+```
+
+The DOM interaction test additionally runs when `HBL_PALETTE_DOM` points to an
+installed `happy-dom` entry module. The optional `HBL_PALETTE_STATIC=1` browser
+transport serves actual source documents with Playwright route fulfillment when
+local listening is unavailable; it does not verify Bun serving or simulation APIs.
+See `docs/reviews/SHE-444.md` for actual evidence and outstanding browser gates.
