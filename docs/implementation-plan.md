@@ -9713,3 +9713,21 @@ resolve @playwright/test. No root typecheck/lint command/compiler available.
 Real new before/after screenshots and browser focus/reduced-motion acceptance
 remain pending dependency/server repair. See [review](reviews/SHE-443.md) for
 paths audited, preserved merge policy, actual checks and remaining acceptance.
+
+## SHE-439 — canonical route constellation
+
+Single-worker local slice: reuse registry cards, filters, search and favorites in
+an optional family graph with bounded spacing zoom and native scrolling; retain
+flat list. All current 33 registry routes must remain exact and keyboard reachable.
+Static SVG family edges are navigation decoration, never model relationships.
+Prerequisites: registry and existing directory. Acceptance: exact route parity,
+search/filter/list/zoom/focus and reduced-motion browser coverage, captures.
+Risk: native keyboard order follows registry rather than spatial neighbors;
+low-end fallback is Flat list, with no GPU/physics/animation dependency.
+Actual verification and unresolved acceptance: `reviews/SHE-439.md`.
+
+SHE-439 local status: graph/list integration and focused coverage delivered;
+13 tests/224 assertions, API declaration typecheck, browser build and diff check
+pass. Three Playwright cases fail before assertions because macOS denies Chromium
+Mach port registration. Browser focus/visual/touch and new captures remain open;
+run on a permitted host. Full audit, paths and rerun: [review](reviews/SHE-439.md).
