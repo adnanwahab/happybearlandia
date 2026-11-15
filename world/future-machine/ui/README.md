@@ -353,6 +353,22 @@ arm's household → occupied unit → building on every frame and highlights bot
 recorded buildings, including different buildings after a move. Unmapped homes
 remain unhighlighted. Camera and simulation playback are unchanged.
 
+## SHE-481 scrub preview
+
+The shared native range previews an exact paired month in a bounded checkpoint
+card without changing the displayed scene, URL or evidence selection. Release
+(including touch via pointer capture) or native keyboard selection commits after
+120 ms of quiet; Escape/pointer cancellation, run replacement, busy state and
+disposal discard pending selection. Preview pauses presentation playback. The
+selected calendar date is exposed through aria-valuetext and polite status;
+committed date output is polite. There is no animation or extra scene renderer.
+
+`createUI` reuses `familyHistory` supplied by the coordinator. Lower-level callers
+may supply `history`. Lookup requires both exact indexed snapshot.month values;
+missing data says Loading/Unavailable, never a neighboring result. Card values
+are synthetic manifest-recomputed monthly housing metrics, not independently
+verified stored checkpoints. No history copies, mutation, network work or cache.
+
 ## Optional event timelapse
 
 `onEventSlowdown(boolean)` handles the native transport checkbox; update
