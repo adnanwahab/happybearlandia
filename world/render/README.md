@@ -129,6 +129,19 @@ changes and records before/after screenshots plus video. See
 `docs/reviews/SHE-165.md` for actual execution limits; the test existing is not
 proof it passed.
 
+## Magnetic inspection (SHE-445, local review candidate)
+
+The legacy Three.js city picker samples at most 49 frontmost rays over a 24 CSS
+pixel disk. Exact hits rank first; distinct entities within three sampled pixels
+of the best score open a native chooser. A static ring previews the sampled hit;
+Enter/Space on the focusable scene inspects its center. The chooser supports
+native Tab/Enter/Escape and returns focus. No animation is needed under reduced
+motion. Selection rechecks candidate visibility when a chooser button is used.
+Sampling approximates silhouettes and can miss thin geometry between rays.
+This is not a guarantee of the mathematically nearest silhouette. Pointer preview
+is throttled to 10 Hz; hardware cost remains unmeasured. Living Population,
+Business mode and standalone Canvas2D retain their existing picking paths.
+
 ### Neighborhood exploration trail (SHE-448)
 
 The `/world` Neighborhood map retains six recent inspected buildings/legacy

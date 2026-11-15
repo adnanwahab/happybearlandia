@@ -9189,6 +9189,50 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
 
+## SHE-479 — recorded event chapter ticks
+
+Bounded slice: cluster simultaneous events by exact month/type, rank completion
+then construction milestones then other types, cap at 24, and reuse shared seek
+and WHY. Preserve arm-scoped event IDs, payloads and dependencies. No engine or
+run contract changes. Verify deterministic ordering/immutability, empty and
+unavailable history, keyboard/touch controls and normal-entry integration.
+Risk: editorial ranking is not measured impact or causality; disclose it inline.
+Implementation and verification evidence: `docs/reviews/SHE-479.md`.
+
+## SHE-480 — downstream causal footprints (November 14, 2026)
+
+Local slice on isolated mini/SHE-480: audit existing Ripple and pulse renderer,
+replace undirected pulse selection with bounded deterministic downstream traversal,
+retain exact recorded edge IDs and expose traversal gaps. Reuse inspector controls,
+static DOM fallback and reduced-motion CSS. No street geometry mapping is recorded,
+so no geographic links may be invented. Acceptance: replay IDs, cycle/input caps,
+missing evidence and outgoing-only tests; focused browser and measured selection
+benchmark. One coding worker; no model/ODD rule changes. Open causal/SHE-480 PR
+searches returned none. Existing merge workflow literal false hold stays unchanged.
+
+SHE-480 local result: directed stable pulse traversal and visible bounds delivered;
+16 tests/76 assertions pass, browser bundle and diff check pass. Synthetic selection
+benchmark median 0.20825 ms/p95 1.494625 ms (100 iterations, 2048-node chain).
+Browser execution blocked at fixture port39871 EADDRINUSE; no screenshot claim.
+Full street payoff requires recorded event-to-geometry mapping; no inferred joins.
+Acceptance remains open. Evidence and next actions: [review](reviews/SHE-480.md).
+
+## SHE-445 — magnetic city picking
+
+Local slice: bound screen-space ray sampling to 24 CSS pixels, retain only
+frontmost visible hits, preview and disambiguate near ties with native controls.
+No model mutation. Acceptance: ranking/visibility/edge tests, keyboard/touch
+browser coverage and evidence. Risks: sampled silhouettes can miss subpixel
+geometry; Living Population retains its own picker; Canvas2D remains unchanged.
+Open interaction PRs #330/#331 need integration review before merging.
+
+SHE-445 verification: 17 Bun tests / 111 assertions pass; syntax and diff checks
+pass. Two Playwright cases discover successfully; execution is blocked before
+launch by EADDRINUSE on ports 39945 and 42145. Browser screenshots and full mobile
+acceptance remain pending. No commit/PR created. See [review](reviews/SHE-445.md)
+for audited PR conflicts, unchanged merge policy, exact scope and remaining
+Population/Canvas2D, silhouette and hardware acceptance work.
+
 ## SHE-446 — scene context actions (2026-11-14 local candidate)
 
 Slice: reuse actual primary inspector commands for buildings and legacy/Population

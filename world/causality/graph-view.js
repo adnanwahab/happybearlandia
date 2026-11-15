@@ -182,7 +182,8 @@ export function renderEvidenceGraph(data, selectedId, onSelect, { showAttributio
 
   const pulses = selectPulses([...shown.values()], edges, data.evidence ?? [], selectedId);
   const pulseIds = new Set(pulses.edges.map(edge => edge.id));
-  root.append(element('p', `Recorded model dependencies pulse from source to outcome; this is not proof of real-world causation. Correlations never pulse. Up to ${PULSE_LIMIT} connections animate for three cycles; reduced motion keeps them static. Showing ${pulses.edges.length} of ${pulses.eligible} eligible connections.`, 'evidence-graph__metadata'));
+  root.append(element('p', `Recorded model dependencies pulse downstream from the selected event; this is not proof of real-world causation. Correlations never pulse. Up to ${PULSE_LIMIT} connections animate for three cycles; reduced motion keeps them static. Showing ${pulses.edges.length} of ${pulses.eligible} eligible connections.`, 'evidence-graph__metadata'));
+  if (pulses.gaps.length) root.append(element('p', 'Pulse gaps: ' + pulses.gaps.join(', ') + '. No links are inferred across gaps.', 'evidence-graph__notice'));
   let targetButton;
   if (target) {
     root.append(element('h4', 'Selected record'));

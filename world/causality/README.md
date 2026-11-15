@@ -58,7 +58,7 @@ The inspector browser suite includes the Ripple tab and visible gap disclosure.
 ### Recorded dependency pulses
 
 On record selection the graph pulses up to eight evidence-backed, chronological,
-same-run event connections in deterministic order for three cycles. Each pulse
+same-run event connections downstream from the selected event in deterministic breadth-first order for three cycles. Each pulse
 exposes `data-edge-id`, `data-from-event` and `data-to-event`; cards retain exact
 entity IDs. Returned citations must all resolve. Correlations never animate.
 These describe recorded model mechanisms, not empirical causation. CSS/DOM
@@ -80,3 +80,10 @@ Messaging unit checks: `bun test test/causality-messaging.test.js`.
 Attribution coverage notices apply to **Why**. Ripple returns downstream edges,
 so it retains its own chain limits and gaps without interpreting omitted upstream
 attribution as missing history. Both views retain evidence-backed pulse limits.
+
+SHE-480 bounds pulse selection to 2,048 input nodes, edges and evidence records
+per collection; oversized input fails closed with an input-limit notice. Individual
+citation lists also have a 2,048 bound. Visited nodes expand once, including cycles.
+Pulse limits and invalid/unavailable dependencies are disclosed separately from
+static recorded connections. This is an evidence schematic: no stored event-to-street
+geometry mapping exists, so geographic street footprints remain unavailable.
