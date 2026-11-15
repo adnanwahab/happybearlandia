@@ -447,6 +447,7 @@ const server = serve({
   async fetch(request, server) {
     const { pathname } = new URL(request.url);
     if (pathname === '/api/player-feedback') return handlePlayerFeedback(request);
+    if (pathname === '/logs' || pathname === '/logs/') return serveFile('./world/session-logs.html');
     if (pathname === '/mini-symphony' || pathname === '/mini-symphony/') return serveFile('./tools/mini-symphony-dashboard/index.html');
     if (pathname.startsWith('/api/mini-symphony')) return handleMiniSymphony(request, {localAddress: server.requestIP(request)?.address});
     if (pathname === '/mini-symphony/dashboard.js') return serveFile('./tools/mini-symphony-dashboard/dashboard.js');

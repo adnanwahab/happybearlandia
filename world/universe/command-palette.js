@@ -45,7 +45,7 @@ export function mountCommandPalette(container) {
     close();win.location.assign(row.href);
   }
   function open(){if(dialog.open)return;opener=doc.activeElement;try{context=contextFromURL(win.location.href);}catch{context=null;}input.value='';dialog.showModal();input.setAttribute('aria-expanded','true');render();input.focus();}
-  function shortcut(event){if(event.isComposing)return;if((event.metaKey||event.ctrlKey)&&!event.altKey&&!event.shiftKey&&event.key.toLowerCase()==='k'){event.preventDefault();event.stopPropagation();dialog.open?close():open();}}
+  function shortcut(event){if(event.isComposing||doc.body.classList.contains('launch-world'))return;if((event.metaKey||event.ctrlKey)&&!event.altKey&&!event.shiftKey&&event.key.toLowerCase()==='k'){event.preventDefault();event.stopPropagation();dialog.open?close():open();}}
   function keys(event){event.stopPropagation();if(event.isComposing)return;if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();if(rows.length)index=(index+(event.key==='ArrowDown'?1:-1)+rows.length)%rows.length;highlight();}else if(event.key==='Enter'){event.preventDefault();execute(index);}else if(event.key==='Escape'){event.preventDefault();close();}}
   input.addEventListener('input',render);dialog.addEventListener('keydown',keys);dialog.addEventListener('cancel',event=>{event.preventDefault();close();});dialog.querySelector('button').onclick=close;trigger.onclick=open;win.addEventListener('keydown',shortcut,true);
   return {open,dispose(){win.removeEventListener('keydown',shortcut,true);if(dialog.open)close();trigger.remove();dialog.remove();style.remove();}};

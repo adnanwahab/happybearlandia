@@ -43,6 +43,8 @@ export function applyWalkCommand(model,id,input){
  clearHomeStay(model,index);
  // Reuse the same fields and ledger increments as an ordinary committed trip.
  p.mode[index]=MODES.indexOf('walk');p.from[index]=p.current[index];p.to[index]=district;p.fromX[index]=p.x[index];p.fromZ[index]=p.z[index];p.toX[index]=x;p.toZ[index]=z;p.toLocation[index]=location;
+ model.walkingRoutes??={};if(walk.route.points?.length)model.walkingRoutes[index]=walk.route;else delete model.walkingRoutes[index];model.tripSocialDelays??={};delete model.tripSocialDelays[index];
+ const encounter=model.residentEncounters?.active?.[index];if(encounter){for(const participant of encounter.personIds){const participantIndex=Number(participant.slice(prefix.length));delete model.residentEncounters.active[participantIndex];}recordEvent(model,'RESIDENT_CONVERSATION_INTERRUPTED',{personIds:encounter.personIds,reason:'Player requested walk'});}
  p.remaining[index]=p.tripTotal[index]=walk.minutes;p.departureMinute[index]=minute;p.commute[index]=walk.minutes;p.activity[index]=8;p.plannedActivity[index]=9;p.plannedUntil[index]=arrivalMinute+5;p.planUntil[index]=0;p.restingUntil[index]=0;p.eatingUntil[index]=0;
  model.manualWalks??={};model.manualWalks[index]={commandMinute:minute,arrivalMinute,until:arrivalMinute+5,destination:{district,x,z,location},personId};
  model.totals.trips++;model.totals.plannedTravelMinutes+=walk.minutes;model.totals.tripCountsByMode.walk=(model.totals.tripCountsByMode.walk??0)+1;

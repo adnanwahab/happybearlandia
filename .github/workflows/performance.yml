@@ -17,7 +17,7 @@ jobs:
       - run: bunx playwright install --with-deps chromium
       - name: Measure routes and enforce budgets
         env:
-          HBL_PERF_BACKENDS: webgl2
+          HBL_PERF_BACKENDS: webgpu
         run: |
           PORT=3198 bun run server.js > /tmp/hbl-performance-server.log 2>&1 &
           server_pid=$!

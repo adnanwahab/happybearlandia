@@ -90,3 +90,60 @@ and checkpoint version to replay. Checks: `test/parcel-storm.test.js` and
 `test/legacy-checkpoint.test.js`. Rendering rain/cloud drift/lightning and
 opt-in thunder are presentation; reduced motion removes those moving cues while
 retaining static model depth readings.
+
+
+### Sidewalks and spontaneous conversations (SHE-789)
+
+Fresh Legacy Worlds now declare optional `residentRules` (`sidewalks.v1`,
+`legacy-resident-encounters.v1`) inside full checkpoints. Restoring an older
+checkpoint without this manifest preserves the former path/automatic-social
+behavior. `sim.js` reuses Population's pure pedestrian graph helper but adapts
+actual Legacy IDs and minute clock; it shares no resident state with Population.
+Mapped walk paths follow nominal 6m sidewalk offsets and junction crossings.
+Synthetic width/access and missing/disconnected-map fallbacks have the same
+limits as [Population](population.md#versioned-pedestrian-paths-and-visible-encounters-she-789).
+A keyed seed/person/destination/day draw allows 2% short mid-block crossing
+opportunities. Route length drives actual 40m/min walking and explicit ground
+commands force this walking path rather than inheriting a transit road path.
+Transit retains its existing center-road approximation and waiting rules.
+
+After every committed minute, `legacy-resident-encounters.js` expires finished
+holds; every fifth daytime minute (07:00–22:00) it admits at most eight pairs
+within 4m. Housemates, coworkers, neighbors whose homes are within 120m, and
+co-present park/food visitors can meet. Sleep, work/school, shifts, player commands,
+evacuation and transit take priority. Existing relationship talk records memories,
+outcome and the +8 social need at initiation. Three-minute movement holds and a
+fifteen-minute resident cooldown are synthetic gameplay assumptions, not measured
+conversation frequency. Need decay continues; suspended destination activities
+receive no action gain and shift their end by held time. Trip totals include
+recorded social delay. `socialEncounter`, cooldown and rules survive full and
+representative state capture; the social ledger is retained too. Renderer facing,
+wave and bubble project these actual records and freeze with the model clock.
+
+Seed, source town/roads, rules manifest, full RNG cursor and command schedule are
+needed for exact continuation. No new RNG draws are consumed by social admission;
+existing relationship outcome hashes remain authoritative. Full and representative
+state tests, actual ground-command movement and conversation delay/continuation
+are covered by `test/resident-launch.test.js`, `test/legacy-checkpoint.test.js`,
+`test/person-commands.test.js` and `test/repeat-play.test.js`. See
+[implementation evidence](../she-789-residents.md) for actual results and limits.
+
+
+`world.simulationSeed` is the read-only numeric hash already used to initialize
+the existing RNG. It consumes no extra draw and lets privacy-safe diagnostics
+avoid raw coordinate strings. Full checkpoints retain it in retention metadata;
+older saves report null rather than inventing the missing initializer. Exact
+replay still needs geometry, rules, RNG cursor, external inputs and command order.
+`getActivityIdentity()` returns the restored runId/modelVersion/effective seed
+without materializing resident records.
+
+
+Unknown or mixed `residentRules` versions reject before full or representative
+restore mutates the world; absent/null older states remain supported. Rainy older
+worlds retain the original `distance/40/walkComfort` generalized walking choice
+cost; fresh `sidewalks.v1` returns routed physical minutes for that choice cost.
+This changes utility interpretation, not the existing physical pace. Retained
+decision alternatives expose planned minutes and route kind. Ordinary activity
+snapshots, cheap identity and social-network provenance expose the same manifest.
+See `test/resident-rules-compatibility.test.js` for a recorded-choice rain case
+and atomic unknown-version restore checks.

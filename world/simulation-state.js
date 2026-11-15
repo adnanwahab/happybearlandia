@@ -1,7 +1,8 @@
+import {validateResidentRules} from './resident-rules.js';
 // Explicit longitudinal compatibility state. No meshes, functions, random
 // generator, global activity recorder, or canonical population state is copied.
 import { createWeatherSimulation } from './weather/weather-simulation.js';
-const PERSON_FIELDS=['home','job','school','needs','x','z','mode','action','target','until','doing','workedToday','today','yesterday','walkHistory','walkMinutesAvg3d','travelHistory','travelMinutesAvg3d','commuteMinutesAvg3d','path','pathI','tx','tz','travelMode','transitWaitMinutesRemaining','tripStartedMinute','tripDistanceMeters','tripTravelMinutes','tripWalkMinutes','tripTransitMinutes','tripWaitMinutes','tripRideMetersPerMinute','lastTrip','displaced','originalHome'];
+const PERSON_FIELDS=['socialEncounter','socialCooldown','tripSocialDelayMinutes','tripRouteKind','pedestrianRulesVersion','home','job','school','needs','x','z','mode','action','target','until','doing','workedToday','today','yesterday','walkHistory','walkMinutesAvg3d','travelHistory','travelMinutesAvg3d','commuteMinutesAvg3d','path','pathI','tx','tz','travelMode','transitWaitMinutesRemaining','tripStartedMinute','tripDistanceMeters','tripTravelMinutes','tripWalkMinutes','tripTransitMinutes','tripWaitMinutes','tripRideMetersPerMinute','lastTrip','displaced','originalHome'];
 const BUILDING_FIELDS=['stock','maxStock','fridge','cash','litter','open','visitors'];
 const HOUSEHOLD_FIELDS=['cash','stressedDays','lastDailyCost','lastShortfall','lastCostDay','voucherPeriods'];
 const select=(object,fields)=>Object.fromEntries(fields.filter(key=>object?.[key]!==undefined).map(key=>[key,structuredClone(object[key])]));
@@ -16,7 +17,7 @@ function validateRows(saved,current,label){
   if(!Array.isArray(saved)||saved.length!==current.length||new Set(saved.map(row=>id(row.id))).size!==saved.length||saved.some(row=>!current.some(other=>id(other.id)===id(row.id))))throw new Error(`Simulation state ${label} IDs mismatch`);
 }
 export function captureSimulationState(world){
-  return {schemaVersion:'legacy-simulation-state.v1',minute:world.t,topology:structuredClone(topology(world)),
+  return {schemaVersion:'legacy-simulation-state.v1',minute:world.t,residentRules:structuredClone(world.residentRules??null),social:structuredClone(world.social??null),topology:structuredClone(topology(world)),
     households:world.households.map(h=>({id:h.id,members:[...h.members],...select(h,HOUSEHOLD_FIELDS)})),
     people:world.people.map(p=>({id:p.id,...select(p,PERSON_FIELDS)})),
     buildings:world.buildings.map(b=>({id:b.id,state:select(b.state,BUILDING_FIELDS),flaggedDirty:!!b.flaggedDirty})),
@@ -26,6 +27,7 @@ export function captureSimulationState(world){
 }
 export function restoreSimulationState(world,state,{preserveClock=false}={}){
   if(state?.schemaVersion!=='legacy-simulation-state.v1'||!Number.isSafeInteger(state.minute)||state.minute<0)throw new Error('Unsupported or invalid simulation state');
+  validateResidentRules(state.residentRules,'legacy');
   if(JSON.stringify(state.topology)!==JSON.stringify(topology(world)))throw new Error('Simulation state topology mismatch');
   validateRows(state.people,world.people,'person');validateRows(state.buildings,world.buildings,'building');validateRows(state.households,world.households,'household');
   for(const h of state.households){const current=world.households.find(row=>id(row.id)===id(h.id));if(JSON.stringify(h.members)!==JSON.stringify(current.members)||['cash','stressedDays','lastDailyCost','lastShortfall','lastCostDay'].some(key=>!Number.isFinite(h[key])||h[key]<0)||!Array.isArray(h.voucherPeriods)||h.voucherPeriods.some(key=>typeof key!=='string'))throw new Error('Invalid household state');}
@@ -40,9 +42,11 @@ export function restoreSimulationState(world,state,{preserveClock=false}={}){
   if(state.culture&&world.culture?.restore){const saved=structuredClone(state.culture);saved.minute+=delta;saved.lastPlannedDay+=Math.floor(nextMinute/1440)-Math.floor(state.minute/1440);for(const event of [...saved.pending,...saved.active]){event.startMinute+=delta;event.endMinute+=delta;}for(const event of saved.history){event.minute+=delta;if(event.event){event.event.startMinute+=delta;event.event.endMinute+=delta;}}world.culture.restore(saved);}
   if(weather)world.weather?.restore?.(weather);
   world.t=nextMinute;
+  world.residentRules=structuredClone(state.residentRules??null);world.social=structuredClone(state.social??null);
+  if(delta&&world.social){for(const tie of Object.values(world.social.ties??{})){if(Number.isFinite(tie.lastMinute))tie.lastMinute+=delta;for(const memory of tie.memories??[])if(Number.isFinite(memory.minute))memory.minute+=delta;}for(const encounter of world.social.residentEncounters??[]){encounter.startedMinute+=delta;encounter.untilMinute+=delta;}}
   const dayDelta=Math.floor(nextMinute/1440)-Math.floor(state.minute/1440);
   for(const saved of state.households){const h=world.households.find(row=>id(row.id)===id(saved.id));Object.assign(h,select(saved,HOUSEHOLD_FIELDS));if(Number.isFinite(h.lastCostDay))h.lastCostDay+=dayDelta;}
-  for(const saved of state.people){const p=world.people.find(row=>id(row.id)===id(saved.id));for(const key of PERSON_FIELDS)delete p[key];Object.assign(p,select(saved,PERSON_FIELDS));if(Number.isFinite(p.until))p.until+=delta;if(Number.isFinite(p.tripStartedMinute))p.tripStartedMinute+=delta;for(const day of [p.today,p.yesterday])if(day){day.day+=dayDelta;day.homeFlooded=false;}p.homeFlooded=false;}
+  for(const saved of state.people){const p=world.people.find(row=>id(row.id)===id(saved.id));for(const key of PERSON_FIELDS)delete p[key];Object.assign(p,select(saved,PERSON_FIELDS));if(Number.isFinite(p.until))p.until+=delta;if(Number.isFinite(p.socialCooldown))p.socialCooldown+=delta;if(p.socialEncounter){p.socialEncounter.startedMinute+=delta;p.socialEncounter.untilMinute+=delta;}if(Number.isFinite(p.tripStartedMinute))p.tripStartedMinute+=delta;for(const day of [p.today,p.yesterday])if(day){day.day+=dayDelta;day.homeFlooded=false;}p.homeFlooded=false;}
   for(const saved of state.buildings){const b=world.buildings.find(row=>id(row.id)===id(saved.id));Object.assign(b.state,select(saved.state,BUILDING_FIELDS));b.state.flooded=false;b.flaggedDirty=saved.flaggedDirty;}
   world.cultureSnapshot=world.culture?.snapshot?.()??null;
   world.refreshWeatherEffects?.();

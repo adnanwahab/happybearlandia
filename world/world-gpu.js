@@ -1,26 +1,28 @@
 import { WebGPURenderer, ACESFilmicToneMapping } from 'three/webgpu';
 
-/** Probe the native backend; the World host owns supported fallback and notices. */
-export async function createWorldGPU({ antialias = true } = {}) {
-  let renderer;
-  try {
-    if (!navigator.gpu) throw new Error('This browser does not expose WebGPU.');
-    renderer = new WebGPURenderer({ antialias, trackTimestamp: true });
-    // Let the host select fallback so the adapter failure reason is retained.
-    renderer._getFallback = null;
+/** One native backend, shared by every World mode. */
+export async function createWorldGPU({antialias=true,canvas}={}){
+  if(!globalThis.navigator?.gpu)throw new Error('This browser does not expose WebGPU.');
+  return initializeWorldGPU(new WebGPURenderer({antialias,trackTimestamp:true,...(canvas?{canvas}:{})}));
+}
+
+/** Kept separate so adapter rejection and partial-device cleanup are testable. */
+export async function initializeWorldGPU(renderer){
+  try{
+    // Disable Three's implicit WebGL backend: failure must stay visible.
+    renderer._getFallback=null;
     await renderer.init();
-    if (!renderer.backend.isWebGPUBackend) throw new Error('A WebGPU adapter could not be initialized.');
-    renderer.toneMapping = ACESFilmicToneMapping;
-    renderer.toneMappingExposure = .85;
-    return { renderer, mode: 'webgpu' };
-  } catch (error) {
-    // Three r186 dispose() retries init through setAnimationLoop before init
-    // succeeds. Release the partial backend directly so rejection stays final.
-    try {
-      const cleanup = renderer?._initialized === false
-        ? renderer.backend?.dispose?.() : renderer?.dispose();
-      Promise.resolve(cleanup).catch(() => {});
-    } catch {}
-    throw error;
+    if(!renderer.backend.isWebGPUBackend)throw new Error('A WebGPU adapter could not be initialized.');
+    renderer.toneMapping=ACESFilmicToneMapping;
+    renderer.toneMappingExposure=.85;
+    return{renderer,mode:'webgpu'};
+  }catch(error){
+    // Three r186 dispose() can retry init through setAnimationLoop before init
+    // succeeds. Release a partially initialized backend directly instead.
+    try{
+      const cleanup=renderer._initialized===false?renderer.backend?.dispose?.():renderer.dispose();
+      Promise.resolve(cleanup).catch(()=>{});
+    }catch{}
+    throw error instanceof Error ? error : new Error(typeof error==='string'?error:'WebGPU adapter initialization failed.',{cause:error});
   }
 }
