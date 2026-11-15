@@ -1,5 +1,26 @@
 # HappyBearLandia implementation plan
 
+## SHE-582 — event reactions audit (2026-11-14)
+
+Analysis only on isolated `mini/SHE-582` at `cdb773a1`; implementation and ticket
+acceptance remain open. No duplicate ticket PR found; adjacent sharing candidates
+395/396/397 require ownership recheck before editing the coordinator. Existing
+City event receipts support exact arm/month grounding, but Future Machine has no
+reaction ownership, private audience or report service. Next integrated slice:
+server-issued ephemeral session, bounded expiring separate reaction store,
+server-resolved event targets, private-default UI, owner-only mutations and viewer
+hide/report. Disposable fixtures need no live provider. Risks: event replay is
+recomputation; client receipts are not authorization; private reads must never
+depend on possession of an experiment ID. Concrete contract, acceptance matrix,
+source paths and public-service prerequisites: [SHE-582 review](reviews/SHE-582.md).
+
+Existing story/integrity/share/backend regression checks: 30 pass, one browser
+skip, 262 assertions, zero failures. No configured repository-wide lint/typecheck.
+No executable change; Playwright skipped. Pre-existing screenshots target other
+routes and do not establish reaction acceptance; before/after Future Machine
+evidence remains outstanding. No model/ODD, vote/auth/check or merge-policy
+changes; automatic merging remains disabled. No external publication or deployment.
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,
