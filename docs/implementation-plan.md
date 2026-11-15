@@ -9557,3 +9557,23 @@ resolve @playwright/test. No root typecheck/lint command/compiler available.
 Real new before/after screenshots and browser focus/reduced-motion acceptance
 remain pending dependency/server repair. See [review](reviews/SHE-443.md) for
 paths audited, preserved merge policy, actual checks and remaining acceptance.
+
+## SHE-440 — tool panel docking (local implementation)
+
+Single-worker slice: preserve existing owner DOM/visibility while adding collapse,
+dock/undock and bounded keyboard/pointer width controls to World controls, Build,
+inspector, comparison/experiment metrics and historical timeline. Preferences are
+local presentation data only. Prerequisites: feature-owned panels must exist;
+no synthetic WHY or timeline evidence is created. Acceptance: 320px and desktop
+control hit tests, persistence, keyboard/Escape, reduced motion, owner rerenders.
+Risks: concurrent presentation PRs, legacy innerHTML replacement and sheet-manager
+suppression. Browser verification and final limitations: reviews/SHE-440.md.
+
+SHE-440 result: local presentation adapter integrated; nine focused tests pass
+(52 assertions), syntax/whitespace checks pass. Four Playwright cases discover;
+execution blocked before navigation by Bun EADDRINUSE39885 after resolving the
+runner via installed NODE_PATH. No new after screenshots, browser hit-test pass
+or full acceptance claim. Primary controls browser coverage authored; real 3D
+Build/WHY/populated metrics and short viewport layout remain review gates.
+No root lint/typecheck or compiler available. No model/ODD or merge-policy change.
+See [audit and next verification](reviews/SHE-440.md).
