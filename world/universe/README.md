@@ -29,3 +29,80 @@ git diff --check
 ```
 
 The type check verifies the exported API declarations against the shared TypeScript contract; JavaScript behavior is covered by runtime/unit/browser checks. Browser tests use same-origin fixture app documents to isolate shell behavior from GPU startup, upstream services, and individual model availability. They do not certify all app models or automatically install chrome into all 29 standalone apps.
+
+### Optional contextual hints
+
+`contextual-hints.js` mounts one inline, closed-by-default disclosure in the
+existing standalone navigation; `/routes` mounts it beside directory tools.
+It discovers native labeled buttons/fields and links only on request, excludes
+hidden, inert, disabled and navigation controls, prefers actions over links, and
+rechecks availability before focusing. It never clicks, changes inputs, reads
+model state, advances time or runs an experiment. Labels come from the actual
+controls, not inferred simulation evidence. Focus scrolls instantly, including
+with reduced motion. No polling, animation or automatic prompt is added.
+
+Dismissal uses `hbl-hints:v1:<experienceId>` in localStorage. It closes the panel
+and retains a manually reopenable “dismissed” handle across reloads. Storage
+failure keeps session dismissal usable. Native button keyboard activation and
+Escape work; there is no focus trap or duplicate overlay. Shared bootstrap
+coverage follows `registeredHTMLFiles()`; unrelated standalone documents and
+the homepage shell require their own integration. Generic DOM order is a first
+slice, not a claim that every workspace has an authored tutorial.
+
+Checks: `bun test test/contextual-hints.test.js test/html-navigation.test.js
+ test/universe-shell.test.js test/local-journeys.test.js` and
+`bunx playwright test --config test/e2e/contextual-hints.config.js`.
+The browser suite serves local documents through request interception and does
+not fabricate model/API responses or certify live services. Optional
+`HBL_HINT_BROWSER` selects an installed Chromium executable.
+
+Homepage **Surprise Me** uses `surprise.js` and the ordered `curated-wonders.1`
+curation: Future Machine (Canvas2D), Reverse Simulator and Reality Breakpoints.
+These existing local City entry points require no account or live provider.
+Same version, unsigned 32-bit selection seed and available subset reproduce the
+choice. Unknown IDs/routes cannot introduce destinations. All three are currently
+available; a future availability source must be local and explicit.
+
+Results label the synthetic preset and native model seed separately from the
+selection seed. **Change world** opens the existing independent preset; it does
+not transfer or rewrite active run context, IDs, clocks or stored results.
+Choosing does not fetch, persist, prewarm, run a model or animate. Editing the
+seed clears the previous link. Empty curation disables selection and points to
+existing navigation; without JavaScript, Play Demo and the directory remain.
+Checks: `bun test test/surprise-wonder.test.js` and
+`bunx playwright test --config test/surprise-wonder.browser.config.js`.
+
+## Command-K travel and action palette (SHE-444)
+
+The homepage shell and registered standalone bootstrap mount `command-palette.js`.
+Cmd/Ctrl-K opens/toggles a native modal dialog. Its labeled combobox exposes a
+listbox, active descendant and live result count; arrows select, Enter executes,
+Escape restores the opener, and the native dialog contains Tab focus. Presentation
+is instant for all motion preferences. Route search uses the entire current
+registry (33 entries, superseding the ticket's 31); navigation retains validated
+canonical scope through `contextURL`, without inventing model identity mappings.
+Invalid URL context fails closed.
+
+Owning views opt actual native buttons in with `data-palette-action` (`follow`,
+`compare`, `why`, `photo`). `data-palette-context` identifies the owner selection /
+run / month where a button can survive a context change. The palette checks
+visibility, disabled/aria-disabled state, node identity, scope and URL context
+again immediately before calling the existing handler. Native command admission,
+authorization, busy guards and media persistence remain the owner's responsibility.
+No arbitrary iframe commands or cross-model person mappings are added. World
+resident Follow, Future Machine family Follow / comparison / metric WHY and
+House date photo controls opt in. Missing, hidden, unsupported or unavailable
+controls are absent; the homepage alone has travel results only.
+
+Verification:
+
+```sh
+bun test test/command-palette.test.js test/universe-shell.test.js test/html-navigation.test.js test/future-machine-ui.test.js test/future-machine-family-card.test.js world/house/date-memory.test.js
+bunx playwright test --config test/command-palette.config.js
+```
+
+The DOM interaction test additionally runs when `HBL_PALETTE_DOM` points to an
+installed `happy-dom` entry module. The optional `HBL_PALETTE_STATIC=1` browser
+transport serves actual source documents with Playwright route fulfillment when
+local listening is unavailable; it does not verify Bun serving or simulation APIs.
+See `docs/reviews/SHE-444.md` for actual evidence and outstanding browser gates.

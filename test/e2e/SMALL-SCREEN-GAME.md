@@ -12,7 +12,7 @@ The first baseline generation requires an explicit review:
 bunx playwright test --config test/small-screen-game.browser.config.js --update-snapshots
 ```
 
-Review all twelve images before committing generated baselines. Keep the same OS,
+Review all twelve flagship images and eighteen World HUD images before committing generated baselines. Keep the same OS,
 fonts and Playwright browser build for updates and comparisons. Baselines are
 platform-qualified and comparisons allow zero changed pixels. Missing baselines
 fail the normal command; do not treat an update run as regression verification.
@@ -37,14 +37,32 @@ at server startup in this workspace: Bun reports EADDRINUSE on both 39931 and
 controls and screenshot acceptance remain unverified until the update, image
 review and normal comparison run complete on a host that permits the server.
 
-SHE-263 extends this config with `world-hud.e2e.js`: `/world?renderer=webgl`
-at 320×640, 390×844, 768×1024, 1280×784, 1520×784 and 1920×1080. It dismisses
-the initial Start here sheet, checks launcher hit targets and measured viewport
-bounds, exercises both numbered explorer actions, asserts pill/dismiss behavior,
-and checks Storm preserves the World controls scroll offset. Each test attaches
-actual measured HUD rectangles. Screenshots cover the expanded and collapsed
-explorer; the scene and volatile playback/status outputs are masked. This does
-not substitute Canvas2D for the main World integration. No new World baselines
-are generated or approved in this workspace: server startup fails with
-EADDRINUSE before browser launch. Run with `--grep 'World HUD' --update-snapshots`,
-review all twelve images, then run without snapshot updates to verify.
+SHE-263 extends this config with seven `world-hud.e2e.js` cases: six viewport
+journeys at 320×640, 390×844, 768×1024, 1280×784, 1520×784 and 1920×1080,
+and one postcard-arrival journey. They use the actual `/world` entry with
+`renderer=webgl&demo=1&synthetic=1&people=16&seed=263` (the arrival case adds
+`arrival=1`). This pins procedural geometry and bounds population; it does not
+certify default-population performance or physical GPU/mobile behavior.
+
+The tests dismiss Start here, check launcher center/edge hit targets and viewport
+bounds, close the place-picker modal before policy, assert pill/dismiss behavior,
+and check Storm retains the World controls scroll offset. Each viewport case
+attaches measured HUD rectangles if it executes. Eighteen snapshots cover
+expanded, collapsed and dismissed explorer states. Screenshot CSS hides canvas
+pixels only: never mask the full-viewport `#view`, which also covers HUD pixels.
+Only dynamic noninteractive facts/status/loading outputs are masked.
+
+The arrival case verifies policy completes onboarding after place navigation,
+then exercises reopen/minimize/dismiss. Unit tests separately check actual
+postcard URLs, distinct steps, duplicate actions and fresh visits.
+
+Current World status: seven tests discover, focused units pass; execution remains
+blocked at server startup (`EADDRINUSE` on 39978 and alternate 48963). No new
+World baselines, measurements or screenshots were generated or approved. Run:
+
+```sh
+TMPDIR=/private/tmp bunx --no-install playwright test --config test/small-screen-game.browser.config.js --grep 'World HUD' --update-snapshots
+```
+
+Review all eighteen World images, then run without snapshot updates to compare.
+See `docs/reviews/SHE-263.md` for the current audit and explicit acceptance gaps.

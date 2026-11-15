@@ -13,7 +13,7 @@ function fixture() {
     createTrackedWorker(){const w={terminate(){this.terminated=true;}};workers.push(w);return w;}};
   const functions=source.slice(source.indexOf('function setCycleBusy('),source.indexOf('\nfunction runCycle() {')).replace('import.meta.url',JSON.stringify('http://localhost/world/render.js'));
   const vm={...context};
-  runInNewContext(`let cycleBusy=false,cycleWorker=null,cycleDeadline=null,cycleWaiter=null;\n${functions}\nglobalThis.api={start(){setCycleBusy(true);startCycleWorker();}};`,vm);
+  runInNewContext(`let cycleResults=[],cycleBusy=false,cycleWorker=null,cycleDeadline=null,cycleWaiter=null;\n${functions}\nglobalThis.api={start(){setCycleBusy(true);startCycleWorker();}};`,vm);
   return {nodes,workers,start:()=>vm.api.start(),expire:()=>deadline(),completed:()=>completed};
 }
 test('weekly progress, cancellation and late worker replies stay consistent',()=>{

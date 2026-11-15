@@ -1,3 +1,5 @@
+import {calendarLabel} from '../contracts.js';
+import {curtainCompatibility,curtainSlices} from './curtain.js';
 import {CONTEXT_NOTICE,architectureGeometry,createNeighborhood,replaceDetails} from './neighborhood.js';
 import {createDivergenceGate,createDivergenceBurst} from './divergence.js';
 import {familyRecord} from '../data/families.js';
@@ -46,8 +48,31 @@ export function createStage(container, {onSelect,history,onCameraInteraction} = 
   bookmarkStatus.setAttribute('role','status');bookmarkStatus.style.cssText='margin:0 12px 8px;font:12px system-ui';
   bookmarkStatus.textContent='No view saved. Bookmark lasts until a new comparison or page reload.';
   cameraBar.append(saveView,restoreView);views.before(cameraBar,bookmarkStatus);
+  let curtain=false, fraction=.5, curtainRAF=null;
+  const curtainButton=doc.createElement('button'), divider=doc.createElement('input'), curtainNote=doc.createElement('p'), seam=doc.createElement('div');
+  curtainButton.disabled=true;divider.hidden=seam.hidden=true;seam.dataset.curtainDivider='true';seam.setAttribute('aria-hidden','true');
+  curtainButton.type='button';curtainButton.textContent='Aligned curtain';curtainButton.setAttribute('aria-pressed','false');cameraBar.append(curtainButton);
+  divider.type='range';divider.min='0';divider.max='100';divider.step='1';divider.value='50';divider.setAttribute('aria-label','Before/after curtain position');
+  divider.style.cssText='width:calc(100% - 24px);margin:12px;min-height:44px;touch-action:pan-y';
+  curtainNote.style.cssText='margin:8px 12px;font:12px system-ui';
+  seam.style.cssText='position:absolute;top:0;bottom:0;left:50%;pointer-events:auto;touch-action:none;cursor:ew-resize;z-index:4;width:44px;transform:translateX(-22px);background:linear-gradient(to right,transparent 21px,#fff2a1 21px,#fff2a1 23px,transparent 23px)';views.append(seam);views.before(divider,curtainNote);
+  function refreshCurtain(){
+    const reason=curtainCompatibility(projection);curtainButton.disabled=disposed||Boolean(reason)||!(canvasStage||renderReady&&renderer)||mode!=='split';
+    if(curtainButton.disabled)curtain=false;
+    labels.hidden=curtain;divider.hidden=seam.hidden=!curtain;divider.disabled=!curtain;
+    curtainButton.setAttribute('aria-pressed',String(curtain));
+    curtainNote.textContent=reason?`Curtain unavailable: ${reason}`:curtain?`WITHOUT PLAN ← | → WITH PLAN · ${calendarLabel(currentFrame.month)} · Month ${currentFrame.month} · seed ${currentFrame.baseline.state.seed??'unavailable'} · synthetic model comparison`:'Aligned curtain compares the same block at a common scale. Enable in Side by side mode.';
+    canvasStage?.setCurtain(curtain?fraction:null);
+  }
+  curtainButton.onclick=()=>{if(curtainButton.disabled)return;onCameraInteraction?.();curtain=!curtain;cameraTransition=null;refreshCurtain();draw();};
+  divider.oninput=()=>{fraction=Math.max(0,Math.min(1,Number(divider.value)/100));onCameraInteraction?.();cameraTransition=null;if(curtainRAF!==null)return;curtainRAF=requestAnimationFrame(()=>{curtainRAF=null;seam.style.left=`${fraction*100}%`;canvasStage?.setCurtain(curtain?fraction:null);draw();});};
+  let dragPointer=null;
+  seam.onpointerdown=e=>{e.preventDefault();e.stopPropagation();dragPointer=e.pointerId;seam.setPointerCapture?.(e.pointerId);};
+  seam.onpointermove=e=>{if(dragPointer!==e.pointerId)return;const box=views.getBoundingClientRect();if(box.width<=0)return;divider.value=String(Math.round(Math.max(0,Math.min(1,(e.clientX-box.left)/box.width))*100));divider.oninput();};
+  seam.onpointerup=seam.onpointercancel=seam.onlostpointercapture=()=>{dragPointer=null;};
+  seam.onclick=e=>e.stopPropagation();
   let bookmark=null;
-  function refreshBookmarkControls(){saveView.disabled=disposed||!projection||!(canvasStage||renderReady&&renderer);restoreView.disabled=saveView.disabled||!bookmark;}
+  function refreshBookmarkControls(){saveView.disabled=disposed||!projection||!(canvasStage||renderReady&&renderer);restoreView.disabled=saveView.disabled||!bookmark;refreshCurtain();}
   saveView.onclick=()=>api.saveCameraBookmark();restoreView.onclick=()=>api.restoreCameraBookmark();
   const mapping = createSpatialMapping();
   const divergenceGate=createDivergenceGate(history);let burst=null,lastDivergenceEventId=null;
@@ -146,14 +171,14 @@ export function createStage(container, {onSelect,history,onCameraInteraction} = 
     if(!renderer||!camera||!renderReady||disposed)return;
     renderer.setScissorTest(false);renderer.setViewport(0,0,width,height);renderer.clear();renderer.setScissorTest(true);
     const arms=['split','difference'].includes(mode)?[0,1]:[mode==='plan'?1:0];
-    const segment=width/arms.length;
+    const segment=curtain?width:width/arms.length;
     camera.aspect=segment/height;camera.fov=Math.min(110,2*Math.atan(Math.tan(Math.PI/8)*Math.max(1,(width<600?1.8:1.3)/camera.aspect))*180/Math.PI);camera.updateProjectionMatrix();
-    arms.forEach((arm,i)=>{renderer.setViewport(i*segment,0,segment,height);renderer.setScissor(i*segment,0,segment,height);renderer.render(scenes[arm],camera);});
+    arms.forEach((arm,i)=>{const slice=curtain?curtainSlices(width,fraction)[i]:{x:i*segment,width:segment};renderer.setViewport(curtain?0:i*segment,0,segment,height);renderer.setScissor(slice.x,0,slice.width,height);renderer.render(scenes[arm],camera);});
     draws++;
     const visibleLabels=new Set();
-    arms.forEach((arm,i)=>{const records=arm?projection?.b:projection?.a;if(!records)return;for(const row of records){if(mode==='difference'&&!changed(row))continue;const count=(arm?currentFrame?.plan:currentFrame?.baseline)?.state?.units?.filter(u=>u.buildingId===row.id).length;const isChanged=changed(row);if(!count&&!isChanged)continue;const point=new THREE.Vector3(row.x,row.height+8,row.z).project(camera);const x=(i+(point.x+1)/2)*segment,y=(1-point.y)/2*height;if(x<i*segment||x>(i+1)*segment||y<0||y>height)continue;const key=`${arm}:${row.collection}:${row.id}`;visibleLabels.add(key);let label=labelNodes.get(key);if(!label){label=doc.createElement('span');labelNodes.set(key,label);labels.append(label);}const text=recordedEntityLabel(row,count,currentDiff,arm?'plan':'baseline');const measureKey=`${text}:${isChanged}:${segment}`;if(label.textContent!==text)label.textContent=text;label.style.cssText=`position:absolute;left:${x}px;top:${y}px;transform:translate(-50%,-100%);font:${isChanged?'700 13':'11'}px system-ui;color:${isChanged?'#dcffbd':'#adc9d5'};background:#0a1a24d9;padding:5px 8px;border-radius:5px;white-space:nowrap`;label.style.maxWidth=`${Math.max(1,segment-12)}px`;label.style.overflow="hidden";label.style.textOverflow="ellipsis";
+    if(!curtain)arms.forEach((arm,i)=>{const records=arm?projection?.b:projection?.a;if(!records)return;for(const row of records){if(mode==='difference'&&!changed(row))continue;const count=(arm?currentFrame?.plan:currentFrame?.baseline)?.state?.units?.filter(u=>u.buildingId===row.id).length;const isChanged=changed(row);if(!count&&!isChanged)continue;const point=new THREE.Vector3(row.x,row.height+8,row.z).project(camera);const x=((curtain?0:i)+(point.x+1)/2)*segment,y=(1-point.y)/2*height;if(x<(curtain?curtainSlices(width,fraction)[i].x:i*segment)||x>(curtain?curtainSlices(width,fraction)[i].x+curtainSlices(width,fraction)[i].width:(i+1)*segment)||y<0||y>height)continue;const key=`${arm}:${row.collection}:${row.id}`;visibleLabels.add(key);let label=labelNodes.get(key);if(!label){label=doc.createElement('span');labelNodes.set(key,label);labels.append(label);}const text=recordedEntityLabel(row,count,currentDiff,arm?'plan':'baseline');const measureKey=`${text}:${isChanged}:${segment}`;if(label.textContent!==text)label.textContent=text;label.style.cssText=`position:absolute;left:${x}px;top:${y}px;transform:translate(-50%,-100%);font:${isChanged?'700 13':'11'}px system-ui;color:${isChanged?'#dcffbd':'#adc9d5'};background:#0a1a24d9;padding:5px 8px;border-radius:5px;white-space:nowrap`;label.style.maxWidth=`${Math.max(1,segment-12)}px`;label.style.overflow="hidden";label.style.textOverflow="ellipsis";
       if(label.measureKey!==measureKey){label.halfWidth=Math.min(label.offsetWidth,Math.max(1,segment-12))/2;label.measureKey=measureKey;}
-      label.style.left=`${Math.max(i*segment+label.halfWidth+6,Math.min((i+1)*segment-label.halfWidth-6,x))}px`;}});
+      label.style.left=`${Math.max((curtain?0:i*segment)+label.halfWidth+6,Math.min((curtain?width:(i+1)*segment)-label.halfWidth-6,x))}px`;}});
     for(const [key,label] of labelNodes)if(!visibleLabels.has(key)){label.remove();labelNodes.delete(key);}
 
   }
@@ -188,7 +213,7 @@ export function createStage(container, {onSelect,history,onCameraInteraction} = 
   function pick(event) {
     if(!renderer||!projection)return;
     const box=views.getBoundingClientRect(),x=event.clientX-box.left,y=event.clientY-box.top;
-    const arm=['split','difference'].includes(mode)?(x<width/2?0:1):(mode==='plan'?1:0),segment=['split','difference'].includes(mode)?width/2:width;
+    const arm=curtain?(x<width*fraction?0:1):['split','difference'].includes(mode)?(x<width/2?0:1):(mode==='plan'?1:0),segment=curtain?width:['split','difference'].includes(mode)?width/2:width;
     const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(((x%segment)/segment)*2-1,1-y/height*2),camera);
     const hit=ray.intersectObjects(meshes.filter(m=>m.visible&&m.parent===scenes[arm]&&!m.userData.ghost),false)[0];
     if(hit){const {collection,id,arm}=hit.object.userData;onSelect?.({collection,id,arm});}
@@ -246,7 +271,7 @@ export function createStage(container, {onSelect,history,onCameraInteraction} = 
       refreshBookmarkControls();summary();canvasStage?.update(projection,diff);canvasStage?.setFamilyBuildings(followedBuildings());if(first&&canvasStage&&fitRows)canvasStage.setCamera(fitCanvasCamera({a:fitRows,b:fitRows},views.clientWidth,views.clientHeight,mode));rebuild();if(first)fit();
     },
     followHousehold(id){followedHousehold=id;canvasStage?.setFamilyBuildings(followedBuildings());rebuild();},
-    setMode(value){if(!['split','baseline','plan','difference'].includes(value))throw new TypeError('Unknown scene mode');mode=value;canvasStage?.setMode(value);summary();rebuild();draw();},
+    setMode(value){if(!['split','baseline','plan','difference'].includes(value))throw new TypeError('Unknown scene mode');mode=value;refreshCurtain();canvasStage?.setMode(value);summary();rebuild();draw();},
     setGhosts(value){ghosts=Boolean(value);canvasStage?.setGhosts(ghosts);rebuild();},
     cancelCamera(){cameraTransition=null;},
     divergenceShot(stop){const receipt=divergenceGate.receipt;if(!receipt||projection?.month!==receipt.eventMonth||stop?.entity?.id!==receipt.id||stop.entity.collection!=='buildings'||!currentFrame?.[receipt.arm]?.events?.some(e=>e.id===receipt.eventId))return false;const located=api.focus(stop.entity,{animate:true,scale:stop.scale,duration:2800});if(cameraTransition&&stop.scale==='neighborhood')cameraTransition.endPosition.copy(cameraTransition.position).lerp(cameraTransition.endTarget,.25);return located;},
@@ -281,8 +306,8 @@ export function createStage(container, {onSelect,history,onCameraInteraction} = 
       }
       bookmarkStatus.textContent='Saved view restored in both worlds.';return true;
     },
-    getStats(){const arms=['split','difference'].includes(mode)?[0,1]:[mode==='plan'?1:0];const segment=width/arms.length;const targets=camera?meshes.filter(m=>m.visible&&!m.userData.ghost&&arms.includes(m.parent===scenes[0]?0:1)).map(m=>{const arm=m.parent===scenes[0]?0:1;const v=m.position.clone().project(camera);return {...m.userData,meshId:m.uuid,height:m.geometry.parameters?.height??null,scaleY:m.scale.y,x:(arms.indexOf(arm)+(v.x+1)/2)*segment,y:(1-v.y)/2*height};}):[];return {...canvasStage?.getStats(),followedHousehold,followedBuildings:followedBuildings(),quality,pixelRatio:pixelRatio(Boolean(canvasStage)),targets,decorativeContext:scenes.some(s=>s.children.some(c=>c.userData.decorative)),divergenceEventId:lastDivergenceEventId,camera:api.getCamera(),mode,disposed,backend:disposed?'disposed':canvasStage?'canvas2d':error?'inventory-fallback':renderReady&&renderer?renderBackend:'pending',backendReason,objects:canvasStage?canvasStage.getStats().objects:meshes.length,draws,geometries:renderer?.info?.memory?.geometries??null,textures:renderer?.info?.memory?.textures??null,month:projection?.month??null,layoutVersion:mapping.version,error};},
-    dispose(){if(disposed)return;disposed=true;bookmark=null;saveView.onclick=restoreView.onclick=null;refreshBookmarkControls();qualitySelect.onchange=null;clearTimeout(importDeadline);unsubscribeMotion();preferences.dispose();observer?.disconnect();globalThis.removeEventListener?.('resize',resize);canvasStage?.dispose();effects?.dispose();if(animation)cancelAnimationFrame(animation);views.removeEventListener('click',pick);renderer?.domElement.removeEventListener('webglcontextlost',lost);controls?.dispose();releaseScenes();renderer?.dispose();renderer?.forceContextLoss?.();renderer=null;controls=null;camera=null;effects=null;canvasStage=null;projection=null;currentFrame=null;currentDiff=null;fitRows=null;selected=null;cameraTransition=null;history=null;labels.replaceChildren();labelNodes.clear();list.replaceChildren();root.remove();resolveReady({backend:'disposed'});},
+    getStats(){const arms=['split','difference'].includes(mode)?[0,1]:[mode==='plan'?1:0];const segment=curtain?width:width/arms.length;const targets=camera?meshes.filter(m=>m.visible&&!m.userData.ghost&&arms.includes(m.parent===scenes[0]?0:1)).map(m=>{const arm=m.parent===scenes[0]?0:1;const v=m.position.clone().project(camera);return {...m.userData,meshId:m.uuid,height:m.geometry.parameters?.height??null,scaleY:m.scale.y,x:((curtain?0:arms.indexOf(arm))+(v.x+1)/2)*segment,y:(1-v.y)/2*height};}):[];return {...canvasStage?.getStats(),followedHousehold,followedBuildings:followedBuildings(),curtain,curtainPosition:fraction,quality,pixelRatio:pixelRatio(Boolean(canvasStage)),targets,decorativeContext:scenes.some(s=>s.children.some(c=>c.userData.decorative)),divergenceEventId:lastDivergenceEventId,camera:api.getCamera(),mode,disposed,backend:disposed?'disposed':canvasStage?'canvas2d':error?'inventory-fallback':renderReady&&renderer?renderBackend:'pending',backendReason,objects:canvasStage?canvasStage.getStats().objects:meshes.length,draws,geometries:renderer?.info?.memory?.geometries??null,textures:renderer?.info?.memory?.textures??null,month:projection?.month??null,layoutVersion:mapping.version,error};},
+    dispose(){if(disposed)return;disposed=true;if(curtainRAF!==null)cancelAnimationFrame(curtainRAF);curtainButton.onclick=divider.oninput=seam.onpointerdown=seam.onpointermove=seam.onpointerup=seam.onpointercancel=seam.onlostpointercapture=seam.onclick=null;bookmark=null;saveView.onclick=restoreView.onclick=null;refreshBookmarkControls();qualitySelect.onchange=null;clearTimeout(importDeadline);unsubscribeMotion();preferences.dispose();observer?.disconnect();globalThis.removeEventListener?.('resize',resize);canvasStage?.dispose();effects?.dispose();if(animation)cancelAnimationFrame(animation);views.removeEventListener('click',pick);renderer?.domElement.removeEventListener('webglcontextlost',lost);controls?.dispose();releaseScenes();renderer?.dispose();renderer?.forceContextLoss?.();renderer=null;controls=null;camera=null;effects=null;canvasStage=null;projection=null;currentFrame=null;currentDiff=null;fitRows=null;selected=null;cameraTransition=null;history=null;labels.replaceChildren();labelNodes.clear();list.replaceChildren();root.remove();resolveReady({backend:'disposed'});},
   };
   return api;
 }

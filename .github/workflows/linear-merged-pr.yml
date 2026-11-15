@@ -7,6 +7,7 @@ on:
       - '.github/scripts/sync-merged-pr.cjs'
       - '.github/workflows/linear-merged-pr.yml'
       - 'test/sync-merged-pr.test.cjs'
+      - 'scripts/linear-close-merged-mini-pr.mjs'
 permissions:
   contents: read
 jobs:

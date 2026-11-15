@@ -11,3 +11,16 @@ Paper plant hats, official kitchen notes, napping awards, toy meetings and cushi
 The 3D presentation includes dry looks, inspection glances, proud poses, jacket adjustments, delayed applause and suppressed laughter. Actual personalities choose response styles. Retained highlight playback uses only a cosmetic clock; it never resimulates or awards the source action. Pets have simple game-clock rest/sleep/attention intentions; their cosmetic movement checks floor and furniture clearance and does not claim to be a human navigation action.
 
 Root integration: `mountHouseComedy` is connected in the house app through the normal household-system authority and refresh/autosave. No external service or database migration is required; prior homes acquire the optional system through normal actions.
+
+SHE-553 adds an independent presentation-only activity-panel checkbox,
+**Lighthearted captions**, default off for each mounted UI. `life-captions.js`
+accepts only synthetic `event.v2` HOUSEHOLD_ACTION_COMPLETED records with a
+retained ID, model version, tick, finite minute and positive attended minutes.
+The event must belong to the inspected household and match the retained completed
+action ID, type and completion minute. Only clean/read/rest/music have templates.
+Missing or evicted evidence produces an explicit fallback. At most two recent
+captions appear, labeled narrative color and synthetic household, with event ID
+and model minute. Templates use object metaphors, no resident names, moods,
+achievements or extra actions. This is not another simulation model. No clocks,
+seeds, IDs, persistence, authority commands or system rules are changed. Static
+text and a native checkbox support reduced motion, keyboard and touch without 3D.

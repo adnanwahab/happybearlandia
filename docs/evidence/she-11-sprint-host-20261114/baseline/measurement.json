@@ -1,0 +1,191 @@
+{
+  "schemaVersion": "hbl-cold-start-suite.v1",
+  "measuredAt": "2026-11-14T16:12:52.996Z",
+  "host": {
+    "platform": "darwin",
+    "release": "24.6.0",
+    "arch": "arm64",
+    "cpu": "Apple M4",
+    "totalMemoryBytes": 17179869184
+  },
+  "viewport": {
+    "width": 1440,
+    "height": 900,
+    "deviceScaleFactor": 1
+  },
+  "nativeWebGPU": "Explicitly requested; actual selected backend and any fallback are recorded per path.",
+  "actionableControl": "Native World controls disclosure (#top > summary), sampled only after app readiness; no simulation is started.",
+  "cache": "fresh browser/context per path; OS, server and disk caches not cleared",
+  "reports": [
+    {
+      "timing": {
+        "appReadyMs": 436.09999990463257,
+        "firstUsefulRenderMs": 463.09999990463257,
+        "firstActionableControlMs": 447.69999980926514
+      },
+      "control": "#top > summary",
+      "startup": {
+        "startedAt": 146.09999990463257,
+        "firstFrameMs": 189.09999990463257,
+        "mapReadyMs": 153.09999990463257,
+        "placeholdersReadyMs": 345.5,
+        "geometryReadyMs": null,
+        "readyMs": 436.09999990463257,
+        "geometry": {
+          "total": 517,
+          "completed": 3,
+          "attached": 3,
+          "successful": 3,
+          "failed": 0,
+          "fallbacks": 0,
+          "cancelled": 0,
+          "inFlight": 0,
+          "peakInFlight": 3,
+          "peakReady": 3,
+          "yields": 1,
+          "maxChunkMs": 0.39999961853027344,
+          "maxBatchMs": 0.6999998092651367,
+          "budgetOverruns": 0,
+          "budgetDeferrals": 0,
+          "status": "running",
+          "queued": 511,
+          "ready": 3,
+          "attaching": 0
+        },
+        "cancelled": false,
+        "policyStatus": "loading"
+      },
+      "selectedBackend": "webgpu",
+      "graphicsRenderer": null,
+      "canvasPixelEvidence": null,
+      "memory": {
+        "usedJSHeapBytes": 48277155,
+        "scope": "Chromium performance.memory JS heap only; excludes GPU and total process memory"
+      },
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36",
+      "sourceLabel": "Demo town (pinned procedural layout) \u00b7 30 synthetic residents \u00b7 renderer WEBGPU",
+      "timeOrigin": 1794672763020.8,
+      "sampledAtMs": 474.3999996185303,
+      "browserVersion": "157.0.8103.52",
+      "requestedBackend": "webgpu",
+      "url": "http://127.0.0.1:3497/world?demo=1&people=30&seed=42&quality=LOW&renderer=webgpu",
+      "errors": [
+        "night is not defined"
+      ],
+      "schemaVersion": "hbl-cold-start.v1",
+      "renderObservation": "3D placeholder/frame hook followed by an animation-frame observation; not GPU presentation",
+      "graphicsExecution": "unknown",
+      "validationErrors": [
+        "night is not defined"
+      ]
+    },
+    {
+      "timing": {
+        "appReadyMs": 435.90000009536743,
+        "firstUsefulRenderMs": 456.90000009536743,
+        "firstActionableControlMs": 449.90000009536743
+      },
+      "control": "#top > summary",
+      "startup": {
+        "startedAt": 109.59999990463257,
+        "firstFrameMs": 163.40000009536743,
+        "mapReadyMs": 122.59999990463257,
+        "placeholdersReadyMs": 319.69999980926514,
+        "geometryReadyMs": null,
+        "readyMs": 435.90000009536743,
+        "geometry": {
+          "total": 517,
+          "completed": 3,
+          "attached": 3,
+          "successful": 3,
+          "failed": 0,
+          "fallbacks": 0,
+          "cancelled": 0,
+          "inFlight": 0,
+          "peakInFlight": 3,
+          "peakReady": 3,
+          "yields": 1,
+          "maxChunkMs": 0.5,
+          "maxBatchMs": 0.7000002861022949,
+          "budgetOverruns": 0,
+          "budgetDeferrals": 0,
+          "status": "running",
+          "queued": 511,
+          "ready": 3,
+          "attaching": 0
+        },
+        "cancelled": false,
+        "policyStatus": "loading"
+      },
+      "selectedBackend": "webgl2",
+      "graphicsRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version)",
+      "canvasPixelEvidence": null,
+      "memory": {
+        "usedJSHeapBytes": 36982700,
+        "scope": "Chromium performance.memory JS heap only; excludes GPU and total process memory"
+      },
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36",
+      "sourceLabel": "Demo town (pinned procedural layout) \u00b7 30 synthetic residents \u00b7 renderer WEBGL2",
+      "timeOrigin": 1794672763878.7,
+      "sampledAtMs": 464.80000019073486,
+      "browserVersion": "157.0.8103.52",
+      "requestedBackend": "webgl",
+      "url": "http://127.0.0.1:3497/world?demo=1&people=30&living=0&seed=42&quality=LOW&renderer=webgl",
+      "errors": [
+        "night is not defined"
+      ],
+      "schemaVersion": "hbl-cold-start.v1",
+      "renderObservation": "3D placeholder/frame hook followed by an animation-frame observation; not GPU presentation",
+      "graphicsExecution": "reported renderer; hardware acceleration unverified",
+      "validationErrors": [
+        "night is not defined"
+      ]
+    },
+    {
+      "timing": {
+        "appReadyMs": 8097,
+        "firstUsefulRenderMs": null,
+        "firstActionableControlMs": 8099.699999809265,
+        "firstCanvasReadyFrameProxyMs": 8116.799999713898
+      },
+      "control": "#top > summary",
+      "startup": {
+        "readyMs": 8097,
+        "mode": "canvas2d",
+        "origin": {
+          "lat": 0,
+          "lng": 0
+        }
+      },
+      "selectedBackend": "canvas2d",
+      "graphicsRenderer": null,
+      "canvasPixelEvidence": {
+        "width": 1440,
+        "height": 900,
+        "sampleCount": 144,
+        "uniqueSampleColors": 12,
+        "opaqueSamples": 144
+      },
+      "memory": {
+        "usedJSHeapBytes": 4864039,
+        "scope": "Chromium performance.memory JS heap only; excludes GPU and total process memory"
+      },
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36",
+      "sourceLabel": "Canvas2D low fidelity \u00b7 Procedural fictional neighborhood \u00b7 same legacy City activity rules as the classic World, simplified graphics.",
+      "timeOrigin": 1794672764745.8,
+      "sampledAtMs": 8131.89999961853,
+      "browserVersion": "157.0.8103.52",
+      "requestedBackend": "canvas2d",
+      "url": "http://127.0.0.1:3497/world?demo=1&people=30&living=0&seed=42&quality=LOW&renderer=canvas2d",
+      "errors": [],
+      "schemaVersion": "hbl-cold-start.v1",
+      "renderObservation": "Canvas readiness proxy: two animation frames after initialized Canvas2D; not a 3D milestone or presentation timestamp",
+      "graphicsExecution": "unknown",
+      "validationErrors": []
+    }
+  ],
+  "sourceCommit": "cd3dadbfe92435ea05cb5f736110b6ee0823cc8f",
+  "queueBaseBranch": "sprint/one-city-two-futures-20261111",
+  "acceptance": "blocked: native WebGPU and WebGL report fatal night ReferenceError",
+  "harnessSHA256": "0a420a093c8045f3225d322e1e8bb824af7421acbe97cb0e267f3310eadafa06"
+}

@@ -1,3 +1,4 @@
+import { gymEnvironment, rebuildGym, runGym } from './agent-training-gym.js';
 import { replayExperimentRecord } from "./experiment-registry.js";
 import {
   forkServerExperiment,
@@ -22,6 +23,24 @@ export async function handleExperimentApi(request, options = {}) {
   const store = { root: options.root, filters: Object.fromEntries(url.searchParams) };
 
   try {
+    if (id === "gym" && !action && request.method === "POST") {
+      const body = await bodyJson(request);
+      if (Object.keys(body).length) throw new Error("Only the supported pinned gym declaration can be registered");
+      const record = await saveServerExperiment({ id: 'gym_declaration',
+        schemaVersion: 'hbl-gym-declaration.v1', environment: gymEnvironment(),
+        registry: { resultKind: 'synthetic', modelVersion: 'hbl-resource-gym.v1', hypothesis: 'Resource control reward declaration' } }, store);
+      return json(record, 201);
+    }
+    if (id && action === "gym-run" && request.method === "POST") {
+      const declaration = await loadServerExperiment(id, store);
+      if (!declaration) return json({ error: 'Experiment not found' }, 404);
+      if (declaration.snapshot?.schemaVersion !== 'hbl-gym-declaration.v1') throw new Error('A saved reward declaration is required');
+      const body = await bodyJson(request);
+      if (Object.keys(body).some(key => key !== 'policyVersion')) throw new Error('Environment and reward overrides are forbidden; create a new revision');
+      const environment = rebuildGym(declaration.snapshot.environment);
+      const snapshot = runGym(environment, body.policyVersion);
+      return json(await saveServerExperiment(snapshot, { ...store, parentExperimentId: id, relationship: 'gym-run' }), 201);
+    }
     if (!id && request.method === "POST") {
       const body = await bodyJson(request);
       const snapshot = body.snapshot || body;

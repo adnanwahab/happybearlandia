@@ -56,3 +56,63 @@ bunx playwright test test/e2e/media-pipeline.e2e.js test/e2e/game.e2e.js
 Browser validation must verify audible playback, codec fallback and rendering on
 real target devices. No Safari/WebGPU timing or decoder-memory certification is
 claimed by the unit tests.
+
+## World cosmetic ambience
+
+`/world`'s Three scene mounts `world/ambient/controls.js`. The ambient checkbox
+resets off on every mount, independently of the persisted shared volume. Both
+controls are in a keyboard-accessible details panel. Unsupported/embedded
+renderers stay silent. No microphone, voice, analytics or network audio is used.
+Three local two-second mono 22,050 Hz loops use 529,200 decoded bytes total,
+bounded below the shared 2 MiB audio cap, with zero encoded asset bytes. No
+pipeline fetch is needed for generated buffers. Three fixed sources and panners
+crossfade with a 250 ms time constant; selection samples at most four times per
+second. No source allocation occurs during camera or timeline changes.
+
+The read-only adapter uses camera height/target, building centers/kinds, and the
+active legacy or Living clock in minutes. Above 100 m selects skyline; a park
+center within 65 m selects park; four building centers within 100 m selects an
+avenue mood; otherwise skyline. Night is before 06:00 or from 20:00. These are
+cosmetic assumptions, not traffic measurements, noise estimates or model rules.
+Stereo position is an authored target-x bias, not geographic acoustic simulation.
+Empty geometry uses skyline; missing target/time yields silence. Audio remains
+smooth under reduced motion; it adds no visual animation. Hidden documents
+suspend audio and pagehide stops/disconnects sources, releases buffers, closes
+the context and removes controls/subscriptions. Audio API failure leaves gameplay
+silent. Target-device listening and browser verification remain required.
+
+## Presentation motion (SHE-443)
+
+`motion.js` exports the frozen canonical `motionTokens`: feedback 180 ms,
+transition 250 ms, instant 0; standard easing; content/navigation/inspector layers.
+`motion-entry.js` mounts these as `--hbl-duration-*`, `--hbl-easing-*` and
+`--hbl-layer-*` properties on the homepage, Future Machine and Decision Studio.
+Homepage card feedback and Studio button/reveal transitions consume those values.
+Existing title hue cycles and recorded cinematic holds have separate semantic
+purposes and are not UI transition durations.
+
+Same-origin full-document navigation opts into native View Transitions when the
+browser supports it; other browsers retain normal navigation. Local UI updates
+can use `createMotionAdapter({document,preferences}).transition(update,{focus})`.
+Updates run exactly once, errors propagate, optional focus follows the committed
+update, and overlapping commands commit immediately. Dispose cancels capture.
+No links are intercepted, no history entries or context IDs are rewritten.
+
+Reduced motion is OS reduction OR the existing local `reduce` preference; a
+local setting cannot override an OS reduction. Live changes skip active adapter
+transitions. Root captures, migrated feedback/reveal and homepage hue animation
+are suppressed; essential updates and simulation clocks continue. Full-document
+transitions cannot promise programmatic focus continuity across documents;
+native browser navigation semantics apply. Local adapter focus is opt-in.
+
+The native **Transition inspector** disclosure shows the canonical values and a
+presentation-only preview. Enter/Space uses native controls, Escape closes and
+returns focus to its summary; preview returns focus to its button. It is in
+normal flow to avoid covering simulation controls. It never reads/writes model
+snapshots, seeds, evidence, or recorded time.
+
+Verification: `bun test test/motion.test.js`; browser checks:
+`bunx playwright test --config test/motion.browser.config.js`. The latter includes
+keyboard, live OS reduction, canonical computed values and desktop/mobile image
+capture on all three normal routes. Screenshot capture is evidence only when the
+suite actually runs, not when a test is merely added.

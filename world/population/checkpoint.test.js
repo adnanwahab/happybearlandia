@@ -33,7 +33,10 @@ test('worker checkpoints restore full state and continue identically at 10 and 3
   expect(readPopulationCheckpoint(await restored.exportCheckpoint())).toEqual(state);
   expect(restored.getSnapshot().runtime).toMatchObject({tick:600,stepMinutes:1,clockMode:'minutes-per-second',paused:true,speed:4});
   for(let minute=1;minute<=30;minute++){await original.step();await restored.step();if(minute===10||minute===30){const a=readPopulationCheckpoint(await original.exportCheckpoint()),b=readPopulationCheckpoint(await restored.exportCheckpoint());expect(b).toEqual(a);}}
-  const before=await restored.exportCheckpoint();const malformed=structuredClone(saved);malformed.state.nodes[0]=['o',[]];await expect(restored.restoreCheckpoint(malformed)).rejects.toThrow();await expect(restored.restoreCheckpoint({...saved,modelVersion:'old'})).rejects.toThrow();expect(await restored.exportCheckpoint()).toEqual(before);
+  const before=await restored.exportCheckpoint();const malformed=structuredClone(saved);malformed.state.nodes[0]=['o',[]];// Bun 1.4.2's rejects.toThrow matcher can stall worker-backed rejection delivery.
+  // Capture the real rejection explicitly and retain both atomic failure checks.
+  for(const invalid of[malformed,{...saved,modelVersion:'old'}]){let rejection;try{await restored.restoreCheckpoint(invalid);}catch(error){rejection=error;}expect(rejection).toBeInstanceOf(Error);expect(rejection.message).toMatch(/checkpoint/);}
+  expect(await restored.exportCheckpoint()).toEqual(before);
  }finally{original.destroy();restored.destroy();}
 },30000);
 

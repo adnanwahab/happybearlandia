@@ -1,0 +1,9 @@
+{
+  "fixture": "four synthetic housing scenarios, 100-revision cap",
+  "runtime": "1.4.2",
+  "operations": 1000,
+  "measurement": "record + undo + redo, milliseconds; excludes DOM rendering and simulation",
+  "medianMs": 0.03462499999999835,
+  "p95Ms": 0.04045800000000099,
+  "maxMs": 0.5089579999999998
+}

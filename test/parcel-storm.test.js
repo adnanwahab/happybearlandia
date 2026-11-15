@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import {buildTown} from '../world/gen.js';
 import {createWorld} from '../world/sim.js';
 import {stormIntensityAt} from '../world/weather/parcel-storm.js';
+import {createCitySky} from '../world/render/environment/sky.js';
 import {createStormEffects} from '../world/render/environment/storm-effects.js';
 const make=()=>createWorld(buildTown({lat:29.7286,lng:-95.4746},null,{maxPeople:45}),{startMinute:420,recordHistory:true});
 test('storm uses exact IDs, walks without teleporting, rises, clears and replays checkpoint',()=>{
@@ -45,4 +46,26 @@ test('a normal user command interrupts evacuation without claiming safe-home arr
  const record=w.policy.storm.evacuations.find(e=>e.personId===String(p.id));
  w.commandPerson(p.id,{type:'walk',destination:{x:p.x+40,z:p.z}});
  expect(record.status).toBe('interrupted');expect(p.evacuation).toBeUndefined();w.step(1);expect(record.arrivedMinute).toBeUndefined();
+});
+
+test('storm sky follows model intensity and minute, freezes with reduced motion, and clears',()=>{
+ const scene=new THREE.Scene(),sky=createCitySky(scene),camera=new THREE.PerspectiveCamera();
+ sky.update(camera,.2,'clear',true,undefined,{minute:420,intensity:1});
+ expect(sky.getState()).toEqual({intensity:1,drift:2.52,overcast:1});
+ sky.update(camera,.2,'clear',true,undefined,{minute:440,intensity:1});
+ expect(sky.getState().drift).toBeGreaterThan(2.52);
+ sky.update(camera,.2,'clear',true,undefined,{minute:440,intensity:1,reducedMotion:true});
+ expect(sky.getState()).toEqual({intensity:1,drift:0,overcast:1});
+ sky.update(camera,1,'clear',true,undefined,{minute:600,intensity:0});
+ expect(sky.getState()).toEqual({intensity:0,drift:0,overcast:0});
+ sky.dispose();expect(scene.children).toHaveLength(0);
+});
+
+test('committed model recovery removes rendered water and inactive authority hides it',()=>{
+ const world=make(),scene=new THREE.Scene(),fx=createStormEffects(scene,world);
+ world.startStorm({floodedIds:[world.people[0].home]});
+ fx.update({intensity:1});expect(fx.getState().floodedParcelIds).toEqual(world.policy.storm.floodedParcelIds.map(id=>world.buildings.find(b=>String(b.id)===id).id));
+ fx.update({enabled:false});expect(fx.getState().waterDrawCalls).toBe(0);
+ world.step(180);fx.update({intensity:stormIntensityAt(world.policy.storm,world.t)});
+ expect(fx.getState()).toMatchObject({floodedParcelIds:[],rainCount:0,waterDrawCalls:0});fx.dispose();
 });

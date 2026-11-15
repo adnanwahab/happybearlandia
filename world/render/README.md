@@ -90,3 +90,194 @@ nonresidential geographic kind. Work/office lights are closed outside weekday
 residents use current recorded occupancy during allowed hours. Unmapped buildings remain dark. Street lamps and decorative
 vehicle headlights fade in at dusk. Vehicles remain illustrative traffic.
 Canvas2D uses the same scene sky color, without window or lamp shading.
+
+## Dual budgets (SHE-165)
+
+Graphics/F3 separates `RENDER` from `SIMULATION`. `getPerformanceStats().simulation`
+is a read-only Population projection while Living City is active, otherwise null.
+The host supplies `setSimulationSource(readSnapshot)`; this reader cannot drive a
+step. Renderer features and quality settings do not receive the runtime.
+
+Render FPS is animation cadence; the frame callback CPU estimate includes host
+work/submission and is not GPU execution time. GPU values only come from the
+supported asynchronous timestamp-query profiler; unavailable stays unavailable.
+Geometry buffer bytes are a partial estimate, not total device memory. Textures
+have counts but no byte accounting. Visual instances, HLOD and blades are never
+agent counts.
+
+Population reports allocated independent resident states separately from weighted
+represented residents. **Active changed residents is unavailable**: the current
+snapshot has no full-state, per-window change counter under SHE-141 semantics.
+Interactions/s is also unavailable: events, social memories and sampled avatars
+are not a complete validated pair-interaction counter. No reference-fixture rates
+are substituted for live production work. Simulation memory is unavailable.
+
+Compute step is a CPU wall-clock estimate: elapsed live advance request divided
+by its fixed-step batch size, including queue, transfer, packing and snapshot work.
+It is not worker-only compute or GPU compute. The last committed sample includes
+batch size and age, remains visibly paused when paused, and clears on reset or
+checkpoint restore. Timing is outside serialized model/checkpoint provenance.
+Model version, seed, runtime/revision, tick and modeled minute are retained in the
+projection. The overlay is supported on WebGPU and WebGL2. It is **disabled on the
+separate Canvas2D fallback**, which never mounts `mountCityRenderer`.
+
+Verification: `bun test test/dual-budget.test.js test/render-performance.test.js
+test/gpu-readback.test.js`; browser journey/recording:
+`HBL_FM_PORT=39966 bun x playwright test --config test/dual-budget.browser.config.js`.
+The browser test hashes full decoded model checkpoints before/after graphics
+changes and records before/after screenshots plus video. See
+`docs/reviews/SHE-165.md` for actual execution limits; the test existing is not
+proof it passed.
+
+## Cosmetic architecture (SHE-521)
+
+Home, work, shop, food and school categories select authored wall/roof colors,
+window proportions and awning dimensions using the existing ID/world-revision
+visual seed. Shop/food ground-floor fascia is decorative, with no business names,
+ratings or performance measures. Graphics/F3 labels these choices as cosmetic.
+Unknown categories and parks retain existing fallback materials. Explicit roof
+and archetype inputs take priority; taller homes retain their existing roof kit.
+No simulation RNG, model state, clock or outcome is changed. No animated effects,
+textures, extra materials or extra draw calls are added. Existing LOW geometry
+omits attachments, distant chunk shells remain cheap, and renderer/cache disposal
+owns all resources. Canvas2D retains its existing simpler category appearance.
+
+### Illustrative seasons (SHE-513)
+
+Graphics → Season decorations defaults to an authored 360-day calendar (four
+90-day seasons, spring at elapsed day zero) on the active lighting clock. It is
+not a geographic calendar, climate forecast, ecology result or sourced planting
+inventory. Manual spring/summer/autumn/winter previews and Off affect only
+presentation. Missing time restores original foliage; Off restores exact original
+colors/scales. Scene coordinates and local tree identity seed palette variation,
+without consuming simulation randomness. Seasonal props are static ground accents
+near existing illustrative trees, capped at 64 shared box instances. No assets,
+particles, timers or per-season geometry allocations are added. Existing renderer
+quality/camera culling still governs foliage; props follow vegetation/props toggles.
+The standalone Canvas2D entry offers the same native keyboard-select controls and
+uses only park colors. All seasonal decoration is static, including reduced motion.
+Renderer/route teardown removes its controls and disposes its owned geometry and
+materials. Tests: `bun test test/seasons.test.js test/render-performance.test.js
+ test/world-canvas-renderer.test.js`; browser: `bunx playwright test --config
+ test/seasons.browser.config.js`.
+
+## Recorded walking-trip crossing areas
+
+The Living City Population adapter adds at most 128 static mint rings at shared
+road vertices. These are cosmetic areas, not surveyed crosswalks. Each distinct
+sample ID with a finite position and an active, finite recorded walking trip can
+support only its nearest area within eight world metres. Opacity encodes a bounded
+sample count; it is never extrapolated to the population or added to individual
+counts. Anonymous grouping is labeled in the city deck and detailed panel.
+Resident positions and straight-line model geometry remain unchanged. Missing
+roads/trips produce no rings. Camera distances of 350 or more hide the layer.
+Static rings add no motion, animation clock, input controls or external assets.
+Frame replacement, filtering, reset and destruction release their geometry and
+materials. Counts are available as `crossingSampleCount` and `crossingAreas` in
+Population renderer stats; neither is a surveyed density measurement.
+
+## Two-object pinboard (SHE-469)
+
+In `/world`, expand World controls → Compare two objects → Start pinning, then
+select two legacy buildings or residents. The existing inspector still follows
+normal selection. Capture stops after two objects; a third selection leaves both
+pins intact. Clear A/B stops capture and retains the other pin. The pinboard
+floats independently while occupied so collapsing controls cannot hide the IDs.
+Native exact source-ID entry also works with keyboard/touch and in Canvas2D;
+that fallback's existing scene picker selects residents only.
+
+Records are detached, page-local capture-time snapshots, not live metrics,
+saved simulation state, matched-run results or causal evidence. IDs, activity
+run ID, model version, town seed, run seed and modeled minute come from the
+active legacy World. Building area is the projected footprint; scene height is
+illustrative and supplied levels may be missing. Resident needs are synthetic
+points out of 100. Missing/nonfinite values display Unavailable; zero stays zero.
+Different types show a limitation instead of fabricated common metrics.
+Population captures are unavailable because no identity/metric mapping exists.
+No animation, extra engine, provider request or persistence is introduced.
+
+Checks: `bun test test/comparison-pinboard*.test.js`; browser:
+`bun x playwright test --config test/comparison-pinboard.browser.config.js`.
+CPU-only capture benchmark: `bun scripts/benchmark-comparison-pinboard.js`.
+Actual verification and remaining browser prerequisites: `docs/reviews/SHE-469.md`.
+
+## Optional controller (SHE-473)
+
+The Controller disclosure in the 3D World toolbar opts into standard-mapped
+Gamepad API input. Left stick pans through `mapControls.pan` (including its
+existing geometry streaming notification), right stick orbits, triggers zoom,
+X uses the shared center-ray inspector, Y focuses the existing resident command
+toolbar, Start clicks Full demo. D-pad moves visible control focus, A activates
+or cycles a native select, B sends Escape and returns focus to the canvas.
+Action indices and stick deadzone are configurable for the page session. There
+is no persistence, controller identity logging or simulation state adapter.
+Unsupported/nonstandard pads and absent/denied APIs leave ordinary input intact.
+Disconnect, blur and hidden pages reset all held state; reconnection requires
+neutral controls. Polling runs once per existing frame with a 50ms delta cap,
+no repeat clicks and no idle raycast. Camera input has no added tween/inertia;
+the reused tour retains its existing reduced-motion behavior. Canvas2D does not
+mount this camera adapter. Physical standard controller testing is still needed.
+
+## Cinematic camera presets (SHE-474)
+
+Open World controls → Camera for Street, Rooftop, Skyline and Follow. Presets cut
+immediately to authored framing offsets around the selected resident or current
+orbit target. Return retains the camera pose before the first preset, across
+subsequent preset choices. Entity selection is unchanged. Follow resolves the
+active authority's selected resident only; unavailable/filtered Population
+positions do not acquire invented coordinates. `getCameraSubject()` on the
+Living view returns `{key: 'living:<id>', position: {x,y,z}}` from the rendered
+sample, or null, and performs no model commands.
+
+Pointer/touch, wheel, OrbitControls start, local pan and Escape/navigation keys
+stop preset follow. Reduced motion frames once; enabling it during follow stops
+pursuit. Existing arrival, legacy follow, Living follow and visual guidance are
+stopped before applying a preset. No additional animation loop, simulation
+clock, seed, run, evidence or ID mapping is introduced. Canvas2D uses the same
+camera and the current rendering quality is retained.
+
+Pose search tests at most 48 candidates within 660m of the target and uses
+conservative building footprint boxes with 3m clearance, ground height ≥3m and
+ceiling 1200m. These are presentation bounds, not surveyed navigation or
+pedestrian routes. Street is a low photographic camera, not first-person walking.
+Rooftop frames above nearby roofs rather than placing a resident on a roof.
+Boxes refresh every 500ms during follow and on each explicit choice/return;
+newly streamed or edited geometry can therefore take up to 500ms to enter follow
+collision checks. Trees, vehicles and rooftop ornaments are not collision solids.
+No valid pose leaves the current camera untouched and displays an explanation.
+Return also refuses a previous pose now occupied by a building.
+
+Run `bun test test/camera-presets.test.js test/world-visual-camera.test.js` and
+`bun scripts/performance/camera-presets.js`. Browser coverage lives in the World
+camera suite and the server-independent `test/camera-presets.browser.config.js`.
+See `docs/reviews/SHE-474.md` for actual verification and browser blockers.
+
+## Magnetic inspection (SHE-445, local review candidate)
+
+The legacy Three.js city picker samples at most 49 frontmost rays over a 24 CSS
+pixel disk. Exact hits rank first; distinct entities within three sampled pixels
+of the best score open a native chooser. A static ring previews the sampled hit;
+Enter/Space on the focusable scene inspects its center. The chooser supports
+native Tab/Enter/Escape and returns focus. No animation is needed under reduced
+motion. Selection rechecks candidate visibility when a chooser button is used.
+Sampling approximates silhouettes and can miss thin geometry between rays.
+This is not a guarantee of the mathematically nearest silhouette. Pointer preview
+is throttled to 10 Hz; hardware cost remains unmeasured. Living Population,
+Business mode and standalone Canvas2D retain their existing picking paths.
+
+### Neighborhood exploration trail (SHE-448)
+
+The `/world` Neighborhood map retains six recent inspected buildings/legacy
+residents and six camera-target bookmarks for the loaded page. Purple markers
+are bookmarks; blue markers are inspected entities. Named buttons provide the
+same destinations without requiring pointer accuracy. Recent entities resolve
+current stable IDs and coordinates; absent entities or destinations outside
+retained loaded tiles cannot be revisited. Return actions translate the camera
+and target together, retaining zoom, elevation and current inspector selection.
+No simulation reload, clock change or new model observation is involved.
+Hide map or Escape collapses the map and returns focus to its summary. Mobile
+contents scroll within the viewport. Navigation is immediate with or without
+reduced motion; static map caching and existing overlay throttling remain.
+History survives map collapse and local travel, and ends when the page unloads.
+It is not a saved-run or cross-model identity mapping. Living Population selection
+and the separate full Canvas2D World fallback are not wired to this trail.

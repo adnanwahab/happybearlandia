@@ -52,3 +52,53 @@ replay, saved overrides, composed filters, tampering, provenance and unsupported
 versions. `bunx playwright test --config test/experiment-registry.browser.config.js`
 exercises automatic browser recording, reload, combined filters and replay.
 The browser suite requires local server binding and Chromium.
+
+## Agent Training Gym (SHE-192 local slice)
+
+The normal server API also supports a headless synthetic resource-control gym:
+
+```sh
+# Save immutable environment and reward declaration first; retain returned id.
+curl -X POST http://localhost:3000/api/experiments/gym -d '{}'
+# Substitute the declaration id below. Only policyVersion is accepted.
+curl -X POST http://localhost:3000/api/experiments/DECLARATION_ID/gym-run \
+  -d '{"policyVersion":"stock-threshold.v1"}'
+# Retain returned run id. Reopen the full report/trajectories, then replay:
+curl http://localhost:3000/api/experiments/RUN_ID
+curl -X POST http://localhost:3000/api/experiments/RUN_ID/replay -d '{}'
+```
+
+`world/agent-training-gym.js` is the executable contract. `hbl-resource-gym.v1`
+pins the source/model/rules revisions, initial stock 2, capacity 4, binary demand
+LCG constants, stock/tick observation schema, wait/replenish action schema,
+eight-step limit, source kind, seeds and reward declaration. No external inputs
+or dependencies are used. Replenish adds two units capped at four before demand;
+served demand earns 1 point, unmet demand costs 2 points, replenishment costs
+0.25 points. Total reward is the sum of components through termination. These
+are authored assumptions, not measured behavior. One tick is one abstract step;
+there is no City/Population entity or time mapping and no social mechanism.
+
+The declaration is persisted before execution. A run pins its environment and
+reward digest and links to its declaration as parent. Changing a reward requires
+a new supported environment revision; arbitrary overrides are rejected. Only
+`stock-threshold.v1` (replenish below two) and `wait.v1` are supported; no callbacks,
+external agents, training dispatcher or learning optimizer are executed. Each run
+records observations, actions, demand, reward components, next observations and
+causal step references. Invalid actions and interrupted sequences terminate the
+low-level episode explicitly; server-run policies always complete eight steps.
+Fixed local computation (four episodes of eight steps) bounds execution; there
+is no asynchronous job or timeout dependency. Replay limits artifacts to 64 KiB.
+
+Training seeds 11/12 and held-out seeds 101/102 stay disjoint and are identical
+across policies. Reports contain their separate sample counts, means and utility
+units, policy/environment versions, synthetic provenance, limitations and lack
+of population uncertainty estimates. Seeds are authored fixtures, not a secret
+benchmark. Real-world evaluation remains `unavailable`, zero samples, null
+provenance; simulated scores never fill it. Full trajectories and evaluation
+share the same saved run snapshot. Rebuild refuses changed/missing artifacts or
+unsupported versions; historical binaries are not archived. Replay recomputes
+and compares all saved run evidence, including observations and evaluation;
+consistency fingerprints do not authenticate submitted records.
+
+Verify with `bun test test/agent-training-gym.test.js test/experiment-registry.test.js`.
+No browser UI is added; the existing server API is the entry point.

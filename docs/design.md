@@ -135,3 +135,10 @@ model uncertainty. Current single-run frames are modeled values, not sampled
 probabilities. No calibrated uncertainty interval is available. Selection shows
 recipe/model versions, backend, seed, arm, step, rain input and synthetic-source
 limitations. With Canvas2D unavailable, the textual selected-cell reading remains.
+
+The optional storm depth cutaway shows the selected grid row above a schematic
+local-ground datum, using recorded depths in metres and the same arm/step and
+provenance. Its fixed 0–1 m vertical scale never rescales comparisons; over-range
+values retain numeric readings and a clipping arrow, while missing cells remain
+explicit. It is a static 2D profile on every quality setting, not a subsurface
+model or forecast. Keyboard-accessible columns share the existing cell selection.

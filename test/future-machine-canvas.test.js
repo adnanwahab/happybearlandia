@@ -101,3 +101,13 @@ test('only user camera gestures trigger manual takeover, never programmatic fram
  expect(interactions).toBe(3);f.emit('keydown',{key:'PageUp'});f.emit('wheel',{deltaY:NaN});expect(interactions).toBe(3);
  stage.dispose();f.emit('wheel',{deltaY:-20});expect(interactions).toBe(3);
 });
+
+test('curtain uses a common full-width projection and routes picks only to the revealed arm',()=>{
+ const f=fixture(),p=projection(),selected=[],stage=createCanvasStage(f.container,{onSelect:e=>selected.push(e)});
+ stage.update(p,diff);stage.setGhosts(false);stage.setCamera({x:0,z:0,zoom:2});const before=JSON.stringify(p),camera=stage.getCamera();
+ stage.setCurtain(.75);f.emit('pointerdown',{pointerId:1,clientX:400,clientY:200});f.emit('pointerup',{pointerId:1,clientX:400,clientY:200});
+ expect(selected.at(-1)).toEqual({collection:'buildings',id:'a',arm:'baseline'});
+ stage.setCurtain(.25);f.emit('pointerdown',{pointerId:2,clientX:400,clientY:200});f.emit('pointerup',{pointerId:2,clientX:400,clientY:200});
+ expect(selected.at(-1)).toEqual({collection:'buildings',id:'a',arm:'plan'});
+ expect(stage.getCamera()).toEqual(camera);expect(JSON.stringify(p)).toBe(before);stage.setCurtain(null);stage.dispose();
+});

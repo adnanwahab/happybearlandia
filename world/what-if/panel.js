@@ -1,6 +1,6 @@
 import {neighborhoodImpact} from './impact.js';
 import {selectResidentPair} from './resident-pair.js';
-import {PROJECTS,COMPARISON_CONFIG,validateProject} from './catalog.js';
+import {PROJECTS,COMPARISON_CONFIG,validateProject,placementBounds} from './catalog.js';
 import {createTrackedWorker} from '../workers/worker-registry.js';
 
 const fmt=(value,percent=false)=>value===null?'No observed trips':percent?`${(value*100).toFixed(1)}%`:`${value.toFixed(1)} min`;
@@ -14,7 +14,8 @@ export function mountNeighborhoodWhatIf({container=document.body,scene,camera,co
   <p>Place one addition, simulate a day, and see who benefits.</p>
   <label>Addition <select data-kind aria-label="Neighborhood addition">${Object.entries(PROJECTS).map(([id,p])=>`<option value="${id}">${p.label}</option>`).join('')}</select></label>
   <p data-assumption class="wi-note"></p><div class="wi-actions"><button type="button" data-place>Choose on map</button><button type="button" data-center>Use view center</button></div>
-  <p data-location>No location selected.</p><p class="wi-note">Concept marker only; this does not check parcel ownership or building clearance.</p>
+  <form data-pin-form><label>East (m) <input data-pin-x type="number" step="any" required aria-label="Pin east in metres"></label><label>South (m) <input data-pin-z type="number" step="any" required aria-label="Pin south in metres"></label><button type="submit" data-pin-submit>Place What If pin</button></form>
+  <p data-constraints class="wi-note"></p><p data-location>No location selected.</p><p class="wi-note">Concept map point in a loaded rectangle, not a parcel boundary check. Ownership, building clearance, water and zoning are not validated. Only the four listed additions are modeled; free-form policies are unsupported.</p>
   <div class="wi-actions"><button type="button" data-run disabled>Simulate before & after</button><button type="button" data-cancel hidden>Cancel</button><button type="button" data-clear>Clear</button></div>
   <p data-status role="status" aria-live="polite">Choose an addition and a location.</p><progress data-progress max="1" value="0" hidden aria-label="Neighborhood simulation progress"></progress>
   <div data-results hidden><h3>Same people. Two possible days.</h3><p data-summary class="wi-note"></p><div class="wi-table"><table><caption>Unchanged neighborhood → with your addition</caption><thead><tr><th>Measure</th><th>Before</th><th>After</th><th>Change</th></tr></thead><tbody data-metrics></tbody></table></div>
@@ -29,7 +30,7 @@ export function mountNeighborhoodWhatIf({container=document.body,scene,camera,co
   const status=text=>{$('[data-status]').textContent=text;};
   function disposeChildren(parent){for(const child of [...parent.children]){parent.remove(child);child.traverse(node=>{node.geometry?.dispose();if(Array.isArray(node.material))node.material.forEach(m=>m.dispose());else node.material?.dispose();});}}
   function setArmed(value){armed=value;$('[data-place]').textContent=value?'Cancel map placement':'Choose on map';$('[data-place]').setAttribute('aria-pressed',String(value));canvas.style.cursor=value?'crosshair':'';}
-  function busy(value){$('[data-kind]').disabled=value;for(const sel of ['[data-place]','[data-center]','[data-clear]'])$(sel).disabled=value;$('[data-run]').disabled=value||!project;$('[data-cancel]').hidden=!value;$('[data-progress]').hidden=!value;}
+  function busy(value){$('[data-kind]').disabled=value;for(const sel of ['[data-place]','[data-center]','[data-clear]','[data-pin-x]','[data-pin-z]','[data-pin-submit]'])$(sel).disabled=value;$('[data-run]').disabled=value||!project;$('[data-cancel]').hidden=!value;$('[data-progress]').hidden=!value;}
   function cancel(){if(!worker)return;worker.terminate();worker=null;busy(false);status('Comparison cancelled. Your proposed location is retained.');}
   function invalidate(){result=null;$('[data-results]').hidden=true;disposeChildren(markers);}
   function paintProposal(){disposeChildren(proposal);if(!project)return;
@@ -38,7 +39,7 @@ export function mountNeighborhoodWhatIf({container=document.body,scene,camera,co
     const height=project.kind==='housing'?28:project.kind==='transit'?10:6;
     const shape=new THREE.Mesh(project.kind==='park'?new THREE.ConeGeometry(8,18,8):new THREE.BoxGeometry(12,height,12),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.7,depthTest:false}));shape.position.set(project.x,height/2+3,project.z);shape.renderOrder=29;proposal.add(shape);
   }
-  function place(x,z){try{project=validateProject({kind:$('[data-kind]').value,x,z},getContext());invalidate();paintProposal();setArmed(false);$('[data-location]').textContent=`Proposed ${PROJECTS[project.kind].label.toLowerCase()} · E ${x.toFixed(0)} m, S ${z.toFixed(0)} m`;$('[data-run]').disabled=false;status('Location ready. Simulate to compare the two days.');}catch(error){status(error.message);}}
+  function place(x,z){try{project=validateProject({kind:$('[data-kind]').value,x,z},getContext());invalidate();paintProposal();setArmed(false);$('[data-location]').textContent=`Proposed ${PROJECTS[project.kind].label.toLowerCase()} · E ${x.toFixed(0)} m, S ${z.toFixed(0)} m`;$('[data-pin-x]').value=String(x);$('[data-pin-z]').value=String(z);$('[data-run]').disabled=false;status('Location ready. Simulate to compare the two days.');}catch(error){project=null;invalidate();paintProposal();$('[data-run]').disabled=true;$('[data-location]').textContent='No valid location selected.';status(error.message);}}
   function reset(){cancel();setArmed(false);project=null;invalidate();paintProposal();$('[data-run]').disabled=true;$('[data-location]').textContent='No location selected.';status('Choose an addition and a location.');}
   function focus(home){const target=new THREE.Vector3(home.x,controls.target.y,home.z),offset=target.clone().sub(controls.target);camera.position.add(offset);controls.target.copy(target);controls.update();}
   function showMetric(id){if(!result)return;metric=id;disposeChildren(markers);
@@ -73,16 +74,20 @@ const list=$('[data-residents]');list.replaceChildren();
   }
   function renderResult(value){result=value;$('[data-results]').hidden=false;$('[data-pair-first]').value=value.residents[0]?.id||'';$('[data-pair-second]').value=value.residents[1]?.id||value.residents[0]?.id||'';$('[data-pair-context]').textContent=`Recorded comparison ${value.runId} · ${value.version} · model ${value.modelVersion} · seed ${value.seed} in both arms · 0–${value.minutes} minutes · ${value.project.kind} at E ${value.project.x}, S ${value.project.z}. Result belongs to this completed run; rerunning replaces it.`;showPair();$('[data-summary]').textContent=`${value.population} synthetic residents · seed ${value.seed} · 24 hours · ${value.before.commuteTrips} / ${value.after.commuteTrips} work departures. Positive change means more; negative means less.`;
     const body=$('[data-metrics]');body.replaceChildren();for(const [id,label]of [['commute','Average commute'],['burden','Housing burden'],['access','Daily access']]){const tr=doc.createElement('tr'),th=doc.createElement('th'),b=doc.createElement('button');b.type='button';b.textContent=label;b.dataset.metric=id;b.addEventListener('click',()=>showMetric(id));th.scope='row';th.append(b);tr.append(th);for(const text of [fmt(value.before[id],id!=='commute'),fmt(value.after[id],id!=='commute'),delta(value.before[id]===null||value.after[id]===null?null:value.after[id]-value.before[id],id!=='commute')]){const td=doc.createElement('td');td.textContent=text;tr.append(td);}body.append(tr);}showMetric(metric);status('Comparison complete. Select a measure to explore who changed.');}
-  function run(){if(worker||!project)return;setArmed(false);invalidate();busy(true);$('[data-progress]').value=0;status('Simulating two possible days…');
+  function run(){if(worker||!project)return;try{project=validateProject(project,getContext());}catch(error){project=null;invalidate();paintProposal();$('[data-run]').disabled=true;status(error.message);return;}setArmed(false);invalidate();busy(true);$('[data-progress]').value=0;status('Simulating two possible days…');
     try{const active=createTrackedWorker(new URL('./compare.worker.js',import.meta.url),{type:'module'},{type:'Neighborhood what-if',group:'experiments'});worker=active;
       active.onmessage=event=>{if(destroyed||worker!==active)return;const message=event.data;if(message.type==='progress'){$('[data-progress]').value=message.progress;status(`Simulating two possible days… ${Math.round(message.progress*100)}%`);return;}active.terminate();worker=null;busy(false);if(message.type==='result')renderResult(message.result);else status(`Comparison failed: ${message.error||'Unknown error'}`);};
       active.onerror=event=>{if(worker!==active)return;active.terminate();worker=null;busy(false);status(`Comparison failed: ${event.message||'Worker unavailable'}`);};
       active.postMessage({context:structuredClone(getContext()),project:{...project},config:COMPARISON_CONFIG});
     }catch(error){worker?.terminate();worker=null;busy(false);status(`Comparison failed: ${error.message}`);}
   }
-  function open(){root.hidden=false;group.visible=true;button.setAttribute('aria-expanded','true');$('[data-kind]').focus();}
+  function open(){
+    try{const b=placementBounds(getContext());$('[data-constraints]').textContent=`Allowed pin coordinates: E ${b.minX} to ${b.maxX} m; S ${b.minZ} to ${b.maxZ} m, edges included. Local metres relative to the loaded map origin. Use map, view center or coordinate entry.`;}catch(error){$('[data-constraints]').textContent=error.message;}
+    root.hidden=false;group.visible=true;button.setAttribute('aria-expanded','true');$('[data-kind]').focus();}
   function close(){setArmed(false);root.hidden=true;group.visible=false;button.setAttribute('aria-expanded','false');button.focus();}
   const listeners=[];function listen(node,type,fn,options){node.addEventListener(type,fn,options);listeners.push(()=>node.removeEventListener(type,fn,options));}
+  listen($('[data-pin-form]'),'submit',event=>{event.preventDefault();const x=$('[data-pin-x]').value,z=$('[data-pin-z]').value;place(x.trim()?Number(x):NaN,z.trim()?Number(z):NaN);});
+  for(const sel of ['[data-pin-x]','[data-pin-z]'])listen($(sel),'input',()=>{project=null;invalidate();paintProposal();$('[data-run]').disabled=true;$('[data-location]').textContent='Coordinates edited. Place the pin to validate.';});
   listen($('[data-pair-form]'),'submit',event=>{event.preventDefault();showPair();});
   listen(button,'click',()=>root.hidden?open():close());listen($('[data-close]'),'click',close);
   listen($('[data-kind]'),'change',()=>{invalidate();$('[data-assumption]').textContent=PROJECTS[$('[data-kind]').value].assumption;if(project)place(project.x,project.z);});

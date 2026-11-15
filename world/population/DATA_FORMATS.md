@@ -124,9 +124,50 @@ visual approximation of atHome/residents, not observed electricity demand.
 Bounded `visibleAgents` and inspected people optionally carry `trip`, null when
 `remaining <= 0`. `population-current-trip.v1` includes departureMinute,
 durationMinutes (planned), remainingMinutes, plannedActivity (contracts.js enum),
-from/to world x/z and `geometry: straight-line model approximation`. This is
-current committed synthetic travel state, not completed-trip history or surveyed
-street routing. Enclosing run/version/seed/time provenance applies. Bus/rail
-markers identify passengers, not shared vehicles. Consumers must not infer a
-fleet count or realized duration from this record. Legacy rows without trip
-remain supported by the renderer.
+from/to world x/z and a `geometry` label. Legacy checkpoints without the
+optional `residentRules` manifest preserve the former straight-line behavior.
+Fresh runs declare `residentRules.pedestrian: sidewalks.v1`; walk trips carry
+`route` (rulesVersion, kind, world-metre points, distanceMetres, jaywalk and
+optional fallback reason) and distance-based `progress`. `mapped-sidewalk`
+means an approximate path along supplied road offsets and junction crossings,
+not surveyed entrances. Missing/disconnected networks declare `straight-line
+fallback`. Other modes retain their district approximation.
+
+Active conversations add `socialDelayMinutes` to projected durationMinutes and
+also expose movementMinutes. `remainingMinutes` is locomotion time, excluding a
+current chat hold. A conversation starts with the existing social-need effect,
+then holds actual movement for three committed minutes; completed-trip history
+records the actual elapsed duration. Snapshot people optionally carry
+`socialEncounter` with recorded participants, outcome/text, start/until minutes,
+partnerId and facing heading. This is a synthetic event on the Population clock,
+not a second resident authority or a generated observation.
+
+Enclosing run/version/seed/time provenance applies. Bus/rail markers identify
+passengers, not shared vehicles. Consumers must not infer a fleet count from this
+record. Rows without trip remain supported by the renderer.
+
+
+## Compatible resident rule manifest
+
+`residentRules` accompanies Population snapshots and experiment manifests. Known
+values are `{pedestrian: "sidewalks.v1", encounters: "resident-encounters.v1"}`.
+Absence/null identifies older rules; unknown values, mixed-authority versions or
+extra manifest keys reject before restore/replay mutation. The enclosing 1.3.0
+model and checkpoint envelopes remain compatible. Live reset, future generation,
+replay and future inspection keep the selected manifest. This distinguishes
+new sidewalk/social assumptions from older runs using the same enclosing model
+version; a missing manifest does not silently opt a saved recipe into new rules.
+
+SHE-447 adds `inspectNeighborhood({polygon:[{x,z},…]})` (3–256 finite
+vertices, ±1,000,000 world units). Screen lasso vertices are ray-projected onto
+y=0; selection tests current ground anchors with inclusive polygon edges and
+an even/odd fill rule. It includes occluded anchors, independent of rendered
+samples and interpolation. Keyboard world bounds remain supported.
+`entityIds` retains at most 2048 canonical `${model.prefix}-p${index}` IDs in
+model order. `selectionStatus` is `complete`, `empty`, or `too-large`; in the
+last case IDs are partial and counts still cover the entire polygon. Run and
+revision from the worker scope these IDs. This is one atomic read of committed
+state, without a second query that could mix ticks. No resident-weight total is
+inferred. The UI allows one pending query and one bounded outline; oversized
+outlines fail explicitly. Its static SVG has no animation, including under
+reduced motion; no GPU selection/readback or retained selection history is used.

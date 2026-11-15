@@ -14,7 +14,7 @@ After Codex exits successfully, the runner commits the task worktree, pushes its
 
 Task states: `running`, `needs_review` (Codex exit 0, before publication), `publishing`, `pr_created`, `publish_failed`, `no_changes` (successful Codex run with no diff), `failed`, and `interrupted`. A task marked `retry: true` gets at most one attempt per runner session; it will not loop rapidly after a repeated failure.
 
-When a same-repository `mini/SHE-<number>` PR is merged, GitHub Actions closes the matching Linear issue in that issue's team completed state. Add a Linear personal API key as the repository Actions secret `LINEAR_API_KEY`. The workflow ignores unmerged PRs and branches outside the Mini Symphony naming pattern.
+When a same-repository `mini/SHE-<number>` or `mini/SHE-<number>-r<revision>` PR is merged, GitHub Actions links merged source evidence to the original Linear issue. Human acceptance review determines completion; merging alone never closes the issue. Add a Linear personal API key as the repository Actions secret `LINEAR_API_KEY`. The workflow ignores unmerged PRs and branches outside the Mini Symphony naming pattern.
 
 Ctrl-C stops the current worker and records an interrupted attempt. Timeout defaults to one hour and can be changed with `MINI_SYMPHONY_TIMEOUT_MS`. The runner commits, pushes, and publishes draft PRs; it never merges or deploys. Remove an entry from state only after reviewing it if you intentionally want a new attempt; do not delete a worktree with unreviewed work.
 

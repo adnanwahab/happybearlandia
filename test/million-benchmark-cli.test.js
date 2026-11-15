@@ -37,6 +37,12 @@ test('CLI exports machine-readable provenance on missing-browser failure', async
     expect(report.status).toBe('failed');
     expect(report.error).toContain("Executable doesn't exist");
     expect(report.records).toEqual([]);
+    expect(report.coverage).toHaveLength(9);
+    for (const size of report.recipe.sizes) {
+      const rows = report.coverage.filter(row => row.size === size);
+      expect(rows.map(row => row.phase)).toEqual(['compute-only', 'render-only', 'combined']);
+      expect(rows.every(row => row.status === 'unverified' && row.reason)).toBe(true);
+    }
   });
 });
 
@@ -49,6 +55,7 @@ browserTest('real CLI exports all nine size/phase records with replay and metada
     provenance(report);
     expect(report.status).toBe('ok');
     expect(report.records).toHaveLength(9);
+    expect(report.coverage).toEqual(report.records.map(({ size, phase, status }) => ({ size, phase, status })));
     expect(report.browserVersion).toBeTruthy();
     expect(report.device.userAgent).toContain('Chrome');
     expect(report.device.viewport).toEqual({ width: 800, height: 600, pixelRatio: 1 });

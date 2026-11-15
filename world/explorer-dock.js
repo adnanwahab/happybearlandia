@@ -1,4 +1,5 @@
 import {mountPlacePicker} from './place-picker.js';
+import {createExplorerProgress} from './onboarding/explorer-progress.js';
 // Main World exploration tools; other simulation modes retain their own UI.
 const query = new URLSearchParams(location.search);
 if (!['living', 'business', 'business_mode', 'embed'].some(key => ['1', 'true'].includes(query.get(key)))) {
@@ -14,7 +15,7 @@ if (!['living', 'business', 'business_mode', 'embed'].some(key => ['1', 'true'].
     document.body.style.setProperty('--explorer-height', `${dock.hidden ? 0 : dock.getBoundingClientRect().height}px`);
   });
   sizeObserver.observe(dock);
-  const completed = new Set();
+  const progress = createExplorerProgress(location.search);
   const minimize = document.createElement('button');
   minimize.type = 'button'; minimize.dataset.action = 'minimize';
   minimize.textContent = 'Minimize'; minimize.setAttribute('aria-expanded', 'true');
@@ -38,14 +39,14 @@ if (!['living', 'business', 'business_mode', 'embed'].some(key => ['1', 'true'].
       button.setAttribute('aria-pressed', String(active)); button.textContent = active ? 'Show controls' : 'Focus on map';
       status.textContent = active ? 'Map focus is on. Select Show controls to return to the simulation tools.' : 'Simulation controls restored.';
     }
-    if (action === 'place') { picker.open(); completed.add('place'); if(completed.size===2) collapse(true); }
+    if (action === 'place') { picker.open(); if (progress.complete('place')) collapse(true); }
     if (action === 'policy') {
       document.body.classList.remove('world-map-focus');
       const focus = dock.querySelector('[data-action=focus]'); focus.setAttribute('aria-pressed', 'false'); focus.textContent = 'Focus on map';
       const panel = document.getElementById('top'); panel.open = true;
       const target = document.getElementById('policy');
       target?.focus(); target?.scrollIntoView({block:'nearest'});
-      completed.add('policy'); if (completed.size===2) { collapse(true); minimize.focus({preventScroll:true}); }
+      if (progress.complete('policy')) { collapse(true); minimize.focus({preventScroll:true}); }
       status.textContent = 'Choose a plan, then Run cycle to compare one week against no plan.';
     }
     if (action === 'share') {

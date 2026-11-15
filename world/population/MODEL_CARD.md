@@ -5,7 +5,7 @@ This module presents exploratory synthetic model outputs. It does not claim empi
 | Behavior | Actual implementation | Boundary |
 |---|---|---|
 | Activity and destination | population/behavior.js; clock, employment, seeded schedules and need-driven flexible choices | Simplified district destinations; no observed activity diary |
-| Travel mode | Recorded alternatives and mode components in decisionTrace | District travel approximation; inspect-only alternatives are distinguished from recorded decisions |
+| Travel mode | Recorded alternatives and mode components in decisionTrace | Mapped sidewalk walk paths when connected; other modes and missing maps use declared approximations; inspect-only alternatives are distinguished from recorded decisions |
 | Housing search | Household affordability, savings, capacity and utility decisions | District capacities rather than individual leases; displacement risk is not a verified displacement |
 | Employment and economy | population/economy.js and behavior.js | Simplified demand and job capacity, not a validated labor market |
 
@@ -109,3 +109,35 @@ capacity, needs, travel balance, retained choices and event ordering. The
 sources, configuration drift, measured evidence and unavailable validation.
 Passing these engineering checks is not empirical calibration or evidence of
 cross-model equivalence.
+
+
+### Optional resident rules for fresh World runs (SHE-789)
+
+The compatible 1.3.0 state envelope now carries an explicit `residentRules`
+manifest on fresh models. `sidewalks.v1` uses local-metre road polylines to form
+offset sidewalks and junction crossings (9m carriageway, 2m sidewalks; 6m centre
+offset and 6.5m junction trim), with a keyed 2% short mid-block crossing allowance.
+Walking alternatives and committed movement use the same routed distance and
+configured speed. No map/disconnected map remains a labelled straight-line
+fallback; access connectors and widths are synthetic, not surveyed entrances.
+
+`resident-encounters.v1` initiates at most eight pairs after each committed outer
+step: within 4m, awake/free housemates/coworkers/neighbors or park/food visitors,
+three-minute hold, fifteen-minute resident cooldown. Existing household/care,
+work/school and manual walks take priority. The existing relationship action
+applies its actual need and memory effect once; outcomes can be awkward. Holds
+delay travel, and completed travel includes elapsed chat minutes. Active events
+and full route state persist in checkpoints; rendered bubbles and poses use those
+records. These are uncalibrated gameplay rules. Preserve the outer step partition.
+Restoring a checkpoint without the manifest retains the previous automatic-social
+and straight-line travel behavior; it does not silently opt into these rules.
+See [the read contract](DATA_FORMATS.md#current-trip-read-projection) and
+`docs/she-789-residents.md` for verified limitations and tests.
+
+
+Known rule manifests are validated by `world/resident-rules.js`. Unsupported
+versions reject before saved-state mutation, while absent/null older states
+retain prior rules. Ordinary snapshots and future recipes expose that manifest;
+replay and inspection honor it, including old recipes without one. See
+`test/resident-rules-compatibility.test.js` and the final ODD review evidence in
+`docs/she-789-residents.md`.

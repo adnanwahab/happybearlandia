@@ -1,3 +1,6 @@
+import { createPlayerFeedbackHandler } from './ops/player-feedback/api.js';
+const handlePlayerFeedback = createPlayerFeedbackHandler();
+import {civicProviderUrl,civicPublishUrl} from './ops/civic-provider.js';
 import { createMiniSymphonyHandler } from './ops/mini-symphony/api.js';
 const handleMiniSymphony = createMiniSymphonyHandler();
 import { withUniverseNavigation } from './world/universe/html-navigation.js';
@@ -57,7 +60,7 @@ import { createBusinessCompilerHandler } from "./world/models/business-v1/compil
 const handleBusinessCompiler = createBusinessCompilerHandler();
 
 const PORT = process.env.PORT === '0' ? 0 : Number(process.env.PORT) || 3000;
-const DEAR_CONGRESS_URL = process.env.DEAR_CONGRESS_URL || "https://dear-congress.fly.dev/api";
+const DEAR_CONGRESS_URL = civicProviderUrl(process.env);
 const DEAR_CONGRESS_ORIGIN = publicProviderOrigin(DEAR_CONGRESS_URL);
 
 const notFound = () => new Response("Not found", { status: 404 });
@@ -374,7 +377,9 @@ async function handlePublishDraft(request) {
   }
 
   const base = DEAR_CONGRESS_URL.endsWith("/") ? DEAR_CONGRESS_URL : DEAR_CONGRESS_URL + "/";
-  const upstream = new URL("publish_draft", base);
+  const publishBase=civicPublishUrl(process.env);
+  if(!publishBase)return Response.json({error:'Civic publishing requires explicit provider configuration.'},{status:503,headers:{'cache-control':'no-store'}});
+  const upstream = new URL('publish_draft',publishBase.endsWith('/')?publishBase:publishBase+'/');
 
   const body = await request.text();
   const voterId = request.headers.get("x-voter-id");
@@ -441,11 +446,13 @@ const server = serve({
 
   async fetch(request, server) {
     const { pathname } = new URL(request.url);
+    if (pathname === '/api/player-feedback') return handlePlayerFeedback(request);
+    if (pathname === '/logs' || pathname === '/logs/') return serveFile('./world/session-logs.html');
     if (pathname === '/mini-symphony' || pathname === '/mini-symphony/') return serveFile('./tools/mini-symphony-dashboard/index.html');
     if (pathname.startsWith('/api/mini-symphony')) return handleMiniSymphony(request, {localAddress: server.requestIP(request)?.address});
     if (pathname === '/mini-symphony/dashboard.js') return serveFile('./tools/mini-symphony-dashboard/dashboard.js');
     if (pathname === '/mini-symphony/style.css') return serveFile('./tools/mini-symphony-dashboard/style.css');
-    if (pathname === "/api/health" || pathname === "/api/ready") return handleReleaseHealth(request);
+    if (pathname === "/api/health" || pathname === "/api/ready" || pathname === "/api/demo/ready") return handleReleaseHealth(request);
     if (pathname === '/vote-on-patch' || pathname === '/vote-on-patch/') return serveFile('./world/patch-voting.html');
     if (pathname === '/api/patch-votes' || pathname.startsWith('/api/patch-votes/')) return patchVoting(request);
     if(pathname.startsWith('/api/act-normal/'))return actNormalService.fetch(request,server);
@@ -485,6 +492,7 @@ const server = serve({
     }
 
     // Browser-safe universe wire contracts; keep server-only shared modules private.
+    if (["/shared/media/pipeline.js","/shared/media/preferences.js","/shared/media/motion.js","/shared/media/motion-entry.js"].includes(pathname)) return serveFile(`.${pathname}`);
     if (pathname === "/shared/causality/index.js") return serveFile("./shared/causality/index.js");
     if (under(pathname, "/visualizations")) return serveStatic("/visualizations", "./visualizations", pathname);
 
@@ -552,6 +560,7 @@ const server = serve({
     // Asset URLs in this entry point are absolute so household IDs are not directories.
     if (/^\/world\/date\/[^/]{1,540}\/?$/.test(pathname)&&!pathname.endsWith('.js')&&!pathname.endsWith('.css')&&!pathname.endsWith('.html')) return serveFile("./world/date/index.html");
     if (/^\/world\/house(?:\/[A-Za-z0-9_-]{1,80})?\/?$/.test(pathname)) return serveFile("./world/house/index.html");
+    if (/^\/world\/city-speaks\/?$/.test(pathname)) return serveFile("./world/city-speaks/index.html");
     if (pathname === "/world/bars" || pathname === "/world/bars/") return serveFile("./world/bars/index.html");
     if (pathname.replace(/\/$/, "") === "/visualize-constitution") return serveFile("./world/constitution-city.html");
     if (["/world/visualize-consitution", "/world/visualize-constitution"].includes(pathname.replace(/\/$/, ""))) return serveFile("./world/constitution-city.html");

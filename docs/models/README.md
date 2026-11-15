@@ -6,9 +6,9 @@ These descriptions follow the seven elements of the [ODD 2020 protocol and autho
 
 | State authority or independent model | Description | Normal entry point / scope |
 | --- | --- | --- |
-| World Population | [Population and House](population.md) | Population runtime/worker; House, children, employment, firms, relationships, promises, traditions and life systems share this authority |
+| World Population | [Population and House](population.md) | Population runtime/worker; House, children, employment, firms, relationships, promises, traditions, sidewalk trips, resident encounters, life systems and versioned tiny shelf repairs share this authority |
 | Monthly City | [City](city.md) | City Lab API/worker; Future Machine reuses City rather than introducing a new model |
-| Legacy World | [Legacy](legacy.md) | createWorld in world/sim.js; legacy relationship/culture/weather adapters |
+| Legacy World | [Legacy](legacy.md) | createWorld in world/sim.js; legacy relationship/culture/weather adapters; versioned sidewalk trips and spontaneous encounters |
 | Agent civic prototype | [Civic](civic.md) | simulateAgentCivicDynamics; aggregate outcome calculation over fixed synthetic agent traits |
 | Recorded-contact diffusion | [Ideas](ideas.md) | How Ideas Spread saved-Population overlay |
 | Network opinion dynamics | [Collective Mind](collective-mind.md) | runCollectiveMind and versioned URL recipe |
@@ -32,3 +32,14 @@ Author and reviewer must use this inventory for changes to rules, coefficients, 
 The repository PR template and AGENTS.md make this a review requirement. They cannot prove that a human completed a review or replace repository branch-protection settings. No hosting/production policy is changed by these documents.
 
 Reproduction uses the pinned implementation and the documented inputs; these compact ODD descriptions link the exact source and detailed module contracts for full parameter catalogs. Do not interpret an unversioned later checkout as the original rules.
+
+Causal Escape Room (`world/detective.{html,js}`, `ops/detective/api.js`) is a
+presentation/scoring overlay on the existing Monthly City model, not a new ABM.
+It freezes the existing evidence-trail projection and receipt; City rules, seed
+selection, scheduling, entities and clocks are unchanged. See the
+[detective contract](../../ops/detective/README.md) for migration limitations.
+
+SHE-558: Tonight pantry cooking remains under World Population / House, using the
+existing recipe economy and relationship authorities. The linked Population
+submodel notes and evening contract describe its authored request selection;
+there is no additional independent model inventory row.

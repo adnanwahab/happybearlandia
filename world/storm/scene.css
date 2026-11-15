@@ -33,3 +33,23 @@
 .storm-scene :focus-visible { outline: 2px solid #328db2; outline-offset: 2px; }
 .storm-scene__selection { font-weight: 650; }
 .storm-scene__reading:empty { display: none; }
+/* Five CSS marks, no textures, GPU resources, timers, or independent render loop.
+   Authored displacement follows selected steps, never rainfall or water depth. */
+.storm-atmosphere { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.storm-atmosphere i { position: absolute; display: block; transition: transform 130ms linear; transform: translateX(calc(var(--atmosphere-phase, 0) * 5rem)); }
+.storm-atmosphere__cloud { width: 28%; height: 12%; border-radius: 50%; background: #d9e7ec18; top: 10%; left: 8%; }
+.storm-atmosphere__cloud:nth-child(2) { top: 32%; left: 52%; width: 34%; }
+.storm-atmosphere__wind { width: 8%; height: 5px; border-top: 1px solid #edf8fa66; border-radius: 50%; top: 23%; left: 16%; }
+.storm-atmosphere__wind:nth-child(4) { top: 50%; left: 70%; }
+.storm-atmosphere__wind:nth-child(5) { top: 76%; left: 36%; }
+.storm-atmosphere__reading { font-size: .85rem; }
+@media (prefers-reduced-motion: reduce) {
+  .storm-atmosphere i { transition: none; transform: none; }
+}
+.storm-cutaway { margin-top: 1rem; min-width: 0; }
+.storm-cutaway summary { cursor: pointer; padding: .65rem 0; font-weight: 650; }
+.storm-cutaway__profile { display: flex; overflow-x: auto; max-width: 100%; gap: .2rem; padding: .4rem; }
+.storm-cutaway__profile button { flex: 0 0 5rem; display: grid; gap: .4rem; color: inherit; background: #112d35; border: 1px solid #789299; padding: .3rem; font: inherit; font-size: .8rem; cursor: pointer; }
+.storm-cutaway__profile button[aria-pressed=true] { outline: 3px solid #ffb000; outline-offset: -3px; }
+.storm-cutaway__profile button:focus-visible, .storm-cutaway summary:focus-visible { outline: 3px solid #ffb000; }
+.storm-cutaway__bar { display: block; height: 9rem; border-bottom: 3px solid #a2b08d; background: linear-gradient(to top, var(--depth-color) var(--depth-height), transparent var(--depth-height)); color: white; font-size: 1.5rem; }

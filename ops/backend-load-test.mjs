@@ -32,11 +32,15 @@ export async function runLoad(config,{execute=false,fetchImpl=fetch}={}) {
       if(reader)try {while(true){const part=await reader.read();if(part.done)break;bytes+=part.value.length;if(bytes>plan.maxResponseBytes)throw Error('Response limit');chunks.push(part.value);}}finally{await reader.cancel();}
       ok=body&&kind==='create'?status===202:status===200;
       if(!ok)throw Error('Unexpected status');
-      if(['ready','create','status'].includes(kind)) {
+      if(['ready','create','status','replay'].includes(kind)) {
         const record=JSON.parse(await new Blob(chunks).text());
         if(kind==='ready'&&(record.status!=='ready'||record.buildId!==config.buildSha))throw Error('Staging readiness/build mismatch');
         if(kind==='create'&&!/^city_[a-zA-Z0-9_-]+$/.test(record?.id))throw Error('Invalid experiment identity');
         if(kind==='status'&&!['queued','running','complete'].includes(record?.status))throw Error('Experiment failed or invalid status');
+        if(kind==='replay') {
+          const expectedId=path.split('/')[3],identity=record?.identity,state=record?.state;
+          if(identity?.experimentId!==expectedId||identity?.scenarioId!==body.scenarioId||identity?.runIndex!==body.runIndex||identity?.runId!==`${body.scenarioId}-${body.runIndex}`||record?.verification?.status!=='matched'||state?.version!==VERSION||state?.seed!==recipe.city.seed||state?.month!==recipe.months||!Array.isArray(record?.steps)||record.steps.length!==recipe.months)throw Error('Invalid replay identity, verification or seeded horizon');
+        }
         if(kind==='create')createdExperimentIds.push(record.id);
         return record;
       }

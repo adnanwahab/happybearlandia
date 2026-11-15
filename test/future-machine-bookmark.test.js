@@ -50,3 +50,26 @@ test('inventory-only fallback cannot save or restore a camera',async()=>{
   try{stage.update(frame(0),{entities:[]});expect(await stage.whenReady()).toEqual({backend:'inventory-fallback'});expect(stage.saveCameraBookmark()).toBe(false);expect(stage.restoreCameraBookmark()).toBe(false);}
   finally{stage.dispose();globalThis.location=original;}
 });
+
+test('curtain component coalesces pointer and range input, preserves camera and disables missing/mismatched frames',async()=>{
+ const original={location:globalThis.location,raf:globalThis.requestAnimationFrame,caf:globalThis.cancelAnimationFrame};
+ globalThis.location={search:'?renderer=canvas2d'};let queued=null,requests=0;
+ globalThis.requestAnimationFrame=fn=>{queued=fn;requests++;return requests;};globalThis.cancelAnimationFrame=()=>{queued=null;};
+ const f=fixture(),stage=createStage(f.container);
+ try{
+  const toggle=f.nodes.find(n=>n.textContent==='Aligned curtain'),slider=f.nodes.find(n=>n.tag==='input'),seam=f.nodes.find(n=>n.style.cssText?.includes('cursor:ew-resize'));
+  stage.update(frame(0),{entities:[]});await stage.whenReady();expect(toggle.disabled).toBe(false);
+  toggle.onclick();expect(stage.getStats().curtain).toBe(true);expect(slider.hidden).toBe(false);
+  const pose=stage.getCamera();slider.value='25';slider.oninput();slider.value='75';slider.oninput();expect(requests).toBe(1);queued();queued=null;
+  expect(stage.getStats().curtainPosition).toBe(.75);expect(stage.getCamera()).toEqual(pose);
+  const views=f.nodes.find(n=>n.children.includes(seam));views.getBoundingClientRect=()=>({left:0,width:800});
+  seam.onpointerdown({pointerId:7,pointerType:'touch',preventDefault(){},stopPropagation(){}});
+  seam.onpointermove({pointerId:7,clientX:160});queued();queued=null;seam.onpointercancel();
+  expect(stage.getStats().curtainPosition).toBe(.2);expect(stage.getCamera()).toEqual(pose);
+  stage.setMode('plan');expect(toggle.disabled).toBe(true);expect(stage.getStats().curtain).toBe(false);expect(slider.hidden).toBe(true);
+  stage.setMode('split');toggle.onclick();stage.update(null,null);expect(toggle.disabled).toBe(true);expect(slider.hidden).toBe(true);
+  const unsupported=frame(0);unsupported.plan.state.buildings[0].geometry={type:'MultiPolygon',coordinates:[]};
+  stage.update(unsupported,{entities:[]});expect(toggle.disabled).toBe(true);
+  stage.update(frame(0),{entities:[]});toggle.onclick();slider.oninput();stage.dispose();expect(queued).toBeNull();expect(slider.oninput).toBeNull();
+ }finally{stage.dispose();globalThis.location=original.location;globalThis.requestAnimationFrame=original.raf;globalThis.cancelAnimationFrame=original.caf;}
+});

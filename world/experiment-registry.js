@@ -1,3 +1,4 @@
+import { replayGym } from './agent-training-gym.js';
 import { fingerprint, buildReproducibilityManifest, compareReproducibility } from './reproducibility.js';
 import { currentModelDescriptor, modelCompatibility } from './model-registry.js';
 import { generateWorlds } from './world-generator.js';
@@ -10,7 +11,7 @@ export function experimentRegistryEntry(record = {}) {
   const snapshot = record.snapshot || record;
   const experiment = snapshot.experiment || {};
   const declared = snapshot.registry || {};
-  const resultKind = snapshot.simulationBatch ? 'synthetic'
+  const resultKind = snapshot.simulationBatch || snapshot.schemaVersion === 'hbl-agent-gym-run.v1' ? 'synthetic'
     : ['measured', 'synthetic'].includes(declared.resultKind) ? declared.resultKind : 'unknown';
   return {
     schemaVersion: 'hbl-experiment-registry.v1',
@@ -29,7 +30,7 @@ export function experimentRegistryEntry(record = {}) {
     evaluationCriteria: declared.evaluationCriteria || experiment.outcomes?.metricRegistry || [],
     resultKind,
     resultLabel: resultKind === 'measured' ? 'Measured observations' : resultKind === 'synthetic' ? 'Synthetic model results' : 'Unknown result provenance',
-    results: snapshot.simulationBatch || declared.results || null,
+    results: snapshot.simulationBatch || snapshot.evaluation || declared.results || null,
   };
 }
 
@@ -46,6 +47,7 @@ export function filterExperimentRecords(records, filters = {}) {
 
 export async function replayExperimentRecord(record) {
   const snapshot = record?.snapshot || record;
+  if (snapshot?.schemaVersion === 'hbl-agent-gym-run.v1') return replayGym(snapshot);
   if (!snapshot?.worldBatch || !snapshot.simulationBatch || !snapshot.reproducibility) {
     throw new Error('Replay requires saved worlds, results and an independent reproducibility manifest');
   }

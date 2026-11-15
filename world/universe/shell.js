@@ -1,3 +1,4 @@
+import { mountCommandPalette } from './command-palette.js';
 import { EXPERIENCES, getExperience, searchExperiences, entityActions } from './registry.js';
 import { mountFunAnalytics } from './fun-analytics.js';
 import { mountLocalJourneyControls } from './local-journeys.js';
@@ -5,6 +6,7 @@ import { contextFromURL, contextURL, shellURL, createFrameBridge } from './navig
 
 const root = document.getElementById('universe-shell');
 if (root) {
+  mountCommandPalette(document.body);
   let context;
   let contextError = '';
   function readContext() {

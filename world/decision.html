@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="./decision/trust.css">
   <link rel="stylesheet" href="./decision/world-tools.css">
   <link rel="stylesheet" href="./decision/advanced-studio.css">
+<script type="module" src="/shared/media/motion-entry.js"></script>
 </head>
 <body>
   <div class="studio-shell">
@@ -49,6 +50,7 @@
           </aside>
           <div class="scenario-panel panel analyst-controls">
             <div class="panel-top"><div><div class="subheading">COMPARE ALTERNATIVES</div><p class="fine">Edit one alternative at a time. All alternatives use matched seeds.</p></div><button id="duplicate-scenario" class="quiet">+ Duplicate</button></div>
+            <div class="button-group edit-history" role="group" aria-label="Scenario edit history"><button id="undo-edit" disabled title="Undo draft edit (Ctrl/Cmd+Z outside text fields)">Undo edit</button><button id="redo-edit" disabled title="Redo draft edit (Ctrl/Cmd+Shift+Z outside text fields)">Redo edit</button><span id="edit-revision" role="status" aria-live="polite"></span></div>
             <div id="scenario-tabs" class="scenario-tabs" role="tablist" aria-label="Scenario alternatives"></div>
             <div class="scenario-heading"><label for="scenario-name">SCENARIO NAME<input id="scenario-name" maxlength="120"></label><span id="scenario-kind" class="badge"></span></div>
             <details id="stress-details"><summary>Compose stress tests</summary><div id="stress-presets" class="stress-presets"></div><p class="fine">Presets are composed by the model at execution. Numeric controls show the scenario's inputs before those shocks.</p></details>
@@ -67,6 +69,7 @@
             <div class="eyebrow">02 / EXPLORE THE POSSIBILITIES</div><h2>One plan.<br>Many possible futures.</h2>
             <div class="run-settings analyst-controls"><label for="run-count">FUTURES PER SCENARIO<select id="run-count"><option>10</option><option selected>100</option><option>500</option><option>1000</option></select></label><div class="two-columns"><label for="run-years">YEARS<input id="run-years" type="number" min="1" max="50" value="10"></label><label for="run-seed">MATCHED SEED<input id="run-seed" type="number" min="0" max="4294967295" value="42"></label></div></div>
             <p id="run-description" class="fine">100 futures × 4 scenarios. Same seed sequence, different choices.</p>
+            <section id="policy-prediction" aria-label="Predict then reveal"></section>
             <button id="run-experiment" class="primary full">Simulate this plan <span aria-hidden="true">↗</span></button>
             <button id="cancel-experiment" class="full quiet" disabled>Cancel experiment</button>
             <label class="check-label analyst-controls"><input type="checkbox" id="auto-preview" checked> Recalculate a 10-run preview after edits</label>

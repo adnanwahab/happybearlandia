@@ -62,3 +62,49 @@ test('rejections, uncertain writes and mismatched identities fail closed without
       ? { issue: { id: 'uuid', identifier: 'SHE-182' } } : { attachmentCreate: { success: false } } }) })
   }), /not confirmed/);
 });
+
+test('missing event or repository fails closed', async () => {
+  for (const [e, repo] of [[null, repository], [event(), undefined], [event(), ''], [event(), '../repo']]) {
+    assert.deepEqual(await syncMergedPR({ event: e, repository: repo,
+      fetchImpl: () => assert.fail('unexpected network') }), { status: 'skipped' });
+  }
+});
+
+test('legacy CLI links revision evidence without closing issues and sanitizes failures', () => {
+  const { mkdtempSync, writeFileSync, rmSync, readFileSync, existsSync } = require('node:fs');
+  const { tmpdir } = require('node:os');
+  const { join, resolve } = require('node:path');
+  const { spawnSync } = require('node:child_process');
+  const directory = mkdtempSync(join(tmpdir(), 'she182-'));
+  try {
+    const eventPath = join(directory, 'event.json');
+    const preload = join(directory, 'fetch.cjs');
+    writeFileSync(preload, `global.fetch = async (_url, options) => {
+      const request = JSON.parse(options.body);
+      if (/issueUpdate/.test(request.query)) throw Error('completion mutation');
+      if (process.env.FAIL_FIXTURE) throw Error('PRIVATE');
+      return { ok: true, json: async () => ({data: request.query.startsWith('query')
+        ? {issue: {id:'uuid', identifier:'SHE-182'}} : {attachmentCreate:{success:true}}}) };
+    };`);
+    const invoke = (e, extra = {}) => {
+      writeFileSync(eventPath, JSON.stringify(e));
+      return spawnSync(process.execPath, ['--require', preload, resolve('scripts/linear-close-merged-mini-pr.mjs')], {
+        encoding: 'utf8', env: { PATH: process.env.PATH, GITHUB_EVENT_PATH: eventPath,
+          GITHUB_REPOSITORY: repository, LINEAR_API_KEY: 'fixture', ...extra } });
+    };
+    const linked = invoke(event('mini/SHE-182-r3'));
+    assert.equal(linked.status, 0, linked.stderr);
+    assert.deepEqual(JSON.parse(linked.stdout), {status:'linked',identifier:'SHE-182'});
+    const fork = event(); fork.pull_request.head.repo.full_name = 'fork/repo';
+    const skipped = invoke(fork, {LINEAR_API_KEY:''});
+    assert.equal(skipped.status, 0);
+    assert.deepEqual(JSON.parse(skipped.stdout), {status:'skipped'});
+    for (const extra of [{LINEAR_API_KEY:''}, {FAIL_FIXTURE:'1'}]) {
+      const failed = invoke(event(), extra);
+      assert.equal(failed.status, 1);
+      assert.doesNotMatch(failed.stderr, /PRIVATE/);
+    }
+    assert.equal(existsSync('.github/workflows/mini-symphony-close-linear.yml'), false);
+    assert.match(readFileSync('.github/workflows/linear-merged-pr.yml', 'utf8'), /syncMergedPR/);
+  } finally { rmSync(directory, {recursive:true,force:true}); }
+});
