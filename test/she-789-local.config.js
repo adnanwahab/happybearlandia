@@ -20,7 +20,7 @@ export default defineConfig({
     video: 'on',
     launchOptions: {
       ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ? {executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH} : {}),
-      args: ['--enable-unsafe-swiftshader'],
+      args: ['--enable-unsafe-webgpu','--enable-unsafe-swiftshader'],
     },
   },
   ...(!external&&{webServer:{

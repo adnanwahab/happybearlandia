@@ -70,11 +70,10 @@ for (const profile of budgets.profiles) {
               return state.status;
             }, { timeout: 90000 }).toBe('ready');
             await page.getByRole('button', { name: 'Pause demo', exact: true }).click();
-            const slider = page.getByRole('slider').first();
+            const slider = page.getByRole('slider', {name:'Shared month for Future A and Future B',exact:true});
             await expect(slider).toBeEnabled();
             const readyMs = performance.now() - started;
-            const renderMs = await page.evaluate(async () => {
-              const slider = document.querySelector('input[type="range"]');
+            const renderMs = await slider.evaluate(async slider => {
               const start = performance.now();
               slider.value = '16';
               slider.dispatchEvent(new Event('input', { bubbles: true }));

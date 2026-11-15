@@ -10689,3 +10689,12 @@ in docs/she-789-launch-report.md. Strict performance and physical-device
 qualification remain open; merging the implementation does not certify the full
 launch checklist. Local artifacts/unrelated edits were saved to a separate
 recoverable archive before workspace cleanup. No deployment authorized.
+
+Hosted validation follow-through: replaced obsolete full-Canvas2D browser/unit
+assertions after removing that renderer, retaining the three guide component
+checks and adding actual native resident control plus zero-simulation WebGL2
+entry assertions (5/5 browser cases pass). Performance measurements now request
+native WebGPU for the full game with unchanged budgets; city-only rendering is
+verified separately. An existing Future Machine measurement selected the first
+range input, which is now sound volume; it now targets the named shared-month
+timeline and retains all samples, pacing and exact month verification.
