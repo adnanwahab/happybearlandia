@@ -9303,6 +9303,69 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
 
+## SHE-556 — state-backed pet care presentation (2026-11-14)
+
+Bounded slice: reuse Population pet identities, actions and completion history;
+show only finite supported food/rest/play/affection values, expose requested versus
+completed care, and remove unconditional pet idle animation. Default companions
+have no need measurements. No rules, clocks, seeds, events or save contracts change.
+Acceptance: pure projection tests, existing command acceptance/rejection and restore
+regressions, focused keyboard/reduced-motion browser interaction and screenshots.
+Risk: graphics failure must leave profile care text and controls accessible.
+Open GitHub PR searches for `pet` and `house` returned no matches on November 14.
+
+Local result: shared read-only cue projection and contract, scene/profile cues,
+request confirmation, three projection regressions and enhanced keyboard/reduced-
+motion Playwright journey. 15 Bun tests / 92 assertions pass; edited application
+syntax and whitespace checks pass. No repository-wide typecheck script exists.
+Browser evidence remains blocked by local server listen EADDRINUSE on two ports
+(after resolving Playwright via installed NODE_PATH). No browser acceptance or
+new screenshots claimed. Review and concrete next step: docs/reviews/SHE-556.md.
+Existing auto-merge human-review hold (`if: false`) is unchanged.
+
+## SHE-557 — tiny household shelf repair (2026-11-14)
+
+Bounded slice implemented in the existing House repair café: add a genuinely
+broken household bookshelf, quote glue/two brackets (12 synthetic USD, 30
+attended minutes), undo free before commitment, commit to the resident task
+queue, then inspect the repaired object, skill minutes and action-linked event.
+Prerequisites: enabled House life, actual broken bookshelf, available helper age
+12+, existing savings. No synthetic damage is injected into ordinary homes.
+Existing generic repairs remain compatible. Materials are consumed on commitment;
+cancellation retains expenditure and attended learning but grants no repair.
+
+Acceptance evidence: 18 focused model/regression tests, 112 assertions passed.
+Keyboard/reduced-motion/mobile Playwright fixture added; execution blocked before
+browser launch by server EADDRINUSE on 39757. Before/after visual acceptance and
+normal-entry browser verification remain pending. No root lint/typecheck exists;
+changed code is JavaScript. See [review](reviews/SHE-557.md) for exact commands,
+model contract, overlap audit and unchanged governance hold. No PR/deployment.
+
+## SHE-558 — pantry cooking mini-scene
+
+Bounded slice: extend the existing Tonight controller with an explicit “Cook together
+from the pantry” approach; retain legacy dinner behavior. Reuse cookRecipe,
+help-clean, sharedDinner, appreciation and earned evening receipts. Prerequisites:
+initialized economy, actual recipe ingredients, eligible present residents, stove,
+table seats and attended task time. No second cook slot or private simulation state.
+Acceptance: empty/insufficient stock rejects without a charge, ingredients reserve
+once, incomplete cooking produces no food, shared meal/social effects run through
+Population, mid-action serialized continuation matches, and keyboard/reduced-motion
+UI shows requirements and rejection. Risk: scene readiness is advisory and must be
+revalidated on admission; pantry can change between inspection and request.
+Status: implementing and verifying locally; no merge/deploy authorization.
+
+Delivered locally: pantry approach and read-only ingredient/task requirements in
+Tonight, using existing cooking/help/dinner/conversation authority. Controller,
+economy and House regression suite passed 43 tests; final evening suite passed
+17 tests after an additional hunger assertion. Mid-cook deterministic serialized
+continuation passes. Syntax and diff checks pass. Existing worker checkpoint test
+timed out in broader verification. Browser test saved with server-free config;
+Chromium launch is blocked by sandbox MachPort permissions and server binding is
+also blocked. Before/after browser acceptance remains open; no after evidence is
+claimed. See [review and reproduction notes](reviews/SHE-558.md). No commit/PR,
+merge, deployment or merge-policy change performed by this implementation.
+
 ## SHE-559 — immutable household milestones (November 14, 2026)
 
 Next bounded slice: a read-only House timeline backed by up to eight immutable

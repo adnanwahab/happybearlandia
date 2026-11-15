@@ -33,3 +33,24 @@ A completed real joke unlocks active.followups[]: keep-joking, ask-hobbies, admi
 Same-minute events that already existed when begin was pressed are snapshotted as known, so an old breakage cannot masquerade as a new evening complication. Actual repair/fire completion may set complication.resolvedByActionId only after the canonical condition is actually cleared. Adapted plans separately store adaptedByActionId after the real replacement activity completes.
 
 Latest targeted validation: 15 evening tests pass, 107 assertions. A broader real household/Social/roommate regression run passed 47 tests, 357 assertions before these final optional-plan and source-baseline refinements. No UI, app, installer, model or renderer file was edited by this component.
+
+SHE-558 adds approach `pantry` (“Cook together from the pantry”) and
+`choose {choiceId:'change-pantry'}`. This optional approach always begins in
+preparing, even with existing portions. It enumerates the existing economy recipe
+catalog in stable order and admits the first feasible actual cookRecipe request
+through the same availability/dispatcher gates. Duration is max(30, recipe.minutes)
+using the existing attended recipe contract. Economy must already be initialized;
+stock, cooking skill, stove condition, attendance and storage are authoritative.
+Missing stock is never bought or added by this scene. Recipe book groceries remain
+an explicit separate paid task. Legacy `cook` is unchanged. Pantry retry retains
+finite recipe admission. Serving, help-clean and appreciation reuse existing rules.
+
+Inspector `active.pantry` contains read-only recipe labels, task minutes and
+ingredient quantities `{id,label,quantity,available}` from saved economy stock.
+These are gameplay units, not observed household measurements. The UI uses static
+text and native buttons; no animation or WebGL is needed for these controls.
+Existing house/checkpoint versions, identity scheme, seed, clock and evidence
+retention remain authoritative; new episodes persist approach `pantry` in the
+existing evening schema. Older binaries that do not know this approach cannot be
+used to resume these new episodes. No second cooking slot or social coefficients
+are introduced. Tests pin seed 42, initial minute/tick 1080 and one-minute continuation.
