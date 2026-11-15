@@ -168,6 +168,32 @@ routes and do not establish reaction acceptance; before/after Future Machine
 evidence remains outstanding. No model/ODD, vote/auth/check or merge-policy
 changes; automatic merging remains disabled. No external publication or deployment.
 
+## SHE-579 — ephemeral World co-exploration audit (2026-11-14)
+
+Analysis only; camera/checkpoint collaboration is not implemented. Audited the
+World renderers, immutable experiment persistence, replay contract, existing game
+and party WebSocket services, and open PR filename inventories. No duplicate
+co-exploration PR was found; camera/gamepad/keyboard PRs 339–341 overlap the
+prospective World integration. Findings and the next bounded slice are recorded
+in [SHE-579 review](reviews/SHE-579.md).
+
+Next tasks: versioned read-only camera/checkpoint envelope and resolver; separate
+anonymous ephemeral room protocol using Bun transport patterns; opt-in World UI
+and coordinated camera adapter; disposable two-context integration and browser
+evidence. Protect exact checkpoint identity/hash, source authority, clocks and
+privacy. A single pinned checkpoint alone is insufficient for selected-checkpoint
+synchronization acceptance. Hosted service activation remains outside scope.
+
+Actual checks against unchanged application code: Bun focused invocation had
+26 passes, 2 failures and 1 error (194 assertions). Camera imports lack `three`;
+the real WebSocket integration cannot bind ephemeral port 0 (`EADDRINUSE`).
+Merge-policy fixture tests passed 79/79. No root lint/typecheck script exists.
+Browser checks skipped due to setup blockers; pre-existing before captures were
+preserved but not validated and no after evidence is claimed. Implementation and
+acceptance remain pending. Existing auto-merge safety hold and all governance
+files are unchanged; no live services, messages, merges or deployments occurred.
+No commit/PR reference yet.
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,
@@ -9356,6 +9382,25 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-581 — private checkpoint notes (2026-11-14)
+
+Bounded slice: browser-only player text in the existing /world saved experiments
+panel. Exact immutable experiment/checkpoint SHA-256, schema/model version,
+minute and saved entity selection gate attachment. Missing/unsupported snapshots
+fail closed. No simulation mutation, tracking, public note API or sharing payload.
+Tasks: local bounded JSON store; exact anchor adapter; accessible panel;
+unit/integration and normal-entry browser checks. Risks: browser storage is
+origin-local, not encrypted; exported files contain private text. No cross-model
+or cross-version remapping. Canvas2D currently lacks the existing save panel.
+
+SHE-581 result: local notes/store/anchor and existing save-panel integration
+implemented. Final focused checks:14 pass/83 assertions; browser bundle passes;
+2 desktop/mobile reduced-motion browser cases discover; whitespace check passes.
+Actual browser run blocked at server startup EADDRINUSE:3581, so no after evidence
+is claimed. Canvas2D save-panel integration remains unavailable. Full acceptance
+requires browser evidence and fallback work. See docs/reviews/SHE-581.md for
+contracts, audit, privacy limits and preserved disabled automatic merge policy.
 
 ## SHE-584 — local private remix slice (2026-11-14)
 
