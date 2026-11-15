@@ -4,6 +4,9 @@ import {mountGamepadControls} from './gamepad-controls.js';
 import {mountSpatialTargets,spatialTargets} from './onboarding/spatial-targets.js';
 import {mountComparisonPinboard, spatialRecord} from './comparison-pinboard.js';
 import {mountAmbientSound} from './ambient/controls.js';
+import {createRoutePrewarmer} from './render/route-prewarmer.js';
+import {createShaderWarmup} from './render/shader-warmup.js';
+import {advanceFrameMinutes,createObservedClock} from './render/frame-work.js';
 import {mountStormCue} from './render/environment/storm-cue.js';
 import {stormIntensityAt} from './weather/parcel-storm.js';
 import {mountPlanChoices,customPlan,stagePlan} from './plan-choices.js';
@@ -149,36 +152,23 @@ const initialAreaRequest=(async()=>{
   }catch(error){return {source:"none",error:`area request failed: ${error.message}`};}
 })();
 
-const forceWebGL = params.get("renderer") === "webgl" || (loadedExperiment?.save.mode === "living" && !navigator.gpu);
-const useMainWorldGPU = loadedExperiment?.save.mode !== "living" && !forceWebGL && !params.has("living") && !businessMode && !embedMode;
 async function boundedGraphics(factory,milliseconds=8000){
  let timer,expired=false;const work=Promise.resolve().then(factory);
  work.then(value=>{if(expired)value?.renderer?.dispose?.();}).catch(()=>{});
- try{return await Promise.race([work,new Promise((_,reject)=>{timer=setTimeout(()=>{expired=true;reject(new Error('Graphics initialization timed out; switching to a supported renderer.'));},milliseconds);})]);}finally{clearTimeout(timer);}
+ try{return await Promise.race([work,new Promise((_,reject)=>{timer=setTimeout(()=>{expired=true;reject(new Error('WebGPU initialization timed out.'));},milliseconds);})]);}finally{clearTimeout(timer);}
 }
 let graphics;
-const canUseWebGL=()=>{const probe=document.createElement('canvas').getContext('webgl2');if(!probe)return false;probe.getExtension('WEBGL_lose_context')?.loseContext();return true;};
 try {
-  graphics = await boundedGraphics(async()=> (['canvas','canvas2d'].includes(params.get('renderer'))||forceWebGL&&!canUseWebGL()) ? (await import('./render/renderer/canvas-renderer.js')).createCanvasRenderer() : useMainWorldGPU
-    ? await (await import("./world-gpu.js")).createWorldGPU({ antialias: !embedMode })
-    : await createCityRenderer({ forceWebGL, antialias: !embedMode }));
+  graphics=await boundedGraphics(()=>{const prepared=window.hblPreparedWorldGraphics;delete window.hblPreparedWorldGraphics;return prepared??createCityRenderer({antialias:!embedMode});});
 } catch (error) {
-  try {
-    if(!useMainWorldGPU||!canUseWebGL())throw error;
-    graphics=await boundedGraphics(()=>createCityRenderer({forceWebGL:true,antialias:!embedMode}),4000);
-    const loading=$('loading');loading.replaceChildren();loading.removeAttribute('role');loading.textContent='Starting World with WebGL2…';
-    startup.graphicsFallback='WebGPU unavailable; using WebGL2';
-  } catch (fallbackError) {
-    try{graphics=(await import('./render/renderer/canvas-renderer.js')).createCanvasRenderer();startup.graphicsFallback='GPU unavailable; Canvas2D projected geometry';}catch(canvasError){
-    const loading=$('loading');loading.replaceChildren();loading.setAttribute('role','alert');
-    loading.textContent='3D World could not start. Check that WebGL2 and hardware acceleration are available. ';
-    const retry=document.createElement('button');retry.type='button';retry.textContent='Try again';retry.onclick=()=>location.reload();loading.append(retry);
-    const home=document.createElement('a');home.href='/';home.textContent=' Return home';loading.append(home);
-    if(loadedExperiment&&params.has('person')){const link=document.createElement('a');link.href='/tools/future-journey.html?'+params;link.textContent=' Return to Worldline';loading.append(link);}
-    startup.graphicsError=fallbackError.message;
-    throw canvasError;
-    }
-  }
+  const loading=$('loading');loading.replaceChildren();loading.setAttribute('role','alert');
+  const message=document.createElement('p');message.textContent='World requires WebGPU. Enable hardware acceleration in a WebGPU-capable browser, then try again.';
+  const retry=document.createElement('button');retry.type='button';retry.textContent='Try again';retry.onclick=()=>location.reload();
+  const home=document.createElement('a');home.href='/';home.textContent=' Return home';
+  loading.append(message,retry,home);
+  if(loadedExperiment&&params.has('person')){const link=document.createElement('a');link.href='/tools/future-journey.html?'+params;link.textContent=' Return to Worldline';loading.append(link);}
+  startup.graphicsError=error.message;
+  throw error;
 }
 const { renderer, mode: rendererMode } = graphics;
 renderer.setSize(innerWidth, innerHeight);
@@ -190,6 +180,9 @@ const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 1, 5000
 camera.position.set(320, 125, 450);
 const globalIllumination=createGlobalIllumination({renderer,scene,camera,mode:rendererMode,button:$('global-illumination-button')});
 window.hblGlobalIllumination=globalIllumination;
+const shaderWarmup=createShaderWarmup({renderer,scene,camera});
+window.hblShaderWarmup=shaderWarmup;
+addEventListener('pagehide',()=>shaderWarmup.dispose(),{once:true});
 addEventListener('pagehide',()=>{globalIllumination.dispose();delete window.hblGlobalIllumination;},{once:true});
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 30, 0);
@@ -562,6 +555,15 @@ window.hblWorldActivity={
  subscribe(listener){activityListeners.add(listener);return()=>activityListeners.delete(listener);},
  selectPerson(id){if(livingWorld?.active)return livingWorld.selectPerson(String(id));const index=town.people.findIndex(person=>String(person.id)===String(id));if(index>=0)select({type:'person',id:index});}
 };
+// Read-only references to the current authority, shared by tile and 3D views.
+window.hblWorldTileSource={
+ getRouteCacheStats:()=>world.getRouteCacheStats?.(),
+ getFrame(){const living=Boolean(livingWorld?.active),snapshot=living?livingWorld.getSnapshot():null;return{revision:living?`${snapshot?.runtime?.id}:${snapshot?.runtime?.revision}`:world.getActivityIdentity?.().runId??null,geometryKey:town.seedKey,runId:living?`${snapshot?.runtime?.id}:${snapshot?.runtime?.revision}`:world.getActivityIdentity?.().runId??null,minute:living?snapshot?.minute:world.t,seed:living?snapshot?.config?.seed:world.getActivityIdentity?.().seed??null,simulationSeed:living?snapshot?.config?.seed:world.simulationSeed??null,mode:living?'living':'legacy',modelVersion:living?snapshot?.modelVersion:world.modelVersion,residentRules:living?snapshot?.residentRules:world.getActivityIdentity?.().residentRules,buildings:town.buildings,roads:town.roads,people:living?(snapshot?.visibleAgents??[]):world.people,districts:living?(snapshot?.districts??[]):[],limitations:living?['People are the bounded worker sample, not the entire population.']:[]};},
+ selectPerson:id=>window.hblWorldActivity.selectPerson(id),
+ selectBuilding(id){const index=town.buildings.findIndex(building=>String(building.id)===String(id));if(index>=0)select({type:'building',id:index});}
+};
+window.hblTileWorld=window.hblWorldTileSource;
+window.hblSessionLogState=()=>{const living=Boolean(livingWorld?.active),seed=living?physicalPolicySnapshot?.config?.seed:world.simulationSeed;return{minute:living?livingWorld.getClockMinute():world.t,seed:Number.isFinite(seed)?seed:null,mode:living?'living':'legacy',camera:camera.position.toArray(),target:controls.target.toArray()};};
 const playbackFacts=mountPlaybackFacts(document);
 playbackFacts.update({mood:world.summary().mood,seed:town.seedKey});
 const activityButton=$('activity-dashboard-button');
@@ -2171,7 +2173,7 @@ const magneticPicker=mountPickPreview(renderer.domElement,{rank:rankCityTargets,
  selectedVehicle=null;vehicleInspector?.select(null);if(hit.selection.type==='person'&&emitLegacyPersonContext({clientX:hit.x,clientY:hit.y,type:'pointerup'},hit.selection.id)===false)return;select(hit.selection);
 }});
 addEventListener('pagehide',()=>magneticPicker.destroy(),{once:true});
-renderer.domElement.addEventListener("pointerdown", (e) => { downAt = [e.clientX, e.clientY];ptr.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);ray.setFromCamera(ptr,camera);downVehicle=cityRenderer.pickVehicle?.(ray)||null; });
+renderer.domElement.addEventListener("pointerdown", (e) => { if(e.button!==0)return;downAt = [e.clientX, e.clientY];ptr.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);ray.setFromCamera(ptr,camera);downVehicle=cityRenderer.pickVehicle?.(ray)||null; });
 function inspectWorldPointer(e) {
   if(e.defaultPrevented)return; // Living City claimed an actual sampled person; let OrbitControls finish release.
   if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) return; // was a drag
@@ -2221,6 +2223,7 @@ const gamepadControls=!embedMode?mountGamepadControls({container:$('top'),canvas
 addEventListener('pagehide',()=>gamepadControls?.destroy(),{once:true});
 
 
+window.hblWorldContext={pick(event){const bounds=renderer.domElement.getBoundingClientRect(),picker=new THREE.Raycaster();picker.setFromCamera(new THREE.Vector2((event.clientX-bounds.left)/bounds.width*2-1,-(event.clientY-bounds.top)/bounds.height*2+1),camera);const person=livingWorld?.active?livingWorld.pick(picker):humanPeople.pick(picker),building=picker.intersectObjects(meshes)[0],ground=picker.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());if(person&&(!building||person.distance<building.distance))return{kind:'person',id:String(livingWorld?.active?person.personId:town.people[person.index]?.id),point:{x:person.point?.x??ground?.x,z:person.point?.z??ground?.z}};if(building)return{kind:'building',id:String(building.object.userData.b.id),point:{x:building.point.x,z:building.point.z}};return ground?{kind:'ground',point:{x:ground.x,z:ground.z}}:null;},buildAt:event=>buildingBridge?.openWishAt(event)};
 function emitLegacyPersonContext(event,index){const person=town.people[index];return window.dispatchEvent(new CustomEvent('world:person-context',{cancelable:true,detail:{mode:'legacy',actorId:selected?.type==='person'?String(town.people[selected.id].id):null,targetId:String(person.id),clientX:event.clientX,clientY:event.clientY,...(event.type==='contextmenu'?{trigger:'contextmenu'}:{})}}));}
 renderer.domElement.addEventListener('contextmenu',event=>{if(livingWorld?.active||event.defaultPrevented)return;const bounds=renderer.domElement.getBoundingClientRect();ptr.set((event.clientX-bounds.left)/bounds.width*2-1,-(event.clientY-bounds.top)/bounds.height*2+1);ray.setFromCamera(ptr,camera);const hit=humanPeople.pick(ray),building=ray.intersectObjects(meshes)[0];if(hit&&(!building||hit.distance<building.distance)){event.preventDefault();emitLegacyPersonContext(event,hit.index);}});
 function select(s) {
@@ -2319,11 +2322,16 @@ let ambientNextUpdate = 0;
 let acc = 0, slowTimer = 0, lastEvents = -1;
 let lastEmbedPostT = -Infinity;
 let last = performance.now();
+const policyPresentationClock=createObservedClock();
+const routePrewarmer=createRoutePrewarmer({getSource:()=>world,isActive:()=>!document.hidden&&!livingWorld?.active});
+routePrewarmer.start();window.hblRoutePrewarmer=routePrewarmer;
+addEventListener('pagehide',()=>routePrewarmer.dispose(),{once:true});
+let lastStreamUpdate=-Infinity;
 
 function frame(now) {
   if(startupAbort.signal.aborted)return;
   gamepadControls?.update(now);mapControls.update(now);fpsMeter.update(now);if(selectedVehicle&&now-lastVehicleUpdate>200){lastVehicleUpdate=now;const vehicle=cityRenderer.getVehicle?.(selectedVehicle);if(vehicle)vehicleInspector?.update(vehicle);}if(manualPanRequested){follow=false;manualPanRequested=false;}
-  if(streamingEnabled||Math.hypot(controls.target.x,controls.target.z)>400){streamingEnabled=true;mapStreamer.update();}updateContextMinimap();
+  if((streamingEnabled||Math.hypot(controls.target.x,controls.target.z)>400)&&now-lastStreamUpdate>=100){streamingEnabled=true;lastStreamUpdate=now;mapStreamer.update();}updateContextMinimap();
   const cpuStart = performance.now();
   const frameMs = now - last;
   const dt = Math.min(0.1, (now - last) / 1000);
@@ -2333,7 +2341,7 @@ function frame(now) {
   const simulationFrame=playback.update(now);
   if(!livingWorld?.active)acc += simulationFrame.deltaMs/1000;
   const steps = livingWorld?.active?0:Math.floor(acc);
-  if (steps > 0) { world.step(Math.min(steps, 240));if(legacyJournalRecorder)void legacyJournalRecorder.flush(); acc -= steps; if(selected?.type === "person")renderInspector(); }
+  if (steps > 0) { const advanced=advanceFrameMinutes(steps,minutes=>world.step(minutes));if(legacyJournalRecorder)void legacyJournalRecorder.flush(); acc -= advanced; if(selected?.type === "person")renderInspector(); }
 
   // Once per simulated day per tile: publish a few synthetic resident journals.
   // Trigger after 8:00 local sim time so demos show the loop quickly.
@@ -2353,7 +2361,8 @@ function frame(now) {
     ambientNextUpdate = now + 250;
     ambientSound?.update({target:controls.target,height:camera.position.y,buildings:town.buildings,minute:policyMinute});
   }
-  physicalPolicyLayer.update({minute:policyMinute,transitService:livingWorld?.active?(policyFrame?.config?.transitService??0):(world.transitServiceMult??0),projects:world.projects??[],districts:policyFrame?.districts??[],source:livingWorld?.active?'Living configured transit service; no civic project ledger supplied':'Legacy transitServiceMult; actual civic projects only'});
+  const policyDisplayMinute=policyPresentationClock.sample(policyMinute,now,{paused:playback.getState().paused,runId:livingWorld?.active?physicalPolicySnapshot?.runtime?.id:'legacy'});
+  physicalPolicyLayer.update({minute:policyMinute,presentationMinute:policyDisplayMinute,transitService:livingWorld?.active?(policyFrame?.config?.transitService??0):(world.transitServiceMult??0),projects:world.projects??[],districts:policyFrame?.districts??[],source:livingWorld?.active?'Living configured transit service; no civic project ledger supplied':'Legacy transitServiceMult; actual civic projects only'});
   const stormIntensity = livingWorld?.active ? 0 : stormIntensityAt(world.policy?.storm, world.t);
   cityRenderer.updateCity({parcelStorm:{minute:world.t,intensity:stormIntensity,enabled:!livingWorld?.active}});
   const lighting=simulationLighting(policyMinute,cityRenderer.timeOfDay);
@@ -2389,7 +2398,7 @@ function frame(now) {
     const visible = (p.travelMode!=="transit"||p.transitWaitMinutesRemaining>0)&&(wbOverlay || selectedPerson || (withinDetailBudget && (p.mode === "moving" || OUTDOOR.has(p.action))));
     const scale = visible ? (p.age < 13 ? 0.7 : 1) * (wbOverlay ? 1.8 : 1) : 0;
     const hex=cycleScores?wellbeingHex(cycleScores[i]??0):wbOverlay?wellbeingHex(wellbeing(p)):null;
-    humanPeople.setPerson(i,{id:p.id??i,x:s.x,z:s.z,scale,visible,selected:selectedPerson,hovered:hoveredLegacyPerson===i,heading:Math.atan2(p.x-s.x,p.z-s.z),...(hex==null?{}:{shirtColor:hex})});
+    humanPeople.setPerson(i,{id:p.id??i,x:s.x,z:s.z,scale,visible,selected:selectedPerson,hovered:hoveredLegacyPerson===i,heading:p.socialEncounter?.heading??Math.atan2(p.x-s.x,p.z-s.z),social:Boolean(p.socialEncounter),quest:Object.values(p.needs||{}).some(value=>Number.isFinite(value)&&value<30),ageBand:p.age<18?'child':p.age>=65?'older':'adult',gesturePhase:p.socialEncounter?world.t*2:0,speech:Boolean(p.socialEncounter),...(hex==null?{}:{shirtColor:hex})});
   }
   humanPeople.commit();
 
@@ -2436,7 +2445,7 @@ function frame(now) {
   gpuParticleMenu?.update();
   const drawCity=cityRenderer.beforeFrame(now,dt,daylight,selected?.type==='building'?selected.id:null,buildingBridge?.worldVisuals,{now:simulationFrame.simulationNow/10,dt:simulationFrame.deltaMs/10000});
   if(livingWorld?.active)livingWorld.applyBuildingOccupancy?.();
-  if(drawCity){globalIllumination.render();startup.firstFrameMs??=performance.now();if(scrapbook&&scrapbookSource)void scrapbook.afterRender(renderer.domElement,scrapbookSource);}
+  if(drawCity&&!window.hblWorldTileViewActive){shaderWarmup.draw(()=>globalIllumination.render());startup.firstFrameMs??=performance.now();if(scrapbook&&scrapbookSource)void scrapbook.afterRender(renderer.domElement,scrapbookSource);}
   cityRenderer.afterFrame(now, performance.now() - cpuStart, frameMs);
   visualCamera?.update(now);
   visualSpotlight?.update(now);

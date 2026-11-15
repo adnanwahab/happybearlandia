@@ -106,7 +106,8 @@ assignment or the House guest/roommate roster.
 `departureMinute`, `plannedActivity` and endpoint arrays into each bounded
 snapshot/inspection row. Null means no current trip. This read introduces no
 random draws, rules or time advancement. Coordinates retain behavior.js's
-straight-line approximation; sidewalk access endpoints do not establish a road
+straight-line approximation for older checkpoints without the residentRules
+manifest; sidewalk access endpoints alone do not establish a road
 path. Car shapes represent traveling residents; bus/rail shapes represent
 passengers, since the model has no shared fleet identity. Neither shape counts
 nor sampled points establish real traffic volume. Ongoing trips are distinct
@@ -177,3 +178,52 @@ selection rule, not an observed food preference. Finite ingredients reserve at
 admission, food requires completed attendance, and kitchen help remains a separate
 real cleaning task. Inspector stock counts are saved synthetic gameplay quantities.
 No new agent, RNG, clock, need coefficient or independent state authority is added.
+
+
+### Versioned pedestrian paths and visible encounters (SHE-789)
+
+Fresh Population states carry `residentRules` alongside the unchanged compatible
+model envelope: `sidewalks.v1` and `resident-encounters.v1`. Full checkpoints retain
+that manifest, network, active routes, social holds/cooldowns and bounded outcomes.
+Absent manifests retain former behavior on restore. The initial road-polylines
+input is the same x/z metre geometry passed by `deriveLivingContext`; no entity or
+time mapping to Legacy is asserted.
+
+`pedestrian-routes.js` splits roads at intersections, offsets sidewalks by 6m,
+trims segment ends by up to 6.5m and joins adjacent ends around each junction.
+These synthetic dimensions match the nominal 9m road/2m sidewalk renderer, not
+surveyed footways. A keyed seed/person/day draw allows at most the declared 2%
+short crossing opportunity on opposite sides of one block; lack of opportunity
+does not force a jaywalk. Walking mode utility and duration use routed distance
+at configured km/h, and every movement substep interpolates that same polyline.
+Missing/disconnected networks declare a straight-line fallback. Building access
+connectors and geographic obstacle avoidance remain approximations. Other modes
+retain their original district route assumptions.
+
+After the outer activity/hotspot update, `resident-encounters.js` scans a bounded
+spatial candidate sample per cell and admits at most eight nearby pairs (4m),
+awake and available, drawn from housemates/coworkers/neighbors or shared park/food
+activity. Work/school, care, House actions and manual walks take priority. The
+existing relationship authority records the talk outcome and +8 social need at
+initiation; some outcomes are awkward. A three-minute hold consumes actual
+activity time without locomotion, followed by a fifteen-minute resident cooldown.
+Trip metadata separates the added social delay, and completion records elapsed
+travel including holds. The outer partition affects admission frequency; retain
+it for replay. Active participant IDs, start/until, heading, text and outcome feed
+the same snapshot used by the renderer; animation never creates an encounter.
+
+Inspect [the data contract](../../world/population/DATA_FORMATS.md#current-trip-read-projection)
+and [implementation evidence](../she-789-residents.md). Verify route continuity,
+missing paths, genuine social effects, pause and checkpoint continuation with
+`bun test test/resident-launch.test.js test/population-trip-display.test.js
+world/population/checkpoint.test.js`.
+
+
+The shared [resident-rule validator](../../world/resident-rules.js) accepts the
+known two-field manifest or absent/null older state, and rejects unknown or mixed
+versions before restore mutates resident state. Snapshots, previous-run and social
+network provenance, future recipes and their workers retain `residentRules`.
+Replay and future inspection honor the stored manifest; an older recipe without
+it uses prior rules. The runtime retains restored rules across explicit config
+resets, rather than changing assumptions silently. `resident-rules-compatibility.test.js`
+checks atomic unknown-version failure and matching old/new future replay results.

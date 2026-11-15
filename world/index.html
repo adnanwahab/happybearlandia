@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="/world/person-needs.css" />
 <link rel="stylesheet" href="/world/plan-choices.css" />
 <link rel="stylesheet" href="/world/first-run-guide.css" />
+<link rel="stylesheet" href="/world/launch-shell.css" />
 <style>
   :root { --bg: #f4f1ea; --panel: rgba(255,255,255,.92); --ink: #1d1d1b; --muted: #6b6a64; --line: rgba(0,0,0,.12); --accent: #2f6fd6; }
   @media (prefers-color-scheme: dark) { :root { --bg: #15161a; --panel: rgba(24,25,30,.92); --ink: #ecebe6; --muted: #9a9993; --line: rgba(255,255,255,.14); --accent: #79a8ff; } }
@@ -156,8 +157,8 @@ body:has(.saved-future-navigation) #global-illumination-button{top:auto;bottom:m
   <div data-player-feedback></div>
   <div class="row"><a href="/reality-compiler" onclick="this.search=location.search">Reality Compiler</a> · <a href="/city-speaks" onclick="this.search=location.search">Who does this hurt?</a></div>
   <a href="/world/city-lab.html" onclick="this.search=location.search" style="color:var(--accent);font-size:12px">City Systems Laboratory ↗</a>
-  <div class="row"><a id="world-lite-link" href="/world?renderer=canvas2d">Use 2D low-fidelity mode</a></div>
   <div class="row"><a href="/business-simulator">Business Lab</a> · <a href="/world?business_mode=true">Place a business</a></div>
+  <div class="row"><a id="city-view-link" href="/world/static-city.html">City view only · WebGL2 · no simulation</a></div>
   <div class="row" id="living-city-toolbar" aria-label="Population mode"></div>
   <details><summary>Precise location</summary>
   <form class="row" id="goto">
@@ -291,6 +292,10 @@ body:has(.saved-future-navigation) #global-illumination-button{top:auto;bottom:m
 <script type="module" src="/world/first-run-guide.js"></script>
 <script type="module" src="/world/renderer-entry.js"></script>
 <script type="module" src="/world/explorer-dock.js"></script>
+<script type="module" src="/world/launch-shell.js"></script>
+<script type="module" src="/world/launch-sound.js"></script>
+<script type="module" src="/world/session-recorder.js"></script>
+<script type="module" src="/world/launch-context.js"></script>
 <script type="module" src="/world/social/journey.js" data-social-experience="living-city"></script>
 </body>
 </html>

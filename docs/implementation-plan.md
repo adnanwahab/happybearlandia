@@ -10477,3 +10477,215 @@ resolve @playwright/test. No root typecheck/lint command/compiler available.
 Real new before/after screenshots and browser focus/reduced-motion acceptance
 remain pending dependency/server repair. See [review](reviews/SHE-443.md) for
 paths audited, preserved merge policy, actual checks and remaining acceptance.
+
+## SHE-789 — World launch checklist (November 15, in progress)
+
+User authorized local implementation across multiple chats and integrated local
+playtesting. Existing uncommitted runner, server, performance and launch-audit
+changes are preserved. Work is split by file ownership in this checkout:
+
+- Performance chat: renderer/frame scheduling, worker-result cost, continuous
+  buses, measured CPU/heap/frame evidence and trace.
+- Residents chat: instanced gait, sidewalk routes with matching trip duration,
+  simulation-backed social encounters, replay tests and affected ODD contracts.
+- Logs chat: consented bounded privacy-safe session recorder, `/logs` viewer,
+  timeline replay, server routing and failure/retention tests.
+- UI/gameplay chat: coherent dark navigation and panels, progressive onboarding,
+  accessible working controls, existing resident/context/dialogue/quest/time/
+  overlay/tile/history features exposed through normal entry, browser checks.
+- Coordinating chat: integration hooks, model-description review, combined
+  regression checks, local player smoke and screenshots/video where available.
+
+Prerequisites: Bun dependencies (installed frozen, scripts disabled), cached
+Playwright browsers, local server with temporary storage. No deployment or
+production data changes are authorized. Acceptance is executable normal-entry
+behavior with meaningful regression coverage, no invented resident facts or
+performance measurements, and a per-checklist evidence/gap report. The requested
+2-minute frame target and 10-minute physical phone/old-laptop/Safari matrix must
+be reported separately from browser emulation; no claim of physical-device
+acceptance will be made without those devices. Exact results and remaining work
+will be appended after integration. Scope-specific evidence is recorded in
+`docs/she-789-{performance,residents,logs,ui}.md` as each chat finishes.
+
+Integration findings (November 15): baseline focused suite passed50/50; initial
+desktop browser journey passed. Mobile/tablet startup assertions timed out while
+several browser profiles and the106-case validation sweep were running; trace
+shows no JS exception and unfinished placeholder geometry. Final tests will use
+one browser at a time and allow explicit startup wait. Added a unified scene
+context menu to intercept before the old ground-wish capture handler; actual
+person/building/ground picking remains renderer-owned and building drafts reuse
+the existing approval workflow. Default legacy routes/social encounters are also
+being updated, so fixes do not require switching simulation authorities.
+
+Baseline model validation completed successfully: Houston housing diagnostic
+matches its fixed baseline and all106 City seed/checkpoint replay cases pass.
+Focused new UI/log/tile helper suites pass12/12. Profiling identified an actual
+437.7ms fallback-renderer frame dominated by419.9ms synchronous shader linking;
+asynchronous bounded warmup is being tested rather than claiming a mesh-count
+cause or treating that contaminated run as an improvement. GPU/backend-specific
+and physical-device acceptance remain separate.
+
+Canvas2D integration: the simplified renderer previously lacked the playback,
+resident-command, tile, context and diagnostic adapters used by the new shell.
+The coordinating slice adds `launch-lite-bridge.js` over that same Legacy world
+(no replacement model/clock), authoritative command callbacks, current selection,
+same-source tile data and numeric simulation seed. The fallback explicitly omits
+3D construction from its scene context menu. Pinned `demo=1` also skips remote
+map lookup in this renderer, matching the normal synthetic demo contract.
+
+ODD review in progress: compared `docs/models/{README,population,legacy}.md`
+against `sim.js`, `legacy-checkpoint.js`, `population/{generator,behavior,model,
+pedestrian-routes,resident-encounters,trip-display,population.worker}.js` and the
+resident regression suite. Required fixes found: new trip/social projections
+were dropped by the worker packing allowlist; that allowlist is now extended.
+A prior ODD straight-line statement must be qualified for old checkpoint rules
+and nonwalking/missing-map paths. Source identities also need to agree between
+activity snapshots and the cheap tile/quest view, including restored checkpoints.
+
+Combined regression first pass:151passed, one stale test module failed to load.
+`test/canvas2d-world.test.js` imports compatibility exports (`createCanvasRenderer`
+from the DOM entry script and `startWorld`) that do not exist in the baseline
+checkout. The intended geometry renderer is `render/renderer/canvas-renderer.js`;
+its unit coverage will target that actual factory. Normal fallback entry now has
+separate browser coverage. Browser integration also caught an actual inspector
+suppression collision after resident selection; that is being repaired rather
+than relaxing the visibility assertion.
+
+Integrated verification (November15, current source):154tests pass across28Bun
+files with2002assertions, zero failures. The13-test combined Chromium suite passes
+in33s: desktop and390/768px navigation, actual resident/play/dialogue/pause/speed,
+context-menu ground draft, real World consented capture and scrubber, Canvas2D
+commands/time/tile/logging bridge, audio lifecycle, and desktop/mobile same-source
+tile selection. The inspector issue was caused by closing the shell after
+selecting the resident; closing first preserves the renderer-owned inspector.
+Build here is offered for ground, while occupied lots remain inspectable.
+
+WebKit startup smoke found an uncaught null-error handling path; it is being
+reproduced with a stack before longer player soaks. Trace-free WebGPU Living
+acceptance remains below the strict target (15/7238frames over50ms,max100.1ms,
+median16.7ms,p9916.8ms,59.13rAFHz); no false performance completion is claimed.
+
+WebKit null error resolved: an IndexedDB write transaction can report an error
+or abort with `transaction.error === null`. The scrapbook forwarded that null,
+and its capture error handler then threw on `.message`. Persistence now rejects
+an actual Error for both cases, rolls the record back, and capture reporting is
+null-safe. Production-store regression tests inject both browser events and
+verify an Error plus unchanged stored records; scrapbook suite3/3passes.
+
+## User scope update — WebGPU-only (November15)
+
+The user directly instructed the tile work chat to remove Canvas2D and WebGL
+fallback rendering and target native WebGPU. The coordinating chat verified the
+actual user message with read_thread. This supersedes the fallback work above.
+The same-world tile map remains a requested presentation feature; it does not
+introduce a fallback graphics backend or another simulation. Simulation remains
+JavaScript/workers, independent of rendering API. Entry/factory, renderer recovery,
+controls, tests and documentation are being simplified accordingly. Unsupported
+WebGPU must show an explicit retry/home state, never silently start a different
+renderer/simulation. Obsolete Canvas2D bridge/entry work is removed; earlier
+fallback test results describe historical intermediate work, not final scope.
+
+## Top-right status-widget layout repair — November15
+
+User screenshot showed Start here/Activity obscuring the FPS meter, with the
+mood/seed readout independently positioned beneath. Added a shared measured
+vertical status lane for shortcuts, mood/seed and asynchronously mounted FPS.
+Existing launch-shell panels/commands begin below that lane. Widgets remain
+individually visible and clickable; narrow readouts wrap within viewport bounds.
+Focused production-module/CSS browser checks passed4/4 at390px and1680px in
+classic and launch-shell layouts, including pointer hit targets, viewport bounds,
+asynchronous FPS mounting and panel clearance. Evidence:
+`artifacts/she-789/status-widgets-separated.png`. No deployment performed.
+
+Final WebGPU/rules pass:169Bun tests across31files pass (2105assertions),
+including native-backend cleanup, strict subrules manifests/old-rain compatibility,
+paired future replay, route warming and corrected pointer gesture handling.
+Fourteen of fifteen native Chromium checks pass. The new Living follow journey
+exposed a real async People-panel race: opening while its first worker snapshot
+is pending captures an empty list that never updates. UI is repairing live list
+refresh while preserving search/focus; the test is retained unchanged. Unsupported
+WebGPU recovery passes without a silent fallback or replacement simulation.
+
+Living People-panel race is fixed: the open panel receives current cheap-frame
+observations, preserves input/search focus and only replaces changed rows. The
+normal-entry Living follow regression now passes in3.4s without adding a delay or
+requiring menu reopening. Right-drag no-pick and actual context Walk here/build
+commands pass. Final departure-cost warmup preserves full1233-resident150-minute
+state; measured standalone steps are now34.18/23.36ms for the two departure waves,
+not a browser claim. Final quiet native120s browser acceptance is starting.
+
+Top-right follow-through: restored all3widgets in modern shell (prior shell
+CSS still hid shortcuts/mood). Start here now invokes modern Get started;
+Activity retains the dashboard handler. Current primary audit21buttons.
+Strengthened4widget checks pass. Native six-width HUD image/bounds/control
+checks all pass and12goldens generated/verified, but whole-suite2pass/4fail
+because of WebGPU OperationError 'Instance dropped in popErrorScope' in4cases.
+The zero-pageerror assertion is preserved; renderer owner must resolve before
+claiming full browser acceptance. Source frozen after this patch.
+
+HUD browser reconciliation: the2pass/4fail result above used cached
+HeadlessChrome153. Explicit installed Chrome157 is now supported by local
+config and matches the parent's browser. Fixed screenshot-only test setup
+(`toHaveScreenshot` ignored inline `style`; temporary styles now applied
+explicitly). Installed-Chrome golden generation6/6passed; no-update verification
+6/6passed (38.2s), all12images match andzero pageerrors. No renderer/error-filter
+change was needed. Widget module checks4/4pass. Current21-control UI source is
+frozen and all UI browser processes finished. Details docs/she-789-ui.md.
+
+## User scope update — rendering-only WebGL2 fallback (November15)
+
+The user now explicitly requests a WebGL2 fallback that **only renders the city**.
+This supersedes WebGPU-only graphics recovery, while keeping full gameplay and
+simulation on the native WebGPU path. The fallback must not start a resident
+model, workers, simulation clocks or silently replay/replace a saved experiment.
+A separate minimal city-view entry can reuse sourced/generated geometry, show
+attribution and pan/zoom/geometry inspection with a clear view-only notice.
+Canvas2D renderer fallback remains removed. The local WebKit runner was directly
+probed on secure localhost: WebGL2.0/GLSL ES3.00 available, navigator.gpu absent;
+it will verify this requested fallback through normal entry.
+
+Rendering-only fallback acceptance:7WebKit browser cases pass, including actual
+WebGL2 desktop/mobile geometry, automatic missing/rejected adapter fallback,
+missing WebGL2 error, saved base-geometry preview and absent-save/no-replacement.
+They verify no render.js/sim.js/Population/playback requests, no worker construction,
+no simulation globals and no idle draw loop. Native Chrome preflight verifies a
+single adapter request, consumed prepared renderer and full gameplay APIs.
+A labeled City view only link in More tools also preserves the current map URL.
+
+Final combined verification after the city-only fallback: 169/169 Bun tests
+(31 files, 2103 assertions), 39/39 focused rendering/routes/gait tests, 20/20
+normal-entry Chromium browser cases, 7/7 focused WebKit city-view cases and 1/1
+native prepared-renderer smoke pass. Installed Chrome157 HUD verification passes
+6/6 with12 matching goldens. The actual local WebGL2 viewer was opened visibly
+with517 buildings and22 roads; both viewer and native-game tabs were retained
+for the user. No simulation runs in the fallback.
+
+The final quiet120-second native capture has7271frames, median16.7ms,p9916.8ms,
+maximum100ms and12frames above50ms, withzero JS errors/main-page long tasks.
+Strict frame acceptance remains open. Ten-minute phone emulation completes40
+journey actions without JavaScript errors or failed actions. The4xCPU-throttled
+run retains one action timeout after an executed click while Playwright waited
+for scheduled navigation; the next controlled walk succeeds. It is not a passing
+old-laptop qualification. The city-only WebKit ten-minute recording passes40 interactions withzero JS errors, failed actions, workers or simulation-module requests;119 on-demand draws.
+Current consolidated evidence and remaining work: docs/she-789-launch-report.md.
+
+## SHE-789 merge integration — November 15, 2026
+
+Integrated the task-only change onto sprint base79b44aae, preserving newer
+sprint gamepad/cinematic camera, magnetic picking, crossing rings, model notes,
+Population timing diagnostics and feedback routes. Kept unrelated runner,
+provider, queue and working-tree changes out of this commit. Collected new
+floating tools in More tools; shell owns its search shortcut while the global
+route palette remains available there. Capability redirects observe/cancel
+outgoing page-transition promises at pageswap; zero-pageerror assertions remain.
+Corrected the self-starting browser test server's working directory and a sound
+test's async import polling boundary. No simulation rule change during integration.
+
+Integrated verification:171 tests/2134 assertions across31 original regression
+files pass;78 focused integration checks pass;16 adjacent gamepad/crossing/
+spatial/motion/palette unit checks pass with1 optional-DOM case skipped. WebKit
+fallback suite passes7/7. Final Chromium normal-entry suite result is recorded
+in docs/she-789-launch-report.md. Strict performance and physical-device
+qualification remain open; merging the implementation does not certify the full
+launch checklist. Local artifacts/unrelated edits were saved to a separate
+recoverable archive before workspace cleanup. No deployment authorized.

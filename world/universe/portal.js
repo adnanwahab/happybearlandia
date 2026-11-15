@@ -68,8 +68,11 @@
     }
   };
   addEventListener('pagereveal', event => {
+    // A renderer-capability redirect can abort a cross-document capture.
+    // Observe ready as well as finished so cancellation never leaks a rejection.
+    event.viewTransition?.ready.catch(() => {});
     if (reduced()) event.viewTransition?.skipTransition();
-    event.viewTransition ? event.viewTransition.finished.finally(restore) : restore();
+    event.viewTransition ? event.viewTransition.finished.then(restore,restore) : restore();
   });
   addEventListener('pageshow', event => {
     if (event.persisted) restore();
