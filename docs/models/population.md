@@ -114,6 +114,18 @@ from a retained completed-trip ledger. Seed, model version, clock and run
 identity remain on the enclosing snapshot/runtime. Verify with
 `test/population-trip-display.test.js` and the existing model/replay suites.
 
+### Bounded neighborhood What If comparison
+
+The [What If orchestrator](../../world/what-if/README.md) runs two fresh synthetic
+Population instances from the same context and seed, adds one supported project
+after generation, then advances each through 96 fifteen-minute steps. It does not
+edit the live Population. SHE-561 adds placement validation and retention of the
+existing hash recipe as a manifest; no generator, model coefficients, IDs, clock
+or random stream changed. Local x/z pins must be finite and inside inclusive,
+positive-area loaded rectangular bounds. These bounds do not establish parcel
+feasibility. Unsupported policy keys reject. Context origin, geometry source,
+synthetic district identities and assumptions remain in the recorded recipe.
+
 ### Neighbor RSVP rule (house-rsvp.v1)
 
 The existing Population visit subsystem now accepts opt-in RSVP commands; see

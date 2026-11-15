@@ -1,0 +1,25 @@
+import {test,expect} from '@playwright/test';
+for(const mobile of [false,true])test(`What If pin ${mobile?'touch-sized':'keyboard'} fallback validates before running`,async({page})=>{
+ await page.setViewportSize(mobile?{width:390,height:844}:{width:1440,height:1000});
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.goto('/world?demo=1&renderer=webgl&people=16&quality=LOW');
+ await page.getByTestId('what-if-open').click();
+ const panel=page.getByTestId('what-if-panel'),run=panel.getByRole('button',{name:'Simulate before & after'});
+ await expect(panel.locator('[data-constraints]')).toContainText('edges included');
+ await expect(panel).toContainText('free-form policies are unsupported');
+ const x=panel.getByRole('spinbutton',{name:'Pin east in metres'}),z=panel.getByRole('spinbutton',{name:'Pin south in metres'});
+ await x.fill('0');await z.fill('0');await z.press('Tab');await page.keyboard.press('Enter');
+ await expect(run).toBeEnabled();
+ await panel.getByRole('combobox',{name:'Neighborhood addition'}).selectOption('housing');
+ await expect(panel.locator('[data-assumption]')).toContainText('5%');
+ await x.fill('999999999');await expect(run).toBeDisabled();
+ await panel.getByRole('button',{name:'Place What If pin'}).click();
+ await expect(panel.locator('[data-status]')).toContainText('inside the original loaded neighborhood');
+ await expect(run).toBeDisabled();await expect(panel.locator('[data-location]')).toContainText('No valid location');
+ await x.fill('0');await z.fill('0');await z.press('Enter');await expect(run).toBeEnabled();
+ await page.screenshot({path:`.mini-symphony-evidence/SHE-561-after-${mobile?'mobile':'desktop'}-pin.png`});
+ await run.click();await expect(panel.locator('[data-status]')).toContainText('Comparison complete',{timeout:90000});
+ await expect(panel.locator('[data-pair-context]')).toContainText('housing at E 0, S 0');
+ await page.screenshot({path:`.mini-symphony-evidence/SHE-561-after-${mobile?'mobile':'desktop'}-result.png`});
+ await panel.getByRole('button',{name:'Clear',exact:true}).click();await expect(run).toBeDisabled();
+});

@@ -126,6 +126,27 @@ syntax checks pass. Next: run the focused keyboard/reduced-motion browser test
 with a working server and review captures. No PR/commit, merge or deployment.
 Audit, configured merge safety hold and details: [SHE-553 review](reviews/SHE-553.md).
 
+## SHE-560 — house/shop errand audit (2026-11-14)
+
+Analysis-only result: [source audit and next slice](reviews/SHE-560.md).
+Existing exact Population-ID/checkpoint House↔World transport works; Buy a plant
+is immediate household furniture installation, with no mapped shop stock or
+seller transaction. Population firms, neighborhood Business and Business Lab
+remain separate contracts. Issue acceptance and implementation remain incomplete.
+Next slice: versioned synthetic Population retail mapping and atomic idempotent
+purchase receipt, actual walking/arrival/home return, then shared House/World UI.
+Prerequisites, independently verifiable tasks, rejection cases and receipt-retention
+risk are recorded in the review. No service credentials are needed for that local
+slice. One worker; preserve adjacent House PR work and original saved experiments.
+
+Baseline checks: 23 pass / 147 assertions across bridge, excursions, Business mode
+and Lab. Existing saved-navigation browser test failed before execution because
+the worktree cannot resolve `@playwright/test`; browser acceptance and relevant
+before/after evidence remain outstanding. No configured repository-wide lint or
+typecheck script. Documentation whitespace check passed. No commit or PR created;
+no model/ODD behavior change. Disabled automatic merge and existing review/check
+gates remain unchanged. No deployment, external messages or production changes.
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,
@@ -9314,6 +9335,33 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-561 — bounded What If map pins
+
+Slice: retain the existing four Population additions and paired-day simulation;
+validate the loaded rectangular neighborhood, expose its limits and keyboard
+coordinate entry, invalidate stale proposals on rejected placement, and retain
+an immutable recipe manifest with geographic context in completed receipts.
+Prerequisites: World Population context and existing worker comparison. No parcel
+ownership/clearance validator exists; a pin is a conceptual map point only.
+Acceptance: deterministic boundary acceptance/rejection, unsupported knobs rejected,
+manifest round-trip reproduces receipt, and normal `/world` keyboard/fallback UI
+journey with before/after evidence. Risks: rectangular bounds are not cadastral
+polygons; no live provider or new model rules are introduced. One coding worker.
+Status: implementation in progress. Preserve all voting/auth/check configuration.
+
+Delivered locally: bounds validation, explicit unsupported-knob rejection,
+keyboard coordinate form, stale-proposal invalidation and additive full recipe
+manifest. Updated module contract and Population ODD; no model mechanism changes.
+Verification: 13 pin/comparison/impact tests (155 assertions), 2 mounted-panel
+interaction tests (17 assertions), 26 Population/worker tests (264 assertions)
+passed; browser panel/worker build passed. No configured global lint/typecheck.
+Playwright blocked: app server EADDRINUSE on two ports; serverless Chrome attempt
+also aborted at launch. Existing before evidence retained; after browser evidence
+and normal-entry keyboard/touch acceptance remain pending an environment allowing
+server and browser launch. See `docs/reviews/SHE-561.md`. No merge/deploy or voting
+policy changes. Status: local code/regression slice complete; browser acceptance
+and visual review outstanding.
 
 ## SHE-565 — reusable neighborhood blueprints
 
