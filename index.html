@@ -36,18 +36,16 @@
     .gallery-card h3 { font-size: 15px; margin: 0 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .gallery-card a { font-size: 12px; }
     .gallery-viewport { position: relative; width: 100%; aspect-ratio: 1100 / 740; overflow: hidden; background: #08111f; }
-    .gallery-viewport iframe { width: 1100px; height: 740px; min-height: 0; border: 0; transform: scale(var(--preview-scale, .35)); transform-origin: top left; pointer-events: none; }
-    .gallery-card.is-interactive iframe { pointer-events: auto; }
     .gallery-card[hidden] { display: none; }
     .gallery-card .preview-description { font-size: 12px; line-height: 1.5; padding: 0 14px; min-height: 36px; }
-    .preview-loading { position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; color: #a5b5c8; pointer-events: none; }
-    .gallery-card.is-loaded .preview-loading { display: none; }
-    .gallery-card:not(.is-loaded) .gallery-viewport iframe { opacity: 0; }
-    .gallery-card.is-interactive { border-color: #f1d37c; }
-    .gallery-card.is-interactive footer button { color: #101d2f; background: #f1d37c; }
+    .peek-art { width: 100%; height: 100%; display: block; }
+    .peek-caption { position: absolute; inset: 0 0 auto; padding: 8px; background: #08111fee; font-size: 11px; }
+    .peek-details { position: absolute; inset: auto 0 0; padding: 12px; background: #08111fee; font-size: 12px; line-height: 1.5; }
+    .peek-details[hidden] { display: none; }
+    .gallery-card a:focus-visible { outline: 3px solid #f1d37c; outline-offset: 3px; }
     .gallery-card footer { padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 11px; color: #9caec4; }
-    .gallery-card footer button { font-size: 11px; min-height: 34px; padding: 5px 10px; }
-    @media (prefers-reduced-motion: reduce) { .gallery-card { transition: none; } }
+    .gallery-card footer button { font-size: 11px; min-height: 44px; padding: 5px 10px; }
+    @media (prefers-reduced-motion: reduce) { .gallery-card { transition: none; transform: none; } }
     @media (max-width: 600px) { .carousel-rail { padding-inline: 18px; gap: 18px; } .gallery-card { flex-basis: 82vw; } .gallery-toolbar > span { display: none; } }
     .carousel-controls { display: flex; align-items: center; gap: 14px; }
     button { font: inherit; cursor: pointer; color: #edf3fa; background: #21344e; border: 1px solid #49627f; border-radius: 8px; min-width: 44px; min-height: 44px; }
@@ -168,7 +166,7 @@
 </section>
 <section class="carousel" id="explore" aria-roledescription="carousel" aria-label="Interactive worlds and experiments">
   <header><div><h2 id="experience-count"><span id="gallery-count">31</span> Interactive Worlds &amp; Experiments</h2><p>Start with a world. Follow your curiosity. Each preview opens a different possibility.</p></div><div class="carousel-controls"><button type="button" id="carousel-prev" aria-label="Previous preview">←</button><span id="carousel-status" aria-live="polite"></span><button type="button" id="carousel-next" aria-label="Next preview">→</button></div></header>
-  <div class="gallery-toolbar"><label for="carousel-category">Category</label><select id="carousel-category"><option value="all">All experiences</option><option value="worlds">3D Worlds</option><option value="living">Living Simulations</option><option value="science">GPU Science</option><option value="games">Games</option><option value="tools">Tools</option></select><label for="carousel-jump">Jump to a preview</label><select id="carousel-jump"></select><span>Choose Interact to take control of a live preview.</span></div>
+  <div class="gallery-toolbar"><label for="carousel-category">Category</label><select id="carousel-category"><option value="all">All experiences</option><option value="worlds">3D Worlds</option><option value="living">Living Simulations</option><option value="science">GPU Science</option><option value="games">Games</option><option value="tools">Tools</option></select><label for="carousel-jump">Jump to a preview</label><select id="carousel-jump"></select><span>Hover, focus or choose Preview for an authored illustration. Enter world to launch.</span></div>
   <div class="carousel-rail" id="carousel-rail" tabindex="0" aria-label="App previews. Use left and right arrow keys to browse."></div>
 </section>
 

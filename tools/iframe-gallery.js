@@ -6,6 +6,7 @@
   const catalog = document.getElementById('preview-catalog');
   if (!rail || !catalog) return;
   const categories = { worlds: '3D Worlds', living: 'Living Simulations', science: 'GPU Science', games: 'Games', tools: 'Tools' };
+  const awaitPeek = await import('/tools/world-peek.js');
   const {EXPERIENCES}=await import('/world/universe/registry.js');
   const templates=[...catalog.content.querySelectorAll('section[data-carousel]')];
   const sources=EXPERIENCES.map(experience=>{
@@ -17,7 +18,7 @@
   });
   const countHeading = document.getElementById('experience-count');
   if (countHeading) { const count = countHeading.querySelector("#gallery-count"); if (count) count.textContent = String(sources.length); else countHeading.textContent = `${sources.length} Interactive Worlds & Experiments`; }
-  let active = 0, queued = false, visible = true;
+  let active = 0, queued = false;
   const cards = sources.map((section, index) => {
     const source = section.querySelector('iframe');
     const title = section.querySelector('h2')?.textContent || source.title;
@@ -40,82 +41,28 @@
     header.append(heading, link);
     const viewport = document.createElement('div');
     viewport.className = 'gallery-viewport';
-    const loading = document.createElement('span');
-    loading.className = 'preview-loading';
-    loading.textContent = 'Loading live preview…';
-    const iframe = document.createElement('iframe');
-    iframe.dataset.src = source.dataset.previewSrc || source.getAttribute('src');
-    iframe.title = `${title} gallery preview`;
-    iframe.loading = 'eager';
-    iframe.allowFullscreen = true;
-    iframe.tabIndex = -1;
-    let readyTimer = null;
-    iframe.addEventListener('load', () => {
-      clearTimeout(readyTimer);
-      if (!iframe.hasAttribute('src')) return;
-      const started = performance.now();
-      function reveal() {
-        if (!iframe.hasAttribute('src')) return;
-        // The flagship starts directly in its canvas, without flashing setup UI.
-        const isWorld = iframe.dataset.src.startsWith('/world?embed=1');
-        if (!isWorld || iframe.contentDocument?.querySelector('#view canvas')) {
-          card.classList.add('is-loaded');
-        } else if (performance.now() - started < 45000) {
-          readyTimer = setTimeout(reveal, 150);
-        } else {
-          loading.textContent = 'Preview unavailable. Open the full page to explore.';
-        }
-      }
-      reveal();
-    });
-    viewport.append(loading, iframe);
+    const { mountPeek } = awaitPeek;
+    const peek = mountPeek(viewport, EXPERIENCES[index], index);
     const description = document.createElement('p');
     description.className = 'preview-description';
-    description.textContent = section.querySelector('header p')?.textContent || `Explore ${title} in a live interactive preview.`;
+    description.textContent = section.querySelector('header p')?.textContent || `Explore ${title}.`;
     const footer = document.createElement('footer');
     const number = document.createElement('span');
     number.textContent = `${String(index + 1).padStart(2, '0')} / ${sources.length} · ${categories[section.dataset.carousel]}`;
-    const interact = document.createElement('button');
-    interact.type = 'button';
-    function setInteraction(enabled) {
-      card.classList.toggle('is-interactive', enabled);
-      iframe.tabIndex = enabled ? 0 : -1;
-      interact.textContent = enabled ? 'Stop interacting' : 'Interact';
-      interact.setAttribute('aria-pressed', String(enabled));
-      interact.setAttribute('aria-label', `${enabled ? 'Stop interacting' : 'Interact'} with ${title}`);
-    }
-    setInteraction(false);
-    interact.addEventListener('click', () => {
-      if (!card.classList.contains('is-current')) go(filtered.indexOf(card), false);
-      setInteraction(!card.classList.contains('is-interactive'));
-    });
-    footer.append(number, interact);
+    footer.append(number, peek.button);
     card.append(header, viewport, description, footer);
-    card.setInteraction = setInteraction;
+    card.setInteraction = () => peek.close();
+    card.addEventListener('pointerenter', event => { if (event.pointerType !== 'touch') peek.open(); });
+    card.addEventListener('pointerleave', () => { if (!card.contains(document.activeElement)) peek.close(); });
+    card.addEventListener('focusin', () => peek.open());
+    card.addEventListener('focusout', event => { if (!card.contains(event.relatedTarget)) peek.close(); });
+    card.addEventListener('keydown', event => { if (event.key === 'Escape') { event.preventDefault(); peek.close(); } });
     card.previewTitle = title;
     rail.append(card);
     return card;
   });
   let filtered = cards;
 
-  // Only the current preview and immediate neighbors own live browsing contexts.
-  // Original sources live in an inert template, so there are no duplicate apps.
-  function loadNearby() {
-    const nearby = new Set(visible && !document.hidden ? filtered.slice(Math.max(0, active - 1), active + 2) : []);
-    for (const card of cards) {
-      const frame = card.querySelector('iframe');
-      if (nearby.has(card)) {
-        if (!frame.hasAttribute('src')) {
-          card.querySelector('.preview-loading').textContent = 'Loading live preview…';
-          frame.src = frame.dataset.src;
-        }
-      } else if (frame.hasAttribute('src')) {
-        card.setInteraction(false);
-        frame.removeAttribute('src');
-        card.classList.remove('is-loaded');
-      }
-    }
-  }
   function update() {
     queued = false;
     const center = rail.clientWidth / 2;
@@ -126,16 +73,16 @@
       const normalized = Math.max(-1, Math.min(1, distance / rail.clientWidth));
       card.style.setProperty('--angle', `${-normalized * 24}deg`);
       card.style.setProperty('--depth', `${-Math.abs(normalized) * 65}px`);
-      card.style.setProperty('--preview-scale', card.clientWidth / 1100);
+
     });
     for (const card of cards) {
       const current = card === filtered[active];
       card.classList.toggle('is-current', current);
-      if (!current) card.setInteraction(false);
+
     }
     jump.value = String(active);
     status.textContent = `${active + 1} / ${filtered.length}`;
-    loadNearby();
+
   }
   function schedule() { if (!queued) { queued = true; requestAnimationFrame(update); } }
   function go(index, smooth = true) {
@@ -164,8 +111,7 @@
   });
   rail.addEventListener('scroll', schedule, { passive: true });
   new ResizeObserver(schedule).observe(rail);
-  new IntersectionObserver(entries => { visible = entries[0].isIntersecting; loadNearby(); }).observe(rail);
-  document.addEventListener('visibilitychange', loadNearby);
+
   rebuildJump();
   update();
 })();
