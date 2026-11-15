@@ -1,5 +1,31 @@
 # HappyBearLandia implementation plan
 
+## SHE-579 — ephemeral World co-exploration audit (2026-11-14)
+
+Analysis only; camera/checkpoint collaboration is not implemented. Audited the
+World renderers, immutable experiment persistence, replay contract, existing game
+and party WebSocket services, and open PR filename inventories. No duplicate
+co-exploration PR was found; camera/gamepad/keyboard PRs 339–341 overlap the
+prospective World integration. Findings and the next bounded slice are recorded
+in [SHE-579 review](reviews/SHE-579.md).
+
+Next tasks: versioned read-only camera/checkpoint envelope and resolver; separate
+anonymous ephemeral room protocol using Bun transport patterns; opt-in World UI
+and coordinated camera adapter; disposable two-context integration and browser
+evidence. Protect exact checkpoint identity/hash, source authority, clocks and
+privacy. A single pinned checkpoint alone is insufficient for selected-checkpoint
+synchronization acceptance. Hosted service activation remains outside scope.
+
+Actual checks against unchanged application code: Bun focused invocation had
+26 passes, 2 failures and 1 error (194 assertions). Camera imports lack `three`;
+the real WebSocket integration cannot bind ephemeral port 0 (`EADDRINUSE`).
+Merge-policy fixture tests passed 79/79. No root lint/typecheck script exists.
+Browser checks skipped due to setup blockers; pre-existing before captures were
+preserved but not validated and no after evidence is claimed. Implementation and
+acceptance remain pending. Existing auto-merge safety hold and all governance
+files are unchanged; no live services, messages, merges or deployments occurred.
+No commit/PR reference yet.
+
 ## SHE-388 — rainbow text title (2026-11-14)
 
 Implemented a CSS-only pastel hue rotation on the existing homepage title,
