@@ -9289,6 +9289,30 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
 
+## SHE-523 — public square presentation (2026-11-14)
+
+Slice: hub-linked square reading locally imported `culture.v1` snapshots, plus
+explicit player-authored fictional festival tours. Reuse culture IDs, seed and
+minute intervals; never infer gatherings from construction or aggregate metrics.
+Tasks: bounded read-only adapter; static accessible stage/crowd; focused import,
+interval, navigation and disposal tests; desktop/mobile before/after evidence.
+Prerequisites: native culture snapshot supplied locally; no cross-model mapping.
+Acceptance: IDs/timestamps and synthetic/source labels; empty/error paths;
+keyboard controls; hard decorative cap; reduced motion; no model mutation.
+Risks: imported files cannot be authenticated; retained history is incomplete;
+static schematic figures are neither real locations nor attendance measurements.
+Status and verification will be recorded in `docs/reviews/SHE-523.md`.
+
+SHE-523 delivered a hub-linked static square and native `culture.v1` local snapshot
+adapter plus explicit fictional tours. 14 focused tests pass (604 assertions),
+3-module browser bundle and syntax/whitespace checks pass. Source/model state is
+unchanged. Browser acceptance remains open: server binds failed on 3000/54523 and
+Chromium launch failed with macOS bootstrap permission denial before any page.
+No new screenshot evidence claimed. Native snapshot acquisition needs an external
+artifact; automatic live/saved-run integration is not delivered. See
+[review and exact prerequisites](reviews/SHE-523.md) and square README. Existing
+autonomous merge safety hold and review/voting requirements remain unchanged.
+
 ## SHE-510 — exact sampled-future travel audit (2026-11-14)
 
 Analysis only; implementation and acceptance remain open. The current worlds

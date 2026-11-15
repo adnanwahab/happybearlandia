@@ -1,0 +1,11 @@
+section { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit,minmax(min(100%,16rem),1fr)); }
+#record-controls { display: grid; gap: .7rem; }
+[hidden] { display: none !important; }
+.square { border: 1px solid var(--border); border-radius: 1rem; background: repeating-linear-gradient(90deg,#243e35 0 39px,#2b473d 40px); padding: 1.5rem; min-height: 18rem; overflow: hidden; }
+.stage { margin: auto; text-align: center; max-width: 22rem; padding: 2rem .5rem; background: #64533e; border-top: .7rem solid #c8ec9c; color: #fff9db; font-weight: bold; }
+#crowd { display: grid; grid-template-columns: repeat(12,1fr); gap: .6rem; max-width: 35rem; margin: 1.5rem auto 0; }
+.figure { display: block; height: 1.5rem; width: .75rem; border-radius: 45% 45% 20% 20%; background: #e9bc81; margin: auto; }
+.figure:nth-child(3n) { background: #a4ccbf; }
+.square[data-view="stage"] #crowd { max-width: 20rem; }
+#receipt, #provenance { overflow-wrap: anywhere; }
+input,select { min-height: 44px; }
