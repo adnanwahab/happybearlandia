@@ -1,0 +1,32 @@
+bun test v1.4.2 (744846f84)
+
+test/neighborhood-blueprint.test.js:
+(pass) export/import retains source, units, bounded edits, cosmetics and deterministic City replay [57.27ms]
+(pass) reject incompatible and malformed payloads atomically, with no silent dropping or coercion [0.64ms]
+(pass) canonical export ignores edit order and enforces boundary settings [0.09ms]
+(pass) supported parcel identities match the source fixture and maximum compatible design stays bounded [6.70ms]
+
+test/reverse-simulator.test.js:
+(pass) search enumerates compatible catalog options within budget and counts omissions [7.11ms]
+(pass) a feasible search reports real same-seed monthly results and exact future links [238.04ms]
+(pass) unmet searches expose honest fallbacks and the frontier keeps housing trade-offs [22.18ms]
+(pass) the largest search can admit the full compatible catalog within a sufficient budget [3.41ms]
+
+test/reality-breakpoints.test.js:
+(pass) the first hit stops the City engine at the exact step and retains original evidence [22.17ms]
+(pass) comparison boundaries, initial-state exclusion, no hit, and invalid input [5.00ms]
+(pass) changing the threshold or plan reruns against fresh City state [8.99ms]
+
+test/city-invention-plan.test.js:
+(pass) City plans preserve compatible policies and replay their exact simulated commute [29.94ms]
+(pass) a plan can stop after the exact first matching month and validates its supported input space [13.15ms]
+
+test/worldline-merge.test.js:
+(pass) merge runs independent baseline, source, and merged City policies from the same seed [122.38ms]
+(pass) shared policies deduplicate while competing scopes and incompatible runs fail [62.73ms]
+(pass) future links are decoded locally and require a unique versioned recipe [0.10ms]
+
+ 16 pass
+ 0 fail
+ 202 expect() calls
+Ran 16 tests across 5 files. [620.00ms]
