@@ -5,6 +5,11 @@
   const status = document.getElementById('carousel-status');
   const catalog = document.getElementById('preview-catalog');
   if (!rail || !catalog) return;
+  const {mountPreviewSwipe} = await import('/tools/preview-swipe.js');
+  const {createMediaPreferences} = await import('/shared/media/preferences.js');
+  const preferences = createMediaPreferences(window);
+  const reduced = () => preferences.get().reducedMotion;
+  const prev = document.getElementById('carousel-prev'), next = document.getElementById('carousel-next');
   const categories = { worlds: '3D Worlds', living: 'Living Simulations', science: 'GPU Science', games: 'Games', tools: 'Tools' };
   const {EXPERIENCES}=await import('/world/universe/registry.js');
   const templates=[...catalog.content.querySelectorAll('section[data-carousel]')];
@@ -133,32 +138,41 @@
       card.classList.toggle('is-current', current);
       if (!current) card.setInteraction(false);
     }
+    prev.setAttribute('aria-disabled', String(active === 0));
+    next.setAttribute('aria-disabled', String(active === filtered.length - 1));
     jump.value = String(active);
     status.textContent = `${active + 1} / ${filtered.length}`;
     loadNearby();
   }
   function schedule() { if (!queued) { queued = true; requestAnimationFrame(update); } }
   function go(index, smooth = true) {
-    index = (index + filtered.length) % filtered.length;
+    index = Math.max(0, Math.min(filtered.length - 1, index));
     const card = filtered[index];
-    rail.scrollTo({ left: card.offsetLeft - (rail.clientWidth - card.offsetWidth) / 2, behavior: smooth && !matchMedia('(prefers-reduced-motion: reduce)').matches ? 'smooth' : 'instant' });
+    rail.scrollTo({ left: card.offsetLeft - (rail.clientWidth - card.offsetWidth) / 2, behavior: smooth && !reduced() ? 'smooth' : 'instant' });
     schedule();
   }
   function rebuildJump() {
     jump.replaceChildren(...filtered.map((card, index) => new Option(`${index + 1}. ${card.previewTitle}`, String(index))));
   }
+  const cancelSwipe = mountPreviewSwipe(rail, {getIndex: () => active, go, reduced});
+  preferences.subscribe(state => {
+    rail.classList.toggle('reduced-motion', state.reducedMotion);
+    if (state.reducedMotion) { cancelSwipe(); go(active, false); }
+  });
   categorySelect.addEventListener('change', () => {
+    cancelSwipe();
     filtered = cards.filter(card => categorySelect.value === 'all' || card.dataset.category === categorySelect.value);
     cards.forEach(card => { card.hidden = !filtered.includes(card); card.setInteraction(false); });
     active = 0;
     rebuildJump();
     go(0, false);
   });
-  document.getElementById('carousel-prev').addEventListener('click', () => go(active - 1));
-  document.getElementById('carousel-next').addEventListener('click', () => go(active + 1));
+  // aria-disabled keeps edge controls in the tab order, so focus never drops.
+  prev.addEventListener('click', () => go(active - 1));
+  next.addEventListener('click', () => go(active + 1));
   jump.addEventListener('change', () => go(Number(jump.value), false));
   rail.addEventListener('keydown', event => {
-    if (event.target !== rail) return;
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || (event.target !== rail && event.target.closest('a,button,input,select,textarea,iframe'))) return;
     if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); go(active + (event.key === 'ArrowRight' ? 1 : -1)); }
     if (event.key === 'Home' || event.key === 'End') { event.preventDefault(); go(event.key === 'Home' ? 0 : filtered.length - 1, false); }
   });
