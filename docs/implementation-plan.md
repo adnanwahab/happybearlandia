@@ -9188,3 +9188,28 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-585 — opt-in journey showcase (2026-11-14)
+
+Bounded slice: reuse immutable Reality shares and exact `/r/:id` replay. Add
+separate hashed owner capabilities, explicit showcase consent and withdrawal,
+manual editorial selection pinned to consent revision and source digest, and
+a lightweight `/routes` gallery. No live enrollment or invented examples.
+Acceptance: default private; wrong owner denied; withdrawal/expiry suppresses
+listing; re-consent needs new review; only validated replay-reviewed exact
+sources appear; keyboard, mobile, empty and unavailable states checked.
+Prerequisites: real consented submissions and private editorial review before
+any public entries; existing 30-day source expiry remains authoritative.
+One coding worker; preserve model rules, clocks, seeds and governance.
+
+Local status: implemented consent/withdrawal and manual selection foundation,
+with an intentionally empty public selection. Actual source/SQLite/replay and
+regression checks passed: 35 tests / 513 assertions. Syntax and diff checks
+passed; no root JS typecheck/lint command exists. Browser cases discovered but
+execution blocked by server EADDRINUSE and independent Chromium Mach-port denial;
+no before/after `/routes` evidence was produced. Existing homepage catalog test
+fails 32 vs 33 on unchanged base files; server smoke cannot start. Real consented
+submissions, editorial privacy review and browser/HTTP acceptance remain pending.
+No model/ODD changes; configured auto-merge hold and voting gates preserved.
+Audit, PR overlap, commands and prerequisites: [SHE-585 review](reviews/SHE-585.md).
+No commit/PR, deployment, merge or production data changes.
