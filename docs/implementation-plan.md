@@ -9188,3 +9188,26 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-587 — fun suite accessibility certification audit (2026-11-14)
+
+Status: partial analysis-only audit; acceptance remains open. Native portals,
+radial actions, lasso, gamepad, timeline chapters and photo mode are owned by
+open PRs #325/#331/#330/#340/#334/#367; shared motion is #324. Avoid duplicated
+implementation before renderer/interface integration. No runtime changes.
+
+Next slice: refresh/pin incoming heads, reconcile shared renderer changes, then
+run pinned axe and normal-entry keyboard/reduced-motion checks on home, bounded
+World and Future Machine, including missing/unavailable states and low-end
+fallbacks. Prerequisites: integrated native features, working local browser/server
+host, axe tooling and human screen-reader evaluator. Acceptance requires recorded
+focus/caption/contrast/equivalent-action evidence and actual AT output; screenshots
+and unit tests alone do not certify accessibility.
+
+Fresh existing-base checks: 27 tests passed, one skipped, zero failed, 167
+assertions. Playwright stopped before launch at server EADDRINUSE on port 39987.
+No axe, manual AT, after screenshots or full-suite pass claimed. Existing contrast
+and pointer-equivalence gaps remain. Root has no applicable lint/typecheck script.
+Audit, exact commands, ownership, manual protocol and preserved disabled automatic
+merge policy: [SHE-587 review](reviews/SHE-587.md). No commit/PR, external message,
+merge, deployment or production operation was performed.
