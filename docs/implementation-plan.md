@@ -9188,3 +9188,35 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-578 — bounded Causal Escape Room
+
+Next integrated slice: extend the existing Detective entry with the authored
+“extra homes” mystery, frozen allowlisted evidence and receipt, inspectable record
+identities, optional hints and accessible feedback. Keep all five existing cases
+and API contracts. No model, clock, seed, governance or production changes.
+Acceptance: solve from inventory/completion/WHY records, persist identical evidence
+across restart, reject unavailable/invalid evidence, keyboard/mobile/reduced-motion
+journey. Risks: recorded joins are not independent causal verification; anonymous
+saved-attempt links grant submission rights. One coding worker; no delegation.
+
+SHE-578 status: implemented local increment. Existing cases now freeze the
+allowlisted WHY graph and receipt at creation, verify graph integrity on reads,
+and check answers against recipe plus graph inventory/completion/unit counts.
+Readable records retain original identities and unavailable reasons; optional
+hints, fieldset labels, live feedback, reveal focus and a text-only responsive
+path are included. Updated detective contract and model inventory; audit and
+limitations are in `docs/reviews/SHE-578.md`.
+
+Acceptance evidence: `bun test test/detective.test.js
+ test/future-machine-evidence-trail.test.js test/future-machine-data.test.js`
+passed 15 tests / 216 assertions. JS syntax checks and `git diff --check` passed.
+No repository-wide lint/typecheck script exists; these are JavaScript changes.
+Browser tests were added but remain blocked by server EADDRINUSE at two ports;
+a direct Chromium fallback also failed with Mach bootstrap permission denied.
+Before/after detective screenshots and manual screen-reader verification remain
+outstanding. No browser performance measurement or accessibility certification
+is claimed. Next: run `bunx playwright test --config
+ test/detective.browser.config.js` on a host permitting browser/server startup,
+capture detective before/after evidence, and review the keyboard/screen-reader
+journey. No commit/PR, merge, deployment or governance changes performed.
