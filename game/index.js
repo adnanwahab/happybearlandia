@@ -3,6 +3,7 @@ import { createMediaPreferences, mountMediaControls } from '../shared/media/pref
 import { loadScene, loadSceneConversations } from './scene-loader.js';
 import { DebugRecorder } from './debug-recorder.js';
 import { createHoneyTrailView } from './honey-trail-view.js';
+import { toysForScene, createToyShelf, createJoltToyPhysics, mountToyShelf } from './toy-shelf.js';
 import initJolt from 'jolt-physics/wasm-compat';
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
@@ -4660,7 +4661,9 @@ if (!isGalleryRoute()) {
 
   // Stable IDs connect editable geometry to gameplay and multiplayer.
   const bodies = new Map();
-  for (const object of sceneData.objects) {
+  const toyObjects = toysForScene(sceneIdFromRoute(), sceneData.objects);
+  const toyBodies = new Map();
+  for (const object of [...sceneData.objects, ...toyObjects]) {
     const position = new Jolt.RVec3(...object.position);
     const rotation = new Jolt.Quat(...(object.rotation ?? [0, 0, 0, 1]));
     const halfExtent = new Jolt.Vec3(...object.size.map(size => size / 2));
@@ -4674,10 +4677,20 @@ if (!isGalleryRoute()) {
       object
     );
     bodies.set(object.id, body);
+    if (toyObjects.includes(object)) toyBodies.set(object.id, body);
     Jolt.destroy(position);
     Jolt.destroy(rotation);
     Jolt.destroy(halfExtent);
   }
+
+  const toyShelfView = honeyTrail ? mountToyShelf(document.getElementById('honey-trail'), createToyShelf({
+    physics: createJoltToyPhysics(Jolt, toyBodies, bodyInterface),
+    getPlayer: () => threeCharacter?.position,
+    getReducedMotion: () => mediaPreferences?.get().reducedMotion ?? false,
+  }), {
+    getPaused: () => window.__hblDialogActive === true || window.__hblPokerDialogActive === true,
+    getGamepads: () => navigator.getGamepads?.() ?? [],
+  }) : null;
 
   const isConstitutionNeighborhoodScene =
     isConstitutionNeighborhoodSceneRoute();
@@ -7308,6 +7321,7 @@ if (!isGalleryRoute()) {
     );
 
     honeyTrail?.update(threeCharacter.position, isInteractionDialogOpen ? 0 : deltaTime, time);
+    toyShelfView?.update(deltaTime);
 
     if (
       playerAnimationMixer &&

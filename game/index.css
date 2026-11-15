@@ -44,3 +44,10 @@ dialog::backdrop { background: #020617cc; }
   cursor: pointer;
 }
 #honey-trail button:focus-visible { outline: 3px solid white; outline-offset: 3px; }
+
+/* The shelf shares the existing HUD footprint; opening it stays scrollable. */
+#honey-trail { max-height: calc(100dvh - 100px); overflow-y: auto; }
+#toy-shelf { margin-top: 10px; border-top: 1px solid #b69a58; padding-top: 8px; }
+#toy-shelf summary { cursor: pointer; min-height: 32px; font-weight: 700; }
+#toy-shelf button { min-height: 44px; margin-right: 4px; }
+#toy-shelf button:disabled { opacity: 0.6; cursor: default; }

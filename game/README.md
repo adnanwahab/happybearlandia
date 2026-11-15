@@ -108,3 +108,35 @@ Character clips and collision audio use the [shared media pipeline](../shared/me
 The bottom-left settings expose reduced motion and persisted volume (muted by
 default). The shared loader enforces encoded-byte budgets before assets become
 playable; the bear importer additionally enforces decoded clip/track/key limits.
+
+## Physics toy shelf
+
+Scene 1's Honey Trail panel contains a collapsed **Physics toy shelf**. Open it
+and use Tumble, Stack or Reset toys with pointer or Tab/Enter. While the shelf is
+open, a standard mapped gamepad uses A (tumble), X (stack), Y (reset); held
+buttons trigger once. Closing the shelf or opening a conversation/poker dialog
+suppresses gamepad actions. Keyboard/pointer controls work without a gamepad API.
+
+Two local, authored boxes appear ahead and right of spawn at `[6, 0.65, 4]`
+and `[9, 0.65, 4]`. Walk into the tower after stacking. These are cosmetic physics
+toys, independent of civic outcomes, Honey Trail scoring, and the networked teal
+cube. They use existing Jolt box creation and mesh synchronization, add no audio,
+accounts, persistence, random seeds or multiplayer messages, and allocate no
+particles or extra animation loops. Two boxes are the fixed low-end budget;
+this is not a measured device-performance guarantee. Existing startup failure
+feedback applies when WebGL/Jolt is unavailable.
+
+`toy-shelf.js` owns authored v1 positions, velocity bounds and the Jolt adapter.
+Toys outside x `[3,13]`, z `[1,10]`, y `[-2,12]` return to authored positions with
+identity rotation and zero linear/angular velocity. Resets choose an alternate
+position if the player is within three metres, and defer if neither candidate
+is safe. Buttons debounce for 0.75 active seconds. Reduced motion suppresses
+Tumble and clears existing spin when enabled; Stack/Reset and ordinary gravity
+remain available. This does not claim deterministic physics replay.
+
+Source scene objects retain their IDs: if an edited scene conflicts with either
+runtime toy ID, no toy bodies are added and the shelf explains unavailability.
+Other scenes have no shelf. The scene JSON and networked cube are unchanged.
+Verify with `bun test test/toy-shelf.test.js test/honey-trail.test.js
+test/scene.test.js test/game-sounds.test.js` and
+`bunx playwright test test/e2e/toy-shelf.e2e.js test/e2e/game.e2e.js`.

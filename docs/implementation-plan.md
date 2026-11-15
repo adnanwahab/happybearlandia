@@ -9188,3 +9188,30 @@ Local daylight preference: initial renderer presentation now selects Daylight (1
 ## SHE-11 integrated sprint verification (2026-11-14)
 
 PR321 integrated at `e41b334f` with explicit operator review and the existing software-renderer FPS exception. PR322 now includes that sprint and preserves publisher evidence. Actual native WebGPU/WebGL2/Canvas cold-start runs pass with no page/request errors;18focused tests/91assertions pass. Raw reports/screenshots and measurement limitations: [SHE-11 host review](reviews/SHE-11-sprint-host-20261114.md). Hosted checks and PR322 merge remain required before issue completion. SHE-40 budget pin/enforcement remains unresolved. No assignment/approval changes or production deployment.
+
+## SHE-573 — local physics toy shelf
+
+Next bounded slice (2026-11-14): two authored local Jolt boxes in scene 1,
+reusing box construction and body synchronization, with tumble, stack and reset
+controls in the Honey Trail panel. Preserve the networked teal cube, challenge,
+scene IDs and every civic model/run contract. No account or additional audio.
+Tasks: bounded physics adapter; accessible collapsed shelf and standard-gamepad
+edge controls; integrate update/pause/preferences; focused regression tests.
+Acceptance: zero-velocity safe resets, bounded population and positions, no
+repeat-held actions, missing-body feedback, reduced-motion alternative, keyboard
+focus and small-screen overflow protection. Risks: unavailable browser sockets,
+collisions near the player, scene edits invalidating authored toy area. Two boxes
+are the fixed low-end budget; particle physics adds no social model to ODD.
+
+Status: bounded implementation complete; acceptance still awaits real browser
+verification. Added `game/toy-shelf.js`, integrated existing box creation/frame
+updates, and documented assumptions and controls. Seven focused toy tests plus
+12 existing regressions passed: 19 tests / 111 assertions, including native Jolt
+launch/respawn and DOM/input/missing-state coverage. Browser-target engine and
+normal React-entry builds, JS syntax and whitespace checks passed. No root
+lint/typecheck command exists for this JavaScript surface. Focused Playwright
+journeys added but blocked before execution by denied local server sockets
+(native Bun retry included). Feature-relevant before/after evidence is missing;
+pre-existing screenshots cover other routes. Audit, preserved merge/voting
+policy, paths checked, limitations and exact next action: `docs/reviews/SHE-573.md`.
+No remote mutations, PR, commit, merge, deployment or production writes performed.

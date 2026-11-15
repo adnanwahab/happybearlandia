@@ -135,3 +135,11 @@ model uncertainty. Current single-run frames are modeled values, not sampled
 probabilities. No calibrated uncertainty interval is available. Selection shows
 recipe/model versions, backend, seed, arm, step, rain input and synthetic-source
 limitations. With Canvas2D unavailable, the textual selected-cell reading remains.
+
+The Honey Trail panel also offers a collapsed physics toy shelf: two authored,
+local box toys with tumble, stack and safe reset actions. These cosmetic physics
+interactions have no civic outcome, run, clock, seed or scoring authority.
+Keyboard buttons and standard gamepad actions share the same bounded rules.
+Reduced motion suppresses tumbling while retaining stacking and resets; toys
+add no sound or particle effects. See `game/README.md` for authored assumptions,
+controls, respawn boundaries and unavailable states.
