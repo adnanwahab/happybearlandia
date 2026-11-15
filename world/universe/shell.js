@@ -99,7 +99,7 @@ if (root) {
     const app = getExperience(id);
     disconnect(); stage.replaceChildren(); active = app || null;
     if (push) history.pushState(null,'',shellURL(app?.id,context));
-    if (!app) { if (id) status.textContent = 'Unknown experience. Choose an entry from the directory.'; return; }
+    if (!app) { root.querySelector('#universe-search').focus({preventScroll:true}); if (id) status.textContent = 'Unknown experience. Choose an entry from the directory.'; return; }
     const heading = document.createElement('h3'); heading.textContent = app.title;
     const standalone = link('Open standalone ↗',contextURL(app.route,context));
     const close = document.createElement('button'); close.textContent = 'Close experience'; close.type = 'button';
@@ -112,6 +112,8 @@ if (root) {
       standalone.href = contextURL(app.route,context);
     },onNavigate:activate});
     stage.append(heading,standalone,close,frame);
+    heading.tabIndex = -1;
+    heading.focus({preventScroll:true});
     stage.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});
   }
   root.addEventListener('click',event=>{
