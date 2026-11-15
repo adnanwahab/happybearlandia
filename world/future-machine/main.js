@@ -41,7 +41,7 @@ function firstInput(control){recordLanding();recordMilestone('first_input',{cont
 function recordVisibleDivergence(){if(!['ready','error'].includes(state.status))return;const facts=visibleDivergence(history,diffs,state.month);if(facts)recordMilestone('first_divergence',{facts});}
 let originalRecipe=structuredClone(DEFAULT_RECIPE);
 let history=null,diffs=[],story=null,stage=null,storyDispose=()=>{},request=null,playTimer=null,disposed=false;
-let state={status:'idle',preview:false,message:'Fork the same city. Change one decision. Watch ten modeled years.',recipe:structuredClone(DEFAULT_RECIPE),month:0,playing:false,mode:'split',ghosts:true,autoCamera:true,experimentId:null,shareURL:null,error:null};
+let state={status:'idle',preview:false,message:'Fork the same city. Change one decision. Watch ten modeled years.',recipe:structuredClone(DEFAULT_RECIPE),month:0,playing:false,eventSlowdown:false,mode:'split',ghosts:true,autoCamera:true,experimentId:null,shareURL:null,error:null};
 let remembering=false;
 const demoTiming=createDemoTiming();
 let entryClick=consumeDemoClick(),timingFrame=null;
@@ -63,7 +63,7 @@ function measureVisibleDemo(generation,warm,activeStage){
 }
 const stats={startedAt:performance.now(),readyMs:null,runMs:null,evidenceTrailBuilds:0};
 app.replaceChildren();
-const ui=createUI(app,{onFollowFamily:id=>stage?.followHousehold(id),onRetry:async()=>{if(!lastAttempt)return;takeover();try{await run(...lastAttempt);}catch{/* run already presents strict receipt errors. */}},onRun:recipe=>{firstInput('policy');takeover();return run(recipe,null,0,{userRun:true});},onConfigure:configure,onReset:resetConfiguration,onCancel:cancel,onMonth:manualMonth,onPlay:manualPlay,onDemo:()=>{firstInput('playback');return playDemo();},onAutoCamera(value){firstInput('scenario');state.autoCamera=value;stage?.cancelCamera?.();update();},onDemoPause:()=>{firstInput('playback');director.togglePause();},onDemoManual:()=>{firstInput('playback');takeover();},onDemoSkip:()=>{firstInput('playback');director.skip();},onMetric:explainMetric,onMode(mode){firstInput('scenario');takeover();state.mode=mode;stage?.setMode(mode);update();},onGhosts(value){firstInput('scenario');takeover();state.ghosts=value;stage?.setGhosts(value);update();},onFirstConstruction:()=>jump(state.firstConstruction),onDirector:direct,onShare:share,onPreviewShare:previewShare,onCopyShare:copyShare,onBrowserShare:typeof navigator.share==='function'?browserShare:undefined,onExport:exportReport,onRemember:remember,onClearRecent:resetRecent,onCard:()=>downloadShareCard(history,state.month)});
+const ui=createUI(app,{onFollowFamily:id=>stage?.followHousehold(id),onRetry:async()=>{if(!lastAttempt)return;takeover();try{await run(...lastAttempt);}catch{/* run already presents strict receipt errors. */}},onRun:recipe=>{firstInput('policy');takeover();return run(recipe,null,0,{userRun:true});},onConfigure:configure,onReset:resetConfiguration,onCancel:cancel,onMonth:manualMonth,onPlay:manualPlay,onEventSlowdown(value){state.eventSlowdown=Boolean(value);update();},onDemo:()=>{firstInput('playback');return playDemo();},onAutoCamera(value){firstInput('scenario');state.autoCamera=value;stage?.cancelCamera?.();update();},onDemoPause:()=>{firstInput('playback');director.togglePause();},onDemoManual:()=>{firstInput('playback');takeover();},onDemoSkip:()=>{firstInput('playback');director.skip();},onMetric:explainMetric,onMode(mode){firstInput('scenario');takeover();state.mode=mode;stage?.setMode(mode);update();},onGhosts(value){firstInput('scenario');takeover();state.ghosts=value;stage?.setGhosts(value);update();},onFirstConstruction:()=>jump(state.firstConstruction),onDirector:direct,onShare:share,onPreviewShare:previewShare,onCopyShare:copyShare,onBrowserShare:typeof navigator.share==='function'?browserShare:undefined,onExport:exportReport,onRemember:remember,onClearRecent:resetRecent,onCard:()=>downloadShareCard(history,state.month)});
 const receiptUI=mountReplayReceipt(app,{getContext:()=>({history,month:state.month}),onReopen:input=>{takeover();return run(null,null,0,{receiptInput:input});}});
 const followUp=createFollowUp(app,{onAccept:recipe=>{firstInput('policy');takeover();return run(recipe,null,0,{userRun:true});}});
 const quest=createDiscoveryQuest();
@@ -182,7 +182,24 @@ function landingContext(){
 }
 function updateURL(){if(!history)return;state.shareURL=createShareURL({recipe:history.recipe,experimentId:history.experimentId,month:state.month,landing:landingContext()},location.href.split('#')[0]);if(state.challengeHash&&state.month===state.challengeMonth)state.shareURL+=state.challengeHash;if(location.href!==state.shareURL)try{window.history.replaceState(null,'',state.shareURL);}catch{state.message='Comparison link is ready to share; the browser could not update the address bar.';}persistRecent();}
 function setMonth(month,{reanchor=false}={}){if(!history)return;try{state.month=assertMonth(Number(month));if(history){state.frame=frame();state.diff=diffs[state.month];stage.update(state.frame,state.diff);if(inspectorMetric)explainMetric(inspectorMetric,false,{preserveTrail:!reanchor});else if(inspectorEntity&&reanchor)showStory(withContext(entityDescription(inspectorEntity)));else trailView?.update(state.month);}recordVisibleDivergence();update();}catch(error){state.error=error.message;update();}}
-function setPlaying(value){const wasPlaying=state.playing;clearInterval(playTimer);playTimer=null;state.playing=Boolean(value&&history);if(state.playing){if(state.month===MONTHS)setMonth(0);playTimer=setInterval(()=>{if(state.month>=MONTHS)return setPlaying(false);setMonth(state.month+1);},200);}else{updateURL();if(wasPlaying)outcomeTimeline?.update(state.month,{announce:true});}update();}
+function setPlaying(value){
+ const wasPlaying=state.playing;clearInterval(playTimer);playTimer=null;
+ state.playing=Boolean(value&&history);
+ if(state.playing){
+  if(state.month===MONTHS)setMonth(0);
+  // Editorial windows reuse exact recorded event months, never model time or inputs.
+  const windows=selectMoments(history,{limit:100}).filter(moment=>['construction','goal-conflict'].includes(moment.kind));
+  let held=0;
+  playTimer=setInterval(()=>{
+   if(state.month>=MONTHS)return setPlaying(false);
+   const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+   const slow=state.eventSlowdown&&!reduced&&windows.some(moment=>Math.abs(moment.month-state.month)<=1);
+   if(++held<(slow?4:1))return;
+   held=0;setMonth(state.month+1);
+  },200);
+ }else{updateURL();if(wasPlaying)outcomeTimeline?.update(state.month,{announce:true});}
+ update();
+}
 function select(entity){if(!history){
  const row=state.preview&&state.frame?.baseline?.state?.[entity?.collection]?.find(row=>row.id===entity.id);
  if(row){firstInput('scenario');takeover();stage.focus(entity);showStory({title:`Initial snapshot · ${entity.id}`,summary:`Month 0 · seed ${state.provenance.seed} · model ${state.provenance.modelVersion} · dataset ${state.provenance.datasetVersion}. Synthetic starting inventory; future outcomes and event receipts are unavailable.`,evidence:[],limitations:[`Initial inventory record: ${JSON.stringify(row)}`]});}

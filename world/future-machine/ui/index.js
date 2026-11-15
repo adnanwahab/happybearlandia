@@ -225,6 +225,13 @@ export function createUI(container, callbacks = {}) {
 
   const storyElement=doc.createElement('section');storyElement.className='fm-story';storyElement.dataset.testid='future-machine-why';storyElement.setAttribute('aria-label','Recorded change story');shell.querySelector('.fm-inspectors').after(storyElement);
   const actions=shell.querySelector('.fm-timeline .fm-actions');
+  const slowdownLabel=doc.createElement('label');
+  const slowdown=doc.createElement('input');slowdown.type='checkbox';slowdown.dataset.testid='event-slowdown';
+  slowdown.onchange=()=>callbacks.onEventSlowdown?.(slowdown.checked);
+  slowdownLabel.append(slowdown,doc.createTextNode(' Slow recorded event windows'));
+  slowdownLabel.title='Optional timelapse: hold each recorded month near construction or household stress events for 800 ms instead of 200 ms. Reduced motion keeps normal timing. No simulation changes. Guided demo keeps its own timing.';
+  const slowdownHelp=doc.createElement('small');slowdownHelp.textContent='Timelapse only: 800 ms per month near recorded events; otherwise 200 ms. Reduced motion keeps normal timing. No events means normal speed.';
+  actions.append(slowdownLabel,slowdownHelp);
   const demoPanel=doc.createElement('section');demoPanel.className='fm-demo';demoPanel.setAttribute('aria-label','Guided demo');
   const demo=doc.createElement('button');demo.type='button';demo.className='fm-primary fm-demo-play';demo.textContent='Play Demo';demo.dataset.testid='future-machine-demo';demo.onclick=()=>callbacks.onDemo?.();
   const demoPause=doc.createElement('button');demoPause.type='button';demoPause.textContent='Pause demo';demoPause.onclick=()=>callbacks.onDemoPause?.();demoPause.hidden=true;
@@ -284,6 +291,7 @@ export function createUI(container, callbacks = {}) {
     autoCamera.checked=current.autoCamera!==false;
     reset.disabled=configurationBusy || !callbacks.onReset;
     const demoState=current.demo || {};
+    slowdown.checked=Boolean(current.eventSlowdown);slowdown.disabled=busy||!current.frame||current.preview||!callbacks.onEventSlowdown;
     const demoActive=['playing','running','paused','preparing','loading'].includes(demoState.status);
     demo.disabled=!callbacks.onDemo;demo.textContent=demoActive?'Restart Demo':demoState.status==='complete'?'Replay Demo':'Play Demo';demoSkip.hidden=!demoActive;demoSkip.disabled=busy || demoState.status==='preparing' || !callbacks.onDemoSkip;
     demoPause.hidden=!demoActive;demoPause.disabled=!callbacks.onDemoPause;demoPause.textContent=demoState.paused?'Resume demo':'Pause demo';demoPause.setAttribute('aria-pressed',String(!!demoState.paused));
