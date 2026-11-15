@@ -1,5 +1,6 @@
+import { savePrivateRemix } from './remix.js';
 import { listLivingSaves } from '../timeline-braids/comparison.js';
-import { checkpointLineage, compareRainFork, inspectFuture, readFuture, saveRainFork } from './model.js';
+import { checkpointLineage, compareRainFork, inspectFuture, readFuture } from './model.js';
 import { journeySelection, journeyURL } from './navigation.js';
 
 const find = id => document.getElementById(id);
@@ -30,6 +31,9 @@ function paint() {
   open.elements.person.value = person;
   find('record-title').textContent = source.record.save.label;
   find('clock').textContent = `Tick ${selection.tick} · Minute ${selection.minute} · Population ${selection.modelVersion}`;
+  const remix = source.record.save.view.remix;
+  find('lineage').textContent = remix ? `Credit: ${remix.credit.label} (${remix.credit.id}) · Parent ${remix.recipe.parentId} · Model ${remix.recipe.modelVersion} · Seed ${remix.recipe.seed} · Tick ${remix.recipe.sourceTick} · ${remix.summary} · Private to this browser` : `Source credit: ${source.record.save.label} (${source.record.id})`;
+  for (const surface of ['world', 'house']) find(surface).hidden = source.record.id.startsWith('remix_');
   find('facts').textContent = `${selection.name} · ${selection.household} · ${describe(selection)}`;
   const context = new URLSearchParams(location.search);
   context.set('future', checkpoints.at(-1).record.id);
@@ -96,6 +100,7 @@ find('demo').onclick = async () => {
 fork.onsubmit = async event => {
   event.preventDefault();
   const source = checkpoints[Number(timeline.value)];
+  const current = generation;
   const selected = person;
   const rain = fork.elements.rain.valueAsNumber;
   const button = fork.querySelector('button');
@@ -104,7 +109,8 @@ fork.onsubmit = async event => {
   find('fork-status').textContent = 'Restoring both copies and running one fixed step…';
   try {
     const result = await compareRainFork(source, selected, rain);
-    const { record } = await saveRainFork(source, selected, rain, result);
+    const { record } = await savePrivateRemix(source, selected, rain, result, {summary: fork.elements.summary.value, visibility: fork.elements.visibility.value});
+    if (generation !== current) return;
     await load(record.id, record.id, selected);
     find('fork-status').textContent = 'Saved the edited child. The original checkpoint is unchanged.';
   } catch (error) {
