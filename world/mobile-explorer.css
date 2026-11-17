@@ -1,0 +1,15 @@
+#mobile-explorer{position:fixed;z-index:80;width:244px;box-sizing:border-box;padding:6px;border:1px solid #7fa593;border-radius:16px;background:#102c29f2;color:#fff;font:12px system-ui;user-select:none;touch-action:none;max-width:calc(100vw - 16px);max-height:calc(100dvh - 16px)}
+#mobile-explorer[hidden]{display:none!important}
+#mobile-explorer button,#mobile-explorer [data-stick]{touch-action:none;box-sizing:border-box;border:1px solid #91b7a9;background:#234b42;color:#fff;border-radius:10px;min-height:44px;font:14px system-ui}
+#mobile-explorer button:focus-visible,#mobile-explorer [data-stick]:focus-visible{outline:3px solid #ffe184;outline-offset:2px}
+#mobile-explorer [data-drag]{width:100%;cursor:move;font-size:12px}
+#mobile-explorer .thumb-row{display:flex;align-items:center;gap:8px;margin-top:6px}
+#mobile-explorer [data-stick]{width:112px;height:112px;flex-shrink:0;display:grid;place-items:center;overflow:hidden}
+#mobile-explorer [data-stick] span{display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:#578573;font-size:30px;pointer-events:none}
+#mobile-explorer .thumb-actions{display:grid;grid-template-columns:1fr 1fr;gap:5px;flex:1}
+#mobile-explorer [data-inspect]{grid-column:span 2;font-size:12px}
+#mobile-explorer output:empty{display:none}
+#mobile-explorer output{display:block;padding:4px}
+#mobile-explorer-settings label{display:flex;align-items:center;gap:8px;min-height:44px}
+#mobile-explorer-settings input[type=range]{max-width:130px}
+@media print{#mobile-explorer,#mobile-explorer-settings{display:none!important}}

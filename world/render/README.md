@@ -340,3 +340,28 @@ preserves those through coordinate projection. The readout labels transport road
 type and exact `osm:way` / `osm:node` references. Pipe, water, electricity and
 service networks have no spatial evidence adapter here: hatching always represents
 unknown coverage. The scanner adds no animation loop, model command or persistence.
+
+## One-handed touch explorer (SHE-784)
+
+In 3D `/world`, World controls → Touch explorer shows the session-only thumb dock
+(visible initially for coarse pointers). Hand switches the dock edge, Sensitivity
+scales its input, and Move controls supports pointer dragging or focused arrow
+keys within the viewport. The pad pans cardinal world axes with a five CSS-pixel
+deadzone and bounded diagonal magnitude. Focused arrows provide discrete steps;
+Inspect center and Zoom buttons support native keyboard activation and ≥44px
+hit targets. Ordinary scene touch and existing keyboard controls remain available.
+
+The host polls once in its existing frame loop with a 50ms delta cap. Camera
+movement reuses the gamepad adapter, map pan streaming hooks, distance limits and
+camera-speed setting; inspection reuses the primary-button center picker and its
+ambiguity chooser. Freeze/unavailable views refuse movement. Pointer cancellation,
+blur, hidden pages, resize and settings changes clear held input. Visible entity
+inspectors, tooltips and dialogs hide the dock rather than covering their text.
+There is no added tween, inertia, frame loop, model command, RNG, persisted setting
+or share record. Reduced motion uses the same immediate input path. The separate
+Canvas2D fallback does not mount this adapter.
+
+`bun test test/mobile-explorer.test.js test/map-controls.test.js test/gamepad-controls.test.js`
+covers deterministic input. Portrait/landscape component checks are in
+`test/mobile-explorer.browser.config.js`; actual verification and missing normal
+route/physical-device evidence are recorded in `docs/reviews/SHE-784.md`.

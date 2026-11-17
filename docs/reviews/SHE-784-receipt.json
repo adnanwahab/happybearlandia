@@ -1,0 +1,99 @@
+{
+  "issue": "SHE-784",
+  "date": "2026-11-17",
+  "baseHead": "7c7477997501ff40a9a47de45c9a79428203f3b6",
+  "scope": "Deterministic local input/DOM checks; no browser or physical device acceptance",
+  "sourceSHA256": {
+    "world/mobile-explorer.js": "d54b38bc9ea0ca5fa0cbb05af6c7a8b95f9621c30e31c97d6e67a11385fd2215",
+    "world/mobile-explorer.css": "58914a04d1f26390762d7c48e340b66d560d8bb96d1f47af333d10ef74e12266",
+    "world/render.js": "20cebb506eec2a30bf637a15bfca212575f4242140f33ad79b78a6bdae70a0a5",
+    "test/mobile-explorer.test.js": "62fba1fc555e1393bc3fc0d1098ee5d6e268f33879719b614bee43a99ee71175",
+    "test/e2e/mobile-explorer.e2e.js": "6bf2c248bfef040dbbc78c66d4c07136182a6b6e11cb622d7df52c2caf53d312",
+    "test/mobile-explorer.browser.config.js": "bc39ea8df191ecc50028392467ad2464b4eae4139277d21fb16ebb6f77b75ff1"
+  },
+  "checks": [
+    {
+      "command": [
+        "bun",
+        "test",
+        "test/mobile-explorer.test.js",
+        "test/map-controls.test.js",
+        "test/gamepad-controls.test.js",
+        "test/magnetic-picking.test.js",
+        "test/inspection-freeze.test.js"
+      ],
+      "exitCode": 0,
+      "output": "bun test v1.4.2 (744846f84)\n{\"benchmark\":\"gamepad-poll\",\"iterations\":100000,\"totalMs\":43.173207999999995}\n\ntest/mobile-explorer.test.js:\n(pass) joystick deadzone, finite input and diagonal speed are bounded [0.20ms]\n(pass) mounted input shares actions, caps time, resets on cancellation/blur/freeze and cleans up [1.64ms]\n(pass) hand, sensitivity, drag bounds, focus and hidden-page cancellation [0.41ms]\n\ntest/inspection-freeze.test.js:\n(pass) freezing retains capture identity without changing model tick or pause [0.08ms]\n(pass) unsupported and failed captures remain live [0.04ms]\n(pass) exact inspection does not select nearby silhouettes [0.08ms]\n(pass) World integration advances its model before the presentation gate and keeps the exact picker [0.19ms]\n\ntest/gamepad-controls.test.js:\n(pass) deadzone rejects drift and malformed values [0.02ms]\n(pass) neutral gate, frame clamp, button edges, remapping, disconnect and replacement [0.27ms]\n(pass) empty, unsupported and denied API never moves [0.08ms]\n(pass) polling microbenchmark (synthetic input, excludes raycast/render) [43.26ms]\n\ntest/magnetic-picking.test.js:\n(pass) nearest visible hit wins independently of ID, with explicit near ties [0.38ms]\n(pass) hidden targets, off-canvas rays and outside-radius entities cannot steal a pick [0.04ms]\n(pass) exact visible geometry takes priority over expanded targets [0.04ms]\n(pass) ray hits from hidden ancestry and invisible materials are excluded [0.10ms]\n\ntest/map-controls.test.js:\n(pass) one-screen cardinal pans derive current frustum dimensions and preserve camera-target pose/zoom [0.78ms]\n(pass) near-horizon ground footprint is finite and orthographic zoom is respected [0.13ms]\n(pass) held arrows pan at time-based speed across frame rates and normalize diagonals [0.61ms]\n(pass) forms, contenteditable, modifiers, blur, visibility and destruction prevent keyboard capture/movement [0.08ms]\n(pass) accessible button pad pans locally and disabled controls cannot move [0.14ms]\n(pass) FPS uses actual rolling timestamps, resets after pauses, and mount has no independent loop [0.26ms]\n(pass) screen buttons, direct pans and every held-arrow movement notify the same geometry-streaming hook and event [0.10ms]\n(pass) pan distance stays target-centered and independent of far/horizon bounds [0.09ms]\n(pass) camera speed scales real-time keyboard motion [0.14ms]\n\n 24 pass\n 0 fail\n 172 expect() calls\nRan 24 tests across 5 files. [76.00ms]"
+    },
+    {
+      "command": [
+        "bun",
+        "build",
+        "world/render.js",
+        "--target",
+        "browser",
+        "--external",
+        "/vendor/*",
+        "--external",
+        "/world/*",
+        "--outdir",
+        "/tmp/she784-build"
+      ],
+      "exitCode": 0,
+      "output": "Bundled 409 modules in 44ms\n\n  render.js  6.95 MB  (entry point)"
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "world/render.js"
+      ],
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "world/mobile-explorer.js"
+      ],
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "test/e2e/mobile-explorer.e2e.js"
+      ],
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exitCode": 0,
+      "output": ""
+    }
+  ],
+  "browser": {
+    "status": "blocked-before-test-body",
+    "attemptedViewports": [
+      [
+        320,
+        640
+      ],
+      [
+        640,
+        320
+      ]
+    ],
+    "reason": "Chrome SIGABRT at launch; cleanup EPERM",
+    "normalRoute": "Server failed EADDRINUSE at ports 3000 and 42187",
+    "screenshots": "No after screenshot captured; existing before evidence preserved"
+  },
+  "modelResults": "None produced or changed"
+}
