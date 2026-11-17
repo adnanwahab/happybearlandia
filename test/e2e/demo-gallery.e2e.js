@@ -1,0 +1,55 @@
+import { test, expect } from '@playwright/test';
+for (const [name, size, columns] of [['desktop', { width: 1440, height: 1000 }, 3], ['mobile', { width: 390, height: 844 }, 1]]) {
+  test(`${name}: normal route, scrolling, media, filters and navigation`, async ({ page }) => {
+    await page.setViewportSize(size);
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    page.on('console', message => { if (message.type() === 'error' && /webgpu|gpuvalidation/i.test(message.text())) errors.push(message.text()); });
+    await page.goto('/');
+    await page.getByRole('link', { name: 'Demo gallery', exact: true }).click();
+    await expect(page).toHaveURL(/\/demo-gallery$/);
+    const gallery = page.locator('#gallery');
+    await expect(gallery.locator('article').first()).toBeVisible();
+    expect(await gallery.evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(columns);
+    expect(await gallery.evaluate(el => el.scrollHeight > el.clientHeight)).toBe(true);
+    expect(await page.locator('iframe').count()).toBe(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await gallery.focus();
+    await page.keyboard.press('End');
+    await expect.poll(() => gallery.evaluate(el => el.scrollTop)).toBeGreaterThan(0);
+    await page.locator('#collection').selectOption('home');
+    await expect(gallery.getByText('Image preview unavailable.', { exact: false })).toBeVisible();
+    await gallery.getByRole('button', { name: 'Video preview for Homepage previews' }).click();
+    const missing = gallery.locator('video');
+    await missing.evaluate(video => video.load());
+    await expect(gallery.getByText('Video preview unavailable.', { exact: false })).toBeVisible();
+    await page.locator('#collection').selectOption('all');
+    await page.locator('#search').fill('One City, Two Futures');
+    const card = gallery.locator('article');
+    await expect(card.locator('img')).toBeVisible();
+    await expect.poll(() => card.locator('img').evaluate(img => img.complete && img.naturalWidth > 0)).toBe(true);
+    await card.getByRole('button', { name: 'Video preview for One City, Two Futures' }).click();
+    const video = card.locator('video');
+    expect(await video.evaluate(v => v.controls && !v.autoplay && v.preload === 'none' && Boolean(v.poster))).toBe(true);
+    await video.evaluate(v => v.load());
+    await expect.poll(() => video.evaluate(v => v.readyState)).toBeGreaterThan(0);
+    await video.evaluate(v => v.play());
+    await expect.poll(() => video.evaluate(v => v.currentTime)).toBeGreaterThan(0);
+    await video.evaluate(v => v.pause());
+    await page.locator('#search').fill('no-such-demo-999');
+    await expect(page.locator('#empty')).toBeVisible();
+    await page.locator('#search').fill('Rainbow brain');
+    await page.locator('#collection').selectOption('visualizations');
+    await expect(gallery.getByText('No preview yet.', { exact: false })).toBeVisible();
+    await page.screenshot({ path: `/private/tmp/SHE-999-${name}.png` });
+    await gallery.getByRole('link', { name: 'Open Rainbow brain' }).click();
+    await expect(page).toHaveURL(/\/visualizations\/rainbow-brain.html$/);
+    expect(errors).toEqual([]);
+  });
+}
+test('manifest failure offers a route directory fallback', async ({ page }) => {
+  await page.route('**/tools/demo-gallery/manifest.js', route => route.abort());
+  await page.goto('/demo-gallery');
+  await expect(page.getByRole('status')).toContainText('could not load');
+  await expect(page.getByRole('link', { name: 'Route directory', exact: true })).toBeVisible();
+});

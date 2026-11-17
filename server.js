@@ -496,6 +496,10 @@ const server = serve({
     // Population benchmark is an explicit worker workload, separate from renderer scenes.
     if (pathname === "/world/bench/people" || pathname === "/world/bench/people/") return serveFile("./world/people-benchmark.html");
 
+    if (pathname === "/demo-gallery" || pathname === "/demo-gallery/") return serveFile("./tools/demo-gallery/index.html");
+    if (pathname === "/demo-gallery/media/future-machine.mp4") return serveFile("./docs/evidence/she64/one-city-two-futures.mp4");
+    // Stable owner-managed homepage share assets; missing files remain honest 404s.
+    if (pathname === "/preview.jpg" || pathname === "/preview.mp4") return serveFile(`.${pathname}`);
     if (pathname.replace(/\/$/, "") === "/routes") return serveFile("./routes.html");
     if (pathname.startsWith("/api/github/")) return await handleGitHub(request);
     if (/^\/github(?:\/pulls\/[1-9]\d{0,7}|\/previews\/[a-f0-9]{32})?\/?$/.test(pathname)) return serveFile("./web/github/index.html");
