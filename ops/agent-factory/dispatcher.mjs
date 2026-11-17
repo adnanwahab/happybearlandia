@@ -149,7 +149,8 @@ async function doTask(task) {
       if (githubAppPR) {
         const publisher = createGitHubPatchPublisher();
         await publisher.publishIssue(task);
-        const published = await publisher.publishDraft(task, branch);
+        const testedHeadSha = await checked('git', ['rev-parse', 'HEAD'], worktree);
+        const published = await publisher.publishDraft(task, branch, testedHeadSha);
         const voteStore = createPatchVotingStore();
         try { voteStore.linkGithub(task.taskId, published); }
         finally { voteStore.close(); }
