@@ -1,3 +1,5 @@
+import {mountDiscoveryFog} from './discovery-fog.js';
+let discoveryFog = null;
 import {mountSceneContextMenu} from './scene-context-menu.js';
 import {rankScreenTargets,mountPickPreview,isRenderedHit} from './render/magnetic-picking.js';
 import {mountGamepadControls} from './gamepad-controls.js';
@@ -2243,6 +2245,7 @@ function select(s) {
   $("inspect").style.display = s ? "block" : "none";
   renderInspector();
   if(s)visualPanels?.open('inspect');else if(visualPanels?.getActive()==='inspect')visualPanels.close('inspect');
+  if(s?.type==='building')discoveryFog?.observe(town.buildings[s.id]?.id);
 }
 
 function needBars(p) {
@@ -2316,6 +2319,13 @@ $("feed").addEventListener("click", (e) => {
 // Retain the authored storm sky tint independently of simulated solar lighting.
 const night = new THREE.Color(0x1a1d2b), sky = new THREE.Color();
 let lightingSnapshot=null,lightingMinute=null,lightingLiving=null;
+discoveryFog = !embedMode ? mountDiscoveryFog({container:$('top'),buildings:town.buildings,source:town.source,onInspect:id=>{
+ const index=town.buildings.findIndex(b=>String(b.id)===id);
+ if(index<0)return false;
+ select({type:'building',id:index}); return true;
+}}) : null;
+window.hblDiscoveryFog=discoveryFog;
+addEventListener('pagehide',()=>discoveryFog?.dispose(),{once:true});
 const ambientSound = !embedMode ? mountAmbientSound(window, document) : null;
 addEventListener('pagehide', () => ambientSound?.dispose(), {once:true});
 let ambientNextUpdate = 0;

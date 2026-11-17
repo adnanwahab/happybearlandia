@@ -10698,3 +10698,24 @@ native WebGPU for the full game with unchanged budgets; city-only rendering is
 verified separately. An existing Future Machine measurement selected the first
 range input, which is now sound volume; it now targets the named shared-month
 timeline and retains all samples, pacing and exact month verification.
+
+## SHE-662 — local building evidence discovery (2026-11-17)
+
+Next slice: reuse loaded World building identities and existing inspector selection
+for optional evidence-card fog, with an always-unmasked flat list. Page-session
+state only; reset clears inspected IDs, never model data. Prerequisites: loaded
+World buildings and normal inspector. No coordinate or causal inference.
+Acceptance tasks: test opt-in/reset/selection identity, unsupported/failed inspection,
+flat-list parity, keyboard/mobile/reduced motion, pacing and pagehide disposal.
+Risk: cards describe loaded World building metadata, not independent discoveries
+or a cross-model resident mapping. No model/ODD changes. Verification pending.
+
+SHE-662 outcome: local slice implemented in discovery-fog module/CSS, World entry
+and normal selection (including geometry-only fallback); [review](reviews/SHE-662.md) records audited source paths,
+provenance boundaries and preserved governance. 18 focused tests / 120 assertions,
+module checkJs typecheck and browser bundle pass. Four Playwright tests added
+and discovered; execution blocked by local-server EADDRINUSE on two ports.
+Desktop/mobile/focus/reduced-motion browser and hardware pacing acceptance stay
+open. Broader existing feedback suite has two unchanged DOM-double failures.
+No commit/PR, deployment or merge. Next: execute focused browser suite on a
+permitted host and review the integrated layout and pacing evidence.

@@ -1,14 +1,16 @@
+import {mountDiscoveryFog} from './discovery-fog.js';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {cityViewOrigin,createStaticCity,gameViewURL} from './static-city-model.js';
 const params=new URLSearchParams(location.search),$=id=>document.getElementById(id);
 $('full-game').href=gameViewURL(location.href);document.documentElement.dataset.renderer='webgl2-city';
+let discoveryFog=null;
 let renderer,controls,observer,scene,camera,selected=null,city=null,disposed=false,failed=false,draws=0;
 const resources=new Set(),meshes=[],materials=new Map();
 const keep=value=>{resources.add(value);return value;};
 function failure(error){failed=true;$('fit').disabled=true;$('inventory').disabled=true;$('failure').hidden=false;$('failure').replaceChildren();const p=document.createElement('p');p.textContent=error instanceof Error?error.message:'City view could not start.';const retry=document.createElement('button');retry.type='button';retry.textContent='Try again';retry.onclick=()=>location.reload();$('failure').append(p,retry);$('provenance').textContent='City geometry is unavailable. No simulation was started.';}
 function render(){if(disposed||!renderer||!scene||!camera)return;renderer.render(scene,camera);draws++;}
-function select(id){if(selected)selected.material=materials.get(selected.userData.building.kind)??materials.get('default');selected=meshes.find(m=>m.userData.building.id===String(id))??null;const out=$('details');out.replaceChildren();if(selected){selected.material=materials.get('selected');const b=selected.userData.building;for(const line of [b.name,`ID: ${b.id}`,`Geometry type: ${b.kind}`,`Footprint: ${Math.round(b.area)} m² · illustrative height: ${b.height.toFixed(1)} m`,`Map position: ${b.center.map(n=>n.toFixed(1)).join(', ')} metres`]){const p=document.createElement('p');p.textContent=line;out.append(p);}$('inventory').value=b.id;}render();}
+function select(id){if(selected)selected.material=materials.get(selected.userData.building.kind)??materials.get('default');selected=meshes.find(m=>m.userData.building.id===String(id))??null;const out=$('details');out.replaceChildren();if(selected){selected.material=materials.get('selected');const b=selected.userData.building;for(const line of [b.name,`ID: ${b.id}`,`Geometry type: ${b.kind}`,`Footprint: ${Math.round(b.area)} m² · illustrative height: ${b.height.toFixed(1)} m`,`Map position: ${b.center.map(n=>n.toFixed(1)).join(', ')} metres`]){const p=document.createElement('p');p.textContent=line;out.append(p);}$('inventory').value=b.id;discoveryFog?.observe(b.id);}render();}
 function fit(){if(!city)return;const b=city.bounds,x=(b.minX+b.maxX)/2,z=(b.minZ+b.maxZ)/2,height=city.buildings.reduce((max,b)=>Math.max(max,b.height),0),size=Math.max(120,b.maxX-b.minX,b.maxZ-b.minZ,height),radius=Math.hypot(b.maxX-b.minX,b.maxZ-b.minZ,height)/2,vertical=THREE.MathUtils.degToRad(camera.fov),horizontal=2*Math.atan(Math.tan(vertical/2)*camera.aspect),distance=Math.max(150,radius/Math.sin(Math.min(vertical,horizontal)/2)*1.12),target=new THREE.Vector3(x,height*.25,z);controls.target.copy(target);camera.position.copy(target).add(new THREE.Vector3(.65,.85,.8).normalize().multiplyScalar(distance));camera.near=.5;camera.far=Math.max(5000,distance*8);camera.updateProjectionMatrix();controls.maxDistance=Math.max(size*5,distance*3);controls.update();render();}
 function resize(){if(!renderer||disposed)return;const host=$('view'),width=Math.max(1,host.clientWidth),height=Math.max(1,host.clientHeight);renderer.setSize(width,height,false);camera.aspect=width/height;camera.updateProjectionMatrix();render();}
 async function geometry(){
@@ -45,9 +47,13 @@ async function start(){
  observer=new ResizeObserver(resize);observer.observe($('view'));resize();fit();
  let down=null;canvas.addEventListener('pointerdown',event=>{if(event.button===0)down={x:event.clientX,y:event.clientY,id:event.pointerId};});canvas.addEventListener('pointerup',event=>{const start=down;down=null;if(!start||start.id!==event.pointerId||Math.hypot(start.x-event.clientX,start.y-event.clientY)>5)return;const rect=canvas.getBoundingClientRect(),ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1),camera);const hit=ray.intersectObjects(meshes)[0];if(hit)select(hit.object.userData.building.id);});
  canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();failure(Error('The graphics connection was lost. Reload to render the city again.'));});
+ discoveryFog=mountDiscoveryFog({container:$('look'),buildings:city.buildings,source:city.source,onInspect:id=>{
+  if(failed||disposed||!city.buildings.some(b=>String(b.id)===id))return false;
+  select(id);return true;
+ }});window.hblDiscoveryFog=discoveryFog;
  $('fit').disabled=false;$('inventory').disabled=false;
  $('inventory').addEventListener('change',()=>select($('inventory').value));$('fit').addEventListener('click',fit);
  window.hblStaticCity={getState:()=>({backend:'webgl2',viewOnly:true,ready:!failed,buildings:city.buildings.length,roads:city.roads.length,people:0,workers:0,simulation:false,draws,selectedId:selected?.userData.building.id??null,source:city.source,origin:{...city.origin},glVersion:gl.getParameter(gl.VERSION)})};
 }
-window.addEventListener('pagehide',()=>{disposed=true;observer?.disconnect();controls?.dispose();for(const resource of resources)resource.dispose();resources.clear();renderer?.dispose();},{once:true});
+window.addEventListener('pagehide',()=>{disposed=true;discoveryFog?.dispose();observer?.disconnect();controls?.dispose();for(const resource of resources)resource.dispose();resources.clear();renderer?.dispose();},{once:true});
 start().catch(failure);

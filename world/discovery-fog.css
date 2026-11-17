@@ -1,0 +1,10 @@
+#discoveryFog { max-width: min(420px, calc(100vw - 48px)); }
+#discoveryFog[open] { max-height: 60vh; overflow: auto; padding: 12px; background: #152630; color: #f1f5f9; }
+#discoveryFog button { min-height: 44px; white-space: normal; }
+#discoveryFog input { width: 24px; height: 24px; vertical-align: middle; }
+#discoveryFog :focus-visible { outline: 3px solid #ffdc80; outline-offset: 3px; }
+#discoveryFog article { border: 1px solid #78909c; padding: 10px; margin-block: 10px; }
+#discoveryFog [data-masked=true] .discovery-content { color: transparent; text-shadow: 0 0 9px #c9d6df; user-select: none; background: #354956; }
+/* Static fog: no motion, including under prefers-reduced-motion. */
+#discoveryFog { box-sizing: border-box; overflow-wrap: anywhere; }
+#discoveryFog summary { min-height: 44px; cursor: pointer; }

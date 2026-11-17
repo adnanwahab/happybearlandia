@@ -281,3 +281,30 @@ reduced motion; static map caching and existing overlay throttling remain.
 History survives map collapse and local travel, and ends when the page unloads.
 It is not a saved-run or cross-model identity mapping. Living Population selection
 and the separate full Canvas2D World fallback are not wired to this trail.
+
+## Optional building evidence fog (SHE-662)
+
+Open World controls → **Building evidence · optional discovery fog**. Fog starts
+off. It statically blurs the existing loaded building metadata cards until that
+building is inspected, either from a card, the flat list, or normal scene
+selection. Names and inspection buttons remain visible. The flat list is always
+unmasked and opens the existing full building inspector, including API geometry
+JSON and its missing-record state. All other statistics remain accessible through
+their existing controls. This is a cosmetic exploration aid, not simulated
+knowledge, a reward, or new evidence. Metadata is scoped to the loaded World;
+source geography must not be confused with synthetic building properties.
+
+Checkbox and inspected IDs live only in page memory. Reset clears inspection
+marks while retaining the current checkbox choice; reload starts with fog off.
+No network/storage writes or model mutation are performed by the overlay.
+The geometry-only viewer used when WebGPU is unavailable reuses these controls
+and its own existing building details; it does not start a simulation.
+Static styling provides the same experience under reduced motion. The controls
+use native focusable elements, visible focus outlines and 44px touch targets.
+
+`window.hblDiscoveryFog.getMetrics()` returns update count, last synchronous DOM
+update duration and the last gap between two requested animation frames, in ms.
+These are interaction diagnostics, not GPU timing or certified FPS. Each update
+requests at most two frames; newer work cancels pending work. `pagehide` disposal
+removes the panel/listeners and cancels repaint sampling. Browser/hardware pacing
+and integrated layout remain to be measured on a host that permits the server.
