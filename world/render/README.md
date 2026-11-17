@@ -281,3 +281,30 @@ reduced motion; static map caching and existing overlay throttling remain.
 History survives map collapse and local travel, and ends when the page unloads.
 It is not a saved-run or cross-model identity mapping. Living Population selection
 and the separate full Canvas2D World fallback are not wired to this trail.
+
+## Material magnifier (SHE-653)
+
+Select a building in the Three.js `/world` inspector and open **Material magnifier**.
+The native wall/roof selector reveals only explicit `building:material` and
+`roof:material` tags retained by the area API in `materialTags`. OSM tags are
+contributor reports, not verified observations or modeled classifications.
+Older cached records and synthetic rows remain unknown. Colors, building kind,
+procedural shading and texture never establish construction material. The panel
+links renderer documentation and opens the exact original API geometry record,
+with its original ID and area source. Missing records and read failures are explicit.
+Canvas2D and Population's separate inspectors do not mount this feature.
+
+This is a static evidence magnifier, without a second rendered viewport or visual
+texture enlargement. It adds no animations, timers, frame callbacks or GPU resources;
+reduced motion uses identical controls. Inspector refresh retains the disclosure,
+surface and focus. Panel removal releases its node-local handlers with the DOM.
+`details.materialMetrics` samples interaction CPU time and the existing renderer's
+frame pacing snapshot on disclosure/surface change; these are presentation metrics,
+not model evidence or hardware performance acceptance.
+
+Checks: `bun test test/material-microscope.test.js test/geometry-inspector.test.js
+world/api.test.js test/building-dates.test.js` and `bunx playwright test --config
+ test/material-microscope.browser.config.js`. `HBL_TEST_BUN` can select the native
+Bun executable if a package shim shadows it; `HBL_MATERIAL_PORT` selects a port.
+Server-free component attempt: `HBL_COMPONENT_ONLY=1 bunx playwright test --config
+ test/material-microscope.browser.config.js --grep component`.

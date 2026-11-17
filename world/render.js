@@ -21,6 +21,7 @@ import {mountCameraPresets} from './camera-presets.js';
 import {createCameraDirector} from './onboarding/camera-director.js';
 import {createSpotlight} from './onboarding/spotlight.js';
 import {mountWorldAccessibility} from './onboarding/accessibility.js';
+import {mountMaterialMicroscope} from './material-microscope.js';
 import {mountAPIGeometryDetails} from './geometry-inspector.js';
 import {journalCity} from './journals/presets.js';
 import {createJournalRecorder,mountCharacterJournal} from './journals/client.js';
@@ -2251,6 +2252,10 @@ function needBars(p) {
 
 function renderInspector() {
   const el = $("inspect");
+  const previousSource=el.querySelector('[data-api-geometry]');
+  const sourceFocus=previousSource?.contains(document.activeElement)?document.activeElement:null;
+  const previousMaterial=el.querySelector('[data-material-microscope]');
+  const materialFocus=previousMaterial?.contains(document.activeElement)?document.activeElement:null;
   const previousJournal=el.querySelector('[data-character-journal]');
   if (!selected) return;
   if (selected.type === "journal") {
@@ -2295,7 +2300,10 @@ function renderInspector() {
         ${s.maxStock ? `<button id="restock">Deliver stock</button>` : ""}
         ${b.kind === "park" ? `<button id="litterBtn">Dump litter</button>` : ""}
       </div>`;
-    mountAPIGeometryDetails(el,{area:originalAreaGeometry,buildingId:b.id});el.style.maxHeight='calc(100vh - 112px)';el.style.overflowY='auto';
+    if(previousMaterial?.dataset.materialMicroscope===String(b.id)){el.append(previousMaterial);materialFocus?.focus({preventScroll:true});}
+    else mountMaterialMicroscope(el,{area:originalAreaGeometry,buildingId:b.id,readFrameStats:()=>cityRenderer.getPerformanceStats(),onSource:()=>{const details=el.querySelector('[data-api-geometry]');if(details){details.open=true;details.querySelector('summary')?.focus();}}});
+    if(previousSource?.dataset.apiGeometry===String(b.id)){el.append(previousSource);sourceFocus?.focus({preventScroll:true});}
+    else mountAPIGeometryDetails(el,{area:originalAreaGeometry,buildingId:b.id});el.style.maxHeight='calc(100vh - 112px)';el.style.overflowY='auto';
     $("cityFocus")?.addEventListener("click", () => cityRenderer.focusBuilding(b.id));
     $("cityCutaway")?.addEventListener("click", () => { cityRenderer.focusBuilding(b.id); cityRenderer.setCutaway(!cityRenderer.cutawayEnabled); });
     $("toggleOpen")?.addEventListener("click", () => { s.open = !s.open; world.log(`${b.name} ${s.open ? "reopened" : "closed"} (by you)`, "civic", b); renderInspector(); });
