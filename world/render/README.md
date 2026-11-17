@@ -302,3 +302,30 @@ ID-buffer readback: transparent fragment discard, antialiasing and asynchronous
 asset/geometry replacement can differ from exact raster pixels. Full GPU/browser
 acceptance, including streaming and mode changes during freeze, remains pending;
 see `docs/reviews/SHE-659.md`.
+
+## Selected building perspective (SHE-619)
+
+World controls → Building perspective offers Room detail, Rooftop, Skyline and
+Return to previous view. Select a legacy building through the ordinary inspector.
+Room detail reuses the renderer's illustrative cutaway with a low exterior camera;
+it is not a walkable or surveyed interior. Rooftop is above-roof framing, not
+physical roof access. Shell height/footprint support the framing; parks, missing
+or invalid shell geometry and `roofAccess: false` disable affected destinations.
+Skyline is the persistent return marker for an aerial overview of that building.
+Return restores the camera before the first destination and the prior cutaway flag,
+provided the saved pose remains unobstructed. Selection changes use the newly
+selected building; the saved return remains the original camera, not a saved entity.
+
+Cuts are immediate, native buttons have 44px targets and keep keyboard focus;
+Return focuses the disclosure summary. Reduced motion also holds the cutaway's
+decorative elevator still. No model time, run identity, seed, data source or outcome
+is changed. A running model continues at its existing speed. Population/business
+selection and standalone Canvas2D do not support these building destinations.
+Availability refreshes on selection/authority changes and disclosure; execution
+revalidates current geometry. No additional animation loop or assets are introduced.
+
+Checks: `bun test test/building-perspective.test.js test/camera-presets.test.js
+ test/world-visual-camera.test.js test/render-performance.test.js`.
+Focused browser cases: `bun x playwright test --config
+ test/building-perspective.browser.config.js`. Actual results and limitations:
+[review record](../../docs/reviews/SHE-619.md).

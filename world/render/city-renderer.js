@@ -116,7 +116,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
       visible.instances=lod.update(camera,selectedId,features.lod);
       geometryDebug.update(camera,selectedId,innerHeight);
       cutaway.select(town.buildings.find(b=>b.index===selectedId||String(b.id)===String(selectedId)),state.occupancy);
-      cutaway.update(now);
+      cutaway.update(reducedMotion?0:now);
       grass.update(motion.now,camera,quality.settings,features.grass&&features.vegetation,quality.preset);
       detailAssets.update(motion.now,camera,quality.settings,features);
       details.update(motion.now,motion.dt,camera,{...quality.settings,geometryRadius:({LOW:.6,MEDIUM:1,HIGH:1.3,ULTRA:1.6})[geometryDetail?.quality||'MEDIUM']},{...features,rain:features.rain&&!reducedMotion&&stormIntensity===0},state);

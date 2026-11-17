@@ -20,6 +20,8 @@ import {mountFirstRunGuide} from './first-run-guide.js';
 import {createFeedbackAdapter,stormFeedback} from './onboarding/feedback-adapter.js';
 import {createPanelManager} from './onboarding/panel-manager.js';
 import {mountCameraPresets} from './camera-presets.js';
+import {mountBuildingPerspective} from './building-perspective.js';
+let buildingPerspective=null;
 import {createCameraDirector} from './onboarding/camera-director.js';
 import {createSpotlight} from './onboarding/spotlight.js';
 import {mountWorldAccessibility} from './onboarding/accessibility.js';
@@ -2250,6 +2252,7 @@ function select(s) {
   follow = false;
   $("inspect").toggleAttribute("data-person-selected",s?.type === "person");
   $("inspect").style.display = s ? "block" : "none";
+  buildingPerspective?.refresh();
   renderInspector();
   if(s)visualPanels?.open('inspect');else if(visualPanels?.getActive()==='inspect')visualPanels.close('inspect');
 }
@@ -2456,7 +2459,7 @@ function frame(now) {
     }
   }
 
-  updateArrival(now);cinematicCamera?.update(now);controls.update();
+  updateArrival(now);cinematicCamera?.update(now);buildingPerspective?.update();controls.update();
   if(buildingDateBridge?.get().enabled&&now-buildingDateLastRefresh>500){buildingDateLastRefresh=now;buildingDateBridge.refresh();}
   personCommandUI?.update();
   houseEntryControls?.update();
@@ -2653,6 +2656,13 @@ const cinematicCamera=!embedMode?mountCameraPresets({container:$('top'),camera,c
  stopGuidance:()=>{arrivalDone=true;follow=false;visualCamera?.cancel();dispatchEvent(new CustomEvent('world:local-pan'));},
  reducedMotion:()=>matchMedia('(prefers-reduced-motion: reduce)').matches}):null;
 addEventListener('pagehide',()=>cinematicCamera?.dispose(),{once:true});
+buildingPerspective=!embedMode?mountBuildingPerspective({container:$('top'),camera,controls,
+ getBuilding:()=>!livingWorld?.active&&!businessMode&&selected?.type==='building'?town.buildings[selected.id]:null,
+ getBuildings:()=>[...town.buildings,...contextBuildings.values()],
+ getCutaway:()=>cityRenderer.cutawayEnabled,setCutaway:value=>cityRenderer.setCutaway(value),
+ stopGuidance:()=>{arrivalDone=true;follow=false;visualCamera?.cancel();dispatchEvent(new CustomEvent('world:local-pan'));}
+}):null;
+addEventListener('pagehide',()=>buildingPerspective?.dispose(),{once:true});
 
 startup.readyMs=performance.now();for(const [node,disabled] of startupDisabled)node.disabled=disabled;startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);
 requestAnimationFrame(frame);
