@@ -59,3 +59,50 @@ Production read-only baseline before any deployment: `/api/health`200statusok an
 `/api/ready`200statusready, World/Decision storageok, both report existing build
 `2f9741bd8843ba0f5dcd85cf9c343e559e52e79b`. Fly CLIv0.5.10darwin/arm64.
 This is the previous build, not proof of candidate deployment.
+
+## Additional pre-existing CI browser/runtime defects
+
+The same original head's civilization-storm job134059656935 has two distinct
+failures: observational civilization config cannot load (`import.meta` outside
+a module), then gating first-run guided launch times out120s before ready
+(4pass1fail). CI invokes Node-loaded `.js` configs in a package without ESM type.
+The narrow config fix uses the same repository-root `process.cwd()` convention
+as startup/other browser configs; no global package boundary change.
+
+First-run previously launched the default Chromium headless shell, which was
+known from the retained temporal investigation to produce native GPU failures.
+Select installed full `channel:'chromium'` consistently with accepted startup and
+temporal, retaining unsafe-WebGPU/software flags, required actualWebGPU assertion
+and every test. `HBL_PLAYWRIGHT_PORT=43205 ./node_modules/.bin/playwright test --config=test/first-run.browser.config.js --workers=1`:5passed0failed3.6s, including guided realWebGPU launch and explicit unavailable-GPU view-only fallback.
+This is local Chromium validation, not proof of a native Linux hardware adapter.
+
+Civilization `--list` now loads all27tests. The actual suite subsequently exposes
+a stale Houston carousel selector: test expected old `Open ... in a new tab`
+aria-label, while current `tools/iframe-gallery.js` creates `Enter Houston
+Neighborhood Map`. Update only that semantic link locator; preserve its exact
+route assertion, iframe canvas checks, keyboard view toggle and screenshot change.
+No product code or requirement is loosened. A parallel focused retry refused
+the occupied54388port; do not reuse the active suite's server or suppress it.
+
+Additional audited checks: canonical controls19/19 and actual Social→Talk pass
+with empty JS/GPU arrays at `/private/tmp/hbl-pr470-release-controls/evidence`.
+Owned local server and browser sessions stopped. Production SSH tooling and
+release storage preflight work read-only; backup tool present, /data free675388KiB
+and /tmp free7706944KiB. No backup, cordon, deploy or production write performed.
+
+Actual observational civilization run after config loading fix:20passed,2existing
+adapter-conditional skips,5failed,4.3min. One failure is the old Houston selector;
+with the approved semantic-label update, focused Houston cases2/2pass4.5s,
+retaining iframe/canvas/keyboard-view assertions. Three release-journey cases
+remain real pre-existing contract failures: tests remove WebGPU and require
+exact live saved-checkpoint navigation/Canvas2D or fatal-return path, while
+current World redirects to static-city view-only (explicitly no model restore).
+Do not weaken these assertions or claim they pass. This suite is explicitly
+observational in existing CI; these failures remain owned by the release/fallback
+contract rather than the one-line470presentation fix.
+
+The90-day case failed on ENOENT trace recording because a concurrent focused
+retry cleaned the shared Playwright outputDir before refusing the occupied port.
+That harness collision was caused by this audit; it is not evidence of a model
+failure. Rerun that case alone using a distinct output directory. No timeout or
+assertion changed.
