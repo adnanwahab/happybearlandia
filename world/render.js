@@ -1,3 +1,5 @@
+import {mountTapeMeasure} from './measure/panel.js';
+import {pickMeasurementSurface} from './measure/picking.js';
 import {mountSceneContextMenu} from './scene-context-menu.js';
 import {rankScreenTargets,mountPickPreview,isRenderedHit} from './render/magnetic-picking.js';
 import {mountGamepadControls} from './gamepad-controls.js';
@@ -2168,7 +2170,16 @@ function rankCityTargets(x,y){
   return hits.sort((a,b)=>a.distance-b.distance)[0]||null;
  }});
 }
-const magneticPicker=mountPickPreview(renderer.domElement,{rank:rankCityTargets,enabled:()=>!livingWorld?.active&&!businessUI,onPick:hit=>{
+// Tape uses the same loaded shell geometry as inspection, never resident/model commands.
+let tapeLine=null;
+function clearTapeLine(){if(!tapeLine)return;scene.remove(tapeLine);tapeLine.geometry.dispose();tapeLine.material.dispose();tapeLine=null;}
+const tapeMeasure=mountTapeMeasure({container:$('top'),canvas:renderer.domElement,clear:clearTapeLine,
+ draw(points){clearTapeLine();const vertices=points.length===1?[points[0],points[0]]:points;const geometry=new THREE.BufferGeometry().setFromPoints(vertices.map(p=>new THREE.Vector3(p.x,p.y,p.z)));tapeLine=points.length===1?new THREE.Points(geometry,new THREE.PointsMaterial({color:0xffcb51,size:10,sizeAttenuation:false,depthTest:false})):new THREE.Line(geometry,new THREE.LineBasicMaterial({color:0xffcb51,depthTest:false}));tapeLine.renderOrder=20;scene.add(tapeLine);},
+ pick(x,y,snap){return pickMeasurementSurface(THREE,{camera,meshes,rect:renderer.domElement.getBoundingClientRect(),x,y,snap});}
+ });
+window.hblTapeMeasure=tapeMeasure;
+addEventListener('pagehide',()=>tapeMeasure.dispose(),{once:true});
+const magneticPicker=mountPickPreview(renderer.domElement,{rank:rankCityTargets,enabled:()=>!tapeMeasure.getStats().active&&!livingWorld?.active&&!businessUI,onPick:hit=>{
  if(hit.vehicle){select(null);selectedVehicle=hit.vehicle.id;vehicleInspector?.select(hit.vehicle);return;}
  selectedVehicle=null;vehicleInspector?.select(null);if(hit.selection.type==='person'&&emitLegacyPersonContext({clientX:hit.x,clientY:hit.y,type:'pointerup'},hit.selection.id)===false)return;select(hit.selection);
 }});
@@ -2447,6 +2458,7 @@ function frame(now) {
   if(livingWorld?.active)livingWorld.applyBuildingOccupancy?.();
   if(drawCity&&!window.hblWorldTileViewActive){shaderWarmup.draw(()=>globalIllumination.render());startup.firstFrameMs??=performance.now();if(scrapbook&&scrapbookSource)void scrapbook.afterRender(renderer.domElement,scrapbookSource);}
   cityRenderer.afterFrame(now, performance.now() - cpuStart, frameMs);
+  tapeMeasure.observeFrame(frameMs);
   visualCamera?.update(now);
   visualSpotlight?.update(now);
   spatialNavigationUpdate?.();

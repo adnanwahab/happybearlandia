@@ -281,3 +281,21 @@ reduced motion; static map caching and existing overlay throttling remain.
 History survives map collapse and local travel, and ends when the page unloads.
 It is not a saved-run or cross-model identity mapping. Living Population selection
 and the separate full Canvas2D World fallback are not wired to this trail.
+
+## Tape measure (SHE-651)
+
+World controls → Tape measure captures two visible building-shell or scene-ground
+points in world metres. Enter on the scene picks its center; pointer/touch picks
+reject drags. Reset tape or Escape clears the static line. Units support metres
+and feet; optional snapping uses source footprint base/top corners within 2 m.
+Readings include 3D distance, absolute height difference and horizontal span.
+The second building also shows its projected source-polygon footprint area.
+Scene heights are illustrative, not surveyed dimensions. Trees, people, vehicles,
+ornaments and the separate Canvas2D fallback are outside this tool's pick scope.
+No source polygon means no footprint claim. The line uses no animation and
+works identically with reduced motion. Reset/pagehide disposes GPU resources;
+pagehide removes listeners. `hblTapeMeasure.getStats()` provides local pick timing
+and frame pacing while a tape is active/visible, without storing or sending data.
+Run `bun test test/tape-measure.test.js` and the focused
+`test/tape-measure.browser.config.js` Playwright configuration. Actual verification
+and browser/typecheck blockers are recorded in `docs/reviews/SHE-651.md`.
