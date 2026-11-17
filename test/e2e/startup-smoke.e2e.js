@@ -57,9 +57,17 @@ for (const route of routes) {
       if (route.world) {
         await expect.poll(() => page.evaluate(() => Boolean(window.hblWorldStartup?.readyMs)), { message: 'World scene ready' }).toBe(true);
         report.startup = await page.evaluate(() => window.hblWorldStartup);
-        // World controls can be intentionally collapsed or hidden by the UI.
-        await expect(page.locator('#top')).toBeAttached();
-        report.nodes['#top']='attached';
+        // SHE-789 deliberately hides advanced controls until normal navigation opens them.
+        const tools=page.getByRole('navigation',{name:'Explore the world'}).getByRole('button',{name:'World',exact:true});
+        await expect(tools).toBeVisible();
+        await tools.click();
+        await expect(page.locator('#launch-navigation [data-launch=tools]')).toHaveAttribute('aria-expanded','true');
+        await expect(page.locator('#top')).toBeVisible();
+        await expect(page.locator('#top')).toHaveAttribute('open','');
+        report.nodes['#top']='visible after World navigation';
+        await page.keyboard.press('Escape');
+        await expect(page.locator('#launch-navigation [data-launch=tools]')).toHaveAttribute('aria-expanded','false');
+        await expect(page.locator('#top')).toBeHidden();
       }
       if (route.future) {
         await expect(page.getByRole('button', { name: 'Fork City', exact: true })).toBeEnabled();
