@@ -70,3 +70,12 @@ After the matrix, merged current #445 `dee3a44d` into this branch as `799309ab`;
 that base adds startup wiring in World and integration evidence, with no portal
 or Future Machine navigation changes. Combined latest-base verification belongs
 to the coordinating agent. No claim that all release acceptance passes.
+
+Baseline attribution: a separate clean checkout of `19a6bbdd` reproduced the same
+unsupported-CSS heading-focus failure on Chromium desktop (0 pass, 1 fail,
+30.3-second wait at portal.e2e.js:38). The working tree was clean; this failure
+predates the bootstrap change. Baseline artifacts:
+`/private/tmp/hbl-native-portal-baseline-20261117/run-TE5ekM/summary.json`.
+Owner/next action: navigation accessibility owner must preserve or restore heading
+focus after Future Machine replaces its boot DOM; coordinator must rerun portal
+acceptance before release. The focused lifecycle repair can be reviewed separately.
