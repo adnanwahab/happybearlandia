@@ -600,6 +600,7 @@ const server = serve({
     if (pathname.startsWith("/api/scenes/")) return handleSceneById(pathname);
     if (pathname === "/api/screenshots") return handleScreenshots(new URL(request.url));
     if (under(pathname, "/api/dear-congress")) return proxyDearCongress(request);
+    if (["/world", "/world/"].includes(pathname) && new URL(request.url).searchParams.get("text") === "1") return serveFile("./world/text-adventure.html");
     if (under(pathname, "/world")) {
       let decodedWorldPath;
       try { decodedWorldPath = normalize(decodeURIComponent(pathname)); } catch { return notFound(); }

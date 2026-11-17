@@ -1,0 +1,34 @@
+bun test v1.4.2 (744846f84)
+
+test/text-adventure.test.js:
+(pass) nearby list uses verified finite positions and exact IDs; missing data stays empty [0.12ms]
+(pass) real worker decisions retain actor, inputs, versions and deterministic seed replay [371.15ms]
+(pass) semantic World → resident → real event → WHY focus, empty state, denial, recovery and deletion [639.38ms]
+(pass) normal World entry selects an isolated semantic document without gameplay scripts [4.53ms]
+
+test/population-world-view.test.js:
+(pass) living population visual evidence > town coordinates remain actual geometry while districts are explicitly synthetic [0.18ms]
+(pass) living population visual evidence > renderer strictly bounds worker rows and rejects absent/nonfinite positions [1.87ms]
+(pass) living population visual evidence > interpolation is between actual samples with no extrapolated synthetic destinations [0.03ms]
+(pass) living population visual evidence > behavior filters require actual flags/metrics; no inferred displacement [0.04ms]
+(pass) living population visual evidence > real Three instances/points interpolate, ray-select IDs and clean up without generating agents [11.39ms]
+(pass) actual worker frames retain selected needs and rates across a model step [69.05ms]
+(pass) pause freezes interpolation exactly and resume excludes paused wall time [2.98ms]
+(pass) sample filters apply while paused without changing interpolation position [4.96ms]
+(pass) screen picking respects offset canvas bounds, stable IDs and geometry occlusion [1.93ms]
+(pass) distant markers use a bounded pixel radius rather than a fixed world-unit hit threshold [1.78ms]
+(pass) new resident inspection reads the current paused worker without retroactive history replay [68.76ms]
+(pass) settled distant frames do not upload unchanged GPU buffers or commit detailed humans [4.16ms]
+
+test/world-webgpu-only.test.js:
+(pass) native initialization disables implicit fallback and returns the sole supported backend [0.13ms]
+(pass) adapter rejection releases the partial backend without invoking init-retrying renderer disposal [0.07ms]
+(pass) unexpected non-WebGPU backend is rejected and fully initialized resources are disposed [0.04ms]
+(pass) cleanup failures preserve the original initialization error [0.07ms]
+(pass) null adapter rejection remains a readable Error and releases partial resources [0.03ms]
+(pass) unsupported browser fails before constructing a graphics backend [0.06ms]
+
+ 22 pass
+ 0 fail
+ 214 expect() calls
+Ran 22 tests across 3 files. [1278.00ms]
