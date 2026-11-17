@@ -1,3 +1,4 @@
+import { mountRentSkyline } from './rent-skyline.js';
 import { renderHouseholdCostAtlas } from './cost-atlas.js';
 import { classifyDecisionOutcome, DECISION_ENGINE_VERSION } from './contracts.js';
 // E2E hooks: [data-testid=decision-visualizations], [data-viz=landscape|worlds|
@@ -114,6 +115,8 @@ export function mountDecisionVisualizations(container, {onSelectRun,onEnterFutur
   const shortcuts=doc.createElement('div');shortcuts.className='dv-controls';shortcuts.innerHTML='<button data-control="best">Best future</button><button data-control="median">Median future</button><button data-control="worst">Worst future</button><button data-control="enter" disabled>Enter future ↗</button><span data-median-compare></span>';content.querySelector('[data-run-summary]').after(shortcuts);
   const receipt=doc.createElement('p');receipt.innerHTML='<a data-run-receipt target="_blank" rel="noopener" hidden>Open run receipt (JSON)</a><span data-receipt-identity></span>';shortcuts.after(receipt);
   const costAtlas=doc.createElement('section');costAtlas.className='dv-panel';costAtlas.dataset.testid='household-cost-atlas';receipt.after(costAtlas);
+  const skylineHost=doc.createElement('section');content.prepend(skylineHost);
+  const skyline=mountRentSkyline(skylineHost, run=>choose(run));
   const gridControl=doc.createElement('label');gridControl.className='dv-grid-control';gridControl.innerHTML='Futures per page <select data-control="grid-size"><option value="100">100</option><option value="500">500</option></select>';content.querySelector('[data-viz="worlds"]').before(gridControl);
   const $=s=>root.querySelector(s), control=name=>$(`[data-control="${name}"]`);
   let state={experiment:null,runs:[],aggregates:[],comparisons:[],model:{}}, runs=[],metrics=[],scenarios=[],selected=null,page=0,replayIndex=0,timer=null,destroyed=false,threeD=false;
@@ -266,8 +269,8 @@ export function mountDecisionVisualizations(container, {onSelectRun,onEnterFutur
       if(prior!==next.experiment?.id){stop();page=0;selected=null;replayIndex=0}if(next.selectedRun)selected=runs.find(r=>r.id===next.selectedRun.id)||selected;
       const query=new URLSearchParams(doc.defaultView.location?.search||'');if(!selected&&query.get('run')){selected=runs.find(r=>r.id===query.get('run'))||null;if(selected){const rows=replayRows(),month=Number(query.get('month')||0);replayIndex=Math.max(0,rows.findLastIndex(r=>r.year*12<=month))}}
       if(selected){selected=runs.find(r=>r.id===selected.id)||null;if(!selected)stop()}
-      search=compileFutureSearch(searchQuery,metrics);renderAll();
+      search=compileFutureSearch(searchQuery,metrics);skyline.update({...state,runs});renderAll();
     },
-    destroy(){if(destroyed)return;destroyed=true;stop();buildingReplay?.destroy();for(const cleanup of cleanups)cleanup();root.remove()},
+    destroy(){if(destroyed)return;destroyed=true;stop();skyline.destroy();buildingReplay?.destroy();for(const cleanup of cleanups)cleanup();root.remove()},
   };
 }
