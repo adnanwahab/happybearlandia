@@ -2470,7 +2470,7 @@ function frame(now) {
     }
   }
 
-  updateArrival(now);cinematicCamera?.update(now);controls.update();districtTitle?.update(now);
+  updateArrival(now);cinematicCamera?.update(now);streetJourney?.update(now);controls.update();districtTitle?.update(now);
   if(buildingDateBridge?.get().enabled&&now-buildingDateLastRefresh>500){buildingDateLastRefresh=now;buildingDateBridge.refresh();}
   personCommandUI?.update();
   houseEntryControls?.update();

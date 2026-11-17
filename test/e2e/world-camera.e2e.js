@@ -54,3 +54,17 @@ for(const mobile of [false,true])test(`cinematic presets preserve selection and 
  await expect(picker.getByRole('status')).toContainText('interrupted');
  await page.screenshot({path:`.mini-symphony-evidence/SHE-474-after-${mobile?'mobile':'desktop'}-camera.png`});
 });
+
+test('World exposes bounded street preview with reduced-motion cut and Back',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.route('**/api/area*',route=>route.abort());
+ await page.goto('/world?synthetic=1&people=16');
+ await page.waitForFunction(()=>window.hblWorldStartup?.readyMs);
+ await page.locator('#top').evaluate(node=>node.open=true);
+ const panel=page.getByTestId('street-journey');await panel.locator('summary').click();
+ await panel.getByRole('button',{name:'Journey',exact:true}).focus();await page.keyboard.press('Enter');
+ await expect(panel.getByRole('status')).toContainText('Reduced motion: camera cut');
+ await panel.getByRole('button',{name:'Back',exact:true}).click();
+ await expect(panel.getByRole('status')).toContainText('Returned');
+ await page.screenshot({path:test.info().outputPath('world-street-journey.png')});
+});
