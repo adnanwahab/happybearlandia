@@ -17,11 +17,11 @@ for(const [stage,root,evidence] of [['before',baseRoot,before],['after',headRoot
  const folder=path.join(output,stage);
  await mkdir(folder,{recursive:true});
  for(const file of evidence.files){
-  if(!/^\\.mini-symphony-evidence\\/pr-[0-9]+-(?:before|after)-(?:desktop|mobile)-[12]\\.png$/.test(file.path))
+  if(!/^\.mini-symphony-evidence\/pr-[0-9]+-(?:before|after)-(?:desktop|mobile)-[12]\.png$/.test(file.path))
    throw Error('Unsafe screenshot artifact path');
   await copyFile(path.join(root,file.path),path.join(folder,path.basename(file.path)));
  }
- await writeFile(path.join(output,stage+'.json'),JSON.stringify(evidence,null,2)+'\\n');
+ await writeFile(path.join(output,stage+'.json'),JSON.stringify(evidence,null,2)+'\n');
 }
 const summary='### PR Playwright evidence (observational)\n\n' +
   '- Exact base and head checked out separately\n' +
