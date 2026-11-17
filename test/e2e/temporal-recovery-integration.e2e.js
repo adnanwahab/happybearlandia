@@ -26,10 +26,24 @@ async function fixture(page){
  await page.route('**/__temporal-verification',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><main></main>'}));await page.goto('/__temporal-verification');
  await page.evaluate(async()=>{const{mountTemporalCity}=await import('/world/temporal/panel.js');window.temporalVerification=mountTemporalCity({origin:{lat:35.6595,lng:139.7005}});});await page.getByTestId('temporal-launch').click();return page.getByTestId('temporal-city');
 }
+// The fixture footprint is a triangle; its bounding-box center is on an edge.
+// Resolve a painted interior hit before making a normal native pointer click.
+async function clickPaintedFeature(panel,id){
+ const path=panel.locator(`[data-feature-id="${id}"] path`).first();
+ const position=await path.evaluate(node=>{
+  const bounds=node.getBoundingClientRect();
+  for(const fy of[.75,.25,.5])for(const fx of[.75,.25,.5]){
+   const x=Math.round(bounds.left+bounds.width*fx),y=Math.round(bounds.top+bounds.height*fy);
+   if(document.elementFromPoint(x,y)===node)return{x:x-bounds.left,y:y-bounds.top};
+  }
+  throw Error('No painted pointer target for historical feature');
+ });
+ await path.click({position});
+}
 test('normal World canonical entry retries a failed fetch and retains loaded evidence through a later failure',async({page},info)=>{
  let attempt=0;await page.route('**/api/world-history/snapshot?*',route=>{attempt++;if(attempt===1)return route.abort('failed');if(attempt===3)return route.fulfill({status:502,json:{error:'Controlled historical source unavailable'}});return route.fulfill({json:attempt===2?snapshot():snapshot('snapshot-B','2021-01-01',[second])});});
  const panel=await world(page);await expect(panel.locator('[data-map]')).toContainText('Choose a date');await panel.getByLabel('Historical snapshot date').fill('2020-01-01');await panel.getByRole('button',{name:'Load date',exact:true}).click();await expect(panel.locator('[data-status]')).toContainText('Check your connection');await expect(panel.locator('[data-map]')).toContainText('Historical map unavailable');await page.screenshot({path:info.outputPath('normal-entry-failed-fetch.png')});
- await panel.getByRole('button',{name:'Load date',exact:true}).click();await expect(panel.locator('[data-feature-id="w123"]')).toBeVisible();await panel.locator('[data-feature-id="w123"]').click();await expect(panel.locator('[data-detail]')).toContainText(first.tags.name);
+ await panel.getByRole('button',{name:'Load date',exact:true}).click();await expect(panel.locator('[data-feature-id="w123"]')).toBeVisible();await clickPaintedFeature(panel,'w123');await expect(panel.locator('[data-detail]')).toContainText(first.tags.name);
  await panel.getByLabel('Historical snapshot date').fill('2021-01-01');await panel.getByRole('button',{name:'Load date',exact:true}).click();await expect(panel.locator('[data-status]')).toContainText('Controlled historical source unavailable');await expect(panel.locator('[data-status]')).toContainText('The previous snapshot is still shown');await expect(panel.locator('[data-feature-id="w123"]')).toBeVisible();await expect(panel.locator('[data-counts]')).toContainText('2020-01-01');await expect(panel.locator('[data-detail]')).toContainText(first.tags.name);expect(await page.evaluate(()=>window.hblTemporalCity.getSnapshot().id)).toBe('snapshot-A');await page.screenshot({path:info.outputPath('normal-entry-retained-snapshot.png')});
  await panel.getByRole('button',{name:'Load date',exact:true}).click();await expect(panel.locator('[data-feature-id="w456"]')).toBeVisible();await expect(panel.locator('[data-feature-id="w123"]')).toHaveCount(0);await expect(panel.locator('[data-counts]')).toContainText('2021-01-01');expect(attempt).toBe(4);await page.screenshot({path:info.outputPath('normal-entry-retry-recovered.png')});
 });
@@ -45,5 +59,5 @@ test('browser API error cases remain actionable and each visible retry recovers'
  }
 });
 test('object-history failure retries through the visible control without changing the loaded snapshot',async({page})=>{
- let attempt=0;await page.route('**/api/world-history/snapshot?*',route=>route.fulfill({json:snapshot()}));await page.route('**/api/world-history/feature?*',route=>++attempt===1?route.abort('failed'):route.fulfill({json:{osmFirstSeen:'2018-01-01',versions:[{version:1,timestamp:'2018-01-01',visible:true}]}}));const panel=await fixture(page);await panel.getByRole('button',{name:'Load date',exact:true}).click();await panel.locator('[data-feature-id="w123"]').click();await panel.getByRole('button',{name:'Load full OSM object history',exact:true}).click();await expect(panel.locator('[data-versions]')).toContainText('Check your connection');await expect(panel.getByRole('button',{name:'Load full OSM object history',exact:true})).toBeEnabled();await panel.getByRole('button',{name:'Load full OSM object history',exact:true}).click();await expect(panel.locator('[data-versions]')).toContainText('First mapped version 1: 2018-01-01');expect(await page.evaluate(()=>window.temporalVerification.getSnapshot().id)).toBe('snapshot-A');expect(attempt).toBe(2);
+ let attempt=0;await page.route('**/api/world-history/snapshot?*',route=>route.fulfill({json:snapshot()}));await page.route('**/api/world-history/feature?*',route=>++attempt===1?route.abort('failed'):route.fulfill({json:{osmFirstSeen:'2018-01-01',versions:[{version:1,timestamp:'2018-01-01',visible:true}]}}));const panel=await fixture(page);await panel.getByRole('button',{name:'Load date',exact:true}).click();await clickPaintedFeature(panel,'w123');await panel.getByRole('button',{name:'Load full OSM object history',exact:true}).click();await expect(panel.locator('[data-versions]')).toContainText('Check your connection');await expect(panel.getByRole('button',{name:'Load full OSM object history',exact:true})).toBeEnabled();await panel.getByRole('button',{name:'Load full OSM object history',exact:true}).click();await expect(panel.locator('[data-versions]')).toContainText('First mapped version 1: 2018-01-01');expect(await page.evaluate(()=>window.temporalVerification.getSnapshot().id)).toBe('snapshot-A');expect(attempt).toBe(2);
 });
