@@ -1,3 +1,4 @@
+import {visualSun} from './render/shadow-atlas/model.js';
 import {mountDistrictTitle} from './district-title.js';
 import {mountInfrastructureScanner} from './infrastructure-scanner.js';
 import {createInspectionFreeze,mountInspectionFreeze} from './render/inspection-freeze.js';
@@ -2422,7 +2423,8 @@ function frame(now) {
   hemi.color.setHex(0xc5ddf2);hemi.groundColor.setHex(0x55523f);
   sun.intensity = 2.8 * daylight;
   sun.color.setHex(daylight < .35 ? 0xffce98 : 0xffefda);
-  sun.position.set(Math.cos(ang) * 400, Math.sin(ang) * 500, 200);
+  const direction=visualSun(ang);
+  sun.position.set(direction.x,direction.y,direction.z);
 
   // People
   // In the well-being and cycle overlays everyone is shown (indoors too), colored red→green.
