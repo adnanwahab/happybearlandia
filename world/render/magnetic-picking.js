@@ -9,7 +9,7 @@ export function isRenderedHit(hit){
  */
 export function rankScreenTargets({x,y,rect,hitAt,radius=24}) {
   const found=new Map();
-  for(const r of [0,radius/3,2*radius/3,radius]) {
+  for(const r of radius>0?[0,radius/3,2*radius/3,radius]:[0]) {
     for(let i=0;i<(r?16:1);i++) {
       const angle=i*Math.PI/8,px=x+r*Math.cos(angle),py=y+r*Math.sin(angle);
       if(px<rect.left||py<rect.top||px>=rect.right||py>=rect.bottom)continue;

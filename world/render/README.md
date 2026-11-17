@@ -281,3 +281,24 @@ reduced motion; static map caching and existing overlay throttling remain.
 History survives map collapse and local travel, and ends when the page unloads.
 It is not a saved-run or cross-model identity mapping. Living Population selection
 and the separate full Canvas2D World fallback are not wired to this trail.
+
+## Freeze to inspect (SHE-659)
+
+The legacy 3D `/world` toolbar offers Freeze to inspect / Unfreeze scene. It holds
+already-interpolated instance matrices, presentation layers and camera while the
+normal model stepping path continues. The status separately reports Model paused
+or Model running. Unfreeze catches presentation up to current model state; it is
+not a historical checkpoint or a model pause. Inspected facts remain current model
+facts, not capture-time evidence. Exact geometry rays replace magnetic expansion
+while frozen; Enter on the scene inspects its center. Native buttons support
+keyboard/touch with a 44px minimum target and no added motion or animation loop.
+Population, Business and tile views explicitly refuse this gate; standalone
+Canvas2D has no freeze control. Route/page exit clears the gate and restores camera
+control. `hblInspectionFreeze.getState()` reports frozen frame count and maximum
+frame interval in milliseconds (CPU animation cadence, not GPU time).
+
+Ray hits use rendered geometry and IDs, not model coordinates. This is not an
+ID-buffer readback: transparent fragment discard, antialiasing and asynchronous
+asset/geometry replacement can differ from exact raster pixels. Full GPU/browser
+acceptance, including streaming and mode changes during freeze, remains pending;
+see `docs/reviews/SHE-659.md`.
