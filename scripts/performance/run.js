@@ -9,7 +9,15 @@ const output = resolve(directory);
 await mkdir(output, { recursive: true });
 const backends = (process.env.HBL_PERF_BACKENDS || 'webgpu').split(',');
 if (backends.some(b => !['webgl2', 'webgpu'].includes(b))) throw Error('Unknown backend');
-const browser = await chromium.launch({ args: ['--enable-unsafe-webgpu', '--enable-unsafe-swiftshader'] });
+// On GitHub's GPU-less Linux runners, WebGPU must use the software Vulkan
+// adapter rather than an unusable hardware device. Still require the real
+// WebGPU backend and actual measured budgets: never treat a fallback as a pass.
+const browser = await chromium.launch({ args: [
+  '--enable-unsafe-webgpu', '--enable-unsafe-swiftshader',
+    '--enable-features=Vulkan', '--use-angle=swiftshader',
+    '--use-vulkan=swiftshader', '--use-webgpu-adapter=swiftshader',
+    '--disable-vulkan-surface',
+] });
 const results = [];
 try {
   for (const scene of Object.keys(budgets)) for (const backend of backends) {
