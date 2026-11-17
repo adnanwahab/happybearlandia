@@ -20,6 +20,7 @@ import {mountSessionSurvey} from './onboarding/session-survey.js';
 import {mountFirstRunGuide} from './first-run-guide.js';
 import {createFeedbackAdapter,stormFeedback} from './onboarding/feedback-adapter.js';
 import {createPanelManager} from './onboarding/panel-manager.js';
+import {mountStreetJourney} from './street-journey.js';
 import {mountCameraPresets} from './camera-presets.js';
 import {createCameraDirector} from './onboarding/camera-director.js';
 import {createSpotlight} from './onboarding/spotlight.js';
@@ -2467,7 +2468,7 @@ function frame(now) {
     }
   }
 
-  updateArrival(now);cinematicCamera?.update(now);controls.update();
+  updateArrival(now);cinematicCamera?.update(now);streetJourney?.update(now);controls.update();
   if(buildingDateBridge?.get().enabled&&now-buildingDateLastRefresh>500){buildingDateLastRefresh=now;buildingDateBridge.refresh();}
   personCommandUI?.update();
   houseEntryControls?.update();
@@ -2663,7 +2664,11 @@ const cinematicCamera=!embedMode?mountCameraPresets({container:$('top'),camera,c
  getSubject:()=>{if(livingWorld?.active)return livingWorld.getCameraSubject();if(selected?.type!=='person')return null;const p=smooth[selected.id];return p?{key:'legacy:'+String(town.people[selected.id].id??selected.id),position:{x:p.x,y:0,z:p.z}}:null;},
  stopGuidance:()=>{arrivalDone=true;follow=false;visualCamera?.cancel();dispatchEvent(new CustomEvent('world:local-pan'));},
  reducedMotion:()=>matchMedia('(prefers-reduced-motion: reduce)').matches}):null;
-addEventListener('pagehide',()=>cinematicCamera?.dispose(),{once:true});
+const streetJourney=!embedMode?mountStreetJourney({container:$('top'),canvas:renderer.domElement,camera,controls,
+ getData:()=>({roads:town.roads,bounds:geographicTileBounds(area,town),buildings:[...town.buildings,...contextBuildings.values()],source:town.source}),
+ stopGuidance:()=>{arrivalDone=true;follow=false;visualCamera?.cancel();dispatchEvent(new CustomEvent('world:local-pan'));},
+ reducedMotion:()=>matchMedia('(prefers-reduced-motion: reduce)').matches}):null;
+addEventListener('pagehide',()=>{cinematicCamera?.dispose();streetJourney?.dispose();},{once:true});
 
 startup.readyMs=performance.now();for(const [node,disabled] of startupDisabled)node.disabled=disabled;startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);
 requestAnimationFrame(frame);

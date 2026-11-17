@@ -340,3 +340,32 @@ preserves those through coordinate projection. The readout labels transport road
 type and exact `osm:way` / `osm:node` references. Pipe, water, electricity and
 service networks have no spatial evidence adapter here: hatching always represents
 unknown coverage. The scanner adds no animation loop, model command or persistence.
+
+## Street journey preview (SHE-604)
+
+World's **Street journey** panel offers the first 100 loaded street traces.
+Journey cuts to the trace start, then follows its supplied polyline over four
+presentation seconds. This duration is authored camera pacing, never transit
+travel time. Labels distinguish synthetic geometry from loaded OSM geometry;
+neither establishes service, accessibility, connectivity or a district route.
+No district-to-street identity mapping or network routing is supplied by this
+slice. Source records, run IDs, seeds, clocks and model state are read-only.
+
+Every segment stays inside the loaded rectangular geographic extent. The camera
+uses a constant altitude above all supplied building roofs, at least 40m and at
+most 1100m. This conservative aerial framing assumes flat World ground. Malformed,
+unbounded, over-2048-point or zero-length traces and unknown/over-ceiling roofs
+fail closed. Unsupported paths use a safe cut to the loaded extent corner when
+possible; otherwise the view remains still with an unavailable explanation.
+Active paths are revalidated against current bounds/geometry each frame.
+
+Skip cuts to the endpoint; Back restores the first previous view if unobstructed.
+Escape, orbit, wheel, touch and other camera guidance interrupt movement.
+Reduced motion cuts immediately, including when enabled during a journey.
+Native buttons have 44px minimum targets. Resources/listeners are removed on
+page exit. The existing camera/frame loop owns updates; no model timer is added.
+
+Checks: `bun test test/street-journey.test.js` and
+`bunx playwright test --config test/street-journey.browser.config.js`.
+The normal World camera suite also includes the entry control. Browser acceptance
+and district-route dependencies are recorded in `docs/reviews/SHE-604.md`.
