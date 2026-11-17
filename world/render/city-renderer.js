@@ -42,7 +42,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
   const seasonControls=mountSeasonControls(panel,value=>{state.season=value;});
   panel.style.maxWidth='calc(100vw - 52px)';
   const select=panel.querySelector('[aria-label="Render quality"]');
-  panel.querySelector('[data-lighting]').onchange=event=>{if(event.target.value==='simulation')delete state.timeOfDay;else api.setTimeOfDay(Number(event.target.value));};
+  panel.querySelector('[data-lighting]').onchange=event=>{if(event.target.value==='simulation')api.resetTimeOfDay();else api.setTimeOfDay(Number(event.target.value));};
   panel.querySelector('[data-geometry]').onchange=event=>api.setGeometryDetail(event.target.value);
   panel.querySelector('[data-geometry-debug]').onchange=event=>{geometryDebug.mode=event.target.value;};
   panel.querySelector('[data-wireframe]').onchange=event=>{geometryDebug.wireframe=event.target.checked;};
@@ -83,6 +83,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
     setCutaway(value){cutaway.enabled=Boolean(value);},
     setWeather(value){details.setWeather(value);state.weather=value;},
     setTimeOfDay(hour){if(!Number.isFinite(hour))throw new TypeError('Hour must be finite');state.timeOfDay=((hour%24)+24)%24;},
+    resetTimeOfDay(){delete state.timeOfDay;panel.querySelector('[data-lighting]').value='simulation';},
     getStormState(){return stormEffects.getState();},
     get timeOfDay(){return state.timeOfDay;},
     get density(){return quality.settings.density;},
