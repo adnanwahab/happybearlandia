@@ -302,3 +302,28 @@ ID-buffer readback: transparent fragment discard, antialiasing and asynchronous
 asset/geometry replacement can differ from exact raster pixels. Full GPU/browser
 acceptance, including streaming and mode changes during freeze, remains pending;
 see `docs/reviews/SHE-659.md`.
+
+## Infrastructure scanner (SHE-645 local candidate)
+
+In 3D `/world`, World controls → X-ray infrastructure scanner opens a static,
+hatched ground-ray lens. Hover scans at most 10Hz; Scan center provides the same
+query for touch and keyboard. Escape closes and returns summary focus. The
+8-metre road tolerance is a presentation assumption, not a service radius.
+Only the original loaded town's OSM roads are queried; streamed areas outside
+that geometry remain unknown. Old caches and synthetic roads gain no IDs.
+
+The core Overpass query requests body/geometry to retain way IDs and ordered node
+references; `buildTown` preserves those through coordinate projection. The readout
+labels transport road type and exact `osm:way` / `osm:node` references. Membership
+is not a verified routable connection. Pipe, water, electricity and service
+networks have no spatial evidence adapter here: hatching always represents that
+unknown coverage, even when a road is identified. Monthly City utility records
+are a separate authority and are not mapped onto streets. No utility geometry,
+resident action or causal effect is invented; model rules/seeds remain unchanged.
+
+The scanner adds no animation loop, model command or persistence. Static rendering
+is also the reduced-motion alternative. `hblInfrastructureScanner.getState()`
+reports open-frame count/max interval (CPU animation cadence, not GPU cost), scan
+count/max synchronous scan cost and disposal state. Closing removes the lens;
+pagehide removes controls/listeners/lens. Hardware pacing and normal-entry browser
+acceptance remain unverified; see `docs/reviews/SHE-645.md`.

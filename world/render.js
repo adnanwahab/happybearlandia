@@ -1,3 +1,4 @@
+import {mountInfrastructureScanner} from './infrastructure-scanner.js';
 import {createInspectionFreeze,mountInspectionFreeze} from './render/inspection-freeze.js';
 import {mountSceneContextMenu} from './scene-context-menu.js';
 import {rankScreenTargets,mountPickPreview,isRenderedHit} from './render/magnetic-picking.js';
@@ -2129,6 +2130,15 @@ async function publishSyntheticJournalsForDay(day) {
   }
 }
 
+const infrastructureScanner=!embedMode?mountInfrastructureScanner({container:$('top'),canvas:renderer.domElement,
+ getData:()=>({source:town.source,roads:town.roads}),toGround:event=>{
+ const rect=renderer.domElement.getBoundingClientRect(),picker=new THREE.Raycaster();
+ picker.setFromCamera(new THREE.Vector2((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1),camera);
+ const point=picker.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());
+ return point&&picker.ray.origin.distanceTo(point)<=camera.far?point:null;
+ }}):null;
+window.hblInfrastructureScanner={getState:()=>infrastructureScanner?.getState()};
+addEventListener('pagehide',()=>{infrastructureScanner?.destroy();delete window.hblInfrastructureScanner;},{once:true});
 const ray = new THREE.Raycaster();
 const ptr = new THREE.Vector2();
 let downAt = null,downVehicle = null;
@@ -2342,6 +2352,7 @@ function frame(now) {
   if(!inspectionFreeze.frozen&&(streamingEnabled||Math.hypot(controls.target.x,controls.target.z)>400)&&now-lastStreamUpdate>=100){streamingEnabled=true;lastStreamUpdate=now;mapStreamer.update();}updateContextMinimap();
   const cpuStart = performance.now();
   const frameMs = now - last;
+  infrastructureScanner?.recordFrame(frameMs);
   const dt = Math.min(0.1, (now - last) / 1000);
   last = now;
 
