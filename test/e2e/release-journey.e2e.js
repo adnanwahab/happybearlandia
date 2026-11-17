@@ -48,6 +48,10 @@ test('an exact Living World future survives World, House, replay and a matched f
   await page.goto(canonical.href);
   await expect(page.locator('#clock')).toContainText('Minute 360');
 
+  // Exercise the saved World WebGL2 fallback even when the runner exposes WebGPU.
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'gpu', { configurable: true, value: undefined });
+  });
   await page.getByRole('link', { name: 'Enter this future in 3D World' }).click();
   // Without WebGPU, World intentionally opens the geometry-only WebGL2 viewer.
   await expect(page).toHaveURL(/\/world\/static-city\.html/);
@@ -154,7 +158,7 @@ test('saved WebGL2 city on a phone retains the exact checkpoint link without cla
 });
 
 // Even with no graphics backend, a saved resident must retain a way home.
-test('saved World offers an exact return when every graphics backend is unavailable', async ({ page }) => {
+test('saved World offers an exact return when every graphics backend is unavailable', async ({ page, request }) => {
 
   await page.goto('/tools/future-journey.html');
   await page.getByRole('button',{name:'Create a guided demo checkpoint'}).click();
