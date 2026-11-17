@@ -1,4 +1,6 @@
+import {installShe63Admission} from '../support/she63-admission.js';
 import {test,expect} from '@playwright/test';
+installShe63Admission(test);
 import {writeFile} from 'node:fs/promises';
 
 const route='/world/future-machine.html';
