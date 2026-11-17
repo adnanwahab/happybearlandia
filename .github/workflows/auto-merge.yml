@@ -66,4 +66,21 @@ jobs:
             const { run } = require('./.github/scripts/auto-merge.cjs');
             const dryRun = context.eventName !== 'schedule' &&
               String(context.payload.inputs?.dry_run ?? 'true') !== 'false';
-            await run({ github, context, core, dryRun });
+            const outcome = await run({ github, context, core, dryRun });
+            require('node:fs').writeFileSync(
+              require('node:path').join(process.env.RUNNER_TEMP, 'hbl-auto-merge-audit.json'),
+              JSON.stringify({
+                schemaVersion: 1, repository: context.repo.owner + '/' + context.repo.repo,
+                runId: context.runId, attempt: context.runAttempt, dryRun,
+                generatedAt: new Date().toISOString(), merged: outcome.merged,
+                nativeAutoMergeEnabled: outcome.enabled, pullRequests: outcome.rows,
+              }, null, 2) + '\\n'
+            );
+      - name: Retain per-PR eligibility and blocker audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: auto-merge-audit-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/hbl-auto-merge-audit.json
+          if-no-files-found: warn
+          retention-days: 30

@@ -17,7 +17,7 @@ const repoInfo = () => ({ name: REPO, full_name: FULL_NAME, owner: { login: OWNE
 
 function pull(number = 1, overrides = {}) {
   return {
-    number, title: `Implement task ${number}`, body: 'A small independently reviewable change.',
+    number, node_id: `PR_node_${number}`, title: `Implement task ${number}`, body: 'A small independently reviewable change.',
     state: 'open', draft: false, mergeable: true, mergeable_state: 'clean', changed_files: 1,
     user: { login: 'feature-author', type: 'User' },
     labels: [], requested_reviewers: [], requested_teams: [],
@@ -74,7 +74,7 @@ function fixture(options = {}) {
   }
   const handlers = {
     'repos.get': () => response({ ...repoInfo(), default_branch: 'main', allow_squash_merge: true,
-      allow_merge_commit: true, allow_rebase_merge: true, ...options.repository }),
+      allow_merge_commit: true, allow_rebase_merge: true, allow_auto_merge: false, ...options.repository }),
     'repos.getBranch': args => response({ name: args.branch, protected: true, commit: {
       sha: sequence(`branch:${args.branch}`, options.branchSequence?.[args.branch], args.branch === 'main' ? mainSha : SPRINT_SHA),
     } }),
@@ -150,6 +150,11 @@ function fixture(options = {}) {
     },
     graphql: async (query, args) => {
       calls.push({ method: 'graphql', args });
+      if (query.includes('enablePullRequestAutoMerge')) {
+        writes.push({ method: 'graphql.enableAutoMerge', args });
+        if (options.autoMergeError) throw options.autoMergeError;
+        return { enablePullRequestAutoMerge: { pullRequest: { id: args.pullRequestId } } };
+      }
       const number = args.number ?? args.pullNumber ?? args.pullRequestNumber;
       assert.ok(number, 'GraphQL request includes a PR number');
       const all = options.threads?.[number] ?? [];
@@ -186,8 +191,9 @@ test('merges at most one ready PR at its exact head, then dispatches current-mai
   assert.equal(args.pull_number, 1, 'select the oldest eligible PR regardless of API response order');
   assert.equal(args.sha, head(args.pull_number));
   assert.equal(args.merge_method, 'merge');
-  assert.equal(dispatches(f).length, 1);
+  assert.equal(dispatches(f).length, 2);
   assert.equal(dispatches(f)[0].args.workflow_id, 'core-journeys.yml');
+  assert.equal(dispatches(f)[1].args.workflow_id, 'post-merge-observations.yml');
   assert.equal(dispatches(f)[0].args.ref, 'main');
   assert.ok(f.writes.indexOf(merges(f)[0]) < f.writes.indexOf(dispatches(f)[0]));
 });
@@ -500,4 +506,39 @@ test('scheduled merge workflow is explicitly opt-in and manual dispatch defaults
   assert.ok(text.includes('dry_run:'));
   assert.ok(text.includes('default: true'));
   assert.doesNotMatch(text, /if:\s*\$\{\{\s*false\s*\}\}/);
+});
+
+test('native GitHub auto-merge is enabled for an exact-head human-approved PR, not merged through REST', async () => {
+  const f = fixture({ repository: { allow_auto_merge: true } });
+  const result = await f.execute();
+  assert.equal(result.enabled, 1);
+  assert.equal(result.merged, 0);
+  assert.equal(merges(f).length, 0);
+  assert.equal(f.writes.filter(call => call.method === 'graphql.enableAutoMerge').length, 1);
+  assert.equal(f.writes.find(call => call.method === 'graphql.enableAutoMerge').args.pullRequestId, 'PR_node_1');
+  assert.equal(f.writes.find(call => call.method === 'graphql.enableAutoMerge').args.mergeMethod, 'MERGE');
+  assert.equal(dispatches(f).length, 0, 'native GitHub merges will emit their own main push');
+});
+
+test('native auto-merge fails closed when GitHub rejects the request', async () => {
+  const f = fixture({ repository: { allow_auto_merge: true }, autoMergeError: new Error('auto-merge unavailable') });
+  await f.execute();
+  assert.equal(merges(f).length, 0);
+  assert.ok(f.messages.some(message => message.level === 'setFailed'));
+});
+
+test('observational screenshots and performance checks do not block otherwise valid PRs', async () => {
+  const f = fixture({ checks: { [head(1)]: [
+    { id: 997, name: 'visual-evidence', status: 'completed', conclusion: 'failure', created_at: time(10) },
+    { id: 998, name: 'Performance - rain', status: 'in_progress', conclusion: null, created_at: time(20) },
+  ] } });
+  await f.execute();
+  assert.equal(merges(f).length, 1);
+});
+
+test('the audit contains the skipped or deferred state for every inventoried PR', async () => {
+  const f = fixture({ prs: [pull(1), pull(2)] });
+  const result = await f.execute();
+  assert.deepEqual(new Set(result.rows.filter(r => /^#\\d+$/.test(r.pr)).map(r => r.pr)), new Set(['#1','#2']));
+  assert.ok(result.rows.find(r => r.pr === '#2' && r.status === 'deferred'));
 });
