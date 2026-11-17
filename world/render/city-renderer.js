@@ -1,3 +1,4 @@
+import {createStyleBridge,supportsStyleBridge} from './style-bridge.js';
 import {mountSeasonControls} from './environment/season-controls.js';
 import {simulationBudget,formatSimulationBudget} from './renderer/dual-budget.js';
 import {windowFraction} from './environment/sim-lighting.js';
@@ -21,6 +22,7 @@ import { createCityDetails } from './environment/city-details.js';
 
 export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,facades=[],geometryCache,embed=false}) {
   const params=new URLSearchParams(location.search), quality=new QualityManager(params.get('quality')?.toUpperCase() in PRESETS?params.get('quality').toUpperCase():'BALANCED');
+  const styleBridge=createStyleBridge(),blueprintTint=new THREE.Color(0x167aa5);
   const stats=new RenderStats(), gpu=new GPUProfiler(renderer), visibility=new CityVisibility(town.buildings), details=createCityDetails(scene,town);
   gpu.setEnabled(params.get('readback') !== 'off');
   let consumedGPU = null;
@@ -39,6 +41,11 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
   panel.style.cssText='position:fixed;top:12px;right:12px;z-index:100;background:#111e;color:#e1edf4;padding:14px;border:1px solid #52616c;border-radius:10px;font:12px/1.5 monospace;max-height:85vh;overflow:auto';
   panel.innerHTML='<strong>City renderer · F3</strong><p>Storefronts, roof colors and window styles are cosmetic; they do not measure business activity.</p><pre></pre><label>Lighting <select data-lighting aria-label="Scene lighting"><option value="14">Daylight</option><option value="18">Golden hour</option><option value="22">Night</option><option value="simulation">Simulation clock</option></select></label><label>Quality <select aria-label="Render quality"></select></label><label>Geometry <select data-geometry aria-label="Geometry detail"><option>LOW</option><option selected>MEDIUM</option><option>HIGH</option><option>ULTRA</option></select></label><label>Geometry view <select data-geometry-debug aria-label="Geometry debug"><option value="off">Off</option><option value="lod">Show LOD</option><option value="heatmap">Triangle heatmap</option></select></label><label><input type="checkbox" data-wireframe>Wireframe selected</label><div data-features></div><button data-cutaway>Selected cutaway</button><button data-photo>Photo mode</button><button data-record>Record 30 seconds</button><button data-export>Export JSON</button><p role="status"></p>';
   panel.querySelector('[data-lighting]').value='14';
+  const styleLabel=document.createElement('label');styleLabel.textContent='City ↔ blueprint (illustrative materials) ';
+  const styleInput=document.createElement('input');styleInput.type='range';styleInput.min='0';styleInput.max='1';styleInput.step='.01';styleInput.value='0';styleInput.setAttribute('aria-label','City blueprint style');styleInput.style.cssText='min-height:44px;width:180px;max-width:100%';
+  styleInput.disabled=!supportsStyleBridge(facades);
+  styleInput.title=styleInput.disabled?'Style unavailable: no supported building materials':'Materials only; policy facts and geometry stay identical';
+  styleInput.oninput=()=>api.setStyle(Number(styleInput.value));styleLabel.append(styleInput);panel.append(styleLabel);
   const seasonControls=mountSeasonControls(panel,value=>{state.season=value;});
   panel.style.maxWidth='calc(100vw - 52px)';
   const select=panel.querySelector('[aria-label="Render quality"]');
@@ -64,6 +71,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
   if(!embed)document.body.append(panel,graphicsButton);
   function hotkey(event){if(event.code==='F3'){event.preventDefault();panel.hidden=!panel.hidden;}}
   addEventListener('keydown',hotkey);
+  function immediateStyle(){return quality.preset==='LOW'||quality.level>=2||matchMedia('(prefers-reduced-motion: reduce)').matches||navigator.deviceMemory<=4||navigator.hardwareConcurrency<=4;}
   function applyQuality(){
     const s=quality.settings,key=JSON.stringify([s,features.shadows]);if(key===lastSettings)return;lastSettings=key;
     renderer.setPixelRatio(Math.min(devicePixelRatio||1,embed?1:s.dpr)*s.scale);renderer.setSize(innerWidth,innerHeight);
@@ -73,6 +81,8 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
   const api={
     renderCity(next){api.updateCity(next);active=true;},
     updateCity(next={}){state={...state,...next};if(next.constructionProjects)construction.update(next.constructionProjects);if(next.weather)api.setWeather(next.weather);if(next.timeOfDay!=null)api.setTimeOfDay(next.timeOfDay);},
+    setStyle(value){styleBridge.set(value,{immediate:immediateStyle()});styleInput.value=String(value);},
+    getStyleState(){return {...styleBridge.getState(),supported:!styleInput.disabled,immediate:immediateStyle()};},
     setQuality(name){quality.setPreset(name.toUpperCase());select.value=quality.preset;applyQuality();},
     setFeature(name,value){if(!(name in features))throw new RangeError(`Unknown render feature: ${name}`);features[name]=Boolean(value);lastSettings='';},
     setTargetFPS(value){quality.setTargetFPS(value);targetSelect.value=String(value);lastSettings='';applyQuality();},
@@ -120,8 +130,12 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
       grass.update(motion.now,camera,quality.settings,features.grass&&features.vegetation,quality.preset);
       detailAssets.update(motion.now,camera,quality.settings,features);
       details.update(motion.now,motion.dt,camera,{...quality.settings,geometryRadius:({LOW:.6,MEDIUM:1,HIGH:1.3,ULTRA:1.6})[geometryDetail?.quality||'MEDIUM']},{...features,rain:features.rain&&!reducedMotion&&stormIntensity===0},state);
+      const styleValue=styleBridge.update(dt,{immediate:immediateStyle()});
+      lod.material.color.setRGB(1,1,1).lerp(blueprintTint,styleValue);
+      lod.material.roughness=.85+.15*styleValue;
+      styleInput.disabled=!supportsStyleBridge(facades);
       const homes=new Map((state.buildingHomeCounts??[]).map(r=>[String(r.buildingId),r])),present=new Map((state.buildingOccupancy??[]).map(r=>[String(r.buildingId),r.count]));
-      for(const facade of facades){facade.setNight(1-daylight);facade.setEnabled(features.facades);facade.setInteriorEnabled(features.interiors&&quality.settings.interiors);const b=facade.building;facade.setOccupancy(b?windowFraction(b,homes.get(String(b.id)),present.get(String(b.id))??0,state.lighting?.hour??14,state.lighting?.day??0):0);}
+      for(const facade of facades){facade.setStyle?.(styleValue);facade.setNight(1-daylight);facade.setEnabled(features.facades);facade.setInteriorEnabled(features.interiors&&quality.settings.interiors);const b=facade.building;facade.setOccupancy(b?windowFraction(b,homes.get(String(b.id)),present.get(String(b.id))??0,state.lighting?.hour??14,state.lighting?.day??0):0);}
       return active;
     },
     afterFrame(now,cpuMs,frameMs){
