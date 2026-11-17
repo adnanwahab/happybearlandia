@@ -134,3 +134,35 @@ installed Bun binary; `HBL_STARTUP_SMOKE_PORT` overrides the local test port.
 `HBL_NAV_STATIC=1` serves actual source documents via Playwright interception when
 listening is blocked; it does not supply model API fixtures or qualify server/model
 startup. See the issue review for actual executed evidence and browser blockers.
+
+### Opt-in voice commands (SHE-783)
+
+Open Search / voice or Command-K, then explicitly click Use voice. Recognition
+requires `processLocally` support and is configured local-only before starting.
+English (`en-US`) needs an installed local language pack and microphone access.
+No cloud fallback, model download, audio upload, transcript persistence, analytics
+or sharing is introduced. Unsupported or denied recognition offers typed search.
+Cancel, close/Escape, visibility loss, pagehide, disposal and a 15-second timeout
+abort recognition. Closing clears the query; late callbacks are ignored.
+
+Speech filters the same palette rows as typing. Click a result or press Enter to
+confirm; existing native owner guards remain authoritative. The grammar strips
+“show/open/find (the)” and maps “why did rent change?” to `why rent`. It never
+generates an answer. World has no registered rent WHY producer, so that question
+reports missing evidence. Owners may opt in `inspect` actions alongside existing
+follow/compare/why/photo actions using `data-palette-context` identity guards.
+
+World shell Search and Command-K now use the shared palette; Search / voice sits
+in the mobile-scrollable navigation. Native navigation buttons register as inspect
+commands. `school-command.js` adds a normal school button using the first school
+in source order, labeled by actual name. It consumes `hblWorldTileSource` like Tile
+view and rechecks run, geometry and entity identity before `selectBuilding`.
+Missing identity/school, duplicate IDs or changed scope fail closed. No model
+result, clock, rule, seed, source record or cross-model mapping changes.
+
+Checks: set `HBL_PALETTE_DOM=/path/to/happy-dom/lib/index.js` when running
+`bun test test/voice-navigation.test.js test/command-palette.test.js`; this follows
+the existing optional DOM-test convention. Browser suite:
+`bunx playwright test --config test/voice-navigation.browser.config.js`.
+Mocks exercise lifecycle and handlers, not physical speech accuracy. Actual
+results and remaining prerequisites: `docs/reviews/SHE-783.md`.
