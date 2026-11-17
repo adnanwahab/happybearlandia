@@ -1,0 +1,20 @@
+#racetrack {border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:16px;margin-bottom:24px}
+#racetrack h2 {margin:0;font-size:24px}
+.race-controls {display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:16px 0}
+.race-controls button,.race-lane {min-height:44px}
+#race-month {width:min(100%,400px)}
+.race-axis,.race-lane {display:grid;grid-template-columns:minmax(140px,1fr) minmax(100px,3fr) minmax(100px,1fr);gap:16px;align-items:center}
+.race-axis {font-size:12px;margin-bottom:8px}
+.race-axis div {display:flex;justify-content:space-between}
+#race-lanes {max-height:560px;overflow:auto;padding:4px}
+.race-lane {width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:8px 0;font-variant-numeric:tabular-nums}
+.race-lane:hover,.race-lane:focus-visible {background:var(--tile-bg)}
+.race-track {display:block;position:relative;height:12px;background:var(--tile-bg);margin:0 7px}
+.race-track i {position:absolute;width:12px;height:12px;transform:translateX(-50%);border-radius:50%;background:var(--accent)}
+#race-receipt {color:var(--ink);background:var(--panel);width:min(900px,95vw);max-height:90vh;border:1px solid var(--line);border-radius:12px}
+#race-receipt pre {white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
+#race-changes {max-height:100px;overflow:auto}
+@media(max-width:600px){.race-lane,.race-axis {grid-template-columns:minmax(90px,1fr) minmax(80px,1.5fr) 80px;gap:8px;font-size:11px}#racetrack{padding:10px}}
+
+.race-controls label {flex-wrap:wrap;max-width:100%}
+#race-import {max-width:100%;min-width:0;width:260px}

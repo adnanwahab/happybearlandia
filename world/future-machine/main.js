@@ -1,3 +1,4 @@
+import {mountComic} from './story/comic.js';
 import {buildSpotlight} from './diff/spotlight.js';
 import {mountSpotlight} from './ui/spotlight.js';
 import {consumeDemoClick,createDemoTiming,visibleCity} from './demo-performance.js';
@@ -39,7 +40,7 @@ function recordMilestone(type,payload){return funnel.record(type,payload,{deferU
 function recordLanding(){if(disposed)return;recordMilestone('landing',{entry:landingEntry});}
 function firstInput(control){recordLanding();recordMilestone('first_input',{control});}
 function recordVisibleDivergence(){if(!['ready','error'].includes(state.status))return;const facts=visibleDivergence(history,diffs,state.month);if(facts)recordMilestone('first_divergence',{facts});}
-let originalRecipe=structuredClone(DEFAULT_RECIPE);
+let originalRecipe=structuredClone(DEFAULT_RECIPE),configurationGeneration=0;
 let history=null,diffs=[],story=null,stage=null,storyDispose=()=>{},request=null,playTimer=null,disposed=false;
 let state={status:'idle',preview:false,message:'Fork the same city. Change one decision. Watch ten modeled years.',recipe:structuredClone(DEFAULT_RECIPE),month:0,playing:false,eventSlowdown:false,mode:'split',ghosts:true,autoCamera:true,experimentId:null,shareURL:null,error:null};
 let remembering=false;
@@ -76,6 +77,7 @@ const narration=mountChangeNarration(app);
 const outcomeHost=document.createElement("div");ui.stageElement.after(outcomeHost);
 const diagnostic=mountDiagnosticReport(app);
 const momentsHost=document.createElement('div');outcomeHost.after(momentsHost);
+const comic=mountComic(app,{getHistory:()=>history,baseURL:location.href.split('?')[0].split('#')[0]});
 const challenges=createChallengeCards(app.querySelector('.fm-ui'),{getContext:()=>({history,month:state.month})});
 stage=createStage(ui.stageElement,{onSelect:select,onCameraInteraction:stopCameraTour});
 stage.setMode(state.mode);stage.setGhosts(state.ghosts);
@@ -119,13 +121,13 @@ function explainMetric(key,stop=true,{preserveTrail=false}={}){
   const clean=mountLedger(ui.storyElement,history,{month:state.month,metric:source});const previous=storyDispose;storyDispose=()=>{clean();previous();};
 }
 
-function resetConfiguration(){if(['loading','running','queued'].includes(state.status)&&!state.preview)return;firstInput('policy');state.recipe=structuredClone(originalRecipe);if(!history)showPreview(state.recipe);state.error=null;state.message=history?'Original seed and policy restored. Displayed results, evidence and share link are unchanged. Click Fork City to rerun.':'Original seed and policy restored. Initial inventory updated. Click Fork City to run matched futures.';update();}
-function configure(recipe){try{state.recipe=validateRecipe(recipe);if(!history)showPreview(state.recipe);firstInput('policy');state.error=null;state.message=history?`Next run: ${state.recipe.intervention ? `${state.recipe.intervention.amount} proposed ${state.recipe.intervention.type} units` : 'no intervention'} · seed ${state.recipe.seed}. Fork City reruns from that seed’s initial conditions. Displayed comparison and shared link still refer to run ${history.experimentId}.`:`Configured seed ${state.recipe.seed}. Fork City runs two matched futures.`;update();}catch(error){state.error=error.message;update();}}
+function resetConfiguration(){if(['loading','running','queued'].includes(state.status)&&!state.preview)return;firstInput('policy');configurationGeneration++;state.recipe=structuredClone(originalRecipe);if(!history){takeover();showPreview(state.recipe);}state.error=null;state.message=history?'Original seed and policy restored. Displayed results, evidence and share link are unchanged. Click Fork City to rerun.':'Original seed and policy restored. Initial inventory updated. Click Fork City to run matched futures.';update();}
+function configure(recipe){try{state.recipe=validateRecipe(recipe);configurationGeneration++;firstInput('policy');if(!history){takeover();showPreview(state.recipe);}state.error=null;state.message=history?`Next run: ${state.recipe.intervention ? `${state.recipe.intervention.amount} proposed ${state.recipe.intervention.type} units` : 'no intervention'} · seed ${state.recipe.seed}. Fork City reruns from that seed’s initial conditions. Displayed comparison and shared link still refer to run ${history.experimentId}.`:`Configured seed ${state.recipe.seed}. Fork City runs two matched futures.`;update();}catch(error){state.error=error.message;update();}}
 function showPreview(recipe){
   const initial=initialForRecipe(recipe);
   state.preview=true;state.recipe=structuredClone(recipe);state.month=0;state.diff=null;
   state.experimentId=null;state.shareURL=null;state.sharePreview=null;state.firstConstruction=null;
-  state.frame={month:0,baseline:{month:0,state:initial},plan:{month:0,state:structuredClone(initial)}};
+  state.frame={month:0,baseline:{month:0,state:initial,metrics:{},events:[],causalRecords:[],decisions:[]},plan:{month:0,state:structuredClone(initial),metrics:{},events:[],causalRecords:[],decisions:[]}};
   state.provenance={seed:recipe.seed,modelVersion:recipe.modelVersion,datasetVersion:initial.provenance.datasetVersion,experimentId:null};
   stage.update(state.frame,null);
   showStory({title:'Model-backed initial snapshot · Month 0',summary:`Synthetic starting inventory · seed ${recipe.seed} · model ${recipe.modelVersion} · dataset ${initial.provenance.datasetVersion}. Choose a policy or inspect a building while the future model runs. No future outcomes or saved experiment are available yet.`,evidence:[],limitations:initial.provenance.assumptions});
@@ -201,7 +203,7 @@ function setPlaying(value){
  update();
 }
 function select(entity){if(!history){
- const row=state.preview&&state.frame?.baseline?.state?.[entity?.collection]?.find(row=>row.id===entity.id);
+ const arm=entity?.arm??'baseline',row=state.preview&&['baseline','plan'].includes(arm)?state.frame?.[arm]?.state?.[entity?.collection]?.find(row=>row.id===entity.id):null;
  if(row){firstInput('scenario');takeover();stage.focus(entity);showStory({title:`Initial snapshot · ${entity.id}`,summary:`Month 0 · seed ${state.provenance.seed} · model ${state.provenance.modelVersion} · dataset ${state.provenance.datasetVersion}. Synthetic starting inventory; future outcomes and event receipts are unavailable.`,evidence:[],limitations:[`Initial inventory record: ${JSON.stringify(row)}`]});}
  return;
 }
@@ -214,6 +216,7 @@ function select(entity){if(!history){
 function jump(stop,{animate=false}={}){if(!history||!stop)return;firstInput('scenario');takeover();setMonth(stop.month);quest.visit(state.month);update();outcomeTimeline?.update(state.month,{announce:true});updateURL();const located=stop.entity?stage.focus(stop.entity,{animate,duration:900}):false;const detail=stop.entity?entityDescription(stop.entity):stop;showStory(withContext({...stop,...detail,title:stop.title??detail.title,entity:stop.entity,evidence:stop.evidence?.length?stop.evidence:detail.evidence,summary:`${detail.summary}${stop.entity&&!located?' No unambiguous scene mapping for this entity; camera unchanged.':''}`,limitations:story.limitations}));if((stop.evidence?.length??detail.evidence?.length)>0)recordMilestone('why_opened',{target:'recorded-event'});}
 function direct(){if(!story)return;firstInput('scenario');takeover();const physical=(story.stops||[]).filter(stop=>stop.entity?.collection==='buildings');const stops=physical.length?physical:story.stops||[];const next=stops.find(stop=>stop.month>state.month)||stops[0];if(next)jump(next);else showStory(story);}
 async function run(recipe=state.recipe,savedId=null,selectedMonth=0,{demoRun=false,userRun=false,receiptInput=null,challenge=null,challengeHash=null,entry=null,landing=null}={}){
+  const configurationAtStart=configurationGeneration;
   diagnostic.clear();state.sharePreview=null;
   linkGeneration++;
   lastAttempt=[structuredClone(recipe),savedId,selectedMonth,{receiptInput:receiptInput?structuredClone(receiptInput):null,challenge:challenge?structuredClone(challenge):null,challengeHash,entry,userRun,landing:landing?structuredClone(landing):null}];
@@ -227,7 +230,7 @@ async function run(recipe=state.recipe,savedId=null,selectedMonth=0,{demoRun=fal
     if(receiptInput){const reopened=await replayRunReceipt(receiptInput,options);loaded=reopened.history;selectedMonth=reopened.month;recipe=loaded.recipe;savedId=loaded.experimentId;}
     if(disposed||request!==current){if(receiptInput)throw new Error('Receipt replay cancelled or superseded.');return;}
     recipe=validateRecipe(recipe);
-    if(!history){showPreview(recipe);update();}
+    if(!history&&!receiptInput){showPreview(recipe);update();}
     if(receiptInput){/* Strict receipt replay already verified above. */}
     else if(savedId){try{loaded=await loadExperiment(savedId,options);}catch(error){if(challenge||current.signal.aborted||!/not found/i.test(error.message))throw error;fallback=true;state.message=`Saved experiment unavailable (${error.message}). Recomputing the bounded shared recipe.`;update();loaded=await createExperiment(recipe,options);loaded={...loaded,provenance:{...loaded.provenance,shareFallback:'Saved record unavailable; recomputed from recipe.'}};}}
     else loaded=await createExperiment(recipe,options);
@@ -239,12 +242,12 @@ async function run(recipe=state.recipe,savedId=null,selectedMonth=0,{demoRun=fal
     if(landing){state.mode=landing.mode;state.ghosts=landing.ghosts;}
     stage.dispose();stage=createStage(ui.stageElement,{onSelect:select,onCameraInteraction:stopCameraTour,history:loaded});stage.setMode(state.mode);stage.setGhosts(state.ghosts);
     trailView?.();trailView=null;trailAnchor=null;inspectorEntity=null;inspectorMetric=null;outcomeTimeline?.dispose();outcomeTimeline=createOutcomeTimeline(outcomeHost,{history:loaded,onMonth:manualMonth,onChapter:jump});
-    history=loaded;momentsDispose();momentsDispose=renderMoments(momentsHost,selectMoments(history),{onJump:jump});diffs=compareHistory(history);quest.reset(diffs,{userRun});spotlight.reset(buildSpotlight(history,diffs));
+    history=loaded;comic.clear();momentsDispose();momentsDispose=renderMoments(momentsHost,selectMoments(history),{onJump:jump});diffs=compareHistory(history);quest.reset(diffs,{userRun});spotlight.reset(buildSpotlight(history,diffs));
     // A physical difference alone does not establish a construction event.
     const first=firstDivergence(history,diffs);
     state.firstConstruction=first&&constructionReceipts(history,first.entity,first.month).some(receipt=>receipt.month===first.month)?first:null;
     story=buildStory(history,diffs);story.limitations.push(...(history.baseline[0].state.provenance.assumptions||[]));stats.runMs=performance.now()-start;
-    state={...state,status:'ready',preview:false,recipe:history.recipe,provenance:{seed:history.seed,modelVersion:history.modelVersion,experimentId:history.experimentId},experimentId:history.experimentId,message:`${fallback?'Saved record unavailable; reran the versioned recipe. ':''}120 months complete · detailed states recomputed from the saved monthly City manifest. Synthetic, uncalibrated model.`,error:null};
+    state={...state,status:'ready',preview:false,recipe:configurationAtStart===configurationGeneration?history.recipe:state.recipe,provenance:{seed:history.seed,modelVersion:history.modelVersion,experimentId:history.experimentId},experimentId:history.experimentId,message:`${fallback?'Saved record unavailable; reran the versioned recipe. ':''}120 months complete · detailed states recomputed from the saved monthly City manifest. Synthetic, uncalibrated model.`,error:null};
     state.message+= ' Inventory ready; graphics loading in the background.';
     setMonth(selectedMonth);outcomeTimeline?.update(state.month,{announce:true});updateURL();showStory(withContext(story));stats.readyMs=performance.now()-stats.startedAt;
     const activeStage=stage,cameraGeneration=demoGeneration;
@@ -271,7 +274,7 @@ function previewShare(){
 }
 function copyShare(){const preview=state.sharePreview;return preview?transferLink(false,{url:preview.url}):undefined;}
 function exportReport(){if(!history)return;const report=createEvidenceReport(history,{month:state.month,diff:diffs[state.month],story});const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='future-machine-evidence.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
-function dispose(){if(disposed)return;stopDemoTiming();persistRecent();disposed=true;if(updateFrame!==null)cancelAnimationFrame(updateFrame);document.removeEventListener('visibilitychange',visibilityChanged);request?.abort();removeYearShortcuts();clearInterval(playTimer);storyDispose();narration.dispose();momentsDispose();trailView?.();outcomeTimeline?.dispose();stage?.dispose();receiptUI.dispose();spotlight.dispose();questView.dispose();followUp.dispose();ui.dispose();diagnostic.dispose();challenges.dispose();director.dispose();funnel.dispose();history=null;diffs=[];story=null;state.frame=null;state.diff=null;window.removeEventListener('pagehide',dispose);}
+function dispose(){if(disposed)return;comic.dispose();stopDemoTiming();persistRecent();disposed=true;if(updateFrame!==null)cancelAnimationFrame(updateFrame);document.removeEventListener('visibilitychange',visibilityChanged);request?.abort();removeYearShortcuts();clearInterval(playTimer);storyDispose();narration.dispose();momentsDispose();trailView?.();outcomeTimeline?.dispose();stage?.dispose();receiptUI.dispose();spotlight.dispose();questView.dispose();followUp.dispose();ui.dispose();diagnostic.dispose();challenges.dispose();director.dispose();funnel.dispose();history=null;diffs=[];story=null;state.frame=null;state.diff=null;window.removeEventListener('pagehide',dispose);}
 window.addEventListener('pagehide',dispose);
 window.addEventListener('pageshow',event=>{if(event.persisted&&disposed)location.reload();});
 // Read-only diagnostics for local resource measurements and integration checks.

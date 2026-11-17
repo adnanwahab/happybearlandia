@@ -63,7 +63,7 @@ for (const profile of budgets.profiles) {
           const started = performance.now();
           try {
             await page.goto('/');
-            await page.getByRole('link', { name: 'Play Demo', exact: true }).click();
+            await page.getByRole('link', { name: 'Try the 60-second simulation', exact: true }).click();
             await expect.poll(async () => {
               const state = await page.evaluate(() => ({status: window.futureMachine?.state.status, error: window.futureMachine?.state.error, message: window.futureMachine?.state.message}));
               if (state.status === 'error') { report.failure = state; throw Error(JSON.stringify(state)); }

@@ -1,3 +1,4 @@
+import {createMediaPreferences} from '../../../shared/media/preferences.js';
 /** Cosmetic props and reactions for recorded appliance-government episodes.
  * No timers, random outcomes, needs, inventory or simulation writes live here. */
 const EPISODES = new Set(['fridge-strike', 'sofa-election', 'porcelain-tribunal']);
@@ -72,6 +73,7 @@ export function createGovernmentScene(THREE, scene, interior, {document: doc, la
   const geometries = new Set(), materials = new Set(), props = new Map();
   const tracker = createGovernmentEventTracker(), queue = [];
   let beat = null, disposed = false, houseId = null, observedMinute = null;
+  const comfort = doc?.defaultView?.matchMedia ? createMediaPreferences(doc.defaultView) : null;
   const reducedMotion = doc?.defaultView?.matchMedia?.('(prefers-reduced-motion: reduce)');
   const material = color => {
     const m = new THREE.MeshStandardMaterial({color, roughness: .65});
@@ -296,7 +298,7 @@ export function createGovernmentScene(THREE, scene, interior, {document: doc, la
           }
         }
       }
-      if (completion && objectPoint && elapsed < 2 && !reducedMotion?.matches && !['flush', 'squeak', 'raspberry', 'gulp'].includes(event.effect)) {
+      if ((comfort?.get().confetti ?? true) && completion && objectPoint && elapsed < 2 && !reducedMotion?.matches && !['flush', 'squeak', 'raspberry', 'gulp'].includes(event.effect)) {
         confetti.visible = true;
         confetti.position.copy(objectPoint).add(new THREE.Vector3(0, .5, 0));
         for (let i = 0; i < bits.length; i++) {
@@ -324,6 +326,7 @@ export function createGovernmentScene(THREE, scene, interior, {document: doc, la
     getDebug: () => ({souvenirs: [...props.values()].filter(entry => entry.group.visible).map(entry => ({id: entry.record.id, kind: entry.record.kind, objectId: entry.record.objectId, title: entry.record.title})), speaking: speech && !speech.hidden ? speech.textContent : null, effect: beat?.event.id ?? null}),
     destroy() {
       disposed = true;
+      comfort?.dispose();
       speech?.remove();
       for (const entry of props.values()) disposeProp(entry);
       props.clear(); queue.length = 0; beat = null; tracker.clear();

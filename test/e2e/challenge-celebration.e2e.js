@@ -1,0 +1,20 @@
+import {test,expect} from '@playwright/test';
+import {representativeCelebration} from '../fixtures/celebration/verified-challenge.js';
+import {challengeLinkPayload} from '../../world/challenges/transport.js';
+for(const reducedMotion of ['no-preference','reduce'])test(`verified optional stars through World (${reducedMotion})`,async({page})=>{
+ await page.emulateMedia({reducedMotion});
+ const {envelope}=await representativeCelebration();
+ await page.goto('/world/?demo=1&synthetic=1&people=16#city-challenge='+await challengeLinkPayload(envelope));
+ const panel=page.locator('[data-testid=challenge-panel]');await expect(panel).toBeVisible();
+ const toggle=panel.getByLabel('Optional completion stars');await expect(toggle).not.toBeChecked();await toggle.check();
+ await panel.locator('[data-challenge-candidate] input[value=housing]').check();
+ await panel.locator('[data-challenge-verify]').click();
+ await expect(panel.locator('[data-challenge-status]')).toContainText('Verified: challenge-beaten');
+ await expect(panel.locator('.challenge-celebration')).toBeVisible();
+ if(reducedMotion==='reduce')expect(await panel.locator('.challenge-celebration').evaluate(el=>el.getAnimations({subtree:true}).length)).toBe(0);
+ await page.screenshot({path:`test-results/challenge-celebration/${reducedMotion}.png`});
+ await panel.getByRole('button',{name:'Skip celebration'}).click();await expect(panel.locator('.challenge-celebration')).toBeHidden();
+ await panel.locator('[data-challenge-verify]').click();await expect(panel.locator('[data-challenge-status]')).toContainText('Verified: challenge-beaten');
+ await expect(panel.locator('.challenge-celebration')).toBeHidden();
+ await page.evaluate(()=>window.hblChallengePanel.destroy());await expect(page.locator('.challenge-celebration')).toHaveCount(0);
+});

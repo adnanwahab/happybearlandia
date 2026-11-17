@@ -5,7 +5,7 @@ import {sameOriginRouteURL} from '../support/startup-route-link.js';
 const routes = [
   { path: '/', nodes: ['h1', 'a.flagship-demo', '#explore'], openTools:true, links: [
     {path:'/world',card:'World',name:'Standalone ↗'},
-    {path:'/world/future-machine.html',name:'Play Demo'},
+    {path:'/world/future-machine.html',name:'Try the 60-second simulation'},
     {path:'/tools/future-journey.html',name:'Try Today’s Features'},
     {path:'/tools/simulation-health',name:'Simulation Health'},
     {path:'/routes',name:'Route directory →'},

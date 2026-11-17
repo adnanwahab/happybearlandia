@@ -1,0 +1,28 @@
+import {test,expect} from '@playwright/test';
+test.use({hasTouch:true});
+test('normal entry real runs, keyboard rotation, touch, resize and reduced motion',async({page})=>{
+ await page.goto('/world/decision.html');
+ const stage=page.locator('#rotation-theater');
+ await expect(stage).toContainText('Unavailable');
+ await page.locator('#try-example').click();await page.locator('#auto-preview').uncheck();await page.locator('#run-count').selectOption('10');
+ await page.locator('#run-experiment').click();
+ await expect(stage.locator('a')).toHaveCount(4,{timeout:60000});
+ const receipts=await stage.locator('a').evaluateAll(nodes=>nodes.map(n=>n.href));
+ const original=await page.evaluate(()=>JSON.stringify(window.hblDecisionStudio.state.results.runs));
+ let posts=0;page.on('request',request=>{if(request.method()==='POST')posts++;});
+ const baseline=stage.getByRole('button',{name:'Feature Baseline',exact:true});await baseline.focus();await baseline.press('ArrowRight');
+ await expect(stage.getByRole('button',{name:'Feature A',exact:true})).toBeFocused();
+ await expect(stage.locator('[role=status]')).toContainText('Featured: A');
+ await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:'reduce'});
+ await stage.getByRole('button',{name:'Feature Stress',exact:true}).tap();
+ await expect(stage.locator('[role=status]')).toContainText('Featured: Stress');
+ expect(await stage.locator('.rotation-panels').evaluate(n=>getComputedStyle(n).gridTemplateColumns.split(' ').length)).toBe(1);
+ expect(await stage.locator('article').first().evaluate(n=>getComputedStyle(n).transitionDuration)).toBe('0s');
+ expect(await stage.evaluate(n=>n.scrollWidth<=n.clientWidth)).toBe(true);
+ await stage.screenshot({path:'.mini-symphony-evidence/SHE-625-stage-mobile.png'});
+ await page.setViewportSize({width:1440,height:1000});
+ expect(await stage.locator('.rotation-panels').evaluate(n=>getComputedStyle(n).gridTemplateColumns.split(' ').length)).toBe(2);
+ await stage.screenshot({path:'.mini-symphony-evidence/SHE-625-stage-desktop.png'});
+ expect(await stage.locator('a').evaluateAll(nodes=>nodes.map(n=>n.href))).toEqual(receipts);
+ expect(await page.evaluate(()=>JSON.stringify(window.hblDecisionStudio.state.results.runs))).toBe(original);expect(posts).toBe(0);
+});

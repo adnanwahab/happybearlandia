@@ -226,7 +226,7 @@ function updateURL(month, eventId, entityId) {
   history.replaceState(history.state, '', url);
 }
 
-function inspect(month, entityId, eventId) {
+function inspect(month, entityId, eventId, retainedInspector) {
   clearInvestigation();
   if (entityId) {
     investigationURL = location.href;
@@ -239,9 +239,10 @@ function inspect(month, entityId, eventId) {
     inspectorHost.replaceChildren();
     return;
   }
-  const inspector = document.createElement('causal-inspector');
-  inspector.tab = eventId ? 'Why' : 'History';
-  inspector.context = { runId: selectedRun.context.runId, tick: month, entityId, targetId: eventId };
+  if (retainedInspector) retainedInspector.focusRecord = eventId;
+  const inspector = retainedInspector ?? document.createElement('causal-inspector');
+  if (!retainedInspector) inspector.tab = eventId ? 'Why' : 'History';
+  if (!retainedInspector) inspector.context = { runId: selectedRun.context.runId, tick: month, entityId, targetId: eventId };
   if (!entityId) {
     inspectorHost.replaceChildren(inspector);
     return;
@@ -281,6 +282,21 @@ function inspect(month, entityId, eventId) {
   trail.append(list);
   inspectorHost.replaceChildren(trail, inspector);
 }
+
+
+// Only recorded events in this monthly authority may move the surrounding city.
+inspectorHost.addEventListener('inspector-navigate', async ({ target, detail }) => {
+  const event = selectedRun?.events.get(detail.targetId);
+  if (detail.runId !== selectedRun?.context.runId || !event ||
+      !selectedRun.checkpoints.has(event.context.tick)) {
+    investigationStatus.textContent = 'City checkpoint unavailable for this record. The previous city checkpoint is retained; return remains available in the inspector.';
+    return;
+  }
+  pausePlayback(playing ? 'Playback paused.' : '');
+  await showMonth(event.context.tick, {
+    eventId: event.id, entityId: detail.entityId, retainedInspector: target,
+  });
+});
 
 function renderInventory(rows, month) {
   const sections = Object.entries(rows).map(([collection, items]) => {
@@ -390,7 +406,7 @@ function queueCheckpoint(run, month, request) {
   return task;
 }
 
-async function showMonth(month, { eventId, entityId } = {}) {
+async function showMonth(month, { eventId, entityId, retainedInspector } = {}) {
   const run = selectedRun;
   if (!run) return false;
   const request = ++requestNumber;
@@ -430,7 +446,7 @@ async function showMonth(month, { eventId, entityId } = {}) {
       entityId = undefined;
       updateURL(month, eventId, entityId);
     }
-    inspect(month, entityId, eventId);
+    inspect(month, entityId, eventId, retainedInspector);
     if (staleEntity) investigationStatus.textContent = 'The linked entity is unavailable at this month. Showing the stored city checkpoint.';
     displayedMonth = month;
     monthReady = true;
@@ -446,6 +462,7 @@ async function showMonth(month, { eventId, entityId } = {}) {
     button.textContent = 'Retry checkpoint';
     button.onclick = () => showMonth(month, { eventId, entityId });
     checkpointStatus.append(' ', button);
+    if (retainedInspector) inspectorHost.replaceChildren(retainedInspector);
     return false;
   }
 }

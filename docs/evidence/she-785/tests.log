@@ -1,0 +1,54 @@
+bun test v1.4.2 (744846f84)
+
+test/future-machine-effects.test.js:
+
+# Unhandled error between tests
+-------------------------------
+error: Cannot find package 'three' from '/Users/wahabma/.happybearlandia-mini-symphony-workspaces/SHE-785/test/future-machine-effects.test.js'
+-------------------------------
+
+
+test/future-machine-scene.test.js:
+(pass) Future Machine City scene projection > module imports without DOM or Three initialization
+(pass) Future Machine City scene projection > zero difference and immutable source records [0.43ms]
+(pass) Future Machine City scene projection > additions and removals have stable slots across arms and scrubs [0.06ms]
+(pass) Future Machine City scene projection > source geometry requires explicit identity and unique source mapping [0.19ms]
+(pass) Future Machine City scene projection > unverified geometry and inferred parcels never become locations [0.02ms]
+(pass) Future Machine City scene projection > unlocated inventory stays outside sourced footprint extent [0.04ms]
+(pass) Future Machine City scene projection > only housing projects with recorded bounded progress render [0.10ms]
+(pass) Future Machine City scene projection > missing collections, duplicate IDs and mismatched months fail explicitly [0.07ms]
+(pass) Future Machine City scene projection > unsupported holes are schematic rather than misrendered sourced footprints [0.03ms]
+(pass) localized building evidence distinguishes added, changed and removed inventory [0.06ms]
+(pass) stage inventory selects exact IDs and missing snapshots clear selection and labels [2.94ms]
+
+test/media-pipeline.test.js:
+(pass) shared cache deduplicates, accounts actual bytes and rejects conflicting identities [0.97ms]
+(pass) concurrent streams share kind and aggregate caps; failure permits retry [0.10ms]
+(pass) declared oversize, HTTP failure and disposed acquisition reject [0.11ms]
+error: Cannot find module 'three/addons/loaders/GLTFLoader.js' from '/Users/wahabma/.happybearlandia-mini-symphony-workspaces/SHE-785/test/media-pipeline.test.js'
+(fail) real production bear is embedded and actual assets fit encoded budgets [0.43ms]
+(pass) motion follows live OS changes, local override and clamped persisted volume [0.11ms]
+(pass) dispose releases cache and cancels pending streams without negative accounting [0.08ms]
+(pass) decoded animation duration, track and key counts are bounded [0.09ms]
+
+test/motion.test.js:
+(pass) tokens are immutable presentation values [0.01ms]
+(pass) fallback awaits commit before focus and propagates failure [0.21ms]
+(pass) reduced motion avoids native capture [0.02ms]
+(pass) capture failure after callback cannot duplicate update [0.02ms]
+(pass) live reduction skips active animation; disposal rejects future transitions [0.07ms]
+
+test/ambient-sound.test.js:
+(pass) geometry/time heuristics are cosmetic and handle missing inputs [0.08ms]
+(pass) silent until opt-in, bounded buffers, independent switch and smooth rapid navigation [6.55ms]
+(pass) rapid opt-out and disposal cannot be undone by pending resume [2.15ms]
+(pass) unsupported audio is a silent failure [0.03ms]
+
+2 tests failed:
+(fail) real production bear is embedded and actual assets fit encoded budgets [0.43ms]
+
+ 26 pass
+ 2 fail
+ 1 error
+ 111 expect() calls
+Ran 28 tests across 5 files. [34.00ms]

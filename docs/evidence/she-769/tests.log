@@ -1,0 +1,36 @@
+bun test v1.4.2 (744846f84)
+
+test/world-persistence.test.js:
+(pass) full save and list preserve every submitted checkpoint/view/geometry field [4.26ms]
+(pass) fork gets a new immutable identity while preserving original exact state [1.20ms]
+(pass) saves survive SQLite reopen and arbitrary future time without expiry [21.99ms]
+(pass) validation rejects unsupported modes/codecs, unsafe JSON, invalid origin and malformed/oversized bodies [0.93ms]
+(pass) record and byte quotas reject without eviction; repeated identity cannot overwrite [2.08ms]
+(pass) writes have persistent attempt rate bounds and missing parent never saves [0.70ms]
+(pass) actual legacy authoritative state survives database save/load and identical continuation [77.23ms]
+
+test/city-tour-panel.test.js:
+(pass) DOM entry: author, reorder, opt-in export, read-only guest, skip invalid, reverse and delete [74.72ms]
+(pass) carried guest checks loaded identity and restore outcome, marks unavailable stop [9.66ms]
+
+test/world-continuity.test.js:
+(pass) all three native routes round-trip an exact compatible receipt without changing the source [0.41ms]
+(pass) stale checkpoints, versions, clocks, namespaces and projections never produce compatible context [0.12ms]
+(pass) missing, duplicate, oversized, malformed and future payloads remain explicit [0.21ms]
+(pass) unselected entity and absent camera remain absent instead of invented [0.02ms]
+
+test/city-tour.test.js:
+(pass) bounded inert recipes detach immutable anchors and round-trip native guest route [0.12ms]
+(pass) reorder and reverse preserve all pinned inputs without changing source recipe [0.03ms]
+(pass) guest validates hash, source, pose and identity; denial and missing never fall back [0.24ms]
+
+test/street-journey.test.js:
+(pass) all interpolated camera positions stay bounded and above roofs along street segments [0.48ms]
+(pass) missing, unsupported, over-limit and unsafe geometry fail closed [0.05ms]
+(pass) skip and back restore view, cancellation persists and data remains read-only [0.36ms]
+(pass) reduced motion cuts, unavailable geometry fails closed and changed bounds cancel [0.08ms]
+
+ 20 pass
+ 0 fail
+ 3176 expect() calls
+Ran 20 tests across 5 files. [256.00ms]

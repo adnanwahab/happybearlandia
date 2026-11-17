@@ -43,30 +43,6 @@
       history.replaceState({...history.state, hblPortal: id}, '');
     } catch {} // Storage restrictions must never block navigation.
   });
-  const restore = () => {
-    clear();
-    if (arriving) {
-      document.body.tabIndex = -1;
-      document.body.focus({preventScroll: true});
-      const status = document.createElement('div');
-      status.className = 'portal-announcement'; status.setAttribute('role', 'status');
-      document.body.append(status);
-      requestAnimationFrame(() => { status.textContent = document.title; });
-    } else if (history.state?.hblPortal) {
-      const id = history.state.hblPortal;
-      if (!/^[a-z0-9-]+$/.test(id)) return;
-      const focus = () => {
-        const link = document.querySelector(`a[data-portal-id="${id}"]`);
-        if (!link || link.closest('[hidden]')) return false;
-        link.focus({preventScroll: true}); return true;
-      };
-      if (!focus()) {
-        const observer = new MutationObserver(() => { if (focus()) observer.disconnect(); });
-        observer.observe(document.body, {childList: true, subtree: true});
-        setTimeout(() => observer.disconnect(), 5000);
-      }
-    }
-  };
   addEventListener('pageswap', event => {
     // A destination may deliberately omit transition opt-in (for example a
     // minimal viewer). Native capture cancellation must not reject unobserved.
@@ -78,10 +54,8 @@
     // Observe ready as well as finished so cancellation never leaks a rejection.
     event.viewTransition?.ready.catch(() => {});
     if (reduced()) event.viewTransition?.skipTransition();
-    event.viewTransition ? event.viewTransition.finished.then(restore,restore) : restore();
+    if (event.viewTransition) event.viewTransition.finished.then(clear, clear);
+    else clear();
   });
-  addEventListener('pageshow', event => {
-    if (event.persisted) restore();
-    else if (!('onpagereveal' in window)) restore();
-  });
+  addEventListener('pageshow', event => { if (event.persisted || !('onpagereveal' in window)) clear(); });
 })();

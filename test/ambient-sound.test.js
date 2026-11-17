@@ -40,3 +40,11 @@ test('unsupported audio is a silent failure',async()=>{
   const mixer=createAmbientMixer({createContext:()=>{throw Error('unsupported');}});
   expect(await mixer.enable(true)).toBe(false);mixer.update(null);mixer.dispose();
 });
+test('illustrative proximity strength scales bounded audio and missing scene mutes',async()=>{
+ const f=fixture();f.mixer.volume(.15);f.mixer.update({environment:'avenue',strength:1,pan:0});await f.mixer.enable(true);
+ expect(f.params[4].targets.at(-1)[0]).toBeCloseTo(.057);
+ f.mixer.update({environment:'avenue',strength:.5});expect(f.params[4].targets.at(-1)[0]).toBeCloseTo(.0285);
+ f.mixer.update({environment:'avenue',strength:100});expect(f.params[4].targets.at(-1)[0]).toBeCloseTo(.057);
+ f.mixer.update({environment:'avenue',strength:-1});expect(f.params[4].targets.at(-1)[0]).toBe(0);
+ f.mixer.update(null);expect(f.params[4].targets.at(-1)[0]).toBe(0);f.mixer.dispose();
+});

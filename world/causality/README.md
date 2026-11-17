@@ -87,3 +87,13 @@ citation lists also have a 2,048 bound. Visited nodes expand once, including cyc
 Pulse limits and invalid/unavailable dependencies are disclosed separately from
 static recorded connections. This is an evidence schematic: no stored event-to-street
 geometry mapping exists, so geographic street footprints remain unavailable.
+
+### In-world path presentation
+
+`/world` → **Evidence paths** reads the same explain endpoint, retains the exact
+records in an attached inspector and exposes a screen-reader itinerary and Skip
+path. The [v1 location mapping contract](../evidence-path/README.md) requires
+explicit run and scene-frame identity. Current stored City events have no verified
+mapping into this scene, so their connections remain labeled jumps. The opt-in
+synthetic fixture demonstrates static decorative ground markers and missing
+locations without implying real street geometry or computed model outcomes.

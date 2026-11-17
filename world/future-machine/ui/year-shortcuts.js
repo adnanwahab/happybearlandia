@@ -4,7 +4,7 @@ export function bindYearShortcuts(host, {getState, getDiffs, onMonth, onMissing}
     const target=event.target;
     if(target?.tagName!=='CANVAS' || target.ownerDocument.activeElement!==target || event.defaultPrevented || event.isComposing || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)return;
     const state=getState();
-    if(state.status!=='ready'&&!(state.status==='error'&&state.frame))return;
+    if(state.preview||state.status!=='ready'&&!(state.status==='error'&&state.frame))return;
     let month;
     if(event.key==='PageUp')month=Math.min(120,state.month+12);
     else if(event.key==='PageDown')month=Math.max(0,state.month-12);

@@ -1,7 +1,8 @@
+import {mountVoiceInput} from './voice-input.js';
 import {searchExperiences} from './registry.js';
 import {contextFromURL, contextURL} from './navigation.js';
 
-const labels={follow:'Follow selection',compare:'Compare · side by side',why:'WHY · inspect recorded outcome',photo:'Photo · take photo together'};
+const labels={inspect:'Inspect',follow:'Follow selection',compare:'Compare · side by side',why:'WHY · inspect recorded outcome',photo:'Photo · take photo together'};
 // Owners opt in actual controls. Their disabled state and command handlers remain authoritative.
 export function availableActions(doc) {
   return [...doc.querySelectorAll('button[data-palette-action]')].filter(button=>
@@ -18,6 +19,7 @@ export function mountCommandPalette(container) {
   container.append(trigger,dialog);
   const input=dialog.querySelector('input'),list=dialog.querySelector('[role=listbox]'),status=dialog.querySelector('[role=status]');
   let rows=[],index=0,opener=null,context=null;
+  const voice=mountVoiceInput(dialog,{onQuery(query){input.value=query;render();status.textContent=rows.length?'Review the matching commands. Choose one and press Enter to confirm.':'No available command or recorded evidence matches. Try typed search.';input.focus();}});
   function highlight(){
     [...list.children].forEach((node,i)=>node.setAttribute('aria-selected',String(i===index)));
     if(rows.length){input.setAttribute('aria-activedescendant',list.children[index].id);list.children[index].scrollIntoView({block:'nearest',behavior:'instant'});}
@@ -31,7 +33,7 @@ export function mountCommandPalette(container) {
     rows.forEach((row,i)=>{const node=doc.createElement('div');node.id='hbl-command-option-'+i;node.setAttribute('role','option');node.textContent=row.label;node.addEventListener('click',()=>execute(i));list.append(node);});
     status.textContent=context?`${rows.length} results. Arrow keys to choose, Enter to open.`:'Invalid navigation context. Open a valid shared link.';highlight();
   }
-  function close(){dialog.close();input.setAttribute('aria-expanded','false');input.removeAttribute('aria-activedescendant');if(opener?.isConnected)opener.focus({preventScroll:true});}
+  function close(){voice.cancel();input.value='';dialog.close();input.setAttribute('aria-expanded','false');input.removeAttribute('aria-activedescendant');if(opener?.isConnected)opener.focus({preventScroll:true});}
   function execute(i){
     const row=rows[i];if(!row)return;
     // A changed run/time/context must not navigate with an earlier palette snapshot.
@@ -45,8 +47,10 @@ export function mountCommandPalette(container) {
     close();win.location.assign(row.href);
   }
   function open(){if(dialog.open)return;opener=doc.activeElement;try{context=contextFromURL(win.location.href);}catch{context=null;}input.value='';dialog.showModal();input.setAttribute('aria-expanded','true');render();input.focus();}
-  function shortcut(event){if(event.isComposing||doc.body.classList.contains('launch-world'))return;if((event.metaKey||event.ctrlKey)&&!event.altKey&&!event.shiftKey&&event.key.toLowerCase()==='k'){event.preventDefault();event.stopPropagation();dialog.open?close():open();}}
+  function shortcut(event){if(event.isComposing)return;if((event.metaKey||event.ctrlKey)&&!event.altKey&&!event.shiftKey&&event.key.toLowerCase()==='k'){event.preventDefault();event.stopPropagation();dialog.open?close():open();}}
   function keys(event){event.stopPropagation();if(event.isComposing)return;if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();if(rows.length)index=(index+(event.key==='ArrowDown'?1:-1)+rows.length)%rows.length;highlight();}else if(event.key==='Enter'){event.preventDefault();execute(index);}else if(event.key==='Escape'){event.preventDefault();close();}}
   input.addEventListener('input',render);dialog.addEventListener('keydown',keys);dialog.addEventListener('cancel',event=>{event.preventDefault();close();});dialog.querySelector('button').onclick=close;trigger.onclick=open;win.addEventListener('keydown',shortcut,true);
-  return {open,dispose(){win.removeEventListener('keydown',shortcut,true);if(dialog.open)close();trigger.remove();dialog.remove();style.remove();}};
+  function requested(event){event.preventDefault();open();}
+  win.addEventListener('hbl:open-commands',requested);
+  return {open,dispose(){voice.dispose();win.removeEventListener('hbl:open-commands',requested);win.removeEventListener('keydown',shortcut,true);if(dialog.open)close();trigger.remove();dialog.remove();style.remove();}};
 }

@@ -298,13 +298,13 @@ export function createAreaService({ fetchImpl = fetch, now = Date.now, endpoints
       if (remaining < 1) { tries.push(`${radius}m: request time budget exhausted`); break; }
       const {s,w,n,e} = bounds(lat,lng,radius);
       const region = `${s},${w},${n},${e}`;
-      const query = `[out:json][timeout:25];(way["building"](${region});way["leisure"~"^(park|playground)$"](${region});way["highway"~"^(motorway|trunk|primary|secondary|tertiary|residential|unclassified|living_street|pedestrian|footway|path|steps|track|cycleway)$"](${region});node["shop"](${region});node["amenity"~"^(restaurant|cafe|fast_food|bar|pub|school)$"](${region}););out tags geom;`;
+      const query = `[out:json][timeout:25];(way["building"](${region});way["leisure"~"^(park|playground)$"](${region});way["highway"~"^(motorway|trunk|primary|secondary|tertiary|residential|unclassified|living_street|pedestrian|footway|path|steps|track|cycleway)$"](${region});node["shop"](${region});node["amenity"~"^(restaurant|cafe|fast_food|bar|pub|school)$"](${region}););out body geom;`;
       try { json = await queryOverpass(query, Math.max(1,Math.min(overpassTimeoutMs,remaining)), { fetchImpl,endpoints }); usedRadius = radius; break; }
       catch (error) { tries.push(`${radius}m: ${error.message}`); if (error.connectivityFailure) break; }
     }
     const buildings = [], roads = [], pois = [];
     for (const element of json?.elements || []) {
-      if (element.type === "way" && element.tags?.highway && element.geometry?.length >= 2) roads.push({kind:element.tags.highway,pts:element.geometry.map((point)=>[point.lat,point.lon])});
+      if (element.type === "way" && element.tags?.highway && element.geometry?.length >= 2) roads.push({sourceRef:`osm:way:${element.id}`,nodeRefs:(element.nodes||[]).map(id=>`osm:node:${id}`),kind:element.tags.highway,pts:element.geometry.map((point)=>[point.lat,point.lon])});
       else if (element.type === "way" && element.geometry?.length >= 4) buildings.push({ id:`w${element.id}`,kind:classify(element.tags),address:osmBuildingAddress(element.tags),dateTags:buildingDateTags(element.tags),levels:Number(element.tags?.["building:levels"])||null,name:element.tags?.name||null,pts:element.geometry.map((point)=>[point.lat,point.lon]),park:["park","playground"].includes(element.tags?.leisure) });
       else if (element.type === "node") {
         const poi={kind:classify(element.tags),name:element.tags?.name||null,lat:element.lat,lng:element.lon};
