@@ -8,5 +8,22 @@
   "baseBranch": "sprint/one-city-two-futures-20261111",
   "dataDirectory": "../../..",
   "syncIntervalMs": 60000,
-  "requiredLabels": ["hbl-agent-ready", "hbl-coordinator-approved"]
+  "requiredLabels": [
+    "hbl-agent-ready",
+    "hbl-coordinator-approved"
+  ],
+  "screenshots": {
+    "command": [
+      "bun",
+      "--no-env-file",
+      "run",
+      "server.js"
+    ],
+    "paths": [
+      "/",
+      "/world/?demo=1&synthetic=1&people=16"
+    ],
+    "timeoutMs": 90000
+  },
+  "cleanupMergedWorkspaces": true
 }

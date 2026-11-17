@@ -114,3 +114,10 @@ test('actual WebGL2 backend reports retain their identity', () => {
   baseline.samples.forEach(s => { s.evidence.backend = 'webgl2'; });
   expect(limitsFromReport(baseline, config.profiles[0], config.runs)).toEqual(chooseLimits(samples));
 });
+
+test('configured starting limits are explicitly estimates, not baseline evidence', async () => {
+  const config=await Bun.file(new URL('./performance/first-interaction-budgets.json',import.meta.url)).json();
+  expect(config.status).toBe('provisional-estimate-not-calibrated');
+  expect(config.measuredBaseline).toBe(false);expect(config.requiresCalibration).toBe(true);
+  for(const profile of config.profiles){expect(profile.budgetStatus).toBe(config.status);expect(()=>assertLimits(profile.limits)).not.toThrow();expect(profile.baseline).toBeUndefined();}
+});

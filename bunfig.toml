@@ -3,3 +3,4 @@ plugins = ["bun-plugin-tailwind"]
 
 [test]
 timeout = 60000
+pathIgnorePatterns = ["workspaces/**"]

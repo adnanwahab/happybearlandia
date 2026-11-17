@@ -1,18 +1,27 @@
 import path from 'node:path';
+import {validateScreenshotConfig,type ScreenshotConfig} from './screenshots';
 import { readFileSync } from 'node:fs';
-export type Project = { schemaVersion: 1; name: string; repository: string; githubRepository: string; linearProjectId: string; linearProjectUrl: string; baseBranch: string; dataDirectory: string; syncIntervalMs?: number; requiredLabels?: string[]; heldIssues?: Record<string,string>; prerequisiteIssueIds?: string[] };
+export type Project = { schemaVersion: 1; name: string; repository: string; githubRepository: string; linearProjectId: string; linearProjectUrl: string; baseBranch: string; dataDirectory: string; workspaceDirectory?: string; syncIntervalMs?: number; screenshots?: ScreenshotConfig; cleanupMergedWorkspaces?: boolean; requiredLabels?: string[]; heldIssues?: Record<string,string>; prerequisiteIssueIds?: string[] };
 export function githubIdentity(remote: string) {
   const match = /^(?:https:\/\/github\.com\/|git@github\.com:)([\w.-]+\/[\w.-]+?)(?:\.git)?\/?$/.exec(remote.trim());
   return match?.[1].toLowerCase() ?? null;
 }
 export function readProject(file: string): Project {
   const source = path.resolve(file), config = JSON.parse(readFileSync(source, 'utf8'));
-  if (config.schemaVersion !== 1 || typeof config.name !== 'string' || !/^[\w.-]+\/[\w.-]+$/.test(config.githubRepository ?? '') || !/^[0-9a-f-]{36}$/.test(config.linearProjectId ?? '') || !/^https:\/\/linear\.app\//.test(config.linearProjectUrl ?? '') || typeof config.repository !== 'string' || !config.repository || typeof config.dataDirectory !== 'string' || !config.dataDirectory || !/^[\w][\w./-]*$/.test(config.baseBranch ?? '') || config.baseBranch.includes('..')) throw Error('Invalid Mini Symphony project profile');
+  if (config.schemaVersion !== 1 || typeof config.name !== 'string' || !/^[\w.-]+\/[\w.-]+$/.test(config.githubRepository ?? '') || !/^[0-9a-f-]{36}$/.test(config.linearProjectId ?? '') || !/^https:\/\/linear\.app\//.test(config.linearProjectUrl ?? '') || typeof config.repository !== 'string' || !config.repository || typeof config.dataDirectory !== 'string' || !config.dataDirectory || (config.workspaceDirectory !== undefined && (typeof config.workspaceDirectory !== 'string' || !config.workspaceDirectory.trim())) || !/^[\w][\w./-]*$/.test(config.baseBranch ?? '') || config.baseBranch.includes('..')) throw Error('Invalid Mini Symphony project profile');
+  if(config.cleanupMergedWorkspaces!==undefined&&typeof config.cleanupMergedWorkspaces!=='boolean')throw Error('Invalid cleanupMergedWorkspaces');
+  if(config.screenshots!==undefined)validateScreenshotConfig(config.screenshots);
   if (config.syncIntervalMs !== undefined && (!Number.isInteger(config.syncIntervalMs) || config.syncIntervalMs < 10000)) throw Error('syncIntervalMs must be at least 10000');
   if(config.requiredLabels!==undefined&&(!Array.isArray(config.requiredLabels)||config.requiredLabels.some(x=>typeof x!=='string'||!x.trim())))throw Error('Invalid requiredLabels');
   if (config.heldIssues !== undefined && (typeof config.heldIssues !== 'object' || config.heldIssues === null || Array.isArray(config.heldIssues) || Object.values(config.heldIssues).some(v => typeof v !== 'string'))) throw Error('Invalid heldIssues');
   if(config.prerequisiteIssueIds!==undefined&&(!Array.isArray(config.prerequisiteIssueIds)||config.prerequisiteIssueIds.some(id=>typeof id!=='string'||!/^\w+-\d+$/.test(id))))throw Error('Invalid project prerequisites');
-  return { ...config, repository: path.resolve(path.dirname(source), config.repository), dataDirectory: path.resolve(path.dirname(source), config.dataDirectory) };
+  const repository = path.resolve(path.dirname(source), config.repository);
+  const workspaceDirectory = config.workspaceDirectory === undefined
+    ? path.join(path.dirname(repository), `.${path.basename(repository)}-mini-symphony-workspaces`)
+    : path.resolve(path.dirname(source), config.workspaceDirectory);
+  const relativeWorkspacePath = path.relative(repository, workspaceDirectory);
+  if (!relativeWorkspacePath || (!relativeWorkspacePath.startsWith(`..${path.sep}`) && relativeWorkspacePath !== '..' && !path.isAbsolute(relativeWorkspacePath))) throw Error('workspaceDirectory must be outside the source repository');
+  return { ...config, repository, dataDirectory: path.resolve(path.dirname(source), config.dataDirectory), workspaceDirectory };
 }
 export function validateProjectTasks(tasks: any[], project?: Project) {
   if (!Array.isArray(tasks) || tasks.some(t => !t || typeof t.id !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(t.id) || typeof t.prompt !== 'string' || !t.prompt.trim() || (t.enabled !== undefined && typeof t.enabled !== 'boolean') || (t.retry !== undefined && typeof t.retry !== 'boolean')) || new Set(tasks.map(t => t.id)).size !== tasks.length) throw Error('Invalid tasks.json: expected unique safe IDs, prompts, and boolean flags');

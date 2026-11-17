@@ -8,15 +8,15 @@ Requirements: Bun, Git, Codex CLI authenticated in this account, and a clean sou
 bun run run.ts /absolute/path/to/happybearlandia
 ```
 
-From the HappyBearLandia repository root, the same runner is available as `bun run symphony:mini`. Edit `tasks.json` while it runs to add tasks. Set `"enabled": true` to opt a task into execution; `false` keeps it in the imported backlog without dispatching it. Each enabled ID is attempted once. Results go to `state.json`; output goes to `logs/<ID>.log`; worktrees live in `workspaces/<ID>`. A zero Codex exit becomes `needs_review`, not an assertion that the change is correct. Review the worktree and tests yourself. New tasks fetch and begin from the current remote PR base; resumed worktrees preserve prior edits. Dependent tasks need earlier work integrated first.
+From the HappyBearLandia repository root, the same runner is available as `bun run symphony:mini`. Edit `tasks.json` while it runs to add tasks. Set `"enabled": true` to opt a task into execution; `false` keeps it in the imported backlog without dispatching it. Each enabled ID is attempted once. Results go to `state.json`; output goes to `logs/<ID>.log`; project worktrees default to a hidden sibling directory such as `../.happybearlandia-mini-symphony-workspaces/<ID>`, outside the source checkout. This prevents Codex's own worktree snapshot from copying a task worktree into itself. Existing worktrees under `workspaces/<ID>` remain resumable and eligible for safe merged-worktree cleanup. A project profile may set `workspaceDirectory` to another path outside the source repository. A zero Codex exit becomes `needs_review`, not an assertion that the change is correct. Review the worktree and tests yourself. New tasks fetch and begin from the current remote PR base; resumed worktrees preserve prior edits. Dependent tasks need earlier work integrated first.
 
-After Codex exits successfully, the runner commits the task worktree, pushes its `mini/<ID>` branch, and opens a GitHub draft PR against the source repository's current branch. Set `MINI_SYMPHONY_PR_BASE` to override the target. State becomes `pr_created` on success or `publish_failed` on an auth, push, or PR error; publication errors are saved in the task state and log. On startup, pending `needs_review` and `publish_failed` items are retried. GitHub CLI authentication must be valid (`gh auth login -h github.com`).
+After Codex exits successfully, the runner commits the task worktree, pushes its `mini/<ID>` branch, and opens a GitHub ready-for-review PR against the source repository's current branch. Set `MINI_SYMPHONY_PR_BASE` to override the target. State becomes `pr_created` on success or `publish_failed` on an auth, push, or PR error; publication errors are saved in the task state and log. On startup, pending `needs_review` and `publish_failed` items are retried. GitHub CLI authentication must be valid (`gh auth login -h github.com`).
 
 Task states: `running`, `needs_review` (Codex exit 0, before publication), `publishing`, `pr_created`, `publish_failed`, `no_changes` (successful Codex run with no diff), `failed`, and `interrupted`. A task marked `retry: true` gets at most one attempt per runner session; it will not loop rapidly after a repeated failure.
 
 When a same-repository `mini/SHE-<number>` or `mini/SHE-<number>-r<revision>` PR is merged, GitHub Actions links merged source evidence to the original Linear issue. Human acceptance review determines completion; merging alone never closes the issue. Add a Linear personal API key as the repository Actions secret `LINEAR_API_KEY`. The workflow ignores unmerged PRs and branches outside the Mini Symphony naming pattern.
 
-Ctrl-C stops the current worker and records an interrupted attempt. Timeout defaults to one hour and can be changed with `MINI_SYMPHONY_TIMEOUT_MS`. The runner commits, pushes, and publishes draft PRs; it never merges or deploys. Remove an entry from state only after reviewing it if you intentionally want a new attempt; do not delete a worktree with unreviewed work.
+Ctrl-C stops the current worker and records an interrupted attempt. Timeout defaults to one hour and can be changed with `MINI_SYMPHONY_TIMEOUT_MS`. The runner commits, pushes, and publishes ready-for-review PRs; it never merges or deploys. Remove an entry from state only after reviewing it if you intentionally want a new attempt; do not delete a worktree with unreviewed work.
 
 ### Remaining-queue recovery
 
@@ -60,6 +60,15 @@ with an existing result. New imports remain disabled until selected for work;
 set their `enabled` to true to dispatch. For a reviewed prior `failed`,
 `interrupted` or `no_changes` outcome, also set `retry: true`. Keep publication
 failures for publication recovery rather than repeating model work.
+
+Screenshot capture installs dependencies from an existing `bun.lock` or
+`bun.lockb` with `--frozen-lockfile --ignore-scripts` before starting the server.
+This includes disposable baseline checkouts outside the source repository,
+which cannot inherit its `node_modules`. Installation shares the capture timeout
+and receives the restricted screenshot environment. A stale lockfile or an
+installation failure holds publication; lifecycle scripts are never enabled
+automatically. Before-capture failures now record the safe failure category in
+the task log and session telemetry instead of hiding every cause.
 
 ### Explicitly approved follow-ups
 
@@ -107,7 +116,8 @@ The HBL positional command and its existing task/state files remain supported.
 The shared engine also accepts `--config profile.json [--check]`. A schemaVersion1
 profile declares name, repository, githubRepository, linearProjectId,
 linearProjectUrl, baseBranch and dataDirectory. Relative paths resolve from the
-profile directory. Each task must carry the matching githubRepository and
+profile directory. `workspaceDirectory` is optional, defaults to a sibling of
+the source repository, and must remain outside that repository. Each task must carry the matching githubRepository and
 linearProjectId. Repository origins, task scope and persisted project binding
 are checked before dispatch; `--check` performs no state writes or model launch.
 Locks identify any live owner PID, including bundled runners.
@@ -197,7 +207,7 @@ this is bounded agent assistance, not a deterministic test-verification service.
 The append-only task transcript and original `<ID>.result.md` remain available.
 The repair result is separate: `<ID>.autodebug.<session>.result.md`. Missing,
 malformed or blocked repair reports hold publication as failed; a reported pass
-still produces only a draft PR requiring review. Curated session logs expose
+still produces a ready-for-review PR requiring human review. Curated session logs expose
 `auto_debug_started` / `auto_debug_finished` without copying private output.
 `--check --auto-debug` displays the option without launching workers.
 
@@ -219,3 +229,24 @@ Use `bun run symphony:mini --auto-debug` to opt into port recovery.
 New task IDs after failed checkout avoid partially created worktrees/branches;
 prior attempt history and logs remain intact. Native Linear dependencies must
 be completed through acceptance/review before downstream tasks become eligible.
+
+### Before/after screenshots and merged-workspace cleanup
+
+Both project profiles enable desktop (1440×1000) and mobile (390×844) screenshot
+evidence. Before images come from the configured remote base in an isolated
+checkout; after images come from the task's actual edited worktree. Disposable
+local servers receive no app/CLI secrets and browser requests to other origins
+are blocked. Profiles select up to two local routes. These are entrypoint visual
+smoke checks, not proof of every requested feature or acceptance criterion.
+
+PNG files and phase manifests live in `.mini-symphony-evidence/` in the task
+branch. PR Markdown embeds before/after images pinned to the final commit.
+Missing browser, server startup failure or unsuccessful route holds publication
+with a screenshot failure message. Existing PRs are not silently rewritten.
+
+`cleanupMergedWorkspaces: true` removes clean worktrees for verified merged
+PRs between tasks. Active work, dirty/untracked files, nonmatching branches and
+other repositories are skipped. Local branch refs, state, logs and receipts stay.
+Ignored generated dependencies are removed with the worktree. It does not delete
+closed-but-unmerged PR workspaces. Existing processes must restart to load these
+changes; installing an updated bundle never interrupts their active work.

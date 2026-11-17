@@ -1,3 +1,4 @@
+import {chooseStreetResidents} from './people/street-residents.js';
 import {mountWorldStatusStack} from './hud-status.js';
 import {residentNeedQuests,describeResident,questProgress} from './launch-gameplay.js';
 /** SHE-789: one progressive shell over the existing authoritative World tools. */
@@ -41,6 +42,14 @@ export function mountLaunchShell(){
  function listPeople(){
   show('people','Meet the residents');
   const summary=paragraph('Waiting for the first resident observation…');
+  const streetSummary=paragraph('Checking for residents outside…');
+  const findOutside=button('Find someone outside',async()=>{
+   const frame=window.hblWorldTileSource?.getFrame?.();
+   const resident=chooseStreetResidents(frame?.people,{mode:frame?.mode??'legacy'})[0];
+   if(!resident){status('No outdoor resident is in this observation yet. Resume time and try again as residents leave home.');return;}
+   await choosePerson(resident);
+  });
+  findOutside.title='Select an actual walking or park resident from the current observation.';
   const input=document.createElement('input');input.type='search';input.placeholder='Find a resident';input.setAttribute('aria-label','Find a resident');content.append(input);
   const list=document.createElement('div');list.className='launch-person-list';content.append(list);
   const empty=paragraph('Residents are loading. This list updates automatically.');
@@ -51,6 +60,11 @@ export function mountLaunchShell(){
    const population=window.hblLivingWorld?.active?window.hblLivingWorld.getSnapshot()?.metrics?.syntheticPopulation:rows.length;
    const text=`${population??'Pending'} modeled residents · ${rows.length} available in the current observation. These are synthetic people.`;
    if(summary.textContent!==text)summary.textContent=text;
+   const exterior=chooseStreetResidents(rows,{mode:frame?.mode??'legacy'});
+   streetSummary.textContent=rows.length
+    ? `${exterior.length} ${frame?.mode==='living'?'walking in the current sample':'outside in the current observation'}. ${exterior.length?'Find someone outside to inspect their trip.':'Residents may be indoors at this time. Resume the simulation to follow their day.'}`
+    : 'No resident observation is available yet. This panel refreshes automatically.';
+   findOutside.disabled=!exterior.length;
    const query=input.value.toLowerCase(),visible=[];
    for(const person of rows){if(`${person.name??''} ${person.id}`.toLowerCase().includes(query))visible.push(person);if(visible.length===50)break;}
    const signature=JSON.stringify([query,visible.map(person=>[person.id,person.name,person.doing??person.activity])]);

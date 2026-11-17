@@ -1,9 +1,9 @@
-import {writeFile} from 'node:fs/promises';
+import {mkdir,writeFile} from 'node:fs/promises';
 import {test,expect} from '@playwright/test';
 const path='/world?people=30&quality=LOW';
 async function ready(page){const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(path);await page.waitForFunction(()=>window.hblWorldActivity&&window.hblPersonCommands,null,{timeout:90000});expect(await page.evaluate(()=>Boolean(navigator.gpu))).toBe(true);expect(await page.evaluate(()=>window.hblCityRenderer.getPerformanceStats().backend)).toBe('webgpu');return errors;}
 test('launch shell navigation, named controls, real dialogue, play commands and keyboard pause',async({page})=>{
- test.setTimeout(180000);const errors=await ready(page);
+ test.setTimeout(180000);await mkdir('artifacts/she-789',{recursive:true});const errors=await ready(page);
  await expect(page.locator('#launch-navigation')).toBeVisible();
  const inventory=await page.locator('button:visible').evaluateAll(buttons=>buttons.map(b=>({label:b.getAttribute('aria-label')||b.textContent.trim(),id:b.id,action:b.dataset.launch??b.dataset.launchSpeed??(b.id==='world-guide-button'?'start':b.id==='activity-dashboard-button'?'activity':b.hasAttribute('data-world-sound')?'sound':null),disabled:b.disabled})));await writeFile('artifacts/she-789/visible-button-inventory.json',JSON.stringify(inventory,null,2));
  for(const row of inventory)expect(row.action||row.label==='Toggle FPS meter').toBeTruthy();

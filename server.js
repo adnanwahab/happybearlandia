@@ -37,7 +37,7 @@ import {createOpenQuestionsHandler} from './world/questions/api.js';
 const handleRealityShares=createRealityShareHandler({dbPath:process.env.HBL_REALITY_SHARE_DB_PATH||undefined});
 const handleOpenQuestions=createOpenQuestionsHandler();
 import {createTemporalCityHandler} from './world/temporal/api.js';
-const handleTemporalCity=createTemporalCityHandler();
+const handleTemporalCity=createTemporalCityHandler({dbPath:process.env.HBL_TEMPORAL_DB_PATH||undefined});
 import {createCharacterJournalsHandler} from './world/journals/api.js';
 const handleCharacterJournals=createCharacterJournalsHandler({root:process.env.HBL_JOURNAL_ROOT||'.hbl-city'});
 import {createConstitutionSourceHandler} from './world/constitution-city/source-api.js';

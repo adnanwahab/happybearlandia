@@ -1,10 +1,10 @@
 import { test, expect } from 'bun:test';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { publishDraft, type Command } from './publication';
 import { reconcile } from './reconcile';
-import { createTaskWorkspace } from './workspace';
+import { createTaskWorkspace, resolveTaskWorkspace } from './workspace';
 
 for (const boundary of ['commit', 'push', 'create', 'success', 'advanced-base', 'new-worktree']) test(`publication resumes after ${boundary}`, () => {
   const dir = mkdtempSync(path.join(tmpdir(), 'mini-recovery-'));
@@ -27,6 +27,7 @@ for (const boundary of ['commit', 'push', 'create', 'success', 'advanced-base', 
       if (bin === 'gh') {
         if (args[0] === 'auth') return { code: 0, stdout: '', stderr: '' };
         if (args[1] === 'list') return { code: 0, stdout: JSON.stringify(pr ? [pr] : []), stderr: '' };
+        expect(args).not.toContain('--draft');
         creates++; pr = { url, state: 'OPEN', headRefName: 'mini/SHE-1', baseRefName: 'main' };
         if (boundary === 'create' && !failed) { failed = true; return { code: 1, stdout: '', stderr: 'lost response' }; }
         return { code: 0, stdout: url, stderr: '' };
@@ -62,6 +63,23 @@ for (const boundary of ['commit', 'push', 'create', 'success', 'advanced-base', 
     expect(git('rev-list', '--count', 'origin/main..HEAD')).toBe('1');
     expect(creates).toBe(1);
   } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('existing nested worktree moves outside the repository without losing edits',()=>{
+  const dir=mkdtempSync(path.join(tmpdir(),'mini-workspace-move-'));
+  const repo=path.join(dir,'repo'),legacyRoot=path.join(repo,'workspaces'),legacy=path.join(legacyRoot,'SHE-77'),external=path.join(dir,'external');
+  const real:Command=(bin,args,cwd)=>{const p=Bun.spawnSync([bin,...args],{cwd,stdout:'pipe',stderr:'pipe'});return{code:p.exitCode,stdout:p.stdout.toString(),stderr:p.stderr.toString()};};
+  const git=(...args:string[])=>{const r=real('git',args,repo);if(r.code)throw Error(r.stderr);return r.stdout.trim();};
+  try{
+    mkdirSync(repo);real('git',['init','-b','main',repo],dir);git('config','user.email','fixture@example.com');git('config','user.name','Fixture');
+    writeFileSync(path.join(repo,'base.txt'),'base');git('add','.');git('commit','-m','base');
+    mkdirSync(legacyRoot);const add=real('git',['worktree','add','-b','mini/SHE-77',legacy,'HEAD'],repo);expect(add.code).toBe(0);
+    writeFileSync(path.join(legacy,'uncommitted.txt'),'keep me');
+    const moved=resolveTaskWorkspace(real,repo,legacyRoot,external,'SHE-77');
+    expect(moved).toBe(path.join(external,'SHE-77'));expect(existsSync(legacy)).toBe(false);
+    expect(readFileSync(path.join(moved,'uncommitted.txt'),'utf8')).toBe('keep me');
+    expect(real('git',['branch','--show-current'],moved).stdout.trim()).toBe('mini/SHE-77');
+  }finally{rmSync(dir,{recursive:true,force:true});}
 });
 
 test('reconciliation holds merged, review and no_changes work and preserves other tasks/state', () => {
