@@ -1,0 +1,60 @@
+# Native transition lifecycle bootstrap — November 17, 2026
+
+Scope: isolated `codex/native-transition-repair-20261117`, stacked on Mini Symphony
+PR #445 integration `19a6bbdd`. Owned changes: portal lifecycle bootstrap,
+root/Future Machine script placement, focused browser regression and this record.
+No simulation, rendering synchronization, performance threshold or assertion
+retry changes.
+
+## Diagnosis and bounded repair
+
+The retained reliability matrix on the earlier #498 code recorded 6 passing and
+2 failing profiles: bundled Chromium desktop and installed Chrome mobile emitted
+`InvalidStateError: Transition was aborted because of invalid state.
+ViewTransition opt-in disabled`. Browser launch succeeded; this was an application
+navigation failure, not a startup crash. Integrated main already supplies early
+inline opt-in in both documents. Its portal script still used `defer`, registering
+native lifecycle handlers only when `document.readyState` was `interactive` and
+the body existed.
+
+[Chrome's cross-document transition guidance](https://developer.chrome.com/docs/web-platform/view-transitions/cross-document)
+requires registering `pagereveal` before the first rendering opportunity, using a
+classic parser-blocking head script. Root and Future Machine now load portal.js
+immediately after their inline opt-in, before external styles. Existing native
+`ready`/`finished` cancellation observers therefore register while the document
+is loading and before the body. DOM-dependent arrival target marking waits for
+DOMContentLoaded. Native links, reduced-motion behavior, history and separate
+navigation accessibility ownership remain intact. No global error suppression.
+
+This proves a concrete lifecycle contract defect and repairs it. It does not
+claim the previous intermittent error was caused exclusively by deferred
+registration: main's earlier inline opt-in fix also changed that navigation path.
+
+## Verification
+
+Shared runner command:
+
+```
+bun scripts/run-symphony-browser-tests.mjs --config test/symphony-browser-runtime.config.js --engines chromium,installed-chrome,firefox,webkit --devices desktop,mobile --artifacts /private/tmp/hbl-native-transition-20261117
+```
+
+Result: **8/8 jobs passed, 16 tests passed, zero skipped, unexpected or flaky**.
+Profiles: bundled Chromium, installed Google Chrome, Firefox and WebKit, each in
+desktop and mobile emulation. Original normal-entry/keyboard/Fork City acceptance
+remains unchanged. New regression delays the real portal.js network request,
+asserts both lifecycle handlers register during head parsing, navigates by Enter,
+exercises reduced-motion cancellation and Back, and requires zero page errors.
+
+Artifacts: `/private/tmp/hbl-native-transition-20261117/run-zDvxBP/summary.json`.
+Tests ran on the recorded base plus the four modified implementation/test files.
+
+Negative control: restoring only `defer` in both documents makes the new test fail
+on **both Chromium desktop and mobile** (0 pass, 2 fail). Actual registration was
+`interactive`, body present, rather than `loading`, body absent. Fixed sources
+were restored immediately. Artifacts:
+`/private/tmp/hbl-native-transition-negative-control-20261117/run-gRj5Zz/summary.json`.
+These expected negative-control failures are retained as failures, not acceptance.
+
+Real iOS Safari and Android hardware remain untested; WebKit and mobile emulation
+are not substitutes. No merge or deployment in this slice. Existing portal suite
+results and final publication reference follow below.

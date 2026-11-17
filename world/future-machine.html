@@ -3,6 +3,8 @@
 <head>
 <!-- Native cross-document opt-in must exist before delayed external CSS arrives. -->
 <style>@view-transition { navigation: auto; }</style>
+<!-- Register native lifecycle handlers before the first rendering opportunity. -->
+<script src="/world/universe/portal.js"></script>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="Fork a synthetic city. Change one housing decision. Compare ten modeled years and inspect the evidence.">
 <link rel="stylesheet" href="/world/future-machine/ui/styles.css">
@@ -12,7 +14,6 @@
 </style>
 <link rel="stylesheet" href="/world/universe/portal.css">
 <script src="/world/universe/navigation-accessibility.js" defer></script>
-<script src="/world/universe/portal.js" defer></script>
 <script type="module" src="/shared/media/motion-entry.js"></script>
 </head>
 <body class="future-machine-page"><nav><a href="/world/detective.html">Play Detective of Futures</a></nav><div id="app"><section id="boot"><h1>Future Machine</h1><p>Loading the city comparison…</p><p><a href="/">HappyBearLandia home</a></p></section></div>

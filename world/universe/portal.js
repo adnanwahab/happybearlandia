@@ -14,14 +14,20 @@
     el.dataset.portalActive = id;
     el.style.viewTransitionName = `hbl-portal-${id}`;
   };
-  let arrival;
-  try { arrival = JSON.parse(sessionStorage.getItem(key)); } catch {}
-  const here = location.pathname + location.search + location.hash;
-  const arriving = arrival?.to === here && Date.now() - arrival.time < 30000;
-  if (arriving) {
-    mark(document.querySelector('#view, #app, main'), arrival.id);
-    try { sessionStorage.removeItem(key); } catch {}
-  }
+  // This script is parser-blocking in the head so native lifecycle listeners
+  // exist before the first rendering opportunity. Arrival targets need the DOM.
+  const markArrival = () => {
+    let arrival;
+    try { arrival = JSON.parse(sessionStorage.getItem(key)); } catch {}
+    const here = location.pathname + location.search + location.hash;
+    const arriving = arrival?.to === here && Date.now() - arrival.time < 30000;
+    if (arriving) {
+      mark(document.querySelector('#view, #app, main'), arrival.id);
+      try { sessionStorage.removeItem(key); } catch {}
+    }
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', markArrival, {once: true});
+  else markArrival();
   // Disable even root animation for both OS and the existing local motion override.
   if (reduced()) {
     document.documentElement.classList.add('portal-reduced');
