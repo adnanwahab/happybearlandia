@@ -1,3 +1,5 @@
+import { createMotionAdapter } from '../../shared/media/motion.js';
+import { createMediaPreferences } from '../../shared/media/preferences.js';
 import { mountCommandPalette } from './command-palette.js';
 import { EXPERIENCES, getExperience, searchExperiences, entityActions } from './registry.js';
 import { mountFunAnalytics } from './fun-analytics.js';
@@ -14,6 +16,12 @@ if (root) {
     catch { contextError = 'Invalid context in URL. Open a valid shared link to restore it.'; return contextFromURL('/'); }
   }
   context = readContext();
+  const preferences=createMediaPreferences(window);
+  const transitions=createMotionAdapter({document,preferences,timeoutMs:10000});
+  let stableURL=location.href;
+  let pendingKey=null;
+  addEventListener('pagehide',()=>{transitions.dispose();preferences.dispose();},{once:true});
+  addEventListener('keydown',event=>{if(event.key==='Escape'&&pendingKey)cancelNavigation();});
   let active = null;
   let disconnect = () => {};
   root.innerHTML = `<div class="universe-kicker">One living world · ${EXPERIENCES.length} connected experiences</div>
@@ -51,6 +59,14 @@ if (root) {
   const results = root.querySelector('.universe-results');
   const stage = root.querySelector('#universe-stage');
   const status = root.querySelector('.universe-status');
+  const cancelButton=document.createElement('button');cancelButton.type='button';
+  cancelButton.textContent='Cancel navigation';cancelButton.hidden=true;status.after(cancelButton);
+  function cancelNavigation(){
+    transitions.cancel();pendingKey=null;cancelButton.hidden=true;
+    history.replaceState(history.state,'',stableURL);contextError='';context=readContext();renderContext();
+    status.textContent='Navigation cancelled.';
+  }
+  cancelButton.addEventListener('click',cancelNavigation);
   function link(label, href) {
     const a = document.createElement('a'); a.textContent = label; a.href = href; return a;
   }
@@ -97,24 +113,56 @@ if (root) {
     }
   }
   new MutationObserver(updateGalleryLinks).observe(document.getElementById('carousel-rail'),{childList:true,subtree:true});
-  function activate(id,{push=true}={}) {
-    const app = getExperience(id);
-    disconnect(); stage.replaceChildren(); active = app || null;
-    if (push) history.pushState(null,'',shellURL(app?.id,context));
-    if (!app) { if (id) status.textContent = 'Unknown experience. Choose an entry from the directory.'; return; }
-    const heading = document.createElement('h3'); heading.textContent = app.title;
-    const standalone = link('Open standalone ↗',contextURL(app.route,context));
-    const close = document.createElement('button'); close.textContent = 'Close experience'; close.type = 'button';
-    close.addEventListener('click',()=>activate(null));
-    const frame = document.createElement('iframe'); frame.title = `${app.title} universe experience`;
-    // Only the chosen experience is instantiated. No offscreen GPU previews.
-    frame.src = contextURL(app.preview,context); frame.allowFullscreen = true;
-    disconnect = createFrameBridge({frame,context:()=>context,onContext(next) {
-      context = next; history.replaceState(null,'',shellURL(active?.id,context)); renderContext();
-      standalone.href = contextURL(app.route,context);
-    },onNavigate:activate});
-    stage.append(heading,standalone,close,frame);
-    stage.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});
+  async function activate(id,{push=true}={}) {
+    const app=getExperience(id);
+    const targetContext=context;
+    const targetURL=shellURL(app?.id,targetContext);
+    if(id&&!app){
+      transitions.cancel();pendingKey=null;cancelButton.hidden=true;
+      history.replaceState(history.state,'',stableURL);
+      status.textContent='Unknown experience. Choose an entry from the directory.';
+      return;
+    }
+    if(pendingKey===targetURL)return; // Native double activation must not duplicate loads/history.
+    pendingKey=targetURL;cancelButton.hidden=false;
+    const frame=app?document.createElement('iframe'):null;
+    try {
+      await transitions.transition(()=>{
+        disconnect();
+        for(const child of [...stage.childNodes])if(child!==frame)child.remove();
+        active=app||null;
+        if(push)history.pushState(null,'',targetURL);
+        stableURL=location.href;
+        if(!app)return;
+        const heading=document.createElement('h3');heading.textContent=app.title;
+        const standalone=link('Open standalone ↗',contextURL(app.route,targetContext));
+        const close=document.createElement('button');close.textContent='Close experience';close.type='button';
+        close.addEventListener('click',()=>activate(null));
+        frame.hidden=false;
+        disconnect=createFrameBridge({frame,context:()=>context,onContext(next){
+          context=next;history.replaceState(null,'',shellURL(active?.id,context));stableURL=location.href;renderContext();
+          standalone.href=contextURL(app.route,context);
+        },onNavigate:activate});
+        stage.prepend(heading,standalone,close);
+        stage.scrollIntoView({behavior:'instant',block:'start'});
+      },{
+        prepare:signal=>!frame?undefined:new Promise((resolve,reject)=>{
+          const clean=()=>{frame.onload=null;frame.onerror=null;signal.removeEventListener('abort',abort);};
+          const abort=()=>{clean();frame.remove();resolve();};
+          signal.addEventListener('abort',abort,{once:true});
+          frame.title=`${app.title} universe experience`;frame.hidden=true;frame.allowFullscreen=true;
+          frame.onload=()=>{clean();resolve();};
+          frame.onerror=()=>{clean();frame.remove();reject(new Error('Experience failed to load'));};
+          frame.src=contextURL(app.preview,targetContext);stage.append(frame);
+        }),
+        rollback:()=>{
+          frame?.remove();history.replaceState(history.state,'',stableURL);
+          contextError='';context=readContext();renderContext();
+          status.textContent='Experience unavailable. Previous view restored. Choose an entry to retry.';
+        }
+      });
+    } catch { /* Visible retry guidance is supplied by rollback. */ }
+    finally {if(frame?.hidden)frame.remove();if(pendingKey===targetURL){pendingKey=null;cancelButton.hidden=true;}}
   }
   root.addEventListener('click',event=>{
     const a = event.target.closest('a[data-app]');
