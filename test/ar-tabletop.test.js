@@ -1,0 +1,7 @@
+import {test,expect} from 'bun:test';
+import {city,validCity,scaleValue,startSession} from '../world/ar-tabletop/model.js';
+test('pinned geometry preserves source, identity and local coordinates',()=>{expect(city.version).toBe('tabletop-geometry/1');expect(validCity(city)).toBe(true);expect(new Set(city.buildings.map(b=>b.id)).size).toBe(4);expect(Object.isFrozen(city.buildings[0])).toBe(true);expect(city.coordinates).toContain('no geographic');});
+test('missing geometry never requests a session',async()=>{let calls=0;await expect(startSession({requestSession(){calls++;}},{})).rejects.toThrow('missing');expect(calls).toBe(0);});
+test('unsupported device and denied access stay explicit',async()=>{await expect(startSession(null)).rejects.toThrow('unavailable');await expect(startSession({requestSession:async()=>{throw new Error('Permission denied');}})).rejects.toThrow('Permission denied');});
+test('explicit start requests AR hit tests without camera capture API',async()=>{let calls=[];const session={};expect(await startSession({requestSession:async(...args)=>{calls.push(args);return session;}})).toBe(session);expect(calls.length).toBe(1);expect(calls[0][0]).toBe('immersive-ar');expect(calls[0][1].requiredFeatures).toEqual(['hit-test']);});
+test('scale handles invalid inputs and physical bounds',()=>{expect(scaleValue(-2)).toBe(.002);expect(scaleValue(9)).toBe(.01);expect(scaleValue('bad')).toBe(.005);});
