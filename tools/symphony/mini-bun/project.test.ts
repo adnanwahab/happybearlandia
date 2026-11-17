@@ -2,7 +2,7 @@ import { test, expect } from 'bun:test';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync, rmSync, chmodSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { githubIdentity, readProject, validateProjectTasks, projectBinding, validateBinding, workerEnvironment, type Project } from './project';
+import { publicationOptionsForTask, validateDraftIssueIds, githubIdentity, readProject, validateProjectTasks, projectBinding, validateBinding, workerEnvironment, type Project } from './project';
 import { fetchProjectIssues, importProjectTasks } from './linear-import';
 const project: Project = { schemaVersion:1,name:'Civic Synthesis',repository:'/fixture/dear_congress',githubRepository:'fixture/dear_congress',linearProjectId:'36b11054-5397-473e-9e3b-2092a100de5e',linearProjectUrl:'https://linear.app/test/project/civic',baseBranch:'main',dataDirectory:'/fixture/queue' };
 const issue = (id='SHE-249',statusType='backlog') => ({id,title:'Work',description:'Complete acceptance',url:'https://linear.app/test/issue/'+id,status:'Backlog',statusType});
@@ -50,7 +50,7 @@ test('project-scoped full-description import paginates and rejects cross-project
   await expect(fetchProjectIssues(project,'fixture',(async()=>Response.json({data:{project:{id:'wrong'}}})) as any)).rejects.toThrow();
   await expect(fetchProjectIssues(project,'fixture',(async()=>new Response('',{status:429})) as any)).rejects.toThrow('HTTP 429');
 });
-for (const mode of ['normal','stubborn','debug-off','debug-pass','debug-blocked','debug-timeout','screenshots']) test(`configured normal entry ${mode}`, async () => {
+for (const mode of ['draft','normal','stubborn','debug-off','debug-pass','debug-blocked','debug-timeout','screenshots']) test(`configured normal entry ${mode}`, async () => {
   const stubborn=mode==='stubborn',debug=mode.startsWith('debug'),enabled=debug&&mode!=='debug-off';
   const expected=stubborn||mode==='debug-blocked'||mode==='debug-timeout'?'failed':'pr_created';
   const dir=mkdtempSync(path.join(tmpdir(),'mini-project-')),repo=path.join(dir,'dear'),remote=path.join(dir,'remote.git'),queue=path.join(dir,'queue'),bin=path.join(dir,'bin');
@@ -63,11 +63,24 @@ for (const mode of ['normal','stubborn','debug-off','debug-pass','debug-blocked'
     writeFileSync(path.join(repo,'base.txt'),'base');if(mode==='screenshots')writeFileSync(path.join(repo,'app.ts'),`const s=Bun.serve({port:0,hostname:'127.0.0.1',fetch:()=>new Response('<main>Fixture app</main>',{headers:{'content-type':'text/html'}})});console.log('running at '+s.url);`);git(['add','.'],repo);git(['commit','-m','base'],repo);git(['remote','add','origin',remote],repo);git(['push','-u','origin','main'],repo);
     const sourceHead=git(['rev-parse','HEAD'],repo);
     writeFileSync(path.join(repo,'local-uncommitted.txt'),'preserve');
-    const profile={...project,repository:repo,dataDirectory:queue,workspaceDirectory:path.join(queue,'workspaces'),...(mode==='screenshots'?{screenshots:{command:[process.execPath,'app.ts'],paths:['/'],timeoutMs:15000}}:{})};writeFileSync(path.join(queue,'config.json'),JSON.stringify(profile));
+    const profile={...project,...(mode==='draft'?{draftIssueIds:['SHE-249']}:{}),repository:repo,dataDirectory:queue,workspaceDirectory:path.join(queue,'workspaces'),...(mode==='screenshots'?{screenshots:{command:[process.execPath,'app.ts'],paths:['/'],timeoutMs:15000}}:{})};writeFileSync(path.join(queue,'config.json'),JSON.stringify(profile));
     const imported=importProjectTasks(profile,[issue()],[],[],{});writeFileSync(path.join(queue,'tasks.json'),JSON.stringify(imported.tasks));writeFileSync(path.join(queue,'state.json'),'{}');
     const executable=(name:string,text:string)=>{writeFileSync(path.join(bin,name),text);chmodSync(path.join(bin,name),0o755);};
     executable('git',`#!/bin/sh\ncase "$*" in *"remote get-url origin") echo https://github.com/fixture/dear_congress.git;; *) exec '${realGit}' "$@";; esac\n`);
-    executable('gh','#!/bin/sh\ncase "$1 $2" in "auth status") exit 0;; "pr list") echo "[]";; "pr create") echo https://github.com/fixture/dear_congress/pull/1;; *) exit 1;; esac\n');
+    executable('gh',`#!/usr/bin/env bun
+const args=process.argv.slice(2);
+if(args[0]==='auth')process.exit(0);
+if(args[1]==='list'){console.log('[]');process.exit(0);}
+if(args[1]==='create'){
+ if(args.includes('--draft')!==${mode==='draft'})process.exit(2);
+ console.log('https://github.com/fixture/dear_congress/pull/1');process.exit(0);
+}
+if(args[1]==='view'){
+ const head=Bun.spawnSync([${JSON.stringify(realGit)},'rev-parse','HEAD']).stdout.toString().trim();
+ console.log(JSON.stringify({state:'OPEN',isDraft:${mode==='draft'},headRefName:'mini/SHE-249',baseRefName:'main',headRefOid:head,isCrossRepository:false}));process.exit(0);
+}
+process.exit(1);
+`);
     executable('codex',stubborn?'#!/usr/bin/env bun\nprocess.on("SIGTERM",()=>{});setInterval(()=>{},50);\n':'#!/bin/sh\nprintf "implemented\\n" > implemented.txt\n');
     if(debug)executable('codex',`#!/usr/bin/env bun
 const args=process.argv.slice(2), result=args[args.indexOf('--output-last-message')+1];
@@ -81,7 +94,7 @@ await Bun.write(result,n===1?'original failure evidence':JSON.stringify({status:
     const argv=[process.execPath,path.resolve('tools/symphony/mini-bun/run.ts'),'--config',path.join(queue,'config.json')];
     if(enabled)argv.push('--auto-debug');
     const env={...process.env,PATH:bin+':'+process.env.PATH,CODEX_BIN:path.join(bin,'codex'),MINI_SYMPHONY_WORKERS:'1',MINI_SYMPHONY_TIMEOUT_MS:stubborn||mode==='debug-timeout'?'500':'10000',MINI_SYMPHONY_KILL_GRACE_MS:'100'};
-    const check=Bun.spawnSync([...argv,'--check'],{cwd:dir,env,stdout:'pipe',stderr:'pipe'});expect(check.exitCode).toBe(0);expect(JSON.parse(check.stdout.toString()).autoDebug).toBe(enabled);expect(existsSync(path.join(queue,'.runner.lock'))).toBe(false);expect(existsSync(path.join(queue,'workspaces'))).toBe(false);
+    const check=Bun.spawnSync([...argv,'--check'],{cwd:dir,env,stdout:'pipe',stderr:'pipe'});expect(check.exitCode).toBe(0);expect(JSON.parse(check.stdout.toString()).autoDebug).toBe(enabled);expect(JSON.parse(check.stdout.toString()).publication).toEqual({default:'regular',draftIssueIds:mode==='draft'?['SHE-249']:[]});expect(existsSync(path.join(queue,'.runner.lock'))).toBe(false);expect(existsSync(path.join(queue,'workspaces'))).toBe(false);
     child=Bun.spawn(argv,{cwd:dir,env,stdout:'pipe',stderr:'pipe'});
     let state:any;
     for(let n=0;n<200;n++){await Bun.sleep(50);state=JSON.parse(readFileSync(path.join(queue,'state.json'),'utf8'));if(state['SHE-249']?.status===expected)break;}
@@ -134,4 +147,17 @@ test('refresh imports new work, holds duplicates/explicit approvals and preserve
     await expect(refreshRunningProject(config,state,async()=>{writeFileSync(path.join(dir,'tasks.json'),before+' ');return {issues:[],prs:[]};})).rejects.toThrow('changed');
     expect(readFileSync(path.join(dir,'tasks.json'),'utf8')).toBe(before+' ');
   }finally{rmSync(dir,{recursive:true,force:true});}
+});
+
+const policy={draftIssueIds:['SHE-991','SHE-992','SHE-993','SHE-994','SHE-995','SHE-996']};
+test('trusted policy defaults to regular and original AutoPatch issue revisions stay draft',()=>{
+ for(const id of policy.draftIssueIds)for(const suffix of ['', '-r2'])expect(publicationOptionsForTask(policy,{id:id+suffix,issueId:id})).toEqual({draft:true});
+ expect(publicationOptionsForTask(undefined,{id:'SHE-995'})).toEqual({draft:false});
+ expect(publicationOptionsForTask(policy,{id:'SHE-990'})).toEqual({draft:false});
+ expect(publicationOptionsForTask(policy,{id:'custom-task',issueId:'SHE-995'})).toEqual({draft:true});
+});
+test('invalid or ambiguous draft policy and mismatched task identity fail closed',()=>{
+ for(const ids of [null,'SHE-995',['she-995'],['SHE-995-r2'],['SHE-0'],['SHE-995','SHE-995'],['SHE-995;cmd'],[1]])expect(()=>validateDraftIssueIds(ids)).toThrow('Invalid draftIssueIds');
+ for(const task of [{id:'SHE-995',issueId:'SHE-996'},{id:'SHE-995-r2',issueId:'invalid'}])expect(()=>publicationOptionsForTask(policy,task)).toThrow('issue identity');
+ expect(()=>validateProjectTasks([{id:'SHE-995',issueId:'SHE-996',prompt:'work'}])).toThrow('issue identity');
 });
