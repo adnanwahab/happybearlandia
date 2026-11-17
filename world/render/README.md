@@ -302,3 +302,26 @@ ID-buffer readback: transparent fragment discard, antialiasing and asynchronous
 asset/geometry replacement can differ from exact raster pixels. Full GPU/browser
 acceptance, including streaming and mode changes during freeze, remains pending;
 see `docs/reviews/SHE-659.md`.
+
+## Proposed walking footsteps (SHE-649)
+
+The `/world` resident command menu previews mapped Legacy walking waypoints before
+its separate **Confirm walking trip** action. `world.previewPersonWalk(id, {x,z})`
+uses the existing command planner and returns copied `points`, `rulesVersion` and
+modeled minutes without committing a trip, advancing time or consuming model RNG.
+A preview rejects straight-line/old-rule approximations and any segment touching
+or entering a supplied non-park building polygon. This is a check against supplied
+geometry, not a general terrain navigation or water-access guarantee. In particular,
+a resident inside a building may have no verified outdoor preview.
+
+Missing read-only routes (including Living Population), blocked geometry and
+planner errors show no markers. The separate **Request walk without footprints**
+action retains the existing model-validated command capability without claiming a
+verified path. Escape and Cancel discard the proposal. Selection changes and
+page exit clear markers; confirmation rejects a resident who moved since preview.
+DOM markers are nonphysical, ignore pointer picking, are bounded to 180, and use
+the active camera projection. Reduced motion disables their opacity animation.
+Command UI `getState().frames` reports frame count, maximum frame gap, latest draw
+cost, marker count and active-frame status. These are local overlay diagnostics,
+not GPU or device performance certification. All frames and DOM are released on
+clear/destroy. The camera projection still updates under reduced motion.
