@@ -17,13 +17,14 @@ export function mountAmbientSound(window, document) {
   let disposed = false, revision = 0;
   input.onchange = async () => {
     const current = ++revision, wanted = input.checked;
+    preferences.set({ambientSound:wanted});
     const active = await mixer.enable(wanted);
     if (!disposed && revision === current) {
       input.checked = active;
       if (wanted && !active) status.textContent = 'Ambient audio unavailable. Gameplay continues silently.';
     }
   };
-  const unsubscribe = preferences.subscribe(state => mixer.volume(state.volume));
+  const unsubscribe = preferences.subscribe(state => mixer.volume(state.ambientSound ? state.volume : 0));
   const visibility = () => mixer.hidden(document.hidden);
   document.addEventListener('visibilitychange', visibility); visibility();
   return {update(value) {if (!disposed) mixer.update(ambientScene(value));}, dispose() {

@@ -1,0 +1,63 @@
+bun test v1.4.2 (744846f84)
+
+test/reality-share.test.js:
+(pass) share roundtrip retains exact replay proof and display host without certification [3.81ms]
+(pass) share API rejects malformed,oversized and inconsistent submitted proofs [7.12ms]
+(pass) share IDs are immutable and existing records remain unchanged [1.19ms]
+(pass) share survives SQLite reopen and expires after thirty days [11.44ms]
+(pass) share attempts have bounded rate and storage never silently evicts active shares [1.93ms]
+(pass) share strips unrelated retained state and rejects OSM mapper identity metadata [0.33ms]
+(pass) stored selected row is sufficient for actual replay and fabricated metrics fail replay [7.75ms]
+(pass) population shares retain their actual config manifest and optional synthetic display host [54.29ms]
+
+test/legacy-checkpoint.test.js:
+(pass) RNG captures and restores the actual uint32 cursor without changing draw semantics [0.10ms]
+(pass) full legacy checkpoint continues exactly for10minutes including RNG, shared cash, events, history, journals and weather [166.76ms]
+(pass) full legacy checkpoint continues exactly for30minutes including RNG, shared cash, events, history, journals and weather [126.36ms]
+(pass) restore rewinds same live objects and keeps render resources and wallet accessors while removing post-checkpoint data [34.22ms]
+(pass) mismatched topology or missing history authority fails before mutation; history disabled state is explicit [27.00ms]
+
+test/world-persistence.test.js:
+(pass) full save and list preserve every submitted checkpoint/view/geometry field [3.81ms]
+(pass) fork gets a new immutable identity while preserving original exact state [1.42ms]
+(pass) saves survive SQLite reopen and arbitrary future time without expiry [6.71ms]
+(pass) validation rejects unsupported modes/codecs, unsafe JSON, invalid origin and malformed/oversized bodies [2.11ms]
+(pass) record and byte quotas reject without eviction; repeated identity cannot overwrite [2.48ms]
+(pass) writes have persistent attempt rate bounds and missing parent never saves [0.84ms]
+(pass) actual legacy authoritative state survives database save/load and identical continuation [70.12ms]
+
+test/world-continuity.test.js:
+(pass) all three native routes round-trip an exact compatible receipt without changing the source [0.65ms]
+(pass) stale checkpoints, versions, clocks, namespaces and projections never produce compatible context [0.19ms]
+(pass) missing, duplicate, oversized, malformed and future payloads remain explicit [0.33ms]
+(pass) unselected entity and absent camera remain absent instead of invented [0.04ms]
+
+test/world-persistence-origin.test.js:
+(pass) configured Fly app accepts its browser HTTPS origin through the TLS proxy [0.16ms]
+(pass) forwarded headers cannot grant another host, origin, or local server trust [0.09ms]
+(pass) opaque origins, foreign or malformed referers, and cross-site writes stay blocked [0.09ms]
+(pass) localhost keeps exact protocol, hostname and port checks and native clients remain compatible [0.05ms]
+(pass) all persistence write endpoints use the same proxy-aware origin policy [1.86ms]
+
+test/checkpoint-replay.test.js:
+(pass) canonical state sorts keys and rejects lossy values [0.28ms]
+(pass) selects immutable checkpoint and applies only ordered post-checkpoint events through target [0.82ms]
+(pass) fails closed for hash tampering, model drift and descriptive history [0.48ms]
+(pass) verified recomputation requires target digest and excludes AI/render/wall clock records [0.48ms]
+(pass) ambiguous ordering and unavailable tick fail; API exposes real state [0.52ms]
+(pass) real CityState recomputation matches existing engine and validates checkpoint clock [56.20ms]
+(pass) SQLite checkpoint envelope integrates with immutable causal persistence [1.60ms]
+(pass) registered causal dispatcher serves persisted City state without live-state fallback [22.38ms]
+(pass) latest checkpoint wins, explicit ID pins immutable history, and corrupted latest never falls back [0.47ms]
+(pass) World producer historical month resolves complete persisted authority amid descriptive causal traces [351.78ms]
+
+test/private-checkpoint-notes.test.js:
+(pass) exact saved version, identity, time, entity and checkpoint gate attachment without mutation [14.94ms]
+(pass) missing and incompatible checkpoints never attach [3.90ms]
+(pass) local add/export/import/delete preserve literal malicious text and reject conflicting imports atomically [6.33ms]
+(pass) malformed, oversized and quota failures preserve data [6.01ms]
+
+ 43 pass
+ 0 fail
+ 279 expect() calls
+Ran 43 tests across 7 files. [1070.00ms]

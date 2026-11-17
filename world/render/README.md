@@ -18,7 +18,9 @@ See [the artist brief](assets/ARTIST_BRIEF.md) for dimensions, pivots, PBR/expor
 
 `updateCity` accepts visual state: `selectedBuilding`, `trafficDensity` (0–1), `vacancy` (0–1), `occupancy` (0–1), `timeOfDay` (hours), `weather` (`clear`, `cloudy`, `rain`), and `constructionProjects`. Construction entries supply `id`, `x`, `z`, `width`, `depth`, `height`, `progress`, and `phase`; optional `floorsBuilt` and `facadeFloors` describe the structural frame and installed facade. The resident simulation and approved construction bridge continue to own their clocks and outcomes. The construction benchmark uses detached visual fixtures.
 
-Cutaway occupants and floor layouts are illustrative, not estimated housing metrics. Time/weather overrides affect rendering only.
+Roof peel-back requires `building.detailGeometry`, an explicitly authored Three Object3D already attached to the scene in the building's world coordinates. The host owns its geometry, provenance, lighting and disposal. Default geographic shells do not supply interiors: the inspector reports missing geometry and retains the exterior. `setCutaway(true)` returns false for unsupported selections; `getCutawayState()` reports stable ID, support, enabled state and transition progress.
+
+Supported single-material shells fade existing triangles in the top 15% of their local height over 450ms. This is a cosmetic roof-region heuristic, not a structural survey. No interior surfaces or occupants are generated. Closing restores original geometry, detail visibility and camera pose; selection changes restore the prior shell. Geometry-detail replacement pauses during a transition. Reduced motion applies immediately. Time/weather overrides affect rendering only.
 
 ## Geometry boundary
 
@@ -281,3 +283,117 @@ reduced motion; static map caching and existing overlay throttling remain.
 History survives map collapse and local travel, and ends when the page unloads.
 It is not a saved-run or cross-model identity mapping. Living Population selection
 and the separate full Canvas2D World fallback are not wired to this trail.
+
+## Freeze to inspect (SHE-659)
+
+The legacy 3D `/world` toolbar offers Freeze to inspect / Unfreeze scene. It holds
+already-interpolated instance matrices, presentation layers and camera while the
+normal model stepping path continues. The status separately reports Model paused
+or Model running. Unfreeze catches presentation up to current model state; it is
+not a historical checkpoint or a model pause. Inspected facts remain current model
+facts, not capture-time evidence. Exact geometry rays replace magnetic expansion
+while frozen; Enter on the scene inspects its center. Native buttons support
+keyboard/touch with a 44px minimum target and no added motion or animation loop.
+Population, Business and tile views explicitly refuse this gate; standalone
+Canvas2D has no freeze control. Route/page exit clears the gate and restores camera
+control. `hblInspectionFreeze.getState()` reports frozen frame count and maximum
+frame interval in milliseconds (CPU animation cadence, not GPU time).
+
+Ray hits use rendered geometry and IDs, not model coordinates. This is not an
+ID-buffer readback: transparent fragment discard, antialiasing and asynchronous
+asset/geometry replacement can differ from exact raster pixels. Full GPU/browser
+acceptance, including streaming and mode changes during freeze, remains pending;
+see `docs/reviews/SHE-659.md`.
+
+## Proposed walking footsteps (SHE-649)
+
+The `/world` resident command menu previews mapped Legacy walking waypoints before
+its separate **Confirm walking trip** action. `world.previewPersonWalk(id, {x,z})`
+uses the existing command planner and returns copied `points`, `rulesVersion` and
+modeled minutes without committing a trip, advancing time or consuming model RNG.
+A preview rejects straight-line/old-rule approximations and any segment touching
+or entering a supplied non-park building polygon. This is a check against supplied
+geometry, not a general terrain navigation or water-access guarantee. In particular,
+a resident inside a building may have no verified outdoor preview.
+
+Missing read-only routes (including Living Population), blocked geometry and
+planner errors show no markers. The separate **Request walk without footprints**
+action retains the existing model-validated command capability without claiming a
+verified path. Escape and Cancel discard the proposal. Selection changes and
+page exit clear markers; confirmation rejects a resident who moved since preview.
+DOM markers are nonphysical, ignore pointer picking, are bounded to 180, and use
+the active camera projection. Reduced motion disables their opacity animation.
+Command UI `getState().frames` reports frame count, maximum frame gap, latest draw
+cost, marker count and active-frame status. These are local overlay diagnostics,
+not GPU or device performance certification. All frames and DOM are released on
+clear/destroy. The camera projection still updates under reduced motion.
+
+## Infrastructure scanner (SHE-645)
+
+In 3D `/world`, World controls → X-ray infrastructure scanner opens a static,
+hatched ground-ray lens. Hover scans at most 10Hz; Scan center provides the same
+query for touch and keyboard. Escape closes and returns summary focus. The
+8-metre road tolerance is a presentation assumption, not a service radius.
+Only the original loaded town's OSM roads are queried; streamed areas outside
+that geometry remain unknown. Old caches and synthetic roads gain no IDs.
+
+The core Overpass query retains way IDs and ordered node references; `buildTown`
+preserves those through coordinate projection. The readout labels transport road
+type and exact `osm:way` / `osm:node` references. Pipe, water, electricity and
+service networks have no spatial evidence adapter here: hatching always represents
+unknown coverage. The scanner adds no animation loop, model command or persistence.
+
+## City / blueprint material bridge (SHE-612)
+
+Graphics / F3 includes **City blueprint style**, a native keyboard/touch range
+control. `setStyle(0..1)` and `getStyleState()` expose the presentation state.
+Supported procedural building facades blend wall/roof color, roughness, metalness
+and window emission through shader uniforms. Distant HLOD shells receive a blue
+tint. The same mesh, triangles, transforms, camera, selection and policy facts
+remain authoritative; this control is illustrative and encodes no model evidence.
+Roads, policy overlays, props and landscape geometry retain their existing rules.
+New progressive facades receive the current blend on the next frame.
+
+LOW quality, adaptive level >=2, reduced motion, or reported <=4 CPU cores / GiB
+memory use an immediate swap. Missing hardware hints use the quality preset;
+these are conservative heuristics, not hardware certification. No extra render
+pass is added. An empty/unsupported facade list disables the control. The separate
+Canvas2D fallback does not offer this bridge. Geometry debug coloring can override
+material presentation. Browser shader/input validation remains pending; see
+[the review record](../../docs/reviews/SHE-612.md).
+
+## District arrival cards (SHE-611)
+
+In the 3D Living World (`/world?living=1`), the camera orbit target selects an
+existing `deriveLivingContext` district by its exact bounds and name. After
+700ms in a new partition, a static 4.5-second card announces the district,
+arrival-time Population modeled day/time, synthetic population context and
+geometry source. An 8m boundary margin suppresses jitter; leaving and returning
+to the same district does not repeat until another district is accepted.
+
+The card ignores pointer input, never takes focus, and uses an atomic polite
+status announcement. Its static appearance also serves reduced motion. It reads
+existing camera/clock/context only, with no timers, model commands or extra frame
+loop. Page exit removes its DOM/style. Legacy World, Canvas2D, embedded/tile
+views, missing clocks and empty geometry have no district cards. See
+`docs/reviews/SHE-611.md` for verification and remaining browser acceptance.
+
+## Street-based transit journey (SHE-604)
+
+World controls can launch a presentation-only neighborhood transit fly-through
+that follows the loaded street geometry. It displays recorded route geometry and
+timing rather than claiming a live service or a modeled transportation outcome.
+The camera transition remains interruptible: Escape and the visible cancel control
+restore the prior camera state without issuing a model command. Missing or invalid
+route geometry disables the control. The feature does not synthesize stops,
+passengers, service frequency, or real-world travel times; those remain unknown
+unless represented by a separate verified data source.
+
+## Saved city tours
+
+World controls includes the [saved city tour builder](../city-tour/README.md).
+It references immutable complete World saves and saved camera poses. Guest
+navigation validates carried checksum/pose/source/version pins before native
+model restoration; missing saves retain a skip-capable failure panel. Tours use
+manual cuts and pause at arrival. No model or camera mapping across authorities
+is introduced, and no hosted private-sharing or revocation support is claimed.

@@ -80,3 +80,34 @@ and `node node_modules/playwright/cli.js test --config test/storm-cutaway.browse
 The browser suite records actual storm-route baseline/current desktop and mobile
 captures, exercises reduced motion, forced 2D, keyboard selection, rapid timeline
 and arm changes, no-canvas/missing/empty/overflow and idempotent disposal.
+
+### Two-player rescue (SHE-772)
+
+From `/world/storm/`, open **Two-player Storm Rescue**. `rescue-api.js` owns
+private, in-memory rooms (100 maximum, one-hour expiry, lost on restart). Random
+bearer capabilities authorize separate crew/resource and budget/timing proposals.
+Keys stay out of URLs and browser storage; participants manually exchange only
+their designated key. This is role-capability authorization, not verified personal
+identity. Neither role receives the other's key through room reads.
+
+Both participants submit against a current revision. Budget commits only a
+complete plan; synchronous validation, computation and publication prevent a
+second commit or double-spend in this single server process. Failed computation
+publishes nothing. Refresh retrieves changes; there is no push notification.
+The bounded supported actions are no drains/four crossing drains and install
+before rainfall/miss the response window. Missed installation spends zero and
+retains the baseline; no mid-storm installation mechanics are invented.
+
+The immutable receipt pins `storm-rescue.v1`, water model version, seed, both
+normalized recipes and synthetic source. It records modeled impact totals and
+explicit unknown real-world outcomes. Authenticated replay recomputes the plan
+using the pinned implementation in this checkout; it is not an archival engine
+for future model versions. This orchestrates the existing environmental model,
+not a new social ABM. No measured rescue outcomes or calibrated uncertainty exist.
+Either capability may delete the entire room; expired/deleted rooms cannot replay.
+Previously copied receipts cannot be revoked. No public directory, social posting,
+external invitations or durable storage is enabled. Static native controls and
+text receipts require no animation, graphics, or pointer input.
+
+Checks: `bun test test/storm-rescue.test.js` and
+`bunx playwright test --config test/storm-rescue.browser.config.mjs`.

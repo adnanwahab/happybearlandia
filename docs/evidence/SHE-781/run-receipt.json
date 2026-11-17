@@ -1,0 +1,1149 @@
+{
+  "schemaVersion": "text-adventure-test-receipt.v1",
+  "sourceCommit": "7c7477997501ff40a9a47de45c9a79428203f3b6",
+  "classification": "synthetic modeled results; real local worker execution",
+  "reproduction": {
+    "config": {
+      "population": 16,
+      "seed": 42,
+      "representedPopulation": 0,
+      "householdSize": 2.5,
+      "medianIncome": 72000,
+      "incomeSpread": 0.55,
+      "employmentRate": 0.75,
+      "baseRent": 1800,
+      "rentMultiplier": 1,
+      "housingCapacityMultiplier": 1,
+      "wageMultiplier": 1,
+      "transitService": 1,
+      "roadCapacity": 800,
+      "transitCapacity": 600,
+      "carCostPerKm": 0.35,
+      "transitFare": 2.5,
+      "moveThreshold": 0.15,
+      "walkingSpeedKmh": 2.4,
+      "flexibleActivityMinutes": 45,
+      "needDecisionThreshold": 35,
+      "movingCost": 1500,
+      "burdenThreshold": 0.35,
+      "displacementThreshold": 0.6,
+      "initialBufferMonths": 3,
+      "layoffRate": 0.0005,
+      "hiringRate": 0.01,
+      "awarenessRate": 0.08,
+      "businessTax": 0.03,
+      "constructionDisruption": 0,
+      "maxLogEntries": 400,
+      "schoolStartMinute": 510,
+      "teenSchoolStartMinute": 510,
+      "schoolDayMinutes": 390,
+      "schoolRecessMinutes": 20,
+      "childScreenMinutesPerDay": 90,
+      "childSupervisionAge": 12,
+      "childIndependentWalkAge": 8,
+      "childIndependentTransitAge": 12,
+      "childcareCapacity": 200,
+      "childcareHourlyCost": 5,
+      "childcareSubsidyFraction": 0,
+      "summerCampEnabled": 1,
+      "summerCampCapacity": 100,
+      "summerCampDailyCost": 30,
+      "summerStartDay": 170,
+      "summerEndDay": 235,
+      "calendarStartEpochDay": 20759,
+      "workWeekDays": 5,
+      "employerOpenDays": 5,
+      "workShiftStartMinute": 480,
+      "workShiftMinutes": 540,
+      "workMealBreakMinutes": 30,
+      "workCommuteBufferMinutes": 30,
+      "workWeeklyPayRetention": 1,
+      "workPaidSickDays": 0,
+      "workPaidFamilyDays": 0,
+      "workPaidVacationDays": 0,
+      "workLeavePayFraction": 1,
+      "workIllnessDailyProbability": 0.01,
+      "workIllnessDurationDays": 2,
+      "workUnpaidSickAbsenceProbability": 0.25,
+      "workIllProductivityFactor": 0.65,
+      "workFamilyLeaveDailyProbability": 0.001,
+      "workFamilyLeaveDurationDays": 7,
+      "workVacationRequestProbability": 0.005,
+      "workVacationDurationDays": 3,
+      "workPredictableSchedule": 0,
+      "workScheduleNoticeDays": 14,
+      "workShiftChangeProbability": 0.15,
+      "workShiftVolatilityMinutes": 60,
+      "workDisconnect": 0,
+      "workAfterHoursMinutes": 30,
+      "workAfterHoursProbability": 0.2,
+      "workOvertimePayMultiplier": 1.5,
+      "workRemoteShare": 0,
+      "workRemoteEligibleShare": 0.6,
+      "workRemoteProductivityFactor": 1,
+      "workWeekendShare": 0,
+      "workRecruitmentCost": 500,
+      "workTurnoverDailyProbability": 0.001,
+      "workSatisfactionOvertimeWeight": 0.3,
+      "workSatisfactionUnpredictabilityWeight": 0.2,
+      "workSatisfactionUnpaidLeaveWeight": 0.4,
+      "workSatisfactionCommuteWeight": 0.1,
+      "schemaVersion": "population-config.v1",
+      "snapshotId": "text-adventure.v1",
+      "provenance": {
+        "type": "synthetic",
+        "confidence": "low"
+      },
+      "events": [],
+      "targets": null
+    },
+    "worldContext": {},
+    "stepMinutes": 30,
+    "steps": 48,
+    "selectedActor": "synthetic-b72bf94a-p0",
+    "initialMinute": 0
+  },
+  "modelVersion": "1.3.0",
+  "residentRules": {
+    "pedestrian": "sidewalks.v1",
+    "encounters": "resident-encounters.v1"
+  },
+  "minute": 1440,
+  "tick": 48,
+  "provenance": {
+    "synthetic": true,
+    "demographics": {
+      "type": "synthetic",
+      "confidence": "low"
+    },
+    "locationSource": "synthetic location",
+    "snapshotId": "text-adventure.v1",
+    "seed": 42
+  },
+  "events": [
+    {
+      "schemaVersion": "decision-event.v1",
+      "behaviorModelVersion": "1.3.0",
+      "id": "synthetic-b72bf94a-person0-ACTIVITY_CHOICE-986",
+      "actorId": "synthetic-b72bf94a-p0",
+      "reasonCodes": [
+        "SEEDED_UTILITY_CHOICE"
+      ],
+      "tick": 33,
+      "minute": 986,
+      "type": "ACTIVITY_CHOICE",
+      "inputs": {
+        "needs": {
+          "hunger": 29.85031509399414,
+          "energy": 62.33990478515625,
+          "fun": 52.86274337768555,
+          "social": 42.66036605834961
+        },
+        "availableMinutes": 334,
+        "resources": 41.915558057142306,
+        "weather": {
+          "walkComfort": 1,
+          "bikeComfort": 1,
+          "parkComfort": 1,
+          "electricityDemandMultiplier": 1.0936721144739743,
+          "roadAvailability": 1,
+          "transitAvailability": 1,
+          "serviceAvailability": 1
+        }
+      },
+      "alternatives": [
+        {
+          "id": "HOME",
+          "activity": 0,
+          "available": true,
+          "score": 0.5389408569335937,
+          "components": {
+            "rest": 0.3389408569335937,
+            "inertia": 0.2
+          },
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.5389408569335937,
+          "probability": 0.00015948745618115723
+        },
+        {
+          "id": "DINING",
+          "activity": 5,
+          "available": true,
+          "score": 2.1126943283081054,
+          "components": {
+            "food": 1.2626943283081056,
+            "expense": -0.15,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 2.1126943283081054,
+          "probability": 0.9995296681459616
+        },
+        {
+          "id": "RECREATION",
+          "activity": 6,
+          "available": true,
+          "score": 0.6475146484375002,
+          "components": {
+            "funAndSocial": 0.8358151245117189,
+            "fatigue": -0.18830047607421874,
+            "weatherComfort": 0,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.6475146484375002,
+          "probability": 0.0002915329411532064
+        },
+        {
+          "id": "SHOPPING",
+          "activity": 3,
+          "available": true,
+          "score": 0.15891284317476675,
+          "components": {
+            "routine": 0.05,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.15891284317476675,
+          "probability": 0.000019311456703923332
+        }
+      ],
+      "chosen": "DINING",
+      "randomDraw": 0.6853860781993717,
+      "reason": "Need utilities, activity commitment, budget and next mandatory schedule"
+    },
+    {
+      "schemaVersion": "decision-event.v1",
+      "behaviorModelVersion": "1.3.0",
+      "id": "synthetic-b72bf94a-person0-ACTIVITY_CHOICE-1031",
+      "actorId": "synthetic-b72bf94a-p0",
+      "reasonCodes": [
+        "SEEDED_UTILITY_CHOICE"
+      ],
+      "tick": 35,
+      "minute": 1031,
+      "type": "ACTIVITY_CHOICE",
+      "inputs": {
+        "needs": {
+          "hunger": 46.87531280517578,
+          "energy": 60.76490783691406,
+          "fun": 51.73774337768555,
+          "social": 60.880367279052734
+        },
+        "availableMinutes": 289,
+        "resources": 41.915558057142306,
+        "weather": {
+          "walkComfort": 1,
+          "bikeComfort": 1,
+          "parkComfort": 1,
+          "electricityDemandMultiplier": 1.0658613555193432,
+          "roadAvailability": 1,
+          "transitAvailability": 1,
+          "serviceAvailability": 1
+        }
+      },
+      "alternatives": [
+        {
+          "id": "HOME",
+          "activity": 0,
+          "available": true,
+          "score": 0.5531158294677735,
+          "components": {
+            "rest": 0.3531158294677735,
+            "inertia": 0.2
+          },
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.5531158294677735,
+          "probability": 0.16809289562651247
+        },
+        {
+          "id": "DINING",
+          "activity": 5,
+          "available": true,
+          "score": 0.8062443695068359,
+          "components": {
+            "food": 0.9562443695068359,
+            "expense": -0.15,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.8062443695068359,
+          "probability": 0.6859374505580067
+        },
+        {
+          "id": "RECREATION",
+          "activity": 6,
+          "available": true,
+          "score": 0.5028796539306641,
+          "components": {
+            "funAndSocial": 0.6990551147460938,
+            "fatigue": -0.1961754608154297,
+            "weatherComfort": 0,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.5028796539306641,
+          "probability": 0.1271575555763086
+        },
+        {
+          "id": "SHOPPING",
+          "activity": 3,
+          "available": true,
+          "score": 0.15891284317476675,
+          "components": {
+            "routine": 0.05,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.15891284317476675,
+          "probability": 0.018812098239172233
+        }
+      ],
+      "chosen": "SHOPPING",
+      "randomDraw": 0.9821716225706041,
+      "reason": "Need utilities, activity commitment, budget and next mandatory schedule"
+    },
+    {
+      "schemaVersion": "decision-event.v1",
+      "behaviorModelVersion": "1.3.0",
+      "id": "synthetic-b72bf94a-person0-ACTIVITY_CHOICE-1076",
+      "actorId": "synthetic-b72bf94a-p0",
+      "reasonCodes": [
+        "SEEDED_UTILITY_CHOICE"
+      ],
+      "tick": 36,
+      "minute": 1076,
+      "type": "ACTIVITY_CHOICE",
+      "inputs": {
+        "needs": {
+          "hunger": 44.40031051635742,
+          "energy": 58.55990982055664,
+          "fun": 51.662742614746094,
+          "social": 67.9803695678711
+        },
+        "availableMinutes": 244,
+        "resources": 41.915558057142306,
+        "weather": {
+          "walkComfort": 1,
+          "bikeComfort": 1,
+          "parkComfort": 1,
+          "electricityDemandMultiplier": 1.0486509188882236,
+          "roadAvailability": 1,
+          "transitAvailability": 1,
+          "serviceAvailability": 1
+        }
+      },
+      "alternatives": [
+        {
+          "id": "HOME",
+          "activity": 0,
+          "available": true,
+          "score": 0.5729608116149902,
+          "components": {
+            "rest": 0.3729608116149903,
+            "inertia": 0.2
+          },
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.5729608116149902,
+          "probability": 0.16006085225179906
+        },
+        {
+          "id": "DINING",
+          "activity": 5,
+          "available": true,
+          "score": 0.8507944107055664,
+          "components": {
+            "food": 1.0007944107055664,
+            "expense": -0.15,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.8507944107055664,
+          "probability": 0.7492510176714704
+        },
+        {
+          "id": "RECREATION",
+          "activity": 6,
+          "available": true,
+          "score": 0.4356546516418457,
+          "components": {
+            "funAndSocial": 0.6428551025390625,
+            "fatigue": -0.2072004508972168,
+            "weatherComfort": 0,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.4356546516418457,
+          "probability": 0.07464489005884906
+        },
+        {
+          "id": "SHOPPING",
+          "activity": 3,
+          "available": true,
+          "score": 0.15891284317476675,
+          "components": {
+            "routine": 0.05,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.15891284317476675,
+          "probability": 0.016043240017881565
+        }
+      ],
+      "chosen": "DINING",
+      "randomDraw": 0.2921831451822072,
+      "reason": "Need utilities, activity commitment, budget and next mandatory schedule"
+    },
+    {
+      "schemaVersion": "decision-event.v1",
+      "behaviorModelVersion": "1.3.0",
+      "id": "synthetic-b72bf94a-person0-ACTIVITY_CHOICE-1121",
+      "actorId": "synthetic-b72bf94a-p0",
+      "reasonCodes": [
+        "SEEDED_UTILITY_CHOICE"
+      ],
+      "tick": 38,
+      "minute": 1121,
+      "type": "ACTIVITY_CHOICE",
+      "inputs": {
+        "needs": {
+          "hunger": 61.42530822753906,
+          "energy": 56.98491287231445,
+          "fun": 50.537742614746094,
+          "social": 86.20037841796875
+        },
+        "availableMinutes": 199,
+        "resources": 41.915558057142306,
+        "weather": {
+          "walkComfort": 1,
+          "bikeComfort": 1,
+          "parkComfort": 1,
+          "electricityDemandMultiplier": 1.0090872694755884,
+          "roadAvailability": 1,
+          "transitAvailability": 1,
+          "serviceAvailability": 1
+        }
+      },
+      "alternatives": [
+        {
+          "id": "HOME",
+          "activity": 0,
+          "available": true,
+          "score": 0.58713578414917,
+          "components": {
+            "rest": 0.38713578414916994,
+            "inertia": 0.2
+          },
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.58713578414917,
+          "probability": 0.4821478264755614
+        },
+        {
+          "id": "DINING",
+          "activity": 5,
+          "available": true,
+          "score": 0.5443444519042969,
+          "components": {
+            "food": 0.6943444519042969,
+            "expense": -0.15,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.5443444519042969,
+          "probability": 0.38013297943289787
+        },
+        {
+          "id": "RECREATION",
+          "activity": 6,
+          "available": true,
+          "score": 0.29101959609985356,
+          "components": {
+            "funAndSocial": 0.5060950317382813,
+            "fatigue": -0.21507543563842774,
+            "weatherComfort": 0,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.29101959609985356,
+          "probability": 0.09305221873547365
+        },
+        {
+          "id": "SHOPPING",
+          "activity": 3,
+          "available": true,
+          "score": 0.15891284317476675,
+          "components": {
+            "routine": 0.05,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.15891284317476675,
+          "probability": 0.044666975356067
+        }
+      ],
+      "chosen": "DINING",
+      "randomDraw": 0.6469795384909958,
+      "reason": "Need utilities, activity commitment, budget and next mandatory schedule"
+    },
+    {
+      "schemaVersion": "decision-event.v1",
+      "behaviorModelVersion": "1.3.0",
+      "id": "synthetic-b72bf94a-person0-ACTIVITY_CHOICE-1166",
+      "actorId": "synthetic-b72bf94a-p0",
+      "reasonCodes": [
+        "SEEDED_UTILITY_CHOICE"
+      ],
+      "tick": 39,
+      "minute": 1166,
+      "type": "ACTIVITY_CHOICE",
+      "inputs": {
+        "needs": {
+          "hunger": 79.95030212402344,
+          "energy": 55.409915924072266,
+          "fun": 49.412742614746094,
+          "social": 96.66038513183594
+        },
+        "availableMinutes": 154,
+        "resources": 41.915558057142306,
+        "weather": {
+          "walkComfort": 1,
+          "bikeComfort": 1,
+          "parkComfort": 1,
+          "electricityDemandMultiplier": 1,
+          "roadAvailability": 1,
+          "transitAvailability": 1,
+          "serviceAvailability": 1
+        }
+      },
+      "alternatives": [
+        {
+          "id": "HOME",
+          "activity": 0,
+          "available": true,
+          "score": 0.6013107566833495,
+          "components": {
+            "rest": 0.4013107566833496,
+            "inertia": 0.2
+          },
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.6013107566833495,
+          "probability": 0.761799161360837
+        },
+        {
+          "id": "DINING",
+          "activity": 5,
+          "available": true,
+          "score": 0.21089456176757818,
+          "components": {
+            "food": 0.36089456176757817,
+            "expense": -0.15,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.21089456176757818,
+          "probability": 0.08706927729543676
+        },
+        {
+          "id": "RECREATION",
+          "activity": 6,
+          "available": true,
+          "score": 0.20846455764770508,
+          "components": {
+            "funAndSocial": 0.43141497802734374,
+            "fatigue": -0.22295042037963866,
+            "weatherComfort": 0,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.20846455764770508,
+          "probability": 0.08590173869003749
+        },
+        {
+          "id": "SHOPPING",
+          "activity": 3,
+          "available": true,
+          "score": 0.15891284317476675,
+          "components": {
+            "routine": 0.05,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.15891284317476675,
+          "probability": 0.0652298226536887
+        }
+      ],
+      "chosen": "HOME",
+      "randomDraw": 0.4864587215706706,
+      "reason": "Need utilities, activity commitment, budget and next mandatory schedule"
+    },
+    {
+      "schemaVersion": "decision-event.v1",
+      "behaviorModelVersion": "1.3.0",
+      "id": "synthetic-b72bf94a-person0-ACTIVITY_CHOICE-1211",
+      "actorId": "synthetic-b72bf94a-p0",
+      "reasonCodes": [
+        "SEEDED_UTILITY_CHOICE"
+      ],
+      "tick": 41,
+      "minute": 1211,
+      "type": "ACTIVITY_CHOICE",
+      "inputs": {
+        "needs": {
+          "hunger": 77.47529602050781,
+          "energy": 53.83491897583008,
+          "fun": 48.872737884521484,
+          "social": 100
+        },
+        "availableMinutes": 109,
+        "resources": 41.915558057142306,
+        "weather": {
+          "walkComfort": 1,
+          "bikeComfort": 1,
+          "parkComfort": 1,
+          "electricityDemandMultiplier": 1,
+          "roadAvailability": 1,
+          "transitAvailability": 1,
+          "serviceAvailability": 1
+        }
+      },
+      "alternatives": [
+        {
+          "id": "HOME",
+          "activity": 0,
+          "available": true,
+          "score": 0.6154857292175293,
+          "components": {
+            "rest": 0.4154857292175293,
+            "inertia": 0.2
+          },
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.6154857292175293,
+          "probability": 0.767733554857104
+        },
+        {
+          "id": "DINING",
+          "activity": 5,
+          "available": true,
+          "score": 0.2554446716308594,
+          "components": {
+            "food": 0.4054446716308594,
+            "expense": -0.15,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.2554446716308594,
+          "probability": 0.10387774112011015
+        },
+        {
+          "id": "RECREATION",
+          "activity": 6,
+          "available": true,
+          "score": 0.1781926918029785,
+          "components": {
+            "funAndSocial": 0.4090180969238281,
+            "fatigue": -0.23082540512084962,
+            "weatherComfort": 0,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.1781926918029785,
+          "probability": 0.0676290061284142
+        },
+        {
+          "id": "SHOPPING",
+          "activity": 3,
+          "available": true,
+          "score": 0.15891284317476675,
+          "components": {
+            "routine": 0.05,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.15891284317476675,
+          "probability": 0.06075969789437151
+        }
+      ],
+      "chosen": "HOME",
+      "randomDraw": 0.26924130762927234,
+      "reason": "Need utilities, activity commitment, budget and next mandatory schedule"
+    },
+    {
+      "schemaVersion": "decision-event.v1",
+      "behaviorModelVersion": "1.3.0",
+      "id": "synthetic-b72bf94a-person0-ACTIVITY_CHOICE-1256",
+      "actorId": "synthetic-b72bf94a-p0",
+      "reasonCodes": [
+        "SEEDED_UTILITY_CHOICE"
+      ],
+      "tick": 42,
+      "minute": 1256,
+      "type": "ACTIVITY_CHOICE",
+      "inputs": {
+        "needs": {
+          "hunger": 75.00028991699219,
+          "energy": 52.25992202758789,
+          "fun": 48.37773513793945,
+          "social": 100
+        },
+        "availableMinutes": 64,
+        "resources": 41.915558057142306,
+        "weather": {
+          "walkComfort": 1,
+          "bikeComfort": 1,
+          "parkComfort": 1,
+          "electricityDemandMultiplier": 1,
+          "roadAvailability": 1,
+          "transitAvailability": 1,
+          "serviceAvailability": 1
+        }
+      },
+      "alternatives": [
+        {
+          "id": "HOME",
+          "activity": 0,
+          "available": true,
+          "score": 0.6296607017517091,
+          "components": {
+            "rest": 0.429660701751709,
+            "inertia": 0.2
+          },
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.6296607017517091,
+          "probability": 0.7616194655617804
+        },
+        {
+          "id": "DINING",
+          "activity": 5,
+          "available": true,
+          "score": 0.2999947814941406,
+          "components": {
+            "food": 0.4499947814941406,
+            "expense": -0.15,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.2999947814941406,
+          "probability": 0.12199373697678101
+        },
+        {
+          "id": "RECREATION",
+          "activity": 6,
+          "available": true,
+          "score": 0.1742777290344239,
+          "components": {
+            "funAndSocial": 0.41297811889648445,
+            "fatigue": -0.23870038986206055,
+            "weatherComfort": 0,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.1742777290344239,
+          "probability": 0.06067559985581337
+        },
+        {
+          "id": "SHOPPING",
+          "activity": 3,
+          "available": true,
+          "score": 0.15891284317476675,
+          "components": {
+            "routine": 0.05,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.15891284317476675,
+          "probability": 0.0557111976056251
+        }
+      ],
+      "chosen": "HOME",
+      "randomDraw": 0.5526403614785522,
+      "reason": "Need utilities, activity commitment, budget and next mandatory schedule"
+    },
+    {
+      "schemaVersion": "decision-event.v1",
+      "behaviorModelVersion": "1.3.0",
+      "id": "synthetic-b72bf94a-person0-ACTIVITY_CHOICE-1301",
+      "actorId": "synthetic-b72bf94a-p0",
+      "reasonCodes": [
+        "SEEDED_UTILITY_CHOICE"
+      ],
+      "tick": 44,
+      "minute": 1301,
+      "type": "ACTIVITY_CHOICE",
+      "inputs": {
+        "needs": {
+          "hunger": 72.52528381347656,
+          "energy": 50.6849250793457,
+          "fun": 47.837730407714844,
+          "social": 100
+        },
+        "availableMinutes": 19,
+        "resources": 41.915558057142306,
+        "weather": {
+          "walkComfort": 1,
+          "bikeComfort": 1,
+          "parkComfort": 1,
+          "electricityDemandMultiplier": 1,
+          "roadAvailability": 1,
+          "transitAvailability": 1,
+          "serviceAvailability": 1
+        }
+      },
+      "alternatives": [
+        {
+          "id": "HOME",
+          "activity": 0,
+          "available": true,
+          "score": 0.6438356742858886,
+          "components": {
+            "rest": 0.44383567428588866,
+            "inertia": 0.2
+          },
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.6438356742858886,
+          "probability": 0.7522056500582999
+        },
+        {
+          "id": "DINING",
+          "activity": 5,
+          "available": true,
+          "score": 0.34454489135742195,
+          "components": {
+            "food": 0.4945448913574219,
+            "expense": -0.15,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.34454489135742195,
+          "probability": 0.14263418211918902
+        },
+        {
+          "id": "RECREATION",
+          "activity": 6,
+          "available": true,
+          "score": 0.17072278213500983,
+          "components": {
+            "funAndSocial": 0.4172981567382813,
+            "fatigue": -0.24657537460327147,
+            "weatherComfort": 0,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.17072278213500983,
+          "probability": 0.05430437534729403
+        },
+        {
+          "id": "SHOPPING",
+          "activity": 3,
+          "available": true,
+          "score": 0.15891284317476675,
+          "components": {
+            "routine": 0.05,
+            "serviceAccess": 0
+          },
+          "rejectedReason": null,
+          "destination": {
+            "district": 0,
+            "x": 0,
+            "z": 0,
+            "location": 4294967295
+          },
+          "utility": 0.15891284317476675,
+          "probability": 0.05085579247521699
+        }
+      ],
+      "chosen": "HOME",
+      "randomDraw": 0.12461145571433008,
+      "reason": "Need utilities, activity commitment, budget and next mandatory schedule"
+    }
+  ],
+  "metrics": {
+    "parkVisitors": null,
+    "representedParkVisitors": null,
+    "syntheticPopulation": 16,
+    "representedPopulation": 16,
+    "households": 7,
+    "representedHouseholds": 7,
+    "employed": 8,
+    "syntheticEmployed": 8,
+    "representedEmployed": 8,
+    "representedTrips": 0,
+    "representedMoves": 0,
+    "representedDisplacementRiskHouseholds": 0,
+    "representedDeniedBoardings": 0,
+    "employmentRate": 0.7272727272727273,
+    "meanHouseholdIncome": 67255.6407742547,
+    "meanHousingBurden": 0.293576187599016,
+    "meanStress": 0.0021300834736653735,
+    "modeledUtility": 0.9665665440261364,
+    "meanCommuteMinutes": 0,
+    "completedTrips": 0,
+    "cancelledTrips": 0,
+    "activeTrips": 0,
+    "meanExperiencedTravelMinutes": 0,
+    "deniedBoardings": 0,
+    "trips": 0,
+    "moves": 0,
+    "displacementRiskHouseholds": 0,
+    "businessRevenue": 137.6351758308781,
+    "businessClosures": 0,
+    "commercialVacancy": 0,
+    "congestion": 1,
+    "transitCrowding": 0,
+    "childCount": 4,
+    "representedChildren": 4,
+    "childSleepMinutes": 2451,
+    "teenSleepMinutes": 570,
+    "childAttendanceMinutes": 1560,
+    "childInstructionMinutes": 1360,
+    "childExpectedInstructionMinutes": 1360,
+    "childRecessMinutes": 80,
+    "childScreenMinutes": 324,
+    "childCampMinutes": 0,
+    "childCareMinutes": 180,
+    "childUnsupervisedMinutes": 0,
+    "childObservedMinutes": 5760,
+    "childFatiguePointMinutes": 47515.09603817785,
+    "meanChildFatigueProxy": 8.24914861773921,
+    "childAcademicExposureRatio": 0.9471894187646754,
+    "parentCareLostWorkMinutes": 18,
+    "parentObservedWorkMinutes": 2040,
+    "childcareAccruedCost": 15,
+    "childcarePaidCost": 15,
+    "childcareSubsidyExposure": 0,
+    "representedChildSleepMinutes": 2451,
+    "representedChildAttendanceMinutes": 1560,
+    "representedParentCareLostWorkMinutes": 18,
+    "schoolBoundTransitTrips": 0,
+    "schoolBoundTransitTripsHour00": 0,
+    "schoolBoundTransitTripsHour01": 0,
+    "schoolBoundTransitTripsHour02": 0,
+    "schoolBoundTransitTripsHour03": 0,
+    "schoolBoundTransitTripsHour04": 0,
+    "schoolBoundTransitTripsHour05": 0,
+    "schoolBoundTransitTripsHour06": 0,
+    "schoolBoundTransitTripsHour07": 0,
+    "schoolBoundTransitTripsHour08": 0,
+    "schoolBoundTransitTripsHour09": 0,
+    "schoolBoundTransitTripsHour10": 0,
+    "schoolBoundTransitTripsHour11": 0,
+    "schoolBoundTransitTripsHour12": 0,
+    "schoolBoundTransitTripsHour13": 0,
+    "schoolBoundTransitTripsHour14": 0,
+    "schoolBoundTransitTripsHour15": 0,
+    "schoolBoundTransitTripsHour16": 0,
+    "schoolBoundTransitTripsHour17": 0,
+    "schoolBoundTransitTripsHour18": 0,
+    "schoolBoundTransitTripsHour19": 0,
+    "schoolBoundTransitTripsHour20": 0,
+    "schoolBoundTransitTripsHour21": 0,
+    "schoolBoundTransitTripsHour22": 0,
+    "schoolBoundTransitTripsHour23": 0,
+    "employmentWorkedMinutes": 4062,
+    "employmentRemoteMinutes": 0,
+    "employmentOvertimeMinutes": 0,
+    "employmentPaidSickMinutes": 0,
+    "employmentPaidFamilyMinutes": 0,
+    "employmentPaidVacationMinutes": 0,
+    "employmentUnpaidLeaveMinutes": 0,
+    "employmentSickAtWorkMinutes": 0,
+    "employmentWagesAccrued": 1531.91907091494,
+    "employmentWagesSettled": 1531.9190709149375,
+    "employmentBenefitsSettled": 0,
+    "employmentEmployerPayroll": 1531.91907091494,
+    "employmentRecruitmentCost": 0,
+    "employmentCommuteMinutes": 0,
+    "employmentSameDayScheduleChanges": 2,
+    "employmentStaffingShortfallMinutes": 2058,
+    "employmentVoluntaryQuits": 0,
+    "employmentObservedWorkers": 8,
+    "employmentJobSatisfactionSum": 7.785882353782654,
+    "electricityDemandKw": 10,
+    "electricityRawSyntheticDemandKw": 10,
+    "electricityCapacityKw": 12.5,
+    "electricityLoadRatio": 0.8,
+    "electricityShortfallKw": 0
+  },
+  "limitations": [
+    "No browser layout verification: local server binding failed.",
+    "No independent recorded-checkpoint replay equivalence claimed.",
+    "Seed-matched repeat execution checked by text-adventure.test.js."
+  ]
+}

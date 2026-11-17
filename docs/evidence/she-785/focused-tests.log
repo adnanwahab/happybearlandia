@@ -1,0 +1,59 @@
+bun test v1.4.2 (744846f84)
+
+test/future-machine-effects.test.js:
+(pass) only explicit recorded changes animate; selection can glow without animation [0.55ms]
+(pass) same-identity recorded height transition is smooth, ground anchored and finite [0.08ms]
+(pass) reduced motion and ghosts never animate; no height tween without changed evidence [0.10ms]
+(pass) material arrays are isolated and disposed once; original materials remain owned by stage [0.10ms]
+(pass) flat and structured diffs preserve exact collection keys and partial valid evidence [0.12ms]
+Effects verified model stop: {"month":16,"entity":{"collection":"buildings","id":"building-project-policy-1-0"}}
+(pass) fixed seed actual monthly model yields +24 homes and first mapped physical stop [634.84ms]
+(pass) first divergence orders simultaneous buildings by exact ID and agrees with story [2.34ms]
+(pass) reapplying a retained row does not restart its pulse; removing releases its effect [0.18ms]
+(pass) retained selection and diff flags preserve the recorded ground position during a tween [0.17ms]
+
+test/comfort-preferences.test.js:
+(pass) legacy/missing/malformed settings migrate and independent values survive reload [0.29ms]
+(pass) native reduction cannot be overridden, live changes restore choices, reset is silent [0.05ms]
+(pass) same-document consumers synchronize and disposal stops updates [0.05ms]
+(pass) denied storage remains usable without changing external run inputs [0.03ms]
+
+test/future-machine-scene.test.js:
+(pass) Future Machine City scene projection > module imports without DOM or Three initialization
+(pass) Future Machine City scene projection > zero difference and immutable source records [0.06ms]
+(pass) Future Machine City scene projection > additions and removals have stable slots across arms and scrubs [0.03ms]
+(pass) Future Machine City scene projection > source geometry requires explicit identity and unique source mapping [0.14ms]
+(pass) Future Machine City scene projection > unverified geometry and inferred parcels never become locations [0.02ms]
+(pass) Future Machine City scene projection > unlocated inventory stays outside sourced footprint extent [0.04ms]
+(pass) Future Machine City scene projection > only housing projects with recorded bounded progress render [0.05ms]
+(pass) Future Machine City scene projection > missing collections, duplicate IDs and mismatched months fail explicitly [0.05ms]
+(pass) Future Machine City scene projection > unsupported holes are schematic rather than misrendered sourced footprints [0.02ms]
+(pass) localized building evidence distinguishes added, changed and removed inventory [0.05ms]
+(pass) stage inventory selects exact IDs and missing snapshots clear selection and labels [2.25ms]
+
+test/media-pipeline.test.js:
+(pass) shared cache deduplicates, accounts actual bytes and rejects conflicting identities [0.46ms]
+(pass) concurrent streams share kind and aggregate caps; failure permits retry [0.09ms]
+(pass) declared oversize, HTTP failure and disposed acquisition reject [0.08ms]
+(pass) real production bear is embedded and actual assets fit encoded budgets [6.25ms]
+(pass) motion follows live OS changes, local override and clamped persisted volume [0.08ms]
+(pass) dispose releases cache and cancels pending streams without negative accounting [0.08ms]
+(pass) decoded animation duration, track and key counts are bounded [0.06ms]
+
+test/motion.test.js:
+(pass) tokens are immutable presentation values
+(pass) fallback awaits commit before focus and propagates failure [0.20ms]
+(pass) reduced motion avoids native capture [0.03ms]
+(pass) capture failure after callback cannot duplicate update [0.02ms]
+(pass) live reduction skips active animation; disposal rejects future transitions [0.06ms]
+
+test/ambient-sound.test.js:
+(pass) geometry/time heuristics are cosmetic and handle missing inputs [0.08ms]
+(pass) silent until opt-in, bounded buffers, independent switch and smooth rapid navigation [6.70ms]
+(pass) rapid opt-out and disposal cannot be undone by pending resume [2.29ms]
+(pass) unsupported audio is a silent failure [0.04ms]
+
+ 40 pass
+ 0 fail
+ 218 expect() calls
+Ran 40 tests across 6 files. [686.00ms]

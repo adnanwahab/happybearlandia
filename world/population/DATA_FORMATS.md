@@ -171,3 +171,61 @@ state, without a second query that could mix ticks. No resident-weight total is
 inferred. The UI allows one pending query and one bounded outline; oversized
 outlines fail explicitly. Its static SVG has no animation, including under
 reduced motion; no GPU selection/readback or retained selection history is used.
+
+## Transient selected journey frames (SHE-623)
+
+`journey-trail.js` consumes only received `visibleAgents` rows with a supported
+`population-current-trip.v1` trip and a finite committed x/z position. The host
+mounts it in `/world` Living Population person details. This is presentation
+memory, not a checkpoint field or a source of model observations. It begins when
+a resident is selected, retaining at most 32 frames and 30 elapsed Population
+minutes. Nothing is reconstructed from routes, destinations or renderer tweening.
+
+Scope combines runtime ID/revision, model version, resident ID, departure minute
+and committed trip endpoints (the existing trip projection has no independent
+trip ID). Samples expose that scope, seed, tick, minute, x/z and geometry label.
+Only consecutive ticks separated by exactly the runtime's fixed step get a
+schematic connecting stroke. Missing positions, unsupported trips, absent sampled
+residents and skipped ticks never produce interpolated samples. The Population
+clock must agree with `tick * stepMinutes`; other authorities are unsupported.
+Backward time, trip/run replacement, selection changes and closing/deactivating
+clear history. A finished trip's recent frames can remain until the 30-minute
+window expires or another trip begins. Closing the details or leaving Living
+Population clears them immediately. Reopening has no historical prefill.
+
+Native sample buttons inspect exact positions and provenance, marking the sample
+in the scene without moving the resident, camera or clock. Geometry is static
+and identical with reduced motion; there is no playback, pulse or automatic
+camera animation in this overlay. Coordinates and connections are synthetic
+model outputs and schematic presentation, never real resident tracking or proof
+of the path traveled between samples. Buffers are fixed-capacity and disposed on
+host teardown. No model rules, scheduling, RNG, source identities or persisted
+run records change; the Population ODD remains applicable unchanged.
+
+## Cohort Spotlight (`home-district-id-order.v1`)
+
+The existing `/world` Population City Deck zoom consumes one frozen Population
+snapshot. `zoomEvidence(frame, districtId)` maps `visibleAgents.homeDistrictId`
+to an exact `districts.id`; coordinates must be finite and IDs present. It sorts
+IDs lexically, deduplicates by ID and selects at most 12 within that home district.
+Unknown district IDs and empty samples produce no representatives, never a
+substitute district or generated person. This is a presentation cohort, not the
+SHE-144 hierarchical engine or the household income cohorts.
+
+The fixture in `test/population-zoom.test.js` fixes all inputs and expected IDs.
+Stable means identical supplied snapshot and district produce identical ordering;
+camera-dependent worker membership, tick changes and resets may change the sample.
+Opening captures a snapshot; district changes reuse it; reopening captures anew.
+Inspection sends the retained ID to the existing inspector, which reads current
+state and can reject stale identities. Frozen coordinates do not promise history.
+Model version, seed, runtime ID, tick and minute retain snapshot provenance; absent
+metadata is displayed as unavailable. No RNG is consumed or model state changed.
+
+Allocated resident records, weighted represented total, worker sample size,
+selected IDs and drawn representatives are separate. Independently active agents
+remain unavailable without a changed-state window measurement. Weighted mass is
+not an independently simulated population. The Canvas2D circles/radii/fade are
+decorative projections of synthetic model outputs; no observed resident sources,
+probabilities, causal effects or empirical representativeness are supplied.
+Missing Canvas2D retains textual IDs/inspection. Destruction cancels animation,
+removes the panel and releases retained snapshots; it allocates no GPU resources.

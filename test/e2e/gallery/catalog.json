@@ -1,0 +1,506 @@
+{
+  "version": 1,
+  "source": "Linear read-only issue inventory, 2026-11-17; issue titles are requirements, not implementation evidence",
+  "issues": [
+    {
+      "id": "SHE-601",
+      "title": "[HBL-FUN-101] World-to-Worldline continuity contract for camera, entity, and simulation time",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-601/hbl-fun-101-world-to-worldline-continuity-contract-for-camera-entity"
+    },
+    {
+      "id": "SHE-602",
+      "title": "[HBL-FUN-102] Toy-scale to life-size camera transformation for tabletop builds",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-602/hbl-fun-102-toy-scale-to-life-size-camera-transformation-for-tabletop"
+    },
+    {
+      "id": "SHE-604",
+      "title": "[HBL-FUN-103] Neighborhood transit journey fly-through following actual streets",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-604/hbl-fun-103-neighborhood-transit-journey-fly-through-following-actual"
+    },
+    {
+      "id": "SHE-606",
+      "title": "[HBL-FUN-104] Rooftop peel-back transition into a selected building",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-606/hbl-fun-104-rooftop-peel-back-transition-into-a-selected-building"
+    },
+    {
+      "id": "SHE-608",
+      "title": "[HBL-FUN-105] Animated map-fold transition between street city and network schematic",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-608/hbl-fun-105-animated-map-fold-transition-between-street-city-and"
+    },
+    {
+      "id": "SHE-611",
+      "title": "[HBL-FUN-106] Living district title cards anchored to the camera move",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-611/hbl-fun-106-living-district-title-cards-anchored-to-the-camera-move"
+    },
+    {
+      "id": "SHE-612",
+      "title": "[HBL-FUN-107] Schematic-to-realistic style bridge for policy layers",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-612/hbl-fun-107-schematic-to-realistic-style-bridge-for-policy-layers"
+    },
+    {
+      "id": "SHE-614",
+      "title": "[HBL-FUN-108] Causal evidence rabbit-hole transitions with context-preserving return",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-614/hbl-fun-108-causal-evidence-rabbit-hole-transitions-with-context"
+    },
+    {
+      "id": "SHE-616",
+      "title": "[HBL-FUN-109] Collision-aware cinematic camera path generator",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-616/hbl-fun-109-collision-aware-cinematic-camera-path-generator"
+    },
+    {
+      "id": "SHE-619",
+      "title": "[HBL-FUN-110] Room-to-rooftop perspective toggle with stable selection",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-619/hbl-fun-110-room-to-rooftop-perspective-toggle-with-stable-selection"
+    },
+    {
+      "id": "SHE-621",
+      "title": "[HBL-FUN-111] Spatial sound crossfade during city and indoor transitions",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-621/hbl-fun-111-spatial-sound-crossfade-during-city-and-indoor-transitions"
+    },
+    {
+      "id": "SHE-623",
+      "title": "[HBL-FUN-112] Commuter time-lapse trails with inspectable journey frames",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-623/hbl-fun-112-commuter-time-lapse-trails-with-inspectable-journey-frames"
+    },
+    {
+      "id": "SHE-625",
+      "title": "[HBL-FUN-113] Four-world rotation theater for real scenario alternatives",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-625/hbl-fun-113-four-world-rotation-theater-for-real-scenario-alternatives"
+    },
+    {
+      "id": "SHE-626",
+      "title": "[HBL-FUN-114] Expand a minimap into a fully synchronized overview and back",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-626/hbl-fun-114-expand-a-minimap-into-a-fully-synchronized-overview-and"
+    },
+    {
+      "id": "SHE-627",
+      "title": "[HBL-FUN-115] Zoning-height holograms that appear through existing buildings",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-627/hbl-fun-115-zoning-height-holograms-that-appear-through-existing"
+    },
+    {
+      "id": "SHE-628",
+      "title": "[HBL-FUN-116] Object-anchored affordance labels that track moving targets",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-628/hbl-fun-116-object-anchored-affordance-labels-that-track-moving"
+    },
+    {
+      "id": "SHE-629",
+      "title": "[HBL-FUN-117] Interruptible and reversible view transitions with user control",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-629/hbl-fun-117-interruptible-and-reversible-view-transitions-with-user"
+    },
+    {
+      "id": "SHE-630",
+      "title": "[HBL-FUN-118] Cross-route focus restoration and accessible transition announcements",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-630/hbl-fun-118-cross-route-focus-restoration-and-accessible-transition"
+    },
+    {
+      "id": "SHE-631",
+      "title": "[HBL-FUN-119] Transition diagnostics: dropped frames, duration, and memory lifetime",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-631/hbl-fun-119-transition-diagnostics-dropped-frames-duration-and-memory"
+    },
+    {
+      "id": "SHE-632",
+      "title": "[HBL-FUN-120] Beautiful reduced-motion replacements for every flagship effect",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-632/hbl-fun-120-beautiful-reduced-motion-replacements-for-every-flagship"
+    },
+    {
+      "id": "SHE-645",
+      "title": "[HBL-FUN-121] X-ray infrastructure scanner for city blocks",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-645/hbl-fun-121-x-ray-infrastructure-scanner-for-city-blocks"
+    },
+    {
+      "id": "SHE-646",
+      "title": "[HBL-FUN-122] Animated infrastructure capacity contour slices",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-646/hbl-fun-122-animated-infrastructure-capacity-contour-slices"
+    },
+    {
+      "id": "SHE-647",
+      "title": "[HBL-FUN-123] Street accessibility compass with reachable destinations",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-647/hbl-fun-123-street-accessibility-compass-with-reachable-destinations"
+    },
+    {
+      "id": "SHE-649",
+      "title": "[HBL-FUN-124] Ghost footsteps showing a proposed walk before traveling",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-649/hbl-fun-124-ghost-footsteps-showing-a-proposed-walk-before-traveling"
+    },
+    {
+      "id": "SHE-651",
+      "title": "[HBL-FUN-125] 3D tape measure for distance, height, and building footprint",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-651/hbl-fun-125-3d-tape-measure-for-distance-height-and-building-footprint"
+    },
+    {
+      "id": "SHE-653",
+      "title": "[HBL-FUN-126] Urban materials microscope for selected building surfaces",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-653/hbl-fun-126-urban-materials-microscope-for-selected-building-surfaces"
+    },
+    {
+      "id": "SHE-655",
+      "title": "[HBL-FUN-127] Street-step movement for camera without complex WASD controls",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-655/hbl-fun-127-street-step-movement-for-camera-without-complex-wasd"
+    },
+    {
+      "id": "SHE-657",
+      "title": "[HBL-FUN-128] Ride along with a specific modeled bus or vehicle",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-657/hbl-fun-128-ride-along-with-a-specific-modeled-bus-or-vehicle"
+    },
+    {
+      "id": "SHE-659",
+      "title": "[HBL-FUN-129] Freeze-frame inspect for crowded animated scenes",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-659/hbl-fun-129-freeze-frame-inspect-for-crowded-animated-scenes"
+    },
+    {
+      "id": "SHE-662",
+      "title": "[HBL-FUN-130] Optional information fog that clears when a place is investigated",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-662/hbl-fun-130-optional-information-fog-that-clears-when-a-place-is"
+    },
+    {
+      "id": "SHE-664",
+      "title": "[HBL-FUN-131] Paper-plane civic request markers that land on real places",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-664/hbl-fun-131-paper-plane-civic-request-markers-that-land-on-real-places"
+    },
+    {
+      "id": "SHE-666",
+      "title": "[HBL-FUN-132] Drag the sky-clock to inspect recorded light conditions",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-666/hbl-fun-132-drag-the-sky-clock-to-inspect-recorded-light-conditions"
+    },
+    {
+      "id": "SHE-669",
+      "title": "[HBL-FUN-133] Smart snap and optional haptics for city editing tools",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-669/hbl-fun-133-smart-snap-and-optional-haptics-for-city-editing-tools"
+    },
+    {
+      "id": "SHE-670",
+      "title": "[HBL-FUN-134] Parcel-boundary 3D extrusion preview before an edit",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-670/hbl-fun-134-parcel-boundary-3d-extrusion-preview-before-an-edit"
+    },
+    {
+      "id": "SHE-671",
+      "title": "[HBL-FUN-135] Interactive impact handles on a proposed civic project",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-671/hbl-fun-135-interactive-impact-handles-on-a-proposed-civic-project"
+    },
+    {
+      "id": "SHE-672",
+      "title": "[HBL-FUN-136] Sit on a park bench and watch a minute of recorded street life",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-672/hbl-fun-136-sit-on-a-park-bench-and-watch-a-minute-of-recorded-street"
+    },
+    {
+      "id": "SHE-673",
+      "title": "[HBL-FUN-137] Transit stop departure board tied to executed service records",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-673/hbl-fun-137-transit-stop-departure-board-tied-to-executed-service"
+    },
+    {
+      "id": "SHE-674",
+      "title": "[HBL-FUN-138] Shop-window event placards linked to neighborhood history",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-674/hbl-fun-138-shop-window-event-placards-linked-to-neighborhood-history"
+    },
+    {
+      "id": "SHE-675",
+      "title": "[HBL-FUN-139] Address and landmark search with camera teleport confirmation",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-675/hbl-fun-139-address-and-landmark-search-with-camera-teleport"
+    },
+    {
+      "id": "SHE-676",
+      "title": "[HBL-FUN-140] Chill Walk mode with disappearing HUD and context-on-demand",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-676/hbl-fun-140-chill-walk-mode-with-disappearing-hud-and-context-on"
+    },
+    {
+      "id": "SHE-690",
+      "title": "[HBL-FUN-141] Transit Dispatcher: fix a city bottleneck in five minutes",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-690/hbl-fun-141-transit-dispatcher-fix-a-city-bottleneck-in-five-minutes"
+    },
+    {
+      "id": "SHE-691",
+      "title": "[HBL-FUN-142] Storm Commander: protect three blocks with limited resources",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-691/hbl-fun-142-storm-commander-protect-three-blocks-with-limited"
+    },
+    {
+      "id": "SHE-693",
+      "title": "[HBL-FUN-143] Zoning Jury: convince three stakeholder perspectives",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-693/hbl-fun-143-zoning-jury-convince-three-stakeholder-perspectives"
+    },
+    {
+      "id": "SHE-695",
+      "title": "[HBL-FUN-144] One Salary, Seven Days: a household budget survival puzzle",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-695/hbl-fun-144-one-salary-seven-days-a-household-budget-survival-puzzle"
+    },
+    {
+      "id": "SHE-697",
+      "title": "[HBL-FUN-145] Pop-up Café Challenge: run one weekend business",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-697/hbl-fun-145-pop-up-cafe-challenge-run-one-weekend-business"
+    },
+    {
+      "id": "SHE-699",
+      "title": "[HBL-FUN-146] Supply Chain Domino: prevent the next business closure",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-699/hbl-fun-146-supply-chain-domino-prevent-the-next-business-closure"
+    },
+    {
+      "id": "SHE-702",
+      "title": "[HBL-FUN-147] School-Run Rush Hour: solve a crossing congestion puzzle",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-702/hbl-fun-147-school-run-rush-hour-solve-a-crossing-congestion-puzzle"
+    },
+    {
+      "id": "SHE-704",
+      "title": "[HBL-FUN-148] Moving Day: help a resident find an affordable home",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-704/hbl-fun-148-moving-day-help-a-resident-find-an-affordable-home"
+    },
+    {
+      "id": "SHE-706",
+      "title": "[HBL-FUN-149] Energy Control Room: a transparent infrastructure balancing mini-game",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-706/hbl-fun-149-energy-control-room-a-transparent-infrastructure-balancing"
+    },
+    {
+      "id": "SHE-708",
+      "title": "[HBL-FUN-150] Third Place Designer: turn an empty lot into community life",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-708/hbl-fun-150-third-place-designer-turn-an-empty-lot-into-community-life"
+    },
+    {
+      "id": "SHE-710",
+      "title": "[HBL-FUN-151] Rashomon Mystery: three different accounts of one real event",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-710/hbl-fun-151-rashomon-mystery-three-different-accounts-of-one-real"
+    },
+    {
+      "id": "SHE-712",
+      "title": "[HBL-FUN-152] Street Photographer Detective: capture the clue at the right time",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-712/hbl-fun-152-street-photographer-detective-capture-the-clue-at-the"
+    },
+    {
+      "id": "SHE-713",
+      "title": "[HBL-FUN-153] Newspaper Editor: separate sourced facts from dramatic claims",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-713/hbl-fun-153-newspaper-editor-separate-sourced-facts-from-dramatic"
+    },
+    {
+      "id": "SHE-714",
+      "title": "[HBL-FUN-154] Neighborhood Evidence Hunt: find five hidden mechanisms",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-714/hbl-fun-154-neighborhood-evidence-hunt-find-five-hidden-mechanisms"
+    },
+    {
+      "id": "SHE-715",
+      "title": "[HBL-FUN-155] Idea Diffusion Tag: predict who hears a new idea next",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-715/hbl-fun-155-idea-diffusion-tag-predict-who-hears-a-new-idea-next"
+    },
+    {
+      "id": "SHE-716",
+      "title": "[HBL-FUN-156] Council Coalition Cards: build a transparent voting bloc",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-716/hbl-fun-156-council-coalition-cards-build-a-transparent-voting-bloc"
+    },
+    {
+      "id": "SHE-717",
+      "title": "[HBL-FUN-157] Family Legacy Challenge: plan across two generations",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-717/hbl-fun-157-family-legacy-challenge-plan-across-two-generations"
+    },
+    {
+      "id": "SHE-718",
+      "title": "[HBL-FUN-158] Crisis Judgment Drill: choose under uncertainty, then inspect outcomes",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-718/hbl-fun-158-crisis-judgment-drill-choose-under-uncertainty-then"
+    },
+    {
+      "id": "SHE-719",
+      "title": "[HBL-FUN-159] Change-One-Thing Speedrun with an honest outcome scoreboard",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-719/hbl-fun-159-change-one-thing-speedrun-with-an-honest-outcome"
+    },
+    {
+      "id": "SHE-720",
+      "title": "[HBL-FUN-160] Citizen Quest Forge from genuine logged requests",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-720/hbl-fun-160-citizen-quest-forge-from-genuine-logged-requests"
+    },
+    {
+      "id": "SHE-733",
+      "title": "[HBL-FUN-161] City Heartbeat Oscilloscope that scrubs the world",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-733/hbl-fun-161-city-heartbeat-oscilloscope-that-scrubs-the-world"
+    },
+    {
+      "id": "SHE-734",
+      "title": "[HBL-FUN-162] Commuter Fireflies with inspectable trip provenance",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-734/hbl-fun-162-commuter-fireflies-with-inspectable-trip-provenance"
+    },
+    {
+      "id": "SHE-735",
+      "title": "[HBL-FUN-163] Tree-Shadow Atlas: drag sunlight across the park",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-735/hbl-fun-163-tree-shadow-atlas-drag-sunlight-across-the-park"
+    },
+    {
+      "id": "SHE-736",
+      "title": "[HBL-FUN-164] Transparent Drainage Ribbons flowing beneath flooded streets",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-736/hbl-fun-164-transparent-drainage-ribbons-flowing-beneath-flooded"
+    },
+    {
+      "id": "SHE-737",
+      "title": "[HBL-FUN-165] Budget Coin Trails from city treasury to project sites",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-737/hbl-fun-165-budget-coin-trails-from-city-treasury-to-project-sites"
+    },
+    {
+      "id": "SHE-738",
+      "title": "[HBL-FUN-166] Urban Noise Playground with clearly labeled illustrative acoustics",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-738/hbl-fun-166-urban-noise-playground-with-clearly-labeled-illustrative"
+    },
+    {
+      "id": "SHE-739",
+      "title": "[HBL-FUN-167] Traffic-Wear Overlay driven by vehicle counts, not fake potholes",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-739/hbl-fun-167-traffic-wear-overlay-driven-by-vehicle-counts-not-fake"
+    },
+    {
+      "id": "SHE-740",
+      "title": "[HBL-FUN-168] Housing Skyline Histogram you can walk inside",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-740/hbl-fun-168-housing-skyline-histogram-you-can-walk-inside"
+    },
+    {
+      "id": "SHE-741",
+      "title": "[HBL-FUN-169] Erase-One-Intervention lens with immediately explained recomputation",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-741/hbl-fun-169-erase-one-intervention-lens-with-immediately-explained"
+    },
+    {
+      "id": "SHE-742",
+      "title": "[HBL-FUN-170] Uncertainty Tide Lines across a hundred futures",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-742/hbl-fun-170-uncertainty-tide-lines-across-a-hundred-futures"
+    },
+    {
+      "id": "SHE-743",
+      "title": "[HBL-FUN-171] Housing Demand and Supply as intersecting 3D ribbons",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-743/hbl-fun-171-housing-demand-and-supply-as-intersecting-3d-ribbons"
+    },
+    {
+      "id": "SHE-744",
+      "title": "[HBL-FUN-172] In-World Evidence Paths under your feet",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-744/hbl-fun-172-in-world-evidence-paths-under-your-feet"
+    },
+    {
+      "id": "SHE-745",
+      "title": "[HBL-FUN-173] What Changed Calendar that filters to one block",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-745/hbl-fun-173-what-changed-calendar-that-filters-to-one-block"
+    },
+    {
+      "id": "SHE-746",
+      "title": "[HBL-FUN-174] Hundred-Future Racetrack with aligned scenario lanes",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-746/hbl-fun-174-hundred-future-racetrack-with-aligned-scenario-lanes"
+    },
+    {
+      "id": "SHE-747",
+      "title": "[HBL-FUN-175] Cohort Spotlight: dissolve a million dots into one inspectable group",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-747/hbl-fun-175-cohort-spotlight-dissolve-a-million-dots-into-one"
+    },
+    {
+      "id": "SHE-748",
+      "title": "[HBL-FUN-176] Truth Lens: highlight observed, assumed, modeled and decorative elements",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-748/hbl-fun-176-truth-lens-highlight-observed-assumed-modeled-and"
+    },
+    {
+      "id": "SHE-750",
+      "title": "[HBL-FUN-177] Map of Unknowns: reveal model blind spots as explorable terrain",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-750/hbl-fun-177-map-of-unknowns-reveal-model-blind-spots-as-explorable"
+    },
+    {
+      "id": "SHE-752",
+      "title": "[HBL-FUN-178] Household Cost Atlas: who actually pays for a policy?",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-752/hbl-fun-178-household-cost-atlas-who-actually-pays-for-a-policy"
+    },
+    {
+      "id": "SHE-754",
+      "title": "[HBL-FUN-179] Verified Milestone Celebration VFX without fake victories",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-754/hbl-fun-179-verified-milestone-celebration-vfx-without-fake-victories"
+    },
+    {
+      "id": "SHE-756",
+      "title": "[HBL-FUN-180] Provenance Museum of Your City Experiments",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-756/hbl-fun-180-provenance-museum-of-your-city-experiments"
+    },
+    {
+      "id": "SHE-769",
+      "title": "[HBL-FUN-181] Make Your Own City Tour from saved checkpoints and camera poses",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-769/hbl-fun-181-make-your-own-city-tour-from-saved-checkpoints-and-camera"
+    },
+    {
+      "id": "SHE-770",
+      "title": "[HBL-FUN-182] Collaborative proposal canvas with explicit review before simulation",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-770/hbl-fun-182-collaborative-proposal-canvas-with-explicit-review-before"
+    },
+    {
+      "id": "SHE-771",
+      "title": "[HBL-FUN-183] Mayor and Resident asymmetric two-player challenge",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-771/hbl-fun-183-mayor-and-resident-asymmetric-two-player-challenge"
+    },
+    {
+      "id": "SHE-772",
+      "title": "[HBL-FUN-184] Two-player Storm Rescue with separate crew and budget roles",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-772/hbl-fun-184-two-player-storm-rescue-with-separate-crew-and-budget"
+    },
+    {
+      "id": "SHE-773",
+      "title": "[HBL-FUN-185] Deliberation Circle: compare arguments against the same run",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-773/hbl-fun-185-deliberation-circle-compare-arguments-against-the-same-run"
+    },
+    {
+      "id": "SHE-774",
+      "title": "[HBL-FUN-186] Prediction Pool: friends forecast the same city outcomes",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-774/hbl-fun-186-prediction-pool-friends-forecast-the-same-city-outcomes"
+    },
+    {
+      "id": "SHE-775",
+      "title": "[HBL-FUN-187] City Builder Tournament bracket with reproducible matchups",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-775/hbl-fun-187-city-builder-tournament-bracket-with-reproducible-matchups"
+    },
+    {
+      "id": "SHE-776",
+      "title": "[HBL-FUN-188] Share specific scene bookmarks with threaded discussion",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-776/hbl-fun-188-share-specific-scene-bookmarks-with-threaded-discussion"
+    },
+    {
+      "id": "SHE-777",
+      "title": "[HBL-FUN-189] Live Watch Party Q&A cards with evidence-jump actions",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-777/hbl-fun-189-live-watch-party-qanda-cards-with-evidence-jump-actions"
+    },
+    {
+      "id": "SHE-778",
+      "title": "[HBL-FUN-190] Temporary Guest Sandbox for sharing worlds safely",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-778/hbl-fun-190-temporary-guest-sandbox-for-sharing-worlds-safely"
+    },
+    {
+      "id": "SHE-779",
+      "title": "[HBL-FUN-191] Mobile AR City Tabletop on supported devices",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-779/hbl-fun-191-mobile-ar-city-tabletop-on-supported-devices"
+    },
+    {
+      "id": "SHE-780",
+      "title": "[HBL-FUN-192] WebXR VR City Walk with teleport and comfort controls",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-780/hbl-fun-192-webxr-vr-city-walk-with-teleport-and-comfort-controls"
+    },
+    {
+      "id": "SHE-781",
+      "title": "[HBL-FUN-193] Accessible Text Adventure for any inspectable supported scene",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-781/hbl-fun-193-accessible-text-adventure-for-any-inspectable-supported"
+    },
+    {
+      "id": "SHE-782",
+      "title": "[HBL-FUN-194] Comic Strip Future Recap for low-power devices",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-782/hbl-fun-194-comic-strip-future-recap-for-low-power-devices"
+    },
+    {
+      "id": "SHE-783",
+      "title": "[HBL-FUN-195] Opt-in Voice Navigation for World inspection",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-783/hbl-fun-195-opt-in-voice-navigation-for-world-inspection"
+    },
+    {
+      "id": "SHE-784",
+      "title": "[HBL-FUN-196] One-handed Mobile Explorer Controller",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-784/hbl-fun-196-one-handed-mobile-explorer-controller"
+    },
+    {
+      "id": "SHE-785",
+      "title": "[HBL-FUN-197] Personalized Motion and Audio Comfort Studio",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-785/hbl-fun-197-personalized-motion-and-audio-comfort-studio"
+    },
+    {
+      "id": "SHE-786",
+      "title": "[HBL-FUN-198] Hundred-Feature Screenshot and Interaction Regression Gallery",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-786/hbl-fun-198-hundred-feature-screenshot-and-interaction-regression"
+    },
+    {
+      "id": "SHE-787",
+      "title": "[HBL-FUN-199] Playfulness Experiment with ethical metrics and clear opt-in",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-787/hbl-fun-199-playfulness-experiment-with-ethical-metrics-and-clear-opt"
+    },
+    {
+      "id": "SHE-788",
+      "title": "[HBL-FUN-200] The Ten-Minute Magic Tour: one coherent journey across the whole world",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-788/hbl-fun-200-the-ten-minute-magic-tour-one-coherent-journey-across-the"
+    }
+  ]
+}

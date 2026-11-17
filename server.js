@@ -1,9 +1,29 @@
 import { createPlayerFeedbackHandler } from './ops/player-feedback/api.js';
 const handlePlayerFeedback = createPlayerFeedbackHandler({directory:process.env.HBL_PLAYER_FEEDBACK_DIR||undefined});
+import {createRescueHandler} from './world/storm/rescue-api.js';
+const handleStormRescue=createRescueHandler();
 import {civicProviderUrl,civicPublishUrl} from './ops/civic-provider.js';
 import { createMiniSymphonyHandler } from './ops/mini-symphony/api.js';
 const handleMiniSymphony = createMiniSymphonyHandler();
 import { withUniverseNavigation } from './world/universe/html-navigation.js';
+import {createGitHubHandler} from './ops/previews/api.js';
+const handleGitHub=createGitHubHandler();
+import {createDetectiveHandler} from './ops/detective/api.js';
+const handleDetective=createDetectiveHandler();
+import {createOperationsObservatoryHandler} from './ops/operations-observatory.js';
+const handleOperationsObservatory=createOperationsObservatoryHandler();
+import {createExperimentHandler,cookieIdentity} from './ops/release-experiments/system.js';
+const handleReleaseExperiment=createExperimentHandler({
+  file:process.env.HBL_RELEASE_EXPERIMENT_FILE,
+  identify:(request,id)=>cookieIdentity(request,id,process.env.HBL_RELEASE_IDENTITY_SECRET),
+});
+import {createSimulationAdmission,simulationAdmissionOptionsFromEnv} from './ops/security/simulation-admission.js';
+import {createLawBehaviorHandler} from './world/laws/behavior-api.js';
+const admitSimulation=createSimulationAdmission(simulationAdmissionOptionsFromEnv(process.env));
+import {createPlayerFeedbackHandler} from './ops/player-feedback/api.js';
+const handlePlayerFeedback=createPlayerFeedbackHandler();
+import {createSessionSurveyHandler} from './ops/session-survey/api.js';
+const handleSessionSurvey=createSessionSurveyHandler();
 import {createCausalityHandler} from './world/causality/api.js';
 import {createReleaseHealthHandler,initializeReleaseStorage} from './ops/release-health.js';
 import { createPatchVotingHandler } from './ops/patch-voting/api.js';
@@ -33,6 +53,8 @@ const handleDatePlaces=createDatePlacesHandler();
 import {createWorldPersistenceHandler,EXPERIMENT_MAX_BYTES} from './world/experiments/persistence-api.js';
 const handleWorldPersistence=createWorldPersistenceHandler({dbPath:releaseStorage.worldDbPath});
 import {createRealityShareHandler} from './world/reality/share-api.js';
+import {createGuestHandler} from './world/guest/api.js';
+const handleGuestSnapshots=createGuestHandler({dbPath:process.env.HBL_GUEST_DB_PATH||undefined});
 import {createOpenQuestionsHandler} from './world/questions/api.js';
 const handleRealityShares=createRealityShareHandler({dbPath:process.env.HBL_REALITY_SHARE_DB_PATH||undefined});
 const handleOpenQuestions=createOpenQuestionsHandler();
@@ -82,6 +104,7 @@ async function serveGameBundle() {
   });
 }
 const handleServerCivicApi = createServerCivicApiHandler();
+const handleLawBehavior = createLawBehaviorHandler();
 const handleDecisionExperiments = createDecisionExperimentsHandler();
 const handleWorldEdits = createWorldEditApiHandler();
 const handleOptimizations = createOptimizationApiHandler();
@@ -445,16 +468,23 @@ const server = serve({
   hostname: process.env.HBL_BIND_HOST || undefined,
 
   async fetch(request, server) {
+    const releaseResponse=handleReleaseExperiment(request);
+    if(releaseResponse)return releaseResponse;
     const { pathname } = new URL(request.url);
-    if (pathname === '/api/player-feedback') return handlePlayerFeedback(request);
     if (pathname === '/logs' || pathname === '/logs/') return serveFile('./world/session-logs.html');
     if (pathname === '/mini-symphony' || pathname === '/mini-symphony/') return serveFile('./tools/mini-symphony-dashboard/index.html');
     if (pathname.startsWith('/api/mini-symphony')) return handleMiniSymphony(request, {localAddress: server.requestIP(request)?.address});
     if (pathname === '/mini-symphony/dashboard.js') return serveFile('./tools/mini-symphony-dashboard/dashboard.js');
     if (pathname === '/mini-symphony/style.css') return serveFile('./tools/mini-symphony-dashboard/style.css');
+    if (pathname === "/api/operations-observatory") return handleOperationsObservatory(request);
+    if (pathname === "/tools/operations-observatory") return Response.redirect(new URL("/tools/operations-observatory/",request.url),302);
+    const admission=admitSimulation(request,server.requestIP(request)?.address);
+    if(admission)return admission;
     if (pathname === "/api/health" || pathname === "/api/ready" || pathname === "/api/demo/ready") return handleReleaseHealth(request);
+    if (pathname === "/api/law-behavior") return handleLawBehavior(request);
     if (pathname === '/vote-on-patch' || pathname === '/vote-on-patch/') return serveFile('./world/patch-voting.html');
     if (pathname === '/api/patch-votes' || pathname.startsWith('/api/patch-votes/')) return patchVoting(request);
+    if(pathname === '/api/storm/rescue' || pathname.startsWith('/api/storm/rescue/'))return handleStormRescue(request);
     if(pathname.startsWith('/api/act-normal/'))return actNormalService.fetch(request,server);
     if(/^\/world\/party\/act-normal\/?$/.test(pathname))return serveFile('./world/party/act-normal.html');
 
@@ -473,7 +503,14 @@ const server = serve({
     // Population benchmark is an explicit worker workload, separate from renderer scenes.
     if (pathname === "/world/bench/people" || pathname === "/world/bench/people/") return serveFile("./world/people-benchmark.html");
 
+    if (pathname === "/demo-gallery" || pathname === "/demo-gallery/") return serveFile("./tools/demo-gallery/index.html");
+    if (pathname === "/demo-gallery/media/future-machine.mp4") return serveFile("./docs/evidence/she64/one-city-two-futures.mp4");
+    // Stable owner-managed homepage share assets; missing files remain honest 404s.
+    if (pathname === "/preview.jpg" || pathname === "/preview.mp4") return serveFile(`.${pathname}`);
     if (pathname.replace(/\/$/, "") === "/routes") return serveFile("./routes.html");
+    if (pathname.startsWith("/api/github/")) return await handleGitHub(request);
+    if (/^\/github(?:\/pulls\/[1-9]\d{0,7}|\/previews\/[a-f0-9]{32})?\/?$/.test(pathname)) return serveFile("./web/github/index.html");
+    if (pathname === "/github-client.js") return serveFile("./web/github/client.js");
     // Public landing page
     if (pathname === "/" || pathname === "/index.html") {
       return serveFile("./index.html");
@@ -492,7 +529,7 @@ const server = serve({
     }
 
     // Browser-safe universe wire contracts; keep server-only shared modules private.
-    if (["/shared/media/pipeline.js","/shared/media/preferences.js","/shared/media/motion.js","/shared/media/motion-entry.js"].includes(pathname)) return serveFile(`.${pathname}`);
+    if (["/shared/media/pipeline.js","/shared/media/preferences.js","/shared/media/motion.js","/shared/media/transition-diagnostics.js","/shared/media/motion-entry.js"].includes(pathname)) return serveFile(`.${pathname}`);
     if (pathname === "/shared/causality/index.js") return serveFile("./shared/causality/index.js");
     if (under(pathname, "/visualizations")) return serveStatic("/visualizations", "./visualizations", pathname);
 
@@ -534,13 +571,17 @@ const server = serve({
     }
     if (pathname === "/api/area/enrichment") return handleAreaEnrichment(new URL(request.url));
     if (pathname === "/api/overpass-health") return handleOverpassHealth();
+    if (pathname === "/api/player-feedback") return handlePlayerFeedback(request);
     if (pathname === "/api/config") return handleConfig();
+    if (under(pathname,"/api/detective")) return handleDetective(request);
     if (under(pathname, "/api/causality")) return handleCausality(request);
     if (under(pathname, "/api/world-history")) return handleTemporalCity(request);
     if (under(pathname, "/api/reality-shares")) return handleRealityShares(request);
+    if (under(pathname, "/api/guest-snapshots")) return handleGuestSnapshots(request);
     if (under(pathname, "/api/world-homes")) return handleWorldPersistence(request);
     if (under(pathname, "/api/world-experiments")) return handleWorldPersistence(request);
     if (["/api/date-mystery/status","/api/date-mystery/generate"].includes(pathname)) return handleDateMystery(request);
+    if (pathname === "/api/session-survey") return handleSessionSurvey(request);
     if (pathname === "/api/world-questions") return handleOpenQuestions(request);
     if (under(pathname, "/api/decision-experiments")) return handleDecisionExperiments(request);
     if (under(pathname, "/api/world-edits")) return handleWorldEdits(request);
@@ -571,6 +612,7 @@ const server = serve({
     if (pathname.startsWith("/api/scenes/")) return handleSceneById(pathname);
     if (pathname === "/api/screenshots") return handleScreenshots(new URL(request.url));
     if (under(pathname, "/api/dear-congress")) return proxyDearCongress(request);
+    if (["/world", "/world/"].includes(pathname) && new URL(request.url).searchParams.get("text") === "1") return serveFile("./world/text-adventure.html");
     if (under(pathname, "/world")) {
       let decodedWorldPath;
       try { decodedWorldPath = normalize(decodeURIComponent(pathname)); } catch { return notFound(); }
@@ -578,6 +620,7 @@ const server = serve({
       if (decodedWorldPath === "/world/constitution-city/source-api.js") return notFound();
       if (/^\/world\/temporal\/(api|store)\.js$/.test(decodedWorldPath)) return notFound();
       if (decodedWorldPath === "/world/reality/share-store.js") return notFound();
+      if (decodedWorldPath === "/world/guest/api.js") return notFound();
       if (decodedWorldPath === "/world/experiments/persistence-store.js") return notFound();
       if (/^\/world\/decision\/(api|store|worker|optimization-api)\.js$/.test(decodedWorldPath)) return notFound();
       if (/^\/world\/ai\//.test(decodedWorldPath) && !/^\/world\/ai\/(edit-schema|edit-validator|revisions)\.js$/.test(decodedWorldPath)) return notFound();

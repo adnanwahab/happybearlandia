@@ -24,6 +24,7 @@ export function createStage(container, {onSelect,history,onCameraInteraction} = 
   const legend = doc.createElement('p'), status = doc.createElement('p'), views = doc.createElement('div'), list = doc.createElement('div');
   legend.style.cssText = status.style.cssText = 'margin:8px 12px;font:12px/1.5 system-ui';
   status.setAttribute('role','status');
+  function setStatus(text){if(status.textContent!==text)status.textContent=text;}
   views.style.cssText = 'position:relative;height:clamp(280px,32vw,400px);touch-action:none';
   list.style.cssText='display:flex;gap:12px;max-height:180px;overflow:auto;padding:8px 12px';
   const labels=doc.createElement('div');labels.dataset.nativeCityLabels='true';labels.style.cssText='position:absolute;inset:0;pointer-events:none;overflow:hidden';views.append(labels);root.append(legend,status,views,list); container.append(root);
@@ -88,21 +89,20 @@ export function createStage(container, {onSelect,history,onCameraInteraction} = 
   const resize=()=>{ width=Math.max(1,views.clientWidth);height=Math.max(1,views.clientHeight);renderer?.setSize(width,height,false);draw(); };
   const observer=globalThis.ResizeObserver ? new ResizeObserver(resize) : null;
   observer?.observe(views);globalThis.addEventListener?.('resize',resize);
-  function releaseMeshes() {
-    for(const mesh of meshes) disposeMesh(mesh);
-    retained.clear();meshes=[];
+  function releaseMeshes(released=new Set()) {
+    for(const mesh of meshes) disposeMesh(mesh,released);
+    retained.clear();meshes=[];return released;
   }
-  function disposeMesh(mesh) {
+  function releaseScenes(){
+    burst?.dispose();burst=null;
+    const released=releaseMeshes();
+    for(const scene of scenes){disposeObjectResources(scene,released);scene.clear();}
+    scenes=[];
+  }
+  function disposeMesh(mesh,released) {
     effects?.remove(mesh);
     mesh.parent?.remove(mesh);
-    disposeObjectResources(mesh);
-  }
-
-  function releaseScenes() {
-    burst?.dispose();burst=null;
-    releaseMeshes();
-    for(const scene of scenes) {disposeObjectResources(scene);scene.clear();}
-    scenes=[];
+    disposeObjectResources(mesh,released);
   }
 
   let followedHousehold=null;
@@ -225,7 +225,7 @@ export function createStage(container, {onSelect,history,onCameraInteraction} = 
   const importDeadline=canvasSelected?null:setTimeout(()=>{importExpired=true;fail(new Error('Three loading timed out after 10 seconds'));},10000);
   (canvasSelected?Promise.reject(new Error('Canvas2D selected')):Promise.all([import('three'),import('three/addons/controls/OrbitControls.js')])).then(async ([module,{OrbitControls}])=>{
     clearTimeout(importDeadline);if(disposed||importExpired||canvasStage)return;THREE=module;
-    effects=createVisualEffects({THREE,reducedMotion:preferences.get().reducedMotion});
+    effects=createVisualEffects({THREE,reducedMotion:!preferences.get().particles});
     const selectedBackend=await createRendererBackend({THREE,forceWebGL:new URLSearchParams(location.search).get('renderer')==='webgl'});if(disposed){selectedBackend.renderer.dispose();selectedBackend.renderer.forceContextLoss?.();return;}renderer=selectedBackend.renderer;renderBackend=selectedBackend.backend;backendReason=selectedBackend.reason;renderer.autoClear=false;renderer.setClearColor(0x10232d,1);renderer.setPixelRatio(pixelRatio());
     renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-keyshortcuts','PageUp PageDown d');views.append(renderer.domElement);renderer.domElement.style.cssText='display:block;width:100%;height:100%';renderer.domElement.setAttribute('aria-label','City inventory scenes; drag to orbit, scroll to zoom');
     scenes=[0,1].map(()=>{const scene=new THREE.Scene();scene.background=renderBackend==='webgpu'?null:new THREE.Color(0x10232d);scene.add(new THREE.HemisphereLight(0xdfeeff,0x425449,2));const sun=new THREE.DirectionalLight(0xffffff,2);sun.position.set(50,100,60);scene.add(sun);const grid=new THREE.GridHelper(600,25,0x456070,0x203746);grid.position.y=-.1;scene.add(grid);scene.add(createNeighborhood(THREE,fitRows||[...(projection?.a||[]),...(projection?.b||[])]));return scene;});
@@ -237,16 +237,32 @@ export function createStage(container, {onSelect,history,onCameraInteraction} = 
     if(disposed)return;renderReady=true;refreshBookmarkControls();draw();resolveReady({backend:renderBackend});
     if(renderBackend==='webgpu')renderer.backend?.device?.lost?.then(info=>{if(!disposed)fail(new Error(`WebGPU device lost: ${info.message||info.reason}`));});
     const animate=now=>{if(disposed||canvasStage)return;if(cameraTransition){const t=Math.min(1,(now-cameraTransition.start)/(cameraTransition.duration||1200)),smooth=t*t*(3-2*t);camera.position.lerpVectors(cameraTransition.position,cameraTransition.endPosition,smooth);controls.target.lerpVectors(cameraTransition.target,cameraTransition.endTarget,smooth);controls.update();if(t===1)cameraTransition=null;draw();}if(burst){const active=burst.tick(now);draw();if(!active){burst.dispose();burst=null;draw();}}if(effects?.tick(now))draw();animation=requestAnimationFrame(animate);};animation=requestAnimationFrame(animate);
-    status.textContent=(renderBackend==='webgpu'?'WebGPU · ':'WebGL · ')+(projection?.physicalDifference?'Recorded building differences · wireframe ghosts show presence in the other future.':'No recorded physical building difference at this month.');
+    setStatus((renderBackend==='webgpu'?'WebGPU · ':'WebGL · ')+(projection?.physicalDifference?'Recorded building differences · wireframe ghosts show presence in the other future.':'No recorded physical building difference at this month.'));
   }).catch(reason=>{clearTimeout(importDeadline);fail(reason);});
   function lost(event) {event.preventDefault();fail(new Error('Graphics context lost'));}
-  function fail(reason) {if(disposed||canvasStage)return;bookmark=null;bookmarkStatus.textContent='No view saved. Bookmark lasts until a new comparison or page reload.';error=reason?.message||'Graphics unavailable';status.textContent=`${/device lost|context lost/i.test(error)?'Graphics connection lost. ':''}Canvas2D low-fidelity view · same recorded City inventory and timeline. No simulation rerun is needed.`;controls?.dispose();effects?.dispose();if(animation)cancelAnimationFrame(animation);releaseScenes();renderer?.domElement.removeEventListener('webglcontextlost',lost);renderer?.dispose();renderer?.forceContextLoss?.();renderer?.domElement.remove();renderer=null;controls=null;camera=null;effects=null;cameraTransition=null;renderReady=false;labels.replaceChildren();labelNodes.clear();try{canvasStage=createCanvasStage(views,{onSelect,onCameraInteraction});canvasStage.setPixelRatio(pixelRatio(true));canvasStage.setMode(mode);canvasStage.setGhosts(ghosts);if(projection){canvasStage.update(projection,currentDiff);canvasStage.setFamilyBuildings(followedBuildings());if(fitRows)canvasStage.setCamera(fitCanvasCamera({a:fitRows,b:fitRows},views.clientWidth,views.clientHeight,mode));if(selected)canvasStage.focus(selected);}}catch(fallbackError){canvasStage?.dispose();canvasStage=null;error=`${error}; ${fallbackError.message}`;views.hidden=true;status.textContent='Graphics unavailable. The exact recorded inventory, timeline, outcomes and WHY controls remain available below.';}refreshBookmarkControls();resolveReady({backend:canvasStage?'canvas2d':'inventory-fallback'});}
+  function fail(reason) {
+    if(disposed||canvasStage||error)return;
+    bookmark=null;bookmarkStatus.textContent='No view saved. Bookmark lasts until a new comparison or page reload.';
+    error=reason?.message||'Graphics unavailable';
+    setStatus(`${/device lost|context lost/i.test(error)?'Graphics connection lost. ':''}Canvas2D low-fidelity view · same recorded City inventory and timeline. No simulation rerun is needed.`);
+    controls?.dispose();controls=null;effects?.dispose();effects=null;
+    if(animation!==null)cancelAnimationFrame(animation);animation=null;cameraTransition=null;renderReady=false;
+    releaseScenes();
+    renderer?.domElement.removeEventListener('webglcontextlost',lost);
+    renderer?.dispose();renderer?.forceContextLoss?.();renderer?.domElement.remove();renderer=null;camera=null;
+    labels.replaceChildren();labelNodes.clear();
+    try{
+      canvasStage=createCanvasStage(views,{onSelect,onCameraInteraction});canvasStage.setPixelRatio(pixelRatio(true));canvasStage.setMode(mode);canvasStage.setGhosts(ghosts);
+      if(projection){canvasStage.update(projection,currentDiff);canvasStage.setFamilyBuildings(followedBuildings());if(fitRows)canvasStage.setCamera(fitCanvasCamera({a:fitRows,b:fitRows},views.clientWidth,views.clientHeight,mode));if(selected)canvasStage.focus(selected);}
+    }catch(fallbackError){canvasStage?.dispose();canvasStage=null;error=`${error}; ${fallbackError.message}`;views.hidden=true;setStatus('Graphics unavailable. The exact recorded inventory, timeline, outcomes and WHY controls remain available below.');}
+    refreshBookmarkControls();resolveReady({backend:canvasStage?'canvas2d':'inventory-fallback'});
+  }
   unsubscribeMotion = preferences.subscribe(state => {
-    if(state.reducedMotion){burst?.dispose();burst=null;}
-    if (state.reducedMotion && cameraTransition) {
+    if(!state.particles){burst?.dispose();burst=null;}
+    if (!state.cameraEasing && cameraTransition) {
       camera.position.copy(cameraTransition.endPosition);controls.target.copy(cameraTransition.endTarget);controls.update();cameraTransition=null;
     }
-    effects?.dispose();effects=THREE&&!canvasStage&&!disposed&&!error?createVisualEffects({THREE,reducedMotion:state.reducedMotion}):null;
+    effects?.dispose();effects=THREE&&!canvasStage&&!disposed&&!error?createVisualEffects({THREE,reducedMotion:!state.particles}):null;
     if (projection) { rebuild(); draw(); }
   });
   const api={
@@ -258,16 +274,16 @@ export function createStage(container, {onSelect,history,onCameraInteraction} = 
     },
     update(frame,diff) {
       if(disposed)return;
-      if(!frame?.baseline?.state||!frame?.plan?.state){burst?.dispose();burst=null;projection=null;refreshBookmarkControls();currentFrame=null;currentDiff=null;selected=null;cameraTransition=null;canvasStage?.update(null,null);releaseMeshes();labels.replaceChildren();labelNodes.clear();list.replaceChildren();legend.textContent='City snapshots unavailable';status.textContent='Both futures are required for a matched scene.';draw();if(frame)assertFrameIntegrity(frame,history);return;}
+      if(!frame?.baseline?.state||!frame?.plan?.state){burst?.dispose();burst=null;projection=null;refreshBookmarkControls();currentFrame=null;currentDiff=null;selected=null;cameraTransition=null;canvasStage?.update(null,null);releaseMeshes();labels.replaceChildren();labelNodes.clear();list.replaceChildren();legend.textContent='City snapshots unavailable';setStatus('Both futures are required for a matched scene.');draw();if(frame)assertFrameIntegrity(frame,history);return;}
       assertFrameIntegrity(frame,history);
       if(currentFrame?.month!==frame.month){burst?.dispose();burst=null;}
       currentFrame=frame;currentDiff=diff;const first=!projection;projection=mapping.frame(frame.baseline.state,frame.plan.state);
       projection.constructionGhosts=constructionGhosts(history,frame.month,mapping);
       const receipt=divergenceGate.take(frame);
-      if(receipt){lastDivergenceEventId=receipt.eventId;if(THREE&&camera&&!preferences.get().reducedMotion){burst?.dispose();burst=createDivergenceBurst(THREE,scenes,receipt);}}
+      if(receipt){lastDivergenceEventId=receipt.eventId;if(THREE&&camera&&preferences.get().particles){burst?.dispose();burst=createDivergenceBurst(THREE,scenes,receipt);}}
       const previews=Object.values(projection.constructionGhosts).some(rows=>rows.length);
       legend.textContent=`Month ${frame.month} · ${projection.label} 3m per recorded floor. ${CONTEXT_NOTICE}${previews?' Dashed previews: next-month recorded completion, absent now; inspect its event below.':''}`;
-      if(!error)status.textContent=renderBackend==='pending'?'Inventory ready · graphics loading in the background.':(renderBackend==='webgpu'?'WebGPU · ':'WebGL · ')+(projection.physicalDifference?'Recorded building differences · wireframe ghosts show presence in the other future.':'No recorded physical building difference at this month.');
+      if(!error)setStatus(renderBackend==='pending'?'Inventory ready · graphics loading in the background.':(renderBackend==='webgpu'?'WebGPU · ':'WebGL · ')+(projection.physicalDifference?'Recorded building differences · wireframe ghosts show presence in the other future.':'No recorded physical building difference at this month.'));
       refreshBookmarkControls();summary();canvasStage?.update(projection,diff);canvasStage?.setFamilyBuildings(followedBuildings());if(first&&canvasStage&&fitRows)canvasStage.setCamera(fitCanvasCamera({a:fitRows,b:fitRows},views.clientWidth,views.clientHeight,mode));rebuild();if(first)fit();
     },
     followHousehold(id){followedHousehold=id;canvasStage?.setFamilyBuildings(followedBuildings());rebuild();},
@@ -275,7 +291,7 @@ export function createStage(container, {onSelect,history,onCameraInteraction} = 
     setGhosts(value){ghosts=Boolean(value);canvasStage?.setGhosts(ghosts);rebuild();},
     cancelCamera(){cameraTransition=null;},
     divergenceShot(stop){const receipt=divergenceGate.receipt;if(!receipt||projection?.month!==receipt.eventMonth||stop?.entity?.id!==receipt.id||stop.entity.collection!=='buildings'||!currentFrame?.[receipt.arm]?.events?.some(e=>e.id===receipt.eventId))return false;const located=api.focus(stop.entity,{animate:true,scale:stop.scale,duration:2800});if(cameraTransition&&stop.scale==='neighborhood')cameraTransition.endPosition.copy(cameraTransition.position).lerp(cameraTransition.endTarget,.25);return located;},
-    focus(entity,{animate=false,scale='building',duration=1200}={}){if(disposed||!projection)return false;const row=[...projection.a,...projection.b].find(r=>r.collection===entity?.collection&&r.id===entity.id);if(!row)return false;selected=entity;canvasStage?.focus(entity,{scale});if(camera){cameraTransition=null;const endTarget=new THREE.Vector3(row.x,row.height/2,row.z),endPosition=new THREE.Vector3(row.x+(scale==='neighborhood'?180:60),row.height+(scale==='neighborhood'?180:60),row.z+(scale==='neighborhood'?180:60));if(animate&&!preferences.get().reducedMotion)cameraTransition={duration,start:performance.now(),position:camera.position.clone(),target:controls.target.clone(),endPosition,endTarget};else{controls.target.copy(endTarget);camera.position.copy(endPosition);controls.update();}}rebuild();return true;},
+    focus(entity,{animate=false,scale='building',duration=1200}={}){if(disposed||!projection)return false;const row=[...projection.a,...projection.b].find(r=>r.collection===entity?.collection&&r.id===entity.id);if(!row)return false;selected=entity;canvasStage?.focus(entity,{scale});if(camera){cameraTransition=null;const endTarget=new THREE.Vector3(row.x,row.height/2,row.z),endPosition=new THREE.Vector3(row.x+(scale==='neighborhood'?180:60),row.height+(scale==='neighborhood'?180:60),row.z+(scale==='neighborhood'?180:60));if(animate&&preferences.get().cameraEasing)cameraTransition={duration,start:performance.now(),position:camera.position.clone(),target:controls.target.clone(),endPosition,endTarget};else{controls.target.copy(endTarget);camera.position.copy(endPosition);controls.update();}}rebuild();return true;},
     resetCamera(){cameraTransition=null;if(canvasStage&&projection)canvasStage.setCamera(fitCanvasCamera(fitRows?{a:fitRows,b:fitRows}:projection,views.clientWidth,views.clientHeight,mode));fit();draw();},
     setCamera(value){
       if(disposed||!value||typeof value!=='object')return false;
@@ -306,8 +322,17 @@ export function createStage(container, {onSelect,history,onCameraInteraction} = 
       }
       bookmarkStatus.textContent='Saved view restored in both worlds.';return true;
     },
-    getStats(){const arms=['split','difference'].includes(mode)?[0,1]:[mode==='plan'?1:0];const segment=curtain?width:width/arms.length;const targets=camera?meshes.filter(m=>m.visible&&!m.userData.ghost&&arms.includes(m.parent===scenes[0]?0:1)).map(m=>{const arm=m.parent===scenes[0]?0:1;const v=m.position.clone().project(camera);return {...m.userData,meshId:m.uuid,height:m.geometry.parameters?.height??null,scaleY:m.scale.y,x:((curtain?0:arms.indexOf(arm))+(v.x+1)/2)*segment,y:(1-v.y)/2*height};}):[];return {...canvasStage?.getStats(),followedHousehold,followedBuildings:followedBuildings(),curtain,curtainPosition:fraction,quality,pixelRatio:pixelRatio(Boolean(canvasStage)),targets,decorativeContext:scenes.some(s=>s.children.some(c=>c.userData.decorative)),divergenceEventId:lastDivergenceEventId,camera:api.getCamera(),mode,disposed,backend:disposed?'disposed':canvasStage?'canvas2d':error?'inventory-fallback':renderReady&&renderer?renderBackend:'pending',backendReason,objects:canvasStage?canvasStage.getStats().objects:meshes.length,draws,geometries:renderer?.info?.memory?.geometries??null,textures:renderer?.info?.memory?.textures??null,month:projection?.month??null,layoutVersion:mapping.version,error};},
-    dispose(){if(disposed)return;disposed=true;if(curtainRAF!==null)cancelAnimationFrame(curtainRAF);curtainButton.onclick=divider.oninput=seam.onpointerdown=seam.onpointermove=seam.onpointerup=seam.onpointercancel=seam.onlostpointercapture=seam.onclick=null;bookmark=null;saveView.onclick=restoreView.onclick=null;refreshBookmarkControls();qualitySelect.onchange=null;clearTimeout(importDeadline);unsubscribeMotion();preferences.dispose();observer?.disconnect();globalThis.removeEventListener?.('resize',resize);canvasStage?.dispose();effects?.dispose();if(animation)cancelAnimationFrame(animation);views.removeEventListener('click',pick);renderer?.domElement.removeEventListener('webglcontextlost',lost);controls?.dispose();releaseScenes();renderer?.dispose();renderer?.forceContextLoss?.();renderer=null;controls=null;camera=null;effects=null;canvasStage=null;projection=null;currentFrame=null;currentDiff=null;fitRows=null;selected=null;cameraTransition=null;history=null;labels.replaceChildren();labelNodes.clear();list.replaceChildren();root.remove();resolveReady({backend:'disposed'});},
+    getStats(){const arms=['split','difference'].includes(mode)?[0,1]:[mode==='plan'?1:0];const segment=curtain?width:width/arms.length;const canvasStats=canvasStage?.getStats();const targets=canvasStats?canvasStats.targets:camera?meshes.filter(m=>m.visible&&!m.userData.ghost&&arms.includes(m.parent===scenes[0]?0:1)).map(m=>{const arm=m.parent===scenes[0]?0:1;const v=m.position.clone().project(camera);return {...m.userData,meshId:m.uuid,height:m.geometry.parameters?.height??null,scaleY:m.scale.y,x:((curtain?0:arms.indexOf(arm))+(v.x+1)/2)*segment,y:(1-v.y)/2*height};}):[];return {...canvasStats,followedHousehold,followedBuildings:followedBuildings(),curtain,curtainPosition:fraction,quality,pixelRatio:pixelRatio(Boolean(canvasStage)),targets,decorativeContext:scenes.some(s=>s.children.some(c=>c.userData.decorative)),divergenceEventId:lastDivergenceEventId,camera:api.getCamera(),mode,disposed,backend:disposed?'disposed':canvasStage?'canvas2d':error?'inventory-fallback':renderReady&&renderer?renderBackend:'pending',backendReason,objects:canvasStats?canvasStats.objects:meshes.length,draws,geometries:renderer?.info?.memory?.geometries??null,textures:renderer?.info?.memory?.textures??null,month:projection?.month??null,layoutVersion:mapping.version,error};},
+    dispose(){
+      if(disposed)return;disposed=true;if(curtainRAF!==null)cancelAnimationFrame(curtainRAF);curtainRAF=null;curtainButton.onclick=divider.oninput=seam.onpointerdown=seam.onpointermove=seam.onpointerup=seam.onpointercancel=seam.onlostpointercapture=seam.onclick=null;bookmark=null;saveView.onclick=restoreView.onclick=null;refreshBookmarkControls();qualitySelect.onchange=null;
+      clearTimeout(importDeadline);unsubscribeMotion();preferences.dispose();observer?.disconnect();globalThis.removeEventListener?.('resize',resize);
+      canvasStage?.dispose();effects?.dispose();
+      if(animation!==null)cancelAnimationFrame(animation);animation=null;
+      views.removeEventListener('click',pick);renderer?.domElement.removeEventListener('webglcontextlost',lost);controls?.dispose();
+      releaseScenes();renderer?.dispose();renderer?.forceContextLoss?.();
+      renderer=null;controls=null;camera=null;effects=null;canvasStage=null;projection=null;currentFrame=null;currentDiff=null;fitRows=null;selected=null;cameraTransition=null;renderReady=false;history=null;
+      labels.replaceChildren();labelNodes.clear();list.replaceChildren();root.remove();resolveReady({backend:'disposed'});
+    },
   };
   return api;
 }

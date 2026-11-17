@@ -1,4 +1,5 @@
-import {createMediaPreferences} from './preferences.js';
+import {createTransitionDiagnostics} from './transition-diagnostics.js';
+import {createMediaPreferences,mountComfortStudio} from './preferences.js';
 
 // Presentation milliseconds only: never use these values as simulation time.
 export const motionTokens = Object.freeze({
@@ -8,7 +9,7 @@ export const motionTokens = Object.freeze({
 });
 
 /** Runs an update exactly once. Unsupported/reduced motion commits immediately. */
-export function createMotionAdapter({document, preferences}) {
+export function createMotionAdapter({document, preferences, diagnostics}) {
   let active=null, disposed=false;
   const unsubscribe=preferences.subscribe(({reducedMotion})=>{if(reducedMotion)active?.skipTransition();});
   return {
@@ -18,16 +19,18 @@ export function createMotionAdapter({document, preferences}) {
       let called=false, result;
       const commit=()=>{if(!called){called=true;result=Promise.resolve().then(update);}return result;};
       let transition;
-      if(!active&&!preferences.get().reducedMotion&&typeof document.startViewTransition==='function') {
+      if(!active&&!preferences.get().reducedMotion&&!diagnostics?.useSimpleMotion()&&typeof document.startViewTransition==='function') {
         try{transition=document.startViewTransition(commit);active=transition;}catch{/* Unsupported capture: still commit once. */}
       }
+      const finish=diagnostics?.begin(transition?'native':preferences.get().reducedMotion?'reduced':'immediate',()=>transition?.skipTransition());
+      let outcome='completed';
       try {
         if(transition){transition.ready.catch(()=>{});await transition.updateCallbackDone;await transition.finished.catch(()=>{});}
         else await commit();
         focus?.focus({preventScroll:true});
-      } finally {if(active===transition)active=null;}
+      } catch(error) {outcome='failed';throw error;} finally {finish?.(outcome);if(active===transition)active=null;}
     },
-    dispose(){disposed=true;active?.skipTransition();unsubscribe();},
+    dispose(){disposed=true;active?.skipTransition();unsubscribe();diagnostics?.dispose();},
   };
 }
 
@@ -44,7 +47,9 @@ html[data-hbl-reduced-motion] .launch h1{animation:none!important}
 @media(prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation:none}}`;
   document.head.append(style);
   const unsubscribe=preferences.subscribe(s=>root.toggleAttribute('data-hbl-reduced-motion',s.reducedMotion));
-  const adapter=createMotionAdapter({document,preferences});
+  const removeComfort=mountComfortStudio(document,preferences);
+  const diagnostics=createTransitionDiagnostics(win);
+  const adapter=createMotionAdapter({document,preferences,diagnostics});
   // Native disclosure stays in normal flow; it cannot cover application controls.
   const panel=document.createElement('details');panel.dataset.motionInspector='';
   panel.style.cssText='margin:16px;padding:12px;background:#142033;color:#fff;border:1px solid #8093ac;border-radius:8px;font:14px system-ui;position:relative;z-index:var(--hbl-layer-content)';
@@ -55,9 +60,15 @@ html[data-hbl-reduced-motion] .launch h1{animation:none!important}
   const sync=preferences.subscribe(s=>{check.checked=s.reducedMotion;});
   const status=document.createElement('p');status.setAttribute('role','status');status.textContent='Presentation only. Simulation clocks and recorded evidence are unchanged.';
   const preview=document.createElement('button');preview.type='button';preview.textContent='Preview transition';
+  const samplingLabel=document.createElement('label'),sampling=document.createElement('input');sampling.type='checkbox';
+  samplingLabel.append(sampling,' Sample transition quality locally (this session only)');
+  const receipt=document.createElement('pre');receipt.dataset.transitionMetrics='';receipt.style.whiteSpace='pre-wrap';
+  const refresh=()=>{receipt.textContent=JSON.stringify(diagnostics.get(),null,2);};
+  sampling.onchange=()=>{diagnostics.setConsent(sampling.checked);refresh();};refresh();
   let count=0;
-  preview.onclick=()=>adapter.transition(()=>{status.textContent=`Presentation preview ${++count}. No simulation state changed.`;},{focus:preview});
-  panel.append(summary,label,info,preview,status);document.body.append(panel);
+  preview.onclick=async()=>{await adapter.transition(()=>{status.textContent=`Presentation preview ${++count}. No simulation state changed.`;},{focus:preview});refresh();};
+  panel.append(summary,label,info,samplingLabel,preview,status,receipt);document.body.append(panel);
   panel.addEventListener('keydown',e=>{if(e.key==='Escape'){panel.open=false;summary.focus();}});
-  return {adapter,dispose(){adapter.dispose();sync();unsubscribe();preferences.dispose();panel.remove();style.remove();root.removeAttribute('data-hbl-reduced-motion');}};
+  const onHide=()=>{diagnostics.setConsent(false);sampling.checked=false;refresh();};win.addEventListener('pagehide',onHide);
+  return {adapter,dispose(){win.removeEventListener('pagehide',onHide);adapter.dispose();removeComfort();sync();unsubscribe();preferences.dispose();panel.remove();style.remove();root.removeAttribute('data-hbl-reduced-motion');}};
 }

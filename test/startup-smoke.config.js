@@ -16,11 +16,12 @@ export default defineConfig({
   use: {
     baseURL,
     browserName: 'chromium',
+    channel: 'chromium',
     trace: 'retain-on-failure',
     launchOptions: {
       ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
         ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH } : {}),
-      args: ['--enable-unsafe-swiftshader'],
+      args: ['--enable-unsafe-webgpu', '--enable-unsafe-swiftshader'],
     },
   },
   webServer: {

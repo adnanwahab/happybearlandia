@@ -71,3 +71,37 @@ Checks: `bun test test/block-diorama.test.js` and
 `bunx playwright test --config test/block-diorama.browser.config.mjs`.
 Browser acceptance and before/after screenshots require a host that permits server
 binding and Chromium launch; see `docs/reviews/SHE-567.md`.
+
+## Private local proposal rooms (SHE-770)
+
+`/world/invention/room/` is an opt-in prototype for tabs in one browser profile.
+IndexedDB read/write transactions append attributed proposals and comments,
+retaining both competing edits. The owner selects compatible edits and reviews
+an exact revision before explicitly opening the existing City replay. New
+proposals, comments or members invalidate that review. There is no simulation
+execution in the room and no saved-run mutation. Inputs reuse the blueprint's
+versioned synthetic Riverside checkpoint, seed, horizon, units and exact parcel
+mapping. Catalog costs remain assumptions; replay produces modeled results.
+
+Membership capabilities remain in tab session storage; room records live in
+IndexedDB. Reload resumes membership, and Leave retains it for reload. Creating
+or joining requires fresh explicit consent. Copy the displayed room ID manually
+to another tab in the same profile; nothing is sent to another person. Display
+names are self-declared and distinct within the room. This is a local fixture,
+not an authentication or remote sharing service: users or scripts with access
+to the browser profile can inspect or modify its storage. BroadcastChannel
+refreshes other tabs; refocusing also refreshes. Concurrent writes are serialized
+by the database, while stale reviews are rejected against the stored revision.
+
+Owner deletion removes that room, comments, membership capabilities and review
+from the database; already-open replay recipes are separate. Browser storage
+clearing also removes drafts. Storage eviction, private mode, lost owner tab
+session and device changes can prevent recovery; this is not backup storage.
+Rooms are bounded to 20 members, 100 proposals and 100 comments of 500 characters.
+The static form uses native controls with no animation or graphics requirement.
+Remote identity, invitations, rights/retention administration, durable backups
+and cross-device synchronization require a separate reviewed service design.
+
+Checks: `bun test test/proposal-room.test.js test/neighborhood-blueprint.test.js test/city-invention-plan.test.js`
+and `bunx playwright test --config test/proposal-room.browser.config.mjs`.
+Actual evidence and browser/typecheck blockers: `docs/reviews/SHE-770.md`.

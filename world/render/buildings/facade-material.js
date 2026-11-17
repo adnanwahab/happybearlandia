@@ -1,6 +1,7 @@
 import { MeshStandardNodeMaterial, Color } from 'three/webgpu';
 import { positionLocal, normalLocal, uniform, mix, vec3, vec4, sin, dot, fract, step, materialColor, cameraPosition, modelWorldMatrixInverse, Fn, If } from 'three/tsl';
 export function createFacadeMaterial(color, seed = 0, layout = {}) {
+  const blueprint=uniform(0);
   const night = uniform(0), enabled = uniform(1), interiorEnabled=uniform(1),occupancy=uniform(.7),landscape=uniform(layout.park?1:0);
   const axis = positionLocal.x.mul(normalLocal.z.abs()).add(positionLocal.z.mul(normalLocal.x.abs()));
   const cellX = axis.div(uniform(layout.columnSpacing||3.2)), cellY = positionLocal.y.div(uniform(layout.floorHeight||3.4));
@@ -47,8 +48,10 @@ export function createFacadeMaterial(color, seed = 0, layout = {}) {
   // A ground-floor fascia is decorative: it conveys no stock, revenue or occupancy.
   const fascia=step(positionLocal.y,2.8).mul(step(2.3,positionLocal.y)).mul(side).mul(layout.storefront?1:0).mul(enabled);
   const decorated=mix(wall,materialColor.mul(.55),fascia);
-  material.colorNode = mix(decorated,roof,step(.65,normalLocal.y));
-  material.roughnessNode=mix(.9,.28,window);material.metalnessNode=mix(.04,.3,window);
-  material.emissiveNode = vec3(1,.69,.31).mul(window).mul(lit).mul(night).mul(.5);
-  return { material, setNight(value) { night.value = value; }, setEnabled(value) { enabled.value = value ? 1 : 0; },setInteriorEnabled(value){interiorEnabled.value=value?1:0;},setOccupancy(value){occupancy.value=Math.max(0,Math.min(1,value));} };
+  // Blueprint uses the identical triangles and window mask; no metric is encoded.
+  const schematic=mix(vec3(.045,.16,.25),vec3(.35,.8,.95),window.mul(.7).add(step(.95,v).mul(.3)).clamp(0,1));
+  material.colorNode = mix(mix(decorated,roof,step(.65,normalLocal.y)),schematic,blueprint);
+  material.roughnessNode=mix(mix(.9,.28,window),1,blueprint);material.metalnessNode=mix(mix(.04,.3,window),0,blueprint);
+  material.emissiveNode = vec3(1,.69,.31).mul(window).mul(lit).mul(night).mul(.5).mul(blueprint.oneMinus());
+  return { material, setStyle(value){blueprint.value=value;}, setNight(value) { night.value = value; }, setEnabled(value) { enabled.value = value ? 1 : 0; },setInteriorEnabled(value){interiorEnabled.value=value?1:0;},setOccupancy(value){occupancy.value=Math.max(0,Math.min(1,value));} };
 }

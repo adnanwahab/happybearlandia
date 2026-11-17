@@ -16,9 +16,9 @@ for (const reduced of [false, true]) {
       if(id==='world') await link.click();
       else await link.press('Enter');
       await page.waitForURL(u=>u.pathname===path);
-      await expect.poll(()=>page.evaluate(()=>document.activeElement===document.body)).toBe(true);
+      await expect.poll(()=>page.evaluate(()=>document.activeElement?.dataset.navigationFocus === 'heading')).toBe(true);
       expect(new URL(page.url()).search).toBe(new URL(destination,'http://localhost').search);
-      await expect(page.locator('.portal-announcement')).toHaveText(await page.title());
+      await expect(page.locator('.hbl-navigation-status')).toHaveText('Destination ready. Focus at page heading.');
       if(reduced) await expect(page.locator('html')).toHaveClass(/portal-reduced/);
       if(!reduced) await page.screenshot({path:`.mini-symphony-evidence/SHE-390-portal-${id}-after.png`});
       await page.goBack();
@@ -35,6 +35,6 @@ test('unsupported shared-element CSS retains native navigation', async ({page}) 
   await link.click();
   await page.waitForURL(/world\/future-machine.html/);
   expect(new URL(page.url()).searchParams.get('tick')).toBe('7');
-  await expect.poll(()=>page.evaluate(()=>document.activeElement===document.body)).toBe(true);
+  await expect.poll(()=>page.evaluate(()=>document.activeElement?.dataset.navigationFocus === 'heading')).toBe(true);
   await expect(page.locator('[data-portal-active]')).toHaveCount(0);
 });

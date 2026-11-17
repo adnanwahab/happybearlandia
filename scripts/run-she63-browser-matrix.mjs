@@ -2,7 +2,10 @@
 // SHE-63 browser tests need a real loopback server, not a fixed shared port.
 // Run on a host with permission to bind sockets and launch Playwright engines.
 import { createServer } from 'node:net';
-import { spawn } from 'node:child_process';
+import { spawn,execFileSync } from 'node:child_process';
+import {mkdir,writeFile,readFile} from 'node:fs/promises';
+import {join} from 'node:path';
+import {tmpdir} from 'node:os';
 
 function freeLoopbackPort() {
   return new Promise((resolve, reject) => {
@@ -20,6 +23,11 @@ function freeLoopbackPort() {
 }
 
 async function main() {
+  const artifacts=process.env.HBL_SHE63_ARTIFACT_DIR||join(tmpdir(),'hbl-she63-matrix');
+  await mkdir(artifacts,{recursive:true});
+  const git=(...args)=>execFileSync('git',args,{encoding:'utf8'}).trim();
+  const event=process.env.GITHUB_EVENT_PATH?JSON.parse(await readFile(process.env.GITHUB_EVENT_PATH,'utf8')):null;
+  await writeFile(join(artifacts,'source.json'),JSON.stringify({schemaVersion:'hbl.she63-source.v1',commit:git('rev-parse','HEAD'),tree:git('rev-parse','HEAD^{tree}'),trackedChanges:git('status','--porcelain','--untracked-files=no'),pullRequestHead:event?.pull_request?.head?.sha??null,pullRequestBase:event?.pull_request?.base?.sha??null,workflowRun:process.env.GITHUB_RUN_ID??null,workflowAttempt:process.env.GITHUB_RUN_ATTEMPT??null,physicalDevicesTested:false},null,2));
   let port = process.env.HBL_SHE63_PORT;
   if (port) {
     if (!/^\d+$/.test(port) || Number(port) < 1 || Number(port) > 65535) {
