@@ -1,0 +1,296 @@
+{
+  "scope": "Local pre-commit verification; full acceptance remains failed. No assertion retries.",
+  "startedAt": "2026-11-17T14:08:07.821Z",
+  "finishedAt": "2026-11-17T14:08:24.742Z",
+  "artifactRoot": "/private/tmp/hbl-browser-reliability-final-20261117/run-YEG1Nq",
+  "jobs": [
+    {
+      "engine": "chromium",
+      "device": "mobile",
+      "status": "passed",
+      "exitCode": 0,
+      "stats": {
+        "startTime": "2026-11-17T14:08:08.513Z",
+        "duration": 1467.125,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": "closed",
+          "engine": "chromium",
+          "requestedChannel": "chromium",
+          "requestedExecutable": null,
+          "executable": "/Users/wahabma/Library/Caches/ms-playwright/chromium-1243/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+          "pid": 55216,
+          "exitCode": 0,
+          "signal": null,
+          "startedAt": "2026-11-17T14:08:07.825Z",
+          "connectedAt": "2026-11-17T14:08:08.314Z",
+          "closedAt": "2026-11-17T14:08:10.032Z"
+        }
+      ],
+      "traces": [
+        {
+          "sha256": "81ef54f4fedbfb0bb564e23e98e5c31f88a5fade239ce7f90fb4823d951a07f4",
+          "localPath": "/private/tmp/hbl-browser-reliability-final-20261117/run-YEG1Nq/chromium-mobile/browser-job-3Odpi2/tests/symphony-browser-runtime.e-ba639-rd-navigation-remain-usable-mobile/trace.zip"
+        }
+      ]
+    },
+    {
+      "engine": "chromium",
+      "device": "desktop",
+      "status": "failed",
+      "exitCode": 1,
+      "stats": {
+        "startTime": "2026-11-17T14:08:17.119Z",
+        "duration": 1405.2849999999999,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": "closed",
+          "engine": "chromium",
+          "requestedChannel": "chromium",
+          "requestedExecutable": null,
+          "executable": "/Users/wahabma/Library/Caches/ms-playwright/chromium-1243/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+          "pid": 55372,
+          "exitCode": 0,
+          "signal": null,
+          "startedAt": "2026-11-17T14:08:16.770Z",
+          "connectedAt": "2026-11-17T14:08:16.924Z",
+          "closedAt": "2026-11-17T14:08:18.565Z"
+        }
+      ],
+      "traces": [
+        {
+          "sha256": "eeb7496c958084e3ac5d75379a8aaa555f340eadf7a3aaa5dae4b49b330b46d1",
+          "localPath": "/private/tmp/hbl-browser-reliability-final-20261117/run-YEG1Nq/chromium-desktop/browser-job-3QVIRg/tests/symphony-browser-runtime.e-ba639-rd-navigation-remain-usable-desktop/trace.zip"
+        }
+      ]
+    },
+    {
+      "engine": "webkit",
+      "device": "desktop",
+      "status": "passed",
+      "exitCode": 0,
+      "stats": {
+        "startTime": "2026-11-17T14:08:21.124Z",
+        "duration": 1476.919,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": "closed",
+          "engine": "webkit",
+          "requestedChannel": "bundled",
+          "requestedExecutable": null,
+          "executable": "/Users/wahabma/Library/Caches/ms-playwright/webkit-2359/pw_run.sh",
+          "pid": 55468,
+          "exitCode": 0,
+          "signal": null,
+          "startedAt": "2026-11-17T14:08:20.800Z",
+          "connectedAt": "2026-11-17T14:08:20.918Z",
+          "closedAt": "2026-11-17T14:08:22.617Z"
+        }
+      ],
+      "traces": [
+        {
+          "sha256": "17c1f532817a631ab443ba0024f3b12ce6e0e60c87fce5788e2b2f9d01c9c94e",
+          "localPath": "/private/tmp/hbl-browser-reliability-final-20261117/run-YEG1Nq/webkit-desktop/browser-job-GJe7Zz/tests/symphony-browser-runtime.e-ba639-rd-navigation-remain-usable-desktop/trace.zip"
+        }
+      ]
+    },
+    {
+      "engine": "installed-chrome",
+      "device": "desktop",
+      "status": "passed",
+      "exitCode": 0,
+      "stats": {
+        "startTime": "2026-11-17T14:08:23.069Z",
+        "duration": 1627.821,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": "closed",
+          "engine": "chromium",
+          "requestedChannel": "chrome",
+          "requestedExecutable": null,
+          "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+          "pid": 55593,
+          "exitCode": 0,
+          "signal": null,
+          "startedAt": "2026-11-17T14:08:22.713Z",
+          "connectedAt": "2026-11-17T14:08:22.868Z",
+          "closedAt": "2026-11-17T14:08:24.742Z"
+        }
+      ],
+      "traces": [
+        {
+          "sha256": "85395500af731ef01fadfff3bf3350f5ca6134a6ac69566d2412c4e3da86f902",
+          "localPath": "/private/tmp/hbl-browser-reliability-final-20261117/run-YEG1Nq/installed-chrome-desktop/browser-job-scYdsQ/tests/symphony-browser-runtime.e-ba639-rd-navigation-remain-usable-desktop/trace.zip"
+        }
+      ]
+    },
+    {
+      "engine": "firefox",
+      "device": "desktop",
+      "status": "passed",
+      "exitCode": 0,
+      "stats": {
+        "startTime": "2026-11-17T14:08:13.192Z",
+        "duration": 1677.2269999999999,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": "closed",
+          "engine": "firefox",
+          "requestedChannel": "bundled",
+          "requestedExecutable": null,
+          "executable": "/Users/wahabma/Library/Caches/ms-playwright/firefox-1543/firefox/Nightly.app/Contents/MacOS/firefox",
+          "pid": 55300,
+          "exitCode": 0,
+          "signal": null,
+          "startedAt": "2026-11-17T14:08:12.639Z",
+          "connectedAt": "2026-11-17T14:08:12.957Z",
+          "closedAt": "2026-11-17T14:08:15.057Z"
+        }
+      ],
+      "traces": [
+        {
+          "sha256": "501885554c41ac93425b82f7bfacd5d13cd99bec8fb41dc2e96bf93cf36bf121",
+          "localPath": "/private/tmp/hbl-browser-reliability-final-20261117/run-YEG1Nq/firefox-desktop/browser-job-lCrZn6/tests/symphony-browser-runtime.e-ba639-rd-navigation-remain-usable-desktop/trace.zip"
+        }
+      ]
+    },
+    {
+      "engine": "installed-chrome",
+      "device": "mobile",
+      "status": "failed",
+      "exitCode": 1,
+      "stats": {
+        "startTime": "2026-11-17T14:08:15.490Z",
+        "duration": 1213.9209999999998,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": "closed",
+          "engine": "chromium",
+          "requestedChannel": "chrome",
+          "requestedExecutable": null,
+          "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+          "pid": 55347,
+          "exitCode": 0,
+          "signal": null,
+          "startedAt": "2026-11-17T14:08:15.085Z",
+          "connectedAt": "2026-11-17T14:08:15.287Z",
+          "closedAt": "2026-11-17T14:08:16.749Z"
+        }
+      ],
+      "traces": [
+        {
+          "sha256": "d4dd6f05124758c8ca3df6a6d0237ea7d84eae8d025629429523291747e6f1b5",
+          "localPath": "/private/tmp/hbl-browser-reliability-final-20261117/run-YEG1Nq/installed-chrome-mobile/browser-job-uS0HBR/tests/symphony-browser-runtime.e-ba639-rd-navigation-remain-usable-mobile/trace.zip"
+        }
+      ]
+    },
+    {
+      "engine": "webkit",
+      "device": "mobile",
+      "status": "passed",
+      "exitCode": 0,
+      "stats": {
+        "startTime": "2026-11-17T14:08:19.163Z",
+        "duration": 1595.3339999999998,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": "closed",
+          "engine": "webkit",
+          "requestedChannel": "bundled",
+          "requestedExecutable": null,
+          "executable": "/Users/wahabma/Library/Caches/ms-playwright/webkit-2359/pw_run.sh",
+          "pid": 55440,
+          "exitCode": 0,
+          "signal": null,
+          "startedAt": "2026-11-17T14:08:18.573Z",
+          "connectedAt": "2026-11-17T14:08:18.971Z",
+          "closedAt": "2026-11-17T14:08:20.776Z"
+        }
+      ],
+      "traces": [
+        {
+          "sha256": "d63f71d93d5be2c100b22fcec83bc95782ce200871ff884b22ea180a04eb3038",
+          "localPath": "/private/tmp/hbl-browser-reliability-final-20261117/run-YEG1Nq/webkit-mobile/browser-job-QltiT9/tests/symphony-browser-runtime.e-ba639-rd-navigation-remain-usable-mobile/trace.zip"
+        }
+      ]
+    },
+    {
+      "engine": "firefox",
+      "device": "mobile",
+      "status": "passed",
+      "exitCode": 0,
+      "stats": {
+        "startTime": "2026-11-17T14:08:10.778Z",
+        "duration": 1641.476,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": "closed",
+          "engine": "firefox",
+          "requestedChannel": "bundled",
+          "requestedExecutable": null,
+          "executable": "/Users/wahabma/Library/Caches/ms-playwright/firefox-1543/firefox/Nightly.app/Contents/MacOS/firefox",
+          "pid": 55257,
+          "exitCode": 0,
+          "signal": null,
+          "startedAt": "2026-11-17T14:08:10.047Z",
+          "connectedAt": "2026-11-17T14:08:10.537Z",
+          "closedAt": "2026-11-17T14:08:12.624Z"
+        }
+      ],
+      "traces": [
+        {
+          "sha256": "132b6dbb17f4c5f6170f9136a9f6e078b68a07c47c539725b47f719e7077a21e",
+          "localPath": "/private/tmp/hbl-browser-reliability-final-20261117/run-YEG1Nq/firefox-mobile/browser-job-UmMrpe/tests/symphony-browser-runtime.e-ba639-rd-navigation-remain-usable-mobile/trace.zip"
+        }
+      ]
+    }
+  ]
+}

@@ -12,6 +12,7 @@ test('the production server keeps merged feature routes and simulation admission
       HBL_WORLD_DB_PATH: ':memory:',
       DECISION_STORE_DIR: join(directory, 'decision'),
       HBL_JOURNAL_ROOT: join(directory, 'journals'),
+      HBL_SERVER_LOG_DIR: join(directory, 'server-logs'),
       HBL_DETECTIVE_ROOT: join(directory, 'detective'),
       HBL_SERVER_LOG_DIR: join(directory, 'server-logs'),
       NODE_ENV: 'test',
@@ -57,6 +58,12 @@ test('the production server keeps merged feature routes and simulation admission
     }
 
 
+
+    for (const path of ['/demo-gallery', '/demo-gallery/', '/tools/demo-gallery/manifest.js', '/tools/demo-gallery/gallery.js', '/tools/demo-gallery/style.css', '/demo-gallery/media/future-machine.mp4']) {
+      const response = await fetch(origin + path);
+      expect(response.status).toBe(200);
+      if (path.endsWith('.mp4')) expect(response.headers.get('content-type')).toContain('video/mp4');
+    }
     // Exercise the real dispatcher: handler-unit tests cannot detect lost wiring.
     for (const path of ['/api/session-survey', '/api/player-feedback']) {
       const response = await fetch(origin + path);

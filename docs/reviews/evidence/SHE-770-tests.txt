@@ -1,0 +1,22 @@
+bun test v1.4.2 (744846f84)
+
+test/neighborhood-blueprint.test.js:
+(pass) export/import retains source, units, bounded edits, cosmetics and deterministic City replay [85.37ms]
+(pass) reject incompatible and malformed payloads atomically, with no silent dropping or coercion [0.70ms]
+(pass) canonical export ignores edit order and enforces boundary settings [0.08ms]
+(pass) supported parcel identities match the source fixture and maximum compatible design stays bounded [8.97ms]
+
+test/proposal-room.test.js:
+(pass) isolated drafts retain authorship and resolve competing policies explicitly [0.46ms]
+(pass) guests and unknown identities cannot review, submit, or read private drafts [0.09ms]
+(pass) revision isolation, invalid input and comments invalidate review atomically [0.14ms]
+(pass) authorship is distinct and room limits reject rather than truncate drafts [0.17ms]
+
+test/city-invention-plan.test.js:
+(pass) City plans preserve compatible policies and replay their exact simulated commute [64.24ms]
+(pass) a plan can stop after the exact first matching month and validates its supported input space [36.23ms]
+
+ 10 pass
+ 0 fail
+ 137 expect() calls
+Ran 10 tests across 3 files. [212.00ms]

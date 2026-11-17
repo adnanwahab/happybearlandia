@@ -23,7 +23,13 @@ Ctrl-C stops the current worker and records an interrupted attempt. Timeout defa
 Run `bun test tools/symphony/mini-bun/recovery.test.ts` from the repository root.
 Publication now resumes after commit, push, PR creation, or an interrupted
 `publishing` state. It checks for an existing matching PR before creation and
-holds closed PRs or divergent local work for review. Disabled and terminal
+holds closed PRs or divergent local work for review. A recovered open draft is
+made ready only when the same repository, branch, base, clean local tree and exact
+local/origin/PR head agree, then a fresh PR identity check still agrees. Failed
+ready calls remain publication failures and retry idempotently. This applies only
+to the specific task being published; it does not bulk-convert older drafts or
+enable GitHub auto-merge. CI, required reviews and branch protections still gate
+actual merging. Disabled and terminal
 Linear tasks are excluded from publication recovery and dispatch. `retry: true`
 can explicitly retry `no_changes` once per session. Final Codex responses are
 retained in `logs/<ID>.result.md`, including report-only outcomes and blockers.
@@ -239,8 +245,10 @@ local servers receive no app/CLI secrets and browser requests to other origins
 are blocked. Profiles select up to two local routes. These are entrypoint visual
 smoke checks, not proof of every requested feature or acceptance criterion.
 
-PNG files and phase manifests live in `.mini-symphony-evidence/` in the task
-branch. PR Markdown embeds before/after images pinned to the final commit.
+PNG files and phase manifests live in the local data directory under
+`artifacts/mini-symphony/<task>/`, outside the task branch. PR Markdown links
+exact-source CI checks; the separate CI evidence workflow uploads immutable
+run artifacts. Local captures are not claimed to be public uploads.
 Missing browser, server startup failure or unsuccessful route holds publication
 with a screenshot failure message. Existing PRs are not silently rewritten.
 
@@ -250,3 +258,72 @@ other repositories are skipped. Local branch refs, state, logs and receipts stay
 Ignored generated dependencies are removed with the worktree. It does not delete
 closed-but-unmerged PR workspaces. Existing processes must restart to load these
 changes; installing an updated bundle never interrupts their active work.
+
+### Canonical source and reproducible exports (November 17)
+
+HappyBearLandia is the canonical version-controlled Mini Symphony source for both
+repositories. `tools/symphony/mini-bun/` contains the runner, importer, tests,
+recovery audit and profile examples; Dear Congress's ignored installed bundle is
+an installation, not a second source authority. The active Bun path uses `mini/*`
+branches and project profiles, independently of the Elixir pilot's `symphony/*`
+branches and additional dispatch labels. `ops/symphony/run_25h.py` supervises the
+Elixir dispatcher; it does not supervise the currently active Bun coordinators.
+Do not raise one runtime's worker limit by changing the other runtime's config.
+
+```sh
+bun run symphony:mini:check
+bun run symphony:mini:export --out /private/tmp/mini-runtime-build
+```
+
+Export requires an empty destination and never overwrites installed bundles.
+It contains rebuildable non-secret source, runner/importer bundles, examples and
+a SHA-256 manifest. The manifest records the source commit **and whether source
+is dirty**; hashes identify actual exported bytes. No credentials, tasks, state,
+logs, runtime locks or installed host profiles are exported. To rebuild:
+
+```sh
+bun build /private/tmp/mini-runtime-build/source/run.ts --target=bun --outfile /private/tmp/runner-rebuilt.js
+```
+
+Inspect `profiles/civic.example.json` and replace its absolute-path placeholders;
+retain existing production/coordination holds and source prerequisites. The
+current HBL profile is `hbl.project.json`. Keep `LINEAR_API_KEY` and CLI auth on
+the trusted host. Never copy them into profiles, exports, PR bodies or worker env.
+Exporting does not replace either live coordinator. At a reviewed idle boundary,
+stop that coordinator, back up its installed runtime, replace only runner/importer
+bundles, preserve config/tasks/state/logs, run its normal `--check`, then restart
+once. Its existing single-owner lock refuses a duplicate coordinator. A source
+edit or exported build is not proof the installed process has adopted it.
+
+### Conflict prevention and artifact handoff
+
+The coordinator owns shared planning files. Workers put plans, owned interfaces,
+checks and unresolved acceptance in `docs/reviews/<ISSUE-ID>.md`. They should not
+independently append to `docs/implementation-plan.md` or shared README roadmaps.
+The importer carries this instruction into every new worker prompt.
+
+Browser captures now live under `<dataDirectory>/artifacts/mini-symphony/<task>/`,
+outside the feature worktree. PNG filenames include content SHA-256; manifests
+retain capture time, source revision and working-diff fingerprint. Publication
+excludes legacy screenshot directories and root operator queue/state/lock files,
+even on an older base without ignore rules. It preserves local files and prior
+commits. Existing binary history/PR conflicts need separate reconciliation.
+
+New HBL Mini PRs can obtain source-bound CI artifacts through
+`.github/workflows/mini-symphony-evidence.yml`. It checks out the exact head with
+read-only permissions, captures with disposable data and no external requests,
+and uploads a run/commit-specific immutable artifact with a receipt. PR text
+links exact-source checks; it never claims local images were uploaded. Actual
+artifact URLs are only accepted in the form `/actions/runs/<id>/artifacts/<id>`.
+No private local host path or data is uploaded by the coding worker. Dear Congress
+needs an equivalent reviewed CI workflow/config before claiming hosted artifacts.
+
+### Recovery and remaining operations
+
+See [the durable integration queue](integration-queue.md). `symphony:mini:audit`
+performs GitHub reads and writes only a separate local queue. Conflict/CI repair
+leases have bounded budgets and reject stale heads/results. This is an advisory
+repair slice: automatic repair dispatch, resource-gated lane selection and a
+persistent-deadline Bun supervisor/launchd installation remain future work.
+No new code here enables merges, changes branch protections or starts a 25-hour
+run. Availability and accepted changes per worker-hour need actual run receipts.

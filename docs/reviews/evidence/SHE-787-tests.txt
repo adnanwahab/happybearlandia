@@ -1,0 +1,18 @@
+bun test v1.4.2 (744846f84)
+
+test/playfulness.test.js:
+(pass) no consent, denial and kill switch collect nothing [0.32ms]
+(pass) both assignments persist; declared denominators and deduplication [0.25ms]
+(pass) malformed records are erased without inventing observations [0.03ms]
+(pass) withdrawal in another tab prevents stale writes [0.03ms]
+
+test/onboarding-experiment.test.js:
+(pass) no pre-consent assignment; exposure precedes choice/start and is deduplicated across reloads [0.20ms]
+(pass) balanced allocation boundary, disable and invalid storage recovery [0.07ms]
+(pass) both variants preserve matched model states and provenance [741.04ms]
+(pass) storage denial is surfaced for browser fallback and cleared storage removes stale consent [0.14ms]
+
+ 8 pass
+ 0 fail
+ 46 expect() calls
+Ran 8 tests across 2 files. [755.00ms]

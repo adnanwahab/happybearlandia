@@ -144,3 +144,32 @@ Checks: `bun test test/motion.test.js test/transition-diagnostics.test.js` and
 Browser tests use keyboard consent and 20 previews, unsupported capture, live
 reduction, mobile touch revocation, screenshot and JSON receipt attachments.
 See `docs/reviews/SHE-631.md` for actual execution and blockers.
+
+## Comfort preferences (SHE-785)
+
+The existing `hbl-media-v1` record also stores boolean `cameraEasing`, `parallax`,
+`confetti`, `particles`, `ambientSound`, and `captions`. Defaults are true except
+ambient sound (false); volume stays zero and motion stays `system`. `reset()`
+restores these defaults. Invalid/missing records fall back safely. Native reduced
+motion forces the four visual flags off without overwriting saved choices.
+Instances synchronize through a local event and cross-tab storage events.
+Storage denial leaves settings usable for the visit and reports failed persistence.
+
+`mountComfortStudio` mounts native controls in normal flow on `/routes`, home,
+Future Machine and Decision Studio. Future Machine camera focus and decorative
+change effects consume camera/particle flags; household government celebration
+confetti consumes its independent flag. Sonic difference captions can be disabled;
+missing-data and playback-failure messages remain visible. World ambience requires
+both the preference and local activation; reset mutes an active mixer. It never
+auto-starts on navigation. Essential recorded inventory and evidence stay visible.
+Parallax is reserved: no application parallax consumer was found in this checkout.
+Other independently owned decorative renderers are not yet universally migrated.
+See `docs/reviews/SHE-785.md` for acceptance limits and actual evidence.
+
+## Urban Noise Playground (SHE-738)
+
+The World ambient panel also offers a separate default-off geometric traffic
+exercise. Its authored sources, artistic falloff, capped digital gain, missing
+input behavior and lifecycle are documented in [the noise contract](../../world/noise/README.md).
+It supplies no observed acoustics or decibel estimates and changes no simulation
+rules. The shell Sound pill remains an independent decorative audio control.

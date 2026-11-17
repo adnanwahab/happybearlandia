@@ -29,3 +29,12 @@ OSM imports preserve geometry/source IDs, while inferred units, costs, capacitie
 ## 7. Submodels
 
 [systems.js](../../world/city/systems.js) implements thirteen packs, including the [resident submodel](../../world/city/residents.js). Housing filters affordability/bedrooms then ranks applications with seeded conflict resolution; rent changes are bounded to ±3%. Development uses illustrative rent capitalization minus construction/land/finance cost. Construction reserves permits/labor/materials/equipment and requires utility capacity before completion. Transport uses single-pass district routing rather than equilibrium. Business demand is aggregate spending, services use proportional coverage, utilities use household/firm demand proxies. Finance tracks revenue, operating cost, capital and bounded debt. Demographics use bounded job/housing-sensitive annual migration. Resident housing satisfaction is 100 when housed and 0 otherwise; livelihood satisfaction is bounded `100*(1-housingBurden)`. An active resident gains one bounded social-satisfaction/tie-strength point monthly with the first other resident whose household is in the same district. Monthly routines and housing/job goals reflect current assignment, not simulated daily behavior or permanent achievement; departed residents retain their history. These assumptions and exact equations are colocated in the [City equations](../../world/city/README.md#assumed-equations-city-systems100). Future Machine replays this engine; it is not a second ABM. Verify: `bun test --timeout 15000 test/city-systems.test.js test/project-unblock.test.js test/server-civic-api.test.js`.
+
+
+The [Hundred-Future Racetrack](../../world/racetrack/README.md) records a bounded
+presentation fixture from the existing Future Machine synthetic initializer and
+unchanged City engine. Its 100 authored scenarios use seed 42, 30 initial
+households, 120 monthly steps, housing amounts 1–100 and delay `(index * 7) % 48`
+for zero-based index 0–99. Other proposal fields retain DEFAULT_RECIPE. These
+inputs are synthetic assumptions, not sampled probabilities. The view reads unit
+inventory projections; it adds no social mechanism, RNG, clock or state authority.

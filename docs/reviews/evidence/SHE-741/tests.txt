@@ -1,0 +1,102 @@
+bun test v1.4.2 (744846f84)
+
+test/decision-visualizations.test.js:
+(pass) decision plotting mathematics > percentiles interpolate and ignore absent or nonfinite observations [0.18ms]
+(pass) decision plotting mathematics > histogram conserves all samples including the upper boundary [0.20ms]
+(pass) decision plotting mathematics > shared histogram domain permits aligned scenario distributions [0.03ms]
+(pass) decision plotting mathematics > Pareto keeps competing cost/outcome tradeoffs and removes dominated runs [0.10ms]
+(pass) advanced futures evidence > classifies from shared recorded criteria and never invents an absent threshold [0.08ms]
+(pass) advanced futures evidence > bounded search combines real numeric comparisons and event phrases [0.42ms]
+(pass) advanced futures evidence > density contours preserve support and produce finite calculated boundaries [1.02ms]
+(pass) advanced futures evidence > lasso membership counts actual point coordinates [0.04ms]
+(pass) advanced futures evidence > before/after differences use scenario and seed matched pairs only [0.08ms]
+(pass) advanced futures evidence > enter-future URLs preserve exact experiment, run and month [0.69ms]
+(pass) receipt-linked landscape > 100 deterministic seed records retain exact receipt identity [0.17ms]
+(pass) receipt-linked landscape > incomplete, foreign and unsupported records cannot enter the landscape [0.04ms]
+(pass) receipt-linked landscape > null depth is omitted only in depth view; zero remains a real measurement [0.04ms]
+
+test/decision-analysis.test.js:
+(pass) decision analysis > interpolated percentiles handle endpoints and reject nonnumeric values [0.06ms]
+(pass) decision analysis > associations stay within scenarios and failures use actual same-seed pairs [0.74ms]
+(pass) decision analysis > lower is better reverses failure classification and unknown direction does not invent it [0.16ms]
+(pass) historical evaluation > requires availability timestamps and never calibrates on future/revised records [1.69ms]
+(pass) historical evaluation > housing dataset adapter fits only pre-cutoff records and keeps held-out rent out of fitting [9.59ms]
+(pass) historical evaluation > published diagnostic uses source-owned observations without claiming a blind backtest [0.65ms]
+(pass) historical evaluation > empirical percentile uses midranks and unit-specific errors [0.03ms]
+(pass) historical evaluation > blocks invalid dates, missing cutoff data, and misaligned annual horizons [0.10ms]
+(pass) trust exports and brief safety > CSV supports quoting, newlines, BOM and protects spreadsheet formulas [0.32ms]
+(pass) trust exports and brief safety > brief includes mandatory sections and escapes hostile plan/evidence/driver content [2.27ms]
+(pass) trust exports and brief safety > reproduction captures actual run seeds, sampled values, and versions [0.15ms]
+
+test/decision-integration.test.js:
+(pass) Decision API integration > create → execute → aggregate → compare → manifest → reproduce [111.46ms]
+(pass) Decision API integration > invalid parameters fail visibly without creating runnable experiments [1.55ms]
+(pass) Decision API integration > individual model failures retain successful rows and honest aggregate counts [31.23ms]
+(pass) Decision API integration > SSE sends real progress and closes with a terminal snapshot [31.86ms]
+(pass) Decision API integration > completed results survive a fresh API instance from the private disk store [68.60ms]
+Decision cancellation API latency ms: [0,0,0,0,0]
+(pass) Decision API integration > a 1,000-run batch supports cancellation and responsive concurrent reads [13.28ms]
+(pass) 100 actual landscape records resolve to stored receipts and deterministic selected replay [42.09ms]
+
+test/decision-kernel.test.js:
+(pass) decision contracts and sampling > validates bounds, scenario identity, distributions, and manifest versions [0.26ms]
+(pass) decision contracts and sampling > reproduces independent bounded distribution draws with variable seeds [0.07ms]
+(pass) decision kernel > matches seeds, reproduces outcomes, and isolates run failures [5.13ms]
+(pass) decision kernel > cancels scheduling while preserving actual partial progress [1.29ms]
+(pass) decision kernel > calculates interpolated percentiles and direction-aware matched comparisons [0.07ms]
+(pass) decision persistence and API > atomic disk snapshots reload privately and reject public directories [1.28ms]
+(pass) decision persistence and API > create/start/results/run/share/manifest replay and SSE serialize actual outcomes [10.32ms]
+(pass) decision persistence and API > API cancellation interrupts a large running experiment [0.26ms]
+(pass) decision persistence and API > preview retention prunes only old terminal previews and keeps saved experiments [4.20ms]
+(pass) decision persistence and API > rejects oversized request bodies before storing an experiment [0.19ms]
+(pass) housing stress integration > composes shocks after draws once, records provenance and reproduces effective inputs [8.26ms]
+
+test/decision-request-race.test.js:
+(pass) input edit discards delayed create response after a newer run [0.81ms]
+(pass) input edit discards delayed start response after a newer run [0.17ms]
+(pass) input edit discards delayed poll response after a newer run [0.15ms]
+(pass) edited input supersedes saved experiment loading and its errors [0.42ms]
+(pass) superseded run failures cannot clear a newer busy request [0.16ms]
+(pass) old reopened watcher errors and progress cannot mutate a fresh running draft [0.16ms]
+
+test/decision-ablation.test.js:
+(pass) one setting only, preserved source and inputs, matched deterministic execution [0.80ms]
+(pass) coupled changes, missing parent, unknown setting and uncertainty are blocked [0.14ms]
+(pass) no effect for incomplete, failed, duplicate, mismatched or nonfinite evidence [2.15ms]
+
+test/housing-model.test.js:
+(pass) housing model pack > complete scenario pack conforms to shared experiment contract [0.11ms]
+(pass) housing model pack > same seed reproduces all numerical outputs, other seeds vary [1.17ms]
+(pass) housing model pack > policy changes supply, rents and cost against current policy [0.32ms]
+(pass) housing model pack > stock and pipeline conservation and spending bounds hold [0.26ms]
+(pass) housing model pack > zero adoption preserves current-policy market dynamics and no policy spend [0.25ms]
+(pass) housing model pack > every registered parameter changes actual numerical dynamics [8.59ms]
+(pass) housing model pack > seven composable stresses survive uncertain inputs and are idempotent [0.48ms]
+(pass) housing model pack > rejects malformed parameters, invalid horizon and nonnumeric values [0.11ms]
+(pass) housing model pack > long horizons and extreme schema bounds remain finite [1.16ms]
+(pass) inspectable plan compilation > extracts target months and annual billions from hero plan [0.55ms]
+(pass) inspectable plan compilation > separates annual construction and voucher allocations [0.04ms]
+(pass) inspectable plan compilation > explicit construction funding leaves separate unspecified vouchers inspectable [0.04ms]
+(pass) inspectable plan compilation > separate mechanisms retain defaults without converting explicit lump sums [0.04ms]
+(pass) inspectable plan compilation > never treats unperiodized lump sums as annual appropriations [0.04ms]
+(pass) historical data and calibration boundaries > Houston diagnostic retains real published rows and excludes later observations from initialization [0.46ms]
+(pass) historical data and calibration boundaries > imports quoted CSV, records provenance, rejects missing dates and sentinel values [0.10ms]
+(pass) historical data and calibration boundaries > availability cutoff excludes future publications; no silent dollar conversion [0.03ms]
+(pass) historical data and calibration boundaries > Census array adapter maps actual field names and initializes only pre-cutoff inputs [0.07ms]
+(pass) historical data and calibration boundaries > reports actual descriptive error and held-out percentile [0.05ms]
+(pass) historical data and calibration boundaries > calibration excludes future observations before choosing a coefficient [0.22ms]
+
+test/decision-storage.test.js:
+(pass) Decision Studio defaults to private repository state and honors explicit paths [0.10ms]
+(pass) a store override cannot use a symlink into a served directory [0.60ms]
+(pass) backup and restore preserve full snapshots and summaries without overwriting a store [4.18ms]
+
+test/decision-edit-history.test.js:
+(pass) five reversible edits, immutable snapshots, branch and unique revisions [0.14ms]
+(pass) no-op, reset, bounded history and returned values cannot mutate retained revisions [0.10ms]
+(pass) editor coordinator restores knobs and selection without touching receipts, seed or replay clock [0.91ms]
+
+ 77 pass
+ 0 fail
+ 3707 expect() calls
+Ran 77 tests across 9 files. [400.00ms]

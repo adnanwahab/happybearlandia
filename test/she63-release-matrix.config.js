@@ -21,7 +21,7 @@ export default defineConfig({
   expect: { timeout: 30000 },
   outputDir: join(artifacts, 'tests'),
   reporter: [['list'], ['json', { outputFile: join(artifacts, 'results.json') }]],
-  use: { baseURL, viewport: { width: 1440, height: 1000 }, trace: 'retain-on-failure', screenshot: 'only-on-failure' },
+  use: { baseURL, viewport: { width: 1440, height: 1000 }, trace: 'on', screenshot: 'only-on-failure' },
   // Firefox/WebKit require their matching Playwright builds. WebKit is not Safari.
   projects: [
     { name: 'installed-chrome', use: { browserName: 'chromium', channel: 'chrome', launchOptions: { args: ['--enable-unsafe-swiftshader'] } } },

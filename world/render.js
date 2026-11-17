@@ -1,3 +1,5 @@
+import {visualSun} from './render/shadow-atlas/model.js';
+import {mountDistrictTitle} from './district-title.js';
 import {mountInfrastructureScanner} from './infrastructure-scanner.js';
 import {createInspectionFreeze,mountInspectionFreeze} from './render/inspection-freeze.js';
 import {mountSceneContextMenu} from './scene-context-menu.js';
@@ -72,7 +74,13 @@ let loadedExperiment=null;
 const savedExperimentId=params.get('experiment');
 if(savedExperimentId){
  try{if(!/^[A-Za-z0-9_-]{8,16}$/.test(savedExperimentId))throw Error('Invalid saved experiment ID');const response=await fetch('/api/world-experiments/'+encodeURIComponent(savedExperimentId));const record=await response.json();if(!response.ok)throw Error(record.error||'Experiment load failed');if(record.schemaVersion!=='world-experiment-record.v1'||record.save?.schemaVersion!=='world-experiment-save.v1')throw Error('Unsupported saved experiment');loadedExperiment=record;}
- catch(error){const warning=document.createElement('p');warning.style.cssText='position:fixed;inset:20px;z-index:999;background:#18283b;color:white;padding:24px';warning.textContent='Saved experiment could not load: '+error.message+'. No replacement simulation was started.';document.body.append(warning);throw error;}
+ catch(error){const warning=document.createElement('section');warning.style.cssText='position:fixed;inset:20px;z-index:999;background:#18283b;color:white;padding:24px;overflow:auto';const message=document.createElement('p');message.textContent='Saved experiment could not load: '+error.message+'. No replacement simulation was started.';warning.append(message);document.body.append(warning);if(location.hash.startsWith('#city-tour=')){const {mountCityTour}=await import('./city-tour/panel.js');mountCityTour({container:warning});}throw error;}
+}
+// Check carried pins before model restoration, not only after the scene appears.
+if(location.hash.startsWith('#city-tour=')){
+ const {readTour,anchorRecord}=await import('./city-tour/core.js');
+ try{const tour=readTour(location.hash),step=tour.recipe.steps[tour.index];const actual=await anchorRecord(loadedExperiment,step.description);if(JSON.stringify(actual)!==JSON.stringify(step))throw Error('Pinned checkpoint, source or pose changed.');}
+ catch(error){const warning=document.createElement('section');warning.style.cssText='position:fixed;inset:20px;z-index:999;background:#18283b;color:white;padding:24px;overflow:auto';const message=document.createElement('p');message.textContent='Tour checkpoint invalid: '+error.message+'. No replacement simulation was started.';warning.append(message);document.body.append(warning);const {mountCityTour}=await import('./city-tour/panel.js');mountCityTour({container:warning});throw error;}
 }
 const renderBenchmark = benchmarkScene(location.pathname);
 const demoMode = params.get("demo") === "1" || !!renderBenchmark;
@@ -552,12 +560,26 @@ cityRenderer.setSimulationSource(()=>livingWorld?.active?livingWorld.getSnapshot
 window.hblLivingWorld=livingWorld;
 const neighborhoodWhatIf = !embedMode ? mountNeighborhoodWhatIf({scene,camera,controls,renderer,THREE,getContext:()=>livingWorld.getContext()}) : null;
 addEventListener('pagehide',()=>neighborhoodWhatIf?.destroy(),{once:true});
+const districtTitle = !embedMode ? mountDistrictTitle({container:document.body,getPoint:()=>controls.target,getFrame:()=>livingWorld?.active&&!window.hblWorldTileViewActive&&livingWorld.getContext()?.buildings?.length?{context:livingWorld.getContext(),minute:livingWorld.getClockMinute()}:null}) : null;
+addEventListener('pagehide',()=>districtTitle?.destroy(),{once:true});
 window.hblWorldActivity={
  getSnapshot(){const snapshot=livingWorld?.active?livingWorld.getSnapshot():null;return livingWorld?.active?(snapshot?{...snapshot,mode:'living',peopleCount:snapshot.metrics?.syntheticPopulation??snapshot.population,people:snapshot.visibleAgents,runId:`${snapshot.runtime?.id}:${snapshot.runtime?.revision}`}:{mode:'living',peopleCount:null,minute:null,historyAvailable:false,runId:'living:resetting'}):world.getActivitySnapshot();},
  async getHistory(query={}){const source=window.hblWorldActivity.getSnapshot(),identity=source.runId;if(livingWorld?.active){const runtime=livingWorld.getRuntime();if(!runtime?.getActivityHistory)throw Error('Living history is not ready.');const history=await runtime.getActivityHistory(query);if(!livingWorld?.active||window.hblWorldActivity.getSnapshot().runId!==identity)throw Error('Activity source changed while history was loading; refresh the current run.');return {...history,runId:identity};}if(query.actorId)world.trackActivityPerson(query.actorId);const history=world.getActivityHistory(query);if(livingWorld?.active)throw Error('Activity source changed while history was loading.');return {...history,runId:identity};},
  subscribe(listener){activityListeners.add(listener);return()=>activityListeners.delete(listener);},
  selectPerson(id){if(livingWorld?.active)return livingWorld.selectPerson(String(id));const index=town.people.findIndex(person=>String(person.id)===String(id));if(index>=0)select({type:'person',id:index});}
 };
+// Heartbeat reads the same recorded authority as Activity; seeking uses its normal replay API.
+let heartbeatDisposed=false,heartbeatView=null;
+if(!embedMode)void import('./heartbeat.js').then(({mountHeartbeat})=>{
+ if(heartbeatDisposed)return;
+ heartbeatView=mountHeartbeat(document.body,{source:window.hblWorldActivity,seek:async minute=>{
+  if(!livingWorld?.active)throw Error('Seeking unavailable in Legacy World. Activate Living World to seek recorded periods.');
+  const runtime=livingWorld.getRuntime();
+  playback.pause();
+  return runtime.stepToTime(minute);
+ }});
+}).catch(error=>console.error('City Heartbeat unavailable',error));
+addEventListener('pagehide',()=>{heartbeatDisposed=true;heartbeatView?.destroy();},{once:true});
 // Read-only references to the current authority, shared by tile and 3D views.
 window.hblWorldTileSource={
  getRouteCacheStats:()=>world.getRouteCacheStats?.(),
@@ -642,6 +664,10 @@ if(!embedMode)void import('./reality/diff-radar-panel.js').then(({mountCityDiffR
 addEventListener('pagehide',()=>{cityDiffRadarDisposed=true;cityDiffRadar?.destroy();},{once:true});
 
 
+
+let evidencePath=null,evidencePathDisposed=false;
+if(!embedMode)void import('./evidence-path/panel.js').then(({mountEvidencePath})=>{if(evidencePathDisposed)return;evidencePath=mountEvidencePath({container:document.body,THREE,scene,camera,controls});window.hblEvidencePath=evidencePath;}).catch(error=>console.error('Evidence paths unavailable',error));
+addEventListener('pagehide',()=>{evidencePathDisposed=true;evidencePath?.destroy();delete window.hblEvidencePath;},{once:true});
 
 let temporalCity=null,temporalCityDisposed=false;
 if(!embedMode)void import('./temporal/panel.js').then(({mountTemporalCity})=>{if(temporalCityDisposed)return;temporalCity=mountTemporalCity({container:document.body,origin:{lat:origin.lat,lng:origin.lng}});window.hblTemporalCity=temporalCity;}).catch(error=>console.error('City Time Machine unavailable',error));
@@ -2309,14 +2335,14 @@ function renderInspector() {
       ${b.kind === "home" ? `<div class="muted">Fridge: ${s.fridge} meals</div>` : ""}
       ${b.kind === "park" ? `<div class="need"><span>litter</span><div class="bar"><i style="width:${s.litter}%;background:#b7871b"></i></div></div>` : ""}
       <div class="row">
-        <button id="cityFocus">Focus</button>${b.kind !== "park" ? `<button id="cityCutaway">Cutaway</button>` : ""}
+        <button id="cityFocus">Focus</button>${b.kind !== "park" ? `<button id="cityCutaway" aria-pressed="false">Peel back roof</button><span id="cityCutawayStatus" role="status"></span>` : ""}
         ${["food", "shop", "work", "school"].includes(b.kind) ? `<button id="toggleOpen">${s.open ? "Close it" : "Reopen"}</button>` : ""}
         ${s.maxStock ? `<button id="restock">Deliver stock</button>` : ""}
         ${b.kind === "park" ? `<button id="litterBtn">Dump litter</button>` : ""}
       </div>`;
     mountAPIGeometryDetails(el,{area:originalAreaGeometry,buildingId:b.id});el.style.maxHeight='calc(100vh - 112px)';el.style.overflowY='auto';
     $("cityFocus")?.addEventListener("click", () => cityRenderer.focusBuilding(b.id));
-    $("cityCutaway")?.addEventListener("click", () => { cityRenderer.focusBuilding(b.id); cityRenderer.setCutaway(!cityRenderer.cutawayEnabled); });
+    $("cityCutaway")?.addEventListener("click", () => { const enabled=cityRenderer.setCutaway(!cityRenderer.cutawayEnabled);$("cityCutaway").setAttribute('aria-pressed',String(enabled));$("cityCutawayStatus").textContent=enabled?'Authored building detail · visual geometry only':cityRenderer.getCutawayState().supported?'Roof restored':'Interior geometry unavailable; exterior retained'; });
     $("toggleOpen")?.addEventListener("click", () => { s.open = !s.open; world.log(`${b.name} ${s.open ? "reopened" : "closed"} (by you)`, "civic", b); renderInspector(); });
     $("restock")?.addEventListener("click", () => { s.stock = s.maxStock; world.log(`${b.name} got a delivery (by you)`, "restock", b); renderInspector(); });
     $("litterBtn")?.addEventListener("click", () => { s.litter = Math.min(100, s.litter + 40); renderInspector(); });
@@ -2409,7 +2435,8 @@ function frame(now) {
   hemi.color.setHex(0xc5ddf2);hemi.groundColor.setHex(0x55523f);
   sun.intensity = 2.8 * daylight;
   sun.color.setHex(daylight < .35 ? 0xffce98 : 0xffefda);
-  sun.position.set(Math.cos(ang) * 400, Math.sin(ang) * 500, 200);
+  const direction=visualSun(ang);
+  sun.position.set(direction.x,direction.y,direction.z);
 
   // People
   // In the well-being and cycle overlays everyone is shown (indoors too), colored red→green.
@@ -2469,7 +2496,7 @@ function frame(now) {
     }
   }
 
-  updateArrival(now);cinematicCamera?.update(now);controls.update();
+  updateArrival(now);cinematicCamera?.update(now);streetJourney?.update(now);controls.update();districtTitle?.update(now);
   if(buildingDateBridge?.get().enabled&&now-buildingDateLastRefresh>500){buildingDateLastRefresh=now;buildingDateBridge.refresh();}
   personCommandUI?.update();
   houseEntryControls?.update();
@@ -2624,6 +2651,11 @@ if(loadedExperiment){
  experimentRestored=true;
  }catch(error){playback.pause();startup.restoreError=error.message;const notice=document.createElement('p');notice.style.cssText='position:fixed;top:80px;left:20px;z-index:999;background:#641f28;color:white;padding:16px';notice.textContent='Saved experiment restoration failed; playback paused: '+error.message;document.body.append(notice);}
 }
+// Tours reopen native immutable saves; keep the checkpoint paused for inspection.
+if(location.hash.startsWith('#city-tour='))playback.pause();
+let cityTourPanel=null,cityTourDisposed=false;
+if(!embedMode)void import('./city-tour/panel.js').then(({mountCityTour})=>{if(cityTourDisposed)return;cityTourPanel=mountCityTour({container:$('top'),loadedRecord:loadedExperiment,restored:experimentRestored,pause:()=>playback.pause()});}).catch(error=>console.error('City tour unavailable',error));
+window.addEventListener('pagehide',()=>{cityTourDisposed=true;cityTourPanel?.dispose();},{once:true});
 let questionsPanel=null,questionsDisposed=false;
 if(!embedMode)void import('./questions/panel.js').then(({mountOpenQuestions})=>{if(questionsDisposed)return;questionsPanel=mountOpenQuestions({container:$('top'),getContext:async()=>{camera.updateMatrixWorld();const frustum=new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse));const visible=[...town.buildings,...contextBuildings.values()].filter(b=>b.mesh?.visible&&frustum.intersectsObject(b.mesh)).sort((a,b)=>Math.hypot(a.center[0]-controls.target.x,a.center[1]-controls.target.z)-Math.hypot(b.center[0]-controls.target.x,b.center[1]-controls.target.z));const frame=livingWorld?.active?livingWorld.getSnapshot():null;const person=livingWorld?.active?livingWorld.getSelection():selected;const groundPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0),groundCorners=[];for(const x of [-1,1])for(const y of [-1,1]){const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(x,y),camera);const point=ray.ray.intersectPlane(groundPlane,new THREE.Vector3());if(point&&ray.ray.origin.distanceTo(point)<=camera.far)groundCorners.push(point);}return{origin,bounds:groundCorners.length?{minX:Math.min(...groundCorners.map(p=>p.x)),maxX:Math.max(...groundCorners.map(p=>p.x)),minZ:Math.min(...groundCorners.map(p=>p.z)),maxZ:Math.max(...groundCorners.map(p=>p.z))}:{},visibleBuildingIds:visible.map(b=>String(b.id)),selectedEntity:person?{id:String(person.id??person.personId),kind:livingWorld?.active?'person':person.type}:null,config:frame?.config??world.params,metrics:frame?.metrics??{minute:world.t,population:world.people.length},recentLogs:[{id:'observation-scope',time:livingWorld?.active?livingWorld.getClockMinute():world.t,type:'source-scope',text:'Resident metrics and logs describe the original modeled region at '+origin.lat+','+origin.lng+'; streamed neighboring map geometry does not extend the resident simulation.'},...(livingWorld?.active?frame?.events??[]:world.events).slice(0,39)].map(e=>({id:String(e.id??e.t??e.minute),time:e.minute??e.t??e.time,type:e.type,text:e.text,entityId:e.personId?String(e.personId):undefined}))};}});window.hblOpenQuestions=questionsPanel;}).catch(error=>console.error('Open questions unavailable',error));
 addEventListener('pagehide',()=>{questionsDisposed=true;questionsPanel?.destroy();},{once:true});

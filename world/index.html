@@ -164,10 +164,24 @@ body:has(.saved-future-navigation) #global-illumination-button{top:auto;bottom:m
 
 <details class="panel" id="top">
   <summary title="Minimize or expand world controls" aria-label="HappyBearLandia world controls"><h1>World controls</h1></summary>
+  <details id="playfulness" data-enabled="false" hidden>
+    <summary>Optional playfulness study</summary>
+    <p>Randomly try plain or playful wording for the same inspection task. No rewards, identity, uploads or changes to model results. Declining has no effect on access.</p>
+    <label><input type="checkbox"> I agree to store this study's counters in this browser until I uncheck and delete them.</label>
+    <p data-prompt></p>
+    <div data-actions hidden><button type="button" data-event="task">I inspected a result and its assumption</button><button type="button" data-event="replay">I reran it with a changed assumption and inspected the difference</button></div>
+    <p>Metrics are self-reports: task completion / enrolled browser; meaningful replay / task completers; return on a later UTC day / enrolled browser; withdrawal / enrolled browser. Counts are capped once per enrollment. Return means this browser, not a person. Withdrawal erases storage; its count survives only on this page. No population opt-out rate is available after deletion.</p>
+    <p>Only consenting browsers with working storage are eligible. This local sample cannot estimate a population effect. No animation is used.</p>
+    <p role="status" style="overflow-wrap:anywhere"></p>
+  </details>
+
   <div data-player-feedback></div>
   <div class="row"><a href="/reality-compiler" onclick="this.search=location.search">Reality Compiler</a> · <a href="/city-speaks" onclick="this.search=location.search">Who does this hurt?</a></div>
+  <div class="row"><a href="/world/guest/index.html">Temporary guest snapshot</a></div>
   <a href="/world/city-lab.html" onclick="this.search=location.search" style="color:var(--accent);font-size:12px">City Systems Laboratory ↗</a>
   <div class="row"><a href="/business-simulator">Business Lab</a> · <a href="/world?business_mode=true">Place a business</a></div>
+  <div class="row"><a href="/world?text=1">Text adventure · no graphics · fresh synthetic scene</a></div>
+  <div class="row"><a href="/world/ar-tabletop/">AR City Tabletop · opt-in camera / 2D fallback</a></div>
   <div class="row"><a id="city-view-link" href="/world/static-city.html">City view only · WebGL2 · no simulation</a></div>
   <div class="row" id="living-city-toolbar" aria-label="Population mode"></div>
   <details><summary>Precise location</summary>
@@ -297,6 +311,7 @@ body:has(.saved-future-navigation) #global-illumination-button{top:auto;bottom:m
   </div>
 </div>
 
+<script type="module" src="/world/playfulness/main.js"></script>
 <script type="module" src="/world/player-feedback.js"></script>
 <script type="module" src="/world/model-provenance-loader.js"></script>
 <script type="module" src="/world/first-run-guide.js"></script>

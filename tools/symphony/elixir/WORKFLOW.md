@@ -1,4 +1,7 @@
 ---
+# Separate source-only Elixir pilot. The current Mini Symphony Bun runner is
+# tools/symphony/mini-bun/run.ts; its profiles, locks, mini/* branches and worker
+# ceiling are independent. Do not copy live Mini limits or relax these labels.
 tracker:
   kind: linear
   provider:

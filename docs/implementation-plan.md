@@ -13,7 +13,7 @@ contract before implementing a bounded overlay. No commit/PR, merge or deploymen
 # HappyBearLandia implementation plan
 
 
-## Mini Symphony reliability / PR recovery — November 17 (in progress)
+## Mini Symphony reliability / PR recovery — November 17 (bounded increment implemented)
 
 Owner requests throughput improvements across HBL and Dear Congress. The active
 path is Bun Mini Symphony (one worker/project, mini/*, ready-for-review PRs),
@@ -37,6 +37,8 @@ commits. Collect live backlog/host evidence read-only. Admin settings and human
 approval remain explicit operator work. Risks: unavailable branch-protection API,
 stale CI data and remote service/browser failures must fail closed; no 25-hour
 availability claim or live integration activation without actual evidence.
+
+Implementation/check evidence and explicit remaining operations: [reliability review](reviews/mini-symphony-reliability-20261117.md). Canonical export, external artifacts, approval guard, five-config isolation and advisory repair queue are implemented; live rollout, GitHub protections, automated repair dispatch and persistent-deadline Bun supervision remain unclaimed.
 
 ## SHE-990 sidewalk synchronization follow-up — November 17
 
@@ -11361,3 +11363,29 @@ The operator reviewed runtime `2f9741bd8843ba0f5dcd85cf9c343e559e52e79b` and aut
 Cloud-only encrypted snapshot restores and actual previous-image compatibility checks passed for both applications. The final HBL image reports the exact reviewed build identity and preserves original database records. Raw production records and backup archives were not downloaded; only redacted verification metadata is retained locally. Temporary restore helpers were removed and encrypted backups remain in Fly.
 
 Civic reviewed source `795c6944` passed 536 tests, type checks, route checks and 75 accessibility cases; PR123 merged as `54f1c732`. Its production release remains gated on provider rollout and tagged-release validation. HBL's hosted model matrix and six-sample calibration passed; numeric first-interaction proposals remain unapplied. The final locally executed canonical selections passed: shared flagship 4/4, Time Machine 4/4, causal inspector 9/9 and normal replay/malformed manifest 2/2. Final hosted verification and actual production/browser parity are still required. Subsequent release status and evidence are recorded in [PR320](https://github.com/adnanwahab/happybearlandia/pull/320) and the reviewed Civic release.
+## SHE-63 r4 merged-source matrix retry — 2026-11-17
+
+Pinned local and remote sprint SHA `926d4edde66a2b2aa42e2af6f406978d45c9cda4`
+includes PR #418. Matching Actions run 44063326098 executed all 15 cases:
+4 pass / 11 fail. All three 320px Canvas cases and WebKit sharing pass;
+remaining cases fail at month selection or share-before-commit. Scoped canonical
+test helpers now dispatch change and await committed month, preserving all cases
+and assertions. Local wrapper exits 2 on EPERM; candidate browser rerun remains
+required. Artifact download returned a file reference, but sandbox networking
+blocked byte retrieval; decoded job logs were inspected and excerpt retained.
+Focused checks: 33 pass/1 opt-in browser skip (884 assertions), preview checks
+2 pass/1 opt-in browser skip (12 assertions); 15 cases discover, syntax/diff pass.
+Native Safari/physical mobile unavailable, SHE-44 measurements incomplete,
+SHE-63 acceptance and SHE-64 recording gate open. See
+[review and exact evidence](reviews/SHE-63-r4.md). Owned files: two test helpers,
+issue report/excerpt and this status entry. No model/UI/policy change or new
+commit/PR, merge, deployment, external message or production action.
+
+## SHE-63 Firefox guided-controls repair — November17
+
+Existing PR422 rebased onto sprintdd9f6b68. Exact cab89 CI14/15 screenshot/trace
+shows a painted Canvas2D plan building, not missing model inventory. Repair active
+Canvas pick diagnostics and clipped visible interior targets; keep all15 cases
+and original normal-click/PROJECT_COMPLETE assertions. Exact-head source manifest
+will accompany the permissioned Actions run. SHE64 remains blocked pending actual
+exact-revision matrix and broader review. [Evidence](reviews/SHE-63-r4.md).

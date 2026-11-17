@@ -14,6 +14,9 @@ test('City Deck zoom freezes evidence, reverses and inspects actual identity',as
  const count=page.locator('[data-zoom-count]');await expect(count).toContainText('1,000,000 represented');
  await page.getByRole('button',{name:'District',exact:true}).click();await expect(count).toContainText('Home district');
  await page.getByRole('button',{name:'Resident',exact:true}).click();await expect(count).toContainText('1 simulated resident');await page.waitForTimeout(1000);
+ await expect(page.locator('[data-zoom-group]')).toContainText('total active agents: unavailable');
+ const ids=await page.locator('[data-zoom-members] button').allTextContents();expect(ids.length).toBeGreaterThan(0);expect(ids.length).toBeLessThanOrEqual(12);
+ await page.locator('[data-zoom-members] button').first().click();expect(await page.evaluate(()=>inspected)).toBe(ids[0]);
  const resident=await count.textContent();
  await page.evaluate(()=>zoomDeck.update({...zoomFrame,metrics:{representedPopulation:2},visibleAgents:[]}));await expect(count).toHaveText(resident);
  await page.locator('[data-zoom-inspect]').click();expect(await page.evaluate(()=>inspected)).toBe(await page.evaluate(async()=>{const {zoomEvidence}=await import('/world/population/zoom.js');return zoomEvidence(zoomFrame).person.id;}));

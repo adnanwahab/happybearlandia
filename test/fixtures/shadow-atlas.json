@@ -1,0 +1,1 @@
+{"version":"shadow-atlas-fixture-v1","source":"authored synthetic metric geometry; no observations","seed":null,"trees":null,"buildings":[{"id":"synthetic:park","kind":"park","poly":[[10,0],[40,0],[40,30],[10,30]]},{"id":"synthetic:building","kind":"home","height":10,"poly":[[0,0],[10,0],[10,10],[0,10]]}]}

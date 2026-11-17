@@ -8,6 +8,9 @@ const [baseURL = 'http://127.0.0.1:3198', directory = 'test-results/performance'
 const output = resolve(directory);
 await mkdir(output, { recursive: true });
 const backends = (process.env.HBL_PERF_BACKENDS || 'webgpu').split(',');
+const selectedScene = process.env.HBL_PERF_SCENE;
+if (selectedScene && !Object.hasOwn(budgets, selectedScene)) throw new Error(`Unknown performance scene: ${selectedScene}`);
+const scenes = selectedScene ? [selectedScene] : Object.keys(budgets);
 if (backends.some(b => !['webgl2', 'webgpu'].includes(b))) throw Error('Unknown backend');
 // On GitHub's GPU-less Linux runners, WebGPU must use the software Vulkan
 // adapter rather than an unusable hardware device. Still require the real
@@ -20,7 +23,7 @@ const browser = await chromium.launch({ args: [
 ] });
 const results = [];
 try {
-  for (const scene of Object.keys(budgets)) for (const backend of backends) {
+  for (const scene of scenes) for (const backend of backends) {
     const id = `${scene}-${backend}`;
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
     const page = await context.newPage();

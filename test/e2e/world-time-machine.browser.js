@@ -70,6 +70,12 @@ test('record, scrub, inspect and reopen a stored city month', async ({ page }) =
   await expect(page.getByRole('heading', { name: 'PROJECT_COMPLETED', exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'MODEL_INPUTS', exact: true })).toBeVisible();
   const url = page.url();
+  await page.getByRole('button', { name: 'Inspect MODEL_INPUTS', exact: true }).press('Enter');
+  await expect(page.getByRole('button', { name: 'Return to previous checkpoint' })).toBeVisible();
+  await expect.poll(() => new URL(page.url()).searchParams.get('event')).not.toBe(new URL(url).searchParams.get('event'));
+  await page.getByRole('button', { name: 'Return to previous checkpoint' }).press('Enter');
+  await expect(newBuilding).toHaveAttribute('aria-pressed', 'true');
+  await expect.poll(() => page.url()).toBe(url);
   expect(new URL(url).searchParams.get('source')).toBe('worldline');
   expect(new URL(url).searchParams.get('event')).toBeTruthy();
   await page.reload();

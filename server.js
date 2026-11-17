@@ -1,8 +1,12 @@
 import { createServerLogs } from './ops/server-logs/api.js';
+import {createRescueHandler} from './world/storm/rescue-api.js';
+import {createPlayerFeedbackHandler} from './ops/player-feedback/api.js';
 // Redacted request, error and warning logs, published at /api/server-logs.
 // Start capturing before other handlers initialize. See ops/server-logs/README.md.
 const serverLogs = createServerLogs(process.env);
 serverLogs.captureConsole();
+const handleStormRescue=createRescueHandler();
+const handlePlayerFeedback=createPlayerFeedbackHandler({directory:process.env.HBL_PLAYER_FEEDBACK_DIR||undefined});
 import {civicProviderUrl,civicPublishUrl} from './ops/civic-provider.js';
 import { createMiniSymphonyHandler } from './ops/mini-symphony/api.js';
 const handleMiniSymphony = createMiniSymphonyHandler();
@@ -21,8 +25,7 @@ const handleReleaseExperiment=createExperimentHandler({
 import {createSimulationAdmission,simulationAdmissionOptionsFromEnv} from './ops/security/simulation-admission.js';
 import {createLawBehaviorHandler} from './world/laws/behavior-api.js';
 const admitSimulation=createSimulationAdmission(simulationAdmissionOptionsFromEnv(process.env));
-import {createPlayerFeedbackHandler} from './ops/player-feedback/api.js';
-const handlePlayerFeedback=createPlayerFeedbackHandler();
+
 import {createSessionSurveyHandler} from './ops/session-survey/api.js';
 const handleSessionSurvey=createSessionSurveyHandler();
 import {createCausalityHandler} from './world/causality/api.js';
@@ -66,6 +69,8 @@ const handleDatePlaces=createDatePlacesHandler();
 import {createWorldPersistenceHandler,EXPERIMENT_MAX_BYTES} from './world/experiments/persistence-api.js';
 const handleWorldPersistence=createWorldPersistenceHandler({dbPath:releaseStorage.worldDbPath});
 import {createRealityShareHandler} from './world/reality/share-api.js';
+import {createGuestHandler} from './world/guest/api.js';
+const handleGuestSnapshots=createGuestHandler({dbPath:process.env.HBL_GUEST_DB_PATH||undefined});
 import {createOpenQuestionsHandler} from './world/questions/api.js';
 const handleRealityShares=createRealityShareHandler({dbPath:process.env.HBL_REALITY_SHARE_DB_PATH||undefined});
 const handleOpenQuestions=createOpenQuestionsHandler();
@@ -504,6 +509,7 @@ const server = serve({
     if (pathname === "/api/law-behavior") return handleLawBehavior(request);
     if (pathname === '/vote-on-patch' || pathname === '/vote-on-patch/') return serveFile('./world/patch-voting.html');
     if (pathname === '/api/patch-votes' || pathname.startsWith('/api/patch-votes/')) return patchVoting(request);
+    if(pathname === '/api/storm/rescue' || pathname.startsWith('/api/storm/rescue/'))return handleStormRescue(request);
     if (pathname === '/api/patches' || /^\/api\/patches\/[A-Za-z0-9_-]{1,32}\/(impact|vote)\/?$/.test(pathname)) return patchVoting(request);
     if (pathname === '/webhooks/github') return patchGithubWebhook(request);
     if(pathname.startsWith('/api/act-normal/'))return actNormalService.fetch(request,server);
@@ -524,6 +530,10 @@ const server = serve({
     // Population benchmark is an explicit worker workload, separate from renderer scenes.
     if (pathname === "/world/bench/people" || pathname === "/world/bench/people/") return serveFile("./world/people-benchmark.html");
 
+    if (pathname === "/demo-gallery" || pathname === "/demo-gallery/") return serveFile("./tools/demo-gallery/index.html");
+    if (pathname === "/demo-gallery/media/future-machine.mp4") return serveFile("./docs/evidence/she64/one-city-two-futures.mp4");
+    // Stable owner-managed homepage share assets; missing files remain honest 404s.
+    if (pathname === "/preview.jpg" || pathname === "/preview.mp4") return serveFile(`.${pathname}`);
     if (pathname.replace(/\/$/, "") === "/routes") return serveFile("./routes.html");
     if (pathname.startsWith("/api/github/")) return await handleGitHub(request);
     if (/^\/github(?:\/pulls\/[1-9]\d{0,7}|\/previews\/[a-f0-9]{32})?\/?$/.test(pathname)) return serveFile("./web/github/index.html");
@@ -594,6 +604,7 @@ const server = serve({
     if (under(pathname, "/api/causality")) return handleCausality(request);
     if (under(pathname, "/api/world-history")) return handleTemporalCity(request);
     if (under(pathname, "/api/reality-shares")) return handleRealityShares(request);
+    if (under(pathname, "/api/guest-snapshots")) return handleGuestSnapshots(request);
     if (under(pathname, "/api/world-homes")) return handleWorldPersistence(request);
     if (under(pathname, "/api/world-experiments")) return handleWorldPersistence(request);
     if (["/api/date-mystery/status","/api/date-mystery/generate"].includes(pathname)) return handleDateMystery(request);
@@ -628,6 +639,7 @@ const server = serve({
     if (pathname.startsWith("/api/scenes/")) return handleSceneById(pathname);
     if (pathname === "/api/screenshots") return handleScreenshots(new URL(request.url));
     if (under(pathname, "/api/dear-congress")) return proxyDearCongress(request);
+    if (["/world", "/world/"].includes(pathname) && new URL(request.url).searchParams.get("text") === "1") return serveFile("./world/text-adventure.html");
     if (under(pathname, "/world")) {
       let decodedWorldPath;
       try { decodedWorldPath = normalize(decodeURIComponent(pathname)); } catch { return notFound(); }
@@ -635,6 +647,7 @@ const server = serve({
       if (decodedWorldPath === "/world/constitution-city/source-api.js") return notFound();
       if (/^\/world\/temporal\/(api|store)\.js$/.test(decodedWorldPath)) return notFound();
       if (decodedWorldPath === "/world/reality/share-store.js") return notFound();
+      if (decodedWorldPath === "/world/guest/api.js") return notFound();
       if (decodedWorldPath === "/world/experiments/persistence-store.js") return notFound();
       if (/^\/world\/decision\/(api|store|worker|optimization-api)\.js$/.test(decodedWorldPath)) return notFound();
       if (/^\/world\/ai\//.test(decodedWorldPath) && !/^\/world\/ai\/(edit-schema|edit-validator|revisions)\.js$/.test(decodedWorldPath)) return notFound();

@@ -1,0 +1,12 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Two-player Storm Rescue</title>
+<style>body{font:18px system-ui;max-width:48rem;margin:auto;padding:1rem;background:#112333;color:#fff}button,input,select{font:inherit;padding:.6rem;max-width:100%;box-sizing:border-box}label{display:block;margin:1rem 0}pre{white-space:pre-wrap;overflow-wrap:anywhere}a{color:#acf}</style>
+<main><a href="/world/storm/">Storm</a><h1>Two-player Storm Rescue</h1>
+<p>Synthetic exercise, not emergency guidance. Crew proposes four crossing drains ($480,000) or none. Budget chooses installation before rainfall or a missed response window. Only before-rain installation is modeled; no mid-storm construction is inferred. Budget cap: $480,000 modeled USD.</p>
+<p>Private capability access. Rooms expire after one hour or server restart. Manually give each friend only their role key through a trusted private channel. No automatic invitations or public sharing. Either role can delete the room.</p>
+<button id="create">Create private room</button><pre id="keys"></pre>
+<label>Room ID <input id="room" autocomplete="off"></label><label>Role key <input id="key" type="password" autocomplete="off"></label>
+<button id="refresh">Open / refresh room</button>
+<label>Crew resources <select id="resources"><option value="crossing">Four crossing drains</option><option value="none">No drains</option></select></label><button id="crew">Propose resources (crew)</button>
+<label>Response timing <select id="timing"><option value="before">Before rain</option><option value="missed">Missed window</option></select></label><button id="budget">Propose timing (budget)</button>
+<button id="commit">Commit combined plan (budget)</button><button id="replay">Replay committed plan</button><button id="delete">Delete room</button>
+<p id="status" role="status" aria-live="polite">Open a room to load its current revision. Results unknown until both proposals are committed.</p><pre id="result"></pre></main><script type="module" src="./rescue-page.js"></script></html>

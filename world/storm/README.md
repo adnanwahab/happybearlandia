@@ -80,3 +80,67 @@ and `node node_modules/playwright/cli.js test --config test/storm-cutaway.browse
 The browser suite records actual storm-route baseline/current desktop and mobile
 captures, exercises reduced motion, forced 2D, keyboard selection, rapid timeline
 and arm changes, no-canvas/missing/empty/overflow and idempotent disposal.
+
+### Two-player rescue (SHE-772)
+
+From `/world/storm/`, open **Two-player Storm Rescue**. `rescue-api.js` owns
+private, in-memory rooms (100 maximum, one-hour expiry, lost on restart). Random
+bearer capabilities authorize separate crew/resource and budget/timing proposals.
+Keys stay out of URLs and browser storage; participants manually exchange only
+their designated key. This is role-capability authorization, not verified personal
+identity. Neither role receives the other's key through room reads.
+
+Both participants submit against a current revision. Budget commits only a
+complete plan; synchronous validation, computation and publication prevent a
+second commit or double-spend in this single server process. Failed computation
+publishes nothing. Refresh retrieves changes; there is no push notification.
+The bounded supported actions are no drains/four crossing drains and install
+before rainfall/miss the response window. Missed installation spends zero and
+retains the baseline; no mid-storm installation mechanics are invented.
+
+The immutable receipt pins `storm-rescue.v1`, water model version, seed, both
+normalized recipes and synthetic source. It records modeled impact totals and
+explicit unknown real-world outcomes. Authenticated replay recomputes the plan
+using the pinned implementation in this checkout; it is not an archival engine
+for future model versions. This orchestrates the existing environmental model,
+not a new social ABM. No measured rescue outcomes or calibrated uncertainty exist.
+Either capability may delete the entire room; expired/deleted rooms cannot replay.
+Previously copied receipts cannot be revoked. No public directory, social posting,
+external invitations or durable storage is enabled. Static native controls and
+text receipts require no animation, graphics, or pointer input.
+
+Checks: `bun test test/storm-rescue.test.js` and
+`bunx playwright test --config test/storm-rescue.browser.config.mjs`.
+
+### Recorded drainage ribbons (SHE-736)
+
+Open **Flood and drainage fields → Drainage ribbons**. The normal solver has no
+recorded underground edges, edge outflow or edge overflow; it therefore displays
+unavailable and draws no pipes. Cell removal capacity must never be mapped to an
+edge rate. This slice does not change the solver or introduce a social mechanism.
+
+`drainage.js` accepts `frame = {arm, step, drainage}`. The optional record contract
+is `drainage-edges.v1`: `runId`, `source`, `kind` (`observed`, `synthetic`, or
+`modeled`), exact `arm` and integer `step`, `units` (`m³/s` or
+`m³ per model step`) and `edges`. Each edge requires unique `id`, `source`, and
+`points` (at least two normalized [x,y] pairs in [0,1], ordered in the positive
+flow direction). These are recorded schematic coordinates, with no inferred
+connections, street alignment, pipe diameter, elevation or underground depth.
+`flow` and `overflow` are separate nonnegative finite source values; absent or
+invalid readings are unknown, never zero. Overflow is numeric only. Unsupported
+versions, units, mismatched arm/step and invalid geometry produce no ribbons.
+No real-duration conversion, hydraulic inference or probability is calculated.
+
+The deterministic JSON at `test/fixtures/storm/drainage.json` is authored synthetic
+input with flowing/overflow, dry and unknown edges. It is not storm-model output
+or a real infrastructure observation. Its run identifier records fixture version
+and seed 0; it makes no random calls. The normal page only passes optional
+`water.drainage[step]` from the selected run, never this fixture. A future producer
+must preserve run identity and provide recorded geometry and measurements.
+
+Transparent moving dashes mark positive flow. Their constant speed is purely
+decorative and has no velocity meaning. Reduced motion disables animation;
+closed details stop animation. The renderer uses DOM/SVG, no GPU resources,
+assets, timers or requestAnimationFrame loop. Destroy removes its listener and
+all owned nodes and releases its frame; it is idempotent. Visual browser and
+physical consumer-device performance acceptance remain pending (see review).
