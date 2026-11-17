@@ -32,7 +32,8 @@ for(const mobile of [false,true])test(`cinematic presets preserve selection and 
  await page.goto('/world?synthetic=1&people=16');
  await page.waitForFunction(()=>window.hblWorldStartup?.readyMs&&window.__presetControls);
  const sample=()=>page.evaluate(()=>({position:__presetControls.object.position.toArray(),target:__presetControls.target.toArray()}));
- await page.locator('#top').evaluate(node=>node.open=true);
+ await page.locator('#launch-navigation [data-launch="tools"]').click();
+ await expect(page.locator('#top')).toBeVisible();
  const picker=page.getByTestId('camera-presets');await picker.locator('summary').click();
  await expect(picker.getByRole('button',{name:'Return',exact:true})).toBeDisabled();
  await picker.getByRole('button',{name:'Follow',exact:true}).click();await expect(picker.getByRole('status')).toContainText('unavailable');
