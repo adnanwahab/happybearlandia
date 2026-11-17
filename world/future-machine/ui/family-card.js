@@ -4,13 +4,13 @@ export function mountFamilyCard(container,{onFollow}={}){
  const doc=container.ownerDocument,node=(tag,text)=>{const e=doc.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
  const shell=node('section');shell.className='fm-family';shell.setAttribute('aria-label','Follow a synthetic family');
  const label=node('label','Family · biggest rent-burden difference first '),picker=node('select');picker.setAttribute('aria-label','Family');label.append(picker);
- const follow=node('button','Follow this family');follow.type='button';follow.setAttribute('aria-pressed','false');
+ const follow=node('button','Follow this family');follow.type='button';if(onFollow)follow.setAttribute('data-palette-action','follow');follow.setAttribute('aria-pressed','false');
  const content=node('div');shell.append(node('h2','One family, two futures'),label,follow,content);container.append(shell);
  let context={},history=null,id=null,following=false,rank=[];
  picker.onchange=()=>{id=picker.value;render();if(following)onFollow?.(id);};
  follow.onclick=()=>{following=!following;follow.setAttribute('aria-pressed',String(following));follow.textContent=following?'Stop following':'Follow this family';onFollow?.(following?id:null);};
  function render(){
-  content.replaceChildren();const seed=history?.seed??context.provenance?.seed;
+  follow.setAttribute('data-palette-context',JSON.stringify([history?.experimentId,history?.seed,id,context.month]));content.replaceChildren();const seed=history?.seed??context.provenance?.seed;
   if(!id){content.append(node('p','No recorded households available.'));return;}
   const identity=familyIdentity(seed,id),title=node('h3',identity.name),avatar=node('span');
   avatar.className='fm-family-avatar';avatar.setAttribute('role','img');avatar.setAttribute('aria-label',`Synthetic avatar for ${identity.name}`);avatar.style.background=`hsl(${identity.hue} 45% 32%)`;avatar.textContent=['◕ ‿ ◕','• ◡ •','◕ ◡ ◕'][identity.hair];title.prepend(avatar);content.append(title,node('p',`Synthetic name and avatar · ${id} · Run ${history?.experimentId??'preview'} · Seed ${seed??'unavailable'} · Model ${history?.modelVersion??context.provenance?.modelVersion??'unavailable'}`));

@@ -2,3 +2,11 @@
 .city-challenge table{border-collapse:collapse;width:100%;font-size:11px;background:white;margin:10px 0}.city-challenge th,.city-challenge td{padding:7px;text-align:left;border-bottom:1px solid #cbd8be;overflow-wrap:anywhere}.city-challenge td:not(:first-child){font-variant-numeric:tabular-nums}
 
 .city-challenge .challenge-check small{display:block;margin-top:4px;color:#596d50}
+
+/* Small inline decoration: no overlay, focus capture, sound or model effect. */
+.challenge-celebration {padding:12px;border:1px solid #d7ae50;border-radius:10px;color:#ffe5a0}
+.challenge-celebration[hidden] {display:none}
+.challenge-celebration span {display:inline-block;margin-right:12px}
+.challenge-celebration {position:relative}
+.challenge-celebration .challenge-star {position:absolute;left:50%;bottom:6px;opacity:0;pointer-events:none}
+@media(prefers-reduced-motion:reduce) {.challenge-celebration .challenge-star {display:none}}

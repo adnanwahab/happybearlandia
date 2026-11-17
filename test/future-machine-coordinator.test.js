@@ -6,6 +6,7 @@ import {createDemoController} from '../world/future-machine/demo-controller.js';
 import {createFirstPlayFunnel,visibleDivergence} from '../world/future-machine/first-play.js';
 import * as sharing from '../world/future-machine/share/index.js';
 import * as recent from '../world/future-machine/recent.js';
+import {buildSpotlight} from '../world/future-machine/diff/spotlight.js';
 import {createDiscoveryQuest} from '../world/future-machine/ui/discovery-quest.js';
 import {describeModelChange} from '../world/future-machine/story/narration.js';
 import {createDemoTiming} from '../world/future-machine/demo-performance.js';
@@ -17,7 +18,7 @@ import {assertFrameIntegrity} from '../world/future-machine/integrity.js';
 const source=await readFile(new URL('../world/future-machine/main.js',import.meta.url),'utf8');
 const deferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};};
 function historyFor(recipe=DEFAULT_RECIPE,id='city_coordinator'){
- const snapshots=()=>Array.from({length:121},(_,month)=>({month,state:{households:[],buildings:[],provenance:{assumptions:[]}},metrics:{},events:[],causalRecords:[],decisions:[]}));
+ const snapshots=()=>Array.from({length:121},(_,month)=>({month,state:{month,seed:recipe.seed,version:recipe.modelVersion,households:[],buildings:[],projects:[],provenance:{assumptions:[]}},metrics:{},events:[],causalRecords:[],decisions:[]}));
  return {schemaVersion:'future-machine.v1',modelVersion:recipe.modelVersion,seed:recipe.seed,recipe:structuredClone(recipe),experimentId:id,initialHash:'fixture-only',baseline:snapshots(),plan:snapshots(),provenance:{}};
 }
 const diffFor=month=>({month,available:true,changedCount:month>=16?1:0,physicalCount:month>=16?1:0,entities:month>=16?[{...first.entity,kind:'added',before:null,after:{id:first.entity.id},changedFields:['id'],physical:true}]:[],metrics:{housingUnits:{baseline:36,plan:month>=16?60:36,delta:month>=16?24:0,unit:'homes',status:'available'}}});
@@ -31,12 +32,14 @@ async function boot(options={}){
  const node=()=>({after(){},before(){},prepend(){},replaceChildren(){},remove(){},click(){},querySelector(){return this;}});
  const app=node(),document={hidden:false,querySelector:()=>app,createElement:node,addEventListener(){},removeEventListener(){}};
  const navigator={clipboard:{writeText:options.copy??(async()=>{})},share:options.nativeShare??(async()=>{})};
- const window={history:{replaceState(_a,_b,url){location.href=url;writes.push(url);}},localStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},addEventListener(){},removeEventListener(){}};
+ const window={matchMedia:()=>({matches:!!options.reducedMotion}),history:{replaceState(_a,_b,url){location.href=url;writes.push(url);}},localStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},addEventListener(){},removeEventListener(){}};
  const context=createContext({document,window,navigator,location,performance:{now:()=>time},structuredClone,URL,URLSearchParams,AbortController,Blob,console,setTimeout,clearTimeout,
   requestAnimationFrame:fn=>{const id=nextId++;raf.set(id,fn);return id;},cancelAnimationFrame:id=>raf.delete(id),
   setInterval:fn=>{const id=nextId++;intervals.set(id,fn);return id;},clearInterval:id=>intervals.delete(id)});
  const noop=()=>{};
  const modules={
+  './diff/spotlight.js':{buildSpotlight},
+  './ui/spotlight.js':{mountSpotlight:()=>({root:node(),reset:noop,update:noop,dispose:noop})},
   './follow-up.js':{createFollowUp(_root,events){followUpCallbacks=events;return {update:state=>followUpState=state,dispose:noop};}},
   './demo-performance.js':{consumeDemoClick:()=>options.entryClick??null,createDemoTiming:()=>createDemoTiming({now:()=>1000+time}),visibleCity:()=>options.visible!==false},
   './contracts.js':{DEFAULT_RECIPE,MONTHS,assertMonth},
@@ -56,8 +59,9 @@ async function boot(options={}){
    let backend=gate?'pending':options.renderer??'canvas2d';
    let camera=structuredClone(options.camera??{x:0,z:0,zoom:1});
    const stage={onSelect,onCameraInteraction,history,disposed:false,shots:[],frames:[],restored:[],transition:false,cancellations:0,
-    setMode:noop,setGhosts:noop,resetCamera:noop,update(frame,diff){this.frames.push({frame:structuredClone(frame),diff:structuredClone(diff)});},
+    setMode:noop,setGhosts:noop,resetCamera:noop,update(frame,diff){if(frame)assertFrameIntegrity(frame);this.frames.push({frame:structuredClone(frame),diff:structuredClone(diff)});},
     focus(entity,settings={}){this.shots.push({entity:structuredClone(entity),...settings});this.transition=Boolean(settings.animate);return true;},
+    followHousehold:noop,divergenceShot(stop){return this.focus(stop.entity,{animate:true,scale:stop.scale,duration:2800});},
     cancelCamera(){this.transition=false;this.cancellations++;},getCamera:()=>structuredClone(camera),
     setCamera(value){if(options.compatibleCamera===false)return false;camera=structuredClone(value);this.restored.push(camera);return true;},
     getStats:()=>({backend}),whenReady:()=>gate?gate.promise.then(()=>{backend=options.renderer??'canvas2d';}):Promise.resolve(),dispose(){this.disposed=true;}};
@@ -66,13 +70,14 @@ async function boot(options={}){
   './ui/outcome-timeline.js':{createOutcomeTimeline:()=>({update:(month,settings)=>{if(settings?.announce)announcements.push(month);},dispose:noop})},
   './story/index.js':{buildStory:()=>({summary:'Recorded pair.',stops:[first],limitations:[]}),describeSelection:()=>({title:'Recorded building',summary:'Recorded entity.',evidence:[receipt],limitations:[]}),renderStory(_host,value,events){description=value;storyCallbacks=events;return noop;}},
   './story/evidence-trail-view.js':{renderEvidenceTrail:()=>Object.assign(noop,{update:noop})},
-  './story/game-director.js':{selectMoments:()=>[]},'./story/moment-narrative.js':{renderMoments:()=>noop},
+  './story/game-director.js':{selectMoments:()=>options.moments??[]},'./story/moment-narrative.js':{renderMoments:()=>noop},
   './evidence.js':{constructionReceipts:(_h,_e,month)=>month>=16?[receipt]:[],metricChangeStops:(_h,diff,key)=>key==='housingUnits'&&diff.month>=16?[{...first,title:'Recorded housing completion',evidence:[receipt]}]:[]},
   './rent-decomposition.js':{decomposeRent:frame=>frame,renderRentDecomposition:noop},
   './butterfly-ledger.js':{mountLedger:()=>noop},'./share/card.js':{downloadShareCard:noop},
   './share/index.js':{...sharing},'./recent.js':{...recent},
   './ui/replay-receipt.js':{mountReplayReceipt(_host,events){receiptCallbacks=events;return {update:noop,dispose:noop};}},
   './share/run-receipt.js':{replayRunReceipt:async(input,settings)=>{requests.push(['receipt',structuredClone(input)]);return options.reopen(input,settings);}},
+  './story/comic.js':{mountComic:()=>({clear:noop,dispose:noop})},
   './ui/challenges.js':{createChallengeCards:()=>({update:noop,dispose:noop})},
   './share/challenges.js':{parseChallengeURL:async()=>options.challenge?await options.challenge():null,verifyChallengeHistory:async(h,c)=>{requests.push(['verify',h.experimentId]);await options.verify?.(h,c);}},
  };
@@ -395,6 +400,12 @@ test('initial preview renders actual Month 0 inventory without claiming complete
   expect(app.stages[0].frames.at(-1)).toEqual({frame:app.state.frame,diff:null});
   expect(app.description.title).toContain('initial snapshot');expect(app.description.evidence).toEqual([]);
   expect(app.updates.at(-1).preview).toBe(true);expect(app.followUpState.history).toBeNull();
+  expect(app.state.frame.baseline.metrics).toEqual({});expect(app.receiptCallbacks.getContext().history).toBeNull();
+  const id=app.state.frame.plan.state.buildings[0].id;app.stages[0].onSelect({collection:'buildings',id,arm:'invalid'});
+  expect(app.stages[0].shots).toEqual([]);
+  app.stages[0].onSelect({collection:'buildings',id,arm:'plan'});
+  expect(app.description.title).toBe(`Initial snapshot · ${id}`);expect(app.description.evidence).toEqual([]);
+  expect(app.window.futureMachine.firstPlayEvents.some(row=>['demo_start','first_divergence','why_opened'].includes(row.event.type))).toBe(false);
  }finally{app.dispose();}
  expect(app.state.frame).toBeNull();expect(app.stages[0].disposed).toBe(true);
 });
@@ -435,5 +446,56 @@ test('cancel retains initial inventory and ignores a late result without restori
   pending.resolve(historyFor());await playing;await app.drain();app.tick(50000);
   expect(app.state.frame).toEqual(initial);expect(app.window.futureMachine.history).toBeNull();
   expect(app.state.playing).toBe(false);expect(app.window.futureMachine.stats.demoTiming).toBeNull();
+ }finally{app.dispose();}
+});
+
+ test('optional event windows hold recorded months and pause/seek immediately overrides',async()=>{
+ const app=await boot({moments:[{kind:'construction',month:16}]});
+ try{
+ await app.callbacks.onRun(DEFAULT_RECIPE);app.callbacks.onMonth(15);
+ app.callbacks.onEventSlowdown(true);app.callbacks.onPlay(true);
+ for(let i=0;i<3;i++)app.tick(200);expect(app.state.month).toBe(15);
+ app.tick(200);expect(app.state.month).toBe(16);
+ app.callbacks.onPlay(false);app.tick(200);expect(app.state.month).toBe(16);
+ app.callbacks.onMonth(42);app.tick(200);expect(app.state.month).toBe(42);expect(app.state.playing).toBe(false);
+ app.callbacks.onPlay(true);app.tick(200);expect(app.state.month).toBe(43);
+ app.callbacks.onMonth(16);app.callbacks.onEventSlowdown(false);app.callbacks.onPlay(true);app.tick(200);expect(app.state.month).toBe(17);
+ }finally{app.dispose();}
+ });
+ test('eventless runs retain normal playback even with slowdown selected',async()=>{
+ const app=await boot();try{await app.callbacks.onRun(DEFAULT_RECIPE);app.callbacks.onEventSlowdown(true);app.callbacks.onPlay(true);app.tick(200);expect(app.state.month).toBe(1);}finally{app.dispose();}
+ });
+
+test('reduced motion bypasses optional event holds',async()=>{
+ const app=await boot({reducedMotion:true,moments:[{kind:'construction',month:16}]});
+ try{await app.callbacks.onRun(DEFAULT_RECIPE);app.callbacks.onMonth(16);app.callbacks.onEventSlowdown(true);app.callbacks.onPlay(true);app.tick(200);expect(app.state.month).toBe(17);}finally{app.dispose();}
+});
+
+test('editing initial preview preserves pending draft and prevents late autoplay when the original pair finishes',async()=>{
+ const pending=deferred(),app=await boot({create:()=>pending.promise});
+ try{
+  const playing=app.callbacks.onDemo();await app.drain();
+  const draft={...DEFAULT_RECIPE,seed:99};app.callbacks.onConfigure(draft);
+  expect(app.state.frame.plan.state.seed).toBe(99);expect(app.state.preview).toBe(true);
+  pending.resolve(historyFor(DEFAULT_RECIPE));await playing;await app.drain();
+  expect(app.state.preview).toBe(false);expect(app.state.recipe).toEqual(draft);
+  expect(app.window.futureMachine.history.recipe).toEqual(DEFAULT_RECIPE);expect(app.updates.at(-1).comparisonRecipe).toEqual(DEFAULT_RECIPE);
+  expect(app.state.provenance.seed).toBe(42);expect(app.state.demo.status).toBe('manual');expect(app.state.playing).toBe(false);
+ }finally{app.dispose();}
+});
+
+
+
+test('reset during initial preparation keeps the original draft when useful nondefault work completes',async()=>{
+ const pending=deferred(),app=await boot({create:()=>pending.promise});
+ try{
+  const revised={...DEFAULT_RECIPE,seed:99},running=app.callbacks.onRun(revised);await app.drain();
+  expect(app.state).toMatchObject({status:'loading',preview:true});expect(app.state.frame.plan.state.seed).toBe(99);
+  app.callbacks.onReset();await app.drain();
+  expect(app.state.recipe).toEqual(DEFAULT_RECIPE);expect(app.state.frame.plan.state.seed).toBe(42);
+  pending.resolve(historyFor(revised,'city_pending_reset'));await running;await app.drain();
+  expect(app.state.recipe).toEqual(DEFAULT_RECIPE);expect(app.window.futureMachine.history.recipe).toEqual(revised);
+  expect(app.updates.at(-1).comparisonRecipe).toEqual(revised);expect(app.state.provenance.seed).toBe(99);
+  expect(app.state.preview).toBe(false);expect(app.state.playing).toBe(false);
  }finally{app.dispose();}
 });

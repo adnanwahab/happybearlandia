@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>City Whispers · HappyBearLandia</title>
+<style>body{margin:0;background:#14251f;color:#f4f0dc;font:17px system-ui;line-height:1.5}main{max-width:850px;margin:auto;padding:24px}a{color:#b7e5ca}button{font:inherit;min-height:44px;margin:6px;padding:8px 16px;border:2px solid #b7e5ca;border-radius:12px;cursor:pointer}button[aria-pressed=true]{background:#b7e5ca}button:focus-visible,input:focus-visible{outline:3px solid #ffd27d;outline-offset:3px}nav{display:flex;flex-wrap:wrap}article{background:#294638;border:1px solid #83ae96;border-radius:20px 20px 20px 4px;padding:16px;margin:16px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px}input{width:min(100%,400px);min-height:44px;display:block}section:focus{outline:2px solid #ffd27d}</style></head>
+<body><main><a href="/world/city-lab.html">City Laboratory</a><div id="whispers"><p role="status">Loading recorded synthetic events…</p></div></main>
+<script type="module">
+import {createCity} from '/world/city/seed.js';
+import {createEngine} from '/world/city/engine.js';
+import {mountWhispers} from './whispers.js';
+const root=document.querySelector('#whispers');let view;
+function mount(){try{const replay=createEngine().run(createCity({seed:42,households:24}),12);root.replaceChildren();view=mountWhispers(root,replay.steps);}catch{root.textContent='Recorded city events unavailable. No stories generated.';}}
+mount();addEventListener('pagehide',()=>{view?.destroy();view=null;});addEventListener('pageshow',e=>{if(e.persisted)mount();});
+</script></body></html>

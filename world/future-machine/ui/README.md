@@ -256,7 +256,9 @@ With the city canvas focused, Page Up advances 12 months, Page Down retreats
 entity difference, including policy and nonphysical changes. A comparison with
 no divergence announces that state without moving. Keys stop playback through
 the coordinator's manual selection path. Text controls, modified shortcuts,
-composition and loading are ignored. Arrow keys retain camera navigation.
+composition, loading and initial inventory previews are ignored. A failed initial
+run cannot expose future months; a failed rerun with completed history retains
+recorded navigation. Arrow keys retain camera navigation.
 
 ## SHE-88 reset
 
@@ -265,8 +267,9 @@ is the page-entry shared/resumed recipe or DEFAULT_RECIPE and remains fixed acro
 Reset to original clears invalid seed text and restores the complete detached
 recipe, including null policy and nonvisible fields. It does not run a simulation.
 The coordinator preserves displayed history, provenance, evidence export and share
-URL until Fork City completes a replacement. Reset is disabled while busy and
-without an onReset callback. Reloading a shared comparison establishes that
+URL until Fork City completes a replacement. Reset is disabled during a rerun
+with completed history and without an onReset callback; initial inventory preview
+reset remains available during preparation. Reloading a shared comparison establishes that
 comparison's recipe as the new original.
 
 ## SHE-85 provenance
@@ -312,11 +315,20 @@ takeover, so a slow guided demo cannot start moving the view after the user has
 chosen an entity. Once a completed comparison exists, failures preserve that
 comparison and its exact share/replay identity instead of replacing it with an
 initial preview.
+
+Editing or resetting an initial preview takes manual control and advances the
+configuration generation. Useful pending work may finish, but its result cannot
+replace newer draft inputs or resume the guided tour. Displayed comparison and
+share provenance still identify the actual completed recipe, independently of
+the pending draft. Strict receipt completion does not introduce another preview.
+
 ## SHE-139 household timeline
 
 The outcome timeline composes `createHouseholdTimeline(container,{history,onMonth})`.
-It reads the same paired monthly City history; `update(month)` follows the shared
-clock and navigation emits `onMonth(month)` to stop playback and select both arms.
+It reads the same paired monthly City history; `update(month,{announce=false})`
+follows the shared clock. Navigation and explicit household selection emit
+`onMonth(month)` to stop playback and select both arms. The parent immediately
+synchronizes its cursor and manual summary when a household action selects time.
 A native household selector, previous/next controls and expandable change table
 expose exact City household/home IDs, run, seed, version and monetary units.
 Changes are field differences between adjacent observed months within each arm,
@@ -352,3 +364,79 @@ move. Names/avatars are synthetic; outcomes are uncalibrated model observations.
 arm's household → occupied unit → building on every frame and highlights both
 recorded buildings, including different buildings after a move. Unmapped homes
 remain unhighlighted. Camera and simulation playback are unchanged.
+
+Optional sonic differences (`sonic.js`, SHE-508) consume only available recorded
+paired metrics through `createUI.update`. An explicit category selector and Hear
+button support homes, whole-stock rent and capital spending. The shared
+`hbl-media-v1` volume remains zero by default; prior explicit volume choices are
+honored. Captions describe exact deltas, editorial scales and synthetic limits.
+Category determines base pitch, sign determines pitch direction, magnitude sets
+one of three bounded durations; gain never exceeds 0.035 and voices never stack.
+No assets are fetched, no motion is added, and navigation never initiates sound.
+Every state update stops a cue; missing data, errors, previews and zero deltas
+are silent. Disposal/pagehide invalidates pending resumes and closes Web Audio.
+Browser/device listening validation remains required; gain caps are digital
+amplitude limits, not a claim about physical sound pressure or device safety.
+
+## SHE-481 scrub preview
+
+The shared native range previews an exact paired month in a bounded checkpoint
+card without changing the displayed scene, URL or evidence selection. Release
+(including touch via pointer capture) or native keyboard selection commits after
+120 ms of quiet; Escape/pointer cancellation, run replacement, busy state and
+disposal discard pending selection. Preview pauses presentation playback. The
+selected calendar date is exposed through aria-valuetext and polite status;
+committed date output is polite. There is no animation or extra scene renderer.
+
+`createUI` reuses `familyHistory` supplied by the coordinator. Lower-level callers
+may supply `history`. Lookup requires both exact indexed snapshot.month values;
+missing data says Loading/Unavailable, never a neighboring result. Card values
+are synthetic manifest-recomputed monthly housing metrics, not independently
+verified stored checkpoints. No history copies, mutation, network work or cache.
+
+## Optional event timelapse
+
+`onEventSlowdown(boolean)` handles the native transport checkbox; update
+`eventSlowdown` to reflect selection. Disabled until a completed frame is
+available. The coordinator owns 200/800 ms presentation holds around existing
+recorded construction/household-stress moments; the guided demo retains its own
+timing. Reduced motion bypasses the optional holds. Pause and manual seek retain
+their existing immediate takeover behavior. No simulation scheduling changes.
+
+## First Difference spotlight (SHE-478)
+
+`mountSpotlight` adds native Previous/Next buttons and an announced exact month,
+arm, entity and event receipt. Controls use 44px minimum targets, stay in the
+normal tab order, stop at sequence boundaries and reset for a new comparison.
+No timer or new keyboard shortcut is introduced. Each visit reuses coordinator
+`jump` with animated stage focus; the existing stage honors reduced motion and
+uses immediate Canvas focus or honest unlocated inventory fallback. Empty,
+missing and unsupported comparisons have distinct explanations. Tour records
+curate synthetic construction milestones, not all possible model differences.
+
+`chapters.js` clusters recorded events by exact month and event type across arms.
+`recorded-chapters.v1` ranks PROJECT_COMPLETE, then CONSTRUCTION_STARTED/TOPPED_OUT,
+then other types; ties use month/type. The top 24 appear chronologically. This is
+editorial impact, not a measured welfare score. Each receipt preserves its arm,
+ID, payload and dependencies. Empty spans generate no chapter. Native buttons
+support Tab/Enter/Space and touch; arrows/Home/End move focus. No animation or
+per-frame reclustering is used. The outcome timeline owns disposal; `onChapter`
+passes the selected chapter to the existing coordinator `jump` and WHY renderer.
+
+
+### Post-merge compatibility verification — November 12, 2026
+
+The compatibility follow-up starts from merged main `ab4358f`, preserving its
+preview reset/cancel/retry behavior, separate visual household values and quiet
+live region, exact provenance, and stronger browser fixtures. Cached household
+change stops and repeated-text checks avoid unnecessary work; explicit selection
+synchronizes both timelines and disposal is idempotent.
+
+One focused run across coordinator, household/outcome timelines, year shortcuts,
+scene/backend/bookmarks/effects and resources passed 70 tests, with two optional
+browser tests skipped and 464 assertions. The browser entry bundled 55 modules.
+All 11 changed JavaScript files passed syntax checks. Playwright discovery found
+24 journeys across five Future Machine configs, including both device-loss tests
+after fixing the actual CommonJS config-loader failure. Discovery is not browser
+execution; the previously confirmed socket EPERM limitation remains. No browser
+rendering, GPU-loss, heap-bound or paint-timing result is claimed for this slice.

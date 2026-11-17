@@ -1,0 +1,25 @@
+import {test,expect} from '@playwright/test';
+for(const width of [1440,390])test(`World evidence path, itinerary and skip at ${width}px`,async({page},testInfo)=>{
+ await page.setViewportSize({width,height:900});await page.emulateMedia({reducedMotion:'reduce'});
+ await page.route('**/api/area*',route=>route.abort());
+ await page.goto('/world/?demo=1&synthetic=1&people=16');
+ const panel=page.getByTestId('evidence-path');await expect(panel).toBeVisible();
+ await panel.locator(':scope > summary').focus();await page.keyboard.press('Enter');
+ await panel.getByRole('button',{name:'Try synthetic path'}).click();
+ const itinerary=panel.getByRole('list',{name:'Evidence path itinerary'});
+ await expect(itinerary.locator(':scope > li')).toHaveCount(3);
+ await expect(panel.getByRole('status')).toContainText('Synthetic fixture v1');
+ await expect(panel.getByRole('status')).toContainText('2 labeled jumps');
+ expect(await page.evaluate(()=>window.hblEvidencePath.getStats().objects)).toBe(3);
+ await panel.getByRole('button',{name:'View ground segment'}).click();
+ const box=await panel.boundingBox();expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(width);
+ await page.screenshot({path:testInfo.outputPath(`path-${width}.png`)});
+ await panel.getByRole('button',{name:'Skip path'}).click();
+ expect(await page.evaluate(()=>window.hblEvidencePath.getStats())).toMatchObject({objects:0,disposedResources:6});
+ await expect(panel.locator(':scope > summary')).toBeFocused();
+ await page.keyboard.press('Enter');
+ await panel.getByLabel('Run ID',{exact:true}).fill('run:evidence:absent');await panel.getByLabel('Target event ID',{exact:true}).fill('event:evidence:absent');
+ await panel.getByRole('button',{name:'Load recorded chain'}).click();
+ await expect(panel.getByRole('status')).toContainText('Run or event unavailable');
+ expect(await page.evaluate(()=>window.hblEvidencePath.getStats().objects)).toBe(0);
+});

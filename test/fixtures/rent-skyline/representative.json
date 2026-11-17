@@ -1,0 +1,1 @@
+{"contract":"decision-rent-skyline.v1","source":"authored synthetic boundary fixture; not observations or model effects","rows":[{"id":"zero","metrics":{"median_rent":0}},{"id":"edge","metrics":{"median_rent":500}},{"id":"upper","metrics":{"median_rent":4000}},{"id":"missing","metrics":{"median_rent":null}}],"counts":[1,1,0,0,0,0,0,1],"missing":1,"denominator":4}

@@ -1,4 +1,4 @@
-import { readdir, readFile, writeFile } from 'node:fs/promises';
+import { readdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 
 export const metrics = ['jsBytes', 'readyMs', 'renderMs', 'peakHeapBytes'];
@@ -36,7 +36,7 @@ export function limitsFromReport(report, profile, runs) {
     const evidence = sample.evidence;
     if (sample.run !== index || evidence?.seed !== 42 || evidence.month !== 16 ||
         !evidence.modelVersion || !evidence.initialHash ||
-        !['webgl', 'webgpu', 'canvas2d'].includes(evidence.backend)) {
+        !['webgl', 'webgl2', 'webgpu', 'canvas2d'].includes(evidence.backend)) {
       throw new Error('Baseline sample provenance is missing or unsupported');
     }
     const current = JSON.stringify(evidence);
@@ -55,6 +55,8 @@ async function reportsUnder(root) {
   return reports;
 }
 export async function generateProposal() {
+  // A failed rerun must not leave an earlier proposal looking current.
+  await rm('test-results/first-interaction/budget-proposal.json', { force: true });
   const reports = await reportsUnder('test-results/first-interaction');
   const config = JSON.parse(await readFile('test/performance/first-interaction-budgets.json', 'utf8'));
   const profiles = config.profiles.map(profile => {
@@ -63,6 +65,17 @@ export async function generateProposal() {
     const baseline = matches[0];
     return { ...profile, limits: limitsFromReport(baseline, profile, config.runs), baseline };
   });
+  const reference = profiles[0].baseline;
+  for (const { baseline } of profiles.slice(1)) {
+    for (const key of ['commit', 'browser', 'host']) {
+      if (JSON.stringify(baseline[key]) !== JSON.stringify(reference[key])) {
+        throw new Error(`Baseline environment mismatch across profiles: ${key}`);
+      }
+    }
+    if (JSON.stringify(baseline.samples[0].evidence) !== JSON.stringify(reference.samples[0].evidence)) {
+      throw new Error('Baseline simulation/renderer mismatch across profiles');
+    }
+  }
   await writeFile('test-results/first-interaction/budget-proposal.json', JSON.stringify({
     ...config, status: 'measured-proposal-awaiting-review', allowance: 1.25, profiles,
   }, null, 2));

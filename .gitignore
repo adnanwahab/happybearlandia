@@ -19,6 +19,9 @@ logs
 _.log
 report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
+# Mini Symphony task worktrees are nested Git checkouts, not source files
+/workspaces/
+
 # dotenv environment variable files
 .env.op
 .env

@@ -63,21 +63,26 @@ for (const profile of budgets.profiles) {
           const started = performance.now();
           try {
             await page.goto('/');
-            await page.getByRole('link', { name: 'Play Demo', exact: true }).click();
+            await page.getByRole('link', { name: 'Try the 60-second simulation', exact: true }).click();
             await expect.poll(async () => {
               const state = await page.evaluate(() => ({status: window.futureMachine?.state.status, error: window.futureMachine?.state.error, message: window.futureMachine?.state.message}));
               if (state.status === 'error') { report.failure = state; throw Error(JSON.stringify(state)); }
               return state.status;
             }, { timeout: 90000 }).toBe('ready');
             await page.getByRole('button', { name: 'Pause demo', exact: true }).click();
-            const slider = page.getByRole('slider').first();
+            const slider = page.getByRole('slider', {name:'Shared month for Future A and Future B',exact:true});
             await expect(slider).toBeEnabled();
             const readyMs = performance.now() - started;
-            const renderMs = await page.evaluate(async () => {
-              const slider = document.querySelector('input[type="range"]');
+            const renderMs = await slider.evaluate(async slider => {
               const start = performance.now();
               slider.value = '16';
               slider.dispatchEvent(new Event('input', { bubbles: true }));
+              // The normal scrubber previews on input and commits after change.
+              slider.dispatchEvent(new Event('change', { bubbles: true }));
+              await new Promise((resolve,reject) => {
+                const committed=()=>{if(window.futureMachine.state.month===16)resolve();else if(performance.now()-start>5000)reject(new Error('Timeline commit timed out'));else requestAnimationFrame(committed);};
+                requestAnimationFrame(committed);
+              });
               await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
               if (window.futureMachine.state.month !== 16) throw new Error('Interaction did not update month');
               return performance.now() - start;

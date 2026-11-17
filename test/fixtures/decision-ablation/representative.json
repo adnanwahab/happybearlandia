@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "decision-experiment.v1",
+  "name": "Erase permitting delay · synthetic fixture",
+  "modelId": "housing.v1",
+  "modelVersion": "1.2.0",
+  "seed": 741,
+  "runs": 3,
+  "years": 2,
+  "scenarios": [
+    { "id": "baseline", "name": "Saved baseline", "kind": "baseline", "parameters": { "permitting_months": 18 } },
+    { "id": "plan", "name": "Saved proposal", "kind": "plan-a", "parameters": { "permitting_months": 6, "zoning_density": 2 } }
+  ],
+  "metadata": { "evidence": [], "sourceType": "synthetic", "limitations": "Illustrative aggregate model, no observed policy effect or real population inference." }
+}

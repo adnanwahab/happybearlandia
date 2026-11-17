@@ -124,9 +124,108 @@ visual approximation of atHome/residents, not observed electricity demand.
 Bounded `visibleAgents` and inspected people optionally carry `trip`, null when
 `remaining <= 0`. `population-current-trip.v1` includes departureMinute,
 durationMinutes (planned), remainingMinutes, plannedActivity (contracts.js enum),
-from/to world x/z and `geometry: straight-line model approximation`. This is
-current committed synthetic travel state, not completed-trip history or surveyed
-street routing. Enclosing run/version/seed/time provenance applies. Bus/rail
-markers identify passengers, not shared vehicles. Consumers must not infer a
-fleet count or realized duration from this record. Legacy rows without trip
-remain supported by the renderer.
+from/to world x/z and a `geometry` label. Legacy checkpoints without the
+optional `residentRules` manifest preserve the former straight-line behavior.
+Fresh runs declare `residentRules.pedestrian: sidewalks.v1`; walk trips carry
+`route` (rulesVersion, kind, world-metre points, distanceMetres, jaywalk and
+optional fallback reason) and distance-based `progress`. `mapped-sidewalk`
+means an approximate path along supplied road offsets and junction crossings,
+not surveyed entrances. Missing/disconnected networks declare `straight-line
+fallback`. Other modes retain their district approximation.
+
+Active conversations add `socialDelayMinutes` to projected durationMinutes and
+also expose movementMinutes. `remainingMinutes` is locomotion time, excluding a
+current chat hold. A conversation starts with the existing social-need effect,
+then holds actual movement for three committed minutes; completed-trip history
+records the actual elapsed duration. Snapshot people optionally carry
+`socialEncounter` with recorded participants, outcome/text, start/until minutes,
+partnerId and facing heading. This is a synthetic event on the Population clock,
+not a second resident authority or a generated observation.
+
+Enclosing run/version/seed/time provenance applies. Bus/rail markers identify
+passengers, not shared vehicles. Consumers must not infer a fleet count from this
+record. Rows without trip remain supported by the renderer.
+
+
+## Compatible resident rule manifest
+
+`residentRules` accompanies Population snapshots and experiment manifests. Known
+values are `{pedestrian: "sidewalks.v1", encounters: "resident-encounters.v1"}`.
+Absence/null identifies older rules; unknown values, mixed-authority versions or
+extra manifest keys reject before restore/replay mutation. The enclosing 1.3.0
+model and checkpoint envelopes remain compatible. Live reset, future generation,
+replay and future inspection keep the selected manifest. This distinguishes
+new sidewalk/social assumptions from older runs using the same enclosing model
+version; a missing manifest does not silently opt a saved recipe into new rules.
+
+SHE-447 adds `inspectNeighborhood({polygon:[{x,z},…]})` (3–256 finite
+vertices, ±1,000,000 world units). Screen lasso vertices are ray-projected onto
+y=0; selection tests current ground anchors with inclusive polygon edges and
+an even/odd fill rule. It includes occluded anchors, independent of rendered
+samples and interpolation. Keyboard world bounds remain supported.
+`entityIds` retains at most 2048 canonical `${model.prefix}-p${index}` IDs in
+model order. `selectionStatus` is `complete`, `empty`, or `too-large`; in the
+last case IDs are partial and counts still cover the entire polygon. Run and
+revision from the worker scope these IDs. This is one atomic read of committed
+state, without a second query that could mix ticks. No resident-weight total is
+inferred. The UI allows one pending query and one bounded outline; oversized
+outlines fail explicitly. Its static SVG has no animation, including under
+reduced motion; no GPU selection/readback or retained selection history is used.
+
+## Transient selected journey frames (SHE-623)
+
+`journey-trail.js` consumes only received `visibleAgents` rows with a supported
+`population-current-trip.v1` trip and a finite committed x/z position. The host
+mounts it in `/world` Living Population person details. This is presentation
+memory, not a checkpoint field or a source of model observations. It begins when
+a resident is selected, retaining at most 32 frames and 30 elapsed Population
+minutes. Nothing is reconstructed from routes, destinations or renderer tweening.
+
+Scope combines runtime ID/revision, model version, resident ID, departure minute
+and committed trip endpoints (the existing trip projection has no independent
+trip ID). Samples expose that scope, seed, tick, minute, x/z and geometry label.
+Only consecutive ticks separated by exactly the runtime's fixed step get a
+schematic connecting stroke. Missing positions, unsupported trips, absent sampled
+residents and skipped ticks never produce interpolated samples. The Population
+clock must agree with `tick * stepMinutes`; other authorities are unsupported.
+Backward time, trip/run replacement, selection changes and closing/deactivating
+clear history. A finished trip's recent frames can remain until the 30-minute
+window expires or another trip begins. Closing the details or leaving Living
+Population clears them immediately. Reopening has no historical prefill.
+
+Native sample buttons inspect exact positions and provenance, marking the sample
+in the scene without moving the resident, camera or clock. Geometry is static
+and identical with reduced motion; there is no playback, pulse or automatic
+camera animation in this overlay. Coordinates and connections are synthetic
+model outputs and schematic presentation, never real resident tracking or proof
+of the path traveled between samples. Buffers are fixed-capacity and disposed on
+host teardown. No model rules, scheduling, RNG, source identities or persisted
+run records change; the Population ODD remains applicable unchanged.
+
+## Cohort Spotlight (`home-district-id-order.v1`)
+
+The existing `/world` Population City Deck zoom consumes one frozen Population
+snapshot. `zoomEvidence(frame, districtId)` maps `visibleAgents.homeDistrictId`
+to an exact `districts.id`; coordinates must be finite and IDs present. It sorts
+IDs lexically, deduplicates by ID and selects at most 12 within that home district.
+Unknown district IDs and empty samples produce no representatives, never a
+substitute district or generated person. This is a presentation cohort, not the
+SHE-144 hierarchical engine or the household income cohorts.
+
+The fixture in `test/population-zoom.test.js` fixes all inputs and expected IDs.
+Stable means identical supplied snapshot and district produce identical ordering;
+camera-dependent worker membership, tick changes and resets may change the sample.
+Opening captures a snapshot; district changes reuse it; reopening captures anew.
+Inspection sends the retained ID to the existing inspector, which reads current
+state and can reject stale identities. Frozen coordinates do not promise history.
+Model version, seed, runtime ID, tick and minute retain snapshot provenance; absent
+metadata is displayed as unavailable. No RNG is consumed or model state changed.
+
+Allocated resident records, weighted represented total, worker sample size,
+selected IDs and drawn representatives are separate. Independently active agents
+remain unavailable without a changed-state window measurement. Weighted mass is
+not an independently simulated population. The Canvas2D circles/radii/fade are
+decorative projections of synthetic model outputs; no observed resident sources,
+probabilities, causal effects or empirical representativeness are supplied.
+Missing Canvas2D retains textual IDs/inspection. Destruction cancels animation,
+removes the panel and releases retained snapshots; it allocates no GPU resources.

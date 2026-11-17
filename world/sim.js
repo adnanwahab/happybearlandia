@@ -1,3 +1,6 @@
+import {LEGACY_RESIDENT_RULES} from './resident-rules.js';
+import {buildPedestrianNetwork,pedestrianRoute,warmPedestrianSource,pedestrianCacheStats} from './population/pedestrian-routes.js';
+import {advanceLegacyResidentEncounters} from './legacy-resident-encounters.js';
 import {startParcelStorm, updateParcelStorm} from './weather/parcel-storm.js';
 import {driveLegacyTraditionRoutines} from './relationships/city-traditions.js';
 import {legacySocial} from './relationships/model.js';
@@ -107,7 +110,7 @@ export const ACTIONS = {
 /** Net need change per simulated minute, shared by the model and person inspector. */
 export function needRateFor(person, need, world) {
   if (!(need in DECAY)) return null;
-  const action = person.mode === "doing" && person.action ? ACTIONS[person.action] : null;
+  const action = !(person.socialEncounter?.untilMinute>=world?.t)&&person.mode === "doing" && person.action ? ACTIONS[person.action] : null;
   let rate = need === "hunger" && action && person.action === "sleep" ? -0.04 : -DECAY[need];
   if (action?.rate?.[need] != null) {
     let gain = action.rate[need];
@@ -164,10 +167,11 @@ function buildRoadGraph(roads = []) {
     }
   }
 
-  return { nodes, adj, routes:new Map() };
+  return { nodes, adj, routes:new Map(),routeBytes:0,nearestNodes:new Map() };
 }
 
 function nearestRoadNode(graph, x, z, maxDist = ROAD_CONNECT_MAX_M) {
+  const key=`${x}:${z}:${maxDist}`;if(graph.nearestNodes.has(key))return graph.nearestNodes.get(key);
   let best = -1;
   let bestD2 = maxDist * maxDist;
   for (let i = 0; i < graph.nodes.length; i++) {
@@ -175,55 +179,24 @@ function nearestRoadNode(graph, x, z, maxDist = ROAD_CONNECT_MAX_M) {
     const d2 = (nx - x) ** 2 + (nz - z) ** 2;
     if (d2 < bestD2) { bestD2 = d2; best = i; }
   }
+  graph.nearestNodes.set(key,best);if(graph.nearestNodes.size>4096)graph.nearestNodes.delete(graph.nearestNodes.keys().next().value);
   return best;
 }
 
 function aStarRoad(graph, start, goal) {
   if (start === goal) return [start];
-  const n = graph.nodes.length;
-  const g = new Array(n).fill(Infinity);
-  const f = new Array(n).fill(Infinity);
-  const came = new Array(n).fill(-1);
-  const open = [start];
-  const inOpen = new Array(n).fill(false);
-  inOpen[start] = true;
-  g[start] = 0;
-
-  const heuristic = (id) => {
-    const [x1, z1] = graph.nodes[id];
-    const [x2, z2] = graph.nodes[goal];
-    return Math.hypot(x2 - x1, z2 - z1);
-  };
-  f[start] = heuristic(start);
-
-  while (open.length) {
-    let bestI = 0;
-    for (let i = 1; i < open.length; i++) if (f[open[i]] < f[open[bestI]]) bestI = i;
-    const cur = open[bestI];
-    open.splice(bestI, 1);
-    inOpen[cur] = false;
-
-    if (cur === goal) {
-      const ids = [cur];
-      let at = cur;
-      while (came[at] !== -1) { at = came[at]; ids.push(at); }
-      ids.reverse();
-      return ids;
-    }
-
-    for (const [next, w] of graph.adj[cur]) {
-      const cand = g[cur] + w;
-      if (cand >= g[next]) continue;
-      came[next] = cur;
-      g[next] = cand;
-      f[next] = cand + heuristic(next);
-      if (!inOpen[next]) {
-        open.push(next);
-        inOpen[next] = true;
-      }
-    }
+  const n=graph.nodes.length;
+  const scratch=graph.searchScratch??={g:new Float64Array(n),f:new Float64Array(n),came:new Int32Array(n),inOpen:new Uint8Array(n),order:new Uint32Array(n),values:new Float64Array(128),ids:new Int32Array(128),orders:new Uint32Array(128)};
+  const {g,f,came,inOpen,order}=scratch;g.fill(Infinity);f.fill(Infinity);came.fill(-1);inOpen.fill(0);order.fill(0);let size=0,sequence=0;
+  const before=(av,ao,bv,bo)=>av<bv||av===bv&&ao<bo;
+  function push(id){if(size===scratch.values.length){for(const field of['values','ids','orders']){const old=scratch[field],next=new old.constructor(size*2);next.set(old);scratch[field]=next;}}const value=f[id],rank=order[id];let i=size++;while(i){const p=(i-1)>>1;if(!before(value,rank,scratch.values[p],scratch.orders[p]))break;scratch.values[i]=scratch.values[p];scratch.ids[i]=scratch.ids[p];scratch.orders[i]=scratch.orders[p];i=p;}scratch.values[i]=value;scratch.ids[i]=id;scratch.orders[i]=rank;}
+  const heuristic=id=>{const [x1,z1]=graph.nodes[id],[x2,z2]=graph.nodes[goal];return Math.hypot(x2-x1,z2-z1);};
+  g[start]=0;f[start]=heuristic(start);inOpen[start]=1;order[start]=++sequence;push(start);
+  while(size){const value=scratch.values[0],cur=scratch.ids[0],rank=scratch.orders[0];size--;const lv=scratch.values[size],li=scratch.ids[size],lo=scratch.orders[size];if(size){let i=0;while(i*2+1<size){let c=i*2+1;if(c+1<size&&before(scratch.values[c+1],scratch.orders[c+1],scratch.values[c],scratch.orders[c]))c++;if(!before(scratch.values[c],scratch.orders[c],lv,lo))break;scratch.values[i]=scratch.values[c];scratch.ids[i]=scratch.ids[c];scratch.orders[i]=scratch.orders[c];i=c;}scratch.values[i]=lv;scratch.ids[i]=li;scratch.orders[i]=lo;}
+    if(!inOpen[cur]||rank!==order[cur]||value!==f[cur])continue;inOpen[cur]=0;
+    if(cur===goal){const ids=[cur];let at=cur;while(came[at]!==-1){at=came[at];ids.push(at);}ids.reverse();return ids;}
+    for(const [next,w]of graph.adj[cur]){const cand=g[cur]+w;if(cand>=g[next])continue;came[next]=cur;g[next]=cand;f[next]=cand+heuristic(next);if(!inOpen[next]){inOpen[next]=1;order[next]=++sequence;}push(next);}
   }
-
   return null;
 }
 
@@ -234,7 +207,7 @@ function roadWaypoints(graph, sx, sz, tx, tz) {
   if (start < 0 || goal < 0) return [[tx, tz]];
   const key=`${start}:${goal}`;
   let path=graph.routes.get(key);
-  if(path===undefined){path=aStarRoad(graph,start,goal);if(graph.routes.size>=4096)graph.routes.clear();graph.routes.set(key,path);}
+  if(path===undefined){path=aStarRoad(graph,start,goal);const bytes=128+key.length*2+(path?.length??0)*8;if(bytes<=4*1024*1024){graph.routes.set(key,path);graph.routeBytes+=bytes;while(graph.routes.size>16384||graph.routeBytes>4*1024*1024){const oldest=graph.routes.keys().next().value,entry=graph.routes.get(oldest);graph.routeBytes-=128+oldest.length*2+(entry?.length??0)*8;graph.routes.delete(oldest);}}}
   if (!path || !path.length) return [[tx, tz]];
 
   const out = [];
@@ -268,10 +241,12 @@ export function createWorld(town, opts = {}) {
   let parameters = resolveSimulationParameters(opts.parameters);
   // opts.runSeed varies the sim's dice for paired multi-seed experiments. Without it the
   // world draws exactly the same numbers as before (seeded by location only).
-  const r = rng(hashSeed(town.seedKey + ":sim" + (opts.runSeed != null ? `:${opts.runSeed}` : "")));
+  let simulationSeed=hashSeed(town.seedKey + ":sim" + (opts.runSeed != null ? `:${opts.runSeed}` : ""));
+  const r = rng(simulationSeed);
   const byKind = {};
   for (const b of town.buildings) (byKind[b.kind] ||= []).push(b);
   const roadGraph = buildRoadGraph(town.roads || []);
+  const pedestrianNetwork=buildPedestrianNetwork(town.roads||[]);
   const initialDay = Math.floor((opts.startMinute ?? 6 * 60) / 1440);
   let transitCounterContext={runSeed:String(opts.runSeed??'default'),year:String(opts.year??initialDay)};
 
@@ -291,6 +266,7 @@ export function createWorld(town, opts = {}) {
   const personRoutines = activityHistory ? new Map() : null;
   const w = {
     ...town,
+    residentRules:{...LEGACY_RESIDENT_RULES},
     journals:opts.journalsEnabled?{}:null,
     modelVersion: "neighborhood-activity.v2",
     parameters,
@@ -319,6 +295,8 @@ export function createWorld(town, opts = {}) {
       if(activityHistory) recordHistoryEvent(activityHistory,{minute:w.t,type:`WORLD_${String(kind).toUpperCase()}`,text,buildingId:building?.id??null,districtId:building?.kind??"world"});
     },
   };
+
+  Object.defineProperty(w,'simulationSeed',{enumerable:true,get:()=>simulationSeed});
 
   // @deprecated speedMult aliases transitServiceMult; walking stays fixed.
   Object.defineProperty(w,'speedMult',{enumerable:true,get:()=>w.transitServiceMult,set:value=>{if(!Number.isFinite(value)||value<=0)throw new RangeError('Transit service multiplier must be positive');w.transitServiceMult=value;}});
@@ -376,7 +354,7 @@ export function createWorld(town, opts = {}) {
   w.weatherIntegration={walking:'Rain changes generalized comfort cost, never the physical 40 m/min pace.',outages:'Seeded coarse hourly building/trip access; synthetic electricity capacity can reduce service access. No physical damage or money offsets.'};
 
   const personId = p => String(p.id);
-  const activityOf = p => p.mode === "moving" ? p.travelMode==='transit'?(p.transitWaitMinutesRemaining>0?'TRANSIT_WAIT':'TRANSIT') : "WALK" : p.mode === "doing" && p.action ? p.action.toUpperCase() : "IDLE";
+  const activityOf = p => p.socialEncounter?.untilMinute>=w.t?"SOCIAL_CHAT":p.mode === "moving" ? p.travelMode==='transit'?(p.transitWaitMinutesRemaining>0?'TRANSIT_WAIT':'TRANSIT') : "WALK" : p.mode === "doing" && p.action ? p.action.toUpperCase() : "IDLE";
   const placeOf = p => p.mode === "moving" ? "travel" : w.buildings[p.target??p.home]?.kind || "unknown";
   function recordRoutine(p,activity,districtId,startMinute,endMinute,needs) {
     if(!personRoutines)return;
@@ -399,12 +377,12 @@ export function createWorld(town, opts = {}) {
   }
   function completeTrip(p) {
     if(!Number.isFinite(p.tripStartedMinute))return;
-    p.lastTrip={mode:p.travelMode??'walk',travelMinutes:p.tripTravelMinutes??Math.max(0,w.t-p.tripStartedMinute),walkMinutes:p.tripWalkMinutes??0,transitMinutes:p.tripTransitMinutes??0,transitWaitMinutes:p.tripWaitMinutes??0,distanceMeters:p.tripDistanceMeters||0,destinationId:w.buildings[p.target]?.id??null};
+    p.lastTrip={mode:p.travelMode??'walk',travelMinutes:p.tripTravelMinutes??Math.max(0,w.t-p.tripStartedMinute),walkMinutes:p.tripWalkMinutes??0,transitMinutes:p.tripTransitMinutes??0,transitWaitMinutes:p.tripWaitMinutes??0,distanceMeters:p.tripDistanceMeters||0,socialDelayMinutes:p.tripSocialDelayMinutes||0,routeKind:p.tripRouteKind??null,destinationId:w.buildings[p.target]?.id??null};
     historyEvent(p,"TRIP_COMPLETED",p.lastTrip);
     p.tripStartedMinute=null;
   }
 
-  function tripPlan(p,b,path=null,cost=0){
+  function tripPlan(p,b,path=null,cost=0,forceWalking=false){
     const sheltered=b.kind==='home'&&Math.hypot(p.x-b.center[0],p.z-b.center[1])<Math.max(10,Math.sqrt(b.area||100));
     path??=sheltered?[b.center]:roadWaypoints(roadGraph,p.x,p.z,...b.center);
     let previous=[p.x,p.z],distance=0;
@@ -418,11 +396,22 @@ export function createWorld(town, opts = {}) {
     const walk=distance/WALK_M_PER_MIN/w.weatherEffects.walkComfort,transit=wait*parameters.transitWaitWeight+distance/rideSpeed;
     const accessDraw=hashSeed(`${town.seedKey}:${p.id}:${b.id}:${Math.floor(w.t/60)}:weather-access`)/4294967296;
     const roadAccessible=sheltered||distance<1||accessDraw<w.weatherEffects.roadAvailability;
-    const mode=roadAccessible&&accessDraw<w.weatherEffects.transitAvailability&&distance>=parameters.minimumTransitDistanceMeters&&p.money>=parameters.transitFare+cost&&transit<walk?'transit':'walk';
-    return{path,distance,mode,wait:mode==='transit'?wait:0,rideSpeed,minutes:roadAccessible?(mode==='transit'?transit:walk):Infinity};
+    const mode=!forceWalking&&roadAccessible&&accessDraw<w.weatherEffects.transitAvailability&&distance>=parameters.minimumTransitDistanceMeters&&p.money>=parameters.transitFare+cost&&transit<walk?'transit':'walk';
+    let route=null;if(w.residentRules?.pedestrian==='sidewalks.v1'&&mode==='walk'&&!sheltered){route=pedestrianRoute(pedestrianNetwork,[p.x,p.z],b.center,{jaywalk:hashSeed(`${town.seedKey}:${p.id}:${b.id}:${Math.floor(w.t/1440)}:jaywalk`)/4294967296<.02});path=route.points.slice(1);distance=route.distanceMetres;}return{path,distance,routeKind:route?.kind??(sheltered?'building access':'road-path approximation'),rulesVersion:route?.rulesVersion,mode,wait:mode==='transit'?wait:0,rideSpeed,minutes:roadAccessible?(mode==='transit'?transit:w.residentRules?.pedestrian==='sidewalks.v1'?distance/WALK_M_PER_MIN:walk):Infinity};
   }
 
-  const personCommands=installLegacyPersonCommands(w,{actions:ACTIONS,historyEvent,planWalk:(p,destination,building)=>tripPlan(p,building??{id:'user-point',kind:'command',center:[destination.x,destination.z],area:0})});
+  // Derived lookup work only: no authoritative state or RNG is touched.
+  const roadWarmTargets=new Map();let roadWarmMinute=null,roadWarmRun=null;
+  w.warmRouteSource=point=>{
+    if(w.residentRules?.pedestrian!=='sidewalks.v1'||!Number.isFinite(point?.x)||!Number.isFinite(point?.z))return;
+    const run=w.getActivityIdentity?.().runId;if(run!==roadWarmRun||roadWarmMinute!==null&&w.t<roadWarmMinute)roadWarmTargets.clear();roadWarmRun=run;roadWarmMinute=w.t;
+    const started=performance.now();warmPedestrianSource(pedestrianNetwork,[point.x,point.z]);
+    const key=`${point.x}:${point.z}:${point.home}:${point.job}:${point.school}:${w.business?.building}`;let row=roadWarmTargets.get(key);
+    if(!row){const targets=[];for(const index of[point.home,point.job,point.school,w.business?.building])if(w.buildings[index])targets.push(w.buildings[index]);for(const kind of['food','shop','park'])targets.push(...nearest(byKind[kind]||[],point,6));row={targets:[...new Set(targets)],cursor:0};roadWarmTargets.set(key,row);if(roadWarmTargets.size>2048)roadWarmTargets.delete(roadWarmTargets.keys().next().value);}
+    while(row.cursor<row.targets.length&&performance.now()-started<4){const b=row.targets[row.cursor++];roadWaypoints(roadGraph,point.x,point.z,...b.center);}
+  };
+  w.getRouteCacheStats=()=>({...pedestrianCacheStats(pedestrianNetwork),roadEntries:roadGraph.routes.size,roadEstimatedBytes:roadGraph.routeBytes,roadBudgetBytes:4*1024*1024,roadWarmOrigins:roadWarmTargets.size});
+  const personCommands=installLegacyPersonCommands(w,{actions:ACTIONS,historyEvent,planWalk:(p,destination,building)=>tripPlan(p,building??{id:'user-point',kind:'command',center:[destination.x,destination.z],area:0},null,0,true)});
 
   // --------------------------------------------------------------------
   // Decide: score every reachable advertisement, pick the best (with a bit of noise).
@@ -488,7 +477,7 @@ export function createWorld(town, opts = {}) {
       const trip=tripPlan(p,b,undefined,id==='visit_business'?w.business.price:(a.cost??0));
       if(!Number.isFinite(trip.minutes))continue;
       const s = score(p, id, a, b,trip);
-      considered?.push({activity:id,buildingId:b.id,score:s});
+      considered?.push({activity:id,buildingId:b.id,score:s,plannedTravelMinutes:trip.minutes,routeKind:trip.routeKind});
       if (s > bestS) { bestS = s; best = [id, a, b,trip]; }
     }
     if (!best) { p.action = null; p.target = null; p.mode = "doing"; p.until = w.t + 15; p.doing = "idling"; p.path = null; p.pathI = 0; return; }
@@ -499,13 +488,14 @@ export function createWorld(town, opts = {}) {
       historyEvent(p,"ACTIVITY_SELECTED",{activity:id,score:bestS,buildingId:b.id,reasonCodes:decision.reasonCodes});
     }
     p.action = id; p.target = b.index;
+    p.tripRouteKind=trip.routeKind;p.pedestrianRulesVersion=trip.rulesVersion;
     p.path = trip.path;
     p.pathI = 0;
     [p.tx, p.tz] = p.path[0] || b.center;
     p.travelMode=trip.mode;
     p.transitWaitMinutesRemaining=trip.wait;
     p.tripRideMetersPerMinute=trip.rideSpeed;
-    p.tripTravelMinutes=0;p.tripWalkMinutes=0;p.tripTransitMinutes=0;p.tripWaitMinutes=0;
+    p.tripSocialDelayMinutes=0;p.tripTravelMinutes=0;p.tripWalkMinutes=0;p.tripTransitMinutes=0;p.tripWaitMinutes=0;
     if(trip.mode==='transit'){p.money-=parameters.transitFare;w.stats.spent+=parameters.transitFare;w.stats.fares+=parameters.transitFare;}
     p.mode = "moving"; p.doing = `${trip.mode==='transit'?'taking transit':'walking'} to ${b.name}`;
     p.tripStartedMinute=w.t;
@@ -646,6 +636,7 @@ export function createWorld(town, opts = {}) {
         recordActivity(activityHistory,{id:personId(p),householdId:p.householdId,districtId:recordedPlace,activity:recordedActivity,startMinute:w.t-1,endMinute:w.t,weight:1,needs:observedNeeds});
         recordRoutine(p,recordedActivity,recordedPlace,w.t-1,w.t,observedNeeds);
       }
+      if(p.socialEncounter&&p.socialEncounter.untilMinute>=w.t){if(p.mode==='moving'){p.today.travelMinutes+=1;p.tripTravelMinutes=(p.tripTravelMinutes||0)+1;p.tripSocialDelayMinutes=(p.tripSocialDelayMinutes||0)+1;}else if(p.mode==='doing')p.until+=1;continue;}
       if (p.mode === "idle") decide(p);
       else if (p.mode === "moving") {
         let availableMinutes=1;
@@ -688,6 +679,7 @@ export function createWorld(town, opts = {}) {
       if(w.social?.cityTraditions?.some(t=>t.enabled)){legacySocial(w).prepareTraditions();driveLegacyTraditionRoutines(w);}
       if(w.social?.promises?.some(p=>p.status==='scheduled'))driveLegacyPromiseRoutines(w);
       minute();
+      advanceLegacyResidentEncounters(w);
       if(w.social?.cityTraditions?.some(t=>t.current))legacySocial(w).stepTraditions();
       if(w.social?.promises?.some(p=>p.status==='scheduled'))legacySocial(w).stepPromises();
       w.cultureSnapshot=w.culture?.stepTo(w.t)??null;
@@ -703,7 +695,8 @@ export function createWorld(town, opts = {}) {
   };
   w.trackActivityPerson = id => {if(!w.people.some(p=>personId(p)===String(id)))throw new Error("Unknown legacy person");};
   w.subscribeActivity = callback => {historyListeners.add(callback);return()=>historyListeners.delete(callback);};
-  w.getActivitySnapshot = () => ({mode:"legacy",seed:opts.runSeed??town.seedKey,minute:w.t,peopleCount:w.people.length,modelVersion:w.modelVersion,runId:activityRunId,historyAvailable:!!activityHistory,stats:{...w.stats},metrics:{population:w.people.length,earned:w.stats.earned,spent:w.stats.spent,...w.summary().avg},people:w.people.map(p=>({id:personId(p),name:p.name,householdId:p.householdId,activity:activityOf(p),districtId:placeOf(p),needs:{...p.needs},doing:p.doing,decisionTrace:p.decisionHistory||[]})),districtLabel:"Place type",districts:[...new Set(w.buildings.map(b=>b.kind)),"travel"].map(id=>({id,label:id}))});
+  w.getActivityIdentity=()=>({runId:activityRunId,modelVersion:w.modelVersion,residentRules:w.residentRules?{...w.residentRules}:null,seed:transitCounterContext.runSeed==='default'?town.seedKey:transitCounterContext.runSeed,simulationSeed});
+  w.getActivitySnapshot = () => ({mode:"legacy",seed:transitCounterContext.runSeed==='default'?town.seedKey:transitCounterContext.runSeed,minute:w.t,peopleCount:w.people.length,modelVersion:w.modelVersion,residentRules:w.residentRules?{...w.residentRules}:null,runId:activityRunId,historyAvailable:!!activityHistory,stats:{...w.stats},metrics:{population:w.people.length,earned:w.stats.earned,spent:w.stats.spent,...w.summary().avg},people:w.people.map(p=>({id:personId(p),name:p.name,householdId:p.householdId,activity:activityOf(p),districtId:placeOf(p),needs:{...p.needs},doing:p.doing,decisionTrace:p.decisionHistory||[]})),districtLabel:"Place type",districts:[...new Set(w.buildings.map(b=>b.kind)),"travel"].map(id=>({id,label:id}))});
 
   w.summary = () => {
     const n = w.people.length || 1;
@@ -718,13 +711,14 @@ export function createWorld(town, opts = {}) {
   };
 
   w.restoreCheckpointParameters=value=>{parameters=resolveSimulationParameters(value);w.parameters=parameters;};
-  w.captureCheckpointRetention=()=>({runId:activityRunId,transitCounterContext:{...transitCounterContext},enabled:!!activityHistory,activityHistory:activityHistory?structuredClone(activityHistory):null,personRoutines:personRoutines?[...personRoutines.entries()].map(([id,value])=>[id,structuredClone(value)]):[]});
+  w.captureCheckpointRetention=()=>({simulationSeed,runId:activityRunId,transitCounterContext:{...transitCounterContext},enabled:!!activityHistory,activityHistory:activityHistory?structuredClone(activityHistory):null,personRoutines:personRoutines?[...personRoutines.entries()].map(([id,value])=>[id,structuredClone(value)]):[]});
   w.restoreCheckpointRetention=(saved,{validateOnly=false}={})=>{
     if(!saved||typeof saved.runId!=='string'||saved.runId.length>256||!['runSeed','year'].every(key=>typeof saved.transitCounterContext?.[key]==='string'&&saved.transitCounterContext[key].length<=256)||saved.enabled!==!!activityHistory||!Array.isArray(saved.personRoutines)||saved.personRoutines.length>w.people.length)throw new Error('Legacy checkpoint history authority mismatch');
     if(activityHistory){const h=saved.activityHistory;if(h?.schemaVersion!=='activity-history-state.v1'||Object.keys(createActivityHistory()).some(key=>!Object.hasOwn(h,key))||!['maxEvents','maxBuckets','bucketMinutes','actorCount'].every(key=>Number.isInteger(h[key])&&h[key]>=0)||!['dimensions','eventTypes','activityTypes'].every(key=>Array.isArray(h[key]))||!h.actors||!h.selected||!h.totals||!h.coverage||!h.retention||!Array.isArray(h.recentEvents)||!h.buckets||h.maxEvents>2000||h.maxBuckets>744||h.bucketMinutes<1||h.bucketMinutes>1440||h.recentEvents.length>h.maxEvents||Object.keys(h.buckets).length>h.maxBuckets||saved.personRoutines.some(row=>!Array.isArray(row)||row.length!==2||!w.people.some(p=>String(p.id)===row[0])||!Array.isArray(row[1]?.intervals)||row[1].intervals.length>96)||new Set(saved.personRoutines.map(row=>row[0])).size!==saved.personRoutines.length)throw new Error('Invalid legacy checkpoint retained history');}
     else if(saved.activityHistory!==null||saved.personRoutines.length)throw new Error('Unexpected legacy checkpoint history');
+    if(saved.simulationSeed!==undefined&&(!Number.isInteger(saved.simulationSeed)||saved.simulationSeed<0||saved.simulationSeed>4294967295))throw new Error('Invalid legacy diagnostic simulation seed');
     if(validateOnly)return;
-    activityRunId=saved.runId;transitCounterContext={...saved.transitCounterContext};
+    simulationSeed=saved.simulationSeed??null;activityRunId=saved.runId;transitCounterContext={...saved.transitCounterContext};
     if(activityHistory){for(const key of Object.keys(activityHistory))delete activityHistory[key];Object.assign(activityHistory,structuredClone(saved.activityHistory));personRoutines.clear();for(const [id,value]of saved.personRoutines)personRoutines.set(id,structuredClone(value));}
   };
   w.captureCheckpoint=()=>captureLegacyCheckpoint(w);

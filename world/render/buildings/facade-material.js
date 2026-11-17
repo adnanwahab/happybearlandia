@@ -1,6 +1,7 @@
 import { MeshStandardNodeMaterial, Color } from 'three/webgpu';
 import { positionLocal, normalLocal, uniform, mix, vec3, vec4, sin, dot, fract, step, materialColor, cameraPosition, modelWorldMatrixInverse, Fn, If } from 'three/tsl';
 export function createFacadeMaterial(color, seed = 0, layout = {}) {
+  const blueprint=uniform(0);
   const night = uniform(0), enabled = uniform(1), interiorEnabled=uniform(1),occupancy=uniform(.7),landscape=uniform(layout.park?1:0);
   const axis = positionLocal.x.mul(normalLocal.z.abs()).add(positionLocal.z.mul(normalLocal.x.abs()));
   const cellX = axis.div(uniform(layout.columnSpacing||3.2)), cellY = positionLocal.y.div(uniform(layout.floorHeight||3.4));
@@ -31,7 +32,7 @@ export function createFacadeMaterial(color, seed = 0, layout = {}) {
     });
     return result;
   })();
-  const material = new MeshStandardNodeMaterial({ color: new Color(color), roughness: .78, metalness: .08 });
+  const material = new MeshStandardNodeMaterial({ color: new Color(layout.color??color), roughness: .78, metalness: .08 });
   const grain=fract(sin(dot(positionLocal.xz.floor().add(positionLocal.y.floor()),vec3(12.9898,78.233,37.719).xy)).mul(43758.5453));
   const mortar=step(.96,fract(positionLocal.y.mul(3.5))).mul(.1);
   const floorBand=step(.95,v).mul(.12);
@@ -39,13 +40,18 @@ export function createFacadeMaterial(color, seed = 0, layout = {}) {
   const turf=sin(positionLocal.x.mul(.43).add(sin(positionLocal.z.mul(.24)))).mul(sin(positionLocal.z.mul(.37))).mul(.12).add(.9);
   const groundGrain=fract(sin(dot(positionLocal.xz.mul(40).floor(),vec3(12.9898,78.233,37.719).xy)).mul(43758.5453));
   const lawn=materialColor.mul(turf).mul(mix(.87,1,groundGrain));
-  const roof=mix(vec3(.095,.105,.10),lawn,landscape).mul(mix(.94,1,grain));
+  const roof=mix(vec3(new Color(layout.roofColor??0x1a1c1a)),lawn,landscape).mul(mix(.94,1,grain));
   const view=modelWorldMatrixInverse.mul(vec4(cameraPosition,1)).xyz.sub(positionLocal).normalize();
   const reflection=dot(view,normalLocal).abs().oneMinus().pow(3).mul(.55).add(.18);
   const reflectedRoom=mix(room,glass.mul(1.3),reflection);
   const wall=materialColor.mul(weathering).mul(mix(vec3(1),reflectedRoom,window));
-  material.colorNode = mix(wall,roof,step(.65,normalLocal.y));
-  material.roughnessNode=mix(.9,.28,window);material.metalnessNode=mix(.04,.3,window);
-  material.emissiveNode = vec3(1,.69,.31).mul(window).mul(lit).mul(night).mul(.5);
-  return { material, setNight(value) { night.value = value; }, setEnabled(value) { enabled.value = value ? 1 : 0; },setInteriorEnabled(value){interiorEnabled.value=value?1:0;},setOccupancy(value){occupancy.value=Math.max(0,Math.min(1,value));} };
+  // A ground-floor fascia is decorative: it conveys no stock, revenue or occupancy.
+  const fascia=step(positionLocal.y,2.8).mul(step(2.3,positionLocal.y)).mul(side).mul(layout.storefront?1:0).mul(enabled);
+  const decorated=mix(wall,materialColor.mul(.55),fascia);
+  // Blueprint uses the identical triangles and window mask; no metric is encoded.
+  const schematic=mix(vec3(.045,.16,.25),vec3(.35,.8,.95),window.mul(.7).add(step(.95,v).mul(.3)).clamp(0,1));
+  material.colorNode = mix(mix(decorated,roof,step(.65,normalLocal.y)),schematic,blueprint);
+  material.roughnessNode=mix(mix(.9,.28,window),1,blueprint);material.metalnessNode=mix(mix(.04,.3,window),0,blueprint);
+  material.emissiveNode = vec3(1,.69,.31).mul(window).mul(lit).mul(night).mul(.5).mul(blueprint.oneMinus());
+  return { material, setStyle(value){blueprint.value=value;}, setNight(value) { night.value = value; }, setEnabled(value) { enabled.value = value ? 1 : 0; },setInteriorEnabled(value){interiorEnabled.value=value?1:0;},setOccupancy(value){occupancy.value=Math.max(0,Math.min(1,value));} };
 }

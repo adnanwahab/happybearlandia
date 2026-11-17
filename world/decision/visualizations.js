@@ -1,3 +1,6 @@
+import { renderHousingRibbons } from './housing-ribbons.js';
+import { mountRentSkyline } from './rent-skyline.js';
+import { renderHouseholdCostAtlas } from './cost-atlas.js';
 import { classifyDecisionOutcome, DECISION_ENGINE_VERSION } from './contracts.js';
 // E2E hooks: [data-testid=decision-visualizations], [data-viz=landscape|worlds|
 // distribution|comparison|pareto|replay], [data-control=x|y|z|metric|scenario|
@@ -112,6 +115,10 @@ export function mountDecisionVisualizations(container, {onSelectRun,onEnterFutur
   const exploration=doc.createElement('div');exploration.className='dv-exploration';exploration.innerHTML=`<div class="dv-controls"><label>Color <select data-control="color"><option value="scenario">Scenario</option><option value="outcome">Success / mixed / failure</option></select></label><label>Outcome <select data-control="outcome"><option value="">All outcomes</option><option value="success">Success</option><option value="mixed">Mixed</option><option value="unclassified">Unclassified</option><option value="failure">Failure</option></select></label><label>Find futures <input data-control="search" type="search" maxlength="300" placeholder="rent below 2000 and cost < 2b" aria-label="Search future metrics and events"></label><label><input type="checkbox" data-control="density">Density contours</label><label><input type="checkbox" data-control="ghost" checked>Previous experiment</label><button data-control="lasso" aria-pressed="false">Lasso futures</button><button data-control="clear-lasso">Clear selection</button></div><p class="dv-muted" data-search-note>Search is a bounded local metric/event filter, not AI interpretation. No recorded criteria means unclassified.</p><div class="dv-stats" data-paired-strip></div><p role="status" data-lasso-support></p>`;content.querySelector('[data-viz="landscape"]').before(exploration);
   const shortcuts=doc.createElement('div');shortcuts.className='dv-controls';shortcuts.innerHTML='<button data-control="best">Best future</button><button data-control="median">Median future</button><button data-control="worst">Worst future</button><button data-control="enter" disabled>Enter future ↗</button><span data-median-compare></span>';content.querySelector('[data-run-summary]').after(shortcuts);
   const receipt=doc.createElement('p');receipt.innerHTML='<a data-run-receipt target="_blank" rel="noopener" hidden>Open run receipt (JSON)</a><span data-receipt-identity></span>';shortcuts.after(receipt);
+  const costAtlas=doc.createElement('section');costAtlas.className='dv-panel';costAtlas.dataset.testid='household-cost-atlas';receipt.after(costAtlas);
+  const ribbons=doc.createElement('section');ribbons.className='dv-panel';ribbons.dataset.testid='housing-ribbons';costAtlas.after(ribbons);
+  const skylineHost=doc.createElement('section');content.prepend(skylineHost);
+  const skyline=mountRentSkyline(skylineHost, run=>choose(run));
   const gridControl=doc.createElement('label');gridControl.className='dv-grid-control';gridControl.innerHTML='Futures per page <select data-control="grid-size"><option value="100">100</option><option value="500">500</option></select>';content.querySelector('[data-viz="worlds"]').before(gridControl);
   const $=s=>root.querySelector(s), control=name=>$(`[data-control="${name}"]`);
   let state={experiment:null,runs:[],aggregates:[],comparisons:[],model:{}}, runs=[],metrics=[],scenarios=[],selected=null,page=0,replayIndex=0,timer=null,destroyed=false,threeD=false;
@@ -180,6 +187,8 @@ export function mountDecisionVisualizations(container, {onSelectRun,onEnterFutur
   function renderPareto(){const cost=metrics.find(m=>/public_expenditure|public_cost|government_cost|fiscal_cost|total_cost|expenditure/.test(m.id))||metrics.find(m=>/cost/.test(m.id));const affordability=metrics.find(m=>/affordability/.test(m.id))||metrics.find(m=>/rent/.test(m.id));const chart=$('[data-viz="pareto"] svg');if(!cost||!affordability){chart.replaceChildren();$('[data-pareto-note]').textContent='Cost and affordability metrics will appear when the model provides them.';return}const rows=visible(),front=paretoFront(rows,cost.id,affordability.id,'lower-is-better',affordability.direction);$('[data-pareto-note]').textContent=`${cost.label} (lower preferred) versus ${affordability.label} (${['lower-is-better','lower','minimize'].includes(affordability.direction)?'lower':'higher'} preferred). ${front.length} nondominated futures in the current filter.`;drawScatter(chart,rows,cost.id,affordability.id,{front})}
   function replayRows(){return (Array.isArray(selected?.monthlyTimeline)?selected.monthlyTimeline:Array.isArray(selected?.timeline)?selected.timeline:[]).map(r=>finite(r?.year)?r:finite(r?.month)?{...r,year:r.month/12}:r).filter(r=>finite(r?.year)&&r.metrics).sort((a,b)=>a.year-b.year)}
   function renderReplay(){
+    renderHousingRibbons(ribbons,state.experiment,selected,decisionRunReceiptURL(state.experiment,selected));
+    renderHouseholdCostAtlas(costAtlas,state.experiment,selected,decisionRunReceiptURL(state.experiment,selected));
     const projectRows=selected?.projects||[];
     const projects=state.experiment?.scenarios?.find(s=>s.id===selected?.scenarioId)?.projects||projectRows.map(p=>p.proposal).filter(Boolean);
     const host=$('[data-building-replay]');
@@ -263,8 +272,8 @@ export function mountDecisionVisualizations(container, {onSelectRun,onEnterFutur
       if(prior!==next.experiment?.id){stop();page=0;selected=null;replayIndex=0}if(next.selectedRun)selected=runs.find(r=>r.id===next.selectedRun.id)||selected;
       const query=new URLSearchParams(doc.defaultView.location?.search||'');if(!selected&&query.get('run')){selected=runs.find(r=>r.id===query.get('run'))||null;if(selected){const rows=replayRows(),month=Number(query.get('month')||0);replayIndex=Math.max(0,rows.findLastIndex(r=>r.year*12<=month))}}
       if(selected){selected=runs.find(r=>r.id===selected.id)||null;if(!selected)stop()}
-      search=compileFutureSearch(searchQuery,metrics);renderAll();
+      search=compileFutureSearch(searchQuery,metrics);skyline.update({...state,runs});renderAll();
     },
-    destroy(){if(destroyed)return;destroyed=true;stop();buildingReplay?.destroy();for(const cleanup of cleanups)cleanup();root.remove()},
+    destroy(){if(destroyed)return;destroyed=true;stop();skyline.destroy();buildingReplay?.destroy();for(const cleanup of cleanups)cleanup();root.remove()},
   };
 }

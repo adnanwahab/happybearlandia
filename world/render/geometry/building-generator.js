@@ -1,3 +1,4 @@
+import {architecturePalette} from './architecture-palette.js';
 import {MeshBuilder,cleanPolygon,bounds,visualSeed} from './mesh-data.js';
 import {ARCHETYPES,facadeLayout} from './facade-layout.js';
 import {podiumSections} from './podium-generator.js';
@@ -7,6 +8,7 @@ export function generateBuildingGeometry(building,quality='BALANCED') {
  const detail=typeof quality==='number'?quality:GEOMETRY_QUALITY[quality];if(!Number.isInteger(detail)||detail<0||detail>3)throw new RangeError('Unknown geometry quality');
  let footprint=cleanPolygon(building.footprint||building.poly),seed=visualSeed(building.id??'building',building.worldRevision??0),parameters=building.architecture||building;
  const archetype=parameters.archetype||(building.kind==='home'?(building.height>35?'podium-tower':building.height>12?'mid-rise':'single-family'):building.kind==='school'?'school':building.kind==='work'?'office':'shopping');
+ const palette=architecturePalette(building);
  const template=ARCHETYPES[archetype];if(!template)throw new RangeError(`Unknown architectural archetype: ${archetype}`);
  const explicitHeight=Number(building.height),rawFloors=parameters.floors??Math.max(1,Math.round((explicitHeight||10)/template.floorHeight));
  const floors=Math.max(1,Math.min(200,Math.round(rawFloors)));if(!Number.isFinite(floors))throw new TypeError('Floors must be finite');
@@ -18,10 +20,10 @@ export function generateBuildingGeometry(building,quality='BALANCED') {
  if(setbacks.length>12||setbacks.some(s=>!Number.isFinite(s.floor)||!Number.isFinite(s.inset)))throw new RangeError('Setbacks must contain at most 12 finite floor/inset pairs');
  const sections=podiumSections(footprint,floors,floorHeight,detail>0?setbacks:[],detail>0&&(parameters.podium??template.podium));
  for(const section of sections)builder.extrude(section.polygon,section.bottom,section.top);
- const roofType=parameters.roofType||template.roofType;appendRoof(builder,sections.at(-1).polygon,height,roofType,detail);
+ const roofType=parameters.roofType||(parameters.archetype||(building.kind==='home'&&height>12)?template.roofType:palette?.roofType)||template.roofType;appendRoof(builder,sections.at(-1).polygon,height,roofType,detail);
  if(detail>=1&&height>3){
   // Attach details to a real wall segment, never the axis-aligned bounds.
-  appendWallSlab(builder,sections[0].polygon,2.59,.22,6,1.1,.5);
+  appendWallSlab(builder,sections[0].polygon,2.59,.22,palette?.awningWidth??6,palette?.awningDepth??1.1,.5);
  }
  if(detail>=2&&floors>3){
   const balconyCount=Math.min(12,floors-1);
@@ -31,7 +33,7 @@ export function generateBuildingGeometry(building,quality='BALANCED') {
    appendWallSlab(builder,section.polygon,elevation-.09,.18,3,1.2,.25);
   }
  }
- return builder.finish({category:'building',lod:Math.max(0,2-detail),priority:building.selected?1:.6,seed,archetype,floors,floorHeight,height,roofType,facade:facadeLayout(parameters.facadeStyle||template.facadeStyle),bounds:b});
+ return builder.finish({category:'building',lod:Math.max(0,2-detail),priority:building.selected?1:.6,seed,archetype,floors,floorHeight,height,roofType,facade:{...facadeLayout(parameters.facadeStyle||template.facadeStyle),...palette},bounds:b});
 }
 
 function appendWallSlab(builder,polygon,bottom,thickness,maxWidth,depth,fraction){

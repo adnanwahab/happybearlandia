@@ -1,0 +1,6 @@
+import {test,expect} from 'bun:test';import {mkdtemp,mkdir,rm} from 'node:fs/promises';import path from 'node:path';import {tmpdir} from 'node:os';import {cleanupMergedWorkspaces} from './cleanup';
+test('cleanup removes only merged clean owned worktrees; skips active, dirty, open and unmatched work',async()=>{
+ const repo=await mkdtemp(path.join(tmpdir(),'mini-cleanup-')),workspaces=path.join(repo,'workspaces');await mkdir(workspaces);for(let n=1;n<=5;n++)await mkdir(path.join(workspaces,'SHE-'+n));const removed:string[]=[];
+ const cmd=(bin:string,args:string[],cwd:string)=>{const id=path.basename(cwd);let stdout='';if(args[0]==='branch')stdout='mini/'+id;if(args[0]==='rev-parse')stdout=path.join(repo,'.git');if(args[0]==='status'&&id==='SHE-2')stdout=' M file';if(args[0]==='worktree'){removed.push(args.at(-1)!);}return{code:0,stdout,stderr:''};};
+ try{const prs=[1,2,3,4].map(n=>({headRefName:'mini/SHE-'+n,state:n===4?'OPEN':'MERGED'}));const result=await cleanupMergedWorkspaces(cmd,repo,workspaces,prs,new Set(['SHE-3']));expect(removed).toEqual([path.join(workspaces,'SHE-1')]);expect(result.find(r=>r.id==='SHE-2')?.removed).toBe(false);}finally{await rm(repo,{recursive:true,force:true});}
+});

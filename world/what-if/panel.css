@@ -3,3 +3,4 @@
 .wi-panel [data-pair-form] label{display:block;margin:8px 0}
 .wi-panel [data-pair-form] input{max-width:100%;box-sizing:border-box}
 .wi-panel [data-pair-output] section{overflow-x:auto}
+.wi-panel [data-pin-form] label{display:flex;margin:8px 0}.wi-panel [data-pin-form] input{min-width:0;width:100%;box-sizing:border-box}.wi-panel input:focus-visible{outline:3px solid #70a4eb;outline-offset:2px}.wi-panel [data-pin-form] button{min-height:44px}

@@ -1,12 +1,25 @@
-# Consented player feedback — SHE-52
+# Consented player feedback — SHE-52 / SHE-586
 
-World's optional disclosure submits two structured choices: confusing/favorite,
-and exploring/choosing/comparing/inspecting/sharing. Consent starts unchecked
-and resets after a successful send or dismissal. Dismissal sends nothing;
-closing the disclosure never pauses simulation. Requests omit credentials and
-referrer and time out after eight seconds. A failed request can be retried;
-the UI warns that an uncertain receipt may count twice. Dismissal during a
-request aborts the browser request but cannot retract a count already accepted.
+World controls contains a closed-by-default optional Feedback disclosure. It
+never opens automatically or prompts again, including on reload. After reading
+the privacy disclosure and checking consent, Wow or Confusing sends one reaction
+for the selected World feature. World/exploring is the default; feature selection
+is explicit, not inferred from gameplay. Wow maps to the existing v1 `favorite`
+category. Consent resets on success, close, dismissal or local clearing.
+
+Clear local feedback aborts the browser request and removes local choices and
+consent. It does **not** withdraw an already accepted anonymous count. This limit
+is disclosed before consent and again after clearing. Closing during a request
+cannot retract a count already accepted by the server. Retrying an uncertain
+receipt can count twice; the UI says so. No local/session storage or identifiers
+are introduced. A stale response cannot overwrite cleared or newer feedback.
+
+The UI has native keyboard controls, Escape-to-dismiss with focus restoration,
+44px minimum button heights, polite status and visible focus. It uses static DOM
+and CSS with no animation, GPU, canvas or simulation dependency. Collection is
+optional; failure does not affect gameplay. Requests omit credentials and referrer
+and time out after eight seconds. No live service was enabled or deployed by this
+local change. The server route reuses the existing lazily initialized collector.
 
 POST /api/player-feedback accepts only JSON `{version:1, consent:true, kind,
 moment}` from the same origin, up to 512 bytes. Unknown fields are rejected.
@@ -31,7 +44,7 @@ model results, synthetic labels, and replay contracts unchanged. SHE-248's
 aggregate triage can consume a future explicitly agreed adapter; it is not wired
 here.
 
-Verification (2026-11-12):
+Historical SHE-52 verification (2026-11-12):
 
 - `bun test test/player-feedback.test.js test/world-visual-feedback.test.js test/dear-congress-feedback.test.js`: 13 passed, 0 failed, 84 assertions.
 - `git diff --check`: passed.
@@ -46,3 +59,8 @@ real persistence and failure paths are covered by the API tests. Run it in a
 working local browser/server environment before final review. No deployment,
 production data change, commit, or PR publication was performed. Working branch:
 `mini/SHE-52`.
+
+SHE-586 verification and remaining browser/withdrawal limitations are recorded in
+[the review](../../docs/reviews/SHE-586.md). Focused browser command:
+`HBL_BUN_EXECUTABLE=/absolute/path/to/bun bunx playwright test --config test/player-feedback.browser.config.js`.
+The override avoids a known broken local Bun shim; omit it on normal installs.

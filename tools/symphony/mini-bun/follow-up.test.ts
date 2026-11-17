@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { importProjectTasks } from './linear-import';
 import { refreshRunningProject } from './refresh';
-import { runnable, queueSummary } from './queue';
+import { runnable, queueSummary, waitingExplanation } from './queue';
 import type { Project } from './project';
 const project:Project={schemaVersion:1,name:'Test',repository:'/fixture',githubRepository:'fixture/dear_congress',linearProjectId:'project-fixture',linearProjectUrl:'https://linear.app/test',baseBranch:'main',dataDirectory:'/unused'};
 const issue={id:'SHE-270',title:'Implement missing behavior',description:'Deliver working code',status:'Todo',statusType:'unstarted',blockedBy:[]};
@@ -62,4 +62,10 @@ test('live refresh persists latest follow-up holds and releases without replacin
   await expect(refreshRunningProject(config,state,async()=>{throw Error('Linear unavailable');})).rejects.toThrow('Linear unavailable');
   expect(await readFile(path.join(dir,'tasks.json'),'utf8')).toBe(before);
  }finally{await rm(dir,{recursive:true,force:true});}
+});
+
+test('waiting reasons exclude superseded or terminal historical dependency holds',()=>{
+ const tasks=[{id:'old',enabled:false,disabledReason:'superseded',holdReason:'Unfinished prerequisites: SHE-40.'},{id:'done',enabled:false,linearStatusType:'completed',holdReason:'old approval hold'},{id:'current',enabled:false,disabledReason:'dependency',holdReason:'Unfinished prerequisites: SHE-390.'}];
+ expect(waitingExplanation(tasks)).toBe('Held: Unfinished prerequisites: SHE-390.');
+ expect(waitingExplanation(tasks.slice(0,2))).not.toContain('SHE-40');
 });

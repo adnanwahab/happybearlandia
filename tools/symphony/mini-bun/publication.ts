@@ -1,7 +1,7 @@
 export type Command = (bin: string, args: string[], cwd: string) => { code: number; stdout: string; stderr: string };
 
 // Each step can be repeated after a crash without requiring a dirty worktree.
-export function publishDraft(command: Command, workspace: string, id: string, base: string, title: string, body: string, onResult?: (result: {url: string; reused: boolean}) => void) {
+export function publishDraft(command: Command, workspace: string, id: string, base: string, title: string, body: string | ((head:string)=>string), onResult?: (result: {url: string; reused: boolean}) => void) {
   const run = (bin: string, args: string[]) => {
     const result = command(bin, args, workspace);
     if (result.code !== 0) throw Error(`${bin} ${args[0]} failed: ${(result.stderr || result.stdout).trim()}`);
@@ -36,8 +36,8 @@ export function publishDraft(command: Command, workspace: string, id: string, ba
   if (Number(run('git', ['rev-list', '--count', `${ref}..HEAD`])) === 0 ||
       !run('git', ['diff', '--name-only', `${ref}...HEAD`])) throw Error('Codex exited successfully but produced no changes to publish');
   run('git', ['push', '-u', 'origin', branch]);
-  const url = run('gh', ['pr', 'create', '--draft', '--base', base, '--head', branch, '--title', title, '--body', body]).split('\n').at(-1)!;
-  if (!/^https:\/\/github\.com\/[^/]+\/[^/]+\/pull\/\d+$/.test(url)) throw Error('Invalid draft PR creation response; retry to reconcile');
+  const url = run('gh', ['pr', 'create', '--base', base, '--head', branch, '--title', title, '--body', typeof body==='function'?body(run('git',['rev-parse','HEAD'])):body]).split('\n').at(-1)!;
+  if (!/^https:\/\/github\.com\/[^/]+\/[^/]+\/pull\/\d+$/.test(url)) throw Error('Invalid PR creation response; retry to reconcile');
   onResult?.({url, reused: false});
   return url;
 }

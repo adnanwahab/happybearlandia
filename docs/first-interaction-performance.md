@@ -1,3 +1,21 @@
+## Provisional owner-requested targets — November 14, 2026
+
+The numeric limits in the configuration are **engineering estimates, not measured
+baselines**. Status: `provisional-estimate-not-calibrated`; calibration is still
+required. They provide initial targets without claiming hardware verification.
+
+| Profile | Decoded JS | Ready for first action | Slider response (two frames) | Sampled main-page JS heap |
+| --- | --- | --- | --- | --- |
+| Laptop emulated | 8 MiB | 15 seconds | 100 ms | 512 MiB |
+| Mobile emulated | 8 MiB | 30 seconds | 250 ms | 256 MiB |
+
+These are starting ceilings for a complex simulator, not observed performance or
+claims about physical phones. Heap excludes workers, GPU/native allocations and
+process memory. Decoded JS is not compressed transfer size. Passing these targets
+does not establish baseline-derived acceptance of SHE-40. Obtain three valid cold
+samples per profile, review the generated proposal, then replace these estimates.
+Do not label estimate-based check results as calibrated or measured budgets.
+
 # First-interaction budgets — SHE-40
 
 Status: measurement infrastructure implemented; numeric budgets await a successful
@@ -99,3 +117,16 @@ marker require a fresh run. The generator's 25% allowance is unchanged. Tests us
 explicit contract fixtures, never baseline observations. See
 [the acceptance audit](reviews/SHE-40.md) for exact commands and remaining gates.
 SHE-11's Done status does not supersede its missing measurement evidence.
+
+
+## r3 evidence correction — 2026-11-14
+
+Merged PR322 now provides successful integrated SHE-11 renderer host evidence
+(see [host review](reviews/SHE-11-sprint-host-20261114.md)); earlier missing-browser
+notes are historical. This does not supply the separate first-interaction baseline.
+Calibration now removes stale proposals on failure and rejects cross-profile
+source, browser, host or simulation/renderer mismatches. Actual `webgl2` labels
+remain intact. Sixteen focused tests pass with350assertions. Current browser
+attempt cannot start its isolated server; independent loopback bind fails EPERM.
+Numeric budgets remain unpinned; no hardware or total-memory acceptance claimed.
+See [r3 audit](reviews/SHE-40.md#r3-follow-up--2026-11-14) for exact commands.

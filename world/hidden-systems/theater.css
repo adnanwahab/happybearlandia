@@ -42,3 +42,19 @@
 .construction-theater__caption progress { width: min(100%, 16rem); accent-color: #457d68; }
 .construction-theater__delay { font-weight: 650; }
 .construction-theater__note { font-size: .85rem; }
+.construction-theater__effects { position: absolute; inset: 0; pointer-events: none; color: #ffdb79; font: bold 2rem monospace; }
+.construction-theater__effects span { position: absolute; }
+.construction-theater__crane { left: 23%; top: 20%; transform-origin: left; animation: construction-lift 1.5s ease-in-out 2 alternate; }
+.construction-theater__delivery { left: 10%; bottom: 15%; animation: construction-delivery 3s ease-out both; }
+.construction-theater__scaffold { left: 42%; bottom: 30%; }
+.construction-theater__dust { left: 40%; bottom: 22%; animation: construction-dust 3s ease-out both; }
+.construction-theater__skip { min-height: 44px; font: inherit; }
+@keyframes construction-lift { to { transform: rotate(-12deg); } }
+@keyframes construction-delivery { to { transform: translateX(22vw); } }
+@keyframes construction-dust { to { transform: translateY(-2rem); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .construction-theater__effects { display: none; } }
+.construction-theater__crane { width: 27%; height: 36%; border-left: .4rem solid #ffcf63; border-top: .4rem solid #ffcf63; }
+.construction-theater__crane::after { content: ''; position: absolute; right: 8%; top: 0; height: 65%; width: .6rem; border-left: 2px solid #ece6cf; border-bottom: .3rem solid #ece6cf; }
+.construction-theater__delivery { width: 2.7rem; height: 1.1rem; background: #d6aa63; border-radius: .2rem; border-bottom: .4rem dotted #172f2b; }
+.construction-theater__scaffold { width: 20%; height: 25%; border: 2px solid #d6aa63; background: repeating-linear-gradient(0deg, transparent 0 1rem, #d6aa63 1rem 1.12rem); }
+.construction-theater__dust { width: 18%; height: 1.8rem; border-radius: 50%; background: radial-gradient(ellipse, #dac79b99, transparent 70%); }

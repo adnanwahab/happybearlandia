@@ -1,0 +1,10 @@
+{
+  "runtime": "1.4.2",
+  "synthetic": true,
+  "entities": 20000,
+  "samples": 1000,
+  "workload": "24-target extraction plus 100 index transitions, excluding DOM/GPU/camera",
+  "medianMs": 0.0012080000000000979,
+  "p95Ms": 0.0024169999999994474,
+  "maxMs": 0.44387500000000024
+}

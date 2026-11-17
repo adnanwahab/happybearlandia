@@ -1,3 +1,5 @@
+import { mountDrainage } from './drainage.js';
+import { mountDepthCutaway } from './cutaway.js';
 import { mountHazardField } from './hazard-field.js';
 import { mountControlReadiness } from '../onboarding/first-run-repairs.js';
 import { consequences, impactMetrics } from './compare.js';
@@ -40,6 +42,8 @@ const scene = mountStormScene(find('scene'), { onCell(index) {
   renderScene();
 } });
 
+const drainage = mountDrainage(find('hazard-field'));
+const cutaway = mountDepthCutaway(find('hazard-field'), index => { selected = index; renderScene(); });
 const hazard = mountHazardField(find('hazard-field'), index => { selected = index; renderScene(); });
 
 function element(tag, text) {
@@ -131,9 +135,12 @@ function renderScene() {
   const tick = Number(tickPicker.value);
   const depth = arm.water.frames[tick];
   const { terrain } = arm.input;
-  scene.render({ size: SIZE, terrain, depth, buildings, roads, selected });
-  hazard.render({ size: SIZE, depth, drains: arm.input.drains, selected,
-    provenance: `${comparison.recipe.version} · ${arm.water.modelVersion} · ${arm.water.backend} solver · seed ${comparison.recipe.seed} · ${armPicker.value} · step ${tick} · rain ${comparison.recipe.rainRate} m per step · synthetic terrain and drain inputs; closed edges, illustrative runoff rules` });
+  scene.render({ size: SIZE, terrain, depth, buildings, roads, selected, step: tick });
+  const hazardFrame = { size: SIZE, depth, drains: arm.input.drains, selected,
+    provenance: `${comparison.recipe.version} · ${arm.water.modelVersion} · ${arm.water.backend} solver · seed ${comparison.recipe.seed} · ${armPicker.value} · step ${tick} · rain ${comparison.recipe.rainRate} m per step · synthetic terrain and drain inputs; closed edges, illustrative runoff rules` };
+  hazard.render(hazardFrame);
+  cutaway.render(hazardFrame);
+  drainage.render({ arm: armPicker.value, step: tick, drainage: arm.water.drainage?.[tick] });
   const entity = buildings.find(row => row.cells.includes(selected)) ?? roads.find(row => row.cells.includes(selected));
   find('selection').textContent = `Selected ${cellLabel(selected)}${entity ? ' · ' + entity.name : ''} · Depth ${number.format(depth[selected])} m`;
   find('step-label').value = `Step ${tick} of ${comparison.recipe.steps}`;
@@ -330,3 +337,20 @@ try {
 } catch (error) {
   find('run-status').textContent = error.message;
 }
+
+window.addEventListener('pagehide', event => {
+  stop();
+  cancelEnsemble();
+  if (!event.persisted) scene.destroy();
+});
+
+window.addEventListener('pagehide', () => {
+  stop();
+  cancelEnsemble();
+  scene.destroy();
+  hazard.destroy();
+  cutaway.destroy();
+  drainage.destroy();
+});
+// Recreate resources when returning from the browser back/forward cache.
+window.addEventListener('pageshow', event => { if (event.persisted) location.reload(); });

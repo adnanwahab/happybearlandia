@@ -1,0 +1,22 @@
+import { test, expect } from '@playwright/test';
+test('empty museum, completed receipt, saved original, replay and deletion', async ({ page }) => {
+ await page.goto('/world/museum/');
+ await expect(page.getByRole('status')).toContainText('No saved exhibits');
+ await page.getByRole('link', { name: 'Run a comparison' }).click();
+ await page.getByRole('button', { name: 'Save to museum on this browser' }).click({ timeout: 60000 });
+ await expect(page.getByRole('status')).toContainText('Receipt saved locally');
+ await page.getByRole('link', { name: 'Visit museum' }).click();
+ await page.getByText('Open original receipt').click();
+ await expect(page.locator('pre')).toContainText('modelVersion');
+ await expect(page.getByRole('link', { name: 'Recompute exact recipe and selected pair' })).toHaveAttribute('href', /challenge=/);
+ await page.screenshot({ path: 'test-results/museum-desktop.png', fullPage: true });
+ await page.setViewportSize({ width: 390, height: 844 });
+ expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+ await page.screenshot({ path: 'test-results/museum-mobile.png', fullPage: true });
+ await page.getByRole('button', { name: 'Delete all museum exhibits' }).click();
+ await expect(page.getByRole('status')).toContainText('No saved exhibits');
+ await page.evaluate(() => localStorage.setItem('hbl.provenance-museum.v1', '[{"version":99}]'));
+ await page.reload();
+ await expect(page.getByRole('heading', { name: /Receipt unavailable/ })).toBeVisible();
+ await expect(page.getByRole('link', { name: /Recompute/ })).toHaveCount(0);
+});

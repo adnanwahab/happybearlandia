@@ -73,11 +73,51 @@ test('calibration CLI writes a complete proposal and fails without one on incomp
     const result = JSON.parse(readFileSync(proposal, 'utf8'));
     expect(result.status).toBe('measured-proposal-awaiting-review');
     expect(result.profiles.map(p => p.limits)).toEqual(config.profiles.map(() => chooseLimits(samples)));
-    rmSync(proposal);
+    // Keep the successful proposal: a failed rerun must invalidate it.
     const incomplete = report(config.profiles[0]);
     incomplete.status = 'incomplete';
     writeFileSync(join(output, config.profiles[0].id, 'measurement.json'), JSON.stringify(incomplete));
     expect(spawnSync(process.execPath, [command], { cwd: root }).status).not.toBe(0);
     expect(existsSync(proposal)).toBe(false);
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('calibration never combines different source or environment baselines', () => {
+  const root = mkdtempSync(join(tmpdir(), 'hbl-calibration-mismatch-'));
+  const output = join(root, 'test-results/first-interaction');
+  const command = fileURLToPath(new URL('../scripts/performance/calibrate-first-interaction.mjs', import.meta.url));
+  try {
+    mkdirSync(join(root, 'test/performance'), { recursive: true });
+    writeFileSync(join(root, 'test/performance/first-interaction-budgets.json'), JSON.stringify(config));
+    for (const profile of config.profiles) mkdirSync(join(output, profile.id), { recursive: true });
+    for (const mutate of [
+      r => { r.commit = 'other-source'; },
+      r => { r.host.cpu = 'other-host'; },
+      r => { r.browser.version = 'other-browser'; },
+      r => { r.samples.forEach(s => { s.evidence.initialHash = 'other-history'; }); },
+      r => { r.samples.forEach(s => { s.evidence.backend = 'webgpu'; }); },
+    ]) {
+      for (const [index, profile] of config.profiles.entries()) {
+        const baseline = report(profile);
+        if (index) mutate(baseline);
+        writeFileSync(join(output, profile.id, 'measurement.json'), JSON.stringify(baseline));
+      }
+      const result = spawnSync(process.execPath, [command], { cwd: root });
+      expect(result.status).not.toBe(0);
+      expect(result.stderr.toString()).toContain('mismatch across profiles');
+      expect(existsSync(join(output, 'budget-proposal.json'))).toBe(false);
+    }
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+test('actual WebGL2 backend reports retain their identity', () => {
+  const baseline = report(config.profiles[0]);
+  baseline.samples.forEach(s => { s.evidence.backend = 'webgl2'; });
+  expect(limitsFromReport(baseline, config.profiles[0], config.runs)).toEqual(chooseLimits(samples));
+});
+
+test('configured starting limits are explicitly estimates, not baseline evidence', async () => {
+  const config=await Bun.file(new URL('./performance/first-interaction-budgets.json',import.meta.url)).json();
+  expect(config.status).toBe('provisional-estimate-not-calibrated');
+  expect(config.measuredBaseline).toBe(false);expect(config.requiresCalibration).toBe(true);
+  for(const profile of config.profiles){expect(profile.budgetStatus).toBe(config.status);expect(()=>assertLimits(profile.limits)).not.toThrow();expect(profile.baseline).toBeUndefined();}
 });

@@ -1,0 +1,38 @@
+bun test v1.4.2 (744846f84)
+
+test/policy-comparison.test.js:
+(pass) guided recipes are funded, complete before the flood, and preserve matched replay inputs [4825.97ms]
+(pass) each guided invocation has isolated mutable inventory [1.43ms]
+(pass) normal API persists all guided arms, flood evidence and replay provenance [4058.64ms]
+
+test/city-lab-lifecycle.test.js:
+(pass) cached City Lab navigation retains tile state and still cleans up on final unload [1.48ms]
+(pass) ordinary City Lab unload disposes its tiles [0.25ms]
+
+test/server-civic-api.test.js:
+(pass) server civic API wiring > returns structured JSON for an unknown run instead of the generic server 404 [0.64ms]
+(pass) server civic API wiring > persists and reloads an experiment through /api/experiments [1.30ms]
+(pass) server civic API wiring > creates a scalable run job from an inline experiment/world batch [7.01ms]
+(pass) normal server API exposes anonymous counters and Retry-After on saturation [1.58ms]
+
+test/city-circle.test.js:
+(pass) consent, private access, evidence isolation, replacement vote, moderation, withdrawal and expiry [0.31ms]
+(pass) bounded claims and membership [1.02ms]
+(pass) normal City API pins stored metrics and full manifest without modifying experiment [43.52ms]
+
+test/city-worker-call.test.js:
+(pass) short success clears worker/listener and ignores queued late message, error and abort [0.19ms]
+(pass) pre-aborted request never constructs a worker; construction-time abort never posts work [0.09ms]
+(pass) abort during work terminates once and prevents a late success from settling it [0.04ms]
+(pass) stalled operation deadline cleans listeners/handlers and remains a rejection after abort [5.71ms]
+(pass) worker result errors, worker events, malformed messages and post failures always clean up [0.17ms]
+(pass) constructor/termination failures settle explicitly; invalid deadlines allocate nothing [0.09ms]
+(pass) real short seeded City worker preserves input and exactly matches engine state/metrics [7.75ms]
+(pass) real nonresponsive worker is terminated on deadline rather than leaving a live operation [31.19ms]
+(pass) replay route passes request abort, releases both reserved slots and keeps error response contract [2.81ms]
+(pass) actual replay route still executes a successful short run on the normal Worker entry point [9.53ms]
+
+ 22 pass
+ 0 fail
+ 328 expect() calls
+Ran 22 tests across 5 files. [9.02s]

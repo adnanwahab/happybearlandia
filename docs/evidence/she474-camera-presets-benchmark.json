@@ -1,0 +1,11 @@
+{
+  "scope": "CPU: build 1000 synthetic building bounds + plan all four presets",
+  "runtime": "1.4.2",
+  "samples": 2000,
+  "warmup": 200,
+  "p50Ms": 0.16474999999999795,
+  "p95Ms": 0.2880410000000211,
+  "maxMs": 0.45962499999996,
+  "unavailable": 0,
+  "limitations": "Local Bun microbenchmark; excludes rendering, browser event latency and GPU cost."
+}

@@ -1,3 +1,4 @@
+import {validateGhostRoute} from './people/ghost-route.js';
 /** Authoritative legacy commands. Call on click; only world.step advances travel.
  * UI contract: world.commandPerson(personId,{type:'walk',destination:{x,z}})
  * or {type:'activity',actionId:'play_park'|'eat_out',buildingId};
@@ -7,6 +8,7 @@ const SOCIAL_ACTIONS=['play_park','eat_out'];
 export function installLegacyPersonCommands(world,{planWalk,historyEvent,actions}){
  const person=id=>{const found=world.people.find(row=>String(row.id)===String(id));if(!found)throw new Error('Unknown legacy person');return found;};
  function interrupt(p){
+  if(p.socialEncounter){const ids=p.socialEncounter.personIds;for(const participant of world.people)if(ids.includes(String(participant.id))&&participant.socialEncounter){participant.doing=participant.socialEncounter.previousDoing??participant.doing;delete participant.socialEncounter;}historyEvent(p,'RESIDENT_CONVERSATION_INTERRUPTED',{personIds:ids,reason:'Explicit user command'});}
   if(p.evacuation){const record=world.policy?.storm?.evacuations?.find(e=>e.personId===String(p.id)&&e.status==='walking');if(record){record.status='interrupted';record.interruptedMinute=world.t;}delete p.evacuation;}
   if(p.mode==='doing'){const building=world.buildings[p.target];if(building)building.state.visitors=Math.max(0,building.state.visitors-1);historyEvent(p,'ACTIVITY_INTERRUPTED',{activity:p.action,reason:'Explicit user command'});}else if(p.mode==='moving')historyEvent(p,'TRIP_INTERRUPTED',{reason:'Explicit user command',walkMinutes:p.tripWalkMinutes??0,travelMinutes:p.tripTravelMinutes??0});p.tripStartedMinute=null;}
  function clear(p,type){const command=p.userCommand;if(!command)return false;historyEvent(p,type,{commandType:command.type,destinationId:command.destinationId??null,action:command.actionId??null});delete p.userCommand;return true;}
@@ -18,9 +20,17 @@ export function installLegacyPersonCommands(world,{planWalk,historyEvent,actions
   const trip=planWalk(p,destination,building);if(!Number.isFinite(trip.minutes)||!Array.isArray(trip.path)||!trip.path.length)throw new Error('No currently available route to that destination');
   // Validate destination and route before replacing any authoritative activity.
   interrupt(p);clear(p,'USER_COMMAND_REPLACED');p.userCommand={schemaVersion:'legacy-person-command.v1',type:request.type,issuedMinute:world.t,destination:{...destination},destinationId:building?.id??null,actionId,phase:'travel'};
-  p.action=actionId;p.target=building?.index??null;p.path=trip.path.map(point=>[...point]);p.pathI=0;[p.tx,p.tz]=p.path[0];p.travelMode='walk';p.transitWaitMinutesRemaining=0;p.tripTravelMinutes=0;p.tripWalkMinutes=0;p.tripTransitMinutes=0;p.tripWaitMinutes=0;p.tripDistanceMeters=trip.distance;p.tripStartedMinute=world.t;p.mode='moving';p.doing=building?`walking to ${building.name}`:'walking to chosen destination';
+  p.tripRouteKind=trip.routeKind;p.pedestrianRulesVersion=trip.rulesVersion;p.tripSocialDelayMinutes=0;p.action=actionId;p.target=building?.index??null;p.path=trip.path.map(point=>[...point]);p.pathI=0;[p.tx,p.tz]=p.path[0];p.travelMode='walk';p.transitWaitMinutesRemaining=0;p.tripTravelMinutes=0;p.tripWalkMinutes=0;p.tripTransitMinutes=0;p.tripWaitMinutes=0;p.tripDistanceMeters=trip.distance;p.tripStartedMinute=world.t;p.mode='moving';p.doing=building?`walking to ${building.name}`:'walking to chosen destination';
   historyEvent(p,'USER_COMMAND_ISSUED',{commandType:request.type,action:actionId,destinationId:building?.id??null,destination:{...destination}});historyEvent(p,'TRIP_STARTED',{mode:'walk',activity:actionId,destinationId:building?.id??null,distanceMeters:trip.distance,expectedWaitMinutes:0,reason:'Explicit user command'});return{accepted:true,personId:String(p.id),minute:world.t,mode:'walk',distanceMeters:trip.distance,destination:{...destination}};
  }
+ world.previewPersonWalk=(id,destination)=>{
+  const p=person(id);
+  if(!Number.isFinite(destination?.x)||!Number.isFinite(destination?.z)||Math.hypot(destination.x-p.x,destination.z-p.z)>5000)throw Error('Choose a finite destination within 5000 meters');
+  const trip=planWalk(p,destination,null);
+  if(!Number.isFinite(trip.minutes))throw Error('Walking is unavailable under current model rules');
+  const points=validateGhostRoute(trip,[p.x,p.z],world.buildings);
+  return {points,personId:String(p.id),rulesVersion:trip.rulesVersion,minutes:trip.minutes};
+ };
  world.commandPerson=command;world.getPersonCommandOptions=options;world.cancelPersonCommand=id=>{const p=person(id);if(!p.userCommand)return false;interrupt(p);clear(p,'USER_COMMAND_CANCELLED');p.mode='idle';p.action=null;p.target=null;p.path=null;p.pathI=0;p.doing='idle';return true;};
  return{arrive(p){if(p.userCommand?.type!=='walk')return false;clear(p,'USER_COMMAND_COMPLETED');p.mode='idle';p.action=null;p.target=null;p.path=null;p.pathI=0;p.doing='arrived at chosen destination';return true;},activityStarted(p){if(p.userCommand)p.userCommand.phase='activity';},activityFinished(p){clear(p,'USER_COMMAND_COMPLETED');},unavailable(p){clear(p,'USER_COMMAND_UNAVAILABLE');}};
 }

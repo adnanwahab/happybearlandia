@@ -1,0 +1,17 @@
+[WebServer] 435 | 
+[WebServer] 436 | const handleExperiments = createExperimentsHandler({ fetchPlan: fetchPlanFromDearCongress, getArea });
+[WebServer] 437 | if (!DEAR_CONGRESS_ORIGIN) throw new Error("Invalid Dear Congress endpoint configuration.");
+[WebServer] 438 | const handleConstitutionSource = createConstitutionSourceHandler({fetchPlan:()=>fetchPlanFromDearCongress({includeSynthetic:false}),sourceUrl:DEAR_CONGRESS_ORIGIN+'/'});
+[WebServer] 439 | 
+[WebServer] 440 | const server = serve({
+[WebServer]                      ^
+[WebServer] error: Failed to start server. Is port 54565 in use?
+[WebServer]  syscall: "listen",
+[WebServer]    errno: 0,
+[WebServer]     code: "EADDRINUSE"
+[WebServer] 
+[WebServer]       at /Users/wahabma/.happybearlandia-mini-symphony-workspaces/SHE-565/server.js:440:16
+[WebServer] 
+[WebServer] Bun v1.4.2 (macOS arm64)
+Error: Process from config.webServer was not able to start. Exit code: 1
+

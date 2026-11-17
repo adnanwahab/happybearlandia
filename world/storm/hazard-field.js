@@ -45,8 +45,9 @@ export function mountHazardField(host, onCell) {
   reading.id = 'hazard-reading';
   host.append(label, canvas, legend, reading);
   let frame;
+  let destroyed = false;
   function draw() {
-    if (!frame) return;
+    if (!frame || destroyed) return;
     const { size, selected, provenance } = frame;
     canvas.width = canvas.height = size * 14;
     const values = frame[picker.value];
@@ -58,11 +59,14 @@ export function mountHazardField(host, onCell) {
   }
   picker.onchange = draw;
   canvas.onclick = event => {
-    if (!frame) return;
+    if (!frame || destroyed) return;
     const box = canvas.getBoundingClientRect();
     const x = Math.floor((event.clientX - box.left) / box.width * frame.size);
     const y = Math.floor((event.clientY - box.top) / box.height * frame.size);
     if (x >= 0 && y >= 0 && x < frame.size && y < frame.size) onCell(y * frame.size + x);
   };
-  return { render(input) { frame = input; draw(); } };
+  return {
+    render(input) { if (!destroyed) { frame = input; draw(); } },
+    destroy() { destroyed = true; frame = undefined; picker.onchange = canvas.onclick = null; label.remove(); canvas.remove(); legend.remove(); reading.remove(); },
+  };
 }

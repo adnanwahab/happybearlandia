@@ -1,3 +1,4 @@
+import { mountAtmosphere } from './atmosphere.js';
 const verticalScale = 2;
 const dryLow = '#4d6c5d';
 const dryHigh = '#a2b08d';
@@ -275,6 +276,7 @@ export function mountStormScene(host, { onCell }) {
   const reading = element('p', null, 'storm-scene__reading');
   panel.append(toolbar, viewport, mapLegend(), controls, selection, reading);
   host.append(panel);
+  const atmosphere = mountAtmosphere(viewport, panel);
 
   let terrainRenderer;
   let frame;
@@ -371,6 +373,7 @@ export function mountStormScene(host, { onCell }) {
       if (destroyed) return;
       const previous = frame;
       frame = prepareFrame(input);
+      atmosphere.render(input.step);
       const { size, selected, terrain, depth, buildingAt, roadAt } = frame;
       controls.disabled = false;
       row.input.max = column.input.max = String(size);
@@ -393,6 +396,7 @@ export function mountStormScene(host, { onCell }) {
       if (destroyed) return;
       destroyed = true;
       observer.disconnect();
+      atmosphere.destroy();
       canvas3d.removeEventListener('webglcontextlost', fallback);
       terrainRenderer?.destroy();
       panel.remove();

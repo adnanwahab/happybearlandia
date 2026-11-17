@@ -9,3 +9,36 @@ test('ID-only mystery, evidence, reveal, saved reload and private source boundar
  expect((await request.get('/ops/detective/api.js')).status()).toBe(404);
  const metrics=await (await request.get('/api/detective')).json();expect(metrics.completedWithTwoEvidenceSteps).toBe(1);
 });
+
+test('keyboard mystery, optional hints, mobile reduced motion and unavailable recovery',async({page})=>{
+ await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:'reduce'});
+ await page.goto('/world/detective.html?experiment=missing');
+ await expect(page.getByRole('status').first()).toHaveText('Saved puzzle unavailable.');
+ await expect(page.locator('main')).toBeHidden();
+ const start=page.getByRole('button',{name:'Open new case'});
+ await start.focus();await page.keyboard.press('Enter');
+ await expect(page.locator('#outcome')).toContainText('homes');
+ await page.getByRole('button',{name:'Submit and reveal'}).focus();await page.keyboard.press('Enter');
+ await expect(page.getByRole('status').first()).toHaveText('Choose an answer first.');
+ await page.getByRole('button',{name:'Compare home inventory'}).focus();await page.keyboard.press('Enter');
+ await expect(page.getByRole('region',{name:'Evidence notebook'})).toContainText('baseline 36 homes; future 60 homes');
+ await page.getByRole('button',{name:'Inspect completion event'}).focus();await page.keyboard.press('Enter');
+ await expect(page.locator('#evidence')).toContainText('24 completed homes');
+ await page.getByRole('button',{name:'Follow anchored evidence trail'}).focus();await page.keyboard.press('Enter');
+ await expect(page.locator('#evidence')).toContainText('Building is absent');
+ await expect(page.locator('#evidence')).toContainText('24 homes');
+ await page.locator('summary').focus();await page.keyboard.press('Enter');
+ await expect(page.locator('details')).toHaveAttribute('open','');
+ await expect(page.locator('#count')).toHaveText('3 distinct evidence steps');
+ const radio=page.getByRole('radio',{name:'Authorize 24 homes in district d1 for $1,000,000',exact:true});
+ await radio.focus();await page.keyboard.press('Space');
+ await page.getByRole('button',{name:'Submit and reveal'}).focus();await page.keyboard.press('Enter');
+ await expect(page.locator('#reveal')).toContainText('Correct');await expect(page.locator('#reveal')).toBeFocused();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.screenshot({path:'.mini-symphony-evidence/SHE-578-detective-after-mobile.png',fullPage:true});
+ await page.setViewportSize({width:1440,height:1000});
+ await page.screenshot({path:'.mini-symphony-evidence/SHE-578-detective-after-desktop.png',fullPage:true});
+ await page.route('**/api/detective',route=>route.abort());
+ await start.click();await expect(page.getByRole('status').first()).not.toHaveText('Loading…');
+ await expect(page.locator('#reveal')).toContainText('Correct');
+});

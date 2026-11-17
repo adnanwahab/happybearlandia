@@ -1,0 +1,9 @@
+# City Whispers
+
+Open `/world/city-speaks/` with the normal Bun server. This presentation runs the existing monthly City engine once with `createCity({seed:42,households:24})`, no interventions or shocks, for 12 months. It renders at most six supported events for the selected exact district ID and committed month. The neighborhood buttons provide a schematic selection surface; no physical map or camera location is inferred. Existing `/city-speaks` paired-comparison behavior remains separate.
+
+`whispers.js` uses an explicit event-type/system wording table. Every bubble sentence carries the original event ID. Duplicate IDs, missing synthetic-rule provenance, mismatched clocks, unknown types/systems and absent/ambiguous district identities produce no bubble. Payload prose is never used as testimony. WHY and Open event expose the exact cloned record and rule, without claiming causal estimation. No interpreted wording is currently generated. Event IDs are scoped to this one local run and are not global cross-model identities.
+
+No animation, audio, network provider, GPU, fonts or image assets are required. The bounded HTML view also serves as the low-end/reduced-motion path. Timeline and district changes clear retired evidence. A delegated card listener avoids retaining retired card closures; destroy removes listeners and DOM on pagehide, with bfcache restoration supported. No simulation stepping occurs during navigation.
+
+Checks: `bun test test/city-whispers.test.js test/city-speaks-analysis.test.js test/city-speaks-panel.test.js`; browser: `bunx playwright test --config test/city-whispers.browser.config.js`. The browser suite covers desktop/mobile, native keyboard activation, rapid timeline/neighborhood changes, empty records, exact evidence, disposal and route return. There is no camera in this bounded view; integration with another view's camera or active run requires an explicit run-scoped adapter.

@@ -1,0 +1,23 @@
+import {test,expect} from '@playwright/test';
+const feature={id:'w123',osmType:'way',osmId:'123',kind:'building',version:2,timestamp:'2019-01-01T00:00:00Z',tags:{building:'yes',name:'Historical fixture'},geometry:{type:'Polygon',coordinates:[[[139.7,35.659],[139.7002,35.659],[139.7002,35.6592],[139.7,35.659]]]}};
+const snapshot={id:'snapshot-recovery',date:'2020-01-01T00:00:00.000Z',origin:{lat:35.6595,lng:139.7005},radiusM:200,bounds:{west:139.698,east:139.703,south:35.657,north:35.662},features:[feature],coverage:{status:'query-complete'},provenance:{historicalGeometry:true}};
+async function mount(page){
+ await page.route('**/__temporal-recovery',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><main></main>'}));
+ await page.goto('/__temporal-recovery');await page.evaluate(async()=>{const {mountTemporalCity}=await import('/world/temporal/panel.js');window.temporalRecovery=mountTemporalCity({container:document.body,origin:{lat:35.6595,lng:139.7005}});});await page.getByTestId('temporal-launch').click();return page.getByTestId('temporal-city');
+}
+test('historical map recovers from network failure and preserves evidence through its controls',async({page})=>{
+ const errors=[];page.on('pageerror',error=>errors.push(error.message));let attempt=0;
+ await page.route('**/api/world-history/snapshot?*',route=>++attempt===1?route.abort('failed'):route.fulfill({json:snapshot}));
+ await page.route('**/api/world-history/feature?*',route=>route.fulfill({json:{osmFirstSeen:'2018-01-01',versions:[{version:1,timestamp:'2018-01-01',visible:true},{version:2,timestamp:'2019-01-01',visible:true}]}}));
+ const panel=await mount(page);await expect(panel.locator('[data-map]')).toContainText('Choose a date');await expect(panel.locator('[data-pin]')).toBeDisabled();await expect(panel.locator('[data-fork]')).toBeDisabled();
+ await panel.locator('[data-date]').fill('2020-01-01');await panel.locator('[data-load]').click();await expect(panel.locator('[data-status]')).toContainText('Check your connection');await expect(panel.locator('[data-map]')).toContainText('Historical map unavailable');await expect(panel.locator('[data-load]')).toBeEnabled();
+ await panel.locator('[data-load]').click();await expect(panel.locator('[data-feature-id="w123"]')).toBeVisible();await expect(panel.locator('[data-pin]')).toBeEnabled();await expect(panel.locator('[data-fork]')).toBeEnabled();await panel.locator('[data-pin]').click();await expect(panel.locator('[data-baseline]')).toContainText('2020-01-01');
+ await panel.locator('[data-feature-id="w123"]').focus();await page.keyboard.press('Enter');await expect(panel.locator('[data-detail]')).toContainText('Historical fixture');await panel.locator('[data-history]').click();await expect(panel.locator('[data-versions]')).toContainText('First mapped version 1: 2018-01-01');await panel.getByRole('combobox',{name:'Object mapping version'}).selectOption('1');await expect(panel.locator('[data-versions] pre')).toContainText('2018-01-01');
+ await panel.locator('[data-radius]').selectOption('100');await expect(panel.locator('[data-baseline]')).toContainText('pin a new baseline');await page.keyboard.press('Escape');await expect(panel).toBeHidden();await expect(page.getByTestId('temporal-launch')).toBeFocused();expect(errors).toEqual([]);
+});
+test('empty historical snapshots have visible coverage guidance and closing aborts pending work',async({page})=>{
+ await page.route('**/api/world-history/snapshot?*',route=>route.fulfill({json:{...snapshot,features:[]}}));const panel=await mount(page);await panel.locator('[data-load]').click();await expect(panel.locator('[data-map]')).toContainText('No mapped geometry');await expect(panel.locator('[data-map]')).toContainText('coverage is unknown');
+ await page.evaluate(()=>{window.temporalRecovery.destroy();window.temporalAborted=false;});
+ await page.evaluate(async()=>{const{mountTemporalCity}=await import('/world/temporal/panel.js');window.temporalRecovery=mountTemporalCity({origin:{lat:35.6595,lng:139.7005},fetchImpl:(_url,{signal})=>new Promise((_resolve,reject)=>signal.addEventListener('abort',()=>{window.temporalAborted=true;reject(new DOMException('Aborted','AbortError'));},{once:true}))});window.temporalRecovery.open();});
+ await panel.locator('[data-load]').click();await expect(panel.locator('[data-map]')).toContainText('Loading historical geometry');await expect(panel.locator('[data-play]')).toBeDisabled();await panel.locator('[data-close]').click();expect(await page.evaluate(()=>window.temporalAborted)).toBe(true);await page.getByTestId('temporal-launch').click();await expect(panel.locator('[data-load]')).toBeEnabled();
+});

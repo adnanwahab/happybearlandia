@@ -7,7 +7,7 @@ import { budgets, checkBudgets } from './budgets.js';
 const [baseURL = 'http://127.0.0.1:3198', directory = 'test-results/performance'] = process.argv.slice(2);
 const output = resolve(directory);
 await mkdir(output, { recursive: true });
-const backends = (process.env.HBL_PERF_BACKENDS || 'webgl2,webgpu').split(',');
+const backends = (process.env.HBL_PERF_BACKENDS || 'webgpu').split(',');
 if (backends.some(b => !['webgl2', 'webgpu'].includes(b))) throw Error('Unknown backend');
 const browser = await chromium.launch({ args: ['--enable-unsafe-webgpu', '--enable-unsafe-swiftshader'] });
 const results = [];

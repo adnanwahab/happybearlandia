@@ -1,0 +1,10 @@
+{
+  "version": "drainage-edges.v1", "runId": "synthetic-drainage-fixture-v1-seed-0",
+  "source": "authored representative fixture; no observed infrastructure", "kind": "synthetic",
+  "arm": "baseline", "step": 1, "units": "m³ per model step",
+  "edges": [
+    {"id":"flowing", "source":"fixture-edge-a", "points":[[0.1,0.2],[0.5,0.5]], "flow":2, "overflow":0.5},
+    {"id":"dry", "source":"fixture-edge-b", "points":[[0.5,0.5],[0.8,0.7]], "flow":0, "overflow":0},
+    {"id":"unknown", "source":"fixture-edge-c", "points":[[0.2,0.8],[0.4,0.9]], "flow":null, "overflow":null}
+  ]
+}

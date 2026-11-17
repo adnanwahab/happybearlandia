@@ -24,3 +24,10 @@ test('focus, editing, modifiers, composition, camera keys, loading and disposal 
  f.state.status='loading';expect(f.press('PageUp')).toBe(false);f.state.status='ready';
  expect(f.state.month).toBe(0);f.dispose();expect(f.press('PageUp')).toBe(false);
 });
+
+
+test('failed initial preview cannot seek future months while retained completed history remains navigable',()=>{
+ const f=fixture();f.state.status='error';f.state.frame={month:0};f.state.preview=true;
+ expect(f.press('PageUp')).toBe(false);expect(f.state.month).toBe(0);
+ f.state.preview=false;expect(f.press('PageUp')).toBe(true);expect(f.state.month).toBe(12);f.dispose();
+});

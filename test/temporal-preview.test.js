@@ -1,5 +1,5 @@
 import {test,expect} from 'bun:test';
-import {previewProjection,previewPaths,featureChangeMap,historicalForkRecord,directionalPreviewDiff,saveHistoricalFork} from '../world/temporal/preview.js';
+import {previewProjection,previewPaths,drawTemporalPlaceholder,drawTemporalPreview,featureChangeMap,historicalForkRecord,directionalPreviewDiff,saveHistoricalFork} from '../world/temporal/preview.js';
 test('historical preview projects actual coordinates north-up with longitude scale',()=>{const project=previewProjection({south:35,north:36,west:139,east:140});const nw=project([139,36]),se=project([140,35]);expect(nw[0]).toBeLessThan(se[0]);expect(nw[1]).toBeLessThan(se[1]);expect(nw.every(Number.isFinite)).toBe(true);expect(()=>previewProjection({south:1,north:1,west:1,east:2})).toThrow();});
 test('polygon holes remain separate closed SVG subpaths',()=>{const paths=previewPaths({type:'Polygon',coordinates:[[[0,0],[1,0],[1,1],[0,0]],[[.2,.2],[.3,.2],[.2,.3],[.2,.2]]]},p=>p);expect(paths).toHaveLength(1);expect(paths[0].match(/M/g)).toHaveLength(2);expect(paths[0].match(/Z/g)).toHaveLength(2);expect(previewPaths(null,p=>p)).toEqual([]);});
 test('mapping event colors retain evidence labels',()=>{expect(featureChangeMap({events:[{featureId:'w1',type:'mapping-removed'}]}).get('w1')).toBe('mapping-removed');});
@@ -7,3 +7,15 @@ test('historical forks preserve observed snapshots and label synthetic futures',
 
 test('reverse-date preview keeps pinned to selected direction explicit',()=>{const old={id:'old-feature'},next={id:'new-feature'};const chronological={before:'2015',after:'2020',events:[{featureId:'w1',type:'mapping-added',before:null,after:next},{featureId:'w2',type:'mapping-removed',before:old,after:null}],counts:{}};const reversed=directionalPreviewDiff(chronological,'2020','2015');expect(reversed.before).toBe('2020');expect(reversed.after).toBe('2015');expect(reversed.events[0].type).toBe('mapping-removed');expect(reversed.events[0].before).toEqual(next);expect(reversed.events[1].type).toBe('mapping-added');expect(reversed.events[1].after).toEqual(old);expect(chronological.events[0].type).toBe('mapping-added');});
 test('saved historical forks enforce actual UTF8 byte budget and bounded count',()=>{const values=new Map(),storage={get length(){return values.size},key:i=>[...values.keys()][i],getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value)};expect(()=>saveHistoricalFork(storage,{id:'large',policy:'🧸'.repeat(260000)})).toThrow('1 MB');expect(values.size).toBe(0);for(let i=0;i<8;i++)saveHistoricalFork(storage,{id:String(i)});expect(()=>saveHistoricalFork(storage,{id:'overflow'})).toThrow('8 historical forks');expect(values.size).toBe(8);saveHistoricalFork(storage,{id:'0',policy:'updated'});expect(JSON.parse(values.get('hbl-reality-history:0')).policy).toBe('updated');});
+
+function svgFixture(){
+ const doc={createElementNS(_namespace,tag){return{tag,attrs:{},children:[],setAttribute(key,value){this.attrs[key]=String(value);},removeAttribute(key){delete this.attrs[key];},append(node){this.children.push(node);},replaceChildren(){this.children=[];},addEventListener(){}};}};
+ const svg=doc.createElementNS('','svg');svg.ownerDocument=doc;return svg;
+}
+test('initial preview gives a visible, accessible loading action instead of an empty rectangle',()=>{
+ const svg=svgFixture();drawTemporalPlaceholder(svg);expect(svg.attrs['aria-label']).toContain('Load date');expect(svg.children.filter(node=>node.tag==='text').map(node=>node.textContent).join(' ')).toContain('Choose a date');expect(svg.attrs.role).toBe('img');
+});
+test('empty historical observations explain missing coverage without inventing geometry',()=>{
+ const svg=svgFixture(),snapshot={date:'2020-01-01',bounds:{south:1,north:2,west:1,east:2},features:[]};drawTemporalPreview(svg,snapshot);expect(svg.attrs['aria-label']).toContain('No mapped geometry');expect(svg.attrs['aria-label']).toContain('coverage is unknown');expect(svg.children.some(node=>node.tag==='g')).toBe(false);
+ snapshot.features=[{id:'w1',geometry:null}];drawTemporalPreview(svg,snapshot);expect(svg.attrs['aria-label']).toContain('no supported geometry');
+});

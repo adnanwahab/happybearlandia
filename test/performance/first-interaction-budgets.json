@@ -3,16 +3,50 @@
   "runs": 3,
   "profiles": [
     {
-      "id": "laptop-emulated", "viewport": {"width": 1366, "height": 768}, "deviceScaleFactor": 1,
+      "id": "laptop-emulated",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "deviceScaleFactor": 1,
       "cpuSlowdown": 1,
-      "network": {"latencyMs": 20, "downloadBytesPerSecond": 12500000, "uploadBytesPerSecond": 1250000},
-      "limits": {}
+      "network": {
+        "latencyMs": 20,
+        "downloadBytesPerSecond": 12500000,
+        "uploadBytesPerSecond": 1250000
+      },
+      "limits": {
+        "jsBytes": 8388608,
+        "readyMs": 15000,
+        "renderMs": 100,
+        "peakHeapBytes": 536870912
+      },
+      "budgetStatus": "provisional-estimate-not-calibrated"
     },
     {
-      "id": "mobile-emulated", "viewport": {"width": 390, "height": 844}, "deviceScaleFactor": 2,
+      "id": "mobile-emulated",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "deviceScaleFactor": 2,
       "cpuSlowdown": 4,
-      "network": {"latencyMs": 80, "downloadBytesPerSecond": 1250000, "uploadBytesPerSecond": 625000},
-      "limits": {}
+      "network": {
+        "latencyMs": 80,
+        "downloadBytesPerSecond": 1250000,
+        "uploadBytesPerSecond": 625000
+      },
+      "limits": {
+        "jsBytes": 8388608,
+        "readyMs": 30000,
+        "renderMs": 250,
+        "peakHeapBytes": 268435456
+      },
+      "budgetStatus": "provisional-estimate-not-calibrated"
     }
-  ]
+  ],
+  "status": "provisional-estimate-not-calibrated",
+  "basis": "Engineering starting targets requested by the project owner; no measurements were used.",
+  "measuredBaseline": false,
+  "requiresCalibration": true
 }

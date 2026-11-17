@@ -1,3 +1,4 @@
+import {createCircleService} from './circle.js';
 import {SAVE_FORMAT_VERSION,compareSavedOutcome} from './save-format.js';
 import {CityStore,validateReadQuery} from './storage.js';
 import {createCity} from './seed.js';
@@ -34,6 +35,7 @@ export function normalizeExperiment(body={}) {
   return {saveFormatVersion:SAVE_FORMAT_VERSION,version:VERSION,title:String(body.title||'Coupled city experiment').slice(0,200),initial,runs,months,retention,scenarios,modelManifest:createEngine().manifest,assumptions:'Illustrative uncalibrated coefficients; district transport and coarse monthly markets. Not an empirical forecast.'};
 }
 export function createCityApi({root,store:providedStore}={}) {
+  const circles=createCircleService();
   let store=providedStore;const getStore=()=>store||=new CityStore(root);const active=new Set();
   async function execute(id,manifest) {
     const db=getStore();db.status(id,'running');
@@ -47,7 +49,18 @@ export function createCityApi({root,store:providedStore}={}) {
     }catch(error){db.status(id,'failed',error.message);}finally{active.delete(id);}
   }
   return async function handleCityApi(request) {
-    const url=new URL(request.url),match=url.pathname.match(/^\/api\/(city-experiments|experiments)(?:\/(city_[\w-]+)(?:\/(tables|query|export|replay|brief|lineage))?)?\/?$/);
+    const url=new URL(request.url);
+    const circleMatch=url.pathname.match(/^\/api\/city-experiments\/circles\/([\w-]+)$/);
+    if(circleMatch) {
+      try {
+        const key=request.headers.get('authorization')?.replace(/^Bearer /,'');
+        if(request.method==='GET')return json(circles.act(circleMatch[1],key,'read'));
+        if(request.method!=='POST')return json({error:'Method not allowed'},405);
+        const raw=await request.text();if(raw.length>5000)return json({error:'Request too large'},413);
+        const body=JSON.parse(raw);return json(circles.act(circleMatch[1],key,body.action,body));
+      }catch(error){return json({error:error.message},400);}
+    }
+    const match=url.pathname.match(/^\/api\/(city-experiments|experiments)(?:\/(city_[\w-]+)(?:\/(tables|query|export|replay|brief|lineage|circle))?)?\/?$/);
     if(!match||match[1]==='experiments'&&!match[2])return null;
     const [,namespace,id,action]=match;
     if(namespace==='experiments'&&!action)return null;
@@ -70,7 +83,21 @@ export function createCityApi({root,store:providedStore}={}) {
         const metrics=await workerCall('./query.worker.js',{path:db.path(id),sql:SAVED_QUERIES['Compare plans']},3000);
         return json({id,status:record.status,error:record.error,completed:progress.rows[0].completed,total:record.manifest.runs*record.manifest.scenarios.length,metrics:metrics.rows,migrations:record.migrations,manifest:record.manifest});
       }
-      if((action==='query'||action==='replay')?request.method!=='POST':request.method!=='GET')return json({error:'Method not allowed'},405);
+      if((action==='query'||action==='replay'||action==='circle')?request.method!=='POST':request.method!=='GET')return json({error:'Method not allowed'},405);
+      if(action==='circle') {
+        const raw=await request.text();if(raw.length>5000)return json({error:'Request too large'},413);
+        const {scenarioId,runIndex,consent}=JSON.parse(raw);
+        if(record.status!=='complete')throw new Error('Completed experiment required');
+        if(!Number.isInteger(runIndex)||runIndex<0||runIndex>=record.manifest.runs||!record.manifest.scenarios.some(s=>s.id===scenarioId))throw new Error('Invalid run identity');
+        const runId=`${scenarioId}-${runIndex}`;
+        const result=await workerCall('./query.worker.js',{path:db.path(id),sql:`SELECT metric_id,value FROM run_metrics WHERE run_id='${runId.replaceAll("'","''")}'`},3000);
+        if(!result.rows.length)throw new Error('Saved evidence unavailable');
+        const manifest=structuredClone(record.manifest);
+        const pin={experimentId:id,scenarioId,runIndex,runId,seed:(manifest.initial.seed+runIndex)>>>0,manifest,
+          manifestDigest:new Bun.CryptoHasher('sha256').update(JSON.stringify(manifest)).digest('hex'),
+          evidence:result.rows.map(row=>({id:row.metric_id,value:row.value,classification:'modeled-result',source:`/api/city-experiments/${id}/export`,runId}))};
+        return json(circles.create(pin,consent),201);
+      }
       if(action==='tables')return json({tables:db.tables(id),savedQueries:SAVED_QUERIES});
       if(action==='query') {
         const body=await request.json();validateReadQuery(body.sql);

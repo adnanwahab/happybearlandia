@@ -1,0 +1,13 @@
+bun test v1.4.2 (744846f84)
+
+test/ar-tabletop.test.js:
+(pass) pinned geometry preserves source, identity and local coordinates [0.19ms]
+(pass) missing geometry never requests a session [0.11ms]
+(pass) unsupported device and denied access stay explicit [0.07ms]
+(pass) explicit start requests AR hit tests without camera capture API [0.06ms]
+(pass) scale handles invalid inputs and physical bounds [0.07ms]
+
+ 5 pass
+ 0 fail
+ 16 expect() calls
+Ran 5 tests across 1 file. [10.00ms]

@@ -1,0 +1,2 @@
+import {defineConfig} from '@playwright/test';
+export default defineConfig({testDir:'./e2e',testMatch:'launch-shell.e2e.js',workers:1,timeout:180000,expect:{timeout:20000},outputDir:'../artifacts/she-789/ui-test',use:{baseURL:process.env.HBL_LAUNCH_TEST_URL||'http://127.0.0.1:62691',viewport:{width:1440,height:900},trace:'retain-on-failure',launchOptions:{...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH}:{}),args:['--enable-unsafe-webgpu','--enable-unsafe-swiftshader']}}});

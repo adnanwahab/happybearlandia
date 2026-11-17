@@ -1,0 +1,8 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AR City Tabletop</title>
+<style>body{margin:0;background:#102535;color:#fff;font:16px system-ui}main{max-width:650px;margin:auto;padding:16px}button,input,a{min-height:44px}button{padding:10px;margin:4px}a{color:#9fe7ff}svg{width:100%;max-height:40vh;background:#24483e}#controls{background:#102535ee;padding:12px}canvas{position:fixed;inset:0;z-index:-1}body.xr main{background:transparent}body.xr #map{display:none}label{display:block}p{line-height:1.4}</style>
+<main><div id="controls"><a href="/world">Return to World</a><h1>AR City Tabletop</h1>
+<p id="provenance"></p><p>Fictional static geometry, not a modeled future or your current World. Camera access starts only with Start AR. Room video is never recorded or uploaded. Nothing is saved or shared.</p>
+<button id="start">Start AR</button><button id="place" disabled>Place on surface</button><button id="reset" disabled>Reposition</button><button id="stop" disabled>Exit AR</button>
+<label>Tabletop scale handle <input id="scale" type="range" min="0.002" max="0.01" step="0.001" value="0.005"><output id="size">0.50 m city width</output></label>
+<p id="status" role="status">2D view ready. AR requires a secure context and a supported device.</p><p>Move slowly to find a horizontal table; tap the screen or Place on surface when the ring appears. You can always use the stationary 2D view, including with reduced motion and keyboard controls.</p></div>
+<svg id="map" viewBox="-50 -50 100 100" role="img" aria-label="Top down fictional city with four labeled buildings"></svg></main><script type="module" src="page.js"></script></html>

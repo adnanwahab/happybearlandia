@@ -4,7 +4,7 @@ import {sceneEntityReference,scenePosition} from './camera-director.js';
  * No pulse, invented footprint, result color, simulation change, or private RAF.
  * An injected THREE keeps importing this module safe without DOM/WebGL.
  */
-export function createSpotlight({THREE,scene,resolveEntity,getResidentPosition,reducedMotion=false,available=true,radius=3,color=0xffd76a,onChange=()=>{}}={}) {
+export function createSpotlight({THREE,scene,resolveEntity,getResidentPosition,reducedMotion=false,available=true,radius=3,depthTest=true,color=0xffd76a,onChange=()=>{}}={}) {
   const resolveSceneEntity=resolveEntity??(ref=>ref.authority==='legacy-world'&&ref.kind==='resident'&&getResidentPosition?{position:getResidentPosition(ref.id)}:null);
   let mesh=null,reference=null,disposed=false,reason='idle';
   const state=()=>({active:reference!==null,reference:reference?{...reference}:null,reason});
@@ -14,8 +14,8 @@ export function createSpotlight({THREE,scene,resolveEntity,getResidentPosition,r
     if(mesh)return true;
     if(!available||!scene?.add||!THREE?.RingGeometry||!THREE?.MeshBasicMaterial||!THREE?.Mesh||!Number.isFinite(radius)||radius<=0)return false;
     const geometry=new THREE.RingGeometry(radius*.78,radius,48);
-    const material=new THREE.MeshBasicMaterial({color,side:THREE.DoubleSide,transparent:true,opacity:.9,depthWrite:false});
-    mesh=new THREE.Mesh(geometry,material);mesh.name='world-onboarding-entity-highlight';mesh.rotation.x=-Math.PI/2;mesh.visible=false;scene.add(mesh);return true;
+    const material=new THREE.MeshBasicMaterial({color,side:THREE.DoubleSide,transparent:true,opacity:.9,depthWrite:false,depthTest});
+    mesh=new THREE.Mesh(geometry,material);mesh.name='world-onboarding-entity-highlight';if(!depthTest)mesh.renderOrder=20;mesh.rotation.x=-Math.PI/2;mesh.visible=false;scene.add(mesh);return true;
   }
   function show(ref){
     if(disposed)return false;
