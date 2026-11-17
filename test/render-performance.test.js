@@ -36,9 +36,26 @@ test('distant buildings batch with hysteresis and selected originals recover',()
  mesh.visible=true;expect(lod.update(camera,'tower')).toBe(0);expect(mesh.visible).toBe(true);lod.dispose();
 });
 test('cutaway and construction use detached visual state and dispose cleanly',()=>{
- const scene=new THREE.Scene(),mesh=new THREE.Mesh(new THREE.BoxGeometry(20,34,20));mesh.geometry.translate(0,17,0);mesh.geometry.computeBoundingBox();
- const cutaway=new BuildingCutaway(scene);cutaway.select({mesh},.8);cutaway.enabled=true;cutaway.update(1000);expect(cutaway.group.userData.floors).toBe(10);expect(mesh.visible).toBe(false);
- const projects=[{id:'one',height:40,phase:'frame',progress:.5}];const original=JSON.stringify(projects),construction=new ConstructionRenderer(scene);construction.update(projects);construction.animate(1000);expect(construction.cranes.length).toBe(1);expect(JSON.stringify(projects)).toBe(original);construction.dispose();cutaway.dispose();expect(scene.children.length).toBe(0);
+ // Explicit authored visual detail is required; a shell bounding box does not
+ // establish modeled floors, inhabitants or an interior layout (SHE-606).
+ const scene=new THREE.Scene(),geometry=new THREE.BoxGeometry(20,34,20),material=new THREE.MeshStandardMaterial(),mesh=new THREE.Mesh(geometry,material);
+ geometry.translate(0,17,0);geometry.computeBoundingBox();
+ const detailGeometry=new THREE.Group(),detail=new THREE.Mesh(new THREE.BoxGeometry(8,.2,8),new THREE.MeshStandardMaterial());detailGeometry.add(detail);detailGeometry.visible=false;scene.add(mesh,detailGeometry);
+ const fields=Object.freeze({id:'osm:fixture',kind:'home',height:34,center:Object.freeze([0,0])}),building=Object.freeze({...fields,mesh,detailGeometry});
+ const originalFields=JSON.stringify(fields),originalPositions=Array.from(geometry.attributes.position.array),originalMaterial=material.toJSON();
+ const triangles=g=>{const positions=g.attributes.position,index=g.index,rows=[];for(let i=0;i<(index?.count??positions.count);i+=3){const vertices=[];for(let j=0;j<3;j++){const k=index?index.getX(i+j):i+j;vertices.push([positions.getX(k),positions.getY(k),positions.getZ(k)]);}rows.push(JSON.stringify(vertices));}return rows.sort();};
+ const originalTriangles=triangles(geometry),cutaway=new BuildingCutaway(scene);cutaway.select(building);expect(cutaway.setEnabled(true)).toBe(true);cutaway.update(1000,.1);
+ expect(cutaway.status.id).toBe(fields.id);expect(mesh.parent).toBe(scene);expect(mesh.visible).toBe(true);expect(mesh.geometry).not.toBe(geometry);
+ expect(mesh.geometry.index.count).toBeGreaterThan(0);expect(cutaway.roof.geometry.index.count).toBeGreaterThan(0);
+ expect([...triangles(mesh.geometry),...triangles(cutaway.roof.geometry)].sort()).toEqual(originalTriangles);
+ expect(mesh.material).toBe(material);expect(material.toJSON()).toEqual(originalMaterial);expect(Array.from(geometry.attributes.position.array)).toEqual(originalPositions);expect(JSON.stringify(fields)).toBe(originalFields);
+ const resources=[...cutaway.resources],disposed=new Map(resources.map(resource=>[resource,0]));expect(resources).toHaveLength(3);for(const resource of resources)resource.addEventListener('dispose',()=>disposed.set(resource,disposed.get(resource)+1));
+ let hostDisposed=0;for(const resource of [geometry,material,detail.geometry,detail.material])resource.addEventListener('dispose',()=>hostDisposed++);
+ cutaway.update(1001,1,true);expect(cutaway.progress).toBe(1);expect(detailGeometry.visible).toBe(true);expect(cutaway.roof.visible).toBe(false);
+ const projects=[{id:'one',height:40,phase:'frame',progress:.5}];const original=JSON.stringify(projects),construction=new ConstructionRenderer(scene);construction.update(projects);construction.animate(1000);expect(construction.cranes.length).toBe(1);expect(JSON.stringify(projects)).toBe(original);construction.dispose();
+ cutaway.setEnabled(false);cutaway.update(1002,1,true);expect(mesh.geometry).toBe(geometry);expect(detailGeometry.visible).toBe(false);expect(cutaway.resources).toHaveLength(0);expect(cutaway.roof).toBeNull();expect([...disposed.values()]).toEqual(resources.map(()=>1));
+ cutaway.dispose();expect([...disposed.values()]).toEqual(resources.map(()=>1));expect(hostDisposed).toBe(0);expect(scene.children).toEqual([mesh,detailGeometry]);expect(building.id).toBe(fields.id);expect(building.mesh).toBe(mesh);expect(building.detailGeometry).toBe(detailGeometry);expect(JSON.stringify(fields)).toBe(originalFields);expect(mesh.material).toBe(material);
+ scene.clear();for(const resource of [geometry,material,detail.geometry,detail.material])resource.dispose();expect(hostDisposed).toBe(4);expect(scene.children).toHaveLength(0);
 });
 test('benchmark routes are allowlisted and camera path is deterministic',()=>{
  expect(benchmarkScene('/world/bench/rain')).toBe('rain');expect(benchmarkScene('/world/bench/invalid')).toBe(null);
