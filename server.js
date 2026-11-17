@@ -1,3 +1,5 @@
+import { createPredictionPoolHandler } from './ops/prediction-pool/api.js';
+const handlePredictionPool = createPredictionPoolHandler({ enabled: process.env.HBL_LOCAL_PREDICTION_POOL === '1' });
 import {civicProviderUrl,civicPublishUrl} from './ops/civic-provider.js';
 import { createMiniSymphonyHandler } from './ops/mini-symphony/api.js';
 const handleMiniSymphony = createMiniSymphonyHandler();
@@ -465,6 +467,7 @@ const server = serve({
     const releaseResponse=handleReleaseExperiment(request);
     if(releaseResponse)return releaseResponse;
     const { pathname } = new URL(request.url);
+    if (pathname === '/api/prediction-pool') return handlePredictionPool(request, server.requestIP(request)?.address);
     if (pathname === '/logs' || pathname === '/logs/') return serveFile('./world/session-logs.html');
     if (pathname === '/mini-symphony' || pathname === '/mini-symphony/') return serveFile('./tools/mini-symphony-dashboard/index.html');
     if (pathname.startsWith('/api/mini-symphony')) return handleMiniSymphony(request, {localAddress: server.requestIP(request)?.address});

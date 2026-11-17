@@ -1,0 +1,23 @@
+bun test v1.4.2 (744846f84)
+
+test/prediction-league.test.js:
+(pass) commitment pins a plan, display unit, time, and the actual City result scores without mutating it [27.45ms]
+(pass) point scale, signed percentage-point delta, and missing observation behavior [0.10ms]
+(pass) invalid input and cross-plan, control, or date mismatches are rejected [20.30ms]
+(pass) skill compares each metric with zero change and retains worse-than-baseline values [0.34ms]
+
+test/challenge-ui.test.js:
+(pass) challenge links retain frozen seed, geometry, cap and objective definitions through compression [4.76ms]
+(pass) district policy menu has three bounded alternatives and an enforceable allocation cap [0.25ms]
+(pass) each district policy replays deterministically against an unchanged same-seed control [109.83ms]
+(pass) imported frozen challenge verifies actual spending despite a larger delayed authorization [16.09ms]
+
+test/prediction-pool.test.js:
+(pass) sealed commitments, host rights, deterministic result, immutable lock and deletion [8.48ms]
+(pass) expiry, disabled/remote denial and missing run never rank [0.14ms]
+(pass) directional ties, missing metric and member deletion [0.20ms]
+
+ 11 pass
+ 0 fail
+ 131 expect() calls
+Ran 11 tests across 3 files. [203.00ms]
