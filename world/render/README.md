@@ -361,3 +361,19 @@ pass is added. An empty/unsupported facade list disables the control. The separa
 Canvas2D fallback does not offer this bridge. Geometry debug coloring can override
 material presentation. Browser shader/input validation remains pending; see
 [the review record](../../docs/reviews/SHE-612.md).
+
+## District arrival cards (SHE-611)
+
+In the 3D Living World (`/world?living=1`), the camera orbit target selects an
+existing `deriveLivingContext` district by its exact bounds and name. After
+700ms in a new partition, a static 4.5-second card announces the district,
+arrival-time Population modeled day/time, synthetic population context and
+geometry source. An 8m boundary margin suppresses jitter; leaving and returning
+to the same district does not repeat until another district is accepted.
+
+The card ignores pointer input, never takes focus, and uses an atomic polite
+status announcement. Its static appearance also serves reduced motion. It reads
+existing camera/clock/context only, with no timers, model commands or extra frame
+loop. Page exit removes its DOM/style. Legacy World, Canvas2D, embedded/tile
+views, missing clocks and empty geometry have no district cards. See
+`docs/reviews/SHE-611.md` for verification and remaining browser acceptance.
