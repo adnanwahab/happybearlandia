@@ -492,7 +492,7 @@ const server = serve({
     }
 
     // Browser-safe universe wire contracts; keep server-only shared modules private.
-    if (["/shared/media/pipeline.js","/shared/media/preferences.js","/shared/media/motion.js","/shared/media/motion-entry.js"].includes(pathname)) return serveFile(`.${pathname}`);
+    if (["/shared/media/pipeline.js","/shared/media/preferences.js","/shared/media/motion.js","/shared/media/transition-diagnostics.js","/shared/media/motion-entry.js"].includes(pathname)) return serveFile(`.${pathname}`);
     if (pathname === "/shared/causality/index.js") return serveFile("./shared/causality/index.js");
     if (under(pathname, "/visualizations")) return serveStatic("/visualizations", "./visualizations", pathname);
 
