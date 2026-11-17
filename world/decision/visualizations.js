@@ -1,3 +1,4 @@
+import { renderHousingRibbons } from './housing-ribbons.js';
 import { renderHouseholdCostAtlas } from './cost-atlas.js';
 import { classifyDecisionOutcome, DECISION_ENGINE_VERSION } from './contracts.js';
 // E2E hooks: [data-testid=decision-visualizations], [data-viz=landscape|worlds|
@@ -114,6 +115,7 @@ export function mountDecisionVisualizations(container, {onSelectRun,onEnterFutur
   const shortcuts=doc.createElement('div');shortcuts.className='dv-controls';shortcuts.innerHTML='<button data-control="best">Best future</button><button data-control="median">Median future</button><button data-control="worst">Worst future</button><button data-control="enter" disabled>Enter future ↗</button><span data-median-compare></span>';content.querySelector('[data-run-summary]').after(shortcuts);
   const receipt=doc.createElement('p');receipt.innerHTML='<a data-run-receipt target="_blank" rel="noopener" hidden>Open run receipt (JSON)</a><span data-receipt-identity></span>';shortcuts.after(receipt);
   const costAtlas=doc.createElement('section');costAtlas.className='dv-panel';costAtlas.dataset.testid='household-cost-atlas';receipt.after(costAtlas);
+  const ribbons=doc.createElement('section');ribbons.className='dv-panel';ribbons.dataset.testid='housing-ribbons';costAtlas.after(ribbons);
   const gridControl=doc.createElement('label');gridControl.className='dv-grid-control';gridControl.innerHTML='Futures per page <select data-control="grid-size"><option value="100">100</option><option value="500">500</option></select>';content.querySelector('[data-viz="worlds"]').before(gridControl);
   const $=s=>root.querySelector(s), control=name=>$(`[data-control="${name}"]`);
   let state={experiment:null,runs:[],aggregates:[],comparisons:[],model:{}}, runs=[],metrics=[],scenarios=[],selected=null,page=0,replayIndex=0,timer=null,destroyed=false,threeD=false;
@@ -182,6 +184,7 @@ export function mountDecisionVisualizations(container, {onSelectRun,onEnterFutur
   function renderPareto(){const cost=metrics.find(m=>/public_expenditure|public_cost|government_cost|fiscal_cost|total_cost|expenditure/.test(m.id))||metrics.find(m=>/cost/.test(m.id));const affordability=metrics.find(m=>/affordability/.test(m.id))||metrics.find(m=>/rent/.test(m.id));const chart=$('[data-viz="pareto"] svg');if(!cost||!affordability){chart.replaceChildren();$('[data-pareto-note]').textContent='Cost and affordability metrics will appear when the model provides them.';return}const rows=visible(),front=paretoFront(rows,cost.id,affordability.id,'lower-is-better',affordability.direction);$('[data-pareto-note]').textContent=`${cost.label} (lower preferred) versus ${affordability.label} (${['lower-is-better','lower','minimize'].includes(affordability.direction)?'lower':'higher'} preferred). ${front.length} nondominated futures in the current filter.`;drawScatter(chart,rows,cost.id,affordability.id,{front})}
   function replayRows(){return (Array.isArray(selected?.monthlyTimeline)?selected.monthlyTimeline:Array.isArray(selected?.timeline)?selected.timeline:[]).map(r=>finite(r?.year)?r:finite(r?.month)?{...r,year:r.month/12}:r).filter(r=>finite(r?.year)&&r.metrics).sort((a,b)=>a.year-b.year)}
   function renderReplay(){
+    renderHousingRibbons(ribbons,state.experiment,selected,decisionRunReceiptURL(state.experiment,selected));
     renderHouseholdCostAtlas(costAtlas,state.experiment,selected,decisionRunReceiptURL(state.experiment,selected));
     const projectRows=selected?.projects||[];
     const projects=state.experiment?.scenarios?.find(s=>s.id===selected?.scenarioId)?.projects||projectRows.map(p=>p.proposal).filter(Boolean);
