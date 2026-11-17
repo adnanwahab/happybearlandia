@@ -340,3 +340,22 @@ preserves those through coordinate projection. The readout labels transport road
 type and exact `osm:way` / `osm:node` references. Pipe, water, electricity and
 service networks have no spatial evidence adapter here: hatching always represents
 unknown coverage. The scanner adds no animation loop, model command or persistence.
+
+## City / blueprint material bridge (SHE-612)
+
+Graphics / F3 includes **City blueprint style**, a native keyboard/touch range
+control. `setStyle(0..1)` and `getStyleState()` expose the presentation state.
+Supported procedural building facades blend wall/roof color, roughness, metalness
+and window emission through shader uniforms. Distant HLOD shells receive a blue
+tint. The same mesh, triangles, transforms, camera, selection and policy facts
+remain authoritative; this control is illustrative and encodes no model evidence.
+Roads, policy overlays, props and landscape geometry retain their existing rules.
+New progressive facades receive the current blend on the next frame.
+
+LOW quality, adaptive level >=2, reduced motion, or reported <=4 CPU cores / GiB
+memory use an immediate swap. Missing hardware hints use the quality preset;
+these are conservative heuristics, not hardware certification. No extra render
+pass is added. An empty/unsupported facade list disables the control. The separate
+Canvas2D fallback does not offer this bridge. Geometry debug coloring can override
+material presentation. Browser shader/input validation remains pending; see
+[the review record](../../docs/reviews/SHE-612.md).
