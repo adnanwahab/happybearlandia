@@ -36,7 +36,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
   const features={assets:true,grass:true,sky:true,environment:true,construction:true,lod:true,props:true,roads:true,traffic:true,vegetation:true,roofs:true,rain:true,facades:true,interiors:true,atmosphere:true,shadows:!embed,culling:true};
   const fog=new THREE.FogExp2(0x91afbf,.00023);
   let renderInstances=0,adaptiveEnabled=true,simulationSource=()=>null;
-  let state={timeOfDay:14},lastSettings='',lastOverlay=0,frameIndex=0,active=true,photoPreset=null,focus=null,visible={},cached={},disposed=false, benchmarkStart=null;
+  let state={timeOfDay:14},lastSettings='',lastOverlay=0,frameIndex=0,active=true,photoPreset=null,focus=null,cutawayPose=null,visible={},cached={},disposed=false, benchmarkStart=null;
   const panel=document.createElement('aside');panel.hidden=true;panel.dataset.testid='render-performance';
   panel.style.cssText='position:fixed;top:12px;right:12px;z-index:100;background:#111e;color:#e1edf4;padding:14px;border:1px solid #52616c;border-radius:10px;font:12px/1.5 monospace;max-height:85vh;overflow:auto';
   panel.innerHTML='<strong>City renderer · F3</strong><p>Storefronts, roof colors and window styles are cosmetic; they do not measure business activity.</p><pre></pre><label>Lighting <select data-lighting aria-label="Scene lighting"><option value="14">Daylight</option><option value="18">Golden hour</option><option value="22">Night</option><option value="simulation">Simulation clock</option></select></label><label>Quality <select aria-label="Render quality"></select></label><label>Geometry <select data-geometry aria-label="Geometry detail"><option>LOW</option><option selected>MEDIUM</option><option>HIGH</option><option>ULTRA</option></select></label><label>Geometry view <select data-geometry-debug aria-label="Geometry debug"><option value="off">Off</option><option value="lod">Show LOD</option><option value="heatmap">Triangle heatmap</option></select></label><label><input type="checkbox" data-wireframe>Wireframe selected</label><div data-features></div><button data-cutaway>Selected cutaway</button><button data-photo>Photo mode</button><button data-record>Record 30 seconds</button><button data-export>Export JSON</button><p role="status"></p>';
@@ -90,7 +90,8 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
     setGeometryDetail(value){if(!['LOW','MEDIUM','HIGH','ULTRA'].includes(value))throw new RangeError('Unknown geometry detail');if(geometryDetail)geometryDetail.quality=value;},
     getGeometryStats(){return {...geometryDebug.getGeometryStats(),grass:grass.getStats(),assets:detailAssets.getStats()};},
     loadDetailAsset(options){return detailAssets.load(options);},
-    setCutaway(value){cutaway.enabled=Boolean(value);},
+    setCutaway(value){const result=cutaway.setEnabled(value);if(result&&!cutawayPose){cutawayPose={position:camera.position.clone(),target:controls.target.clone()};api.focusBuilding(cutaway.building.id);}else if(!result&&cutawayPose){focus=cutawayPose;cutawayPose=null;}panel.querySelector('[data-cutaway]').setAttribute('aria-pressed',String(result));return result;},
+    getCutawayState(){return cutaway.status;},
     setWeather(value){details.setWeather(value);state.weather=value;},
     setTimeOfDay(hour){if(!Number.isFinite(hour))throw new TypeError('Hour must be finite');state.timeOfDay=((hour%24)+24)%24;},
     getStormState(){return stormEffects.getState();},
@@ -110,7 +111,7 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
     setPhotoMode(enabled){if(enabled&&!photoPreset){photoPreset=quality.preset;api.setQuality('ULTRA');}else if(!enabled&&photoPreset){const previous=photoPreset;photoPreset=null;api.setQuality(previous);}},
     beforeFrame(now,dt,daylight,selected,visuals={},motion={now,dt}){
       if(disposed)return;applyQuality();
-      if(focus){const alpha=1-Math.exp(-dt*5);camera.position.lerp(focus.position,alpha);controls.target.lerp(focus.target,alpha);camera.lookAt(controls.target);if(camera.position.distanceTo(focus.position)<.1)focus=null;}
+      if(focus){const alpha=matchMedia('(prefers-reduced-motion: reduce)').matches?1:1-Math.exp(-dt*5);camera.position.lerp(focus.position,alpha);controls.target.lerp(focus.target,alpha);camera.lookAt(controls.target);if(camera.position.distanceTo(focus.position)<.1)focus=null;}
       if(benchmarkStart!=null){const seconds=(now-benchmarkStart)/1000;scriptedCamera(camera,controls,seconds);camera.lookAt(controls.target);if(seconds>=24)api.setTimeOfDay(22);if(seconds>=30)benchmarkStart=null;}
       construction.animate(motion.now,features.construction);
       environment.update(daylight,features.environment);
@@ -122,11 +123,12 @@ export function mountCityRenderer({renderer,mode,scene,camera,controls,town,sun,
       scene.fog=features.atmosphere?fog:null;fog.color.setHex(0x91afbf).multiplyScalar(.08+.92*daylight);
       visible=visibility.update(camera,quality.settings.distance,selected??state.selectedBuilding,features.shadows&&quality.settings.shadows,features.culling);
       const selectedId=selected??state.selectedBuilding;
-      geometryDetail?.update(now,camera,selectedId,innerHeight);
+      if(!cutaway.enabled&&!cutaway.progress)geometryDetail?.update(now,camera,selectedId,innerHeight);
       visible.instances=lod.update(camera,selectedId,features.lod);
       geometryDebug.update(camera,selectedId,innerHeight);
       cutaway.select(town.buildings.find(b=>b.index===selectedId||String(b.id)===String(selectedId)),state.occupancy);
-      cutaway.update(now);
+      if(!cutaway.enabled&&cutawayPose){focus=cutawayPose;cutawayPose=null;}
+      cutaway.update(now,dt,reducedMotion);
       grass.update(motion.now,camera,quality.settings,features.grass&&features.vegetation,quality.preset);
       detailAssets.update(motion.now,camera,quality.settings,features);
       details.update(motion.now,motion.dt,camera,{...quality.settings,geometryRadius:({LOW:.6,MEDIUM:1,HIGH:1.3,ULTRA:1.6})[geometryDetail?.quality||'MEDIUM']},{...features,rain:features.rain&&!reducedMotion&&stormIntensity===0},state);
