@@ -96,7 +96,7 @@ async function publishTask(task: Task, workspace: string, log: string) {
   ].filter(Boolean).join('\n');
   let reused = false;
   const evidenceNote = project?.screenshots
-    ? '\\n\\n## Browser evidence\\n\\nBefore/after desktop and mobile Playwright screenshots are uploaded as CI run artifacts by [PR screenshot evidence](https://github.com/' + project.githubRepository + '/actions/workflows/pr-screenshot-evidence.yml); they are not committed to the PR.'
+    ? '\n\n## Browser evidence\n\nBefore/after desktop and mobile Playwright screenshots are uploaded as CI run artifacts by [PR screenshot evidence](https://github.com/' + project.githubRepository + '/actions/workflows/pr-screenshot-evidence.yml); they are not committed to the PR.'
     : '';
   const url = publishDraft(command, workspace, task.id, prBase, title, body + evidenceNote, result => { reused = result.reused; });
   entry.status = 'pr_created'; entry.pullRequestUrl = url; entry.publishError = undefined;

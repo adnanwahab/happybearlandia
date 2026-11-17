@@ -2,7 +2,7 @@ import {test,expect} from 'bun:test';
 import {mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';import path from 'node:path';import {tmpdir} from 'node:os';
 import {validateScreenshotConfig,captureScreenshots} from './screenshots';
 test('screenshot routes fail closed on external URLs and invalid route characters',()=>{
- for(const route of ['https://example.com','//example.com','/\\\\example.com','/\\nheader'])expect(()=>validateScreenshotConfig({command:['bun'],paths:[route]})).toThrow();
+ for(const route of ['https://example.com','//example.com','/\\\\example.com','/\nheader'])expect(()=>validateScreenshotConfig({command:['bun'],paths:[route]})).toThrow();
 });
 test('real browser captures before and after desktop/mobile PNGs with disposable server data and cleans up',async()=>{
  const dir=await mkdtemp(path.join(tmpdir(),'mini-screen-test-'));

@@ -539,6 +539,17 @@ test('observational screenshots and performance checks do not block otherwise va
 test('the audit contains the skipped or deferred state for every inventoried PR', async () => {
   const f = fixture({ prs: [pull(1), pull(2)] });
   const result = await f.execute();
-  assert.deepEqual(new Set(result.rows.filter(r => /^#\\d+$/.test(r.pr)).map(r => r.pr)), new Set(['#1','#2']));
+  assert.deepEqual(new Set(result.rows.filter(r => /^#\d+$/.test(r.pr)).map(r => r.pr)), new Set(['#1','#2']));
   assert.ok(result.rows.find(r => r.pr === '#2' && r.status === 'deferred'));
+});
+
+test('unstable GitHub mergeability is acceptable only when failing checks are explicitly observational', async () => {
+  const f = fixture({ prs: [pull(1, { mergeable_state: 'unstable' })],
+    checks: { [head(1)]: [{ id: 445, name: 'visual-evidence', status: 'completed', conclusion: 'failure', created_at: time(10) }] } });
+  await f.execute();
+  assert.equal(merges(f).length, 1);
+  const blocked = fixture({ prs: [pull(1, { mergeable_state: 'unstable' })],
+    checks: { [head(1)]: [{ id: 446, name: 'security', status: 'completed', conclusion: 'failure', created_at: time(10) }] } });
+  await blocked.execute();
+  assert.equal(merges(blocked).length, 0);
 });

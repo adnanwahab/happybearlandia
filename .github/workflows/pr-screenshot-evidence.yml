@@ -4,8 +4,7 @@ name: PR screenshot evidence (observational)
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-  workflow_dispatch:
-
+ 
 permissions:
   contents: read
 
@@ -29,9 +28,12 @@ jobs:
           path: baseline
           persist-credentials: false
       - uses: oven-sh/setup-bun@v2
-      - name: Install browser engines
-        run: bunx playwright install --with-deps chromium
+      - name: Install locked candidate dependencies without lifecycle scripts
         working-directory: candidate
+        run: bun install --frozen-lockfile --ignore-scripts
+      - name: Install matching Playwright Chromium binary and Linux dependencies
+        working-directory: candidate
+        run: bunx playwright install --with-deps chromium
       - name: Capture before and after using isolated disposable app state
         if: ${{ github.event_name == 'pull_request' }}
         working-directory: candidate

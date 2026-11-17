@@ -125,7 +125,7 @@ async function assessPullRequest({ github, number }) {
   if (!headSha) return skip('missing head SHA');
   if (hasHoldMarker(pr.title) || pr.labels?.some(label => hasHoldMarker(label.name))) return skip('hold marker in title or labels');
   if (pr.requested_reviewers?.length || pr.requested_teams?.length) return skip('a requested person or team review is still pending');
-  if (pr.mergeable !== true || pr.mergeable_state !== 'clean') return skip(`GitHub mergeability is ${pr.mergeable_state || 'unknown'}`);
+  if (pr.mergeable !== true || !['clean', 'unstable'].includes(pr.mergeable_state)) return skip(`GitHub mergeability is ${pr.mergeable_state || 'unknown'}`);
 
   const files = await all(github, github.rest.pulls.listFiles, { pull_number: number });
   if (!files.length) return skip('no changed files');
@@ -229,7 +229,7 @@ async function run({ github, context, core, dryRun = false }) {
         github.rest.repos.getBranch(params({ branch: fresh.baseRef })),
       ]);
       if (finalPR.head?.sha !== fresh.headSha || finalPR.base?.ref !== fresh.baseRef || finalBase.commit?.sha !== fresh.baseSha ||
-          finalPR.state !== 'open' || finalPR.draft || finalPR.auto_merge || finalPR.mergeable !== true || finalPR.mergeable_state !== 'clean' ||
+          finalPR.state !== 'open' || finalPR.draft || finalPR.auto_merge || finalPR.mergeable !== true || !['clean', 'unstable'].includes(finalPR.mergeable_state) ||
           finalPR.requested_reviewers?.length || finalPR.requested_teams?.length ||
           hasHoldMarker(finalPR.title) || finalPR.labels?.some(label => hasHoldMarker(label.name))) {
         report(`#${listed.number}`, 'skipped on final read', 'PR state, head, or target changed'); continue;

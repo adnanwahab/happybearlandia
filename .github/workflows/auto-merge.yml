@@ -74,7 +74,7 @@ jobs:
                 runId: context.runId, attempt: context.runAttempt, dryRun,
                 generatedAt: new Date().toISOString(), merged: outcome.merged,
                 nativeAutoMergeEnabled: outcome.enabled, pullRequests: outcome.rows,
-              }, null, 2) + '\\n'
+              }, null, 2) + '\n'
             );
       - name: Retain per-PR eligibility and blocker audit
         if: always()
