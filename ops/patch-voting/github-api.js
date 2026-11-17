@@ -22,9 +22,13 @@ function reject(text) { throw new Error(text); }
 export function assertCuratedPatchTask(task) {
   const entry = approvedPatchCandidates.find(x => x.id === task?.taskId);
   if (!entry || task.source !== 'maintainer-curated-vote' ||
-      task.acceptance !== entry.acceptance ||
+      task.acceptance !== entry.acceptance || task.title !== entry.title ||
+      task.description !== entry.summary || task.area !== entry.area ||
+      !Number.isFinite(task.upvotes) || task.upvotes < 5 ||
+      !Number.isFinite(task.voteScore) || task.voteScore < 3 ||
       JSON.stringify(task.ownedPaths) !== JSON.stringify(entry.ownedPaths) ||
-      JSON.stringify(task.dependencies) !== JSON.stringify(entry.dependencies)) {
+      JSON.stringify(task.dependencies) !== JSON.stringify(entry.dependencies) ||
+      JSON.stringify(task.verification) !== JSON.stringify(entry.verification)) {
     reject('Only an approved, unchanged, curated queue task may be published.');
   }
   return entry;
@@ -61,7 +65,7 @@ export function createGitHubPatchPublisher(options = {}) {
     if (cached && cached.until > now() + 60000) return cached.value;
     const result = await request('/app/installations/' + installationId + '/access_tokens', {
       method: 'POST', app: true,
-      json: { repositories: ['happybearlandia'] }
+      json: { repositories: ['happybearlandia'], permissions: { issues: 'write', pull_requests: 'write', contents: 'read', checks: 'read' } }
     });
     if (typeof result?.token !== 'string' || !result.token) reject('GitHub returned no installation token.');
     cached = { value: result.token, until: Date.parse(result.expires_at) || now() + 300000 };
@@ -89,13 +93,14 @@ export function createGitHubPatchPublisher(options = {}) {
     const created = await request(repoApi + '/issues', { method: 'POST', json: { title: '[voted patch] ' + task.taskId + ': ' + task.title, body } });
     return { issueNumber: created.number, issueUrl: created.html_url, reused: false };
   }
-  async function publishDraft(task, branch) {
+  async function publishDraft(task, branch, expectedHeadSha) {
     assertCuratedPatchTask(task);
     assertAgentBranch(task.taskId, branch);
+    if (!/^[a-f0-9]{40}$/i.test(expectedHeadSha || '')) reject('A locally tested exact head SHA is required.');
     // The coding agent must push the branch after local tests and scope checks.
     const head = await request(repoApi + '/branches/' + encodeURIComponent(branch));
     const sha = head?.commit?.sha;
-    if (!/^[a-f0-9]{40}$/i.test(sha || '')) reject('GitHub branch head is unavailable.');
+    if (!/^[a-f0-9]{40}$/i.test(sha || '') || sha.toLowerCase() !== expectedHeadSha.toLowerCase()) reject('GitHub branch moved since local verification.');
     const list = await request(repoApi + '/pulls?state=all&per_page=100&head=' + encodeURIComponent('adnanwahab:' + branch));
     let pr = list.find(x => x.head?.ref === branch && x.base?.ref === PATCH_BASE);
     if (!pr) {
@@ -113,6 +118,7 @@ export function createGitHubPatchPublisher(options = {}) {
         body, head: branch, base: PATCH_BASE, draft: true, maintainer_can_modify: true
       } });
     }
+    if (pr.head?.sha?.toLowerCase() !== expectedHeadSha.toLowerCase()) reject('PR head moved before publication completed.');
     return { prNumber: pr.number, prUrl: pr.html_url, headSha: sha.toLowerCase(),
       status: pr.draft ? 'draft' : pr.merged_at ? 'merged' : pr.state === 'closed' ? 'closed' : 'open',
       reused: Boolean(list.find(x => x.number === pr.number)) };
