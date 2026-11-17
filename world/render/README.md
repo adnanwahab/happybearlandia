@@ -377,3 +377,14 @@ existing camera/clock/context only, with no timers, model commands or extra fram
 loop. Page exit removes its DOM/style. Legacy World, Canvas2D, embedded/tile
 views, missing clocks and empty geometry have no district cards. See
 `docs/reviews/SHE-611.md` for verification and remaining browser acceptance.
+
+## Street-based transit journey (SHE-604)
+
+World controls can launch a presentation-only neighborhood transit fly-through
+that follows the loaded street geometry. It displays recorded route geometry and
+timing rather than claiming a live service or a modeled transportation outcome.
+The camera transition remains interruptible: Escape and the visible cancel control
+restore the prior camera state without issuing a model command. Missing or invalid
+route geometry disables the control. The feature does not synthesize stops,
+passengers, service frequency, or real-world travel times; those remain unknown
+unless represented by a separate verified data source.
