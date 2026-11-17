@@ -10698,3 +10698,22 @@ native WebGPU for the full game with unchanged budgets; city-only rendering is
 verified separately. An existing Future Machine measurement selected the first
 range input, which is now sound volume; it now targets the named shared-month
 timeline and retains all samples, pacing and exact month verification.
+
+
+## SHE-671 — Interactive project impact handle
+
+Audit: invention has no parameter handle; use the existing Riverside transit
++4/+8/+12 catalog, exact plan policies IDs and illustrative costs. No overlapping
+open PR returned by repository search for invention/impact handles/SHE-671.
+Slice: local native range and numeric controls map to versioned plan.policies,
+clamp/snap, undo, unsupported choices, explicit execution and prior-result labels.
+Acceptance: model and replay regressions, pacing cleanup, browser normal entry,
+mobile/keyboard/focus/reduced-motion and failure states. No model rules change.
+Risks: catalog units are synthetic; estimate is catalog cost, never predicted
+commute or delivered capacity. No persistence or production actions.
+Status: local implementation complete; acceptance pending browser evidence.
+20 focused tests / 248 assertions and actual-page DOM check / 18 assertions pass.
+Playwright discovers 3 tests but server bind and Chromium launch are sandbox-denied.
+Type checking has 14 diagnostics identical to the unchanged dependency baseline;
+no changed-file diagnostics. See docs/reviews/SHE-671.md for commands, provenance,
+ODD comparison, preserved merge/vote policy and the required browser follow-up.
