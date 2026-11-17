@@ -281,3 +281,24 @@ reduced motion; static map caching and existing overlay throttling remain.
 History survives map collapse and local travel, and ends when the page unloads.
 It is not a saved-run or cross-model identity mapping. Living Population selection
 and the separate full Canvas2D World fallback are not wired to this trail.
+
+## Loaded place search (SHE-675)
+
+World controls → Find a place searches loaded building/park IDs, names and
+`address.label` (OSM public address fields retained by api.js/gen.js). Attached
+POI names use the existing nearest-building mapping, not independent landmark
+coordinates. Exact matches rank first; duplicates retain individual IDs. Results
+are limited to 30, including streamed geometry; hidden buildings are excluded.
+Search does not invoke a geocoder or infer missing addresses. Procedural IDs and
+names describe synthetic geometry. No Population resident search is claimed.
+
+Choose a result for a static text preview, then explicitly Move camera here.
+The camera cuts immediately, preserving inspector selection and simulation state.
+Confirmation rechecks identity/position and the existing preset collision boxes.
+No safe pose or an unloaded/moved result leaves the camera unchanged. Collision
+limits are those of cinematic presets above. Preview does not move the camera.
+Native controls have 44px minimum height, visible focus, Escape/cancel and an
+instant reduced-motion path. No new render loop, timers, provider or persistence.
+The existing frame loop records open-overlay sample count/max frame gap in the
+panel stats alongside query duration; these are local diagnostics, not hardware
+performance certification. Pagehide removes the panel and its key listener.

@@ -54,3 +54,24 @@ for(const mobile of [false,true])test(`cinematic presets preserve selection and 
  await expect(picker.getByRole('status')).toContainText('interrupted');
  await page.screenshot({path:`.mini-symphony-evidence/SHE-474-after-${mobile?'mobile':'desktop'}-camera.png`});
 });
+
+for(const mobile of [false,true])test(`loaded place search confirmation ${mobile?'mobile':'desktop'}`,async({page})=>{
+ await page.setViewportSize(mobile?{width:390,height:844}:{width:1200,height:800});
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.route('**/api/area*',route=>route.abort());
+ await page.goto('/world?synthetic=1&people=16');
+ await page.waitForFunction(()=>window.hblWorldStartup?.readyMs);
+ await page.locator('#top').evaluate(node=>node.open=true);
+ const search=page.getByTestId('place-search');await search.locator('summary').click();
+ const input=search.getByRole('searchbox');await input.fill('999 Imaginary Road');await search.getByRole('button',{name:'Search',exact:true}).click();
+ await expect(search.getByRole('status')).toContainText('No loaded match');
+ await input.fill('p0');await search.getByRole('button',{name:'Search',exact:true}).click();
+ await search.locator('[data-results] button').first().click();
+ await expect(search.locator('[data-preview]')).toContainText('Preview:');
+ const selected=await page.locator('#inspect').innerText();
+ const confirm=search.getByRole('button',{name:'Move camera here'});await confirm.focus();
+ await expect(confirm).toBeFocused();await page.keyboard.press('Enter');
+ await expect(search.getByRole('status')).toContainText('Camera moved');expect(await page.locator('#inspect').innerText()).toBe(selected);
+ await input.fill('p0');await search.getByRole('button',{name:'Search',exact:true}).click();await search.locator('[data-results] button').first().click();
+ await search.getByRole('button',{name:'Cancel preview'}).click();await expect(confirm).toBeDisabled();
+});

@@ -10698,3 +10698,17 @@ native WebGPU for the full game with unchanged budgets; city-only rendering is
 verified separately. An existing Future Machine measurement selected the first
 range input, which is now sound volume; it now targets the named shared-month
 timeline and retains all samples, pacing and exact month verification.
+
+## SHE-675 — loaded address and landmark search (2026-11-17)
+
+Integrated slice: /world controls → loaded metadata search → duplicate choice →
+static preview → explicit collision-checked camera cut. Prerequisites reused:
+OSM public address/name retention, loaded world centers and camera preset solids.
+Acceptance tasks: exact ranking/unsupported search, identity revalidation,
+collision failure, unchanged selection, keyboard/mobile/reduced motion and cleanup.
+Implemented world/place-search.js and render.js wiring; module scope/limitations
+in world/render/README.md. Unit/shared camera verification: 21 pass, 142 assertions.
+Browser desktop/mobile journeys added; blocked before startup by node_modules/bun
+missing postinstall, so visual acceptance remains pending. No model/governance
+changes, commit or PR. See [review evidence](reviews/SHE-675.md). Next: execute
+focused browser tests in a working server environment and inspect captures.
