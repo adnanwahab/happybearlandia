@@ -130,3 +130,29 @@ input during the boot screen, then confirms the input stays focused when the rea
 UI mounts. It also forces an actual module failure and requires visible error UI
 and recovered heading focus. Unit/navigation contracts: **13 passed, 60 assertions**
 with happy-dom explicitly enabled; no optional DOM tests skipped.
+
+## Final focused acceptance
+
+- Existing portal acceptance: **10/10 original cases pass**, plus **2/2** new real
+  asynchronous startup/user-focus/failure cases. Chromium desktop and mobile,
+  12 passed, zero failed/skipped/flaky. Artifacts:
+  `/private/tmp/hbl-native-navigation-final-20261117/run-r26iqB/summary.json`.
+- Final complete repair at clean commit `3b4a7225`: **8/8 engine/device jobs pass,
+  16/16 tests**, zero skipped/unexpected/flaky. Bundled Chromium, installed Chrome,
+  Firefox and WebKit, each desktop/mobile. Artifacts:
+  `/private/tmp/hbl-native-navigation-matrix-final-20261117/run-ZhN0O9/summary.json`.
+- Unit/navigation contract checks: 13 passed, zero failed/skipped, 60 assertions;
+  `HBL_NAV_DOM=/private/tmp/hbl-she630-dom/node_modules/happy-dom/lib/index.js bun test test/navigation-accessibility.test.js test/universe-shell.test.js`.
+- `git diff --check` passes.
+
+Interim attempts remain failures: after initial heading repair, query ordering and
+runtime-mutated Back hrefs exposed further issues (5 passed/5 failed); another
+run had one genuine guest SQLite startup lock plus two mobile opener failures
+(3 passed/2 failed, desktop no tests executed). No such failed job was reclassified
+as passed. The final bounded reruns used `HBL_BROWSER_JOB_LIMIT=1` to avoid the
+known guest SQLite collision; independent guest store isolation is a separate
+coordinator-owned repair, to be combined and verified before release.
+
+The native navigation and focus blockers documented above are resolved by this
+focused change. Required hosted checks and combined release verification remain
+with the coordinator. Real-device gaps remain unchanged. No merge/deployment.
