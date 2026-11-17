@@ -274,3 +274,10 @@ the visible arm/curtain clip and above the opaque footer. A partially clipped
 polygon can expose a hittable interior even when its recorded center is outside
 the viewport; fully offscreen or occluded polygons expose no target. Camera,
 mode, geometry and model records are unchanged by reading diagnostics.
+
+Facade windows use one stage-owned InstancedMesh per facade rather than one Mesh
+per window. Authored positions, rotations, dimensions and material remain the
+same; they stay cosmetic and outside model inventory/root pick targets. Resource
+teardown releases the instance buffers plus its geometry/material once across
+shared scene ownership. See `test/future-machine-neighborhood.test.js` for exact
+transform/material equivalence and instance disposal checks.

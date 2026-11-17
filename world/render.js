@@ -2428,7 +2428,9 @@ function frame(now) {
   for (let i = 0; !livingWorld?.active && i < town.people.length; i++) {
     const p = town.people[i];
     const s = smooth[i];
-    const k = playback.getState().paused?0:1 - Math.exp(-dt * 10);
+    // Pausing stops model time, not synchronization with its last observed position.
+    // Freeze at the authoritative location rather than an unfinished smoothing step.
+    const k = playback.getState().paused?1:1 - Math.exp(-dt * 10);
     s.x += (p.x - s.x) * k;
     s.z += (p.z - s.z) * k;
     const selectedPerson = selected?.type === "person" && selected.id === i;

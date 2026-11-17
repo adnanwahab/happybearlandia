@@ -20,8 +20,13 @@ const routes = [
 
 for (const route of routes) {
   test(`startup ${route.path}`, async ({ page }, info) => {
-    const report = { path: route.path, status: null, nodes: {}, capabilities: [], errors: [] };
+    const report = { path: route.path, status: null, nodes: {}, capabilities: [], errors: [], webgpuErrors: [] };
     page.on('pageerror', error => report.errors.push(error.message));
+    page.on('console', message => {
+      if (message.type() === 'error' && /webgpu|GPUValidationError|GPUOutOfMemoryError|gpu device.*lost/i.test(message.text())) {
+        report.webgpuErrors.push(message.text());
+      }
+    });
     // Home contains expensive unrelated previews. Only the top-level route is under test.
     await page.route('**/*', request => {
       if (request.request().resourceType() === 'document' && request.request().frame().parentFrame()) return request.abort();
@@ -78,6 +83,7 @@ for (const route of routes) {
         reason: n.getAttribute('aria-description') || n.title || (n.getAttribute('aria-describedby') || '').split(/\s+/).map(id => document.getElementById(id)?.textContent || '').join(' ').trim() || 'No UI explanation provided; capability reason is unobserved',
       })));
       expect(report.errors, 'uncaught startup errors').toEqual([]);
+      expect(report.webgpuErrors, 'WebGPU console errors').toEqual([]);
     } catch (error) {
       report.failure = error.message;
       throw error;

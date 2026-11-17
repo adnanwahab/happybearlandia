@@ -18,7 +18,7 @@ test('the homepage carousel opens an interactive deck.gl map in an iframe', asyn
   const card = page.locator('.gallery-card').filter({
     has: page.getByRole('heading', { name: 'Houston Neighborhood Map', exact: true }),
   });
-  await expect(card.getByRole('link', { name: 'Open Houston Neighborhood Map in a new tab' }))
+  await expect(card.getByRole('link', { name: 'Enter Houston Neighborhood Map' }))
     .toHaveAttribute('href', /^\/tools\/houston-map(?:\?|$)/);
   const jump = page.getByLabel('Jump to a preview');
   const option = jump.getByRole('option', { name: /Houston Neighborhood Map$/ });
