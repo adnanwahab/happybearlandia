@@ -29,6 +29,7 @@ export function collectBrowserEvidence(page, { limit = 100 } = {}) {
   on('response', response => { if (response.status() >= 400) record('http', `${response.status()} ${response.url()}`); });
   return {
     events, record,
+    get dropped() { return dropped; },
     async attach(testInfo) {
       const artifact = { version: 1, status: testInfo.status ?? 'unknown',
         page: redact(page.url()), events, dropped };
