@@ -7,27 +7,58 @@ export const motionTokens = Object.freeze({
   layer: Object.freeze({content:0, navigation:90, inspector:1000}),
 });
 
-/** Runs an update exactly once. Unsupported/reduced motion commits immediately. */
-export function createMotionAdapter({document, preferences}) {
+/** Latest request wins. Prepare asynchronously; commit/rollback must be synchronous.
+ * Async preparation must honor signal and must not mutate the visible scene.
+ */
+export function createMotionAdapter({document, preferences, timeoutMs=5000}) {
   let active=null, disposed=false;
-  const unsubscribe=preferences.subscribe(({reducedMotion})=>{if(reducedMotion)active?.skipTransition();});
+  const skip=job=>{if(job?.capture&&!job.skipped){job.skipped=true;try{job.capture.skipTransition();}catch{}}};
+  const cancel=()=>{if(active){active.controller.abort();skip(active);active=null;}};
+  const unsubscribe=preferences.subscribe(({reducedMotion})=>{if(reducedMotion)skip(active);});
   return {
-    async transition(update,{focus}={}) {
+    async transition(update,{focus,prepare,rollback}={}) {
       if(disposed)throw new Error('Motion adapter disposed');
-      // Concurrent UI commands commit immediately rather than capture stale DOM.
-      let called=false, result;
-      const commit=()=>{if(!called){called=true;result=Promise.resolve().then(update);}return result;};
-      let transition;
-      if(!active&&!preferences.get().reducedMotion&&typeof document.startViewTransition==='function') {
-        try{transition=document.startViewTransition(commit);active=transition;}catch{/* Unsupported capture: still commit once. */}
-      }
+      cancel();
+      const job={controller:new AbortController(),capture:null};active=job;
+      const {signal}=job.controller;
+      let called=false, committed=false, result, timer;
+      const aborted=new Promise(resolve=>signal.addEventListener('abort',()=>resolve(false),{once:true}));
+      const commit=()=>{
+        if(called)return result;
+        called=true;
+        if(signal.aborted)return;
+        result=Promise.resolve().then(()=>{if(!signal.aborted)return update(signal);});
+        return result;
+      };
       try {
-        if(transition){transition.ready.catch(()=>{});await transition.updateCallbackDone;await transition.finished.catch(()=>{});}
-        else await commit();
-        focus?.focus({preventScroll:true});
-      } finally {if(active===transition)active=null;}
+        const work=(async()=>{
+          if(prepare)await prepare(signal);
+          if(signal.aborted)return false;
+          if(!preferences.get().reducedMotion&&typeof document.startViewTransition==='function') {
+            try{job.capture=document.startViewTransition(commit);}catch{/* Commit without capture. */}
+          }
+          if(job.capture){
+            job.capture.ready.catch(()=>{});
+            await job.capture.updateCallbackDone;
+          } else await commit();
+          if(signal.aborted)return false;
+          committed=true;
+          focus?.focus({preventScroll:true});
+          if(job.capture)await job.capture.finished.catch(()=>{});
+          return !signal.aborted;
+        })();
+        const deadline=new Promise((resolve,reject)=>{timer=setTimeout(()=>committed?resolve(true):reject(new Error('View transition timed out')),timeoutMs);});
+        return await Promise.race([work,aborted,deadline]);
+      } catch(error) {
+        if(!signal.aborted)rollback?.(error);
+        throw error;
+      } finally {
+        clearTimeout(timer);
+        if(active===job){skip(job);job.controller.abort();active=null;}
+      }
     },
-    dispose(){disposed=true;active?.skipTransition();unsubscribe();},
+    cancel,
+    dispose(){disposed=true;cancel();unsubscribe();},
   };
 }
 

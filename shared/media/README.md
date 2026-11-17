@@ -116,3 +116,29 @@ Verification: `bun test test/motion.test.js`; browser checks:
 keyboard, live OS reduction, canonical computed values and desktop/mobile image
 capture on all three normal routes. Screenshot capture is evidence only when the
 suite actually runs, not when a test is merely added.
+
+## Interruptible navigation (SHE-629)
+
+The shared motion adapter now cancels the previous request before accepting a new
+one. `transition(update, {prepare, rollback, focus})` resolves true on completion,
+false on cancellation, and rejects failures after rollback. `prepare(signal)` owns
+asynchronous acquisition and must release its resources on abort; keep visible
+scene/history mutations in the commit. Route commits and rollbacks are synchronous;
+legacy asynchronous updates remain supported but must honor the supplied signal
+before any delayed side effect. Cancellation cannot undo arbitrary application work.
+`cancel()` and `dispose()` skip capture and abort preparation; reduction skips only
+presentation. A five-second watchdog bounds waiting (shell: ten seconds). A timeout
+after successful commit skips animation without reverting the stable scene.
+
+The homepage shell retains its current scene during iframe acquisition, deduplicates
+pending destinations and commits history with the selected scene. Back/forward,
+Close, a visible Cancel navigation button and Escape can interrupt loading. Failure
+restores the last stable URL; no history entry is pushed before load. Native iframe
+load is document availability, not proof of model readiness: HTTP error documents
+may fire load and application-level failures need an explicit app readiness protocol.
+Full-document portal links retain browser-owned history/failure handling. No model
+state, context IDs, seeds, clocks or outcomes are transformed by this coordinator.
+
+Focused checks: `bun test test/motion.test.js test/universe-shell.test.js` and
+`bunx playwright test --config test/transitions.browser.config.js`. Set
+`HBL_BUN_EXECUTABLE` when a package-manager shim cannot run Bun.
