@@ -568,6 +568,18 @@ window.hblWorldActivity={
  subscribe(listener){activityListeners.add(listener);return()=>activityListeners.delete(listener);},
  selectPerson(id){if(livingWorld?.active)return livingWorld.selectPerson(String(id));const index=town.people.findIndex(person=>String(person.id)===String(id));if(index>=0)select({type:'person',id:index});}
 };
+// Heartbeat reads the same recorded authority as Activity; seeking uses its normal replay API.
+let heartbeatDisposed=false,heartbeatView=null;
+if(!embedMode)void import('./heartbeat.js').then(({mountHeartbeat})=>{
+ if(heartbeatDisposed)return;
+ heartbeatView=mountHeartbeat(document.body,{source:window.hblWorldActivity,seek:async minute=>{
+  if(!livingWorld?.active)throw Error('Seeking unavailable in Legacy World. Activate Living World to seek recorded periods.');
+  const runtime=livingWorld.getRuntime();
+  playback.pause();
+  return runtime.stepToTime(minute);
+ }});
+}).catch(error=>console.error('City Heartbeat unavailable',error));
+addEventListener('pagehide',()=>{heartbeatDisposed=true;heartbeatView?.destroy();},{once:true});
 // Read-only references to the current authority, shared by tile and 3D views.
 window.hblWorldTileSource={
  getRouteCacheStats:()=>world.getRouteCacheStats?.(),
