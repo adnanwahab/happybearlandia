@@ -201,3 +201,31 @@ model outputs and schematic presentation, never real resident tracking or proof
 of the path traveled between samples. Buffers are fixed-capacity and disposed on
 host teardown. No model rules, scheduling, RNG, source identities or persisted
 run records change; the Population ODD remains applicable unchanged.
+
+## Cohort Spotlight (`home-district-id-order.v1`)
+
+The existing `/world` Population City Deck zoom consumes one frozen Population
+snapshot. `zoomEvidence(frame, districtId)` maps `visibleAgents.homeDistrictId`
+to an exact `districts.id`; coordinates must be finite and IDs present. It sorts
+IDs lexically, deduplicates by ID and selects at most 12 within that home district.
+Unknown district IDs and empty samples produce no representatives, never a
+substitute district or generated person. This is a presentation cohort, not the
+SHE-144 hierarchical engine or the household income cohorts.
+
+The fixture in `test/population-zoom.test.js` fixes all inputs and expected IDs.
+Stable means identical supplied snapshot and district produce identical ordering;
+camera-dependent worker membership, tick changes and resets may change the sample.
+Opening captures a snapshot; district changes reuse it; reopening captures anew.
+Inspection sends the retained ID to the existing inspector, which reads current
+state and can reject stale identities. Frozen coordinates do not promise history.
+Model version, seed, runtime ID, tick and minute retain snapshot provenance; absent
+metadata is displayed as unavailable. No RNG is consumed or model state changed.
+
+Allocated resident records, weighted represented total, worker sample size,
+selected IDs and drawn representatives are separate. Independently active agents
+remain unavailable without a changed-state window measurement. Weighted mass is
+not an independently simulated population. The Canvas2D circles/radii/fade are
+decorative projections of synthetic model outputs; no observed resident sources,
+probabilities, causal effects or empirical representativeness are supplied.
+Missing Canvas2D retains textual IDs/inspection. Destruction cancels animation,
+removes the panel and releases retained snapshots; it allocates no GPU resources.
