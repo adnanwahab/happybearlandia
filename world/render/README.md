@@ -325,3 +325,18 @@ Command UI `getState().frames` reports frame count, maximum frame gap, latest dr
 cost, marker count and active-frame status. These are local overlay diagnostics,
 not GPU or device performance certification. All frames and DOM are released on
 clear/destroy. The camera projection still updates under reduced motion.
+
+## Infrastructure scanner (SHE-645)
+
+In 3D `/world`, World controls → X-ray infrastructure scanner opens a static,
+hatched ground-ray lens. Hover scans at most 10Hz; Scan center provides the same
+query for touch and keyboard. Escape closes and returns summary focus. The
+8-metre road tolerance is a presentation assumption, not a service radius.
+Only the original loaded town's OSM roads are queried; streamed areas outside
+that geometry remain unknown. Old caches and synthetic roads gain no IDs.
+
+The core Overpass query retains way IDs and ordered node references; `buildTown`
+preserves those through coordinate projection. The readout labels transport road
+type and exact `osm:way` / `osm:node` references. Pipe, water, electricity and
+service networks have no spatial evidence adapter here: hatching always represents
+unknown coverage. The scanner adds no animation loop, model command or persistence.

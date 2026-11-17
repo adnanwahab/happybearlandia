@@ -236,7 +236,7 @@ export function buildTown(origin, area, opts = {}) {
 
   const people = makePeople(buildings, r, maxPeople);
   const roads = source === "osm" || savedSynthetic
-    ? (area.roads || []).map((rd) => ({ kind: rd.kind, pts: rd.pts.map(([la, ln]) => proj.toXZ(la, ln)) }))
+    ? (area.roads || []).map((rd) => ({ sourceRef: rd.sourceRef, nodeRefs: rd.nodeRefs, kind: rd.kind, pts: rd.pts.map(([la, ln]) => proj.toXZ(la, ln)) }))
     : proceduralRoads();
   return { origin, source, seedKey, buildings, people, roads, attribution: source === "osm" ? area.attribution : null };
 }
