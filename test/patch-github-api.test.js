@@ -10,7 +10,7 @@ const { privateKey, publicKey } = generateKeyPairSync('rsa', {
   publicKeyEncoding: { type: 'spki', format: 'pem' }
 });
 const entry = approvedPatchCandidates.find(x => x.id === 'U06');
-const task = { ...entry, taskId:'U06', source:'maintainer-curated-vote',
+const task = { ...entry, taskId:'U06', description:entry.summary, source:'maintainer-curated-vote',
   upvotes:8, voteScore:6, dependencies:[...entry.dependencies],ownedPaths:[...entry.ownedPaths] };
 const branch = 'agent/patch-u06-1763400000000';
 const sha = 'f'.repeat(40);
