@@ -73,10 +73,12 @@
 </header>
 <main>
   <p class="note" id="note"></p>
+  <section id="uncertainty-tides" style="margin-bottom:24px" aria-label="Uncertainty Tide Lines"></section>
   <div class="grid" id="grid"></div>
 </main>
 
 <script type="module">
+import { matchingTideBatch, mountTides } from "./uncertainty-tides.js";
 import { searchFutures, scoreFutures } from "./futures-analysis.js";
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -110,6 +112,9 @@ const origin = snapshot?.location || { lat: 29.7286, lng: -95.4746 };
 $("title").textContent = snapshot
   ? `${snapshot.plan.label} plan · ${runs.toLocaleString()} possible worlds`
   : `${runs.toLocaleString()} possible worlds`;
+
+const disposeTides = mountTides($("uncertainty-tides"), matchingTideBatch(localStorage, {snapshotId, baseSeed, years, people}), baseSeed);
+addEventListener("pagehide", event => { if (!event.persisted) disposeTides(); });
 
 // Verdicts from the realities page, if it finished in this browser.
 let verdicts = null;
