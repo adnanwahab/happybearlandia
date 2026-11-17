@@ -10698,3 +10698,25 @@ native WebGPU for the full game with unchanged budgets; city-only rendering is
 verified separately. An existing Future Machine measurement selected the first
 range input, which is now sound volume; it now targets the named shared-month
 timeline and retains all samples, pacing and exact month verification.
+
+## SHE-972 — bounded six-hour retrospective preparation (November 17, 2026)
+
+Delivered local review report `docs/reviews/SHE-972.md` and bounded source snapshot
+`docs/evidence/she-972-source.json` against f6fa950b. Audited current first-play
+contracts, historical launch evidence, two GitHub PR searches (no matches), and
+existing Linear backlog. Seven launch measurements remain unknown because the
+confirmed UTC window and source exports are absent. Compared documented launch
+hypotheses with explicit cohort limits; selected exactly ten existing issues.
+All ten are unassigned: proposed accountable roles await human acceptance.
+
+Acceptance evidence: relevant first-play events/funnel, fun analytics and local
+journey regression suites pass21 tests/450 assertions, zero failures. No browser
+behavior changed; Playwright omitted. No root lint/typecheck script exists.
+JSON/source reconciliation and diff whitespace checks pass. Model contracts,
+governance, vote thresholds and disabled automatic merge policy remain unchanged.
+
+Remaining: confirm window/hypotheses, accept named owners, supply privacy-reviewed
+aggregate measurements plus incident/spend coverage, complete hardware evidence
+where needed, and obtain editorial review/authorized publication. No outreach,
+live analytics/load, production change, merge or deployment performed. Revert
+only these documentation artifacts to roll back this preparation slice.

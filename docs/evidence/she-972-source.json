@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "hbl.launch-retrospective-sources.v1",
+  "auditDate": "2026-11-17",
+  "repository": "adnanwahab/happybearlandia",
+  "sourceRevision": "f6fa950b",
+  "window": {
+    "start": null,
+    "end": null,
+    "cutoff": null,
+    "reason": "No owner-confirmed six-hour UTC launch window or bounded launch exports supplied."
+  },
+  "metrics": {
+    "qualifiedUniqueVisitors": null,
+    "sourceReach": null,
+    "activation": null,
+    "sharing": null,
+    "p95FirstPlayMs": null,
+    "incidents": null,
+    "acquisitionCost": null
+  },
+  "githubSearches": [
+    {
+      "query": "repo:adnanwahab/happybearlandia \"SHE-972\"",
+      "matches": 0
+    },
+    {
+      "query": "repo:adnanwahab/happybearlandia retrospective",
+      "matches": 0
+    }
+  ],
+  "followUps": [
+    {
+      "id": "SHE-804",
+      "title": "[HBL-6H-001] Define one-million-human-visitors launch goal and six-hour scoreboard",
+      "assignee": null,
+      "status": "Backlog",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-804/hbl-6h-001-define-one-million-human-visitors-launch-goal-and-six-hour"
+    },
+    {
+      "id": "SHE-912",
+      "title": "[HBL-6H-063] Gate optional launch analytics behind correct consent semantics",
+      "assignee": null,
+      "status": "Todo",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-912/hbl-6h-063-gate-optional-launch-analytics-behind-correct-consent"
+    },
+    {
+      "id": "SHE-918",
+      "title": "[HBL-6H-069] Filter obvious bots out of unique-visitor success claims",
+      "assignee": null,
+      "status": "Todo",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-918/hbl-6h-069-filter-obvious-bots-out-of-unique-visitor-success-claims"
+    },
+    {
+      "id": "SHE-910",
+      "title": "[HBL-6H-061] Standardize launch campaign parameters without leaking identifiers",
+      "assignee": null,
+      "status": "Todo",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-910/hbl-6h-061-standardize-launch-campaign-parameters-without-leaking"
+    },
+    {
+      "id": "SHE-911",
+      "title": "[HBL-6H-062] Document acquisition attribution when browsers hide referrers",
+      "assignee": null,
+      "status": "Todo",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-911/hbl-6h-062-document-acquisition-attribution-when-browsers-hide"
+    },
+    {
+      "id": "SHE-917",
+      "title": "[HBL-6H-068] Measure the full voluntary share-to-friend-activation loop",
+      "assignee": null,
+      "status": "Todo",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-917/hbl-6h-068-measure-the-full-voluntary-share-to-friend-activation-loop"
+    },
+    {
+      "id": "SHE-812",
+      "title": "[HBL-6H-003] Benchmark a six-hour launch traffic shape before inviting mass traffic",
+      "assignee": null,
+      "status": "Backlog",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-812/hbl-6h-003-benchmark-a-six-hour-launch-traffic-shape-before-inviting"
+    },
+    {
+      "id": "SHE-819",
+      "title": "[HBL-6H-010] Run a single launch go/no-go checklist wired to real system evidence",
+      "assignee": null,
+      "status": "Backlog",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-819/hbl-6h-010-run-a-single-launch-gono-go-checklist-wired-to-real-system"
+    },
+    {
+      "id": "SHE-811",
+      "title": "[HBL-6H-002] Build a six-hour reach model from channel impressions to activated players",
+      "assignee": null,
+      "status": "Backlog",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-811/hbl-6h-002-build-a-six-hour-reach-model-from-channel-impressions-to"
+    },
+    {
+      "id": "SHE-970",
+      "title": "[HBL-6H-099] Triage launch feedback into existing Linear work without duplicate tickets",
+      "assignee": null,
+      "status": "Todo",
+      "url": "https://linear.app/shel-bernstein/issue/SHE-970/hbl-6h-099-triage-launch-feedback-into-existing-linear-work-without"
+    }
+  ]
+}
