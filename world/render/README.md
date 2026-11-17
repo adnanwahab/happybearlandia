@@ -18,7 +18,9 @@ See [the artist brief](assets/ARTIST_BRIEF.md) for dimensions, pivots, PBR/expor
 
 `updateCity` accepts visual state: `selectedBuilding`, `trafficDensity` (0–1), `vacancy` (0–1), `occupancy` (0–1), `timeOfDay` (hours), `weather` (`clear`, `cloudy`, `rain`), and `constructionProjects`. Construction entries supply `id`, `x`, `z`, `width`, `depth`, `height`, `progress`, and `phase`; optional `floorsBuilt` and `facadeFloors` describe the structural frame and installed facade. The resident simulation and approved construction bridge continue to own their clocks and outcomes. The construction benchmark uses detached visual fixtures.
 
-Cutaway occupants and floor layouts are illustrative, not estimated housing metrics. Time/weather overrides affect rendering only.
+Roof peel-back requires `building.detailGeometry`, an explicitly authored Three Object3D already attached to the scene in the building's world coordinates. The host owns its geometry, provenance, lighting and disposal. Default geographic shells do not supply interiors: the inspector reports missing geometry and retains the exterior. `setCutaway(true)` returns false for unsupported selections; `getCutawayState()` reports stable ID, support, enabled state and transition progress.
+
+Supported single-material shells fade existing triangles in the top 15% of their local height over 450ms. This is a cosmetic roof-region heuristic, not a structural survey. No interior surfaces or occupants are generated. Closing restores original geometry, detail visibility and camera pose; selection changes restore the prior shell. Geometry-detail replacement pauses during a transition. Reduced motion applies immediately. Time/weather overrides affect rendering only.
 
 ## Geometry boundary
 

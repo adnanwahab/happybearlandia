@@ -2309,14 +2309,14 @@ function renderInspector() {
       ${b.kind === "home" ? `<div class="muted">Fridge: ${s.fridge} meals</div>` : ""}
       ${b.kind === "park" ? `<div class="need"><span>litter</span><div class="bar"><i style="width:${s.litter}%;background:#b7871b"></i></div></div>` : ""}
       <div class="row">
-        <button id="cityFocus">Focus</button>${b.kind !== "park" ? `<button id="cityCutaway">Cutaway</button>` : ""}
+        <button id="cityFocus">Focus</button>${b.kind !== "park" ? `<button id="cityCutaway" aria-pressed="false">Peel back roof</button><span id="cityCutawayStatus" role="status"></span>` : ""}
         ${["food", "shop", "work", "school"].includes(b.kind) ? `<button id="toggleOpen">${s.open ? "Close it" : "Reopen"}</button>` : ""}
         ${s.maxStock ? `<button id="restock">Deliver stock</button>` : ""}
         ${b.kind === "park" ? `<button id="litterBtn">Dump litter</button>` : ""}
       </div>`;
     mountAPIGeometryDetails(el,{area:originalAreaGeometry,buildingId:b.id});el.style.maxHeight='calc(100vh - 112px)';el.style.overflowY='auto';
     $("cityFocus")?.addEventListener("click", () => cityRenderer.focusBuilding(b.id));
-    $("cityCutaway")?.addEventListener("click", () => { cityRenderer.focusBuilding(b.id); cityRenderer.setCutaway(!cityRenderer.cutawayEnabled); });
+    $("cityCutaway")?.addEventListener("click", () => { const enabled=cityRenderer.setCutaway(!cityRenderer.cutawayEnabled);$("cityCutaway").setAttribute('aria-pressed',String(enabled));$("cityCutawayStatus").textContent=enabled?'Authored building detail · visual geometry only':cityRenderer.getCutawayState().supported?'Roof restored':'Interior geometry unavailable; exterior retained'; });
     $("toggleOpen")?.addEventListener("click", () => { s.open = !s.open; world.log(`${b.name} ${s.open ? "reopened" : "closed"} (by you)`, "civic", b); renderInspector(); });
     $("restock")?.addEventListener("click", () => { s.stock = s.maxStock; world.log(`${b.name} got a delivery (by you)`, "restock", b); renderInspector(); });
     $("litterBtn")?.addEventListener("click", () => { s.litter = Math.min(100, s.litter + 40); renderInspector(); });
