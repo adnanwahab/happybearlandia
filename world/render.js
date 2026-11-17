@@ -1,3 +1,4 @@
+import {mountTripFireflies} from './population/fireflies.js';
 import {mountDistrictTitle} from './district-title.js';
 import {mountInfrastructureScanner} from './infrastructure-scanner.js';
 import {createInspectionFreeze,mountInspectionFreeze} from './render/inspection-freeze.js';
@@ -575,6 +576,10 @@ window.hblWorldTileSource={
  selectBuilding(id){const index=town.buildings.findIndex(building=>String(building.id)===String(id));if(index>=0)select({type:'building',id:index});}
 };
 window.hblTileWorld=window.hblWorldTileSource;
+const tripFirefliesUI=mountTripFireflies({container:document.body,controls:document.getElementById('worldAdvanced')||document.body,getFrame:()=>livingWorld?.active?livingWorld.getSnapshot():null,project:point=>{const p=new THREE.Vector3(point.x,1.5,point.z).project(camera);if(p.z < -1||p.z > 1||Math.abs(p.x)>1||Math.abs(p.y)>1)return null;const r=renderer.domElement.getBoundingClientRect();return{x:r.left+(p.x+1)*r.width/2,y:r.top+(1-p.y)*r.height/2};},onSelect:id=>window.hblWorldActivity.selectPerson(id)});
+window.hblTripFireflies=tripFirefliesUI;
+window.addEventListener('pagehide',()=>tripFirefliesUI.destroy(),{once:true});
+
 window.hblSessionLogState=()=>{const living=Boolean(livingWorld?.active),seed=living?physicalPolicySnapshot?.config?.seed:world.simulationSeed;return{minute:living?livingWorld.getClockMinute():world.t,seed:Number.isFinite(seed)?seed:null,mode:living?'living':'legacy',camera:camera.position.toArray(),target:controls.target.toArray()};};
 const playbackFacts=mountPlaybackFacts(document);
 playbackFacts.update({mood:world.summary().mood,seed:town.seedKey});
@@ -2358,6 +2363,7 @@ let lastStreamUpdate=-Infinity;
 
 function frame(now) {
   if(startupAbort.signal.aborted)return;
+  if(!inspectionFreeze.frozen)tripFirefliesUI.update(now);
   if(!inspectionFreeze.frozen){gamepadControls?.update(now);mapControls.update(now);}fpsMeter.update(now);if(selectedVehicle&&now-lastVehicleUpdate>200){lastVehicleUpdate=now;const vehicle=cityRenderer.getVehicle?.(selectedVehicle);if(vehicle)vehicleInspector?.update(vehicle);}if(manualPanRequested){follow=false;manualPanRequested=false;}
   if(!inspectionFreeze.frozen&&(streamingEnabled||Math.hypot(controls.target.x,controls.target.z)>400)&&now-lastStreamUpdate>=100){streamingEnabled=true;lastStreamUpdate=now;mapStreamer.update();}updateContextMinimap();
   const cpuStart = performance.now();
