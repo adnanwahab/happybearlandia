@@ -1,3 +1,5 @@
+import {createRescueHandler} from './world/storm/rescue-api.js';
+const handleStormRescue=createRescueHandler();
 import {civicProviderUrl,civicPublishUrl} from './ops/civic-provider.js';
 import { createMiniSymphonyHandler } from './ops/mini-symphony/api.js';
 const handleMiniSymphony = createMiniSymphonyHandler();
@@ -478,6 +480,7 @@ const server = serve({
     if (pathname === "/api/law-behavior") return handleLawBehavior(request);
     if (pathname === '/vote-on-patch' || pathname === '/vote-on-patch/') return serveFile('./world/patch-voting.html');
     if (pathname === '/api/patch-votes' || pathname.startsWith('/api/patch-votes/')) return patchVoting(request);
+    if(pathname === '/api/storm/rescue' || pathname.startsWith('/api/storm/rescue/'))return handleStormRescue(request);
     if(pathname.startsWith('/api/act-normal/'))return actNormalService.fetch(request,server);
     if(/^\/world\/party\/act-normal\/?$/.test(pathname))return serveFile('./world/party/act-normal.html');
 
