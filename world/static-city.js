@@ -2,6 +2,14 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {cityViewOrigin,createStaticCity,gameViewURL} from './static-city-model.js';
 const params=new URLSearchParams(location.search),$=id=>document.getElementById(id);
+// The WebGL2 fallback cannot replay a saved simulation, but must preserve the
+// exact selected checkpoint and resident when taking the player back to Worldline.
+if(params.has('experiment')){
+ const query=new URLSearchParams(location.search);
+ for(const key of ['renderer','viewReason','journey','playableLife'])query.delete(key);
+ $('return-worldline').href='/tools/future-journey.html?'+query;
+ $('saved-future-navigation').hidden=false;
+}
 $('full-game').href=gameViewURL(location.href);document.documentElement.dataset.renderer='webgl2-city';
 let renderer,controls,observer,scene,camera,selected=null,city=null,disposed=false,failed=false,draws=0;
 const resources=new Set(),meshes=[],materials=new Map();
