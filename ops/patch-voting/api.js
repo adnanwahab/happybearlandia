@@ -5,6 +5,7 @@ import { mkdirSync } from 'node:fs';
 import { dirname, resolve, relative, isAbsolute, sep } from 'node:path';
 import { createHmac, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 import { approvedPatchCandidates } from './candidates.js';
+import { validatePatchImpact } from './impact.js';
 
 const SESSION = 'hbl_patch_session';
 const MAX_BODY = 2048;
@@ -83,7 +84,9 @@ export function createPatchVotingStore(options = {}) {
     'CREATE TABLE IF NOT EXISTS ballot (id TEXT PRIMARY KEY, title TEXT NOT NULL, summary TEXT NOT NULL, cadence TEXT NOT NULL, area TEXT NOT NULL, closes_at INTEGER NOT NULL)',
     'CREATE TABLE IF NOT EXISTS vote (candidate_id TEXT NOT NULL, voter_key TEXT NOT NULL, value INTEGER NOT NULL CHECK(value IN (-1,1)), updated_at INTEGER NOT NULL, PRIMARY KEY(candidate_id,voter_key))',
     'CREATE TABLE IF NOT EXISTS suggestion (id TEXT PRIMARY KEY, voter_key TEXT NOT NULL, title TEXT NOT NULL, details TEXT NOT NULL, created_at INTEGER NOT NULL, status TEXT NOT NULL DEFAULT \'pending\')',
-    'CREATE TABLE IF NOT EXISTS throttle (voter_key TEXT NOT NULL, action TEXT NOT NULL, at INTEGER NOT NULL)'
+    'CREATE TABLE IF NOT EXISTS throttle (voter_key TEXT NOT NULL, action TEXT NOT NULL, at INTEGER NOT NULL)',
+    'CREATE TABLE IF NOT EXISTS github_patch (candidate_id TEXT PRIMARY KEY, pr_number INTEGER NOT NULL, pr_url TEXT NOT NULL, head_sha TEXT NOT NULL, status TEXT NOT NULL, ci_status TEXT NOT NULL, updated_at INTEGER NOT NULL)',
+    'CREATE TABLE IF NOT EXISTS impact_evidence (candidate_id TEXT PRIMARY KEY, payload TEXT NOT NULL, updated_at INTEGER NOT NULL)'
   ].join(';') + ';');
   for (const column of ['kind TEXT NOT NULL DEFAULT \'idea\'', 'replay_seed TEXT', 'merged_into TEXT']) {
     const name = column.split(' ')[0];
@@ -98,10 +101,18 @@ export function createPatchVotingStore(options = {}) {
   const getCandidate = db.query('SELECT * FROM ballot WHERE id=?');
   const tally = db.query('SELECT COALESCE(SUM(value),0) AS score, COUNT(*) AS votes, SUM(CASE WHEN value=1 THEN 1 ELSE 0 END) AS upvotes FROM vote WHERE candidate_id=?');
   const own = db.query('SELECT value FROM vote WHERE candidate_id=? AND voter_key=?');
+  const githubRow = db.query('SELECT pr_number,pr_url,head_sha,status,ci_status,updated_at FROM github_patch WHERE candidate_id=?');
+  const impactRow = db.query('SELECT payload FROM impact_evidence WHERE candidate_id=?');
+  const knownCandidate = id => approvedPatchCandidates.some(item => item.id === id);
+  const githubFor = id => {
+    const row = githubRow.get(id);
+    return row ? { prNumber: row.pr_number, prUrl: row.pr_url, headSha: row.head_sha, status: row.status, ciStatus: row.ci_status, updatedAt: new Date(row.updated_at).toISOString() } : null;
+  };
   const list = (voterKey = '') => db.query('SELECT * FROM ballot ORDER BY closes_at, id').all().map(item => ({
     id: item.id, title: item.title, summary: item.summary, cadence: item.cadence, area: item.area,
     closesAt: new Date(item.closes_at).toISOString(), open: clock() < item.closes_at,
-    ...tally.get(item.id), yourVote: own.get(item.id, voterKey)?.value || 0
+    ...tally.get(item.id), yourVote: own.get(item.id, voterKey)?.value || 0,
+    github: githubFor(item.id), impactAvailable: Boolean(impactRow.get(item.id))
   }));
   function throttle(key, action, limit, windowMs) {
     const ts = clock();
