@@ -17,6 +17,7 @@ import {createQuickDemoController} from './onboarding/quick-demo-controller.js';
 import {mountFirstRunGuide} from './first-run-guide.js';
 import {createFeedbackAdapter,stormFeedback} from './onboarding/feedback-adapter.js';
 import {createPanelManager} from './onboarding/panel-manager.js';
+import {mountPlaceSearch} from './place-search.js';
 import {mountCameraPresets} from './camera-presets.js';
 import {createCameraDirector} from './onboarding/camera-director.js';
 import {createSpotlight} from './onboarding/spotlight.js';
@@ -2438,7 +2439,7 @@ function frame(now) {
     }
   }
 
-  updateArrival(now);cinematicCamera?.update(now);controls.update();
+  updateArrival(now);cinematicCamera?.update(now);placeSearch?.update(now);controls.update();
   if(buildingDateBridge?.get().enabled&&now-buildingDateLastRefresh>500){buildingDateLastRefresh=now;buildingDateBridge.refresh();}
   personCommandUI?.update();
   houseEntryControls?.update();
@@ -2635,6 +2636,8 @@ const cinematicCamera=!embedMode?mountCameraPresets({container:$('top'),camera,c
  stopGuidance:()=>{arrivalDone=true;follow=false;visualCamera?.cancel();dispatchEvent(new CustomEvent('world:local-pan'));},
  reducedMotion:()=>matchMedia('(prefers-reduced-motion: reduce)').matches}):null;
 addEventListener('pagehide',()=>cinematicCamera?.dispose(),{once:true});
+const placeSearch=!embedMode?mountPlaceSearch({container:$('top'),camera,controls,getBuildings:()=>[...town.buildings,...contextBuildings.values()],stopGuidance:()=>{arrivalDone=true;follow=false;visualCamera?.cancel();dispatchEvent(new CustomEvent('world:local-pan'));}}):null;
+addEventListener('pagehide',()=>placeSearch?.dispose(),{once:true});
 
 startup.readyMs=performance.now();for(const [node,disabled] of startupDisabled)node.disabled=disabled;startupActive=false;if(startupRAF!==null)cancelAnimationFrame(startupRAF);
 requestAnimationFrame(frame);
