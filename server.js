@@ -1,5 +1,3 @@
-import { createPlayerFeedbackHandler } from './ops/player-feedback/api.js';
-const handlePlayerFeedback = createPlayerFeedbackHandler({directory:process.env.HBL_PLAYER_FEEDBACK_DIR||undefined});
 import {createRescueHandler} from './world/storm/rescue-api.js';
 const handleStormRescue=createRescueHandler();
 import {civicProviderUrl,civicPublishUrl} from './ops/civic-provider.js';
@@ -21,7 +19,7 @@ import {createSimulationAdmission,simulationAdmissionOptionsFromEnv} from './ops
 import {createLawBehaviorHandler} from './world/laws/behavior-api.js';
 const admitSimulation=createSimulationAdmission(simulationAdmissionOptionsFromEnv(process.env));
 import {createPlayerFeedbackHandler} from './ops/player-feedback/api.js';
-const handlePlayerFeedback=createPlayerFeedbackHandler();
+const handlePlayerFeedback=createPlayerFeedbackHandler({directory:process.env.HBL_PLAYER_FEEDBACK_DIR||undefined});
 import {createSessionSurveyHandler} from './ops/session-survey/api.js';
 const handleSessionSurvey=createSessionSurveyHandler();
 import {createCausalityHandler} from './world/causality/api.js';
