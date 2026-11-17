@@ -47,6 +47,15 @@ test('the production server keeps merged feature routes and simulation admission
     expect(home.status).toBe(200);
     expect(home.headers.get('content-type')).toContain('text/html');
     expect(await home.text()).toContain('Try Today’s Features');
+    for (const path of ['/privacy', '/privacy/']) {
+      const notice = await fetch(origin + path);
+      expect(notice.status).toBe(200);
+      expect(notice.headers.get('set-cookie')).toBeNull();
+      const copy = await notice.text();
+      expect(copy).toContain('Privacy &amp; cookies');
+      expect(copy).toContain('no automatic expiry or visitor deletion control');
+      expect(copy).toContain('hbl.onboarding.v1');
+    }
     for (const path of ['/shared/media/pipeline.js', '/shared/media/preferences.js']) {
       const module = await fetch(origin + path, { signal: AbortSignal.timeout(3000) });
       expect(module.status).toBe(200);

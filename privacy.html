@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Privacy &amp; cookies · HappyBearLandia</title>
+<style>html{color-scheme:dark;background:#081425;color:#e9f2ff;font:18px/1.6 system-ui}body{max-width:48rem;margin:auto;padding:24px}a{color:#8fd9ff}h1,h2{line-height:1.25}li{margin-bottom:12px}code{overflow-wrap:anywhere}</style>
+<nav><a href="/">Home</a> · <a href="/world/future-machine.html?demo=1">Try the demo</a></nav>
+<main>
+<h1>Privacy &amp; cookies</h1>
+<p>Reviewed November 17, 2026. This explains the homepage and Future Machine demo. The demo uses fictional people and synthetic model results, not observations about real residents.</p>
+<h2>What stays in your browser</h2>
+<ul>
+<li><strong>Optional onboarding experiment:</strong> checking “Join the optional onboarding experiment” stores a random variant, up to three interaction records, timestamps and an optional homes/budget choice in this tab’s session storage (<code>hbl.onboarding.v1</code>). This tests two ways into the same demo. Nothing is uploaded. Uncheck to erase participation. Closing the tab normally clears it; browser session restore may keep it. Downloads stay on your device until you delete them.</li>
+<li><strong>Demo milestones:</strong> up to seven interaction milestones, elapsed times, a random page-session ID, renderer and model/seed facts stay in page memory for local diagnostics. They are not uploaded or saved across reloads. Reload or leave the page to clear them; there is no recording switch.</li>
+<li><strong>Continue later:</strong> only if you enable local continuation, the recipe, saved experiment ID and selected month are kept in <code>hbl.future-machine.recent.v1</code>. Use the demo’s clear control to remove it and turn continuation off. There is no automatic age expiry.</li>
+<li><strong>Comfort settings:</strong> motion and sound choices are saved locally in <code>hbl-media-v1</code> when changed. Reset to system defaults or clear site data. These preferences have no automatic age expiry and are not uploaded.</li>
+<li><strong>Navigation helpers:</strong> enhanced links can keep a destination URL and timestamp in tab storage (<code>hbl-portal-v1</code>) for a transition. Matching arrivals consume it; animation eligibility lasts 30 seconds, but an unused record can remain until tab storage is cleared. Hint dismissals stay locally until you clear site data. These helpers are not uploaded.</li>
+</ul>
+<p>You can remove browser records through your browser’s site-data controls. Blocking storage leaves optional saving unavailable. Clearing local data does not delete server-side simulations or copies of downloaded files.</p>
+<p>Elsewhere in the experiment catalog, optional local journey counters (<code>hbl.local-journeys.v1</code>) are off by default; uncheck or reset to delete and stop counting. Decision Studio tour activity (<code>hbl.local-demo-activity.v1</code>) keeps the latest 200 records locally with no age expiry or persistent opt-out; clearing it deletes existing records but later tour use records again. Pilot briefs are explicit local downloads, not submissions. Review their entered text before sharing.</p>
+<h2>What reaches the server</h2>
+<p>Opening pages sends ordinary web requests to our host. Running or reopening a comparison calls our City API with synthetic scenario inputs, seeds and model versions. The server saves experiment manifests and run results for replay, even if you do not share or enable local continuation. These records have no automatic expiry or visitor deletion control in the current application. Avoid entering personal information in scenario inputs. Skipping the demo avoids creating these simulation records.</p>
+<p>Operational logging records request method, normalized route, status and duration, plus redacted errors, to diagnose reliability. The application log excludes request bodies, query strings, IP addresses, headers and cookies; identifiers in supported routes are normalized. These redacted logs are publicly readable at <a href="/api/server-logs">/api/server-logs</a>. Default retention is 14 days with a daily size cap; operators can configure retention or disable logging. Visitors cannot opt out of essential request handling or this operational log. Hosting/platform logs are separate: their actual retention and access have not been verified in this source review.</p>
+<h2>Sharing, email and cookies</h2>
+<p>Share links include a versioned synthetic recipe, seed, policy parameters, selected month, optional camera/view settings and saved experiment ID. Anyone receiving the link can inspect or replay it. Links are not private access controls or revocable invitations; copies may remain in browser history, messages and recipient devices. Do not share the link to avoid distributing it. Review evidence downloads before sharing and delete unwanted local copies yourself.</p>
+<p>The homepage and demo have no email signup and request no email address. There is no newsletter enrollment to opt out of. Future email signup or uploaded interaction events are not enabled by this notice: they require a separate reviewed purpose, explicit choice, access/deletion process and retention rule before launch.</p>
+<p>The fresh homepage → demo path sets no application cookies and loads no third-party analytics or advertising service. Browser storage above is separate from cookies. Other experiments can use a separately provisioned signed <code>hbl_release</code> cookie; it is not created by this path. This notice does not certify the other experimental routes, external providers, or hosting configuration.</p>
+</main>
+</html>
