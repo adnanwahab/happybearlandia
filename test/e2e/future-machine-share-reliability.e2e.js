@@ -1,4 +1,6 @@
+import {installShe63Admission} from '../support/she63-admission.js';
 import {test,expect} from '@playwright/test';
+installShe63Admission(test);
 import {writeFile} from 'node:fs/promises';
 const ready=page=>expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.status),{timeout:90000}).toBe('ready');
 async function snapshot(page){return page.evaluate(async()=>{const h=window.futureMachine.history;const {stateHash}=await import('/world/future-machine/data/core.js');return {id:h.experimentId,recipe:h.recipe,hash:h.initialHash,baselineHash:await stateHash(h.baseline),planHash:await stateHash(h.plan),month:window.futureMachine.state.month,metrics:window.futureMachine.state.diff.metrics,provenance:h.provenance};});}

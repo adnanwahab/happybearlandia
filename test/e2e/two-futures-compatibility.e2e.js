@@ -1,4 +1,6 @@
+import {installShe63Admission} from '../support/she63-admission.js';
 import {test,expect} from '@playwright/test';
+installShe63Admission(test);
 test('World falls back to real Canvas2D, Activity responds, facts and provenance resolve',async({page},testInfo)=>{
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
  await page.addInitScript(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return /webgl/i.test(type)?null:original.call(this,type,...args);};});

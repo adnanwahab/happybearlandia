@@ -31,6 +31,6 @@ export default defineConfig({
   webServer: {
     command: `"${bun}" --no-env-file run server.js`, cwd: process.cwd(), url: baseURL,
     reuseExistingServer: false, timeout: 60000,
-    env: { PORT: port, HBL_BIND_HOST: '127.0.0.1', HBL_WORLD_DB_PATH: join(store, 'world.sqlite'), HBL_CITY_DATA_DIR: join(store, 'city'), HBL_REALITY_SHARE_DB_PATH: join(store, 'shares.sqlite'), DECISION_STORE_DIR: join(store, 'decision') },
+    env: { PORT: port, HBL_BIND_HOST: '127.0.0.1', HBL_GUEST_DB_PATH: join(store, 'guest.sqlite'), HBL_WORLD_DB_PATH: join(store, 'world.sqlite'), HBL_CITY_DATA_DIR: join(store, 'city'), HBL_REALITY_SHARE_DB_PATH: join(store, 'shares.sqlite'), DECISION_STORE_DIR: join(store, 'decision') },
   },
 });
