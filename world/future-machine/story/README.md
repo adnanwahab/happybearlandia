@@ -92,3 +92,30 @@ Verification: `bun test test/assistive-narration.test.js test/future-machine-sto
 The opt-in Chromium check uses `HBL_FM_BROWSER=1 bun test test/assistive-narration.test.js`
 and covers keyboard activation, live-region mutations, duplicate suppression, silent
 month changes and cleanup. Actual screen-reader speech needs manual verification.
+
+## Static comic recap (SHE-782)
+
+`comic.js` consumes the current immutable paired history on explicit native-button
+activation. `comic-city.v1` selects months 0/24/60/96/120 plus the first recorded
+plan PROJECT_COMPLETE month (deduplicated, chronologically sorted, maximum six).
+Each panel contains both arms, exact housing/rent/cumulative capital metrics,
+units, date, full source event records, building IDs/floors and a versioned recipe
+checkpoint link. Missing frames/metrics/events remain explicit. This is a
+presentation only; no model rules, clock or ODD inventory changes.
+
+SVGs draw at most 24 recorded buildings per arm, with schematic slots and clamped
+illustrative heights (unknown floors use a placeholder); the text alternative
+lists all inventory identities. Synthetic illustration and recomputation limits
+are always visible. Inputs, hash, seed, model and source provenance accompany the
+recap. It uses no renderer, animation, external image, upload or social API.
+
+Download produces standalone HTML with inline SVG/CSS, expanded source details
+and print styling. Open that local file and use browser Print. This intentionally
+keeps model provenance in the portable artifact. Nothing is saved automatically;
+files can be deleted through device file controls. New completed runs clear the
+preview; failed replacement leaves the prior identified history intact. Scope is
+the monthly City synthetic Future Machine contract, not other simulator clocks.
+
+Checks: `bun test test/future-machine-comic.test.js test/future-machine-coordinator.test.js`.
+Browser: `bunx playwright test --config test/future-machine-comic.browser.config.js`.
+See `docs/reviews/SHE-782.md` for actual host results and pending browser acceptance.

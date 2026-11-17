@@ -1,3 +1,4 @@
+import {mountComic} from './story/comic.js';
 import {buildSpotlight} from './diff/spotlight.js';
 import {mountSpotlight} from './ui/spotlight.js';
 import {consumeDemoClick,createDemoTiming,visibleCity} from './demo-performance.js';
@@ -76,6 +77,7 @@ const narration=mountChangeNarration(app);
 const outcomeHost=document.createElement("div");ui.stageElement.after(outcomeHost);
 const diagnostic=mountDiagnosticReport(app);
 const momentsHost=document.createElement('div');outcomeHost.after(momentsHost);
+const comic=mountComic(app,{getHistory:()=>history,baseURL:location.href.split('?')[0].split('#')[0]});
 const challenges=createChallengeCards(app.querySelector('.fm-ui'),{getContext:()=>({history,month:state.month})});
 stage=createStage(ui.stageElement,{onSelect:select,onCameraInteraction:stopCameraTour});
 stage.setMode(state.mode);stage.setGhosts(state.ghosts);
@@ -240,7 +242,7 @@ async function run(recipe=state.recipe,savedId=null,selectedMonth=0,{demoRun=fal
     if(landing){state.mode=landing.mode;state.ghosts=landing.ghosts;}
     stage.dispose();stage=createStage(ui.stageElement,{onSelect:select,onCameraInteraction:stopCameraTour,history:loaded});stage.setMode(state.mode);stage.setGhosts(state.ghosts);
     trailView?.();trailView=null;trailAnchor=null;inspectorEntity=null;inspectorMetric=null;outcomeTimeline?.dispose();outcomeTimeline=createOutcomeTimeline(outcomeHost,{history:loaded,onMonth:manualMonth,onChapter:jump});
-    history=loaded;momentsDispose();momentsDispose=renderMoments(momentsHost,selectMoments(history),{onJump:jump});diffs=compareHistory(history);quest.reset(diffs,{userRun});spotlight.reset(buildSpotlight(history,diffs));
+    history=loaded;comic.clear();momentsDispose();momentsDispose=renderMoments(momentsHost,selectMoments(history),{onJump:jump});diffs=compareHistory(history);quest.reset(diffs,{userRun});spotlight.reset(buildSpotlight(history,diffs));
     // A physical difference alone does not establish a construction event.
     const first=firstDivergence(history,diffs);
     state.firstConstruction=first&&constructionReceipts(history,first.entity,first.month).some(receipt=>receipt.month===first.month)?first:null;
@@ -272,7 +274,7 @@ function previewShare(){
 }
 function copyShare(){const preview=state.sharePreview;return preview?transferLink(false,{url:preview.url}):undefined;}
 function exportReport(){if(!history)return;const report=createEvidenceReport(history,{month:state.month,diff:diffs[state.month],story});const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='future-machine-evidence.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
-function dispose(){if(disposed)return;stopDemoTiming();persistRecent();disposed=true;if(updateFrame!==null)cancelAnimationFrame(updateFrame);document.removeEventListener('visibilitychange',visibilityChanged);request?.abort();removeYearShortcuts();clearInterval(playTimer);storyDispose();narration.dispose();momentsDispose();trailView?.();outcomeTimeline?.dispose();stage?.dispose();receiptUI.dispose();spotlight.dispose();questView.dispose();followUp.dispose();ui.dispose();diagnostic.dispose();challenges.dispose();director.dispose();funnel.dispose();history=null;diffs=[];story=null;state.frame=null;state.diff=null;window.removeEventListener('pagehide',dispose);}
+function dispose(){if(disposed)return;comic.dispose();stopDemoTiming();persistRecent();disposed=true;if(updateFrame!==null)cancelAnimationFrame(updateFrame);document.removeEventListener('visibilitychange',visibilityChanged);request?.abort();removeYearShortcuts();clearInterval(playTimer);storyDispose();narration.dispose();momentsDispose();trailView?.();outcomeTimeline?.dispose();stage?.dispose();receiptUI.dispose();spotlight.dispose();questView.dispose();followUp.dispose();ui.dispose();diagnostic.dispose();challenges.dispose();director.dispose();funnel.dispose();history=null;diffs=[];story=null;state.frame=null;state.diff=null;window.removeEventListener('pagehide',dispose);}
 window.addEventListener('pagehide',dispose);
 window.addEventListener('pageshow',event=>{if(event.persisted&&disposed)location.reload();});
 // Read-only diagnostics for local resource measurements and integration checks.

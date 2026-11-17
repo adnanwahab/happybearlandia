@@ -1,0 +1,328 @@
+bun test v1.4.2 (744846f84)
+
+test/future-machine-manifest-validation.test.js:
+(pass) malformed pair shape yields actionable validation errors before replay [23.28ms]
+(pass) optional existing title is bounded text; malformed metadata is never echoed [11.56ms]
+(pass) unsupported versions, missing initial data and changed generator fail before replay [14.86ms]
+(pass) valid API-shaped manifest and missing legacy title preserve exact common initial and replay [3285.55ms]
+(pass) real isolated City API creates and reopens its existing display title unchanged [2840.42ms]
+(pass) missing or non-object saved responses fail without raw runtime exceptions [0.18ms]
+(pass) supported empty plan remains a deterministic zero-control manifest [671.28ms]
+
+test/future-machine-boundaries.test.js:
+{"seed":0,"initialHash":"5e7874a3e8c4b755f0c58dca9521d127f6215f21813cd3a77d56678b2c9f32e5","baselineHash":"639e2e78e9e3c332e489620ffa34f782641ddc28c714e3b43b4234bab92d3dad","firstPhysicalMonth":16,"homes":{"baseline":36,"plan":60,"delta":24,"unit":"homes","status":"available","missing":[]},"capital":{"baseline":0,"plan":1000000,"delta":1000000,"unit":"USD cumulative","status":"available","missing":[]},"travel":{"baseline":15.000006527999998,"plan":15.000021176888891,"delta":0.00001464888889302074,"unit":"minutes/link","status":"available","missing":[]}}
+(pass) persisted boundary seed 0 retains exact horizon and original [3555.10ms]
+{"seed":4294967295,"initialHash":"922d17e9655389c8f259bf84898b07ef53c8865ef7aa26186ea4029343f0ee8b","baselineHash":"2380586edc3ebcf569aa1f30076d0c9a56c3a6ea4810b8b8e4024f2aa3a26894","firstPhysicalMonth":16,"homes":{"baseline":36,"plan":60,"delta":24,"unit":"homes","status":"available","missing":[]},"capital":{"baseline":0,"plan":1000000,"delta":1000000,"unit":"USD cumulative","status":"available","missing":[]},"travel":{"baseline":15.000081699555556,"plan":15.000378816000001,"delta":0.000297116444444967,"unit":"minutes/link","status":"available","missing":[]}}
+(pass) persisted boundary seed 4294967295 retains exact horizon and original [4083.31ms]
+(pass) reject stale saved identity and stale creation recipe before replay [8.03ms]
+(pass) bad saved generator, versions and mismatched replay states fail explicitly [1436.69ms]
+(pass) abort polling or delayed replay cannot leak stale results into retry [1072.00ms]
+
+test/future-machine-metric-selection.test.js:
+(pass) housing KPI links only exact construction records and preserves historical month and arm [0.38ms]
+(pass) aggregate, zero, missing, and unsupported links never select a proxy building [0.51ms]
+(pass) real matched City pair selects Month 16 receipt from Month 120 KPI [720.17ms]
+
+test/future-machine-effects.test.js:
+
+# Unhandled error between tests
+-------------------------------
+error: Cannot find package 'three' from '/Users/wahabma/.happybearlandia-mini-symphony-workspaces/SHE-782/test/future-machine-effects.test.js'
+-------------------------------
+
+
+test/future-machine-canvas.test.js:
+(pass) pure projection helpers preserve exact identities and recorded month [0.58ms]
+(pass) hit testing uses the same shared camera in both halves and ignores ghosts [0.40ms]
+(pass) fit handles empty data and sourced footprints, mode is bounded [0.10ms]
+(pass) stage preserves camera across time/mode and synchronously draws with no motion loop [1.17ms]
+(pass) click reports exact IDs and arm, dragging and pinch update one camera, disposal removes resources [0.94ms]
+(pass) cancel, lost capture, right click and distant release never select or poison camera [0.16ms]
+(pass) missing projections and invalid layout dimensions remain finite with bounded keyboard zoom [2.18ms]
+(pass) context and initial draw exceptions release every owned node and listener [0.38ms]
+(pass) cross-scale focus widens then closes around the same exact shared entity [0.26ms]
+(pass) resolution preset reverses backing cost without changing inventory, camera or inputs [0.19ms]
+(pass) only user camera gestures trigger manual takeover, never programmatic framing [0.16ms]
+(pass) curtain uses a common full-width projection and routes picks only to the revealed arm [0.19ms]
+
+test/future-machine-ui.test.js:
+(pass) overflowing paired measurements remain unavailable rather than displaying Infinity [0.13ms]
+(pass) shared calendar includes exact Month 0 and Month 120 [2.94ms]
+(pass) timeline clamps invalid and out of range input [0.03ms]
+(pass) measurements preserve zero and units, never coerce missing data to zero [0.14ms]
+(pass) metrics use matched A/B values, explicit unavailable, and no invented delta [0.12ms]
+(pass) metric direction does not invent welfare, and tiny nonzero values survive formatting [0.05ms]
+(pass) household rent and burden require an exact reciprocal occupied-unit identity [0.16ms]
+(pass) negative cost and overflow deltas retain truthful direction and availability [0.02ms]
+(skip) Chromium controls, loading, failure, keyboard, mobile and cleanup
+(pass) recorded metric adapter preserves missing status, reason, zero and signed cost [0.12ms]
+(pass) first construction cue requires its exact available positive month and preserves missing metrics [0.13ms]
+(pass) provenance categories require explicit metadata and preserve unknown sources [0.49ms]
+(skip) event slowdown native checkbox supports keyboard, touch and unavailable state
+
+test/future-machine-curtain.test.js:
+(pass) curtain shares schematic positions and permits recorded additions and heights without mutating states [0.16ms]
+(pass) missing inventory, unrelated entities, unsupported and shifted geographic footprints fail closed [0.24ms]
+
+test/future-machine-scene.test.js:
+(pass) Future Machine City scene projection > module imports without DOM or Three initialization
+(pass) Future Machine City scene projection > zero difference and immutable source records [0.10ms]
+(pass) Future Machine City scene projection > additions and removals have stable slots across arms and scrubs [0.05ms]
+(pass) Future Machine City scene projection > source geometry requires explicit identity and unique source mapping [0.08ms]
+(pass) Future Machine City scene projection > unverified geometry and inferred parcels never become locations [0.02ms]
+(pass) Future Machine City scene projection > unlocated inventory stays outside sourced footprint extent [0.04ms]
+(pass) Future Machine City scene projection > only housing projects with recorded bounded progress render [0.12ms]
+(pass) Future Machine City scene projection > missing collections, duplicate IDs and mismatched months fail explicitly [0.05ms]
+(pass) Future Machine City scene projection > unsupported holes are schematic rather than misrendered sourced footprints [0.02ms]
+(pass) localized building evidence distinguishes added, changed and removed inventory [0.07ms]
+(pass) stage inventory selects exact IDs and missing snapshots clear selection and labels [2.24ms]
+
+test/future-machine-paired.test.js:
+{"recipe":{"schemaVersion":"future-machine.v1","modelVersion":"city-systems.1.1.0","seed":42,"households":30,"months":120,"intervention":{"type":"housing","districtId":"d1","amount":24,"cost":1000000,"delay":0,"compliance":1}},"initialHash":"7767de6b19f3b1c62f218c3a4ee26739157382db2c7ff962dbe141fc160821ae","digests":{"initial":"7767de6b19f3b1c62f218c3a4ee26739157382db2c7ff962dbe141fc160821ae","baseline":"9dbadec39af6ce3c14f742ba44dc9f52dae39c99402a20a59cabd6e3769fff29","plan":"eb2744e2b7fda6f9677300bf9ded8a058d5d448cd2ecdf091ba850c5789eaa68","diff":"1431a5c2df93ee0593bfee9293a735854b6505e7d438918f32caa30224416aee"},"stateDigest":"22bfa1c1126c976ef4ee73ade8234bb4264a47248ea4352d9cb2ab9a52cb84ef","diffDigest":"1431a5c2df93ee0593bfee9293a735854b6505e7d438918f32caa30224416aee","firstPhysical":{"month":16,"entities":[{"collection":"buildings","id":"building-project-policy-1-0","kind":"added","before":null,"after":{"id":"building-project-policy-1-0","districtId":"d1","parcelId":null,"floors":3},"changedFields":[],"physical":true,"buildingIds":["building-project-policy-1-0"]}],"housingUnits":{"baseline":36,"plan":60,"delta":24,"unit":"homes","status":"available","missing":[]},"capitalSpending":{"baseline":0,"plan":1000000,"delta":1000000,"unit":"USD cumulative","status":"available","missing":[]}},"completion":{"schemaVersion":"SystemEvent.v1","id":"16-0","simulationTime":16,"system":"construction","eventType":"PROJECT_COMPLETE","geographyId":"d1","severity":1,"payload":{"projectId":"project-policy-1-0","type":"housing","units":24,"displacedUnits":[],"displacedBusinesses":[],"rule":{"id":"city.construction","version":"city-systems.1.1.0","evidenceType":"synthetic-assumption","source":"world/city/README.md"}},"modelId":"construction","modelVersion":"city-systems.1.1.0"}}
+(pass) seed-42 paired state and diff digests reproduce with real physical evidence [5638.23ms]
+(pass) zero intervention produces identical full histories and zero deltas at every month [1098.67ms]
+
+test/future-machine-storage.test.js:
+(pass) City manifest, runs and share records survive close/reopen and an integrity-checked backup [156.45ms]
+
+test/future-machine-bookmark.test.js:
+(pass) paired stage saves a detached pose, restores after navigation, replaces and disposes bookmarks [2.59ms]
+(pass) inventory-only fallback cannot save or restore a camera [0.58ms]
+(pass) curtain component coalesces pointer and range input, preserves camera and disables missing/mismatched frames [1.19ms]
+
+test/future-machine-household-timeline.test.js:
+(pass) paired changes retain exact time and identity without filling gaps [0.50ms]
+(pass) reject duplicate times and mismatched model, seed and state clocks [0.09ms]
+(pass) actual City engine pair repeats household observations with matched provenance [25.21ms]
+(pass) composed household and outcome timelines keep playback quiet and announce explicit selections [8.00ms]
+
+test/future-machine-share-card.test.js:
+(pass) card uses exact recorded values and units without mutating the paired run [187.90ms]
+(pass) no intervention, absent observations, mismatched records and escaped metadata [280.22ms]
+
+test/future-machine-recent.test.js:
+(pass) reading does not write; explicit save retains only exact replay context; clear revokes state [0.51ms]
+(pass) rejects private fields, corrupt, oversized, incompatible and out-of-range references [0.20ms]
+(pass) denied reads, writes and reset propagate for visible UI feedback [0.08ms]
+
+test/future-machine-backend.test.js:
+(pass) actual initialized native flag required; renderer type alone is insufficient [0.61ms]
+(pass) force GL, disabled preference and missing API never load GPU module [0.11ms]
+(pass) load and construction failures select truthful fallback [0.09ms]
+(pass) failed init cleans backend without resurrecting partial renderer [1.22ms]
+(pass) initialized failed candidates cannot block fallback with throwing async disposal [1.21ms]
+(pass) deadline bounds stalled init; late initialized resources are released again [6.87ms]
+(pass) late init rejection is consumed and cleaned; late module never constructs renderer [13.67ms]
+(pass) fallback failure propagates so host can retain Canvas/inventory fallback [0.09ms]
+(pass) invalid dependencies and unbounded deadlines fail explicitly [0.06ms]
+(skip) real Chromium renderer, scissor/resize and before/after-init failure smoke
+
+test/future-machine-story.test.js:
+(pass) first divergence, structural significance and stable ordering [0.26ms]
+(pass) director never invents a location or accepts ambiguous/unproven geometry [0.07ms]
+(pass) receipts retain arm-scoped IDs, dependencies and payload without claiming cause [0.10ms]
+(pass) household observations match only exact monthly City IDs and preserve missingness [0.10ms]
+(pass) frozen story interface handles first, large, zero, missing months and selection [0.20ms]
+(pass) real City event history produces deterministic grounded stories [1.36ms]
+(pass) seed-matched 120-month City histories keep Month 0 and 120 and immutable input [263.17ms]
+(pass) renderer creates accessible jumps, literal evidence and disposes handlers [0.55ms]
+(pass) director deduplicates repeated policy additions and includes completed physical buildings [0.51ms]
+
+test/future-machine-neighborhood.test.js:
+
+# Unhandled error between tests
+-------------------------------
+error: Cannot find package 'three' from '/Users/wahabma/.happybearlandia-mini-symphony-workspaces/SHE-782/test/future-machine-neighborhood.test.js'
+-------------------------------
+
+
+test/future-machine-recipes.test.js:
+CURATED_RECIPE_OBSERVATIONS [[16,"d1",6],[16,"d2",24],[64,"d1",12]]
+(pass) three curated recipes reproduce distinct recorded housing outcomes with matched immutable starts [4170.81ms]
+
+test/future-machine-scrub-identity.test.js:
+(pass) real City reverse scrub has no future structure at zero and preserves exact schematic IDs [1612.72ms]
+(pass) actual reverse scrub and split/difference preserve one Canvas camera and viewport scale [885.90ms]
+
+test/future-machine-sonic.test.js:
+(pass) recorded deltas map deterministically without mutation or invented availability [0.16ms]
+(pass) mute, failures, rapid requests and disposal suppress stale voices and cap gain [0.35ms]
+(skip) mobile and keyboard controls, navigation silence, fallback and teardown
+
+test/future-machine-chapters.test.js:
+(pass) chapters are deterministic, immutable, arm scoped and confined to exact event times [0.57ms]
+(pass) empty, unavailable, invalid identities and mismatched clocks [0.24ms]
+(pass) bounded editorial ranking retains later completion above routine events [0.28ms]
+(pass) component activation, keyboard navigation, empty state and listener disposal [0.53ms]
+
+test/future-machine-scrub-preview.test.js:
+(pass) exact paired checkpoint, no neighboring substitution or missing-as-zero [0.39ms]
+(pass) drag is isolated, release debounces, cancel and disposal discard pending selection [53.72ms]
+(skip) browser native keyboard, touch release, unavailable preview and bounded burst
+
+test/future-machine-discovery-quest.test.js:
+(pass) explicit run, recorded month and exact entity are required in order [0.11ms]
+(pass) automatic loads, empty comparisons and new runs never inherit completion [0.04ms]
+
+test/future-machine-family-card.test.js:
+(pass) synthetic identity depends only on seed and exact City ID [0.03ms]
+(pass) ranking uses matched monthly burden, preserves source, zero ties and missing values [0.16ms]
+(pass) home resolution follows each arm and refuses missing, duplicate or nonreciprocal occupancy [0.07ms]
+(pass) card numbers and spark points expose exact records, selection and follow dispose [1.01ms]
+
+test/future-machine-follow-up.test.js:
+(pass) follow-up preserves seed and all inputs except supported housing amount and budget [0.69ms]
+(pass) no offer for absent or out-of-bounds housing policy [0.67ms]
+
+test/future-machine-diff.test.js:
+(pass) Future Machine stable-ID diff > zero differences ignore array and object insertion order and preserve inputs [1.06ms]
+(pass) Future Machine stable-ID diff > reports stable-ID additions and removals in both directions without array matches [0.50ms]
+(pass) Future Machine stable-ID diff > physical records distinguish floors from policies, zoning, rent and savings [0.33ms]
+(pass) Future Machine stable-ID diff > missing snapshots, collections and measurements are unavailable, not zero or removals [0.29ms]
+(pass) Future Machine stable-ID diff > missing physical attributes do not become building changes and field deletion is explicit [0.24ms]
+(pass) Future Machine stable-ID diff > snapshot metrics own cumulative spending and carry contract units [0.25ms]
+(pass) Future Machine stable-ID diff > household presence is exact City inventory, with unknown housing left unlocated [0.25ms]
+(pass) Future Machine stable-ID diff > rejects duplicate/missing IDs and mismatched clocks, seeds and model versions [0.95ms]
+(pass) Future Machine stable-ID diff > real matched 120-step engine histories preserve Month 0/120 and deterministic zero/nonzero results [1423.30ms]
+(pass) Future Machine stable-ID diff > sparse histories retain 121 explicit months and reject invalid initial or run metadata [8.24ms]
+(pass) flagship seed 42 first physical difference is Month 16 with 24 homes, not 24 buildings [2850.38ms]
+
+test/future-machine-data.test.js:
+Future Machine preset: 904 ms pair; 52067770 JSON bytes
+(pass) default pair has identical original Month 0, exact 120 steps and deterministic replay [2604.91ms]
+(pass) strict versions, missing inventory, horizon and frame boundaries [366.44ms]
+(pass) API adapter persists paired seeds, normalizes replay and handles cancellation/errors [1231.33ms]
+Future Machine persisted API pair + replay: 2811 ms
+(pass) real City API persists and reopens the exact 120-month pair [3883.04ms]
+(pass) normalization preserves completion provenance and rejects a missing capital ledger [257.52ms]
+(pass) editing proposed homes reuses the original baseline and leaves prior results immutable [2216.84ms]
+(pass) deadline reports actionable timeout and caller abort remains cancellation [11.37ms]
+(pass) lost connection is actionable without masking application failures [0.16ms]
+
+test/future-machine-evidence-trail.test.js:
+(pass) actual City trail preserves exact arm/month/event and policy-project-unit relationships [648.05ms]
+(pass) no future evidence at Month 0 or 15, exact completion at 16, reverse inspection stable [0.95ms]
+(pass) missing event, inventory or exact policy reference stays unavailable [815.60ms]
+(pass) missing snapshots, wrong-version events and ordinary buildings never invent joins [224.88ms]
+(pass) trail view retains exact nodes across policy/project navigation and Return [13.78ms]
+
+test/future-machine-integrity.test.js:
+(pass) corrupt frames and wrong runs fail before comparison or frame selection [0.94ms]
+(pass) renderer frame guard rejects mismatched identity, clocks and models [0.20ms]
+(pass) API adapter rejects wrong replay identity before normalization [5.57ms]
+(pass) real persisted pair produces a reproducible integrity receipt [4851.32ms]
+
+test/future-machine-challenges.test.js:
+(pass) three editable questions restore exact persisted scenarios and selected outcomes [1407.95ms]
+(pass) malformed or oversized challenge links fail explicitly [0.17ms]
+
+test/future-machine-policies.test.js:
+(pass) first policy choices run existing matched City rules with recorded outcomes and provenance [1816.08ms]
+(pass) loaded policies retain exact inputs and returning to presets does not mutate them [0.29ms]
+
+test/future-machine-share.test.js:
+(pass) canonical bounded recipe roundtrips and does not mutate inputs [0.19ms]
+(pass) malformed, oversized, version mismatch and unsupported input links fail explicitly [0.16ms]
+(pass) share URL retains route and exact context on refresh, with or without saved records [0.36ms]
+(pass) missing, duplicate, malformed or mismatched context cannot silently select defaults [0.50ms]
+(pass) decoded recipe regenerates identical Month 0 and Month 120 with the real monthly engine [214.81ms]
+(pass) evidence preserves provenance, month and interpretation boundaries without mutating run [0.37ms]
+(pass) evidence export bounds and serialization failures are explicit [2.30ms]
+(pass) optional landing context roundtrips both cameras and rejects ambiguous or unsafe context [0.41ms]
+
+test/future-machine-year-shortcuts.test.js:
+(pass) year steps clamp to the recorded horizon; earliest available divergence includes month zero [0.30ms]
+(pass) focus, editing, modifiers, composition, camera keys, loading and disposal are respected [0.07ms]
+(pass) failed initial preview cannot seek future months while retained completed history remains navigable [0.03ms]
+
+test/future-machine-construction-progress.test.js:
+(pass) pure observations preserve actual stages, work and units; identity is not completion [0.14ms]
+(pass) missing or invalid measurements remain unavailable; unknown models/types cannot assert building mapping [0.04ms]
+(pass) completed stage never invents missing building; missing observations fail explicitly [0.06ms]
+Recorded construction: {"stages":["permit","construction","completion"],"month15":{"collection":"projects","id":"project-policy-1-0","month":15,"type":"housing","stage":"construction","progress":11,"duration":12,"progressRatio":0.9166666666666666,"units":24,"housingProjectBuildingId":"building-project-policy-1-0","buildingPresent":false,"modelVersion":"city-systems.1.1.0"},"month16":{"collection":"projects","id":"project-policy-1-0","month":16,"type":"housing","stage":"completion","progress":12,"duration":12,"progressRatio":1,"units":24,"housingProjectBuildingId":"building-project-policy-1-0","buildingPresent":true,"modelVersion":"city-systems.1.1.0"}}
+(pass) real fixed-seed project work precedes month16 building, shares schematic slot, and reverses exactly [503.92ms]
+(pass) markers never substitute for completed/abandoned structures or invalid progress [0.07ms]
+
+test/future-machine-resources.test.js:
+
+# Unhandled error between tests
+-------------------------------
+error: Cannot find package 'three' from '/Users/wahabma/.happybearlandia-mini-symphony-workspaces/SHE-782/test/future-machine-resources.test.js'
+-------------------------------
+
+
+test/future-machine-outcome-timeline.test.js:
+(pass) recorded series preserve identity, zero, exact deltas, gaps and source immutability [0.26ms]
+(pass) reject unsupported metrics, duplicate months and invalid horizons [0.09ms]
+(skip) renderer-independent outcome timeline works at 320px, keyboard and missing observations
+
+test/future-machine-coordinator.test.js:
+(pass) prepared tour retains pause through data and graphics readiness, then manual seek cancels playback [8.56ms]
+(pass) manual takeover during preparation allows the pair to finish without delayed autoplay [3.83ms]
+(pass) strict receipt retry retains its payload and announces the reopened month; local storage needs consent [3.57ms]
+(pass) a newer run supersedes an unresolved receipt without publishing the old history [3.62ms]
+(pass) challenge retry never falls back and preserves its original hash across exact-month navigation [4.96ms]
+(pass) user run wins over delayed startup challenge validation [3.42ms]
+(pass) automatic frames leave URL and summary quiet; explicit event and native-share milestones remain truthful [4.53ms]
+(pass) WHY and settled sharing during progressive graphics loading are retained once readiness is measured [4.25ms]
+(pass) explicit Play Demo entry outranks remembered nondefault context [3.99ms]
+(pass) a failed rerun leaves sharing the completed displayed pair usable [3.83ms]
+(pass) exploring retained history after a failed rerun still records its actual first divergence [3.73ms]
+(pass) retained stage readiness flushes earlier actions even when a newer rerun has failed [3.71ms]
+(pass) quest inspection returns to its recorded month after a later manual seek [4.33ms]
+(pass) pause and manual camera boundaries cancel shots and prevent later tour reframing [3.15ms]
+(pass) reset retains the page-entry recipe after receipt import without changing displayed history [4.95ms]
+(pass) preview freezes displayed inputs and the v1 perspective pose while direct copy tracks the current month [4.21ms]
+(pass) shared camera waits for graphics readiness and yields to intervening user control [7.77ms]
+(pass) change narration stays quiet during playback and describes the current recorded frame on request [3.53ms]
+(pass) follow-up acceptance uses a fresh explicit user run while keeping the completed parent immutable [4.00ms]
+(pass) demo timing waits for graphics and paint, then distinguishes usable warm history [4.23ms]
+(pass) terminal inventory fallback and manual takeover leave no measurement RAF or false success [6.87ms]
+(pass) Play Demo after a failed rerun computes a fresh default comparison and records cold timing [3.47ms]
+(pass) construction preview selection seeks and announces only its exact arm-scoped completion [3.52ms]
+(pass) initial preview renders actual Month 0 inventory without claiming completed futures or a saved run [2.69ms]
+(pass) inspectable pending preview replaces aborted work, retains failure state, and clears only after validated retry [7.50ms]
+(pass) cancel retains initial inventory and ignores a late result without restoring playback [3.72ms]
+(pass) optional event windows hold recorded months and pause/seek immediately overrides [3.14ms]
+(pass) eventless runs retain normal playback even with slowdown selected [2.85ms]
+(pass) reduced motion bypasses optional event holds [2.93ms]
+(pass) editing initial preview preserves pending draft and prevents late autoplay when the original pair finishes [4.61ms]
+(pass) reset during initial preparation keeps the original draft when useful nondefault work completes [4.67ms]
+
+test/future-machine-comic.test.js:
+SHE-782 receipt {"version":"comic-city.v1","identity":{"experimentId":"city_comic_test","modelVersion":"city-systems.1.1.0","seed":42,"initialHash":"7767de6b19f3b1c62f218c3a4ee26739157382db2c7ff962dbe141fc160821ae","recipe":{"schemaVersion":"future-machine.v1","modelVersion":"city-systems.1.1.0","seed":42,"households":30,"months":120,"intervention":{"type":"housing","districtId":"d1","amount":24,"cost":1000000,"delay":0,"compliance":1}},"provenance":{"type":"synthetic-assumption","datasetVersion":"future-machine-synthetic.v1","populationSnapshot":"synthetic-42-30","worldRevision":"seed.v1","confidence":"low","assumptions":["Synthetic City inventory; no geographic coordinates.","Private parcel capacity is zero; utilities have capacity 200 per district/network; annual growth is zero.","Illustrative monthly equations, not an empirical forecast."],"replay":"Recomputed from saved City manifest; not independently verified recorded checkpoints."}},"months":[{"month":0,"date":"2026-01","metrics":[{"housingUnits":36,"meanRent":1150,"capitalSpending":0},{"housingUnits":36,"meanRent":1150,"capitalSpending":0}]},{"month":16,"date":"2027-05","metrics":[{"housingUnits":36,"meanRent":1115.8421532509483,"capitalSpending":0},{"housingUnits":60,"meanRent":1102.5949611095689,"capitalSpending":1000000}]},{"month":24,"date":"2028-01","metrics":[{"housingUnits":36,"meanRent":1101.698891030893,"capitalSpending":0},{"housingUnits":60,"meanRent":994.53920590616,"capitalSpending":1000000}]},{"month":60,"date":"2031-01","metrics":[{"housingUnits":36,"meanRent":1051.759545655928,"capitalSpending":0},{"housingUnits":60,"meanRent":583.1341873187705,"capitalSpending":1000000}]},{"month":96,"date":"2034-01","metrics":[{"housingUnits":36,"meanRent":1003.3082958754128,"capitalSpending":0},{"housingUnits":60,"meanRent":332.4620913791544,"capitalSpending":1000000}]},{"month":120,"date":"2036-01","metrics":[{"housingUnits":36,"meanRent":971.504282807192,"capitalSpending":0},{"housingUnits":60,"meanRent":230.73527356811846,"capitalSpending":1000000}]}],"digest":"a12fec8d2eea24cc09a50d6376b8f830a1494951a58cbd0a378e02a71a6dbd44"}
+(pass) real engine produces deterministic bounded dated panels and exact source metrics [1192.21ms]
+(pass) missing/denied/unpinned frames stay unavailable; zero is retained; markup escapes source data [513.28ms]
+(pass) native recap action, missing state, local download, replacement and disposal [515.93ms]
+
+test/future-machine-spotlight.test.js:
+SHE-478 selector 100 warm runs ms {"p50":0.3355830000000424,"p95":0.442709000002651,"max":0.7609579999989364}
+(pass) actual seed-matched City events own every stop, deterministic, immutable and deduplicated [897.14ms]
+(pass) unchanged, missing and unsupported comparisons are distinct; absent or wrong-time receipts never produce stops [1153.61ms]
+(pass) component disables unavailable controls, bounds visits, clears old run and preserves literal IDs [1.02ms]
+
+test/future-machine-fallback.test.js:
+(pass) snapshot adapter retains real IDs, metrics, recorded month and camera rendering without mutation [1.01ms]
+(pass) failed Canvas context preserves accessible exact inventory and reports missing measurements [0.16ms]
+(pass) drawing failure releases Canvas and retains exact metrics, events and selectable inventory [0.20ms]
+(pass) malformed matched data is explicit and empty metrics remain unavailable [0.07ms]
+(pass) difference inventory filters unchanged identities and camera persists across recorded months [0.21ms]
+(pass) real seed-42 snapshots preserve Month 0/16 evidence and unavailable measurements [525.35ms]
+
+6 tests skipped:
+(skip) Chromium controls, loading, failure, keyboard, mobile and cleanup
+(skip) event slowdown native checkbox supports keyboard, touch and unavailable state
+(skip) real Chromium renderer, scissor/resize and before/after-init failure smoke
+(skip) mobile and keyboard controls, navigation silence, fallback and teardown
+(skip) browser native keyboard, touch release, unavailable preview and bounded burst
+(skip) renderer-independent outcome timeline works at 320px, keyboard and missing observations
+
+
+3 tests failed:
+
+ 196 pass
+ 6 skip
+ 3 fail
+ 3 errors
+ 2329 expect() calls
+Ran 205 tests across 40 files. [63.27s]

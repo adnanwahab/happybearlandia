@@ -77,6 +77,7 @@ async function boot(options={}){
   './share/index.js':{...sharing},'./recent.js':{...recent},
   './ui/replay-receipt.js':{mountReplayReceipt(_host,events){receiptCallbacks=events;return {update:noop,dispose:noop};}},
   './share/run-receipt.js':{replayRunReceipt:async(input,settings)=>{requests.push(['receipt',structuredClone(input)]);return options.reopen(input,settings);}},
+  './story/comic.js':{mountComic:()=>({clear:noop,dispose:noop})},
   './ui/challenges.js':{createChallengeCards:()=>({update:noop,dispose:noop})},
   './share/challenges.js':{parseChallengeURL:async()=>options.challenge?await options.challenge():null,verifyChallengeHistory:async(h,c)=>{requests.push(['verify',h.experimentId]);await options.verify?.(h,c);}},
  };

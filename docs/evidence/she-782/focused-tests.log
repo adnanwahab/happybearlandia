@@ -1,0 +1,56 @@
+bun test v1.4.2 (744846f84)
+
+test/future-machine-story.test.js:
+(pass) first divergence, structural significance and stable ordering [0.50ms]
+(pass) director never invents a location or accepts ambiguous/unproven geometry [0.08ms]
+(pass) receipts retain arm-scoped IDs, dependencies and payload without claiming cause [0.10ms]
+(pass) household observations match only exact monthly City IDs and preserve missingness [0.09ms]
+(pass) frozen story interface handles first, large, zero, missing months and selection [0.20ms]
+(pass) real City event history produces deterministic grounded stories [4.29ms]
+(pass) seed-matched 120-month City histories keep Month 0 and 120 and immutable input [211.17ms]
+(pass) renderer creates accessible jumps, literal evidence and disposes handlers [0.30ms]
+(pass) director deduplicates repeated policy additions and includes completed physical buildings [0.35ms]
+
+test/future-machine-coordinator.test.js:
+(pass) prepared tour retains pause through data and graphics readiness, then manual seek cancels playback [9.85ms]
+(pass) manual takeover during preparation allows the pair to finish without delayed autoplay [3.79ms]
+(pass) strict receipt retry retains its payload and announces the reopened month; local storage needs consent [3.47ms]
+(pass) a newer run supersedes an unresolved receipt without publishing the old history [3.54ms]
+(pass) challenge retry never falls back and preserves its original hash across exact-month navigation [4.89ms]
+(pass) user run wins over delayed startup challenge validation [3.25ms]
+(pass) automatic frames leave URL and summary quiet; explicit event and native-share milestones remain truthful [4.63ms]
+(pass) WHY and settled sharing during progressive graphics loading are retained once readiness is measured [3.85ms]
+(pass) explicit Play Demo entry outranks remembered nondefault context [5.41ms]
+(pass) a failed rerun leaves sharing the completed displayed pair usable [3.80ms]
+(pass) exploring retained history after a failed rerun still records its actual first divergence [3.46ms]
+(pass) retained stage readiness flushes earlier actions even when a newer rerun has failed [3.27ms]
+(pass) quest inspection returns to its recorded month after a later manual seek [4.52ms]
+(pass) pause and manual camera boundaries cancel shots and prevent later tour reframing [2.82ms]
+(pass) reset retains the page-entry recipe after receipt import without changing displayed history [4.29ms]
+(pass) preview freezes displayed inputs and the v1 perspective pose while direct copy tracks the current month [4.60ms]
+(pass) shared camera waits for graphics readiness and yields to intervening user control [6.87ms]
+(pass) change narration stays quiet during playback and describes the current recorded frame on request [3.82ms]
+(pass) follow-up acceptance uses a fresh explicit user run while keeping the completed parent immutable [3.63ms]
+(pass) demo timing waits for graphics and paint, then distinguishes usable warm history [3.86ms]
+(pass) terminal inventory fallback and manual takeover leave no measurement RAF or false success [7.10ms]
+(pass) Play Demo after a failed rerun computes a fresh default comparison and records cold timing [3.34ms]
+(pass) construction preview selection seeks and announces only its exact arm-scoped completion [3.35ms]
+(pass) initial preview renders actual Month 0 inventory without claiming completed futures or a saved run [2.98ms]
+(pass) inspectable pending preview replaces aborted work, retains failure state, and clears only after validated retry [7.22ms]
+(pass) cancel retains initial inventory and ignores a late result without restoring playback [3.63ms]
+(pass) optional event windows hold recorded months and pause/seek immediately overrides [3.71ms]
+(pass) eventless runs retain normal playback even with slowdown selected [2.89ms]
+(pass) reduced motion bypasses optional event holds [2.72ms]
+(pass) editing initial preview preserves pending draft and prevents late autoplay when the original pair finishes [4.09ms]
+(pass) reset during initial preparation keeps the original draft when useful nondefault work completes [5.34ms]
+
+test/future-machine-comic.test.js:
+SHE-782 receipt {"version":"comic-city.v1","identity":{"experimentId":"city_comic_test","modelVersion":"city-systems.1.1.0","seed":42,"initialHash":"7767de6b19f3b1c62f218c3a4ee26739157382db2c7ff962dbe141fc160821ae","recipe":{"schemaVersion":"future-machine.v1","modelVersion":"city-systems.1.1.0","seed":42,"households":30,"months":120,"intervention":{"type":"housing","districtId":"d1","amount":24,"cost":1000000,"delay":0,"compliance":1}},"provenance":{"type":"synthetic-assumption","datasetVersion":"future-machine-synthetic.v1","populationSnapshot":"synthetic-42-30","worldRevision":"seed.v1","confidence":"low","assumptions":["Synthetic City inventory; no geographic coordinates.","Private parcel capacity is zero; utilities have capacity 200 per district/network; annual growth is zero.","Illustrative monthly equations, not an empirical forecast."],"replay":"Recomputed from saved City manifest; not independently verified recorded checkpoints."}},"months":[{"month":0,"date":"2026-01","metrics":[{"housingUnits":36,"meanRent":1150,"capitalSpending":0},{"housingUnits":36,"meanRent":1150,"capitalSpending":0}]},{"month":16,"date":"2027-05","metrics":[{"housingUnits":36,"meanRent":1115.8421532509483,"capitalSpending":0},{"housingUnits":60,"meanRent":1102.5949611095689,"capitalSpending":1000000}]},{"month":24,"date":"2028-01","metrics":[{"housingUnits":36,"meanRent":1101.698891030893,"capitalSpending":0},{"housingUnits":60,"meanRent":994.53920590616,"capitalSpending":1000000}]},{"month":60,"date":"2031-01","metrics":[{"housingUnits":36,"meanRent":1051.759545655928,"capitalSpending":0},{"housingUnits":60,"meanRent":583.1341873187705,"capitalSpending":1000000}]},{"month":96,"date":"2034-01","metrics":[{"housingUnits":36,"meanRent":1003.3082958754128,"capitalSpending":0},{"housingUnits":60,"meanRent":332.4620913791544,"capitalSpending":1000000}]},{"month":120,"date":"2036-01","metrics":[{"housingUnits":36,"meanRent":971.504282807192,"capitalSpending":0},{"housingUnits":60,"meanRent":230.73527356811846,"capitalSpending":1000000}]}],"digest":"cecf24b6fd74eadd871b42d8b2f7ce8a4a09c7bbb28538f1fc8af40b888c3df9"}
+(pass) real engine produces deterministic bounded dated panels and exact source metrics [1189.04ms]
+(pass) missing/denied/unpinned frames stay unavailable; zero is retained; markup escapes source data [509.05ms]
+(pass) native recap action, missing state, local download, replacement and disposal [511.75ms]
+
+ 43 pass
+ 0 fail
+ 298 expect() calls
+Ran 43 tests across 3 files. [2.58s]
