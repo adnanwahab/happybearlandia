@@ -43,3 +43,9 @@ SHE-558: Tonight pantry cooking remains under World Population / House, using th
 existing recipe economy and relationship authorities. The linked Population
 submodel notes and evening contract describe its authored request selection;
 there is no additional independent model inventory row.
+
+Street Photographer Detective (`world/street-photographer/`) is a three-clue
+presentation/scoring game over pinned authored synthetic snapshots, not a new
+social model or a claim of City/Population history. It changes no behavior rules,
+clocks, RNG or ODD submodels. Its [contract and invariants](../../world/street-photographer/README.md)
+define toy entity/time scope, immutable source validation and camera/text checks.
