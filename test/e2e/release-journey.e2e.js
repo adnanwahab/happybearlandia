@@ -5,6 +5,20 @@ async function savedFutureNavigation(page) {
   await expect(page.locator('#top')).not.toHaveAttribute('open', '');
   const navigation = page.getByRole('navigation', { name: 'Saved future', exact: true });
   await expect(navigation).toBeVisible({ timeout: 45000 });
+  const targets=await navigation.getByRole('link').evaluateAll(links=>links.map(link=>{
+    const r=link.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+    return {label:link.textContent,hit:link.contains(hit),inViewport:r.left>=0&&r.top>=0&&r.right<=innerWidth&&r.bottom<=innerHeight};
+  }));
+  for(const target of targets){expect(target.inViewport,target.label+' stays in viewport').toBe(true);expect(target.hit,target.label+' has an unobstructed pointer target').toBe(true);}
+  const overlaps=await navigation.evaluate(nav=>{
+    const a=nav.getBoundingClientRect();
+    return ['#launch-navigation','.person-commands','[data-testid=living-person]','#inspect'].filter(selector=>{
+      const node=document.querySelector(selector);if(!node)return false;const b=node.getBoundingClientRect();
+      return b.width>0&&b.height>0&&a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;
+    });
+  });
+  expect(overlaps,'saved exits do not cover or sit behind resident controls').toEqual([]);
+  await page.screenshot({path:test.info().outputPath('saved-navigation-'+page.viewportSize().width+'.png')});
   return navigation;
 }
 
@@ -34,13 +48,11 @@ test('an exact Living World future survives World, House, replay and a matched f
   await page.goto(canonical.href);
   await expect(page.locator('#clock')).toContainText('Minute 360');
 
-  await page.addInitScript(() => {
-    if (/^\/world\/?$/.test(location.pathname)) Object.defineProperty(navigator, 'gpu', { value: undefined });
-  });
   await page.getByRole('link', { name: 'Enter this future in 3D World' }).click();
   await expect(page.locator('#view canvas')).toBeVisible();
   await expect(page.locator('#source')).toContainText('1 buildings from saved synthetic geometry');
-  await expect(page.locator('#source')).toContainText('WEBGL2');
+  await expect(page.locator('#source')).toContainText('WEBGPU');
+  expect(await page.evaluate(() => window.hblCityRenderer.getPerformanceStats().backend)).toBe('webgpu');
   const navigation = await savedFutureNavigation(page);
   await expect(navigation.getByRole('link', { name: 'Return to Worldline' })).toBeVisible();
   expect(new URL(page.url()).searchParams.get('entityId')).toBe('person:population:' + person);
@@ -93,7 +105,7 @@ test('invalid IDs and missing saved checkpoints are visible', async ({ page }) =
   await expect(page.getByRole('status').filter({ hasText: 'Saved checkpoint is missing.' })).toBeVisible();
 });
 
-test('saved World retains the exact checkpoint and return link through real Canvas fallback on a phone', async ({ page }, testInfo) => {
+test('saved World retains the exact checkpoint and return link through native WebGPU on a phone', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/tools/future-journey.html');
   await page.getByRole('button', { name: 'Create a guided demo checkpoint' }).click();
@@ -102,19 +114,12 @@ test('saved World retains the exact checkpoint and return link through real Canv
   const person = new URL(page.url()).searchParams.get('person');
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.addInitScript(() => {
-    if (!/^\/world\/?$/.test(location.pathname)) return;
-    Object.defineProperty(navigator, 'gpu', { value: undefined });
-    const context = HTMLCanvasElement.prototype.getContext;
-    HTMLCanvasElement.prototype.getContext = function (type, ...options) {
-      if (type === 'webgl2') return null;
-      return context.call(this, type, ...options);
-    };
-  });
   await page.getByRole('link', { name: 'Enter this future in 3D World' }).click();
-  await expect(page.locator('#view canvas[data-renderer="canvas2d"]')).toBeVisible();
+  await expect(page.locator('#view canvas')).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('data-renderer', 'webgpu');
   await expect(page.locator('#source')).toContainText('1 buildings from saved synthetic geometry');
-  await expect(page.locator('#source')).toContainText('CANVAS2D');
+  await expect(page.locator('#source')).toContainText('WEBGPU');
+  expect(await page.evaluate(() => window.hblCityRenderer.getPerformanceStats().backend)).toBe('webgpu');
   await expect.poll(() => page.evaluate(() => window.hblWorldStartup?.firstFrameMs ?? 0)).toBeGreaterThan(0);
   await expect.poll(() => page.evaluate(() => window.hblWorldStartup?.readyMs ?? 0)).toBeGreaterThan(0);
   const navigation = await savedFutureNavigation(page);
@@ -129,38 +134,88 @@ test('saved World retains the exact checkpoint and return link through real Canv
   expect(errors).toEqual([]);
   const evidence = await page.evaluate(() => ({
     source: document.querySelector('#source').textContent,
-    renderer: document.querySelector('#view canvas').dataset.renderer,
+    renderer: document.documentElement.dataset.renderer,
     startup: window.hblWorldStartup,
     selection: window.hblLivingWorld.getSelection(),
     snapshot: window.hblLivingWorld.getSnapshot(),
   }));
-  await testInfo.attach('saved-world-canvas-fallback', { body: JSON.stringify({ parent, person, evidence, errors }, null, 2), contentType: 'application/json' });
+  await testInfo.attach('saved-world-native-phone', { body: JSON.stringify({ parent, person, evidence, errors }, null, 2), contentType: 'application/json' });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.screenshot({ path: testInfo.outputPath('saved-world-canvas-fallback.png') });
-  await page.screenshot({ path: '/tmp/hbl-saved-future-canvas-phone.png' });
+  await page.screenshot({ path: testInfo.outputPath('saved-world-native-phone.png') });
+  await page.screenshot({ path: '/tmp/hbl-saved-future-native-phone.png' });
   await navigation.getByRole('link', { name: 'Return to Worldline' }).click();
   expect(new URL(page.url()).searchParams.get('experiment')).toBe(parent);
   expect(new URL(page.url()).searchParams.get('person')).toBe(person);
   await expect(page.locator('#clock')).toContainText('Minute 360');
 });
 
-// Canvas2D is a supported fallback, so exercise the fatal path by removing it too.
-test('saved World offers an exact return when every graphics backend is unavailable', async ({ page }) => {
+// PR417 and the November15 approved scope reserve gameplay/checkpoint restoration
+// for WebGPU. MissingGPU renders only saved base geometry; it never replays state.
+for (const width of [900,390]) test(`saved World has an honest city-only fallback at ${width}px`, async ({page,request},info) => {
+  await page.setViewportSize({width,height:844});
   await page.goto('/tools/future-journey.html');
-  await page.getByRole('button', { name: 'Create a guided demo checkpoint' }).click();
+  await page.getByRole('button',{name:'Create a guided demo checkpoint'}).click();
   await expect(page.locator('#clock')).toContainText('Minute 360');
-  const parent = new URL(page.url()).searchParams.get('experiment');
-  const person = new URL(page.url()).searchParams.get('person');
+  const parent=new URL(page.url()).searchParams.get('experiment');
+  const person=new URL(page.url()).searchParams.get('person');
+  const original=await (await request.get('/api/world-experiments/'+parent)).json();
+  const requests=[],errors=[];
+  page.on('request',r=>requests.push(new URL(r.url()).pathname));
+  page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(() => {
-    if (!/^\/world\/?$/.test(location.pathname)) return;
-    Object.defineProperty(navigator, 'gpu', { value: undefined });
-    HTMLCanvasElement.prototype.getContext = () => null;
+    Object.defineProperty(navigator,'gpu',{configurable:true,value:undefined});
+    window.__releaseWorkers=0;const Native=window.Worker;
+    window.Worker=class extends Native{constructor(...args){window.__releaseWorkers++;super(...args);}};
   });
-  await page.getByRole('link', { name: 'Enter this future in 3D World' }).click();
-  const error = page.getByRole('alert').filter({ hasText: '3D World could not start.' });
-  await expect(error).toBeVisible();
-  await error.getByRole('link', { name: 'Return to Worldline' }).click();
+  await page.getByRole('link',{name:'Enter this future in 3D World'}).click();
+  await expect(page).toHaveURL(/\/world\/static-city\.html/);
+  await expect.poll(()=>page.evaluate(()=>window.hblStaticCity?.getState().ready)).toBe(true);
+  await expect(page.getByRole('status')).toContainText('1 buildings');
+  await expect(page.getByRole('status')).toContainText('Saved synthetic geometry');
+  await expect(page.locator('#saved-scope')).toContainText('not a checkpoint replay');
+  await expect(page.locator('#saved-scope')).toContainText('model time and outcomes are not restored');
+  const state=await page.evaluate(()=>window.hblStaticCity.getState());
+  expect(state).toMatchObject({backend:'webgl2',viewOnly:true,buildings:1,people:0,workers:0,simulation:false});
+  expect(state.minute).toBeUndefined();
+  expect(await page.evaluate(()=>({workers:window.__releaseWorkers,model:typeof window.hblLivingWorld,clock:typeof window.hblSimulationPlayback,activity:typeof window.hblWorldActivity}))).toEqual({workers:0,model:'undefined',clock:'undefined',activity:'undefined'});
+  expect(requests.filter(path=>/\/(sim\.js|population\/|render\.js|simulation-playback\.js)/.test(path))).toEqual([]);
+  const full=new URL(await page.getByRole('link',{name:'Try the full game'}).getAttribute('href'),page.url());
+  expect(full.pathname).toBe('/world');
+  expect(full.searchParams.get('experiment')).toBe(parent);
+  expect(full.searchParams.get('person')).toBe(person);
+  expect(full.searchParams.get('entityId')).toBe('person:population:'+person);
+  expect(full.searchParams.get('tick')).toBe('360');
+  expect((await (await request.get('/api/world-experiments/'+parent)).json()).checksum).toBe(original.checksum);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  expect(errors).toEqual([]);
+  await page.screenshot({path:info.outputPath('saved-city-view.png')});
+  await page.goBack();
+  await expect(page.locator('#clock')).toContainText('Minute 360');
   expect(new URL(page.url()).searchParams.get('experiment')).toBe(parent);
   expect(new URL(page.url()).searchParams.get('person')).toBe(person);
+});
+
+test('missing WebGPU and WebGL2 retain explicit recovery without a replacement model',async({page})=>{
+  await page.goto('/tools/future-journey.html');
+  await page.getByRole('button',{name:'Create a guided demo checkpoint'}).click();
   await expect(page.locator('#clock')).toContainText('Minute 360');
+  const parent=new URL(page.url()).searchParams.get('experiment');
+  const person=new URL(page.url()).searchParams.get('person');
+  await page.addInitScript(()=>{
+    Object.defineProperty(navigator,'gpu',{configurable:true,value:undefined});
+    window.__releaseWorkers=0;const Native=window.Worker;
+    window.Worker=class extends Native{constructor(...args){window.__releaseWorkers++;super(...args);}};
+    const original=HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext=function(kind,...args){return kind==='webgl2'?null:original.call(this,kind,...args);};
+  });
+  await page.getByRole('link',{name:'Enter this future in 3D World'}).click();
+  await expect(page).toHaveURL(/\/world\/static-city\.html/);
+  await expect(page.getByRole('alert')).toContainText('WebGL2 is unavailable');
+  await expect(page.getByRole('button',{name:'Try again'})).toBeVisible();
+  await expect(page.getByRole('button',{name:'Fit city'})).toBeDisabled();
+  expect(await page.evaluate(()=>({workers:window.__releaseWorkers,model:typeof window.hblLivingWorld,clock:typeof window.hblSimulationPlayback,view:typeof window.hblStaticCity}))).toEqual({workers:0,model:'undefined',clock:'undefined',view:'undefined'});
+  const full=new URL(await page.getByRole('link',{name:'Try the full game'}).getAttribute('href'),page.url());
+  expect(full.searchParams.get('experiment')).toBe(parent);expect(full.searchParams.get('person')).toBe(person);
+  await page.goBack();await expect(page.locator('#clock')).toContainText('Minute 360');
+  expect(new URL(page.url()).searchParams.get('experiment')).toBe(parent);
 });
