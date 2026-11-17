@@ -105,3 +105,11 @@ and cross-device synchronization require a separate reviewed service design.
 Checks: `bun test test/proposal-room.test.js test/neighborhood-blueprint.test.js test/city-invention-plan.test.js`
 and `bunx playwright test --config test/proposal-room.browser.config.mjs`.
 Actual evidence and browser/typecheck blockers: `docs/reviews/SHE-770.md`.
+
+## Third Place Designer (SHE-708)
+
+`/world/invention/third-place/` offers a pinned authored empty-lot challenge:
+validate a pocket park or plaza, compare illustrative first-year public costs,
+and reopen immutable before/after design checkpoints from local JSON. Visits,
+social outcomes and measured observations remain unavailable. This does not
+change City policies or saved Worlds. See the [contract and limitations](third-place/README.md).

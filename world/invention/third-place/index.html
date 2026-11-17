@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Third Place Designer · HappyBearLandia</title>
+<link rel="stylesheet" href="/world/civilization/civilization.css"><style>button,select{min-height:44px;margin:6px}textarea{display:block;width:100%;box-sizing:border-box}pre{white-space:pre-wrap;overflow-wrap:anywhere}.lot{padding:24px;border:2px dashed #7c997c;border-radius:12px;background:#e5efdf;color:#172817}button:focus-visible,select:focus-visible,a:focus-visible,textarea:focus-visible{outline:3px solid #d97c16;outline-offset:3px}</style></head>
+<body><main><nav><a href="/world/invention/">City Invention Studio</a></nav>
+<h1>Third Place Designer</h1><p>Make room for community life. Choose a permitted design within a first-year public budget of 100,000 illustrative USD.</p>
+<p><strong>Authored synthetic demo: empty-lot.v1, seed 708.</strong> This is a local design exercise. Approval means this toy lot’s area and budget rules pass; it is not a real permit or construction result.</p>
+<p>Success: confirm a permitted project within budget and inspect both checkpoints. Community benefits are not scored.</p>
+<div class="lot" id="lot">Empty lot · 400 m² · authored schematic</div>
+<p>Scripted flavor: “Could this empty corner become somewhere to linger?” This invitation is fiction, not resident testimony.</p>
+<button id="demo">Load pinned demo</button><button id="clear">Clear source data</button>
+<form id="design"><label for="project">Project</label><select id="project"><option value="park">Pocket park</option><option value="plaza">Neighborhood plaza</option></select>
+<p id="preview"></p><button type="submit" id="confirm">Confirm design</button><button type="button" id="cancel">Cancel draft</button></form>
+<p role="status" id="status">Pinned demo ready. Nothing confirmed.</p>
+<section aria-label="Comparison"><h2>Before / after design replay</h2><button id="before" disabled>Before</button><button id="after" disabled>After</button><pre id="checkpoint">No confirmed checkpoint.</pre></section>
+<p>Visits: unavailable — no project-driven visitation model. Social results: unavailable — no project-driven relationship model. Measured observations: unavailable — none supplied. City service demand is not visitation evidence.</p>
+<label for="receipt">Design replay JSON (local copy)</label><textarea id="receipt" rows="6" maxlength="8192"></textarea><button id="replay">Verify and replay</button>
+<p>Replay checks the design arithmetic against the supplied checkpoints; it does not authenticate a run or replay social simulation. Reload discards this session. Copy the JSON to keep your design.</p>
+</main><script type="module" src="./page.js"></script></body></html>
