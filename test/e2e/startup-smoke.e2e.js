@@ -20,8 +20,13 @@ const routes = [
 
 for (const route of routes) {
   test(`startup ${route.path}`, async ({ page }, info) => {
-    const report = { path: route.path, status: null, nodes: {}, capabilities: [], errors: [] };
+    const report = { path: route.path, status: null, nodes: {}, capabilities: [], errors: [], webgpuErrors: [] };
     page.on('pageerror', error => report.errors.push(error.message));
+    page.on('console', message => {
+      if (message.type() === 'error' && /webgpu|GPUValidationError|GPUOutOfMemoryError|gpu device.*lost/i.test(message.text())) {
+        report.webgpuErrors.push(message.text());
+      }
+    });
     // Home contains expensive unrelated previews. Only the top-level route is under test.
     await page.route('**/*', request => {
       if (request.request().resourceType() === 'document' && request.request().frame().parentFrame()) return request.abort();
@@ -52,9 +57,17 @@ for (const route of routes) {
       if (route.world) {
         await expect.poll(() => page.evaluate(() => Boolean(window.hblWorldStartup?.readyMs)), { message: 'World scene ready' }).toBe(true);
         report.startup = await page.evaluate(() => window.hblWorldStartup);
-        // World controls can be intentionally collapsed or hidden by the UI.
-        await expect(page.locator('#top')).toBeAttached();
-        report.nodes['#top']='attached';
+        // SHE-789 deliberately hides advanced controls until normal navigation opens them.
+        const tools=page.getByRole('navigation',{name:'Explore the world'}).getByRole('button',{name:'World',exact:true});
+        await expect(tools).toBeVisible();
+        await tools.click();
+        await expect(page.locator('#launch-navigation [data-launch=tools]')).toHaveAttribute('aria-expanded','true');
+        await expect(page.locator('#top')).toBeVisible();
+        await expect(page.locator('#top')).toHaveAttribute('open','');
+        report.nodes['#top']='visible after World navigation';
+        await page.keyboard.press('Escape');
+        await expect(page.locator('#launch-navigation [data-launch=tools]')).toHaveAttribute('aria-expanded','false');
+        await expect(page.locator('#top')).toBeHidden();
       }
       if (route.future) {
         await expect(page.getByRole('button', { name: 'Fork City', exact: true })).toBeEnabled();
@@ -78,6 +91,7 @@ for (const route of routes) {
         reason: n.getAttribute('aria-description') || n.title || (n.getAttribute('aria-describedby') || '').split(/\s+/).map(id => document.getElementById(id)?.textContent || '').join(' ').trim() || 'No UI explanation provided; capability reason is unobserved',
       })));
       expect(report.errors, 'uncaught startup errors').toEqual([]);
+      expect(report.webgpuErrors, 'WebGPU console errors').toEqual([]);
     } catch (error) {
       report.failure = error.message;
       throw error;
