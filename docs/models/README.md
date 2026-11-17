@@ -13,6 +13,7 @@ These descriptions follow the seven elements of the [ODD 2020 protocol and autho
 | Recorded-contact diffusion | [Ideas](ideas.md) | How Ideas Spread saved-Population overlay |
 | Network opinion dynamics | [Collective Mind](collective-mind.md) | runCollectiveMind and versioned URL recipe |
 | Authored bar social game | [Bar](bar.md) | Honey Pot command model, including externally supplied judgement boundary |
+| Rashomon toy belief overlay | [Rashomon beliefs](rashomon-beliefs.md) | Detective page; read-only attention snapshots over recorded Monthly City data |
 | Party NPCs | [Party](party.md) | Act Normal authoritative server room and commands |
 | Synthetic pair-transfer fixture | [Energy transfer](energy-transfer.md) | Agent-count benchmark; not an empirical social simulation |
 | Million-scale paired-transfer workload | [Million workload](million-paired-transfer.md) | Opt-in headless compute/render benchmark; separate synthetic schedule |

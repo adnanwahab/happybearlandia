@@ -1,3 +1,5 @@
+import { mountMystery } from './rashomon-mystery.js';
+mountMystery(document.querySelector('#rashomon'));
 const $=s=>document.querySelector(s);let id,receiptURL,busy=false;
 async function request(path,body){const response=await fetch('/api/detective'+path,body===undefined?{}:{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});const data=await response.json();if(!response.ok)throw Error(data.error);return data;}
 async function action(work){if(busy)return;busy=true;document.body.setAttribute('aria-busy','true');try{$('#status').textContent='Loading…';await work();$('#status').textContent='Ready. This URL reopens your saved puzzle.';}catch(e){$('#status').textContent=e.message;}finally{busy=false;document.body.removeAttribute('aria-busy');}}

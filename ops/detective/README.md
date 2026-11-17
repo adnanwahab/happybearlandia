@@ -68,3 +68,14 @@ fieldset legend, and reveal receives focus. No canvas, WebGL, animation, audio,
 external service or browser simulation is needed. This is the low-end and reduced
 motion path. No new personal data or telemetry is collected. Saved-ID access and
 single-writer storage limitations above continue to apply.
+
+## Rashomon Mystery (SHE-710)
+
+The detective page also offers a read-only pinned Riverside flood mystery.
+Record the existing seed-2911 World Time Machine demo explicitly first. It uses
+loadPerspectives to verify the stored event and exact checkpoints, then exposes
+three frozen toy attention snapshots one at a time. The factual ledger is shared;
+causes and other households' beliefs stay unknown. Dialogue is scripted flavor.
+No measured testimony, new API, storage, telemetry or change to housing puzzles.
+Cancel invalidates pending reads. Missing source/checkpoints and replay mismatch
+show no accounts. See the [seven-element model description](../../docs/models/rashomon-beliefs.md).
