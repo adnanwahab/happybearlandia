@@ -61,11 +61,11 @@ export function minimapContains(regions, point) {
   return Boolean(point && finite(point.x) && finite(point.z) && regions.some(({bounds:b}) => validBounds(b) && point.x >= b.minX && point.x <= b.maxX && point.z >= b.minZ && point.z <= b.maxZ));
 }
 
-export function mountMinimap(container, { town = {}, camera, controls, THREE, bounds: suppliedBounds, onPan, onPanScreen, loadedChunks = [], contextBuildings = [], contextRoads = [], viewLimited = false, throttleMs = 100, resolveVisit } = {}) {
+export function mountMinimap(container, { town = {}, camera, controls, THREE, bounds: suppliedBounds, onPan, onPanScreen, loadedChunks = [], contextBuildings = [], contextRoads = [], viewLimited = false, throttleMs = 100, resolveVisit, onSelectParcel } = {}) {
   if (!container?.ownerDocument || !camera || !controls || !THREE) throw new TypeError("Minimap requires a DOM container, camera, controls and existing THREE namespace.");
   const doc = container.ownerDocument, win = doc.defaultView, root = doc.createElement("details"); root.className = "world-minimap"; root.dataset.testid = "world-minimap"; root.setAttribute("aria-label", "Neighborhood minimap");
   root.open = false;
-  root.innerHTML = '<summary><span>Neighborhood map</span><span class="mm-north" aria-label="North is up">↑ N</span></summary><div class="mm-body"><canvas width="232" height="190" tabindex="0" role="application" aria-label="Loaded neighborhood map. Click or drag to pan. Arrow keys pan without changing zoom."></canvas><div class="mm-screen-pad" role="group" aria-label="Pan one current screen"><button type="button" data-mm-screen="north" aria-label="Pan north one current screen">↑</button><button type="button" data-mm-screen="west" aria-label="Pan west one current screen">←</button><span>One screen</span><button type="button" data-mm-screen="east" aria-label="Pan east one current screen">→</button><button type="button" data-mm-screen="south" aria-label="Pan south one current screen">↓</button></div><div class="mm-legend"><span class="mm-view-key"></span>Camera footprint <span class="mm-target-key"></span>View target</div><p data-mm-bounds></p><p data-mm-position aria-live="off"></p><div class="mm-actions"><button type="button" data-mm-center>Center loaded area</button></div><small data-mm-coverage>Click/drag to pan · arrows on map · north up</small></div>';
+  root.innerHTML = '<summary><span>Neighborhood map</span><span class="mm-north" aria-label="North is up">↑ N</span></summary><div class="mm-body"><canvas width="232" height="190" tabindex="0" role="application" aria-label="Loaded neighborhood map. Tap a parcel to inspect; drag or arrow keys to pan. Pinch or plus and minus to zoom."></canvas><div class="mm-screen-pad" role="group" aria-label="Pan one current screen"><button type="button" data-mm-screen="north" aria-label="Pan north one current screen">↑</button><button type="button" data-mm-screen="west" aria-label="Pan west one current screen">←</button><span>One screen</span><button type="button" data-mm-screen="east" aria-label="Pan east one current screen">→</button><button type="button" data-mm-screen="south" aria-label="Pan south one current screen">↓</button></div><div class="mm-legend"><span class="mm-view-key"></span>Camera footprint <span class="mm-target-key"></span>View target</div><p data-mm-bounds></p><p data-mm-position aria-live="off"></p><div class="mm-actions"><button type="button" data-mm-center>Center loaded area</button></div><small data-mm-coverage>Click/drag to pan · arrows on map · north up</small></div>';
   const stylesheet = doc.createElement("link"); stylesheet.rel = "stylesheet"; stylesheet.href = new URL("./minimap.css", import.meta.url).href; root.append(stylesheet); container.append(root);
   const canvas = root.querySelector("canvas"), ctx = canvas.getContext("2d"), staticLayer = doc.createElement("canvas"), staticContext = staticLayer.getContext("2d");
   const width = 232, height = 190, matrix = new THREE.Matrix4(), frustum = new THREE.Frustum();
@@ -98,16 +98,42 @@ export function mountMinimap(container, { town = {}, camera, controls, THREE, bo
       }
     }
   }
-  function hideMap() { root.open = false; root.querySelector("summary").focus(); }
-  function escape(event) { if (event.key === "Escape" && root.open) { event.preventDefault(); event.stopPropagation(); hideMap(); } }
+  const expand = doc.createElement("button"); expand.type = "button"; expand.textContent = "Expand map"; expand.setAttribute("aria-expanded", "false");
+  root.querySelector(".mm-actions").append(expand);
+  const parcels = doc.createElement("select"); parcels.setAttribute("aria-label", "Select loaded parcel");
+  function parcelOptions() {
+    const id = parcels.value;
+    parcels.replaceChildren(new win.Option("Select a parcel…", ""), ...(town.buildings || []).filter(b=>b.id != null).map(b=>new win.Option(String(b.name || `Parcel ${b.id}`), String(b.id))));
+    parcels.value = id;
+    parcels.disabled = !ctx || !loaded || !onSelectParcel;
+  }
+  parcels.onchange = () => { if (parcels.value) { onSelectParcel?.(parcels.value); requestDraw(); } };
+  root.querySelector(".mm-actions").append(parcels); parcelOptions();
+  let expanded = false, animation = null;
+  function overview(value) {
+    animation?.cancel(); animation = null;
+    const before = root.getBoundingClientRect();
+    expanded = value; root.classList.toggle("mm-expanded", value);
+    expand.textContent = value ? "Collapse map" : "Expand map";
+    expand.setAttribute("aria-expanded", String(value));
+    const after = root.getBoundingClientRect();
+    // Animate only presentation; world coordinates and the shared camera never change.
+    if (ctx && loaded && typeof root.animate === "function" && !win.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      animation = root.animate([{transformOrigin:"top left",transform:`translate(${before.left-after.left}px, ${before.top-after.top}px) scale(${before.width/after.width}, ${before.height/after.height})`},{transformOrigin:"top left",transform:"none"}], {duration:240,easing:"ease-out"});
+    }
+    requestDraw(); expand.focus();
+  }
+  expand.onclick = () => overview(!expanded);
+  function hideMap() { if (expanded) overview(false); root.open = false; root.querySelector("summary").focus(); }
+  function escape(event) { if (event.key === "Escape" && root.open) { event.preventDefault(); event.stopPropagation(); if (expanded) overview(false); else hideMap(); } }
   root.addEventListener("keydown", escape);
   root.querySelector("[data-mm-hide]").onclick = hideMap;
   root.querySelector("[data-mm-save]").onclick = () => { if (!available(controls.target)) return; trail.save(controls.target); renderTrail(); requestDraw(); root.querySelector("[data-mm-status]").textContent = "View bookmarked for this scene"; };
   const interval = clamp(Number(throttleMs) || 100, 32, 500);
   const format = value => new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(value);
   function setupSize() {
-    const ratio = Math.min(2, win.devicePixelRatio || 1);
-    if (ratio === pixelRatio && canvas.width === width * ratio) return;
+    const ratio = Math.min(2, win.devicePixelRatio || 1) * Math.max(1, canvas.clientWidth / width);
+    if (ratio === pixelRatio && canvas.width === Math.round(width * ratio)) return;
     pixelRatio = ratio; canvas.width = staticLayer.width = Math.round(width * ratio); canvas.height = staticLayer.height = Math.round(height * ratio); staticDirty = true;
   }
   const regions = () => chunks.length ? chunks : loaded ? [{ bounds: loaded, contextOnly: false }] : [];
@@ -165,17 +191,52 @@ export function mountMinimap(container, { town = {}, camera, controls, THREE, bo
     root.querySelector("[data-mm-bounds]").textContent = loaded ? `Loaded ${format(loaded.maxX - loaded.minX)} × ${format(loaded.maxZ - loaded.minZ)} m` : "No loaded bounds";
     canvas.setAttribute("aria-disabled", String(!loaded)); root.querySelector("[data-mm-center]").disabled = !loaded;
     root.dataset.loadedChunks = String(regions().length);
-    root.querySelector("[data-mm-coverage]").textContent = `${chunks.some(chunk => chunk.contextOnly) ? "Blue outlines: geometry-only map context. " : ""}${viewLimited ? "View exceeds retained map budget. " : ""}Click/drag to pan · north up`;
+    root.querySelector("[data-mm-coverage]").textContent = `${chunks.some(chunk => chunk.contextOnly) ? "Blue outlines: geometry-only map context. " : ""}${viewLimited ? "View exceeds retained map budget. " : ""}Tap parcel · drag/arrows to pan · pinch/+/- to zoom · north up`;
     root.querySelector("[data-mm-save]").disabled = !available(controls.target);
     lastDraw = win.performance.now(); root.dataset.draws = String(Number(root.dataset.draws || 0) + 1);
   }
   function requestDraw() { if (destroyed || timer !== null || !root.open) return; timer = win.setTimeout(draw, Math.max(0, interval - (win.performance.now() - lastDraw))); }
   function pan(x, z) { if (!loaded || !panMinimapCamera(camera, controls, { x, z })) return; onPan?.({ x, z, target: { x: controls.target.x, y: controls.target.y, z: controls.target.z } }); requestDraw(); }
   function panAt(event) { if (!transform) return; const rect = canvas.getBoundingClientRect(), point = transform.toWorld((event.clientX - rect.left) * width / rect.width, (event.clientY - rect.top) * height / rect.height); pan(point.x, point.z); }
-  function down(event) { if (event.button !== 0 || !loaded) return; event.preventDefault(); event.stopPropagation(); pointer = event.pointerId; canvas.setPointerCapture?.(pointer); panAt(event); }
-  function move(event) { if (pointer === event.pointerId) { event.preventDefault(); panAt(event); } }
-  function up(event) { if (pointer !== event.pointerId) return; if (canvas.hasPointerCapture?.(pointer)) canvas.releasePointerCapture(pointer); pointer = null; }
+  const pointers = new Map(); let gesture = null, tapped = null;
+  function zoom(factor) {
+    const distance = camera.position.distanceTo(controls.target);
+    const next = clamp(distance * factor, Math.max(1, controls.minDistance || 1), controls.maxDistance || 100000);
+    if (!finite(next) || !distance) return;
+    camera.position.sub(controls.target).multiplyScalar(next / distance).add(controls.target);
+    controls.update?.(); onPan?.({x:controls.target.x,z:controls.target.z}); requestDraw();
+  }
+  function down(event) {
+    if (event.button !== 0 || !loaded || !ctx) return;
+    event.preventDefault(); event.stopPropagation(); canvas.focus();
+    pointers.set(event.pointerId, {x:event.clientX,y:event.clientY});
+    canvas.setPointerCapture?.(event.pointerId);
+    if (pointers.size === 1) { pointer = event.pointerId; tapped = {x:event.clientX,y:event.clientY}; }
+    else { tapped = null; gesture = null; }
+  }
+  function move(event) {
+    if (!pointers.has(event.pointerId)) return;
+    event.preventDefault(); pointers.set(event.pointerId,{x:event.clientX,y:event.clientY});
+    if (pointers.size >= 2) {
+      const [a,b] = [...pointers.values()], distance = Math.hypot(a.x-b.x,a.y-b.y);
+      if (gesture && distance > 0) zoom(gesture / distance);
+      gesture = distance; return;
+    }
+    if (tapped && Math.hypot(event.clientX-tapped.x,event.clientY-tapped.y)>5) tapped = null;
+    if (!tapped && pointer === event.pointerId) panAt(event);
+  }
+  function up(event) {
+    if (!pointers.has(event.pointerId)) return;
+    if (event.type !== "pointercancel" && tapped && pointers.size === 1) {
+      const rect = canvas.getBoundingClientRect(), point = transform?.toWorld((event.clientX-rect.left)*width/rect.width,(event.clientY-rect.top)*height/rect.height);
+      const parcel = point && available(point) && minimapParcelAt(town.buildings, point);
+      if (parcel && onSelectParcel) { parcels.value = String(parcel.id); onSelectParcel(parcel.id); requestDraw(); } else panAt(event);
+    }
+    if (canvas.hasPointerCapture?.(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+    pointers.delete(event.pointerId); tapped = null; gesture = null; pointer = null;
+  }
   function key(event) {
+    if (loaded && ctx && ["+", "=", "-"].includes(event.key)) { event.preventDefault(); event.stopPropagation(); zoom(event.key === "-" ? 1.2 : 1/1.2); return; }
     if (!loaded || !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home"].includes(event.key)) return;
     event.preventDefault(); event.stopPropagation();
     if (event.key === "Home") { center(); return; }
@@ -193,9 +254,9 @@ export function mountMinimap(container, { town = {}, camera, controls, THREE, bo
   }
   for (const button of root.querySelectorAll("[data-mm-screen]")) { button.disabled = typeof onPanScreen !== "function"; button.title = "Pan by the visible ground footprint at the current zoom"; }
   root.querySelector(".mm-screen-pad").addEventListener("click", screenPan);
-  const resize = () => { staticDirty = true; requestDraw(); }, toggle = () => { if (root.open) renderTrail(); else if (root.contains(doc.activeElement) && doc.activeElement !== root.querySelector("summary")) root.querySelector("summary").focus(); requestDraw(); };
+  const resize = () => { animation?.cancel(); staticDirty = true; requestDraw(); }, toggle = () => { if (root.open) renderTrail(); else if (expanded) overview(false); else if (root.contains(doc.activeElement) && doc.activeElement !== root.querySelector("summary")) root.querySelector("summary").focus(); requestDraw(); };
   canvas.addEventListener("pointerdown", down); canvas.addEventListener("pointermove", move); canvas.addEventListener("pointerup", up); canvas.addEventListener("pointercancel", up); canvas.addEventListener("keydown", key); root.addEventListener("toggle", toggle); root.querySelector("[data-mm-center]").addEventListener("click", center); controls.addEventListener("change", requestDraw); win.addEventListener("resize", resize); requestDraw();
-  return { requestDraw, visit(entry) { trail.visit(entry); renderTrail(); requestDraw(); }, update(next = {}) { if (destroyed) return; if (next.town) { town = next.town; suppliedBounds = null; } if (Object.hasOwn(next, "bounds")) suppliedBounds = next.bounds; if (Array.isArray(next.contextBuildings)) contextBuildings = next.contextBuildings; if (Array.isArray(next.contextRoads)) contextRoads = next.contextRoads; if (Object.hasOwn(next, "loadedChunks")) chunks = minimapLoadedChunks(next.loadedChunks); if (Object.hasOwn(next, "viewLimited")) viewLimited = next.viewLimited; loaded = chunkExtent(chunks, town, suppliedBounds); transform = minimapTransform(loaded); staticDirty = true; renderTrail(); requestDraw(); }, destroy() { if (destroyed) return; destroyed = true; root.removeEventListener("keydown", escape); if (timer !== null) win.clearTimeout(timer); canvas.removeEventListener("pointerdown", down); canvas.removeEventListener("pointermove", move); canvas.removeEventListener("pointerup", up); canvas.removeEventListener("pointercancel", up); canvas.removeEventListener("keydown", key); root.removeEventListener("toggle", toggle); root.querySelector("[data-mm-center]").removeEventListener("click", center); root.querySelector(".mm-screen-pad").removeEventListener("click", screenPan); controls.removeEventListener("change", requestDraw); win.removeEventListener("resize", resize); root.remove(); } };
+  return { requestDraw, visit(entry) { trail.visit(entry); renderTrail(); requestDraw(); }, update(next = {}) { if (destroyed) return; if (next.town) { town = next.town; suppliedBounds = null; } if (Object.hasOwn(next, "bounds")) suppliedBounds = next.bounds; if (Array.isArray(next.contextBuildings)) contextBuildings = next.contextBuildings; if (Array.isArray(next.contextRoads)) contextRoads = next.contextRoads; if (Object.hasOwn(next, "loadedChunks")) chunks = minimapLoadedChunks(next.loadedChunks); if (Object.hasOwn(next, "viewLimited")) viewLimited = next.viewLimited; loaded = chunkExtent(chunks, town, suppliedBounds); transform = minimapTransform(loaded); staticDirty = true; parcelOptions(); renderTrail(); requestDraw(); }, destroy() { if (destroyed) return; destroyed = true; animation?.cancel(); pointers.clear(); root.removeEventListener("keydown", escape); if (timer !== null) win.clearTimeout(timer); canvas.removeEventListener("pointerdown", down); canvas.removeEventListener("pointermove", move); canvas.removeEventListener("pointerup", up); canvas.removeEventListener("pointercancel", up); canvas.removeEventListener("keydown", key); root.removeEventListener("toggle", toggle); root.querySelector("[data-mm-center]").removeEventListener("click", center); root.querySelector(".mm-screen-pad").removeEventListener("click", screenPan); controls.removeEventListener("change", requestDraw); win.removeEventListener("resize", resize); root.remove(); } };
 }
 
 /** Presentation-only, bounded page-session history. IDs retain their entity namespace. */
@@ -217,4 +278,18 @@ export function createMinimapTrail(limit = 6) {
       bookmarks.splice(limit); return true;
     }
   };
+}
+
+/** Hit-test only authoritative loaded parcels; context geometry has no entity adapter. */
+export function minimapParcelAt(buildings = [], point) {
+  if (!finite(point?.x) || !finite(point?.z)) return null;
+  return [...buildings].reverse().find(building => {
+    const poly = building.poly; if (building.id == null || !Array.isArray(poly) || poly.length < 3) return false;
+    let inside = false;
+    for (let i=0,j=poly.length-1;i<poly.length;j=i++) {
+      const [x,z]=poly[i], [px,pz]=poly[j];
+      if ((z>point.z)!==(pz>point.z) && point.x<(px-x)*(point.z-z)/(pz-z)+x) inside=!inside;
+    }
+    return inside;
+  }) || null;
 }

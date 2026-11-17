@@ -81,3 +81,20 @@ test('teleports reject missing coordinates and unloaded holes, including invalid
  for(const point of [null,{x:NaN,z:0},{x:15,z:5},{x:31,z:5}])expect(minimapContains(regions,point)).toBe(false);
  expect(minimapContains([],{x:0,z:0})).toBe(false);
 });
+
+import {minimapParcelAt} from '../world/minimap.js';
+test('parcel hit testing returns original stable entity and rejects missing geometry',()=>{
+ const building={id:'osm:42',poly:[[0,0],[10,0],[10,10],[0,10]]}, before=JSON.stringify(building);
+ expect(minimapParcelAt([building],{x:5,z:5})).toBe(building);
+ expect(minimapParcelAt([building],{x:15,z:5})).toBeNull();
+ expect(minimapParcelAt([],{x:5,z:5})).toBeNull();
+ expect(minimapParcelAt([building],{x:NaN,z:5})).toBeNull();
+ expect(JSON.stringify(building)).toBe(before);
+});
+test('overview screen sizes retain world anchors in both directions',()=>{
+ const bounds={minX:-200,maxX:1000,minZ:-500,maxZ:400}, point={x:70,z:-80};
+ for(const [w,h] of [[232,190],[1200,800],[390,320]]){
+  const map=minimapTransform(bounds,w,h), pixel=map.toMap(point.x,point.z), result=map.toWorld(...pixel);
+  expect(result.x).toBeCloseTo(point.x); expect(result.z).toBeCloseTo(point.z);
+ }
+});
