@@ -11363,3 +11363,12 @@ SHE-63 acceptance and SHE-64 recording gate open. See
 [review and exact evidence](reviews/SHE-63-r4.md). Owned files: two test helpers,
 issue report/excerpt and this status entry. No model/UI/policy change or new
 commit/PR, merge, deployment, external message or production action.
+
+## SHE-63 Firefox guided-controls repair — November17
+
+Existing PR422 rebased onto sprintdd9f6b68. Exact cab89 CI14/15 screenshot/trace
+shows a painted Canvas2D plan building, not missing model inventory. Repair active
+Canvas pick diagnostics and clipped visible interior targets; keep all15 cases
+and original normal-click/PROJECT_COMPLETE assertions. Exact-head source manifest
+will accompany the permissioned Actions run. SHE64 remains blocked pending actual
+exact-revision matrix and broader review. [Evidence](reviews/SHE-63-r4.md).

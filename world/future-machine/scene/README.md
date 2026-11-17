@@ -264,3 +264,13 @@ frames quiet. Exact ghost keys, manual camera boundaries and late-renderer clean
 were already present on main and remain intact. Focused resource coverage checks
 shared geometry, material and texture ownership after effect-clone restoration;
 see the UI compatibility verification for the combined local check and limits.
+
+## Canvas selection diagnostics (SHE-63)
+
+`getStats().targets` uses the active renderer's actual selection coordinates.
+Canvas targets are current non-ghost painted polygons that the normal Canvas
+picker can hit, in CSS pixels relative to the canvas. Their point lies inside
+the visible arm/curtain clip and above the opaque footer. A partially clipped
+polygon can expose a hittable interior even when its recorded center is outside
+the viewport; fully offscreen or occluded polygons expose no target. Camera,
+mode, geometry and model records are unchanged by reading diagnostics.

@@ -66,7 +66,12 @@ test('guided controls, shared camera, difference-only and metric WHY',async({pag
  const moved=await page.evaluate(()=>window.futureMachine.stats.scene.camera);expect(moved).not.toEqual(camera);
  await page.getByRole('button',{name:/difference.?only/i}).click();expect(await page.evaluate(()=>window.futureMachine.stats.scene.camera)).toEqual(moved);
  await page.getByRole('button',{name:/side by side|split view/i}).click();expect(await page.evaluate(()=>window.futureMachine.stats.scene.camera)).toEqual(moved);
- await canvas.scrollIntoViewIfNeeded();const target=await page.evaluate(()=>window.futureMachine.stats.scene.targets.find(t=>t.id==='building-project-policy-1-0'&&t.arm==='plan'));expect(target).toBeTruthy();const rect=await canvas.boundingBox();await page.mouse.click(rect.x+target.x,rect.y+target.y);await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('PROJECT_COMPLETE');
+ await canvas.scrollIntoViewIfNeeded();
+ const scene=await page.evaluate(()=>window.futureMachine.stats.scene),target=scene.targets.find(t=>t.id==='building-project-policy-1-0'&&t.arm==='plan'),rect=await canvas.boundingBox();
+ await writeFile(testInfo.outputPath('guided-selection.json'),JSON.stringify({backend:scene.backend,month:scene.month,camera:scene.camera,targets:scene.targets,target:target??null,canvas:rect},null,2));
+ await canvas.screenshot({path:testInfo.outputPath('guided-selection-before-click.png')});
+ expect(target).toBeTruthy();expect(target.x).toBeGreaterThan(0);expect(target.x).toBeLessThan(rect.width);expect(target.y).toBeGreaterThan(0);expect(target.y).toBeLessThan(rect.height);
+ await page.mouse.click(rect.x+target.x,rect.y+target.y);await expect(page.getByRole('region',{name:'Recorded change story'})).toContainText('PROJECT_COMPLETE');
  await page.getByRole('button',{name:/why.*homes|homes.*why/i}).click();const story=page.getByRole('region',{name:'Recorded change story'});await expect(story).toContainText(/120/);await expect(story).toContainText(/42/);await expect(story).toContainText(/housing/i);await expect(story).toContainText(/synthetic|uncalibrated/i);await expect(story).toContainText(await page.evaluate(()=>window.futureMachine.history.modelVersion));await expect(story).toContainText(await page.evaluate(()=>window.futureMachine.history.experimentId));await evidence(page,testInfo,'interactive-why-month-120');
 });
 

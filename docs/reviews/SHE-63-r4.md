@@ -131,3 +131,64 @@ Configured merge policy is preserved: `.github/workflows/auto-merge.yml` merge
 job has literal false safety hold. Existing draft/review/hold/current-head CI,
 fresh-base and auth/voting/check requirements are untouched. No one-vote quorum,
 auto-merge activation, branch protection or remote policy change was performed.
+
+## Firefox guided-controls follow-up — November 17
+
+Working slice: existing PR422 rebased from926d4edd onto actual sprintdd9f6b68,
+not main. Preserved latest planning entries when resolving the append conflict;
+original test repair and all15 selected browser cases remain intact. Own Canvas
+selection diagnostics, targeted regressions, evidence metadata and this report.
+Acceptance: normal pointer selection of the exact plan building after camera
+and mode changes, immutable seed42/history/month120, all15 Chrome/Firefox/WebKit
+cases on the permissioned GitHub runner, exact SHA artifacts and broader CI.
+No SHE64 dependency, human review, merge or deployment gate is removed.
+
+Inspected exact PRheadcab89f62 CIrun44065051655/job133976475503, downloaded
+artifact14319069818 (50814803bytes; service digest
+7c18c109eb0e9d5d42e4fa9b5e2df24326fe3afc92acf0e58fff6b6031bdcab8).
+Actual result14pass/1fail. Locally retained artifact directory
+`/private/tmp/hbl-she63-ci-44065051655`. Opened Firefox failed screenshot and
+parsed Playwright trace/network/action records. Screenshot explicitly labels
+Canvas2D at Month120 and visibly paints the added plan building, partly clipped
+on the right. Trace reports WebGL2 creation unavailable (`AllowWebgl2:false`),
+then successful camera drag and Difference-only→Split before the target lookup.
+This is not missing simulation inventory or an asynchronous seek failure.
+
+Actual source divergence: Canvas renders and picks the correct recorded polygon,
+but `canvas-stage.js:getStats` exposes no targets, while `scene/index.js:getStats`
+overwrites diagnostics with a list built only from native Three meshes. That
+list is empty on Firefox's valid Canvas fallback. The test also assumes each
+entity's projected center remains inside its viewport after a pan; here the
+center can be clipped although a selectable portion is visibly painted.
+
+Fix: derive Canvas targets from the same polygon projection, arm/curtain clip
+and native Canvas hit test, exposing a verified interior point of the visible
+polygon. The stage forwards the active Canvas diagnostics. No artificial target
+for missing/ghost/offscreen geometry, camera recentering, forced click, assertion
+removal, timeout increase or backend substitution. Original guided pointer and
+PROJECT_COMPLETE assertions remain unchanged. Unit cases cover clipping, mode
+changes, actual pointer selection, triangles, curtain, offscreen/reset/dispose
+and model-input immutability. Monthly City rules/ODD remain unchanged because
+this is a read-only presentation diagnostic over the same versioned records.
+
+Fresh GitHub exact-revision acceptance remains pending until recorded below.
+
+Trace camera evidence: before drag{x:36,z:0,zoom:7.3895348837209305};
+after drag{x:26.526451132837128,z:-2.029897718332022,zoom:7.3895348837209305},
+unchanged through both view switches. Target lookup then returned undefined.
+New guided evidence records backend/month/camera/all targets and canvas bounds
+before the unchanged real scene click; target viewport bounds are now asserted
+additionally. All15 matrix traces are retained, including successful cases.
+
+Focused checks:29 passed,1 existing opt-in browser skip,0failed,327 assertions
+(`bun test test/future-machine-canvas.test.js test/future-machine-scene.test.js test/future-machine-scrub-preview.test.js test/future-machine-scrub-identity.test.js`).
+Discovery lists exactly15 tests across installed Chrome, Firefox and WebKit.
+Syntax and diff checks pass.
+
+Independent review: no blocking defect for the reproduced failure; every candidate
+is rechecked by the normal picker. Candidate points are diagnostic samples, not
+an exhaustive pixel search: a thin visible rim around another occluding polygon
+can still be normally selectable while omitted. Target coordinates are local
+logical CSS pixels in the standalone canvas; CSS-transformed embedding hosts must
+apply their own local-to-page conversion. Reused the Canvas stats snapshot for
+object count to avoid redundant targeting work.
