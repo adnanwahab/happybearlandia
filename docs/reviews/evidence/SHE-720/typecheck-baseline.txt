@@ -1,0 +1,15 @@
+world/challenges/contract.js(37,48): error TS2339: Property 'initialState' does not exist on type '{ months?: number; actions?: undefined[]; referenceSelection?: undefined[]; metrics?: string[]; title?: string; guards?: {}; }'.
+world/challenges/contract.js(37,61): error TS2339: Property 'initial' does not exist on type '{ months?: number; actions?: undefined[]; referenceSelection?: undefined[]; metrics?: string[]; title?: string; guards?: {}; }'.
+world/challenges/contract.js(37,69): error TS2339: Property 'seed' does not exist on type '{ months?: number; actions?: undefined[]; referenceSelection?: undefined[]; metrics?: string[]; title?: string; guards?: {}; }'.
+world/challenges/contract.js(37,84): error TS2339: Property 'budget' does not exist on type '{ months?: number; actions?: undefined[]; referenceSelection?: undefined[]; metrics?: string[]; title?: string; guards?: {}; }'.
+world/challenges/contract.js(50,51): error TS2339: Property 'startMonth' does not exist on type '{}'.
+world/challenges/contract.js(50,62): error TS2339: Property 'months' does not exist on type '{}'.
+world/challenges/contract.js(60,68): error TS2345: Argument of type '{ role: string; }' is not assignable to parameter of type '{ signal: any; onProgress: any; role: any; }'.
+  Type '{ role: string; }' is missing the following properties from type '{ signal: any; onProgress: any; role: any; }': signal, onProgress
+world/challenges/contract.js(60,138): error TS2345: Argument of type '{ role: string; }' is not assignable to parameter of type '{ signal: any; onProgress: any; role: any; }'.
+  Type '{ role: string; }' is missing the following properties from type '{ signal: any; onProgress: any; role: any; }': signal, onProgress
+world/city/seed.js(3,58): error TS2339: Property 'districts' does not exist on type '{ seed?: number; households?: number; }'.
+world/city/systems.js(7,312): error TS2353: Object literal may only specify known properties, and 'geographyType' does not exist in type '{ metricId: string; value: any; }'.
+world/city/systems.js(173,31): error TS2339: Property 'experiencedMinutes' does not exist on type '{ personId: any; originId: any; destinationId: any; mode: string; plannedMinutes: any; route: any; }'.
+world/city/systems.js(173,124): error TS2339: Property 'delayMinutes' does not exist on type '{ personId: any; originId: any; destinationId: any; mode: string; plannedMinutes: any; route: any; }'.
+world/city/systems.js(173,150): error TS2339: Property 'experiencedMinutes' does not exist on type '{ personId: any; originId: any; destinationId: any; mode: string; plannedMinutes: any; route: any; }'.
