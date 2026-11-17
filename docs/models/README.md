@@ -43,3 +43,8 @@ SHE-558: Tonight pantry cooking remains under World Population / House, using th
 existing recipe economy and relationship authorities. The linked Population
 submodel notes and evening contract describe its authored request selection;
 there is no additional independent model inventory row.
+
+Zoning Jury is a read-only paired City replay and preference presentation, not a
+new social model. Its authored inputs, metric-checkpoint verification boundaries,
+existing council rules and limitations are documented in
+[the City ODD](city.md) and [its contract](../../world/city/jury/README.md).

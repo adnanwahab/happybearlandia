@@ -38,3 +38,14 @@ households, 120 monthly steps, housing amounts 1–100 and delay `(index * 7) % 
 for zero-based index 0–99. Other proposal fields retain DEFAULT_RECIPE. These
 inputs are synthetic assumptions, not sampled probabilities. The view reads unit
 inventory projections; it adds no social mechanism, RNG, clock or state authority.
+
+The optional [Zoning Jury](../../world/city/jury/README.md) replays the existing
+engine with the pinned seed-42, 120-household, 36-month initial recipe and no
+shocks. Each housing (six homes, USD 840,000) or upzone (six capacity units,
+USD 20,000) intervention targets d1 and is compared with an unchanged matched
+baseline. Its immutable fixture retains terminal metric projections only.
+Renters, service operators and treasury reuse existing Living City Council
+classification rules; they do not acquire simulated agents, beliefs, a new RNG,
+clock or state authority. Three supports are the authored success condition.
+The treasury cost comparison uses baseline terminal cash as a display preference,
+not funding eligibility. This guide adds no City mechanism or coefficient.
