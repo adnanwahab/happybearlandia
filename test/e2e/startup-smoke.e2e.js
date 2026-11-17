@@ -1,13 +1,17 @@
 import { test, expect } from '@playwright/test';
+import {sameOriginRouteURL} from '../support/startup-route-link.js';
 
 // Bound startup coverage; deeper simulation journeys remain in their own suites.
 const routes = [
-  { path: '/', nodes: ['h1', 'a.flagship-demo', '#explore'], links: [
-    '/world', '/world/future-machine.html', '/tools/future-journey.html',
-    '/tools/simulation-health', '/routes',
+  { path: '/', nodes: ['h1', 'a.flagship-demo', '#explore'], openTools:true, links: [
+    {path:'/world',card:'World',name:'Standalone ↗'},
+    {path:'/world/future-machine.html',name:'Try the 60-second simulation'},
+    {path:'/tools/future-journey.html',name:'Try Today’s Features'},
+    {path:'/tools/simulation-health',name:'Simulation Health'},
+    {path:'/routes',name:'Route directory →'},
   ] },
   // Existing pinned synthetic mode avoids map-service dependencies and autoplay.
-  { path: '/world?demo=1&people=30&quality=LOW', nodes: ['#view canvas', '#world-guide-button', '#top'], world: true },
+  { path: '/world?demo=1&people=30&quality=LOW', nodes: ['#view canvas', '#launch-navigation', '#launch-playback'], world: true },
   { path: '/world/future-machine.html', nodes: ['.fm-ui h1', '.fm-primary', '[data-testid="future-machine-timeline"]'], future: true },
   { path: '/tools/future-journey.html', nodes: ['h1', '#open', '#status'], journey: true },
   { path: '/tools/simulation-health', nodes: ['h1', '#live', '#ready'], health: true },
@@ -32,12 +36,33 @@ for (const route of routes) {
         await expect(page.locator(selector).first(), selector).toBeVisible();
         report.nodes[selector] = 'visible';
       }
-      for (const path of route.links || []) {
-        await expect(page.locator(`a[href="${path}"]`).first(), `advertised target ${path}`).toBeAttached();
+      if(route.openTools)await page.getByText('More worlds and tools',{exact:true}).click();
+      report.links = {};
+      for (const {path,name,card} of route.links || []) {
+        // The universe shell adds navigation context to hrefs. Match the named
+        // link's actual same-origin pathname, preserving its query and fragment.
+        // World lives in its connected directory card; preview templates are
+        // inert until selected and are not advertised navigation in the DOM.
+        const scope=card?page.getByRole('article').filter({has:page.getByRole('heading',{name:card,exact:true})}):page;
+        const link=scope.getByRole('link',{name,exact:true});
+        await expect(link, `advertised link ${name}`).toBeAttached();
+        await expect.poll(async()=>sameOriginRouteURL(await link.getAttribute('href'),page.url(),path),{message:`advertised target ${path}`}).not.toBeNull();
+        report.links[path]=sameOriginRouteURL(await link.getAttribute('href'),page.url(),path);
       }
       if (route.world) {
         await expect.poll(() => page.evaluate(() => Boolean(window.hblWorldStartup?.readyMs)), { message: 'World scene ready' }).toBe(true);
         report.startup = await page.evaluate(() => window.hblWorldStartup);
+        const tools=page.getByRole('button',{name:'More tools',exact:true});
+        await expect(tools).toHaveAttribute('aria-expanded','false');
+        await expect(page.locator('#top')).toBeHidden();
+        await tools.click();
+        await expect(tools).toHaveAttribute('aria-expanded','true');
+        await expect(page.locator('#top')).toBeVisible();
+        await expect(page.locator('#top')).toHaveAttribute('open','');
+        report.nodes['#top']='visible after More tools';
+        await page.keyboard.press('Escape');
+        await expect(tools).toHaveAttribute('aria-expanded','false');
+        await expect(page.locator('#top')).toBeHidden();
       }
       if (route.future) {
         await expect(page.getByRole('button', { name: 'Fork City', exact: true })).toBeEnabled();

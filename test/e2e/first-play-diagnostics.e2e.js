@@ -8,7 +8,7 @@ async function clipboard(page,deny=false){
 test('homepage mock failure requires consent, copies scrubbed bundle and clears on retry',async({page},info)=>{
  await clipboard(page);
  await page.route('**/api/city-experiments**',r=>r.fulfill({status:500,contentType:'application/json',body:JSON.stringify({error:secret})}));
- await page.goto('/');await page.getByRole('link',{name:'Play Demo',exact:true}).click();
+ await page.goto('/');await page.getByRole('link',{name:'Try the 60-second simulation',exact:true}).click();
  const panel=region(page);await expect(panel).toBeVisible();
  const preview=panel.getByRole('textbox');const report=JSON.parse(await preview.inputValue());
  expect(report.errorType).toBe('comparison-failure');expect(Object.keys(report)).toEqual(['schemaVersion','appVersion','renderer','errorType','traceId']);

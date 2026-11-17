@@ -405,6 +405,46 @@ resource containment and external runtime approval/retry/recovery validation.
 Those runtime changes are outside this explicitly scoped publication follow-up.
 No commit/PR reference exists for this revision yet.
 
+## Recorded behavior edit/replay loop (2026-11-14, draft PR #316)
+
+Status: implemented on review branch only. This is a bounded continuation of completed
+SHE-35 rather than a replacement of the existing same-initial-condition comparison.
+
+- The HBL law-panel entry point now exposes editable sensitivity for reviewed numeric
+  factors only (laws 22, 23 and 83) and stores the applied factor in a versioned
+  paired-run manifest. Reviewed discrete mechanisms and unsupported laws do not receive
+  arbitrary sliders. A run always starts from the same frozen model state and seed.
+- The existing comparison worker records up to 100 real timepoints with a bounded,
+  stable sample of 12 synthetic residents/households per branch. Playback shows
+  current/edit time-aligned frames, matched actor state and the real aggregate
+  metric timeline; missing or unchanged data are never substituted with effects.
+- Rerunning cancels old worker results and clears stale panels. A first completed
+  full-strength result is retained for comparisons at matching time and seed.
+- Documented model scope, provenance, test matrix, UX acceptance and gaps:
+  [world/laws/BEHAVIOR_PLAYBACK.md](../world/laws/BEHAVIOR_PLAYBACK.md).
+
+Verification evidence: targeted GitHub Actions workflow "Law behavior playback"
+run 43597696277 completed successfully (Bun contract tests), exercising
+test/law-behavior-playback.test.js and the existing laws/impact/mechanism/visuals
+tests. Local Bun and full browser/manual smoke were unavailable here;
+the broader workflows were still running when this entry was recorded.
+There is no claim of deployment, mobile verification, calibration, or live
+Civic Synthesis native-UI integration.
+
+Next end-to-end slice: define a versioned, authorized read-only paired-run receipt
+API from HBL; import actual sampled actor/time records into the Civic Synthesis
+simulate/edit workspace so screenshots/iframes are not the behavior source; preserve
+the frozen proposal ID, seed, rules version, units and exact horizon; connect a
+reviewed policy-text amendment to an explicit supported numeric parameter and
+offer rerun/undo. Add end-to-end Playwright coverage including stale results,
+unsupported law, inaccessible cross-origin receipt, and mismatched clocks.
+Do not infer unmodeled resident behavior from law prose.
+
+Material risks: nonrepresentative 12-actor visual sample vs population totals,
+cross-model clocks/entity IDs, overinterpreting synthetic differences as causal,
+cross-origin CORS/security/workload caps, and release readiness. Human review and
+production deploy approval remain required.
+
 ## SHE-256 concurrency decision gate — 2026-11-12
 
 Delivered documentation increment: [decision gate](symphony-concurrency-gate.md)
@@ -8664,6 +8704,84 @@ persistence, safe household return and no horizontal overflow at390px/320px.
 WebGL was deliberately disabled for fallback verification; native GPU visuals
 were not reverified. No deployment or Symphony mutation. Hosted CI gates merge.
 
+
+
+### PR #278 integration verification — 2026-11-12
+
+Merged source `c2bf0099341cd57f265e4bcfa10e31e8c2310038` onto current
+main `ab4358f07e461d10940e42e96da1e210a2ab5180`, preserving source ancestry.
+Resolved the older homepage against the current launch hero: its existing main
+heading stays, with a compact Start here explanation, synthetic-scenario limit,
+and accessible description on the one Play Demo link. The CTA retains its
+unchanged destination, timing marker, and click-timing listener. All 52 baseline
+link destinations, the FAQ, preview template/gallery behavior, onboarding, and
+scripts are retained. The complete baseline plan and the original SHE-14 record
+above remain intact. The responsive test also retains the newer browser history
+write-limit emulation while adding homepage checks from this PR.
+
+Actual integration checks:
+- `bun test test/two-futures-demo-controller.test.js test/demo-performance.test.js test/onboarding-experiment.test.js`:
+  16 passed, 0 failed, 77 assertions.
+- Playwright discovery for `approved-demo-responsive.browser.config.js`:
+  all 3 viewport cases discovered; `launch-landing.browser.config.js`: 2 cases.
+- HTML structure comparison: all 52 baseline links unchanged, one primary CTA,
+  unique accessible-description IDs, timing marker present, and the FAQ/gallery/
+  scripts tail unchanged. Full baseline plan preservation checked.
+- Changed test syntax and `git diff --check`: passed.
+
+Browser execution and visual layout remain unverified in this environment:
+Chromium launch was already blocked by a process-singleton `socket()` EPERM.
+No repeated launch or screenshot claim is made for this integration.
+
+
+## Post-merge compatibility follow-up — November 12, 2026
+
+PR #276 integrated the 35 original heads #240–#274 and PR #277 reconciled the
+sprint into main while a separate local integration review was completing. This
+follow-up starts from that actual main commit, ab4358f, and carries forward only
+verified missing compatibility corrections. It does not replace the main tree
+with the parallel integration tree.
+
+The frozen city-challenge.v1 cap is actual cumulative capital expense within the
+recorded horizon. Candidate UI verification must therefore allow a planned
+12,000 housing project delayed ten months in a two-month, zero-cap challenge;
+the actual worker records zero capital spending. The UI now validates the selected
+actions and lets replay enforce the frozen cap, with explicit planned-versus-actual
+copy. The new reference-plan authoring guard remains. A regression imports the
+exact frozen file through the actual panel handler, selects housing, clicks Verify
+and awaits verification.worker.js, asserting unchanged terms and the recorded
+not-beaten result. The old UI rejection was reproduced before the correction.
+
+The current WHY report now records the final evidence.js source digest. All
+thirteen audited source files match the verified generation, and all six
+deterministic run measurements, manifests, state and ledger digests are unchanged.
+The first two-file command hit Bun's default five-second allowance in the existing
+long replay audit; rerunning with the protocol's documented 60-second allowance
+passed all seven tests / 81 assertions. No test deadline or model rule was changed.
+
+
+### Combined compatibility verification on current main
+
+The current-main follow-up combines the saved-challenge correction with focused
+Future Machine fixes for pending preview configuration, manual takeover, exact
+preview arm selection, initial-preview year guards, shared renderer disposal,
+repeated fallback handling, deduplicated live announcements and synchronized
+household selection. Main's additional City Lab lifecycle fix, stronger replay
+and screenshot assertions, explicit preview provenance, stale-receipt guard,
+separate visual household values and final history-reference cleanup remain.
+The device-loss Playwright configuration's import.meta/CommonJS loading error
+was reproduced and the minimal loader-compatible directory resolution collects
+both device-loss journeys.
+
+Final combined selection: 123 passed, two optional browser cases skipped, zero
+failed, 1,031 assertions across 22 files. This includes actual saved replay and
+receipt/challenge preservation, the new imported-file UI/worker regression,
+main's City Lab lifecycle check and all six deterministic WHY audit runs. Both
+changed browser entrypoints compile; the UI group collected 24 browser journeys
+across five configurations and parsed all eleven changed JavaScript files.
+Browser discovery is not browser execution: the previously observed Chromium
+socket EPERM remains the execution limit. No graphics-loss, visual or device
+performance result is claimed.
 ### PR278 homepage entry integration — November 12, 2026
 
 Integrated original head c2bf0099341cd57f265e4bcfa10e31e8c2310038 against
@@ -11159,3 +11277,60 @@ so further disk growth remains a practical limit for a long autonomous session.
 Normal-entry/project integration: 12 passed in sandbox, screenshot fixture could
 not bind there; focused host rerun passed (one test, 22 assertions), including
 before/after images committed through the normal PR publication entry point.
+
+
+## Final queue integration: restore main entry-point wiring — November 12, 2026
+
+This follow-up preserves published main `e5105f4` and sprint `5309003`, including
+all original PR heads #240–#274, the concurrent compatibility corrections, and
+homepage PR #278. The published homepage layout supersedes the earlier local
+PR #278 layout described above. Its only additional HTML change restores the
+existing `data-demo-start` timing hook; all 52 links and the FAQ, gallery,
+onboarding, styles, scripts, and hero figure remain intact.
+
+Restored existing server handlers for session surveys, player feedback, GitHub
+previews, Detective, Operations Observatory, readiness, simulation admission,
+and optional release experiments, plus the two browser-safe media modules.
+Restored quick-demo survey lifecycle and the completed-run year selector with
+matching provenance and deterministic same-year replay. The Activity dashboard
+again bounds requests at eight seconds, ignores late results, and offers explicit
+retry/reopen/new-run recovery while preserving main's panel API. Five supplementary
+directory links are accessible outside the registry filter. These changes restore
+existing behavior without changing simulation rules.
+
+The apparent homepage catalog mismatch was a stale template-count assertion:
+the actual gallery initializer renders all 33 registered experiences from 32 inert
+templates. The replacement test runs that initializer and checks the complete,
+ordered route list. GitHub preview fixture directories now use the platform's
+canonical temporary directory; the production runner is unchanged.
+
+Final combined verification on the candidate containing both published parents:
+- Bun 1.4.4: 134 passed, zero failed, 1,221 assertions across 24 files (44.13s),
+  with `HBL_RELEASE_HTTP_TEST=1`, `HBL_ADMISSION_HTTP=1`, and `--timeout 60000`.
+  Coverage includes real HTTP route/validation/admission checks, survey and
+  feedback contracts, preview providers, release experiments, Activity timeout
+  and retry behavior, actual repeat/year worker replay, navigation, onboarding,
+  and demo timing/controller behavior.
+- Browser builds for `world/render.js`, `world/activity-dashboard.js`, and
+  `world/first-run-guide.js` passed (368 modules).
+- Read-only preservation reviews confirmed the runtime and Activity repairs
+  unchanged after both remote merges; both published plan histories are retained.
+- All three responsive browser cases are discoverable at 1440, 390, and 320px;
+  the test now asserts the homepage timing marker. Discovery is not execution.
+- Whitespace validation passed. Chromium execution remains blocked by the
+  environment's process-singleton socket EPERM; no new browser-layout, screenshot,
+  native-GPU, or device-performance acceptance is claimed.
+
+## Civic launch integration — November 14, 2026
+
+Baseline: main `3faa2699655baed0e5550cd0aec450a132ef29f1`; primary sprint dirty work preserved. Next slice: existing native law receipt → revision-bound public navigation → same-seed law-83 strength edit and recorded playback, flagship entry and bounded /world lifecycle. Own shared routing/contracts here; independent entry and QA branches own distinct files, Civic implementation owns React. No receipt payload expansion or model rules changes. Acceptance: real paired API execution, safe context import/export, 320px/reduced-motion/keyboard browser journey, timeout/cancel/error paths, privacy exclusion, seed/golden replay checks. Risks: production SHA/deployment mismatch and existing scheduling regression; neither merge records nor static/mocked browser rendering qualify live integration. Release and outreach sending require separate human authorization. Actual evidence and remaining scope are recorded under docs/launch-2026-11-14.
+
+Civic launch evidence: entry slice integrated asdd9bee4a and lifecycle slice asd4532372. Final combined real-browser suite9/9passed, startup6/6, focused integration22tests171assertions, replay44tests340assertions, city22tests134assertions, model replay106cases and housing validation passed. Source/context API suite42tests678assertions passed. See [candidate reports](launch-2026-11-14/FINAL_REPORT.md); production lawAPI preflight404 and unknown/null serving commit identity remain release blockers. No production or governance changes. Private20draft outreach packet is not committed or sent.
+
+### Reviewed beta release qualification — November 14, 2026
+
+The operator reviewed runtime `2f9741bd8843ba0f5dcd85cf9c343e559e52e79b` and authorized release with an exception only for the pre-existing software-renderer frame-p95 budget failure. No performance thresholds, simulation workload, sandbox or governance protections changed. Later test-only corrections align all homepage selectors, respect normal admission windows and explicitly enable the responsive cases' reduced-motion preference in the shared cross-browser configuration. The application image remains pinned to reviewed source.
+
+Cloud-only encrypted snapshot restores and actual previous-image compatibility checks passed for both applications. The final HBL image reports the exact reviewed build identity and preserves original database records. Raw production records and backup archives were not downloaded; only redacted verification metadata is retained locally. Temporary restore helpers were removed and encrypted backups remain in Fly.
+
+Civic reviewed source `795c6944` passed 536 tests, type checks, route checks and 75 accessibility cases; PR123 merged as `54f1c732`. Its production release remains gated on provider rollout and tagged-release validation. HBL's hosted model matrix and six-sample calibration passed; numeric first-interaction proposals remain unapplied. The final locally executed canonical selections passed: shared flagship 4/4, Time Machine 4/4, causal inspector 9/9 and normal replay/malformed manifest 2/2. Final hosted verification and actual production/browser parity are still required. Subsequent release status and evidence are recorded in [PR320](https://github.com/adnanwahab/happybearlandia/pull/320) and the reviewed Civic release.

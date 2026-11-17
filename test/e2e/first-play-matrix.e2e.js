@@ -31,7 +31,7 @@ for(const path of ['automatic','no-webgpu','no-graphics'])test(`first play: ${pa
    document.addEventListener('click',event=>{if(event.target.closest('a')?.textContent.trim()==='Play Demo')sessionStorage.setItem('firstPlayClick',String(performance.timeOrigin+performance.now()));},true);
    const click=sessionStorage.getItem('firstPlayClick');if(click)window.firstPlayProbe.click=Number(click)-performance.timeOrigin;
   },path);
-  await page.goto('/');await page.getByRole('link',{name:'Play Demo',exact:true}).click();
+  await page.goto('/');await page.getByRole('link',{name:'Try the 60-second simulation',exact:true}).click();
   await expect.poll(()=>page.evaluate(()=>window.futureMachine?.state.status)).toBe('ready');
   await page.getByRole('button',{name:'Pause demo',exact:true}).click();
   const backend=await page.evaluate(()=>window.futureMachine.stats.scene.backend);
