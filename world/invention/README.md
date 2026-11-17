@@ -71,3 +71,27 @@ Checks: `bun test test/block-diorama.test.js` and
 `bunx playwright test --config test/block-diorama.browser.config.mjs`.
 Browser acceptance and before/after screenshots require a host that permits server
 binding and Chromium launch; see `docs/reviews/SHE-567.md`.
+
+### Smart handles (SHE-669)
+
+Tabletop pointer and arrow handles choose the nearest **valid** 5 m grid anchor
+within 6 m of the requested center, using squared distance then ascending X/Z.
+These are editing assumptions in the existing synthetic block coordinates, not
+surveyed parcels or modeled location effects. Candidates use the same rotated
+footprint, bounds and overlap validator as confirmation. No valid nearby anchor
+leaves the draft in place with text feedback. Exact coordinate inputs can still
+hold invalid drafts; Confirm always rejects them.
+
+Vibration defaults off, is session-local, and requires API support, a trusted
+active user gesture and no reduced-motion preference. Pulses are 8 ms, at most
+once per 80 ms; browser refusal/exception does not affect placement. Text feedback,
+keyboard controls and focus outlines work without vibration or animation.
+`#board.dataset.pacing` holds bounded counters for updates, maximum update time,
+event gap, frame count and maximum frame gap (milliseconds). Frame sampling runs
+only during pointer gestures and stops on release, cancellation, capture loss,
+Exit/Escape or pagehide; it is local diagnostics, not live analytics.
+
+Checks: `bun test test/smart-snap.test.js test/block-diorama.test.js` and the
+existing diorama browser suite. Set `HBL_BUN_EXECUTABLE` to an absolute Bun binary
+when the package-manager Bun shim is unavailable. Browser and hardware acceptance
+status is recorded in `docs/reviews/SHE-669.md`.

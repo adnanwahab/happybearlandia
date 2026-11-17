@@ -11,6 +11,9 @@
 <section id="editor" hidden aria-label="Miniature inspector">
 <h2>Inspect selected miniature</h2><label>Selected building <select id="selection"></select></label>
 <p>Drag the selected handle, use arrow keys (5 m), or enter coordinates. Rotation changes only the draft. Touch users can drag or use these controls.</p>
+<p>Handles snap to the nearest valid 5 m grid anchor within 6 m; equal distances choose lower X, then Z. Invalid moves stay at the last valid position. Coordinate fields allow exact drafts; confirmation always validates.</p>
+<label><input id="haptics" type="checkbox"> Optional vibration</label><span id="haptic-support">Requires browser support and an active user gesture; disabled with reduced motion.</span>
+<p id="snap-feedback" aria-live="polite"></p>
 <label>X (meters) <input id="x" type="number" step="5"></label>
 <label>Z (meters) <input id="z" type="number" step="5"></label>
 <button id="rotate">Rotate 45°</button><p id="inspection"></p>
