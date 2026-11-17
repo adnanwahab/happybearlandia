@@ -1,0 +1,128 @@
+{
+  "housing": {
+    "version": "zoning-jury.v1",
+    "option": "housing",
+    "recipe": {
+      "seed": 42,
+      "households": 120,
+      "months": 36
+    },
+    "proposal": {
+      "type": "housing",
+      "districtId": "d1",
+      "amount": 6,
+      "cost": 840000
+    },
+    "baseline": {
+      "id": "zoning-jury.v1:baseline:42:36",
+      "arm": "baseline",
+      "modelVersion": "city-systems.1.1.0",
+      "seed": 42,
+      "month": 36,
+      "metrics": {
+        "population": 366,
+        "households": 123,
+        "housingUnits": 135,
+        "availableUnits": 0,
+        "meanRent": 1147.1868449864112,
+        "unhoused": 123,
+        "employed": 26,
+        "jobs": 27,
+        "businesses": 9,
+        "meanTravelMinutes": 15.001308344888889,
+        "overloadedServices": 5,
+        "utilityFailures": 0,
+        "balance": 11572026.921476563,
+        "debt": 0,
+        "completedProjects": 0
+      }
+    },
+    "plan": {
+      "id": "zoning-jury.v1:housing:42:36",
+      "arm": "housing",
+      "modelVersion": "city-systems.1.1.0",
+      "seed": 42,
+      "month": 36,
+      "metrics": {
+        "population": 366,
+        "households": 123,
+        "housingUnits": 141,
+        "availableUnits": 0,
+        "meanRent": 1147.164461544808,
+        "unhoused": 117,
+        "employed": 26,
+        "jobs": 27,
+        "businesses": 9,
+        "meanTravelMinutes": 15.001308344888889,
+        "overloadedServices": 5,
+        "utilityFailures": 0,
+        "balance": 10743785.262684379,
+        "debt": 0,
+        "completedProjects": 1
+      }
+    }
+  },
+  "zoning": {
+    "version": "zoning-jury.v1",
+    "option": "zoning",
+    "recipe": {
+      "seed": 42,
+      "households": 120,
+      "months": 36
+    },
+    "proposal": {
+      "type": "upzone",
+      "districtId": "d1",
+      "amount": 6,
+      "cost": 20000
+    },
+    "baseline": {
+      "id": "zoning-jury.v1:baseline:42:36",
+      "arm": "baseline",
+      "modelVersion": "city-systems.1.1.0",
+      "seed": 42,
+      "month": 36,
+      "metrics": {
+        "population": 366,
+        "households": 123,
+        "housingUnits": 135,
+        "availableUnits": 0,
+        "meanRent": 1147.1868449864112,
+        "unhoused": 123,
+        "employed": 26,
+        "jobs": 27,
+        "businesses": 9,
+        "meanTravelMinutes": 15.001308344888889,
+        "overloadedServices": 5,
+        "utilityFailures": 0,
+        "balance": 11572026.921476563,
+        "debt": 0,
+        "completedProjects": 0
+      }
+    },
+    "plan": {
+      "id": "zoning-jury.v1:zoning:42:36",
+      "arm": "zoning",
+      "modelVersion": "city-systems.1.1.0",
+      "seed": 42,
+      "month": 36,
+      "metrics": {
+        "population": 366,
+        "households": 123,
+        "housingUnits": 135,
+        "availableUnits": 0,
+        "meanRent": 1147.1868449864112,
+        "unhoused": 123,
+        "employed": 26,
+        "jobs": 27,
+        "businesses": 9,
+        "meanTravelMinutes": 15.001308344888889,
+        "overloadedServices": 5,
+        "utilityFailures": 0,
+        "balance": 11552026.921476563,
+        "debt": 0,
+        "completedProjects": 0
+      }
+    }
+  }
+}
