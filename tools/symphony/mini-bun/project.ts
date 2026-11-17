@@ -1,7 +1,8 @@
 import path from 'node:path';
+import type {PublicationOptions} from './publication';
 import {validateScreenshotConfig,type ScreenshotConfig} from './screenshots';
 import { readFileSync } from 'node:fs';
-export type Project = { schemaVersion: 1; name: string; repository: string; githubRepository: string; linearProjectId: string; linearProjectUrl: string; baseBranch: string; dataDirectory: string; workspaceDirectory?: string; syncIntervalMs?: number; screenshots?: ScreenshotConfig; cleanupMergedWorkspaces?: boolean; requiredLabels?: string[]; heldIssues?: Record<string,string>; prerequisiteIssueIds?: string[] };
+export type Project = { schemaVersion: 1; name: string; repository: string; githubRepository: string; linearProjectId: string; linearProjectUrl: string; baseBranch: string; dataDirectory: string; workspaceDirectory?: string; syncIntervalMs?: number; screenshots?: ScreenshotConfig; cleanupMergedWorkspaces?: boolean; requiredLabels?: string[]; heldIssues?: Record<string,string>; prerequisiteIssueIds?: string[]; draftIssueIds?: string[] };
 export function githubIdentity(remote: string) {
   const match = /^(?:https:\/\/github\.com\/|git@github\.com:)([\w.-]+\/[\w.-]+?)(?:\.git)?\/?$/.exec(remote.trim());
   return match?.[1].toLowerCase() ?? null;
@@ -15,6 +16,7 @@ export function readProject(file: string): Project {
   if(config.requiredLabels!==undefined&&(!Array.isArray(config.requiredLabels)||config.requiredLabels.some(x=>typeof x!=='string'||!x.trim())))throw Error('Invalid requiredLabels');
   if (config.heldIssues !== undefined && (typeof config.heldIssues !== 'object' || config.heldIssues === null || Array.isArray(config.heldIssues) || Object.values(config.heldIssues).some(v => typeof v !== 'string'))) throw Error('Invalid heldIssues');
   if(config.prerequisiteIssueIds!==undefined&&(!Array.isArray(config.prerequisiteIssueIds)||config.prerequisiteIssueIds.some(id=>typeof id!=='string'||!/^\w+-\d+$/.test(id))))throw Error('Invalid project prerequisites');
+  validateDraftIssueIds(config.draftIssueIds);
   const repository = path.resolve(path.dirname(source), config.repository);
   const workspaceDirectory = config.workspaceDirectory === undefined
     ? path.join(path.dirname(repository), `.${path.basename(repository)}-mini-symphony-workspaces`)
@@ -25,6 +27,7 @@ export function readProject(file: string): Project {
 }
 export function validateProjectTasks(tasks: any[], project?: Project) {
   if (!Array.isArray(tasks) || tasks.some(t => !t || typeof t.id !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(t.id) || typeof t.prompt !== 'string' || !t.prompt.trim() || (t.enabled !== undefined && typeof t.enabled !== 'boolean') || (t.retry !== undefined && typeof t.retry !== 'boolean')) || new Set(tasks.map(t => t.id)).size !== tasks.length) throw Error('Invalid tasks.json: expected unique safe IDs, prompts, and boolean flags');
+  for (const task of tasks) publicationOptionsForTask(project,task);
   if (project && tasks.some(t => t.githubRepository !== project.githubRepository || t.linearProjectId !== project.linearProjectId)) throw Error('Task belongs to a different repository or Linear project');
 }
 export function projectBinding(project: Project) {
@@ -39,4 +42,16 @@ export function validateBinding(binding: any, project: Project) {
 export function workerEnvironment(env: NodeJS.ProcessEnv = process.env) {
   const names = ['PATH','HOME','USER','LOGNAME','SHELL','TMPDIR','TMP','TEMP','LANG','LC_ALL','TERM','COLORTERM','CODEX_HOME','OPENAI_API_KEY','OPENAI_BASE_URL','HTTP_PROXY','HTTPS_PROXY','NO_PROXY','SSL_CERT_FILE','NODE_EXTRA_CA_CERTS','HBL_BROWSER_JOB_LIMIT','HBL_BROWSER_MIN_FREE_BYTES','HBL_BROWSER_JOB_DIRECTORY'];
   return Object.fromEntries(names.filter(name => env[name] !== undefined).map(name => [name,env[name]!])) as NodeJS.ProcessEnv;
+}
+
+const canonicalIssueId = /^[A-Z][A-Z0-9]*-[1-9]\d*$/;
+export function validateDraftIssueIds(ids: unknown): asserts ids is string[] | undefined {
+  if (ids !== undefined && (!Array.isArray(ids) || ids.some(id => typeof id !== 'string' || !canonicalIssueId.test(id)) || new Set(ids).size !== ids.length)) throw Error('Invalid draftIssueIds: expected unique canonical issue IDs');
+}
+/** Trusted profile policy; issue revisions inherit their original issue's mode. */
+export function publicationOptionsForTask(project: Pick<Project,'draftIssueIds'> | undefined, task: {id:string; issueId?:string}): PublicationOptions {
+  validateDraftIssueIds(project?.draftIssueIds);
+  const derived = /^([A-Z][A-Z0-9]*-[1-9]\d*)(?:-r[1-9]\d*)?$/.exec(task.id)?.[1];
+  if (task.issueId !== undefined && (!canonicalIssueId.test(task.issueId) || (derived && derived !== task.issueId))) throw Error('Invalid publication issue identity');
+  return {draft: (project?.draftIssueIds ?? []).includes(task.issueId ?? derived ?? '')};
 }

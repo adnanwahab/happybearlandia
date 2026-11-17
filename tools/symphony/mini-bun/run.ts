@@ -15,9 +15,9 @@ import { fetchProjectIssues } from './linear-import';
 import { refreshRunningProject } from './refresh';
 import { runnable, queueSummary, waitingExplanation } from './queue';
 import { createTaskWorkspace, resolveTaskWorkspace } from './workspace';
-import { readProject, githubIdentity, validateProjectTasks, projectBinding, validateBinding, workerEnvironment } from './project';
+import { readProject, githubIdentity, validateProjectTasks, projectBinding, validateBinding, workerEnvironment, publicationOptionsForTask } from './project';
 
-type Task = { id: string; prompt: string; enabled?: boolean; retry?: boolean; linearStatus?: string; linearStatusType?: string; url?: string; holdReason?: string | null };
+type Task = { id: string; issueId?: string; prompt: string; enabled?: boolean; retry?: boolean; linearStatus?: string; linearStatusType?: string; url?: string; holdReason?: string | null };
 type Entry = { status: 'running' | 'needs_review' | 'failed' | 'interrupted' | 'publishing' | 'pr_created' | 'publish_failed' | 'no_changes'; attempt: number; startedAt: string; finishedAt?: string; exitCode?: number | null; log?: string; pullRequestUrl?: string; publishError?: string; sessionId?: string };
 const argv = process.argv.slice(2), configIndex = argv.indexOf('--config');
 const project = configIndex >= 0 ? readProject(argv[configIndex + 1] ?? '') : undefined;
@@ -86,8 +86,9 @@ function command(bin: string, args: string[], cwd: string) {
   return { code: result.exitCode, stdout: new TextDecoder().decode(result.stdout), stderr: new TextDecoder().decode(result.stderr) };
 }
 async function publishTask(task: Task, workspace: string, log: string) {
+  const publication = publicationOptionsForTask(project, task);
   telemetry?.activity(task.id, 'publishing');
-  await telemetry?.event('publication_started', 'Checking and publishing a ready-for-review PR.', {}, task.id);
+  await telemetry?.event('publication_started', 'Checking trusted task publication policy.', {draft:publication.draft}, task.id);
   const entry = state[task.id]; entry.status = 'publishing'; entry.sessionId=telemetry?.sessionId; await save(state);
   await logLine(log, `Preparing PR: base=${prBase}, branch=mini/${task.id}`);
   const title = `[${task.id}] ${task.prompt.split('\n')[0].replace(/^Linear issue [^:]+:\s*/, '').slice(0, 180)}`;
@@ -111,9 +112,9 @@ async function publishTask(task: Task, workspace: string, log: string) {
   let reused = false;
   const beforeEvidence=evidence ? JSON.parse(await readFile(path.join(evidenceDirectory(task.id),`${task.id}-before.json`),'utf8')) : null;
   const prBody=evidence ? (head:string)=>body+screenshotMarkdown(project!.githubRepository,head,beforeEvidence)+screenshotMarkdown(project!.githubRepository,head,evidence) : body;
-  const url = publishDraft(command, workspace, task.id, prBase, title, prBody, result => { reused = result.reused; });
+  const url = publishDraft(command, workspace, task.id, prBase, title, prBody, result => { reused = result.reused; }, publication);
   entry.status = 'pr_created'; entry.pullRequestUrl = url; entry.publishError = undefined;
-  await save(state); await telemetry?.event('pr_created', reused ? 'Existing PR reconciled; no new PR created.' : 'New ready-for-review PR published; review and acceptance are pending.', {url, reused}, task.id); await logLine(log, `PR created: ${url}`); console.log(`[${task.id}] PR: ${url}`);
+  await save(state); await telemetry?.event('pr_created', reused ? 'Existing PR reconciled; no new PR created.' : publication.draft ? 'New draft PR published; review and acceptance are pending.' : 'New ready-for-review PR published; review and acceptance are pending.', {url, reused, draft:publication.draft}, task.id); await logLine(log, `PR created: ${url}`); console.log(`[${task.id}] PR: ${url}`);
 }
 // Check routing before creating a lock, rewriting state, or launching a worker.
 if (project) {
@@ -125,7 +126,7 @@ if (argv.includes('--check')) {
   const tasks = JSON.parse(await readFile(tasksPath, 'utf8'));
   validateProjectTasks(tasks, project);
   const snapshot = existsSync(statePath) ? JSON.parse(await readFile(statePath, 'utf8')) : {};
-  console.log(JSON.stringify({ project: project?.name ?? null, repository: repo, githubRepository: project?.githubRepository ?? null, linearProjectId: project?.linearProjectId ?? null, base: prBase, dataDirectory: root, workspaceDirectory: workspaces, concurrency, autoDebug, queue: queueSummary(tasks, snapshot) }, null, 2));
+  console.log(JSON.stringify({ project: project?.name ?? null, repository: repo, githubRepository: project?.githubRepository ?? null, linearProjectId: project?.linearProjectId ?? null, base: prBase, dataDirectory: root, workspaceDirectory: workspaces, concurrency, autoDebug, publication: {default: 'regular', draftIssueIds: project?.draftIssueIds ?? []}, queue: queueSummary(tasks, snapshot) }, null, 2));
   process.exit(0);
 }
 await mkdir(workspaces, { recursive: true }); await mkdir(logs, { recursive: true });

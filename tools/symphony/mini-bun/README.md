@@ -18,12 +18,44 @@ When a same-repository `mini/SHE-<number>` or `mini/SHE-<number>-r<revision>` PR
 
 Ctrl-C stops the current worker and records an interrupted attempt. Timeout defaults to one hour and can be changed with `MINI_SYMPHONY_TIMEOUT_MS`. The runner commits, pushes, and publishes ready-for-review PRs; it never merges or deploys. Remove an entry from state only after reviewing it if you intentionally want a new attempt; do not delete a worktree with unreviewed work.
 
+### Trusted publication policy
+
+Regular ready-for-review PRs remain the default. A trusted project profile can
+set `draftIssueIds` to a unique list of canonical Linear IDs, for example:
+
+```json
+{"draftIssueIds":["SHE-991","SHE-992","SHE-993","SHE-994","SHE-995","SHE-996"]}
+```
+
+This is a profile fragment, not a live configuration change. IDs must be uppercase
+team keys and positive issue numbers; revision IDs such as `SHE-995-r2` inherit
+the original issue's policy. An explicit task `issueId` must agree with an ID
+that encodes the original issue. Invalid lists or identities fail before dispatch.
+Worker prompts cannot select or override publication mode.
+
+Configured tasks create PRs with `--draft`. Recovery preserves drafts and converts
+an exact owned clean regular PR to draft using `gh pr ready --undo`; it never
+promotes a configured draft. Branch, base, local/origin/PR head and same-repository
+identity are checked freshly before mode mutation and again afterward. A failed
+mutation or changed identity produces no success receipt and remains retryable;
+a lost successful response is reconciled without duplicate creation or mutation.
+A merged PR cannot satisfy a newly required draft policy and is held for review.
+Default tasks keep the existing regular-PR recovery behavior. Draft status is
+already a recognized integration-queue policy hold; no merge policy changes.
+
+`run.ts --config <profile> --check` prints the effective `publication` default and
+canonical draft issue list without starting workers or mutating queue state.
+Profiles are loaded at runner startup: review the code, focused checks and profile
+change, stop/restart through the existing approved operator procedure, and verify
+`--check` before dispatch. This change does not install a live profile, restart a
+process, enable tasks/labels, merge or deploy anything.
+
 ### Remaining-queue recovery
 
 Run `bun test tools/symphony/mini-bun/recovery.test.ts` from the repository root.
 Publication now resumes after commit, push, PR creation, or an interrupted
 `publishing` state. It checks for an existing matching PR before creation and
-holds closed PRs or divergent local work for review. A recovered open draft is
+holds closed PRs or divergent local work for review. Without an explicit draft policy, a recovered open draft is
 made ready only when the same repository, branch, base, clean local tree and exact
 local/origin/PR head agree, then a fresh PR identity check still agrees. Failed
 ready calls remain publication failures and retry idempotently. This applies only
