@@ -19,6 +19,9 @@ logs
 _.log
 report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
+# Mini Symphony task worktrees are nested Git checkouts, not source files
+/workspaces/
+
 # dotenv environment variable files
 .env.op
 .env
@@ -38,9 +41,10 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # Finder (MacOS) folder config
 .DS_Store
 
-# Playwright artifacts
-/test-results/
-/playwright-report/
+# Generated browser evidence belongs to CI artifacts
+/.mini-symphony-evidence/
+**/test-results/
+**/playwright-report/
 
 # Private coupled-city SQLite storage
 .hbl-city/
@@ -53,3 +57,13 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Private patch votes and agent job state
 .hbl-private/
+
+# Mini Symphony curated session evidence (local operator data)
+/telemetry/
+
+# Local simulation benchmark score archives
+.hbl-benchmarks/
+
+# Local Mini Symphony browser artifacts (CI uploads them separately)
+/artifacts/mini-symphony/
+/.mini-symphony-evidence/

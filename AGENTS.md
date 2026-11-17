@@ -18,6 +18,13 @@ Build reliable, maintainable features that work through the application’s norm
 
 When independent implementation tasks justify delegation and the environment permits it, use up to six agents within its concurrency limit. Map dependencies first. Give each agent an isolated worktree or branch, owned files and interfaces, acceptance criteria, and verification commands. Assign shared interfaces to one owner and integrate completed work in dependency order. The coordinating agent owns architecture, integration, and the final verification.
 
+## Parallel PR hygiene
+
+- `mini/*` and `symphony/*` workers must not edit `docs/implementation-plan.md`; keep issue records in `docs/reviews/<ISSUE-ID>.md`.
+- Reserve shared source interfaces and files to one owner. Park work on overlapping active PRs until reconciliation.
+- Do not commit generated `.mini-symphony-evidence/`, `test-results/`, `playwright-report/` screenshots or traces. Use trusted CI artifacts tied to tested head SHA. Reviewed golden fixtures are distinct.
+- See [PR hygiene](docs/pr-hygiene.md). Human review, branch protection, and release authorization remain separate.
+
 ## Simulation requirements
 
 - Maintain the [ODD model inventory and descriptions](docs/models/README.md). Every new agent-based social model needs all seven ODD elements. Update affected descriptions in the same change as model rules, assumptions, inputs or scheduling. Before approval, reviewers must compare the description and linked subsystem contracts against executable code and record paths checked, discrepancies resolved and verification evidence in the PR. State assumptions beside the mechanism that uses them.
