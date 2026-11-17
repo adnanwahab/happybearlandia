@@ -1,0 +1,67 @@
+2026-11-17T10:16:44.6587246Z Ubuntu
+2026-11-17T10:16:44.6591541Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261111.370/images/ubuntu/Ubuntu2404-Readme.md
+2026-11-17T10:16:54.5379236Z Downloading a new version of Bun: https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-linux-x64.zip
+2026-11-17T10:16:55.7076071Z 1.4.4+38afee6c8
+2026-11-17T10:16:55.7319824Z bun install v1.4.4 (38afee6c8)
+2026-11-17T10:17:07.8175315Z Get:21 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 libdav1d7 amd64 1.4.1-1build1 [604 kB]
+2026-11-17T10:17:11.3421845Z Get:70 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 libflac12t64 amd64 1.4.3+ds-2.1ubuntu2 [197 kB]
+2026-11-17T10:17:21.4573808Z Preparing to unpack .../019-libdav1d7_1.4.1-1build1_amd64.deb ...
+2026-11-17T10:17:21.4580653Z Unpacking libdav1d7:amd64 (1.4.1-1build1) ...
+2026-11-17T10:17:26.5859693Z Preparing to unpack .../068-libflac12t64_1.4.3+ds-2.1ubuntu2_amd64.deb ...
+2026-11-17T10:17:26.5929781Z Unpacking libflac12t64:amd64 (1.4.3+ds-2.1ubuntu2) ...
+2026-11-17T10:17:34.8806735Z Setting up libdav1d7:amd64 (1.4.1-1build1) ...
+2026-11-17T10:17:34.9113707Z Setting up libflac12t64:amd64 (1.4.3+ds-2.1ubuntu2) ...
+2026-11-17T10:17:50.4279325Z Google Chrome 157.0.8103.78 
+2026-11-17T10:17:55.1007545Z Linux runnervm8axu0 7.0.0-1017-azure #17~24.04.1-Ubuntu SMP PREEMPT Thu Sep 24 18:46:57 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+2026-11-17T10:17:55.1019667Z 1.4.4
+2026-11-17T10:17:55.4966197Z Version 1.63.0
+2026-11-17T10:17:55.5328557Z Google Chrome 157.0.8103.78 
+2026-11-17T10:17:55.5594694Z [SHE-63] Running real browser matrix on 127.0.0.1:35175
+2026-11-17T10:18:09.0004657Z   ✘   1 [installed-chrome] › test/e2e/future-machine-share-reliability.e2e.js:6:5 › actual saved replay retains selected month, identity and exact histories after refresh (11.0s)
+2026-11-17T10:18:16.4726581Z   ✓   2 [installed-chrome] › test/e2e/two-futures-compatibility.e2e.js:42:5 › 320px Canvas comparison retains timeline, metrics and WHY without overflow (6.9s)
+2026-11-17T10:18:53.7958135Z   ✘   3 [installed-chrome] › test/e2e/two-futures-sprint.e2e.js:46:5 › real paired runs: matched start, physical divergence, metrics, timeline and deterministic refresh (37.1s)
+2026-11-17T10:19:37.7128565Z   ✘   4 [installed-chrome] › test/e2e/two-futures-sprint.e2e.js:59:5 › guided controls, shared camera, difference-only and metric WHY (43.2s)
+2026-11-17T10:20:13.7998050Z   ✘   5 [installed-chrome] › test/e2e/two-futures-sprint.e2e.js:73:5 › forced unavailable WebGL retains actual paired evidence and selection (35.3s)
+2026-11-17T10:20:30.1798444Z   ✘   6 [playwright-firefox] › test/e2e/future-machine-share-reliability.e2e.js:6:5 › actual saved replay retains selected month, identity and exact histories after refresh (14.4s)
+2026-11-17T10:20:38.2001927Z   ✓   7 [playwright-firefox] › test/e2e/two-futures-compatibility.e2e.js:42:5 › 320px Canvas comparison retains timeline, metrics and WHY without overflow (7.3s)
+2026-11-17T10:21:18.3591949Z   ✘   8 [playwright-firefox] › test/e2e/two-futures-sprint.e2e.js:46:5 › real paired runs: matched start, physical divergence, metrics, timeline and deterministic refresh (38.3s)
+2026-11-17T10:22:05.8657041Z   ✘   9 [playwright-firefox] › test/e2e/two-futures-sprint.e2e.js:59:5 › guided controls, shared camera, difference-only and metric WHY (44.5s)
+2026-11-17T10:22:46.7369803Z   ✘  10 [playwright-firefox] › test/e2e/two-futures-sprint.e2e.js:73:5 › forced unavailable WebGL retains actual paired evidence and selection (38.1s)
+2026-11-17T10:23:10.6142087Z   ✓  11 [playwright-webkit] › test/e2e/future-machine-share-reliability.e2e.js:6:5 › actual saved replay retains selected month, identity and exact histories after refresh (22.8s)
+2026-11-17T10:23:20.3520025Z   ✓  12 [playwright-webkit] › test/e2e/two-futures-compatibility.e2e.js:42:5 › 320px Canvas comparison retains timeline, metrics and WHY without overflow (9.7s)
+2026-11-17T10:24:02.7148668Z   ✘  13 [playwright-webkit] › test/e2e/two-futures-sprint.e2e.js:46:5 › real paired runs: matched start, physical divergence, metrics, timeline and deterministic refresh (41.1s)
+2026-11-17T10:24:49.9404668Z   ✘  14 [playwright-webkit] › test/e2e/two-futures-sprint.e2e.js:59:5 › guided controls, shared camera, difference-only and metric WHY (45.4s)
+2026-11-17T10:25:30.3133726Z   ✘  15 [playwright-webkit] › test/e2e/two-futures-sprint.e2e.js:73:5 › forced unavailable WebGL retains actual paired evidence and selection (38.7s)
+2026-11-17T10:25:30.3552472Z     Expected: 16
+2026-11-17T10:25:30.3552731Z     Received: 0
+2026-11-17T10:25:30.3568049Z     test-results/she63/tests/future-machine-share-relia-27c2d-act-histories-after-refresh-installed-chrome/test-failed-1.png
+2026-11-17T10:25:30.3578321Z     Expected: 120
+2026-11-17T10:25:30.3578570Z     Received: 0
+2026-11-17T10:25:30.3597594Z     test-results/she63/tests/two-futures-sprint.e2e.js--f2369-e-and-deterministic-refresh-installed-chrome/test-failed-1.png
+2026-11-17T10:25:30.3606837Z     Expected: 120
+2026-11-17T10:25:30.3607086Z     Received: 5
+2026-11-17T10:25:30.3625064Z     test-results/she63/tests/two-futures-sprint.e2e.js--3acb9-ference-only-and-metric-WHY-installed-chrome/test-failed-1.png
+2026-11-17T10:25:30.3634641Z     Expected: 120
+2026-11-17T10:25:30.3634896Z     Received: 0
+2026-11-17T10:25:30.3646885Z     test-results/she63/tests/two-futures-sprint.e2e.js--16be4-ired-evidence-and-selection-installed-chrome/test-failed-1.png
+2026-11-17T10:25:30.3703094Z     test-results/she63/tests/future-machine-share-relia-27c2d-act-histories-after-refresh-playwright-firefox/test-failed-1.png
+2026-11-17T10:25:30.3712520Z     Expected: 120
+2026-11-17T10:25:30.3712763Z     Received: 0
+2026-11-17T10:25:30.3730292Z     test-results/she63/tests/two-futures-sprint.e2e.js--f2369-e-and-deterministic-refresh-playwright-firefox/test-failed-1.png
+2026-11-17T10:25:30.3739394Z     Expected: 120
+2026-11-17T10:25:30.3739645Z     Received: 3
+2026-11-17T10:25:30.3756574Z     test-results/she63/tests/two-futures-sprint.e2e.js--3acb9-ference-only-and-metric-WHY-playwright-firefox/test-failed-1.png
+2026-11-17T10:25:30.3765690Z     Expected: 120
+2026-11-17T10:25:30.3765931Z     Received: 0
+2026-11-17T10:25:30.3783744Z     test-results/she63/tests/two-futures-sprint.e2e.js--16be4-ired-evidence-and-selection-playwright-firefox/test-failed-1.png
+2026-11-17T10:25:30.3792874Z     Expected: 120
+2026-11-17T10:25:30.3793115Z     Received: 0
+2026-11-17T10:25:30.3810584Z     test-results/she63/tests/two-futures-sprint.e2e.js--f2369-e-and-deterministic-refresh-playwright-webkit/test-failed-1.png
+2026-11-17T10:25:30.3818155Z     Expected: 120
+2026-11-17T10:25:30.3818333Z     Received: 4
+2026-11-17T10:25:30.3833513Z     test-results/she63/tests/two-futures-sprint.e2e.js--3acb9-ference-only-and-metric-WHY-playwright-webkit/test-failed-1.png
+2026-11-17T10:25:30.3842004Z     Expected: 120
+2026-11-17T10:25:30.3842172Z     Received: 0
+2026-11-17T10:25:30.3854306Z     test-results/she63/tests/two-futures-sprint.e2e.js--16be4-ired-evidence-and-selection-playwright-webkit/test-failed-1.png
+2026-11-17T10:25:30.3858829Z   11 failed
+2026-11-17T10:25:30.3868176Z   4 passed (7.6m)
