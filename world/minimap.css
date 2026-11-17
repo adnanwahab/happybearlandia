@@ -11,3 +11,6 @@
 .world-minimap summary:focus-visible{outline:2px solid #91f2dc;outline-offset:-3px}
 @media(max-width:600px){.world-minimap section button{min-height:44px}.world-minimap summary{min-height:24px}}
 @media(prefers-reduced-motion:reduce){.world-minimap *{scroll-behavior:auto;animation:none;transition:none}}
+.world-minimap.mm-expanded{inset:8px;width:auto;bottom:8px;z-index:1000;overflow:auto;border-radius:12px}.world-minimap.mm-expanded .mm-body{max-height:none;display:grid;grid-template-columns:minmax(0,1fr);justify-items:center}.world-minimap.mm-expanded canvas{width:min(100%,calc((100dvh - 300px)*232/190));max-height:65dvh}.world-minimap.mm-expanded section{width:100%}.world-minimap .mm-actions{display:flex;gap:6px;flex-wrap:wrap}.world-minimap select{max-width:100%;font:inherit;color:inherit;background:#284647;padding:8px}
+@media(max-width:520px){.world-minimap.mm-expanded{inset:0;border-radius:0}.world-minimap.mm-expanded canvas{width:100%;max-height:none}.world-minimap.mm-expanded button{min-height:44px}}
+@media(max-width:520px){.world-minimap.mm-expanded .mm-screen-pad{grid-template-rows:44px 44px 44px;gap:4px}.world-minimap.mm-expanded .mm-screen-pad button{height:44px;width:44px}}

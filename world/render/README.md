@@ -302,3 +302,16 @@ ID-buffer readback: transparent fragment discard, antialiasing and asynchronous
 asset/geometry replacement can differ from exact raster pixels. Full GPU/browser
 acceptance, including streaming and mode changes during freeze, remains pending;
 see `docs/reviews/SHE-659.md`.
+
+## Neighborhood overview
+
+The `/world` Neighborhood map's Expand map button grows the same Canvas2D layer
+into a viewport overview; Collapse map/Escape restores its pocket position.
+Layout changes preserve the current inspector selection and camera pose. Tap a
+loaded town parcel or use Select loaded parcel to inspect through the existing
+stable-ID adapter. Context-only streamed geometry is navigation context only.
+Drag/arrows pan; pinch or +/- on the focused map changes camera distance within
+OrbitControls limits. The overview is north-up and shows retained loaded coverage,
+not a separately generated city or modeled result. Missing Web Animations,
+missing bounds/Canvas2D and reduced motion bypass the layout animation. The
+separate full World Canvas2D renderer does not mount this minimap.
