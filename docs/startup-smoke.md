@@ -1,8 +1,8 @@
 # Local route startup smoke
 
 Run `bun run test:startup` from the repository root after installing the locked
-dependencies and Playwright Chromium. Set `HBL_STARTUP_SMOKE_PORT` to override
-39961; `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` selects an installed browser.
+dependencies and Playwright Chromium. The default server port is allocated by the OS on loopback. Set
+`HBL_STARTUP_SMOKE_PORT` to choose an explicit available port; `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` selects an installed browser.
 The command starts its own server with disposable stores and refuses to reuse
 an existing server. It returns nonzero for any failed route and continues
 checking the other routes. No build ID, deployment or production URL is needed.
@@ -33,3 +33,6 @@ external service availability, all links in the gallery, or production storage.
 Keep running the existing focused journey tests and production release smoke
 for those separate acceptance gates. No deploy, merge or saved-run action is
 performed by this check.
+
+See [browser test isolation](browser-test-isolation.md) for worker URL handoff,
+disposable-store cleanup, verification and remaining configuration migrations.

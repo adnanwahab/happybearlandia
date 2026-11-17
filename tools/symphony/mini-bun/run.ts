@@ -33,6 +33,7 @@ const tasksPath = path.join(root, 'tasks.json'), statePath = path.join(root, 'st
 const legacyWorkspaces = path.join(root, 'workspaces');
 const workspaces = project?.workspaceDirectory ?? path.join(path.dirname(repo), `.${path.basename(repo)}-mini-symphony-workspaces`);
 const logs = path.join(root, 'logs'), lock = path.join(root, '.runner.lock');
+const evidenceDirectory=(id:string)=>path.join(root,'artifacts','mini-symphony',id);
 // Keep existing in-repository task worktrees resumable while placing all new
 // worktrees beside the checkout, outside the source tree Codex snapshots.
 const taskWorkspace = (id: string) => resolveTaskWorkspace(command,repo,legacyWorkspaces,workspaces,id);
@@ -100,15 +101,15 @@ async function publishTask(task: Task, workspace: string, log: string) {
   if(project?.screenshots && !entry.pullRequestUrl) {
     await telemetry?.event('screenshots_started','Capturing desktop/mobile screenshots from disposable local application data.',{},task.id);
     try {
-      const cached=path.join(workspace,`.mini-symphony-evidence/${task.id}-after.json`);
+      const cached=path.join(evidenceDirectory(task.id),`${task.id}-after.json`);
       const clean=command('git',['status','--porcelain'],workspace);
-      evidence=existsSync(cached)&&clean.code===0&&!clean.stdout.trim() ? JSON.parse(await readFile(cached,'utf8')) : await captureScreenshots(workspace,project.screenshots,screenshotAbort.signal,'after',task.id);
+      evidence=existsSync(cached)&&clean.code===0&&!clean.stdout.trim() ? JSON.parse(await readFile(cached,'utf8')) : await captureScreenshots(workspace,project.screenshots,screenshotAbort.signal,'after',task.id,evidenceDirectory(task.id));
     }
     catch { await telemetry?.event('screenshots_failed','Browser screenshot capture failed; PR publication held. Inspect local browser/server setup.',{},task.id);throw Error('Screenshot capture failed; PR publication held. Check browser installation and local server readiness.'); }
     await telemetry?.event('screenshots_captured','Desktop/mobile screenshot files captured for the PR.',{count:evidence.files.length},task.id);
   }
   let reused = false;
-  const beforeEvidence=evidence ? JSON.parse(await readFile(path.join(workspace,`.mini-symphony-evidence/${task.id}-before.json`),'utf8')) : null;
+  const beforeEvidence=evidence ? JSON.parse(await readFile(path.join(evidenceDirectory(task.id),`${task.id}-before.json`),'utf8')) : null;
   const prBody=evidence ? (head:string)=>body+screenshotMarkdown(project!.githubRepository,head,beforeEvidence)+screenshotMarkdown(project!.githubRepository,head,evidence) : body;
   const url = publishDraft(command, workspace, task.id, prBase, title, prBody, result => { reused = result.reused; });
   entry.status = 'pr_created'; entry.pullRequestUrl = url; entry.publishError = undefined;
@@ -252,16 +253,14 @@ async function runTask(task: Task) {
       console.error(`[${task.id}] worktree creation failed: ${error}`); return;
     }
   }
-  if(project?.screenshots && !existsSync(path.join(workspace,`.mini-symphony-evidence/${task.id}-before.json`))) {
+  if(project?.screenshots && !existsSync(path.join(evidenceDirectory(task.id),`${task.id}-before.json`))) {
     // Capture the configured remote baseline in a separate checkout; never call a
     // resumed task's edited files the 'before' state.
     const baseline=path.join(workspaces,`.before-${task.id}-${crypto.randomUUID()}`);
     try {
       const added=command('git',['worktree','add','--detach',baseline,`refs/remotes/origin/${prBase}`],repo);
       if(added.code!==0)throw Error('Cannot prepare screenshot baseline');
-      await captureScreenshots(baseline,project.screenshots,screenshotAbort.signal,'before',task.id);
-      const {cp}=await import('node:fs/promises');
-      await cp(path.join(baseline,'.mini-symphony-evidence'),path.join(workspace,'.mini-symphony-evidence'),{recursive:true});
+      await captureScreenshots(baseline,project.screenshots,screenshotAbort.signal,'before',task.id,evidenceDirectory(task.id));
       await telemetry?.event('screenshots_before_captured','Captured the remote baseline before task changes.',{},task.id);
     } catch(error) {
       state[task.id]={...state[task.id],status:'failed',finishedAt:new Date().toISOString(),log:path.relative(root,log)};await save(state);

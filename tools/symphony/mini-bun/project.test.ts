@@ -97,7 +97,7 @@ await Bun.write(result,n===1?'original failure evidence':JSON.stringify({status:
     expect(records[0].type).toBe('session_started');expect(records.at(-1).type).toBe('session_stopped');
     expect(records.filter(e=>e.type==='task_finished')).toHaveLength(1);
     expect(records.some(e=>e.type==='pr_created')).toBe(expected==='pr_created');
-    if(mode==='screenshots'){expect(records.some(e=>e.type==='screenshots_before_captured')).toBe(true);expect(records.some(e=>e.type==='screenshots_captured')).toBe(true);expect(git(['ls-tree','--name-only','HEAD','.mini-symphony-evidence/'],path.join(queue,'workspaces/SHE-249'))).toContain('before-desktop-1.png');}
+    if(mode==='screenshots'){expect(records.some(e=>e.type==='screenshots_before_captured')).toBe(true);expect(records.some(e=>e.type==='screenshots_captured')).toBe(true);expect(git(['ls-tree','--name-only','HEAD','.mini-symphony-evidence/'],path.join(queue,'workspaces/SHE-249'))).toBe('');expect(existsSync(path.join(queue,'artifacts/mini-symphony/SHE-249/SHE-249-before.json'))).toBe(true);expect(existsSync(path.join(queue,'artifacts/mini-symphony/SHE-249/SHE-249-after.json'))).toBe(true);}
     expect(records.some(e=>e.type==='worker_force_stopped')).toBe(stubborn||mode==='debug-timeout');
     if(debug){
       expect(readFileSync(path.join(dir,'calls'),'utf8')).toBe(enabled?'2':'1');

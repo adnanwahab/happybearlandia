@@ -1,7 +1,7 @@
 # HappyBearLandia implementation plan
 
 
-## Mini Symphony reliability / PR recovery — November 17 (in progress)
+## Mini Symphony reliability / PR recovery — November 17 (bounded increment implemented)
 
 Owner requests throughput improvements across HBL and Dear Congress. The active
 path is Bun Mini Symphony (one worker/project, mini/*, ready-for-review PRs),
@@ -25,6 +25,9 @@ commits. Collect live backlog/host evidence read-only. Admin settings and human
 approval remain explicit operator work. Risks: unavailable branch-protection API,
 stale CI data and remote service/browser failures must fail closed; no 25-hour
 availability claim or live integration activation without actual evidence.
+
+Implementation/check evidence and explicit remaining operations: [reliability review](reviews/mini-symphony-reliability-20261117.md). Canonical export, external artifacts, approval guard, five-config isolation and advisory repair queue are implemented; live rollout, GitHub protections, automated repair dispatch and persistent-deadline Bun supervision remain unclaimed.
+
 
 ## SHE-990 — World controls and street residents (November 17)
 

@@ -7,6 +7,8 @@ export function publishDraft(command: Command, workspace: string, id: string, ba
     if (result.code !== 0) throw Error(`${bin} ${args[0]} failed: ${(result.stderr || result.stdout).trim()}`);
     return result.stdout.trim();
   };
+  const sourcePaths=['.',':(exclude).mini-symphony-evidence/**',':(exclude)artifacts/mini-symphony/**',':(top,exclude)tasks.json',':(top,exclude)state.json',':(top,exclude)project-binding.json',':(top,exclude).runner.lock/**'];
+  const sourceStatus=()=>run('git',['status','--porcelain','--',...sourcePaths]);
   const branch = `mini/${id}`;
   if (run('git', ['branch', '--show-current']) !== branch) throw Error(`Expected branch ${branch}`);
   run('gh', ['auth', 'status', '-h', 'github.com']);
@@ -17,7 +19,7 @@ export function publishDraft(command: Command, workspace: string, id: string, ba
     if (pr.headRefName !== branch || pr.baseRefName !== base || !/^https:\/\/github\.com\//.test(pr.url)) throw Error('Invalid existing pull request');
     if (pr.state === 'CLOSED') throw Error('Existing pull request was closed without merging; review before retry');
     if (!['OPEN', 'MERGED'].includes(pr.state)) throw Error('Unknown pull request state');
-    if (run('git', ['status', '--porcelain'])) throw Error('Existing PR has additional local edits; review before publication');
+    if (sourceStatus()) throw Error('Existing PR has additional local edits; review before publication');
     const remote = run('git', ['ls-remote', 'origin', `refs/heads/${branch}`]).split(/\s/)[0];
     const local = run('git', ['rev-parse', 'HEAD']);
     // A merged branch may have been deleted; its PR remains authoritative delivery evidence.
@@ -25,8 +27,11 @@ export function publishDraft(command: Command, workspace: string, id: string, ba
     onResult?.({url: pr.url, reused: true});
     return pr.url as string;
   }
-  if (run('git', ['status', '--porcelain'])) {
-    run('git', ['add', '-A']);
+  if (sourceStatus()) {
+    run('git', ['add', '-A', '--', ...sourcePaths]);
+    const staged=run('git',['diff','--cached','--name-only']).split('\n').filter(Boolean);
+    if(staged.some(file=>file.startsWith('.mini-symphony-evidence/')||file.startsWith('artifacts/mini-symphony/')||['tasks.json','state.json','project-binding.json'].includes(file)||file.startsWith('.runner.lock/')))throw Error('Browser evidence must remain outside feature commits; preserve staged work for review');
+    if(!staged.length)throw Error('Codex produced only local browser artifacts; no source changes to publish');
     run('git', ['commit', '-m', `Mini Symphony: ${id}`]);
   }
   const ref = `refs/remotes/origin/${base}`;

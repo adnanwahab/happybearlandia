@@ -1,5 +1,5 @@
 import { createPlayerFeedbackHandler } from './ops/player-feedback/api.js';
-const handlePlayerFeedback = createPlayerFeedbackHandler();
+const handlePlayerFeedback = createPlayerFeedbackHandler({directory:process.env.HBL_PLAYER_FEEDBACK_DIR||undefined});
 import {civicProviderUrl,civicPublishUrl} from './ops/civic-provider.js';
 import { createMiniSymphonyHandler } from './ops/mini-symphony/api.js';
 const handleMiniSymphony = createMiniSymphonyHandler();
