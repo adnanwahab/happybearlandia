@@ -32,7 +32,8 @@ for(const mobile of [false,true])test(`cinematic presets preserve selection and 
  await page.goto('/world?synthetic=1&people=16');
  await page.waitForFunction(()=>window.hblWorldStartup?.readyMs&&window.__presetControls);
  const sample=()=>page.evaluate(()=>({position:__presetControls.object.position.toArray(),target:__presetControls.target.toArray()}));
- await page.locator('#top').evaluate(node=>node.open=true);
+ await page.locator('#launch-navigation [data-launch="tools"]').click();
+ await expect(page.locator('#top')).toBeVisible();
  const picker=page.getByTestId('camera-presets');await picker.locator('summary').click();
  await expect(picker.getByRole('button',{name:'Return',exact:true})).toBeDisabled();
  await picker.getByRole('button',{name:'Follow',exact:true}).click();await expect(picker.getByRole('status')).toContainText('unavailable');
@@ -50,7 +51,7 @@ for(const mobile of [false,true])test(`cinematic presets preserve selection and 
  await page.emulateMedia({reducedMotion:'no-preference'});
  const followButton=picker.getByRole('button',{name:'Follow',exact:true});
  await followButton.focus();await page.keyboard.press('Enter');await expect(picker.getByRole('status')).toContainText('Following selected');
- if(mobile)await page.locator('canvas').first().dispatchEvent('pointerdown',{pointerId:9,pointerType:'touch',clientX:350,clientY:500});else await page.keyboard.press('Escape');
+ if(mobile)await page.locator('canvas').first().dispatchEvent('pointerdown',{pointerId:9,pointerType:'touch',clientX:350,clientY:500});else await page.keyboard.press('ArrowLeft');
  await expect(picker.getByRole('status')).toContainText('interrupted');
  await page.screenshot({path:`.mini-symphony-evidence/SHE-474-after-${mobile?'mobile':'desktop'}-camera.png`});
 });
