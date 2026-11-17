@@ -19,6 +19,10 @@ export function mountUniverseNavigation(container,{experienceId,onContext=()=>{}
   links.hidden=true;links.style.cssText='display:none;flex-wrap:wrap;gap:12px;padding:6px 3px;max-width:260px';
   const setExpanded=value=>{links.hidden=!value;links.style.display=value?'flex':'none';toggle.setAttribute('aria-expanded',String(value));toggle.textContent=value?'Close ↑':'HBL ↗';toggle.setAttribute('aria-label',value?'Close universe navigation':'Open universe navigation');};
   toggle.addEventListener('click',()=>setExpanded(links.hidden));
+  nav.addEventListener('keydown',event=>{
+    if(event.key !== 'Escape' || links.hidden || event.defaultPrevented)return;
+    event.preventDefault();event.stopPropagation();setExpanded(false);toggle.focus();
+  });
 
   const home=doc.createElement('a'),world=doc.createElement('a'),futures=doc.createElement('a');
   home.textContent='HappyBearLandia';world.textContent='World';futures.textContent='Worldline';
