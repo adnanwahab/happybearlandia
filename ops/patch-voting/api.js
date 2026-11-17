@@ -200,6 +200,18 @@ export function createPatchVotingHandler(options = {}) {
     const setCookie = fresh ? cookieHeader(token, secret, request) : null;
     const voterKey = token ? identity(secret, token) : '';
     try {
+      if (pathname === '/api/patches' && request.method === 'GET') {
+        return json({ schemaVersion: 'hbl.patches.v1', advisory: true,
+          patches: store.list().map(({yourVote, ...patch}) => patch) });
+      }
+      const impactMatch = pathname.match(/^\/api\/patches\/([A-Za-z0-9_-]{1,32})\/impact$/);
+      if (impactMatch && request.method === 'GET') {
+        if (!approvedPatchCandidates.some(item => item.id === impactMatch[1])) return json({error:'Patch not found.'},404);
+        const evidence = store.getImpact(impactMatch[1]);
+        return evidence ? json(evidence) : json({ schemaVersion: 'hbl.patch-impact.v1',
+          candidateId: impactMatch[1], available: false,
+          reason: 'No recorded matched-seed before/after evidence has been verified for this patch.' });
+      }
       if (pathname === '/api/patch-votes' && request.method === 'GET') {
         return json({ schemaVersion: 'patch-ballot.v1', advisory: true, patches: store.list(voterKey), submissionsRequireReview: true, votingEnabled: Boolean(secret) }, 200, setCookie);
       }
