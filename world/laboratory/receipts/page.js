@@ -1,3 +1,4 @@
+import { saveExhibit } from '../../museum/store.js';
 import {
   horizon, makePolicyReceipt, makeReceiptRecipe, readReceiptRecipe, receiptOptions, sampleCount,
 } from './receipt.js';
@@ -130,3 +131,14 @@ if (challenge) {
 } else {
   compare({ seed: seedField.valueAsNumber, amount: Number(amountField.value) });
 }
+
+const save = document.createElement('button');
+save.type = 'button'; save.textContent = 'Save to museum on this browser';
+const museum = document.createElement('a'); museum.href = '/world/museum/'; museum.textContent = 'Visit museum';
+receipt.append(save, museum);
+save.addEventListener('click', () => {
+  try {
+    saveExhibit(localStorage, active, Number(picker.value));
+    status.textContent = 'Receipt saved locally. Delete museum exhibits in the museum. No upload.';
+  } catch { status.textContent = 'Receipt could not be saved. Browser storage or selected evidence is unavailable.'; }
+});
