@@ -7,7 +7,9 @@
   <link rel="stylesheet" href="/world/civilization/civilization.css">
   <script type="module" src="/world/future-journey/page.js"></script>
 <style>
-  main { max-width: 60rem; width: 100%; margin: auto; padding: 1rem; }
+  /* Keep the centered reading column inside narrow viewports: width: 100%
+     otherwise excludes this horizontal padding and creates page overflow. */
+  main { box-sizing: border-box; max-width: 60rem; width: 100%; margin: auto; padding: 1rem; }
   main, main * { min-width: 0; }
   main p, main h1, main h2, main h3, main a, main li { overflow-wrap: anywhere; }
   main form { width: 100%; }
