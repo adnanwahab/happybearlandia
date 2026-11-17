@@ -17,7 +17,10 @@ for (const reduced of [false, true]) {
       else await link.press('Enter');
       await page.waitForURL(u=>u.pathname===path);
       await expect.poll(()=>page.evaluate(()=>document.activeElement?.dataset.navigationFocus === 'heading')).toBe(true);
-      expect(new URL(page.url()).search).toBe(new URL(destination,'http://localhost').search);
+      const actualURL=new URL(page.url()),expectedURL=new URL(destination,actualURL.origin);
+      expect({origin:actualURL.origin,pathname:actualURL.pathname,hash:actualURL.hash}).toEqual({origin:expectedURL.origin,pathname:expectedURL.pathname,hash:expectedURL.hash});
+      // Context serialization can reorder keys; retain every value and duplicate.
+      expect([...actualURL.searchParams].sort(([a],[b])=>a.localeCompare(b))).toEqual([...expectedURL.searchParams].sort(([a],[b])=>a.localeCompare(b)));
       await expect(page.locator('.hbl-navigation-status')).toHaveText('Destination ready. Focus at page heading.');
       if(reduced) await expect(page.locator('html')).toHaveClass(/portal-reduced/);
       if(!reduced) await page.screenshot({path:`.mini-symphony-evidence/SHE-390-portal-${id}-after.png`});
@@ -66,3 +69,20 @@ for (const reduced of [false, true]) {
     expect(errors).toEqual([]);
   });
 }
+
+test('slow application startup preserves user focus and boot failure restores heading', async ({page}) => {
+  let release;
+  const gate=new Promise(resolve=>{release=resolve;});
+  await page.route('**/world/future-machine/main.js',async route=>{await gate;await route.continue();});
+  await page.goto('/world/future-machine.html');
+  await expect(page.locator('#boot h1')).toBeFocused();
+  await page.evaluate(()=>{const input=document.createElement('input');input.id='startup-user-input';document.body.prepend(input);input.focus();});
+  release();
+  await expect(page.getByRole('button',{name:'Fork City',exact:true})).toBeEnabled();
+  await expect(page.locator('#startup-user-input')).toBeFocused();
+  await page.unroute('**/world/future-machine/main.js');
+  await page.route('**/world/future-machine/main.js',route=>route.fulfill({contentType:'text/javascript',body:'throw new Error("Intentional startup failure for navigation regression");'}));
+  await page.reload();
+  await expect(page.getByText('Unable to load Future Machine. Refresh to retry.',{exact:true})).toBeVisible();
+  await expect(page.locator('h1[data-navigation-focus="heading"]')).toBeFocused();
+});
