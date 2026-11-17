@@ -35,10 +35,10 @@ export function mountSonicControls(shell){
   shell.querySelector('.fm-metrics').after(panel);
   const select=panel.querySelector('select'),volume=panel.querySelector('input'),button=panel.querySelector('button'),caption=panel.querySelector('[role=status]');
   let current={},cue=null,version=0;
-  const refresh=()=>{version++;player.stop();cue=current.status==='ready'&&!current.preview&&!current.error&&current.diff?.available===true?deltaCue(select.value,current.diff.metrics?.[select.value]):null;button.disabled=!cue||cue.silent||preferences.get().volume===0;caption.textContent=(cue?.caption??'No supported recorded difference available; silent.')+(preferences.get().volume===0?' Sound muted.':'');};
-  const unsubscribe=preferences.subscribe(state=>{volume.value=state.volume;refresh();});
+  const refresh=()=>{version++;player.stop();cue=current.status==='ready'&&!current.preview&&!current.error&&current.diff?.available===true?deltaCue(select.value,current.diff.metrics?.[select.value]):null;caption.hidden=!!cue&&!cue.silent&&!preferences.get().captions;button.disabled=!cue||cue.silent||preferences.get().volume===0;caption.textContent=(cue?.caption??'No supported recorded difference available; silent.')+(preferences.get().volume===0?' Sound muted.':'');};
+  const unsubscribe=preferences.subscribe(state=>{volume.value=state.volume;caption.hidden=!state.captions;refresh();});
   volume.oninput=()=>preferences.set({volume:Number(volume.value)});select.onchange=refresh;
-  button.onclick=async()=>{const token=version;const played=await player.play(cue,preferences.get().volume);if(token===version&&!played)caption.textContent='Audio unavailable or muted; no cue played. '+(cue?.caption??'');};
+  button.onclick=async()=>{const token=version;const played=await player.play(cue,preferences.get().volume);if(token===version&&!played){caption.hidden=false;caption.textContent='Audio unavailable or muted; no cue played. '+(cue?.caption??'');}};
   const hide=()=>{version++;player.dispose();};win.addEventListener('pagehide',hide);
   return {update(state){current=state;refresh();},dispose(){version++;unsubscribe();preferences.dispose();player.dispose();win.removeEventListener('pagehide',hide);volume.oninput=select.onchange=button.onclick=null;panel.remove();}};
 }

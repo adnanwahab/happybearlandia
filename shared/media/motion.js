@@ -1,5 +1,5 @@
 import {createTransitionDiagnostics} from './transition-diagnostics.js';
-import {createMediaPreferences} from './preferences.js';
+import {createMediaPreferences,mountComfortStudio} from './preferences.js';
 
 // Presentation milliseconds only: never use these values as simulation time.
 export const motionTokens = Object.freeze({
@@ -47,6 +47,7 @@ html[data-hbl-reduced-motion] .launch h1{animation:none!important}
 @media(prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation:none}}`;
   document.head.append(style);
   const unsubscribe=preferences.subscribe(s=>root.toggleAttribute('data-hbl-reduced-motion',s.reducedMotion));
+  const removeComfort=mountComfortStudio(document,preferences);
   const diagnostics=createTransitionDiagnostics(win);
   const adapter=createMotionAdapter({document,preferences,diagnostics});
   // Native disclosure stays in normal flow; it cannot cover application controls.
@@ -69,5 +70,5 @@ html[data-hbl-reduced-motion] .launch h1{animation:none!important}
   panel.append(summary,label,info,samplingLabel,preview,status,receipt);document.body.append(panel);
   panel.addEventListener('keydown',e=>{if(e.key==='Escape'){panel.open=false;summary.focus();}});
   const onHide=()=>{diagnostics.setConsent(false);sampling.checked=false;refresh();};win.addEventListener('pagehide',onHide);
-  return {adapter,dispose(){win.removeEventListener('pagehide',onHide);adapter.dispose();sync();unsubscribe();preferences.dispose();panel.remove();style.remove();root.removeAttribute('data-hbl-reduced-motion');}};
+  return {adapter,dispose(){win.removeEventListener('pagehide',onHide);adapter.dispose();removeComfort();sync();unsubscribe();preferences.dispose();panel.remove();style.remove();root.removeAttribute('data-hbl-reduced-motion');}};
 }
