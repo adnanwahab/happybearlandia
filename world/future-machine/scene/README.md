@@ -264,3 +264,10 @@ frames quiet. Exact ghost keys, manual camera boundaries and late-renderer clean
 were already present on main and remain intact. Focused resource coverage checks
 shared geometry, material and texture ownership after effect-clone restoration;
 see the UI compatibility verification for the combined local check and limits.
+
+Facade windows use one stage-owned InstancedMesh per facade rather than one Mesh
+per window. Authored positions, rotations, dimensions and material remain the
+same; they stay cosmetic and outside model inventory/root pick targets. Resource
+teardown releases the instance buffers plus its geometry/material once across
+shared scene ownership. See `test/future-machine-neighborhood.test.js` for exact
+transform/material equivalence and instance disposal checks.
