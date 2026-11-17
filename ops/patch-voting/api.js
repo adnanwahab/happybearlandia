@@ -156,8 +156,8 @@ export function createPatchVotingStore(options = {}) {
       if (!knownCandidate(candidateId)) throw error(404, 'Curated patch not found.');
       if (!Number.isSafeInteger(record?.prNumber) || record.prNumber < 1 ||
           record.prUrl !== 'https://github.com/adnanwahab/happybearlandia/pull/' + record.prNumber ||
-          !/^[a-f0-9]{40}$/i.test(record.headSha || '') || record.status !== 'draft') throw error(400, 'Invalid GitHub PR publication.');
-      db.query('INSERT INTO github_patch(candidate_id,pr_number,pr_url,head_sha,status,ci_status,updated_at) VALUES(?,?,?,?,?,?,?) ON CONFLICT(candidate_id) DO UPDATE SET pr_number=excluded.pr_number,pr_url=excluded.pr_url,head_sha=excluded.head_sha,status=excluded.status,ci_status=excluded.ci_status,updated_at=excluded.updated_at').run(candidateId, record.prNumber, record.prUrl, record.headSha.toLowerCase(), 'draft', 'pending', clock());
+          !/^[a-f0-9]{40}$/i.test(record.headSha || '') || !['draft','open','closed','merged'].includes(record.status)) throw error(400, 'Invalid GitHub PR publication.');
+      db.query('INSERT INTO github_patch(candidate_id,pr_number,pr_url,head_sha,status,ci_status,updated_at) VALUES(?,?,?,?,?,?,?) ON CONFLICT(candidate_id) DO UPDATE SET pr_number=excluded.pr_number,pr_url=excluded.pr_url,head_sha=excluded.head_sha,status=excluded.status,ci_status=excluded.ci_status,updated_at=excluded.updated_at').run(candidateId, record.prNumber, record.prUrl, record.headSha.toLowerCase(), record.status, 'pending', clock());
       return githubFor(candidateId);
     },
     updateGithub: (prNumber, event) => {
