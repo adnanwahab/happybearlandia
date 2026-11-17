@@ -1,3 +1,15 @@
+## SHE-674 — shop-window event placards (2026-11-17)
+
+Prerequisite audit only; acceptance remains open. City has synthetic district-level
+opening/closure events, while Business Lab and neighborhood placement have separate
+identities/clocks and no verified source-history-to-storefront mapping. No placards
+were fabricated. [Audit, next slice and evidence](reviews/SHE-674.md) identify the
+producer contract, mapping, successful/failure browser checks and cleanup/pacing
+requirements. Existing business regressions: 31 pass, 1 baseline event-buffer test
+fails (232 assertions). No executable/model/governance changes or browser acceptance;
+no root lint/typecheck script. Next: establish the versioned history and location
+contract before implementing a bounded overlay. No commit/PR, merge or deployment.
+
 # HappyBearLandia implementation plan
 
 

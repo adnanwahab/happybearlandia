@@ -88,11 +88,12 @@ Executed against this resolved worktree:
 - Six-file challenge, preview, admission, observatory, survey and release dispatch
   regression: **39 passed, 2 optional HTTP wrappers skipped, 0 failed; 410 assertions**.
 - Startup smoke now matches same-origin route pathnames while retaining query/fragment
-  context, follows the reviewed homepage CTA, and verifies normal More tools/Escape
-  disclosure in World. Its helper passed **2 tests / 13 assertions**; the actual
+  context, follows the reviewed homepage CTA, and verifies the visible World canvas/guide plus the controls element
+  attachment in World. Its helper passed **2 tests / 13 assertions**; the actual
   six-route startup suite passed **6/6 in 3.1s**, with no uncaught startup errors.
-  This explicitly requested smoke correction is the only additional scope imported
-  from the coordinator after the isolated merge began.
+  The explicitly requested startup assertions, route helper and supported browser
+  fixture configuration are the only additional test scope imported after the
+  isolated merge began.
 - Browser builds: Future Machine **75 modules**; World **403 modules** with
   served `/vendor/*` URLs external; Constitution City **52 modules**. JavaScript
   syntax checks passed for **50 merged JavaScript files**; whitespace checks passed.
@@ -107,6 +108,40 @@ Test runs overlap; their totals are not a unique test count or complete product
 acceptance. No physical-device, calibrated-model, performance-budget, production
 parity, release or deployment result is claimed.
 
-New verification PNGs are retained outside the checkout at
-`/private/tmp/pr433-evidence`; no new binary evidence is added to this merge.
+Locally generated verification PNGs are retained outside the checkout at
+`/private/tmp/pr433-evidence`; no locally generated binary evidence is committed.
 Existing tracked historical evidence from the source branches remains intact.
+
+## Concurrent sprint catch-up — November 17
+
+Before publication, the remote sprint advanced to
+`84db123a57e23f1614d02d60fb9333958302505f`. Merged that descendant into the
+isolated `a818ee81` integration without textual conflicts; main remains
+`84b2eea9`. The coordinator's separate local reliability commit is excluded.
+SHE-657, SHE-664 and SHE-674 add prerequisite audits rather than implemented
+ride-along, paper-plane or storefront-history features; their acceptance stays
+open. SHE-659 adds the bounded presentation freeze/exact-ray picker. Existing
+remote screenshot artifacts are preserved, not regenerated or discarded.
+
+Population, Legacy, City and their ODD descriptions remain byte-identical to the
+initial resolved sprint. Additional checks after this catch-up: freeze/picker/weekly
+unit checks **10 passed / 83 assertions**; mobile/keyboard/reduced-motion freeze
+component **1/1 Chrome passed**; updated World bundle **404 modules**. The latest
+requested startup assertions use visible canvas/guide and attached controls,
+retaining the original readiness and uncaught-error checks. They passed **6/6**
+with installed native Chrome, alongside the **2/13-assertion** route helper checks.
+
+Native Chrome startup used `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` explicitly; it
+is distinct from the coordinator's stock bundled headless-shell run, which
+reported five passes and one World failure after WebGPU initialization selected
+the explicit static-city fallback. The latter is not claimed as passing and
+was not hidden by changing product UI or suppressing readiness/error assertions.
+The fixture now explicitly selects Playwright's full bundled Chromium channel
+and enables software WebGPU before the existing unsafe-SwiftShader argument; it
+keeps the same timeout, readiness and error assertions and changes no product UI.
+The exact standard startup CLI with `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` unset
+and isolated port 43937 passed **6/6 in 3.3s**, with no uncaught startup errors.
+That final stock-config result supersedes the earlier environment setup failure;
+it is not inferred from the native Chrome run. Earlier broad regression totals describe the initial resolved
+tree; this catch-up used the focused additional checks above. Hosted CI still
+needs to verify the exact published revision.
