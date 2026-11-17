@@ -1,6 +1,6 @@
 // CI-only visual smoke evidence. Do not commit the images to task branches.
 import path from 'node:path';
-import {readFile,appendFile} from 'node:fs/promises';
+import {readFile,appendFile,mkdir,copyFile,writeFile} from 'node:fs/promises';
 import {captureScreenshots} from '../tools/symphony/mini-bun/screenshots.ts';
 
 const headRoot=path.resolve(import.meta.dir,'..');
@@ -12,6 +12,17 @@ if(!/^pr-[0-9]+$/.test(taskId))throw Error('Expected a pull-request number');
 const before=await captureScreenshots(baseRoot,project.screenshots,undefined,'before',taskId);
 const after=await captureScreenshots(headRoot,project.screenshots,undefined,'after',taskId);
 if(before.files.length!==after.files.length||before.files.length!==project.screenshots.paths.length*2)throw Error('Incomplete screenshots');
+const output=path.join(headRoot,'test-results','pr-screenshots');
+for(const [stage,root,evidence] of [['before',baseRoot,before],['after',headRoot,after]] as const){
+ const folder=path.join(output,stage);
+ await mkdir(folder,{recursive:true});
+ for(const file of evidence.files){
+  if(!/^\\.mini-symphony-evidence\\/pr-[0-9]+-(?:before|after)-(?:desktop|mobile)-[12]\\.png$/.test(file.path))
+   throw Error('Unsafe screenshot artifact path');
+  await copyFile(path.join(root,file.path),path.join(folder,path.basename(file.path)));
+ }
+ await writeFile(path.join(output,stage+'.json'),JSON.stringify(evidence,null,2)+'\\n');
+}
 const summary='### PR Playwright evidence (observational)\n\n' +
   '- Exact base and head checked out separately\n' +
   '- Before captures: '+before.files.length+'\n' +

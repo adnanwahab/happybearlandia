@@ -43,9 +43,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pr-screenshots-${{ github.event.pull_request.number || github.run_id }}-${{ github.run_attempt }}
-          path: |
-            candidate/.mini-symphony-evidence/
-            baseline/.mini-symphony-evidence/
+          path: candidate/test-results/pr-screenshots/
           if-no-files-found: error
-          include-hidden-files: true
           retention-days: 14
