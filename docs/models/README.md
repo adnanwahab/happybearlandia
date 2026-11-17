@@ -43,3 +43,8 @@ SHE-558: Tonight pantry cooking remains under World Population / House, using th
 existing recipe economy and relationship authorities. The linked Population
 submodel notes and evening contract describe its authored request selection;
 there is no additional independent model inventory row.
+
+Crisis Judgment Drill (`world/challenges/crisis.js`) is a bounded orchestration of
+Monthly City frozen challenge recipes, not an independent ABM. Its authored
+scenario, provenance and normative endpoint checks are documented in the City ODD
+and [drill contract](../../world/challenges/CRISIS.md).

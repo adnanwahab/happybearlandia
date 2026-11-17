@@ -38,3 +38,14 @@ households, 120 monthly steps, housing amounts 1–100 and delay `(index * 7) % 
 for zero-based index 0–99. Other proposal fields retain DEFAULT_RECIPE. These
 inputs are synthetic assumptions, not sampled probabilities. The view reads unit
 inventory projections; it adds no social mechanism, RNG, clock or state authority.
+
+The [Crisis Judgment Drill](../../world/challenges/CRISIS.md) reuses the unchanged
+City schedule with a pinned authored preparedness recipe: 12 households, seeds
+42/73/101, zero private parcel capacity to suppress unrelated redevelopment,
+Riverside flood at month 10 for three months at severity 0.7, and month-12 final
+checkpoints. Reserve, resilience +0.4 (3,000 synthetic USD), or two homes (4,000
+synthetic USD) use existing intervention gates. Its preregistered endpoint and
+capital checks are normative game objectives, not empirical emergency evaluation.
+No immediate rescue mechanics or new resident behavior is added; measured outcomes
+and real-world uncertainty remain unavailable. Full recipe, limitations and exact
+replay boundary are in the linked contract.
