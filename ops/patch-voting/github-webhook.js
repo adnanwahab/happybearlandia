@@ -20,8 +20,23 @@ export function createPatchGithubWebhookHandler({ store, secret = process.env.HB
     if (request.method !== 'POST') return reply({ error: 'Method not allowed.' }, 405);
     if (!secret || secret.length < 32) return reply({ error: 'Webhook disabled.' }, 503);
     if (Number(request.headers.get('content-length') || 0) > MAX_BYTES) return reply({ error: 'Payload too large.' }, 413);
-    const raw = Buffer.from(await request.arrayBuffer());
-    if (raw.length > MAX_BYTES) return reply({ error: 'Payload too large.' }, 413);
+    // Read incrementally: malicious chunked requests must not allocate unbounded memory.
+    const reader = request.body?.getReader();
+    const chunks = [];
+    let bytes = 0;
+    if (reader) {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        bytes += value.byteLength;
+        if (bytes > MAX_BYTES) {
+          await reader.cancel().catch(() => {});
+          return reply({ error: 'Payload too large.' }, 413);
+        }
+        chunks.push(Buffer.from(value));
+      }
+    }
+    const raw = Buffer.concat(chunks, bytes);
     if (!verifyGitHubSignature(raw, request.headers.get('x-hub-signature-256'), secret)) {
       return reply({ error: 'Invalid GitHub signature.' }, 401);
     }
