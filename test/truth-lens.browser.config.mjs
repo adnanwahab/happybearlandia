@@ -1,0 +1,2 @@
+import {defineConfig} from '@playwright/test';
+export default defineConfig({testDir:'./e2e',testMatch:'truth-lens.e2e.js',workers:1,use:{baseURL:'http://127.0.0.1:54418'},webServer:{cwd:new URL('..',import.meta.url).pathname,command:`${process.env.HBL_BUN_BIN || 'bun'} --no-env-file run server.js`,env:{PORT:'54418',HBL_WORLD_DB_PATH:':memory:'},url:'http://127.0.0.1:54418',reuseExistingServer:false}});

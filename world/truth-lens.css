@@ -1,0 +1,12 @@
+#truthLensToggle{min-width:44px;min-height:44px}
+#truthLensLegend{padding:8px 8px 8px 26px;max-width:44rem;overflow-wrap:anywhere}
+#truthLensLegend[hidden]{display:none}
+.truth-readout{display:none}
+[data-truth-lens] .truth-readout{display:block;border-top:1px solid #8996a8;margin-top:10px}
+[data-truth-lens] [data-truth]{outline:2px solid #b7c0cf;outline-offset:-2px}
+[data-truth-lens] [data-truth=observed]{outline-color:#52cec1}
+[data-truth-lens] [data-truth=assumed]{outline-color:#efc65c}
+[data-truth-lens] [data-truth=modeled]{outline-color:#9fb7ff}
+[data-truth-lens] [data-truth=decorative]{outline-color:#e4a2e5}
+[data-truth-lens] [data-truth=unknown]{outline-style:dashed}
+[data-truth-lens] .exp-chart::before{content:attr(data-truth-label);display:block;font-weight:bold}

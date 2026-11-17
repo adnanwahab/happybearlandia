@@ -1,0 +1,1 @@
+{"schemaVersion":"hbl-truth-lens.v1","area":{"source":"osm","buildings":[{"id":"w123","pts":[[0,0],[1,0],[0,1]]}]},"buildingId":"w123","note":"Deterministic invented API shape, not an actual OSM observation; test only"}
