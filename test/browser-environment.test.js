@@ -36,7 +36,7 @@ function runFixture(id,root){
 }
 test('concurrent Playwright processes discover their own URL, write separate SQLite stores and clean up',async()=>{
  const root=mkdtempSync(join(tmpdir(),'hbl-browser-isolation-results-'));
- try{const [a,b]=await Promise.all([runFixture('alpha',root),runFixture('beta',root)]);expect(a.port).not.toBe(b.port);expect(a.worldDb).not.toBe(b.worldDb);expect(a.id).toBe('alpha');expect(b.id).toBe('beta');expect(existsSync(a.store)).toBe(false);expect(existsSync(b.store)).toBe(false);}finally{rmSync(root,{recursive:true,force:true});}
+ try{const [a,b]=await Promise.all([runFixture('alpha',root),runFixture('beta',root)]);expect(a.port).not.toBe(b.port);expect(a.worldDb).not.toBe(b.worldDb);expect(a.guestDb).not.toBe(b.guestDb);expect(a.guestCount).toBe(1);expect(b.guestCount).toBe(1);expect(a.id).toBe('alpha');expect(b.id).toBe('beta');expect(existsSync(a.store)).toBe(false);expect(existsSync(b.store)).toBe(false);}finally{rmSync(root,{recursive:true,force:true});}
 },60000);
 
 function inspectConfig(path,overrides={}){
@@ -49,7 +49,7 @@ test('migrated configs keep explicit overrides, server URL discovery, loopback a
  for(const [path,key]of [['./test/first-run.browser.config.js','HBL_PLAYWRIGHT_PORT'],['./test/plan-choices.browser.config.mjs','HBL_PLAN_TEST_PORT'],['./test/future-machine.browser.config.js','HBL_FM_PORT'],['./test/startup-smoke.config.js','HBL_STARTUP_SMOKE_PORT'],['./playwright.config.js','HBL_PLAYWRIGHT_PORT']]){
   const port=allocateBrowserPort(),config=inspectConfig(path,{[key]:port,HBL_PLAYWRIGHT_PARTY_PORT:'0'});
   expect(new URL(config.use.baseURL).port).toBe(port);expect(config.servers[0].env.PORT).toBe(port);expect(config.setup).toContain('browser-global-setup.js');
-  for(const server of config.servers){expect(server.reuseExistingServer).toBe(false);expect(server.command).toContain('--no-env-file');expect(new URL(server.url).port).toBe(server.env.PORT);expect(server.env.HBL_BIND_HOST).toBe('127.0.0.1');const descriptor=config.metadata.browserEnvironments.find(item=>item.port===server.env.PORT);expect(descriptor).toBeDefined();expect(server.env.HBL_WORLD_DB_PATH).toBe(join(descriptor.store,'world.sqlite'));expect(server.env.HBL_TEMPORAL_DB_PATH).toBe(join(descriptor.store,'history.sqlite'));expect(existsSync(descriptor.store)).toBe(false);}
+  for(const server of config.servers){expect(server.reuseExistingServer).toBe(false);expect(server.command).toContain('--no-env-file');expect(new URL(server.url).port).toBe(server.env.PORT);expect(server.env.HBL_BIND_HOST).toBe('127.0.0.1');const descriptor=config.metadata.browserEnvironments.find(item=>item.port===server.env.PORT);expect(descriptor).toBeDefined();expect(server.env.HBL_WORLD_DB_PATH).toBe(join(descriptor.store,'world.sqlite'));expect(server.env.HBL_GUEST_DB_PATH).toBe(join(descriptor.store,'guest.sqlite'));expect(server.env.HBL_TEMPORAL_DB_PATH).toBe(join(descriptor.store,'history.sqlite'));expect(existsSync(descriptor.store)).toBe(false);}
   if(config.servers.length===2){expect(config.servers[0].env.PORT).not.toBe(config.servers[1].env.PORT);expect(config.metadata.partyURL).toBe(new URL(config.servers[1].url).origin);}
  }
 });
