@@ -388,3 +388,12 @@ restore the prior camera state without issuing a model command. Missing or inval
 route geometry disables the control. The feature does not synthesize stops,
 passengers, service frequency, or real-world travel times; those remain unknown
 unless represented by a separate verified data source.
+
+## Saved city tours
+
+World controls includes the [saved city tour builder](../city-tour/README.md).
+It references immutable complete World saves and saved camera poses. Guest
+navigation validates carried checksum/pose/source/version pins before native
+model restoration; missing saves retain a skip-capable failure panel. Tours use
+manual cuts and pause at arrival. No model or camera mapping across authorities
+is introduced, and no hosted private-sharing or revocation support is claimed.
